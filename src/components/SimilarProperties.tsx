@@ -3,13 +3,14 @@
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Maximize, Check, MessageCircle, Link2, Search, X } from 'lucide-react'
+import { MapPin, Maximize2, Home, Check, MessageCircle, Link2, Search, X } from 'lucide-react'
 import {
   type TokkoProperty,
   generatePropertySlug,
   getMainPhoto,
   formatPrice,
   getTotalSurface,
+  getRoofedArea,
   translatePropertyType,
 } from '@/lib/tokko'
 
@@ -165,6 +166,7 @@ export default function SimilarProperties({ properties, currentPropertyId }: Pro
           const slug = generatePropertySlug(property)
           const price = formatPrice(property)
           const area = getTotalSurface(property)
+          const roofed = getRoofedArea(property)
           const typeName = translatePropertyType(property.type?.name)
           const isSelected = selected.has(property.id)
 
@@ -212,8 +214,14 @@ export default function SimilarProperties({ properties, currentPropertyId }: Pro
                   )}
                   {area != null && area > 0 && (
                     <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-black/50 text-white backdrop-blur-sm font-numeric">
-                      <Maximize className="w-3 h-3" />
+                      <Maximize2 className="w-3 h-3" />
                       {area} m²
+                    </span>
+                  )}
+                  {roofed != null && roofed > 0 && roofed !== area && (
+                    <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-black/50 text-white backdrop-blur-sm font-numeric">
+                      <Home className="w-3 h-3" />
+                      {roofed} cub.
                     </span>
                   )}
                 </div>

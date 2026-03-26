@@ -1,7 +1,8 @@
-import { MapPin, Building2, ArrowRight } from 'lucide-react'
+import { MapPin, Building2, ArrowRight, Maximize2, Home as HomeIcon } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
+import ShareCardButton from '@/components/ShareCardButton'
 import {
   getFeaturedProperties,
   getPropertyById,
@@ -10,6 +11,7 @@ import {
   formatPrice,
   getOperationType,
   getTotalSurface,
+  getRoofedArea,
   translatePropertyType,
   type TokkoProperty,
 } from '@/lib/tokko'
@@ -54,58 +56,68 @@ async function FeaturedPropertiesSection() {
             const price = formatPrice(property)
             const operation = getOperationType(property)
             const area = getTotalSurface(property)
+            const roofed = getRoofedArea(property)
 
             return (
-              <Link
+              <div
                 key={property.id}
-                href={`/propiedades/${slug}`}
-                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 group cursor-pointer block"
+                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 group relative"
               >
-                {/* Photo */}
-                <div className="relative h-52 overflow-hidden bg-gray-100">
-                  {photo ? (
-                    <Image
-                      src={photo}
-                      alt={property.publication_title || property.address}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-400 text-sm">Sin foto</span>
-                    </div>
-                  )}
-                  {operation && (
-                    <span className={`absolute top-3 left-3 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                      operation === 'Venta' ? 'bg-gray-900/80' : 'bg-brand-600/80'
-                    }`}>
-                      {operation}
-                    </span>
-                  )}
-                  {property.is_starred_on_web && (
-                    <span className="absolute top-3 right-3 px-2 py-0.5 text-[10px] font-bold rounded bg-amber-400/90 text-gray-900 uppercase tracking-wide">
-                      Destacada
-                    </span>
-                  )}
-                </div>
+                <Link href={`/propiedades/${slug}`} className="block">
+                  {/* Photo */}
+                  <div className="relative h-52 overflow-hidden bg-gray-100">
+                    {photo ? (
+                      <Image
+                        src={photo}
+                        alt={property.publication_title || property.address}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">Sin foto</span>
+                      </div>
+                    )}
+                    {operation && (
+                      <span className={`absolute top-3 left-3 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                        operation === 'Venta' ? 'bg-gray-900/80' : 'bg-brand-600/80'
+                      }`}>
+                        {operation}
+                      </span>
+                    )}
+                    {property.is_starred_on_web && (
+                      <span className="absolute top-3 right-3 px-2 py-0.5 text-[10px] font-bold rounded bg-amber-400/90 text-gray-900 uppercase tracking-wide">
+                        Destacada
+                      </span>
+                    )}
+                  </div>
 
-                {/* Body */}
-                <div className="p-4">
-                  {property.type?.name && (
-                    <p className="text-brand-600 text-[10px] font-bold uppercase tracking-widest mb-1">
-                      {translatePropertyType(property.type.name)}
-                    </p>
-                  )}
-                  <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-2">
-                    {property.publication_title || property.address}
-                  </h3>
-                  <p className="text-brand-600 font-black text-lg font-numeric">{price}</p>
-                  {area != null && area > 0 && (
-                    <p className="text-gray-500 text-xs mt-1 font-numeric">{area} m²</p>
-                  )}
+                  {/* Body */}
+                  <div className="p-4">
+                    {property.type?.name && (
+                      <p className="text-brand-600 text-[10px] font-bold uppercase tracking-widest mb-1">
+                        {translatePropertyType(property.type.name)}
+                      </p>
+                    )}
+                    <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-2">
+                      {property.publication_title || property.address}
+                    </h3>
+                    <p className="text-brand-600 font-black text-lg font-numeric">{price}</p>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
+                      {area != null && area > 0 && (
+                        <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{area}</span> m²</span>
+                      )}
+                      {roofed != null && roofed > 0 && roofed !== area && (
+                        <span className="flex items-center gap-0.5"><HomeIcon className="w-3 h-3" /><span className="font-numeric">{roofed}</span> m² cub.</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+                <div className="absolute top-3 right-3 z-10" style={{ marginRight: property.is_starred_on_web ? '80px' : '0' }}>
+                  <ShareCardButton slug={slug} />
                 </div>
-              </Link>
+              </div>
             )
           })}
         </div>

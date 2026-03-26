@@ -9,7 +9,6 @@ import {
   Search,
   MapPin,
   Heart,
-  Share2,
   List,
   Map,
   X,
@@ -17,19 +16,22 @@ import {
   ChevronDown,
   Bed,
   Bath,
-  Maximize,
+  Maximize2,
+  Home,
   Car,
   LayoutGrid,
   LayoutList,
   Check,
   ArrowUpDown,
 } from 'lucide-react'
+import ShareCardButton from '@/components/ShareCardButton'
 import {
   type TokkoProperty,
   getMainPhoto,
   formatPrice,
   getOperationType,
   getTotalSurface,
+  getRoofedArea,
   translatePropertyType,
   translateCondition,
   generatePropertySlug,
@@ -112,6 +114,8 @@ function CompactCard({ property, isSelected, onClick }: {
   const operation = getOperationType(property)
   const price = formatPrice(property)
   const area = getTotalSurface(property)
+  const roofed = getRoofedArea(property)
+  const slug = generatePropertySlug(property)
   const starred = property.is_starred_on_web
 
   return (
@@ -152,9 +156,12 @@ function CompactCard({ property, isSelected, onClick }: {
           </div>
         </div>
         <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-2 text-[11px]">
+          <div className="flex items-center gap-2 text-[11px] flex-wrap">
             {area != null && area > 0 && (
-              <span className="flex items-center gap-0.5 text-gray-500"><Maximize className="w-3 h-3" /><span className="font-numeric">{area}</span> m²</span>
+              <span className="flex items-center gap-0.5 text-gray-500"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{area}</span> m²</span>
+            )}
+            {roofed != null && roofed > 0 && roofed !== area && (
+              <span className="flex items-center gap-0.5 text-gray-500"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> cub.</span>
             )}
             {property.room_amount != null && property.room_amount > 0 && (
               <span className="flex items-center gap-0.5 text-gray-500"><Bed className="w-3 h-3" /><span className="font-numeric">{property.room_amount}</span></span>
@@ -163,7 +170,7 @@ function CompactCard({ property, isSelected, onClick }: {
           </div>
           <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
             <Heart className="w-3.5 h-3.5 text-gray-300 hover:text-red-400 transition-colors cursor-pointer" />
-            <Share2 className="w-3.5 h-3.5 text-gray-300 hover:text-blue-400 transition-colors cursor-pointer" />
+            <ShareCardButton slug={slug} />
           </div>
         </div>
       </div>
@@ -180,6 +187,7 @@ function ListCard({ property, isSelected, onClick, featured }: {
   const operation = getOperationType(property)
   const price = formatPrice(property)
   const area = getTotalSurface(property)
+  const roofed = getRoofedArea(property)
   const slug = generatePropertySlug(property)
   const typeName = translatePropertyType(property.type?.name)
   const condition = translateCondition(property.property_condition)
@@ -233,7 +241,10 @@ function ListCard({ property, isSelected, onClick, featured }: {
         {/* Stats row */}
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-2">
           {area != null && area > 0 && (
-            <span className="flex items-center gap-1"><Maximize className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{area}</span> m²</span>
+            <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{area}</span> m²</span>
+          )}
+          {roofed != null && roofed > 0 && roofed !== area && (
+            <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{roofed}</span> m² cub.</span>
           )}
           {property.room_amount > 0 && (
             <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{property.room_amount}</span> dorm.</span>
@@ -276,7 +287,7 @@ function ListCard({ property, isSelected, onClick, featured }: {
           </Link>
           <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
             <Heart className="w-4 h-4 text-white/50 hover:text-red-300 transition-colors cursor-pointer" />
-            <Share2 className="w-4 h-4 text-white/50 hover:text-white transition-colors cursor-pointer" />
+            <ShareCardButton slug={slug} size="md" variant="dark" />
           </div>
         </div>
       </div>
