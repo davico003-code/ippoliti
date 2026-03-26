@@ -279,11 +279,44 @@ async function DevelopmentsSection() {
   )
 }
 
+// ─── Metadata ────────────────────────────────────────────────────────────────
+
+export const metadata = {
+  title: 'SI Inmobiliaria | Venta y Alquiler en Roldán, Funes y Rosario - Desde 1983',
+  description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, departamentos, terrenos, emprendimientos. Tasaciones profesionales.',
+  openGraph: {
+    title: 'SI Inmobiliaria | Venta y Alquiler - Desde 1983',
+    description: 'Más de 40 años en el mercado inmobiliario de Roldán, Funes y Rosario.',
+    url: 'https://siinmobiliaria.com',
+  },
+}
+
 // ─── Home Page ────────────────────────────────────────────────────────────────
+
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateAgent',
+  name: 'SI Inmobiliaria',
+  url: 'https://siinmobiliaria.com',
+  logo: 'https://siinmobiliaria.com/logo.png',
+  foundingDate: '1983',
+  telephone: '+54-341-210-1694',
+  description: 'Inmobiliaria familiar con más de 40 años de experiencia en Roldán, Funes y Rosario.',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '1ro de Mayo 258',
+    addressLocality: 'Roldán',
+    addressRegion: 'Santa Fe',
+    addressCountry: 'AR',
+  },
+  areaServed: ['Roldán', 'Funes', 'Rosario', 'Fisherton'],
+}
 
 export default async function Home() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }} />
+
       {/* Hero with YouTube background */}
       <HeroVideo />
 

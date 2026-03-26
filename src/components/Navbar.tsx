@@ -33,7 +33,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-5 flex-shrink-0">
             <Link href="/propiedades" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors flex items-center gap-1">
               <MapPin className="w-4 h-4" />
-              Mapa
+              Propiedades
             </Link>
             <Link href="/emprendimientos" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors">
               Emprendimientos
@@ -74,7 +74,7 @@ export default function Navbar() {
                 className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:text-brand-600 font-medium transition-colors rounded-lg hover:bg-gray-50"
               >
                 <MapPin className="w-4 h-4" />
-                Mapa de propiedades
+                Propiedades
               </Link>
               <Link
                 href="/emprendimientos"

@@ -1,9 +1,19 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { Shield, Waves, Key, PenTool, DollarSign, TreePine } from "lucide-react"
 import { getPropertyById, formatPrice, getAllPhotos, getTotalSurface } from "@/lib/tokko"
 import type { TokkoProperty } from "@/lib/tokko"
 import HausingAnimations from "@/components/HausingAnimations"
+
+export const metadata: Metadata = {
+  title: 'Hausing — Casas de Diseño en Funes | SI Inmobiliaria',
+  description: 'Casas de diseño arquitectónico en barrios cerrados de Funes. Pileta, seguridad 24hs, financiación en USD. Llave en mano.',
+  openGraph: {
+    title: 'Hausing — Casas de Diseño en Funes',
+    description: 'Casas premium en los barrios más exclusivos de Funes. Desde SI Inmobiliaria.',
+  },
+}
 
 export const revalidate = 3600
 

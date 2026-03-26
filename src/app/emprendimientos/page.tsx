@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Building2, Banknote, ArrowRight } from 'lucide-react'
+import ShareCardButton from '@/components/ShareCardButton'
 import {
   getDevelopments,
   generateDevSlug,
@@ -65,8 +66,11 @@ export default async function EmprendimientosPage() {
                 const locationName = dev.location?.name || dev.fake_address || dev.address
 
                 return (
+                  <div key={dev.id} className="relative">
+                    <div className="absolute top-4 right-4 z-10">
+                      <ShareCardButton path={`/emprendimientos/${slug}`} />
+                    </div>
                   <Link
-                    key={dev.id}
                     href={`/emprendimientos/${slug}`}
                     className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 transition-all duration-300 hover:-translate-y-1 flex flex-col"
                   >
@@ -124,6 +128,7 @@ export default async function EmprendimientosPage() {
                       </div>
                     </div>
                   </Link>
+                  </div>
                 )
               })}
               {/* Card Hausing */}

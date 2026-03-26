@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { Share2, Check } from 'lucide-react'
 
-export default function ShareCardButton({ slug, size = 'sm', variant = 'light' }: { slug: string; size?: 'sm' | 'md'; variant?: 'light' | 'dark' }) {
+export default function ShareCardButton({ slug, path, size = 'sm', variant = 'light' }: { slug?: string; path?: string; size?: 'sm' | 'md'; variant?: 'light' | 'dark' }) {
   const [copied, setCopied] = useState(false)
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    navigator.clipboard.writeText(`https://siinmobiliaria.com/propiedades/${slug}`)
+    const url = path ? `https://siinmobiliaria.com${path}` : `https://siinmobiliaria.com/propiedades/${slug}`
+    navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
