@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Lock, LogOut, FileText, Download, BookOpen, BarChart3, Users, GraduationCap } from 'lucide-react'
 
-const PASSWORD = 'sischool2024'
+const USERNAME = 'user'
+const PASSWORD = 'inmobiliaria123'
 const STORAGE_KEY = 'si-school-auth'
 
 interface Resource {
@@ -66,6 +67,7 @@ const SECTIONS: Section[] = [
 
 export default function SchoolPage() {
   const [authenticated, setAuthenticated] = useState(false)
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
   const [checking, setChecking] = useState(true)
@@ -78,7 +80,7 @@ export default function SchoolPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    if (password === PASSWORD) {
+    if (username === USERNAME && password === PASSWORD) {
       localStorage.setItem(STORAGE_KEY, 'true')
       setAuthenticated(true)
       setError(false)
@@ -90,6 +92,7 @@ export default function SchoolPage() {
   const handleLogout = () => {
     localStorage.removeItem(STORAGE_KEY)
     setAuthenticated(false)
+    setUsername('')
     setPassword('')
   }
 
@@ -130,11 +133,27 @@ export default function SchoolPage() {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-gray-900 font-poppins">Acceso restringido</h2>
-                <p className="text-sm text-gray-500">Ingres&aacute; la contrase&ntilde;a para acceder</p>
+                <p className="text-sm text-gray-500">Ingres&aacute; tus credenciales para acceder</p>
               </div>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-1.5 font-poppins">
+                  Usuario
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={e => { setUsername(e.target.value); setError(false) }}
+                  placeholder="Usuario"
+                  className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#1A5C38] focus:border-transparent transition-all ${
+                    error ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'
+                  }`}
+                  autoFocus
+                />
+              </div>
               <div>
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1.5 font-poppins">
                   Contrase&ntilde;a
@@ -144,14 +163,13 @@ export default function SchoolPage() {
                   type="password"
                   value={password}
                   onChange={e => { setPassword(e.target.value); setError(false) }}
-                  placeholder="Ingres&aacute; la contrase&ntilde;a"
+                  placeholder="Contrase&ntilde;a"
                   className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#1A5C38] focus:border-transparent transition-all ${
                     error ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'
                   }`}
-                  autoFocus
                 />
                 {error && (
-                  <p className="text-red-500 text-xs mt-1.5 font-medium">Contrase&ntilde;a incorrecta</p>
+                  <p className="text-red-500 text-xs mt-1.5 font-medium">Usuario o contrase&ntilde;a incorrectos</p>
                 )}
               </div>
               <button
