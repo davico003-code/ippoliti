@@ -4,6 +4,7 @@ import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
 import {
   getFeaturedProperties,
+  getPropertyById,
   generatePropertySlug,
   getMainPhoto,
   formatPrice,
@@ -126,9 +127,14 @@ async function FeaturedPropertiesSection() {
 // ─── Developments Section ────────────────────────────────────────────────────
 
 async function DevelopmentsSection() {
-  let devs = await getDevelopments().catch(() => [])
+  const [devsRaw, hausingProp] = await Promise.all([
+    getDevelopments().catch(() => []),
+    getPropertyById(7875941).catch(() => null),
+  ])
+  let devs = devsRaw
   if (devs.length === 0) return null
   devs = devs.slice(0, 3)
+  const hausingPhoto = hausingProp ? getMainPhoto(hausingProp) : null
 
   return (
     <section className="py-20 bg-white">
@@ -147,11 +153,19 @@ async function DevelopmentsSection() {
             className="group bg-[#0D3320] rounded-xl overflow-hidden shadow-sm hover:shadow-xl border border-green-900 transition-all flex flex-col"
           >
             <div className="relative h-52 bg-gray-900 overflow-hidden">
-              <img
-                src="https://static.tokkobroker.com/pictures/7875941_10243763434995297834092266695650945370998920965861131579514865783640285019979.jpg"
-                alt="Hausing - Casas de diseño en Funes"
-                style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.8,transition:"transform 0.5s ease",position:"absolute",inset:0}}
-              />
+              {hausingPhoto ? (
+                <Image
+                  src={hausingPhoto}
+                  alt="Hausing - Casas de diseño en Funes"
+                  fill
+                  className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                  <span className="text-gray-500 text-sm">HAUSING</span>
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
               <div className="absolute top-3 left-3 flex gap-2">
                 <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-green-500 text-black uppercase">Casas Premium</span>
