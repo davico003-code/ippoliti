@@ -628,7 +628,7 @@ export default async function PropertyPage({ params }: Props) {
         </div>
 
         {/* Similar properties */}
-        <SimilarProperties properties={similar} />
+        <SimilarProperties properties={similar} currentPropertyId={property.id} />
 
         {/* Back link */}
         <div className="mt-12 pt-8 border-t border-gray-200">

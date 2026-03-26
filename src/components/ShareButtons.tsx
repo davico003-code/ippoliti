@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageCircle, Facebook, Twitter, Link2, Check } from 'lucide-react'
+import { MessageCircle, Link2, Check } from 'lucide-react'
 
 export default function ShareButtons({ slug, title }: { slug: string; title: string }) {
   const [copied, setCopied] = useState(false)
@@ -14,45 +14,21 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const buttons = [
-    {
-      label: 'WhatsApp',
-      href: `https://wa.me/?text=${text}`,
-      icon: MessageCircle,
-      className: 'bg-[#25D366] hover:bg-[#1ebe57] text-white',
-    },
-    {
-      label: 'Facebook',
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      icon: Facebook,
-      className: 'bg-[#1877F2] hover:bg-[#1466d8] text-white',
-    },
-    {
-      label: 'Twitter',
-      href: `https://twitter.com/intent/tweet?text=${text}`,
-      icon: Twitter,
-      className: 'bg-black hover:bg-gray-800 text-white',
-    },
-  ]
-
   return (
     <div className="mt-6 pt-6 border-t border-gray-100">
       <p className="text-xs text-gray-400 mb-3 font-poppins font-medium uppercase tracking-wide">
         Compartir propiedad
       </p>
       <div className="flex gap-2">
-        {buttons.map(({ label, href, icon: Icon, className }) => (
-          <a
-            key={label}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-colors ${className}`}
-          >
-            <Icon size={16} />
-            {label}
-          </a>
-        ))}
+        <a
+          href={`https://wa.me/?text=${text}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-colors bg-[#25D366] hover:bg-[#1ebe57] text-white"
+        >
+          <MessageCircle size={16} />
+          WhatsApp
+        </a>
         <button
           onClick={copyLink}
           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-colors ${
