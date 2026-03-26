@@ -315,17 +315,14 @@ export default async function PropertyPage({ params }: Props) {
             {/* Title, Address & Price */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-brand-100">
               <div className="flex flex-col gap-2">
-                <h1 className="text-3xl md:text-5xl font-black text-brand-600 leading-tight">
+                <h1 className="text-2xl md:text-3xl font-black text-brand-600 leading-tight">
                   {property.publication_title || property.address}
                 </h1>
                 <div className="flex items-center text-brand-600 mt-1 mb-2">
                   <MapPin className="w-5 h-5 mr-1.5 flex-shrink-0" />
                   <span className="text-lg font-bold">{property.real_address || property.address}{location ? `, ${location}` : ''}</span>
                 </div>
-                <div className="text-brand-600 font-black text-4xl mt-2 font-numeric">{price}</div>
-                <div className="mt-4">
-                  <ShareButtons slug={params.slug} title={property.publication_title || property.address} />
-                </div>
+                <div className="text-brand-600 font-black text-3xl mt-2 font-numeric">{price}</div>
               </div>
             </div>
 
