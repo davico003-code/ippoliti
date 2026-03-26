@@ -119,7 +119,9 @@ function FitBounds({ properties }: { properties: TokkoProperty[] }) {
     if (coords.length === 0) return
     setTimeout(() => {
       map.invalidateSize()
-      map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 14 })
+      map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 })
+      // Don't zoom out further than 11 (Rosario/Funes area)
+      setTimeout(() => { if (map.getZoom() < 11) map.setZoom(11) }, 100)
     }, 300)
   }, [properties, map])
   return null
@@ -180,8 +182,8 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
 
   return (
     <MapContainer
-      center={[-32.8956, -60.9003]}
-      zoom={10}
+      center={[-32.9167, -60.8167]}
+      zoom={13}
       style={{ height: '100%', width: '100%' }}
       zoomControl={false}
       scrollWheelZoom
@@ -192,7 +194,6 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
         maxZoom={20}
       />
       <ZoomControl position="bottomright" />
-      <FitBounds properties={mapped} />
       <FitBounds properties={mapped} />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
