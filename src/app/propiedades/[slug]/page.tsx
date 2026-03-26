@@ -7,6 +7,7 @@ import { MapPin, Bed, Bath, Maximize, Phone, MessageCircle, Home, Tag } from 'lu
 const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false });
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false });
 const NearbyPlaces = dynamic(() => import('@/components/NearbyPlaces'), { ssr: false });
+const BlueprintGallery = dynamic(() => import('@/components/BlueprintGallery'), { ssr: false });
 import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
 import type { NearbyProperty } from '@/components/PropertyMap';
@@ -572,15 +573,8 @@ export default async function PropertyPage({ params }: Props) {
                     Planos
                   </h2>
                   {blueprints.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                      {blueprints.map((bp, i) => (
-                        <a key={i} href={bp} target="_blank" rel="noopener noreferrer"
-                          className="relative h-52 bg-gray-50 rounded-lg overflow-hidden border border-gray-100 group block">
-                          <Image src={bp} alt={`Plano ${i + 1}`} fill
-                            className="object-contain group-hover:scale-105 transition-transform duration-300 p-2"
-                            sizes="(max-width: 640px) 100vw, 50vw" />
-                        </a>
-                      ))}
+                    <div className="mb-4">
+                      <BlueprintGallery blueprints={blueprints} />
                     </div>
                   )}
                   {files.length > 0 && (
