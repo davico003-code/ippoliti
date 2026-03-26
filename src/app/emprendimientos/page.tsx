@@ -24,15 +24,23 @@ export default async function EmprendimientosPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <section className="bg-brand-600 text-white py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-brand-200 text-sm font-bold tracking-widest uppercase mb-4">
+      <section className="relative h-[420px] flex items-center justify-center overflow-hidden">
+        <Image
+          src="https://images.pexels.com/photos/9338940/pexels-photo-9338940.jpeg?auto=compress&cs=tinysrgb&w=1400"
+          alt="Emprendimientos en construcción"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+        <div className="relative z-10 text-white text-center px-4 max-w-4xl mx-auto">
+          <p className="text-green-400 text-sm font-bold tracking-widest uppercase mb-4">
             Inversión y Desarrollo
           </p>
-          <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
+          <h1 className="text-4xl md:text-6xl font-black mb-4 leading-tight drop-shadow-lg">
             Emprendimientos
           </h1>
-          <p className="text-brand-100 text-lg max-w-2xl mx-auto">
+          <p className="text-white/80 text-lg max-w-2xl mx-auto">
             Conocé los desarrollos inmobiliarios que comercializamos en Roldán, Funes y Rosario.
             Barrios, condominios y proyectos con financiación.
           </p>
@@ -118,6 +126,60 @@ export default async function EmprendimientosPage() {
                   </Link>
                 )
               })}
+              {/* Card Hausing */}
+              <Link
+                href="/hausing"
+                className="group bg-brand-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl border border-gray-800 transition-all duration-300 hover:-translate-y-1 flex flex-col"
+              >
+                <div className="relative h-64 bg-gray-900 overflow-hidden">
+                  <Image
+                    src="https://static.tokkobroker.com/pictures/7875941_1024376343499529783409226669565094537099892096586113157951486578364028507bf60f4d86ec7a1f7e9b5733219979.jpg"
+                    alt="Hausing - Casas de diseño en Funes"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-70"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-green-500 text-black uppercase tracking-wide">
+                      Casas Premium
+                    </span>
+                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-white/10 text-white uppercase tracking-wide backdrop-blur-sm border border-white/20">
+                      Funes
+                    </span>
+                  </div>
+                  <div className="absolute bottom-4 left-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-white rounded flex items-center justify-center">
+                        <span className="text-black font-black text-xs">H</span>
+                      </div>
+                      <span className="text-white font-bold text-sm tracking-widest">HAUSING</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col bg-brand-800">
+                  <h2 className="text-2xl font-black text-white mb-2 group-hover:text-green-400 transition-colors">
+                    Hausing — Casas de Diseño
+                  </h2>
+                  <p className="text-green-500 font-semibold text-sm mb-2">Barrios cerrados premium · Funes</p>
+                  <div className="flex items-center gap-1.5 text-gray-400 text-sm mb-3">
+                    <MapPin className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span>Vida, Cadaques, Don Mateo, Kentucky · Funes</span>
+                  </div>
+                  <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                    6 casas exclusivas en los mejores barrios cerrados de Funes. Diseño contemporáneo, pileta, 3 y 4 dormitorios. Financiación en dólares.
+                  </p>
+                  <div className="flex items-center gap-1.5 text-sm text-green-400 bg-green-500/10 px-3 py-2 rounded-lg mb-4 border border-green-500/20">
+                    <Banknote className="w-4 h-4 flex-shrink-0" />
+                    <span className="font-semibold">6 propiedades disponibles desde USD 380K</span>
+                  </div>
+                  <div className="mt-auto pt-2">
+                    <span className="inline-flex items-center gap-1.5 text-green-400 font-bold text-sm group-hover:gap-2.5 transition-all">
+                      Ver propiedades Hausing <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
             </div>
           )}
         </div>

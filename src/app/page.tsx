@@ -141,6 +141,43 @@ async function DevelopmentsSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Card Hausing */}
+          <Link
+            href="/hausing"
+            className="group bg-[#0D3320] rounded-xl overflow-hidden shadow-sm hover:shadow-xl border border-green-900 transition-all flex flex-col"
+          >
+            <div className="relative h-52 bg-gray-900 overflow-hidden">
+              <img
+                src="https://static.tokkobroker.com/pictures/7875941_10243763434995297834092266695650945370998920965861131579514865783640285019979.jpg"
+                alt="Hausing - Casas de diseño en Funes"
+                style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.8,transition:"transform 0.5s ease",position:"absolute",inset:0}}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+              <div className="absolute top-3 left-3 flex gap-2">
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-green-500 text-black uppercase">Casas Premium</span>
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-white/10 text-white uppercase border border-white/20">Funes</span>
+              </div>
+              <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                <div className="w-5 h-5 bg-white rounded flex items-center justify-center">
+                  <span className="text-black font-black text-[10px]">H</span>
+                </div>
+                <span className="text-white font-bold text-xs tracking-widest">HAUSING</span>
+              </div>
+            </div>
+            <div className="p-5 flex-1 flex flex-col bg-[#0D3320]">
+              <h3 className="text-lg font-black text-white mb-1 group-hover:text-green-400 transition-colors">Hausing — Casas de Diseño</h3>
+              <div className="flex items-center gap-1 text-gray-400 text-xs mb-2">
+                <MapPin className="w-3 h-3 text-green-500" />
+                Vida, Cadaques, Don Mateo · Funes
+              </div>
+              <p className="text-green-500 text-xs font-semibold bg-green-500/10 px-2 py-1 rounded inline-block mb-2 border border-green-500/20">
+                6 propiedades disponibles · desde USD 380K
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 text-green-400 text-sm font-semibold group-hover:gap-2 transition-all pt-2">
+                Ver propiedades <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </Link>
           {devs.map(dev => {
             const photo = getDevMainPhoto(dev)
             const slug = generateDevSlug(dev)

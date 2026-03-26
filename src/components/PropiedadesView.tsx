@@ -306,6 +306,13 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     if (saved === 'compact' || saved === 'list') setListMode(saved)
   }, [])
 
+  // Fix mapa Safari iOS - forzar resize al mostrar
+  useEffect(() => {
+    if (mobileView === 'map') {
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 300)
+    }
+  }, [mobileView])
+
   // Close sort dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -403,7 +410,11 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       const lng = parseFloat(property.geo_long)
       if (!isNaN(lat) && !isNaN(lng)) setFlyToCenter([lat, lng])
     }
-    setMobileView('map')
+    if (window.innerWidth < 768) {
+      window.location.href = '/propiedades/' + generatePropertySlug(property)
+    } else {
+      setMobileView('map')
+    }
   }, [])
 
   const opLabel = filters.operation === 'venta' ? 'en venta'

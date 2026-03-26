@@ -49,7 +49,9 @@
       "Bash(grep -n \"import\\\\|dynamic\\\\|window\\\\|document\\\\|Map\" ~/Desktop/ippoliti/src/app/propiedades/[slug]/page.tsx)",
       "Bash(cat ~/Desktop/ippoliti/src/app/propiedades/[slug]/page.tsx)",
       "Bash(pbcopy)",
-      "Bash(gh:*)"
+      "Bash(gh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -6,7 +6,8 @@ import { MapPin, Bed, Bath, Maximize, Phone, MessageCircle, Home, Tag } from 'lu
 
 const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false });
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false });
-import SimilarProperties from '@/components/SimilarProperties';
+import SimilarProperties from '@/components/SimilarProperties'
+import ShareButtons from '@/components/ShareButtons';
 import {
   getPropertyById,
   getProperties,
@@ -593,11 +594,7 @@ export default async function PropertyPage({ params }: Props) {
                 Llamar <span className="font-numeric">(341) 210-1694</span>
               </a>
 
-              <div className="mt-6 pt-6 border-t border-gray-100 text-sm text-gray-500">
-                <p className="font-medium text-brand-600 mb-1">SI Inmobiliaria</p>
-                <p>1ro de Mayo 258 - Roldán</p>
-                <p className="mt-1">administracion@inmobiliariaippoliti.com</p>
-              </div>
+              <ShareButtons slug={params.slug} title={property.publication_title || property.address} />
             </div>
 
             <div className="bg-brand-50 border border-brand-100 rounded-2xl p-5 text-sm">
