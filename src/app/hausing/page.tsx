@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Shield, Waves, Key, PenTool, DollarSign, TreePine } from "lucide-react"
 import { getPropertyById, formatPrice, getAllPhotos, getTotalSurface } from "@/lib/tokko"
 import type { TokkoProperty } from "@/lib/tokko"
+import HausingAnimations from "@/components/HausingAnimations"
 
 export const revalidate = 3600
 
@@ -15,19 +16,12 @@ export default async function HausingPage() {
 
   return (
     <div style={{background:"#000",minHeight:"100vh",color:"#fff",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif",overflowX:"hidden"}}>
+      <HausingAnimations />
       <style>{`
-        @keyframes fadeUp { from { opacity:0; transform:translateY(40px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
-        @keyframes lineGrow { from { width:0 } to { width:60px } }
-        @keyframes countUp { from { opacity:0; transform:scale(0.5) } to { opacity:1; transform:scale(1) } }
-        .fade-up { animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
-        .fade-in { animation: fadeIn 1.2s ease forwards; }
-        .stat-num { animation: countUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards; }
         .prop-card:hover .prop-img { transform: scale(1.05); }
         .prop-card:hover .prop-arrow { transform: translateX(6px); }
         .prop-img { transition: transform 0.7s cubic-bezier(0.16,1,0.3,1); }
         .prop-arrow { transition: transform 0.3s ease; }
-        .pill-hover:hover { background: rgba(34,197,94,0.2); }
         @media (max-width: 768px) {
           .hero-title { font-size: clamp(42px, 10vw, 80px) !important; }
           .prop-grid { grid-template-columns: 1fr !important; }
@@ -50,40 +44,40 @@ export default async function HausingPage() {
           <span style={{color:"#fff",fontWeight:700,fontSize:"15px",letterSpacing:"0.05em"}}>HAUSING</span>
         </div>
         <Link href="/" style={{color:"rgba(255,255,255,0.6)",fontSize:"13px",textDecoration:"none",display:"flex",alignItems:"center",gap:"6px"}}>
-          ← SI Inmobiliaria
+          &larr; SI Inmobiliaria
         </Link>
       </nav>
 
-      {/* HERO */}
-      <section style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:"0 24px",position:"relative",overflow:"hidden"}}>
+      {/* HERO — parallax */}
+      <section data-anim="parallax" style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:"0 24px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0}}>
-          <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:"600px",height:"600px",background:"radial-gradient(ellipse, rgba(34,197,94,0.15) 0%, transparent 70%)",borderRadius:"50%"}} />
+          <div data-parallax-glow style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:"600px",height:"600px",background:"radial-gradient(ellipse, rgba(34,197,94,0.15) 0%, transparent 70%)",borderRadius:"50%"}} />
         </div>
 
-        <div className="fade-up" style={{position:"relative",zIndex:1,animationDelay:"0.1s",opacity:0}}>
-          <div style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 20px",border:"1px solid rgba(255,255,255,0.12)",borderRadius:"100px",marginBottom:"40px",fontSize:"12px",color:"rgba(255,255,255,0.6)",letterSpacing:"0.12em",textTransform:"uppercase"}}>
+        <div data-parallax-content style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",alignItems:"center"}}>
+          <div data-anim="fade-up" data-delay="100" style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 20px",border:"1px solid rgba(255,255,255,0.12)",borderRadius:"100px",marginBottom:"40px",fontSize:"12px",color:"rgba(255,255,255,0.6)",letterSpacing:"0.12em",textTransform:"uppercase"}}>
             <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#22c55e"}} />
-            Diseño · Calidad · Exclusividad
+            Dise&ntilde;o &middot; Calidad &middot; Exclusividad
           </div>
-        </div>
 
-        <h1 className="fade-up hero-title" style={{fontSize:"clamp(52px,8vw,96px)",fontWeight:900,lineHeight:1.0,margin:"0 0 32px",letterSpacing:"-3px",position:"relative",zIndex:1,animationDelay:"0.2s",opacity:0}}>
-          Vivir bien<br/>
-          <span style={{background:"linear-gradient(135deg,#86efac,#22c55e,#16a34a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>empieza aquí.</span>
-        </h1>
+          <h1 data-anim="fade-up" data-delay="200" className="hero-title" style={{fontSize:"clamp(52px,8vw,96px)",fontWeight:900,lineHeight:1.0,margin:"0 0 32px",letterSpacing:"-3px"}}>
+            Vivir bien<br/>
+            <span style={{background:"linear-gradient(135deg,#86efac,#22c55e,#16a34a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>empieza aqu&iacute;.</span>
+          </h1>
 
-        <p className="fade-up" style={{fontSize:"clamp(16px,2vw,20px)",color:"rgba(255,255,255,0.5)",maxWidth:"560px",margin:"0 auto 48px",lineHeight:1.7,position:"relative",zIndex:1,animationDelay:"0.35s",opacity:0}}>
-          Casas de diseño arquitectónico en los barrios cerrados más exclusivos de Funes.
-          Pileta, terminaciones premium y financiación en dólares.
-        </p>
+          <p data-anim="fade-up" data-delay="350" style={{fontSize:"clamp(16px,2vw,20px)",color:"rgba(255,255,255,0.5)",maxWidth:"560px",margin:"0 auto 48px",lineHeight:1.7}}>
+            Casas de dise&ntilde;o arquitect&oacute;nico en los barrios cerrados m&aacute;s exclusivos de Funes.
+            Pileta, terminaciones premium y financiaci&oacute;n en d&oacute;lares.
+          </p>
 
-        <div className="fade-up hero-btns" style={{display:"flex",gap:"16px",justifyContent:"center",position:"relative",zIndex:1,animationDelay:"0.5s",opacity:0}}>
-          <a href="#propiedades" style={{padding:"16px 40px",background:"#22c55e",color:"#000",borderRadius:"100px",fontWeight:700,fontSize:"15px",textDecoration:"none"}}>
-            Ver propiedades
-          </a>
-          <a href="https://wa.me/5493412101694?text=Hola!%20Me%20interesan%20las%20propiedades%20Hausing" target="_blank" style={{padding:"16px 40px",background:"rgba(255,255,255,0.07)",color:"#fff",borderRadius:"100px",fontWeight:600,fontSize:"15px",textDecoration:"none",border:"1px solid rgba(255,255,255,0.15)"}}>
-            Consultar ahora
-          </a>
+          <div data-anim="fade-up" data-delay="500" className="hero-btns" style={{display:"flex",gap:"16px",justifyContent:"center"}}>
+            <a href="#propiedades" style={{padding:"16px 40px",background:"#22c55e",color:"#000",borderRadius:"100px",fontWeight:700,fontSize:"15px",textDecoration:"none"}}>
+              Ver propiedades
+            </a>
+            <a href="https://wa.me/5493412101694?text=Hola!%20Me%20interesan%20las%20propiedades%20Hausing" target="_blank" style={{padding:"16px 40px",background:"rgba(255,255,255,0.07)",color:"#fff",borderRadius:"100px",fontWeight:600,fontSize:"15px",textDecoration:"none",border:"1px solid rgba(255,255,255,0.15)"}}>
+              Consultar ahora
+            </a>
+          </div>
         </div>
 
         <div style={{position:"absolute",bottom:"40px",left:"50%",transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:"8px"}}>
@@ -91,19 +85,19 @@ export default async function HausingPage() {
         </div>
       </section>
 
-      {/* ATRIBUTOS ABC1 */}
+      {/* ATRIBUTOS — stagger + hover */}
       <section style={{padding:"80px 24px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
         <div style={{maxWidth:"1000px",margin:"0 auto"}}>
           <div className="attr-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"2px"}}>
             {([
-              [Shield, "Seguridad 24hs", "Barrios cerrados con control de acceso permanente y perímetro vigilado."],
-              [Waves, "Pileta privada", "Cada propiedad incluye pileta de diseño integrada al paisajismo exterior."],
+              [Shield, "Seguridad 24hs", "Barrios cerrados con control de acceso permanente y per\u00edmetro vigilado."],
+              [Waves, "Pileta privada", "Cada propiedad incluye pileta de dise\u00f1o integrada al paisajismo exterior."],
               [Key, "Llave en mano", "Entrega inmediata. Obra terminada, lista para habitar sin obra pendiente."],
-              [PenTool, "Arquitectura de autor", "Diseño contemporáneo con materiales de primera: hormigón, vidrio, madera."],
-              [DollarSign, "Financiación en USD", "Condiciones personalizadas en dólares. Cuotas fijas, sin ajustes sorpresa."],
+              [PenTool, "Arquitectura de autor", "Dise\u00f1o contempor\u00e1neo con materiales de primera: hormig\u00f3n, vidrio, madera."],
+              [DollarSign, "Financiaci\u00f3n en USD", "Condiciones personalizadas en d\u00f3lares. Cuotas fijas, sin ajustes sorpresa."],
               [TreePine, "Espacios verdes", "Grandes lotes en barrios arbolados a 15 min de Rosario por autopista."],
             ] as const).map(([Icon, title, desc], i) => (
-              <div key={i} className="pill-hover" style={{padding:"32px 28px",border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",transition:"background 0.3s"}}>
+              <div key={i} data-anim="attr-card" data-index={i} style={{padding:"32px 28px",border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",borderRadius:"4px",cursor:"default"}}>
                 <div style={{marginBottom:"16px"}}><Icon size={24} color="#22c55e" strokeWidth={1.5} /></div>
                 <div style={{fontSize:"15px",fontWeight:700,color:"#fff",marginBottom:"8px"}}>{title}</div>
                 <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",lineHeight:1.6}}>{desc}</div>
@@ -113,18 +107,18 @@ export default async function HausingPage() {
         </div>
       </section>
 
-      {/* STATS */}
+      {/* STATS — count-up */}
       <section style={{padding:"100px 24px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
         <div style={{maxWidth:"900px",margin:"0 auto"}}>
           <div className="stats-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"48px",textAlign:"center"}}>
             {[
               ["6","Casas disponibles","exclusivas"],
-              ["280+","m² promedio","por propiedad"],
-              ["3–4","dormitorios","en suite disponible"],
+              ["280+","m\u00b2 promedio","por propiedad"],
+              ["3\u20134","dormitorios","en suite disponible"],
               ["5","barrios premium","en Funes"],
             ].map(([n,l,s]) => (
-              <div key={l}>
-                <div className="stat-num" style={{fontSize:"56px",fontWeight:900,color:"#22c55e",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{n}</div>
+              <div key={l} data-anim="fade-up">
+                <div data-anim="count-up" data-target={n} style={{fontSize:"56px",fontWeight:900,color:"#22c55e",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>&nbsp;</div>
                 <div style={{color:"#fff",marginTop:"8px",fontSize:"14px",fontWeight:600}}>{l}</div>
                 <div style={{color:"rgba(255,255,255,0.35)",fontSize:"12px",marginTop:"2px"}}>{s}</div>
               </div>
@@ -133,12 +127,12 @@ export default async function HausingPage() {
         </div>
       </section>
 
-      {/* PROPIEDADES */}
+      {/* PROPIEDADES — stagger cards */}
       <section id="propiedades" style={{padding:"80px 0",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
         <div style={{maxWidth:"1200px",margin:"0 auto",padding:"0 24px"}}>
-          <div style={{textAlign:"center",marginBottom:"72px"}}>
+          <div data-anim="fade-up" style={{textAlign:"center",marginBottom:"72px"}}>
             <p style={{color:"#22c55e",fontWeight:600,letterSpacing:"0.15em",fontSize:"11px",marginBottom:"16px",textTransform:"uppercase"}}>Portafolio exclusivo</p>
-            <h2 style={{fontSize:"clamp(32px,5vw,56px)",fontWeight:900,margin:0,letterSpacing:"-1.5px"}}>Elegí tu próximo hogar.</h2>
+            <h2 style={{fontSize:"clamp(32px,5vw,56px)",fontWeight:900,margin:0,letterSpacing:"-1.5px"}}>Eleg&iacute; tu pr&oacute;ximo hogar.</h2>
           </div>
 
           <div className="prop-grid" style={{display:"flex",flexDirection:"column",gap:"3px"}}>
@@ -149,13 +143,13 @@ export default async function HausingPage() {
               const area = getTotalSurface(property)
               const titleText = property.publication_title || ""
               const descText = (property.description || property.description_only || "").replace(/<[^>]*>/g, "")
-              const fullText = `${titleText} ${descText}`
               const roomsFromTitle = titleText.match(/(\d+)\s*(?:dormitorios?|dorms?)/i)?.[1]
               const roomsFromDesc = descText.match(/(\d+)\s*(?:dormitorios?|dorms?)/i)?.[1]
               const rooms = roomsFromTitle ? parseInt(roomsFromTitle) :
                 roomsFromDesc ? parseInt(roomsFromDesc) :
                 (property.suite_amount > 0 ? property.suite_amount : 0)
               const baths = property.bathroom_amount || 0
+              const fullText = `${titleText} ${descText}`
               const hasPileta = (property.tags || []).some(t =>
                 /pool|pileta|piscina|swimming/i.test(t.name)
               ) || /pileta|piscina|swimming\s*pool/i.test(fullText)
@@ -166,6 +160,7 @@ export default async function HausingPage() {
 
               return (
                 <Link key={property.id} href={`/propiedades/${slug}`}
+                  data-anim="stagger-card" data-index={i}
                   className="prop-card"
                   style={{display:"block",textDecoration:"none",borderRadius: i===0?"16px 16px 0 0": i===properties.length-1?"0 0 16px 16px":"0",overflow:"hidden"}}>
                   <div className="prop-inner" style={{display:"flex",minHeight:"480px"}}>
@@ -198,7 +193,7 @@ export default async function HausingPage() {
                         {area && area > 0 && (
                           <div>
                             <div style={{fontSize:"26px",fontWeight:900,color:"#fff",lineHeight:1}}>
-                              {area}<span style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",fontWeight:400}}> m²</span>
+                              {area}<span style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",fontWeight:400}}> m&sup2;</span>
                             </div>
                             <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>SUPERFICIE</div>
                           </div>
@@ -214,9 +209,9 @@ export default async function HausingPage() {
                         {baths > 0 && (
                           <div>
                             <div style={{fontSize:"26px",fontWeight:900,color:"#fff",lineHeight:1}}>
-                              {baths}<span style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",fontWeight:400}}> baños</span>
+                              {baths}<span style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",fontWeight:400}}> ba&ntilde;os</span>
                             </div>
-                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>BAÑOS</div>
+                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>BA&Ntilde;OS</div>
                           </div>
                         )}
                         {hasPileta && (
@@ -237,7 +232,7 @@ export default async function HausingPage() {
                         </div>
                         <div style={{display:"flex",alignItems:"center",gap:"8px",color:"rgba(255,255,255,0.6)",fontSize:"14px",fontWeight:600}}>
                           Ver propiedad
-                          <span className="prop-arrow" style={{fontSize:"18px"}}>→</span>
+                          <span className="prop-arrow" style={{fontSize:"18px"}}>&rarr;</span>
                         </div>
                       </div>
                     </div>
@@ -250,13 +245,13 @@ export default async function HausingPage() {
       </section>
 
       {/* CTA FINAL */}
-      <section style={{padding:"120px 24px",textAlign:"center",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+      <section data-anim="fade-up" style={{padding:"120px 24px",textAlign:"center",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
         <div style={{maxWidth:"700px",margin:"0 auto"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 20px",border:"1px solid rgba(34,197,94,0.3)",borderRadius:"100px",marginBottom:"32px",fontSize:"12px",color:"#22c55e",letterSpacing:"0.12em",textTransform:"uppercase"}}>
-            Atención personalizada
+            Atenci&oacute;n personalizada
           </div>
           <h2 style={{fontSize:"clamp(36px,6vw,68px)",fontWeight:900,margin:"0 0 24px",letterSpacing:"-2px",lineHeight:1}}>
-            Tu casa Hausing<br/>te está esperando.
+            Tu casa Hausing<br/>te est&aacute; esperando.
           </h2>
           <p style={{color:"rgba(255,255,255,0.45)",fontSize:"18px",marginBottom:"48px",lineHeight:1.6}}>
             Asesoramiento sin compromiso. Te contactamos en menos de 2 horas.
@@ -280,9 +275,9 @@ export default async function HausingPage() {
           <div style={{width:"24px",height:"24px",background:"#fff",borderRadius:"6px",display:"flex",alignItems:"center",justifyContent:"center"}}>
             <span style={{color:"#000",fontWeight:900,fontSize:"11px"}}>H</span>
           </div>
-          <span style={{color:"rgba(255,255,255,0.4)",fontSize:"13px"}}>Hausing × SI Inmobiliaria · Desde 1983</span>
+          <span style={{color:"rgba(255,255,255,0.4)",fontSize:"13px"}}>Hausing &times; SI Inmobiliaria &middot; Desde 1983</span>
         </div>
-        <Link href="/propiedades" style={{color:"rgba(255,255,255,0.4)",fontSize:"13px",textDecoration:"none"}}>Ver todas las propiedades →</Link>
+        <Link href="/propiedades" style={{color:"rgba(255,255,255,0.4)",fontSize:"13px",textDecoration:"none"}}>Ver todas las propiedades &rarr;</Link>
       </div>
     </div>
   )
