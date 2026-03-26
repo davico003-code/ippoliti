@@ -8,8 +8,9 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
-  getTotalSurface,
   getRoofedArea,
+  getLotSurface,
+  isLand,
   translatePropertyType,
 } from '@/lib/tokko'
 
@@ -18,8 +19,10 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
   const slug = generatePropertySlug(property)
   const operation = getOperationType(property)
   const price = formatPrice(property)
-  const area = getTotalSurface(property)
+  const totalSurf = parseFloat(property.total_surface) > 0 ? parseFloat(property.total_surface) : null
   const roofed = getRoofedArea(property)
+  const lot = getLotSurface(property)
+  const land = isLand(property)
 
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 group flex flex-col h-full relative">
@@ -56,11 +59,19 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
             {property.publication_title || property.address}
           </h3>
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-2">
-            {area != null && area > 0 && (
-              <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{area}</span> m²</span>
-            )}
-            {roofed != null && roofed > 0 && roofed !== area && (
-              <span className="flex items-center gap-0.5"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> m² cub.</span>
+            {land ? (
+              lot != null && lot > 0 && (
+                <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> m² lote</span>
+              )
+            ) : (
+              <>
+                {roofed != null && roofed > 0 && (
+                  <span className="flex items-center gap-0.5"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> m² cub.</span>
+                )}
+                {totalSurf != null && totalSurf > 0 && totalSurf !== roofed && (
+                  <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{totalSurf}</span> m² tot.</span>
+                )}
+              </>
             )}
             {property.room_amount > 0 && (
               <span className="flex items-center gap-0.5"><Bed className="w-3 h-3" /><span className="font-numeric">{property.room_amount}</span></span>

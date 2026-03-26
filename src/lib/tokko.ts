@@ -209,6 +209,18 @@ export function getTotalSurface(property: TokkoProperty): number | null {
   return null;
 }
 
+// Superficie del terreno/lote (campo "surface" en Tokko)
+export function getLotSurface(property: TokkoProperty): number | null {
+  const v = parseFloat(property.surface);
+  return v > 0 ? v : null;
+}
+
+// Determina si la propiedad es un terreno/lote
+export function isLand(property: TokkoProperty): boolean {
+  const name = (property.type?.name ?? '').toLowerCase();
+  return name === 'land' || name === 'terreno';
+}
+
 // Formato de ubicación legible: "Santa Fe | San Lorenzo | Roldan" → "Roldan, San Lorenzo"
 export function formatLocation(property: TokkoProperty): string {
   const loc = property.location;

@@ -30,8 +30,9 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
-  getTotalSurface,
   getRoofedArea,
+  getLotSurface,
+  isLand,
   translatePropertyType,
   translateCondition,
   generatePropertySlug,
@@ -113,8 +114,10 @@ function CompactCard({ property, isSelected, onClick }: {
   const photo = getMainPhoto(property)
   const operation = getOperationType(property)
   const price = formatPrice(property)
-  const area = getTotalSurface(property)
   const roofed = getRoofedArea(property)
+  const totalSurf = parseFloat(property.total_surface) > 0 ? parseFloat(property.total_surface) : null
+  const lot = getLotSurface(property)
+  const land = isLand(property)
   const slug = generatePropertySlug(property)
   const starred = property.is_starred_on_web
 
@@ -157,11 +160,19 @@ function CompactCard({ property, isSelected, onClick }: {
         </div>
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-2 text-[11px] flex-wrap">
-            {area != null && area > 0 && (
-              <span className="flex items-center gap-0.5 text-gray-500"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{area}</span> m²</span>
-            )}
-            {roofed != null && roofed > 0 && roofed !== area && (
-              <span className="flex items-center gap-0.5 text-gray-500"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> cub.</span>
+            {land ? (
+              lot != null && lot > 0 && (
+                <span className="flex items-center gap-0.5 text-gray-500"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> m² lote</span>
+              )
+            ) : (
+              <>
+                {roofed != null && roofed > 0 && (
+                  <span className="flex items-center gap-0.5 text-gray-500"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> cub.</span>
+                )}
+                {totalSurf != null && totalSurf > 0 && totalSurf !== roofed && (
+                  <span className="flex items-center gap-0.5 text-gray-500"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{totalSurf}</span> tot.</span>
+                )}
+              </>
             )}
             {property.room_amount != null && property.room_amount > 0 && (
               <span className="flex items-center gap-0.5 text-gray-500"><Bed className="w-3 h-3" /><span className="font-numeric">{property.room_amount}</span></span>
@@ -186,8 +197,10 @@ function ListCard({ property, isSelected, onClick, featured }: {
   const photo = getMainPhoto(property)
   const operation = getOperationType(property)
   const price = formatPrice(property)
-  const area = getTotalSurface(property)
   const roofed = getRoofedArea(property)
+  const totalSurf = parseFloat(property.total_surface) > 0 ? parseFloat(property.total_surface) : null
+  const lot = getLotSurface(property)
+  const land = isLand(property)
   const slug = generatePropertySlug(property)
   const typeName = translatePropertyType(property.type?.name)
   const condition = translateCondition(property.property_condition)
@@ -240,11 +253,19 @@ function ListCard({ property, isSelected, onClick, featured }: {
 
         {/* Stats row */}
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-2">
-          {area != null && area > 0 && (
-            <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{area}</span> m²</span>
-          )}
-          {roofed != null && roofed > 0 && roofed !== area && (
-            <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{roofed}</span> m² cub.</span>
+          {land ? (
+            lot != null && lot > 0 && (
+              <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{lot}</span> m² lote</span>
+            )
+          ) : (
+            <>
+              {roofed != null && roofed > 0 && (
+                <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{roofed}</span> m² cub.</span>
+              )}
+              {totalSurf != null && totalSurf > 0 && totalSurf !== roofed && (
+                <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{totalSurf}</span> m² tot.</span>
+              )}
+            </>
           )}
           {property.room_amount > 0 && (
             <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{property.room_amount}</span> dorm.</span>
