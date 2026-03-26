@@ -7,10 +7,11 @@ import { MapPin, Bed, Bath, Maximize, Phone, MessageCircle, Home, Tag } from 'lu
 const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false });
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false });
 const NearbyPlaces = dynamic(() => import('@/components/NearbyPlaces'), { ssr: false });
+const NearbyPropertiesMap = dynamic(() => import('@/components/NearbyPropertiesMap'), { ssr: false });
 const BlueprintGallery = dynamic(() => import('@/components/BlueprintGallery'), { ssr: false });
 import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
-import type { NearbyProperty } from '@/components/PropertyMap';
+import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
 import {
   getPropertyById,
   getProperties,
@@ -642,13 +643,7 @@ export default async function PropertyPage({ params }: Props) {
               lat={property.geo_lat ? parseFloat(property.geo_lat) : null}
               lng={property.geo_long ? parseFloat(property.geo_long) : null}
               address={property.real_address || property.fake_address || property.address}
-              nearbyProperties={nearbyForMap}
             />
-            {nearbyForMap.length > 0 && (
-              <p className="text-xs text-gray-400 mt-2 font-poppins">
-                Los marcadores verdes claros muestran otras propiedades cercanas disponibles.
-              </p>
-            )}
             <div className="flex items-center gap-2 mt-4 text-gray-600 text-sm">
               <MapPin className="w-4 h-4 text-brand-600 flex-shrink-0" />
               <span>
@@ -663,6 +658,17 @@ export default async function PropertyPage({ params }: Props) {
         {property.geo_lat && property.geo_long && (
           <div className="mt-6">
             <NearbyPlaces lat={parseFloat(property.geo_lat)} lng={parseFloat(property.geo_long)} />
+          </div>
+        )}
+
+        {/* Nearby properties map (Zillow-style) */}
+        {property.geo_lat && property.geo_long && nearbyForMap.length > 0 && (
+          <div className="mt-6">
+            <NearbyPropertiesMap
+              lat={parseFloat(property.geo_lat)}
+              lng={parseFloat(property.geo_long)}
+              nearbyProperties={nearbyForMap}
+            />
           </div>
         )}
 

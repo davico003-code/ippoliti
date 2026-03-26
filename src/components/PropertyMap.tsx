@@ -2,9 +2,8 @@
 
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import Link from 'next/link'
 
 function createMainMarker() {
   return L.divIcon({
@@ -15,20 +14,6 @@ function createMainMarker() {
     </svg>`,
     iconSize: [32, 45],
     iconAnchor: [16, 45],
-    popupAnchor: [0, -45],
-  })
-}
-
-function createNearbyMarker() {
-  return L.divIcon({
-    className: '',
-    html: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="34" viewBox="0 0 30 42" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))">
-      <path d="M15 0C6.716 0 0 6.716 0 15c0 10.444 15 27 15 27S30 25.444 30 15C30 6.716 23.284 0 15 0z" fill="#4ade80" stroke="white" stroke-width="2.5"/>
-      <circle cx="15" cy="15" r="5" fill="white"/>
-    </svg>`,
-    iconSize: [24, 34],
-    iconAnchor: [12, 34],
-    popupAnchor: [0, -34],
   })
 }
 
@@ -53,10 +38,9 @@ interface Props {
   lat: number | null
   lng: number | null
   address: string
-  nearbyProperties?: NearbyProperty[]
 }
 
-export default function PropertyMap({ lat, lng, address, nearbyProperties = [] }: Props) {
+export default function PropertyMap({ lat, lng, address }: Props) {
   const [coords, setCoords] = useState<[number, number] | null>(
     lat && lng && !isNaN(lat) && !isNaN(lng) ? [lat, lng] : null
   )
@@ -65,7 +49,6 @@ export default function PropertyMap({ lat, lng, address, nearbyProperties = [] }
   useEffect(() => {
     if (coords || !address) { setLoading(false); return }
 
-    // Geocode with Nominatim
     const q = encodeURIComponent(address + ', Santa Fe, Argentina')
     fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
       headers: { 'Accept-Language': 'es' },
@@ -106,23 +89,6 @@ export default function PropertyMap({ lat, lng, address, nearbyProperties = [] }
         />
         <SetView center={coords} />
         <Marker position={coords} icon={createMainMarker()} />
-
-        {nearbyProperties.map(np => (
-          <Marker key={np.id} position={[np.lat, np.lng]} icon={createNearbyMarker()}>
-            <Popup>
-              <div style={{ minWidth: 160, fontFamily: 'Poppins, sans-serif' }}>
-                <p style={{ fontWeight: 800, fontSize: 14, color: '#1A5C38', margin: '0 0 4px' }}>{np.price}</p>
-                <p style={{ fontSize: 12, color: '#374151', margin: '0 0 8px', lineHeight: 1.3 }}>{np.title}</p>
-                <Link
-                  href={`/propiedades/${np.slug}`}
-                  style={{ fontSize: 12, fontWeight: 700, color: '#1A5C38', textDecoration: 'none' }}
-                >
-                  Ver propiedad →
-                </Link>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
       </MapContainer>
     </div>
   )

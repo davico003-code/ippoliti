@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { School, Hospital, ShoppingCart, Trees } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 interface Place {
   name: string
@@ -11,16 +13,19 @@ interface Place {
 interface CategoryDef {
   key: string
   label: string
-  emoji: string
-  query: string
+  icon: LucideIcon
+  color: string
 }
 
 const CATEGORIES: CategoryDef[] = [
-  { key: 'school', label: 'Escuelas', emoji: '🏫', query: 'amenity=school' },
-  { key: 'hospital', label: 'Hospitales', emoji: '🏥', query: 'amenity=hospital' },
-  { key: 'supermarket', label: 'Supermercados', emoji: '🛒', query: 'shop=supermarket' },
-  { key: 'park', label: 'Plazas y parques', emoji: '🌳', query: 'leisure=park' },
+  { key: 'school', label: 'Escuelas', icon: School, color: '#1A5C38' },
+  { key: 'private_school', label: 'Colegios privados', icon: School, color: '#7c3aed' },
+  { key: 'hospital', label: 'Hospitales', icon: Hospital, color: '#dc2626' },
+  { key: 'supermarket', label: 'Supermercados', icon: ShoppingCart, color: '#ea580c' },
+  { key: 'park', label: 'Plazas y parques', icon: Trees, color: '#16a34a' },
 ]
+
+const PRIVATE_PATTERNS = /\b(san |santa |sagrado|nuestra|instituto|colegio|privad|parish|parroquial)/i
 
 function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000
@@ -38,12 +43,17 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    const queries = CATEGORIES.map(c => {
-      const [tag, val] = c.query.split('=')
-      return `node["${tag}"="${val}"](around:1000,${lat},${lng});way["${tag}"="${val}"](around:1000,${lat},${lng});`
-    }).join('')
-
-    const overpassQuery = `[out:json][timeout:10];(${queries});out center 50;`
+    // Schools in 2km (to catch private schools), rest in 1km
+    const overpassQuery = `[out:json][timeout:10];(
+      node["amenity"="school"](around:2000,${lat},${lng});
+      way["amenity"="school"](around:2000,${lat},${lng});
+      node["amenity"="hospital"](around:1000,${lat},${lng});
+      way["amenity"="hospital"](around:1000,${lat},${lng});
+      node["shop"="supermarket"](around:1000,${lat},${lng});
+      way["shop"="supermarket"](around:1000,${lat},${lng});
+      node["leisure"="park"](around:1000,${lat},${lng});
+      way["leisure"="park"](around:1000,${lat},${lng});
+    );out center 60;`
 
     fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
@@ -53,10 +63,7 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
       .then(r => r.json())
       .then(data => {
         const result: Record<string, Place[]> = {}
-
-        for (const cat of CATEGORIES) {
-          result[cat.key] = []
-        }
+        for (const cat of CATEGORIES) result[cat.key] = []
 
         for (const el of data.elements || []) {
           const tags = el.tags || {}
@@ -69,13 +76,24 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
 
           const dist = Math.round(haversineMeters(lat, lng, elLat, elLng))
 
-          if (tags.amenity === 'school') result.school.push({ name, distance: dist, category: 'school' })
-          else if (tags.amenity === 'hospital') result.hospital.push({ name, distance: dist, category: 'hospital' })
-          else if (tags.shop === 'supermarket') result.supermarket.push({ name, distance: dist, category: 'supermarket' })
-          else if (tags.leisure === 'park') result.park.push({ name, distance: dist, category: 'park' })
+          if (tags.amenity === 'school') {
+            const isPrivate = tags['operator:type'] === 'private' || PRIVATE_PATTERNS.test(name)
+            if (isPrivate) {
+              result.private_school.push({ name, distance: dist, category: 'private_school' })
+            }
+            // Also add to general schools if within 1km
+            if (dist <= 1000) {
+              result.school.push({ name, distance: dist, category: 'school' })
+            }
+          } else if (tags.amenity === 'hospital') {
+            result.hospital.push({ name, distance: dist, category: 'hospital' })
+          } else if (tags.shop === 'supermarket') {
+            result.supermarket.push({ name, distance: dist, category: 'supermarket' })
+          } else if (tags.leisure === 'park') {
+            result.park.push({ name, distance: dist, category: 'park' })
+          }
         }
 
-        // Sort by distance and limit
         for (const key of Object.keys(result)) {
           result[key].sort((a, b) => a.distance - b.distance)
           result[key] = result[key].slice(0, 5)
@@ -91,7 +109,7 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
         <h2 className="text-xl font-bold text-gray-900 mb-4 font-poppins">Lugares cercanos</h2>
         <div className="flex items-center gap-3 text-gray-400 text-sm">
           <div className="w-5 h-5 border-2 border-gray-200 border-t-[#1A5C38] rounded-full animate-spin" />
@@ -104,27 +122,35 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
   if (error || !hasAny) return null
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
       <h2 className="text-xl font-bold text-gray-900 mb-1 font-poppins">Lugares cercanos</h2>
-      <p className="text-gray-400 text-sm mb-5 font-poppins">En un radio de 1 km</p>
+      <p className="text-gray-400 text-sm mb-6 font-poppins">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {CATEGORIES.filter(c => places[c.key]?.length > 0).map(cat => (
-          <div key={cat.key}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">{cat.emoji}</span>
-              <h3 className="text-sm font-bold text-[#1A5C38] uppercase tracking-wide font-poppins">{cat.label}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        {CATEGORIES.filter(c => places[c.key]?.length > 0).map(cat => {
+          const Icon = cat.icon
+          return (
+            <div key={cat.key}>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${cat.color}15` }}>
+                  <Icon size={18} color={cat.color} strokeWidth={2} />
+                </div>
+                <h3 className="text-sm font-bold text-gray-900 font-poppins">{cat.label}</h3>
+                {cat.key === 'private_school' && (
+                  <span className="text-[10px] text-gray-400 font-poppins">hasta 2 km</span>
+                )}
+              </div>
+              <ul className="space-y-1">
+                {places[cat.key].map((p, i) => (
+                  <li key={i} className="flex items-center justify-between gap-3 py-2 border-b border-gray-50 last:border-0">
+                    <span className="text-sm text-gray-700 truncate">{p.name}</span>
+                    <span className="text-xs text-gray-400 font-numeric whitespace-nowrap font-poppins">{p.distance} m</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-2">
-              {places[cat.key].map((p, i) => (
-                <li key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-50 last:border-0">
-                  <span className="text-sm text-gray-700 truncate">{p.name}</span>
-                  <span className="text-xs text-gray-400 font-numeric whitespace-nowrap font-poppins">{p.distance} m</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
