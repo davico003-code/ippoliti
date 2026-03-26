@@ -6,8 +6,10 @@ import { MapPin, Bed, Bath, Maximize, Phone, MessageCircle, Home, Tag } from 'lu
 
 const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false });
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false });
+const NearbyPlaces = dynamic(() => import('@/components/NearbyPlaces'), { ssr: false });
 import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
+import type { NearbyProperty } from '@/components/PropertyMap';
 import {
   getPropertyById,
   getProperties,
@@ -206,6 +208,39 @@ export default async function PropertyPage({ params }: Props) {
     });
 
     similar = scored.slice(0, 4).map(x => x.p);
+  } catch {}
+
+  // Nearby properties for map markers (within 5km, with coords)
+  const nearbyForMap: NearbyProperty[] = [];
+  try {
+    const propLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
+    const propLng = property.geo_long ? parseFloat(property.geo_long) : null;
+    if (propLat && propLng) {
+      const allData = await getProperties({ limit: 100 });
+      for (const p of allData.objects ?? []) {
+        if (p.id === property.id) continue;
+        if (!p.geo_lat || !p.geo_long) continue;
+        const pLat = parseFloat(p.geo_lat);
+        const pLng = parseFloat(p.geo_long);
+        if (isNaN(pLat) || isNaN(pLng)) continue;
+        const dLat = (pLat - propLat) * Math.PI / 180;
+        const dLon = (pLng - propLng) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(propLat * Math.PI / 180) * Math.cos(pLat * Math.PI / 180) *
+          Math.sin(dLon / 2) ** 2;
+        const dist = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        if (dist <= 5) {
+          nearbyForMap.push({
+            id: p.id,
+            lat: pLat,
+            lng: pLng,
+            title: p.publication_title || p.address,
+            price: formatPrice(p),
+            slug: generatePropertySlug(p),
+          });
+        }
+      }
+    }
   } catch {}
 
   // JSON-LD structured data
@@ -616,7 +651,13 @@ export default async function PropertyPage({ params }: Props) {
               lat={property.geo_lat ? parseFloat(property.geo_lat) : null}
               lng={property.geo_long ? parseFloat(property.geo_long) : null}
               address={property.real_address || property.fake_address || property.address}
+              nearbyProperties={nearbyForMap}
             />
+            {nearbyForMap.length > 0 && (
+              <p className="text-xs text-gray-400 mt-2 font-poppins">
+                Los marcadores verdes claros muestran otras propiedades cercanas disponibles.
+              </p>
+            )}
             <div className="flex items-center gap-2 mt-4 text-gray-600 text-sm">
               <MapPin className="w-4 h-4 text-brand-600 flex-shrink-0" />
               <span>
@@ -626,6 +667,13 @@ export default async function PropertyPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Nearby places (Overpass/OSM) */}
+        {property.geo_lat && property.geo_long && (
+          <div className="mt-6">
+            <NearbyPlaces lat={parseFloat(property.geo_lat)} lng={parseFloat(property.geo_long)} />
+          </div>
+        )}
 
         {/* Similar properties */}
         <SimilarProperties properties={similar} currentPropertyId={property.id} />
