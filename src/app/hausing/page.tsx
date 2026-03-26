@@ -146,9 +146,14 @@ export default async function HausingPage() {
               const photo = photos[0]
               const price = formatPrice(property)
               const area = getTotalSurface(property)
+              const titleText = property.publication_title || ""
+              const roomsFromTitle = titleText.match(/(\d+)\s*(?:dormitorio|dorm|amb)/i)?.[1]
               const rooms = property.room_amount > 0 ? property.room_amount :
-                parseInt((property.publication_title||"").match(/(\d+)\s*dormitorio/i)?.[1] || "3")
+                roomsFromTitle ? parseInt(roomsFromTitle) : 0
               const baths = property.bathroom_amount || 0
+              const hasPileta = (property.tags || []).some(t =>
+                /pool|pileta/i.test(t.name)
+              )
               const title = property.publication_title || property.address
               const barrio = title.includes(" en ") ? title.split(" en ").slice(1).join(" en ") : property.fake_address || ""
               const slug = `${property.id}-${(property.publication_title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"")}`
@@ -207,6 +212,14 @@ export default async function HausingPage() {
                               {baths}<span style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",fontWeight:400}}> baños</span>
                             </div>
                             <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>BAÑOS</div>
+                          </div>
+                        )}
+                        {hasPileta && (
+                          <div>
+                            <div style={{fontSize:"26px",fontWeight:900,color:"#22c55e",lineHeight:1}}>
+                              🏊
+                            </div>
+                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>PILETA</div>
                           </div>
                         )}
                       </div>
