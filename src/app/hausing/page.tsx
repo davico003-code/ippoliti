@@ -147,13 +147,15 @@ export default async function HausingPage() {
               const price = formatPrice(property)
               const area = getTotalSurface(property)
               const titleText = property.publication_title || ""
-              const roomsFromTitle = titleText.match(/(\d+)\s*(?:dormitorio|dorm|amb)/i)?.[1]
+              const descText = (property.description || property.description_only || "").replace(/<[^>]*>/g, "")
+              const fullText = `${titleText} ${descText}`
+              const roomsFromText = fullText.match(/(\d+)\s*(?:dormitorios?|dorms?|ambientes?|hab(?:itaciones?)?)/i)?.[1]
               const rooms = property.room_amount > 0 ? property.room_amount :
-                roomsFromTitle ? parseInt(roomsFromTitle) : 0
+                roomsFromText ? parseInt(roomsFromText) : 0
               const baths = property.bathroom_amount || 0
               const hasPileta = (property.tags || []).some(t =>
-                /pool|pileta/i.test(t.name)
-              )
+                /pool|pileta|piscina|swimming/i.test(t.name)
+              ) || /pileta|piscina|swimming\s*pool/i.test(fullText)
               const title = property.publication_title || property.address
               const barrio = title.includes(" en ") ? title.split(" en ").slice(1).join(" en ") : property.fake_address || ""
               const slug = `${property.id}-${(property.publication_title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"")}`
