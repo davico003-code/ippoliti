@@ -92,21 +92,11 @@ export default function SimilarProperties({ properties, currentPropertyId }: Pro
     }
   }, [filtered, sort])
 
-  // Build WhatsApp share message with selected properties
-  const selectedProperties = useMemo(() => {
-    return properties.filter(p => selected.has(p.id))
-  }, [properties, selected])
-
   const whatsappShareUrl = useMemo(() => {
-    const lines = selectedProperties.map(p => {
-      const title = p.publication_title || p.address
-      const price = formatPrice(p)
-      const slug = generatePropertySlug(p)
-      return `${title} - ${price}\nhttps://siinmobiliaria.com/propiedades/${slug}`
-    })
-    const msg = `Hola! Te comparto estas propiedades:\n\n${lines.join('\n\n')}`
+    const fullCompareUrl = `https://siinmobiliaria.com${compareUrl}`
+    const msg = `Te preparé una selección de propiedades:\n${fullCompareUrl}`
     return `https://wa.me/?text=${encodeURIComponent(msg)}`
-  }, [selectedProperties])
+  }, [compareUrl])
 
   const copyCompareLink = () => {
     const fullUrl = `https://siinmobiliaria.com${compareUrl}`

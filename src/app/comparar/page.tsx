@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Bed, Bath, Maximize, Home, Tag, MessageCircle } from 'lucide-react';
+import { MapPin, Bed, Bath, Maximize, Car, MessageCircle, ArrowLeft } from 'lucide-react';
 import {
   getPropertyById,
-  getAllPhotos,
   formatPrice,
   getOperationType,
   getRoofedArea,
@@ -17,8 +16,8 @@ import {
 } from '@/lib/tokko';
 
 export const metadata: Metadata = {
-  title: 'Comparar Propiedades | SI Inmobiliaria',
-  description: 'Compará propiedades seleccionadas lado a lado.',
+  title: 'Selección de Propiedades | SI Inmobiliaria',
+  description: 'Propiedades seleccionadas especialmente para vos por SI Inmobiliaria.',
 };
 
 interface Props {
@@ -34,12 +33,23 @@ export default async function CompararPage({ searchParams }: Props) {
 
   if (ids.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Sin propiedades para comparar</h1>
-        <p className="text-gray-500 mb-8">Seleccioná propiedades similares desde la ficha de una propiedad para compararlas.</p>
-        <Link href="/propiedades" className="px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition-colors">
-          Ver propiedades
-        </Link>
+      <div className="min-h-screen bg-white flex flex-col">
+        {/* Header */}
+        <header className="bg-[#1A5C38] text-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-4">
+            <Link href="/">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="SI Inmobiliaria" className="h-10 w-auto brightness-0 invert" />
+            </Link>
+          </div>
+        </header>
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3 font-poppins">Sin propiedades seleccionadas</h1>
+          <p className="text-gray-500 mb-8 text-center max-w-md">Seleccion&aacute; propiedades desde la ficha de una propiedad para armar tu comparaci&oacute;n.</p>
+          <Link href="/propiedades" className="px-6 py-3 bg-[#1A5C38] text-white rounded-xl font-bold hover:bg-[#15472c] transition-colors font-poppins">
+            Ver propiedades
+          </Link>
+        </div>
       </div>
     );
   }
@@ -54,47 +64,68 @@ export default async function CompararPage({ searchParams }: Props) {
 
   if (properties.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">No se encontraron propiedades</h1>
-        <p className="text-gray-500 mb-8">Las propiedades solicitadas no están disponibles.</p>
-        <Link href="/propiedades" className="px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition-colors">
-          Ver propiedades
-        </Link>
+      <div className="min-h-screen bg-white flex flex-col">
+        <header className="bg-[#1A5C38] text-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-4">
+            <Link href="/">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="SI Inmobiliaria" className="h-10 w-auto brightness-0 invert" />
+            </Link>
+          </div>
+        </header>
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3 font-poppins">No se encontraron propiedades</h1>
+          <p className="text-gray-500 mb-8">Las propiedades solicitadas no est&aacute;n disponibles.</p>
+          <Link href="/propiedades" className="px-6 py-3 bg-[#1A5C38] text-white rounded-xl font-bold hover:bg-[#15472c] transition-colors font-poppins">
+            Ver propiedades
+          </Link>
+        </div>
       </div>
     );
   }
 
+  const whatsappLines = properties.map(p => {
+    const title = p.publication_title || p.address;
+    const price = formatPrice(p);
+    return `- ${title} (${price})`;
+  });
   const whatsappText = encodeURIComponent(
-    `Hola! Me interesan estas propiedades:\n${properties.map(p => `- ${p.publication_title || p.address}`).join('\n')}\nhttps://siinmobiliaria.com/comparar?ids=${ids.join(',')}`
+    `Hola! Me interesan estas propiedades:\n\n${whatsappLines.join('\n')}\n\nLink: https://siinmobiliaria.com/comparar?ids=${ids.join(',')}`
   );
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <nav className="flex items-center gap-2 text-sm text-gray-500">
-            <Link href="/" className="hover:text-brand-600 transition-colors">Inicio</Link>
-            <span>/</span>
-            <Link href="/propiedades" className="hover:text-brand-600 transition-colors">Propiedades</Link>
-            <span>/</span>
-            <span className="text-gray-900 font-medium">Comparar</span>
-          </nav>
+      {/* Hero header */}
+      <header className="bg-[#1A5C38] text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+          <div className="flex items-center justify-between mb-6">
+            <Link href="/" className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="SI Inmobiliaria" className="h-10 md:h-12 w-auto brightness-0 invert" />
+            </Link>
+            <Link
+              href="/propiedades"
+              className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Ver todas
+            </Link>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black font-poppins leading-tight">
+            Selecci&oacute;n de propiedades
+          </h1>
+          <p className="text-white/70 mt-2 text-lg font-poppins">
+            {properties.length} propiedad{properties.length !== 1 ? 'es' : ''} seleccionada{properties.length !== 1 ? 's' : ''} para vos
+          </p>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900">Comparar Propiedades</h1>
-          <p className="text-gray-500 mt-2">{properties.length} propiedad{properties.length !== 1 ? 'es' : ''} seleccionada{properties.length !== 1 ? 's' : ''}</p>
-        </div>
-
-        {/* Property cards */}
-        <div className={`grid gap-6 ${properties.length === 1 ? 'grid-cols-1 max-w-md' : properties.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+      {/* Property cards */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div className="grid gap-6 md:grid-cols-2">
           {properties.map(property => {
             const photo = getMainPhoto(property);
-            const photos = getAllPhotos(property);
             const price = formatPrice(property);
             const operation = getOperationType(property);
             const area = getTotalSurface(property);
@@ -102,112 +133,105 @@ export default async function CompararPage({ searchParams }: Props) {
             const location = formatLocation(property);
             const typeName = translatePropertyType(property.type?.name);
             const slug = generatePropertySlug(property);
+            const address = property.real_address || property.fake_address || property.address;
 
             return (
-              <div key={property.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                {/* Photo */}
-                <Link href={`/propiedades/${slug}`} className="block relative h-56 bg-gray-200">
+              <div key={property.id} className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
+                {/* Photo — tall */}
+                <Link href={`/propiedades/${slug}`} className="block relative h-64 md:h-72 bg-gray-200 overflow-hidden">
                   {photo ? (
                     <Image
                       src={photo}
                       alt={property.publication_title || property.address}
                       fill
-                      className="object-cover hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover hover:scale-105 transition-transform duration-700"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400">Sin foto</div>
+                    <div className="flex items-center justify-center h-full text-gray-400 font-poppins">Sin foto</div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  {operation && (
-                    <span className="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full bg-brand-600 text-white uppercase tracking-wide">
-                      {operation}
-                    </span>
-                  )}
-                  {photos.length > 1 && (
-                    <span className="absolute bottom-3 right-3 px-2 py-0.5 text-[10px] font-bold rounded bg-black/50 text-white backdrop-blur-sm font-numeric">
-                      {photos.length} fotos
-                    </span>
-                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+                  {/* Badges */}
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    {operation && (
+                      <span className="px-3 py-1 text-xs font-bold rounded-full bg-[#1A5C38] text-white uppercase tracking-wide font-poppins shadow-md">
+                        {operation}
+                      </span>
+                    )}
+                    {typeName && (
+                      <span className="px-3 py-1 text-xs font-bold rounded-full bg-white/90 text-[#1A5C38] uppercase tracking-wide font-poppins shadow-md">
+                        {typeName}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Price overlay */}
+                  <div className="absolute bottom-4 left-4">
+                    <p className="text-white font-black text-2xl md:text-3xl font-numeric drop-shadow-lg">
+                      {price}
+                    </p>
+                  </div>
                 </Link>
 
                 {/* Content */}
-                <div className="p-5">
+                <div className="p-6">
                   <Link href={`/propiedades/${slug}`}>
-                    <h2 className="text-lg font-black text-gray-900 leading-tight hover:text-brand-600 transition-colors line-clamp-2">
+                    <h2 className="text-xl font-black text-gray-900 leading-tight hover:text-[#1A5C38] transition-colors line-clamp-2 font-poppins">
                       {property.publication_title || property.address}
                     </h2>
                   </Link>
 
-                  <div className="flex items-center gap-1 text-gray-500 text-sm mt-1">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{property.real_address || property.fake_address || property.address}{location ? `, ${location}` : ''}</span>
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm mt-2">
+                    <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
+                    <span className="truncate">{address}{location ? `, ${location}` : ''}</span>
                   </div>
 
-                  <p className="text-brand-600 font-black text-2xl mt-3 font-numeric">{price}</p>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-2 mt-4">
-                    {area != null && area > 0 && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Maximize className="w-4 h-4 text-brand-600" />
-                        <span className="font-numeric">{area} m²</span>
-                      </div>
-                    )}
-                    {roofedArea != null && roofedArea > 0 && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Home className="w-4 h-4 text-brand-600" />
-                        <span className="font-numeric">{roofedArea} m² cub.</span>
-                      </div>
-                    )}
+                  {/* Stats grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
                     {property.room_amount > 0 && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Bed className="w-4 h-4 text-brand-600" />
-                        <span className="font-numeric">{property.room_amount} dorm.</span>
+                      <div className="flex flex-col items-center gap-1 p-3 bg-gray-50 rounded-xl">
+                        <Bed className="w-5 h-5 text-[#1A5C38]" />
+                        <span className="text-lg font-black text-gray-900 font-numeric">{property.room_amount}</span>
+                        <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide font-poppins">Dorm.</span>
                       </div>
                     )}
                     {property.bathroom_amount > 0 && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Bath className="w-4 h-4 text-brand-600" />
-                        <span className="font-numeric">{property.bathroom_amount} baño{property.bathroom_amount > 1 ? 's' : ''}</span>
+                      <div className="flex flex-col items-center gap-1 p-3 bg-gray-50 rounded-xl">
+                        <Bath className="w-5 h-5 text-[#1A5C38]" />
+                        <span className="text-lg font-black text-gray-900 font-numeric">{property.bathroom_amount}</span>
+                        <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide font-poppins">Ba&ntilde;o{property.bathroom_amount > 1 ? 's' : ''}</span>
                       </div>
                     )}
-                    {typeName && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Tag className="w-4 h-4 text-brand-600" />
-                        <span>{typeName}</span>
+                    {area != null && area > 0 && (
+                      <div className="flex flex-col items-center gap-1 p-3 bg-gray-50 rounded-xl">
+                        <Maximize className="w-5 h-5 text-[#1A5C38]" />
+                        <span className="text-lg font-black text-gray-900 font-numeric">{area}</span>
+                        <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide font-poppins">m&sup2; tot.</span>
+                      </div>
+                    )}
+                    {roofedArea != null && roofedArea > 0 && (
+                      <div className="flex flex-col items-center gap-1 p-3 bg-gray-50 rounded-xl">
+                        <Maximize className="w-5 h-5 text-[#1A5C38]" />
+                        <span className="text-lg font-black text-gray-900 font-numeric">{roofedArea}</span>
+                        <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide font-poppins">m&sup2; cub.</span>
                       </div>
                     )}
                     {property.parking_lot_amount > 0 && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="text-brand-600 text-xs font-bold">P</span>
-                        <span className="font-numeric">{property.parking_lot_amount} cochera{property.parking_lot_amount > 1 ? 's' : ''}</span>
+                      <div className="flex flex-col items-center gap-1 p-3 bg-gray-50 rounded-xl">
+                        <Car className="w-5 h-5 text-[#1A5C38]" />
+                        <span className="text-lg font-black text-gray-900 font-numeric">{property.parking_lot_amount}</span>
+                        <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide font-poppins">Cochera{property.parking_lot_amount > 1 ? 's' : ''}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Tags */}
-                  {property.tags && property.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-4">
-                      {property.tags.slice(0, 6).map(tag => (
-                        <span key={tag.id} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-[11px] font-medium">
-                          {tag.name}
-                        </span>
-                      ))}
-                      {property.tags.length > 6 && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded-full text-[11px] font-medium">
-                          +{property.tags.length - 6}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* CTA */}
+                  {/* View property link */}
                   <Link
                     href={`/propiedades/${slug}`}
-                    className="mt-4 w-full flex items-center justify-center px-4 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-colors"
+                    className="mt-5 w-full flex items-center justify-center px-4 py-3 border-2 border-[#1A5C38] text-[#1A5C38] rounded-xl text-sm font-bold hover:bg-[#1A5C38] hover:text-white transition-colors font-poppins"
                   >
-                    Ver propiedad
+                    Ver ficha completa
                   </Link>
                 </div>
               </div>
@@ -215,28 +239,28 @@ export default async function CompararPage({ searchParams }: Props) {
           })}
         </div>
 
-        {/* Shared WhatsApp CTA */}
-        <div className="mt-10 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-gray-900">¿Te interesan estas propiedades?</h2>
-            <p className="text-gray-500 text-sm mt-1">Consultanos por todas las propiedades seleccionadas de una sola vez.</p>
+        {/* CTA section */}
+        <div className="mt-12 mb-16">
+          <div className="bg-[#1A5C38] rounded-2xl p-8 md:p-10 text-center shadow-lg">
+            <h2 className="text-2xl md:text-3xl font-black text-white font-poppins mb-3">
+              &iquest;Te interesan estas propiedades?
+            </h2>
+            <p className="text-white/70 mb-8 text-lg font-poppins max-w-lg mx-auto">
+              Consult&aacute; por todas de una sola vez. Te respondemos a la brevedad.
+            </p>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-white text-[#1A5C38] rounded-2xl font-black text-lg hover:bg-gray-100 transition-colors shadow-md hover:shadow-lg font-poppins"
+            >
+              <MessageCircle className="w-6 h-6" />
+              Consultar por todas estas propiedades
+            </a>
+            <p className="text-white/50 text-sm mt-4 font-poppins">
+              SI Inmobiliaria &middot; Desde 1983
+            </p>
           </div>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg whitespace-nowrap"
-          >
-            <MessageCircle className="w-5 h-5" />
-            Consultar por WhatsApp
-          </a>
-        </div>
-
-        {/* Back link */}
-        <div className="mt-10 pt-8 border-t border-gray-200">
-          <Link href="/propiedades" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-bold transition-colors text-lg">
-            ← Volver al catálogo
-          </Link>
         </div>
       </div>
     </div>
