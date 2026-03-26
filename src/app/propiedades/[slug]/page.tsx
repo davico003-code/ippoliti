@@ -287,6 +287,9 @@ export default async function PropertyPage({ params }: Props) {
                   <span className="text-lg font-bold">{property.real_address || property.address}{location ? `, ${location}` : ''}</span>
                 </div>
                 <div className="text-brand-600 font-black text-4xl mt-2 font-numeric">{price}</div>
+                <div className="mt-4">
+                  <ShareButtons slug={params.slug} title={property.publication_title || property.address} />
+                </div>
               </div>
             </div>
 
