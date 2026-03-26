@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { Shield, Waves, Key, PenTool, DollarSign, TreePine } from "lucide-react"
 import { getPropertyById, formatPrice, getAllPhotos, getTotalSurface } from "@/lib/tokko"
 import type { TokkoProperty } from "@/lib/tokko"
 
@@ -94,16 +95,16 @@ export default async function HausingPage() {
       <section style={{padding:"80px 24px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
         <div style={{maxWidth:"1000px",margin:"0 auto"}}>
           <div className="attr-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"2px"}}>
-            {[
-              ["🔒","Seguridad 24hs","Barrios cerrados con control de acceso permanente y perímetro vigilado."],
-              ["🏊","Pileta privada","Cada propiedad incluye pileta de diseño integrada al paisajismo exterior."],
-              ["🏗","Llave en mano","Entrega inmediata. Obra terminada, lista para habitar sin obra pendiente."],
-              ["📐","Arquitectura de autor","Diseño contemporáneo con materiales de primera: hormigón, vidrio, madera."],
-              ["💵","Financiación en USD","Condiciones personalizadas en dólares. Cuotas fijas, sin ajustes sorpresa."],
-              ["🌿","Espacios verdes","Grandes lotes en barrios arbolados a 15 min de Rosario por autopista."],
-            ].map(([icon, title, desc], i) => (
+            {([
+              [Shield, "Seguridad 24hs", "Barrios cerrados con control de acceso permanente y perímetro vigilado."],
+              [Waves, "Pileta privada", "Cada propiedad incluye pileta de diseño integrada al paisajismo exterior."],
+              [Key, "Llave en mano", "Entrega inmediata. Obra terminada, lista para habitar sin obra pendiente."],
+              [PenTool, "Arquitectura de autor", "Diseño contemporáneo con materiales de primera: hormigón, vidrio, madera."],
+              [DollarSign, "Financiación en USD", "Condiciones personalizadas en dólares. Cuotas fijas, sin ajustes sorpresa."],
+              [TreePine, "Espacios verdes", "Grandes lotes en barrios arbolados a 15 min de Rosario por autopista."],
+            ] as const).map(([Icon, title, desc], i) => (
               <div key={i} className="pill-hover" style={{padding:"32px 28px",border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",transition:"background 0.3s"}}>
-                <div style={{fontSize:"28px",marginBottom:"12px"}}>{icon}</div>
+                <div style={{marginBottom:"16px"}}><Icon size={24} color="#22c55e" strokeWidth={1.5} /></div>
                 <div style={{fontSize:"15px",fontWeight:700,color:"#fff",marginBottom:"8px"}}>{title}</div>
                 <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",lineHeight:1.6}}>{desc}</div>
               </div>
@@ -149,9 +150,11 @@ export default async function HausingPage() {
               const titleText = property.publication_title || ""
               const descText = (property.description || property.description_only || "").replace(/<[^>]*>/g, "")
               const fullText = `${titleText} ${descText}`
-              const roomsFromText = fullText.match(/(\d+)\s*(?:dormitorios?|dorms?|ambientes?|hab(?:itaciones?)?)/i)?.[1]
-              const rooms = property.room_amount > 0 ? property.room_amount :
-                roomsFromText ? parseInt(roomsFromText) : 0
+              const roomsFromTitle = titleText.match(/(\d+)\s*(?:dormitorios?|dorms?)/i)?.[1]
+              const roomsFromDesc = descText.match(/(\d+)\s*(?:dormitorios?|dorms?)/i)?.[1]
+              const rooms = roomsFromTitle ? parseInt(roomsFromTitle) :
+                roomsFromDesc ? parseInt(roomsFromDesc) :
+                (property.suite_amount > 0 ? property.suite_amount : 0)
               const baths = property.bathroom_amount || 0
               const hasPileta = (property.tags || []).some(t =>
                 /pool|pileta|piscina|swimming/i.test(t.name)
@@ -218,10 +221,11 @@ export default async function HausingPage() {
                         )}
                         {hasPileta && (
                           <div>
-                            <div style={{fontSize:"26px",fontWeight:900,color:"#22c55e",lineHeight:1}}>
-                              🏊
+                            <div style={{display:"flex",alignItems:"center",gap:"8px",lineHeight:1}}>
+                              <div style={{width:"8px",height:"8px",borderRadius:"50%",background:"#22c55e",flexShrink:0}} />
+                              <span style={{fontSize:"13px",fontWeight:700,color:"#22c55e",letterSpacing:"0.08em"}}>PILETA</span>
                             </div>
-                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>PILETA</div>
+                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"8px",letterSpacing:"0.08em"}}>INCLUIDA</div>
                           </div>
                         )}
                       </div>
