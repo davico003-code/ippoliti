@@ -20,17 +20,21 @@ export default function ShareCardButton({ slug, path, size = 'sm', variant = 'li
   return (
     <button
       onClick={handleShare}
-      className="relative group/share"
+      className={`relative group/share flex items-center justify-center rounded-full transition-all ${
+        variant === 'dark'
+          ? 'w-8 h-8'
+          : 'w-8 h-8 bg-white/80 hover:bg-white backdrop-blur-sm shadow-sm'
+      }`}
       title="Compartir propiedad"
     >
       {copied ? (
         <Check className={variant === 'dark' ? 'text-white transition-colors' : 'text-brand-600 transition-colors'} style={{ width: iconSize, height: iconSize }} />
       ) : (
-        <Share2 className={variant === 'dark' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : 'text-gray-300 hover:text-brand-600 transition-colors cursor-pointer'} style={{ width: iconSize, height: iconSize }} />
+        <Share2 className={variant === 'dark' ? 'text-white/50 hover:text-white transition-colors cursor-pointer' : 'text-gray-500 hover:text-brand-600 transition-colors cursor-pointer'} style={{ width: iconSize, height: iconSize }} />
       )}
       {copied && (
-        <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-[10px] font-bold rounded whitespace-nowrap z-50">
-          Link copiado
+        <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-brand-600 text-white text-[10px] font-bold rounded-full whitespace-nowrap z-50 shadow-md">
+          Link copiado!
         </span>
       )}
     </button>
