@@ -6,11 +6,44 @@ import {
   formatPrice,
   getOperationType,
   getTotalSurface,
-  getRoofedArea,
   getLotSurface,
 } from '@/lib/tokko'
 
 export const runtime = 'edge'
+
+// SVG icons as JSX for @vercel/og
+const icons = {
+  area: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18M9 21V9" />
+    </svg>
+  ),
+  lote: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <path d="M3 21h18M3 21V7l9-4 9 4v14M9 21v-6h6v6" />
+    </svg>
+  ),
+  dorm: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <path d="M2 9V19M22 9v10M2 14h20M2 9a5 5 0 0 1 5-5h10a5 5 0 0 1 5 5" />
+      <circle cx="7.5" cy="11.5" r="1.5" fill="white" />
+    </svg>
+  ),
+  bath: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <path d="M4 12h16v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-4z" />
+      <path d="M4 12V5a2 2 0 0 1 2-2h2v5" />
+    </svg>
+  ),
+  car: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <path d="M5 17H3v-5l2-5h14l2 5v5h-2M5 17h14M5 17v2M19 17v2" />
+      <circle cx="7.5" cy="17" r="1.5" fill="white" />
+      <circle cx="16.5" cy="17" r="1.5" fill="white" />
+    </svg>
+  ),
+}
 
 export async function GET(
   _req: Request,
@@ -27,19 +60,17 @@ export async function GET(
   const operation = getOperationType(property)
   const title = property.publication_title || property.address
   const area = getTotalSurface(property)
-  const roofed = getRoofedArea(property)
   const lot = getLotSurface(property)
 
-  // Build stats array — only include stats with values > 0
-  const stats: { icon: string; value: string; label: string }[] = []
-  if (area != null && area > 0) stats.push({ icon: '⊞', value: `${area}`, label: 'm² total' })
-  if (roofed != null && roofed > 0 && roofed !== area) stats.push({ icon: '⌂', value: `${roofed}`, label: 'm² cub.' })
-  if (lot != null && lot > 0 && lot !== area) stats.push({ icon: '◱', value: `${lot}`, label: 'm² lote' })
-  if (property.room_amount > 0) stats.push({ icon: '◫', value: `${property.room_amount}`, label: 'dorm.' })
-  if (property.bathroom_amount > 0) stats.push({ icon: '◈', value: `${property.bathroom_amount}`, label: `baño${property.bathroom_amount > 1 ? 's' : ''}` })
-  if (property.parking_lot_amount > 0) stats.push({ icon: '▣', value: `${property.parking_lot_amount}`, label: 'cochera' })
+  // Build stats — only values > 0
+  const stats: { icon: React.ReactNode; text: string }[] = []
+  if (area != null && area > 0) stats.push({ icon: icons.area, text: `${area} m²` })
+  if (lot != null && lot > 0 && lot !== area) stats.push({ icon: icons.lote, text: `${lot} m² lote` })
+  if (property.room_amount > 0) stats.push({ icon: icons.dorm, text: `${property.room_amount} dorm.` })
+  if (property.bathroom_amount > 0) stats.push({ icon: icons.bath, text: `${property.bathroom_amount} baño${property.bathroom_amount > 1 ? 's' : ''}` })
+  if (property.parking_lot_amount > 0) stats.push({ icon: icons.car, text: `${property.parking_lot_amount} cochera` })
 
-  const displayTitle = title.length > 90 ? title.slice(0, 90) + '…' : title
+  const displayTitle = title.length > 70 ? title.slice(0, 70) + '…' : title
 
   return new ImageResponse(
     (
@@ -49,95 +80,76 @@ export async function GET(
           height: 1920,
           display: 'flex',
           flexDirection: 'column',
-          position: 'relative',
           fontFamily: 'sans-serif',
-          background: '#000',
+          background: '#0a0a0a',
         }}
       >
-        {/* Background photo */}
-        {photo && (
-          // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-          <img
-            src={photo}
+        {/* Top half — hero image (55%) */}
+        <div style={{ width: 1080, height: 1056, position: 'relative', display: 'flex' }}>
+          {photo && (
+            // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+            <img
+              src={photo}
+              style={{
+                width: 1080,
+                height: 1056,
+                objectFit: 'cover',
+              }}
+            />
+          )}
+          {/* Subtle vignette on image */}
+          <div
             style={{
               position: 'absolute',
               top: 0,
               left: 0,
               width: 1080,
-              height: 1920,
-              objectFit: 'cover',
+              height: 1056,
+              background: 'rgba(0,0,0,0.15)',
+              display: 'flex',
             }}
           />
-        )}
-
-        {/* Vignette overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: 1080,
-            height: 1920,
-            background: 'rgba(0,0,0,0.2)',
-            display: 'flex',
-          }}
-        />
-
-        {/* Bottom gradient overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            width: 1080,
-            height: 1152,
-            background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.92) 55%)',
-            display: 'flex',
-          }}
-        />
-
-        {/* Top frosted bar */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: 1080,
-            height: 80,
-            background: 'rgba(255,255,255,0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 48px',
-          }}
-        >
-          {/* Left: name */}
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 500 }}>David Flores</span>
-          {/* Right: matricula */}
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 500, letterSpacing: 4, textTransform: 'uppercase' as const }}>Mat. N° 0621</span>
+          {/* Top bar over image */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: 1080,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '20px 32px',
+            }}
+          >
+            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 22, fontWeight: 500, letterSpacing: 4 }}>David Flores</span>
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 22, fontWeight: 500, letterSpacing: 4, textTransform: 'uppercase' as const }}>Mat. N° 0621</span>
+          </div>
         </div>
 
-        {/* Bottom content */}
+        {/* Green separator */}
+        <div style={{ width: 1080, height: 3, background: '#1A5C38', display: 'flex' }} />
+
+        {/* Bottom half — text on dark (45%) */}
         <div
           style={{
-            position: 'absolute',
-            bottom: 100,
-            left: 48,
-            right: 48,
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
+            padding: '28px 32px',
+            background: '#0a0a0a',
           }}
         >
           {/* Operation badge */}
           {operation && (
-            <div style={{ display: 'flex', marginBottom: 20 }}>
+            <div style={{ display: 'flex', marginBottom: 14 }}>
               <span
                 style={{
                   background: '#1A5C38',
                   color: 'white',
-                  fontSize: 11,
+                  fontSize: 22,
                   fontWeight: 700,
-                  padding: '6px 16px',
+                  padding: '10px 28px',
                   borderRadius: 50,
                   letterSpacing: 4,
                   textTransform: 'uppercase' as const,
@@ -148,20 +160,15 @@ export async function GET(
             </div>
           )}
 
-          {/* Green accent line */}
-          <div style={{ display: 'flex', marginBottom: 20 }}>
-            <div style={{ width: 48, height: 3, background: '#1A5C38', borderRadius: 2 }} />
-          </div>
-
           {/* Title */}
           <span
             style={{
               color: 'white',
-              fontSize: 52,
+              fontSize: 76,
               fontWeight: 700,
-              lineHeight: 1.15,
-              letterSpacing: -0.5,
-              marginBottom: 24,
+              letterSpacing: -1,
+              lineHeight: 1.2,
+              marginTop: 14,
             }}
           >
             {displayTitle}
@@ -171,72 +178,61 @@ export async function GET(
           <span
             style={{
               color: '#4ADE80',
-              fontSize: 64,
+              fontSize: 104,
               fontWeight: 800,
-              letterSpacing: -1,
-              marginBottom: 24,
+              letterSpacing: -2,
+              marginTop: 8,
             }}
           >
             {price}
           </span>
 
-          {/* Stats grid */}
+          {/* Stats */}
           {stats.length > 0 && (
             <div
               style={{
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: 10,
-                marginTop: 24,
+                gap: 16,
+                marginTop: 32,
               }}
             >
-              {stats.map((stat) => (
+              {stats.map((stat, i) => (
                 <div
-                  key={stat.label}
+                  key={i}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 8,
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    border: '1px solid rgba(255,255,255,0.2)',
                     borderRadius: 50,
-                    padding: '8px 16px',
+                    padding: '12px 24px',
                   }}
                 >
-                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>{stat.icon}</span>
-                  <span style={{ color: 'white', fontSize: 13, fontWeight: 700 }}>{stat.value}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>{stat.label}</span>
+                  {stat.icon}
+                  <span style={{ color: 'white', fontSize: 28, fontWeight: 500 }}>{stat.text}</span>
                 </div>
               ))}
             </div>
           )}
-        </div>
 
-        {/* Bottom divider + handle */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '0 48px 44px',
-          }}
-        >
-          <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.1)', marginBottom: 16, display: 'flex' }} />
-          <span
-            style={{
-              color: 'rgba(255,255,255,0.6)',
-              fontSize: 12,
-              fontWeight: 500,
-              letterSpacing: 4,
-              textTransform: 'uppercase' as const,
-            }}
-          >
-            @inmobiliaria.si
-          </span>
+          {/* Spacer */}
+          <div style={{ flex: 1, display: 'flex' }} />
+
+          {/* Bottom handle */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span
+              style={{
+                color: 'rgba(255,255,255,0.4)',
+                fontSize: 22,
+                fontWeight: 500,
+                letterSpacing: 4,
+                textTransform: 'uppercase' as const,
+              }}
+            >
+              @inmobiliaria.si
+            </span>
+          </div>
         </div>
       </div>
     ),
