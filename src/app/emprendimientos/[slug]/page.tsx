@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Building2, Banknote, ArrowLeft, Download, CheckCircle2 } from 'lucide-react'
+import { MapPin, Building2, Banknote, ArrowLeft, Download, CheckCircle2, Phone, MessageCircle, Calendar } from 'lucide-react'
 import {
   getDevelopments,
   getDevelopmentById,
@@ -14,6 +15,9 @@ import {
   translateTag,
   type Development,
 } from '@/lib/developments'
+
+const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false })
+const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false })
 
 export const revalidate = 21600
 
@@ -34,9 +38,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const id = getDevIdFromSlug(params.slug)
     const dev = await getDevelopmentById(id)
+    const desc = dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title
     return {
       title: `${dev.name} | Emprendimientos SI Inmobiliaria`,
-      description: dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title,
+      description: desc,
+      openGraph: {
+        title: `${dev.name} | SI Inmobiliaria`,
+        description: desc,
+        images: getDevMainPhoto(dev) ? [{ url: getDevMainPhoto(dev)! }] : [],
+      },
     }
   } catch {
     return { title: 'Emprendimiento | SI Inmobiliaria' }
@@ -64,16 +74,21 @@ export default async function DevelopmentPage({ params }: Props) {
 
   const photos = getDevAllPhotos(dev)
   const mainPhoto = photos[0] || null
-  const galleryPhotos = photos.slice(1)
   const status = getConstructionStatus(dev.construction_status)
   const typeName = translateDevType(dev.type?.name || '')
   const locationName = dev.location?.full_location?.split('|').slice(-2).map(s => s.trim()).reverse().join(', ') || dev.location?.name || dev.address
   const description = (dev.description || '').replace(/<[^>]*>/g, '').trim()
-  const paragraphs = description.split('\n').filter(p => p.trim()).reduce((acc: string[], line) => {
-    const trimmed = line.trim()
-    if (trimmed) acc.push(trimmed)
-    return acc
-  }, [])
+  const paragraphs = description.split('\n').filter(p => p.trim())
+
+  const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${dev.name}`)
+  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
+
+  // Fetch other developments for "other units" section
+  let otherDevs: Development[] = []
+  try {
+    const allDevs = await getDevelopments()
+    otherDevs = allDevs.filter(d => d.id !== dev!.id).slice(0, 3)
+  } catch {}
 
   const mainPhotoUrl = getDevMainPhoto(dev)
   const jsonLd = {
@@ -98,18 +113,18 @@ export default async function DevelopmentPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Hero image */}
+      {/* Hero image — full screen */}
       {mainPhoto ? (
-        <div className="relative w-full h-[55vh] md:h-[65vh]">
+        <div className="relative w-full h-[60vh] md:h-[75vh]">
           <Image src={mainPhoto} alt={dev.name} fill className="object-cover" priority />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
             <div className="max-w-7xl mx-auto">
-              <div className="flex gap-2 mb-3">
-                <span className="px-3 py-1 text-xs font-bold rounded-full bg-brand-600 text-white uppercase tracking-wide">
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="px-3 py-1 text-xs font-bold rounded-full bg-[#1A5C38] text-white uppercase tracking-wide">
                   {typeName}
                 </span>
-                <span className="px-3 py-1 text-xs font-bold rounded-full bg-white/90 text-brand-700 uppercase tracking-wide">
+                <span className="px-3 py-1 text-xs font-bold rounded-full bg-white/90 text-[#1A5C38] uppercase tracking-wide">
                   {status}
                 </span>
               </div>
@@ -117,11 +132,15 @@ export default async function DevelopmentPage({ params }: Props) {
               {dev.publication_title && dev.publication_title !== dev.name && (
                 <p className="text-white/80 text-lg font-medium">{dev.publication_title}</p>
               )}
+              <div className="flex items-center gap-2 mt-3 text-white/70">
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm font-medium">{locationName}</span>
+              </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-brand-600 text-white py-20 px-4 text-center">
+        <div className="bg-[#1A5C38] text-white py-20 px-4 text-center">
           <h1 className="text-4xl font-black">{dev.name}</h1>
         </div>
       )}
@@ -131,22 +150,28 @@ export default async function DevelopmentPage({ params }: Props) {
           {/* Left column */}
           <div className="lg:col-span-2 space-y-8">
 
-            {/* Quick info */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-wrap gap-6">
-              <div className="flex items-center gap-2 text-gray-700">
-                <MapPin className="w-5 h-5 text-brand-600" />
-                <span className="font-medium">{locationName}</span>
+            {/* Key specs grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+                <Building2 className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Tipología</p>
+                <p className="text-sm font-bold text-gray-900">{typeName}</p>
               </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <Building2 className="w-5 h-5 text-brand-600" />
-                <span className="font-medium">{typeName}</span>
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+                <Calendar className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Estado</p>
+                <p className="text-sm font-bold text-gray-900">{status}</p>
               </div>
-              {dev.financing_details && (
-                <div className="flex items-center gap-2 text-brand-700">
-                  <Banknote className="w-5 h-5" />
-                  <span className="font-bold">{dev.financing_details}</span>
-                </div>
-              )}
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+                <Banknote className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Financiación</p>
+                <p className="text-sm font-bold text-gray-900">{dev.financing_details || 'Consultar'}</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+                <MapPin className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ubicación</p>
+                <p className="text-sm font-bold text-gray-900">{dev.location?.name || 'Consultar'}</p>
+              </div>
             </div>
 
             {/* Description */}
@@ -169,7 +194,6 @@ export default async function DevelopmentPage({ params }: Props) {
                     ? video.player_url
                     : `https://www.youtube.com/embed/${video.video_id}`)
                 : null
-
               if (!embedUrl) return null
               return (
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -187,23 +211,14 @@ export default async function DevelopmentPage({ params }: Props) {
               )
             })()}
 
-            {/* Photo gallery */}
-            {galleryPhotos.length > 0 && (
+            {/* Photo gallery with lightbox */}
+            {photos.length > 1 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Galería ({photos.length} fotos)</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {galleryPhotos.map((photo, i) => (
-                    <div key={i} className="relative h-40 bg-gray-100 rounded-lg overflow-hidden group">
-                      <Image
-                        src={photo}
-                        alt={`${dev.name} - Foto ${i + 2}`}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                        sizes="(max-width: 640px) 50vw, 33vw"
-                      />
-                    </div>
-                  ))}
-                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Galería
+                  <span className="text-gray-400 text-sm font-normal ml-2 font-numeric">{photos.length} fotos</span>
+                </h2>
+                <PhotoGallery photos={photos} alt={dev.name} />
               </div>
             )}
 
@@ -214,10 +229,26 @@ export default async function DevelopmentPage({ params }: Props) {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {dev.tags.map(tag => (
                     <div key={tag.id} className="flex items-center gap-2 text-sm text-gray-700">
-                      <CheckCircle2 className="w-4 h-4 text-brand-500 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
                       {translateTag(tag.name)}
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Location map */}
+            {dev.geo_lat && dev.geo_long && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Ubicación</h2>
+                <PropertyMap
+                  lat={dev.geo_lat}
+                  lng={dev.geo_long}
+                  address={dev.fake_address || dev.address}
+                />
+                <div className="flex items-center gap-2 mt-4 text-gray-600 text-sm">
+                  <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
+                  <span>{dev.fake_address || dev.address}{locationName ? `, ${locationName}` : ''}</span>
                 </div>
               </div>
             )}
@@ -226,33 +257,34 @@ export default async function DevelopmentPage({ params }: Props) {
           {/* Right column — Contact */}
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-20">
-              <h2 className="text-lg font-black text-gray-900 mb-1">¿Te interesa este emprendimiento?</h2>
-              <p className="text-gray-500 text-sm mb-6">Contactanos para recibir información, planos y condiciones de financiación.</p>
+              <h2 className="text-lg font-black text-gray-900 mb-1">¿Te interesa {dev.name}?</h2>
+              <p className="text-gray-500 text-sm mb-6">Contactanos para recibir planos, precios y condiciones.</p>
 
               <a
-                href={`https://wa.me/5493412101694?text=${encodeURIComponent(`Hola! Me interesa el emprendimiento: ${dev.name}`)}`}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg mb-3"
               >
-                Consultar por WhatsApp
+                <MessageCircle className="w-5 h-5" />
+                Quiero información
               </a>
 
               <a
                 href="tel:+5493412101694"
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold transition-all shadow-md"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#1A5C38] hover:bg-[#15472c] text-white rounded-xl font-semibold transition-all shadow-md"
               >
+                <Phone className="w-5 h-5" />
                 Llamar <span className="font-numeric">(341) 210-1694</span>
               </a>
 
               {dev.financing_details && (
-                <div className="mt-6 p-4 bg-brand-50 rounded-xl border border-brand-100">
-                  <p className="text-xs text-brand-600 font-bold uppercase tracking-wider mb-1">Financiación</p>
-                  <p className="text-brand-800 font-bold">{dev.financing_details}</p>
+                <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-100">
+                  <p className="text-xs text-[#1A5C38] font-bold uppercase tracking-wider mb-1">Financiación</p>
+                  <p className="text-[#1A5C38] font-bold">{dev.financing_details}</p>
                 </div>
               )}
 
-              {/* Downloadable files */}
               {dev.files && dev.files.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <p className="text-sm font-bold text-gray-900 mb-3">Documentos</p>
@@ -260,13 +292,8 @@ export default async function DevelopmentPage({ params }: Props) {
                     {dev.files.map((file, i) => {
                       const fileName = file.file.split('/').pop() || `Documento ${i + 1}`
                       return (
-                        <a
-                          key={i}
-                          href={file.file}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors"
-                        >
+                        <a key={i} href={file.file} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-sm text-[#1A5C38] hover:text-[#15472c] font-medium transition-colors">
                           <Download className="w-4 h-4 flex-shrink-0" />
                           <span className="truncate">{fileName}</span>
                         </a>
@@ -275,19 +302,39 @@ export default async function DevelopmentPage({ params }: Props) {
                   </div>
                 </div>
               )}
-
-              <div className="mt-6 pt-6 border-t border-gray-100 text-sm text-gray-500">
-                <p className="font-medium text-brand-600 mb-1">SI Inmobiliaria</p>
-                <p>Catamarca 775, Roldán</p>
-                <p className="mt-1">ventas@inmobiliariaippoliti.com</p>
-              </div>
             </div>
           </div>
         </div>
 
+        {/* Other developments */}
+        {otherDevs.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Otros emprendimientos</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {otherDevs.map(d => {
+                const photo = getDevMainPhoto(d)
+                const slug = generateDevSlug(d)
+                return (
+                  <Link key={d.id} href={`/emprendimientos/${slug}`}
+                    className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all">
+                    <div className="relative h-48 bg-gray-100 overflow-hidden">
+                      {photo && <Image src={photo} alt={d.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="33vw" />}
+                    </div>
+                    <div className="p-4">
+                      <p className="text-xs font-bold text-[#1A5C38] uppercase tracking-wider mb-1">{translateDevType(d.type?.name || '')}</p>
+                      <h3 className="font-bold text-gray-900">{d.name}</h3>
+                      <p className="text-sm text-gray-500 mt-1">{d.location?.name || d.address}</p>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Back */}
         <div className="mt-12 pt-8 border-t border-gray-200">
-          <Link href="/emprendimientos" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-bold transition-colors">
+          <Link href="/emprendimientos" className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#15472c] font-bold transition-colors">
             <ArrowLeft className="w-4 h-4" /> Volver a emprendimientos
           </Link>
         </div>
