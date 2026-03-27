@@ -45,7 +45,7 @@ async function FeaturedPropertiesSection() {
             PROPIEDADES DESTACADAS
           </p>
           <h2 className="text-3xl font-black text-gray-900">
-            Encontrá tu próximo hogar
+            Propiedades destacadas
           </h2>
         </div>
 
