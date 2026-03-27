@@ -45,9 +45,9 @@ async function FeaturedPropertiesSection() {
           <p className="text-brand-600 text-sm font-bold tracking-widest uppercase mb-3">
             PROPIEDADES DESTACADAS
           </p>
-          <h2 className="text-3xl font-black text-gray-900">
-            Encontrá tu próximo hogar
-          </h2>
+          <h1 className="text-3xl font-black text-gray-900">
+            Propiedades en Funes y Roldán — Más de 40 años acompañando familias
+          </h1>
         </div>
 
         {/* Grid */}
@@ -330,6 +330,21 @@ export default async function Home() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Newsletter />
+        </div>
+      </section>
+
+      {/* SEO content block */}
+      <section className="bg-white py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-[#1A5C38] mb-6" style={{fontFamily: 'Raleway, sans-serif'}}>
+            Inmobiliaria en Funes y Roldán — Más de 40 años de experiencia
+          </h2>
+          <div className="text-gray-600 space-y-4 text-base leading-relaxed" style={{fontFamily: 'Raleway, sans-serif'}}>
+            <p>SI Inmobiliaria es una agencia inmobiliaria familiar con más de 40 años de trayectoria en el mercado de Rosario zona oeste. Fundada en 1983, acompañamos a cientos de familias y empresas en la compra, venta y alquiler de propiedades en Funes, Roldán, Fisherton y toda la región metropolitana de Rosario.</p>
+            <p>Nuestras oficinas en Funes (Hipólito Yrigoyen 2643) y Roldán (1ro de Mayo 258 y Catamarca 775) nos permiten estar presentes donde el mercado inmobiliario crece con más fuerza. Funes y Roldán son hoy dos de los municipios con mayor demanda de propiedades en la provincia de Santa Fe, con barrios privados, lotes y casas que ofrecen calidad de vida a minutos de Rosario.</p>
+            <p>Trabajamos con propiedades de todo tipo: casas, departamentos, lotes, locales comerciales y emprendimientos. Nuestro equipo de corredores matriculados te asesora en cada etapa del proceso, desde la tasación hasta la escrituración, garantizando transparencia y seguridad en cada operación.</p>
+            <p>Si estás buscando propiedades en venta en Funes, casas en Roldán, lotes en barrios privados o inmuebles para inversión en Rosario zona oeste, SI Inmobiliaria es tu aliado de confianza. Consultanos sin compromiso.</p>
+          </div>
         </div>
       </section>
     </>
