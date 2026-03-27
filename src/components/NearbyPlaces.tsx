@@ -8,6 +8,9 @@ interface Place {
   name: string
   distance: number
   category: string
+  level?: string
+  levelColor?: string
+  access?: 'Público' | 'Privado'
 }
 
 interface CategoryDef {
@@ -78,12 +81,30 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
 
           if (tags.amenity === 'school') {
             const isPrivate = tags['operator:type'] === 'private' || PRIVATE_PATTERNS.test(name)
-            if (isPrivate) {
-              result.private_school.push({ name, distance: dist, category: 'private_school' })
+            const access: 'Público' | 'Privado' = isPrivate ? 'Privado' : 'Público'
+
+            // Determine education level
+            const isced = tags['isced:level'] || tags['school:type'] || ''
+            const nameLower = name.toLowerCase()
+            let level = 'Escuela'
+            let levelColor = '#6b7280'
+            if (/jard[ií]n|inicial|infantil|preescolar/i.test(nameLower) || isced === '0') {
+              level = 'Inicial'; levelColor = '#16a34a'
+            } else if (/primari[ao]|elemental/i.test(nameLower) || isced === '1') {
+              level = 'Primario'; levelColor = '#2563eb'
+            } else if (/secundari[ao]|bachiller|t[eé]cnic|medio/i.test(nameLower) || isced === '2' || isced === '3') {
+              level = 'Secundario'; levelColor = '#ea580c'
+            } else if (/universid|facultad|instituto\s+(superior|terciario)/i.test(nameLower) || isced === '4' || isced === '5' || isced === '6') {
+              level = 'Terciario'; levelColor = '#7c3aed'
             }
-            // Also add to general schools if within 1km
+
+            const entry: Place = { name, distance: dist, category: 'school', level, levelColor, access }
+
+            if (isPrivate) {
+              result.private_school.push({ ...entry, category: 'private_school' })
+            }
             if (dist <= 1000) {
-              result.school.push({ name, distance: dist, category: 'school' })
+              result.school.push(entry)
             }
           } else if (tags.amenity === 'hospital') {
             result.hospital.push({ name, distance: dist, category: 'hospital' })
@@ -142,9 +163,23 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
               </div>
               <ul className="space-y-1">
                 {places[cat.key].map((p, i) => (
-                  <li key={i} className="flex items-center justify-between gap-3 py-2 border-b border-gray-50 last:border-0">
-                    <span className="text-sm text-gray-700 truncate">{p.name}</span>
-                    <span className="text-xs text-gray-400 font-numeric whitespace-nowrap font-poppins">{p.distance} m</span>
+                  <li key={i} className="flex items-center justify-between gap-2 py-2 border-b border-gray-50 last:border-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {p.level && (
+                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap text-white" style={{ background: p.levelColor }}>
+                          {p.level}
+                        </span>
+                      )}
+                      {p.access && (
+                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap ${
+                          p.access === 'Privado' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {p.access}
+                        </span>
+                      )}
+                      <span className="text-sm text-gray-700 truncate">{p.name}</span>
+                    </div>
+                    <span className="text-xs text-gray-400 font-numeric whitespace-nowrap font-poppins flex-shrink-0">{p.distance} m</span>
                   </li>
                 ))}
               </ul>
