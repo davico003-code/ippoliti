@@ -92,39 +92,37 @@ export default function TasacionesPage() {
 
         {/* Services section */}
         <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <p className="text-[#1A5C38] text-xs font-bold tracking-widest uppercase text-center mb-3">NUESTRO MÉTODO</p>
+          <h2
+            className="text-center text-gray-900 mb-2"
+            style={{ fontSize: 40, fontWeight: 700, letterSpacing: -0.5, fontFamily: 'Raleway, sans-serif' }}
+          >
             Lo que hacemos para vender tu propiedad
           </h2>
-          <p className="text-[#1A5C38] text-sm font-semibold mb-8">
-            Tecnología y estrategia al servicio de tu venta
+          <p className="text-gray-400 text-base text-center mb-12">
+            Tecnología profesional al servicio de cada operación
           </p>
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { img: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=800&q=80', tag: 'SONY α7 IV · 33MP', title: 'Fotografía profesional', desc: 'Cámaras Sony serie α con lentes gran angular. Edición profesional de color, HDR y retoque digital. Cada propiedad recibe entre 20 y 40 fotos optimizadas para portales.', num: '01' },
-              { img: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80', tag: 'DJI MAVIC 4 PRO · 4K', title: 'Aerial & video drone', desc: 'Tomas aéreas con DJI Mavic 4 Pro, el drone más avanzado del mercado. Video 4K y fotos de alta resolución que muestran el entorno, el barrio y la propiedad desde el aire.', num: '02' },
-              { img: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80', tag: 'iPHONE 17 PRO MAX · 4K', title: 'Video tour profesional', desc: 'Recorridos cinematográficos filmados con iPhone 17 Pro Max. Estabilización óptica, modo ProRes y edición con música de fondo para generar impacto emocional en el comprador.', num: '03' },
-              { img: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80', tag: 'DIGITALIZACIÓN HD', title: 'Plano redibujado en alta resolución', desc: 'El plano original de la propiedad es escaneado y redibujado digitalmente en alta resolución. Permite al comprador entender los espacios antes de la visita.', num: '04' },
-              { img: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&q=80', tag: 'META ADS · SEGMENTACIÓN ABC1', title: 'Campaña publicitaria en redes', desc: 'Campañas pagas en Facebook e Instagram dirigidas exclusivamente al segmento ABC1 de Funes, Roldán, Fisherton y Rosario. Impacto garantizado en el comprador ideal de tu propiedad.', num: '05' },
-              { img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80', tag: 'ZONAPROP · ARGENPROP', title: 'Máxima visibilidad en portales', desc: 'Aviso super destacado en Zonaprop y Argenprop, los portales inmobiliarios más visitados de Argentina. Tu propiedad aparece primero en los resultados de búsqueda.', num: '06' },
+              { icon: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></>, tag: 'SONY α7 IV · 33MP', title: 'Fotografía profesional', desc: 'Cámaras Sony serie α con lentes gran angular. 20 a 40 fotos optimizadas para portales y redes.' },
+              { icon: <><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.4-.1.9.3 1.1l5.8 3.4-2.1 2.1L5 13l-1 1 3 2 2 3 1-1 .8-2.4 2.1-2.1 3.4 5.8c.2.4.7.5 1.1.3l.5-.3c.4-.2.6-.6.5-1.1z" /></>, tag: 'DJI MAVIC 4 PRO · 4K', title: 'Drone 4K', desc: 'Tomas aéreas que muestran el entorno, el barrio y la propiedad desde el aire.' },
+              { icon: <><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></>, tag: 'iPHONE 17 PRO MAX · 4K', title: 'Video tour', desc: 'Recorridos cinematográficos con estabilización óptica y edición profesional.' },
+              { icon: <><path d="M3 3h18v18H3zM3 9h18M9 21V9" /></>, tag: 'DIGITALIZACIÓN HD', title: 'Plano redibujado', desc: 'El plano original redibujado digitalmente en alta resolución para el comprador.' },
+              { icon: <><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></>, tag: 'META ADS · ABC1', title: 'Campaña en redes', desc: 'Campañas pagas en Facebook e Instagram dirigidas al segmento ABC1 de la zona.' },
+              { icon: <><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></>, tag: 'ZONAPROP · ARGENPROP', title: 'Aviso destacado', desc: 'Máxima visibilidad en los portales más visitados de Argentina.' },
             ].map(item => (
               <div
-                key={item.num}
-                className="relative overflow-hidden rounded-2xl cursor-pointer group"
-                style={{ height: 140 }}
+                key={item.title}
+                className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-[#1A5C38]/30 hover:shadow-lg transition-all duration-300"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.img}
-                  alt={item.title}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-                <span className="absolute right-8 top-1/2 -translate-y-1/2 text-8xl font-black text-white/10 select-none">{item.num}</span>
-                <div className="relative h-full flex flex-col justify-center p-8">
-                  <p className="text-xs font-bold tracking-widest text-[#4ADE80] mb-2">{item.tag}</p>
-                  <p className="text-2xl font-bold text-white mb-0 group-hover:mb-3 transition-all duration-500">{item.title}</p>
-                  <p className="text-white/70 text-sm leading-relaxed max-h-0 group-hover:max-h-40 overflow-hidden transition-all duration-500">{item.desc}</p>
+                <div className="w-12 h-12 bg-[#1A5C38]/8 rounded-xl flex items-center justify-center">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {item.icon}
+                  </svg>
                 </div>
+                <p className="text-xs font-bold text-[#1A5C38] tracking-widest mt-4 mb-1">{item.tag}</p>
+                <p className="text-base font-bold text-gray-900 mb-2">{item.title}</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
