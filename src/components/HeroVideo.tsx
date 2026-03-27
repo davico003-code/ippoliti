@@ -19,7 +19,7 @@ export default function HeroVideo() {
           {/* H1 heading */}
           <h1 className="text-white text-4xl md:text-6xl font-bold text-center drop-shadow-lg mb-8" style={{fontFamily: 'Raleway, sans-serif'}}>
             Encontr&aacute; tu hogar<br/>
-            <span className="text-3xl md:text-4xl font-normal">Propiedades en Funes, Rold&aacute;n y Rosario zona oeste</span>
+            <span className="text-xl md:text-2xl font-normal">Propiedades en Funes, Rold&aacute;n y Rosario</span>
           </h1>
 
           {/* Search */}
@@ -32,9 +32,15 @@ export default function HeroVideo() {
               className="inline-flex items-center gap-2 border-2 border-white/60 text-white hover:bg-white hover:text-brand-600 px-6 py-3 rounded-full font-semibold text-sm transition-all backdrop-blur-sm"
             >
               <Map className="w-4 h-4" />
-              Búsqueda por Mapa
+              B&uacute;squeda por Mapa
             </Link>
           </div>
+          <p className="text-white/60 text-sm mt-4 text-center">
+            &iquest;Quer&eacute;s vender tu propiedad?{' '}
+            <a href="/tasaciones" className="text-white/80 underline underline-offset-2 hover:text-white transition-colors">
+              Contactanos
+            </a>
+          </p>
         </div>
       </div>
     </section>
