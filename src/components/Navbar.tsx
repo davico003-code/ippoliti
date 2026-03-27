@@ -112,6 +112,13 @@ export default function Navbar() {
                 Blog
               </Link>
               <Link
+                href="/informes"
+                onClick={() => setIsOpen(false)}
+                className="block px-3 py-2.5 text-sm text-gray-700 hover:text-brand-600 font-medium transition-colors rounded-lg hover:bg-gray-50"
+              >
+                Informes
+              </Link>
+              <Link
                 href="/school"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:text-brand-600 font-medium transition-colors rounded-lg hover:bg-gray-50"
