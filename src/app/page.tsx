@@ -45,9 +45,9 @@ async function FeaturedPropertiesSection() {
           <p className="text-brand-600 text-sm font-bold tracking-widest uppercase mb-3">
             PROPIEDADES DESTACADAS
           </p>
-          <h1 className="text-3xl font-black text-gray-900">
+          <h2 className="text-3xl font-black text-gray-900">
             Propiedades en Funes y Roldán — Más de 40 años acompañando familias
-          </h1>
+          </h2>
         </div>
 
         {/* Grid */}

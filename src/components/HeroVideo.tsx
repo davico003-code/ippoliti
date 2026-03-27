@@ -16,16 +16,11 @@ export default function HeroVideo() {
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
         <div className="w-[90%] max-w-[800px]">
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-blanco.png"
-              alt="SI Inmobiliaria"
-              style={{ height: '80px', width: 'auto' }}
-              className="drop-shadow-lg"
-            />
-          </div>
+          {/* H1 heading */}
+          <h1 className="text-white text-4xl md:text-6xl font-bold text-center drop-shadow-lg mb-8" style={{fontFamily: 'Raleway, sans-serif'}}>
+            Encontr&aacute; tu hogar<br/>
+            <span className="text-3xl md:text-4xl font-normal">Propiedades en Funes, Rold&aacute;n y Rosario zona oeste</span>
+          </h1>
 
           {/* Search */}
           <HeroSearch />
