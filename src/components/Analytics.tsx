@@ -4,7 +4,7 @@ import Script from 'next/script'
 
 // ═══════════════════════════════════════════════════════════
 // REEMPLAZAR estos IDs con los reales antes de ir a producción
-const GA_ID = 'G-XXXXXXXXXX'           // Google Analytics 4
+const GA_ID = 'G-QPZE2HHEC1'           // Google Analytics 4
 const META_PIXEL_ID = 'XXXXXXXXXXXXXXXXXX'  // Meta Pixel
 // ═══════════════════════════════════════════════════════════
 
