@@ -18,15 +18,27 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
   const handleDownload = async () => {
     setDownloading(true)
     try {
-      const response = await fetch(`/api/story/${slug}`)
+      const fetchUrl = `/api/story/${slug}`
+      const response = await fetch(fetchUrl)
+      if (!response.ok) {
+        const errText = await response.text()
+        alert(`Error generando placa: ${response.status} — ${errText}`)
+        return
+      }
       const blob = await response.blob()
+      if (blob.size === 0) {
+        alert('La placa se generó vacía. Intentá de nuevo.')
+        return
+      }
       const blobUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = blobUrl
       a.download = `placa-${slug}.png`
       a.click()
       URL.revokeObjectURL(blobUrl)
-    } catch {} finally {
+    } catch (err) {
+      alert(`Error de conexión: ${err instanceof Error ? err.message : 'desconocido'}`)
+    } finally {
       setDownloading(false)
     }
   }
@@ -36,44 +48,41 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
       <p className="text-xs text-gray-400 mb-3 font-poppins font-medium uppercase tracking-wide">
         Compartir propiedad
       </p>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <a
           href={`https://wa.me/?text=${text}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold font-poppins transition-colors bg-[#25D366] hover:bg-[#1ebe57] text-white"
+          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold font-poppins transition-colors bg-[#25D366] hover:bg-[#1ebe57] text-white"
         >
-          <MessageCircle size={16} />
+          <MessageCircle size={14} />
           WhatsApp
         </a>
         <button
           onClick={copyLink}
-          className={`flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold font-poppins transition-colors ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold font-poppins transition-colors ${
             copied
               ? 'bg-brand text-white'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
           }`}
         >
-          {copied ? <Check size={16} /> : <Link2 size={16} />}
-          {copied ? 'Copiado!' : 'Copiar link'}
+          {copied ? <Check size={14} /> : <Link2 size={14} />}
+          {copied ? 'Copiado!' : 'Copiar'}
+        </button>
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white disabled:opacity-60"
+          style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
+        >
+          {downloading ? (
+            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <Instagram size={14} />
+          )}
+          Placa
         </button>
       </div>
-      <button
-        onClick={handleDownload}
-        disabled={downloading}
-        className="mt-2 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white disabled:opacity-60"
-        style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
-      >
-        {downloading ? (
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        ) : (
-          <Instagram size={16} />
-        )}
-        {downloading ? 'Descargando...' : 'Descargar placa'}
-      </button>
-      <p className="text-[10px] text-gray-300 text-center mt-1.5">
-        Guardá la imagen y compartila en tu historia de Instagram
-      </p>
     </div>
   )
 }

@@ -32,17 +32,22 @@ export async function GET(
   _req: Request,
   { params }: { params: { slug: string } }
 ) {
+  console.log('Story API called with slug:', params.slug)
+  console.log('TOKKO_API_KEY exists:', !!process.env.TOKKO_API_KEY)
+
   const id = getIdFromSlug(params.slug)
   if (isNaN(id)) {
+    console.error('Story API - Invalid slug, parsed id:', id)
     return new Response('Invalid slug', { status: 400 })
   }
 
   let property
   try {
     property = await getPropertyById(id)
+    console.log('Story API - Property fetched:', property?.id, property?.publication_title)
   } catch (err) {
     console.error('Story API - Tokko fetch error:', err)
-    return new Response('Error fetching property', { status: 500 })
+    return new Response(`Error fetching property: ${err instanceof Error ? err.message : 'unknown'}`, { status: 500 })
   }
 
   if (!property) {
