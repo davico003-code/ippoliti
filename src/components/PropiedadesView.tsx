@@ -180,7 +180,7 @@ function CompactCard({ property, isSelected, onClick }: {
           </div>
           <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
             <Heart className="w-3.5 h-3.5 text-gray-300 hover:text-red-400 transition-colors cursor-pointer" />
-            <ShareCardButton slug={slug} />
+            <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
           </div>
         </div>
       </div>
@@ -306,7 +306,7 @@ function ListCard({ property, isSelected, onClick, featured }: {
           </Link>
           <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
             <Heart className="w-4 h-4 text-white/50 hover:text-red-300 transition-colors cursor-pointer" />
-            <ShareCardButton slug={slug} size="md" variant="dark" />
+            <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
           </div>
         </div>
       </div>

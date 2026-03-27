@@ -78,7 +78,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
           </div>
           <div className="mt-auto flex items-center justify-between">
             <span className="text-brand-600 font-black text-lg font-numeric">{price}</span>
-            <ShareCardButton slug={slug} />
+            <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
           </div>
         </div>
       </Link>

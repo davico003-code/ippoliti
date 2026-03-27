@@ -68,7 +68,7 @@ export default async function EmprendimientosPage() {
                 return (
                   <div key={dev.id} className="relative">
                     <div className="absolute top-4 right-4 z-10">
-                      <ShareCardButton path={`/emprendimientos/${slug}`} />
+                      <ShareCardButton slug={slug} title={dev.name} path={`/emprendimientos/${slug}`} />
                     </div>
                   <Link
                     href={`/emprendimientos/${slug}`}

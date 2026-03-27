@@ -107,7 +107,7 @@ async function FeaturedPropertiesSection() {
                     </h3>
                     <div className="flex items-center justify-between mt-1">
                       <p className="text-brand-600 font-black text-lg font-numeric">{price}</p>
-                      <ShareCardButton slug={slug} />
+                      <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
                       {land ? (
