@@ -4,7 +4,7 @@ import { MapPin, Phone, Clock, Building2, Users, Scale } from 'lucide-react'
 import { getProperties, type TokkoProperty } from '@/lib/tokko'
 import PropertyGrid from '@/components/PropertyGrid'
 
-export const revalidate = 3600
+export const revalidate = 21600
 
 export const metadata: Metadata = {
   title: 'Inmobiliaria en Roldán | SI Inmobiliaria desde 1983',

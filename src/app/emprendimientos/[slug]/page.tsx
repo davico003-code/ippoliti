@@ -15,7 +15,7 @@ import {
   type Development,
 } from '@/lib/developments'
 
-export const revalidate = 3600
+export const revalidate = 21600
 
 interface Props {
   params: { slug: string }

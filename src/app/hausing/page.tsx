@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
 }
 
-export const revalidate = 3600
+export const revalidate = 21600
 
 const PROPERTY_IDS = [7865564, 7867761, 7868679, 7875941, 7879685, 7872050]
 

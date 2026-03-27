@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { getProperties, type TokkoProperty } from '@/lib/tokko'
 import PropertyGrid from '@/components/PropertyGrid'
 
-export const revalidate = 3600
+export const revalidate = 21600
 
 export const metadata: Metadata = {
   title: 'Propiedades en Venta en Roldán | Casas, Terrenos y Departamentos',

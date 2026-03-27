@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { getProperties, type TokkoProperty } from '@/lib/tokko'
 import PropiedadesView from '@/components/PropiedadesView'
 
-export const revalidate = 3600
+export const revalidate = 21600
 
 export const metadata: Metadata = {
   title: 'Propiedades | SI Inmobiliaria',

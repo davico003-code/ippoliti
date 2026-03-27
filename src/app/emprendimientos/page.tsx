@@ -11,7 +11,7 @@ import {
   translateDevType,
 } from '@/lib/developments'
 
-export const revalidate = 3600
+export const revalidate = 21600
 
 export const metadata: Metadata = {
   title: 'Emprendimientos | SI Inmobiliaria',
