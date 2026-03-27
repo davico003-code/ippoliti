@@ -1,7 +1,9 @@
+// SECURITY NOTE: Never use NEXT_PUBLIC_TOKKO_API_KEY in client components.
+// Always use the API proxy route at /api/propiedades for client-side fetches.
+// Server components can use TOKKO_API_KEY directly (no NEXT_PUBLIC_ prefix).
+
 function getApiKey(): string {
-  // Use TOKKO_API_KEY (server-only, not inlined at build time)
-  // Falls back to NEXT_PUBLIC_TOKKO_API_KEY for backward compatibility
-  const key = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
+  const key = process.env.TOKKO_API_KEY
   if (!key) throw new Error('TOKKO_API_KEY is not configured')
   return key
 }
