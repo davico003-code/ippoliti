@@ -9,7 +9,7 @@ const COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000 // 1 week
 export default function ExitPopup() {
   const [show, setShow] = useState(false)
   const [sent, setSent] = useState(false)
-  const [form, setForm] = useState({ nombre: '', email: '', tipo: 'Casa' })
+  const [form, setForm] = useState({ nombre: '', email: '', tipo: 'Casa', operacion: 'Venta', presupuesto: 'Sin límite' })
 
   const shouldShow = useCallback(() => {
     const last = localStorage.getItem(STORAGE_KEY)
@@ -46,7 +46,12 @@ export default function ExitPopup() {
     if (!form.email) return
     // Save lead to localStorage
     const leads = JSON.parse(localStorage.getItem('si-leads') || '[]')
-    leads.push({ ...form, date: new Date().toISOString() })
+    const leadData = {
+      ...form,
+      presupuesto: form.operacion === 'Venta' ? form.presupuesto : undefined,
+      date: new Date().toISOString(),
+    }
+    leads.push(leadData)
     localStorage.setItem('si-leads', JSON.stringify(leads))
     setSent(true)
   }
@@ -96,6 +101,37 @@ export default function ExitPopup() {
                 <option>Lote</option>
                 <option>Local</option>
               </select>
+              {/* Operación */}
+              <div className="grid grid-cols-2 gap-2">
+                {(['Venta', 'Alquiler'] as const).map(op => (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => setForm({ ...form, operacion: op })}
+                    className={`py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                      form.operacion === op
+                        ? 'bg-[#1A5C38] text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {op}
+                  </button>
+                ))}
+              </div>
+              {/* Presupuesto — solo venta */}
+              {form.operacion === 'Venta' && (
+                <select
+                  value={form.presupuesto} onChange={e => setForm({ ...form, presupuesto: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A5C38] bg-white"
+                >
+                  <option>Sin límite</option>
+                  <option>Hasta USD 80.000</option>
+                  <option>Hasta USD 150.000</option>
+                  <option>Hasta USD 250.000</option>
+                  <option>Hasta USD 500.000</option>
+                  <option>Más de USD 500.000</option>
+                </select>
+              )}
               <button type="submit" className="w-full py-3 bg-[#1A5C38] text-white rounded-xl font-bold text-sm hover:bg-[#15472c] transition-colors font-poppins">
                 Quiero recibir propiedades
               </button>
