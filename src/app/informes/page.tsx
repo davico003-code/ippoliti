@@ -39,7 +39,7 @@ async function fetchDolarOficial(): Promise<DolarResponse | null> {
 async function fetchCacSeries(): Promise<{ date: string; value: number }[]> {
   try {
     const res = await fetch(
-      'https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_26&limit=24&format=json',
+      'https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_26&start_date=2024-01-01&limit=36&format=json',
       { next: { revalidate: 3600 } }
     )
     if (!res.ok) return []
@@ -50,6 +50,30 @@ async function fetchCacSeries(): Promise<{ date: string; value: number }[]> {
   } catch { return [] }
 }
 
+interface BluelyticsEntry {
+  date: string
+  value_sell: number
+  source: string
+}
+
+async function fetchDolarBlueHistory(): Promise<{ date: string; value: number }[]> {
+  try {
+    const res = await fetch('https://api.bluelytics.com.ar/v2/evolution.json', { next: { revalidate: 3600 } })
+    if (!res.ok) return []
+    const json = await res.json() as BluelyticsEntry[]
+    const blueOnly = json.filter(e => e.source === 'Blue' && e.date >= '2024-01-01')
+    // Group by month (YYYY-MM), take last entry per month
+    const byMonth = new Map<string, number>()
+    for (const entry of blueOnly) {
+      const month = entry.date.slice(0, 7)
+      byMonth.set(month, entry.value_sell)
+    }
+    return Array.from(byMonth.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, value]) => ({ date: date + '-01', value }))
+  } catch { return [] }
+}
+
 function formatMonth(dateStr: string): string {
   const [y, m] = dateStr.split('-')
   const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
@@ -57,31 +81,38 @@ function formatMonth(dateStr: string): string {
 }
 
 export default async function InformesPage() {
-  const [dolarBlue, dolarOficial, cacSeries] = await Promise.all([
+  const [dolarBlue, dolarOficial, cacSeries, dolarHistory] = await Promise.all([
     fetchDolarBlue(),
     fetchDolarOficial(),
     fetchCacSeries(),
+    fetchDolarBlueHistory(),
   ])
 
   const latestCac = cacSeries.length > 0 ? cacSeries[cacSeries.length - 1] : null
   const prevCac = cacSeries.length > 1 ? cacSeries[cacSeries.length - 2] : null
   const cacChange = latestCac && prevCac ? ((latestCac.value - prevCac.value) / prevCac.value * 100) : null
 
-  // Chart data: rebase both to 100 from first data point
-  // For dolar blue history we only have current value, so we'll show CAC evolution rebased
-  // and simulate dolar blue growth proportionally (since we don't have historical dolar data)
+  // Build chart: rebase both to 100 from first data point (Jan 2024)
   const cacBase = cacSeries.length > 0 ? cacSeries[0].value : 1
-  const chartData = cacSeries.map((d, i) => {
+  const dolarBase = dolarHistory.length > 0 ? dolarHistory[0].value : 1
+
+  // Build dolar lookup by month
+  const dolarByMonth = new Map<string, number>()
+  for (const d of dolarHistory) {
+    dolarByMonth.set(d.date.slice(0, 7), d.value)
+  }
+
+  const chartData = cacSeries.map(d => {
+    const month = d.date.slice(0, 7)
     const cacRebased = (d.value / cacBase) * 100
-    // Estimate dolar progression: linear interpolation from 100 to current relative value
-    // Based on CAC in USD being roughly stable, dolar tracks CAC loosely
-    const dolarRebased = 100 + (cacRebased - 100) * 0.7 + (i / cacSeries.length) * 8
+    const dolarVal = dolarByMonth.get(month)
+    const dolarRebased = dolarVal ? (dolarVal / dolarBase) * 100 : null
     return {
       label: formatMonth(d.date),
       cac: Math.round(cacRebased * 10) / 10,
-      dolar: Math.round(dolarRebased * 10) / 10,
+      dolar: dolarRebased ? Math.round(dolarRebased * 10) / 10 : null,
     }
-  })
+  }).filter(d => d.cac > 0)
 
   // Construction cost per m² in USD (based on CAC / dolar blue)
   const blueVenta = dolarBlue?.venta || 1

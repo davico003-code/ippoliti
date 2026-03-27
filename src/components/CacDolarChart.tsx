@@ -5,7 +5,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend } f
 interface DataPoint {
   label: string
   cac: number
-  dolar: number
+  dolar: number | null
 }
 
 export default function CacDolarChart({ data }: { data: DataPoint[] }) {
@@ -33,8 +33,9 @@ export default function CacDolarChart({ data }: { data: DataPoint[] }) {
               fontSize: 13,
               boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
             }}
+            labelFormatter={(label) => label}
             formatter={(value, name) => [
-              `${Number(value).toFixed(1)}`,
+              value != null ? `${Number(value).toFixed(1)}` : '—',
               name === 'cac' ? 'CAC (base 100)' : 'Dólar Blue (base 100)',
             ]}
           />
@@ -51,6 +52,7 @@ export default function CacDolarChart({ data }: { data: DataPoint[] }) {
             strokeWidth={2.5}
             dot={false}
             activeDot={{ r: 4, fill: '#1A5C38' }}
+            connectNulls
           />
           <Line
             type="monotone"
@@ -59,6 +61,7 @@ export default function CacDolarChart({ data }: { data: DataPoint[] }) {
             strokeWidth={2.5}
             dot={false}
             activeDot={{ r: 4, fill: '#f97316' }}
+            connectNulls
           />
         </LineChart>
       </ResponsiveContainer>
