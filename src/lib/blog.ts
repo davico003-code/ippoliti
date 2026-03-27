@@ -1,3 +1,5 @@
+import { seoPosts } from '@/data/blog-posts-seo'
+
 export interface BlogPost {
   slug: string
   title: string
@@ -7,9 +9,12 @@ export interface BlogPost {
   image: string         // placeholder path or external
   summary: string
   content: string       // full article body (HTML-safe plain text with paragraphs)
+  category?: string
+  author?: string
 }
 
 export const posts: BlogPost[] = [
+  ...seoPosts,
   {
     slug: 'por-que-si-inmobiliaria-43-anos-historia-familiar-roldan',
     title: 'Por qué SI Inmobiliaria: 43 años de historia familiar en Roldán',

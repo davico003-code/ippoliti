@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, ArrowLeft, ExternalLink, MessageCircle } from 'lucide-react'
+import { Calendar, ArrowLeft, ExternalLink, MessageCircle, User } from 'lucide-react'
 import { getAllPosts, getPostBySlug } from '@/lib/blog'
 
 interface Props {
@@ -44,6 +44,14 @@ export default function BlogPostPage({ params }: Props) {
     )
   }
 
+  const allPosts = getAllPosts()
+  const related = allPosts
+    .filter(p => p.slug !== post.slug)
+    .filter(p => post.category ? p.category === post.category : true)
+    .slice(0, 3)
+
+  const authorName = post.author || 'SI Inmobiliaria'
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -52,9 +60,9 @@ export default function BlogPostPage({ params }: Props) {
     datePublished: post.date,
     ...(post.image.startsWith('http') ? { image: [post.image] } : {}),
     author: {
-      '@type': 'Organization',
-      name: 'SI Inmobiliaria',
-      url: 'https://www.inmobiliariaippoliti.com',
+      '@type': post.author ? 'Person' : 'Organization',
+      name: authorName,
+      url: 'https://siinmobiliaria.com',
     },
     publisher: {
       '@type': 'Organization',
@@ -138,12 +146,26 @@ export default function BlogPostPage({ params }: Props) {
       {/* Article body */}
       <article className="py-12 md:py-16 px-4">
         <div className="max-w-3xl mx-auto">
-          {/* Source badge */}
-          <div className="flex items-center gap-2 mb-8 pb-6 border-b border-gray-100">
-            <ExternalLink className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-500">
-              Fuente: <span className="font-semibold text-gray-700">{post.source}</span>
-            </span>
+          {/* Author + source */}
+          <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-6 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-900">{authorName}</p>
+                <p className="text-xs text-gray-400">{post.dateDisplay}</p>
+              </div>
+            </div>
+            {post.source !== 'SI Inmobiliaria' && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <ExternalLink className="w-3.5 h-3.5" />
+                Fuente: <span className="font-semibold text-gray-600">{post.source}</span>
+              </div>
+            )}
+            {post.category && (
+              <span className="px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-full">{post.category}</span>
+            )}
           </div>
 
           {/* Content — lines ending in ? rendered as H2 subheadings */}
@@ -196,6 +218,26 @@ export default function BlogPostPage({ params }: Props) {
               </div>
             </div>
           </div>
+
+          {/* Related articles */}
+          {related.length > 0 && (
+            <div className="mt-16 pt-8 border-t border-gray-100">
+              <h3 className="text-xl font-black text-gray-900 mb-6">Art\u00edculos relacionados</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {related.map(r => (
+                  <Link key={r.slug} href={`/blog/${r.slug}`} className="group block">
+                    {r.image.startsWith('http') && (
+                      <div className="relative h-36 rounded-xl overflow-hidden mb-3 bg-gray-100">
+                        <Image src={r.image} alt={r.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="33vw" />
+                      </div>
+                    )}
+                    <h4 className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-brand-600 transition-colors leading-tight">{r.title}</h4>
+                    <p className="text-xs text-gray-400 mt-1">{r.dateDisplay}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Back link */}
           <div className="mt-10">
