@@ -11,6 +11,7 @@ const NearbyPropertiesMap = dynamic(() => import('@/components/NearbyPropertiesM
 const BlueprintGallery = dynamic(() => import('@/components/BlueprintGallery'), { ssr: false });
 import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
+import MobileStickyBar from '@/components/MobileStickyBar';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
 import {
   getPropertyById,
@@ -695,11 +696,6 @@ export default async function PropertyPage({ params }: Props) {
         {/* Similar properties */}
         <SimilarProperties properties={similar} currentPropertyId={property.id} />
 
-        {/* Mobile share section (visible only on mobile since desktop has sidebar) */}
-        <div className="mt-8 md:hidden">
-          <ShareButtons slug={params.slug} title={property.publication_title || property.address} />
-        </div>
-
         {/* Back link */}
         <div className="mt-12 pt-8 border-t border-gray-200">
           <Link href="/propiedades" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-bold transition-colors text-lg">
@@ -709,26 +705,7 @@ export default async function PropertyPage({ params }: Props) {
       </div>
 
       {/* Mobile sticky contact bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.1)] p-4">
-        <div className="flex gap-3">
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-all"
-          >
-            <MessageCircle className="w-5 h-5" />
-            WhatsApp
-          </a>
-          <a
-            href="tel:+5493412101694"
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold transition-all"
-          >
-            <Phone className="w-5 h-5" />
-            Llamar
-          </a>
-        </div>
-      </div>
+      <MobileStickyBar whatsappUrl={whatsappUrl} slug={params.slug} />
     </div>
   );
 }
