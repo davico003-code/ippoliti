@@ -125,6 +125,9 @@ export default async function InmobiliariaRoldanPage() {
               <Link href="/propiedades" className="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-colors">
                 Ver todas las propiedades →
               </Link>
+              <Link href="/tasaciones" className="inline-flex items-center gap-2 px-8 py-4 border-2 border-brand-600 text-brand-600 hover:bg-brand-50 font-bold rounded-lg transition-colors ml-3">
+                Tasá tu propiedad
+              </Link>
             </div>
           )}
         </div>

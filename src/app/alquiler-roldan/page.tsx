@@ -97,8 +97,8 @@ export default async function AlquilerRoldanPage() {
           <a href="https://wa.me/5493412101694?text=Hola!%20Quiero%20consultar%20por%20administración%20de%20alquiler" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">
             Consultar por WhatsApp
           </a>
-          <Link href="/inmobiliaria-roldan" className="px-8 py-4 border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-bold rounded-lg transition-colors">
-            Conocer nuestras oficinas
+          <Link href="/tasaciones" className="px-8 py-4 border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-bold rounded-lg transition-colors">
+            Tasá tu propiedad
           </Link>
         </div>
       </section>

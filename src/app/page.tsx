@@ -1,3 +1,5 @@
+export const revalidate = 21600
+
 import { MapPin, Building2, ArrowRight, Maximize2, Home as HomeIcon } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
