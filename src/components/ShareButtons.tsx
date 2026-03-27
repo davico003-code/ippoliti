@@ -5,6 +5,7 @@ import { MessageCircle, Link2, Check, Instagram } from 'lucide-react'
 
 export default function ShareButtons({ slug, title }: { slug: string; title: string }) {
   const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
   const text = encodeURIComponent(`Mirá esta propiedad: ${title}\n${url}`)
 
@@ -12,6 +13,22 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = async () => {
+    setDownloading(true)
+    try {
+      const response = await fetch(`/api/story/${slug}`)
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = `placa-${slug}.png`
+      a.click()
+      URL.revokeObjectURL(blobUrl)
+    } catch {} finally {
+      setDownloading(false)
+    }
   }
 
   return (
@@ -41,16 +58,22 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
           {copied ? 'Copiado!' : 'Copiar link'}
         </button>
       </div>
-      <a
-        href={`/api/story/${slug}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white"
-        style={{ background: 'linear-gradient(135deg, #833AB4, #E1306C, #F77737)' }}
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white disabled:opacity-60"
+        style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
       >
-        <Instagram size={16} />
-        Placa Instagram
-      </a>
+        {downloading ? (
+          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        ) : (
+          <Instagram size={16} />
+        )}
+        {downloading ? 'Descargando...' : 'Descargar placa'}
+      </button>
+      <p className="text-[10px] text-gray-300 text-center mt-1.5">
+        Guardá la imagen y compartila en tu historia de Instagram
+      </p>
     </div>
   )
 }

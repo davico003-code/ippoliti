@@ -695,6 +695,11 @@ export default async function PropertyPage({ params }: Props) {
         {/* Similar properties */}
         <SimilarProperties properties={similar} currentPropertyId={property.id} />
 
+        {/* Mobile share section (visible only on mobile since desktop has sidebar) */}
+        <div className="mt-8 md:hidden">
+          <ShareButtons slug={params.slug} title={property.publication_title || property.address} />
+        </div>
+
         {/* Back link */}
         <div className="mt-12 pt-8 border-t border-gray-200">
           <Link href="/propiedades" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-bold transition-colors text-lg">
