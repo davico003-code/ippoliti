@@ -19,7 +19,6 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
   const slug = generatePropertySlug(property)
   const operation = getOperationType(property)
   const price = formatPrice(property)
-  const totalSurf = parseFloat(property.total_surface) > 0 ? parseFloat(property.total_surface) : null
   const roofed = getRoofedArea(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
@@ -68,8 +67,8 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
                 {roofed != null && roofed > 0 && (
                   <span className="flex items-center gap-0.5"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> m² cub.</span>
                 )}
-                {totalSurf != null && totalSurf > 0 && totalSurf !== roofed && (
-                  <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{totalSurf}</span> m² tot.</span>
+                {lot != null && lot > 0 && lot !== roofed && (
+                  <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> m² lote</span>
                 )}
               </>
             )}

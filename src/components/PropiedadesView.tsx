@@ -115,7 +115,6 @@ function CompactCard({ property, isSelected, onClick }: {
   const operation = getOperationType(property)
   const price = formatPrice(property)
   const roofed = getRoofedArea(property)
-  const totalSurf = parseFloat(property.total_surface) > 0 ? parseFloat(property.total_surface) : null
   const lot = getLotSurface(property)
   const land = isLand(property)
   const slug = generatePropertySlug(property)
@@ -169,8 +168,8 @@ function CompactCard({ property, isSelected, onClick }: {
                 {roofed != null && roofed > 0 && (
                   <span className="flex items-center gap-0.5 text-gray-500"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> cub.</span>
                 )}
-                {totalSurf != null && totalSurf > 0 && totalSurf !== roofed && (
-                  <span className="flex items-center gap-0.5 text-gray-500"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{totalSurf}</span> tot.</span>
+                {lot != null && lot > 0 && lot !== roofed && (
+                  <span className="flex items-center gap-0.5 text-gray-500"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> lote</span>
                 )}
               </>
             )}
@@ -198,7 +197,6 @@ function ListCard({ property, isSelected, onClick, featured }: {
   const operation = getOperationType(property)
   const price = formatPrice(property)
   const roofed = getRoofedArea(property)
-  const totalSurf = parseFloat(property.total_surface) > 0 ? parseFloat(property.total_surface) : null
   const lot = getLotSurface(property)
   const land = isLand(property)
   const slug = generatePropertySlug(property)
@@ -262,8 +260,8 @@ function ListCard({ property, isSelected, onClick, featured }: {
               {roofed != null && roofed > 0 && (
                 <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{roofed}</span> m² cub.</span>
               )}
-              {totalSurf != null && totalSurf > 0 && totalSurf !== roofed && (
-                <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{totalSurf}</span> m² tot.</span>
+              {lot != null && lot > 0 && lot !== roofed && (
+                <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{lot}</span> m² lote</span>
               )}
             </>
           )}
