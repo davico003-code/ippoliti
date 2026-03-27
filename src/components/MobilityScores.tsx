@@ -60,9 +60,9 @@ export default function MobilityScores({ lat, lng }: { lat: number; lng: number 
       const bikeScore = Math.min(Math.round(bike * 8), 100)
 
       setScores([
-        { value: walkScore, label: 'Walk Score', icon: Footprints, color: '#1A5C38' },
-        { value: transitScore, label: 'Transit Score', icon: Bus, color: '#2563eb' },
-        { value: bikeScore, label: 'Bike Score', icon: Bike, color: '#ea580c' },
+        { value: walkScore, label: 'Caminabilidad', icon: Footprints, color: '#1A5C38' },
+        { value: transitScore, label: 'Transporte público', icon: Bus, color: '#2563eb' },
+        { value: bikeScore, label: 'Ciclabilidad', icon: Bike, color: '#ea580c' },
       ])
     }).finally(() => setLoading(false))
   }, [lat, lng])
