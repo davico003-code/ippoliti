@@ -17,9 +17,9 @@ export default function HeroVideo() {
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
         <div className="w-[90%] max-w-[800px]">
           {/* H1 heading */}
-          <h1 className="text-white text-4xl md:text-6xl font-bold text-center drop-shadow-lg mb-8" style={{fontFamily: 'Raleway, sans-serif'}}>
+          <h1 className="text-white text-3xl md:text-5xl font-bold text-center drop-shadow-lg mb-8" style={{fontFamily: 'Raleway, sans-serif'}}>
             Encontr&aacute; tu hogar<br/>
-            <span className="text-xl md:text-2xl font-normal">Propiedades en Funes, Rold&aacute;n y Rosario</span>
+            <span className="text-lg md:text-xl font-normal">Propiedades en Funes, Rold&aacute;n y Rosario</span>
           </h1>
 
           {/* Search */}
