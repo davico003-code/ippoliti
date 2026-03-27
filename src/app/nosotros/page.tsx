@@ -37,10 +37,8 @@ export default function NosotrosPage() {
 
       {/* 1. Header with background image */}
       <section
-        className="relative text-white py-24 md:py-32 px-4 text-center bg-cover bg-center"
-        style={{ backgroundImage: "url('/hero-nosotros.jpg')" }}
+        className="relative text-white py-24 md:py-32 px-4 text-center bg-[#1A5C38]"
       >
-        <div className="absolute inset-0 bg-brand-600/55" />
         <div className="relative z-10">
           <p className="text-white/80 text-sm uppercase tracking-widest font-semibold mb-3">QUIÉNES SOMOS</p>
           <h1 className="text-4xl md:text-5xl font-black leading-tight max-w-3xl mx-auto drop-shadow-md">
@@ -56,8 +54,8 @@ export default function NosotrosPage() {
       <section className="bg-white py-16 px-4">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
           <div className="relative rounded-xl overflow-hidden bg-gray-100 h-[280px]">
-            <Image src="https://images.pexels.com/photos/1170412/pexels-photo-1170412.jpeg?w=600&q=80"
-              alt="Oficina SI Inmobiliaria" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+            <Image src="/hero-nosotros.jpg"
+              alt="Equipo SI Inmobiliaria" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
           </div>
           <div className="flex flex-col items-center justify-center text-center">
             <div className="bg-brand-600 rounded-xl w-20 h-20 flex items-center justify-center mb-4">
