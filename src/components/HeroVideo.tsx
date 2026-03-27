@@ -32,7 +32,7 @@ export default function HeroVideo() {
               className="inline-flex items-center gap-2 border-2 border-white/60 text-white hover:bg-white hover:text-brand-600 px-6 py-3 rounded-full font-semibold text-sm transition-all backdrop-blur-sm"
             >
               <Map className="w-4 h-4" />
-              B&uacute;squeda por Mapa
+              Búsqueda por Mapa
             </Link>
           </div>
           <p className="text-white/60 text-sm mt-4 text-center">
