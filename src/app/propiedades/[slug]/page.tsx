@@ -622,7 +622,7 @@ export default async function PropertyPage({ params }: Props) {
 
           {/* Right column — Contact */}
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
+            <div className="hidden md:block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
               <h2 className="text-lg font-bold text-gray-900 mb-1">¿Te interesa esta propiedad?</h2>
               <p className="text-gray-500 text-sm mb-6">Contactanos y te respondemos a la brevedad.</p>
 
@@ -707,6 +707,28 @@ export default async function PropertyPage({ params }: Props) {
           <Link href="/propiedades" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-bold transition-colors text-lg">
             ← Volver al catálogo
           </Link>
+        </div>
+      </div>
+
+      {/* Mobile sticky contact bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.1)] p-4">
+        <div className="flex gap-3">
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-all"
+          >
+            <MessageCircle className="w-5 h-5" />
+            WhatsApp
+          </a>
+          <a
+            href="tel:+5493412101694"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold transition-all"
+          >
+            <Phone className="w-5 h-5" />
+            Llamar
+          </a>
         </div>
       </div>
     </div>
