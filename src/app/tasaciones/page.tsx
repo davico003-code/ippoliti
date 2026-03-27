@@ -86,9 +86,49 @@ export default function TasacionesPage() {
         >
           Tasá tu propiedad
         </h1>
-        <p className="text-gray-400 text-base text-center mt-3 mb-12">
+        <p className="text-gray-400 text-base text-center mt-3 mb-16">
           Completá el formulario y te contactamos en menos de 24hs
         </p>
+
+        {/* Services section */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            Lo que hacemos para vender tu propiedad
+          </h2>
+          <p className="text-[#1A5C38] text-sm font-semibold mb-8">
+            Tecnología y estrategia al servicio de tu venta
+          </p>
+          <div className="flex flex-col gap-3">
+            {[
+              { img: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=800&q=80', tag: 'SONY α7 IV · 33MP', title: 'Fotografía profesional', desc: 'Cámaras Sony serie α con lentes gran angular. Edición profesional de color, HDR y retoque digital. Cada propiedad recibe entre 20 y 40 fotos optimizadas para portales.', num: '01' },
+              { img: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80', tag: 'DJI MAVIC 4 PRO · 4K', title: 'Aerial & video drone', desc: 'Tomas aéreas con DJI Mavic 4 Pro, el drone más avanzado del mercado. Video 4K y fotos de alta resolución que muestran el entorno, el barrio y la propiedad desde el aire.', num: '02' },
+              { img: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80', tag: 'iPHONE 17 PRO MAX · 4K', title: 'Video tour profesional', desc: 'Recorridos cinematográficos filmados con iPhone 17 Pro Max. Estabilización óptica, modo ProRes y edición con música de fondo para generar impacto emocional en el comprador.', num: '03' },
+              { img: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80', tag: 'DIGITALIZACIÓN HD', title: 'Plano redibujado en alta resolución', desc: 'El plano original de la propiedad es escaneado y redibujado digitalmente en alta resolución. Permite al comprador entender los espacios antes de la visita.', num: '04' },
+              { img: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&q=80', tag: 'META ADS · SEGMENTACIÓN ABC1', title: 'Campaña publicitaria en redes', desc: 'Campañas pagas en Facebook e Instagram dirigidas exclusivamente al segmento ABC1 de Funes, Roldán, Fisherton y Rosario. Impacto garantizado en el comprador ideal de tu propiedad.', num: '05' },
+              { img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80', tag: 'ZONAPROP · ARGENPROP', title: 'Máxima visibilidad en portales', desc: 'Aviso super destacado en Zonaprop y Argenprop, los portales inmobiliarios más visitados de Argentina. Tu propiedad aparece primero en los resultados de búsqueda.', num: '06' },
+            ].map(item => (
+              <div
+                key={item.num}
+                className="relative overflow-hidden rounded-2xl cursor-pointer group"
+                style={{ height: 140 }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.img}
+                  alt={item.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+                <span className="absolute right-8 top-1/2 -translate-y-1/2 text-8xl font-black text-white/10 select-none">{item.num}</span>
+                <div className="relative h-full flex flex-col justify-center p-8">
+                  <p className="text-xs font-bold tracking-widest text-[#4ADE80] mb-2">{item.tag}</p>
+                  <p className="text-2xl font-bold text-white mb-0 group-hover:mb-3 transition-all duration-500">{item.title}</p>
+                  <p className="text-white/70 text-sm leading-relaxed max-h-0 group-hover:max-h-40 overflow-hidden transition-all duration-500">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Nombre */}
@@ -203,37 +243,6 @@ export default function TasacionesPage() {
           </button>
         </form>
 
-        {/* ¿Qué hacemos para vender? */}
-        <div className="mt-20">
-          <h2
-            className="text-center text-gray-900 mb-2"
-            style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.5, fontFamily: 'Raleway, sans-serif' }}
-          >
-            ¿Qué hacemos para vender?
-          </h2>
-          <p className="text-gray-400 text-sm text-center mb-10">
-            Equipamiento profesional para que tu propiedad destaque
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {[
-              { img: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&q=80', label: 'Fotos profesionales', sub: 'Cámaras Sony' },
-              { img: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=80', label: 'Plano redibujado', sub: 'Digitalización HD' },
-              { img: 'https://images.unsplash.com/photo-1508444845599-5c89863b1c44?w=400&q=80', label: 'Drone 4K', sub: 'Mavic 4 Pro' },
-              { img: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400&q=80', label: 'Meta Ads', sub: 'Campaña paga' },
-              { img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', label: 'Aviso destacado', sub: 'Máxima exposición' },
-              { img: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&q=80', label: 'Video iPhone', sub: 'iPhone 17 Pro Max' },
-            ].map(item => (
-              <div key={item.label} className="rounded-2xl overflow-hidden bg-gray-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.img} alt={item.label} className="w-full h-28 object-cover" />
-                <div className="px-3 py-3 text-center">
-                  <p className="text-sm font-semibold text-gray-900">{item.label}</p>
-                  <p className="text-xs text-gray-400">{item.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )
