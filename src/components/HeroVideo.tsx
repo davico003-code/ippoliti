@@ -14,7 +14,7 @@ export default function HeroVideo() {
       <div className="absolute inset-0 bg-black/45" />
 
       {/* Content */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 pt-20 md:pt-32">
+      <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 pt-32 md:pt-48">
         <div className="w-[90%] max-w-[800px] space-y-3">
           {/* H1 heading */}
           <h1 className="text-white text-3xl md:text-5xl font-bold text-center drop-shadow-lg" style={{fontFamily: 'Raleway, sans-serif'}}>
