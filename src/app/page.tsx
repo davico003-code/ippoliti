@@ -105,7 +105,10 @@ async function FeaturedPropertiesSection() {
                     <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-2">
                       {property.publication_title || property.address}
                     </h3>
-                    <p className="text-brand-600 font-black text-lg font-numeric">{price}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-brand-600 font-black text-lg font-numeric">{price}</p>
+                      <ShareCardButton slug={slug} />
+                    </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
                       {land ? (
                         lot != null && lot > 0 && (
@@ -124,9 +127,6 @@ async function FeaturedPropertiesSection() {
                     </div>
                   </div>
                 </Link>
-                <div className="absolute top-3 right-3 z-10" style={{ marginRight: property.is_starred_on_web ? '80px' : '0' }}>
-                  <ShareCardButton slug={slug} />
-                </div>
               </div>
             )
           })}

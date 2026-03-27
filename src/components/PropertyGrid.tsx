@@ -78,12 +78,10 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
           </div>
           <div className="mt-auto flex items-center justify-between">
             <span className="text-brand-600 font-black text-lg font-numeric">{price}</span>
+            <ShareCardButton slug={slug} />
           </div>
         </div>
       </Link>
-      <div className="absolute top-3 right-3 z-10">
-        <ShareCardButton slug={slug} />
-      </div>
     </div>
   )
 }

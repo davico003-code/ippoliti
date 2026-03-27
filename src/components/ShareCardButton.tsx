@@ -23,7 +23,7 @@ export default function ShareCardButton({ slug, path, size = 'sm', variant = 'li
       className={`relative group/share flex items-center justify-center rounded-full transition-all ${
         variant === 'dark'
           ? 'w-8 h-8'
-          : 'w-8 h-8 bg-white/80 hover:bg-white backdrop-blur-sm shadow-sm'
+          : 'w-7 h-7 hover:bg-gray-100'
       }`}
       title="Compartir propiedad"
     >
