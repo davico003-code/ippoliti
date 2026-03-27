@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, X, MapPin, GraduationCap } from 'lucide-react'
+import { Menu, X, MapPin } from 'lucide-react'
 import SearchAutocomplete from './SearchAutocomplete'
 
 export default function Navbar() {
@@ -50,10 +50,9 @@ export default function Navbar() {
             <Link href="/informes" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors">
               Informes
             </Link>
-            <Link href="/school" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors flex items-center gap-1">
-              <GraduationCap className="w-4 h-4" />
-              SI School
-            </Link>
+            <a href="/school" className="bg-[#1A5C38] text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-[#0f3d25] transition-colors">
+              Acceder
+            </a>
           </div>
 
           {/* Mobile hamburger */}
@@ -118,14 +117,13 @@ export default function Navbar() {
               >
                 Informes
               </Link>
-              <Link
+              <a
                 href="/school"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:text-brand-600 font-medium transition-colors rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-center bg-[#1A5C38] text-white text-sm font-semibold px-4 py-2.5 rounded-full hover:bg-[#0f3d25] transition-colors mt-2"
               >
-                <GraduationCap className="w-4 h-4" />
-                SI School
-              </Link>
+                Acceder
+              </a>
             </div>
           </div>
         </div>
