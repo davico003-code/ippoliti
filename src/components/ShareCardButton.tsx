@@ -15,15 +15,15 @@ export default function ShareCardButton({ slug, path, size = 'sm', variant = 'li
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const iconSize = size === 'md' ? 16 : 14
+  const iconSize = size === 'md' ? 20 : 20
 
   return (
     <button
       onClick={handleShare}
       className={`relative group/share flex items-center justify-center rounded-full transition-all ${
         variant === 'dark'
-          ? 'w-8 h-8'
-          : 'w-7 h-7 hover:bg-gray-100'
+          ? 'w-9 h-9'
+          : 'w-9 h-9 hover:bg-gray-100'
       }`}
       title="Compartir propiedad"
     >
