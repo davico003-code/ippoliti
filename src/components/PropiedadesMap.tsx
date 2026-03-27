@@ -2,7 +2,7 @@
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -164,6 +164,97 @@ function MapStyles() {
   return null
 }
 
+// ─── User location button ────────────────────────────────────────────────────
+
+function createUserLocationMarker() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="position:relative;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;width:32px;height:32px;border-radius:50%;background:rgba(59,130,246,0.2);animation:locPulse 2s ease-out infinite"></div>
+      <div style="width:14px;height:14px;border-radius:50%;background:#3B82F6;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);position:relative;z-index:1"></div>
+    </div>
+    <style>@keyframes locPulse{0%{transform:scale(0.8);opacity:1}100%{transform:scale(2.2);opacity:0}}</style>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  })
+}
+
+function LocateButton() {
+  const map = useMap()
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState('')
+  const [marker, setMarker] = useState<L.Marker | null>(null)
+
+  const handleClick = useCallback(() => {
+    if (!navigator.geolocation) {
+      setToast('Tu navegador no soporta geolocalización')
+      setTimeout(() => setToast(''), 3000)
+      return
+    }
+    setLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords
+        map.flyTo([latitude, longitude], 14, { duration: 1 })
+        if (marker) marker.remove()
+        const m = L.marker([latitude, longitude], { icon: createUserLocationMarker(), zIndexOffset: 2000 }).addTo(map)
+        setMarker(m)
+        setLoading(false)
+      },
+      () => {
+        setLoading(false)
+        setToast('Activá la ubicación en tu navegador')
+        setTimeout(() => setToast(''), 3000)
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    )
+  }, [map, marker])
+
+  return (
+    <>
+      <div
+        style={{ position: 'absolute', bottom: 100, right: 10, zIndex: 1000 }}
+      >
+        <button
+          onClick={handleClick}
+          title="Mi ubicación"
+          style={{
+            width: 40, height: 40,
+            background: 'white',
+            borderRadius: '50%',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            border: '1px solid #e5e7eb',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          {loading ? (
+            <div style={{ width: 18, height: 18, border: '2px solid #e5e7eb', borderTopColor: '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="3 11 22 2 13 21 11 13 3 11" />
+            </svg>
+          )}
+        </button>
+      </div>
+      {toast && (
+        <div
+          style={{
+            position: 'absolute', bottom: 56, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 1000, background: '#1f2937', color: 'white',
+            fontSize: 12, fontWeight: 500, padding: '8px 16px',
+            borderRadius: 8, whiteSpace: 'nowrap',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          }}
+        >
+          {toast}
+        </div>
+      )}
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 interface Props {
@@ -199,6 +290,7 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
       <FitBounds properties={mapped} />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
+      <LocateButton />
 
       <MarkerClusterGroup
         chunkedLoading
