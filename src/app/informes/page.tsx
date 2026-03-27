@@ -2,59 +2,34 @@ import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 
 const CacDolarChart = dynamic(() => import('@/components/CacDolarChart'), { ssr: false })
+const InflationMiniChart = dynamic(() => import('@/components/InflationMiniChart'), { ssr: false })
 
 export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Informes del Mercado Inmobiliario | SI Inmobiliaria',
-  description: 'Datos actualizados del mercado inmobiliario: índice CAC, dólar blue, costo de construcción por m².',
+  description: 'Datos actualizados del mercado inmobiliario: índice CAC, dólar blue, ICL alquileres, IPC inflación, costo de construcción por m².',
 }
 
-interface DolarResponse {
-  compra: number
-  venta: number
-  fechaActualizacion: string
-}
+interface DolarResponse { compra: number; venta: number; fechaActualizacion: string }
+interface IndecSeriesResponse { data: [string, number | null][] }
 
-interface CacSeriesResponse {
-  data: [string, number | null][]
-}
-
-async function fetchDolarBlue(): Promise<DolarResponse | null> {
+async function fetchJson<T>(url: string): Promise<T | null> {
   try {
-    const res = await fetch('https://dolarapi.com/v1/dolares/blue', { next: { revalidate: 3600 } })
+    const res = await fetch(url, { next: { revalidate: 3600 } })
     if (!res.ok) return null
-    return res.json()
+    return res.json() as Promise<T>
   } catch { return null }
 }
 
-async function fetchDolarOficial(): Promise<DolarResponse | null> {
-  try {
-    const res = await fetch('https://dolarapi.com/v1/dolares/oficial', { next: { revalidate: 3600 } })
-    if (!res.ok) return null
-    return res.json()
-  } catch { return null }
+function parseSeries(json: IndecSeriesResponse | null): { date: string; value: number }[] {
+  if (!json) return []
+  return (json.data || [])
+    .filter((d): d is [string, number] => d[1] != null)
+    .map(d => ({ date: d[0], value: d[1] }))
 }
 
-async function fetchCacSeries(): Promise<{ date: string; value: number }[]> {
-  try {
-    const res = await fetch(
-      'https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_26&start_date=2024-01-01&limit=36&format=json',
-      { next: { revalidate: 3600 } }
-    )
-    if (!res.ok) return []
-    const json = await res.json() as CacSeriesResponse
-    return (json.data || [])
-      .filter((d): d is [string, number] => d[1] != null)
-      .map(d => ({ date: d[0], value: d[1] }))
-  } catch { return [] }
-}
-
-interface BluelyticsEntry {
-  date: string
-  value_sell: number
-  source: string
-}
+interface BluelyticsEntry { date: string; value_sell: number; source: string }
 
 async function fetchDolarBlueHistory(): Promise<{ date: string; value: number }[]> {
   try {
@@ -62,15 +37,9 @@ async function fetchDolarBlueHistory(): Promise<{ date: string; value: number }[
     if (!res.ok) return []
     const json = await res.json() as BluelyticsEntry[]
     const blueOnly = json.filter(e => e.source === 'Blue' && e.date >= '2024-01-01')
-    // Group by month (YYYY-MM), take last entry per month
     const byMonth = new Map<string, number>()
-    for (const entry of blueOnly) {
-      const month = entry.date.slice(0, 7)
-      byMonth.set(month, entry.value_sell)
-    }
-    return Array.from(byMonth.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, value]) => ({ date: date + '-01', value }))
+    for (const entry of blueOnly) byMonth.set(entry.date.slice(0, 7), entry.value_sell)
+    return Array.from(byMonth.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([d, v]) => ({ date: d + '-01', value: v }))
   } catch { return [] }
 }
 
@@ -80,173 +49,240 @@ function formatMonth(dateStr: string): string {
   return `${months[parseInt(m, 10) - 1]} ${y.slice(2)}`
 }
 
+function SourceBadge({ text }: { text: string }) {
+  return <span className="text-[10px] font-medium text-gray-300 bg-gray-50 px-2 py-0.5 rounded ml-2">{text}</span>
+}
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex-1 h-px bg-gray-100" />
+      <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">{label}</span>
+      <div className="flex-1 h-px bg-gray-100" />
+    </div>
+  )
+}
+
 export default async function InformesPage() {
-  const [dolarBlue, dolarOficial, cacSeries, dolarHistory] = await Promise.all([
-    fetchDolarBlue(),
-    fetchDolarOficial(),
-    fetchCacSeries(),
+  const [dolarBlue, dolarOficial, cacRaw, dolarHistory, iclRaw, ipcRaw] = await Promise.all([
+    fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/blue'),
+    fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/oficial'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_26&start_date=2024-01-01&limit=36&format=json'),
     fetchDolarBlueHistory(),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=144.3_INDCLABIN_DICI_M_19&limit=15&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_33&limit=13&format=json'),
   ])
 
-  const latestCac = cacSeries.length > 0 ? cacSeries[cacSeries.length - 1] : null
-  const prevCac = cacSeries.length > 1 ? cacSeries[cacSeries.length - 2] : null
+  const cacSeries = parseSeries(cacRaw)
+  const iclSeries = parseSeries(iclRaw)
+  const ipcSeries = parseSeries(ipcRaw)
+
+  // --- Dolar ---
+  const blueVenta = dolarBlue?.venta || 1
+  const brecha = dolarBlue && dolarOficial ? ((dolarBlue.venta - dolarOficial.venta) / dolarOficial.venta * 100) : null
+
+  // --- CAC ---
+  const latestCac = cacSeries.at(-1)
+  const prevCac = cacSeries.at(-2)
   const cacChange = latestCac && prevCac ? ((latestCac.value - prevCac.value) / prevCac.value * 100) : null
 
-  // Build chart: rebase both to 100 from first data point (Jan 2024)
-  const cacBase = cacSeries.length > 0 ? cacSeries[0].value : 1
-  const dolarBase = dolarHistory.length > 0 ? dolarHistory[0].value : 1
-
-  // Build dolar lookup by month
-  const dolarByMonth = new Map<string, number>()
-  for (const d of dolarHistory) {
-    dolarByMonth.set(d.date.slice(0, 7), d.value)
-  }
-
+  // --- Chart ---
+  const cacBase = cacSeries[0]?.value || 1
+  const dolarBase = dolarHistory[0]?.value || 1
+  const dolarByMonth = new Map(dolarHistory.map(d => [d.date.slice(0, 7), d.value]))
   const chartData = cacSeries.map(d => {
-    const month = d.date.slice(0, 7)
-    const cacRebased = (d.value / cacBase) * 100
-    const dolarVal = dolarByMonth.get(month)
-    const dolarRebased = dolarVal ? (dolarVal / dolarBase) * 100 : null
+    const dolarVal = dolarByMonth.get(d.date.slice(0, 7))
     return {
       label: formatMonth(d.date),
-      cac: Math.round(cacRebased * 10) / 10,
-      dolar: dolarRebased ? Math.round(dolarRebased * 10) / 10 : null,
+      cac: Math.round((d.value / cacBase) * 1000) / 10,
+      dolar: dolarVal ? Math.round((dolarVal / dolarBase) * 1000) / 10 : null,
     }
   }).filter(d => d.cac > 0)
 
-  // Construction cost per m² in USD (based on CAC / dolar blue)
-  const blueVenta = dolarBlue?.venta || 1
-  const cacUsd = latestCac ? latestCac.value / blueVenta : null
-  const costoEconomico = cacUsd ? Math.round(cacUsd * 0.55) : null
-  const costoMedio = cacUsd ? Math.round(cacUsd * 0.75) : null
-  const costoPremium = cacUsd ? Math.round(cacUsd * 1.05) : null
+  // --- Costo construcción USD ---
+  const cacVal = latestCac?.value || 0
+  const costos = [
+    { cat: 'Categoría económica', mult: 0.0045 },
+    { cat: 'Categoría media', mult: 0.0065 },
+    { cat: 'Categoría premium', mult: 0.0095 },
+    { cat: 'Premium Plus', mult: 0.014 },
+  ].map(c => ({ ...c, usd: cacVal ? Math.round((cacVal * c.mult) / blueVenta) : null }))
+
+  // --- ICL ---
+  const iclLatest = iclSeries.at(-1)
+  const iclPrev = iclSeries.at(-2)
+  const iclMonthly = iclLatest && iclPrev ? ((iclLatest.value - iclPrev.value) / iclPrev.value * 100) : null
+  const icl12ago = iclSeries.length >= 13 ? iclSeries.at(-13) : null
+  const iclAnnual = iclLatest && icl12ago ? ((iclLatest.value - icl12ago.value) / icl12ago.value * 100) : null
+
+  // --- IPC ---
+  const ipcLatest = ipcSeries.at(-1)
+  const ipcPrev = ipcSeries.at(-2)
+  const ipcMonthly = ipcLatest && ipcPrev ? ((ipcLatest.value - ipcPrev.value) / ipcPrev.value * 100) : null
+  const ipc12 = ipcSeries.length >= 13
+    ? ipcSeries.slice(-13).reduce((acc, d, i, arr) => {
+        if (i === 0) return acc
+        return acc + ((d.value - arr[i - 1].value) / arr[i - 1].value * 100)
+      }, 0)
+    : null
+  const ipcChartData = ipcSeries.slice(-7).map((d, i, arr) => ({
+    label: formatMonth(d.date),
+    value: i === 0 ? 0 : Math.round(((d.value - arr[i - 1].value) / arr[i - 1].value * 100) * 10) / 10,
+  })).slice(1)
 
   const lastUpdated = dolarBlue?.fechaActualizacion
-    ? new Date(dolarBlue.fechaActualizacion).toLocaleString('es-AR', {
-        day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
-      })
+    ? new Date(dolarBlue.fechaActualizacion).toLocaleString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : null
 
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
-        <h1
-          className="text-gray-900"
-          style={{ fontSize: 48, fontWeight: 800, letterSpacing: -1, fontFamily: 'Raleway, sans-serif' }}
-        >
+        <h1 className="text-gray-900" style={{ fontSize: 48, fontWeight: 800, letterSpacing: -1, fontFamily: 'Raleway, sans-serif' }}>
           Informes del mercado
         </h1>
-        <p className="text-gray-400 text-base mt-3">
-          Datos actualizados automáticamente de fuentes oficiales
-        </p>
-        {lastUpdated && (
-          <p className="text-gray-300 text-xs mt-2">
-            Última actualización: {lastUpdated}
-          </p>
-        )}
+        <p className="text-gray-400 text-base mt-3">Datos actualizados automáticamente de fuentes oficiales</p>
+        {lastUpdated && <p className="text-gray-300 text-xs mt-2">Última actualización: {lastUpdated}</p>}
       </div>
 
       <div className="max-w-4xl mx-auto px-6 pb-20 space-y-12">
-        {/* Live rates strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Dólar Blue */}
+
+        {/* Live rates + brecha */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Dólar Blue</p>
             {dolarBlue ? (
               <div className="flex items-baseline gap-4">
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Compra</p>
-                  <p className="text-2xl font-bold text-[#1A5C38] font-numeric">${dolarBlue.compra.toLocaleString('es-AR')}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Venta</p>
-                  <p className="text-2xl font-bold text-[#1A5C38] font-numeric">${dolarBlue.venta.toLocaleString('es-AR')}</p>
-                </div>
+                <div><p className="text-xs text-gray-400 mb-0.5">Compra</p><p className="text-2xl font-bold text-[#1A5C38] font-numeric">${dolarBlue.compra.toLocaleString('es-AR')}</p></div>
+                <div><p className="text-xs text-gray-400 mb-0.5">Venta</p><p className="text-2xl font-bold text-[#1A5C38] font-numeric">${dolarBlue.venta.toLocaleString('es-AR')}</p></div>
               </div>
-            ) : (
-              <p className="text-gray-300 text-sm">No disponible</p>
-            )}
+            ) : <p className="text-gray-300 text-sm">No disponible</p>}
           </div>
-
-          {/* Dólar Oficial */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Dólar Oficial</p>
             {dolarOficial ? (
               <div className="flex items-baseline gap-4">
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Compra</p>
-                  <p className="text-2xl font-bold text-gray-900 font-numeric">${dolarOficial.compra.toLocaleString('es-AR')}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Venta</p>
-                  <p className="text-2xl font-bold text-gray-900 font-numeric">${dolarOficial.venta.toLocaleString('es-AR')}</p>
-                </div>
+                <div><p className="text-xs text-gray-400 mb-0.5">Compra</p><p className="text-2xl font-bold text-gray-900 font-numeric">${dolarOficial.compra.toLocaleString('es-AR')}</p></div>
+                <div><p className="text-xs text-gray-400 mb-0.5">Venta</p><p className="text-2xl font-bold text-gray-900 font-numeric">${dolarOficial.venta.toLocaleString('es-AR')}</p></div>
               </div>
-            ) : (
-              <p className="text-gray-300 text-sm">No disponible</p>
-            )}
+            ) : <p className="text-gray-300 text-sm">No disponible</p>}
           </div>
-
-          {/* CAC hoy */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Índice CAC</p>
             {latestCac ? (
               <div>
-                <p className="text-2xl font-bold text-gray-900 font-numeric">
-                  {latestCac.value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
-                </p>
-                {cacChange !== null && (
-                  <p className={`text-sm font-semibold font-numeric mt-1 ${cacChange >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {cacChange >= 0 ? '+' : ''}{cacChange.toFixed(1)}% vs mes anterior
-                  </p>
-                )}
+                <p className="text-2xl font-bold text-gray-900 font-numeric">{latestCac.value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</p>
+                {cacChange !== null && <p className={`text-sm font-semibold font-numeric mt-1 ${cacChange >= 0 ? 'text-green-600' : 'text-red-500'}`}>{cacChange >= 0 ? '+' : ''}{cacChange.toFixed(1)}% mensual</p>}
               </div>
-            ) : (
-              <p className="text-gray-300 text-sm">No disponible</p>
-            )}
+            ) : <p className="text-gray-300 text-sm">No disponible</p>}
+          </div>
+          {/* Brecha */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Brecha Blue vs Oficial</p>
+            {brecha !== null ? (
+              <p className={`text-3xl font-black font-numeric ${brecha < 20 ? 'text-green-600' : brecha < 50 ? 'text-amber-500' : 'text-red-500'}`}>
+                {brecha.toFixed(1)}%
+              </p>
+            ) : <p className="text-gray-300 text-sm">—</p>}
           </div>
         </div>
 
         {/* CAC vs Dólar Chart */}
         {chartData.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
-              Evolución CAC vs Dólar Blue — Base 100
-            </h2>
-            <p className="text-sm text-gray-400 mb-6">Últimos {chartData.length} meses</p>
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Evolución CAC vs Dólar Blue — Base 100</h2>
+              <SourceBadge text="INDEC / Bluelytics" />
+            </div>
+            <p className="text-sm text-gray-400 mb-6">Desde enero 2024</p>
             <CacDolarChart data={chartData} />
           </div>
         )}
 
-        {/* Costo de construcción */}
-        {costoEconomico && costoMedio && costoPremium && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
-              ¿Cuánto cuesta construir hoy?
-            </h2>
-            <p className="text-sm text-gray-400 mb-6">
-              Valores estimados en USD según índice CAC y dólar blue actual
-            </p>
+        <SectionDivider label="PARA PROPIETARIOS" />
+
+        {/* ICL - Índice Alquileres */}
+        {iclLatest && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Índice para Contratos de Locación (ICL)</h2>
+              <SourceBadge text="BCRA" />
+            </div>
+            <p className="text-sm text-gray-400 mb-6">Índice oficial para ajuste de contratos de alquiler (Ley 27.551)</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-gray-50 rounded-2xl p-6 text-center">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Categoría económica</p>
-                <p className="text-3xl font-bold text-[#1A5C38] font-numeric">~USD {costoEconomico}</p>
-                <p className="text-xs text-gray-400 mt-1">por m²</p>
+              <div className="bg-gray-50 rounded-2xl p-5 text-center">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">ICL Actual</p>
+                <p className="text-3xl font-bold text-gray-900 font-numeric">{iclLatest.value.toLocaleString('es-AR', { maximumFractionDigits: 2 })}</p>
+                <p className="text-xs text-gray-400 mt-1">{formatMonth(iclLatest.date)}</p>
               </div>
-              <div className="bg-gray-50 rounded-2xl p-6 text-center">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Categoría media</p>
-                <p className="text-3xl font-bold text-[#1A5C38] font-numeric">~USD {costoMedio}</p>
-                <p className="text-xs text-gray-400 mt-1">por m²</p>
+              <div className="bg-gray-50 rounded-2xl p-5 text-center">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Var. Mensual</p>
+                {iclMonthly !== null ? (
+                  <p className={`text-3xl font-bold font-numeric ${iclMonthly >= 0 ? 'text-red-500' : 'text-green-600'}`}>{iclMonthly >= 0 ? '+' : ''}{iclMonthly.toFixed(1)}%</p>
+                ) : <p className="text-gray-300">—</p>}
               </div>
-              <div className="bg-gray-50 rounded-2xl p-6 text-center">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Categoría premium</p>
-                <p className="text-3xl font-bold text-[#1A5C38] font-numeric">~USD {costoPremium}</p>
-                <p className="text-xs text-gray-400 mt-1">por m²</p>
+              <div className="bg-gray-50 rounded-2xl p-5 text-center">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Var. Anual</p>
+                {iclAnnual !== null ? (
+                  <p className={`text-3xl font-bold font-numeric ${iclAnnual >= 0 ? 'text-red-500' : 'text-green-600'}`}>{iclAnnual >= 0 ? '+' : ''}{iclAnnual.toFixed(1)}%</p>
+                ) : <p className="text-gray-300">—</p>}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* IPC Inflación */}
+        {ipcLatest && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Inflación (IPC)</h2>
+              <SourceBadge text="INDEC" />
+            </div>
+            <p className="text-sm text-gray-400 mb-6">Índice de Precios al Consumidor — nivel general</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div className="bg-gray-50 rounded-2xl p-5 text-center">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Último mes</p>
+                {ipcMonthly !== null ? (
+                  <p className="text-3xl font-bold text-orange-500 font-numeric">{ipcMonthly.toFixed(1)}%</p>
+                ) : <p className="text-gray-300">—</p>}
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-5 text-center">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Acumulada 12 meses</p>
+                {ipc12 !== null ? (
+                  <p className="text-3xl font-bold text-orange-500 font-numeric">{ipc12.toFixed(1)}%</p>
+                ) : <p className="text-gray-300">—</p>}
+              </div>
+            </div>
+            {ipcChartData.length > 0 && (
+              <>
+                <p className="text-xs text-gray-400 mb-2">Inflación mensual — últimos 6 meses</p>
+                <InflationMiniChart data={ipcChartData} />
+              </>
+            )}
+          </div>
+        )}
+
+        <SectionDivider label="PARA CONSTRUCTORES" />
+
+        {/* Costo de construcción USD */}
+        {costos[0].usd && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Costo de construcción en USD</h2>
+              <SourceBadge text="CAC / Blue" />
+            </div>
+            <p className="text-sm text-gray-400 mb-6">Valores orientativos según índice CAC y dólar blue actual</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {costos.map(c => (
+                <div key={c.cat} className="bg-gray-50 rounded-2xl p-5 text-center">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">{c.cat}</p>
+                  <p className="text-2xl font-bold text-[#1A5C38] font-numeric">~USD {c.usd}</p>
+                  <p className="text-xs text-gray-400 mt-1">por m²</p>
+                </div>
+              ))}
+            </div>
             <p className="text-xs text-gray-300 text-center mt-4">
-              Valores estimados según índice CAC. Consultar con profesional para presupuesto preciso.
+              Incluye materiales y mano de obra. Sin honorarios profesionales. Consultar con profesional.
             </p>
           </div>
         )}
