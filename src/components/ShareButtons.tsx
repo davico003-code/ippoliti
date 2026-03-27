@@ -36,19 +36,19 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
       <p className="text-xs text-gray-400 mb-3 font-poppins font-medium uppercase tracking-wide">
         Compartir propiedad
       </p>
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <a
           href={`https://wa.me/?text=${text}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-colors bg-[#25D366] hover:bg-[#1ebe57] text-white"
+          className="flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold font-poppins transition-colors bg-[#25D366] hover:bg-[#1ebe57] text-white"
         >
           <MessageCircle size={16} />
           WhatsApp
         </a>
         <button
           onClick={copyLink}
-          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-colors ${
+          className={`flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold font-poppins transition-colors ${
             copied
               ? 'bg-brand text-white'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -61,7 +61,7 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
       <button
         onClick={handleDownload}
         disabled={downloading}
-        className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white disabled:opacity-60"
+        className="mt-2 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white disabled:opacity-60"
         style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
       >
         {downloading ? (

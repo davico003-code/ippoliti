@@ -10,7 +10,8 @@ import {
   getLotSurface,
 } from '@/lib/tokko'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const icon = (size: number, children: React.ReactNode) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -33,10 +34,21 @@ export async function GET(
 ) {
   const id = getIdFromSlug(params.slug)
   if (isNaN(id)) {
-    return new Response('Not found', { status: 404 })
+    return new Response('Invalid slug', { status: 400 })
   }
 
-  const property = await getPropertyById(id)
+  let property
+  try {
+    property = await getPropertyById(id)
+  } catch (err) {
+    console.error('Story API - Tokko fetch error:', err)
+    return new Response('Error fetching property', { status: 500 })
+  }
+
+  if (!property) {
+    return new Response('Property not found', { status: 404 })
+  }
+
   const photo = getMainPhoto(property)
   const photos = getAllPhotos(property)
   const secondPhoto = photos.length > 1 ? photos[1] : null
