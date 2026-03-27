@@ -202,6 +202,38 @@ export default function TasacionesPage() {
             Solicitar tasación por WhatsApp
           </button>
         </form>
+
+        {/* ¿Qué hacemos para vender? */}
+        <div className="mt-20">
+          <h2
+            className="text-center text-gray-900 mb-2"
+            style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.5, fontFamily: 'Raleway, sans-serif' }}
+          >
+            ¿Qué hacemos para vender?
+          </h2>
+          <p className="text-gray-400 text-sm text-center mb-10">
+            Equipamiento profesional para que tu propiedad destaque
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {[
+              { img: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&q=80', label: 'Fotos profesionales', sub: 'Cámaras Sony' },
+              { img: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=80', label: 'Plano redibujado', sub: 'Digitalización HD' },
+              { img: 'https://images.unsplash.com/photo-1508444845599-5c89863b1c44?w=400&q=80', label: 'Drone 4K', sub: 'Mavic 4 Pro' },
+              { img: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400&q=80', label: 'Meta Ads', sub: 'Campaña paga' },
+              { img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80', label: 'Aviso destacado', sub: 'Máxima exposición' },
+              { img: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&q=80', label: 'Video iPhone', sub: 'iPhone 17 Pro Max' },
+            ].map(item => (
+              <div key={item.label} className="rounded-2xl overflow-hidden bg-gray-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.img} alt={item.label} className="w-full h-28 object-cover" />
+                <div className="px-3 py-3 text-center">
+                  <p className="text-sm font-semibold text-gray-900">{item.label}</p>
+                  <p className="text-xs text-gray-400">{item.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
