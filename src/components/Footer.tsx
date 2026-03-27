@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Facebook, Instagram, Youtube } from 'lucide-react'
+import Newsletter from '@/components/Newsletter'
 
 const LINKS = [
   { label: 'Comprar', href: '/propiedades?op=venta' },
@@ -7,6 +8,7 @@ const LINKS = [
   { label: 'Vender', href: '/tasaciones' },
   { label: 'Tasaciones', href: '/tasaciones' },
   { label: 'Emprendimientos', href: '/emprendimientos' },
+  { label: 'Informes', href: '/informes' },
   { label: 'Nosotros', href: '/nosotros' },
   { label: 'Blog', href: '/blog' },
 ]
@@ -22,6 +24,10 @@ export default function Footer() {
 
   return (
     <footer style={{ backgroundColor: '#0F3D25' }} className="text-white">
+      {/* Newsletter */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-2">
+        <Newsletter />
+      </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Top row: logo | links | socials */}

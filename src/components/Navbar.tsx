@@ -47,6 +47,9 @@ export default function Navbar() {
             <Link href="/blog" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors">
               Blog
             </Link>
+            <Link href="/informes" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors">
+              Informes
+            </Link>
             <Link href="/school" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors flex items-center gap-1">
               <GraduationCap className="w-4 h-4" />
               SI School
