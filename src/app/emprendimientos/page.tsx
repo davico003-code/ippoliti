@@ -185,6 +185,47 @@ export default async function EmprendimientosPage() {
                   </div>
                 </div>
               </Link>
+
+              {/* Card Aurea */}
+              <div className="group bg-gradient-to-br from-amber-900 to-amber-950 rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl border border-amber-800/50 transition-all duration-300 hover:-translate-y-1 flex flex-col">
+                <div className="relative h-64 bg-amber-950 overflow-hidden flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 via-transparent to-amber-900/40" />
+                  <div className="relative z-10 text-center">
+                    <div className="w-16 h-16 bg-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-amber-400/30">
+                      <span className="text-amber-400 font-black text-2xl font-poppins">A</span>
+                    </div>
+                    <span className="text-amber-300 font-bold text-xl tracking-widest">AUREA</span>
+                  </div>
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-amber-500 text-amber-950 uppercase tracking-wide">
+                      Pr&oacute;ximamente
+                    </span>
+                  </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <h2 className="text-2xl font-black text-white mb-2 group-hover:text-amber-400 transition-colors">
+                    Aurea &mdash; Desarrollo Residencial Premium
+                  </h2>
+                  <p className="text-amber-400/80 font-semibold text-sm mb-2">Nuevo emprendimiento</p>
+                  <div className="flex items-center gap-1.5 text-amber-200/50 text-sm mb-3">
+                    <MapPin className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <span>Zona oeste &middot; Gran Rosario</span>
+                  </div>
+                  <p className="text-amber-200/40 text-sm leading-relaxed mb-4">
+                    Desarrollo residencial premium con dise&ntilde;o contempor&aacute;neo, espacios verdes y amenities de primer nivel. Pr&oacute;ximamente m&aacute;s informaci&oacute;n.
+                  </p>
+                  <div className="mt-auto pt-2">
+                    <a
+                      href="https://wa.me/5493412101694?text=Hola!%20Quiero%20info%20sobre%20Aurea"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-amber-400 font-bold text-sm group-hover:gap-2.5 transition-all"
+                    >
+                      Consultar <ArrowRight className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
