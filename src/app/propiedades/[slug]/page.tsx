@@ -8,6 +8,7 @@ const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: fal
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false });
 const NearbyPlaces = dynamic(() => import('@/components/NearbyPlaces'), { ssr: false });
 const NearbyPropertiesMap = dynamic(() => import('@/components/NearbyPropertiesMap'), { ssr: false });
+const MobilityScores = dynamic(() => import('@/components/MobilityScores'), { ssr: false });
 const BlueprintGallery = dynamic(() => import('@/components/BlueprintGallery'), { ssr: false });
 import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
@@ -677,6 +678,13 @@ export default async function PropertyPage({ params }: Props) {
         {property.geo_lat && property.geo_long && (
           <div className="mt-6">
             <NearbyPlaces lat={parseFloat(property.geo_lat)} lng={parseFloat(property.geo_long)} />
+          </div>
+        )}
+
+        {/* Mobility scores */}
+        {property.geo_lat && property.geo_long && (
+          <div className="mt-6">
+            <MobilityScores lat={parseFloat(property.geo_lat)} lng={parseFloat(property.geo_long)} />
           </div>
         )}
 
