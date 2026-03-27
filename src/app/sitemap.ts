@@ -3,7 +3,7 @@ import { getProperties, generatePropertySlug } from '@/lib/tokko'
 import { getAllPosts } from '@/lib/blog'
 import { getDevelopments, generateDevSlug } from '@/lib/developments'
 
-const BASE = 'https://inmobiliariaippoliti.com'
+const BASE = 'https://siinmobiliaria.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -15,6 +15,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/inmobiliaria-funes`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/propiedades-roldan`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/alquiler-roldan`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/hausing`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/school`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ]
 
   let propertyRoutes: MetadataRoute.Sitemap = []

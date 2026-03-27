@@ -51,7 +51,13 @@
       "Bash(pbcopy)",
       "Bash(gh:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); photos=d.get\\(''''photos'''',[]\\); print\\(f''''Total photos: {len\\(photos\\)}''''\\); [print\\(f''''  {p.get\\(\"\"image\"\",\"\"?\"\"\\)[:80]}... cover={p.get\\(\"\"is_front_cover\"\"\\)} blueprint={p.get\\(\"\"is_blueprint\"\"\\)}''''\\) for p in photos[:3]]\")",
+      "Bash(find /Users/siinmobiliaria/ippoliti -name *mapa* -o -name *map*)",
+      "Bash(relacionados\" \\(3 cards con foto, título, fecha\\) filtrados por categoría:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

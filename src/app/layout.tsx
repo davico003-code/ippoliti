@@ -3,22 +3,33 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import Analytics from "@/components/Analytics";
+import TawkTo from "@/components/TawkTo";
+import ExitPopup from "@/components/ExitPopup";
 
 export const metadata: Metadata = {
-  title: "SI Inmobiliaria | Venta y Alquiler en Roldán y Rosario - Desde 1983",
+  title: "SI Inmobiliaria | Venta y Alquiler en Roldán y Funes - Desde 1983",
   description:
-    "SI Inmobiliaria - Más de 40 años en el mercado inmobiliario de Roldán y Rosario. Susana Ippoliti. Venta, alquiler y tasaciones profesionales.",
+    "Inmobiliaria con 43 años de trayectoria en Roldán, Funes y Gran Rosario. Casas, departamentos, terrenos y emprendimientos. Tasaciones profesionales.",
+  metadataBase: new URL('https://siinmobiliaria.com'),
   verification: {
     google: 'vzBOIhp_zjfmlEuh_-0vZ6K9PDOyNAY_wSet1AWsNUI',
   },
   openGraph: {
-    title: "SI Inmobiliaria | Venta y Alquiler en Roldán y Rosario - Desde 1983",
+    title: "SI Inmobiliaria | Venta y Alquiler en Roldán y Funes",
     description:
-      "SI Inmobiliaria - Más de 40 años en el mercado inmobiliario de Roldán y Rosario.",
-    url: "https://www.inmobiliariaippoliti.com",
+      "Inmobiliaria con 43 años de trayectoria en Roldán, Funes y Gran Rosario. Propiedades disponibles.",
+    url: "https://siinmobiliaria.com",
     siteName: "SI Inmobiliaria",
     locale: "es_AR",
     type: "website",
+    images: [{ url: '/logo.png', width: 400, height: 400, alt: 'SI Inmobiliaria' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SI Inmobiliaria | Venta y Alquiler en Roldán y Funes',
+    description: 'Inmobiliaria con 43 años en Roldán, Funes y Rosario.',
+    images: ['/logo.png'],
   },
 };
 
@@ -26,8 +37,8 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "RealEstateAgent",
   name: "SI Inmobiliaria",
-  url: "https://www.inmobiliariaippoliti.com",
-  logo: "https://www.inmobiliariaippoliti.com/logo.png",
+  url: "https://siinmobiliaria.com",
+  logo: "https://siinmobiliaria.com/logo.png",
   foundingDate: "1983",
   telephone: "+54-341-210-1694",
   location: [
@@ -96,6 +107,9 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
         <FloatingWhatsApp />
+        <ExitPopup />
+        <Analytics />
+        <TawkTo />
       </body>
     </html>
   );

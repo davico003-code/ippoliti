@@ -1,0 +1,108 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { X } from 'lucide-react'
+
+const STORAGE_KEY = 'si-popup-shown'
+const COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000 // 1 week
+
+export default function ExitPopup() {
+  const [show, setShow] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [form, setForm] = useState({ nombre: '', email: '', tipo: 'Casa' })
+
+  const shouldShow = useCallback(() => {
+    const last = localStorage.getItem(STORAGE_KEY)
+    if (last && Date.now() - parseInt(last, 10) < COOLDOWN_MS) return false
+    return true
+  }, [])
+
+  const trigger = useCallback(() => {
+    if (!shouldShow()) return
+    setShow(true)
+    localStorage.setItem(STORAGE_KEY, String(Date.now()))
+  }, [shouldShow])
+
+  useEffect(() => {
+    // Desktop: mouse leave top
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (e.clientY <= 0) trigger()
+    }
+    document.addEventListener('mouseleave', handleMouseLeave)
+
+    // Mobile: 60s timeout
+    const timer = setTimeout(() => {
+      if (window.innerWidth < 768) trigger()
+    }, 60000)
+
+    return () => {
+      document.removeEventListener('mouseleave', handleMouseLeave)
+      clearTimeout(timer)
+    }
+  }, [trigger])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.email) return
+    // Save lead to localStorage
+    const leads = JSON.parse(localStorage.getItem('si-leads') || '[]')
+    leads.push({ ...form, date: new Date().toISOString() })
+    localStorage.setItem('si-leads', JSON.stringify(leads))
+    setSent(true)
+  }
+
+  if (!show) return null
+
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in zoom-in-95">
+        <button onClick={() => setShow(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="SI Inmobiliaria" className="h-8 mx-auto mb-4" />
+
+        {sent ? (
+          <div className="text-center py-4">
+            <p className="text-xl font-bold text-gray-900 mb-2 font-poppins">Listo!</p>
+            <p className="text-gray-500 text-sm">Te vamos a enviar propiedades seg&uacute;n tu b&uacute;squeda.</p>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-xl font-black text-gray-900 text-center mb-1 font-poppins">
+              &iquest;Encontraste lo que buscabas?
+            </h2>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              Dejanos tu email y te enviamos propiedades seg&uacute;n tu b&uacute;squeda
+            </p>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                type="text" placeholder="Tu nombre"
+                value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
+              />
+              <input
+                type="email" placeholder="Tu email" required
+                value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
+              />
+              <select
+                value={form.tipo} onChange={e => setForm({ ...form, tipo: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A5C38] bg-white"
+              >
+                <option>Casa</option>
+                <option>Departamento</option>
+                <option>Lote</option>
+                <option>Local</option>
+              </select>
+              <button type="submit" className="w-full py-3 bg-[#1A5C38] text-white rounded-xl font-bold text-sm hover:bg-[#15472c] transition-colors font-poppins">
+                Quiero recibir propiedades
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -55,9 +55,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const id = getIdFromSlug(params.slug);
     const property = await getPropertyById(id);
+    const title = property.publication_title || property.address;
+    const desc = (property.description || property.description_only || '').replace(/<[^>]*>/g, '').slice(0, 160);
+    const photo = getMainPhoto(property);
+    const price = formatPrice(property);
+    const loc = formatLocation(property);
+    const ogDesc = `${price} - ${loc || property.address}. ${desc}`.slice(0, 200);
     return {
-      title: `${property.publication_title || property.address} | SI Inmobiliaria`,
-      description: (property.description || property.description_only || '').replace(/<[^>]*>/g, '').slice(0, 160),
+      title: `${title} | SI Inmobiliaria`,
+      description: desc,
+      openGraph: {
+        title,
+        description: ogDesc,
+        url: `https://siinmobiliaria.com/propiedades/${params.slug}`,
+        type: 'article',
+        ...(photo ? { images: [{ url: photo, width: 800, height: 600, alt: title }] } : {}),
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description: ogDesc,
+        ...(photo ? { images: [photo] } : {}),
+      },
     };
   } catch {
     return { title: 'Propiedad | SI Inmobiliaria' };
