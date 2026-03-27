@@ -111,13 +111,10 @@ export async function GET(
             padding: '0 48px',
           }}
         >
-          {/* Left: brand */}
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-            <span style={{ color: 'white', fontSize: 28, fontWeight: 700 }}>SI</span>
-            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: 500, letterSpacing: 4, textTransform: 'uppercase' as const }}>INMOBILIARIA</span>
-          </div>
-          {/* Right: year */}
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 500, letterSpacing: 4, textTransform: 'uppercase' as const }}>DESDE 1983</span>
+          {/* Left: name */}
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 500 }}>David Flores</span>
+          {/* Right: matricula */}
+          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 500, letterSpacing: 4, textTransform: 'uppercase' as const }}>Mat. N° 0621</span>
         </div>
 
         {/* Bottom content */}
