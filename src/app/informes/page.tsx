@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic'
 
 const CacDolarChart = dynamic(() => import('@/components/CacDolarChart'), { ssr: false })
 const InflationMiniChart = dynamic(() => import('@/components/InflationMiniChart'), { ssr: false })
+const AlquilerCalculator = dynamic(() => import('@/components/AlquilerCalculator'), { ssr: false })
 
 export const revalidate = 3600
 
@@ -64,18 +65,31 @@ function SectionDivider({ label }: { label: string }) {
 }
 
 export default async function InformesPage() {
-  const [dolarBlue, dolarOficial, cacRaw, dolarHistory, iclRaw, ipcRaw] = await Promise.all([
+  const [dolarBlue, dolarOficial, cacRaw, dolarHistory, iclRaw, ipcRaw, cerRaw, uvaRaw] = await Promise.all([
     fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/blue'),
     fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/oficial'),
     fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_26&start_date=2024-01-01&limit=36&format=json'),
     fetchDolarBlueHistory(),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=144.3_INDCLABIN_DICI_M_19&limit=15&format=json'),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_33&limit=13&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=144.3_INDCLABIN_DICI_M_19&start_date=2024-01-01&limit=36&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_33&start_date=2024-01-01&limit=36&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=449.1_CERVam8J_DIA_0_0_16&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=449.1_UVAUSD3Gk_DIA_0_0_26&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
   ])
 
   const cacSeries = parseSeries(cacRaw)
   const iclSeries = parseSeries(iclRaw)
   const ipcSeries = parseSeries(ipcRaw)
+  const cerSeries = parseSeries(cerRaw)
+  const uvaSeries = parseSeries(uvaRaw)
+
+  // Build indices data for calculator
+  const indicesData = {
+    ICL: iclSeries.map(d => ({ date: d.date, value: d.value })),
+    IPC: ipcSeries.map(d => ({ date: d.date, value: d.value })),
+    CAC: cacSeries.map(d => ({ date: d.date, value: d.value })),
+    CER: cerSeries.map(d => ({ date: d.date, value: d.value })),
+    UVA: uvaSeries.map(d => ({ date: d.date, value: d.value })),
+  }
 
   // --- Dolar ---
   const blueVenta = dolarBlue?.venta || 1
@@ -230,6 +244,9 @@ export default async function InformesPage() {
             </div>
           </div>
         )}
+
+        {/* Alquiler Calculator */}
+        <AlquilerCalculator indices={indicesData} />
 
         {/* IPC Inflación */}
         {ipcLatest && (
