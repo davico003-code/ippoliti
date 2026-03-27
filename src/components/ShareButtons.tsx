@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageCircle, Link2, Check } from 'lucide-react'
+import { MessageCircle, Link2, Check, Instagram } from 'lucide-react'
 
 export default function ShareButtons({ slug, title }: { slug: string; title: string }) {
   const [copied, setCopied] = useState(false)
@@ -41,6 +41,16 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
           {copied ? 'Copiado!' : 'Copiar link'}
         </button>
       </div>
+      <a
+        href={`/api/story/${slug}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white"
+        style={{ background: 'linear-gradient(135deg, #833AB4, #E1306C, #F77737)' }}
+      >
+        <Instagram size={16} />
+        Placa Instagram
+      </a>
     </div>
   )
 }
