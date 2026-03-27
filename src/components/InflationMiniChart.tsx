@@ -28,7 +28,7 @@ export default function InflationMiniChart({ data }: { data: DataPoint[] }) {
             }}
             formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Inflación mensual']}
           />
-          <Bar dataKey="value" fill="#f97316" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" fill="#1A5C38" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
