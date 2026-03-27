@@ -451,7 +451,7 @@ export async function getProperties(params?: {
     }
 
     const res = await fetch(url.toString(), {
-      cache: 'no-store',
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) {
@@ -491,7 +491,7 @@ export async function getPropertyById(id: number): Promise<TokkoProperty> {
   const url = `${BASE_URL}/property/${id}/?key=${getApiKey()}&format=json&lang=es`;
 
   const res = await fetch(url, {
-    cache: 'no-store',
+    next: { revalidate: 21600 },
   });
 
   if (!res.ok) {
