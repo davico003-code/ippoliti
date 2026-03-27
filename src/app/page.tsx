@@ -45,7 +45,7 @@ async function FeaturedPropertiesSection() {
             PROPIEDADES DESTACADAS
           </p>
           <h2 className="text-3xl font-black text-gray-900">
-            Propiedades en Funes y Roldán — Más de 40 años acompañando familias
+            Encontrá tu próximo hogar
           </h2>
         </div>
 
