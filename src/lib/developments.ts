@@ -1,5 +1,5 @@
 function getApiKey(): string {
-  const key = process.env.TOKKO_API_KEY
+  const key = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
   if (!key) throw new Error('TOKKO_API_KEY is not configured')
   return key
 }

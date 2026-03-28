@@ -15,7 +15,9 @@ export default async function PropiedadesPage() {
   try {
     const data = await getProperties({ limit: 100 })
     properties = data.objects ?? []
-  } catch {}
+  } catch (err) {
+    console.error('[propiedades] Error fetching properties:', err instanceof Error ? err.message : err)
+  }
 
   return (
     <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin" /></div>}>

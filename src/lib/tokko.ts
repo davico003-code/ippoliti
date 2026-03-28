@@ -3,7 +3,8 @@
 // Server components can use TOKKO_API_KEY directly (no NEXT_PUBLIC_ prefix).
 
 function getApiKey(): string {
-  const key = process.env.TOKKO_API_KEY
+  // Server-only: TOKKO_API_KEY preferred, NEXT_PUBLIC_ as fallback for Vercel compat
+  const key = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
   if (!key) throw new Error('TOKKO_API_KEY is not configured')
   return key
 }
