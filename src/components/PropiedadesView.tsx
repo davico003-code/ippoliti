@@ -327,6 +327,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const [listMode, setListMode]         = useState<ListMode>('compact')
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
+  const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
 
@@ -433,6 +434,17 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     }
   }), [properties, filters, sortBy])
 
+  // Apply map bounds filter if active
+  const visibleProperties = useMemo(() => {
+    if (!mapBounds) return filtered
+    return filtered.filter(p => {
+      if (!p.geo_lat || !p.geo_long) return true
+      const lat = parseFloat(p.geo_lat)
+      const lng = parseFloat(p.geo_long)
+      return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
+    })
+  }, [filtered, mapBounds])
+
   const handleCardClick = useCallback((property: TokkoProperty) => {
     setSelectedId(property.id)
     if (property.geo_lat && property.geo_long) {
@@ -524,8 +536,8 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
             </div>
 
             <p className="text-[12px] text-gray-500 flex-1 text-center truncate">
-              <span className="font-bold text-gray-900 font-numeric">{filtered.length}</span>
-              {' '}propiedad{filtered.length !== 1 ? 'es' : ''} {opLabel}
+              <span className="font-bold text-gray-900 font-numeric">{visibleProperties.length}</span>
+              {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {opLabel}
             </p>
 
             <div className="flex items-center gap-1 flex-shrink-0">
@@ -548,22 +560,22 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
 
           {/* List */}
           <div ref={listRef} className="flex-1 overflow-y-auto">
-            {filtered.length === 0 ? (
+            {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
                 <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
                 <p className="text-gray-400 text-xs mb-4">Probá con otros filtros</p>
-                <button onClick={reset} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
+                <button onClick={() => { reset(); setMapBounds(null) }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
                   Borrar filtros
                 </button>
               </div>
             ) : listMode === 'compact' ? (
-              filtered.map(p => (
+              visibleProperties.map(p => (
                 <CompactCard key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
               ))
             ) : (
               <div className="p-3 space-y-4">
-                {filtered.map((p, i) => (
+                {visibleProperties.map((p, i) => (
                   <ListCard key={p.id} property={p} isSelected={p.id === selectedId}
                     onClick={() => handleCardClick(p)} featured={i === 0} />
                 ))}
@@ -574,11 +586,24 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
 
         {/* Right: Map */}
         <div className={`relative w-full md:w-[60%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
-          <PropiedadesMap properties={filtered} selectedId={selectedId} onSelect={setSelectedId} flyToCenter={flyToCenter} />
+          <PropiedadesMap
+            properties={filtered}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            flyToCenter={flyToCenter}
+            onBoundsSearch={(bounds) => {
+              setMapBounds({
+                south: bounds.getSouth(),
+                north: bounds.getNorth(),
+                west: bounds.getWest(),
+                east: bounds.getEast(),
+              })
+            }}
+          />
           <div className="absolute top-3 left-3 z-[999] pointer-events-none">
             <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-md border border-gray-100">
               <span className="text-xs font-bold text-gray-900 font-numeric">
-                {filtered.filter(p => p.geo_lat && p.geo_long).length}
+                {visibleProperties.filter(p => p.geo_lat && p.geo_long).length}
               </span>
               <span className="text-xs text-gray-500"> pines en el mapa</span>
             </div>

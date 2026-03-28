@@ -2,7 +2,7 @@
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -258,6 +258,52 @@ function LocateButton() {
   )
 }
 
+// ─── Search in this zone button ──────────────────────────────────────────────
+
+function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => void }) {
+  const map = useMap()
+  const [visible, setVisible] = useState(false)
+  const initial = useRef(true)
+
+  useEffect(() => {
+    const handler = () => {
+      if (initial.current) { initial.current = false; return }
+      setVisible(true)
+    }
+    map.on('moveend', handler)
+    return () => { map.off('moveend', handler) }
+  }, [map])
+
+  if (!visible) return null
+
+  return (
+    <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
+      <button
+        onClick={() => { onSearch(map.getBounds()); setVisible(false) }}
+        style={{
+          background: 'white',
+          color: '#1f2937',
+          fontSize: 13,
+          fontWeight: 600,
+          padding: '8px 16px',
+          borderRadius: 50,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+        </svg>
+        Buscar en esta zona
+      </button>
+    </div>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 interface Props {
@@ -265,9 +311,10 @@ interface Props {
   selectedId: number | null
   onSelect: (id: number) => void
   flyToCenter: [number, number] | null
+  onBoundsSearch?: (bounds: L.LatLngBounds) => void
 }
 
-export default function PropiedadesMap({ properties, selectedId, onSelect, flyToCenter }: Props) {
+export default function PropiedadesMap({ properties, selectedId, onSelect, flyToCenter, onBoundsSearch }: Props) {
   const mapped = useMemo(() =>
     properties.filter(p => {
       if (!p.geo_lat || !p.geo_long) return false
@@ -293,6 +340,7 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
       <LocateButton />
+      {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
 
       <MarkerClusterGroup
         chunkedLoading
