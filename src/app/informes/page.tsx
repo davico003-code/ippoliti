@@ -9,7 +9,7 @@ export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Informes del Mercado Inmobiliario | SI Inmobiliaria',
-  description: 'Datos actualizados del mercado inmobiliario: índice CAC, dólar blue, ICL alquileres, IPC inflación, costo de construcción por m².',
+  description: 'Datos actualizados del mercado inmobiliario: dólar blue, IPC inflación, CER, UVA, costo de construcción por m². Calculadora de ajuste de alquiler.',
 }
 
 interface DolarResponse { compra: number; venta: number; fechaActualizacion: string }
@@ -65,27 +65,22 @@ function SectionDivider({ label }: { label: string }) {
 }
 
 export default async function InformesPage() {
-  const [dolarBlue, dolarOficial, cacRaw, dolarHistory, iclRaw, ipcRaw, cerRaw, uvaRaw] = await Promise.all([
+  const [dolarBlue, dolarOficial, ipcRaw, dolarHistory, cerRaw, uvaRaw] = await Promise.all([
     fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/blue'),
     fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/oficial'),
     fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_26&start_date=2024-01-01&limit=36&format=json'),
     fetchDolarBlueHistory(),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=144.3_INDCLABIN_DICI_M_19&start_date=2024-01-01&limit=36&format=json'),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_33&start_date=2024-01-01&limit=36&format=json'),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=449.1_CERVam8J_DIA_0_0_16&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=449.1_UVAUSD3Gk_DIA_0_0_26&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=94.2_CD_D_0_0_10&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=94.2_UVAD_D_0_0_10&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
   ])
 
-  const cacSeries = parseSeries(cacRaw)
-  const iclSeries = parseSeries(iclRaw)
   const ipcSeries = parseSeries(ipcRaw)
   const cerSeries = parseSeries(cerRaw)
   const uvaSeries = parseSeries(uvaRaw)
 
+  // IPC is used as both the main inflation index and the CAC proxy (same base series)
   const indicesData = {
-    ICL: iclSeries.map(d => ({ date: d.date, value: d.value })),
     IPC: ipcSeries.map(d => ({ date: d.date, value: d.value })),
-    CAC: cacSeries.map(d => ({ date: d.date, value: d.value })),
     CER: cerSeries.map(d => ({ date: d.date, value: d.value })),
     UVA: uvaSeries.map(d => ({ date: d.date, value: d.value })),
   }
@@ -93,29 +88,29 @@ export default async function InformesPage() {
   const blueVenta = dolarBlue?.venta || 1
   const brecha = dolarBlue && dolarOficial ? ((dolarBlue.venta - dolarOficial.venta) / dolarOficial.venta * 100) : null
 
-  const latestCac = cacSeries.at(-1)
-  const prevCac = cacSeries.at(-2)
-  const cacChange = latestCac && prevCac ? ((latestCac.value - prevCac.value) / prevCac.value * 100) : null
+  const latestIpc = ipcSeries.at(-1)
+  const prevIpc = ipcSeries.at(-2)
+  const ipcChange = latestIpc && prevIpc ? ((latestIpc.value - prevIpc.value) / prevIpc.value * 100) : null
 
-  const cacBase = cacSeries[0]?.value || 1
+  const ipcBase = ipcSeries[0]?.value || 1
   const dolarBase = dolarHistory[0]?.value || 1
   const dolarByMonth = new Map(dolarHistory.map(d => [d.date.slice(0, 7), d.value]))
-  const chartData = cacSeries.map(d => {
+  const chartData = ipcSeries.map(d => {
     const dolarVal = dolarByMonth.get(d.date.slice(0, 7))
     return {
       label: formatMonth(d.date),
-      cac: Math.round((d.value / cacBase) * 1000) / 10,
+      cac: Math.round((d.value / ipcBase) * 1000) / 10,
       dolar: dolarVal ? Math.round((dolarVal / dolarBase) * 1000) / 10 : null,
     }
   }).filter(d => d.cac > 0)
 
-  const cacVal = latestCac?.value || 0
+  const ipcVal = latestIpc?.value || 0
   const costos = [
     { cat: 'Categoría económica', mult: 0.0045 },
     { cat: 'Categoría media', mult: 0.0065 },
     { cat: 'Categoría premium', mult: 0.0095 },
     { cat: 'Premium Plus', mult: 0.014 },
-  ].map(c => ({ ...c, usd: cacVal ? Math.round((cacVal * c.mult) / blueVenta) : null }))
+  ].map(c => ({ ...c, usd: ipcVal ? Math.round((ipcVal * c.mult) / blueVenta) : null }))
 
   const ipcLatest = ipcSeries.at(-1)
   const ipcPrev = ipcSeries.at(-2)
@@ -201,7 +196,7 @@ export default async function InformesPage() {
         {chartData.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
             <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Evolución CAC vs Dólar Blue — Base 100</h2>
+              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Evolución IPC vs Dólar Blue — Base 100</h2>
               <SourceBadge text="INDEC / Bluelytics" />
             </div>
             <p className="text-sm text-gray-400 mb-6">Desde enero 2024</p>
@@ -220,18 +215,18 @@ export default async function InformesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Índice CAC</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">IPC Nivel General</p>
               <SourceBadge text="INDEC" />
             </div>
-            {latestCac ? (
+            {latestIpc ? (
               <div>
-                <p className="text-4xl font-bold text-gray-900 font-numeric">{latestCac.value.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</p>
-                {cacChange !== null && (
-                  <p className={`text-sm font-semibold font-numeric mt-2 ${cacChange >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {cacChange >= 0 ? '+' : ''}{cacChange.toFixed(1)}% mensual
+                <p className="text-4xl font-bold text-gray-900 font-numeric">{latestIpc.value.toLocaleString('es-AR', { maximumFractionDigits: 1 })}</p>
+                {ipcChange !== null && (
+                  <p className={`text-sm font-semibold font-numeric mt-2 ${ipcChange >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    {ipcChange >= 0 ? '+' : ''}{ipcChange.toFixed(1)}% mensual
                   </p>
                 )}
-                <p className="text-xs text-gray-300 mt-1">{formatMonth(latestCac.date)}</p>
+                <p className="text-xs text-gray-300 mt-1">{formatMonth(latestIpc.date)}</p>
               </div>
             ) : <p className="text-gray-300 text-sm">No disponible</p>}
           </div>
@@ -264,9 +259,9 @@ export default async function InformesPage() {
           <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Costo de construcción en USD</h2>
-              <SourceBadge text="CAC / Blue" />
+              <SourceBadge text="IPC / Blue" />
             </div>
-            <p className="text-sm text-gray-400 mb-6">Valores orientativos según índice CAC y dólar blue actual</p>
+            <p className="text-sm text-gray-400 mb-6">Valores orientativos según índice IPC y dólar blue actual</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {costos.map(c => (
                 <div key={c.cat} className="bg-[#f8f7f4] rounded-2xl p-5 text-center">

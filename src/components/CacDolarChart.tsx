@@ -36,13 +36,13 @@ export default function CacDolarChart({ data }: { data: DataPoint[] }) {
             labelFormatter={(label) => label}
             formatter={(value, name) => [
               value != null ? `${Number(value).toFixed(1)}` : '—',
-              name === 'cac' ? 'CAC (base 100)' : 'Dólar Blue (base 100)',
+              name === 'cac' ? 'IPC (base 100)' : 'Dólar Blue (base 100)',
             ]}
           />
           <Legend
             wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
             formatter={(value: string) =>
-              value === 'cac' ? 'Índice CAC' : 'Dólar Blue'
+              value === 'cac' ? 'IPC' : 'Dólar Blue'
             }
           />
           <Line

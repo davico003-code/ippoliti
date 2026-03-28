@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts'
 
-type IndexKey = 'ICL' | 'IPC' | 'CAC' | 'CER' | 'UVA'
+type IndexKey = 'IPC' | 'CER' | 'UVA'
 
 interface IndexEntry { date: string; value: number }
 interface Props {
@@ -11,9 +11,7 @@ interface Props {
 }
 
 const INDEX_META: Record<IndexKey, { label: string; color: string; desc: string }> = {
-  ICL:  { label: 'ICL',  color: '#ec4899', desc: 'Contratos Ley 27.551' },
-  IPC:  { label: 'IPC',  color: '#06b6d4', desc: 'Índice Precios Consumidor' },
-  CAC:  { label: 'CAC',  color: '#1A5C38', desc: 'Costo Argentino Construcción' },
+  IPC:  { label: 'IPC',  color: '#1A5C38', desc: 'Índice Precios Consumidor' },
   CER:  { label: 'CER',  color: '#8b5cf6', desc: 'Coeficiente Estabilización' },
   UVA:  { label: 'UVA',  color: '#f59e0b', desc: 'Unidad de Valor Adquisitivo' },
 }
@@ -34,16 +32,16 @@ function getLatestChange(data: IndexEntry[]): { pct: number; date: string } | nu
 
 export default function AlquilerCalculator({ indices }: Props) {
   const [monto, setMonto] = useState('')
-  const [selectedIndex, setSelectedIndex] = useState<IndexKey>('ICL')
+  const [selectedIndex, setSelectedIndex] = useState<IndexKey>('IPC')
   const [fromMonth, setFromMonth] = useState(() => {
     const d = new Date()
     d.setMonth(d.getMonth() - 6)
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
   })
-  const [visibleLines, setVisibleLines] = useState<Set<IndexKey>>(() => new Set<IndexKey>(['ICL', 'IPC', 'CAC']))
+  const [visibleLines, setVisibleLines] = useState<Set<IndexKey>>(() => new Set<IndexKey>(['IPC', 'CER', 'UVA']))
 
   // Stats cards
-  const stats = (['ICL', 'IPC', 'CAC', 'UVA'] as IndexKey[]).map(key => {
+  const stats = (['IPC', 'CER', 'UVA'] as IndexKey[]).map(key => {
     const change = getLatestChange(indices[key])
     return { key, ...INDEX_META[key], change }
   })
@@ -65,7 +63,7 @@ export default function AlquilerCalculator({ indices }: Props) {
     const pct = ((ratio - 1) * 100)
 
     // Next adjustment: 6 months for ICL, 3 months for others
-    const periodMonths = selectedIndex === 'ICL' ? 6 : 3
+    const periodMonths = 3
     const fromDate = new Date(fromMonth + '-01')
     fromDate.setMonth(fromDate.getMonth() + periodMonths)
     const nextAdj = `${MONTHS[fromDate.getMonth()]} ${fromDate.getFullYear()}`
@@ -122,7 +120,7 @@ export default function AlquilerCalculator({ indices }: Props) {
   return (
     <div className="space-y-8">
       {/* Stats bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {stats.map(s => (
           <div key={s.key} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
             <div className="flex items-center gap-2 mb-2">
