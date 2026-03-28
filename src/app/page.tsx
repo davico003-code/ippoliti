@@ -322,14 +322,14 @@ export default async function Home() {
       {/* Hero with YouTube background */}
       <HeroVideo />
 
-      {/* Guía del comprador */}
-      <GuiaSection />
-
       {/* Featured properties */}
       <FeaturedPropertiesSection />
 
       {/* Emprendimientos */}
       <DevelopmentsSection />
+
+      {/* Guía del comprador */}
+      <GuiaSection />
 
       {/* SEO content block */}
       <section className="bg-[#f8f7f4] border-t-4 border-[#1A5C38] py-20">
