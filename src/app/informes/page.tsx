@@ -1,19 +1,21 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
+import { redis } from '@/lib/redis'
 
 const CacDolarChart = dynamic(() => import('@/components/CacDolarChart'), { ssr: false })
 const InflationMiniChart = dynamic(() => import('@/components/InflationMiniChart'), { ssr: false })
 const AlquilerCalculator = dynamic(() => import('@/components/AlquilerCalculator'), { ssr: false })
+const DolarLive = dynamic(() => import('@/components/DolarLive'), { ssr: false })
 
 export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Informes del Mercado Inmobiliario | SI Inmobiliaria',
-  description: 'Datos actualizados del mercado inmobiliario: dólar blue, IPC inflación, CER, UVA, costo de construcción por m². Calculadora de ajuste de alquiler.',
+  description: 'Datos actualizados del mercado inmobiliario: dólar blue en vivo, IPC inflación, CER, UVA, costo de construcción. Calculadora de ajuste de alquiler.',
 }
 
+interface IndexEntry { date: string; value: number }
 interface DolarResponse { compra: number; venta: number; fechaActualizacion: string }
-interface IndecSeriesResponse { data: [string, number | null][] }
 
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
@@ -21,13 +23,6 @@ async function fetchJson<T>(url: string): Promise<T | null> {
     if (!res.ok) return null
     return res.json() as Promise<T>
   } catch { return null }
-}
-
-function parseSeries(json: IndecSeriesResponse | null): { date: string; value: number }[] {
-  if (!json) return []
-  return (json.data || [])
-    .filter((d): d is [string, number] => d[1] != null)
-    .map(d => ({ date: d[0], value: d[1] }))
 }
 
 interface BluelyticsEntry { date: string; value_sell: number; source: string }
@@ -42,6 +37,46 @@ async function fetchDolarBlueHistory(): Promise<{ date: string; value: number }[
     for (const entry of blueOnly) byMonth.set(entry.date.slice(0, 7), entry.value_sell)
     return Array.from(byMonth.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([d, v]) => ({ date: d + '-01', value: v }))
   } catch { return [] }
+}
+
+async function getRedisIndices(): Promise<Record<string, IndexEntry[]>> {
+  const keys = ['IPC', 'IPC_NUCLEO', 'CER', 'UVA']
+  const result: Record<string, IndexEntry[]> = {}
+  for (const key of keys) {
+    try {
+      const raw = await redis.get(`indices:${key}`)
+      if (raw) {
+        result[key] = typeof raw === 'string' ? JSON.parse(raw) : raw as IndexEntry[]
+      } else {
+        result[key] = []
+      }
+    } catch {
+      result[key] = []
+    }
+  }
+  return result
+}
+
+interface IndecSeriesResponse { data: [string, number | null][] }
+
+function parseSeries(json: IndecSeriesResponse | null): IndexEntry[] {
+  if (!json) return []
+  return (json.data || [])
+    .filter((d): d is [string, number] => d[1] != null)
+    .map(d => ({ date: d[0], value: d[1] }))
+}
+
+async function getFallbackIndices(): Promise<Record<string, IndexEntry[]>> {
+  const [ipcRaw, cerRaw, uvaRaw] = await Promise.all([
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_26&start_date=2024-01-01&limit=36&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=94.2_CD_D_0_0_10&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
+    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=94.2_UVAD_D_0_0_10&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
+  ])
+  return {
+    IPC: parseSeries(ipcRaw),
+    CER: parseSeries(cerRaw),
+    UVA: parseSeries(uvaRaw),
+  }
 }
 
 function formatMonth(dateStr: string): string {
@@ -65,20 +100,26 @@ function SectionDivider({ label }: { label: string }) {
 }
 
 export default async function InformesPage() {
-  const [dolarBlue, dolarOficial, ipcRaw, dolarHistory, cerRaw, uvaRaw] = await Promise.all([
-    fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/blue'),
-    fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/oficial'),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=148.3_INIVELNAL_DICI_M_26&start_date=2024-01-01&limit=36&format=json'),
-    fetchDolarBlueHistory(),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=94.2_CD_D_0_0_10&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
-    fetchJson<IndecSeriesResponse>('https://apis.datos.gob.ar/series/api/series/?ids=94.2_UVAD_D_0_0_10&collapse=month&collapse_aggregation=avg&start_date=2024-01-01&limit=36&format=json'),
-  ])
+  // Try Redis first, fallback to direct INDEC
+  let indices = await getRedisIndices()
+  const hasRedisData = Object.values(indices).some(arr => arr.length > 0)
 
-  const ipcSeries = parseSeries(ipcRaw)
-  const cerSeries = parseSeries(cerRaw)
-  const uvaSeries = parseSeries(uvaRaw)
+  if (!hasRedisData) {
+    indices = await getFallbackIndices()
+  }
 
-  // IPC is used as both the main inflation index and the CAC proxy (same base series)
+  const lastUpdated = hasRedisData
+    ? (await redis.get('indices:last_updated') as string | null)
+    : null
+
+  const dolarBlue = await fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/blue')
+  const dolarHistory = await fetchDolarBlueHistory()
+
+  const ipcSeries = indices.IPC || []
+  const cerSeries = indices.CER || []
+  const uvaSeries = indices.UVA || []
+
+  // Calculator data
   const indicesData = {
     IPC: ipcSeries.map(d => ({ date: d.date, value: d.value })),
     CER: cerSeries.map(d => ({ date: d.date, value: d.value })),
@@ -86,12 +127,13 @@ export default async function InformesPage() {
   }
 
   const blueVenta = dolarBlue?.venta || 1
-  const brecha = dolarBlue && dolarOficial ? ((dolarBlue.venta - dolarOficial.venta) / dolarOficial.venta * 100) : null
 
+  // IPC stats
   const latestIpc = ipcSeries.at(-1)
   const prevIpc = ipcSeries.at(-2)
   const ipcChange = latestIpc && prevIpc ? ((latestIpc.value - prevIpc.value) / prevIpc.value * 100) : null
 
+  // Chart: IPC vs Dolar Blue rebased to 100
   const ipcBase = ipcSeries[0]?.value || 1
   const dolarBase = dolarHistory[0]?.value || 1
   const dolarByMonth = new Map(dolarHistory.map(d => [d.date.slice(0, 7), d.value]))
@@ -104,6 +146,7 @@ export default async function InformesPage() {
     }
   }).filter(d => d.cac > 0)
 
+  // Construction cost
   const ipcVal = latestIpc?.value || 0
   const costos = [
     { cat: 'Categoría económica', mult: 0.0045 },
@@ -112,9 +155,8 @@ export default async function InformesPage() {
     { cat: 'Premium Plus', mult: 0.014 },
   ].map(c => ({ ...c, usd: ipcVal ? Math.round((ipcVal * c.mult) / blueVenta) : null }))
 
-  const ipcLatest = ipcSeries.at(-1)
-  const ipcPrev = ipcSeries.at(-2)
-  const ipcMonthly = ipcLatest && ipcPrev ? ((ipcLatest.value - ipcPrev.value) / ipcPrev.value * 100) : null
+  // IPC inflation mini chart
+  const ipcMonthly = latestIpc && prevIpc ? ((latestIpc.value - prevIpc.value) / prevIpc.value * 100) : null
   const ipc12 = ipcSeries.length >= 13
     ? ipcSeries.slice(-13).reduce((acc, d, i, arr) => {
         if (i === 0) return acc
@@ -126,13 +168,9 @@ export default async function InformesPage() {
     value: i === 0 ? 0 : Math.round(((d.value - arr[i - 1].value) / arr[i - 1].value * 100) * 10) / 10,
   })).slice(1)
 
-  const lastUpdated = dolarBlue?.fechaActualizacion
-    ? new Date(dolarBlue.fechaActualizacion).toLocaleString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    : null
-
   return (
     <div className="min-h-screen bg-[#f8f7f4]">
-      {/* Hero — dark */}
+      {/* Hero */}
       <div className="bg-[#0f0f0f] w-full">
         <div className="max-w-5xl mx-auto px-6 py-20 text-center">
           <p className="text-[#4ADE80] text-xs font-bold tracking-widest uppercase mb-4">DATOS EN TIEMPO REAL</p>
@@ -140,61 +178,22 @@ export default async function InformesPage() {
             Mercado inmobiliario
           </h1>
           <p className="text-white/50 text-lg mt-3">Indicadores actualizados automáticamente</p>
-          {lastUpdated && <p className="text-white/30 text-sm mt-2">{lastUpdated}</p>}
+          {lastUpdated && (
+            <p className="text-white/30 text-sm mt-2">
+              Índices actualizados: {new Date(lastUpdated).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-12">
 
-        <SectionDivider label="TIPO DE CAMBIO" />
+        <SectionDivider label="DÓLAR EN TIEMPO REAL" />
+        <DolarLive />
 
-        {/* Dólar cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Dólar Blue</p>
-            {dolarBlue ? (
-              <div className="flex items-baseline gap-6">
-                <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Compra</p>
-                  <p className="text-3xl font-bold text-[#1A5C38] font-numeric">${dolarBlue.compra.toLocaleString('es-AR')}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Venta</p>
-                  <p className="text-3xl font-bold text-[#1A5C38] font-numeric">${dolarBlue.venta.toLocaleString('es-AR')}</p>
-                </div>
-              </div>
-            ) : <p className="text-gray-300 text-sm">No disponible</p>}
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Dólar Oficial</p>
-            {dolarOficial ? (
-              <div className="flex items-baseline gap-6">
-                <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Compra</p>
-                  <p className="text-3xl font-bold text-gray-900 font-numeric">${dolarOficial.compra.toLocaleString('es-AR')}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Venta</p>
-                  <p className="text-3xl font-bold text-gray-900 font-numeric">${dolarOficial.venta.toLocaleString('es-AR')}</p>
-                </div>
-              </div>
-            ) : <p className="text-gray-300 text-sm">No disponible</p>}
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center justify-center">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Brecha Blue vs Oficial</p>
-            {brecha !== null ? (
-              <p className={`text-5xl font-black font-numeric ${brecha < 20 ? 'text-green-600' : brecha < 50 ? 'text-amber-500' : 'text-red-500'}`}>
-                {brecha.toFixed(1)}%
-              </p>
-            ) : <p className="text-gray-300 text-sm">—</p>}
-          </div>
-        </div>
-
-        {/* CAC vs Dólar Chart */}
+        {/* IPC vs Dólar Chart */}
         {chartData.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6 mt-8">
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Evolución IPC vs Dólar Blue — Base 100</h2>
               <SourceBadge text="INDEC / Bluelytics" />
@@ -211,12 +210,13 @@ export default async function InformesPage() {
 
         <SectionDivider label="PARA CONSTRUCTORES" />
 
-        {/* CAC + Inflación cards */}
+        {/* IPC + Inflation cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">IPC Nivel General</p>
               <SourceBadge text="INDEC" />
+              {hasRedisData && <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">REDIS</span>}
             </div>
             {latestIpc ? (
               <div>
@@ -277,9 +277,8 @@ export default async function InformesPage() {
           </div>
         )}
 
-        {/* Footer note */}
         <p className="text-[10px] text-gray-300 text-center mt-12">
-          Fuentes: BCRA, INDEC, Bluelytics, DolarAPI — Datos orientativos, actualizados cada hora
+          Fuentes: BCRA, INDEC, Bluelytics, DolarAPI · {hasRedisData ? 'Cache Redis activo' : 'Datos directos INDEC'} · Dólar en tiempo real
         </p>
       </div>
     </div>
