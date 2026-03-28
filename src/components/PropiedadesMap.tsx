@@ -117,12 +117,12 @@ function FitBounds({ properties }: { properties: TokkoProperty[] }) {
       .filter(p => p.geo_lat && p.geo_long)
       .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
     if (coords.length === 0) return
-    const mobile = window.innerWidth < 768
     setTimeout(() => {
       map.invalidateSize()
-      map.fitBounds(L.latLngBounds(coords), { padding: mobile ? [20, 20] : [40, 40], maxZoom: 15 })
-      const minZoom = mobile ? 10 : 11
-      setTimeout(() => { if (map.getZoom() < minZoom) map.setZoom(minZoom) }, 100)
+      if (window.innerWidth >= 768) {
+        map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 })
+        setTimeout(() => { if (map.getZoom() < 11) map.setZoom(11) }, 100)
+      }
     }, 300)
   }, [properties, map])
   return null
@@ -274,8 +274,8 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
 
   return (
     <MapContainer
-      center={[-32.9167, -60.8833]}
-      zoom={12}
+      center={[-32.9300, -60.9100]}
+      zoom={11}
       style={{ height: '100%', width: '100%' }}
       zoomControl={false}
       scrollWheelZoom
