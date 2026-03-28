@@ -4,6 +4,7 @@ import { MapPin, Building2, ArrowRight, Maximize2, Home as HomeIcon } from 'luci
 import Link from 'next/link'
 import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
+import GuiaSection from '@/components/GuiaSection'
 import ShareCardButton from '@/components/ShareCardButton'
 import {
   getFeaturedProperties,
@@ -320,6 +321,9 @@ export default async function Home() {
 
       {/* Hero with YouTube background */}
       <HeroVideo />
+
+      {/* Guía del comprador */}
+      <GuiaSection />
 
       {/* Featured properties */}
       <FeaturedPropertiesSection />
