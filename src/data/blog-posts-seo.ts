@@ -727,4 +727,628 @@ Consult\u00e1 con SI Inmobiliaria
 
 Si quer\u00e9s invertir en lotes en Funes, Rold\u00e1n o cualquier localidad de la zona, consult\u00e1 con nuestro equipo. Conocemos cada emprendimiento, cada barrio y cada oportunidad. Visit\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694. Con m\u00e1s de 40 a\u00f1os en el mercado, te aseguramos una inversi\u00f3n respaldada por experiencia y conocimiento local.`,
   },
+  {
+    slug: 'inmobiliarias-roldan-como-elegir-la-mejor',
+    title: 'Inmobiliarias en Roldán: cómo elegir la mejor',
+    date: '2026-03-25',
+    dateDisplay: '25 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
+    summary: 'Guía para elegir inmobiliaria en Roldán. Qué mirar, qué preguntar y por qué la matrícula y la trayectoria importan más que el cartel.',
+    category: 'Guías',
+    author: AUTHOR,
+    content: `¿Estás por vender, comprar o alquilar en Roldán y no sabés qué inmobiliaria elegir? Es una decisión más importante de lo que parece. Una buena inmobiliaria te ahorra tiempo, plata y dolores de cabeza. Una mala te puede costar meses de demora y miles de dólares.
+
+Matrícula habilitante: lo primero que tenés que pedir
+
+Antes que nada: verificá que el corredor inmobiliario tenga matrícula vigente del Colegio de Corredores Inmobiliarios de Santa Fe. Esto no es opcional, es la ley. Un corredor sin matrícula no puede intermediar legalmente en una operación inmobiliaria, y si algo sale mal no tenés ningún respaldo profesional.
+
+En Roldán hay varios corredores matriculados y también algunos que operan sin habilitación. Pedí el número de matrícula y verificalo. En SI Inmobiliaria, por ejemplo, David Flores trabaja con matrícula N° 0621 y Susana Ippoliti con matrícula N° 0559. Es información que tiene que ser pública y transparente.
+
+Trayectoria y conocimiento del mercado local
+
+Roldán no es Rosario. Los valores del m², los barrios que crecen, las zonas con mejor proyección — todo es distinto. Una inmobiliaria con oficina en Rosario que opera en Roldán "de rebote" probablemente no conozca las particularidades del mercado local.
+
+Preguntá cuánto tiempo llevan operando en Roldán. Preguntá en qué barrios tienen experiencia. Preguntá cuántas operaciones cerraron en el último año. Las respuestas te van a decir mucho más que cualquier publicidad.
+
+Qué servicios ofrece la inmobiliaria
+
+Una buena inmobiliaria en Roldán debería ofrecer: tasación profesional gratuita, publicación en los principales portales (Zonaprop, Argenprop), fotografía profesional de la propiedad, asesoramiento legal durante todo el proceso, y acompañamiento hasta la escritura.
+
+Si la inmobiliaria solo te dice "dejame las llaves y yo la muestro", es una señal de alerta. El servicio completo implica un plan de venta, marketing digital, seguimiento de consultas y una comunicación permanente con el propietario.
+
+La comisión: no siempre la más baja es la mejor
+
+Es tentador elegir la inmobiliaria que cobra menos comisión. Pero la comisión más baja muchas veces significa menos inversión en publicidad, menos calidad de servicio y más tiempo para vender. Una inmobiliaria que invierte en fotos profesionales, drone, publicidad en redes y aviso destacado en portales necesita cubrir esos costos.
+
+Lo que importa no es cuánto te cobra la inmobiliaria sino a qué precio y en cuánto tiempo vende tu propiedad. Una comisión del 3% sobre una venta rápida a buen precio es mejor negocio que una comisión del 2% sobre una venta que tarda un año y cierra con 15% de descuento.
+
+La relación personal
+
+Vender o comprar una propiedad es una de las decisiones financieras más importantes de tu vida. Necesitás trabajar con alguien en quien confíes y con quien tengas buena comunicación. Si en la primera reunión sentís que te apuran, que no te escuchan o que solo les importa cerrar — seguí buscando.
+
+En SI Inmobiliaria recibimos a cada persona en nuestras oficinas de Roldán con la misma dedicación, ya sea que esté buscando un lote de 30 mil dólares o una casa de medio millón. Si estás evaluando opciones, pasá por Catamarca 775 o llamanos al 341 210 1694. Llevamos más de 40 años en Roldán y la mejor carta de presentación son las familias que confiaron en nosotros.`,
+  },
+  {
+    slug: 'arquitectos-roldan-cuando-necesitas-uno-para-tu-propiedad',
+    title: 'Arquitectos en Roldán: cuándo necesitás uno',
+    date: '2026-03-24',
+    dateDisplay: '24 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80',
+    summary: 'Cuándo contratar un arquitecto antes de comprar, ampliar o vender tu propiedad en Roldán. Guía práctica desde la inmobiliaria.',
+    category: 'Guías',
+    author: AUTHOR,
+    content: `En el mundo inmobiliario de Roldán y Funes, la pregunta sobre cuándo necesitás un arquitecto aparece constantemente. La respuesta corta: más seguido de lo que pensás, pero no siempre cuando creés.
+
+Antes de comprar: inspección técnica
+
+Si estás por comprar una casa usada en Roldán, un arquitecto puede ahorrarte una fortuna. Una inspección técnica previa a la compra — que cuesta entre 50 y 100 mil pesos — puede detectar problemas estructurales, humedad oculta, instalaciones eléctricas deficientes o techos que necesitan reemplazo.
+
+En nuestra experiencia como inmobiliaria, hemos visto compradores que se ahorraron negociaciones de 10 o 15 mil dólares gracias a un informe técnico que detectó problemas que el vendedor no había declarado. No es desconfianza, es profesionalismo.
+
+Para ampliar o reformar
+
+Si compraste un terreno en un barrio como Tierra de Sueños o Los Raigales y querés construir, necesitás sí o sí un arquitecto. Las normativas municipales de Roldán exigen planos aprobados para cualquier construcción nueva, ampliación mayor a 20 m² o modificación de fachada.
+
+Pero ojo: no todos los arquitectos conocen las normativas específicas de Roldán o Funes. Cada municipio tiene sus propios códigos de edificación, retiros obligatorios, alturas máximas y porcentajes de ocupación del suelo. Un arquitecto que trabaja habitualmente en Rosario puede no estar al tanto de las particularidades locales.
+
+Para tasar tu propiedad
+
+Cuando un propietario nos pide tasar una propiedad que fue ampliada sin planos, o que tiene construcciones no declaradas, la tasación se complica. Las ampliaciones sin planos aprobados no pueden computarse como superficie cubierta legal, lo que reduce significativamente el valor de venta.
+
+Si tenés ampliaciones sin declarar, te conviene regularizarlas antes de poner la propiedad en venta. Un arquitecto puede presentar los planos de regularización ante el municipio y, una vez aprobados, la superficie se suma legalmente al valor de la propiedad.
+
+Cuándo NO necesitás un arquitecto
+
+Para refacciones menores como pintura, cambio de aberturas, renovación de baño o cocina sin modificar instalaciones, generalmente no necesitás un arquitecto. Un buen constructor o contratista de la zona puede hacer el trabajo.
+
+Tampoco necesitás un arquitecto para tasar tu propiedad — para eso estamos los corredores inmobiliarios matriculados. En SI Inmobiliaria hacemos tasaciones profesionales gratuitas basadas en comparación de mercado, que es el método más preciso para determinar el valor real de una propiedad en Roldán.
+
+Cómo elegir un buen arquitecto en la zona
+
+Pedí referencias a vecinos, preguntá en la inmobiliaria (siempre tenemos arquitectos de confianza para recomendar) y verificá que tenga matrícula provincial vigente. Visitá obras que haya realizado en la zona. Y muy importante: pedí presupuesto cerrado antes de arrancar.
+
+Si estás evaluando comprar, vender o construir en Roldán, consultanos en SI Inmobiliaria. Podemos asesorarte sobre qué necesitás profesionalmente para tu operación y conectarte con los mejores profesionales de la zona.`,
+  },
+  {
+    slug: 'escribanos-roldan-rol-en-compra-venta-propiedad',
+    title: 'El escribano en Roldán: su rol en tu operación',
+    date: '2026-03-23',
+    dateDisplay: '23 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+    summary: 'Qué hace el escribano en la compra-venta de una propiedad en Roldán. Costos, plazos y cómo elegir el correcto.',
+    category: 'Guías',
+    author: AUTHOR,
+    content: `Si estás por comprar o vender una propiedad en Roldán, el escribano va a ser una de las figuras más importantes del proceso. Sin embargo, mucha gente llega a la escritura sin entender bien cuál es su función, cuánto cobra y quién lo elige.
+
+Qué hace exactamente el escribano
+
+El escribano público es el profesional que da fe pública de la transferencia de dominio de un inmueble. En criollo: es quien certifica que la propiedad pasó legalmente del vendedor al comprador. Sin escritura pública, la venta no existe ante la ley.
+
+Pero su trabajo empieza mucho antes de la firma. Un buen escribano realiza un estudio de títulos (verifica que la propiedad no tenga deudas, embargos, hipotecas o problemas legales), solicita certificados al Registro de la Propiedad, verifica la situación fiscal del vendedor ante AFIP y Rentas, y prepara la escritura traslativa de dominio.
+
+¿Quién elige al escribano?
+
+En Argentina, la costumbre es que el comprador elige y paga al escribano. Esto tiene lógica: el comprador es quien necesita la mayor seguridad jurídica sobre lo que está comprando. Sin embargo, esto puede negociarse entre las partes.
+
+En Roldán hay varios escribanos que trabajan habitualmente con operaciones inmobiliarias. Desde SI Inmobiliaria siempre recomendamos trabajar con escribanos que tengan experiencia específica en la zona, porque conocen las particularidades registrales del departamento San Lorenzo y los tiempos del Registro de la Propiedad de Rosario.
+
+Cuánto cuesta la escrituración
+
+Los honorarios del escribano están regulados por ley y generalmente representan entre el 1,5% y el 2% del valor de la operación, más gastos registrales, sellados e impuestos. Para una propiedad de 100 mil dólares en Roldán, el costo total de escrituración puede rondar los 3.000 a 5.000 dólares incluyendo todo.
+
+Es importante pedir un presupuesto detallado antes de la operación. El presupuesto tiene que discriminar: honorarios del escribano, impuesto de sellos, tasa registral, certificados y gastos administrativos.
+
+Cuánto tarda el proceso
+
+Desde que se firma el boleto de compraventa hasta la escritura, en operaciones normales en Roldán el proceso demora entre 30 y 60 días. Pero puede extenderse si hay que regularizar documentación, si la propiedad tiene sucesión o si faltan certificados.
+
+Un tip que siempre le doy a nuestros clientes: si estás vendiendo, tené toda la documentación lista antes de publicar la propiedad. Título, planos, comprobante de pago de impuestos y servicios, libre deuda municipal. Esto acelera enormemente el proceso y transmite seriedad al comprador.
+
+Errores comunes
+
+El error más frecuente que vemos es que el comprador elige un escribano barato pero lento, y la operación se demora meses. Otro error común: no verificar si la propiedad tiene ampliaciones sin declarar, lo que puede trabar la escrituración.
+
+En SI Inmobiliaria acompañamos a nuestros clientes en todo el proceso legal, desde el boleto hasta la escritura. Si tenés dudas sobre cómo funciona la compraventa inmobiliaria en Roldán, consultanos sin compromiso.`,
+  },
+  {
+    slug: 'constructoras-roldan-funes-construir-casa-2025',
+    title: 'Constructoras en Roldán y Funes: guía 2025',
+    date: '2026-03-22',
+    dateDisplay: '22 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
+    summary: 'Todo lo que necesitás saber antes de construir en Roldán o Funes. Costos actuales, cómo elegir constructora y errores a evitar.',
+    category: 'Construcción',
+    author: AUTHOR,
+    content: `Construir una casa en Roldán o Funes es el sueño de muchas familias que compran un lote en la zona. Pero entre el sueño y la realidad hay un montón de decisiones que tomar, y la elección de la constructora es probablemente la más importante.
+
+Cuánto cuesta construir hoy
+
+A marzo de 2026, el costo de construcción por metro cuadrado en la zona de Roldán y Funes se mueve en estos rangos aproximados en dólares blue: categoría económica entre 500 y 700 USD/m², categoría media entre 800 y 1.100 USD/m², y categoría premium entre 1.200 y 1.600 USD/m².
+
+Estos valores incluyen materiales y mano de obra, pero no incluyen honorarios profesionales del arquitecto (entre 8% y 12% del costo total), ni las conexiones de servicios, ni los gastos de escrituración del lote.
+
+Para una casa de 120 m² de categoría media, estamos hablando de una inversión de entre 96.000 y 132.000 dólares solo en construcción. Sumale el lote (entre 30.000 y 80.000 USD según el barrio) y los extras, y una casa terminada en un buen barrio de Roldán arranca en los 140.000 dólares.
+
+Constructora vs. constructor particular
+
+En Roldán conviven dos modelos: las constructoras formales (empresas con estructura, que te dan contrato, plazo y garantía) y los constructores particulares (albañiles o maestros mayores de obra que arman equipos a demanda).
+
+Las constructoras formales son más caras pero ofrecen más seguridad: contrato con plazo de entrega, garantía de vicios ocultos, y responsabilidad civil. Los constructores particulares pueden ser más económicos pero el riesgo es mayor — demoras, problemas de calidad, y si algo sale mal es más difícil reclamar.
+
+Qué preguntar antes de contratar
+
+Pedí referencias de obras terminadas en la zona. Visitá al menos dos casas que hayan construido. Preguntá por plazos reales de entrega (no los del contrato, los reales). Preguntá si trabajan con contrato de obra a precio cerrado o por administración. Verificá que tengan seguro de responsabilidad civil y ART para los trabajadores.
+
+Un detalle que pocos preguntan: ¿quién se hace cargo de las conexiones de servicios? Muchas constructoras entregan la casa terminada pero sin gas, sin cloacas conectadas o sin medidor de luz definitivo. Estas conexiones pueden demorar meses y costar varios miles de dólares adicionales.
+
+Errores frecuentes al construir
+
+El error número uno: no tener un arquitecto que dirija la obra. El arquitecto no es un gasto, es una inversión. Verifica que la constructora cumpla con el proyecto, controla la calidad de los materiales y evita sobrecostos.
+
+Otro error clásico: empezar a construir sin tener todo el dinero. En Argentina, con la inflación y la volatilidad del dólar, quedarse a mitad de obra es carísimo. Si no tenés el capital completo, evaluá construir por etapas o buscá financiación antes de arrancar.
+
+En SI Inmobiliaria vendemos lotes en los mejores barrios de Roldán y Funes, y podemos conectarte con constructoras de confianza que ya conocemos por trabajar en la zona. Consultanos en nuestras oficinas de Roldán o al 341 210 1694.`,
+  },
+  {
+    slug: 'colegios-roldan-funes-guia-familias-que-se-mudan',
+    title: 'Colegios en Roldán y Funes: guía para familias',
+    date: '2026-03-21',
+    dateDisplay: '21 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80',
+    summary: 'Los mejores colegios de Roldán y Funes para familias que se mudan. Públicos, privados, distancias y todo lo que tenés que saber.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `Una de las primeras preguntas que nos hacen las familias que evalúan comprar en Roldán o Funes es: "¿hay buenos colegios cerca?". La respuesta es sí, y cada vez más.
+
+La oferta educativa en Roldán
+
+Roldán tiene una oferta educativa que creció muchísimo en la última década. En materia de colegios privados, los más reconocidos son el Instituto Inmaculada Concepción (nivel inicial, primario y secundario), el Colegio San José (con orientación técnica) y opciones más nuevas que fueron apareciendo con el crecimiento de la ciudad.
+
+En el sector público, Roldán cuenta con varias escuelas primarias y secundarias que cubren las distintas zonas de la ciudad. La Escuela Técnica N° 456 es una de las más valoradas por su orientación práctica.
+
+Para nivel inicial, hay varios jardines tanto públicos como privados distribuidos en los distintos barrios. Muchos de los barrios cerrados nuevos tienen convenios con jardines cercanos o transporte escolar organizado por los padres.
+
+Colegios en Funes
+
+Funes tiene una oferta educativa más amplia, especialmente en el segmento privado. El Colegio Belgrano, el Instituto San Antonio, el Colegio Woodlands y el Northfield School son algunos de los más elegidos por familias ABC1 de la zona.
+
+Varios colegios de Fisherton (que está a pocos minutos de Funes por autopista) también son opciones habituales: el Colegio Inglés, el San Patricio y el Dante Alighieri, entre otros. Muchas familias que viven en Funes llevan a sus hijos a colegios de Fisherton o de la zona norte de Rosario.
+
+El factor transporte
+
+Acá viene un punto clave que pocas inmobiliarias mencionan: si comprás en un barrio cerrado de Roldán y tus hijos van a un colegio en Fisherton, vas a hacer entre 25 y 40 minutos de viaje cada mañana. Multiplicá eso por dos (ida y vuelta) y por cinco días de la semana.
+
+Muchas familias resuelven esto con combis escolares compartidas que salen desde los barrios. Es un servicio que se organiza entre padres y cuesta entre 40 y 80 mil pesos mensuales por chico. Otras familias directamente eligen colegios más cercanos para evitar el desgaste del viaje diario.
+
+Qué barrios están mejor ubicados para familias con chicos
+
+Si la educación es prioridad, los barrios de Funes cercanos a la Autopista Rosario-Córdoba tienen la ventaja de estar a mitad de camino entre los colegios de la zona y Rosario. Barrios como San Sebastián, Funes Hills y Don Mateo combinan buena ubicación con amenities para familias.
+
+En Roldán, los barrios más cercanos al centro (como Los Aromos o las zonas céntricas) tienen la ventaja de estar a pocas cuadras de las escuelas locales, lo que permite que los chicos vayan caminando o en bici — algo que en Rosario ya no es tan común.
+
+Si estás buscando una propiedad pensando en tu familia, en SI Inmobiliaria te podemos asesorar sobre qué barrios tienen la mejor combinación de colegios, seguridad y calidad de vida. Visitá nuestro catálogo de propiedades en siinmobiliaria.com.`,
+  },
+  {
+    slug: 'supermercados-comercios-roldan-vivir-sin-auto',
+    title: 'Comercios en Roldán: ¿se puede vivir sin auto?',
+    date: '2026-03-20',
+    dateDisplay: '20 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=800&q=80',
+    summary: 'Análisis honesto de la infraestructura comercial de Roldán. Supermercados, farmacias y servicios para quien evalúa mudarse.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `Voy a ser directo: si estás pensando en mudarte a Roldán y no tenés auto, la vas a pasar complicado. Roldán no es Rosario. No hay delivery de todo en 30 minutos, no hay un supermercado en cada esquina y el transporte público es limitado. Dicho esto, la infraestructura comercial de Roldán mejoró enormemente en los últimos años y sigue creciendo.
+
+Supermercados y abastecimiento
+
+Roldán tiene varios supermercados que cubren las necesidades básicas sin problema. Hay sucursales de cadenas regionales y autoservicios locales bien surtidos. Para una compra grande mensual, la mayoría de las familias aprovechan para ir a algún mayorista de la zona o hacen compras en Rosario cuando van por trabajo.
+
+Lo que sí funciona muy bien en Roldán es el comercio de cercanía: carnicerías, panaderías, verdulerías y almacenes de barrio. En el centro de la ciudad tenés todo lo que necesitás para el día a día a pocas cuadras.
+
+Farmacias y salud
+
+Hay varias farmacias en Roldán, incluyendo turnos rotativos los fines de semana. No es un problema conseguir medicamentos. Para estudios médicos complejos o especialidades muy puntuales sí tenés que ir a Rosario, pero para la atención primaria y urgencias la ciudad está bien cubierta.
+
+Servicios financieros
+
+Roldán tiene cajeros automáticos de la red Link y Banelco, y al menos una sucursal bancaria. Para operaciones complejas la mayoría va a Rosario, pero para el día a día alcanza. La banca digital resolvió buena parte de este problema — ya casi nadie necesita ir físicamente al banco.
+
+Gastronomía y entretenimiento
+
+Acá Roldán sorprende. Hay restaurantes, pizzerías, cervecerías artesanales y heladerías de buen nivel. No es la oferta de Rosario, obviamente, pero para una ciudad de su tamaño la propuesta gastronómica es más que aceptable. Los fines de semana muchos rosarinos vienen a comer a Roldán, lo cual dice bastante.
+
+La realidad del auto
+
+Seamos honestos: en Roldán necesitás auto. Especialmente si vivís en un barrio cerrado o en las afueras. La distancia entre los barrios residenciales y el centro comercial puede ser de 3 a 8 km, y no hay transporte público que cubra esas rutas eficientemente.
+
+Sin embargo, muchas familias tienen un solo auto y se organizan. El que trabaja en Rosario se lleva el auto, y el que se queda en Roldán resuelve las compras y los chicos caminando, en bici o con un segundo auto más económico.
+
+La tendencia es positiva. Con el crecimiento de la ciudad, cada vez abren más comercios en las zonas residenciales. Algunos barrios cerrados nuevos incluso tienen mini supermercados internos o están a metros de centros comerciales de barrio.
+
+Si estás evaluando mudarte a Roldán, en SI Inmobiliaria te mostramos propiedades teniendo en cuenta la cercanía a servicios. Sabemos que no alcanza con una casa linda — necesitás que la vida cotidiana funcione. Consultanos al 341 210 1694.`,
+  },
+  {
+    slug: 'transporte-colectivo-roldan-rosario-opciones',
+    title: 'Transporte Roldán-Rosario: todas las opciones',
+    date: '2026-03-19',
+    dateDisplay: '19 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80',
+    summary: 'Guía completa de transporte entre Roldán y Rosario. Colectivos, horarios y alternativas para quien trabaja en Rosario.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `Si estás pensando en vivir en Roldán y trabajar en Rosario, la pregunta del transporte es central. ¿Se puede hacer sin auto? ¿Cuánto se tarda? ¿Hay opciones confiables? Acá te cuento todo lo que necesitás saber.
+
+Colectivos interurbanos
+
+La línea de colectivo que conecta Roldán con Rosario sale desde el centro de Roldán y llega a la Terminal Mariano Moreno de Rosario. El recorrido demora entre 35 y 50 minutos dependiendo del tránsito y la hora. Hay frecuencias cada 20-30 minutos en hora pico y cada 45-60 minutos en horarios valle.
+
+El colectivo es la opción más económica para el viaje diario. El boleto cuesta una fracción de lo que gastarías en nafta y peaje. Pero tiene limitaciones: el horario nocturno es reducido, los fines de semana la frecuencia baja mucho, y si vivís en un barrio cerrado alejado de la ruta, primero tenés que llegar a la parada — que puede estar a varios kilómetros.
+
+Auto por autopista
+
+La mayoría de los que viven en Roldán y trabajan en Rosario viajan en auto por la Autopista Rosario-Córdoba. El viaje demora entre 20 y 30 minutos a velocidad crucero. El peaje es un costo fijo a considerar: ida y vuelta diaria por autopista suma un gasto mensual importante.
+
+Algunos optimizan compartiendo auto con vecinos. En barrios cerrados como Tierra de Sueños, Fincas y El Molino hay grupos de WhatsApp de vecinos que coordinan viajes compartidos. Es una solución práctica que reduce costos y tránsito.
+
+Combis y remises
+
+Hay servicios de combis privadas que hacen el recorrido Roldán-Rosario con horarios fijos, especialmente pensados para quienes trabajan en el centro de Rosario. El costo es intermedio entre el colectivo y el auto propio. La ventaja es que no manejás y podés usar el tiempo del viaje para trabajar o descansar.
+
+Los servicios de remis y aplicaciones de transporte también funcionan para viajes puntuales, aunque para el uso diario no son económicamente viables.
+
+El tren: ¿una opción real?
+
+Existe una línea de tren que conecta Roldán con Rosario, pero el servicio es irregular y no tiene la frecuencia necesaria para ser una alternativa confiable de transporte diario. Hay proyectos de mejora del servicio ferroviario metropolitano, pero a la fecha no están operativos.
+
+La cuenta final
+
+Haciendo números: vivir en Roldán y viajar a Rosario diariamente en auto cuesta entre nafta y peaje un monto significativo mensual. Pero la diferencia de precio en el metro cuadrado entre Roldán y Rosario es tan grande que, aun considerando el gasto de transporte, la ecuación sigue siendo favorable para Roldán.
+
+Una casa de 3 dormitorios en un buen barrio de Roldán puede costar entre 30 y 40% menos que una equivalente en Fisherton o zona norte de Rosario. Esa diferencia, proyectada a 10 o 20 años, compensa ampliamente el gasto de transporte.
+
+Si estás evaluando el cambio, en SI Inmobiliaria podemos mostrarte propiedades que optimicen la distancia al acceso de autopista. Consultanos y hacemos los números juntos.`,
+  },
+  {
+    slug: 'salud-medicos-clinicas-roldan-lo-que-tenes-que-saber',
+    title: 'Salud en Roldán: lo que tenés que saber',
+    date: '2026-03-18',
+    dateDisplay: '18 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80',
+    summary: 'Servicios de salud en Roldán. Médicos, clínicas, guardias y qué esperar si te mudás a la zona. Análisis honesto.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `La salud es uno de los temas que más preocupa a las familias que evalúan mudarse a Roldán desde Rosario. Y con razón: cuando tenés hijos chicos o adultos mayores en casa, saber que hay una guardia cerca es fundamental.
+
+Atención primaria y guardias
+
+Roldán cuenta con un centro de salud municipal que atiende consultas generales y urgencias menores. Para emergencias más complejas, la derivación es a los hospitales y sanatorios de Rosario, que están a 20-25 minutos por autopista.
+
+Hay consultorios médicos privados de varias especialidades: clínica general, pediatría, odontología, traumatología y ginecología son las más comunes. La cantidad de profesionales creció significativamente con el aumento de la población.
+
+Lo que hay y funciona
+
+Para la atención médica de rutina — controles pediátricos, consultas generales, odontología, análisis clínicos básicos — Roldán tiene lo necesario. Hay laboratorios de análisis, centros de diagnóstico por imágenes y farmacias bien abastecidas.
+
+Las obras sociales y prepagas más grandes (OSDE, Swiss Medical, Galeno, IAPOS) tienen prestadores en Roldán o acuerdos con los profesionales locales. No te quedás sin cobertura por vivir fuera de Rosario.
+
+Lo que falta (todavía)
+
+Seamos honestos: para especialidades complejas, cirugías programadas, estudios de alta complejidad o internación prolongada, hay que ir a Rosario. Roldán no tiene un sanatorio privado con internación de alta complejidad.
+
+Esto no es necesariamente un problema grave — Rosario está a 20 minutos y tiene una de las mejores infraestructuras de salud del país. Pero es algo que tenés que tener en cuenta, especialmente si algún miembro de la familia requiere atención médica frecuente.
+
+Emergencias
+
+Para emergencias reales (accidentes, problemas cardíacos, urgencias pediátricas), el sistema de emergencias funciona con ambulancias que pueden trasladar a Rosario rápidamente. Muchas familias contratan servicios de emergencias médicas privadas como cobertura adicional.
+
+Un dato importante: la autopista entre Roldán y Rosario permite llegar al Hospital Centenario o al Sanatorio Parque en menos de 25 minutos. Es un tiempo razonable y comparable al que muchos rosarinos demoran en llegar a un hospital desde barrios periféricos de la propia ciudad.
+
+La tendencia
+
+El crecimiento de Roldán está atrayendo cada vez más profesionales de la salud. Lo que hace 5 años era una preocupación legítima, hoy es menos problemático. Y la tendencia es claramente positiva: a medida que crece la población, crece la oferta de servicios de salud.
+
+Si la salud es una prioridad para tu familia, en SI Inmobiliaria podemos ayudarte a encontrar propiedades cercanas a los centros de salud de la zona. Consultanos al 341 210 1694 o visitá nuestras oficinas en Roldán.`,
+  },
+  {
+    slug: 'bancos-cajeros-roldan-servicios-financieros',
+    title: 'Bancos en Roldán: lo que encontrás y lo que falta',
+    date: '2026-03-17',
+    dateDisplay: '17 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
+    summary: 'Servicios bancarios y financieros en Roldán. Cajeros, sucursales y cómo manejar tus finanzas si vivís en la zona.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `Uno de los temas menos glamorosos pero más prácticos cuando evaluás mudarte a Roldán es el acceso a servicios financieros. ¿Hay bancos? ¿Hay cajeros? ¿Puedo hacer todas mis operaciones sin ir a Rosario?
+
+La realidad bancaria de Roldán
+
+Roldán tiene cajeros automáticos de las redes Link y Banelco distribuidos en el centro de la ciudad. Hay al menos una sucursal bancaria que permite operaciones básicas como depósitos, extracciones, cobro de haberes y apertura de cuentas.
+
+Para operaciones más complejas — como solicitar un crédito hipotecario, abrir una cuenta empresa, o realizar inversiones — generalmente hay que ir a sucursales de Rosario. Esto no es un drama porque Rosario está a 20 minutos, pero es algo a tener en cuenta.
+
+La banca digital cambió todo
+
+La verdad es que en 2026 la banca digital resolvió el 90% de los problemas que hace 10 años eran reales. Transferencias, pagos de servicios, inversiones, tarjetas de crédito — todo se maneja desde el celular. Cada vez hay menos razones para ir físicamente a un banco.
+
+Mercado Pago, las billeteras virtuales y las fintech también complementan la oferta. Para el pago de expensas del barrio cerrado, cuota del colegio o compras en comercios locales, todo se resuelve con transferencia o QR.
+
+Créditos hipotecarios
+
+Si estás buscando comprar una propiedad con crédito hipotecario en Roldán, la gestión se hace generalmente en sucursales bancarias de Rosario. Los principales bancos (Nación, Provincia, Santander, BBVA, Macro) tienen líneas de crédito que cubren propiedades en Roldán sin problema — no es necesario que la propiedad esté en Rosario para acceder al crédito.
+
+En SI Inmobiliaria asesoramos a nuestros clientes sobre las líneas de crédito disponibles y los conectamos con los oficiales bancarios que mejor conocen la zona. Si estás evaluando comprar con crédito, consultanos para analizar tu situación particular.
+
+Pagos y servicios
+
+Los impuestos municipales de Roldán se pueden pagar online o en centros de pago habilitados. Lo mismo con los servicios (agua, electricidad, gas). No hay ninguna operación financiera cotidiana que requiera ir a Rosario obligatoriamente.
+
+Lo que viene
+
+Con el crecimiento de Roldán es probable que se sumen más sucursales bancarias y puntos de atención. Varios bancos ya tienen planes de expansión hacia las ciudades satélite de Rosario.
+
+En definitiva, la cuestión bancaria no debería ser un factor decisivo para no mudarte a Roldán. Las limitaciones son menores y la tendencia es claramente hacia la mejora. Si estás buscando tu propiedad en la zona, consultanos en SI Inmobiliaria — te asesoramos sobre todo lo que necesitás saber antes de dar el paso.`,
+  },
+  {
+    slug: 'restaurantes-gastronomia-roldan-para-vivir-y-disfrutar',
+    title: 'Gastronomía en Roldán: dónde comer y disfrutar',
+    date: '2026-03-16',
+    dateDisplay: '16 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    summary: 'Los mejores restaurantes, bares y cervecerías de Roldán. Calidad de vida gastronómica para quienes se mudan a la zona.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `Cuando hablo con familias que evalúan mudarse a Roldán, siempre les digo lo mismo: la calidad de vida no es solo la casa y el barrio. También es poder salir a comer bien un viernes a la noche sin manejar 30 minutos hasta Rosario. Y acá Roldán sorprende.
+
+Una escena gastronómica en crecimiento
+
+Roldán pasó de tener un par de pizzerías y parrillas a ofrecer una variedad gastronómica que hace 10 años era impensable. Hay restaurantes de cocina contemporánea, cervecerías artesanales con propuesta de autor, heladerías premium, cafés de especialidad y las clásicas parrillas que nunca fallan.
+
+El crecimiento demográfico de la ciudad — pasó de 15 mil a más de 30 mil habitantes en una década — trajo consigo una demanda de calidad gastronómica que emprendedores locales supieron aprovechar. Muchos de los nuevos restaurantes están dirigidos por profesionales que antes trabajaban en Rosario y decidieron instalarse en Roldán.
+
+Lo que encontrás
+
+Parrillas de buen nivel con carne de primera hay varias. Para quienes buscan algo más sofisticado, hay opciones de cocina de autor con menú degustación que no tienen nada que envidiarle a Rosario. Las cervecerías artesanales se multiplicaron y varias ofrecen propuestas gastronómicas que van más allá de las clásicas picadas.
+
+Para el día a día, hay panaderías artesanales, rotiserías con comida casera de calidad, y cafés que trabajan con café de especialidad tostado localmente. Si venís de la zona norte de Rosario donde estás acostumbrado a cierto nivel, en Roldán vas a encontrar opciones que te van a satisfacer.
+
+Los fines de semana
+
+Los sábados y domingos es cuando Roldán muestra su mejor cara gastronómica. Muchos rosarinos vienen especialmente a comer a la zona, lo que habla del nivel que alcanzó la propuesta local. Las ferias de productores locales también son un atractivo — verduras orgánicas, dulces artesanales, pan de masa madre.
+
+El asado del domingo en el quincho del barrio cerrado es, por supuesto, el clásico imbatible. Pero tener la opción de salir a comer afuera sin hacer 40 minutos de viaje es un plus que muchos valoran especialmente cuando tienen chicos.
+
+Delivery y pedidos
+
+El delivery en Roldán funciona, aunque no con la inmediatez de Rosario. Las principales apps ya cubren la zona y hay delivery propio de muchos restaurantes. Para una noche de semana en la que no querés cocinar, tenés opciones.
+
+La gastronomía es uno de esos factores "blandos" que muchos no consideran al elegir dónde vivir, pero que impactan directamente en la calidad de vida cotidiana. En SI Inmobiliaria conocemos cada rincón de Roldán — incluidos los mejores restaurantes. Consultanos si estás evaluando mudarte a la zona.`,
+  },
+  {
+    slug: 'seguridad-privada-barrios-cerrados-roldan-funes',
+    title: 'Seguridad en Roldán y Funes: cerrado vs. abierto',
+    date: '2026-03-15',
+    dateDisplay: '15 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80',
+    summary: 'Comparación honesta de seguridad entre barrios cerrados y zonas abiertas en Roldán y Funes. Datos para tomar una buena decisión.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `La seguridad es, sin lugar a dudas, el factor número uno que impulsa a las familias a mudarse de Rosario a Roldán y Funes. Y dentro de estas ciudades, es el principal motor de los barrios cerrados. Pero conviene analizar el tema con datos y sin alarmismo.
+
+La realidad de Roldán
+
+Roldán es objetivamente más seguro que Rosario. Es una ciudad más chica, con menos conflictividad social y donde "todos se conocen". Eso no significa que no haya delitos — los hay, como en toda Argentina — pero la escala es incomparable con una ciudad grande.
+
+Los barrios abiertos del centro de Roldán tienen una dinámica de pueblo donde los vecinos se cuidan entre sí, donde podés dejar la bici en la puerta del almacén y donde los chicos pueden caminar al colegio sin problema. Eso, para alguien que viene de Rosario, es casi un lujo.
+
+Barrios cerrados: seguridad organizada
+
+Los barrios cerrados de Roldán (Tierra de Sueños, Fincas de Roldán, El Molino, Los Raigales) y de Funes (San Sebastián, Funes Hills, Kentucky, Don Mateo) ofrecen seguridad privada las 24 horas, control de acceso vehicular, cámaras de vigilancia perimetral y rondas internas.
+
+El nivel de seguridad varía según el barrio. Algunos tienen garita con guardia permanente y barrera vehicular. Otros tienen sistema de acceso con tarjeta o código. Antes de comprar, preguntá específicamente: ¿cuántos guardias hay por turno? ¿Hay cámaras funcionales? ¿Cuál es el protocolo ante un intento de intrusión?
+
+El costo de la seguridad
+
+La seguridad en un barrio cerrado se paga a través de las expensas. En Roldán, las expensas mensuales de barrios cerrados van desde 80 mil hasta 300 mil pesos dependiendo del barrio y los amenities incluidos. En Funes, los barrios premium pueden tener expensas más elevadas.
+
+Es un costo fijo que hay que incluir en el presupuesto mensual. Pero para muchas familias, la tranquilidad de saber que sus hijos pueden jugar en la calle del barrio sin preocupaciones no tiene precio.
+
+Barrio abierto: ¿es inseguro?
+
+No necesariamente. Muchas familias viven en barrios abiertos de Roldán con total tranquilidad. La clave está en la ubicación y el entorno. Los barrios consolidados del centro de Roldán, con buena iluminación y vecinos de toda la vida, son generalmente seguros.
+
+Lo que sí recomendamos es instalar alarma y cámaras si vivís en barrio abierto. Es una inversión menor que da mucha tranquilidad.
+
+Nuestra recomendación
+
+Si la seguridad es tu prioridad principal, un barrio cerrado te da una capa adicional de protección que vale la pena. Si tu presupuesto es más acotado, un barrio abierto bien ubicado en Roldán puede ser igual de seguro a un costo mucho menor.
+
+En SI Inmobiliaria tenemos propiedades en ambas opciones. Consultanos y te asesoramos según tu perfil y presupuesto.`,
+  },
+  {
+    slug: 'gimnasios-deportes-roldan-calidad-de-vida',
+    title: 'Gimnasios y deporte en Roldán: calidad de vida',
+    date: '2026-03-14',
+    dateDisplay: '14 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+    summary: 'Opciones deportivas en Roldán. Gimnasios, running, natación, paddle y la vida activa que atrae a las familias.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `Uno de los grandes atractivos de vivir en Roldán es el espacio para hacer deporte y llevar una vida activa. Acá no estás encerrado en un departamento de Rosario peleando por lugar en el gym — tenés calles para correr, barrios con canchas y una comunidad que valora el bienestar.
+
+Gimnasios y centros de entrenamiento
+
+Roldán tiene varios gimnasios de buen nivel con equipamiento moderno, clases grupales (funcional, spinning, yoga, pilates) y entrenamiento personalizado. La oferta creció mucho en los últimos años acompañando el crecimiento demográfico.
+
+Los precios son notablemente más bajos que en Rosario — un gimnasio completo en Roldán puede costar la mitad de lo que pagás en la zona norte de Rosario. Y la calidad del servicio es comparable o incluso mejor, porque al ser más chicos hay más atención personalizada.
+
+Running y ciclismo
+
+Acá es donde Roldán realmente brilla. Las calles son tranquilas, el tránsito es mínimo comparado con Rosario, y hay caminos rurales espectaculares para correr o andar en bici. Muchos barrios cerrados tienen circuitos internos de running y bicicleta que se usan intensamente.
+
+Los fines de semana se ven grupos de running saliendo desde los barrios hacia la zona rural. Es una actividad social que conecta vecinos y genera comunidad. Algo que en Rosario solo podés hacer en el Parque Independencia o en la Costanera, peleando espacio con miles de personas.
+
+Paddle, tenis y deportes de raqueta
+
+El paddle explotó en Roldán como en todo el país. Hay varias canchas de paddle tanto en clubes como en complejos privados. Los barrios cerrados como San Sebastián, Funes Hills y El Molino tienen canchas propias incluidas en las expensas.
+
+El tenis también tiene buena infraestructura en la zona, con clubes que ofrecen clases para chicos y adultos.
+
+Natación y piletas
+
+La mayoría de los barrios cerrados tienen pileta climatizada o descubierta. Para quienes viven en barrio abierto, hay natatorios municipales y privados en Roldán que ofrecen natación, aquagym y pileta libre.
+
+Tener pileta propia en casa es muy común en Roldán y Funes — los lotes son grandes y el clima santafesino lo justifica. Es un diferencial de calidad de vida importante respecto a vivir en un departamento en Rosario.
+
+Fútbol y clubes
+
+Roldán tiene varios clubes deportivos con canchas de fútbol, hockey, básquet y actividades para chicos. La vida social de muchas familias gira alrededor del club del barrio, donde los chicos hacen deporte y los padres socializan.
+
+La vida deportiva en Roldán es uno de esos factores que la gente no pondera lo suficiente cuando evalúa mudarse, pero que después valora enormemente. Si buscás una propiedad donde la vida activa sea parte del día a día, consultanos en SI Inmobiliaria.`,
+  },
+  {
+    slug: 'piletas-construccion-mantenimiento-roldan-funes',
+    title: 'Piletas en Roldán y Funes: valor para tu propiedad',
+    date: '2026-03-13',
+    dateDisplay: '13 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1572331165267-854da2b021b1?w=800&q=80',
+    summary: 'Cómo una pileta impacta en el valor de tu propiedad en Roldán y Funes. Costos de construcción, mantenimiento y tips.',
+    category: 'Inversión',
+    author: AUTHOR,
+    content: `En Roldán y Funes, tener pileta propia no es un lujo — es casi un estándar. El clima de la zona, con veranos de 35 grados o más, hace que la pileta sea uno de los amenities más valorados por los compradores. Y desde la perspectiva del valor de la propiedad, es una de las mejores inversiones que podés hacer.
+
+Impacto en el valor de la propiedad
+
+Una propiedad con pileta en buen estado puede valer entre 10 y 20% más que una equivalente sin pileta en la misma zona. En números: si tu casa vale 150 mil dólares sin pileta, con una pileta bien hecha y mantenida puede valer entre 165 y 180 mil dólares.
+
+Esto aplica especialmente para casas de 3 o más dormitorios orientadas a familias. El comprador tipo en Roldán y Funes es una familia con chicos que viene de Rosario buscando espacio y calidad de vida — y la pileta es uno de los primeros ítems de su checklist.
+
+Cuánto cuesta construir una pileta
+
+A valores de 2025-2026, una pileta de hormigón armado de 6x3 metros con profundidad estándar cuesta entre 8.000 y 15.000 dólares dependiendo del terminado. Una pileta de fibra de vidrio del mismo tamaño puede costar entre 5.000 y 8.000 dólares incluyendo instalación.
+
+El costo del equipamiento (filtro, bomba, iluminación) es adicional y ronda los 1.500 a 3.000 dólares. La solada perimetral y el deck (si lo querés) suman entre 2.000 y 5.000 dólares más.
+
+En total, una pileta completa lista para usar con buen acabado puede costar entre 10.000 y 20.000 dólares. Comparado con el incremento de valor de la propiedad, la inversión se recupera prácticamente al hacerla.
+
+Mantenimiento mensual
+
+El mantenimiento de una pileta en Roldán tiene un costo mensual que hay que contemplar. En verano: productos químicos (cloro, pH, algicida) más el consumo eléctrico del filtro puede costar entre 30 y 60 mil pesos mensuales. Si contratás un piletero que venga una vez por semana, sumale 40 a 80 mil pesos.
+
+En invierno el costo baja significativamente. Muchas familias cubren la pileta y reducen el filtrado al mínimo. El costo mensual en invierno puede ser de 10 a 20 mil pesos.
+
+Tips para compradores
+
+Si estás buscando casa con pileta en Roldán o Funes, prestá atención a: estado de las paredes (grietas o manchas de humedad), funcionamiento del filtro y bomba, antigüedad del revestimiento (el veneciano o el liner tienen vida útil limitada), y si la pileta tiene desagüe legal (no puede drenar a la calle o al terreno del vecino).
+
+Si estás vendiendo una casa con pileta, un consejo: vendé en verano. Una pileta limpia y funcionando con el agua turquesa brillando al sol vende más que mil fotos de interiores.
+
+En SI Inmobiliaria tenemos propiedades con pileta en los mejores barrios de Roldán y Funes. Consultanos para ver opciones.`,
+  },
+  {
+    slug: 'paneles-solares-roldan-funes-conviene-2025',
+    title: 'Paneles solares en Roldán y Funes: ¿conviene?',
+    date: '2026-03-12',
+    dateDisplay: '12 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&q=80',
+    summary: 'Análisis de paneles solares para propiedades en Roldán y Funes. Costos, ahorro real y cómo impacta en el valor de tu casa.',
+    category: 'Inversión',
+    author: AUTHOR,
+    content: `Cada vez más propietarios en Roldán y Funes nos preguntan sobre paneles solares. ¿Conviene instalarlos? ¿Cuánto cuestan? ¿Aumentan el valor de la propiedad? Vamos a los datos concretos.
+
+La situación actual
+
+Santa Fe tiene una radiación solar promedio de 4,5 kWh/m² por día, lo que la ubica en un rango medio-alto para la generación solar en Argentina. Roldán y Funes, al estar en la pampa sin grandes obstrucciones de sombra, tienen condiciones ideales para paneles solares.
+
+La legislación provincial permite la generación distribuida: podés inyectar energía a la red y compensar tu consumo. Esto significa que si generás más de lo que consumís durante el día, ese excedente descuenta de tu factura.
+
+Cuánto cuesta una instalación
+
+Un sistema solar fotovoltaico para una casa familiar típica en Roldán (3-4 kW de potencia) cuesta actualmente entre 4.000 y 7.000 dólares incluyendo paneles, inversor, estructura de montaje e instalación. Un sistema más grande (6-8 kW) puede costar entre 8.000 y 12.000 dólares.
+
+El retorno de la inversión depende del consumo eléctrico de la casa. Para una familia que consume 500 kWh mensuales, un sistema de 4 kW puede cubrir entre el 60 y el 80% de su consumo. Con las tarifas actuales de electricidad, el período de repago es de aproximadamente 6 a 10 años.
+
+Impacto en el valor de la propiedad
+
+Acá viene lo interesante desde la perspectiva inmobiliaria: una casa con paneles solares instalados tiene un diferencial percibido de entre 5 y 10% sobre propiedades similares sin paneles. No es solo el ahorro energético — es la señal de que el propietario invirtió en una casa moderna y eficiente.
+
+Para el comprador ABC1 de Funes y Roldán — que típicamente valora la sustentabilidad y la tecnología — los paneles solares son un atractivo concreto. Es como la pileta: no es obligatorio, pero si tu competencia (la otra casa en venta en el mismo barrio) los tiene y vos no, jugás en desventaja.
+
+Consideraciones prácticas
+
+Los paneles tienen una vida útil de 25 a 30 años y el mantenimiento es mínimo: una limpieza cada 6 meses y revisión eléctrica anual. No requieren obras civiles importantes — se montan sobre el techo existente.
+
+Un punto a considerar: si tu techo es de chapa y tiene más de 15 años, probablemente convenga cambiarlo antes de instalar los paneles. Montar paneles sobre un techo que vas a tener que reemplazar en 5 años no tiene sentido.
+
+¿Conviene o no?
+
+Si pensás quedarte en la propiedad más de 5 años: sí, conviene. Si estás por vender: probablemente no convenga instalarlo ahora, pero sí destacar el potencial solar del terreno en la publicación.
+
+En SI Inmobiliaria asesoramos a nuestros clientes sobre mejoras que aumentan el valor de la propiedad antes de vender. Consultanos al 341 210 1694.`,
+  },
+  {
+    slug: 'mudarse-roldan-desde-rosario-guia-completa-2025',
+    title: 'Mudarse a Roldán desde Rosario: guía completa',
+    date: '2026-03-11',
+    dateDisplay: '11 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
+    summary: 'Todo lo que necesitás saber para mudarte de Rosario a Roldán en 2025. Colegios, transporte, seguridad, propiedades y calidad de vida.',
+    category: 'Vivir en la zona',
+    author: AUTHOR,
+    content: `Si estás leyendo esto es porque ya lo pensaste: dejar Rosario y mudarte a Roldán. Tal vez por seguridad, tal vez por espacio, tal vez porque un amigo se mudó y no para de contarte lo bien que vive. Sea cual sea la razón, esta es la guía más completa que vas a encontrar sobre el tema.
+
+¿Por qué Roldán?
+
+Roldán es la ciudad satélite de Rosario que más creció en la última década. Pasó de ser un pueblo tranquilo de 15 mil habitantes a una ciudad dinámica de más de 30 mil. La razón principal: familias jóvenes de Rosario que buscan más espacio, más seguridad y mejor calidad de vida sin alejarse demasiado del trabajo.
+
+La ecuación es simple: por el precio de un departamento de 3 ambientes en zona norte de Rosario, en Roldán podés tener una casa de 3 dormitorios con jardín, pileta y cochera. La diferencia de precio del metro cuadrado es de entre 30 y 50% según la zona.
+
+El viaje diario
+
+Si trabajás en Rosario, el viaje diario es de 20 a 30 minutos por autopista. Es comparable a lo que muchos rosarinos ya hacen para ir de un barrio a otro dentro de la propia ciudad. Con la autopista en buen estado y sin peaje excesivo, el viaje es rutinario y llevadero.
+
+Hay colectivos interurbanos, combis privadas y la opción del auto compartido. La mayoría de las familias tienen al menos un auto, pero muchas se arreglan con uno solo.
+
+Colegios y educación
+
+Roldán tiene oferta educativa pública y privada en todos los niveles. Para nivel inicial y primaria, la mayoría de las familias encuentra opciones en la misma ciudad. Para secundaria, algunos eligen colegios de Fisherton o zona norte de Rosario usando combis escolares.
+
+Funes tiene una oferta educativa aún más amplia, con colegios privados bilingües y de buen nivel. Muchas familias de Roldán llevan a sus hijos a colegios de Funes, que está a 10 minutos.
+
+Salud
+
+Para la atención primaria y urgencias menores, Roldán tiene lo necesario. Para situaciones complejas, Rosario está a 20 minutos con sus hospitales y sanatorios de referencia nacional. Las obras sociales y prepagas principales tienen prestadores en la zona.
+
+Comercios y servicios
+
+Roldán tiene supermercados, farmacias, restaurantes, cervecerías, gimnasios, cajeros y todos los servicios básicos. No es Rosario — no hay shopping ni cine — pero para la vida cotidiana tenés todo resuelto. Y la tendencia es que cada año se suman más comercios.
+
+Barrios: ¿cerrado o abierto?
+
+Depende de tu presupuesto y tus prioridades. Los barrios cerrados (Tierra de Sueños, El Molino, Fincas, Los Raigales) ofrecen seguridad 24hs, amenities y una comunidad organizada. Los barrios abiertos ofrecen más libertad, menos expensas y precios más accesibles.
+
+En ambos casos, los lotes son grandes (400 a 1200 m²), las calles son tranquilas y la densidad es baja. El contraste con un PH de 50 m² en Rosario es brutal.
+
+El paso a paso para mudarte
+
+Primero: definí presupuesto y prioridades (barrio cerrado o abierto, cantidad de dormitorios, distancia al acceso de autopista). Segundo: visitá la zona varias veces, en distintos horarios y días de la semana. Tercero: asesorate con una inmobiliaria local que conozca cada barrio — acá es donde entramos nosotros.
+
+En SI Inmobiliaria llevamos más de 40 años en Roldán. Conocemos cada calle, cada barrio, cada oportunidad. Si estás evaluando el cambio, pasá por nuestras oficinas en Catamarca 775 o llamanos al 341 210 1694. Te mostramos opciones reales y te acompañamos en todo el proceso — desde la primera visita hasta la escritura.
+
+El mejor momento para mudarse es siempre ahora. Los precios en Roldán siguen subiendo, y cada año que esperás es un año que pagás más.`,
+  },
 ]
