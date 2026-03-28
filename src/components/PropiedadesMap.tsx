@@ -119,10 +119,13 @@ function FitBounds({ properties }: { properties: TokkoProperty[] }) {
     if (coords.length === 0) return
     setTimeout(() => {
       map.invalidateSize()
-      if (window.innerWidth >= 768) {
-        map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 })
-        setTimeout(() => { if (map.getZoom() < 11) map.setZoom(11) }, 100)
-      }
+      map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 })
+      setTimeout(() => {
+        if (map.getZoom() < 11) map.setZoom(11)
+        if (window.innerWidth < 768) {
+          map.setView([-32.9300, -60.9100], 11)
+        }
+      }, 150)
     }, 300)
   }, [properties, map])
   return null
