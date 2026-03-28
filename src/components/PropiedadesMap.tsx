@@ -265,7 +265,6 @@ interface Props {
 }
 
 export default function PropiedadesMap({ properties, selectedId, onSelect, flyToCenter }: Props) {
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const mapped = useMemo(() =>
     properties.filter(p => {
       if (!p.geo_lat || !p.geo_long) return false
@@ -275,8 +274,8 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
 
   return (
     <MapContainer
-      center={[-32.9167, -60.9167]}
-      zoom={isMobile ? 12 : 13}
+      center={[-32.9167, -60.8833]}
+      zoom={12}
       style={{ height: '100%', width: '100%' }}
       zoomControl={false}
       scrollWheelZoom
