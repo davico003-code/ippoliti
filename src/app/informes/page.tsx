@@ -101,16 +101,23 @@ function SectionDivider({ label }: { label: string }) {
 
 export default async function InformesPage() {
   // Try Redis first, fallback to direct INDEC
-  let indices = await getRedisIndices()
-  const hasRedisData = Object.values(indices).some(arr => arr.length > 0)
+  let indices: Record<string, IndexEntry[]> = {}
+  let hasRedisData = false
+  let lastUpdated: string | null = null
+
+  try {
+    indices = await getRedisIndices()
+    hasRedisData = Object.values(indices).some(arr => arr.length > 0)
+    if (hasRedisData) {
+      lastUpdated = (await redis.get('indices:last_updated') as string | null)
+    }
+  } catch {
+    hasRedisData = false
+  }
 
   if (!hasRedisData) {
     indices = await getFallbackIndices()
   }
-
-  const lastUpdated = hasRedisData
-    ? (await redis.get('indices:last_updated') as string | null)
-    : null
 
   const dolarBlue = await fetchJson<DolarResponse>('https://dolarapi.com/v1/dolares/blue')
   const dolarHistory = await fetchDolarBlueHistory()
