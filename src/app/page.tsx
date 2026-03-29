@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
 import GuiaSection from '@/components/GuiaSection'
+import TrayectoriaSection from '@/components/TrayectoriaSection'
 import ShareCardButton from '@/components/ShareCardButton'
 import {
   getFeaturedProperties,
@@ -331,46 +332,8 @@ export default async function Home() {
       {/* Guía del comprador */}
       <GuiaSection />
 
-      {/* SEO content block */}
-      <section className="bg-[#f8f7f4] border-t-4 border-[#1A5C38] py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Left column */}
-            <div>
-              <p className="text-[#1A5C38] text-xs font-bold tracking-widest mb-3">DESDE 1983</p>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4" style={{fontFamily: 'Raleway, sans-serif'}}>
-                Tu inmobiliaria de confianza
-              </h2>
-              <p className="text-gray-600 text-base leading-relaxed mb-8" style={{fontFamily: 'Raleway, sans-serif'}}>
-                SI Inmobiliaria es una agencia inmobiliaria familiar con más de 40 años de trayectoria en el mercado de Rosario zona oeste. Fundada en 1983, acompañamos a cientos de familias y empresas en la compra, venta y alquiler de propiedades en Funes, Roldán, Fisherton y toda la región metropolitana de Rosario.
-              </p>
-              <div className="flex items-center gap-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-[#1A5C38] font-numeric">40+</p>
-                  <p className="text-xs text-gray-500 mt-1">años</p>
-                </div>
-                <div className="w-px h-10 bg-gray-300" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-[#1A5C38] font-numeric">3</p>
-                  <p className="text-xs text-gray-500 mt-1">oficinas</p>
-                </div>
-                <div className="w-px h-10 bg-gray-300" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-[#1A5C38]">Miles</p>
-                  <p className="text-xs text-gray-500 mt-1">de familias</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right column */}
-            <div className="text-gray-600 text-sm leading-relaxed space-y-3" style={{fontFamily: 'Raleway, sans-serif'}}>
-              <p>Nuestras oficinas en Funes (Hipólito Yrigoyen 2643) y Roldán (1ro de Mayo 258 y Catamarca 775) nos permiten estar presentes donde el mercado inmobiliario crece con más fuerza. Funes y Roldán son hoy dos de los municipios con mayor demanda de propiedades en la provincia de Santa Fe, con barrios privados, lotes y casas que ofrecen calidad de vida a minutos de Rosario.</p>
-              <p>Trabajamos con propiedades de todo tipo: casas, departamentos, lotes, locales comerciales y emprendimientos. Nuestro equipo profesional te asesora en cada etapa del proceso, desde la tasación hasta la escrituración, garantizando transparencia y seguridad en cada operación.</p>
-              <p>Si estás buscando propiedades en venta en Funes, casas en Roldán, lotes en barrios privados o inmuebles para inversión en Rosario zona oeste, SI Inmobiliaria es tu aliado de confianza. Consultanos sin compromiso.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Trayectoria */}
+      <TrayectoriaSection />
     </>
   )
 }
