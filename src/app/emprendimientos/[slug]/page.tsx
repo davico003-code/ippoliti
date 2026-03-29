@@ -116,7 +116,7 @@ export default async function DevelopmentPage({ params }: Props) {
       {/* Hero image — full screen */}
       {mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
-          <Image src={mainPhoto} alt={dev.name} fill className="object-cover" priority />
+          <Image src={mainPhoto} alt={dev.name} fill className="object-cover" sizes="100vw" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
             <div className="max-w-7xl mx-auto">
