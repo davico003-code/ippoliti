@@ -217,7 +217,7 @@ export default function NosotrosPage() {
           </div>
           <div className="relative w-full rounded-2xl overflow-hidden shadow-lg bg-black h-[300px] md:h-[500px]">
             <iframe
-              src="https://www.youtube.com/embed/y9j-BL5ocW8?rel=0&modestbranding=1"
+              src="https://www.youtube.com/embed/l7woKym9w50?rel=0&modestbranding=1"
               title="SI Inmobiliaria — Video institucional"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
