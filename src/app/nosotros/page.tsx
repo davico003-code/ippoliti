@@ -20,9 +20,9 @@ const TIMELINE = [
 ]
 
 const TEAM = [
-  { name: 'Susana Ippoliti', role: 'Fundadora', credential: 'Mat. 0559', image: 'https://images.pexels.com/photos/3756679/pexels-photo-3756679.jpeg?w=400&q=80' },
-  { name: 'David Flores', role: 'Corredor Inmobiliario', credential: 'Mat. 0621', image: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?w=400&q=80' },
-  { name: 'Laura Flores', role: 'Lic. en Administración', credential: 'de Empresas', image: 'https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?w=400&q=80' },
+  { name: 'Susana Ippoliti', role: 'Fundadora', credential: 'Desde 1983', image: '/nosotros/susana-ippoliti-si-inmobiliaria.webp' },
+  { name: 'David Flores', role: 'Director', credential: 'Mat. N° 0621', image: '/nosotros/david-flores-si-inmobiliaria.webp' },
+  { name: 'Laura Flores', role: 'Administración', credential: '', image: '/nosotros/laura-flores-si-inmobiliaria.webp' },
 ]
 
 const TESTIMONIALS = [
