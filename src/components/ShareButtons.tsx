@@ -1,11 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageCircle, Link2, Check, Instagram } from 'lucide-react'
+import { MessageCircle, Link2, Check } from 'lucide-react'
+import StoryPlate from './StoryPlate'
 
-export default function ShareButtons({ slug, title }: { slug: string; title: string }) {
+interface Props {
+  slug: string
+  title: string
+  price?: string
+  photo?: string | null
+  operation?: string
+  area?: number | null
+  rooms?: number
+  bathrooms?: number
+}
+
+export default function ShareButtons({ slug, title, price, photo, operation, area, rooms, bathrooms }: Props) {
   const [copied, setCopied] = useState(false)
-  const [downloading, setDownloading] = useState(false)
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
   const text = encodeURIComponent(`Mirá esta propiedad: ${title}\n${url}`)
 
@@ -13,34 +24,6 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleDownload = async () => {
-    setDownloading(true)
-    try {
-      const fetchUrl = `/api/story/${slug}`
-      const response = await fetch(fetchUrl)
-      if (!response.ok) {
-        const errText = await response.text()
-        alert(`Error generando placa: ${response.status} — ${errText}`)
-        return
-      }
-      const blob = await response.blob()
-      if (blob.size === 0) {
-        alert('La placa se generó vacía. Intentá de nuevo.')
-        return
-      }
-      const blobUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = blobUrl
-      a.download = `placa-${slug}.png`
-      a.click()
-      URL.revokeObjectURL(blobUrl)
-    } catch (err) {
-      alert(`Error de conexión: ${err instanceof Error ? err.message : 'desconocido'}`)
-    } finally {
-      setDownloading(false)
-    }
   }
 
   return (
@@ -69,19 +52,16 @@ export default function ShareButtons({ slug, title }: { slug: string; title: str
           {copied ? <Check size={14} /> : <Link2 size={14} />}
           {copied ? 'Copiado!' : 'Copiar'}
         </button>
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white disabled:opacity-60"
-          style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
-        >
-          {downloading ? (
-            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <Instagram size={14} />
-          )}
-          Placa
-        </button>
+        <StoryPlate
+          title={title}
+          price={price || 'Consultar'}
+          photo={photo || null}
+          operation={operation || ''}
+          area={area || null}
+          rooms={rooms || 0}
+          bathrooms={bathrooms || 0}
+          slug={slug}
+        />
       </div>
     </div>
   )

@@ -644,7 +644,16 @@ export default async function PropertyPage({ params }: Props) {
                 Llamar <span className="font-numeric">(341) 210-1694</span>
               </a>
 
-              <ShareButtons slug={params.slug} title={property.publication_title || property.address} />
+              <ShareButtons
+                slug={params.slug}
+                title={property.publication_title || property.address}
+                price={price}
+                photo={mainPhoto}
+                operation={operation}
+                area={area}
+                rooms={property.room_amount}
+                bathrooms={property.bathroom_amount}
+              />
             </div>
 
             <div className="bg-brand-50 border border-brand-100 rounded-2xl p-5 text-sm">
@@ -705,7 +714,17 @@ export default async function PropertyPage({ params }: Props) {
       </div>
 
       {/* Mobile sticky contact bar */}
-      <MobileStickyBar whatsappUrl={whatsappUrl} slug={params.slug} />
+      <MobileStickyBar
+        whatsappUrl={whatsappUrl}
+        slug={params.slug}
+        title={property.publication_title || property.address}
+        price={price}
+        photo={mainPhoto}
+        operation={operation}
+        area={area}
+        rooms={property.room_amount}
+        bathrooms={property.bathroom_amount}
+      />
     </div>
   );
 }
