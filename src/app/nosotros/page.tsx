@@ -67,8 +67,8 @@ export default function NosotrosPage() {
             <p className="text-sm text-gray-600">Susana Ippoliti, Laura &amp; David</p>
           </div>
           <div className="relative rounded-xl overflow-hidden bg-gray-100 h-[280px]">
-            <Image src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?w=600&q=80"
-              alt="Equipo SI Inmobiliaria" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+            <Image src="/nosotros/si-inmobiliaria-oficina-funes-interior.webp"
+              alt="Interior oficina SI Inmobiliaria Funes" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
           </div>
         </div>
       </section>
