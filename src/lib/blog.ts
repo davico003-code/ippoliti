@@ -21,7 +21,7 @@ export const posts: BlogPost[] = [
     date: '2025-11-15',
     dateDisplay: '15 de noviembre de 2025',
     source: 'elroldanense.com',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+    image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary:
       'Desde 1983, Susana Ippoliti construyó una inmobiliaria basada en la confianza, la cercanía y el conocimiento profundo de Roldán. Hoy, con Laura y David, SI Inmobiliaria sigue siendo la referencia del mercado local.',
     content: `Cuando Susana Ippoliti abrió las puertas de su inmobiliaria en Roldán en 1983, la ciudad era un pueblo tranquilo de la pampa santafesina con apenas unos miles de habitantes. Cuatro décadas después, Roldán se transformó en una de las ciudades con mayor crecimiento del Gran Rosario, y SI Inmobiliaria acompañó cada etapa de esa transformación.
@@ -42,7 +42,7 @@ Hoy, con oficinas en 1ro de Mayo 258 (administración) y Catamarca 775 (ventas),
     date: '2025-08-20',
     dateDisplay: '20 de agosto de 2025',
     source: 'Entrevista El Roldanense, 2020',
-    image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80',
+    image: '/blog/images/funes-vista-aerea-barrios-2026.webp',
     summary:
       'Una tasación profesional es clave para vender al precio justo. Susana Ippoliti explica qué factores determinan el valor real de una propiedad en Roldán y por qué no alcanza con mirar portales online.',
     content: `El mercado inmobiliario de Roldán tiene particularidades que lo distinguen de Rosario, Funes o cualquier otra ciudad de la región. Entender estas diferencias es fundamental para valuar correctamente una propiedad y no cometer errores que pueden costar miles de dólares.
@@ -65,7 +65,7 @@ SI Inmobiliaria realiza tasaciones profesionales desde 1983. Con oficinas en 1ro
     date: '2025-05-10',
     dateDisplay: '10 de mayo de 2025',
     source: 'infofunes.com.ar',
-    image: 'https://images.unsplash.com/photo-1560520031-3a4dc4e9de0c?w=800&q=80',
+    image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'La expansión a Funes combina el negocio inmobiliario con una propuesta cultural única: un espacio donde el arte y las propiedades conviven bajo el mismo techo.',
     content: `SI Inmobiliaria dio un paso audaz en su expansión al abrir una nueva oficina en Funes que rompe con el formato tradicional de una inmobiliaria: el espacio funciona también como galería de arte contemporáneo, creando un punto de encuentro entre cultura y negocios inmobiliarios.
@@ -88,7 +88,7 @@ La apertura en Funes complementa las dos oficinas que SI Inmobiliaria ya tiene e
     date: '2024-08-01',
     dateDisplay: '1 de agosto de 2024',
     source: 'Comunicado agosto 2024',
-    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80',
+    image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'En agosto de 2024, la inmobiliaria fundada por Susana Ippoliti renovó su identidad. El nuevo nombre "SI" honra las iniciales de su fundadora y representa una actitud: decir sí a cada nuevo desafío.',
     content: `En agosto de 2024, la inmobiliaria más tradicional de Roldán dio un paso que muchos esperaban y pocos imaginaban: Susana Ippoliti Inmobiliaria se convirtió en SI Inmobiliaria. El cambio de nombre no fue un capricho de marketing sino una decisión meditada que refleja la evolución de una empresa familiar hacia su segunda generación de liderazgo.
@@ -111,7 +111,7 @@ SI Inmobiliaria hoy opera en Roldán y Funes con un equipo comprometido, tecnolo
     date: '2026-01-20',
     dateDisplay: '20 de enero de 2026',
     source: 'SI Inmobiliaria',
-    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
+    image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'Guía para elegir inmobiliaria en Funes. Qué tener en cuenta, cómo funciona el mercado inmobiliario de Funes y por qué la trayectoria y el conocimiento local hacen la diferencia.',
     content: `Funes se consolidó como uno de los destinos residenciales más buscados del Gran Rosario. Con barrios como Funes Hills, Kentucky, Portal de Funes, María Eugenia Residences y una oferta que crece año a año, elegir la inmobiliaria correcta puede marcar la diferencia entre una buena operación y una experiencia frustrante.
@@ -150,7 +150,7 @@ También podés solicitar una tasación profesional de tu propiedad completando 
     date: '2026-02-05',
     dateDisplay: '5 de febrero de 2026',
     source: 'SI Inmobiliaria',
-    image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800&q=80',
+    image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'Roldán crece y la oferta inmobiliaria también. Te contamos qué mirar a la hora de elegir una inmobiliaria en Roldán y cómo asegurarte una operación segura.',
     content: `Roldán dejó de ser un pueblo hace tiempo. Con más de 30.000 habitantes y un crecimiento que no se detiene, la ciudad se posicionó como el destino estrella para familias del Gran Rosario que buscan casas amplias, barrios con servicios completos y un ritmo de vida más tranquilo. Naturalmente, la oferta de inmobiliarias en Roldán creció al mismo ritmo.
@@ -189,7 +189,7 @@ Contamos con estudio jurídico propio, tasaciones gratuitas con informe en 24hs,
     date: '2026-03-01',
     dateDisplay: '1 de marzo de 2026',
     source: 'SI Inmobiliaria',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
+    image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'Guía completa para comprar casa en Funes o Roldán. Comparativa de precios, barrios, trámites legales y consejos de expertos con más de 40 años de experiencia.',
     content: `La decisión de comprar una casa es probablemente la más importante que vas a tomar en tu vida. Y si estás evaluando Funes o Roldán como destino, estás mirando las dos ciudades con mejor proyección del Gran Rosario. Pero cada una tiene su perfil, sus ventajas y sus particularidades. Esta guía te ayuda a entender las diferencias y tomar la mejor decisión.
