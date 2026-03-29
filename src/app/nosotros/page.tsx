@@ -207,7 +207,7 @@ export default function NosotrosPage() {
 
       {/* 8. Video institucional */}
       <section className="bg-white py-16 px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-sm font-bold text-brand-600 uppercase tracking-widest mb-3">Video institucional</h2>
             <p className="text-2xl font-black text-gray-900 flex items-center justify-center gap-2">
@@ -215,7 +215,7 @@ export default function NosotrosPage() {
               Conocé nuestra oficina
             </p>
           </div>
-          <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg bg-black">
+          <div className="relative w-full rounded-2xl overflow-hidden shadow-lg bg-black h-[300px] md:h-[500px]">
             <iframe
               src="https://www.youtube.com/embed/y9j-BL5ocW8?rel=0&modestbranding=1"
               title="SI Inmobiliaria — Video institucional"
@@ -224,6 +224,7 @@ export default function NosotrosPage() {
               className="absolute inset-0 w-full h-full"
             />
           </div>
+          <p className="text-center text-gray-400 text-sm mt-4">Visitanos en Funes o Roldán — te esperamos</p>
         </div>
       </section>
 
@@ -312,22 +313,6 @@ export default function NosotrosPage() {
           {/* Map with 3 markers */}
           <OfficesMap />
 
-          {/* Video oficina Funes */}
-          <div className="mt-10">
-            <h3 className="text-center font-black text-gray-900 text-xl mb-4 flex items-center justify-center gap-2">
-              <Play className="w-5 h-5 text-brand-600" />
-              Conocé nuestra oficina en Funes
-            </h3>
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-md bg-black max-w-3xl mx-auto">
-              <iframe
-                src="https://www.youtube.com/embed/l7woKym9w50?rel=0&modestbranding=1"
-                title="Oficina SI Inmobiliaria Funes"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-              />
-            </div>
-          </div>
         </div>
       </section>
 
