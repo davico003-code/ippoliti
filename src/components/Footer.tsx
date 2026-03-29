@@ -36,7 +36,7 @@ export default function Footer() {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-blanco.png" alt="SI Inmobiliaria" style={{ height: '36px', width: 'auto' }} />
+            <img src="/logo-blanco.png" alt="SI Inmobiliaria" width={120} height={36} loading="lazy" style={{ height: '36px', width: 'auto' }} />
           </Link>
 
           {/* Links */}
