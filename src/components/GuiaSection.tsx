@@ -1,14 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function GuiaSection() {
   const [modalOpen, setModalOpen] = useState(false)
+  const [alreadyAccessed, setAlreadyAccessed] = useState(false)
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [errors, setErrors] = useState<{ nombre?: string; email?: string }>({})
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('si_guia_acceso') === '1') setAlreadyAccessed(true)
+    } catch {}
+  }, [])
 
   function validate() {
     const e: { nombre?: string; email?: string } = {}
@@ -24,21 +31,16 @@ export default function GuiaSection() {
     if (Object.keys(errs).length) { setErrors(errs); return }
     setErrors({})
     setLoading(true)
-
-    // Guardar lead en localStorage (reemplazá esto por tu API / webhook si querés)
     try {
       const leads = JSON.parse(localStorage.getItem('si_guia_leads') || '[]')
       leads.unshift({ nombre, email, fecha: new Date().toLocaleString('es-AR') })
       localStorage.setItem('si_guia_leads', JSON.stringify(leads))
       localStorage.setItem('si_guia_acceso', '1')
     } catch {}
-
-    // Simulamos un pequeño delay
     await new Promise(r => setTimeout(r, 800))
     setLoading(false)
     setSuccess(true)
-
-    // Abrimos la guía en nueva pestaña después de 1.2s
+    setAlreadyAccessed(true)
     setTimeout(() => {
       window.open('/guia-comprador', '_blank')
       setModalOpen(false)
@@ -50,42 +52,82 @@ export default function GuiaSection() {
 
   return (
     <>
-      {/* ─── SECCIÓN HOME ─── */}
-      <section className="guia-section">
-        <div className="guia-inner">
+      {/* ─── SECCIÓN ─── */}
+      <section className="gs">
+        <div className="gs-wrap">
 
-          {/* Texto izquierda */}
-          <div className="guia-text">
-            <p className="guia-tag">Recurso gratuito</p>
-            <h2 className="guia-title">Guía Inteligente<br />del Comprador</h2>
-            <ul className="guia-list">
-              <li>Todo lo que nadie te cuenta sobre comprar en Funes y Roldán</li>
+          {/* Columna izquierda */}
+          <div className="gs-left">
+            <div className="gs-pill">Recurso gratuito</div>
+
+            <h2 className="gs-h2">
+              Guía Inteligente<br />del Comprador
+            </h2>
+
+            <p className="gs-sub">
+              14 capítulos sobre cómo comprar en Funes y Roldán con criterio, sin errores y sin pagar de más.
+            </p>
+
+            <ul className="gs-bullets">
               <li>Documentación, gastos ocultos y casos reales</li>
+              <li>Todo lo que nadie te cuenta del mercado local</li>
               <li>Cómo negociar con criterio y sin ansiedad</li>
             </ul>
-            <button className="guia-btn" onClick={() => setModalOpen(true)}>
-              Acceder a la guía gratis
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-            </button>
+
+            {alreadyAccessed ? (
+              <div className="gs-return-wrap">
+                <p className="gs-return-label">Ya tenés acceso permanente.</p>
+                <a
+                  className="gs-cta gs-cta-secondary"
+                  href="/guia-comprador"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Leer la guía
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            ) : (
+              <button className="gs-cta" onClick={() => setModalOpen(true)}>
+                Acceder gratis
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+
+            <p className="gs-note">Sin spam · Acceso permanente desde este dispositivo</p>
           </div>
 
-          {/* Preview derecha */}
-          <div className="guia-preview" onClick={() => setModalOpen(true)}>
-            <div className="guia-preview-card">
-              <div className="guia-preview-bg">
-                <span className="guia-big-letter">SI</span>
+          {/* Columna derecha — portada libro */}
+          <div
+            className="gs-right"
+            onClick={() => !alreadyAccessed && setModalOpen(true)}
+            style={{ cursor: alreadyAccessed ? 'default' : 'pointer' }}
+            aria-hidden={alreadyAccessed}
+          >
+            <div className="gs-book-scene">
+              <div className="gs-book">
+                <div className="gs-book-spine" />
+                <div className="gs-book-cover">
+                  <div className="gs-book-top">
+                    <span className="gs-book-brand">SI INMOBILIARIA</span>
+                    <span className="gs-book-year">2026</span>
+                  </div>
+                  <div className="gs-book-center">
+                    <span className="gs-book-si">SI</span>
+                  </div>
+                  <div className="gs-book-bottom">
+                    <p className="gs-book-title">Guía Inteligente<br />del Comprador</p>
+                    <p className="gs-book-chapters">14 capítulos · Funes & Roldán</p>
+                  </div>
+                </div>
               </div>
-              <div className="guia-preview-info">
-                <span className="guia-preview-brand">SI Inmobiliaria</span>
-                <span className="guia-preview-name">Guía del Comprador 2026</span>
-                <span className="guia-preview-sub">14 capítulos · Funes & Roldán</span>
-              </div>
+              <div className="gs-book-ground" />
+              {!alreadyAccessed && <p className="gs-book-hint">Clic para acceder →</p>}
             </div>
-            <p className="guia-preview-cta">Clic para acceder →</p>
           </div>
 
         </div>
@@ -93,407 +135,464 @@ export default function GuiaSection() {
 
       {/* ─── MODAL ─── */}
       {modalOpen && (
-        <div className="guia-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setModalOpen(false) }}>
-          <div className="guia-modal">
-
-            {/* Cierre */}
-            <button className="guia-modal-close" onClick={() => setModalOpen(false)} aria-label="Cerrar">
-              ✕
+        <div
+          className="gm-overlay"
+          onClick={e => { if (e.target === e.currentTarget) setModalOpen(false) }}
+        >
+          <div className="gm">
+            <button className="gm-close" onClick={() => setModalOpen(false)} aria-label="Cerrar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
             </button>
 
-            {/* Columna decorativa */}
-            <div className="guia-modal-deco" aria-hidden>
-              <span className="guia-modal-big-si">SI</span>
-            </div>
+            {!success ? (
+              <>
+                <span className="gm-tag">Acceso gratuito · 2026</span>
+                <h3 className="gm-title">Guía Inteligente<br />del Comprador</h3>
+                <p className="gm-desc">
+                  Ingresá tu nombre y email para acceder a los 14 capítulos. Una sola vez, acceso permanente.
+                </p>
 
-            {/* Columna formulario */}
-            <div className="guia-modal-form-col">
-              {!success ? (
-                <>
-                  <p className="guia-modal-tag">Acceso gratuito · 2026</p>
-                  <h3 className="guia-modal-title">Guía Inteligente<br />del Comprador</h3>
-                  <p className="guia-modal-desc">
-                    Ingresá tus datos y accedé ahora a los 14 capítulos con información real sobre comprar en Funes y Roldán.
-                  </p>
-
-                  <form onSubmit={handleSubmit} noValidate>
-                    <div className="guia-field">
-                      <input
-                        type="text"
-                        placeholder="Nombre"
-                        value={nombre}
-                        onChange={e => setNombre(e.target.value)}
-                        className={errors.nombre ? 'error' : ''}
-                        disabled={loading}
-                        autoComplete="given-name"
-                      />
-                      {errors.nombre && <span className="guia-field-err">{errors.nombre}</span>}
-                    </div>
-
-                    <div className="guia-field">
-                      <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        className={errors.email ? 'error' : ''}
-                        disabled={loading}
-                        autoComplete="email"
-                      />
-                      {errors.email && <span className="guia-field-err">{errors.email}</span>}
-                    </div>
-
-                    <button type="submit" className="guia-modal-submit" disabled={loading}>
-                      {loading ? (
-                        <span className="guia-loader" />
-                      ) : (
-                        <>
-                          Acceder a la guía
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                          </svg>
-                        </>
-                      )}
-                    </button>
-
-                    <p className="guia-privacy">
-                      No compartimos tu información. Sin spam.
-                    </p>
-                  </form>
-                </>
-              ) : (
-                <div className="guia-success">
-                  <div className="guia-success-icon">✓</div>
-                  <h3>¡Listo!</h3>
-                  <p>Abriendo la guía en una nueva pestaña…</p>
+                <form onSubmit={handleSubmit} noValidate className="gm-form">
+                  <div className="gm-field">
+                    <input
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={nombre}
+                      onChange={e => setNombre(e.target.value)}
+                      className={errors.nombre ? 'error' : ''}
+                      disabled={loading}
+                      autoComplete="given-name"
+                    />
+                    {errors.nombre && <span className="gm-err">{errors.nombre}</span>}
+                  </div>
+                  <div className="gm-field">
+                    <input
+                      type="email"
+                      placeholder="Tu email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className={errors.email ? 'error' : ''}
+                      disabled={loading}
+                      autoComplete="email"
+                    />
+                    {errors.email && <span className="gm-err">{errors.email}</span>}
+                  </div>
+                  <button type="submit" className="gm-submit" disabled={loading}>
+                    {loading
+                      ? <span className="gm-loader" />
+                      : 'Acceder a la guía'
+                    }
+                  </button>
+                  <p className="gm-privacy">No compartimos tu información. Sin spam.</p>
+                </form>
+              </>
+            ) : (
+              <div className="gm-success">
+                <div className="gm-check">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </div>
-              )}
-            </div>
-
+                <h3>¡Listo, {nombre}!</h3>
+                <p>Abriendo la guía en una nueva pestaña…</p>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* ─── ESTILOS ─── */}
       <style jsx>{`
-        /* SECCIÓN */
-        .guia-section {
-          background: #F8F5F0;
-          padding: 100px 0;
+
+        /* ── SECCIÓN ─────────────────────────────── */
+        .gs {
+          background: #fff;
+          padding: 128px 0;
+          overflow: hidden;
         }
-        .guia-inner {
-          max-width: 1200px;
+        .gs-wrap {
+          max-width: 1160px;
           margin: 0 auto;
           padding: 0 48px;
           display: grid;
-          grid-template-columns: 1fr auto;
+          grid-template-columns: 1fr 400px;
           gap: 80px;
           align-items: center;
         }
-        .guia-tag {
-          font-size: 0.68rem;
-          font-weight: 600;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          color: #1A5C38;
-          margin-bottom: 16px;
-          display: flex;
+
+        /* Badge */
+        .gs-pill {
+          display: inline-flex;
           align-items: center;
-          gap: 12px;
-        }
-        .guia-tag::before {
-          content: '';
-          display: block;
-          width: 28px;
-          height: 1px;
-          background: #1A5C38;
-        }
-        .guia-title {
-          font-family: 'Cormorant Garamond', 'Georgia', serif;
-          font-size: clamp(2.2rem, 3.5vw, 3.2rem);
-          font-weight: 300;
-          line-height: 1.1;
-          color: #0E0E0E;
+          gap: 8px;
+          background: #E4F0E9;
+          color: #1A5C38;
+          font-size: 0.67rem;
+          font-weight: 600;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          padding: 6px 14px;
+          border-radius: 999px;
           margin-bottom: 28px;
         }
-        .guia-list {
+
+        /* Headline */
+        .gs-h2 {
+          font-family: 'Raleway', sans-serif;
+          font-size: clamp(2.4rem, 3.8vw, 3.8rem);
+          font-weight: 200;
+          line-height: 1.05;
+          letter-spacing: -0.025em;
+          color: #0E0E0E;
+          margin-bottom: 20px;
+        }
+
+        /* Subtitle */
+        .gs-sub {
+          font-size: 1rem;
+          color: rgba(14,14,14,0.5);
+          line-height: 1.7;
+          margin-bottom: 32px;
+          max-width: 440px;
+        }
+
+        /* Bullets */
+        .gs-bullets {
           list-style: none;
           padding: 0;
-          margin: 0 0 36px 0;
+          margin: 0 0 40px;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 13px;
         }
-        .guia-list li {
+        .gs-bullets li {
           display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          font-size: 0.95rem;
+          align-items: center;
+          gap: 13px;
+          font-size: 0.9rem;
           color: rgba(14,14,14,0.65);
           line-height: 1.5;
         }
-        .guia-list li::before {
-          content: '✓';
-          color: #1A5C38;
-          font-weight: 700;
+        .gs-bullets li::before {
+          content: '';
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #1A5C38;
           flex-shrink: 0;
-          font-size: 0.85rem;
-          margin-top: 1px;
         }
-        .guia-btn {
+
+        /* CTA */
+        .gs-cta {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          padding: 15px 36px;
           background: #1A5C38;
           color: #fff;
-          font-size: 0.82rem;
-          font-weight: 600;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
+          font-size: 0.88rem;
+          font-weight: 500;
+          letter-spacing: 0.02em;
+          padding: 16px 30px;
           border: none;
+          border-radius: 999px;
           cursor: pointer;
-          transition: background 0.25s, transform 0.2s;
+          text-decoration: none;
+          transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+          box-shadow: 0 4px 20px rgba(26,92,56,0.25);
         }
-        .guia-btn:hover {
+        .gs-cta:hover {
           background: #0F3A23;
           transform: translateY(-2px);
+          box-shadow: 0 8px 28px rgba(26,92,56,0.3);
+        }
+        .gs-cta-secondary {
+          background: transparent;
+          border: 1.5px solid #1A5C38;
+          color: #1A5C38;
+          box-shadow: none;
+        }
+        .gs-cta-secondary:hover {
+          background: #E4F0E9;
+          box-shadow: none;
+        }
+        .gs-return-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .gs-return-label {
+          font-size: 0.8rem;
+          color: #1A5C38;
+          font-weight: 500;
+        }
+        .gs-note {
+          margin-top: 18px;
+          font-size: 0.7rem;
+          color: rgba(14,14,14,0.3);
+          letter-spacing: 0.02em;
         }
 
-        /* PREVIEW CARD */
-        .guia-preview {
-          cursor: pointer;
+        /* ── LIBRO ────────────────────────────────── */
+        .gs-right {
+          display: flex;
+          justify-content: center;
+        }
+        .gs-book-scene {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 12px;
+          gap: 16px;
         }
-        .guia-preview-card {
-          width: 220px;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 16px 48px rgba(0,0,0,0.12);
-          transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .guia-preview:hover .guia-preview-card {
-          transform: translateY(-6px);
-          box-shadow: 0 24px 60px rgba(0,0,0,0.18);
-        }
-        .guia-preview-bg {
-          background: #1A5C38;
-          height: 160px;
+        .gs-book {
           display: flex;
-          align-items: flex-end;
-          padding: 0 0 0 16px;
+          transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
+          filter: drop-shadow(0 24px 48px rgba(26,92,56,0.28)) drop-shadow(0 8px 16px rgba(0,0,0,0.12));
+        }
+        .gs-right:hover .gs-book {
+          transform: translateY(-8px) rotate(-1.5deg);
+          filter: drop-shadow(0 40px 64px rgba(26,92,56,0.32)) drop-shadow(0 16px 32px rgba(0,0,0,0.15));
+        }
+
+        /* Lomo */
+        .gs-book-spine {
+          width: 14px;
+          background: #0F3A23;
+          border-radius: 4px 0 0 4px;
+          flex-shrink: 0;
+        }
+
+        /* Tapa */
+        .gs-book-cover {
+          width: 248px;
+          height: 348px;
+          background: #1A5C38;
+          border-radius: 0 8px 8px 0;
+          padding: 28px 24px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
           overflow: hidden;
           position: relative;
         }
-        .guia-big-letter {
-          font-family: 'Cormorant Garamond', 'Georgia', serif;
-          font-size: 9rem;
-          font-weight: 700;
-          color: rgba(255,255,255,0.12);
-          line-height: 1;
+
+        /* Decoración fondo */
+        .gs-book-cover::before {
+          content: '';
           position: absolute;
-          bottom: -20px;
-          right: -10px;
-          letter-spacing: -0.04em;
-        }
-        .guia-preview-info {
-          background: #fff;
-          padding: 16px 18px;
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-        }
-        .guia-preview-brand {
-          font-size: 0.62rem;
-          font-weight: 600;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #1A5C38;
-        }
-        .guia-preview-name {
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #0E0E0E;
-        }
-        .guia-preview-sub {
-          font-size: 0.72rem;
-          color: #888;
-        }
-        .guia-preview-cta {
-          font-size: 0.75rem;
-          color: #1A5C38;
-          font-weight: 500;
-          letter-spacing: 0.04em;
+          inset: 0;
+          background: radial-gradient(ellipse at 120% 120%, rgba(201,168,76,0.12) 0%, transparent 60%),
+                      radial-gradient(ellipse at -20% -20%, rgba(255,255,255,0.05) 0%, transparent 50%);
         }
 
-        /* MODAL OVERLAY */
-        .guia-modal-overlay {
+        .gs-book-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          position: relative;
+          z-index: 1;
+        }
+        .gs-book-brand {
+          font-size: 0.5rem;
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          color: rgba(255,255,255,0.45);
+          text-transform: uppercase;
+        }
+        .gs-book-year {
+          font-size: 0.55rem;
+          font-weight: 600;
+          background: rgba(201,168,76,0.2);
+          color: #C9A84C;
+          padding: 3px 8px;
+          border-radius: 999px;
+          letter-spacing: 0.1em;
+        }
+
+        .gs-book-center {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          z-index: 1;
+        }
+        .gs-book-si {
+          font-family: 'Raleway', sans-serif;
+          font-size: 7.5rem;
+          font-weight: 800;
+          color: rgba(255,255,255,0.07);
+          letter-spacing: -0.04em;
+          user-select: none;
+          line-height: 1;
+        }
+
+        .gs-book-bottom {
+          position: relative;
+          z-index: 1;
+        }
+        .gs-book-title {
+          font-family: 'Raleway', sans-serif;
+          font-size: 0.98rem;
+          font-weight: 300;
+          color: #fff;
+          line-height: 1.35;
+          margin: 0 0 8px;
+        }
+        .gs-book-chapters {
+          font-size: 0.55rem;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          color: rgba(255,255,255,0.38);
+          text-transform: uppercase;
+        }
+
+        .gs-book-ground {
+          width: 180px;
+          height: 16px;
+          background: radial-gradient(ellipse, rgba(26,92,56,0.2) 0%, transparent 70%);
+        }
+        .gs-book-hint {
+          font-size: 0.73rem;
+          color: #1A5C38;
+          font-weight: 500;
+          letter-spacing: 0.03em;
+        }
+
+        /* ── MODAL ────────────────────────────────── */
+        .gm-overlay {
           position: fixed;
           inset: 0;
           z-index: 1000;
-          background: rgba(10,10,10,0.7);
-          backdrop-filter: blur(6px);
+          background: rgba(0,0,0,0.45);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 20px;
-          animation: fadeOverlay 0.25s ease;
+          animation: gm-fade 0.2s ease;
         }
-        @keyframes fadeOverlay {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
+        @keyframes gm-fade { from { opacity: 0; } to { opacity: 1; } }
 
-        /* MODAL */
-        .guia-modal {
+        .gm {
           background: #fff;
+          border-radius: 22px;
           width: 100%;
-          max-width: 820px;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+          max-width: 460px;
+          padding: 52px 48px;
           position: relative;
-          animation: slideModal 0.35s cubic-bezier(0.16,1,0.3,1);
-          max-height: 90vh;
-          overflow: auto;
+          animation: gm-slide 0.35s cubic-bezier(0.16,1,0.3,1);
+          box-shadow: 0 40px 100px rgba(0,0,0,0.22);
         }
-        @keyframes slideModal {
-          from { opacity: 0; transform: translateY(24px) scale(0.97); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes gm-slide {
+          from { opacity: 0; transform: translateY(22px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0)    scale(1);    }
         }
 
-        /* Cierre */
-        .guia-modal-close {
+        .gm-close {
           position: absolute;
-          top: 16px;
-          right: 16px;
-          z-index: 10;
-          background: rgba(255,255,255,0.15);
-          border: 1px solid rgba(255,255,255,0.2);
-          color: #fff;
+          top: 20px;
+          right: 20px;
           width: 36px;
           height: 36px;
           border-radius: 50%;
-          font-size: 1rem;
+          border: none;
+          background: rgba(0,0,0,0.06);
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
+          color: rgba(0,0,0,0.45);
           transition: background 0.2s;
         }
-        .guia-modal-close:hover {
-          background: rgba(255,255,255,0.25);
-        }
+        .gm-close:hover { background: rgba(0,0,0,0.1); color: rgba(0,0,0,0.7); }
 
-        /* Columna decorativa */
-        .guia-modal-deco {
-          background: #1A5C38;
-          display: flex;
-          align-items: flex-end;
-          overflow: hidden;
-          position: relative;
-          min-height: 480px;
-        }
-        .guia-modal-big-si {
-          font-family: 'Cormorant Garamond', 'Georgia', serif;
-          font-size: 18rem;
-          font-weight: 700;
-          color: rgba(255,255,255,0.08);
-          line-height: 1;
-          position: absolute;
-          bottom: -30px;
-          left: -20px;
-          letter-spacing: -0.04em;
-          pointer-events: none;
-        }
-
-        /* Columna formulario */
-        .guia-modal-form-col {
-          padding: 56px 48px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
-        .guia-modal-tag {
+        .gm-tag {
+          display: block;
           font-size: 0.62rem;
           font-weight: 600;
-          letter-spacing: 0.22em;
+          letter-spacing: 0.2em;
           text-transform: uppercase;
           color: #1A5C38;
           margin-bottom: 12px;
         }
-        .guia-modal-title {
-          font-family: 'Cormorant Garamond', 'Georgia', serif;
-          font-size: clamp(1.8rem, 2.5vw, 2.4rem);
-          font-weight: 300;
-          line-height: 1.15;
+        .gm-title {
+          font-family: 'Raleway', sans-serif;
+          font-size: 2rem;
+          font-weight: 200;
+          line-height: 1.1;
+          letter-spacing: -0.015em;
           color: #0E0E0E;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
-        .guia-modal-desc {
-          font-size: 0.88rem;
-          color: rgba(14,14,14,0.55);
-          line-height: 1.75;
-          margin-bottom: 28px;
+        .gm-desc {
+          font-size: 0.87rem;
+          color: rgba(14,14,14,0.48);
+          line-height: 1.72;
+          margin-bottom: 30px;
         }
 
-        /* Fields */
-        .guia-field {
-          margin-bottom: 14px;
+        .gm-form {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
         }
-        .guia-field input {
-          width: 100%;
-          padding: 14px 16px;
-          border: 1px solid rgba(0,0,0,0.15);
+        .gm-field {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .gm-field input {
+          padding: 15px 18px;
+          border: 1.5px solid rgba(0,0,0,0.1);
+          border-radius: 12px;
           background: #F8F5F0;
-          font-size: 0.93rem;
+          font-size: 0.92rem;
           color: #0E0E0E;
           outline: none;
-          transition: border-color 0.2s, background 0.2s;
           font-family: inherit;
-          border-radius: 0;
+          transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
           -webkit-appearance: none;
         }
-        .guia-field input::placeholder { color: rgba(14,14,14,0.35); }
-        .guia-field input:focus { border-color: #1A5C38; background: #fff; }
-        .guia-field input.error { border-color: #EF4444; }
-        .guia-field-err {
-          display: block;
+        .gm-field input::placeholder { color: rgba(14,14,14,0.32); }
+        .gm-field input:focus {
+          border-color: #1A5C38;
+          background: #fff;
+          box-shadow: 0 0 0 3px rgba(26,92,56,0.1);
+        }
+        .gm-field input.error { border-color: #EF4444; }
+        .gm-err {
           font-size: 0.72rem;
           color: #EF4444;
-          margin-top: 4px;
         }
 
-        /* Submit */
-        .guia-modal-submit {
-          width: 100%;
-          margin-top: 6px;
-          padding: 15px 28px;
+        .gm-submit {
+          margin-top: 4px;
+          padding: 16px 28px;
           background: #1A5C38;
           color: #fff;
-          font-size: 0.82rem;
-          font-weight: 600;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
+          font-size: 0.9rem;
+          font-weight: 500;
           border: none;
+          border-radius: 12px;
           cursor: pointer;
+          min-height: 52px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          transition: background 0.25s, transform 0.2s;
+          transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+          box-shadow: 0 4px 16px rgba(26,92,56,0.25);
         }
-        .guia-modal-submit:hover:not(:disabled) {
+        .gm-submit:hover:not(:disabled) {
           background: #0F3A23;
           transform: translateY(-1px);
+          box-shadow: 0 8px 24px rgba(26,92,56,0.3);
         }
-        .guia-modal-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .gm-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .guia-loader {
+        .gm-loader {
           width: 18px;
           height: 18px;
           border: 2px solid rgba(255,255,255,0.3);
@@ -503,67 +602,60 @@ export default function GuiaSection() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .guia-privacy {
-          margin-top: 12px;
-          font-size: 0.7rem;
-          color: rgba(14,14,14,0.35);
+        .gm-privacy {
           text-align: center;
+          font-size: 0.7rem;
+          color: rgba(14,14,14,0.3);
           line-height: 1.5;
         }
 
         /* Success */
-        .guia-success {
+        .gm-success {
           display: flex;
           flex-direction: column;
           align-items: center;
           text-align: center;
-          gap: 12px;
-          padding: 20px 0;
+          gap: 14px;
+          padding: 24px 0;
         }
-        .guia-success-icon {
-          width: 64px;
-          height: 64px;
+        .gm-check {
+          width: 68px;
+          height: 68px;
           border-radius: 50%;
           background: #E4F0E9;
-          border: 2px solid #1A5C38;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.6rem;
           color: #1A5C38;
-          animation: popIn 0.4s cubic-bezier(0.16,1,0.3,1);
+          animation: pop 0.4s cubic-bezier(0.16,1,0.3,1);
         }
-        @keyframes popIn {
-          from { transform: scale(0); }
-          to { transform: scale(1); }
-        }
-        .guia-success h3 {
-          font-family: 'Cormorant Garamond', 'Georgia', serif;
-          font-size: 1.6rem;
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+        .gm-success h3 {
+          font-family: 'Raleway', sans-serif;
+          font-size: 1.55rem;
           font-weight: 300;
           color: #0E0E0E;
         }
-        .guia-success p {
-          font-size: 0.9rem;
-          color: rgba(14,14,14,0.55);
+        .gm-success p {
+          font-size: 0.88rem;
+          color: rgba(14,14,14,0.48);
         }
 
-        /* RESPONSIVE */
-        @media (max-width: 900px) {
-          .guia-inner {
+        /* ── RESPONSIVE ───────────────────────────── */
+        @media (max-width: 960px) {
+          .gs-wrap {
             grid-template-columns: 1fr;
-            padding: 0 28px;
-            gap: 48px;
+            gap: 64px;
+            padding: 0 32px;
           }
-          .guia-preview { align-items: flex-start; }
-          .guia-modal { grid-template-columns: 1fr; }
-          .guia-modal-deco { display: none; }
-          .guia-modal-form-col { padding: 48px 36px; }
-          .guia-modal-close { color: #0E0E0E; background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); }
+          .gs-right { justify-content: flex-start; }
+          .gs { padding: 88px 0; }
         }
         @media (max-width: 600px) {
-          .guia-section { padding: 72px 0; }
-          .guia-modal-form-col { padding: 40px 24px; }
+          .gs { padding: 68px 0; }
+          .gs-wrap { padding: 0 20px; }
+          .gm { padding: 44px 28px; border-radius: 18px; }
+          .gs-h2 { font-size: 2.2rem; }
         }
       `}</style>
     </>
