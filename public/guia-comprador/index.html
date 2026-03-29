@@ -859,6 +859,11 @@ footer span strong{color:rgba(255,255,255,.6);font-weight:500;}
   transition:opacity .6s ease, visibility .6s ease;
 }
 #gate.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+body.gated .hero,
+body.gated .toc,
+body.gated .chapter,
+body.gated .cta-final,
+body.gated footer{opacity:0;visibility:hidden;height:0;overflow:hidden;}
 .gate-img{
   position:relative;overflow:hidden;
   background:url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=90&auto=format&fit=crop') center/cover no-repeat;
@@ -1070,7 +1075,7 @@ footer span strong{color:rgba(255,255,255,.6);font-weight:500;}
 }
 </style>
 </head>
-<body>
+<body class="gated">
 
 <!-- LEAD GATE -->
 <div id="gate">
@@ -1772,6 +1777,7 @@ function submitGate(){
     // Cerrar gate después de 1.4s
     setTimeout(()=>{
       document.getElementById('gate').classList.add('hidden');
+      document.body.classList.remove('gated');
       document.body.style.overflow='';
     }, 1400);
   }, 800);
@@ -1788,6 +1794,7 @@ function submitGate(){
 function initGate(){
   if(localStorage.getItem(GATE_KEY)==='1'){
     document.getElementById('gate').classList.add('hidden');
+    document.body.classList.remove('gated');
     document.body.style.overflow='';
   } else {
     document.body.style.overflow='hidden';
