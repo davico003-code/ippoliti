@@ -15,7 +15,9 @@ export async function GET(
   request: Request,
   { params }: { params: { slug: string } }
 ) {
+  try {
   const id = getIdFromSlug(params.slug)
+  if (isNaN(id)) return new Response('Invalid slug', { status: 400 })
   const property = await getPropertyById(id)
   if (!property) return new Response('Not found', { status: 404 })
 
@@ -212,4 +214,7 @@ export async function GET(
     ),
     { width: 1080, height: 1920 }
   )
+  } catch (err) {
+    return new Response(`Error: ${err instanceof Error ? err.message : String(err)}`, { status: 500 })
+  }
 }
