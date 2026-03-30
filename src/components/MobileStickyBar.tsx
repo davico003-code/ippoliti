@@ -10,12 +10,13 @@ interface Props {
   price: string
   photo: string | null
   operation: string
+  propertyType: string
   area: number | null
   rooms: number
   bathrooms: number
 }
 
-export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo, operation, area, rooms, bathrooms }: Props) {
+export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo, operation, propertyType, area, rooms, bathrooms }: Props) {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.1)]"
@@ -44,6 +45,7 @@ export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo
             price={price}
             photo={photo}
             operation={operation}
+            propertyType={propertyType}
             area={area}
             rooms={rooms}
             bathrooms={bathrooms}

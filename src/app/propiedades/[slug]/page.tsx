@@ -657,6 +657,7 @@ export default async function PropertyPage({ params }: Props) {
                 price={price}
                 photo={mainPhoto}
                 operation={operation}
+                propertyType={translatePropertyType(property.type?.name)}
                 area={area}
                 rooms={property.room_amount}
                 bathrooms={property.bathroom_amount}
@@ -728,6 +729,7 @@ export default async function PropertyPage({ params }: Props) {
         price={price}
         photo={mainPhoto}
         operation={operation}
+        propertyType={translatePropertyType(property.type?.name)}
         area={area}
         rooms={property.room_amount}
         bathrooms={property.bathroom_amount}

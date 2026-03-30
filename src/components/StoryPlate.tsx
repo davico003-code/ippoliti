@@ -8,13 +8,14 @@ interface Props {
   price: string
   photo: string | null
   operation: string
+  propertyType: string
   area: number | null
   rooms: number
   bathrooms: number
   slug: string
 }
 
-export default function StoryPlate({ title, price, photo, operation, area, rooms, bathrooms, slug }: Props) {
+export default function StoryPlate({ title, price, photo, operation, propertyType, area, rooms, bathrooms, slug }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [generating, setGenerating] = useState(false)
 
@@ -28,11 +29,9 @@ export default function StoryPlate({ title, price, photo, operation, area, rooms
     canvas.width = W
     canvas.height = H
 
-    // Background
-    ctx.fillStyle = '#0a0a0a'
+    ctx.fillStyle = '#0d1a12'
     ctx.fillRect(0, 0, W, H)
 
-    // Load photo
     if (photo) {
       try {
         const img = new Image()
@@ -42,136 +41,131 @@ export default function StoryPlate({ title, price, photo, operation, area, rooms
           img.onerror = () => reject()
           img.src = photo
         })
-        // Draw photo top 55%
-        const ph = H * 0.55
-        const scale = Math.max(W / img.width, ph / img.height)
+        const scale = Math.max(W / img.width, H / img.height)
         const sw = img.width * scale, sh = img.height * scale
-        ctx.drawImage(img, (W - sw) / 2, (ph - sh) / 2, sw, sh)
-        // Vignette on photo
-        ctx.fillStyle = 'rgba(0,0,0,0.15)'
-        ctx.fillRect(0, 0, W, ph)
+        ctx.drawImage(img, (W - sw) / 2, (H - sh) / 2, sw, sh)
       } catch {
-        ctx.fillStyle = '#1A5C38'
-        ctx.fillRect(0, 0, W, H * 0.55)
+        ctx.fillStyle = '#1a3028'
+        ctx.fillRect(0, 0, W, H)
       }
-    } else {
-      ctx.fillStyle = '#1A5C38'
-      ctx.fillRect(0, 0, W, H * 0.55)
     }
 
-    // Separator line
-    const sepY = H * 0.55
-    ctx.fillStyle = 'rgba(255,255,255,0.06)'
-    ctx.fillRect(0, sepY, W, 1)
+    const grad = ctx.createLinearGradient(0, 0, 0, H)
+    grad.addColorStop(0, 'rgba(0,0,0,0.30)')
+    grad.addColorStop(0.20, 'rgba(0,0,0,0.0)')
+    grad.addColorStop(0.40, 'rgba(0,0,0,0.0)')
+    grad.addColorStop(0.65, 'rgba(0,0,0,0.75)')
+    grad.addColorStop(1, 'rgba(0,0,0,0.93)')
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, W, H)
 
-    // Bottom gradient
-    const grad = ctx.createLinearGradient(0, sepY, 0, H)
-    grad.addColorStop(0, '#0f0f0f')
-    grad.addColorStop(1, '#1a1a1a')
-    ctx.fillRect(0, sepY + 1, W, H - sepY - 1)
+    const px = 80
 
-    // Top bar
-    ctx.fillStyle = 'rgba(255,255,255,0.6)'
-    ctx.font = '500 26px system-ui, sans-serif'
     ctx.textBaseline = 'top'
-    ctx.fillText('David Flores', 32, 24)
-    ctx.fillStyle = 'rgba(255,255,255,0.35)'
-    ctx.font = '500 22px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.85)'
+    ctx.font = '400 38px system-ui, sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText('David Flores', px, 72)
     ctx.textAlign = 'right'
-    ctx.fillText('MAT. N° 0621', W - 32, 28)
+    ctx.fillText('MAT. N° 0621', W - px, 72)
     ctx.textAlign = 'left'
 
-    // Bottom content area
-    const bx = 36, by = sepY + 36
+    let cy = H * 0.62
 
-    // Operation badge
-    if (operation) {
-      const badgeText = operation.toUpperCase()
-      ctx.font = '700 24px system-ui, sans-serif'
-      const bw = ctx.measureText(badgeText).width + 40
-      ctx.fillStyle = '#1A5C38'
+    const drawPill = (text: string, x: number, y: number, filled: boolean): number => {
+      ctx.font = '700 30px system-ui, sans-serif'
+      const tw = ctx.measureText(text).width
+      const pw = tw + 80, ph = 56
       ctx.beginPath()
-      ctx.roundRect(bx, by, bw, 40, 20)
-      ctx.fill()
-      ctx.fillStyle = '#fff'
-      ctx.font = '700 22px system-ui, sans-serif'
-      ctx.fillText(badgeText, bx + 20, by + 10)
-    }
-
-    // Green accent line
-    ctx.fillStyle = '#3DD68C'
-    ctx.fillRect(bx, by + 56, 48, 3)
-
-    // Title
-    ctx.fillStyle = '#fff'
-    ctx.font = '700 44px system-ui, sans-serif'
-    const displayTitle = title.length > 60 ? title.slice(0, 60) + '…' : title
-    const titleLines = wrapText(ctx, displayTitle, W - 72, 44)
-    let ty = by + 80
-    for (const line of titleLines.slice(0, 3)) {
-      ctx.fillText(line, bx, ty)
-      ty += 54
-    }
-
-    // Price
-    ctx.fillStyle = '#3DD68C'
-    ctx.font = '800 60px system-ui, sans-serif'
-    ctx.fillText(price, bx, ty + 16)
-    ty += 80
-
-    // Stats pills
-    const stats: string[] = []
-    if (area && area > 0) stats.push(`${area} m²`)
-    if (rooms > 0) stats.push(`${rooms} dorm.`)
-    if (bathrooms > 0) stats.push(`${bathrooms} baño${bathrooms > 1 ? 's' : ''}`)
-
-    if (stats.length > 0) {
-      let sx = bx
-      ctx.font = '600 26px system-ui, sans-serif'
-      for (const stat of stats) {
-        const sw = ctx.measureText(stat).width + 32
-        ctx.fillStyle = 'rgba(255,255,255,0.10)'
-        ctx.beginPath()
-        ctx.roundRect(sx, ty + 16, sw, 42, 21)
+      ctx.roundRect(x, y, pw, ph, 28)
+      if (filled) {
+        ctx.fillStyle = '#1A5C38'
         ctx.fill()
-        ctx.strokeStyle = 'rgba(255,255,255,0.18)'
-        ctx.lineWidth = 1
-        ctx.beginPath()
-        ctx.roundRect(sx, ty + 16, sw, 42, 21)
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.15)'
+        ctx.fill()
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)'
+        ctx.lineWidth = 2
         ctx.stroke()
-        ctx.fillStyle = '#fff'
-        ctx.fillText(stat, sx + 16, ty + 27)
-        sx += sw + 10
       }
+      ctx.fillStyle = '#fff'
+      ctx.fillText(text, x + 40, y + 13)
+      return pw
     }
 
-    // Footer
-    ctx.fillStyle = 'rgba(255,255,255,0.5)'
-    ctx.font = '500 24px system-ui, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('@inmobiliaria.si', W / 2, H - 48)
-    ctx.textAlign = 'left'
+    const op = operation.toUpperCase()
+    const tp = propertyType.toUpperCase()
+    const pw1 = drawPill(op, px, cy, true)
+    drawPill(tp, px + pw1 + 24, cy, false)
+    cy += 56 + 36
+
+    ctx.fillStyle = '#fff'
+    ctx.font = '500 68px system-ui, sans-serif'
+    const lines = wrapText(ctx, title, W - px * 2, 68)
+    for (const line of lines.slice(0, 2)) {
+      ctx.fillText(line, px, cy)
+      cy += 88
+    }
+    cy += 8
+
+    ctx.fillStyle = '#fff'
+    ctx.font = '800 90px system-ui, sans-serif'
+    ctx.fillText(price, px, cy)
+    cy += 110
+
+    const specs: string[] = []
+    if (area && area > 0) specs.push(`${area} m²`)
+    if (rooms > 0) specs.push(`${rooms} dorm.`)
+    if (bathrooms > 0) specs.push(`${bathrooms} baños`)
+
+    if (specs.length > 0) {
+      let sx = px
+      ctx.font = '400 32px system-ui, sans-serif'
+      for (const spec of specs) {
+        const tw = ctx.measureText(spec).width
+        const sw = tw + 72
+        ctx.beginPath()
+        ctx.roundRect(sx, cy, sw, 56, 28)
+        ctx.fillStyle = 'rgba(0,0,0,0)'
+        ctx.fill()
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)'
+        ctx.lineWidth = 2
+        ctx.stroke()
+        ctx.fillStyle = 'rgba(255,255,255,0.9)'
+        ctx.fillText(spec, sx + 36, cy + 12)
+        sx += sw + 20
+      }
+      cy += 56 + 52
+    }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.2)'
+    ctx.fillRect(px, cy, W - px * 2, 1)
+    cy += 40
+
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'
+    ctx.font = '400 30px system-ui, sans-serif'
+    ctx.fillText('@inmobiliaria.si', px, cy)
+    cy += 46
+
+    ctx.fillStyle = '#fff'
+    ctx.font = '700 36px system-ui, sans-serif'
+    ctx.fillText('Escribinos por DM', px, cy)
 
     return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png'))
-  }, [title, price, photo, operation, area, rooms, bathrooms])
+  }, [title, price, photo, operation, propertyType, area, rooms, bathrooms])
 
   const handleDownload = useCallback(async () => {
     setGenerating(true)
     try {
       const blob = await generate()
       if (!blob) return
-
       const file = new File([blob], `placa-${slug}.png`, { type: 'image/png' })
-
-      // Try native share (iOS/Android)
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: 'Placa Instagram' })
           return
         } catch {}
       }
-
-      // Fallback: download
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -207,7 +201,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number,
   const words = text.split(' ')
   const lines: string[] = []
   let current = ''
-  ctx.font = `700 ${fontSize}px system-ui, sans-serif`
+  ctx.font = `500 ${fontSize}px system-ui, sans-serif`
   for (const word of words) {
     const test = current ? `${current} ${word}` : word
     if (ctx.measureText(test).width > maxWidth && current) {
