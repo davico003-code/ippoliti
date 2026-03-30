@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Building2, Eye, Heart, Star, Quote, Play, MapPin, Phone, Clock, ExternalLink } from 'lucide-react'
 import AnimatedCounter from '@/components/AnimatedCounter'
+import EquipoSection from '@/components/EquipoSection'
 
 const OfficesMap = dynamic(() => import('@/components/OfficesMap'), { ssr: false })
 
@@ -315,6 +316,9 @@ export default function NosotrosPage() {
 
         </div>
       </section>
+
+      {/* Equipo */}
+      <EquipoSection />
 
       {/* 10. CTA Final */}
       <section className="bg-brand-600 py-16 px-4 text-center">
