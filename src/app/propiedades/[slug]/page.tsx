@@ -12,7 +12,7 @@ const BlueprintGallery = dynamic(() => import('@/components/BlueprintGallery'), 
 import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
 import MobileStickyBar from '@/components/MobileStickyBar';
-import MobileGallery from '@/components/MobileGallery';
+import MobileHeroGallery from '@/components/MobileHeroGallery';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
 import {
   getPropertyById,
@@ -305,9 +305,15 @@ export default async function PropertyPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Mobile: Instagram-style gallery */}
-      {photos.length > 0 && (
-        <MobileGallery photos={photos} title={property.publication_title || property.address} price={price} />
+      {/* Mobile: hero + tap to open lightbox */}
+      {mainPhoto && (
+        <MobileHeroGallery
+          photos={photos}
+          mainPhoto={mainPhoto}
+          title={property.publication_title || property.address}
+          price={price}
+          operation={operation}
+        />
       )}
 
       {/* Desktop: Full width hero image */}

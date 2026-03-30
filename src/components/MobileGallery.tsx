@@ -2,30 +2,44 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
+import { X } from 'lucide-react'
 
 interface Props {
   photos: string[]
   title: string
   price: string
+  initialIndex: number
+  onClose: () => void
 }
 
-export default function MobileGallery({ photos, title, price }: Props) {
+export default function MobileGallery({ photos, title, price, initialIndex, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [current, setCurrent] = useState(0)
+  const [current, setCurrent] = useState(initialIndex)
   const [paused, setPaused] = useState(false)
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const didScroll = useRef(false)
 
   const total = photos.length
 
   const scrollTo = useCallback((index: number) => {
     const el = containerRef.current
     if (!el) return
-    const target = index * el.clientHeight
-    el.scrollTo({ top: target, behavior: 'smooth' })
+    el.scrollTo({ top: index * el.clientHeight, behavior: 'smooth' })
   }, [])
 
-  // Detect current photo from scroll position
+  // Scroll to initial index on mount
+  useEffect(() => {
+    if (didScroll.current) return
+    didScroll.current = true
+    const el = containerRef.current
+    if (!el) return
+    requestAnimationFrame(() => {
+      el.scrollTo({ top: initialIndex * el.clientHeight, behavior: 'instant' as ScrollBehavior })
+    })
+  }, [initialIndex])
+
+  // Detect current from scroll
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -53,7 +67,7 @@ export default function MobileGallery({ photos, title, price }: Props) {
     return () => { if (autoTimer.current) clearTimeout(autoTimer.current) }
   }, [current, paused, total, scrollTo])
 
-  // Pause on touch, resume after 5s idle
+  // Pause on interaction, resume after 5s
   const handleInteraction = useCallback(() => {
     setPaused(true)
     if (resumeTimer.current) clearTimeout(resumeTimer.current)
@@ -64,19 +78,40 @@ export default function MobileGallery({ photos, title, price }: Props) {
     return () => { if (resumeTimer.current) clearTimeout(resumeTimer.current) }
   }, [])
 
+  // Close on escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
   if (total === 0) return null
 
   return (
-    <div className="md:hidden relative" style={{ height: '70vh' }}>
+    <div className="fixed inset-0 z-50 bg-black">
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 text-white"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
       {/* Progress bars */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 px-3 pt-3">
+      <div className="absolute top-0 left-0 right-0 z-40 flex gap-1 px-3 pt-3">
         {photos.map((_, i) => (
-          <div key={i} className="flex-1 h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.3)' }}>
+          <div key={i} className="flex-1 h-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.3)' }}>
             <div
               className="h-full rounded-full transition-all duration-300"
               style={{
                 background: '#fff',
-                width: i < current ? '100%' : i === current ? '100%' : '0%',
+                width: i <= current ? '100%' : '0%',
                 opacity: i <= current ? 1 : 0.3,
               }}
             />
@@ -97,31 +132,27 @@ export default function MobileGallery({ photos, title, price }: Props) {
           msOverflowStyle: 'none',
         }}
       >
-        <style>{`.mobile-gallery::-webkit-scrollbar{display:none}`}</style>
+        <style>{`.mobile-gallery-fs::-webkit-scrollbar{display:none}`}</style>
         {photos.map((photo, i) => (
-          <div
-            key={i}
-            className="relative w-full"
-            style={{ height: '70vh', scrollSnapAlign: 'start' }}
-          >
+          <div key={i} className="relative w-full h-screen" style={{ scrollSnapAlign: 'start' }}>
             <Image
               src={photo}
               alt={`${title} - Foto ${i + 1}`}
               fill
               className="object-cover"
               sizes="100vw"
-              priority={i === 0}
+              priority={i === initialIndex}
             />
           </div>
         ))}
       </div>
 
       {/* Bottom overlay */}
-      <div className="absolute bottom-0 left-0 right-0 z-20" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)' }}>
-        <div className="px-5 pb-5 pt-12">
+      <div className="absolute bottom-0 left-0 right-0 z-40 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)' }}>
+        <div className="px-5 pb-8 pt-16">
           <p className="text-white font-bold text-lg leading-tight line-clamp-2">{title}</p>
           <p className="text-white font-black text-2xl mt-1 font-numeric">{price}</p>
-          <p className="text-white/50 text-xs mt-1">{current + 1} / {total} fotos</p>
+          <p className="text-white/50 text-xs mt-1">{current + 1} / {total}</p>
         </div>
       </div>
     </div>
