@@ -1351,4 +1351,302 @@ En SI Inmobiliaria llevamos más de 40 años en Roldán. Conocemos cada calle, c
 
 El mejor momento para mudarse es siempre ahora. Los precios en Roldán siguen subiendo, y cada año que esperás es un año que pagás más.`,
   },
+  {
+    slug: 'costo-construccion-argentina-precio-propiedades',
+    title: 'Por qué construir cuesta más en dólares',
+    date: '2026-03-28',
+    dateDisplay: '28 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/funes-autopista-acceso-aerea.webp',
+    summary: 'Los costos de construcción subieron 86% en dos años mientras el dólar se movió 23%. Qué significa para el precio de tu próxima propiedad.',
+    category: 'Mercado',
+    author: AUTHOR,
+    content: `Hay una pregunta que escuchamos seguido en nuestra inmobiliaria: ¿por qué los precios en pozo no bajan si el dólar está estable?
+
+La respuesta está en los costos de construcción, y los datos del INDEC son contundentes.
+
+Entre enero de 2024 y enero de 2026, la mano de obra aumentó un 177% en pesos. Los materiales subieron un 63%. El CAC (Índice de la Cámara Argentina de la Construcción) acumuló un 86% de suba. El dólar blue, en cambio, se movió solo un 23% en el mismo período.
+
+La ecuación es simple: el costo de construir, medido en dólares, subió. No bajó. No se mantuvo. Subió.
+
+Esto tiene una consecuencia directa: el desarrollador que hoy lanza un proyecto necesita más dólares por metro cuadrado que en 2021 o 2022 para mantener el mismo margen. Si no ajusta el precio de venta, pierde. Si ajusta, el precio de pozo sube.
+
+¿Qué implica esto para vos como comprador?
+
+Que los precios en pozo actuales no son arbitrarios ni especulativos. Reflejan un costo real de construcción que se encareció significativamente en términos de dólar. Y que esperar a que "bajen" tiene una lógica muy débil cuando los costos estructurales van en la dirección contraria.
+
+En Funes y Roldán estamos viendo este efecto con claridad: los proyectos nuevos salen a valores más altos que los lanzados hace dos o tres años, no por capricho del desarrollador, sino porque los números así lo exigen.
+
+La conclusión práctica: si estás evaluando invertir en un emprendimiento, el momento de actuar no es cuando el precio baje — probablemente no baje — sino cuando el proyecto, la zona y tu situación financiera estén alineados.
+
+Si querés analizar un proyecto puntual, consultanos en SI Inmobiliaria. Llevamos más de 40 años en el mercado de Funes y Roldán.`,
+  },
+  {
+    slug: 'composicion-precio-m2-pozo-emprendimientos',
+    title: 'Cuánto vale realmente el m² en pozo',
+    date: '2026-03-27',
+    dateDisplay: '27 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/funes-vista-aerea-barrios-2026.webp',
+    summary: 'Desglose real del precio por m² en emprendimientos: materiales 19%, mano de obra 24%, terreno 22%, margen del desarrollador solo 10%.',
+    category: 'Educación financiera',
+    author: AUTHOR,
+    content: `Cuando firmás un boleto de compra en pozo, estás pagando mucho más que ladrillos y cemento. La pregunta es: ¿a dónde va exactamente tu dinero?
+
+La composición típica del precio de un m² en pozo en un proyecto estándar es la siguiente: mano de obra 24%, terreno 22%, materiales 19%, margen del desarrollador 10%, impuestos 7%, administración 6%, proyecto y arquitectura 5%, servicios e infraestructura 4%, comercialización 3%.
+
+Lo que más sorprende a la gente: el margen del desarrollador representa apenas el 10% del precio total. No el 30%, no el 40%. El 10%.
+
+¿Significa eso que todos los desarrolladores son honrados y eficientes? No necesariamente. Significa que el negocio inmobiliario tiene márgenes ajustados, y que la mayor parte de lo que pagás se va a costos reales: el terreno, la construcción y el Estado.
+
+Lo que esto implica para tu análisis como comprador: primero, que un descuento del 5% sobre el precio de lista en un proyecto serio no siempre es posible sin comprometer la viabilidad del proyecto. Segundo, que proyectos que se venden "muy baratos" respecto al mercado deberían activar una alerta — alguien está achicando márgenes, probablemente a costa de la calidad o de la capacidad de terminar la obra.
+
+En zonas como Funes y Roldán, donde el valor del terreno tiene una incidencia alta, el peso del componente tierra puede superar el 30%, lo que comprime aún más el margen real del desarrollador.
+
+Saber esto te convierte en un comprador más informado — y más difícil de engañar. Si tenés dudas sobre un proyecto, consultanos en SI Inmobiliaria.`,
+  },
+  {
+    slug: 'red-flags-emprendimientos-inmobiliarios-pozo',
+    title: '5 señales de alerta en emprendimientos en pozo',
+    date: '2026-03-26',
+    dateDisplay: '26 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/funes-barrio-cerrado-lotes-aereo.webp',
+    summary: 'Las 5 red flags que tenés que identificar antes de invertir en un emprendimiento inmobiliario en pozo. Con más de 40 años de experiencia.',
+    category: 'Consejos',
+    author: AUTHOR,
+    content: `El caso de desarrolladoras que paralizan obras dejando inversores sin certezas no es nuevo en Argentina. Pasa más seguido de lo que debería. Y en la mayoría de los casos, las señales de alerta estaban ahí desde el principio.
+
+1. Estrategia comercial poco clara
+
+¿Quién vende el proyecto? ¿Tiene inmobiliarias reconocidas? ¿O lo venden ellos mismos de forma informal? Un desarrollador que trabaja con inmobiliarias de trayectoria muestra un compromiso de transparencia que el que vende "por contacto" no tiene.
+
+2. Sin historial claro de proyectos terminados
+
+La experiencia importa. ¿Cuántas obras tienen abiertas? ¿Cómo va el avance? ¿Entregaron en plazo los anteriores? Un desarrollador con muchas obras abiertas y poco capital puede estar financiando una con la liquidez de otra.
+
+3. Documentación incompleta o apresurada
+
+Toda instancia de avance tiene que quedar documentada: reserva, boleto de compraventa, sellado y certificado. Si te apuran para firmar sin tiempo de revisar el contrato, es una señal de alarma.
+
+4. Sin presencia ni perfil público
+
+Las desarrolladoras serias tienen líderes visibles: con nombre, apellido, perfiles en redes sociales y participación en el mercado. La presencia digital constante no es marketing — es accountability.
+
+5. Sin vínculos con cámaras o asociaciones del sector
+
+Los desarrolladores que participan en cámaras sectoriales están expuestos a mecanismos de control colectivo. Los que operan completamente al margen del sector formal, no.
+
+En SI Inmobiliaria solo comercializamos los proyectos que nosotros mismos evaluamos. Si tenés dudas sobre un proyecto puntual, consultanos — aunque no sea nuestro.`,
+  },
+  {
+    slug: 'desarrollo-costo-vs-precio-cerrado-compradores',
+    title: 'Al costo vs. precio cerrado: ¿qué te conviene?',
+    date: '2026-03-25',
+    dateDisplay: '25 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
+    summary: 'Desarrollo al costo vs. precio cerrado: dos modelos opuestos de distribuir el riesgo entre comprador y desarrollador.',
+    category: 'Educación financiera',
+    author: AUTHOR,
+    content: `Cuando explorás emprendimientos en pozo, te encontrás con dos modelos de contrato muy diferentes: el desarrollo al costo y el precio cerrado.
+
+Precio cerrado: vos pagás un monto fijo, el riesgo es del desarrollador
+
+El desarrollador te vende a un precio determinado en dólares desde el inicio. Si los costos de construcción suben más de lo esperado, el problema es de él. Para vos: previsibilidad total. Sabés exactamente cuánto vas a pagar.
+
+El precio suele ser más alto porque el desarrollador ya incorporó un "margen de seguridad" ante la incertidumbre de costos.
+
+Al costo: pagás proporcionalmente a lo que cuesta la obra
+
+En este modelo, el precio final depende de cuánto cueste realmente construir. Si la mano de obra o los materiales suben, tu cuota sube. Más riesgo, pero potencialmente menos costo si el contexto es favorable.
+
+¿Cuál conviene hoy en Argentina?
+
+Con los costos de construcción subiendo en dólares (mano de obra +177% en pesos en dos años, superando largamente la devaluación), el modelo al costo implica un riesgo real de que el precio final supere significativamente al inicial.
+
+Para compradores que no son desarrolladores ni tienen experiencia gestionando ese tipo de variabilidad, el precio cerrado ofrece una tranquilidad que vale lo que cuesta el diferencial de precio.
+
+Cada caso es diferente. Si estás analizando un proyecto puntual, conversemos. En SI Inmobiliaria podemos ayudarte a entender la estructura del contrato antes de firmar.`,
+  },
+  {
+    slug: 'mano-obra-construccion-precio-propiedades-funes',
+    title: 'La mano de obra subió más que el dólar',
+    date: '2026-03-24',
+    dateDisplay: '24 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/funes-barrios-arbolados-aerea.webp',
+    summary: 'Mano de obra +177% en pesos, dólar +23%. Qué significa para quienes construyen, invierten o venden en Funes y Roldán.',
+    category: 'Mercado local',
+    author: AUTHOR,
+    content: `Entre enero de 2024 y enero de 2026, la mano de obra en construcción subió un 177% en pesos. El dólar blue, en el mismo período, subió un 23%.
+
+Hacé la cuenta: quien construye hoy paga a sus trabajadores más del doble en dólares que hace dos años. Y eso, inevitablemente, se traslada al precio final del metro cuadrado.
+
+Para quienes piensan construir su casa
+
+El presupuesto que te dieron hace seis meses ya está desactualizado. Si tenés los dólares y el terreno, el mejor momento para arrancar es ahora — no cuando el costo haya "terminado de subir", porque ese momento probablemente no llegue pronto.
+
+Para inversores en emprendimientos
+
+Los proyectos que se lanzan hoy incorporan costos de mano de obra significativamente más altos que los de 2022 o 2023. Eso explica por qué los precios en pozo subieron, y por qué la brecha entre el valor de propiedades usadas y las nuevas se mantiene.
+
+Para propietarios que piensan vender
+
+Si tenés una propiedad construida hace más de cinco años en una zona premium como Funes o Roldán, tu inmueble compite favorablemente en precio contra lo que hoy costaría construir algo equivalente. Eso es un argumento de valor que muchos vendedores no están usando.
+
+El mercado de la construcción y el mercado inmobiliario están más conectados de lo que parece. Entender esa relación te da ventaja. Consultanos en SI Inmobiliaria.`,
+  },
+  {
+    slug: 'como-evaluar-desarrolladora-antes-invertir',
+    title: 'Cómo evaluar una desarrolladora antes de invertir',
+    date: '2026-03-23',
+    dateDisplay: '23 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/nosotros/si-inmobiliaria-oficina-funes-interior.webp',
+    summary: 'Guía práctica para evaluar una desarrolladora antes de poner tu dinero. Trayectoria, documentación, presencia pública y más.',
+    category: 'Consejos prácticos',
+    author: AUTHOR,
+    content: `Argentina tiene un mercado inmobiliario con oportunidades reales, pero también con riesgos concretos. Las desarrolladoras que paralizan obras existen, y aparecen con más frecuencia en los ciclos de expansión del mercado.
+
+Paso 1: Verificá la trayectoria, no solo el portfolio
+
+Un portfolio de renders no dice nada. Lo que importa es: ¿cuántos proyectos tienen terminados? ¿Cuántos están en ejecución hoy? ¿Entregaron en plazo los anteriores? Pedí referencias. Buscá compradores anteriores.
+
+Paso 2: Analizá la documentación desde el principio
+
+El contrato de adhesión o boleto de compraventa tiene que estar sellado y certificado. Tiene que especificar plazos, penalidades por demora y condiciones de entrega. Si no te lo muestran antes de firmar la reserva, es una señal de alarma.
+
+Paso 3: Buscá presencia pública del equipo
+
+¿Quiénes son los líderes de la desarrolladora? ¿Tienen nombre y apellido visibles? ¿Participan en eventos del sector? La visibilidad pública no es vanidad — es accountability.
+
+Paso 4: Verificá la estrategia de venta
+
+¿El proyecto lo comercializa una inmobiliaria reconocida? Un precio de venta muy por debajo del mercado puede indicar necesidad de liquidez inmediata — lo contrario de lo que querés en el desarrollador de tu inversión.
+
+Paso 5: Consultá con quien conoce el mercado local
+
+En una zona como Funes y Roldán, el conocimiento local tiene un valor enorme. Nosotros llevamos más de 40 años operando en este mercado. Antes de invertir en cualquier emprendimiento de la zona — sea nuestro o no — podés consultarnos.`,
+  },
+  {
+    slug: 'invertir-pozo-funes-2025-analisis',
+    title: 'Invertir en pozo en Funes en 2025',
+    date: '2026-03-22',
+    dateDisplay: '22 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/funes-roldan-zona-oeste-aerea.webp',
+    summary: 'Análisis del mercado de pozo en Funes: lo que los números dicen, lo que no te dicen, y las preguntas que tenés que hacerte.',
+    category: 'Mercado local',
+    author: AUTHOR,
+    content: `Funes es hoy uno de los mercados inmobiliarios más dinámicos de la zona oeste del Gran Rosario. El crecimiento poblacional sostenido, la infraestructura en expansión y la demanda de familias que buscan calidad de vida generaron un mercado con fundamentos sólidos.
+
+Lo que los datos dicen
+
+El precio de m² en pozo en proyectos de zona suburbana premium se movió al alza en 2024 y 2025. No solo por especulación: los costos de construcción en dólares subieron efectivamente.
+
+Lo que los datos no te dicen
+
+Los números del mercado agregado no distinguen entre proyectos bien ejecutados y proyectos problemáticos. No te dicen si el desarrollador tiene capacidad financiera para terminar la obra, ni si el barrio va a mantener su valor relativo en cinco años.
+
+Tampoco te dicen si el precio de lanzamiento incluye o no el costo del terreno, qué porcentaje de las unidades ya está vendido, ni cuál es el régimen de actualización de cuotas.
+
+Las preguntas que sí tenés que hacerte
+
+¿Cuándo se estima la entrega y qué penalidades aplican si se demora? ¿El precio es cerrado en dólares o al costo con ajuste por CAC? ¿Hay un fideicomiso al costo o el dinero va a la cuenta operativa del desarrollador? ¿La inmobiliaria que te lo ofrece evaluó el proyecto o simplemente lo comercializa?
+
+En SI Inmobiliaria solo ofrecemos proyectos que hemos evaluado. Podés consultarnos los detalles de cualquier emprendimiento que estés analizando en la zona.`,
+  },
+  {
+    slug: 'financiacion-largo-plazo-emprendimientos-2026',
+    title: 'Financiación a largo plazo: el cambio que viene',
+    date: '2026-03-21',
+    dateDisplay: '21 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/funes-barrios-nuevos-aereo.webp',
+    summary: 'La financiación post-entrega va a transformar el mercado de emprendimientos en zonas como Funes y Roldán. Qué implica para compradores.',
+    category: 'Tendencias',
+    author: AUTHOR,
+    content: `Hay un cambio silencioso que está transformando el mercado inmobiliario argentino, y que va a impactar directamente en cómo se venden los emprendimientos en zonas como Funes y Roldán.
+
+El comprador ya no acepta pagar en 24 o 36 cuotas durante la obra y entregar el total contra la entrega de llaves. La nueva exigencia es la financiación post-entrega: poder pagar la propiedad en 5, 7 o 10 años, incluso después de recibir el inmueble.
+
+¿Por qué es un cambio tan relevante?
+
+Porque amplía masivamente el universo de compradores. Un departamento en Funes que hoy solo es accesible para quien tiene el capital completo, mañana puede ser accesible para quien puede demostrar ingresos sostenidos en el tiempo.
+
+Para los desarrolladores, este modelo implica un desafío financiero enorme: necesitan capital para terminar la obra sin cobrar la totalidad antes de la entrega.
+
+Para vos como comprador, ¿qué cambia?
+
+En el corto plazo, poco. Los proyectos con financiación post-entrega son todavía la excepción. Pero empezamos a verlos aparecer en el mercado premium, especialmente en zonas de alta demanda como Funes.
+
+Cuando empieces a evaluar emprendimientos, preguntá si existe la posibilidad de financiación post-entrega. Es una señal de que el desarrollador tiene solidez financiera — y una ventaja real para tu planificación.
+
+Si querés evaluar opciones con financiación en la zona, consultanos en SI Inmobiliaria.`,
+  },
+  {
+    slug: 'acopio-materiales-canje-m2-compradores',
+    title: 'Acopio de materiales vs. canje de m²',
+    date: '2026-03-20',
+    dateDisplay: '20 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/funes-zona-residencial-arboles-aereo.webp',
+    summary: 'Dos estrategias financieras de los desarrolladores que impactan en la solidez del proyecto donde invertís.',
+    category: 'Educación financiera',
+    author: AUTHOR,
+    content: `Hay dos estrategias financieras que usan los desarrolladores para protegerse de la suba de costos, y vale la pena conocerlas aunque no seas vos quien construye. Porque impactan en la solidez del proyecto en el que invertís.
+
+Acopio de materiales
+
+El desarrollador compra materiales con anticipación para evitar futuros aumentos de precio. Requiere capital disponible en el corto plazo, pero fija el costo de construcción y mejora el margen final del proyecto.
+
+Es una señal positiva desde tu perspectiva como inversor: el desarrollador tiene acceso a capital de trabajo y está gestionando activamente el riesgo de inflación de costos.
+
+Canje de m²
+
+El desarrollador acuerda entregar metros cuadrados del proyecto a cambio de materiales, mano de obra o incluso el terreno. No necesita tanto capital inicial, pero resigna unidades de venta.
+
+También puede ser una señal de solidez si está bien estructurado. El problema aparece cuando el canje es excesivo y el desarrollador queda con pocas unidades para vender, comprometiendo el flujo de caja del proyecto.
+
+¿Qué deberías preguntar?
+
+¿El terreno fue adquirido o es aportado a cambio de unidades? ¿Cuántas unidades están comprometidas en canjes? ¿Cuántas están disponibles para venta libre?
+
+Un buen asesor inmobiliario debería poder responderte esto. Si no pueden o no quieren, también es una señal. Consultanos en SI Inmobiliaria.`,
+  },
+  {
+    slug: 'precio-m2-funes-roldan-perspectiva-2026',
+    title: 'El m² en Funes y Roldán: por qué no va a bajar',
+    date: '2026-03-19',
+    dateDisplay: '19 de marzo de 2026',
+    source: 'SI Inmobiliaria',
+    image: '/blog/images/roldan-vista-aerea-panoramica.webp',
+    summary: 'Los fundamentos del mercado sugieren que los precios no van a bajar. Cómo tomar una decisión inteligente en vez de esperar.',
+    category: 'Mercado local',
+    author: AUTHOR,
+    content: `Una de las frases que más escuchamos en nuestra inmobiliaria: "Estoy esperando a que los precios bajen para comprar."
+
+Es una posición completamente razonable. Pero hay un problema: los fundamentos del mercado sugieren que los precios no van a bajar, al menos no en el segmento y la zona donde estás buscando.
+
+Por qué no van a bajar: los costos
+
+La construcción nueva en Argentina cuesta más en dólares hoy que hace dos años. La mano de obra subió un 177% en pesos frente a un dólar que se movió un 23%. Construir un m² nuevo en Funes o Roldán requiere más dólares que antes. No menos.
+
+Por qué no van a bajar: la demanda
+
+Funes y Roldán tienen una demanda estructural sostenida: familias que buscan calidad de vida, acceso a colegios, espacio verde y seguridad. Esa demanda no desapareció ni va a desaparecer.
+
+Cómo tomar una decisión inteligente
+
+No se trata de comprar a cualquier precio ni de comprar urgente. Se trata de evaluar bien tres cosas:
+
+1. El proyecto o propiedad puntual: ¿el precio es justo para lo que ofrece?
+2. Tu situación financiera: ¿tenés el capital o el acceso al crédito para hacerlo bien?
+3. El timing personal: ¿tiene sentido para tu plan de vida comprar ahora?
+
+En 40 años de mercado, aprendimos que las mejores decisiones inmobiliarias no las toman los que adivinan el piso del mercado — las toman los que se preparan bien y actúan cuando están listos.
+
+Si estás en ese momento, conversemos. Consultanos en SI Inmobiliaria — Funes y Roldán.`,
+  },
 ]
