@@ -12,7 +12,6 @@ const BlueprintGallery = dynamic(() => import('@/components/BlueprintGallery'), 
 import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
 import MobileStickyBar from '@/components/MobileStickyBar';
-import MobileHeroGallery from '@/components/MobileHeroGallery';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
 import {
   getPropertyById,
@@ -305,20 +304,9 @@ export default async function PropertyPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Mobile: hero + tap to open lightbox */}
-      {mainPhoto && (
-        <MobileHeroGallery
-          photos={photos}
-          mainPhoto={mainPhoto}
-          title={property.publication_title || property.address}
-          price={price}
-          operation={operation}
-        />
-      )}
-
-      {/* Desktop: Full width hero image */}
+      {/* Full width hero image */}
       {mainPhoto ? (
-        <div className="hidden md:block relative w-full h-[70vh]">
+        <div className="relative w-full h-[60vh] md:h-[70vh]">
           <Image
             src={mainPhoto}
             alt={property.publication_title || property.address}
@@ -337,7 +325,7 @@ export default async function PropertyPage({ params }: Props) {
           )}
         </div>
       ) : (
-        <div className="hidden md:flex w-full h-[40vh] items-center justify-center bg-gray-200">
+        <div className="w-full h-[40vh] flex items-center justify-center bg-gray-200">
           <span className="text-gray-400">Sin fotos disponibles</span>
         </div>
       )}
