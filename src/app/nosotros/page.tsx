@@ -20,18 +20,6 @@ const TIMELINE = [
   { year: '2024', title: 'Oficina Funes + Galería + Rebranding', desc: 'Inauguración de la oficina en Funes, un espacio único que combina inmobiliaria con galería de arte. Nace SI Inmobiliaria.' },
 ]
 
-const TEAM = [
-  { name: 'Aldana Ruiz', role: 'Agente Inmobiliaria', credential: '', image: '' },
-  { name: 'Carolina Echen', role: 'Agente Inmobiliaria', credential: '', image: '' },
-  { name: 'Mariana Orlate', role: 'Agente Inmobiliaria', credential: '', image: '' },
-  { name: 'Gino Pecchenino', role: 'Agente Inmobiliario', credential: '', image: '' },
-  { name: 'Gisela Ramallo', role: 'Agente Inmobiliaria', credential: '', image: '' },
-  { name: 'Leticia Alexenicier', role: 'Agente Inmobiliaria', credential: '', image: '' },
-  { name: 'Lucia Wilson', role: 'Agente Inmobiliaria', credential: '', image: '' },
-  { name: 'Maria Jose Espilocin', role: 'Agente Inmobiliaria', credential: '', image: '' },
-  { name: 'Mauro Matteucci', role: 'Agente Inmobiliario', credential: '', image: '' },
-  { name: 'Micaela Gonzalez', role: 'Marketing', credential: '', image: '' },
-]
 
 const TESTIMONIALS = [
   { text: 'Vendimos nuestra casa en tiempo récord gracias al equipo de SI. Profesionales de principio a fin.', author: 'Familia García', location: 'Roldán' },
