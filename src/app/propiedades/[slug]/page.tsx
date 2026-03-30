@@ -12,6 +12,7 @@ const BlueprintGallery = dynamic(() => import('@/components/BlueprintGallery'), 
 import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
 import MobileStickyBar from '@/components/MobileStickyBar';
+import MobileGallery from '@/components/MobileGallery';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
 import {
   getPropertyById,
@@ -304,9 +305,14 @@ export default async function PropertyPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Full width hero image */}
+      {/* Mobile: Instagram-style gallery */}
+      {photos.length > 0 && (
+        <MobileGallery photos={photos} title={property.publication_title || property.address} price={price} />
+      )}
+
+      {/* Desktop: Full width hero image */}
       {mainPhoto ? (
-        <div className="relative w-full h-[60vh] md:h-[70vh]">
+        <div className="hidden md:block relative w-full h-[70vh]">
           <Image
             src={mainPhoto}
             alt={property.publication_title || property.address}
@@ -317,7 +323,7 @@ export default async function PropertyPage({ params }: Props) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
           {operation && (
-            <div className="absolute top-6 left-6 lg:left-12 z-10">
+            <div className="absolute top-6 left-12 z-10">
               <span className="px-6 py-2 text-sm font-bold rounded-full shadow-lg uppercase tracking-wider backdrop-blur-md bg-brand-600 text-white">
                 {operation}
               </span>
@@ -325,7 +331,7 @@ export default async function PropertyPage({ params }: Props) {
           )}
         </div>
       ) : (
-        <div className="w-full h-[40vh] flex items-center justify-center bg-gray-200">
+        <div className="hidden md:flex w-full h-[40vh] items-center justify-center bg-gray-200">
           <span className="text-gray-400">Sin fotos disponibles</span>
         </div>
       )}

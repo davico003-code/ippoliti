@@ -32,8 +32,8 @@ export async function GET(
     (
       <div
         style={{
-          width: '1080px',
-          height: '1920px',
+          width: 1080,
+          height: 1920,
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
@@ -47,11 +47,11 @@ export async function GET(
             src={foto}
             style={{
               position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
+              top: 0,
+              left: 0,
+              width: 1080,
+              height: 1920,
               objectFit: 'cover',
-              objectPosition: 'center',
             }}
           />
         )}
@@ -59,9 +59,11 @@ export async function GET(
         <div
           style={{
             position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 20%, transparent 40%, rgba(0,0,0,0.75) 65%, rgba(0,0,0,0.93) 100%)',
+            top: 0,
+            left: 0,
+            width: 1080,
+            height: 1920,
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.75) 65%, rgba(0,0,0,0.93) 100%)',
             display: 'flex',
           }}
         />
