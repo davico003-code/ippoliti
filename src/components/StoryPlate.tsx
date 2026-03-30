@@ -189,8 +189,8 @@ export default function StoryPlate({ title, price, photo, operation, area, rooms
       <button
         onClick={handleDownload}
         disabled={generating}
-        className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold font-poppins transition-opacity hover:opacity-90 text-white disabled:opacity-60"
-        style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
+        className="w-full h-full flex flex-col items-center justify-center gap-1 py-3 text-xs font-semibold text-white disabled:opacity-60 transition-opacity hover:opacity-90"
+        style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
       >
         {generating ? (
           <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
