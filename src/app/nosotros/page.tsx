@@ -21,9 +21,16 @@ const TIMELINE = [
 ]
 
 const TEAM = [
-  { name: 'Susana Ippoliti', role: 'Fundadora', credential: 'Desde 1983', image: '/nosotros/susana-ippoliti-si-inmobiliaria.webp' },
-  { name: 'David Flores', role: 'Director', credential: 'Mat. N° 0621', image: '/nosotros/david-flores-si-inmobiliaria.webp' },
-  { name: 'Laura Flores', role: 'Administración', credential: '', image: '/nosotros/laura-flores-si-inmobiliaria.webp' },
+  { name: 'Aldana Ruiz', role: 'Agente Inmobiliaria', credential: '', image: '' },
+  { name: 'Carolina Echen', role: 'Agente Inmobiliaria', credential: '', image: '' },
+  { name: 'Mariana Orlate', role: 'Agente Inmobiliaria', credential: '', image: '' },
+  { name: 'Gino Pecchenino', role: 'Agente Inmobiliario', credential: '', image: '' },
+  { name: 'Gisela Ramallo', role: 'Agente Inmobiliaria', credential: '', image: '' },
+  { name: 'Leticia Alexenicier', role: 'Agente Inmobiliaria', credential: '', image: '' },
+  { name: 'Lucia Wilson', role: 'Agente Inmobiliaria', credential: '', image: '' },
+  { name: 'Maria Jose Espilocin', role: 'Agente Inmobiliaria', credential: '', image: '' },
+  { name: 'Mauro Matteucci', role: 'Agente Inmobiliario', credential: '', image: '' },
+  { name: 'Micaela Gonzalez', role: 'Marketing', credential: '', image: '' },
 ]
 
 const TESTIMONIALS = [
@@ -151,28 +158,21 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      {/* 6. Equipo */}
+      {/* 6. Agentes */}
       <section className="bg-white py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-center text-sm font-bold text-brand-600 uppercase tracking-widest mb-3">Nuestro equipo</h2>
-          <p className="text-center text-gray-500 text-lg mb-12 max-w-xl mx-auto">Las personas detrás de cada operación exitosa</p>
+          <h2 className="text-center text-sm font-bold text-brand-600 uppercase tracking-widest mb-3">Nuestros agentes</h2>
+          <p className="text-center text-gray-500 text-lg mb-12 max-w-xl mx-auto">El equipo que te acompaña en cada operación</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
             {TEAM.map(member => (
-              <div key={member.name} className="rounded-xl overflow-hidden shadow-sm border border-gray-100 group">
-                <div className="relative h-[300px] bg-gray-100 overflow-hidden">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
+              <div key={member.name} className="flex flex-col items-center text-center gap-3">
+                <div className="w-20 h-20 rounded-full bg-brand-50 border-2 border-brand-100 flex items-center justify-center text-brand-600 font-bold text-xl" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                  {member.name.split(' ').map(n => n[0]).join('')}
                 </div>
-                <div className="bg-brand-600 text-white p-5 text-center">
-                  <h3 className="font-black text-lg">{member.name}</h3>
-                  <p className="text-brand-200 text-sm font-medium">{member.role}</p>
-                  <p className="text-brand-300 text-xs mt-1">{member.credential}</p>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm">{member.name}</h3>
+                  <p className="text-brand-600 text-xs font-medium mt-0.5">{member.role}</p>
                 </div>
               </div>
             ))}
