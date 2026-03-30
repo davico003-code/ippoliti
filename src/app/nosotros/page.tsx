@@ -158,28 +158,6 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      {/* 6. Agentes */}
-      <section className="bg-white py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-center text-sm font-bold text-brand-600 uppercase tracking-widest mb-3">Nuestros agentes</h2>
-          <p className="text-center text-gray-500 text-lg mb-12 max-w-xl mx-auto">El equipo que te acompaña en cada operación</p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-            {TEAM.map(member => (
-              <div key={member.name} className="flex flex-col items-center text-center gap-3">
-                <div className="w-20 h-20 rounded-full bg-brand-50 border-2 border-brand-100 flex items-center justify-center text-brand-600 font-bold text-xl" style={{ fontFamily: 'Raleway, sans-serif' }}>
-                  {member.name.split(' ').map(n => n[0]).join('')}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 text-sm">{member.name}</h3>
-                  <p className="text-brand-600 text-xs font-medium mt-0.5">{member.role}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* 7. Testimonios */}
       <section className="bg-gray-50 py-16 px-4">
         <div className="max-w-5xl mx-auto">

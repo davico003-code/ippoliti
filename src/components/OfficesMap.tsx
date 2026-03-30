@@ -43,7 +43,7 @@ function createMarker() {
 
 export default function OfficesMap() {
   return (
-    <div className="w-full h-[380px] rounded-xl overflow-hidden">
+    <div className="w-full h-[380px] rounded-xl overflow-hidden relative z-0">
       <MapContainer
         center={[-32.904, -60.865]}
         zoom={12}
@@ -51,8 +51,8 @@ export default function OfficesMap() {
         scrollWheelZoom={false}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
           maxZoom={19}
         />
         {OFFICES.map(office => (
