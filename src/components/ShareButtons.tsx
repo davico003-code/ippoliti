@@ -14,9 +14,10 @@ interface Props {
   area?: number | null
   rooms?: number
   bathrooms?: number
+  lotSurface?: number | null
 }
 
-export default function ShareButtons({ slug, title, price, photo, operation, propertyType, area, rooms, bathrooms }: Props) {
+export default function ShareButtons({ slug, title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface }: Props) {
   const [copied, setCopied] = useState(false)
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
   const text = encodeURIComponent(`Mirá esta propiedad: ${title}\n${url}`)
@@ -62,6 +63,7 @@ export default function ShareButtons({ slug, title, price, photo, operation, pro
           area={area || null}
           rooms={rooms || 0}
           bathrooms={bathrooms || 0}
+          lotSurface={lotSurface}
           slug={slug}
         />
       </div>

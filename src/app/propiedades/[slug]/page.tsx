@@ -23,6 +23,7 @@ import {
   getOperationType,
   getRoofedArea,
   getTotalSurface,
+  getLotSurface,
   formatLocation,
   getMainPhoto,
   getDescription,
@@ -653,8 +654,9 @@ export default async function PropertyPage({ params }: Props) {
                 operation={operation}
                 propertyType={translatePropertyType(property.type?.name)}
                 area={area}
-                rooms={property.room_amount}
+                rooms={property.suite_amount || property.room_amount || 0}
                 bathrooms={property.bathroom_amount}
+                lotSurface={getLotSurface(property)}
               />
             </div>
 

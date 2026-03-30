@@ -12,10 +12,11 @@ interface Props {
   area: number | null
   rooms: number
   bathrooms: number
+  lotSurface?: number | null
   slug: string
 }
 
-export default function StoryPlate({ title, price, photo, operation, propertyType, area, rooms, bathrooms, slug }: Props) {
+export default function StoryPlate({ title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface, slug }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [generating, setGenerating] = useState(false)
 
@@ -117,6 +118,7 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
     if (area && area > 0) specs.push(`${area} m²`)
     if (rooms > 0) specs.push(`${rooms} dorm.`)
     if (bathrooms > 0) specs.push(`${bathrooms} baños`)
+    if (lotSurface && lotSurface > 0) specs.push(`${lotSurface} m² lote`)
 
     if (specs.length > 0) {
       let sx = px
@@ -152,7 +154,7 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
     ctx.fillText('Escribinos por DM', px, cy)
 
     return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png'))
-  }, [title, price, photo, operation, propertyType, area, rooms, bathrooms])
+  }, [title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface])
 
   const handleDownload = useCallback(async () => {
     setGenerating(true)
@@ -184,7 +186,7 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
         onClick={handleDownload}
         disabled={generating}
         className="w-full h-full flex flex-col items-center justify-center gap-1 py-3 text-xs font-semibold text-white disabled:opacity-60 transition-opacity hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
+        style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)', borderRadius: '999px' }}
       >
         {generating ? (
           <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
