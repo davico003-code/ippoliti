@@ -246,7 +246,7 @@ export function VisitMobileTrigger({ propertyId, propertyTitle }: Props) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-[76px] left-3 right-3 z-40 md:hidden py-3.5 bg-[#1A5C38] text-white font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2"
+        className="fixed bottom-[60px] left-3 right-3 z-40 md:hidden py-3 bg-[#1A5C38] text-white font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2"
       >
         <Calendar className="w-4 h-4" />
         Solicitá una visita
@@ -258,8 +258,8 @@ export function VisitMobileTrigger({ propertyId, propertyTitle }: Props) {
           onClick={e => { if (e.target === e.currentTarget) setOpen(false) }}
         >
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-h-[85vh] overflow-y-auto animate-slide-up">
-            <div className="bg-[#1A5C38] rounded-t-3xl p-6 pb-10">
+          <div className="relative w-full max-h-[90vh] overflow-y-auto animate-slide-up">
+            <div className="bg-[#1A5C38] rounded-t-3xl p-6 pb-24">
               <div className="w-10 h-1 rounded-full bg-white/30 mx-auto mb-4" />
               <button
                 onClick={() => setOpen(false)}

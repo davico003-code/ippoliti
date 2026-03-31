@@ -23,10 +23,10 @@ const btnStyle: React.CSSProperties = {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '4px',
-  padding: '12px 8px',
-  borderRadius: '14px',
-  fontSize: '11px',
+  gap: '3px',
+  padding: '8px 4px',
+  borderRadius: '10px',
+  fontSize: '10px',
   fontWeight: 600,
   cursor: 'pointer',
   transition: 'opacity 0.15s',
@@ -38,7 +38,7 @@ export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.1)]"
-      style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))', paddingTop: '12px', paddingLeft: '12px', paddingRight: '12px' }}
+      style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))', paddingTop: '8px', paddingLeft: '10px', paddingRight: '10px' }}
     >
       <div className="flex gap-2">
         <a
@@ -47,14 +47,14 @@ export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo
           rel="noopener noreferrer"
           style={{ ...btnStyle, background: '#25D366', color: '#fff' }}
         >
-          <MessageCircle className="w-4 h-4" />
+          <MessageCircle className="w-[18px] h-[18px]" />
           WhatsApp
         </a>
         <a
           href="tel:+5493412101694"
           style={{ ...btnStyle, background: '#1A5C38', color: '#fff' }}
         >
-          <Phone className="w-4 h-4" />
+          <Phone className="w-[18px] h-[18px]" />
           Llamar
         </a>
         <StoryPlate
