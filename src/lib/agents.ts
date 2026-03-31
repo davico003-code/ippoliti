@@ -20,10 +20,9 @@ export const AGENTS: Agent[] = [
   { id: 'micaela',   username: 'micaela',   name: 'Micaela Gonzalez',     role: 'agent' },
 ]
 
-const PASSWORD = process.env.AGENT_PASS ?? 'inmobiliaria2026'
-
 export function findAgent(username: string, password: string): Agent | null {
-  if (password !== PASSWORD) return null
+  const validPassword = process.env.AGENT_PASS ?? 'inmobiliaria2026'
+  if (password !== validPassword) return null
   return AGENTS.find(a => a.username === username) ?? null
 }
 
