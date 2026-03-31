@@ -18,7 +18,7 @@ export interface NearbyProperty {
 function createPriceBubble(price: string) {
   return L.divIcon({
     className: '',
-    html: `<div style="position:relative;display:inline-block">
+    html: `<div style="position:relative;display:inline-block" class="price-bubble">
       <div style="
         background:#1A5C38;color:#fff;
         font-family:'Poppins',system-ui,sans-serif;
@@ -77,13 +77,27 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
       <h2 className="text-xl font-bold text-gray-900 mb-1 font-poppins">Propiedades en la zona</h2>
       <p className="text-gray-400 text-sm mb-4 font-poppins">{nearbyProperties.length} propiedad{nearbyProperties.length !== 1 ? 'es' : ''} cerca</p>
 
-      <div className="w-full h-[340px] rounded-xl overflow-hidden">
+      <div className="w-full h-[280px] md:h-[340px] rounded-xl overflow-hidden">
         <style>{`
           .nearby-map .leaflet-marker-icon:hover { z-index: 9999 !important; }
           .nearby-map .leaflet-marker-icon:hover > div > div:first-child {
             background: #2D7A4F !important;
             transform: scale(1.12);
             box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
+          }
+          @media (max-width: 768px) {
+            .nearby-map .leaflet-marker-icon .price-bubble > div { display: none !important; }
+            .nearby-map .leaflet-marker-icon .price-bubble::after {
+              content: '';
+              display: block;
+              width: 12px;
+              height: 12px;
+              border-radius: 50%;
+              background: #1A5C38;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+              margin: 0 auto;
+            }
           }
         `}</style>
         <MapContainer

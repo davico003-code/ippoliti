@@ -29,7 +29,7 @@ export default function Newsletter() {
             Nuevas propiedades y oportunidades de inversi&oacute;n directo a tu casilla.
           </p>
         </div>
-        <form onSubmit={handleSubmit} className="flex gap-2 w-full md:w-auto">
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
           <input
             type="email"
             value={email}
@@ -40,7 +40,7 @@ export default function Newsletter() {
           />
           <button
             type="submit"
-            className="px-5 py-3 bg-white text-[#1A5C38] rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 whitespace-nowrap font-poppins"
+            className="px-5 py-3 bg-white text-[#1A5C38] rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 whitespace-nowrap font-poppins"
           >
             {sent ? <><Check className="w-4 h-4" /> Listo!</> : <><Mail className="w-4 h-4" /> Suscribirme</>}
           </button>
