@@ -17,7 +17,22 @@ interface Props {
   lotSurface?: number | null
 }
 
-const btnBase = 'flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-semibold'
+const btnStyle: React.CSSProperties = {
+  flex: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '4px',
+  padding: '12px 8px',
+  borderRadius: '14px',
+  fontSize: '11px',
+  fontWeight: 600,
+  cursor: 'pointer',
+  transition: 'opacity 0.15s',
+  border: 'none',
+  textDecoration: 'none',
+}
 
 export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface }: Props) {
   return (
@@ -30,32 +45,31 @@ export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${btnBase} bg-[#25D366] text-white rounded-xl`}
+          style={{ ...btnStyle, background: '#25D366', color: '#fff' }}
         >
           <MessageCircle className="w-4 h-4" />
           WhatsApp
         </a>
         <a
           href="tel:+5493412101694"
-          className={`${btnBase} bg-[#1A5C38] text-white rounded-xl`}
+          style={{ ...btnStyle, background: '#1A5C38', color: '#fff' }}
         >
           <Phone className="w-4 h-4" />
           Llamar
         </a>
-        <div className="flex-1 flex rounded-xl overflow-hidden">
-          <StoryPlate
-            title={title}
-            price={price}
-            photo={photo}
-            operation={operation}
-            propertyType={propertyType}
-            area={area}
-            rooms={rooms}
-            bathrooms={bathrooms}
-            lotSurface={lotSurface}
-            slug={slug}
-          />
-        </div>
+        <StoryPlate
+          title={title}
+          price={price}
+          photo={photo}
+          operation={operation}
+          propertyType={propertyType}
+          area={area}
+          rooms={rooms}
+          bathrooms={bathrooms}
+          lotSurface={lotSurface}
+          slug={slug}
+          btnStyle={btnStyle}
+        />
       </div>
     </div>
   )

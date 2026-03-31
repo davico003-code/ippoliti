@@ -17,8 +17,6 @@ interface Props {
   lotSurface?: number | null
 }
 
-const btnBase = 'flex-1 flex items-center justify-center gap-2 py-3 text-xs font-semibold transition-colors'
-
 export default function ShareButtons({ slug, title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface }: Props) {
   const [copied, setCopied] = useState(false)
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
@@ -30,44 +28,69 @@ export default function ShareButtons({ slug, title, price, photo, operation, pro
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const btnStyle: React.CSSProperties = {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    padding: '10px 8px',
+    borderRadius: '14px',
+    fontSize: '11px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'opacity 0.15s',
+    border: 'none',
+    textDecoration: 'none',
+  }
+
   return (
     <div className="mt-6 pt-6 border-t border-gray-100">
       <p className="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wide">
         Compartir propiedad
       </p>
       <div className="flex gap-2">
+
+        {/* WhatsApp */}
         <a
           href={`https://wa.me/?text=${text}`}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${btnBase} bg-[#25D366] hover:bg-[#1ebe57] text-white rounded-xl`}
+          style={{ ...btnStyle, background: '#25D366', color: '#fff' }}
         >
-          <MessageCircle size={14} />
+          <MessageCircle size={16} />
           WhatsApp
         </a>
+
+        {/* Copiar link */}
         <button
           onClick={copyLink}
-          className={`${btnBase} rounded-xl ${
-            copied ? 'bg-[#1A5C38] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-          }`}
+          style={{
+            ...btnStyle,
+            background: copied ? '#1A5C38' : '#F3F4F6',
+            color: copied ? '#fff' : '#374151',
+          }}
         >
-          {copied ? <Check size={14} /> : <Link2 size={14} />}
+          {copied ? <Check size={16} /> : <Link2 size={16} />}
           {copied ? 'Copiado!' : 'Copiar'}
         </button>
-        <div className="flex-1 flex rounded-xl overflow-hidden">
-          <StoryPlate
-            title={title}
-            price={price || 'Consultar'}
-            photo={photo || null}
-            operation={operation || ''}
-            propertyType={propertyType || ''}
-            area={area || null}
-            rooms={rooms || 0}
-            bathrooms={bathrooms || 0}
-            lotSurface={lotSurface}
-            slug={slug}
-          />
-        </div>
+
+        {/* Placa Instagram */}
+        <StoryPlate
+          title={title}
+          price={price || 'Consultar'}
+          photo={photo || null}
+          operation={operation || ''}
+          propertyType={propertyType || ''}
+          area={area || null}
+          rooms={rooms || 0}
+          bathrooms={bathrooms || 0}
+          lotSurface={lotSurface}
+          slug={slug}
+          btnStyle={btnStyle}
+        />
+
       </div>
     </div>
   )
