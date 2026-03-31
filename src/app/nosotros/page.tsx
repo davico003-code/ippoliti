@@ -37,16 +37,10 @@ export default function NosotrosPage() {
           <p className="text-[#1A5C38] text-xs font-semibold uppercase tracking-[0.25em] mb-6">
             DESDE 1983
           </p>
-          <h1
-            className="text-4xl md:text-6xl lg:text-7xl text-gray-900 leading-[1.08] mb-6"
-            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif', fontWeight: 600 }}
-          >
+          <h1 className="text-4xl md:text-6xl lg:text-7xl text-gray-900 leading-[1.08] mb-6 font-raleway font-semibold">
             Desde 1983 acompañando cada decisión importante
           </h1>
-          <p
-            className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
-            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif', fontWeight: 300 }}
-          >
+          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-raleway font-light">
             Susana, David y Laura — tres generaciones de confianza en Roldán y Funes
           </p>
         </div>
@@ -63,16 +57,10 @@ export default function NosotrosPage() {
               { number: '1.000+', label: 'familias acompañadas' },
             ].map((stat) => (
               <div key={stat.label}>
-                <span
-                  className="text-5xl md:text-6xl text-[#1A5C38] block mb-1"
-                  style={{ fontFamily: 'var(--font-poppins), Poppins, sans-serif', fontWeight: 700 }}
-                >
+                <span className="text-5xl md:text-6xl text-[#1A5C38] block mb-1 font-numeric font-bold">
                   {stat.number}
                 </span>
-                <span
-                  className="text-gray-400 text-lg"
-                  style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif', fontWeight: 300 }}
-                >
+                <span className="text-gray-400 text-lg font-raleway font-light">
                   {stat.label}
                 </span>
                 <div className="mt-6 w-full h-px bg-gray-100" />

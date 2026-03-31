@@ -50,7 +50,7 @@ export default function TrustSection() {
               <div className="w-20 h-20 bg-navy-800/80 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-navy-900 transition-all shadow-inner border border-white/10">
                 {stat.icon}
               </div>
-              <h4 className="text-4xl lg:text-5xl font-bold text-white mb-2 font-serif">{stat.value}</h4>
+              <h4 className="text-4xl lg:text-5xl font-bold text-white mb-2 font-numeric">{stat.value}</h4>
               <h5 className="text-lg font-bold text-gold-400 mb-4 uppercase tracking-wide">{stat.label}</h5>
               <p className="text-gray-400 text-base leading-relaxed font-light">
                 {stat.description}

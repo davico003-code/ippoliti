@@ -185,7 +185,12 @@ body {
 
 /* Poppins for numeric content — global safety net */
 .font-numeric,
-[class*="font-numeric"] {
+.font-poppins,
+[class*="font-numeric"],
+[class*="font-poppins"],
+.stat-number,
+.price,
+.metric {
   font-family: 'Poppins', system-ui, sans-serif !important;
   font-variant-numeric: tabular-nums;
 }
