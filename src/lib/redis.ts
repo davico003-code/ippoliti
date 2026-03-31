@@ -12,6 +12,8 @@ interface SeleccionInput {
   clientName: string
   clientPhone: string
   agent: string
+  agentId: string
+  agentName: string
   days: number
   note: string
   properties: { id: string; url: string; note: string }[]
@@ -50,7 +52,7 @@ export async function patchReaccion(
 ) {
   const current = await getReacciones(token)
   const existing = current[propertyId] || {}
-  current[propertyId] = { ...existing, ...patch }
+  current[propertyId] = { ...existing, ...patch, updatedAt: new Date().toISOString() }
   current._meta = { ...(current._meta || {}), lastActivity: new Date().toISOString() }
 
   // Get TTL to preserve it
@@ -87,7 +89,7 @@ export async function listarSelecciones(agent?: string) {
     const raw = await redis.get<string>(key)
     if (!raw) continue
     const data = typeof raw === 'string' ? JSON.parse(raw) : raw
-    if (agent && agent !== 'all' && data.agent !== agent) continue
+    if (agent && agent !== 'all' && data.agentId !== agent && data.agent !== agent) continue
 
     const tk = key.replace('seleccion:', '')
     const reactions = await getReacciones(tk)
@@ -107,4 +109,12 @@ export async function listarSelecciones(agent?: string) {
 
   results.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
   return results
+}
+
+export async function listarSeleccionesPorAgente(agentId: string) {
+  return listarSelecciones(agentId)
+}
+
+export async function listarTodasSelecciones() {
+  return listarSelecciones('all')
 }

@@ -17,9 +17,10 @@ export function getTimeLeft(expiresAt: string): { days: number; expired: boolean
 }
 
 export function buildWhatsAppMessage(
-  session: { agent: string; properties: { id: string; url: string }[] },
+  session: { agentName?: string; agent?: string; properties: { id: string; url: string }[] },
   reactions: Record<string, { liked?: boolean | null; wantVisit?: boolean }>
 ): string {
+  const name = session.agentName || session.agent || 'SI Inmobiliaria'
   const liked = session.properties
     .filter(p => reactions[p.id]?.liked === true)
     .map(p => parsePropertyLabel(p.url))
@@ -27,8 +28,8 @@ export function buildWhatsAppMessage(
     .filter(p => reactions[p.id]?.wantVisit)
     .map(p => parsePropertyLabel(p.url))
 
-  let msg = `Hola ${session.agent}! Vi las propiedades.`
-  if (liked.length) msg += `\nMe gustaron: ${liked.join(', ')}.`
-  if (wantVisit.length) msg += `\nQuiero visitar: ${wantVisit.join(', ')}.`
+  let msg = `Hola ${name}! Ya revisé las propiedades.`
+  msg += `\nMe gustaron: ${liked.length ? liked.join(', ') : 'ninguna aún'}.`
+  msg += `\nQuiero visitar: ${wantVisit.length ? wantVisit.join(', ') : 'a confirmar'}.`
   return msg
 }

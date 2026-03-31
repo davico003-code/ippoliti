@@ -10,7 +10,8 @@ interface Session {
   resumen: { liked: number; disliked: number; wantVisit: number; hasComments: boolean }
 }
 
-export default function AgentSeleccionPanel({ initialSessions }: { initialSessions: Session[] }) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function AgentSeleccionPanel({ initialSessions, agentId }: { initialSessions: Session[]; agentId: string }) {
   const [sessions, setSessions] = useState(initialSessions)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({

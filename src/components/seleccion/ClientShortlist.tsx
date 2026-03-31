@@ -6,7 +6,7 @@ import { parsePropertyLabel, getTimeLeft, buildWhatsAppMessage } from '@/lib/sel
 interface Property { id: string; url: string; note: string }
 interface Reaction { liked?: boolean | null; wantVisit?: boolean; comment?: string }
 interface Session {
-  clientName: string; agent: string; note: string; expiresAt: string
+  clientName: string; agent: string; agentName?: string; note: string; expiresAt: string
   properties: Property[]
 }
 
@@ -70,7 +70,7 @@ export default function ClientShortlist({
         {session.note && (
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <p className="text-xs font-semibold text-[#1A5C38] uppercase tracking-wide mb-1">
-              Mensaje de {session.agent}
+              Mensaje de {session.agentName || session.agent}
             </p>
             <p className="text-sm text-gray-600 leading-relaxed">{session.note}</p>
           </div>
@@ -193,7 +193,7 @@ export default function ClientShortlist({
       {/* Bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-black/5">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <span className="text-sm text-gray-500">{session.agent} · SI Inmobiliaria</span>
+          <span className="text-sm text-gray-500">{session.agentName || session.agent} · SI Inmobiliaria</span>
           <a
             href={`https://wa.me/5493412101694?text=${waMsg}`}
             target="_blank"
