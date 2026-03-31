@@ -193,25 +193,25 @@ export default function BlogPostPage({ params }: Props) {
                 Con más de 40 años de experiencia en Roldán y Funes, te acompañamos en cada
                 paso.
               </p>
-              <div className="flex flex-wrap gap-3 justify-center">
+              <div className="flex flex-col md:flex-row gap-3">
                 <a
                   href="https://wa.me/5493412101694?text=Hola!%20Quiero%20consultar%20por%20una%20propiedad"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2"
+                  className="flex-1 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-5 h-5" />
                   Consultar por WhatsApp
                 </a>
                 <Link
                   href="/tasaciones"
-                  className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-colors"
+                  className="flex-1 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-colors text-center"
                 >
                   Solicitá tu tasación en 24hs
                 </Link>
                 <Link
                   href="/propiedades"
-                  className="px-6 py-3 border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-bold rounded-lg transition-colors"
+                  className="flex-1 px-6 py-3 border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-bold rounded-lg transition-colors text-center"
                 >
                   Ver propiedades
                 </Link>
@@ -222,7 +222,7 @@ export default function BlogPostPage({ params }: Props) {
           {/* Related articles */}
           {related.length > 0 && (
             <div className="mt-16 pt-8 border-t border-gray-100">
-              <h3 className="text-xl font-black text-gray-900 mb-6">Art\u00edculos relacionados</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-6">Artículos relacionados</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {related.map(r => (
                   <Link key={r.slug} href={`/blog/${r.slug}`} className="group block">
