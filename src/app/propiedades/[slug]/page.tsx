@@ -138,10 +138,10 @@ export default async function PropertyPage({ params }: Props) {
   const blueprints = getBlueprintPhotos(property);
   const files = (property.files || []).filter(f => f.file);
 
-  const whatsappText = encodeURIComponent(
-    `Hola! Me interesa la propiedad: ${property.publication_title || property.address}`
+  const whatsappMsg = encodeURIComponent(
+    `Hola! Me interesa esta propiedad:\n\n*${property.publication_title || property.address}*\n📍 ${property.fake_address || property.address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${params.slug}`
   );
-  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`;
+  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`;
 
   // ── Similar properties logic ──
   let similar: TokkoProperty[] = [];
