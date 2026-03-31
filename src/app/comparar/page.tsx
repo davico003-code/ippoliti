@@ -189,10 +189,10 @@ export default async function CompararPage({ searchParams }: Props) {
 
                   {/* Stats grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
-                    {property.room_amount > 0 && (
+                    {(property.suite_amount || property.room_amount) > 0 && (
                       <div className="flex flex-col items-center gap-1 p-3 bg-gray-50 rounded-xl">
                         <Bed className="w-5 h-5 text-[#1A5C38]" />
-                        <span className="text-lg font-black text-gray-900 font-numeric">{property.room_amount}</span>
+                        <span className="text-lg font-black text-gray-900 font-numeric">{property.suite_amount || property.room_amount}</span>
                         <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide font-poppins">Dorm.</span>
                       </div>
                     )}

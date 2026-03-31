@@ -69,10 +69,10 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
         )}
 
         <div className="mt-auto grid grid-cols-3 gap-4 border-t border-gray-100 pt-5">
-          {property.room_amount != null && property.room_amount > 0 && (
+          {(property.suite_amount || property.room_amount) > 0 && (
             <div className="flex items-center justify-center gap-2" title="Dormitorios">
               <Bed className="w-5 h-5 text-gray-400" />
-              <span className="text-sm font-bold text-gray-700 font-numeric">{property.room_amount}</span>
+              <span className="text-sm font-bold text-gray-700 font-numeric">{property.suite_amount || property.room_amount}</span>
             </div>
           )}
           {property.bathroom_amount != null && property.bathroom_amount > 0 && (

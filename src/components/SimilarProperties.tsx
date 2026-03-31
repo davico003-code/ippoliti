@@ -82,7 +82,7 @@ export default function SimilarProperties({ properties, currentPropertyId }: Pro
           return pa - pb
         })
       case 'dormitorios':
-        return list.sort((a, b) => (b.room_amount ?? 0) - (a.room_amount ?? 0))
+        return list.sort((a, b) => (b.suite_amount || b.room_amount || 0) - (a.suite_amount || a.room_amount || 0))
       case 'barrio':
         return list.sort((a, b) =>
           (a.location?.name ?? a.address ?? '').localeCompare(b.location?.name ?? b.address ?? '')

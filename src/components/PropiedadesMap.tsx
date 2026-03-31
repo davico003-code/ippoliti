@@ -404,8 +404,8 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
                     {area != null && area > 0 && (
                       <span style={{ fontFamily: "'Poppins',system-ui,sans-serif" }}>{area} m²</span>
                     )}
-                    {property.room_amount > 0 && (
-                      <span>{property.room_amount} dorm.</span>
+                    {(property.suite_amount || property.room_amount) > 0 && (
+                      <span>{property.suite_amount || property.room_amount} dorm.</span>
                     )}
                     {property.bathroom_amount > 0 && (
                       <span>{property.bathroom_amount} baño{property.bathroom_amount > 1 ? 's' : ''}</span>

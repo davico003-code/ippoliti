@@ -173,8 +173,8 @@ function CompactCard({ property, isSelected, onClick }: {
                 )}
               </>
             )}
-            {property.room_amount != null && property.room_amount > 0 && (
-              <span className="flex items-center gap-0.5 text-gray-500"><Bed className="w-3 h-3" /><span className="font-numeric">{property.room_amount}</span></span>
+            {(property.suite_amount || property.room_amount) > 0 && (
+              <span className="flex items-center gap-0.5 text-gray-500"><Bed className="w-3 h-3" /><span className="font-numeric">{property.suite_amount || property.room_amount}</span></span>
             )}
             <span className="font-bold text-gray-900 text-[12px] font-numeric">{price}</span>
           </div>
@@ -265,8 +265,8 @@ function ListCard({ property, isSelected, onClick, featured }: {
               )}
             </>
           )}
-          {property.room_amount > 0 && (
-            <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{property.room_amount}</span> dorm.</span>
+          {(property.suite_amount || property.room_amount) > 0 && (
+            <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{property.suite_amount || property.room_amount}</span> dorm.</span>
           )}
           {property.bathroom_amount > 0 && (
             <span className="flex items-center gap-1"><Bath className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{property.bathroom_amount}</span></span>
@@ -387,7 +387,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       if (filters.type === 'local' && !t.includes('local') && !t.includes('comercial') && !t.includes('bussiness') && !t.includes('warehouse')) return false
     }
     if (filters.beds !== 'todos') {
-      const rooms = p.room_amount ?? 0
+      const rooms = p.suite_amount || p.room_amount || 0
       if (filters.beds === '4+' && rooms < 4) return false
       if (filters.beds !== '4+' && rooms !== parseInt(filters.beds)) return false
     }

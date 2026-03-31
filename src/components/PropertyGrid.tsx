@@ -72,8 +72,8 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
                 )}
               </>
             )}
-            {property.room_amount > 0 && (
-              <span className="flex items-center gap-0.5"><Bed className="w-3 h-3" /><span className="font-numeric">{property.room_amount}</span></span>
+            {(property.suite_amount || property.room_amount) > 0 && (
+              <span className="flex items-center gap-0.5"><Bed className="w-3 h-3" /><span className="font-numeric">{property.suite_amount || property.room_amount}</span></span>
             )}
           </div>
           <div className="mt-auto flex items-center justify-between">
