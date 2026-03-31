@@ -31,40 +31,64 @@ export default function NosotrosPage() {
   return (
     <div className="min-h-screen">
 
-      {/* 1. Header with background image */}
-      <section
-        className="relative text-white py-24 md:py-32 px-4 text-center bg-[#1A5C38]"
-      >
-        <div className="relative z-10">
-          <p className="text-white/80 text-sm uppercase tracking-widest font-semibold mb-3">QUIÉNES SOMOS</p>
-          <h1 className="text-4xl md:text-5xl font-black leading-tight max-w-3xl mx-auto drop-shadow-md">
+      {/* 1. Hero — Apple style */}
+      <section className="bg-[#f5f5f7] py-32 md:py-40 px-4 text-center">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-[#1A5C38] text-xs font-semibold uppercase tracking-[0.25em] mb-6">
+            DESDE 1983
+          </p>
+          <h1
+            className="text-4xl md:text-6xl lg:text-7xl text-gray-900 leading-[1.08] mb-6"
+            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif', fontWeight: 600 }}
+          >
             Desde 1983 acompañando cada decisión importante
           </h1>
-          <p className="text-white/80 text-lg mt-4 max-w-2xl mx-auto">
+          <p
+            className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
+            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif', fontWeight: 300 }}
+          >
             Susana, David y Laura — tres generaciones de confianza en Roldán y Funes
           </p>
         </div>
       </section>
 
-      {/* 2. Three-column photo section */}
-      <section className="bg-white py-16 px-4">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-          <div className="relative rounded-xl overflow-hidden bg-gray-100 h-[280px]">
-            <Image src="/hero-nosotros.jpg"
-              alt="Equipo SI Inmobiliaria" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+      {/* 2. Split hero — stats + photo */}
+      <section className="bg-white py-20 md:py-28 px-4">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          {/* Left — stats */}
+          <div className="space-y-10">
+            {[
+              { number: '40+', label: 'años en el mercado' },
+              { number: '3', label: 'oficinas en la región' },
+              { number: '1.000+', label: 'familias acompañadas' },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <span
+                  className="text-5xl md:text-6xl text-[#1A5C38] block mb-1"
+                  style={{ fontFamily: 'var(--font-poppins), Poppins, sans-serif', fontWeight: 700 }}
+                >
+                  {stat.number}
+                </span>
+                <span
+                  className="text-gray-400 text-lg"
+                  style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif', fontWeight: 300 }}
+                >
+                  {stat.label}
+                </span>
+                <div className="mt-6 w-full h-px bg-gray-100" />
+              </div>
+            ))}
           </div>
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="bg-brand-600 rounded-xl w-20 h-20 flex items-center justify-center mb-4">
-              <span className="text-white font-black text-4xl leading-none">SI</span>
-            </div>
-            <h2 className="text-2xl font-black text-gray-900">SI INMOBILIARIA</h2>
-            <p className="tracking-widest text-gray-400 text-xs uppercase mt-1">DESDE 1983</p>
-            <div className="my-4 w-12 h-0.5 bg-brand-600" />
-            <p className="text-sm text-gray-600">Susana Ippoliti, Laura &amp; David</p>
-          </div>
-          <div className="relative rounded-xl overflow-hidden bg-gray-100 h-[280px]">
-            <Image src="/nosotros/si-inmobiliaria-oficina-funes-interior.webp"
-              alt="Interior oficina SI Inmobiliaria Funes" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+
+          {/* Right — photo */}
+          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
+            <Image
+              src="/nosotros/si-inmobiliaria-oficina-funes-interior.webp"
+              alt="Interior oficina SI Inmobiliaria Funes"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
           </div>
         </div>
       </section>
