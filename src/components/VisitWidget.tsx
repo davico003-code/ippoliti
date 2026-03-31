@@ -76,7 +76,7 @@ export default function VisitWidget({ propertyId, propertyTitle }: Props) {
   }
 
   return (
-    <div className="bg-[#1A5C38] rounded-3xl p-6 text-white flex flex-col" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', scrollBehavior: 'smooth' }}>
+    <div className="bg-[#1A5C38] rounded-3xl p-6 text-white flex flex-col" style={{ maxHeight: 'calc(100vh - 320px)', overflowY: 'auto', scrollBehavior: 'smooth' }}>
       {/* Progress */}
       <div className="mb-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.15em] mb-3" style={{ color: 'rgba(255,255,255,0.55)' }}>
@@ -149,7 +149,7 @@ export default function VisitWidget({ propertyId, propertyTitle }: Props) {
           </div>
 
           {/* Continue */}
-          <div className="sticky bottom-0 pt-3 bg-[#1A5C38] mt-auto">
+          <div className="sticky bottom-0 pt-3 bg-[#1A5C38] mt-auto z-10 w-full">
             <button
               onClick={() => canContinue && setStep(2)}
               disabled={!canContinue}

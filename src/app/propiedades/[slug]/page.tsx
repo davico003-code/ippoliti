@@ -767,12 +767,6 @@ export default async function PropertyPage({ params }: Props) {
                   />
                 </div>
 
-                {/* Property ID */}
-                <div className="bg-[#e8f5ee] rounded-2xl p-4 text-sm">
-                  <p className="font-semibold text-gray-900 mb-0.5">ID: #{property.id}</p>
-                  {propType && <p className="text-gray-600 text-xs">{propType} · {operation}</p>}
-                </div>
-
                 {/* Visit widget — only for VENTA */}
                 {operation?.toLowerCase().includes('venta') && (
                   <VisitWidget propertyId={property.id} propertyTitle={property.publication_title || property.address} />
