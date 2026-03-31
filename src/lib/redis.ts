@@ -21,14 +21,15 @@ interface SeleccionInput {
 
 export async function crearSeleccion(data: SeleccionInput): Promise<string> {
   const token = nanoid(10)
-  const ttl = data.days * 86400
+  const redisTtl = 365 * 86400 // 1 year in Redis
+  const displayTtl = data.days * 86400
   const now = new Date().toISOString()
-  const expiresAt = new Date(Date.now() + ttl * 1000).toISOString()
+  const expiresAt = new Date(Date.now() + displayTtl * 1000).toISOString()
 
   const payload = { ...data, token, createdAt: now, expiresAt }
 
-  await redis.set(`seleccion:${token}`, JSON.stringify(payload), { ex: ttl })
-  await redis.set(`reacciones:${token}`, JSON.stringify({ _meta: { viewCount: 0, lastActivity: now } }), { ex: ttl })
+  await redis.set(`seleccion:${token}`, JSON.stringify(payload), { ex: redisTtl })
+  await redis.set(`reacciones:${token}`, JSON.stringify({ _meta: { viewCount: 0, lastActivity: now } }), { ex: redisTtl })
 
   return token
 }
