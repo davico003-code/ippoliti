@@ -13,9 +13,9 @@ export const metadata: Metadata = {
     "Inmobiliaria con 43 años de trayectoria en Roldán, Funes y Gran Rosario. Casas, departamentos, terrenos y emprendimientos. Tasaciones profesionales.",
   metadataBase: new URL('https://siinmobiliaria.com'),
   icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
+    icon: '/icon.png',
+    shortcut: '/favicon.ico',
+    apple: '/icon.png',
   },
   verification: {
     google: 'vzBOIhp_zjfmlEuh_-0vZ6K9PDOyNAY_wSet1AWsNUI',
