@@ -17,30 +17,32 @@ interface Props {
   lotSurface?: number | null
 }
 
+const btnBase = 'flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-semibold'
+
 export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface }: Props) {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.1)]"
       style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))', paddingTop: '12px', paddingLeft: '12px', paddingRight: '12px' }}
     >
-      <div className="flex">
+      <div className="flex gap-2">
         <a
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 bg-[#25D366] text-white rounded-l-2xl text-xs font-semibold"
+          className={`${btnBase} bg-[#25D366] text-white rounded-xl`}
         >
           <MessageCircle className="w-4 h-4" />
           WhatsApp
         </a>
         <a
           href="tel:+5493412101694"
-          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 bg-[#1A5C38] text-white text-xs font-semibold"
+          className={`${btnBase} bg-[#1A5C38] text-white rounded-xl`}
         >
           <Phone className="w-4 h-4" />
           Llamar
         </a>
-        <div className="flex-1 flex rounded-r-2xl overflow-hidden">
+        <div className="flex-1 flex rounded-xl overflow-hidden">
           <StoryPlate
             title={title}
             price={price}
