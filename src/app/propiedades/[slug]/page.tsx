@@ -13,6 +13,7 @@ import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyDescription from '@/components/PropertyDescription';
+import VisitWidget, { VisitMobileTrigger } from '@/components/VisitWidget';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
 import {
   getPropertyById,
@@ -771,6 +772,11 @@ export default async function PropertyPage({ params }: Props) {
                   <p className="font-semibold text-gray-900 mb-0.5">ID: #{property.id}</p>
                   {propType && <p className="text-gray-600 text-xs">{propType} · {operation}</p>}
                 </div>
+
+                {/* Visit widget — only for VENTA */}
+                {operation?.toLowerCase().includes('venta') && (
+                  <VisitWidget propertyId={property.id} propertyTitle={property.publication_title || property.address} />
+                )}
               </div>
             </div>
           </div>
@@ -788,6 +794,11 @@ export default async function PropertyPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Mobile visit trigger — only for VENTA */}
+      {operation?.toLowerCase().includes('venta') && (
+        <VisitMobileTrigger propertyId={property.id} propertyTitle={property.publication_title || property.address} />
+      )}
 
       {/* Mobile sticky bar */}
       <MobileStickyBar
