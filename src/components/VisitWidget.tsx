@@ -76,7 +76,7 @@ export default function VisitWidget({ propertyId, propertyTitle }: Props) {
   }
 
   return (
-    <div className="bg-[#1A5C38] rounded-3xl p-6 text-white">
+    <div className="bg-[#1A5C38] rounded-3xl p-6 text-white flex flex-col" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', scrollBehavior: 'smooth' }}>
       {/* Progress */}
       <div className="mb-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.15em] mb-3" style={{ color: 'rgba(255,255,255,0.55)' }}>
@@ -149,17 +149,19 @@ export default function VisitWidget({ propertyId, propertyTitle }: Props) {
           </div>
 
           {/* Continue */}
-          <button
-            onClick={() => canContinue && setStep(2)}
-            disabled={!canContinue}
-            className={`w-full py-3 rounded-full font-bold text-sm transition-all flex items-center justify-center gap-1.5 ${
-              canContinue
-                ? 'bg-white text-[#1A5C38] hover:bg-white/90'
-                : 'bg-white text-[#1A5C38] opacity-[0.35] cursor-not-allowed'
-            }`}
-          >
-            Continuar <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="sticky bottom-0 pt-3 bg-[#1A5C38] mt-auto">
+            <button
+              onClick={() => canContinue && setStep(2)}
+              disabled={!canContinue}
+              className={`w-full py-3 rounded-full font-bold text-sm transition-all flex items-center justify-center gap-1.5 ${
+                canContinue
+                  ? 'bg-white text-[#1A5C38] hover:bg-white/90'
+                  : 'bg-white text-[#1A5C38] opacity-[0.35] cursor-not-allowed'
+              }`}
+            >
+              Continuar <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 

@@ -526,11 +526,17 @@ export default async function PropertyPage({ params }: Props) {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 mb-5">
                   <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
                   <span className="text-[13px] text-gray-500">
                     {property.real_address || property.address}{location ? `, ${location}` : ''}
                   </span>
+                </div>
+
+                {/* Price */}
+                <div>
+                  <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
+                  <span className="text-[32px] font-extrabold text-[#111] font-numeric leading-none">{price}</span>
                 </div>
               </div>
 
@@ -710,12 +716,6 @@ export default async function PropertyPage({ params }: Props) {
               <div className="sticky top-24 space-y-4">
                 {/* Main card */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  {/* Price */}
-                  <div className="mb-5">
-                    <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
-                    <span className="text-3xl font-black text-gray-900 font-numeric">{price}</span>
-                  </div>
-
                   {/* WhatsApp button */}
                   <a
                     href={whatsappUrl}
