@@ -286,11 +286,6 @@ export default async function PropertyPage({ params }: Props) {
               sizes="100vw"
               priority
             />
-            {photos.length > 1 && (
-              <span className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full">
-                1 / {photos.length}
-              </span>
-            )}
             {/* Back button */}
             <Link
               href="/propiedades"
@@ -490,28 +485,53 @@ export default async function PropertyPage({ params }: Props) {
           </div>
         </div>
 
+        {/* Full-width hero image */}
+        {mainPhoto ? (
+          <div className="relative w-full h-[70vh]">
+            <Image
+              src={mainPhoto}
+              alt={property.publication_title || property.address}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          </div>
+        ) : (
+          <div className="w-full h-[40vh] flex items-center justify-center bg-gray-200">
+            <span className="text-gray-400">Sin fotos disponibles</span>
+          </div>
+        )}
+
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
           <div className="flex gap-10">
-            {/* ── LEFT COLUMN (65%) ── */}
+            {/* ── LEFT COLUMN (2/3) ── */}
             <div className="flex-1 min-w-0 space-y-6">
-              {/* Hero image */}
-              {mainPhoto && (
-                <div className="relative w-full h-[480px] rounded-2xl overflow-hidden">
-                  <Image
-                    src={mainPhoto}
-                    alt={property.publication_title || property.address}
-                    fill
-                    className="object-cover"
-                    sizes="65vw"
-                    priority
-                  />
-                  {photos.length > 1 && (
-                    <span className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full">
-                      1 / {photos.length}
+              {/* Title + badges + location */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h1 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight mb-3">
+                  {property.publication_title || property.address}
+                </h1>
+                <div className="flex gap-2 mb-3">
+                  {operation && (
+                    <span className="px-3 py-1 bg-[#1A5C38] text-white text-[11px] font-bold rounded-full uppercase tracking-wide">
+                      {operation}
+                    </span>
+                  )}
+                  {propType && (
+                    <span className="px-3 py-1 bg-[#e8f5ee] text-[#1A5C38] text-[11px] font-bold rounded-full uppercase tracking-wide">
+                      {propType}
                     </span>
                   )}
                 </div>
-              )}
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
+                  <span className="text-[13px] text-gray-500">
+                    {property.real_address || property.address}{location ? `, ${location}` : ''}
+                  </span>
+                </div>
+              </div>
 
               {/* Photo gallery */}
               {photos.length > 1 && (
@@ -686,38 +706,11 @@ export default async function PropertyPage({ params }: Props) {
               )}
             </div>
 
-            {/* ── RIGHT COLUMN (35%) sticky ── */}
+            {/* ── RIGHT COLUMN (1/3) sticky ── */}
             <div className="w-[380px] shrink-0">
               <div className="sticky top-24 space-y-4">
                 {/* Main card */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  {/* Badges */}
-                  <div className="flex gap-2 mb-3">
-                    {operation && (
-                      <span className="px-3 py-1 bg-[#1A5C38] text-white text-[11px] font-bold rounded-full uppercase tracking-wide">
-                        {operation}
-                      </span>
-                    )}
-                    {propType && (
-                      <span className="px-3 py-1 bg-[#e8f5ee] text-[#1A5C38] text-[11px] font-bold rounded-full uppercase tracking-wide">
-                        {propType}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <h1 className="text-xl font-bold text-gray-900 leading-[1.3] mb-2">
-                    {property.publication_title || property.address}
-                  </h1>
-
-                  {/* Location */}
-                  <div className="flex items-center gap-1.5 mb-4">
-                    <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
-                    <span className="text-[13px] text-gray-500">
-                      {property.real_address || property.address}{location ? `, ${location}` : ''}
-                    </span>
-                  </div>
-
                   {/* Price */}
                   <div className="mb-5">
                     <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
