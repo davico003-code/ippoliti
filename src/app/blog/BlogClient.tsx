@@ -65,13 +65,19 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
           <Link href={`/blog/${featured.slug}`} className="group block mb-14">
             <article className="grid grid-cols-1 lg:grid-cols-5 gap-0 rounded-2xl overflow-hidden border border-[#f0f0f0] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-all">
               {/* Imagen */}
-              <div className="lg:col-span-3 relative h-64 lg:h-[420px] overflow-hidden bg-gray-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={featured.image}
-                  alt={featured.title}
-                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                />
+              <div className="lg:col-span-3 relative h-64 lg:h-[420px] overflow-hidden">
+                {featured.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={featured.image}
+                    alt={featured.title}
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#1A5C38] to-[#0f3d26] flex items-center justify-center p-8">
+                    <span className="text-white/80 text-2xl font-bold text-center leading-tight">{featured.title}</span>
+                  </div>
+                )}
               </div>
               {/* Contenido */}
               <div className="lg:col-span-2 flex flex-col justify-center p-6 lg:p-10">
@@ -102,13 +108,19 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
                   className="h-full flex flex-col rounded-2xl overflow-hidden border border-[#f0f0f0] transition-all duration-200 hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] hover:-translate-y-0.5"
                 >
                   {/* Imagen */}
-                  <div className="relative h-[200px] overflow-hidden bg-gray-100">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={post.image}
-                      alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                    />
+                  <div className="relative h-[200px] overflow-hidden">
+                    {post.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#1A5C38] to-[#0f3d26] flex items-center justify-center p-5">
+                        <span className="text-white/80 text-base font-semibold text-center leading-tight line-clamp-3">{post.title}</span>
+                      </div>
+                    )}
                   </div>
                   {/* Contenido */}
                   <div className="flex flex-col flex-1 p-5">

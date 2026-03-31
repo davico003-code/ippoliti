@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Calendar, ArrowLeft, ExternalLink, MessageCircle, User } from 'lucide-react'
+import { Calendar, ArrowLeft, ExternalLink, User } from 'lucide-react'
 import { getAllPosts, getPostBySlug } from '@/lib/blog'
 
 interface Props {
@@ -30,6 +29,71 @@ export function generateMetadata({ params }: Props): Metadata {
   }
 }
 
+/* Pexels image map — same as blog/page.tsx */
+const PEXELS_IMAGES: Record<string, number> = {
+  'costo-construccion-argentina-precio-propiedades': 3862132,
+  'composicion-precio-m2-pozo-emprendimientos': 1396122,
+  'red-flags-emprendimientos-inmobiliarios-pozo': 1370704,
+  'inmobiliarias-roldan-como-elegir-la-mejor': 106399,
+  'desarrollo-costo-vs-precio-cerrado-compradores': 3184292,
+  'arquitectos-roldan-cuando-necesitas-uno-para-tu-propiedad': 1109541,
+  'mano-obra-construccion-precio-propiedades-funes': 159358,
+  'escribanos-roldan-rol-en-compra-venta-propiedad': 95916,
+  'como-evaluar-desarrolladora-antes-invertir': 3184292,
+  'constructoras-roldan-funes-construir-casa-2025': 2219024,
+  'invertir-pozo-funes-2025-analisis': 1115804,
+  'colegios-roldan-funes-guia-familias-que-se-mudan': 764681,
+  'financiacion-largo-plazo-emprendimientos-2026': 5699823,
+  'que-aspectos-aumentan-valor-lote-funes-roldan': 259588,
+  'supermercados-comercios-roldan-vivir-sin-auto': 1005638,
+  'acopio-materiales-canje-m2-compradores': 3760529,
+  'transporte-colectivo-roldan-rosario-opciones': 1178448,
+  'precio-m2-funes-roldan-perspectiva-2026': 323780,
+  'salud-medicos-clinicas-roldan-lo-que-tenes-que-saber': 40568,
+  'bancos-cajeros-roldan-servicios-financieros': 50987,
+  'restaurantes-gastronomia-roldan-para-vivir-y-disfrutar': 1640777,
+  'mercado-inmobiliario-2025-que-esta-pasando': 1546168,
+  'seguridad-privada-barrios-cerrados-roldan-funes': 280229,
+  'gimnasios-deportes-roldan-calidad-de-vida': 260447,
+  'piletas-construccion-mantenimiento-roldan-funes': 261102,
+  'paneles-solares-roldan-funes-conviene-2025': 2800832,
+  'mudarse-roldan-desde-rosario-guia-completa-2025': 1115804,
+  'funes-roldan-nuevo-eje-crecimiento-inmobiliario-gran-rosario': 1396122,
+  'cuanto-deberia-rendir-inversion-inmobiliaria-dolares': 5699823,
+  'comprar-casa-funes-roldan': 106399,
+  'comprar-con-escritura-inmediata-inversion-segura': 95916,
+  'como-detectar-loteo-confiable-funes-roldan': 259588,
+  'barrios-cerrados-vs-abiertos-cual-conviene': 280229,
+  'creditos-hipotecarios-argentina-que-tener-en-cuenta': 50987,
+  'como-fijar-precio-venta-propiedad-sin-perder-dinero': 1370704,
+  'inmobiliarias-en-roldan': 106399,
+  '5-errores-comunes-comprar-inmueble-primera-vez': 3184292,
+  'invertir-en-pozo-funes-ventajas-riesgos': 1115804,
+  'corredor-funes-roldan-historia-crecimiento-proyeccion': 1396122,
+  'inmobiliarias-en-funes': 106399,
+  'que-es-cac-como-afecta-valor-propiedades-pesos': 5699823,
+  'valor-m2-funes-roldan-analisis-por-barrio-tipologia': 323780,
+  'como-preparar-propiedad-vender-rapido-mejor-precio': 2219024,
+  'alquilar-o-comprar-2025-analisis-zona-oeste-rosario': 1370704,
+  'por-que-roldan-nueva-apuesta-desarrolladores-inmobiliarios': 1396122,
+  'financiacion-dolares-cuotas-fijas-vs-hipoteca': 50987,
+  'donacion-herencia-compraventa-transferir-propiedad-argentina': 95916,
+  'guia-completa-invertir-lotes-santa-fe': 259588,
+  'por-que-si-inmobiliaria-43-anos-historia-familiar-roldan': 106399,
+  'mercado-inmobiliario-roldan-como-saber-propiedad-bien-valuada': 323780,
+  'si-inmobiliaria-abre-funes-galeria-arte': 1640777,
+  'de-susana-ippoliti-a-si-inmobiliaria-cambio-dice-si-futuro': 106399,
+}
+
+function resolveImage(slug: string, originalImage: string): string | null {
+  if (PEXELS_IMAGES[slug]) {
+    const id = PEXELS_IMAGES[slug]
+    return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=800`
+  }
+  if (originalImage.startsWith('http')) return originalImage
+  return null
+}
+
 export default function BlogPostPage({ params }: Props) {
   const post = getPostBySlug(params.slug)
 
@@ -37,8 +101,8 @@ export default function BlogPostPage({ params }: Props) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
         <h1 className="text-3xl font-black text-gray-900 mb-4">Artículo no encontrado</h1>
-        <Link href="/blog" className="text-brand-600 font-semibold hover:text-brand-700">
-          ← Volver al blog
+        <Link href="/blog" className="text-[#1A5C38] font-semibold hover:underline">
+          &larr; Volver al blog
         </Link>
       </div>
     )
@@ -51,6 +115,7 @@ export default function BlogPostPage({ params }: Props) {
     .slice(0, 3)
 
   const authorName = post.author || 'SI Inmobiliaria'
+  const heroImage = resolveImage(post.slug, post.image)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -58,7 +123,7 @@ export default function BlogPostPage({ params }: Props) {
     headline: post.title,
     description: post.summary,
     datePublished: post.date,
-    ...(post.image.startsWith('http') ? { image: [post.image] } : {}),
+    ...(heroImage ? { image: [heroImage] } : {}),
     author: {
       '@type': post.author ? 'Person' : 'Organization',
       name: authorName,
@@ -67,14 +132,10 @@ export default function BlogPostPage({ params }: Props) {
     publisher: {
       '@type': 'Organization',
       name: 'SI Inmobiliaria',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://www.inmobiliariaippoliti.com/logo.png',
-      },
+      logo: { '@type': 'ImageObject', url: 'https://siinmobiliaria.com/logo.png' },
     },
   }
 
-  // Split content into paragraphs
   const paragraphs = post.content.split('\n\n').filter(p => p.trim())
 
   return (
@@ -84,17 +145,13 @@ export default function BlogPostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Hero image */}
-      {post.image.startsWith('http') && (
-        <div className="relative w-full h-[40vh] md:h-[50vh]">
-          <Image
-            src={post.image}
-            alt={post.title}
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-900/90 via-brand-900/40 to-brand-900/20" />
+      {/* ── HERO ── */}
+      {heroImage ? (
+        <div
+          className="relative w-full h-[50vh] md:h-[60vh] bg-cover bg-center"
+          style={{ backgroundImage: `url('${heroImage}')` }}
+        >
+          <div className="absolute inset-0 bg-black/50" />
           <div className="absolute bottom-0 left-0 right-0 px-4 pb-10 md:pb-14">
             <div className="max-w-3xl mx-auto">
               <Link
@@ -109,6 +166,11 @@ export default function BlogPostPage({ params }: Props) {
                   <Calendar className="w-4 h-4" />
                   {post.dateDisplay}
                 </span>
+                {post.category && (
+                  <span className="px-3 py-1 bg-white/15 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
+                    {post.category}
+                  </span>
+                )}
               </div>
               <h1 className="text-3xl md:text-5xl font-black leading-tight text-white drop-shadow-md">
                 {post.title}
@@ -116,40 +178,43 @@ export default function BlogPostPage({ params }: Props) {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Fallback header (no image) */}
-      {!post.image.startsWith('http') && (
-        <section className="bg-brand-600 text-white py-16 md:py-24 px-4">
-          <div className="max-w-3xl mx-auto">
-            <Link
-              href="/blog"
-              className="inline-flex items-center gap-1.5 text-brand-200 hover:text-white text-sm font-medium transition-colors mb-8"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Volver al blog
-            </Link>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center gap-1.5 text-sm text-brand-200">
-                <Calendar className="w-4 h-4" />
-                {post.dateDisplay}
-              </span>
+      ) : (
+        <div className="relative w-full h-[50vh] md:h-[60vh] bg-gradient-to-br from-[#1A5C38] to-[#0f3d26]">
+          <div className="absolute bottom-0 left-0 right-0 px-4 pb-10 md:pb-14">
+            <div className="max-w-3xl mx-auto">
+              <Link
+                href="/blog"
+                className="inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-medium transition-colors mb-6"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Volver al blog
+              </Link>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="flex items-center gap-1.5 text-sm text-white/70">
+                  <Calendar className="w-4 h-4" />
+                  {post.dateDisplay}
+                </span>
+                {post.category && (
+                  <span className="px-3 py-1 bg-white/15 text-white text-xs font-semibold rounded-full">
+                    {post.category}
+                  </span>
+                )}
+              </div>
+              <h1 className="text-3xl md:text-5xl font-black leading-tight text-white">
+                {post.title}
+              </h1>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black leading-tight mb-4">
-              {post.title}
-            </h1>
-            <p className="text-brand-100 text-lg leading-relaxed">{post.summary}</p>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Article body */}
+      {/* ── ARTICLE BODY ── */}
       <article className="py-12 md:py-16 px-4">
         <div className="max-w-3xl mx-auto">
           {/* Author + source */}
           <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-6 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-[#1A5C38] flex items-center justify-center flex-shrink-0">
                 <User className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -163,12 +228,9 @@ export default function BlogPostPage({ params }: Props) {
                 Fuente: <span className="font-semibold text-gray-600">{post.source}</span>
               </div>
             )}
-            {post.category && (
-              <span className="px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-full">{post.category}</span>
-            )}
           </div>
 
-          {/* Content — lines ending in ? rendered as H2 subheadings */}
+          {/* Content */}
           <div className="space-y-6">
             {paragraphs.map((paragraph, i) => {
               const isHeading = /^[A-ZÁÉÍÓÚÑ¿¡]/.test(paragraph) && (paragraph.endsWith('?') || (paragraph.length < 80 && !paragraph.includes('.')))
@@ -183,35 +245,27 @@ export default function BlogPostPage({ params }: Props) {
             })}
           </div>
 
-          {/* Footer CTA */}
-          <div className="mt-16 pt-8 border-t border-gray-100">
-            <div className="bg-brand-50 rounded-2xl p-8 text-center">
-              <h3 className="text-xl font-black text-gray-900 mb-3">
-                ¿Buscás comprar, vender o alquilar?
+          {/* ── CTA — Apple style ── */}
+          <div className="mt-16 -mx-4 md:-mx-16 lg:-mx-24">
+            <div className="bg-[#111] rounded-3xl px-8 py-16 md:py-20 text-center">
+              <h3 className="text-3xl md:text-4xl font-light text-white leading-tight mb-4 max-w-xl mx-auto">
+                La mejor decisión comienza con la mejor asesoría.
               </h3>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Con más de 40 años de experiencia en Roldán y Funes, te acompañamos en cada
-                paso.
+              <p className="text-gray-400 text-base mb-10 max-w-md mx-auto">
+                Más de 40 años acompañando familias en Roldán y Funes. Hablemos sobre tu proyecto.
               </p>
-              <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
                   href="https://wa.me/5493412101694?text=Hola!%20Quiero%20consultar%20por%20una%20propiedad"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="px-8 py-3.5 bg-white text-black font-semibold rounded-full hover:bg-gray-100 transition-colors text-center"
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  Consultar por WhatsApp
+                  Consultanos
                 </a>
                 <Link
-                  href="/tasaciones"
-                  className="flex-1 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-colors text-center"
-                >
-                  Solicitá tu tasación en 24hs
-                </Link>
-                <Link
                   href="/propiedades"
-                  className="flex-1 px-6 py-3 border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-bold rounded-lg transition-colors text-center"
+                  className="px-8 py-3.5 border border-gray-600 text-white font-semibold rounded-full hover:border-gray-400 transition-colors text-center"
                 >
                   Ver propiedades
                 </Link>
@@ -219,22 +273,34 @@ export default function BlogPostPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Related articles */}
+          {/* ── ARTÍCULOS RELACIONADOS ── */}
           {related.length > 0 && (
             <div className="mt-16 pt-8 border-t border-gray-100">
               <h3 className="text-xl font-black text-gray-900 mb-6">Artículos relacionados</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {related.map(r => (
-                  <Link key={r.slug} href={`/blog/${r.slug}`} className="group block">
-                    {r.image.startsWith('http') && (
-                      <div className="relative h-36 rounded-xl overflow-hidden mb-3 bg-gray-100">
-                        <Image src={r.image} alt={r.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="33vw" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {related.map(r => {
+                  const rImage = resolveImage(r.slug, r.image)
+                  return (
+                    <Link key={r.slug} href={`/blog/${r.slug}`} className="group block">
+                      <div className="relative aspect-video rounded-xl overflow-hidden mb-3 transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.02]">
+                        {rImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={rImage} alt={r.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-[#1A5C38] to-[#0f3d26] flex items-center justify-center p-4">
+                            <span className="text-white/80 text-sm font-semibold text-center leading-tight line-clamp-3">
+                              {r.title}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    <h4 className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-brand-600 transition-colors leading-tight">{r.title}</h4>
-                    <p className="text-xs text-gray-400 mt-1">{r.dateDisplay}</p>
-                  </Link>
-                ))}
+                      <h4 className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-[#1A5C38] transition-colors leading-tight">
+                        {r.title}
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-1">{r.dateDisplay}</p>
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -243,7 +309,7 @@ export default function BlogPostPage({ params }: Props) {
           <div className="mt-10">
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-bold transition-colors"
+              className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#0F3A23] font-bold transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Volver al blog
