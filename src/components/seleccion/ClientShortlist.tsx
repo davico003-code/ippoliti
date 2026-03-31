@@ -283,12 +283,14 @@ export default function ClientShortlist({
                         onClick={() => patchReaction(prop.id, { liked: r.liked === true ? null : true })}
                         className={btn}
                         style={{
-                          padding: '11px 16px',
+                          padding: '10px 0',
                           borderRadius: '12px',
-                          background: r.liked === true ? '#e8f5ee' : '#F2F2F7',
+                          background: r.liked === true ? '#e8f5ee' : 'white',
                           color: r.liked === true ? '#1A5C38' : '#6E6E73',
-                          border: r.liked === true ? '1.5px solid #1A5C38' : '1.5px solid transparent',
+                          border: r.liked === true ? '2px solid #1A5C38' : '1.5px solid #e0e0e0',
                         }}
+                        onMouseEnter={e => { if (r.liked !== true) { e.currentTarget.style.background = '#f0faf4'; e.currentTarget.style.borderColor = '#1A5C38'; e.currentTarget.style.color = '#1A5C38' } }}
+                        onMouseLeave={e => { if (r.liked !== true) { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.color = '#6E6E73' } }}
                       >
                         <BtnHeart filled={r.liked === true} /> Me gusta
                       </button>
@@ -296,12 +298,14 @@ export default function ClientShortlist({
                         onClick={() => patchReaction(prop.id, { liked: r.liked === false ? null : false })}
                         className={btn}
                         style={{
-                          padding: '11px 16px',
+                          padding: '10px 0',
                           borderRadius: '12px',
-                          background: r.liked === false ? '#fff0f0' : '#F2F2F7',
+                          background: r.liked === false ? '#fff0f0' : 'white',
                           color: r.liked === false ? '#FF3B30' : '#6E6E73',
-                          border: r.liked === false ? '1.5px solid #FF3B30' : '1.5px solid transparent',
+                          border: r.liked === false ? '2px solid #FF3B30' : '1.5px solid #e0e0e0',
                         }}
+                        onMouseEnter={e => { if (r.liked !== false) { e.currentTarget.style.background = '#fff5f5'; e.currentTarget.style.borderColor = '#FF3B30'; e.currentTarget.style.color = '#FF3B30' } }}
+                        onMouseLeave={e => { if (r.liked !== false) { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.color = '#6E6E73' } }}
                       >
                         <BtnX /> No me gusta
                       </button>
@@ -369,6 +373,59 @@ export default function ClientShortlist({
             )
           })}
         </div>
+
+        {/* ── Summary section ── */}
+        {hasReactions && (() => {
+          const likedProps = session.properties.filter(p => reactions[p.id]?.liked === true)
+          const visitProps = session.properties.filter(p => reactions[p.id]?.wantVisit)
+          const getLabel = (p: Property) => propInfo[p.id]?.info?.title || parsePropertyLabel(p.url)
+          const summaryMsg = encodeURIComponent(
+            `Hola ${agentName}! Ya revisé todas las propiedades.\nMe gustaron: ${likedProps.length ? likedProps.map(getLabel).join(', ') : 'ninguna aún'}.\nQuiero visitar: ${visitProps.length ? visitProps.map(getLabel).join(', ') : 'a confirmar'}.\nEsperando tu contacto!`
+          )
+          return (
+            <div className="mt-5 bg-white rounded-[20px] p-6" style={{ border: '2px solid #1A5C38' }}>
+              <h3 className="text-[18px] font-bold text-[#1C1C1E] mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>Tu resumen</h3>
+
+              {likedProps.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[14px] font-semibold text-[#1A5C38] flex items-center gap-1.5 mb-1.5">
+                    <BtnHeart filled /> Te gustaron ({likedProps.length}):
+                  </p>
+                  <ul className="pl-4 space-y-0.5">
+                    {likedProps.map(p => (
+                      <li key={p.id} className="text-[14px] text-[#1C1C1E] before:content-['·'] before:mr-2 before:text-[#1A5C38] before:font-bold">
+                        {getLabel(p)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {visitProps.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[14px] font-semibold text-[#1A5C38] flex items-center gap-1.5 mb-1.5">
+                    <BtnCal /> Querés visitar ({visitProps.length}):
+                  </p>
+                  <ul className="pl-4 space-y-0.5">
+                    {visitProps.map(p => (
+                      <li key={p.id} className="text-[14px] text-[#1C1C1E] before:content-['·'] before:mr-2 before:text-[#1A5C38] before:font-bold">
+                        {getLabel(p)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <a
+                href={`https://wa.me/5493412101694?text=${summaryMsg}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#25D366] hover:bg-[#1ea952] text-white text-[15px] font-bold rounded-xl transition-colors"
+              >
+                <IcWA /> Enviar resumen por WhatsApp
+              </a>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Bottom bar */}

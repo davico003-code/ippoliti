@@ -152,8 +152,21 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
             </select>
           </div>
 
-          <textarea placeholder="Nota para el cliente (opcional)" value={formData.note} onChange={e => setFormData(d => ({ ...d, note: e.target.value }))}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38] resize-none" rows={2} />
+          <div>
+            <button
+              type="button"
+              onClick={() => {
+                const name = formData.clientName.trim() || '{{nombre}}'
+                setFormData(d => ({ ...d, note: `Hola ${name}! 😊 Te preparé una selección de propiedades pensando en lo que me contaste.\nEntrá al link, mirá las fotos y avisame cuáles te gustan o cuáles querés visitar — con un solo click.\n¡Cualquier consulta estoy acá!` }))
+              }}
+              className="mb-2 text-[12px] font-semibold px-3.5 py-1.5 rounded-lg cursor-pointer"
+              style={{ background: 'rgba(26,92,56,0.08)', color: '#1A5C38', border: '1px dashed #1A5C38' }}
+            >
+              Usar mensaje sugerido
+            </button>
+            <textarea placeholder="Mensaje al cliente (opcional)" value={formData.note} onChange={e => setFormData(d => ({ ...d, note: e.target.value }))}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38] resize-none" rows={3} />
+          </div>
 
           <div className="space-y-3">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Propiedades</p>
