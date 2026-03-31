@@ -533,6 +533,18 @@ export default async function PropertyPage({ params }: Props) {
                 </div>
               </div>
 
+              {/* Características (icon specs) */}
+              {specs.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">Características</h2>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                    {specs.map((s, i) => (
+                      <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Photo gallery */}
               {photos.length > 1 && (
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -559,97 +571,83 @@ export default async function PropertyPage({ params }: Props) {
                 </div>
               )}
 
-              {/* Characteristics */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Características</h2>
-
-                {/* Icon specs */}
-                {specs.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-6">
-                    {specs.map((s, i) => (
-                      <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />
-                    ))}
+              {/* Superficies */}
+              {(roofedArea || parseFloat(property.semiroofed_surface) > 0 || parseFloat(property.total_surface) > 0 || parseFloat(property.surface) > 0) && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">Superficies</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
+                    {parseFloat(property.surface) > 0 && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Terreno</span>
+                        <span className="font-semibold font-numeric">{parseFloat(property.surface)} m²</span>
+                      </div>
+                    )}
+                    {roofedArea != null && roofedArea > 0 && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Cubierta</span>
+                        <span className="font-semibold font-numeric">{roofedArea} m²</span>
+                      </div>
+                    )}
+                    {parseFloat(property.semiroofed_surface) > 0 && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Semicubierta</span>
+                        <span className="font-semibold font-numeric">{parseFloat(property.semiroofed_surface)} m²</span>
+                      </div>
+                    )}
+                    {parseFloat(property.total_surface) > 0 && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Total construido</span>
+                        <span className="font-semibold font-numeric">{parseFloat(property.total_surface)} m²</span>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Surfaces */}
-                {(roofedArea || parseFloat(property.semiroofed_surface) > 0 || parseFloat(property.total_surface) > 0 || parseFloat(property.surface) > 0) && (
-                  <>
-                    <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Superficies</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm mb-6">
-                      {parseFloat(property.surface) > 0 && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Terreno</span>
-                          <span className="font-semibold font-numeric">{parseFloat(property.surface)} m²</span>
-                        </div>
-                      )}
-                      {roofedArea != null && roofedArea > 0 && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Cubierta</span>
-                          <span className="font-semibold font-numeric">{roofedArea} m²</span>
-                        </div>
-                      )}
-                      {parseFloat(property.semiroofed_surface) > 0 && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Semicubierta</span>
-                          <span className="font-semibold font-numeric">{parseFloat(property.semiroofed_surface)} m²</span>
-                        </div>
-                      )}
-                      {parseFloat(property.total_surface) > 0 && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Total construido</span>
-                          <span className="font-semibold font-numeric">{parseFloat(property.total_surface)} m²</span>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-
-                {/* Details */}
-                {(property.age != null || translateCondition(property.property_condition) || translateOrientation(property.orientation) || property.suite_amount > 0 || property.floors_amount > 0 || translateDisposition(property.disposition)) && (
-                  <>
-                    <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Detalles</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
-                      {property.age != null && property.age >= 0 && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Antigüedad</span>
-                          <span className="font-semibold font-numeric">{property.age === 0 ? 'A estrenar' : `${property.age} años`}</span>
-                        </div>
-                      )}
-                      {translateCondition(property.property_condition) && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Estado</span>
-                          <span className="font-semibold">{translateCondition(property.property_condition)}</span>
-                        </div>
-                      )}
-                      {translateOrientation(property.orientation) && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Orientación</span>
-                          <span className="font-semibold">{translateOrientation(property.orientation)}</span>
-                        </div>
-                      )}
-                      {property.suite_amount > 0 && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Suites</span>
-                          <span className="font-semibold font-numeric">{property.suite_amount}</span>
-                        </div>
-                      )}
-                      {property.floors_amount > 0 && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Plantas</span>
-                          <span className="font-semibold font-numeric">{property.floors_amount}</span>
-                        </div>
-                      )}
-                      {translateDisposition(property.disposition) && (
-                        <div className="flex justify-between border-b border-gray-100 pb-2">
-                          <span className="text-gray-500">Disposición</span>
-                          <span className="font-semibold">{translateDisposition(property.disposition)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+              {/* Detalles */}
+              {(property.age != null || translateCondition(property.property_condition) || translateOrientation(property.orientation) || property.suite_amount > 0 || property.floors_amount > 0 || translateDisposition(property.disposition)) && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">Detalles</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
+                    {property.age != null && property.age >= 0 && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Antigüedad</span>
+                        <span className="font-semibold font-numeric">{property.age === 0 ? 'A estrenar' : `${property.age} años`}</span>
+                      </div>
+                    )}
+                    {translateCondition(property.property_condition) && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Estado</span>
+                        <span className="font-semibold">{translateCondition(property.property_condition)}</span>
+                      </div>
+                    )}
+                    {translateOrientation(property.orientation) && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Orientación</span>
+                        <span className="font-semibold">{translateOrientation(property.orientation)}</span>
+                      </div>
+                    )}
+                    {property.suite_amount > 0 && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Suites</span>
+                        <span className="font-semibold font-numeric">{property.suite_amount}</span>
+                      </div>
+                    )}
+                    {property.floors_amount > 0 && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Plantas</span>
+                        <span className="font-semibold font-numeric">{property.floors_amount}</span>
+                      </div>
+                    )}
+                    {translateDisposition(property.disposition) && (
+                      <div className="flex justify-between border-b border-gray-100 pb-2">
+                        <span className="text-gray-500">Disposición</span>
+                        <span className="font-semibold">{translateDisposition(property.disposition)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Tags */}
               {property.tags && property.tags.length > 0 && (
@@ -716,15 +714,6 @@ export default async function PropertyPage({ params }: Props) {
                     <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
                     <span className="text-3xl font-black text-gray-900 font-numeric">{price}</span>
                   </div>
-
-                  {/* Specs 2x2 */}
-                  {specs.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 mb-5">
-                      {specs.slice(0, 4).map((s, i) => (
-                        <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />
-                      ))}
-                    </div>
-                  )}
 
                   {/* WhatsApp button */}
                   <a
