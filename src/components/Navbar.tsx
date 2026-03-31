@@ -50,7 +50,7 @@ export default function Navbar() {
             <Link href="/informes" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors">
               Informes
             </Link>
-            <a href="/school" className="bg-[#1A5C38] text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-[#0f3d25] transition-colors">
+            <a href="/agentes/login" className="bg-[#1A5C38] text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-[#0f3d25] transition-colors">
               Acceder
             </a>
           </div>
@@ -118,7 +118,7 @@ export default function Navbar() {
                 Informes
               </Link>
               <a
-                href="/school"
+                href="/agentes/login"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center justify-center bg-[#1A5C38] text-white text-sm font-semibold px-4 py-2.5 rounded-full hover:bg-[#0f3d25] transition-colors mt-2"
               >

@@ -8,7 +8,7 @@ const COOKIE_NAME = 'si_agent_token'
 export async function createAgentToken(agent: Agent): Promise<string> {
   return new SignJWT({ id: agent.id, username: agent.username, name: agent.name, role: agent.role })
     .setProtectedHeader({ alg: 'HS256' })
-    .setExpirationTime('7d')
+    .setExpirationTime('30d')
     .sign(SECRET)
 }
 
