@@ -183,6 +183,9 @@ export default async function DevelopmentPage({ params }: Props) {
               </div>
             </div>
 
+            {/* Units section — before description */}
+            <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} />
+
             {/* Description */}
             {paragraphs.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -314,9 +317,6 @@ export default async function DevelopmentPage({ params }: Props) {
             </div>
           </div>
         </div>
-
-        {/* Units section */}
-        <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} />
 
         {/* Other developments */}
         {otherDevs.length > 0 && (

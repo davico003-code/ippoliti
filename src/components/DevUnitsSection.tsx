@@ -18,6 +18,31 @@ function getArea(u: DevUnit): number {
   return parseFloat(u.roofed_surface || u.total_surface || u.surface || '0') || 0
 }
 
+const TYPE_MAP: Record<string, string> = {
+  'Apartment': 'Departamento',
+  'House': 'Casa',
+  'Land': 'Terreno',
+  'Bussiness Premises': 'Local comercial',
+  'Business Premises': 'Local comercial',
+  'Garage': 'Cochera',
+  'Office': 'Oficina',
+  'PH': 'PH',
+  'Duplex': 'Dúplex',
+  'Local': 'Local comercial',
+}
+
+function translateType(name: string): string {
+  return TYPE_MAP[name] || name
+}
+
+function getUnitTitle(u: DevUnit): string {
+  // Prefer publication_title or address over reference_code
+  if (u.publication_title && !u.publication_title.match(/^[A-Z]{2,4}\d{5,}/)) return u.publication_title
+  if (u.address && u.address.trim()) return u.address
+  if (u.publication_title) return u.publication_title
+  return translateType(u.type?.name || 'Unidad')
+}
+
 interface Props {
   units: DevUnit[]
   devName: string
@@ -37,7 +62,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) 
     const sorted = Array.from(dormCounts.keys()).sort((a, b) => a - b)
     return sorted.map(d => ({
       value: d,
-      label: d === 0 ? 'Monoambiente' : `${d} Dorm`,
+      label: d === 0 ? 'Monoambiente' : `${d} Dormitorio${d > 1 ? 's' : ''}`,
       count: dormCounts.get(d) || 0,
     }))
   }, [units])
@@ -161,9 +186,9 @@ export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) 
 
               {/* Body */}
               <div className="p-4 flex-1 flex flex-col">
-                <p className="text-xs text-gray-400 mb-0.5">{u.type?.name || 'Unidad'}</p>
+                <p className="text-xs text-gray-400 mb-0.5">{translateType(u.type?.name || 'Unidad')}</p>
                 <p className="text-sm font-bold text-gray-900 mb-2 line-clamp-1">
-                  {u.reference_code || u.publication_title || u.address}
+                  {getUnitTitle(u)}
                 </p>
 
                 {/* Price */}
