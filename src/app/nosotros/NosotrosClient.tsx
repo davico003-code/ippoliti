@@ -122,6 +122,12 @@ function OficinasMapa() {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstance = useRef<unknown>(null)
 
+  const puntos = [
+    { titulo: 'Oficina Histórica', dir: '1ro de Mayo 258, Roldán', lat: -32.89350, lng: -60.90390, maps: 'https://maps.google.com/?q=1ro+de+Mayo+258+Roldan+Santa+Fe' },
+    { titulo: 'Oficina Ventas', dir: 'Catamarca 775, Roldán', lat: -32.89540, lng: -60.90280, maps: 'https://maps.google.com/?q=Catamarca+775+Roldan+Santa+Fe' },
+    { titulo: 'Oficina Funes', dir: 'Hipólito Yrigoyen 2643, Funes', lat: -32.91810, lng: -60.82700, maps: 'https://maps.google.com/?q=Hipolito+Yrigoyen+2643+Funes+Santa+Fe' },
+  ]
+
   useEffect(() => {
     if (mapInstance.current || !mapRef.current) return
 
@@ -136,38 +142,47 @@ function OficinasMapa() {
 
       const map = L.map(mapRef.current!, {
         center: [-32.906, -60.864],
-        zoom: 12,
-        zoomControl: true,
+        zoom: 13,
+        zoomControl: false,
         scrollWheelZoom: false,
+        attributionControl: false,
       })
 
       mapInstance.current = map
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
+      L.control.zoom({ position: 'topright' }).addTo(map)
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
+        subdomains: 'abcd',
       }).addTo(map)
 
-      const greenIcon = L.divIcon({
-        html: `<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#1A5C38;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`,
-        iconSize: [34, 34],
-        iconAnchor: [17, 34],
-        popupAnchor: [0, -36],
-        className: '',
-      })
+      L.control.attribution({ position: 'bottomright', prefix: false })
+        .addAttribution('© <a href="https://carto.com/">CartoDB</a>')
+        .addTo(map)
 
-      oficinas.forEach((o) => {
-        L.marker([o.lat, o.lng], { icon: greenIcon })
+      puntos.forEach((p, idx) => {
+        const isFunes = idx === 2
+        const icon = L.divIcon({
+          html: `<div style="position:relative;width:${isFunes ? 44 : 36}px;height:${isFunes ? 44 : 36}px">
+            <div style="position:absolute;inset:0;background:${isFunes ? '#1A5C38' : '#2D6A4F'};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.25)"></div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:${isFunes ? 13 : 11}px;font-family:Raleway,sans-serif;font-weight:700;padding-bottom:4px">${isFunes ? '★' : idx + 1}</div>
+          </div>`,
+          iconSize: [isFunes ? 44 : 36, isFunes ? 44 : 36],
+          iconAnchor: [isFunes ? 22 : 18, isFunes ? 44 : 36],
+          popupAnchor: [0, isFunes ? -46 : -38],
+          className: '',
+        })
+
+        L.marker([p.lat, p.lng], { icon })
           .addTo(map)
           .bindPopup(
-            `<div style="font-family:Poppins,sans-serif;min-width:160px;padding:4px 0">
-              <p style="font-family:Raleway,sans-serif;font-weight:600;font-size:14px;margin:0 0 4px">${o.titulo}</p>
-              ${o.subtitulo ? `<p style="font-size:11px;color:#888;margin:0 0 4px">${o.subtitulo}</p>` : ''}
-              <p style="font-size:12px;color:#555;margin:0 0 2px">${o.dir}</p>
-              <p style="font-size:12px;color:#555;margin:0 0 8px">${o.horario}</p>
-              <a href="${o.maps}" target="_blank" style="font-size:12px;color:#1A5C38;font-weight:600;text-decoration:none">Ver en Maps →</a>
+            `<div style="font-family:Poppins,sans-serif;min-width:180px;padding:6px 2px">
+              <p style="font-family:Raleway,sans-serif;font-weight:700;font-size:14px;margin:0 0 4px;color:#1A5C38">${p.titulo}</p>
+              <p style="font-size:12px;color:#666;margin:0 0 10px">${p.dir}</p>
+              <a href="${p.maps}" target="_blank" style="font-size:12px;color:white;background:#1A5C38;padding:5px 12px;border-radius:20px;text-decoration:none;font-weight:600">Ver en Maps →</a>
             </div>`,
-            { maxWidth: 220 }
+            { maxWidth: 240, className: 'si-popup' }
           )
       })
     })
@@ -183,6 +198,10 @@ function OficinasMapa() {
   return (
     <>
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossOrigin="" />
+      <style>{`
+        .si-popup .leaflet-popup-content-wrapper { border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.15); border:none; padding:4px }
+        .si-popup .leaflet-popup-tip { display:none }
+      `}</style>
       <div ref={mapRef} className="w-full rounded-2xl overflow-hidden shadow-md" style={{ height: '440px' }} />
     </>
   )
@@ -201,7 +220,7 @@ export default function NosotrosClient() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-16">
           <p className="text-xs uppercase tracking-[0.25em] text-white/70 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Quiénes somos</p>
-          <h1 className="text-4xl md:text-6xl text-white leading-tight mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
+          <h1 className="text-3xl md:text-4xl text-white leading-tight mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}>
             Desde 1983 acompañando<br />cada decisión importante
           </h1>
           <p className="text-lg text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -221,7 +240,7 @@ export default function NosotrosClient() {
               { label: 'Propiedades activas', value: 200, suffix: '+' },
             ].map((stat) => (
               <div key={stat.label}>
-                <p className="text-5xl md:text-6xl mb-2 font-numeric" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200, color: '#1A5C38' }}>
+                <p className="text-4xl md:text-5xl font-semibold mb-2 font-numeric" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600, color: '#1A5C38' }}>
                   <Counter target={stat.value} suffix={stat.suffix} />
                 </p>
                 <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>{stat.label}</p>
