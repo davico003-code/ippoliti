@@ -162,8 +162,10 @@ export interface DevUnit {
   suite_amount: number
   room_amount: number
   bathroom_amount: number
+  parking_lot_amount: number
   operations: { prices: { price: number; currency: string }[] }[]
   reference_code: string
+  photos: { image: string; thumb: string; is_front_cover: boolean; is_blueprint: boolean }[]
 }
 
 export async function getDevUnits(developmentId: number): Promise<DevUnit[]> {
