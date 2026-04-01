@@ -336,7 +336,7 @@ export default function GuiaSection() {
           gap: 16px;
         }
         .gs-book-img {
-          width: 280px;
+          width: 500px;
           height: auto;
           border-radius: 8px;
           transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
@@ -649,7 +649,8 @@ export default function GuiaSection() {
             gap: 64px;
             padding: 0 32px;
           }
-          .gs-right { justify-content: flex-start; }
+          .gs-right { justify-content: center; }
+          .gs-book-img { width: 280px; }
           .gs { padding: 88px 0; }
         }
         @media (max-width: 600px) {
