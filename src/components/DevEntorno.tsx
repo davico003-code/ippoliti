@@ -3,11 +3,15 @@ interface EntornoCategory { title: string; icon: string; items: EntornoItem[] }
 
 const ENTORNO_DATA: Record<string, EntornoCategory[]> = {
   dockgarden: [
-    { title: 'Educación', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="1.8"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/></svg>', items: [
-      { name: 'Colegio Cardenal Newman', dist: '5 min' },
-      { name: 'Colegio San Roque', dist: '7 min' },
-      { name: 'Instituto Inmaculada Concepción', dist: '8 min' },
-      { name: 'Colegio Dante Alighieri', dist: '10 min' },
+    { title: 'Educación privada', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="1.8"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/></svg>', items: [
+      { name: 'Colegio Mirasoles (bilingüe)', dist: '5 min' },
+      { name: 'Colegio Los Arroyos (bilingüe)', dist: '6 min' },
+      { name: 'Instituto Fisherton de Educación Integral', dist: '7 min' },
+      { name: 'Instituto Stella Maris', dist: '8 min' },
+      { name: 'Colegio Biró', dist: '9 min' },
+      { name: 'Colegio Cardenal Newman', dist: '10 min' },
+      { name: 'Colegio San Bartolomé', dist: '12 min' },
+      { name: 'Colegio San Patricio', dist: '12 min' },
     ]},
     { title: 'Salud', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>', items: [
       { name: 'Clínica de Nefrología', dist: '4 min' },
