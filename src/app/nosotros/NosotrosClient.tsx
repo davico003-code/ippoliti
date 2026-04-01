@@ -224,7 +224,7 @@ export default function NosotrosClient() {
             Desde 1983 acompañando<br />cada decisión importante
           </h1>
           <p className="text-lg text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            Susana y David — dos generaciones de confianza en Roldán y Funes
+            Susana, Laura y David — tres generaciones de confianza en Roldán y Funes
           </p>
         </div>
       </section>
