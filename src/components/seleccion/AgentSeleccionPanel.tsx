@@ -15,7 +15,7 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
   const [sessions, setSessions] = useState(initialSessions)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
-    clientName: '', clientPhone: '', agent: 'David', days: 10, note: '',
+    clientName: '', clientPhone: '', agent: 'David Flores', days: 90, note: '',
     properties: [{ id: '', url: '', note: '' }],
   })
   const [createdUrl, setCreatedUrl] = useState('')
@@ -117,7 +117,7 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
             )}
 
             <button
-              onClick={() => { setShowForm(false); setCreatedUrl(''); setFormData({ clientName: '', clientPhone: '', agent: 'David', days: 10, note: '', properties: [{ id: '', url: '', note: '' }] }) }}
+              onClick={() => { setShowForm(false); setCreatedUrl(''); setFormData({ clientName: '', clientPhone: '', agent: 'David Flores', days: 90, note: '', properties: [{ id: '', url: '', note: '' }] }) }}
               className="text-sm text-gray-400 hover:text-gray-600"
             >
               &larr; Volver al panel
@@ -144,11 +144,15 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <select value={formData.agent} onChange={e => setFormData(d => ({ ...d, agent: e.target.value }))}
               className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]">
-              <option>David</option><option>Laura</option><option>Susana</option>
+              <option>David Flores</option><option>Laura Flores</option><option>Susana Ippoliti</option>
+              <option>Aldana Ruiz</option><option>Carolina Echen</option><option>Gino Pecchenino</option>
+              <option>Gisela Ramallo</option><option>Leticia Alexenicer</option><option>Lucia Wilson</option>
+              <option>Maria Jose Espilocin</option><option>Mariana Orlate</option><option>Mauro Matteucci</option>
+              <option>Micaela Gonzalez</option><option>Julian Ruschneider</option>
             </select>
             <select value={formData.days} onChange={e => setFormData(d => ({ ...d, days: Number(e.target.value) }))}
               className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]">
-              <option value={7}>7 días</option><option value={10}>10 días</option><option value={14}>14 días</option><option value={30}>30 días</option>
+              <option value={90}>3 meses</option><option value={180}>6 meses</option><option value={365}>12 meses</option>
             </select>
           </div>
 
