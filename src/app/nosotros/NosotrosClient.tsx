@@ -69,12 +69,18 @@ const direccion = [
   },
 ]
 
+const administracion = [
+  { nombre: 'Marisa Benitez', rol: 'Administración' },
+  { nombre: 'Eliana Rojas', rol: 'Administración' },
+  { nombre: 'Sabrina Riters', rol: 'Administración' },
+  { nombre: 'Leticia Alexenicer', rol: 'Administración' },
+]
+
 const asesores = [
   { nombre: 'Aldana Ruiz', rol: 'Asesora comercial' },
   { nombre: 'Carolina Echen', rol: 'Asesora comercial' },
   { nombre: 'Gino Pecchenino', rol: 'Asesor comercial' },
   { nombre: 'Gisela Ramallo', rol: 'Asesora comercial' },
-  { nombre: 'Leticia Alexenicer', rol: 'Asesora comercial' },
   { nombre: 'Lucia Wilson', rol: 'Asesora comercial' },
   { nombre: 'Maria Jose Espilocin', rol: 'Asesora comercial' },
   { nombre: 'Mariana Orlate', rol: 'Asesora comercial' },
@@ -87,95 +93,104 @@ const soporte = [
 ]
 
 const historia = [
-  {
-    año: '1983',
-    titulo: 'Fundación',
-    desc: 'Susana Ippoliti abre la primera oficina en 1ro de Mayo 258, Roldán. Comienza una historia familiar de confianza y profesionalismo.',
-  },
-  {
-    año: '2015',
-    titulo: 'Segunda oficina en Roldán',
-    desc: 'Apertura de la segunda oficina en Catamarca 775, Roldán. Consolidación como referente inmobiliario en la ciudad.',
-  },
-  {
-    año: '2022',
-    titulo: 'Expansión a Funes',
-    desc: 'Aprobación del Concejo Deliberante de Funes para construir la nueva sede en Hipólito Yrigoyen 2643.',
-  },
-  {
-    año: '2024',
-    titulo: 'Oficina Funes + Galería + Rebranding',
-    desc: 'Inauguración de la oficina en Funes, un espacio único que combina inmobiliaria con galería de arte. Nace SI Inmobiliaria.',
-  },
+  { año: '1983', titulo: 'Fundación', desc: 'Susana Ippoliti abre la primera oficina en 1ro de Mayo 258, Roldán. Comienza una historia familiar de confianza y profesionalismo.' },
+  { año: '2015', titulo: 'Segunda oficina en Roldán', desc: 'Apertura de la segunda oficina en Catamarca 775, Roldán. Consolidación como referente inmobiliario en la ciudad.' },
+  { año: '2022', titulo: 'Expansión a Funes', desc: 'Aprobación del Concejo Deliberante de Funes para construir la nueva sede en Hipólito Yrigoyen 2643.' },
+  { año: '2024', titulo: 'Oficina Funes + Galería + Rebranding', desc: 'Inauguración de la oficina en Funes, un espacio único que combina inmobiliaria con galería de arte. Nace SI Inmobiliaria.' },
 ]
 
 const testimonios = [
-  {
-    texto: 'Vendimos nuestra casa en tiempo récord gracias al equipo de SI. Profesionales de principio a fin.',
-    nombre: 'Familia García',
-    ciudad: 'Roldán',
-  },
-  {
-    texto: 'Encontramos el terreno ideal en Funes con su ayuda. Nos acompañaron en todo el proceso hasta la escritura.',
-    nombre: 'Martín R.',
-    ciudad: 'Funes',
-  },
-  {
-    texto: 'Profesionales, honestos y siempre disponibles. Más de 40 años de experiencia se notan en cada detalle.',
-    nombre: 'Carolina S.',
-    ciudad: 'Fisherton',
-  },
+  { texto: 'Vendimos nuestra casa en tiempo récord gracias al equipo de SI. Profesionales de principio a fin.', nombre: 'Familia García', ciudad: 'Roldán' },
+  { texto: 'Encontramos el terreno ideal en Funes con su ayuda. Nos acompañaron en todo el proceso hasta la escritura.', nombre: 'Martín R.', ciudad: 'Funes' },
+  { texto: 'Profesionales, honestos y siempre disponibles. Más de 40 años de experiencia se notan en cada detalle.', nombre: 'Carolina S.', ciudad: 'Fisherton' },
 ]
 
 const oficinas = [
-  {
-    badge: 'Desde 1983',
-    titulo: 'Oficina Histórica',
-    subtitulo: '',
-    dir: '1ro de Mayo 258, Roldán',
-    tel: '(341) 210-1694',
-    horario: 'Lunes a Viernes 9 a 17hs',
-    maps: 'https://maps.google.com/?q=1ro+de+Mayo+258+Roldan+Santa+Fe',
-    icon: '🏛️',
-    highlight: false,
-  },
-  {
-    badge: 'Desde 2015',
-    titulo: 'Oficina Ventas',
-    subtitulo: '',
-    dir: 'Catamarca 775, Roldán',
-    tel: '(341) 210-1694',
-    horario: 'Lunes a Viernes 9 a 17hs',
-    maps: 'https://maps.google.com/?q=Catamarca+775+Roldan+Santa+Fe',
-    icon: '🏢',
-    highlight: false,
-  },
-  {
-    badge: 'Nuevo 2024',
-    titulo: 'Oficina Funes',
-    subtitulo: 'Inmobiliaria + Galería de Arte',
-    dir: 'Hipólito Yrigoyen 2643, Funes',
-    tel: '(341) 210-1694',
-    horario: 'Lunes a Viernes 9 a 17hs',
-    maps: 'https://maps.google.com/?q=Hipolito+Yrigoyen+2643+Funes+Santa+Fe',
-    icon: '🎨',
-    highlight: true,
-  },
+  { badge: 'Desde 1983', titulo: 'Oficina Histórica', subtitulo: '', dir: '1ro de Mayo 258, Roldán', horario: 'Lunes a Viernes 9 a 17hs', maps: 'https://maps.google.com/?q=1ro+de+Mayo+258+Roldan+Santa+Fe', icon: '🏛️', highlight: false, lat: -32.8935, lng: -60.9016 },
+  { badge: 'Desde 2015', titulo: 'Oficina Ventas', subtitulo: '', dir: 'Catamarca 775, Roldán', horario: 'Lunes a Viernes 9 a 17hs', maps: 'https://maps.google.com/?q=Catamarca+775+Roldan+Santa+Fe', icon: '🏢', highlight: false, lat: -32.8940, lng: -60.9020 },
+  { badge: 'Nuevo 2024', titulo: 'Oficina Funes', subtitulo: 'Inmobiliaria + Galería de Arte', dir: 'Hipólito Yrigoyen 2643, Funes', horario: 'Lunes a Viernes 9 a 17hs', maps: 'https://maps.google.com/?q=Hipolito+Yrigoyen+2643+Funes+Santa+Fe', icon: '🎨', highlight: true, lat: -32.9181, lng: -60.8270 },
 ]
 
 function iniciales(nombre: string) {
   return nombre.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
 }
 
-function WaIcon() {
+/* ─────────────────────────────────────────────
+   MAP COMPONENT (Leaflet, lazy)
+───────────────────────────────────────────── */
+function OficinasMapa() {
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstance = useRef<unknown>(null)
+
+  useEffect(() => {
+    if (mapInstance.current || !mapRef.current) return
+
+    import('leaflet').then((L) => {
+      // @ts-expect-error leaflet icon hack
+      delete L.Icon.Default.prototype._getIconUrl
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      })
+
+      const map = L.map(mapRef.current!, {
+        center: [-32.906, -60.864],
+        zoom: 12,
+        zoomControl: true,
+        scrollWheelZoom: false,
+      })
+
+      mapInstance.current = map
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(map)
+
+      const greenIcon = L.divIcon({
+        html: `<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#1A5C38;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 34],
+        popupAnchor: [0, -36],
+        className: '',
+      })
+
+      oficinas.forEach((o) => {
+        L.marker([o.lat, o.lng], { icon: greenIcon })
+          .addTo(map)
+          .bindPopup(
+            `<div style="font-family:Poppins,sans-serif;min-width:160px;padding:4px 0">
+              <p style="font-family:Raleway,sans-serif;font-weight:600;font-size:14px;margin:0 0 4px">${o.titulo}</p>
+              ${o.subtitulo ? `<p style="font-size:11px;color:#888;margin:0 0 4px">${o.subtitulo}</p>` : ''}
+              <p style="font-size:12px;color:#555;margin:0 0 2px">${o.dir}</p>
+              <p style="font-size:12px;color:#555;margin:0 0 8px">${o.horario}</p>
+              <a href="${o.maps}" target="_blank" style="font-size:12px;color:#1A5C38;font-weight:600;text-decoration:none">Ver en Maps →</a>
+            </div>`,
+            { maxWidth: 220 }
+          )
+      })
+    })
+
+    return () => {
+      if (mapInstance.current) {
+        ;(mapInstance.current as { remove: () => void }).remove()
+        mapInstance.current = null
+      }
+    }
+  }, [])
+
   return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.083.534 4.04 1.47 5.748L0 24l6.444-1.449C8.106 23.49 10.014 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.846 0-3.574-.49-5.063-1.345l-.363-.215-3.826.861.877-3.726-.236-.375C2.54 15.614 2 13.867 2 12 2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
-    </svg>
+    <>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossOrigin="" />
+      <div ref={mapRef} className="w-full rounded-2xl overflow-hidden shadow-md" style={{ height: '440px' }} />
+    </>
   )
 }
 
+/* ─────────────────────────────────────────────
+   PAGE
+───────────────────────────────────────────── */
 export default function NosotrosClient() {
   return (
     <main className="bg-white text-gray-900">
@@ -190,7 +205,7 @@ export default function NosotrosClient() {
             Desde 1983 acompañando<br />cada decisión importante
           </h1>
           <p className="text-lg text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            Susana, David y Laura — tres generaciones de confianza en Roldán y Funes
+            Susana y David — dos generaciones de confianza en Roldán y Funes
           </p>
         </div>
       </section>
@@ -200,10 +215,10 @@ export default function NosotrosClient() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
             {[
-              { label: 'Años en el mercado', value: 42, suffix: '' },
-              { label: 'Operaciones concretadas', value: 3000, suffix: '+' },
+              { label: 'Años en el mercado', value: 43, suffix: '' },
+              { label: 'Operaciones concretadas', value: 1500, suffix: '+' },
               { label: 'Oficinas', value: 3, suffix: '' },
-              { label: 'Propiedades activas', value: 400, suffix: '+' },
+              { label: 'Propiedades activas', value: 200, suffix: '+' },
             ].map((stat) => (
               <div key={stat.label}>
                 <p className="text-5xl md:text-6xl mb-2 font-numeric" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200, color: '#1A5C38' }}>
@@ -250,62 +265,71 @@ export default function NosotrosClient() {
                 </div>
                 <h3 className="text-xl font-semibold mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{p.nombre}</h3>
                 <p className="text-sm mb-4" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>{p.cargo}</p>
-                <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>{p.desc}</p>
-                <a href="https://wa.me/5493412101694" target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium text-white transition-opacity hover:opacity-80"
-                  style={{ fontFamily: 'Poppins, sans-serif', backgroundColor: '#1A5C38' }}>
-                  <WaIcon /> Contactar
-                </a>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>{p.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* EQUIPO DE ASESORES */}
+      {/* EQUIPO COMPLETO */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>El equipo</p>
-            <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestro equipo de asesores</h2>
+            <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestro equipo</h2>
             <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>Profesionales especializados en el mercado de Funes y Roldán</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 mb-16">
+
+          {/* Asesores comerciales */}
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Asesores comerciales</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mb-14">
             {asesores.map((a) => (
-              <a key={a.nombre} href="https://wa.me/5493412101694" target="_blank" rel="noopener noreferrer"
-                className="group bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold group-hover:scale-105 transition-transform"
-                  style={{ backgroundColor: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
+              <div key={a.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
                   {iniciales(a.nombre)}
                 </div>
                 <p className="text-sm font-semibold leading-tight mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{a.nombre}</p>
                 <p className="text-xs text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>{a.rol}</p>
-              </a>
+              </div>
             ))}
           </div>
 
-          <h3 className="text-center text-xs uppercase tracking-[0.2em] text-gray-400 mb-8" style={{ fontFamily: 'Poppins, sans-serif' }}>Equipo de soporte</h3>
-          <div className="flex flex-wrap justify-center gap-5">
+          {/* Administración */}
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Administración</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-14">
+            {administracion.map((a) => (
+              <div key={a.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#2D6A4F', fontFamily: 'Raleway, sans-serif' }}>
+                  {iniciales(a.nombre)}
+                </div>
+                <p className="text-sm font-semibold leading-tight mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{a.nombre}</p>
+                <p className="text-xs text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>{a.rol}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Soporte */}
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Soporte</p>
+          <div className="flex flex-wrap gap-5 mb-14">
             {soporte.map((s) => (
-              <a key={s.nombre} href="https://wa.me/5493412101694" target="_blank" rel="noopener noreferrer"
-                className="group bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1 w-48">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold group-hover:scale-105 transition-transform"
-                  style={{ backgroundColor: '#334155', fontFamily: 'Raleway, sans-serif' }}>
+              <div key={s.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow w-48">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#334155', fontFamily: 'Raleway, sans-serif' }}>
                   {iniciales(s.nombre)}
                 </div>
                 <p className="text-sm font-semibold leading-tight mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{s.nombre}</p>
                 <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500" style={{ fontFamily: 'Poppins, sans-serif' }}>{s.rol}</span>
-              </a>
+              </div>
             ))}
           </div>
 
-          <div className="text-center mt-14">
+          <div className="text-center">
             <p className="text-sm text-gray-400 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>¿Querés ser parte del equipo?</p>
             <a href="https://wa.me/5493412101694?text=Hola%2C%20me%20interesa%20sumarme%20al%20equipo%20de%20SI%20Inmobiliaria"
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium border-2 transition-all hover:text-white hover:bg-[#1A5C38]"
               style={{ fontFamily: 'Poppins, sans-serif', borderColor: '#1A5C38', color: '#1A5C38' }}>
-              <WaIcon /> Escribinos por WhatsApp
+              Escribinos por WhatsApp
             </a>
           </div>
         </div>
@@ -327,8 +351,7 @@ export default function NosotrosClient() {
                     <div className="w-3 h-3 rounded-full ring-4 ring-white z-10" style={{ backgroundColor: '#1A5C38' }} />
                   </div>
                   <div className="bg-gray-50 rounded-2xl p-7 flex-1">
-                    <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 text-white"
-                      style={{ backgroundColor: '#1A5C38', fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 text-white" style={{ backgroundColor: '#1A5C38', fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
                     <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
                     <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
                   </div>
@@ -350,7 +373,7 @@ export default function NosotrosClient() {
           <div className="grid md:grid-cols-3 gap-6">
             {testimonios.map((t, i) => (
               <div key={i} className="bg-white rounded-2xl p-8 shadow-sm flex flex-col">
-                <div className="text-3xl mb-4" style={{ color: '#1A5C38', fontFamily: 'Georgia, serif' }}>&ldquo;</div>
+                <div className="text-4xl mb-4 leading-none" style={{ color: '#1A5C38', fontFamily: 'Georgia, serif' }}>&ldquo;</div>
                 <p className="text-sm text-gray-600 leading-relaxed flex-1 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>{t.texto}</p>
                 <div>
                   <p className="text-sm font-semibold" style={{ fontFamily: 'Raleway, sans-serif' }}>{t.nombre}</p>
@@ -376,38 +399,38 @@ export default function NosotrosClient() {
         </div>
       </section>
 
-      {/* OFICINAS */}
+      {/* OFICINAS + MAPA */}
       <section className="py-24 bg-gray-50">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Ubicaciones</p>
             <h2 className="text-4xl mb-3" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestras oficinas</h2>
             <p className="text-sm text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>Tres ubicaciones para atenderte mejor</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {oficinas.map((o) => (
-              <div key={o.titulo} className={`rounded-2xl p-8 flex flex-col gap-4 ${o.highlight ? 'bg-[#1A5C38] text-white shadow-lg' : 'bg-white shadow-sm'}`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl">{o.icon}</span>
-                  <span className={`text-xs px-3 py-1 rounded-full font-medium ${o.highlight ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}
-                    style={{ fontFamily: 'Poppins, sans-serif' }}>{o.badge}</span>
+          <div className="grid lg:grid-cols-2 gap-10 items-start">
+            <div className="flex flex-col gap-5">
+              {oficinas.map((o) => (
+                <div key={o.titulo} className={`rounded-2xl p-7 flex gap-5 items-start ${o.highlight ? 'bg-[#1A5C38] text-white shadow-lg' : 'bg-white shadow-sm'}`}>
+                  <span className="text-3xl shrink-0">{o.icon}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
+                      <h3 className="text-base font-semibold" style={{ fontFamily: 'Raleway, sans-serif' }}>{o.titulo}</h3>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${o.highlight ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.badge}</span>
+                    </div>
+                    {o.subtitulo && <p className={`text-xs mb-2 ${o.highlight ? 'text-white/70' : 'text-gray-400'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.subtitulo}</p>}
+                    <p className={`text-sm ${o.highlight ? 'text-white/80' : 'text-gray-500'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.dir} · {o.horario}</p>
+                    <a href={o.maps} target="_blank" rel="noopener noreferrer"
+                      className={`inline-block mt-3 text-xs font-semibold underline underline-offset-2 ${o.highlight ? 'text-white/90' : 'text-[#1A5C38]'}`}
+                      style={{ fontFamily: 'Poppins, sans-serif' }}>
+                      Ver en Maps →
+                    </a>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold" style={{ fontFamily: 'Raleway, sans-serif' }}>{o.titulo}</h3>
-                  {o.subtitulo && <p className={`text-xs mt-0.5 ${o.highlight ? 'text-white/70' : 'text-gray-400'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.subtitulo}</p>}
-                </div>
-                <div className={`text-sm space-y-1 ${o.highlight ? 'text-white/80' : 'text-gray-500'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
-                  <p>{o.dir}</p>
-                  <p className="font-numeric">{o.tel}</p>
-                  <p>{o.horario}</p>
-                </div>
-                <a href={o.maps} target="_blank" rel="noopener noreferrer"
-                  className={`inline-block mt-2 text-sm font-medium px-5 py-2 rounded-full text-center transition-opacity hover:opacity-80 ${o.highlight ? 'bg-white text-[#1A5C38]' : 'border border-[#1A5C38] text-[#1A5C38]'}`}
-                  style={{ fontFamily: 'Poppins, sans-serif' }}>
-                  Cómo llegar
-                </a>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="lg:sticky lg:top-24">
+              <OficinasMapa />
+            </div>
           </div>
         </div>
       </section>
@@ -418,12 +441,10 @@ export default function NosotrosClient() {
           <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>¿Querés trabajar con nosotros?</h2>
           <p className="text-sm text-gray-500 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Contactanos y contanos tu proyecto. Te respondemos en menos de 24 horas.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/tasaciones" className="px-8 py-3 rounded-full text-sm font-medium text-white transition-opacity hover:opacity-80"
-              style={{ fontFamily: 'Poppins, sans-serif', backgroundColor: '#1A5C38' }}>
+            <a href="/tasaciones" className="px-8 py-3 rounded-full text-sm font-medium text-white transition-opacity hover:opacity-80" style={{ fontFamily: 'Poppins, sans-serif', backgroundColor: '#1A5C38' }}>
               Solicitá tu tasación en 24hs
             </a>
-            <a href="/propiedades" className="px-8 py-3 rounded-full text-sm font-medium border-2 transition-all hover:bg-[#1A5C38] hover:text-white"
-              style={{ fontFamily: 'Poppins, sans-serif', borderColor: '#1A5C38', color: '#1A5C38' }}>
+            <a href="/propiedades" className="px-8 py-3 rounded-full text-sm font-medium border-2 transition-all hover:bg-[#1A5C38] hover:text-white" style={{ fontFamily: 'Poppins, sans-serif', borderColor: '#1A5C38', color: '#1A5C38' }}>
               Ver propiedades
             </a>
           </div>
