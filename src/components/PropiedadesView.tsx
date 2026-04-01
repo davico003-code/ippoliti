@@ -8,7 +8,6 @@ import Link from 'next/link'
 import {
   Search,
   MapPin,
-  Heart,
   List,
   Map,
   X,
@@ -176,10 +175,12 @@ function CompactCard({ property, isSelected, onClick }: {
             {(property.suite_amount || property.room_amount) > 0 && (
               <span className="flex items-center gap-0.5 text-gray-500"><Bed className="w-3 h-3" /><span className="font-numeric">{property.suite_amount || property.room_amount}</span></span>
             )}
+            {property.bathroom_amount > 0 && (
+              <span className="flex items-center gap-0.5 text-gray-500"><Bath className="w-3 h-3" /><span className="font-numeric">{property.bathroom_amount}</span></span>
+            )}
             <span className="font-bold text-gray-900 text-[12px] font-numeric">{price}</span>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
-            <Heart className="w-3.5 h-3.5 text-gray-300 hover:text-red-400 transition-colors cursor-pointer" />
             <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
           </div>
         </div>
@@ -305,7 +306,6 @@ function ListCard({ property, isSelected, onClick, featured }: {
             Consultar
           </Link>
           <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-            <Heart className="w-4 h-4 text-white/50 hover:text-red-300 transition-colors cursor-pointer" />
             <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
           </div>
         </div>
