@@ -6,6 +6,7 @@ import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import Analytics from "@/components/Analytics";
 import TawkTo from "@/components/TawkTo";
 import ExitPopup from "@/components/ExitPopup";
+import Clarity from "@/components/Clarity";
 
 export const metadata: Metadata = {
   title: "SI Inmobiliaria | Venta y Alquiler en Roldán y Funes - Desde 1983",
@@ -118,6 +119,7 @@ export default function RootLayout({
         <FloatingWhatsApp />
         <ExitPopup />
         <Analytics />
+        <Clarity />
         <TawkTo />
       </body>
     </html>
