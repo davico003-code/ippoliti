@@ -73,7 +73,7 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
   if (nearbyProperties.length === 0) return null
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 overflow-hidden max-w-full">
       <h2 className="text-xl font-bold text-gray-900 mb-1 font-poppins">Propiedades en la zona</h2>
       <p className="text-gray-400 text-sm mb-4 font-poppins">{nearbyProperties.length} propiedad{nearbyProperties.length !== 1 ? 'es' : ''} cerca</p>
 

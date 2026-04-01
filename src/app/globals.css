@@ -195,6 +195,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Leaflet map containment */
+.leaflet-container {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 /* Smooth scroll offset for fixed navbar */
 section[id],
 div[id="contacto"],
