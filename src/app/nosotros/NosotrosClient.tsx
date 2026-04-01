@@ -216,15 +216,15 @@ export default function NosotrosClient() {
 
       {/* HERO */}
       <section className="relative h-[70vh] min-h-[500px] flex items-end overflow-hidden">
-        <Image src="/hero-nosotros.jpg" alt="Fachada SI Inmobiliaria" fill className="object-cover object-center" priority />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <Image src="/hero-nosotros.jpg" alt="Fachada SI Inmobiliaria" fill className="object-cover" style={{ objectPosition: 'center top' }} priority />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent" />
         <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-16">
-          <p className="text-xs uppercase tracking-[0.25em] text-white/70 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Quiénes somos</p>
+          <p className="text-xs uppercase tracking-[0.25em] text-white/70 mb-3 font-poppins">Quiénes somos</p>
           <h1 className="text-3xl md:text-4xl text-white leading-tight mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}>
             Desde 1983 acompañando<br />cada decisión importante
           </h1>
-          <p className="text-lg text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            Susana, Laura y David — dos generaciones de confianza en Roldán y Funes
+          <p className="text-lg text-white/80 font-poppins">
+            Susana, Laura y David — tres generaciones de confianza en Roldán y Funes
           </p>
         </div>
       </section>
