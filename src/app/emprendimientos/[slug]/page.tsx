@@ -18,6 +18,7 @@ import {
   type DevUnit,
 } from '@/lib/developments'
 import DevUnitsSection from '@/components/DevUnitsSection'
+import DevEntorno from '@/components/DevEntorno'
 
 const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false })
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false })
@@ -248,6 +249,9 @@ export default async function DevelopmentPage({ params }: Props) {
                 </div>
               </div>
             )}
+
+            {/* Entorno privilegiado */}
+            <DevEntorno devName={dev.name} />
 
             {/* Location map */}
             {dev.geo_lat && dev.geo_long && (
