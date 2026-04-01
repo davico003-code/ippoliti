@@ -149,3 +149,32 @@ export async function getDevelopmentById(id: number): Promise<Development> {
   if (!res.ok) throw new Error(`Tokko dev API error: ${res.status}`)
   return res.json()
 }
+
+export interface DevUnit {
+  id: number
+  publication_title: string
+  address: string
+  type: { name: string } | null
+  status: number // 1=available, 2=reserved, 3=sold
+  roofed_surface: string
+  total_surface: string
+  surface: string
+  suite_amount: number
+  room_amount: number
+  bathroom_amount: number
+  operations: { prices: { price: number; currency: string }[] }[]
+  reference_code: string
+}
+
+export async function getDevUnits(developmentId: number): Promise<DevUnit[]> {
+  try {
+    const url = `${BASE_URL}/property/?key=${getApiKey()}&development_id=${developmentId}&format=json&limit=100&lang=es`
+    const res = await fetch(url, { next: { revalidate: 3600 } })
+    if (!res.ok) return []
+    const data = await res.json()
+    // Exclude sold (status 3)
+    return (data.objects || []).filter((u: DevUnit) => u.status !== 3)
+  } catch {
+    return []
+  }
+}

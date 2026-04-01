@@ -13,7 +13,9 @@ import {
   getConstructionStatus,
   translateDevType,
   translateTag,
+  getDevUnits,
   type Development,
+  type DevUnit,
 } from '@/lib/developments'
 
 const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false })
@@ -83,7 +85,13 @@ export default async function DevelopmentPage({ params }: Props) {
   const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${dev.name}`)
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
 
-  // Fetch other developments for "other units" section
+  // Fetch units for this development
+  let units: DevUnit[] = []
+  try {
+    units = await getDevUnits(dev.id)
+  } catch {}
+
+  // Fetch other developments
   let otherDevs: Development[] = []
   try {
     const allDevs = await getDevelopments()
@@ -304,6 +312,98 @@ export default async function DevelopmentPage({ params }: Props) {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Units section */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>Unidades disponibles</h2>
+          {units.length > 0 ? (
+            <>
+              <p className="text-sm text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                {units.length} unidad{units.length !== 1 ? 'es' : ''} · Actualizado desde Tokko
+              </p>
+
+              {/* Desktop table */}
+              <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Tipo</th>
+                      <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Unidad</th>
+                      <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Superficie</th>
+                      <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Precio</th>
+                      <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado</th>
+                      <th className="px-5 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {units.map(u => {
+                      const superficie = parseFloat(u.roofed_surface || u.total_surface || u.surface || '0')
+                      const price = u.operations?.[0]?.prices?.[0]
+                      const statusLabel = u.status === 2 ? 'Reservada' : 'Disponible'
+                      const statusColor = u.status === 2 ? 'bg-amber-100 text-amber-700' : 'bg-[#e8f5ee] text-[#1A5C38]'
+                      return (
+                        <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                          <td className="px-5 py-3.5 text-gray-700">{u.type?.name || '—'}</td>
+                          <td className="px-5 py-3.5 text-gray-900 font-medium">{u.reference_code || u.publication_title || u.address}</td>
+                          <td className="px-5 py-3.5 font-numeric text-gray-700">{superficie > 0 ? `${superficie} m²` : '—'}</td>
+                          <td className="px-5 py-3.5 font-numeric font-semibold text-[#1A5C38]">
+                            {price?.price ? `${price.currency || 'USD'} ${price.price.toLocaleString('es-AR')}` : 'Consultar'}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${statusColor}`}>{statusLabel}</span>
+                          </td>
+                          <td className="px-5 py-3.5 text-right">
+                            <Link href={`/propiedades/${u.id}-unidad`} className="text-[13px] font-semibold text-[#1A5C38] hover:underline">
+                              Ver detalle &rarr;
+                            </Link>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-3">
+                {units.map(u => {
+                  const superficie = parseFloat(u.roofed_surface || u.total_surface || u.surface || '0')
+                  const price = u.operations?.[0]?.prices?.[0]
+                  const statusLabel = u.status === 2 ? 'Reservada' : 'Disponible'
+                  const statusColor = u.status === 2 ? 'bg-amber-100 text-amber-700' : 'bg-[#e8f5ee] text-[#1A5C38]'
+                  return (
+                    <div key={u.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="text-xs text-gray-400">{u.type?.name || 'Unidad'}</p>
+                          <p className="font-bold text-gray-900 text-sm">{u.reference_code || u.publication_title || u.address}</p>
+                        </div>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>{statusLabel}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                        {superficie > 0 && <span className="font-numeric">{superficie} m²</span>}
+                        <span className="font-numeric font-semibold text-[#1A5C38]">
+                          {price?.price ? `${price.currency || 'USD'} ${price.price.toLocaleString('es-AR')}` : 'Consultar'}
+                        </span>
+                      </div>
+                      <Link href={`/propiedades/${u.id}-unidad`} className="text-[13px] font-semibold text-[#1A5C38] hover:underline">
+                        Ver detalle &rarr;
+                      </Link>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center mt-4">
+              <p className="text-gray-500 text-sm mb-3">No hay unidades cargadas en este momento.</p>
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#25D366] text-white text-sm font-bold rounded-full hover:bg-[#1ea952] transition-colors">
+                <MessageCircle className="w-4 h-4" /> Consultanos por disponibilidad
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Other developments */}
