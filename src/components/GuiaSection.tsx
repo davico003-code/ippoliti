@@ -109,22 +109,12 @@ export default function GuiaSection() {
             aria-hidden={alreadyAccessed}
           >
             <div className="gs-book-scene">
-              <div className="gs-book">
-                <div className="gs-book-spine" />
-                <div className="gs-book-cover">
-                  <div className="gs-book-top">
-                    <span className="gs-book-brand">SI INMOBILIARIA</span>
-                    <span className="gs-book-year">2026</span>
-                  </div>
-                  <div className="gs-book-center">
-                    <span className="gs-book-si">SI</span>
-                  </div>
-                  <div className="gs-book-bottom">
-                    <p className="gs-book-title">Guía Inteligente<br />del Comprador</p>
-                    <p className="gs-book-chapters">14 capítulos · Funes & Roldán</p>
-                  </div>
-                </div>
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/guia-comprador-cover.png"
+                alt="Guía Inteligente del Comprador — SI Inmobiliaria"
+                className="gs-book-img"
+              />
               <div className="gs-book-ground" />
               {!alreadyAccessed && <p className="gs-book-hint">Clic para acceder →</p>}
             </div>
@@ -344,6 +334,17 @@ export default function GuiaSection() {
           flex-direction: column;
           align-items: center;
           gap: 16px;
+        }
+        .gs-book-img {
+          width: 280px;
+          height: auto;
+          border-radius: 8px;
+          transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
+          filter: drop-shadow(0 24px 48px rgba(26,92,56,0.28)) drop-shadow(0 8px 16px rgba(0,0,0,0.12));
+        }
+        .gs-right:hover .gs-book-img {
+          transform: translateY(-8px) rotate(-1.5deg);
+          filter: drop-shadow(0 40px 64px rgba(26,92,56,0.32)) drop-shadow(0 16px 32px rgba(0,0,0,0.15));
         }
         .gs-book {
           display: flex;
