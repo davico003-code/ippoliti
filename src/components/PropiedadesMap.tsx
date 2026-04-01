@@ -88,14 +88,14 @@ function createCraneIcon() {
   return L.divIcon({
     className: '',
     html: `<div style="
-      background:#1A5C38;border:2px solid white;color:white;
-      width:36px;height:36px;border-radius:50%;
+      background:#1A5C38;color:white;
+      width:32px;height:32px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;
-      font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.35);cursor:pointer;
-    ">🏗️</div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -20],
+      box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white;
+    "><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-6 7 6v12"/><path d="M9 20v-6h6v6"/><path d="M12 2v6"/><path d="M8 8h8"/></svg></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18],
   })
 }
 
@@ -437,7 +437,9 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
           <span style={{ color: '#666' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 14 }}>🏗️</span>
+          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 20V8l7-6 7 6v12"/></svg>
+          </div>
           <span style={{ color: '#666' }}>Emprendimiento</span>
         </div>
       </div>

@@ -170,12 +170,14 @@ export interface DevUnit {
 
 export async function getDevUnits(developmentId: number): Promise<DevUnit[]> {
   try {
-    const url = `${BASE_URL}/property/?key=${getApiKey()}&development_id=${developmentId}&format=json&limit=100&lang=es`
+    const url = `${BASE_URL}/property/?key=${getApiKey()}&development=${developmentId}&format=json&limit=100&lang=es`
     const res = await fetch(url, { next: { revalidate: 3600 } })
     if (!res.ok) return []
     const data = await res.json()
-    // Exclude sold (status 3)
-    return (data.objects || []).filter((u: DevUnit) => u.status !== 3)
+    // Filter by development ID (safety) and exclude sold (status 3)
+    return (data.objects || []).filter((u: DevUnit & { development?: { id: number } | null }) =>
+      u.status !== 3 && (!u.development || u.development.id === developmentId)
+    )
   } catch {
     return []
   }
