@@ -63,8 +63,47 @@ export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) 
     <div className="mt-16">
       <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>Unidades disponibles</h2>
       <p className="text-sm text-gray-400 mb-5" style={{ fontFamily: 'Poppins, sans-serif' }}>
-        {units.length} unidad{units.length !== 1 ? 'es' : ''} · {devName}
+        En venta · {units.length} unidad{units.length !== 1 ? 'es' : ''} · {devName}
       </p>
+
+      {/* Stats summary */}
+      {(() => {
+        const areas = units.map(u => getArea(u)).filter(a => a > 0).sort((a, b) => a - b)
+        const dorms = units.map(u => getDorms(u)).filter(d => d > 0).sort((a, b) => a - b)
+        const baths = units.map(u => u.bathroom_amount || 0).filter(b => b > 0).sort((a, b) => a - b)
+        const hasCochera = units.some(u => u.parking_lot_amount > 0)
+        const uniqueDorms = Array.from(new Set(dorms))
+        const uniqueBaths = Array.from(new Set(baths))
+
+        return (
+          <div className="flex flex-wrap gap-3 mb-6">
+            {areas.length > 0 && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9H21M9 3V21"/></svg>
+                <span className="font-numeric">{areas[0] === areas[areas.length - 1] ? `${areas[0]}` : `${areas[0]} a ${areas[areas.length - 1]}`} m²</span>
+              </span>
+            )}
+            {uniqueDorms.length > 0 && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><path d="M3 9V19M21 9V19M3 15H21M3 9C3 7.9 3.9 7 5 7H19C20.1 7 21 7.9 21 9"/><path d="M7 7V5C7 4.4 7.4 4 8 4H16C16.6 4 17 4.4 17 5V7"/></svg>
+                {uniqueDorms.length === 1 ? `${uniqueDorms[0]} dorm.` : `${uniqueDorms[0]} a ${uniqueDorms[uniqueDorms.length - 1]} dorm.`}
+              </span>
+            )}
+            {uniqueBaths.length > 0 && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><path d="M4 12H20V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V12Z"/><path d="M4 12V6C4 4.9 4.9 4 6 4C7.1 4 8 4.9 8 6V8"/><path d="M8 8H20"/></svg>
+                {uniqueBaths.length === 1 ? `${uniqueBaths[0]} baño${uniqueBaths[0] > 1 ? 's' : ''}` : `${uniqueBaths[0]} a ${uniqueBaths[uniqueBaths.length - 1]} baños`}
+              </span>
+            )}
+            {hasCochera && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><path d="M7 17m0 2a2 2 0 1 0 4 0a2 2 0 1 0-4 0"/><path d="M17 17m0 2a2 2 0 1 0-4 0a2 2 0 1 0 4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2"/><path d="M10 17h4"/></svg>
+                Con cochera
+              </span>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Filter tabs */}
       {tabs.length > 1 && (
@@ -143,7 +182,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) 
                 <div className="mt-auto">
                   <Link
                     href={`/propiedades/${u.id}-unidad`}
-                    className="text-[13px] font-semibold text-[#1A5C38] hover:underline"
+                    className="block w-full text-center text-[13px] font-semibold text-white bg-[#1A5C38] hover:bg-[#145030] py-2.5 rounded-xl transition-colors"
                   >
                     Ver unidad &rarr;
                   </Link>
