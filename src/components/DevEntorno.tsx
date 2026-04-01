@@ -43,6 +43,31 @@ const ENTORNO_DATA: Record<string, EntornoCategory[]> = {
       { name: 'Acceso Norte Rosario', dist: '10 min' },
     ]},
   ],
+  distrito: [
+    { title: 'Educación privada', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="1.8"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/></svg>', items: [
+      { name: 'Colegio San Lucas', dist: '5 min' },
+      { name: 'Instituto Santa Juana de Arco', dist: '7 min' },
+      { name: 'Colegio Nuestra Señora de Fátima', dist: '10 min' },
+    ]},
+    { title: 'Salud', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>', items: [
+      { name: 'Centro de Salud Roldán', dist: '5 min' },
+      { name: 'Sanatorio Roldán', dist: '7 min' },
+    ]},
+    { title: 'Clubes y deportes', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>', items: [
+      { name: 'Club Social y Deportivo Roldán', dist: '5 min' },
+      { name: 'Club Náutico Roldán', dist: '8 min' },
+    ]},
+    { title: 'Shopping y comercios', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>', items: [
+      { name: 'Supermercado Roldán Centro', dist: '5 min' },
+      { name: 'Plaza comercial Roldán', dist: '6 min' },
+    ]},
+    { title: 'Accesos y transporte', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="1.8"><path d="M9 18l6-6-6-6"/></svg>', items: [
+      { name: 'Autopista Rosario-Córdoba', dist: 'acceso directo' },
+      { name: 'Ruta Nacional 9', dist: '3 min' },
+      { name: 'Centro de Roldán', dist: '5 min' },
+      { name: 'Rosario centro', dist: '25 min' },
+    ]},
+  ],
 }
 
 export default function DevEntorno({ devName }: { devName: string }) {
