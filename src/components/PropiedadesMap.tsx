@@ -15,6 +15,90 @@ import {
   getTotalSurface,
 } from '@/lib/tokko'
 
+// ─── Development grouping ─────────────────────────────────────────────────────
+
+interface DevGroup {
+  devId: number
+  devName: string
+  units: TokkoProperty[]
+  lat: number
+  lng: number
+  minPrice: string
+  dormRange: string
+  slug: string
+}
+
+function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoProperty[]; devGroups: DevGroup[] } {
+  const devMap = new Map<number, TokkoProperty[]>()
+  const standalone: TokkoProperty[] = []
+
+  for (const p of properties) {
+    if (p.development?.id) {
+      const existing = devMap.get(p.development.id) || []
+      existing.push(p)
+      devMap.set(p.development.id, existing)
+    } else {
+      standalone.push(p)
+    }
+  }
+
+  const devGroups: DevGroup[] = []
+  devMap.forEach((units, devId) => {
+    const first = units.find(u => u.geo_lat && u.geo_long && !isNaN(parseFloat(u.geo_lat!)))
+    if (!first) { standalone.push(...units); return }
+
+    // Min price
+    const prices = units
+      .map(u => u.operations?.[0]?.prices?.[0]?.price)
+      .filter((p): p is number => !!p && p > 0)
+      .sort((a, b) => a - b)
+    const currency = units[0]?.operations?.[0]?.prices?.[0]?.currency || 'USD'
+    const minPrice = prices.length > 0
+      ? `${currency === 'USD' ? 'U$S' : '$'} ${prices[0] >= 1000 ? Math.round(prices[0] / 1000) + 'K' : prices[0].toLocaleString('es-AR')}`
+      : 'Consultar'
+
+    // Dorm range
+    const dorms = units.map(u => u.suite_amount || u.room_amount || 0).filter(d => d > 0).sort((a, b) => a - b)
+    const uniqueDorms = Array.from(new Set(dorms))
+    const dormRange = uniqueDorms.length === 0 ? '' :
+      uniqueDorms.length === 1 ? `${uniqueDorms[0]} dorm.` :
+      `${uniqueDorms[0]} a ${uniqueDorms[uniqueDorms.length - 1]} dorm.`
+
+    // Slug
+    const devName = first.development?.name || `Emprendimiento ${devId}`
+    const slugBase = devName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')
+    const slug = `${devId}-${slugBase}`
+
+    devGroups.push({
+      devId,
+      devName,
+      units,
+      lat: parseFloat(first.geo_lat!),
+      lng: parseFloat(first.geo_long!),
+      minPrice,
+      dormRange,
+      slug,
+    })
+  })
+
+  return { standalone, devGroups }
+}
+
+function createCraneIcon() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      background:#1A5C38;border:2px solid white;color:white;
+      width:36px;height:36px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.35);cursor:pointer;
+    ">🏗️</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -20],
+  })
+}
+
 // ─── Short price label for map bubbles ────────────────────────────────────────
 
 function shortPrice(property: TokkoProperty): string {
@@ -322,6 +406,10 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
     }),
   [properties])
 
+  const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
+
+  const craneIcon = useMemo(() => createCraneIcon(), [])
+
   return (
     <MapContainer
       center={[-32.9300, -60.9100]}
@@ -342,6 +430,18 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
       <LocateButton />
       {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
 
+      {/* Legend */}
+      <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'white', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+          <span style={{ color: '#666' }}>Propiedad</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 14 }}>🏗️</span>
+          <span style={{ color: '#666' }}>Emprendimiento</span>
+        </div>
+      </div>
+
       <MarkerClusterGroup
         chunkedLoading
         maxClusterRadius={50}
@@ -349,7 +449,8 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
         showCoverageOnHover={false}
         iconCreateFunction={createClusterIcon}
       >
-        {mapped.map(property => {
+        {/* Standalone properties */}
+        {standalone.map(property => {
           const lat = parseFloat(property.geo_lat!)
           const lng = parseFloat(property.geo_long!)
           const isSelected = property.id === selectedId
@@ -431,6 +532,48 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
           )
         })}
       </MarkerClusterGroup>
+
+      {/* Development markers — outside cluster group */}
+      {devGroups.map(g => (
+        <Marker
+          key={`dev-${g.devId}`}
+          position={[g.lat, g.lng]}
+          icon={craneIcon}
+          zIndexOffset={500}
+        >
+          <Popup maxWidth={260} className="ippoliti-popup">
+            <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A5C38', display: 'block', marginBottom: 4 }}>
+                Emprendimiento
+              </span>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', margin: '0 0 6px' }}>
+                {g.devName}
+              </h3>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#1A5C38', fontFamily: "'Poppins',system-ui,sans-serif", marginBottom: 8 }}>
+                Desde {g.minPrice}
+              </div>
+              <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#666', marginBottom: 12 }}>
+                <span>{g.units.length} unidad{g.units.length !== 1 ? 'es' : ''}</span>
+                {g.dormRange && <span>{g.dormRange}</span>}
+              </div>
+              <a
+                href={`/emprendimientos/${g.slug}`}
+                style={{
+                  display: 'block', textAlign: 'center',
+                  background: '#1A5C38', color: 'white',
+                  fontSize: 13, fontWeight: 600,
+                  padding: '9px 16px', borderRadius: 8,
+                  textDecoration: 'none',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
+              >
+                Ver emprendimiento →
+              </a>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
     </MapContainer>
   )
 }

@@ -110,6 +110,7 @@ export interface TokkoProperty {
   situation: string | null;
   files: { file: string }[];
   public_url: string;
+  development: { id: number; name: string } | null;
   producer: {
     id: number;
     name: string;
