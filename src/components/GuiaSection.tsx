@@ -111,7 +111,7 @@ export default function GuiaSection() {
             <div className="gs-book-scene">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/guia-comprador-cover.png"
+                src="/guia-comprador-libro.webp"
                 alt="Guía Inteligente del Comprador — SI Inmobiliaria"
                 className="gs-book-img"
               />
