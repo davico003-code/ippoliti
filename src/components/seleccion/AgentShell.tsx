@@ -60,12 +60,9 @@ export default function AgentShell({ agentName, agentRole, children }: Props) {
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden w-8 h-8 flex items-center justify-center text-[#6E6E73]">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
             </button>
-            <div className="w-[34px] h-[34px] bg-[#1A5C38] rounded-[10px] flex items-center justify-center text-sm">
-              🎓
+            <div className="w-8 h-8 bg-[#1A5C38] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xs" style={{ fontFamily: 'Raleway, sans-serif' }}>SI</span>
             </div>
-            <span className="text-base font-bold text-[#1C1C1E]" style={{ fontFamily: 'Raleway, sans-serif' }}>
-              SI School
-            </span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#6E6E73] hidden sm:block">{agentName}</span>

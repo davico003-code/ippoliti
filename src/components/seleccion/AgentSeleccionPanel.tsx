@@ -232,8 +232,23 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
           {sessions.map(s => {
             const { days: d, expired } = getTimeLeft(s.expiresAt)
             return (
-              <div key={s.token} className={`bg-white rounded-2xl p-5 shadow-sm border-l-4 ${expired ? 'border-l-gray-200 opacity-60' : 'border-l-[#1A5C38]'}`}>
-                <div className="flex items-start justify-between mb-2">
+              <div key={s.token} className={`bg-white rounded-2xl p-5 shadow-sm border-l-4 relative ${expired ? 'border-l-gray-200 opacity-60' : 'border-l-[#1A5C38]'}`}>
+                {/* Delete button */}
+                <button
+                  onClick={async () => {
+                    if (!window.confirm(`¿Eliminar la selección de ${s.clientName}? Esta acción no se puede deshacer.`)) return
+                    const res = await fetch(`/api/seleccion/${s.token}`, { method: 'DELETE' })
+                    if (res.ok) setSessions(prev => prev.filter(x => x.token !== s.token))
+                  }}
+                  className="absolute top-3 right-3 p-1 rounded-md transition-all"
+                  style={{ color: '#AEAEB2' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#FF3B30'; e.currentTarget.style.background = 'rgba(255,59,48,0.08)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#AEAEB2'; e.currentTarget.style.background = 'none' }}
+                  title="Eliminar selección"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </button>
+                <div className="flex items-start justify-between mb-2 pr-6">
                   <div>
                     <h4 className="font-bold text-gray-900 text-sm">{s.clientName}</h4>
                     <p className="text-xs text-gray-400">{s.agent} · {s.properties.length} propiedades</p>
@@ -269,6 +284,39 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
           })}
         </div>
       )}
+
+      {/* Próximamente */}
+      <div style={{ marginTop: '32px' }}>
+        <div className="text-[11px] font-bold uppercase tracking-wide mb-3" style={{ color: '#AEAEB2', letterSpacing: '0.06em' }}>
+          Próximamente
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            {
+              title: 'Estado del lead',
+              desc: 'Seguí cada selección: Enviada → Vista → Visita → Operación',
+              icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            },
+            {
+              title: 'Alertas en tiempo real',
+              desc: 'Recibí un WhatsApp cuando el cliente reacciona',
+              icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+            },
+            {
+              title: 'Historial por cliente',
+              desc: 'Todas las selecciones que le mandaste a cada persona',
+              icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+            },
+          ].map(f => (
+            <div key={f.title} className="p-4 rounded-[14px] cursor-not-allowed" style={{ background: '#F9F9F9', border: '0.5px solid #E5E5E5', filter: 'grayscale(1)', opacity: 0.6 }}>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block mb-2" style={{ background: '#F2F2F7', color: '#AEAEB2' }}>Pronto</span>
+              <div className="mb-2" style={{ color: '#AEAEB2' }}>{f.icon}</div>
+              <h4 className="text-[14px] font-semibold mb-1.5" style={{ color: '#6E6E73' }}>{f.title}</h4>
+              <p className="text-[12px] leading-[1.5]" style={{ color: '#AEAEB2' }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

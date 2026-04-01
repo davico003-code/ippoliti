@@ -21,10 +21,9 @@ interface SeleccionInput {
 
 export async function crearSeleccion(data: SeleccionInput): Promise<string> {
   const token = nanoid(10)
-  const redisTtl = 365 * 86400 // 1 year in Redis
-  const displayTtl = data.days * 86400
+  const redisTtl = 365 * 86400 // 1 year
   const now = new Date().toISOString()
-  const expiresAt = new Date(Date.now() + displayTtl * 1000).toISOString()
+  const expiresAt = new Date(Date.now() + redisTtl * 1000).toISOString()
 
   const payload = { ...data, token, createdAt: now, expiresAt }
 
