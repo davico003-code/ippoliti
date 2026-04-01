@@ -86,8 +86,8 @@ export async function GET(req: Request) {
   try {
     const { Redis } = await import('@upstash/redis')
     const redis = new Redis({
-      url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
     })
     await redis.set('informes:data', JSON.stringify(results))
     await redis.set('informes:lastUpdate', timestamp)
