@@ -22,13 +22,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, slug, description } = await req.json()
+    const { name, slug, description, coverImage } = await req.json()
     if (!name || !slug) return NextResponse.json({ error: 'name y slug requeridos' }, { status: 400 })
 
     const existing = await redis.get(`cliente:${slug}`)
     if (existing) return NextResponse.json({ error: 'Slug ya existe' }, { status: 409 })
 
-    const cliente = { name, slug, description: description || '', createdAt: new Date().toISOString() }
+    const cliente = { name, slug, description: description || '', coverImage: coverImage || '', createdAt: new Date().toISOString() }
     await redis.set(`cliente:${slug}`, JSON.stringify(cliente))
 
     const index = parse<string[]>(await redis.get('clientes_index')) || []

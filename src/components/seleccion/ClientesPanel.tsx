@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 
-interface Cliente { name: string; slug: string; description: string; createdAt: string }
+interface Cliente { name: string; slug: string; description: string; coverImage: string; createdAt: string }
 interface Edificio { id: string; nombre: string; descripcion: string; orden: number }
 interface SearchResult { id: number; publication_title: string; address: string; operations?: { prices?: { price: number; currency: string }[] }[] }
 
@@ -21,11 +21,12 @@ export default function ClientesPanel() {
   const [searching, setSearching] = useState(false)
   const [newName, setNewName] = useState('')
   const [newDesc, setNewDesc] = useState('')
+  const [newCover, setNewCover] = useState('')
   const [newEdNombre, setNewEdNombre] = useState('')
   const [newEdDesc, setNewEdDesc] = useState('')
+  const [copied, setCopied] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>()
 
-  // Load clientes
   const loadClientes = useCallback(async () => {
     const res = await fetch('/api/clientes')
     if (res.ok) setClientes(await res.json())
@@ -33,12 +34,10 @@ export default function ClientesPanel() {
 
   useEffect(() => { loadClientes() }, [loadClientes])
 
-  // Load client detail
   async function selectCliente(c: Cliente) {
     setSelected(c)
     setExpandedEd(null)
     setAssignMode(null)
-
     const [edRes, sueltasRes] = await Promise.all([
       fetch(`/api/clientes/${c.slug}/edificios`),
       fetch(`/api/clientes/${c.slug}/sueltas`),
@@ -47,8 +46,6 @@ export default function ClientesPanel() {
     const sueltas: string[] = sueltasRes.ok ? await sueltasRes.json() : []
     setEdificios(eds)
     setPropsSueltas(sueltas)
-
-    // Load props for each edificio
     const propsMap: Record<string, string[]> = {}
     await Promise.all(eds.map(async ed => {
       const r = await fetch(`/api/clientes/${c.slug}/edificios/${ed.id}/propiedades`)
@@ -57,7 +54,6 @@ export default function ClientesPanel() {
     setPropsByEd(propsMap)
   }
 
-  // Search Tokko
   useEffect(() => {
     if (!search.trim() || !assignMode) { setSearchResults([]); return }
     clearTimeout(debounceRef.current)
@@ -71,22 +67,18 @@ export default function ClientesPanel() {
     }, 300)
   }, [search, assignMode])
 
-  // Create cliente
   async function createCliente() {
     if (!newName.trim()) return
     const slug = newName.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')
-    const res = await fetch('/api/clientes', {
+    await fetch('/api/clientes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName.trim(), slug, description: newDesc.trim() }),
+      body: JSON.stringify({ name: newName.trim(), slug, description: newDesc.trim(), coverImage: newCover.trim() }),
     })
-    if (res.ok) {
-      setNewName(''); setNewDesc(''); setShowNewCliente(false)
-      loadClientes()
-    }
+    setNewName(''); setNewDesc(''); setNewCover(''); setShowNewCliente(false)
+    loadClientes()
   }
 
-  // Delete cliente
   async function deleteCliente(slug: string) {
     if (!window.confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return
     await fetch(`/api/clientes?slug=${slug}`, { method: 'DELETE' })
@@ -94,41 +86,50 @@ export default function ClientesPanel() {
     loadClientes()
   }
 
-  // Create edificio
   async function createEdificio() {
     if (!selected || !newEdNombre.trim()) return
-    const res = await fetch(`/api/clientes/${selected.slug}/edificios`, {
+    await fetch(`/api/clientes/${selected.slug}/edificios`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombre: newEdNombre.trim(), descripcion: newEdDesc.trim() }),
     })
-    if (res.ok) {
-      setNewEdNombre(''); setNewEdDesc(''); setShowNewEdificio(false)
-      selectCliente(selected)
-    }
+    setNewEdNombre(''); setNewEdDesc(''); setShowNewEdificio(false)
+    selectCliente(selected)
   }
 
-  // Delete edificio
   async function deleteEdificio(edId: string) {
     if (!selected || !window.confirm('¿Eliminar este edificio?')) return
     await fetch(`/api/clientes/${selected.slug}/edificios?edId=${edId}`, { method: 'DELETE' })
     selectCliente(selected)
   }
 
-  // Assign property
+  async function moveEdificio(edId: string, direction: 'up' | 'down') {
+    if (!selected) return
+    const idx = edificios.findIndex(e => e.id === edId)
+    if (idx < 0) return
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= edificios.length) return
+    const newOrder = edificios.map(e => e.id)
+    ;[newOrder[idx], newOrder[swapIdx]] = [newOrder[swapIdx], newOrder[idx]]
+    await fetch(`/api/clientes/${selected.slug}/edificios`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: newOrder }),
+    })
+    selectCliente(selected)
+  }
+
   async function assignProp(tokkoId: number) {
     if (!selected || !assignMode) return
     const id = String(tokkoId)
     if (assignMode.tipo === 'edificio' && assignMode.edId) {
       await fetch(`/api/clientes/${selected.slug}/edificios/${assignMode.edId}/propiedades`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tokkoId: id, action: 'add' }),
       })
     } else {
       await fetch(`/api/clientes/${selected.slug}/sueltas`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tokkoId: id, action: 'add' }),
       })
     }
@@ -136,23 +137,23 @@ export default function ClientesPanel() {
     selectCliente(selected)
   }
 
-  // Remove property
   async function removeProp(tokkoId: string, tipo: 'edificio' | 'suelta', edId?: string) {
     if (!selected) return
-    if (tipo === 'edificio' && edId) {
-      await fetch(`/api/clientes/${selected.slug}/edificios/${edId}/propiedades`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tokkoId, action: 'remove' }),
-      })
-    } else {
-      await fetch(`/api/clientes/${selected.slug}/sueltas`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tokkoId, action: 'remove' }),
-      })
-    }
+    const endpoint = tipo === 'edificio' && edId
+      ? `/api/clientes/${selected.slug}/edificios/${edId}/propiedades`
+      : `/api/clientes/${selected.slug}/sueltas`
+    await fetch(endpoint, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokkoId, action: 'remove' }),
+    })
     selectCliente(selected)
+  }
+
+  function copyLink() {
+    if (!selected) return
+    navigator.clipboard.writeText(`https://siinmobiliaria.com/emprendimientos/${selected.slug}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   function getPrice(r: SearchResult) {
@@ -173,9 +174,10 @@ export default function ClientesPanel() {
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
             <input placeholder="Nombre del cliente *" value={newName} onChange={e => setNewName(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]" />
             <input placeholder="Descripción (opcional)" value={newDesc} onChange={e => setNewDesc(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]" />
+            <input placeholder="URL imagen de portada (opcional)" value={newCover} onChange={e => setNewCover(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]" />
             <div className="flex gap-2">
               <button onClick={createCliente} className="flex-1 py-2.5 bg-[#1A5C38] text-white text-sm font-bold rounded-xl">Guardar</button>
-              <button onClick={() => { setShowNewCliente(false); setNewName(''); setNewDesc('') }} className="px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl">Cancelar</button>
+              <button onClick={() => { setShowNewCliente(false); setNewName(''); setNewDesc(''); setNewCover('') }} className="px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl">Cancelar</button>
             </div>
           </div>
         )}
@@ -205,12 +207,24 @@ export default function ClientesPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <button onClick={() => setSelected(null)} className="text-sm text-gray-400 hover:text-gray-600">&larr; Volver</button>
-        <button onClick={() => deleteCliente(selected.slug)} className="text-xs text-red-400 hover:text-red-600">Eliminar cliente</button>
+        <button onClick={() => deleteCliente(selected.slug)} className="text-xs text-red-400 hover:text-red-600">Eliminar</button>
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900">{selected.name}</h2>
-        {selected.description && <p className="text-sm text-gray-500 mt-1">{selected.description}</p>}
+        <div className="flex items-start justify-between mb-2">
+          <h2 className="text-lg font-bold text-gray-900">{selected.name}</h2>
+          <div className="flex gap-2 shrink-0">
+            <a href={`/emprendimientos/${selected.slug}`} target="_blank" rel="noopener noreferrer"
+              className="px-3 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              Ver landing
+            </a>
+            <button onClick={copyLink}
+              className={`px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors ${copied ? 'bg-[#1A5C38] text-white border-[#1A5C38]' : 'text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+              {copied ? 'Copiado!' : 'Copiar link'}
+            </button>
+          </div>
+        </div>
+        {selected.description && <p className="text-sm text-gray-500">{selected.description}</p>}
       </div>
 
       {/* Edificios */}
@@ -231,7 +245,7 @@ export default function ClientesPanel() {
           </div>
         )}
 
-        {edificios.map(ed => (
+        {edificios.map((ed, idx) => (
           <div key={ed.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-2 overflow-hidden">
             <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedEd(expandedEd === ed.id ? null : ed.id)}>
               <div className="flex items-center gap-2">
@@ -239,7 +253,11 @@ export default function ClientesPanel() {
                 <span className="font-bold text-sm text-gray-900">{ed.nombre}</span>
                 <span className="text-[10px] text-gray-400 font-numeric">{(propsByEd[ed.id] || []).length}</span>
               </div>
-              <button onClick={e => { e.stopPropagation(); deleteEdificio(ed.id) }} className="text-gray-300 hover:text-red-400 text-xs">✕</button>
+              <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                {idx > 0 && <button onClick={() => moveEdificio(ed.id, 'up')} className="text-gray-300 hover:text-gray-500 text-xs px-1">↑</button>}
+                {idx < edificios.length - 1 && <button onClick={() => moveEdificio(ed.id, 'down')} className="text-gray-300 hover:text-gray-500 text-xs px-1">↓</button>}
+                <button onClick={() => deleteEdificio(ed.id)} className="text-gray-300 hover:text-red-400 text-xs ml-1">✕</button>
+              </div>
             </div>
 
             {expandedEd === ed.id && (
@@ -257,7 +275,7 @@ export default function ClientesPanel() {
         ))}
       </div>
 
-      {/* Propiedades sueltas */}
+      {/* Sueltas */}
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Propiedades sueltas</p>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-1.5">
@@ -281,9 +299,7 @@ export default function ClientesPanel() {
             </p>
             <input autoFocus placeholder="Buscar por dirección..." value={search} onChange={e => setSearch(e.target.value)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38] mb-3" />
-
             {searching && <p className="text-xs text-gray-400">Buscando...</p>}
-
             <div className="space-y-2">
               {searchResults.map(r => (
                 <div key={r.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
@@ -295,7 +311,6 @@ export default function ClientesPanel() {
                 </div>
               ))}
             </div>
-
             <button onClick={() => setAssignMode(null)} className="w-full mt-3 py-2 text-sm text-gray-400 text-center">Cancelar</button>
           </div>
         </div>

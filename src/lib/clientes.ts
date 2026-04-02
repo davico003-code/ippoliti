@@ -4,6 +4,7 @@ export interface Cliente {
   name: string
   slug: string
   description: string
+  coverImage: string
   createdAt: string
 }
 

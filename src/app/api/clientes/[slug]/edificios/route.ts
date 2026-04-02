@@ -41,6 +41,17 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
   }
 }
 
+export async function PUT(req: NextRequest, { params }: { params: { slug: string } }) {
+  try {
+    const { order } = await req.json()
+    if (!Array.isArray(order)) return NextResponse.json({ error: 'order array requerido' }, { status: 400 })
+    await redis.set(`cliente_edificios_index:${params.slug}`, JSON.stringify(order))
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+  }
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const edId = req.nextUrl.searchParams.get('edId')
