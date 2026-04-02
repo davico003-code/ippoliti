@@ -21,8 +21,12 @@ export interface ClienteFormatted extends Cliente {
 }
 
 function parse<T>(raw: unknown): T | null {
-  if (!raw) return null
-  return typeof raw === 'string' ? JSON.parse(raw) : raw as T
+  if (raw === null || raw === undefined) return null
+  try {
+    return typeof raw === 'string' ? JSON.parse(raw) : raw as T
+  } catch {
+    return null
+  }
 }
 
 export async function getAllClientes(): Promise<Cliente[]> {
