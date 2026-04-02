@@ -195,6 +195,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Image zoom on hover */
+.img-zoom img { transition: transform 0.6s ease; }
+.img-zoom:hover img { transform: scale(1.04); }
+
+/* Card hover lift */
+.card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.10); }
+
 /* Leaflet map containment */
 .leaflet-container {
   width: 100% !important;

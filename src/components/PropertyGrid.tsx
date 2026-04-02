@@ -24,7 +24,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
   const land = isLand(property)
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 group flex flex-col h-full relative">
+    <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 group flex flex-col h-full relative">
       <Link href={`/propiedades/${slug}`} className="flex flex-col h-full">
         <div className="relative h-52 overflow-hidden bg-gray-100">
           {photo ? (

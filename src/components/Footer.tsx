@@ -3,14 +3,15 @@ import { Facebook, Instagram, Youtube } from 'lucide-react'
 import Newsletter from '@/components/Newsletter'
 
 const LINKS = [
+  { label: 'Propiedades', href: '/propiedades' },
   { label: 'Comprar', href: '/propiedades?op=venta' },
   { label: 'Alquilar', href: '/propiedades?op=alquiler' },
-  { label: 'Vender', href: '/tasaciones' },
   { label: 'Tasaciones', href: '/tasaciones' },
   { label: 'Emprendimientos', href: '/emprendimientos' },
   { label: 'Informes', href: '/informes' },
   { label: 'Nosotros', href: '/nosotros' },
   { label: 'Blog', href: '/blog' },
+  { label: 'Guía del Comprador', href: '/guia-comprador' },
 ]
 
 const SOCIALS = [
@@ -76,7 +77,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="border-t border-white/10 pt-5 flex flex-col sm:flex-row justify-between items-center gap-2 text-white/40 text-[11px]">
-          <p>&copy; {year} SI Inmobiliaria. Todos los derechos reservados.</p>
+          <p>&copy; {year} SI Inmobiliaria. Todos los derechos reservados. · David Flores Mat. N° 0621</p>
           <div className="flex items-center gap-3">
             <a href="#" className="hover:text-white/60 transition-colors">Política de Privacidad</a>
             <span>·</span>
