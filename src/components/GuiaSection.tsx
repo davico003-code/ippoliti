@@ -339,11 +339,12 @@ export default function GuiaSection() {
           width: auto;
           height: 420px;
           border-radius: 8px;
+          transform: rotate(-4deg);
           transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
           filter: drop-shadow(0 24px 48px rgba(26,92,56,0.28)) drop-shadow(0 8px 16px rgba(0,0,0,0.12));
         }
         .gs-right:hover .gs-book-img {
-          transform: translateY(-8px) rotate(-1.5deg);
+          transform: rotate(-5deg) translateY(-8px);
           filter: drop-shadow(0 40px 64px rgba(26,92,56,0.32)) drop-shadow(0 16px 32px rgba(0,0,0,0.15));
         }
         .gs-book {
