@@ -20,6 +20,8 @@ import {
 import DevUnitsSection from '@/components/DevUnitsSection'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
+import { getClienteFormatted } from '@/lib/clientes'
+import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug, getMainPhoto, translatePropertyType, getTotalSurface } from '@/lib/tokko'
 
 const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false })
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false })
@@ -55,6 +57,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     }
   } catch {
+    // Try manual client
+    try {
+      const { getClienteBySlug } = await import('@/lib/clientes')
+      const cliente = await getClienteBySlug(params.slug)
+      if (cliente) {
+        return {
+          title: `${cliente.name} | SI Inmobiliaria`,
+          description: cliente.description || `Propiedades de ${cliente.name} en SI Inmobiliaria`,
+        }
+      }
+    } catch {}
     return { title: 'Emprendimiento | SI Inmobiliaria' }
   }
 }
@@ -68,6 +81,10 @@ export default async function DevelopmentPage({ params }: Props) {
   } catch {}
 
   if (!dev) {
+    // Try manual client from Redis
+    const cliente = await getClienteFormatted(params.slug)
+    if (cliente) return <ManualClientePage cliente={cliente} />
+
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
         <h1 className="text-3xl font-black text-gray-900 mb-4">Emprendimiento no encontrado</h1>
@@ -366,6 +383,126 @@ export default async function DevelopmentPage({ params }: Props) {
             <ArrowLeft className="w-4 h-4" /> Volver a emprendimientos
           </Link>
         </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Manual Client Page (Redis-backed) ── */
+async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes').ClienteFormatted }) {
+  // Resolve all tokkoIds to real properties
+  const allIds = [
+    ...cliente.edificios.flatMap(e => e.tokkoIds),
+    ...cliente.sueltasIds,
+  ].map(Number).filter(id => !isNaN(id))
+
+  const propsMap: Record<number, TokkoProperty> = {}
+  await Promise.allSettled(
+    allIds.map(async id => {
+      try {
+        propsMap[id] = await getPropertyById(id)
+      } catch {}
+    })
+  )
+
+  const whatsappText = encodeURIComponent(`Hola! Quiero información sobre propiedades de ${cliente.name}`)
+  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-[#1A5C38] py-16 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <p className="text-white/60 text-sm uppercase tracking-widest mb-3">Propiedades</p>
+          <h1 className="text-3xl md:text-4xl font-black text-white mb-3">{cliente.name}</h1>
+          {cliente.description && <p className="text-white/70 text-base max-w-2xl mx-auto">{cliente.description}</p>}
+          <span className="inline-block mt-4 text-sm font-semibold text-white/50 bg-white/10 px-3 py-1 rounded-full">
+            {allIds.length} propiedad{allIds.length !== 1 ? 'es' : ''}
+          </span>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-10 space-y-12">
+        {/* Edificios */}
+        {cliente.edificios.filter(e => e.tokkoIds.length > 0).map(ed => (
+          <div key={ed.id}>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{ed.nombre}</h2>
+            {ed.descripcion && <p className="text-sm text-gray-500 mb-4">{ed.descripcion}</p>}
+            <div className="h-px bg-gray-200 mb-6" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {ed.tokkoIds.map(id => {
+                const p = propsMap[Number(id)]
+                if (!p) return null
+                const photo = getMainPhoto(p)
+                const price = formatPrice(p)
+                const slug = generatePropertySlug(p)
+                const area = getTotalSurface(p)
+                return (
+                  <Link key={id} href={`/propiedades/${slug}`} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div className="relative h-48 bg-gray-100 overflow-hidden">
+                      {photo && <img src={photo} alt={p.publication_title || p.address} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                    </div>
+                    <div className="p-4">
+                      <p className="text-xs text-gray-400 mb-1">{translatePropertyType(p.type?.name)}</p>
+                      <h3 className="font-bold text-sm text-gray-900 line-clamp-1 mb-1">{p.publication_title || p.address}</h3>
+                      <p className="text-lg font-bold text-[#1A5C38] font-numeric mb-1">{price}</p>
+                      <div className="flex gap-3 text-xs text-gray-500">
+                        {area != null && area > 0 && <span className="font-numeric">{area} m²</span>}
+                        {(p.suite_amount || p.room_amount) > 0 && <span>{p.suite_amount || p.room_amount} dorm.</span>}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+
+        {/* Sueltas */}
+        {cliente.sueltasIds.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>Otras propiedades</h2>
+            <div className="h-px bg-gray-200 mb-6" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cliente.sueltasIds.map(id => {
+                const p = propsMap[Number(id)]
+                if (!p) return null
+                const photo = getMainPhoto(p)
+                const price = formatPrice(p)
+                const slug = generatePropertySlug(p)
+                const area = getTotalSurface(p)
+                return (
+                  <Link key={id} href={`/propiedades/${slug}`} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div className="relative h-48 bg-gray-100 overflow-hidden">
+                      {photo && <img src={photo} alt={p.publication_title || p.address} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                    </div>
+                    <div className="p-4">
+                      <p className="text-xs text-gray-400 mb-1">{translatePropertyType(p.type?.name)}</p>
+                      <h3 className="font-bold text-sm text-gray-900 line-clamp-1 mb-1">{p.publication_title || p.address}</h3>
+                      <p className="text-lg font-bold text-[#1A5C38] font-numeric mb-1">{price}</p>
+                      <div className="flex gap-3 text-xs text-gray-500">
+                        {area != null && area > 0 && <span className="font-numeric">{area} m²</span>}
+                        {(p.suite_amount || p.room_amount) > 0 && <span>{p.suite_amount || p.room_amount} dorm.</span>}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* CTA */}
+        <div className="text-center py-8">
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl text-sm hover:bg-[#1ea952] transition-colors">
+            <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
+          </a>
+        </div>
+
+        <Link href="/emprendimientos" className="inline-flex items-center gap-2 text-[#1A5C38] font-bold text-sm">
+          <ArrowLeft className="w-4 h-4" /> Volver a emprendimientos
+        </Link>
       </div>
     </div>
   )

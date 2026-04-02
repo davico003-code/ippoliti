@@ -10,6 +10,7 @@ import {
   getConstructionStatus,
   translateDevType,
 } from '@/lib/developments'
+import { getAllClientes } from '@/lib/clientes'
 
 export const revalidate = 21600
 
@@ -20,7 +21,10 @@ export const metadata: Metadata = {
 }
 
 export default async function EmprendimientosPage() {
-  const developments = await getDevelopments().catch(() => [])
+  const [developments, clientes] = await Promise.all([
+    getDevelopments().catch(() => []),
+    getAllClientes().catch(() => []),
+  ])
 
   return (
     <div className="min-h-screen bg-white">
@@ -216,6 +220,34 @@ export default async function EmprendimientosPage() {
                   </div>
                 </div>
               </Link>
+
+              {/* Manual clients from Redis */}
+              {clientes.map(c => (
+                <Link
+                  key={c.slug}
+                  href={`/emprendimientos/${c.slug}`}
+                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 hover:-translate-y-1 flex flex-col"
+                >
+                  <div className="relative h-64 bg-[#1A5C38]/5 overflow-hidden flex items-center justify-center">
+                    <div className="w-16 h-16 bg-[#1A5C38]/10 rounded-2xl flex items-center justify-center">
+                      <Building2 className="w-8 h-8 text-[#1A5C38]" />
+                    </div>
+                  </div>
+                  <div className="p-6 flex flex-col flex-1">
+                    <h2 className="text-xl font-black text-gray-900 group-hover:text-brand-600 transition-colors mb-2">
+                      {c.name}
+                    </h2>
+                    {c.description && (
+                      <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">{c.description}</p>
+                    )}
+                    <div className="mt-auto pt-2">
+                      <span className="inline-flex items-center gap-1.5 text-brand-600 font-bold text-sm group-hover:gap-2.5 transition-all">
+                        Ver propiedades <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           )}
         </div>
