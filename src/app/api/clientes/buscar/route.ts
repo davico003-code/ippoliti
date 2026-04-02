@@ -1,63 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { redis } from '@/lib/redis'
+
+export const dynamic = 'force-dynamic'
+
+interface CachedProp {
+  id: number
+  direccion: string
+  barrio: string
+  ciudad: string
+  tipo: string
+  precio: number | null
+  moneda: string
+  foto: string | null
+}
 
 export async function GET(req: NextRequest) {
   try {
-    const q = req.nextUrl.searchParams.get('q')?.trim() || ''
+    const q = req.nextUrl.searchParams.get('q')?.trim().toLowerCase() || ''
     if (q.length < 2) return NextResponse.json([])
 
-    const apiKey = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
-    if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
+    const raw = await redis.get('props_cache')
+    if (!raw) return NextResponse.json({ error: 'sync_needed', message: 'Sincronizá primero' }, { status: 404 })
 
-    const allResults: Record<string, unknown>[] = []
-    const pageSize = 100
-    const maxPages = 5
+    const all: CachedProp[] = typeof raw === 'string' ? JSON.parse(raw) : raw as CachedProp[]
 
-    for (let page = 0; page < maxPages; page++) {
-      const params = new URLSearchParams({
-        key: apiKey,
-        format: 'json',
-        lang: 'es',
-        limit: String(pageSize),
-        offset: String(page * pageSize),
-        search_address: q,
-      })
+    const filtered = all.filter(p => {
+      const haystack = `${p.direccion} ${p.barrio} ${p.ciudad} ${p.tipo}`.toLowerCase()
+      return haystack.includes(q)
+    }).slice(0, 50)
 
-      const res = await fetch(
-        `https://www.tokkobroker.com/api/v1/property/?${params.toString()}`,
-        { next: { revalidate: 300 } }
-      )
+    // Map to expected format
+    const results = filtered.map(p => ({
+      id: p.id,
+      publication_title: p.direccion,
+      address: p.direccion,
+      photo: p.foto,
+      price: p.precio,
+      currency: p.moneda,
+      type: p.tipo,
+    }))
 
-      if (!res.ok) break
-
-      const data = await res.json()
-      const objects = data.objects || []
-      allResults.push(...objects)
-
-      // Stop if we got fewer results than page size (no more pages)
-      if (objects.length < pageSize) break
-    }
-
-    // Return simplified results
-    const simplified = allResults.map((p: Record<string, unknown>) => {
-      const photos = (p.photos as { image?: string; is_front_cover?: boolean; is_blueprint?: boolean }[] || [])
-        .filter(ph => !ph.is_blueprint)
-      const cover = photos.find(ph => ph.is_front_cover) || photos[0]
-      const ops = p.operations as { prices?: { price: number; currency: string }[] }[] | undefined
-      const price = ops?.[0]?.prices?.[0]
-      const type = p.type as { name?: string } | undefined
-
-      return {
-        id: p.id,
-        publication_title: p.publication_title || p.address || '',
-        address: p.address || '',
-        photo: cover?.image || null,
-        price: price?.price || null,
-        currency: price?.currency || 'USD',
-        type: type?.name || '',
-      }
-    })
-
-    return NextResponse.json(simplified)
+    return NextResponse.json(results)
   } catch {
     return NextResponse.json({ error: 'Algo salió mal' }, { status: 500 })
   }

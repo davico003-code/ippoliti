@@ -23,6 +23,8 @@ export default function ClientesPanel() {
   const [copied, setCopied] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const [syncInfo, setSyncInfo] = useState<{ total: number; timestamp: string | null } | null>(null)
+  const [syncing, setSyncing] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const loadClientes = useCallback(async () => {
@@ -33,6 +35,19 @@ export default function ClientesPanel() {
   }, [])
 
   useEffect(() => { loadClientes() }, [loadClientes])
+
+  useEffect(() => {
+    fetch('/api/clientes/sync').then(r => r.json()).then(setSyncInfo).catch(() => {})
+  }, [])
+
+  async function doSync() {
+    setSyncing(true)
+    try {
+      const r = await fetch('/api/clientes/sync', { method: 'POST' })
+      if (r.ok) setSyncInfo(await r.json())
+    } catch {}
+    setSyncing(false)
+  }
 
   async function selectCliente(c: Cliente) {
     setSelected(c)
@@ -158,6 +173,14 @@ export default function ClientesPanel() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">Clientes</h2>
           <button onClick={() => setShowNewCliente(true)} className="px-4 py-2 bg-[#1A5C38] text-white text-sm font-bold rounded-xl">+ Nuevo</button>
+        </div>
+
+        <div className="flex items-center justify-between text-[10px] text-gray-400">
+          <span>Base de datos: {syncInfo?.total || 0} propiedades</span>
+          <button onClick={doSync} disabled={syncing} className="flex items-center gap-1 text-[#1A5C38] hover:underline disabled:opacity-50">
+            <svg className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+            {syncing ? 'Sincronizando...' : 'Actualizar'}
+          </button>
         </div>
 
         {showNewCliente && (
