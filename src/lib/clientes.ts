@@ -64,18 +64,22 @@ export async function getPropsSueltas(clienteSlug: string): Promise<string[]> {
 }
 
 export async function getClienteFormatted(slug: string): Promise<ClienteFormatted | null> {
-  const cliente = await getClienteBySlug(slug)
-  if (!cliente) return null
+  try {
+    const cliente = await getClienteBySlug(slug)
+    if (!cliente) return null
 
-  const edificios = await getEdificiosByCliente(slug)
-  const edificiosWithProps = await Promise.all(
-    edificios.map(async ed => ({
-      ...ed,
-      tokkoIds: await getPropsByEdificio(ed.id),
-    }))
-  )
+    const edificios = await getEdificiosByCliente(slug).catch(() => [] as Edificio[])
+    const edificiosWithProps = await Promise.all(
+      edificios.map(async ed => ({
+        ...ed,
+        tokkoIds: await getPropsByEdificio(ed.id).catch(() => [] as string[]),
+      }))
+    )
 
-  const sueltasIds = await getPropsSueltas(slug)
+    const sueltasIds = await getPropsSueltas(slug).catch(() => [] as string[])
 
-  return { ...cliente, edificios: edificiosWithProps, sueltasIds }
+    return { ...cliente, edificios: edificiosWithProps, sueltasIds }
+  } catch {
+    return null
+  }
 }

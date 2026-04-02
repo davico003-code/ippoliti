@@ -82,8 +82,10 @@ export default async function DevelopmentPage({ params }: Props) {
 
   if (!dev) {
     // Try manual client from Redis
-    const cliente = await getClienteFormatted(params.slug)
-    if (cliente) return <ManualClientePage cliente={cliente} />
+    try {
+      const cliente = await getClienteFormatted(params.slug)
+      if (cliente) return <ManualClientePage cliente={cliente} />
+    } catch {}
 
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
@@ -390,20 +392,24 @@ export default async function DevelopmentPage({ params }: Props) {
 
 /* ── Manual Client Page (Redis-backed) ── */
 async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes').ClienteFormatted }) {
-  // Resolve all tokkoIds to real properties
+  // Resolve all tokkoIds to real properties — fully defensive
+  const edificios = cliente.edificios || []
+  const sueltasIds = cliente.sueltasIds || []
   const allIds = [
-    ...cliente.edificios.flatMap(e => e.tokkoIds),
-    ...cliente.sueltasIds,
-  ].map(Number).filter(id => !isNaN(id))
+    ...edificios.flatMap(e => (e.tokkoIds || [])),
+    ...sueltasIds,
+  ].filter(Boolean).map(Number).filter(id => !isNaN(id) && id > 0)
 
   const propsMap: Record<number, TokkoProperty> = {}
-  await Promise.allSettled(
-    allIds.map(async id => {
-      try {
-        propsMap[id] = await getPropertyById(id)
-      } catch {}
-    })
-  )
+  if (allIds.length > 0) {
+    await Promise.allSettled(
+      allIds.map(async id => {
+        try {
+          propsMap[id] = await getPropertyById(id)
+        } catch {}
+      })
+    )
+  }
 
   const whatsappText = encodeURIComponent(`Hola! Quiero información sobre propiedades de ${cliente.name}`)
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
@@ -423,8 +429,18 @@ async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes'
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-10 space-y-12">
+        {allIds.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">Sin propiedades asignadas todavía</p>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#25D366] text-white text-sm font-bold rounded-xl hover:bg-[#1ea952] transition-colors">
+              Consultar por WhatsApp
+            </a>
+          </div>
+        )}
+
         {/* Edificios */}
-        {cliente.edificios.filter(e => e.tokkoIds.length > 0).map(ed => (
+        {edificios.filter(e => (e.tokkoIds || []).length > 0).map(ed => (
           <div key={ed.id}>
             <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{ed.nombre}</h2>
             {ed.descripcion && <p className="text-sm text-gray-500 mb-4">{ed.descripcion}</p>}
@@ -459,12 +475,12 @@ async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes'
         ))}
 
         {/* Sueltas */}
-        {cliente.sueltasIds.length > 0 && (
+        {sueltasIds.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>Otras propiedades</h2>
             <div className="h-px bg-gray-200 mb-6" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {cliente.sueltasIds.map(id => {
+              {sueltasIds.map(id => {
                 const p = propsMap[Number(id)]
                 if (!p) return null
                 const photo = getMainPhoto(p)
