@@ -390,6 +390,22 @@ const TAG_ES: Record<string, string> = {
   'Accessibility With Reduced Mobility': 'Accesibilidad para movilidad reducida',
   'Temporary rent': 'Alquiler temporal',
 
+  // Estilo
+  'Modern Style': 'Estilo moderno',
+  'Classic Style': 'Estilo clásico',
+  'Colonial Style': 'Estilo colonial',
+
+  // Accesos
+  'Electric Gates': 'Portones eléctricos',
+  'Paved Street': 'Pavimento',
+  'Air Conditioning': 'Aire acondicionado',
+  'Swimming Pool': 'Piscina',
+  'Parking': 'Estacionamiento',
+  'Storage': 'Baulera',
+  'Playground': 'Área de juegos',
+  'Lobby': 'Lobby',
+  'Elevator': 'Ascensor',
+
   // Etiquetas ya en español (pass-through)
   'Financed': 'Financiado',
   'Quiet Location': 'Ubicación tranquila',

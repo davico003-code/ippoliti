@@ -161,8 +161,6 @@ export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) 
           const photo = getPhoto(u)
           const area = getArea(u)
           const price = u.operations?.[0]?.prices?.[0]
-          const statusLabel = u.status === 2 ? 'Reservada' : 'Disponible'
-          const statusColor = u.status === 2 ? 'bg-amber-100 text-amber-700' : 'bg-[#e8f5ee] text-[#1A5C38]'
           const dorms = getDorms(u)
 
           return (
@@ -179,9 +177,6 @@ export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) 
                     </svg>
                   </div>
                 )}
-                <span className={`absolute top-2.5 right-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColor}`}>
-                  {statusLabel}
-                </span>
               </div>
 
               {/* Body */}

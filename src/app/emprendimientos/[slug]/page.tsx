@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Building2, Banknote, ArrowLeft, Download, CheckCircle2, Phone, MessageCircle, Calendar } from 'lucide-react'
+import { MapPin, Building2, Banknote, ArrowLeft, CheckCircle2, Phone, MessageCircle, Calendar } from 'lucide-react'
 import {
   getDevelopments,
   getDevelopmentById,
@@ -18,10 +18,12 @@ import {
   type DevUnit,
 } from '@/lib/developments'
 import DevUnitsSection from '@/components/DevUnitsSection'
-import DevEntorno from '@/components/DevEntorno'
+import ShareButtons from '@/components/ShareButtons'
+import VisitWidget from '@/components/VisitWidget'
 
 const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false })
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false })
+const NearbyPlaces = dynamic(() => import('@/components/NearbyPlaces'), { ssr: false })
 
 export const revalidate = 21600
 
@@ -240,7 +242,7 @@ export default async function DevelopmentPage({ params }: Props) {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Servicios y amenities</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {dev.tags.map(tag => (
+                  {dev.tags.filter(tag => tag.name !== 'Venta directa' && tag.name !== 'Direct sale').map(tag => (
                     <div key={tag.id} className="flex items-center gap-2 text-sm text-gray-700">
                       <CheckCircle2 className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
                       {translateTag(tag.name)}
@@ -250,8 +252,10 @@ export default async function DevelopmentPage({ params }: Props) {
               </div>
             )}
 
-            {/* Entorno privilegiado */}
-            <DevEntorno devName={dev.name} />
+            {/* Lugares cercanos */}
+            {dev.geo_lat && dev.geo_long && (
+              <NearbyPlaces lat={dev.geo_lat} lng={dev.geo_long} />
+            )}
 
             {/* Location map */}
             {dev.geo_lat && dev.geo_long && (
@@ -270,54 +274,62 @@ export default async function DevelopmentPage({ params }: Props) {
             )}
           </div>
 
-          {/* Right column — Contact */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-20">
-              <h2 className="text-lg font-black text-gray-900 mb-1">¿Te interesa {dev.name}?</h2>
-              <p className="text-gray-500 text-sm mb-6">Contactanos para recibir planos, precios y condiciones.</p>
+          {/* Right column — Contact (same as property page) */}
+          <div className="space-y-4">
+            <div className="sticky top-24 space-y-4">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                {/* WhatsApp */}
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#1ea952] text-white rounded-xl font-bold text-sm transition-colors mb-2"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Consultar por WhatsApp
+                </a>
 
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg mb-3"
-              >
-                <MessageCircle className="w-5 h-5" />
-                Quiero información
-              </a>
+                {/* Call */}
+                <a
+                  href="tel:+5493412101694"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold text-sm transition-colors hover:bg-gray-50 mb-4"
+                >
+                  <Phone className="w-5 h-5" />
+                  Llamar <span className="font-numeric">(341) 210-1694</span>
+                </a>
 
-              <a
-                href="tel:+5493412101694"
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#1A5C38] hover:bg-[#15472c] text-white rounded-xl font-semibold transition-all shadow-md"
-              >
-                <Phone className="w-5 h-5" />
-                Llamar <span className="font-numeric">(341) 210-1694</span>
-              </a>
+                <hr className="border-gray-100 mb-4" />
 
-              {dev.financing_details && (
-                <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-100">
-                  <p className="text-xs text-[#1A5C38] font-bold uppercase tracking-wider mb-1">Financiación</p>
-                  <p className="text-[#1A5C38] font-bold">{dev.financing_details}</p>
-                </div>
-              )}
-
-              {dev.files && dev.files.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <p className="text-sm font-bold text-gray-900 mb-3">Documentos</p>
-                  <div className="space-y-2">
-                    {dev.files.map((file, i) => {
-                      const fileName = file.file.split('/').pop() || `Documento ${i + 1}`
-                      return (
-                        <a key={i} href={file.file} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-[#1A5C38] hover:text-[#15472c] font-medium transition-colors">
-                          <Download className="w-4 h-4 flex-shrink-0" />
-                          <span className="truncate">{fileName}</span>
-                        </a>
-                      )
-                    })}
+                {/* Agent card */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-full bg-[#1A5C38] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                    DF
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-bold text-gray-900 block">David Flores</span>
+                    <span className="text-xs text-gray-400">Mat. N° 0621</span>
+                  </div>
+                  <span className="text-[10px] font-semibold text-[#1A5C38] bg-[#e8f5ee] px-2 py-0.5 rounded-full uppercase">Agente</span>
                 </div>
-              )}
+
+                <hr className="border-gray-100" />
+
+                {/* Share */}
+                <ShareButtons
+                  slug={`emprendimientos/${params.slug}`}
+                  title={dev.name}
+                />
+
+                {dev.financing_details && (
+                  <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-100">
+                    <p className="text-xs text-[#1A5C38] font-bold uppercase tracking-wider mb-1">Financiación</p>
+                    <p className="text-[#1A5C38] font-bold text-sm">{dev.financing_details}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Visit widget */}
+              <VisitWidget propertyId={dev.id} propertyTitle={dev.name} />
             </div>
           </div>
         </div>
