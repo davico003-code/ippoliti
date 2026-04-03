@@ -215,16 +215,18 @@ export default function NosotrosClient() {
     <main className="bg-white text-gray-900">
 
       {/* HERO */}
-      <section className="relative h-[70vh] min-h-[500px] flex items-end overflow-hidden">
-        <Image src="/hero-nosotros.jpg" alt="Fachada SI Inmobiliaria" fill className="object-cover" style={{ objectPosition: 'center top' }} priority />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent" />
+      <section
+        className="relative h-[70vh] min-h-[500px] flex items-end overflow-hidden bg-cover bg-center"
+        style={{ backgroundImage: "url('https://images.pexels.com/photos/1546168/pexels-photo-1546168.jpeg?auto=compress&cs=tinysrgb&w=1600')" }}
+      >
+        <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-16">
           <p className="text-xs uppercase tracking-[0.25em] text-white/70 mb-3 font-poppins">Quiénes somos</p>
           <h1 className="text-3xl md:text-4xl text-white leading-tight mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}>
             Desde 1983 acompañando<br />cada decisión importante
           </h1>
           <p className="text-lg text-white/80 font-poppins">
-            Susana, Laura y David — tres generaciones de confianza en Roldán y Funes
+            Susana y David — dos generaciones de confianza en Roldán y Funes
           </p>
         </div>
       </section>
@@ -246,6 +248,29 @@ export default function NosotrosClient() {
                 <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>{stat.label}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* EQUIPO — foto + texto */}
+      <section className="py-20 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="relative rounded-2xl overflow-hidden shadow-lg">
+              <Image src="/hero-nosotros.jpg" alt="Equipo SI Inmobiliaria" width={600} height={400} className="w-full h-auto object-cover" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] mb-3 font-poppins" style={{ color: '#1A5C38' }}>Nuestro equipo</p>
+              <h2 className="text-3xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
+                Una familia que acompaña familias
+              </h2>
+              <p className="text-sm text-gray-500 leading-relaxed mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                Susana Ippoliti fundó la inmobiliaria en 1983. Más de 40 años después, junto a David, siguen construyendo relaciones de confianza con cada cliente que pasa por nuestras oficinas en Roldán y Funes.
+              </p>
+              <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                Hoy el equipo está formado por más de 15 profesionales especializados en el mercado inmobiliario de la zona oeste de Rosario.
+              </p>
+            </div>
           </div>
         </div>
       </section>
