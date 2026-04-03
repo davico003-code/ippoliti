@@ -207,7 +207,7 @@ export default function GuiaSection() {
           margin: 0 auto;
           padding: 0 48px;
           display: grid;
-          grid-template-columns: 1fr 400px;
+          grid-template-columns: 1fr 440px;
           gap: 80px;
           align-items: center;
         }
@@ -336,8 +336,8 @@ export default function GuiaSection() {
           gap: 16px;
         }
         .gs-book-img {
-          width: auto;
-          height: 934px;
+          width: 420px;
+          height: auto;
           object-fit: contain;
           transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
           filter: drop-shadow(0 24px 48px rgba(26,92,56,0.28)) drop-shadow(0 8px 16px rgba(0,0,0,0.12));
@@ -650,7 +650,7 @@ export default function GuiaSection() {
             padding: 0 32px;
           }
           .gs-right { justify-content: center; }
-          .gs-book-img { width: 540px; height: auto; margin: 0 auto; }
+          .gs-book-img { width: 300px; height: auto; margin: 0 auto; }
           .gs { padding: 88px 0; }
         }
         @media (max-width: 600px) {
