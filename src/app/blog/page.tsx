@@ -3,11 +3,11 @@ import { getAllPosts } from '@/lib/blog'
 import BlogClient from './BlogClient'
 
 export const metadata: Metadata = {
-  title: 'Blog inmobiliario — Funes, Roldán y zona oeste | SI Inmobiliaria',
+  title: 'Blog inmobiliario — Funes, Roldán y región | SI Inmobiliaria',
   description:
     'Mercado, consejos y análisis para comprar, vender e invertir en Funes y Roldán. Blog de SI Inmobiliaria.',
   openGraph: {
-    title: 'Blog inmobiliario — Funes, Roldán y zona oeste',
+    title: 'Blog inmobiliario — Funes, Roldán y región',
     description:
       'Mercado, consejos y análisis para comprar, vender e invertir en Funes y Roldán.',
   },
@@ -77,7 +77,7 @@ function pexelsUrl(id: number) {
 function resolveCategory(slug: string, existing?: string): string {
   if (slug.match(/construccion|pozo|emprendimiento|costo|cac|financiacion|invertir|inversion|pileta|panel|acopio|material/))
     return 'Inversión'
-  if (slug.match(/roldan|funes|zona|corredor|mudarse|eje/)) return 'Zona oeste'
+  if (slug.match(/roldan|funes|zona|corredor|mudarse|eje/)) return 'Funes y Roldán'
   if (slug.match(/mercado|precio|m2|valor|alquilar/)) return 'Mercado'
   if (slug.match(/escritura|legal|credito|hipotecario|donacion|herencia|escribano/))
     return 'Legal'

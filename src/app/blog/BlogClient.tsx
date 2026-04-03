@@ -17,7 +17,7 @@ const CATEGORIES = [
   'Mercado',
   'Inversión',
   'Consejos',
-  'Zona oeste',
+  'Funes y Roldán',
   'Legal',
   'Calidad de vida',
 ]
