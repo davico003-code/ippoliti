@@ -18,7 +18,7 @@ export default function HeroVideo() {
         <div className="w-[90%] max-w-[800px]">
           {/* H1 heading */}
           <h1 className="text-white text-3xl md:text-5xl font-bold text-center drop-shadow-lg" style={{fontFamily: 'Raleway, sans-serif'}}>
-            Encontr&aacute; tu hogar en Funes, Rold&aacute;n y Rosario
+            Encontr&aacute; tu hogar
           </h1>
           <p className="text-white/80 text-lg md:text-xl font-normal text-center mt-1 mb-4" style={{fontFamily: 'Raleway, sans-serif'}}>
             Propiedades en Funes, Rold&aacute;n y Rosario
