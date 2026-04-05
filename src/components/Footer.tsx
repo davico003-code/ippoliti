@@ -4,8 +4,8 @@ import Newsletter from '@/components/Newsletter'
 
 const LINKS = [
   { label: 'Propiedades', href: '/propiedades' },
-  { label: 'Comprar', href: '/propiedades?op=venta' },
-  { label: 'Alquilar', href: '/propiedades?op=alquiler' },
+  { label: 'Comprar propiedades en Funes y Roldán', href: '/propiedades?op=venta' },
+  { label: 'Alquilar en Funes y Roldán', href: '/propiedades?op=alquiler' },
   { label: 'Tasaciones', href: '/tasaciones' },
   { label: 'Emprendimientos', href: '/emprendimientos' },
   { label: 'Informes', href: '/informes' },

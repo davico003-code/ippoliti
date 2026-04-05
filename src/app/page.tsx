@@ -334,6 +334,46 @@ export default async function Home() {
 
       {/* Trayectoria */}
       <TrayectoriaSection />
+
+      {/* SEO Content */}
+      <section className="max-w-4xl mx-auto px-6 py-16 text-gray-600 text-sm leading-relaxed">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          Tu inmobiliaria de confianza en Funes, Roldán y Rosario
+        </h2>
+        <p className="mb-4">
+          SI Inmobiliaria es una empresa familiar fundada en 1983 por Susana Ippoliti. Con más de 43 años de experiencia en el mercado inmobiliario de Funes, Roldán y la zona oeste del Gran Rosario, somos la inmobiliaria de referencia para quienes buscan comprar, vender o alquilar propiedades en la región.
+        </p>
+        <p className="mb-8">
+          Contamos con tres oficinas en Funes y Roldán, y un equipo de agentes matriculados especializados en el mercado local. Nuestro conocimiento profundo de cada barrio, cada emprendimiento y cada operación nos permite asesorarte con datos reales, no con estimaciones.
+        </p>
+
+        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          Propiedades en venta y alquiler en Funes y Roldán
+        </h2>
+        <p className="mb-8">
+          En nuestro catálogo encontrás casas, departamentos, terrenos y lotes en los mejores barrios de Funes y Roldán: San Sebastián, Los Aromos, Don Mateo, El Molino, Funes Lakes, Aurea y más. También trabajamos con emprendimientos en pozo y barrios privados en desarrollo.
+        </p>
+
+        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          Tasaciones profesionales en Funes, Roldán y Rosario
+        </h2>
+        <p className="mb-8">
+          Si necesitás conocer el valor real de tu propiedad, nuestro equipo realiza informes de tasación profesionales en menos de 24 horas. Utilizamos fotografía aérea con drone DJI Mavic 4 Pro, análisis de operaciones reales de la zona y más de 40 años de experiencia en el mercado local.
+        </p>
+
+        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          ¿Por qué elegirnos?
+        </h2>
+        <ul className="list-disc list-inside space-y-2 text-gray-600">
+          <li>Más de 43 años en el mercado inmobiliario de Funes y Roldán</li>
+          <li>Equipo de corredores matriculados y certificados</li>
+          <li>Publicación en Zonaprop, Argenprop y MercadoLibre</li>
+          <li>Presencia en Instagram con más de 20.000 seguidores</li>
+          <li>Fotografía aérea profesional con drone DJI Mavic 4 Pro</li>
+          <li>Campañas publicitarias con Meta Ads e inteligencia artificial</li>
+          <li>Atención personalizada y seguimiento de cada operación</li>
+        </ul>
+      </section>
     </>
   )
 }

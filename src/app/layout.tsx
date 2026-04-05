@@ -9,9 +9,9 @@ import ExitPopup from "@/components/ExitPopup";
 import Clarity from "@/components/Clarity";
 
 export const metadata: Metadata = {
-  title: "SI Inmobiliaria | Venta y Alquiler en Roldán y Funes - Desde 1983",
+  title: "SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario",
   description:
-    "Inmobiliaria con 43 años de trayectoria en Roldán, Funes y Gran Rosario. Casas, departamentos, terrenos y emprendimientos. Tasaciones profesionales.",
+    "Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.",
   metadataBase: new URL('https://siinmobiliaria.com'),
   icons: {
     icon: '/icon.png',
@@ -22,19 +22,18 @@ export const metadata: Metadata = {
     google: 'vzBOIhp_zjfmlEuh_-0vZ6K9PDOyNAY_wSet1AWsNUI',
   },
   openGraph: {
-    title: "SI Inmobiliaria | Venta y Alquiler en Roldán y Funes",
-    description:
-      "Inmobiliaria con 43 años de trayectoria en Roldán, Funes y Gran Rosario. Propiedades disponibles.",
-    url: "https://siinmobiliaria.com",
-    siteName: "SI Inmobiliaria",
-    locale: "es_AR",
-    type: "website",
-    images: [{ url: '/logo.png', width: 400, height: 400, alt: 'SI Inmobiliaria' }],
+    title: 'SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario',
+    description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.',
+    url: 'https://siinmobiliaria.com',
+    siteName: 'SI Inmobiliaria',
+    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    locale: 'es_AR',
+    type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SI Inmobiliaria | Venta y Alquiler en Roldán y Funes',
-    description: 'Inmobiliaria con 43 años en Roldán, Funes y Rosario.',
+    title: 'SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario',
+    description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario.',
     images: ['/logo.png'],
   },
 };
@@ -92,7 +91,11 @@ const jsonLd = {
     { "@type": "City", name: "San Lorenzo" },
   ],
   description:
-    "Inmobiliaria familiar con más de 40 años de experiencia en Roldán, Funes y Rosario. Venta, alquiler y tasaciones de propiedades. Estudio jurídico propio.",
+    "Inmobiliaria familiar fundada en 1983. Especialistas en Funes, Roldán y Rosario.",
+  sameAs: [
+    "https://www.instagram.com/inmobiliaria.si",
+    "https://www.tiktok.com/@si.inmobiliaria",
+  ],
 };
 
 export default function RootLayout({
