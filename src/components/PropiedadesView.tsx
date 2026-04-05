@@ -24,9 +24,6 @@ import {
   ArrowUpDown,
 } from 'lucide-react'
 import ShareCardButton from '@/components/ShareCardButton'
-import FeaturedPropertyEditorial from '@/components/FeaturedPropertyEditorial'
-import SimplePropertyCard from '@/components/SimplePropertyCard'
-import { buildPropertyLayout } from '@/lib/propertyLayout'
 import {
   type TokkoProperty,
   getMainPhoto,
@@ -60,7 +57,7 @@ type PropType  = 'todos' | 'casa' | 'departamento' | 'terreno' | 'local'
 type Beds      = 'todos' | '1' | '2' | '3' | '4+'
 type MaxPrice  = 'sin-limite' | '50000' | '100000' | '200000' | '500000'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
-type ListMode  = 'compact' | 'list' | 'editorial'
+type ListMode  = 'compact' | 'list'
 type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
@@ -337,7 +334,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   // Persist listMode preference
   useEffect(() => {
     const saved = localStorage.getItem('si-list-mode') as ListMode | null
-    if (saved === 'compact' || saved === 'list' || saved === 'editorial') setListMode(saved)
+    if (saved === 'compact' || saved === 'list') setListMode(saved)
   }, [])
 
   // Fix mapa Safari iOS - forzar resize al mostrar
@@ -558,13 +555,6 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
               >
                 <LayoutList className="w-3.5 h-3.5" />
               </button>
-              <button
-                onClick={() => toggleListMode('editorial')}
-                className={`p-1.5 rounded transition-colors ${listMode === 'editorial' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-                title="Vista editorial"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
-              </button>
             </div>
           </div>
 
@@ -578,20 +568,6 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                 <button onClick={() => { reset(); setMapBounds(null) }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
                   Borrar filtros
                 </button>
-              </div>
-            ) : listMode === 'editorial' ? (
-              <div className="px-4 md:px-6 py-4 bg-white">
-                {buildPropertyLayout(visibleProperties).map((block, i) =>
-                  block.type === 'featured' ? (
-                    <FeaturedPropertyEditorial key={`f-${block.property.id}`} property={block.property} />
-                  ) : (
-                    <div key={`g-${i}`} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12 py-8">
-                      {block.properties.map(p => (
-                        <SimplePropertyCard key={p.id} property={p} />
-                      ))}
-                    </div>
-                  )
-                )}
               </div>
             ) : listMode === 'compact' ? (
               visibleProperties.map(p => (
