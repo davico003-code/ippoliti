@@ -46,6 +46,7 @@ export interface TokkoLocation {
   name: string;
   full_location: string;
   short_location: string;
+  divisions?: { id: number; name: string }[];
 }
 
 export interface TokkoTag {

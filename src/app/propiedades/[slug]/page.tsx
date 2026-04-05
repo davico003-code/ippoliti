@@ -764,6 +764,9 @@ export default async function PropertyPage({ params }: Props) {
                     rooms={property.suite_amount || property.room_amount || 0}
                     bathrooms={property.bathroom_amount}
                     lotSurface={lotSurface}
+                    parking={property.parking_lot_amount}
+                    city={property.location?.name}
+                    neighborhood={property.location?.divisions?.[0]?.name}
                   />
                 </div>
 
@@ -807,6 +810,9 @@ export default async function PropertyPage({ params }: Props) {
         rooms={property.suite_amount || property.room_amount || 0}
         bathrooms={property.bathroom_amount}
         lotSurface={lotSurface}
+        parking={property.parking_lot_amount}
+        city={property.location?.name}
+        neighborhood={property.location?.divisions?.[0]?.name}
       />
     </div>
   );

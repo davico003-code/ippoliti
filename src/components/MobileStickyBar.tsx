@@ -15,6 +15,9 @@ interface Props {
   rooms: number
   bathrooms: number
   lotSurface?: number | null
+  parking?: number
+  city?: string
+  neighborhood?: string
 }
 
 const btnStyle: React.CSSProperties = {
@@ -34,7 +37,7 @@ const btnStyle: React.CSSProperties = {
   textDecoration: 'none',
 }
 
-export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface }: Props) {
+export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface, parking, city, neighborhood }: Props) {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.1)]"
@@ -67,7 +70,10 @@ export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo
           rooms={rooms}
           bathrooms={bathrooms}
           lotSurface={lotSurface}
+          parking={parking}
           slug={slug}
+          city={city}
+          neighborhood={neighborhood}
           btnStyle={btnStyle}
         />
       </div>
