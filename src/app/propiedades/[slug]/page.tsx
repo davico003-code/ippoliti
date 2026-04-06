@@ -275,7 +275,7 @@ export default async function PropertyPage({ params }: Props) {
       {/* ════════════════════════════════════════════
           MOBILE LAYOUT (md:hidden)
           ════════════════════════════════════════════ */}
-      <div className="md:hidden">
+      <div className="md:hidden pb-[120px]">
         {/* Hero photo */}
         {mainPhoto ? (
           <div className="relative w-full h-[280px]">
@@ -434,7 +434,7 @@ export default async function PropertyPage({ params }: Props) {
         )}
 
         {/* Map */}
-        <div className="mx-3 bg-white rounded-[20px] shadow-[0_2px_20px_rgba(0,0,0,0.08)] p-5 mb-4">
+        <div className="mx-3 bg-white rounded-[20px] shadow-[0_2px_20px_rgba(0,0,0,0.08)] p-5 mb-4 overflow-hidden relative">
           <h2 className="text-base font-bold text-gray-900 mb-3">Ubicación</h2>
           <PropertyMap
             lat={property.geo_lat ? parseFloat(property.geo_lat) : null}

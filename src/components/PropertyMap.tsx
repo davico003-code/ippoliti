@@ -65,7 +65,7 @@ export default function PropertyMap({ lat, lng, address }: Props) {
 
   if (loading) {
     return (
-      <div className="w-full h-[380px] rounded-xl bg-gray-100 flex items-center justify-center">
+      <div className="w-full h-[280px] md:h-[380px] rounded-xl bg-gray-100 flex items-center justify-center">
         <div className="w-6 h-6 border-3 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
       </div>
     )
@@ -74,7 +74,7 @@ export default function PropertyMap({ lat, lng, address }: Props) {
   if (!coords) return null
 
   return (
-    <div className="w-full h-[380px] rounded-xl overflow-hidden">
+    <div className="relative w-full h-[280px] md:h-[380px] rounded-xl overflow-hidden">
       <MapContainer
         center={coords}
         zoom={15}

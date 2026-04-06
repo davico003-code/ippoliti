@@ -207,6 +207,8 @@ body {
 .leaflet-container {
   width: 100% !important;
   max-width: 100% !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 /* Smooth scroll offset for fixed navbar */
