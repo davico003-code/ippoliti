@@ -44,9 +44,11 @@ interface Props {
   params: { slug: string };
 }
 
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   try {
-    const data = await getProperties({ limit: 50 });
+    const data = await getProperties({ limit: 500 });
     return (data.objects || []).map((p) => ({
       slug: generatePropertySlug(p),
     }));
@@ -101,6 +103,7 @@ function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string
 export default async function PropertyPage({ params }: Props) {
   let property: TokkoProperty | null = null;
   let notFound = false;
+  let fetchError = false;
 
   try {
     const id = getIdFromSlug(params.slug);
@@ -109,11 +112,15 @@ export default async function PropertyPage({ params }: Props) {
     } else {
       property = await getPropertyById(id);
     }
-  } catch {
-    notFound = true;
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('not found')) {
+      notFound = true;
+    } else {
+      fetchError = true;
+    }
   }
 
-  if (notFound || !property) {
+  if (notFound) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] px-4">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Propiedad no encontrada</h1>
@@ -121,6 +128,19 @@ export default async function PropertyPage({ params }: Props) {
         <Link href="/propiedades" className="px-6 py-3 bg-[#1A5C38] text-white rounded-xl font-semibold hover:bg-[#0F3A23] transition-colors">
           Ver todas las propiedades
         </Link>
+      </div>
+    );
+  }
+
+  if (fetchError || !property) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] px-4 text-center">
+        <div className="w-12 h-12 border-4 border-gray-200 border-t-[#1A5C38] rounded-full animate-spin mb-6" />
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">Cargando propiedad...</h1>
+        <p className="text-gray-500 mb-6">Si la página no carga, intentá recargar.</p>
+        <a href={`/propiedades/${params.slug}`} className="px-6 py-3 bg-[#1A5C38] text-white rounded-xl font-semibold hover:bg-[#0F3A23] transition-colors">
+          Recargar página
+        </a>
       </div>
     );
   }

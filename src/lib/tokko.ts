@@ -511,15 +511,29 @@ export async function getProperties(params?: {
 export async function getPropertyById(id: number): Promise<TokkoProperty> {
   const url = `${BASE_URL}/property/${id}/?key=${getApiKey()}&format=json&lang=es`;
 
-  const res = await fetch(url, {
-    next: { revalidate: 21600 },
-  });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, {
+        next: { revalidate: 21600 },
+      });
 
-  if (!res.ok) {
-    throw new Error(`Tokko API error: ${res.status} ${res.statusText}`);
+      if (res.status === 404) {
+        throw new Error(`Property ${id} not found`);
+      }
+
+      if (!res.ok) {
+        if (attempt < 2) { await new Promise(r => setTimeout(r, 500 * (attempt + 1))); continue; }
+        throw new Error(`Tokko API error: ${res.status} ${res.statusText}`);
+      }
+
+      return res.json();
+    } catch (e) {
+      if (attempt >= 2 || (e instanceof Error && e.message.includes('not found'))) throw e;
+      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+    }
   }
 
-  return res.json();
+  throw new Error(`Tokko API failed after 3 attempts for property ${id}`);
 }
 
 export async function getFeaturedProperties(limit = 6): Promise<TokkoProperty[]> {
