@@ -41,20 +41,16 @@ function buildEditorialTitle(type: string, rooms: number, neighborhood: string |
   return `Propiedad en ${loc}`
 }
 
-function adaptiveWrap(ctx: CanvasRenderingContext2D, text: string, maxW: number, sizes: number[]): { lines: string[]; size: number } {
-  for (const sz of sizes) {
-    ctx.font = `500 ${sz}px Raleway, system-ui, sans-serif`
-    const words = text.split(' ')
-    const lines: string[] = []
-    let cur = ''
-    for (const w of words) {
-      const test = cur ? `${cur} ${w}` : w
-      if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w } else cur = test
-    }
-    if (cur) lines.push(cur)
-    if (lines.length <= 2) return { lines: lines.slice(0, 2), size: sz }
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+  const words = text.split(' ')
+  const lines: string[] = []
+  let cur = ''
+  for (const w of words) {
+    const test = cur ? `${cur} ${w}` : w
+    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w } else cur = test
   }
-  return { lines: [text.slice(0, 38) + '…'], size: sizes[sizes.length - 1] }
+  if (cur) lines.push(cur)
+  return lines
 }
 
 export default function StoryPlate({ title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface, parking, slug, city, neighborhood, btnStyle }: Props) {
@@ -68,9 +64,10 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
     if (!ctx) return null
     await document.fonts.ready
 
-    const W = 1080, H = 1920, px = 64
+    const W = 1080, H = 1920, px = 64, cw = W - px * 2
     canvas.width = W; canvas.height = H
     ctx.fillStyle = '#0d1a12'; ctx.fillRect(0, 0, W, H)
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left'
 
     // ── Photo ──
     if (photo) {
@@ -82,64 +79,60 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
       } catch { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, 0, W, H) }
     }
 
-    // ── Gradient ──
-    const grad = ctx.createLinearGradient(0, 0, 0, H)
-    grad.addColorStop(0, 'rgba(0,0,0,0.28)')
-    grad.addColorStop(0.18, 'rgba(0,0,0,0)')
-    grad.addColorStop(0.38, 'rgba(0,0,0,0)')
-    grad.addColorStop(0.52, 'rgba(0,0,0,0.35)')
-    grad.addColorStop(0.72, 'rgba(0,0,0,0.75)')
-    grad.addColorStop(1, 'rgba(0,0,0,0.92)')
-    ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H)
-    ctx.textBaseline = 'top'; ctx.textAlign = 'left'
+    // ── Gradients (top + bottom) ──
+    const topGrad = ctx.createLinearGradient(0, 0, 0, 240)
+    topGrad.addColorStop(0, 'rgba(0,0,0,0.38)'); topGrad.addColorStop(0.75, 'rgba(0,0,0,0.08)'); topGrad.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = topGrad; ctx.fillRect(0, 0, W, 240)
 
-    // ── HEADER: SI monogram ──
-    const hx = 60, hy = 54
-    ctx.beginPath(); ctx.roundRect(hx, hy, 78, 78, 15); ctx.fillStyle = '#1A5C38'; ctx.fill()
-    ctx.fillStyle = '#fff'; ctx.font = '500 33px Poppins, system-ui, sans-serif'
-    ctx.textAlign = 'center'; ctx.fillText('SI', hx + 39, hy + 22); ctx.textAlign = 'left'
-    const tx = hx + 78 + 24
-    ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.font = '500 28px Poppins, system-ui, sans-serif'
-    ctx.fillText('INMOBILIARIA', tx, hy + 8)
-    ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.font = '500 22px Poppins, system-ui, sans-serif'
-    ctx.fillText('DESDE 1983', tx, hy + 44)
+    const botGrad = ctx.createLinearGradient(0, 800, 0, H)
+    botGrad.addColorStop(0, 'rgba(0,0,0,0.25)'); botGrad.addColorStop(0.15, 'rgba(0,0,0,0)')
+    botGrad.addColorStop(0.35, 'rgba(0,0,0,0)'); botGrad.addColorStop(0.55, 'rgba(0,0,0,0.4)')
+    botGrad.addColorStop(0.78, 'rgba(0,0,0,0.78)'); botGrad.addColorStop(1, 'rgba(0,0,0,0.92)')
+    ctx.fillStyle = botGrad; ctx.fillRect(0, 800, W, H - 800)
 
-    // ── CONTENT BLOCK ──
-    const cw = W - px * 2
-    let cy = 1220
+    // ── HEADER SI (top band, y < 285) ──
+    const hx = 64, hy = 60
+    ctx.beginPath(); ctx.roundRect(hx, hy, 84, 84, 16); ctx.fillStyle = '#1A5C38'; ctx.fill()
+    ctx.fillStyle = '#fff'; ctx.font = '500 36px Poppins, system-ui, sans-serif'
+    ctx.textAlign = 'center'; ctx.fillText('SI', hx + 42, hy + 24); ctx.textAlign = 'left'
+    const ltx = hx + 84 + 26
+    ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.font = '500 32px Poppins, system-ui, sans-serif'
+    ctx.fillText('INMOBILIARIA', ltx, hy + 12)
+    ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.font = '500 24px Poppins, system-ui, sans-serif'
+    ctx.fillText('DESDE 1983', ltx, hy + 52)
 
-    // Pills
-    const pill = (text: string, x: number, y: number, solid: boolean): number => {
-      ctx.font = '500 30px Poppins, system-ui, sans-serif'
-      const tw = ctx.measureText(text).width, pw = tw + 80, ph = 54
-      ctx.beginPath(); ctx.roundRect(x, y, pw, ph, 999)
-      if (solid) { ctx.fillStyle = '#1A5C38'; ctx.fill() }
-      else { ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1.5; ctx.stroke() }
-      ctx.fillStyle = '#fff'; ctx.fillText(text, x + 40, y + 12)
-      return pw
-    }
-    // Determine operation type
+    // ── Operation detection ──
     const opLower = (operation || '').toLowerCase()
     const isRent = opLower.includes('alquiler') || opLower === 'rent'
     const isTemp = opLower.includes('temporar') || opLower.includes('temporary')
     const pillOp = isTemp ? 'TEMPORARIO' : isRent ? 'ALQUILER' : 'VENTA'
+    const priceLabel = isTemp ? 'ALQUILER TEMPORARIO' : isRent ? 'ALQUILER MENSUAL' : 'PRECIO'
+    const priceSuffix = isTemp ? '/ noche' : isRent ? '/ mes' : ''
 
-    let bx = px
-    bx += pill(pillOp, bx, cy, true) + 20
-    bx += pill(propertyType.toUpperCase(), bx, cy, false) + 20
-    if (city) pill(city.toUpperCase(), bx, cy, false)
-    cy += 54 + 52
-
-    // Title
+    // ── Title sizing ──
     const editTitle = buildEditorialTitle(propertyType || title, rooms, neighborhood || null, city || '')
-    const { lines, size } = adaptiveWrap(ctx, editTitle, cw, [82, 72, 64])
-    ctx.fillStyle = '#fff'; ctx.font = `500 ${size}px Raleway, system-ui, sans-serif`
-    ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 42; ctx.shadowOffsetY = 6
-    for (const ln of lines) { ctx.fillText(ln, px, cy); cy += Math.round(size * 1.1) }
-    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
-    cy += 28
 
-    // Specs line (text with · separators, NOT pills)
+    ctx.font = '500 82px Raleway, system-ui, sans-serif'
+    const singleW = ctx.measureText(editTitle).width
+    let titleSize: number, priceSize: number, suffixSize: number, titleMB: number, titleLines: string[]
+
+    if (singleW <= cw) {
+      titleSize = 82; priceSize = 96; suffixSize = 38; titleMB = 44; titleLines = [editTitle]
+    } else {
+      ctx.font = '500 68px Raleway, system-ui, sans-serif'
+      const wrapped = wrapText(ctx, editTitle, cw)
+      if (wrapped.length <= 2) {
+        titleSize = 68; priceSize = 78; suffixSize = 32; titleMB = 34; titleLines = wrapped.slice(0, 2)
+      } else {
+        ctx.font = '500 58px Raleway, system-ui, sans-serif'
+        titleSize = 58; priceSize = 68; suffixSize = 28; titleMB = 30
+        titleLines = wrapText(ctx, editTitle, cw).slice(0, 2)
+      }
+    }
+
+    // ── Calculate block height bottom-up from y=1590 ──
+    const pillH = 54, pillMB = 46
+    const titleH = titleLines.length * Math.round(titleSize * 1.1)
     const isLand = /land|terreno|lote/i.test(propertyType || '')
     const specParts: string[] = []
     if (area && area > 0) specParts.push(`${area} m²`)
@@ -147,64 +140,96 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
     if (!isLand && rooms > 0) specParts.push(`${rooms} dorm`)
     if (bathrooms > 0) specParts.push(`${bathrooms} baño${bathrooms > 1 ? 's' : ''}`)
     if (!isLand && parking && parking > 0) specParts.push(`${parking} cochera${parking > 1 ? 's' : ''}`)
+    const hasSpecs = specParts.length > 0
+    const specH = hasSpecs ? 34 + 48 : 20
+    const div1H = 2 + 38
+    const labelH = 24 + 10
+    const priceH = priceSize
+    const priceMB = 38
+    const div2H = 2
 
-    if (specParts.length > 0) {
-      const specLine = specParts.join(' · ')
+    const blockH = pillH + pillMB + titleH + titleMB + specH + div1H + labelH + priceH + priceMB + div2H
+    let cy = 1590 - blockH
+
+    // ── RENDER BLOCK ──
+
+    // Pills
+    const pill = (text: string, x: number, y: number, solid: boolean): number => {
+      ctx.font = '500 30px Poppins, system-ui, sans-serif'
+      const tw = ctx.measureText(text).width, pw = tw + 80
+      ctx.beginPath(); ctx.roundRect(x, y, pw, pillH, 999)
+      if (solid) { ctx.fillStyle = '#1A5C38'; ctx.fill() }
+      else { ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1.5; ctx.stroke() }
+      ctx.fillStyle = '#fff'; ctx.fillText(text, x + 40, y + 12); return pw
+    }
+    let bx = px
+    bx += pill(pillOp, bx, cy, true) + 20
+    bx += pill(propertyType.toUpperCase(), bx, cy, false) + 20
+    if (city) pill(city.toUpperCase(), bx, cy, false)
+    cy += pillH + pillMB
+
+    // Title
+    ctx.fillStyle = '#fff'; ctx.font = `500 ${titleSize}px Raleway, system-ui, sans-serif`
+    ctx.shadowColor = 'rgba(0,0,0,0.65)'; ctx.shadowBlur = 42; ctx.shadowOffsetY = 6
+    for (const ln of titleLines) { ctx.fillText(ln, px, cy); cy += Math.round(titleSize * 1.1) }
+    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
+    cy += titleMB
+
+    // Specs line
+    if (hasSpecs) {
       ctx.font = '400 34px Poppins, system-ui, sans-serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.75)'
-      ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 28; ctx.shadowOffsetY = 4
-      ctx.fillText(specLine, px, cy)
+      ctx.fillStyle = 'rgba(255,255,255,0.78)'
+      ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 4
+      ctx.fillText(specParts.join(' · '), px, cy)
       ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
-      cy += 34 + 60
+      cy += 34 + 48
     } else {
       cy += 20
     }
 
-    // Divider
-    ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.fillRect(px, cy, cw, 2); cy += 2 + 44
+    // Divider 1
+    ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.fillRect(px, cy, cw, 2); cy += 2 + 38
 
-    // Price label — adapts to operation type
-    const priceLabel = isTemp ? 'ALQUILER TEMPORARIO' : isRent ? 'ALQUILER MENSUAL' : 'PRECIO'
+    // Price label
     ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '500 24px Poppins, system-ui, sans-serif'
-    ctx.fillText(priceLabel, px, cy); cy += 34
+    ctx.fillText(priceLabel, px, cy); cy += 24 + 10
 
-    // Price value — strip /mes or /noche suffix if present in pre-formatted price
+    // Price value
     const cleanPrice = price.replace(/\s*\/\s*(mes|noche|semana|día)$/i, '').trim()
-    ctx.fillStyle = '#fff'; ctx.font = '600 78px Poppins, system-ui, sans-serif'
-    ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 42; ctx.shadowOffsetY = 6
+    ctx.fillStyle = '#fff'; ctx.font = `600 ${priceSize}px Poppins, system-ui, sans-serif`
+    ctx.shadowColor = 'rgba(0,0,0,0.65)'; ctx.shadowBlur = 42; ctx.shadowOffsetY = 6
     ctx.fillText(cleanPrice, px, cy)
     const priceW = ctx.measureText(cleanPrice).width
     ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
 
-    // Price suffix for rent
-    if (isRent || isTemp) {
-      const suffix = isTemp ? '/ noche' : '/ mes'
-      ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '400 28px Poppins, system-ui, sans-serif'
-      ctx.fillText(suffix, px + priceW + 10, cy + 44)
+    // Price suffix
+    if (priceSuffix) {
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = `400 ${suffixSize}px Poppins, system-ui, sans-serif`
+      const offsetY = priceSize - suffixSize - 6
+      ctx.fillText(priceSuffix, px + priceW + 12, cy + offsetY)
     }
-    cy += 78 + 52
+    cy += priceSize + priceMB
 
-    // Footer divider
-    ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fillRect(px, cy, cw, 2); cy += 2 + 36
+    // Divider 2
+    ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.fillRect(px, cy, cw, 2)
 
-    // Footer left — agent
-    const avSz = 80
-    ctx.beginPath(); ctx.arc(px + avSz / 2, cy + avSz / 2, avSz / 2, 0, Math.PI * 2)
+    // ── FOOTER (bottom band, y > 1635) ──
+    const fy = 1770, avSz = 82
+    ctx.beginPath(); ctx.arc(px + avSz / 2, fy + avSz / 2, avSz / 2, 0, Math.PI * 2)
     ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fill()
     ctx.fillStyle = '#fff'; ctx.font = '500 28px Poppins, system-ui, sans-serif'
-    ctx.textAlign = 'center'; ctx.fillText('DF', px + avSz / 2, cy + 25); ctx.textAlign = 'left'
-    const agX = px + avSz + 26
+    ctx.textAlign = 'center'; ctx.fillText('DF', px + avSz / 2, fy + 26); ctx.textAlign = 'left'
+    const agX = px + avSz + 24
     ctx.fillStyle = '#fff'; ctx.font = '500 32px Poppins, system-ui, sans-serif'
-    ctx.fillText('David Flores', agX, cy + 12)
+    ctx.fillText('David Flores', agX, fy + 14)
     ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '400 26px Poppins, system-ui, sans-serif'
-    ctx.fillText('Mat. N° 0621', agX, cy + 50)
+    ctx.fillText('Mat. N° 0621', agX, fy + 52)
 
-    // Footer right — brand
     ctx.textAlign = 'right'
     ctx.fillStyle = '#fff'; ctx.font = '500 32px Poppins, system-ui, sans-serif'
-    ctx.fillText('@inmobiliaria.si', W - px, cy + 12)
+    ctx.fillText('@inmobiliaria.si', W - px, fy + 14)
     ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '400 26px Poppins, system-ui, sans-serif'
-    ctx.fillText('Consultá por DM', W - px, cy + 50)
+    ctx.fillText('Consultá por DM', W - px, fy + 52)
     ctx.textAlign = 'left'
 
     return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png'))
