@@ -118,8 +118,14 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
       ctx.fillStyle = '#fff'; ctx.fillText(text, x + 40, y + 12)
       return pw
     }
+    // Determine operation type
+    const opLower = (operation || '').toLowerCase()
+    const isRent = opLower.includes('alquiler') || opLower === 'rent'
+    const isTemp = opLower.includes('temporar') || opLower.includes('temporary')
+    const pillOp = isTemp ? 'TEMPORARIO' : isRent ? 'ALQUILER' : 'VENTA'
+
     let bx = px
-    bx += pill(operation.toUpperCase(), bx, cy, true) + 20
+    bx += pill(pillOp, bx, cy, true) + 20
     bx += pill(propertyType.toUpperCase(), bx, cy, false) + 20
     if (city) pill(city.toUpperCase(), bx, cy, false)
     cy += 54 + 52
@@ -157,15 +163,25 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
     // Divider
     ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.fillRect(px, cy, cw, 2); cy += 2 + 44
 
-    // Price label
+    // Price label — adapts to operation type
+    const priceLabel = isTemp ? 'ALQUILER TEMPORARIO' : isRent ? 'ALQUILER MENSUAL' : 'PRECIO'
     ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '500 24px Poppins, system-ui, sans-serif'
-    ctx.fillText('PRECIO', px, cy); cy += 34
+    ctx.fillText(priceLabel, px, cy); cy += 34
 
-    // Price value
+    // Price value — strip /mes or /noche suffix if present in pre-formatted price
+    const cleanPrice = price.replace(/\s*\/\s*(mes|noche|semana|día)$/i, '').trim()
     ctx.fillStyle = '#fff'; ctx.font = '600 78px Poppins, system-ui, sans-serif'
     ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 42; ctx.shadowOffsetY = 6
-    ctx.fillText(price, px, cy)
+    ctx.fillText(cleanPrice, px, cy)
+    const priceW = ctx.measureText(cleanPrice).width
     ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
+
+    // Price suffix for rent
+    if (isRent || isTemp) {
+      const suffix = isTemp ? '/ noche' : '/ mes'
+      ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '400 28px Poppins, system-ui, sans-serif'
+      ctx.fillText(suffix, px + priceW + 10, cy + 44)
+    }
     cy += 78 + 52
 
     // Footer divider
