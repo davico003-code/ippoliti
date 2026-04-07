@@ -285,12 +285,15 @@ async function DevelopmentsSection() {
 // ─── Metadata ────────────────────────────────────────────────────────────────
 
 export const metadata = {
-  title: 'SI Inmobiliaria | Venta y Alquiler en Roldán, Funes y Rosario - Desde 1983',
-  description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, departamentos, terrenos, emprendimientos. Tasaciones profesionales.',
+  title: 'SI Inmobiliaria · Propiedades en Funes, Roldán y Rosario',
+  description:
+    'Inmobiliaria familiar fundada en 1983. Casas, departamentos, terrenos y emprendimientos en Funes, Roldán y Rosario. Tasaciones profesionales en 24 horas.',
   openGraph: {
-    title: 'SI Inmobiliaria | Venta y Alquiler - Desde 1983',
-    description: 'Más de 40 años en el mercado inmobiliario de Roldán, Funes y Rosario.',
+    title: 'SI Inmobiliaria · Propiedades en Funes, Roldán y Rosario',
+    description:
+      'Inmobiliaria familiar desde 1983. Casas, departamentos y terrenos en Funes, Roldán y Rosario.',
     url: 'https://siinmobiliaria.com',
+    images: ['/og-image.jpg'],
   },
 }
 
@@ -300,19 +303,147 @@ const homeJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'RealEstateAgent',
   name: 'SI Inmobiliaria',
+  image: 'https://siinmobiliaria.com/logo.png',
   url: 'https://siinmobiliaria.com',
   logo: 'https://siinmobiliaria.com/logo.png',
+  telephone: '+5493412101694',
   foundingDate: '1983',
-  telephone: '+54-341-210-1694',
+  founder: 'Susana Ippoliti',
   description: 'Inmobiliaria familiar con más de 40 años de experiencia en Roldán, Funes y Rosario.',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: '1ro de Mayo 258',
-    addressLocality: 'Roldán',
-    addressRegion: 'Santa Fe',
-    addressCountry: 'AR',
-  },
+  address: [
+    {
+      '@type': 'PostalAddress',
+      streetAddress: 'Hipólito Yrigoyen 2643',
+      addressLocality: 'Funes',
+      addressRegion: 'Santa Fe',
+      addressCountry: 'AR',
+    },
+    {
+      '@type': 'PostalAddress',
+      streetAddress: '1ro de Mayo 258',
+      addressLocality: 'Roldán',
+      addressRegion: 'Santa Fe',
+      addressCountry: 'AR',
+    },
+    {
+      '@type': 'PostalAddress',
+      streetAddress: 'Catamarca 775',
+      addressLocality: 'Roldán',
+      addressRegion: 'Santa Fe',
+      addressCountry: 'AR',
+    },
+  ],
+  sameAs: ['https://www.instagram.com/inmobiliaria.si'],
   areaServed: ['Roldán', 'Funes', 'Rosario', 'Fisherton'],
+}
+
+const PORQUE_ITEMS = [
+  { num: '43', desc: 'Años en el mercado inmobiliario de Funes, Roldán y Rosario.' },
+  { num: '14', desc: 'Corredores matriculados y certificados en el equipo.' },
+  { num: '3', desc: 'Sedes físicas en Funes, Roldán centro y Roldán este.' },
+  { num: '20K+', desc: 'Seguidores en Instagram @inmobiliaria.si construyendo comunidad local.' },
+  { num: '4K', desc: 'Fotografía aérea profesional con drone DJI Mavic 4 Pro en cada propiedad.' },
+  { num: 'AI', desc: 'Campañas Meta Ads e inteligencia artificial para encontrar al comprador indicado.' },
+]
+
+function PorQueElegirnosSection() {
+  return (
+    <section
+      style={{
+        background: '#fafaf8',
+        padding: '120px 64px',
+      }}
+      className="porque-section"
+    >
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div
+          style={{
+            fontFamily: "'Poppins', system-ui, sans-serif",
+            fontWeight: 500,
+            fontSize: 10,
+            textTransform: 'uppercase',
+            letterSpacing: '0.22em',
+            color: '#1A5C38',
+            marginBottom: 18,
+          }}
+        >
+          Por qué elegirnos
+        </div>
+        <h2
+          className="porque-title"
+          style={{
+            fontFamily: "'Raleway', system-ui, sans-serif",
+            fontWeight: 300,
+            fontSize: 44,
+            letterSpacing: '-0.035em',
+            lineHeight: 1.08,
+            color: '#1d1d1f',
+            maxWidth: 620,
+            margin: '0 0 72px',
+          }}
+        >
+          Datos reales, no estimaciones.
+        </h2>
+        <div
+          className="porque-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 40,
+          }}
+        >
+          {PORQUE_ITEMS.map(item => (
+            <div
+              key={item.num + item.desc}
+              style={{
+                paddingTop: 18,
+                borderTop: '1px solid #e0e0dc',
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "'Poppins', system-ui, sans-serif",
+                  fontWeight: 500,
+                  fontSize: 36,
+                  fontVariantNumeric: 'tabular-nums',
+                  letterSpacing: '-0.02em',
+                  color: '#1d1d1f',
+                  lineHeight: 1,
+                  marginBottom: 10,
+                }}
+              >
+                {item.num}
+              </div>
+              <p
+                style={{
+                  fontFamily: "'Poppins', system-ui, sans-serif",
+                  fontWeight: 400,
+                  fontSize: 14,
+                  lineHeight: 1.55,
+                  color: '#4a4a48',
+                  margin: 0,
+                }}
+              >
+                {item.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <style>{`
+        @media (max-width: 1024px) {
+          .porque-section { padding: 96px 32px !important; }
+          .porque-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .porque-title { font-size: 36px !important; }
+        }
+        @media (max-width: 640px) {
+          .porque-section { padding: 80px 24px !important; }
+          .porque-grid { grid-template-columns: 1fr !important; }
+          .porque-title { font-size: 30px !important; }
+        }
+      `}</style>
+    </section>
+  )
 }
 
 export default async function Home() {
@@ -335,45 +466,8 @@ export default async function Home() {
       {/* Trayectoria */}
       <TrayectoriaSection />
 
-      {/* SEO Content */}
-      <section className="max-w-4xl mx-auto px-6 py-16 text-gray-600 text-sm leading-relaxed">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
-          Tu inmobiliaria de confianza en Funes, Roldán y Rosario
-        </h2>
-        <p className="mb-4">
-          SI Inmobiliaria es una empresa familiar fundada en 1983 por Susana Ippoliti. Con más de 43 años de experiencia en el mercado inmobiliario de Funes, Roldán y la zona oeste del Gran Rosario, somos la inmobiliaria de referencia para quienes buscan comprar, vender o alquilar propiedades en la región.
-        </p>
-        <p className="mb-8">
-          Contamos con tres oficinas en Funes y Roldán, y un equipo de agentes matriculados especializados en el mercado local. Nuestro conocimiento profundo de cada barrio, cada emprendimiento y cada operación nos permite asesorarte con datos reales, no con estimaciones.
-        </p>
-
-        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
-          Propiedades en venta y alquiler en Funes y Roldán
-        </h2>
-        <p className="mb-8">
-          En nuestro catálogo encontrás casas, departamentos, terrenos y lotes en los mejores barrios de Funes y Roldán: San Sebastián, Los Aromos, Don Mateo, El Molino, Funes Lakes, Aurea y más. También trabajamos con emprendimientos en pozo y barrios privados en desarrollo.
-        </p>
-
-        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
-          Tasaciones profesionales en Funes, Roldán y Rosario
-        </h2>
-        <p className="mb-8">
-          Si necesitás conocer el valor real de tu propiedad, nuestro equipo realiza informes de tasación profesionales en menos de 24 horas. Utilizamos fotografía aérea con drone DJI Mavic 4 Pro, análisis de operaciones reales de la zona y más de 40 años de experiencia en el mercado local.
-        </p>
-
-        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
-          ¿Por qué elegirnos?
-        </h2>
-        <ul className="list-disc list-inside space-y-2 text-gray-600">
-          <li>Más de 43 años en el mercado inmobiliario de Funes y Roldán</li>
-          <li>Equipo de corredores matriculados y certificados</li>
-          <li>Publicación en Zonaprop, Argenprop y MercadoLibre</li>
-          <li>Presencia en Instagram con más de 20.000 seguidores</li>
-          <li>Fotografía aérea profesional con drone DJI Mavic 4 Pro</li>
-          <li>Campañas publicitarias con Meta Ads e inteligencia artificial</li>
-          <li>Atención personalizada y seguimiento de cada operación</li>
-        </ul>
-      </section>
+      {/* Por qué elegirnos */}
+      <PorQueElegirnosSection />
     </>
   )
 }

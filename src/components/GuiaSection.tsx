@@ -58,47 +58,50 @@ export default function GuiaSection() {
 
           {/* Columna izquierda */}
           <div className="gs-left">
-            <div className="gs-pill">Recurso gratuito</div>
+            <div className="gs-eyebrow">
+              Guía gratuita · <span className="gs-num">14</span> capítulos
+            </div>
 
             <h2 className="gs-h2">
-              Guía Inteligente<br />del Comprador
+              Comprá con<br />inteligencia,<br />no con suerte.
             </h2>
 
             <p className="gs-sub">
-              14 capítulos sobre cómo comprar en Funes y Roldán con criterio, sin errores y sin pagar de más.
+              Todo lo que nadie te cuenta sobre comprar una propiedad en Funes y Roldán. Sin filtros, sin
+              letra chica, sin tiempo perdido.
             </p>
 
-            <ul className="gs-bullets">
-              <li>Documentación, gastos ocultos y casos reales</li>
-              <li>Todo lo que nadie te cuenta del mercado local</li>
-              <li>Cómo negociar con criterio y sin ansiedad</li>
-            </ul>
+            <ol className="gs-list">
+              <li>
+                <span className="gs-list-num">01</span>
+                <span className="gs-list-text">Documentación, gastos ocultos y casos reales</span>
+              </li>
+              <li>
+                <span className="gs-list-num">02</span>
+                <span className="gs-list-text">Todo lo que nadie te cuenta del mercado local</span>
+              </li>
+              <li>
+                <span className="gs-list-num">03</span>
+                <span className="gs-list-text">Cómo negociar con criterio y sin ansiedad</span>
+              </li>
+            </ol>
 
             {alreadyAccessed ? (
-              <div className="gs-return-wrap">
-                <p className="gs-return-label">Ya tenés acceso permanente.</p>
-                <a
-                  className="gs-cta gs-cta-secondary"
-                  href="/guia-comprador"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Leer la guía
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </a>
-              </div>
+              <a
+                className="gs-cta"
+                href="/guia-comprador"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Leer la guía →
+              </a>
             ) : (
               <button className="gs-cta" onClick={() => setModalOpen(true)}>
-                Acceder gratis
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+                Leer la guía →
               </button>
             )}
 
-            <p className="gs-note">Sin spam · Acceso permanente desde este dispositivo</p>
+            <p className="gs-note">Acceso permanente · Sin registro</p>
           </div>
 
           {/* Columna derecha — portada libro */}
@@ -198,80 +201,88 @@ export default function GuiaSection() {
 
         /* ── SECCIÓN ─────────────────────────────── */
         .gs {
-          background: #fff;
-          padding: 128px 0;
+          background: #fafaf8;
+          padding: 120px 64px;
           overflow: hidden;
         }
         .gs-wrap {
-          max-width: 1160px;
+          max-width: 1200px;
           margin: 0 auto;
-          padding: 0 48px;
+          padding: 0;
           display: grid;
-          grid-template-columns: 1fr 440px;
-          gap: 80px;
+          grid-template-columns: 1.2fr 1fr;
+          gap: 72px;
           align-items: center;
         }
 
-        /* Badge */
-        .gs-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #E4F0E9;
-          color: #1A5C38;
-          font-size: 0.67rem;
-          font-weight: 600;
-          letter-spacing: 0.18em;
+        /* Eyebrow */
+        .gs-eyebrow {
+          font-family: 'Poppins', system-ui, sans-serif;
+          font-weight: 500;
+          font-size: 10px;
+          letter-spacing: 0.22em;
           text-transform: uppercase;
-          padding: 6px 14px;
-          border-radius: 999px;
-          margin-bottom: 28px;
+          color: #1A5C38;
+          margin-bottom: 20px;
+        }
+        .gs-num {
+          font-variant-numeric: tabular-nums;
         }
 
         /* Headline */
         .gs-h2 {
           font-family: 'Raleway', sans-serif;
-          font-size: clamp(2.4rem, 3.8vw, 3.8rem);
-          font-weight: 200;
+          font-size: 56px;
+          font-weight: 300;
           line-height: 1.05;
-          letter-spacing: -0.025em;
-          color: #0E0E0E;
-          margin-bottom: 20px;
+          letter-spacing: -0.035em;
+          color: #1d1d1f;
+          margin: 0 0 24px;
         }
 
         /* Subtitle */
         .gs-sub {
-          font-size: 1rem;
-          color: rgba(14,14,14,0.5);
-          line-height: 1.7;
-          margin-bottom: 32px;
+          font-family: 'Poppins', system-ui, sans-serif;
+          font-weight: 400;
+          font-size: 15px;
+          color: #4a4a48;
+          line-height: 1.65;
+          margin: 0 0 40px;
           max-width: 440px;
         }
 
-        /* Bullets */
-        .gs-bullets {
+        /* Numbered list */
+        .gs-list {
           list-style: none;
           padding: 0;
           margin: 0 0 40px;
-          display: flex;
-          flex-direction: column;
-          gap: 13px;
+          border-top: 1px solid #e0e0dc;
+          border-bottom: 1px solid #e0e0dc;
         }
-        .gs-bullets li {
+        .gs-list li {
           display: flex;
+          gap: 18px;
+          padding: 16px 0;
           align-items: center;
-          gap: 13px;
-          font-size: 0.9rem;
-          color: rgba(14,14,14,0.65);
-          line-height: 1.5;
         }
-        .gs-bullets li::before {
-          content: '';
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #1A5C38;
-          flex-shrink: 0;
+        .gs-list li + li {
+          border-top: 1px solid #e0e0dc;
+        }
+        .gs-list-num {
+          font-family: 'Poppins', system-ui, sans-serif;
+          font-weight: 500;
+          font-size: 11px;
+          letter-spacing: 0.14em;
+          color: #1A5C38;
+          font-variant-numeric: tabular-nums;
+          min-width: 28px;
+        }
+        .gs-list-text {
+          font-family: 'Poppins', system-ui, sans-serif;
+          font-weight: 400;
+          font-size: 14px;
+          line-height: 1.5;
+          color: #1d1d1f;
         }
 
         /* CTA */
@@ -281,46 +292,28 @@ export default function GuiaSection() {
           gap: 10px;
           background: #1A5C38;
           color: #fff;
-          font-size: 0.88rem;
+          font-family: 'Poppins', system-ui, sans-serif;
+          font-size: 14px;
           font-weight: 500;
-          letter-spacing: 0.02em;
-          padding: 16px 30px;
+          letter-spacing: 0.01em;
+          padding: 14px 28px;
           border: none;
           border-radius: 999px;
           cursor: pointer;
           text-decoration: none;
-          transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-          box-shadow: 0 4px 20px rgba(26,92,56,0.25);
+          transition: background 0.2s, transform 0.2s;
+          width: auto;
         }
         .gs-cta:hover {
           background: #0F3A23;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 28px rgba(26,92,56,0.3);
-        }
-        .gs-cta-secondary {
-          background: transparent;
-          border: 1.5px solid #1A5C38;
-          color: #1A5C38;
-          box-shadow: none;
-        }
-        .gs-cta-secondary:hover {
-          background: #E4F0E9;
-          box-shadow: none;
-        }
-        .gs-return-wrap {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .gs-return-label {
-          font-size: 0.8rem;
-          color: #1A5C38;
-          font-weight: 500;
+          transform: translateY(-1px);
         }
         .gs-note {
-          margin-top: 18px;
-          font-size: 0.7rem;
-          color: rgba(14,14,14,0.3);
+          margin-top: 16px;
+          font-family: 'Poppins', system-ui, sans-serif;
+          font-size: 11px;
+          font-weight: 400;
+          color: #8a8a8a;
           letter-spacing: 0.02em;
         }
 
@@ -340,11 +333,10 @@ export default function GuiaSection() {
           height: auto;
           object-fit: contain;
           transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
-          filter: drop-shadow(0 24px 48px rgba(26,92,56,0.28)) drop-shadow(0 8px 16px rgba(0,0,0,0.12));
+          filter: drop-shadow(0 40px 80px rgba(26,92,56,0.25)) drop-shadow(0 20px 40px rgba(0,0,0,0.15));
         }
         .gs-right:hover .gs-book-img {
           transform: translateY(-8px);
-          filter: drop-shadow(0 40px 64px rgba(26,92,56,0.32)) drop-shadow(0 16px 32px rgba(0,0,0,0.15));
         }
         .gs-book {
           display: flex;
@@ -644,20 +636,19 @@ export default function GuiaSection() {
 
         /* ── RESPONSIVE ───────────────────────────── */
         @media (max-width: 960px) {
+          .gs { padding: 96px 32px; }
           .gs-wrap {
             grid-template-columns: 1fr;
             gap: 64px;
-            padding: 0 32px;
           }
           .gs-right { justify-content: center; }
           .gs-book-img { width: 300px; height: auto; margin: 0 auto; }
-          .gs { padding: 88px 0; }
+          .gs-h2 { font-size: 44px; }
         }
         @media (max-width: 600px) {
-          .gs { padding: 68px 0; }
-          .gs-wrap { padding: 0 20px; }
+          .gs { padding: 80px 24px; }
           .gm { padding: 44px 28px; border-radius: 18px; }
-          .gs-h2 { font-size: 2.2rem; }
+          .gs-h2 { font-size: 36px; }
         }
       `}</style>
     </>
