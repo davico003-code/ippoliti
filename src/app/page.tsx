@@ -339,7 +339,7 @@ const homeJsonLd = {
 
 const PORQUE_ITEMS = [
   { num: '43', desc: 'Años en el mercado inmobiliario de Funes, Roldán y Rosario.' },
-  { num: '14', desc: 'Corredores matriculados y certificados en el equipo.' },
+  { num: '14', desc: 'Personas en el equipo entre asesores, administración y dirección.' },
   { num: '3', desc: 'Sedes físicas en Funes, Roldán centro y Roldán este.' },
   { num: '20K+', desc: 'Seguidores en Instagram @inmobiliaria.si construyendo comunidad local.' },
   { num: '4K', desc: 'Fotografía aérea profesional con drone DJI Mavic 4 Pro en cada propiedad.' },
