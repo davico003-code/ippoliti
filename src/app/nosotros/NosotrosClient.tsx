@@ -458,7 +458,7 @@ export default function NosotrosClient() {
           </div>
           <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3' }}>
             <Image
-              src="/nosotros/si-inmobiliaria-sala-reuniones-funes.webp"
+              src="/nosotros/IMG_0432.JPG"
               alt="Sala de reuniones"
               fill
               style={{ objectFit: 'cover' }}
