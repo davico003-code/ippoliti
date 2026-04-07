@@ -50,6 +50,9 @@ export default function Navbar() {
             <Link href="/informes" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors">
               Informes
             </Link>
+            <Link href="/guia-comprador" className="text-sm text-gray-600 hover:text-brand-600 font-medium transition-colors">
+              Guía
+            </Link>
             <a href="/agentes/login" className="bg-[#1A5C38] text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-[#0f3d25] transition-colors">
               Acceder
             </a>
@@ -116,6 +119,13 @@ export default function Navbar() {
                 className="block px-3 py-2.5 text-sm text-gray-700 hover:text-brand-600 font-medium transition-colors rounded-lg hover:bg-gray-50"
               >
                 Informes
+              </Link>
+              <Link
+                href="/guia-comprador"
+                onClick={() => setIsOpen(false)}
+                className="block px-3 py-2.5 text-sm text-gray-700 hover:text-brand-600 font-medium transition-colors rounded-lg hover:bg-gray-50"
+              >
+                Guía del Comprador
               </Link>
               <a
                 href="/agentes/login"

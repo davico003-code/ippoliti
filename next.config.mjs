@@ -16,6 +16,14 @@ const nextConfig = {
       },
     ]
   },
+  async rewrites() {
+    return [
+      {
+        source: '/guia-comprador',
+        destination: '/guia-comprador.html',
+      },
+    ]
+  },
   async redirects() {
     return [
       // Redirect old domain to new
