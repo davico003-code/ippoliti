@@ -1,87 +1,182 @@
 import Link from 'next/link'
-import { Facebook, Instagram, Youtube } from 'lucide-react'
-import Newsletter from '@/components/Newsletter'
 
-const LINKS = [
-  { label: 'Propiedades', href: '/propiedades' },
-  { label: 'Comprar propiedades en Funes y Roldán', href: '/propiedades?op=venta' },
-  { label: 'Alquilar en Funes y Roldán', href: '/propiedades?op=alquiler' },
-  { label: 'Tasaciones', href: '/tasaciones' },
-  { label: 'Emprendimientos', href: '/emprendimientos' },
-  { label: 'Informes', href: '/informes' },
-  { label: 'Nosotros', href: '/nosotros' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Guía del Comprador', href: '/guia-comprador' },
-]
+const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
+const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
+const GREEN = '#1A5C38'
 
-const SOCIALS = [
-  { icon: Facebook, href: '#', label: 'Facebook' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Youtube, href: '#', label: 'YouTube' },
+const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+  {
+    title: 'PROPIEDADES',
+    links: [
+      { label: 'Comprar en Funes y Roldán', href: '/propiedades?op=venta' },
+      { label: 'Alquilar en Funes y Roldán', href: '/propiedades?op=alquiler' },
+      { label: 'Emprendimientos', href: '/emprendimientos' },
+      { label: 'Tasaciones', href: '/tasaciones' },
+    ],
+  },
+  {
+    title: 'INFORMACIÓN',
+    links: [
+      { label: 'Informes de mercado', href: '/informes' },
+      { label: 'Guía del Comprador', href: '/guia-comprador' },
+      { label: 'Blog', href: '/blog' },
+      { label: 'Nosotros', href: '/nosotros' },
+    ],
+  },
+  {
+    title: 'CONTACTO',
+    links: [
+      { label: '(341) 210-1694', href: 'https://wa.me/5493412101694' },
+      { label: 'ventas@inmobiliariaippoliti.com', href: 'mailto:ventas@inmobiliariaippoliti.com' },
+      { label: '@inmobiliaria.si', href: 'https://www.instagram.com/inmobiliaria.si' },
+      { label: '@si.inmobiliaria', href: 'https://www.tiktok.com/@si.inmobiliaria' },
+    ],
+  },
 ]
 
 export default function Footer() {
-  const year = new Date().getFullYear()
-
   return (
-    <footer style={{ backgroundColor: '#0F3D25' }} className="text-white">
-      {/* Newsletter */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-2">
-        <Newsletter />
-      </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* Top row: logo | links | socials */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
-
+    <footer style={{ background: '#111', padding: '48px 48px 32px', color: '#fff' }}>
+      <style>{`
+        .footer-top { display: flex; gap: 56px; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; }
+        .footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; flex: 1; }
+        .footer-link:hover { color: #fff !important; }
+        @media (max-width: 768px) {
+          footer { padding: 40px 24px 24px !important; }
+          .footer-top { flex-direction: column; gap: 32px; }
+          .footer-cols { grid-template-columns: 1fr 1fr; gap: 32px; }
+        }
+        @media (max-width: 480px) {
+          .footer-cols { grid-template-columns: 1fr; }
+        }
+      `}</style>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div className="footer-top">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-blanco.png" alt="SI Inmobiliaria" width={120} height={36} loading="lazy" style={{ height: '36px', width: 'auto' }} />
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flexShrink: 0 }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                background: GREEN,
+                borderRadius: 6,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontFamily: POPPINS,
+                fontWeight: 700,
+                fontSize: 13,
+              }}
+            >
+              SI
+            </div>
+            <div>
+              <div
+                style={{
+                  fontFamily: RALEWAY,
+                  fontWeight: 600,
+                  fontSize: 11,
+                  color: '#fff',
+                  letterSpacing: '1.2px',
+                  lineHeight: 1.2,
+                }}
+              >
+                INMOBILIARIA
+              </div>
+              <div
+                style={{
+                  fontFamily: POPPINS,
+                  fontSize: 9,
+                  color: 'rgba(255,255,255,0.4)',
+                  letterSpacing: '1px',
+                  marginTop: 2,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                DESDE 1983
+              </div>
+            </div>
           </Link>
 
-          {/* Links */}
-          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
-            {LINKS.map(link => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="text-white/70 hover:text-white text-xs font-medium transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Socials */}
-          <div className="flex items-center gap-2">
-            {SOCIALS.map(s => (
-              <a
-                key={s.label}
-                href={s.href}
-                aria-label={s.label}
-                className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:border-white/50 transition-all"
-              >
-                <s.icon className="w-3.5 h-3.5" />
-              </a>
+          {/* Columns */}
+          <div className="footer-cols">
+            {COLUMNS.map(col => (
+              <div key={col.title}>
+                <div
+                  style={{
+                    fontFamily: POPPINS,
+                    fontSize: 9,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1.5px',
+                    color: 'rgba(255,255,255,0.35)',
+                    marginBottom: 16,
+                  }}
+                >
+                  {col.title}
+                </div>
+                {col.links.map(l => (
+                  <a
+                    key={l.label}
+                    href={l.href}
+                    className="footer-link"
+                    style={{
+                      display: 'block',
+                      fontFamily: POPPINS,
+                      fontSize: 12,
+                      color: 'rgba(255,255,255,0.55)',
+                      textDecoration: 'none',
+                      marginBottom: 8,
+                      transition: 'color 0.2s ease',
+                    }}
+                  >
+                    {l.label}
+                  </a>
+                ))}
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Contact line */}
-        <div className="text-center text-white/50 text-[11px] mb-5">
-          <span className="font-numeric">(341) 210-1694</span>
-          <span className="mx-2">·</span>
-          <a href="mailto:ventas@inmobiliariaippoliti.com" className="hover:text-white/70 transition-colors">ventas@inmobiliariaippoliti.com</a>
-        </div>
-
-        {/* Bottom bar */}
-        <div className="border-t border-white/10 pt-5 flex flex-col sm:flex-row justify-between items-center gap-2 text-white/40 text-[11px]">
-          <p>&copy; {year} SI Inmobiliaria. Todos los derechos reservados. · David Flores Mat. N° 0621</p>
-          <div className="flex items-center gap-3">
-            <a href="#" className="hover:text-white/60 transition-colors">Política de Privacidad</a>
+        <div
+          style={{
+            borderTop: '0.5px solid rgba(255,255,255,0.1)',
+            paddingTop: 24,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: POPPINS,
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.3)',
+              margin: 0,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            © 2026 SI Inmobiliaria · David Flores Mat. N° 0621
+          </p>
+          <div
+            style={{
+              fontFamily: POPPINS,
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.3)',
+              display: 'flex',
+              gap: 12,
+            }}
+          >
+            <a href="#" className="footer-link" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s ease' }}>
+              Política de Privacidad
+            </a>
             <span>·</span>
-            <a href="#" className="hover:text-white/60 transition-colors">Términos y Condiciones</a>
+            <a href="#" className="footer-link" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s ease' }}>
+              Términos y Condiciones
+            </a>
           </div>
         </div>
       </div>
