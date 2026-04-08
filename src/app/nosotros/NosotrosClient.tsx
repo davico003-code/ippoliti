@@ -1,796 +1,383 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
-const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
-const GREEN = '#1A5C38'
+/* ─────────────────────────────────────────────
+   ANIMATED COUNTER
+───────────────────────────────────────────── */
+function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef<HTMLSpanElement>(null)
+  const started = useRef(false)
 
-const STATS = [
-  { num: '43', label: 'Años' },
-  { num: '+1.500', label: 'Propiedades vendidas' },
-  { num: '3', label: 'Sedes' },
-  { num: '20K+', label: 'Comunidad IG' },
-]
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true
+          const duration = 1800
+          const steps = 60
+          const increment = target / steps
+          let current = 0
+          const timer = setInterval(() => {
+            current += increment
+            if (current >= target) {
+              setCount(target)
+              clearInterval(timer)
+            } else {
+              setCount(Math.floor(current))
+            }
+          }, duration / steps)
+        }
+      },
+      { threshold: 0.3 }
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [target])
 
-const FAMILIA = [
-  { n: 'Susana Ippoliti', c: 'Fundadora · 1983' },
-  { n: 'Laura Flores', c: 'Co-dirección' },
-  { n: 'David Flores', c: 'Director · Mat. 0621' },
-]
-
-const CAPITULOS = [
-  {
-    n: '01',
-    year: '1983',
-    title: 'Susana funda SI en Roldán.',
-    body:
-      'Susana Ippoliti abre las puertas en 1ro de Mayo 258 con una idea simple: tratar a cada cliente como a un vecino.',
-  },
-  {
-    n: '02',
-    year: '2010s',
-    title: 'Llega la segunda generación.',
-    body:
-      'Laura y David se suman al proyecto familiar. El oficio se mantiene, pero la forma de ejercerlo cambia.',
-  },
-  {
-    n: '03',
-    year: 'Hoy',
-    title: 'Una nueva casa en Funes.',
-    body:
-      'Tres sedes, un equipo consolidado y una nueva casa pensada como un estudio con galería de arte.',
-  },
-]
-
-const ESPACIO_FOTOS = [
-  { src: '/nosotros/IMG_4036.jpg', alt: 'Salón principal' },
-  { src: '/nosotros/IMG_8457.jpg', alt: 'Lobby' },
-  { src: '/nosotros/IMG_2545_2.JPG', alt: 'Living' },
-  { src: '/nosotros/IMG_0432.JPG', alt: 'Sala de reuniones' },
-  { src: '/nosotros/oficina_funes_3.JPG', alt: 'Sala directorio' },
-  { src: '/nosotros/DSC09309.jpg', alt: 'Galería PARED' },
-]
-
-const DIRECCION = [
-  { n: 'Susana Ippoliti', c: 'Fundadora' },
-  { n: 'Laura Flores', c: 'Co-dirección' },
-  { n: 'David Flores', c: 'Director · Mat. 0621' },
-]
-
-const ASESORES = [
-  'Aldana Ruiz',
-  'Carolina Echen',
-  'Gino Pecchenino',
-  'Gisela Ramallo',
-  'Lucia Wilson',
-  'Maria Jose Espilocin',
-  'Mariana Orlate',
-  'Mauro Matteucci',
-]
-
-const ADMIN = ['Marisa Benitez', 'Eliana Rojas', 'Sabrina Riters', 'Leticia Alexenicer']
-
-const MARKETING = [
-  { n: 'Micaela Gonzalez', c: 'Marketing' },
-  { n: 'Julian Ruschneider', c: 'Producción audiovisual' },
-]
-
-const SEDES = [
-  { nombre: 'Funes', dir: 'Hipólito Yrigoyen 2643', h: 'Lun a Vie · 9 a 18 hs · Sáb · 9 a 13 hs' },
-  { nombre: 'Roldán centro', dir: '1ro de Mayo 258', h: 'Lun a Vie · 9 a 18 hs · Sáb · 9 a 13 hs' },
-  { nombre: 'Roldán este', dir: 'Catamarca 775', h: 'Lun a Vie · 9 a 18 hs · Sáb · 9 a 13 hs' },
-]
-
-function iniciales(nombre: string) {
-  const partes = nombre.trim().split(/\s+/)
-  return ((partes[0]?.[0] ?? '') + (partes[1]?.[0] ?? '')).toUpperCase()
-}
-
-function Avatar({ nombre, size = 56 }: { nombre: string; size?: number }) {
   return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: '50%',
-        background: 'rgba(26,92,56,0.15)',
-        border: `1px solid ${GREEN}`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: GREEN,
-        fontFamily: POPPINS,
-        fontWeight: 500,
-        fontSize: size >= 80 ? 24 : 16,
-        letterSpacing: '-0.02em',
-      }}
-    >
-      {iniciales(nombre)}
-    </div>
+    <span ref={ref}>
+      {count}
+      {suffix}
+    </span>
   )
 }
 
-export default function NosotrosClient() {
-  const waMsg = encodeURIComponent('Hola, vi el sitio de SI Inmobiliaria y quería consultarles...')
-  const waHref = `https://wa.me/5493412101694?text=${waMsg}`
-  const rootRef = useRef<HTMLDivElement>(null)
+/* ─────────────────────────────────────────────
+   DATA
+───────────────────────────────────────────── */
+const direccion = [
+  {
+    nombre: 'Susana Ippoliti',
+    cargo: 'Fundadora',
+    desc: 'Abrió la primera oficina en 1983. Más de 40 años construyendo confianza en Roldán y Funes.',
+    foto: '/team/susana-ippoliti.jpg',
+  },
+  {
+    nombre: 'David Flores',
+    cargo: 'Director · Mat. N° 0621',
+    desc: 'Corredor Inmobiliario habilitado. Especialista en el mercado residencial premium de la zona oeste.',
+    foto: '/team/david-flores.jpg',
+  },
+  {
+    nombre: 'Laura Flores',
+    cargo: 'Administración',
+    desc: 'Responsable de la gestión administrativa y postventa de todas las operaciones.',
+    foto: '/team/laura-flores.jpg',
+  },
+]
+
+const administracion = [
+  { nombre: 'Marisa Benitez', rol: 'Administración' },
+  { nombre: 'Eliana Rojas', rol: 'Administración' },
+  { nombre: 'Sabrina Riters', rol: 'Administración' },
+  { nombre: 'Leticia Alexenicer', rol: 'Administración' },
+]
+
+const asesores = [
+  { nombre: 'Aldana Ruiz', rol: 'Asesora comercial' },
+  { nombre: 'Carolina Echen', rol: 'Asesora comercial' },
+  { nombre: 'Gino Pecchenino', rol: 'Asesor comercial' },
+  { nombre: 'Gisela Ramallo', rol: 'Asesora comercial' },
+  { nombre: 'Lucia Wilson', rol: 'Asesora comercial' },
+  { nombre: 'Maria Jose Espilocin', rol: 'Asesora comercial' },
+  { nombre: 'Mariana Orlate', rol: 'Asesora comercial' },
+  { nombre: 'Mauro Matteucci', rol: 'Asesor comercial' },
+]
+
+const soporte = [
+  { nombre: 'Micaela Gonzalez', rol: 'Marketing' },
+  { nombre: 'Julian Ruschneider', rol: 'Producción audiovisual' },
+]
+
+const historia = [
+  { año: '1983', titulo: 'Fundación', desc: 'Susana Ippoliti abre la primera oficina en 1ro de Mayo 258, Roldán. Comienza una historia familiar de confianza y profesionalismo.' },
+  { año: '2015', titulo: 'Segunda oficina en Roldán', desc: 'Apertura de la segunda oficina en Catamarca 775, Roldán. Consolidación como referente inmobiliario en la ciudad.' },
+  { año: '2022', titulo: 'Expansión a Funes', desc: 'Aprobación del Concejo Deliberante de Funes para construir la nueva sede en Hipólito Yrigoyen 2643.' },
+  { año: '2024', titulo: 'Oficina Funes + Galería + Rebranding', desc: 'Inauguración de la oficina en Funes, un espacio único que combina inmobiliaria con galería de arte. Nace SI Inmobiliaria.' },
+]
+
+const testimonios = [
+  { texto: 'Vendimos nuestra casa en tiempo récord gracias al equipo de SI. Profesionales de principio a fin.', nombre: 'Familia García', ciudad: 'Roldán' },
+  { texto: 'Encontramos el terreno ideal en Funes con su ayuda. Nos acompañaron en todo el proceso hasta la escritura.', nombre: 'Martín R.', ciudad: 'Funes' },
+  { texto: 'Profesionales, honestos y siempre disponibles. Más de 40 años de experiencia se notan en cada detalle.', nombre: 'Carolina S.', ciudad: 'Fisherton' },
+]
+
+const oficinas = [
+  { badge: 'Desde 1983', titulo: 'Oficina Histórica', subtitulo: '', dir: '1ro de Mayo 258, Roldán', horario: 'Lunes a Viernes 9 a 17hs', maps: 'https://maps.google.com/?q=1ro+de+Mayo+258+Roldan+Santa+Fe', icon: '🏛️', highlight: false, lat: -32.8935, lng: -60.9016 },
+  { badge: 'Desde 2015', titulo: 'Oficina Ventas', subtitulo: '', dir: 'Catamarca 775, Roldán', horario: 'Lunes a Viernes 9 a 17hs', maps: 'https://maps.google.com/?q=Catamarca+775+Roldan+Santa+Fe', icon: '🏢', highlight: false, lat: -32.8940, lng: -60.9020 },
+  { badge: 'Nuevo 2024', titulo: 'Oficina Funes', subtitulo: 'Inmobiliaria + Galería de Arte', dir: 'Hipólito Yrigoyen 2643, Funes', horario: 'Lunes a Viernes 9 a 17hs', maps: 'https://maps.google.com/?q=Hipolito+Yrigoyen+2643+Funes+Santa+Fe', icon: '🎨', highlight: true, lat: -32.9181, lng: -60.8270 },
+]
+
+function iniciales(nombre: string) {
+  return nombre.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
+}
+
+/* ─────────────────────────────────────────────
+   MAP COMPONENT (Leaflet, lazy)
+───────────────────────────────────────────── */
+function OficinasMapa() {
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstance = useRef<unknown>(null)
 
   useEffect(() => {
-    if (!rootRef.current) return
-    const els = rootRef.current.querySelectorAll<HTMLElement>('[data-reveal]')
-    const io = new IntersectionObserver(
-      entries => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            e.target.classList.add('is-visible')
-            io.unobserve(e.target)
-          }
-        })
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -60px 0px' }
-    )
-    els.forEach(el => io.observe(el))
-    return () => io.disconnect()
+    if (mapInstance.current || !mapRef.current) return
+
+    import('leaflet').then((L) => {
+      // @ts-expect-error leaflet icon hack
+      delete L.Icon.Default.prototype._getIconUrl
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      })
+
+      const map = L.map(mapRef.current!, {
+        center: [-32.906, -60.864],
+        zoom: 12,
+        zoomControl: true,
+        scrollWheelZoom: false,
+      })
+
+      mapInstance.current = map
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(map)
+
+      const greenIcon = L.divIcon({
+        html: `<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#1A5C38;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 34],
+        popupAnchor: [0, -36],
+        className: '',
+      })
+
+      oficinas.forEach((o) => {
+        L.marker([o.lat, o.lng], { icon: greenIcon })
+          .addTo(map)
+          .bindPopup(
+            `<div style="font-family:Poppins,sans-serif;min-width:160px;padding:4px 0">
+              <p style="font-family:Raleway,sans-serif;font-weight:600;font-size:14px;margin:0 0 4px">${o.titulo}</p>
+              ${o.subtitulo ? `<p style="font-size:11px;color:#888;margin:0 0 4px">${o.subtitulo}</p>` : ''}
+              <p style="font-size:12px;color:#555;margin:0 0 2px">${o.dir}</p>
+              <p style="font-size:12px;color:#555;margin:0 0 8px">${o.horario}</p>
+              <a href="${o.maps}" target="_blank" style="font-size:12px;color:#1A5C38;font-weight:600;text-decoration:none">Ver en Maps →</a>
+            </div>`,
+            { maxWidth: 220 }
+          )
+      })
+    })
+
+    return () => {
+      if (mapInstance.current) {
+        ;(mapInstance.current as { remove: () => void }).remove()
+        mapInstance.current = null
+      }
+    }
   }, [])
 
   return (
-    <main ref={rootRef} className="nosotros-dark">
-      <style jsx global>{`
-        .nosotros-dark {
-          background: #0a0a0a;
-          color: #fff;
-          font-family: ${POPPINS};
-        }
-        .nosotros-dark [data-reveal] {
-          opacity: 0;
-          transform: translateY(28px);
-          transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-            transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .nosotros-dark [data-reveal].is-visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        .nd-title {
-          font-family: ${RALEWAY};
-          font-weight: 200;
-          letter-spacing: -0.035em;
-          line-height: 1.05;
-          color: #fff;
-          margin: 0;
-        }
-        .nd-eyebrow {
-          font-family: ${POPPINS};
-          font-weight: 500;
-          font-size: 11px;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          color: ${GREEN};
-        }
-        .nd-section {
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .nd-px {
-          padding-left: 64px;
-          padding-right: 64px;
-        }
-        .nd-photo-hover {
-          overflow: hidden;
-          border-radius: 12px;
-          position: relative;
-        }
-        .nd-photo-hover img {
-          transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        }
-        .nd-photo-hover:hover img {
-          transform: scale(1.02);
-        }
-        @media (max-width: 1024px) {
-          .nd-px { padding-left: 40px !important; padding-right: 40px !important; }
-        }
-        @media (max-width: 720px) {
-          .nd-px { padding-left: 24px !important; padding-right: 24px !important; }
-          .nd-hero-title { font-size: 40px !important; }
-          .nd-section-title { font-size: 32px !important; }
-          .nd-stats { flex-wrap: wrap; gap: 32px !important; }
-          .nd-stats-divider { display: none !important; }
-          .nd-historia-grid { grid-template-columns: 1fr !important; }
-          .nd-pared-grid { grid-template-columns: 1fr !important; }
-          .nd-espacio-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .nd-direccion-grid { grid-template-columns: 1fr !important; }
-          .nd-asesores-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .nd-sedes-grid { grid-template-columns: 1fr !important; }
-          .nd-familia-meta { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
-          .nd-familia-meta .nd-divider-v { display: none !important; }
-        }
-      `}</style>
+    <>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossOrigin="" />
+      <div ref={mapRef} className="w-full rounded-2xl overflow-hidden shadow-md" style={{ height: '440px' }} />
+    </>
+  )
+}
 
-      {/* 1. HERO */}
-      <section
-        style={{
-          position: 'relative',
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-        }}
-      >
-        <Image
-          src="/nosotros/IMG_4053.JPG"
-          alt="Fachada SI Inmobiliaria"
-          fill
-          priority
-          style={{ objectFit: 'cover' }}
-        />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} />
-        <div
-          className="nd-px"
-          data-reveal
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            textAlign: 'center',
-            maxWidth: 1100,
-            padding: '120px 64px',
-          }}
-        >
-          <div className="nd-eyebrow" style={{ marginBottom: 28 }}>
-            SI INMOBILIARIA · DESDE 1983
-          </div>
-          <h1
-            className="nd-title nd-hero-title"
-            style={{ fontSize: 'clamp(40px, 6vw, 84px)', maxWidth: 980, margin: '0 auto 28px' }}
-          >
-            Una inmobiliaria que se piensa como un estudio.
+/* ─────────────────────────────────────────────
+   PAGE
+───────────────────────────────────────────── */
+export default function NosotrosClient() {
+  return (
+    <main className="bg-white text-gray-900">
+
+      {/* HERO */}
+      <section className="relative h-[70vh] min-h-[500px] flex items-end overflow-hidden">
+        <Image src="/hero-nosotros.jpg" alt="Fachada SI Inmobiliaria" fill className="object-cover object-center" priority />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-16">
+          <p className="text-xs uppercase tracking-[0.25em] text-white/70 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Quiénes somos</p>
+          <h1 className="text-4xl md:text-6xl text-white leading-tight mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
+            Desde 1983 acompañando<br />cada decisión importante
           </h1>
-          <p
-            style={{
-              fontFamily: POPPINS,
-              fontSize: 17,
-              fontWeight: 300,
-              color: '#888',
-              lineHeight: 1.6,
-              maxWidth: 620,
-              margin: '0 auto 64px',
-            }}
-          >
-            Cuatro décadas acompañando familias en Funes, Roldán y Rosario.
+          <p className="text-lg text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Susana y David — dos generaciones de confianza en Roldán y Funes
           </p>
-          <div
-            className="nd-stats"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 56,
-            }}
-          >
-            {STATS.map((s, i) => (
-              <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 56 }}>
-                {i > 0 && (
-                  <div
-                    className="nd-stats-divider"
-                    style={{ width: 1, height: 48, background: 'rgba(255,255,255,0.15)' }}
-                  />
-                )}
-                <div style={{ textAlign: 'center' }}>
-                  <div
-                    style={{
-                      fontFamily: POPPINS,
-                      fontWeight: 300,
-                      fontSize: 42,
-                      color: '#fff',
-                      lineHeight: 1,
-                      letterSpacing: '-0.02em',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {s.num}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 10,
-                      fontFamily: POPPINS,
-                      fontSize: 10,
-                      fontWeight: 500,
-                      letterSpacing: '0.18em',
-                      textTransform: 'uppercase',
-                      color: '#888',
-                    }}
-                  >
-                    {s.label}
-                  </div>
-                </div>
+        </div>
+      </section>
+
+      {/* STATS */}
+      <section className="py-20 bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
+            {[
+              { label: 'Años en el mercado', value: 43, suffix: '' },
+              { label: 'Operaciones concretadas', value: 1500, suffix: '+' },
+              { label: 'Oficinas', value: 3, suffix: '' },
+              { label: 'Propiedades activas', value: 200, suffix: '+' },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <p className="text-5xl md:text-6xl mb-2 font-numeric" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200, color: '#1A5C38' }}>
+                  <Counter target={stat.value} suffix={stat.suffix} />
+                </p>
+                <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 2. LA FAMILIA */}
-      <section className="nd-section" style={{ position: 'relative' }}>
-        <div style={{ position: 'relative', width: '100%', height: '70vh', minHeight: 520 }}>
-          <Image
-            src="/nosotros/LAURASUSANADAVID.jpeg"
-            alt="Susana, Laura y David"
-            fill
-            style={{ objectFit: 'cover', objectPosition: 'top' }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.9) 100%)',
-            }}
-          />
-          <div
-            className="nd-px"
-            data-reveal
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: 56,
-              padding: '0 64px',
-            }}
-          >
-            <div className="nd-eyebrow" style={{ marginBottom: 18 }}>
-              LA FAMILIA
-            </div>
-            <h2 className="nd-title nd-section-title" style={{ fontSize: 48, marginBottom: 28, maxWidth: 720 }}>
-              Tres generaciones, un mismo oficio.
-            </h2>
-            <div
-              className="nd-familia-meta"
-              style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}
-            >
-              {FAMILIA.map((m, i) => (
-                <div key={m.n} style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                  {i > 0 && (
-                    <div
-                      className="nd-divider-v"
-                      style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.25)' }}
-                    />
-                  )}
-                  <div
-                    style={{
-                      fontFamily: POPPINS,
-                      fontSize: 13,
-                      fontWeight: 400,
-                      color: 'rgba(255,255,255,0.85)',
-                    }}
-                  >
-                    <span style={{ fontWeight: 500, color: '#fff' }}>{m.n}</span>
-                    <span style={{ color: '#888' }}> — {m.c}</span>
+      {/* MISIÓN · VISIÓN · VALORES */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { titulo: 'Misión', texto: 'Acompañar a cada persona en su camino inmobiliario, brindando un asesoramiento honesto, cercano y profesional.' },
+              { titulo: 'Visión', texto: 'Ser la inmobiliaria de referencia en Funes, Roldán y la región, reconocida por nuestra calidez humana, trayectoria y compromiso real con cada cliente.' },
+              { titulo: 'Valores', texto: 'Honestidad, compromiso y profesionalismo son los pilares que guían cada operación. Más de 40 años de trayectoria nos respaldan.' },
+            ].map((item) => (
+              <div key={item.titulo} className="bg-white rounded-2xl p-8 shadow-sm">
+                <div className="w-8 h-1 rounded-full mb-5" style={{ backgroundColor: '#1A5C38' }} />
+                <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: 'Raleway, sans-serif' }}>{item.titulo}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{item.texto}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NUESTRA DIRECCIÓN */}
+      <section className="py-24 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Liderazgo</p>
+            <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestra dirección</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-12">
+            {direccion.map((p) => (
+              <div key={p.nombre} className="flex flex-col items-center text-center group">
+                <div className="relative w-48 h-48 mb-6 rounded-full overflow-hidden ring-4 ring-gray-100 group-hover:ring-[#1A5C38]/30 transition-all duration-300 shadow-md">
+                  <Image src={p.foto} alt={p.nombre} fill className="object-cover object-top" />
+                </div>
+                <h3 className="text-xl font-semibold mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{p.nombre}</h3>
+                <p className="text-sm mb-4" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>{p.cargo}</p>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* EQUIPO COMPLETO */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>El equipo</p>
+            <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestro equipo</h2>
+            <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>Profesionales especializados en el mercado de Funes y Roldán</p>
+          </div>
+
+          {/* Asesores comerciales */}
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Asesores comerciales</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mb-14">
+            {asesores.map((a) => (
+              <div key={a.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
+                  {iniciales(a.nombre)}
+                </div>
+                <p className="text-sm font-semibold leading-tight mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{a.nombre}</p>
+                <p className="text-xs text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>{a.rol}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Administración */}
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Administración</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-14">
+            {administracion.map((a) => (
+              <div key={a.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#2D6A4F', fontFamily: 'Raleway, sans-serif' }}>
+                  {iniciales(a.nombre)}
+                </div>
+                <p className="text-sm font-semibold leading-tight mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{a.nombre}</p>
+                <p className="text-xs text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>{a.rol}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Soporte */}
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Soporte</p>
+          <div className="flex flex-wrap gap-5 mb-14">
+            {soporte.map((s) => (
+              <div key={s.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow w-48">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#334155', fontFamily: 'Raleway, sans-serif' }}>
+                  {iniciales(s.nombre)}
+                </div>
+                <p className="text-sm font-semibold leading-tight mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{s.nombre}</p>
+                <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500" style={{ fontFamily: 'Poppins, sans-serif' }}>{s.rol}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-400 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>¿Querés ser parte del equipo?</p>
+            <a href="https://wa.me/5493412101694?text=Hola%2C%20me%20interesa%20sumarme%20al%20equipo%20de%20SI%20Inmobiliaria"
+              target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium border-2 transition-all hover:text-white hover:bg-[#1A5C38]"
+              style={{ fontFamily: 'Poppins, sans-serif', borderColor: '#1A5C38', color: '#1A5C38' }}>
+              Escribinos por WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* HISTORIA */}
+      <section className="py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Trayectoria</p>
+            <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestra historia</h2>
+          </div>
+          <div className="relative">
+            <div className="absolute left-[1.4rem] top-2 bottom-2 w-px hidden md:block" style={{ backgroundColor: '#1A5C38', opacity: 0.15 }} />
+            <div className="space-y-8">
+              {historia.map((h, i) => (
+                <div key={i} className="flex gap-8 items-start">
+                  <div className="hidden md:flex flex-col items-center w-12 shrink-0 pt-5">
+                    <div className="w-3 h-3 rounded-full ring-4 ring-white z-10" style={{ backgroundColor: '#1A5C38' }} />
+                  </div>
+                  <div className="bg-gray-50 rounded-2xl p-7 flex-1">
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 text-white" style={{ backgroundColor: '#1A5C38', fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
+                    <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <p
-              style={{
-                marginTop: 32,
-                fontFamily: RALEWAY,
-                fontWeight: 300,
-                fontStyle: 'italic',
-                fontSize: 19,
-                color: '#fff',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              “Más que una empresa, una continuidad de vocación.”
-            </p>
           </div>
         </div>
       </section>
 
-      {/* 3. HISTORIA */}
-      <section
-        className="nd-section nd-px"
-        style={{ background: '#0f0f0f', padding: '140px 64px' }}
-      >
-        <h2
-          className="nd-title nd-section-title"
-          data-reveal
-          style={{ fontSize: 48, textAlign: 'center', marginBottom: 96 }}
-        >
-          Cuarenta y tres años en tres capítulos.
-        </h2>
-        <div
-          className="nd-historia-grid"
-          data-reveal
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 56,
-            maxWidth: 1280,
-            margin: '0 auto',
-          }}
-        >
-          {CAPITULOS.map(c => (
-            <div key={c.n} style={{ position: 'relative', paddingTop: 80 }}>
-              <div
-                aria-hidden
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: -10,
-                  fontFamily: RALEWAY,
-                  fontWeight: 200,
-                  fontSize: 140,
-                  lineHeight: 1,
-                  color: GREEN,
-                  opacity: 0.3,
-                  letterSpacing: '-0.04em',
-                }}
-              >
-                {c.n}
-              </div>
-              <div
-                style={{
-                  position: 'relative',
-                  fontFamily: POPPINS,
-                  fontSize: 11,
-                  fontWeight: 500,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: GREEN,
-                  marginBottom: 14,
-                }}
-              >
-                {c.year}
-              </div>
-              <h3
-                style={{
-                  position: 'relative',
-                  fontFamily: RALEWAY,
-                  fontWeight: 300,
-                  fontSize: 24,
-                  lineHeight: 1.25,
-                  letterSpacing: '-0.02em',
-                  color: '#fff',
-                  margin: '0 0 16px',
-                }}
-              >
-                {c.title}
-              </h3>
-              <p
-                style={{
-                  position: 'relative',
-                  fontFamily: POPPINS,
-                  fontSize: 14,
-                  fontWeight: 300,
-                  lineHeight: 1.7,
-                  color: '#888',
-                  margin: 0,
-                }}
-              >
-                {c.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. EL ESPACIO */}
-      <section className="nd-section nd-px" style={{ padding: '140px 64px' }}>
-        <h2
-          className="nd-title nd-section-title"
-          data-reveal
-          style={{ fontSize: 48, textAlign: 'center', marginBottom: 80, maxWidth: 760, margin: '0 auto 80px' }}
-        >
-          Una casa diseñada para acompañar decisiones importantes.
-        </h2>
-        <div
-          className="nd-espacio-grid"
-          data-reveal
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 16,
-            maxWidth: 1400,
-            margin: '0 auto',
-          }}
-        >
-          {ESPACIO_FOTOS.map(f => (
-            <div
-              key={f.src}
-              className="nd-photo-hover"
-              style={{ position: 'relative', aspectRatio: '4 / 5', background: '#111' }}
-            >
-              <Image src={f.src} alt={f.alt} fill style={{ objectFit: 'cover' }} loading="lazy" />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. PARED */}
-      <section
-        className="nd-section nd-px"
-        style={{ background: '#0f0f0f', padding: '140px 64px' }}
-      >
-        <div
-          className="nd-pared-grid"
-          data-reveal
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 80,
-            alignItems: 'center',
-            maxWidth: 1280,
-            margin: '0 auto',
-          }}
-        >
-          <div className="nd-photo-hover" style={{ position: 'relative', aspectRatio: '4 / 5', background: '#111' }}>
-            <Image
-              src="/nosotros/DSC09309.jpg"
-              alt="Galería PARED"
-              fill
-              style={{ objectFit: 'cover' }}
-              loading="lazy"
-            />
+      {/* TESTIMONIOS */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Testimonios</p>
+            <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Lo que dicen nuestros clientes</h2>
+            <p className="text-sm text-gray-400 mt-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Opiniones reales de familias que confiaron en nosotros</p>
           </div>
-          <div>
-            <div className="nd-eyebrow" style={{ marginBottom: 20 }}>
-              PARED
-            </div>
-            <h2 className="nd-title" style={{ fontSize: 36, marginBottom: 28 }}>
-              Una galería de arte dentro de nuestra casa.
-            </h2>
-            <p
-              style={{
-                fontFamily: POPPINS,
-                fontSize: 16,
-                fontWeight: 300,
-                lineHeight: 1.75,
-                color: '#888',
-                margin: 0,
-                maxWidth: 480,
-              }}
-            >
-              Porque vender una propiedad es ayudar a crear un hogar, y los hogares se construyen con
-              historia, con cultura, con arte.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. INAUGURACIÓN */}
-      <section className="nd-section" style={{ position: 'relative' }}>
-        <div style={{ position: 'relative', width: '100%', height: '60vh', minHeight: 460 }}>
-          <Image
-            src="/nosotros/DSC09609.JPG"
-            alt="Inauguración casa Funes"
-            fill
-            style={{ objectFit: 'cover' }}
-            loading="lazy"
-          />
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
-          <div
-            data-reveal
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 24px',
-            }}
-          >
-            <p
-              className="nd-title"
-              style={{
-                fontSize: 'clamp(22px, 3vw, 36px)',
-                textAlign: 'center',
-                fontWeight: 300,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              Inauguración de la casa de Funes · Noviembre 2024
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. EQUIPO */}
-      <section
-        className="nd-section nd-px"
-        style={{ background: '#0a0a0a', padding: '140px 64px' }}
-      >
-        <h2
-          className="nd-title nd-section-title"
-          data-reveal
-          style={{ fontSize: 48, textAlign: 'center', marginBottom: 96 }}
-        >
-          Las personas detrás de cada historia.
-        </h2>
-
-        {/* Dirección */}
-        <div data-reveal style={{ maxWidth: 1100, margin: '0 auto 96px' }}>
-          <div
-            style={{
-              fontFamily: POPPINS,
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: '#888',
-              textAlign: 'center',
-              marginBottom: 48,
-            }}
-          >
-            Dirección
-          </div>
-          <div
-            className="nd-direccion-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 40 }}
-          >
-            {DIRECCION.map(p => (
-              <div
-                key={p.n}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  padding: '40px 24px',
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 16,
-                }}
-              >
-                <Avatar nombre={p.n} size={80} />
-                <div
-                  style={{
-                    marginTop: 20,
-                    fontFamily: RALEWAY,
-                    fontWeight: 400,
-                    fontSize: 18,
-                    color: '#fff',
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  {p.n}
-                </div>
-                <div
-                  style={{
-                    marginTop: 6,
-                    fontFamily: POPPINS,
-                    fontSize: 12,
-                    color: '#888',
-                  }}
-                >
-                  {p.c}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Asesores */}
-        <div data-reveal style={{ maxWidth: 1100, margin: '0 auto 80px' }}>
-          <div
-            style={{
-              fontFamily: POPPINS,
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: '#888',
-              textAlign: 'center',
-              marginBottom: 40,
-            }}
-          >
-            Asesores comerciales
-          </div>
-          <div
-            className="nd-asesores-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 32 }}
-          >
-            {ASESORES.map(n => (
-              <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Avatar nombre={n} size={56} />
-                <div
-                  style={{
-                    marginTop: 14,
-                    fontFamily: POPPINS,
-                    fontSize: 13,
-                    color: '#fff',
-                    textAlign: 'center',
-                  }}
-                >
-                  {n}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Administración */}
-        <div data-reveal style={{ maxWidth: 1100, margin: '0 auto 80px' }}>
-          <div
-            style={{
-              fontFamily: POPPINS,
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: '#888',
-              textAlign: 'center',
-              marginBottom: 40,
-            }}
-          >
-            Administración
-          </div>
-          <div
-            className="nd-asesores-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 32 }}
-          >
-            {ADMIN.map(n => (
-              <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Avatar nombre={n} size={56} />
-                <div
-                  style={{
-                    marginTop: 14,
-                    fontFamily: POPPINS,
-                    fontSize: 13,
-                    color: '#fff',
-                    textAlign: 'center',
-                  }}
-                >
-                  {n}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Marketing */}
-        <div data-reveal style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div
-            style={{
-              fontFamily: POPPINS,
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: '#888',
-              textAlign: 'center',
-              marginBottom: 40,
-            }}
-          >
-            Marketing
-          </div>
-          <div
-            className="nd-asesores-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 32 }}
-          >
-            {MARKETING.map(p => (
-              <div key={p.n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Avatar nombre={p.n} size={56} />
-                <div
-                  style={{
-                    marginTop: 14,
-                    fontFamily: POPPINS,
-                    fontSize: 13,
-                    color: '#fff',
-                    textAlign: 'center',
-                  }}
-                >
-                  {p.n}
-                </div>
-                <div
-                  style={{
-                    marginTop: 4,
-                    fontFamily: POPPINS,
-                    fontSize: 11,
-                    color: '#888',
-                    textAlign: 'center',
-                  }}
-                >
-                  {p.c}
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonios.map((t, i) => (
+              <div key={i} className="bg-white rounded-2xl p-8 shadow-sm flex flex-col">
+                <div className="text-4xl mb-4 leading-none" style={{ color: '#1A5C38', fontFamily: 'Georgia, serif' }}>&ldquo;</div>
+                <p className="text-sm text-gray-600 leading-relaxed flex-1 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>{t.texto}</p>
+                <div>
+                  <p className="text-sm font-semibold" style={{ fontFamily: 'Raleway, sans-serif' }}>{t.nombre}</p>
+                  <p className="text-xs text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>{t.ciudad}</p>
                 </div>
               </div>
             ))}
@@ -798,136 +385,67 @@ export default function NosotrosClient() {
         </div>
       </section>
 
-      {/* 8. SEDES */}
-      <section
-        className="nd-section nd-px"
-        style={{ background: '#111', padding: '140px 64px' }}
-      >
-        <h2
-          className="nd-title nd-section-title"
-          data-reveal
-          style={{ fontSize: 48, textAlign: 'center', marginBottom: 80 }}
-        >
-          Tres puertas abiertas.
-        </h2>
-        <div
-          className="nd-sedes-grid"
-          data-reveal
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 32,
-            maxWidth: 1200,
-            margin: '0 auto',
-          }}
-        >
-          {SEDES.map(s => (
-            <div
-              key={s.nombre}
-              style={{
-                padding: '40px 32px',
-                background: 'rgba(255,255,255,0.02)',
-                border: `1px solid ${GREEN}33`,
-                borderRadius: 16,
-                transition: 'border-color 0.3s ease, transform 0.3s ease',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: POPPINS,
-                  fontSize: 11,
-                  fontWeight: 500,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  color: GREEN,
-                  marginBottom: 18,
-                }}
-              >
-                {s.nombre}
-              </div>
-              <div
-                style={{
-                  fontFamily: RALEWAY,
-                  fontWeight: 300,
-                  fontSize: 22,
-                  color: '#fff',
-                  letterSpacing: '-0.01em',
-                  marginBottom: 14,
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {s.dir}
-              </div>
-              <div
-                style={{
-                  fontFamily: POPPINS,
-                  fontSize: 13,
-                  fontWeight: 300,
-                  color: '#888',
-                  lineHeight: 1.6,
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {s.h}
-              </div>
-            </div>
-          ))}
+      {/* VIDEO INSTITUCIONAL */}
+      <section className="py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Video institucional</p>
+          <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Conocé nuestra oficina</h2>
+          <p className="text-sm text-gray-400 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Visitanos en Funes o Roldán — te esperamos</p>
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg">
+            <iframe src="https://www.youtube.com/embed/l7woKym9w50" title="SI Inmobiliaria — Video institucional"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+              className="absolute inset-0 w-full h-full" />
+          </div>
         </div>
       </section>
 
-      {/* 9. CTA FINAL */}
-      <section
-        className="nd-section nd-px"
-        style={{ background: '#0a0a0a', padding: '160px 64px' }}
-      >
-        <div data-reveal style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
-          <h2
-            className="nd-title nd-section-title"
-            style={{ fontSize: 'clamp(36px, 5vw, 64px)', marginBottom: 56 }}
-          >
-            ¿Querés conocernos en persona?
-          </h2>
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
-              href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-block',
-                background: GREEN,
-                color: '#fff',
-                padding: '16px 36px',
-                borderRadius: 999,
-                fontFamily: POPPINS,
-                fontWeight: 500,
-                fontSize: 14,
-                letterSpacing: '0.02em',
-                textDecoration: 'none',
-                transition: 'background 0.3s ease, transform 0.3s ease',
-              }}
-            >
-              Agendar visita
+      {/* OFICINAS + MAPA */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Ubicaciones</p>
+            <h2 className="text-4xl mb-3" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestras oficinas</h2>
+            <p className="text-sm text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>Tres ubicaciones para atenderte mejor</p>
+          </div>
+          <div className="grid lg:grid-cols-2 gap-10 items-start">
+            <div className="flex flex-col gap-5">
+              {oficinas.map((o) => (
+                <div key={o.titulo} className={`rounded-2xl p-7 flex gap-5 items-start ${o.highlight ? 'bg-[#1A5C38] text-white shadow-lg' : 'bg-white shadow-sm'}`}>
+                  <span className="text-3xl shrink-0">{o.icon}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
+                      <h3 className="text-base font-semibold" style={{ fontFamily: 'Raleway, sans-serif' }}>{o.titulo}</h3>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${o.highlight ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.badge}</span>
+                    </div>
+                    {o.subtitulo && <p className={`text-xs mb-2 ${o.highlight ? 'text-white/70' : 'text-gray-400'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.subtitulo}</p>}
+                    <p className={`text-sm ${o.highlight ? 'text-white/80' : 'text-gray-500'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.dir} · {o.horario}</p>
+                    <a href={o.maps} target="_blank" rel="noopener noreferrer"
+                      className={`inline-block mt-3 text-xs font-semibold underline underline-offset-2 ${o.highlight ? 'text-white/90' : 'text-[#1A5C38]'}`}
+                      style={{ fontFamily: 'Poppins, sans-serif' }}>
+                      Ver en Maps →
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="lg:sticky lg:top-24">
+              <OficinasMapa />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="py-24 bg-white">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>¿Querés trabajar con nosotros?</h2>
+          <p className="text-sm text-gray-500 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Contactanos y contanos tu proyecto. Te respondemos en menos de 24 horas.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/tasaciones" className="px-8 py-3 rounded-full text-sm font-medium text-white transition-opacity hover:opacity-80" style={{ fontFamily: 'Poppins, sans-serif', backgroundColor: '#1A5C38' }}>
+              Solicitá tu tasación en 24hs
             </a>
-            <a
-              href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-block',
-                background: 'transparent',
-                color: '#fff',
-                border: '1px solid rgba(255,255,255,0.25)',
-                padding: '16px 36px',
-                borderRadius: 999,
-                fontFamily: POPPINS,
-                fontWeight: 500,
-                fontSize: 14,
-                letterSpacing: '0.02em',
-                textDecoration: 'none',
-                transition: 'border-color 0.3s ease, background 0.3s ease',
-              }}
-            >
-              Escribinos
+            <a href="/propiedades" className="px-8 py-3 rounded-full text-sm font-medium border-2 transition-all hover:bg-[#1A5C38] hover:text-white" style={{ fontFamily: 'Poppins, sans-serif', borderColor: '#1A5C38', color: '#1A5C38' }}>
+              Ver propiedades
             </a>
           </div>
         </div>
