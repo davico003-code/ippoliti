@@ -14,6 +14,7 @@ import ShareButtons from '@/components/ShareButtons';
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyDescription from '@/components/PropertyDescription';
 import VisitWidget, { VisitMobileTrigger } from '@/components/VisitWidget';
+import BackButton from '@/components/BackButton';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
 import {
   getPropertyById,
@@ -308,12 +309,7 @@ export default async function PropertyPage({ params }: Props) {
               priority
             />
             {/* Back button */}
-            <Link
-              href="/propiedades"
-              className="absolute top-4 left-4 w-9 h-9 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white"
-            >
-              <span className="text-lg leading-none">&larr;</span>
-            </Link>
+            <BackButton />
           </div>
         ) : (
           <div className="w-full h-[200px] flex items-center justify-center bg-gray-200">

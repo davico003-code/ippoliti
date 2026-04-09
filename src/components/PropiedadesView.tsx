@@ -122,11 +122,11 @@ function CompactCard({ property, isSelected, onClick }: {
   return (
     <div
       onClick={onClick}
-      className={`flex gap-3 p-3 border-b cursor-pointer transition-all duration-150 group
+      className={`flex gap-3 p-2 md:p-3 border-b cursor-pointer transition-all duration-150 group
         ${starred ? 'border-b-brand-200 bg-brand-50/30' : 'border-b-gray-100'}
         ${isSelected ? 'bg-green-50 border-l-[3px] border-l-brand-600' : 'hover:bg-[#F0F7F4] border-l-[3px] border-l-transparent'}`}
     >
-      <div className="relative w-[152px] h-[112px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+      <div className="relative w-[140px] h-[110px] md:w-[152px] md:h-[112px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
         {photo ? (
           <Image src={photo} alt={property.publication_title || property.address} fill
             className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="152px" />
@@ -324,6 +324,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
   const [mobileView, setMobileView]     = useState<'list' | 'map'>('list')
+  const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [listMode, setListMode]         = useState<ListMode>('compact')
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
@@ -452,12 +453,27 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       const lng = parseFloat(property.geo_long)
       if (!isNaN(lat) && !isNaN(lng)) setFlyToCenter([lat, lng])
     }
-    if (window.innerWidth < 768) {
-      window.location.href = '/propiedades/' + generatePropertySlug(property)
-    } else {
-      setMobileView('map')
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setShowBottomSheet(true)
     }
   }, [])
+
+  const handleMapSelect = useCallback((id: number) => {
+    setSelectedId(id)
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setShowBottomSheet(true)
+    }
+  }, [])
+
+  const closeBottomSheet = useCallback(() => {
+    setShowBottomSheet(false)
+    setSelectedId(null)
+  }, [])
+
+  const selectedProperty = useMemo(
+    () => (selectedId != null ? properties.find(p => p.id === selectedId) ?? null : null),
+    [selectedId, properties]
+  )
 
   const opLabel = filters.operation === 'venta' ? 'en venta'
     : filters.operation === 'alquiler' ? 'en alquiler' : 'disponibles'
@@ -589,7 +605,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           <PropiedadesMap
             properties={filtered}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={handleMapSelect}
             flyToCenter={flyToCenter}
             onBoundsSearch={(bounds) => {
               setMapBounds({
@@ -611,19 +627,111 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         </div>
       </div>
 
-      {/* ── Mobile Toggle ─────────────────────────────────────────────────── */}
-      <div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999]">
-        <div className="bg-gray-900 rounded-full shadow-2xl overflow-hidden flex border border-gray-800">
-          <button onClick={() => setMobileView('list')}
-            className={`flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold transition-colors ${mobileView === 'list' ? 'bg-brand-600 text-white' : 'text-gray-300 hover:text-white'}`}>
-            <List className="w-4 h-4" /> Lista
-          </button>
-          <button onClick={() => setMobileView('map')}
-            className={`flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold transition-colors ${mobileView === 'map' ? 'bg-brand-600 text-white' : 'text-gray-300 hover:text-white'}`}>
+      {/* ── Mobile Toggle (single contextual button) ─────────────────────── */}
+      <button
+        onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
+        className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center gap-2 bg-[#1A5C38] text-white px-6 py-3 text-sm font-semibold rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:bg-[#145030] transition-colors"
+      >
+        {mobileView === 'list' ? (
+          <>
             <Map className="w-4 h-4" /> Mapa
-          </button>
+          </>
+        ) : (
+          <>
+            <List className="w-4 h-4" /> Lista
+          </>
+        )}
+      </button>
+
+      {/* ── Mobile Bottom Sheet ──────────────────────────────────────────── */}
+      {selectedProperty && (
+        <div
+          className={`md:hidden fixed left-0 right-0 z-[9998] px-3 transition-transform duration-300 ${
+            showBottomSheet ? 'translate-y-0' : 'translate-y-[150%]'
+          }`}
+          style={{ bottom: 80 }}
+        >
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex">
+            <button
+              onClick={closeBottomSheet}
+              aria-label="Cerrar"
+              className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/45 backdrop-blur-sm text-white flex items-center justify-center"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+            <div className="relative w-[100px] h-[100px] flex-shrink-0 bg-gray-100">
+              {(() => {
+                const photo = getMainPhoto(selectedProperty)
+                return photo ? (
+                  <Image
+                    src={photo}
+                    alt={selectedProperty.publication_title || selectedProperty.address}
+                    fill
+                    className="object-cover"
+                    sizes="100px"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-gray-300" />
+                  </div>
+                )
+              })()}
+            </div>
+            <div className="flex-1 min-w-0 p-3 pr-9 flex flex-col justify-between">
+              <div>
+                {selectedProperty.type?.name && (
+                  <p className="text-[10px] font-bold text-brand-600 uppercase tracking-widest truncate">
+                    {translatePropertyType(selectedProperty.type.name)}
+                  </p>
+                )}
+                <h3 className="text-[13px] font-bold text-gray-900 leading-tight truncate">
+                  {selectedProperty.publication_title || selectedProperty.address}
+                </h3>
+                <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-0.5">
+                  {(() => {
+                    const r = getRoofedArea(selectedProperty)
+                    const land = isLand(selectedProperty)
+                    const lot = getLotSurface(selectedProperty)
+                    return (
+                      <>
+                        {!land && r != null && r > 0 && (
+                          <span className="font-numeric">{r} m²</span>
+                        )}
+                        {land && lot != null && lot > 0 && (
+                          <span className="font-numeric">{lot} m² lote</span>
+                        )}
+                        {(selectedProperty.suite_amount || selectedProperty.room_amount) > 0 && (
+                          <span className="flex items-center gap-0.5">
+                            <Bed className="w-3 h-3" />
+                            <span className="font-numeric">{selectedProperty.suite_amount || selectedProperty.room_amount}</span>
+                          </span>
+                        )}
+                        {selectedProperty.bathroom_amount > 0 && (
+                          <span className="flex items-center gap-0.5">
+                            <Bath className="w-3 h-3" />
+                            <span className="font-numeric">{selectedProperty.bathroom_amount}</span>
+                          </span>
+                        )}
+                      </>
+                    )
+                  })()}
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-2 mt-1">
+                <p className="text-[14px] font-black text-gray-900 font-numeric truncate">
+                  {formatPrice(selectedProperty)}
+                </p>
+                <Link
+                  href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
+                  className="flex-shrink-0 inline-flex items-center gap-1 bg-[#1A5C38] hover:bg-[#145030] text-white text-[11px] font-semibold px-3 py-1.5 rounded-full transition-colors"
+                >
+                  Ver propiedad →
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
