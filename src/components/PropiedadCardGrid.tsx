@@ -173,18 +173,23 @@ export default function PropiedadCardGrid({ property, isSelected, onClick }: {
       </div>
 
       {/* Body */}
-      <div style={{ padding: 14 }}>
-        <p style={{
-          fontFamily: POPPINS,
-          fontWeight: 700,
-          fontSize: 20,
-          color: '#0a0a0a',
-          margin: '0 0 4px',
-          lineHeight: 1.2,
-          fontVariantNumeric: 'tabular-nums',
-        }}>
-          {price}
-        </p>
+      <div style={{ padding: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <p style={{
+            fontFamily: POPPINS,
+            fontWeight: 700,
+            fontSize: 20,
+            color: '#0a0a0a',
+            margin: 0,
+            lineHeight: 1.2,
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            {price}
+          </p>
+          <div onClick={e => e.stopPropagation()}>
+            <ShareCardButton slug={slug} title={address} price={price} />
+          </div>
+        </div>
 
         {specs.length > 0 && (
           <p style={{
@@ -230,18 +235,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick }: {
         </p>
       </div>
 
-      {/* Footer */}
-      <div
-        style={{
-          borderTop: '1px solid #f3f4f6',
-          padding: '8px 14px',
-          display: 'flex',
-          justifyContent: 'flex-end',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        <ShareCardButton slug={slug} title={address} price={price} />
-      </div>
     </div>
   )
 }
