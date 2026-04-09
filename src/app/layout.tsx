@@ -123,6 +123,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${raleway.variable} ${poppins.variable}`}>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <link rel="preconnect" href="https://static.tokkobroker.com" />
         <link rel="dns-prefetch" href="https://static.tokkobroker.com" />
         <script

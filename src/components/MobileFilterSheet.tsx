@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { X } from 'lucide-react'
 
 const R = "'Raleway', system-ui, sans-serif"
@@ -63,10 +64,11 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
         fontFamily: R,
         fontWeight: active ? 600 : 500,
         fontSize: 14,
-        padding: '10px 16px',
+        padding: '12px 18px',
         borderRadius: 12,
         cursor: 'pointer',
         transition: 'all 150ms',
+        minHeight: 44,
       }}
     >
       {label}
@@ -75,6 +77,20 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
 }
 
 export default function MobileFilterSheet({ open, onClose, filters, onChangeFilter, onReset, resultCount }: Props) {
+  // Lock body scroll when sheet is open
+  useEffect(() => {
+    if (open) {
+      const scrollY = window.scrollY
+      document.body.classList.add('scroll-locked')
+      document.body.style.top = `-${scrollY}px`
+      return () => {
+        document.body.classList.remove('scroll-locked')
+        document.body.style.top = ''
+        window.scrollTo(0, scrollY)
+      }
+    }
+  }, [open])
+
   if (!open) return null
 
   const hasActive = filters.type !== 'todos' || filters.beds !== 'todos' || filters.maxPrice !== 'sin-limite' || filters.location !== 'todos'
@@ -92,7 +108,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
         className="fixed bottom-0 left-0 right-0 z-[10001] bg-white flex flex-col"
         style={{
           borderRadius: '24px 24px 0 0',
-          maxHeight: '85vh',
+          maxHeight: '85dvh',
           boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
           animation: 'slideUp 250ms ease-out',
         }}
@@ -103,9 +119,9 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
           <span style={{ fontFamily: R, fontWeight: 700, fontSize: 20, color: '#0a0a0a' }}>Filtros</span>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+            className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center"
           >
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
@@ -153,7 +169,8 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 px-5 py-4 border-t border-gray-100 flex-shrink-0">
+        <div className="flex items-center gap-3 px-5 py-4 border-t border-gray-100 flex-shrink-0"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}>
           {hasActive && (
             <button
               onClick={onReset}

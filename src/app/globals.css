@@ -17,10 +17,16 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 body {
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+  overscroll-behavior-y: contain;
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
@@ -195,13 +201,25 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Image zoom on hover */
-.img-zoom img { transition: transform 0.6s ease; }
-.img-zoom:hover img { transform: scale(1.04); }
+/* Hover only on devices that support it (prevents sticky hover on mobile) */
+@media (hover: hover) {
+  .img-zoom img { transition: transform 0.6s ease; }
+  .img-zoom:hover img { transform: scale(1.04); }
+  .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.10); }
+}
 
-/* Card hover lift */
-.card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-.card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.10); }
+/* Touch-friendly interaction */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* Body scroll lock when modal is open */
+body.scroll-locked {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
 
 /* Leaflet map containment */
 .leaflet-container {

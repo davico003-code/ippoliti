@@ -309,7 +309,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   ].filter(Boolean).length
 
   return (
-    <div className="h-screen md:h-[calc(100vh-64px)] flex flex-col bg-white overflow-hidden">
+    <div className="h-[100dvh] md:h-[calc(100vh-64px)] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
       <h1 className="sr-only">Propiedades en venta y alquiler en Funes, Roldán y Rosario</h1>
 
       {/* ── Mobile Filter Bar (2 rows) ────────────────────────────────────── */}
@@ -318,10 +318,10 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         <div className="flex items-center gap-2 px-3 pt-[env(safe-area-inset-top)] py-2">
           <button
             onClick={() => window.history.back()}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
+            className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
             aria-label="Volver"
           >
-            <ArrowLeft className="w-4 h-4 text-gray-600" />
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -331,8 +331,8 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
               value={filters.search}
               aria-label="Buscar dirección, ciudad o barrio"
               onChange={e => set('search', e.target.value)}
-              className="w-full h-10 pl-10 pr-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 placeholder:text-gray-400"
-              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, border: '1.5px solid #e5e7eb' }}
+              className="w-full h-11 pl-10 pr-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 placeholder:text-gray-400"
+              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16, border: '1.5px solid #e5e7eb' }}
             />
           </div>
           <button
@@ -344,7 +344,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                 { enableHighAccuracy: true, timeout: 8000 }
               )
             }}
-            className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0"
+            className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0"
             style={{ border: '1.5px solid #e5e7eb' }}
             aria-label="Mi ubicación"
           >
@@ -355,12 +355,12 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         {/* Row 2: Operation toggle + Filters button */}
         <div className="flex items-center gap-2 px-3 pb-2">
           {/* Segmented control */}
-          <div className="flex rounded-full bg-gray-100 p-0.5 flex-1">
+          <div className="flex rounded-full bg-gray-100 p-0.5 flex-1" style={{ minHeight: 44 }}>
             {(['venta', 'alquiler'] as const).map(op => (
               <button
                 key={op}
                 onClick={() => set('operation', filters.operation === op ? 'todos' : op)}
-                className="flex-1 py-2 rounded-full text-center transition-all"
+                className="flex-1 py-2.5 rounded-full text-center transition-all"
                 style={{
                   background: filters.operation === op ? '#1A5C38' : 'transparent',
                   color: filters.operation === op ? '#fff' : '#6b7280',
@@ -379,7 +379,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           {/* Filters button */}
           <button
             onClick={() => setMobileFiltersOpen(true)}
-            className="relative flex items-center gap-1.5 h-10 rounded-xl px-4 flex-shrink-0 cursor-pointer"
+            className="relative flex items-center gap-1.5 h-11 rounded-xl px-4 flex-shrink-0 cursor-pointer"
             style={{
               border: mobileActiveCount > 0 ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
               background: '#fff',
@@ -611,16 +611,18 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       {/* ── Mobile Toggle ─────────────────────────────────────────────────── */}
       <button
         onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
-        className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center gap-2 rounded-full"
+        className="md:hidden fixed left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center gap-2 rounded-full"
         style={{
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
           background: '#1A5C38',
           color: '#fff',
-          padding: '12px 24px',
+          padding: '14px 28px',
           fontFamily: "'Raleway', system-ui, sans-serif",
           fontSize: 15,
           fontWeight: 600,
           boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
           border: 'none',
+          minHeight: 48,
         }}
       >
         {mobileView === 'list' ? (
@@ -641,7 +643,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           className={`md:hidden fixed left-3 right-3 z-[9998] transition-all duration-200 ${
             showBottomSheet ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
           }`}
-          style={{ bottom: 80 }}
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)', maxWidth: 'calc(100vw - 24px)' }}
         >
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden flex" style={{ border: '1px solid #e5e7eb' }}>
             <button
