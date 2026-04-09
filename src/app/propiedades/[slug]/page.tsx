@@ -522,6 +522,12 @@ export default async function PropertyPage({ params }: Props) {
         )}
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+          <Link
+            href="/propiedades"
+            className="hidden md:inline-block mb-4 text-[13px] font-semibold text-[#1A5C38] hover:underline"
+          >
+            ← Volver al catálogo
+          </Link>
           <div className="flex gap-10">
             {/* ── LEFT COLUMN (2/3) ── */}
             <div className="flex-1 min-w-0 space-y-6">
