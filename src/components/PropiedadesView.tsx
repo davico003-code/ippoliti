@@ -12,15 +12,15 @@ import {
   X,
   SlidersHorizontal,
   ChevronDown,
-  Bed,
-  Bath,
   LayoutGrid,
   LayoutList,
   Check,
   ArrowUpDown,
   Bookmark,
+  ArrowLeft,
 } from 'lucide-react'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
+import MobileFilterSheet from '@/components/MobileFilterSheet'
 import { ZONAS, type Zona } from '@/lib/zonas'
 import {
   type TokkoProperty,
@@ -137,8 +137,22 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const [sortOpen, setSortOpen]         = useState(false)
   const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
   const [saveToast, setSaveToast]       = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
+
+  // Hide navbar on mobile for /propiedades
+  useEffect(() => {
+    const nav = document.querySelector('nav')
+    if (!nav) return
+    const mq = window.matchMedia('(max-width: 767px)')
+    const toggle = (e: MediaQueryListEvent | MediaQueryList) => {
+      nav.style.display = e.matches ? 'none' : ''
+    }
+    toggle(mq)
+    mq.addEventListener('change', toggle)
+    return () => { mq.removeEventListener('change', toggle); nav.style.display = '' }
+  }, [])
 
   // Persist listMode preference
   useEffect(() => {
@@ -286,25 +300,115 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const opLabel = filters.operation === 'venta' ? 'en venta'
     : filters.operation === 'alquiler' ? 'en alquiler' : 'disponibles'
 
+  // Count non-operation active filters for mobile badge
+  const mobileActiveCount = [
+    filters.type !== 'todos',
+    filters.beds !== 'todos',
+    filters.maxPrice !== 'sin-limite',
+    filters.location !== 'todos',
+  ].filter(Boolean).length
+
   return (
-    <div className="h-[calc(100vh-64px)] flex flex-col bg-white overflow-hidden">
+    <div className="h-screen md:h-[calc(100vh-64px)] flex flex-col bg-white overflow-hidden">
       <h1 className="sr-only">Propiedades en venta y alquiler en Funes, Roldán y Rosario</h1>
 
-      {/* ── Filter Bar ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 px-3 md:px-4 py-2 border-b border-gray-200 bg-white shadow-sm flex-shrink-0 overflow-x-auto scrollbar-none">
-        <div className="relative min-w-[170px] max-w-[220px] flex-shrink-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-          <input type="text" placeholder="Barrio o dirección…" value={filters.search}
-            aria-label="Buscar barrio o dirección"
-            onChange={e => set('search', e.target.value)}
-            className="w-full h-10 pl-8 pr-3 rounded-xl bg-white focus:outline-none transition-all placeholder:text-gray-400"
+      {/* ── Mobile Filter Bar (2 rows) ────────────────────────────────────── */}
+      <div className="md:hidden flex-shrink-0 bg-white border-b border-gray-200 shadow-sm">
+        {/* Row 1: Back + Search + Location */}
+        <div className="flex items-center gap-2 px-3 pt-[env(safe-area-inset-top)] py-2">
+          <button
+            onClick={() => window.history.back()}
+            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
+            aria-label="Volver"
+          >
+            <ArrowLeft className="w-4 h-4 text-gray-600" />
+          </button>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Dirección, ciudad o barrio..."
+              value={filters.search}
+              aria-label="Buscar dirección, ciudad o barrio"
+              onChange={e => set('search', e.target.value)}
+              className="w-full h-10 pl-10 pr-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 placeholder:text-gray-400"
+              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, border: '1.5px solid #e5e7eb' }}
+            />
+          </div>
+          <button
+            onClick={() => {
+              if (!navigator.geolocation) return
+              navigator.geolocation.getCurrentPosition(
+                pos => { setMobileView('map'); setFlyToCenter([pos.coords.latitude, pos.coords.longitude]) },
+                () => {},
+                { enableHighAccuracy: true, timeout: 8000 }
+              )
+            }}
+            className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0"
+            style={{ border: '1.5px solid #e5e7eb' }}
+            aria-label="Mi ubicación"
+          >
+            <MapPin className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
+        {/* Row 2: Operation toggle + Filters button */}
+        <div className="flex items-center gap-2 px-3 pb-2">
+          {/* Segmented control */}
+          <div className="flex rounded-full bg-gray-100 p-0.5 flex-1">
+            {(['venta', 'alquiler'] as const).map(op => (
+              <button
+                key={op}
+                onClick={() => set('operation', filters.operation === op ? 'todos' : op)}
+                className="flex-1 py-2 rounded-full text-center transition-all"
+                style={{
+                  background: filters.operation === op ? '#1A5C38' : 'transparent',
+                  color: filters.operation === op ? '#fff' : '#6b7280',
+                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontSize: 13,
+                  fontWeight: filters.operation === op ? 600 : 500,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {op.charAt(0).toUpperCase() + op.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Filters button */}
+          <button
+            onClick={() => setMobileFiltersOpen(true)}
+            className="relative flex items-center gap-1.5 h-10 rounded-xl px-4 flex-shrink-0 cursor-pointer"
             style={{
-              border: '1.5px solid #d1d5db',
+              border: mobileActiveCount > 0 ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
+              background: '#fff',
               fontFamily: "'Raleway', system-ui, sans-serif",
               fontSize: 14,
+              fontWeight: 500,
+              color: mobileActiveCount > 0 ? '#1A5C38' : '#0a0a0a',
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = '#1A5C38' }}
-            onBlur={e => { e.currentTarget.style.borderColor = '#d1d5db' }}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            Filtros
+            {mobileActiveCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                {mobileActiveCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Desktop Filter Bar ────────────────────────────────────────────── */}
+      <div className="hidden md:flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-white shadow-sm flex-shrink-0 overflow-x-auto scrollbar-none">
+        <div className="relative min-w-[170px] max-w-[220px] flex-shrink-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+          <input type="text" placeholder="Dirección, ciudad o barrio..." value={filters.search}
+            aria-label="Buscar barrio o dirección"
+            onChange={e => set('search', e.target.value)}
+            className="w-full h-10 pl-8 pr-3 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all placeholder:text-gray-400"
+            style={{ border: '1.5px solid #d1d5db', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
           />
         </div>
         <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
@@ -334,46 +438,29 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           onClick={() => {
             if (!navigator.geolocation) return
             navigator.geolocation.getCurrentPosition(
-              pos => {
-                setMobileView('map')
-                setFlyToCenter([pos.coords.latitude, pos.coords.longitude])
-              },
+              pos => { setMobileView('map'); setFlyToCenter([pos.coords.latitude, pos.coords.longitude]) },
               () => {},
               { enableHighAccuracy: true, timeout: 8000 }
             )
           }}
           className="flex items-center gap-1.5 h-10 rounded-xl px-3.5 whitespace-nowrap flex-shrink-0 transition-all cursor-pointer"
-          style={{
-            border: '1.5px solid #d1d5db',
-            background: '#fff',
-            fontFamily: "'Raleway', system-ui, sans-serif",
-            fontSize: 14,
-            fontWeight: 500,
-            color: '#0a0a0a',
-          }}
+          style={{ border: '1.5px solid #d1d5db', background: '#fff', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 500, color: '#0a0a0a' }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = '#0a0a0a' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db' }}
           title="Mi ubicación"
         >
           <MapPin className="w-4 h-4 text-gray-400" />
-          <span className="hidden sm:inline">Mi ubicación</span>
+          Mi ubicación
         </button>
         <button
           onClick={() => setSaveToast(true)}
           className="flex items-center gap-1.5 h-10 rounded-xl px-4 whitespace-nowrap flex-shrink-0 transition-colors cursor-pointer"
-          style={{
-            background: '#1A5C38',
-            color: '#fff',
-            border: 'none',
-            fontFamily: "'Raleway', system-ui, sans-serif",
-            fontSize: 14,
-            fontWeight: 600,
-          }}
+          style={{ background: '#1A5C38', color: '#fff', border: 'none', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600 }}
           onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
         >
           <Bookmark className="w-4 h-4" />
-          <span className="hidden sm:inline">Guardar</span>
+          Guardar
         </button>
       </div>
 
@@ -389,6 +476,16 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           </button>
         </div>
       )}
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={mobileFiltersOpen}
+        onClose={() => setMobileFiltersOpen(false)}
+        filters={filters}
+        onChangeFilter={(k, v) => set(k as keyof Filters, v as never)}
+        onReset={() => { reset(); setMobileFiltersOpen(false) }}
+        resultCount={visibleProperties.length}
+      />
 
       {/* ── Content ────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0">
@@ -498,6 +595,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
               })
             }}
             activeZona={activeZona}
+            onMapMove={closeBottomSheet}
           />
           <div className="absolute top-3 left-3 z-[999] pointer-events-none">
             <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-md border border-gray-100">
@@ -536,33 +634,29 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         )}
       </button>
 
-      {/* ── Mobile Bottom Sheet ──────────────────────────────────────────── */}
+      {/* ── Mobile Property Preview Card ─────────────────────────────────── */}
       {selectedProperty && (
-        <div
-          className={`md:hidden fixed left-0 right-0 z-[9998] px-3 transition-transform duration-300 ${
-            showBottomSheet ? 'translate-y-0' : 'translate-y-[150%]'
+        <Link
+          href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
+          className={`md:hidden fixed left-3 right-3 z-[9998] transition-all duration-200 ${
+            showBottomSheet ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
           }`}
           style={{ bottom: 80 }}
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex">
+          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden flex" style={{ border: '1px solid #e5e7eb' }}>
             <button
-              onClick={closeBottomSheet}
+              onClick={e => { e.preventDefault(); e.stopPropagation(); closeBottomSheet() }}
               aria-label="Cerrar"
-              className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/45 backdrop-blur-sm text-white flex items-center justify-center"
+              className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3.5 h-3.5 text-gray-500" />
             </button>
-            <div className="relative w-[100px] h-[100px] flex-shrink-0 bg-gray-100">
+            <div className="relative w-28 flex-shrink-0 bg-gray-100">
               {(() => {
                 const photo = getMainPhoto(selectedProperty)
                 return photo ? (
-                  <Image
-                    src={photo}
-                    alt={selectedProperty.publication_title || selectedProperty.address}
-                    fill
-                    className="object-cover"
-                    sizes="100px"
-                  />
+                  <Image src={photo} alt={selectedProperty.publication_title || selectedProperty.address}
+                    fill className="object-cover" sizes="112px" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <MapPin className="w-6 h-6 text-gray-300" />
@@ -570,60 +664,39 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                 )
               })()}
             </div>
-            <div className="flex-1 min-w-0 p-3 pr-9 flex flex-col justify-between">
-              <div>
-                {selectedProperty.type?.name && (
-                  <p className="text-[10px] font-bold text-brand-600 uppercase tracking-widest truncate">
-                    {translatePropertyType(selectedProperty.type.name)}
-                  </p>
-                )}
-                <h3 className="text-[13px] font-bold text-gray-900 leading-tight truncate">
-                  {selectedProperty.publication_title || selectedProperty.address}
-                </h3>
-                <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-0.5">
-                  {(() => {
-                    const r = getRoofedArea(selectedProperty)
-                    const land = isLand(selectedProperty)
-                    const lot = getLotSurface(selectedProperty)
-                    return (
-                      <>
-                        {!land && r != null && r > 0 && (
-                          <span className="font-numeric">{r} m²</span>
-                        )}
-                        {land && lot != null && lot > 0 && (
-                          <span className="font-numeric">{lot} m² lote</span>
-                        )}
-                        {(selectedProperty.suite_amount || selectedProperty.room_amount) > 0 && (
-                          <span className="flex items-center gap-0.5">
-                            <Bed className="w-3 h-3" />
-                            <span className="font-numeric">{selectedProperty.suite_amount || selectedProperty.room_amount}</span>
-                          </span>
-                        )}
-                        {selectedProperty.bathroom_amount > 0 && (
-                          <span className="flex items-center gap-0.5">
-                            <Bath className="w-3 h-3" />
-                            <span className="font-numeric">{selectedProperty.bathroom_amount}</span>
-                          </span>
-                        )}
-                      </>
-                    )
-                  })()}
-                </div>
-              </div>
-              <div className="flex items-center justify-between gap-2 mt-1">
-                <p className="text-[14px] font-black text-gray-900 font-numeric truncate">
-                  {formatPrice(selectedProperty)}
-                </p>
-                <Link
-                  href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
-                  className="flex-shrink-0 inline-flex items-center gap-1 bg-[#1A5C38] hover:bg-[#145030] text-white text-[11px] font-semibold px-3 py-1.5 rounded-full transition-colors"
-                >
-                  Ver propiedad →
-                </Link>
-              </div>
+            <div className="flex-1 min-w-0 p-3 pr-8 flex flex-col gap-0.5">
+              {selectedProperty.type?.name && (
+                <span className="self-start px-2 py-0.5 rounded text-[10px] font-semibold uppercase text-white"
+                  style={{ background: '#1A5C38', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                  {translatePropertyType(selectedProperty.type.name)}
+                </span>
+              )}
+              <h3 className="text-[13px] font-medium text-gray-900 leading-tight line-clamp-2"
+                style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                {selectedProperty.publication_title || selectedProperty.address}
+              </h3>
+              <p className="text-[17px] font-bold text-gray-900"
+                style={{ fontFamily: "'Poppins', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums' }}>
+                {formatPrice(selectedProperty)}
+              </p>
+              <p className="text-[11px] text-gray-500" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                {(() => {
+                  const specs: string[] = []
+                  const r = getRoofedArea(selectedProperty)
+                  const land2 = isLand(selectedProperty)
+                  const lot = getLotSurface(selectedProperty)
+                  if (r != null && r > 0) specs.push(`${r} m²`)
+                  if (!land2 && (selectedProperty.suite_amount || selectedProperty.room_amount) > 0)
+                    specs.push(`${selectedProperty.suite_amount || selectedProperty.room_amount} dorm`)
+                  if (!land2 && selectedProperty.bathroom_amount > 0)
+                    specs.push(`${selectedProperty.bathroom_amount} baño${selectedProperty.bathroom_amount > 1 ? 's' : ''}`)
+                  if (land2 && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot} m²`)
+                  return specs.join(' · ')
+                })()}
+              </p>
             </div>
           </div>
-        </div>
+        </Link>
       )}
     </div>
   )

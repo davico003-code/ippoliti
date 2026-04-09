@@ -402,6 +402,22 @@ function ZonaFlyTo({ zona }: { zona: Zona }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+// ─── Map move listener (clears mobile preview on drag) ──────────────────────
+
+function MapMoveListener({ onMove }: { onMove: () => void }) {
+  const map = useMap()
+  const initial = useRef(true)
+  useEffect(() => {
+    const handler = () => {
+      if (initial.current) { initial.current = false; return }
+      onMove()
+    }
+    map.on('movestart', handler)
+    return () => { map.off('movestart', handler) }
+  }, [map, onMove])
+  return null
+}
+
 interface Props {
   properties: TokkoProperty[]
   selectedId: number | null
@@ -409,9 +425,11 @@ interface Props {
   flyToCenter: [number, number] | null
   onBoundsSearch?: (bounds: L.LatLngBounds) => void
   activeZona?: Zona | null
+  onMapMove?: () => void
 }
 
-export default function PropiedadesMap({ properties, selectedId, onSelect, flyToCenter, onBoundsSearch, activeZona }: Props) {
+export default function PropiedadesMap({ properties, selectedId, onSelect, flyToCenter, onBoundsSearch, activeZona, onMapMove }: Props) {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const mapped = useMemo(() =>
     properties.filter(p => {
       if (!p.geo_lat || !p.geo_long) return false
@@ -443,9 +461,10 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
       <LocateButton />
       {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
       {activeZona && <ZonaFlyTo zona={activeZona} />}
+      {onMapMove && <MapMoveListener onMove={onMapMove} />}
 
-      {/* Legend */}
-      <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'white', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* Legend — hidden on mobile */}
+      <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'white', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: isMobile ? 'none' : 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
           <span style={{ color: '#666' }}>Propiedad</span>
@@ -485,7 +504,7 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
               zIndexOffset={isSelected ? 1000 : 0}
               eventHandlers={{ click: () => onSelect(property.id) }}
             >
-              <Popup maxWidth={300} className="ippoliti-popup">
+              {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
                 <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif" }}>
                   {photo && (
                     <div style={{ margin: '-10px -20px 12px', height: '160px', overflow: 'hidden', position: 'relative' }}>
@@ -543,7 +562,7 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
                     Ver propiedad →
                   </a>
                 </div>
-              </Popup>
+              </Popup>}
             </Marker>
           )
         })}
