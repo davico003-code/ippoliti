@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Navigation, Loader2 } from 'lucide-react'
+import { highlightMatch } from '@/lib/highlight'
 
 const SUGERENCIAS = [
   'Funes', 'Roldán', 'Rosario', 'Fisherton',
@@ -177,7 +178,7 @@ export default function HeroSearch() {
               onMouseEnter={e => { e.currentTarget.style.background = '#f0f7f4' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
-              {s}
+              {highlightMatch(s, query)}
             </button>
           ))}
         </div>
