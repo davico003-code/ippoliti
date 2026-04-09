@@ -489,6 +489,7 @@ export async function getProperties(params?: {
   const totalCount = firstPage.meta.total_count;
   const fetchedCount = firstPage.objects.length;
 
+  // TODO: add integration test — getProperties() sin params debe traer total_count completo (>100)
   if (fetchedCount < totalCount) {
     const remainingPages = Math.ceil((totalCount - fetchedCount) / initialLimit);
     const promises = [];
