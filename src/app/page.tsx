@@ -1,6 +1,6 @@
 export const revalidate = 21600
 
-import { MapPin, Building2, Maximize2, Home as HomeIcon, Bed, Bath } from 'lucide-react'
+import { MapPin, Building2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
@@ -41,38 +41,37 @@ async function FeaturedPropertiesSection() {
   if (!properties || properties.length === 0) return null
 
   return (
-    <section
-      className="home-px home-section"
-      style={{ background: '#fff', padding: '80px 48px' }}
-    >
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <p
-          style={{
-            fontFamily: POPPINS,
-            fontSize: 10,
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            color: GREEN,
-            fontWeight: 600,
-            margin: '0 0 12px',
-          }}
-        >
+    <section className="home-section bg-white" style={{ padding: 0 }}>
+      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-12 pb-12 md:pt-20 md:pb-20">
+        {/* Eyebrow */}
+        <p style={{
+          fontFamily: RALEWAY, fontWeight: 600, textTransform: 'uppercase',
+          color: GREEN, letterSpacing: '0.2em', margin: 0,
+          fontSize: 'clamp(11px, 1.2vw, 12px)', marginBottom: 'clamp(8px, 1vw, 12px)',
+        }}>
           PROPIEDADES DESTACADAS
         </p>
-        <h2
-          style={{
-            fontFamily: RALEWAY,
-            fontSize: 32,
-            fontWeight: 300,
-            color: '#111',
-            letterSpacing: '-0.5px',
-            margin: '0 0 40px',
-          }}
-        >
-          Las mejores propiedades de la zona
+
+        {/* Title */}
+        <h2 style={{
+          fontFamily: RALEWAY, fontWeight: 700, color: '#0a0a0a',
+          lineHeight: 1.15, margin: 0,
+          fontSize: 'clamp(26px, 3.5vw, 40px)', marginBottom: 'clamp(8px, 1vw, 12px)',
+        }}>
+          Propiedades destacadas en Funes, Roldán y Rosario
         </h2>
 
-        <div className="home-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+        {/* Subtitle */}
+        <p style={{
+          fontFamily: RALEWAY, fontWeight: 400, color: '#6b7280',
+          lineHeight: 1.5, margin: 0,
+          fontSize: 'clamp(14px, 1.5vw, 17px)', marginBottom: 'clamp(32px, 3vw, 48px)',
+        }}>
+          Una selección curada de las mejores oportunidades del momento
+        </p>
+
+        {/* Cards grid */}
+        <div className="home-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
           {properties.map(property => {
             const slug = generatePropertySlug(property)
             const photo = getMainPhoto(property)
@@ -83,6 +82,16 @@ async function FeaturedPropertiesSection() {
             const land = isLand(property)
             const beds = property.suite_amount ?? property.room_amount
             const baths = property.bathroom_amount
+            const typeName = translatePropertyType(property.type?.name)
+            const address = property.fake_address || property.address
+            const location = property.location?.short_location || property.location?.name || ''
+
+            const specs: string[] = []
+            if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
+            if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
+            if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
+            if (lot != null && lot > 0 && lot !== roofed) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
+            if (land && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
 
             return (
               <Link
@@ -91,19 +100,21 @@ async function FeaturedPropertiesSection() {
                 className="prop-card"
                 style={{
                   display: 'block',
-                  borderRadius: 16,
-                  border: '0.5px solid #e5e5e5',
+                  borderRadius: 'clamp(14px, 1.5vw, 16px)',
+                  border: '1px solid #e5e7eb',
                   overflow: 'hidden',
                   background: '#fff',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  transition: 'box-shadow 200ms, border-color 200ms',
                   textDecoration: 'none',
                 }}
               >
-                <div style={{ position: 'relative', width: '100%', height: 200, background: '#f5f5f5' }}>
+                {/* Photo */}
+                <div className="relative w-full bg-gray-100" style={{ aspectRatio: 'var(--card-ratio, 4/3)' }}>
                   {photo ? (
                     <Image
                       src={photo}
-                      alt={property.publication_title || property.address}
+                      alt={property.publication_title || address}
                       fill
                       style={{ objectFit: 'cover' }}
                       sizes="(max-width: 768px) 100vw, 33vw"
@@ -114,97 +125,52 @@ async function FeaturedPropertiesSection() {
                     </div>
                   )}
                   {operation && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 10,
-                        left: 10,
-                        background: GREEN,
-                        color: '#fff',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        padding: '3px 10px',
-                        borderRadius: 20,
-                        letterSpacing: '0.5px',
-                      }}
-                    >
+                    <span style={{
+                      position: 'absolute', top: 10, left: 10,
+                      background: GREEN, color: '#fff',
+                      fontFamily: RALEWAY, fontWeight: 600, fontSize: 11,
+                      textTransform: 'uppercase', padding: '5px 10px', borderRadius: 6,
+                    }}>
                       {operation}
                     </span>
                   )}
                 </div>
-                <div style={{ padding: 16 }}>
-                  {property.type?.name && (
-                    <p
-                      style={{
-                        fontFamily: POPPINS,
-                        fontSize: 10,
-                        textTransform: 'uppercase',
-                        color: '#999',
-                        letterSpacing: '0.5px',
-                        margin: '0 0 6px',
-                      }}
-                    >
-                      {translatePropertyType(property.type.name)}
-                    </p>
-                  )}
-                  <h3
-                    style={{
-                      fontFamily: POPPINS,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: '#111',
-                      lineHeight: 1.3,
-                      margin: '0 0 8px',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {property.publication_title || property.address}
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: POPPINS,
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: '#111',
-                      margin: '0 0 10px',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
+
+                {/* Body */}
+                <div className="featured-card-body" style={{ padding: 'clamp(12px, 1.2vw, 16px)' }}>
+                  <p style={{
+                    fontFamily: POPPINS, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                    color: '#0a0a0a', margin: '0 0 4px',
+                    fontSize: 'clamp(19px, 1.8vw, 22px)', lineHeight: 1.2,
+                  }}>
                     {price}
                   </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {!land && beds != null && beds > 0 && (
-                      <span style={{ background: '#f5f5f5', borderRadius: 20, fontSize: 10, color: '#666', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <Bed size={10} /> {beds}
-                      </span>
-                    )}
-                    {!land && baths != null && baths > 0 && (
-                      <span style={{ background: '#f5f5f5', borderRadius: 20, fontSize: 10, color: '#666', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <Bath size={10} /> {baths}
-                      </span>
-                    )}
-                    {roofed != null && roofed > 0 && (
-                      <span style={{ background: '#f5f5f5', borderRadius: 20, fontSize: 10, color: '#666', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <HomeIcon size={10} /> {roofed} m²
-                      </span>
-                    )}
-                    {lot != null && lot > 0 && lot !== roofed && (
-                      <span style={{ background: '#f5f5f5', borderRadius: 20, fontSize: 10, color: '#666', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <Maximize2 size={10} /> {lot} m² lote
-                      </span>
-                    )}
-                  </div>
+                  {specs.length > 0 && (
+                    <p style={{ fontFamily: RALEWAY, color: '#6b7280', margin: '0 0 6px', fontSize: 'clamp(12px, 1vw, 13px)' }}>
+                      {specs.join(' · ')}
+                    </p>
+                  )}
+                  <p style={{
+                    fontFamily: RALEWAY, fontWeight: 500, color: '#0a0a0a', margin: '0 0 2px',
+                    fontSize: 'clamp(13px, 1vw, 14px)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {typeName}{typeName && address ? ' · ' : ''}{address}
+                  </p>
+                  <p style={{
+                    fontFamily: RALEWAY, color: '#6b7280', margin: 0,
+                    fontSize: 'clamp(11px, 1vw, 12px)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {location}
+                  </p>
                 </div>
               </Link>
             )
           })}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 40 }}>
+        <div style={{ textAlign: 'center', marginTop: 'clamp(32px, 3vw, 48px)' }}>
           <Link
             href="/propiedades"
             style={{
@@ -213,8 +179,8 @@ async function FeaturedPropertiesSection() {
               color: GREEN,
               padding: '12px 32px',
               borderRadius: 999,
-              fontFamily: POPPINS,
-              fontSize: 13,
+              fontFamily: RALEWAY,
+              fontSize: 14,
               fontWeight: 600,
               textDecoration: 'none',
               transition: 'background 0.2s ease, color 0.2s ease',
@@ -853,10 +819,12 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }} />
 
       <style>{`
-        .prop-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-        .dev-card:hover { border-color: rgba(255,255,255,0.2) !important; }
-        .porque-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-        .guia-mock:hover .guia-mock-frame { border-color: rgba(255,255,255,0.25); }
+        @media (hover: hover) {
+          .prop-card:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: #1A5C38 !important; }
+          .dev-card:hover { border-color: rgba(255,255,255,0.2) !important; }
+          .porque-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+          .guia-mock:hover .guia-mock-frame { border-color: rgba(255,255,255,0.25); }
+        }
         @media (max-width: 1024px) {
           .home-section { padding: 64px 32px !important; }
           .home-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
@@ -865,7 +833,8 @@ export default async function Home() {
         }
         @media (max-width: 640px) {
           .home-section { padding: 48px 24px !important; }
-          .home-grid-3 { grid-template-columns: 1fr !important; }
+          .home-grid-3 { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .prop-card { --card-ratio: 16/10; }
         }
       `}</style>
 
