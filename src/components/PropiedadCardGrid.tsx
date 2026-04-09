@@ -227,7 +227,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         <p style={{
           fontFamily: RALEWAY,
           fontSize: 12,
-          color: '#9ca3af',
+          color: '#6b7280',
           margin: 0,
           overflow: 'hidden',
           textOverflow: 'ellipsis',

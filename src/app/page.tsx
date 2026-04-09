@@ -815,6 +815,7 @@ export const metadata = {
   title: 'SI Inmobiliaria · Propiedades en Funes, Roldán y Rosario',
   description:
     'Inmobiliaria familiar fundada en 1983. Casas, departamentos, terrenos y emprendimientos en Funes, Roldán y Rosario. Tasaciones profesionales en 24 horas.',
+  alternates: { canonical: 'https://siinmobiliaria.com' },
   openGraph: {
     title: 'SI Inmobiliaria · Propiedades en Funes, Roldán y Rosario',
     description:

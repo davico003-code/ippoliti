@@ -9,9 +9,12 @@ import HausingAnimations from "@/components/HausingAnimations"
 export const metadata: Metadata = {
   title: 'Hausing — Casas de Diseño en Funes | SI Inmobiliaria',
   description: 'Casas de diseño arquitectónico en barrios cerrados de Funes. Pileta, seguridad 24hs, financiación en USD. Llave en mano.',
+  alternates: { canonical: 'https://siinmobiliaria.com/hausing' },
   openGraph: {
     title: 'Hausing — Casas de Diseño en Funes',
     description: 'Casas premium en los barrios más exclusivos de Funes. Desde SI Inmobiliaria.',
+    url: 'https://siinmobiliaria.com/hausing',
+    images: ['/og-image.jpg'],
   },
 }
 

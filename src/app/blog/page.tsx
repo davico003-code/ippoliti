@@ -6,10 +6,13 @@ export const metadata: Metadata = {
   title: 'Blog inmobiliario — Funes, Roldán y región | SI Inmobiliaria',
   description:
     'Mercado, consejos y análisis para comprar, vender e invertir en Funes y Roldán. Blog de SI Inmobiliaria.',
+  alternates: { canonical: 'https://siinmobiliaria.com/blog' },
   openGraph: {
     title: 'Blog inmobiliario — Funes, Roldán y región',
     description:
       'Mercado, consejos y análisis para comprar, vender e invertir en Funes y Roldán.',
+    url: 'https://siinmobiliaria.com/blog',
+    images: ['/og-image.jpg'],
   },
 }
 

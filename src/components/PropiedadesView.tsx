@@ -86,7 +86,8 @@ function FilterSelect<T extends string>({
       <select
         value={value}
         onChange={e => onChange(e.target.value as T)}
-        className="appearance-none h-10 rounded-xl pl-3.5 pr-8 cursor-pointer focus:outline-none transition-all"
+        aria-label={options[0].label}
+        className="appearance-none h-10 rounded-xl pl-3.5 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all"
         style={{
           border: active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
           background: '#fff',
@@ -287,12 +288,14 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
 
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col bg-white overflow-hidden">
+      <h1 className="sr-only">Propiedades en venta y alquiler en Funes, Roldán y Rosario</h1>
 
       {/* ── Filter Bar ─────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 px-3 md:px-4 py-2 border-b border-gray-200 bg-white shadow-sm flex-shrink-0 overflow-x-auto scrollbar-none">
         <div className="relative min-w-[170px] max-w-[220px] flex-shrink-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
           <input type="text" placeholder="Barrio o dirección…" value={filters.search}
+            aria-label="Buscar barrio o dirección"
             onChange={e => set('search', e.target.value)}
             className="w-full h-10 pl-8 pr-3 rounded-xl bg-white focus:outline-none transition-all placeholder:text-gray-400"
             style={{

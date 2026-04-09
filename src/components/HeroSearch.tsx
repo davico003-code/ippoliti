@@ -56,6 +56,7 @@ export default function HeroSearch() {
             if (e.key === 'Enter') submit(e)
           }}
           placeholder="¿Dónde querés buscar?"
+          aria-label="Buscar por barrio, ciudad o dirección"
           autoComplete="off"
           className="flex-1 min-w-0 border-none outline-none bg-transparent px-3 text-[#111] placeholder:text-[#9ca3af]"
           style={{ fontFamily: 'Raleway, sans-serif', fontSize: 16, fontWeight: 400 }}
