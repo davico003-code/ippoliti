@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default async function PropiedadesPage() {
   let properties: TokkoProperty[] = []
   try {
-    const data = await getProperties({ limit: 40 })
+    const data = await getProperties()
     properties = data.objects ?? []
   } catch (err) {
     console.error('[propiedades] Error fetching properties:', err instanceof Error ? err.message : err)

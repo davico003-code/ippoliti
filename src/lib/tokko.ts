@@ -489,7 +489,7 @@ export async function getProperties(params?: {
   const totalCount = firstPage.meta.total_count;
   const fetchedCount = firstPage.objects.length;
 
-  if (fetchedCount < totalCount && (params?.limit === undefined || params?.limit >= 100)) {
+  if (fetchedCount < totalCount) {
     const remainingPages = Math.ceil((totalCount - fetchedCount) / initialLimit);
     const promises = [];
 
