@@ -4,15 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
-
-const SUGERENCIAS = [
-  'Funes', 'Roldán', 'Rosario', 'Fisherton',
-  'San Sebastián', 'Los Aromos', 'Don Mateo', 'El Molino',
-  'Funes Lakes', 'Aurea', 'Cotos de la Alameda',
-  'Vida Lagoon', 'Paseo del Norte', 'Dockgarden',
-  'Hausing', 'Distrito Roldán', 'Roldán Este',
-  'Catamarca', 'Hipólito Yrigoyen', '1ro de Mayo',
-]
+import { buscarZonas, type Zona } from '@/lib/zonas'
 
 export default function HeroSearch() {
   const [query, setQuery] = useState('')
@@ -20,9 +12,7 @@ export default function HeroSearch() {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
-  const filtered = query.length >= 2
-    ? SUGERENCIAS.filter(s => s.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
-    : []
+  const filtered = buscarZonas(query, 8)
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -34,10 +24,10 @@ export default function HeroSearch() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  function navigate(q: string) {
+  function navigate(zona: Zona) {
     setShowDropdown(false)
-    setQuery(q)
-    router.push(`/propiedades?q=${encodeURIComponent(q)}`)
+    setQuery(zona.nombre)
+    router.push(`/propiedades?q=${encodeURIComponent(zona.nombre)}`)
   }
 
   function submit(e: React.FormEvent) {
@@ -59,7 +49,7 @@ export default function HeroSearch() {
           value={query}
           onChange={e => {
             setQuery(e.target.value)
-            setShowDropdown(e.target.value.length >= 2)
+            setShowDropdown(e.target.value.trim().length >= 2)
           }}
           onFocus={() => { if (filtered.length > 0) setShowDropdown(true) }}
           onKeyDown={e => {
@@ -104,18 +94,21 @@ export default function HeroSearch() {
             background: '#fff',
             borderRadius: 12,
             boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-            overflow: 'hidden',
+            overflow: 'auto',
+            maxHeight: 340,
             zIndex: 50,
           }}
         >
-          {filtered.map(s => (
+          {filtered.map(zona => (
             <button
-              key={s}
+              key={zona.id}
               type="button"
-              onClick={() => navigate(s)}
+              onClick={() => navigate(zona)}
               onMouseDown={e => e.preventDefault()}
               style={{
-                display: 'block',
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 8,
                 width: '100%',
                 textAlign: 'left',
                 padding: '10px 16px',
@@ -129,7 +122,12 @@ export default function HeroSearch() {
               onMouseEnter={e => { e.currentTarget.style.background = '#f0f7f4' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
-              {highlightMatch(s, query)}
+              <span style={{ flex: 1 }}>
+                {highlightMatch(zona.nombre, query)}
+              </span>
+              <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
+              </span>
             </button>
           ))}
         </div>
