@@ -20,11 +20,13 @@ import {
 const RALEWAY = "'Raleway', system-ui, sans-serif"
 const POPPINS = "'Poppins', system-ui, sans-serif"
 
-export default function PropiedadCardGrid({ property, isSelected, onClick }: {
+export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop' }: {
   property: TokkoProperty
   isSelected: boolean
   onClick: () => void
+  variant?: 'desktop' | 'mobile'
 }) {
+  const isMobile = variant === 'mobile'
   const photos = getAllPhotos(property)
   const fallback = getMainPhoto(property)
   const images = photos.length > 0 ? photos : fallback ? [fallback] : []
@@ -88,7 +90,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick }: {
       }}
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] w-full bg-gray-100 overflow-hidden">
+      <div className={`relative w-full bg-gray-100 overflow-hidden ${isMobile ? 'aspect-[16/10]' : 'aspect-[4/3]'}`}>
         {images.length > 0 ? (
           <Image
             src={images[imgIdx]}
@@ -178,7 +180,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick }: {
           <p style={{
             fontFamily: POPPINS,
             fontWeight: 700,
-            fontSize: 20,
+            fontSize: isMobile ? 19 : 20,
             color: '#0a0a0a',
             margin: 0,
             lineHeight: 1.2,

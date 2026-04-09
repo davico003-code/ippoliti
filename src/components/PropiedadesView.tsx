@@ -8,7 +8,6 @@ import Link from 'next/link'
 import {
   Search,
   MapPin,
-  List,
   Map,
   X,
   SlidersHorizontal,
@@ -394,8 +393,8 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         {/* Left: Property list */}
         <div className={`flex flex-col border-r border-gray-200 w-full md:w-[40%] ${mobileView === 'map' ? 'hidden md:flex' : 'flex'}`}>
 
-          {/* Count header + sort + view toggle */}
-          <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 flex-shrink-0 flex items-center justify-between gap-2">
+          {/* Count header + sort + view toggle — desktop only */}
+          <div className="hidden md:flex px-3 py-2 bg-gray-50 border-b border-gray-100 flex-shrink-0 items-center justify-between gap-2">
             {/* Sort dropdown */}
             <div ref={sortRef} className="relative flex-shrink-0">
               <button
@@ -462,11 +461,20 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                 </button>
               </div>
             ) : (
-              <div className="p-4 grid grid-cols-1 xl:grid-cols-2 gap-4">
-                {visibleProperties.map(p => (
-                  <PropiedadCardGrid key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
-                ))}
-              </div>
+              <>
+                {/* Desktop grid */}
+                <div className="hidden md:grid p-4 grid-cols-1 xl:grid-cols-2 gap-4">
+                  {visibleProperties.map(p => (
+                    <PropiedadCardGrid key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
+                  ))}
+                </div>
+                {/* Mobile list */}
+                <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">
+                  {visibleProperties.map(p => (
+                    <PropiedadCardGrid key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} variant="mobile" />
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -499,10 +507,20 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         </div>
       </div>
 
-      {/* ── Mobile Toggle (single contextual button) ─────────────────────── */}
+      {/* ── Mobile Toggle ─────────────────────────────────────────────────── */}
       <button
         onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
-        className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center gap-2 bg-[#1A5C38] text-white px-6 py-3 text-sm font-semibold rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:bg-[#145030] transition-colors"
+        className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center gap-2 rounded-full"
+        style={{
+          background: '#1A5C38',
+          color: '#fff',
+          padding: '12px 24px',
+          fontFamily: "'Raleway', system-ui, sans-serif",
+          fontSize: 15,
+          fontWeight: 600,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+          border: 'none',
+        }}
       >
         {mobileView === 'list' ? (
           <>
@@ -510,7 +528,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           </>
         ) : (
           <>
-            <List className="w-4 h-4" /> Lista
+            <LayoutGrid className="w-4 h-4" /> Lista
           </>
         )}
       </button>
