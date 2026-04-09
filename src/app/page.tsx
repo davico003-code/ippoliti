@@ -1,6 +1,6 @@
 export const revalidate = 21600
 
-import { MapPin, Building2 } from 'lucide-react'
+import { MapPin, Building2, BarChart3, GraduationCap, Handshake } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
@@ -43,35 +43,17 @@ async function FeaturedPropertiesSection() {
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
       <div className="max-w-7xl mx-auto px-5 md:px-6 pt-12 pb-12 md:pt-20 md:pb-20">
-        {/* Eyebrow */}
-        <p style={{
-          fontFamily: RALEWAY, fontWeight: 600, textTransform: 'uppercase',
-          color: GREEN, letterSpacing: '0.2em', margin: 0,
-          fontSize: 'clamp(11px, 1.2vw, 12px)', marginBottom: 'clamp(8px, 1vw, 12px)',
-        }}>
-          PROPIEDADES DESTACADAS
-        </p>
-
         {/* Title */}
         <h2 style={{
           fontFamily: RALEWAY, fontWeight: 700, color: '#0a0a0a',
-          lineHeight: 1.15, margin: 0,
-          fontSize: 'clamp(26px, 3.5vw, 40px)', marginBottom: 'clamp(8px, 1vw, 12px)',
+          lineHeight: 1.2, margin: 0,
+          fontSize: 'clamp(20px, 2.5vw, 28px)', marginBottom: 'clamp(24px, 2vw, 32px)',
         }}>
           Propiedades destacadas en Funes, Roldán y Rosario
         </h2>
 
-        {/* Subtitle */}
-        <p style={{
-          fontFamily: RALEWAY, fontWeight: 400, color: '#6b7280',
-          lineHeight: 1.5, margin: 0,
-          fontSize: 'clamp(14px, 1.5vw, 17px)', marginBottom: 'clamp(32px, 3vw, 48px)',
-        }}>
-          Una selección curada de las mejores oportunidades del momento
-        </p>
-
-        {/* Cards grid */}
-        <div className="home-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        {/* Cards — desktop grid / mobile carousel */}
+        <div className="home-grid-3 hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
           {properties.map(property => {
             const slug = generatePropertySlug(property)
             const photo = getMainPhoto(property)
@@ -170,7 +152,56 @@ async function FeaturedPropertiesSection() {
           })}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 'clamp(32px, 3vw, 48px)' }}>
+        {/* Mobile carousel */}
+        <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none">
+          {properties.map(property => {
+            const slug = generatePropertySlug(property)
+            const photo = getMainPhoto(property)
+            const price = formatPrice(property)
+            const operation = getOperationType(property)
+            const roofed = getRoofedArea(property)
+            const lot = getLotSurface(property)
+            const land = isLand(property)
+            const beds = property.suite_amount ?? property.room_amount
+            const baths = property.bathroom_amount
+            const typeName = translatePropertyType(property.type?.name)
+            const address = property.fake_address || property.address
+            const location = property.location?.short_location || property.location?.name || ''
+            const specs: string[] = []
+            if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
+            if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
+            if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
+            if (lot != null && lot > 0 && lot !== roofed) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
+            if (land && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
+
+            return (
+              <Link key={property.id} href={`/propiedades/${slug}`}
+                className="flex-shrink-0 snap-start"
+                style={{ width: '75vw', maxWidth: 320, borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', textDecoration: 'none' }}>
+                <div className="relative w-full bg-gray-100" style={{ aspectRatio: '16/10' }}>
+                  {photo ? (
+                    <Image src={photo} alt={property.publication_title || address} fill style={{ objectFit: 'cover' }} sizes="75vw" />
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', fontSize: 12 }}>Sin foto</div>
+                  )}
+                  {operation && (
+                    <span style={{ position: 'absolute', top: 8, left: 8, background: GREEN, color: '#fff', fontFamily: RALEWAY, fontWeight: 600, fontSize: 11, textTransform: 'uppercase', padding: '4px 8px', borderRadius: 6 }}>
+                      {operation}
+                    </span>
+                  )}
+                </div>
+                <div style={{ padding: 12 }}>
+                  <p style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 19, color: '#0a0a0a', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>{price}</p>
+                  {specs.length > 0 && <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#6b7280', margin: '0 0 4px' }}>{specs.join(' · ')}</p>}
+                  <p style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 13, color: '#0a0a0a', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{typeName}{typeName && address ? ' · ' : ''}{address}</p>
+                  <p style={{ fontFamily: RALEWAY, fontSize: 11, color: '#6b7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{location}</p>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 'clamp(24px, 2vw, 40px)' }}>
           <Link
             href="/propiedades"
             style={{
@@ -183,7 +214,6 @@ async function FeaturedPropertiesSection() {
               fontSize: 14,
               fontWeight: 600,
               textDecoration: 'none',
-              transition: 'background 0.2s ease, color 0.2s ease',
             }}
           >
             Ver todas las propiedades →
@@ -207,29 +237,16 @@ async function DevelopmentsSection() {
   const hausingPhoto = hausingProp ? getMainPhoto(hausingProp) : null
 
   return (
-    <section className="home-px home-section" style={{ background: '#0d1a12', padding: '80px 48px' }}>
+    <section className="home-px home-section" style={{ background: '#f9fafb', padding: '80px 48px' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <p
-          style={{
-            fontFamily: POPPINS,
-            fontSize: 10,
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            color: '#4caf7d',
-            fontWeight: 600,
-            margin: '0 0 12px',
-          }}
-        >
-          INVERSIÓN Y DESARROLLO
-        </p>
         <h2
           style={{
             fontFamily: RALEWAY,
-            fontSize: 32,
-            fontWeight: 300,
-            color: '#fff',
-            letterSpacing: '-0.5px',
-            margin: '0 0 40px',
+            fontSize: 'clamp(20px, 2.5vw, 28px)',
+            fontWeight: 700,
+            color: '#0a0a0a',
+            lineHeight: 1.2,
+            margin: '0 0 32px',
           }}
         >
           Emprendimientos
@@ -237,24 +254,24 @@ async function DevelopmentsSection() {
 
         <div className="home-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {/* Hausing card */}
-          <Link href="/hausing" className="dev-card" style={{ display: 'block', background: '#111', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'border-color 0.3s ease' }}>
-            <div style={{ position: 'relative', width: '100%', height: 180, background: '#0a0a0a' }}>
+          <Link href="/hausing" className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'box-shadow 0.2s ease, border-color 0.2s ease' }}>
+            <div style={{ position: 'relative', width: '100%', height: 180, background: '#f5f5f5' }}>
               {hausingPhoto && (
-                <Image src={hausingPhoto} alt="Hausing" fill style={{ objectFit: 'cover', opacity: 0.85 }} sizes="(max-width: 768px) 100vw, 33vw" />
+                <Image src={hausingPhoto} alt="Hausing" fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 33vw" />
               )}
             </div>
             <div style={{ padding: 20 }}>
-              <span style={{ display: 'inline-block', background: 'rgba(26,92,56,0.3)', color: '#4caf7d', fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, marginBottom: 12, letterSpacing: '0.5px' }}>
+              <span style={{ display: 'inline-block', background: '#e8f5ee', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, marginBottom: 12, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                 CASAS PREMIUM
               </span>
-              <h3 style={{ fontFamily: POPPINS, fontSize: 16, fontWeight: 600, color: '#fff', margin: '0 0 6px' }}>Hausing — Casas de Diseño</h3>
-              <p style={{ fontFamily: POPPINS, fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '0 0 12px' }}>
+              <h3 style={{ fontFamily: RALEWAY, fontSize: 16, fontWeight: 700, color: '#0a0a0a', margin: '0 0 6px' }}>Hausing — Casas de Diseño</h3>
+              <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#6b7280', margin: '0 0 12px' }}>
                 Vida, Cadaques, Don Mateo · Funes
               </p>
-              <p style={{ fontFamily: POPPINS, fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: '0 0 16px' }}>
+              <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#0a0a0a', margin: '0 0 16px' }}>
                 6 propiedades · desde USD 380K
               </p>
-              <span style={{ color: '#4caf7d', fontSize: 12, fontWeight: 600, fontFamily: POPPINS }}>Ver →</span>
+              <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: RALEWAY }}>Ver →</span>
             </div>
           </Link>
 
@@ -264,35 +281,35 @@ async function DevelopmentsSection() {
             const status = getConstructionStatus(dev.construction_status)
             const typeName = translateDevType(dev.type?.name || '')
             return (
-              <Link key={dev.id} href={`/emprendimientos/${slug}`} className="dev-card" style={{ display: 'block', background: '#111', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'border-color 0.3s ease' }}>
-                <div style={{ position: 'relative', width: '100%', height: 180, background: '#0a0a0a' }}>
+              <Link key={dev.id} href={`/emprendimientos/${slug}`} className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'box-shadow 0.2s ease, border-color 0.2s ease' }}>
+                <div style={{ position: 'relative', width: '100%', height: 180, background: '#f5f5f5' }}>
                   {photo ? (
-                    <Image src={photo} alt={dev.name} fill style={{ objectFit: 'cover', opacity: 0.9 }} sizes="(max-width: 768px) 100vw, 33vw" />
+                    <Image src={photo} alt={dev.name} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 33vw" />
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                      <Building2 size={40} color="#333" />
+                      <Building2 size={40} color="#ccc" />
                     </div>
                   )}
                 </div>
                 <div style={{ padding: 20 }}>
                   <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
                     {typeName && (
-                      <span style={{ background: 'rgba(26,92,56,0.3)', color: '#4caf7d', fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{typeName}</span>
+                      <span style={{ background: '#e8f5ee', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{typeName}</span>
                     )}
                     {status && (
-                      <span style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{status}</span>
+                      <span style={{ background: '#f3f4f6', color: '#6b7280', fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{status}</span>
                     )}
                   </div>
-                  <h3 style={{ fontFamily: POPPINS, fontSize: 16, fontWeight: 600, color: '#fff', margin: '0 0 6px' }}>{dev.name}</h3>
-                  <p style={{ fontFamily: POPPINS, fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <h3 style={{ fontFamily: RALEWAY, fontSize: 16, fontWeight: 700, color: '#0a0a0a', margin: '0 0 6px' }}>{dev.name}</h3>
+                  <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#6b7280', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <MapPin size={10} /> {dev.location?.name || dev.address}
                   </p>
                   {dev.financing_details && (
-                    <p style={{ fontFamily: POPPINS, fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: '0 0 16px' }}>
+                    <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#0a0a0a', margin: '0 0 16px' }}>
                       {dev.financing_details}
                     </p>
                   )}
-                  <span style={{ color: '#4caf7d', fontSize: 12, fontWeight: 600, fontFamily: POPPINS }}>Ver →</span>
+                  <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: RALEWAY }}>Ver →</span>
                 </div>
               </Link>
             )
@@ -304,8 +321,8 @@ async function DevelopmentsSection() {
             href="/emprendimientos"
             style={{
               display: 'inline-block',
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#fff',
+              border: `1px solid ${GREEN}`,
+              color: GREEN,
               padding: '12px 32px',
               borderRadius: 999,
               fontFamily: POPPINS,
@@ -330,9 +347,9 @@ function GuiaHomeSection() {
     <section
       className="home-px home-section"
       style={{
-        background: '#0a0f0a',
+        background: '#ffffff',
         padding: '80px 48px',
-        borderTop: '0.5px solid rgba(255,255,255,0.06)',
+        borderTop: '1px solid #f3f4f6',
       }}
     >
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -340,13 +357,13 @@ function GuiaHomeSection() {
           <div style={{ flex: 1 }}>
             <p
               style={{
-                fontFamily: POPPINS,
-                fontSize: 10,
-                letterSpacing: '2.5px',
+                fontFamily: RALEWAY,
+                fontSize: 11,
+                letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: '#4caf7d',
+                color: GREEN,
                 fontWeight: 600,
-                margin: '0 0 20px',
+                margin: '0 0 16px',
               }}
             >
               GUÍA GRATUITA · 14 CAPÍTULOS
@@ -354,26 +371,26 @@ function GuiaHomeSection() {
             <h2
               style={{
                 fontFamily: RALEWAY,
-                fontSize: 44,
-                fontWeight: 300,
-                color: '#fff',
+                fontSize: 'clamp(28px, 3.5vw, 40px)',
+                fontWeight: 700,
+                color: '#0a0a0a',
                 lineHeight: 1.1,
-                letterSpacing: '-1px',
-                margin: '0 0 20px',
+                letterSpacing: '-0.5px',
+                margin: '0 0 16px',
               }}
             >
-              Comprá con <em style={{ fontStyle: 'italic', color: '#4caf7d' }}>inteligencia,</em>
+              Comprá con <em style={{ fontStyle: 'italic', color: GREEN }}>inteligencia,</em>
               <br />
               no con suerte.
             </h2>
             <p
               style={{
-                fontFamily: POPPINS,
+                fontFamily: RALEWAY,
                 fontSize: 14,
-                color: 'rgba(255,255,255,0.5)',
+                color: '#6b7280',
                 lineHeight: 1.7,
                 maxWidth: 400,
-                margin: '0 0 32px',
+                margin: '0 0 28px',
               }}
             >
               Todo lo que nadie te cuenta sobre comprar una propiedad en Funes y Roldán. Sin filtros,
@@ -381,9 +398,9 @@ function GuiaHomeSection() {
             </p>
             <div
               style={{
-                borderTop: '0.5px solid rgba(255,255,255,0.08)',
-                borderBottom: '0.5px solid rgba(255,255,255,0.08)',
-                margin: '0 0 32px',
+                borderTop: '1px solid #f3f4f6',
+                borderBottom: '1px solid #f3f4f6',
+                margin: '0 0 28px',
               }}
             >
               {[
@@ -397,7 +414,7 @@ function GuiaHomeSection() {
                     display: 'flex',
                     gap: 16,
                     padding: '14px 0',
-                    borderTop: i > 0 ? '0.5px solid rgba(255,255,255,0.08)' : 'none',
+                    borderTop: i > 0 ? '1px solid #f3f4f6' : 'none',
                   }}
                 >
                   <span
@@ -412,7 +429,7 @@ function GuiaHomeSection() {
                   >
                     {item.n}
                   </span>
-                  <span style={{ fontFamily: POPPINS, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
+                  <span style={{ fontFamily: RALEWAY, fontSize: 13, color: '#374151' }}>
                     {item.t}
                   </span>
                 </div>
@@ -435,7 +452,7 @@ function GuiaHomeSection() {
               >
                 Leer la guía →
               </Link>
-              <span style={{ fontFamily: POPPINS, fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+              <span style={{ fontFamily: RALEWAY, fontSize: 11, color: '#9ca3af' }}>
                 Acceso permanente · Sin registro
               </span>
             </div>
@@ -447,7 +464,7 @@ function GuiaHomeSection() {
             className="guia-mock"
             style={{
               flexShrink: 0,
-              width: 220,
+              width: 260,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -456,11 +473,11 @@ function GuiaHomeSection() {
           >
             <div
               style={{
-                width: 160,
-                height: 290,
-                background: '#111',
-                borderRadius: 24,
-                border: '0.5px solid rgba(255,255,255,0.1)',
+                width: 220,
+                height: 440,
+                background: '#f9fafb',
+                borderRadius: 32,
+                border: '1px solid #e5e7eb',
                 padding: 18,
                 display: 'flex',
                 flexDirection: 'column',
@@ -485,18 +502,19 @@ function GuiaHomeSection() {
               >
                 SI
               </div>
-              <div style={{ textAlign: 'center', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
+              <div style={{ textAlign: 'center', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 12px' }}>
                 <p
                   style={{
                     fontFamily: RALEWAY,
-                    fontSize: 12,
-                    fontWeight: 300,
-                    color: '#fff',
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: '#0a0a0a',
                     lineHeight: 1.3,
                     margin: 0,
                   }}
                 >
-                  Guía del<br />Comprador
+                  Guía del<br />Comprador<br />
+                  <span style={{ fontSize: 12, fontWeight: 400, color: '#6b7280' }}>14 capítulos</span>
                 </p>
               </div>
               <div
@@ -516,9 +534,9 @@ function GuiaHomeSection() {
             <p
               style={{
                 marginTop: 14,
-                fontFamily: POPPINS,
+                fontFamily: RALEWAY,
                 fontSize: 11,
-                color: 'rgba(255,255,255,0.4)',
+                color: '#9ca3af',
                 textAlign: 'center',
               }}
             >
@@ -641,134 +659,60 @@ function NosotrosHomeSection() {
   )
 }
 
-// ─── Por qué elegirnos ───────────────────────────────────────────────────────
+// ─── Conocé el mercado ───────────────────────────────────────────────────────
 
-const PORQUE_CARDS = [
-  {
-    title: 'Fotografía aérea con drone',
-    desc: 'DJI Mavic 4 Pro para fotos y video profesional en cada propiedad.',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24" /></svg>
-    ),
-  },
-  {
-    title: 'Meta Ads',
-    desc: 'Campañas publicitarias en Facebook e Instagram para maximizar la exposición.',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l18-8-8 18-2-8z" /></svg>
-    ),
-  },
-  {
-    title: '+20K seguidores',
-    desc: 'Instagram @inmobiliaria.si y TikTok @si.inmobiliaria',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-    ),
-  },
-  {
-    title: 'Portales inmobiliarios',
-    desc: 'Zonaprop, Argenprop y MercadoLibre — los tres principales portales.',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg>
-    ),
-  },
-  {
-    title: 'Informe en 24 horas',
-    desc: 'Tasación profesional con análisis de operaciones reales de la zona.',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
-    ),
-  },
-  {
-    title: '43 años de experiencia',
-    desc: 'Fundada en 1983 por Susana Ippoliti. Tres generaciones, un mismo oficio.',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" /></svg>
-    ),
-  },
+const STATS = [
+  { num: '40+', label: 'Años en el mercado' },
+  { num: '+1000', label: 'Familias asesoradas' },
+  { num: '3', label: 'Ciudades de cobertura' },
+  { num: '200+', label: 'Propiedades activas' },
 ]
 
-function PorQueElegirnosSection() {
+const BULLETS = [
+  { icon: BarChart3, text: 'Datos reales del mercado actualizados mensualmente' },
+  { icon: GraduationCap, text: 'Asesoramiento profesional con 40+ años de experiencia' },
+  { icon: Handshake, text: 'Acompañamiento integral de la operación de principio a fin' },
+]
+
+function ConoceElMercadoSection() {
   return (
-    <section className="home-px home-section" style={{ background: '#fff', padding: '80px 48px' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <p
-          style={{
-            fontFamily: POPPINS,
-            fontSize: 10,
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            color: GREEN,
-            fontWeight: 600,
-            margin: '0 0 12px',
-          }}
-        >
-          POR QUÉ ELEGIRNOS
-        </p>
-        <h2
-          style={{
-            fontFamily: RALEWAY,
-            fontSize: 32,
-            fontWeight: 300,
-            color: '#111',
-            letterSpacing: '-0.5px',
-            margin: '0 0 40px',
-          }}
-        >
-          Datos reales, no estimaciones.
-        </h2>
-        <div className="home-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          {PORQUE_CARDS.map(card => (
-            <div
-              key={card.title}
-              className="porque-card"
-              style={{
-                background: '#fff',
-                border: '0.5px solid #e5e5e5',
-                borderRadius: 16,
-                padding: 24,
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              }}
-            >
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  background: '#f0f7f4',
-                  borderRadius: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: GREEN,
-                  marginBottom: 16,
-                }}
-              >
-                {card.icon}
-              </div>
-              <h3
-                style={{
-                  fontFamily: POPPINS,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: '#111',
-                  margin: '0 0 6px',
-                }}
-              >
-                {card.title}
-              </h3>
-              <p
-                style={{
-                  fontFamily: POPPINS,
-                  fontSize: 11,
-                  color: '#888',
-                  lineHeight: 1.6,
-                  margin: 0,
-                }}
-              >
-                {card.desc}
-              </p>
+    <section className="home-section" style={{ background: '#f9fafb', padding: 0 }}>
+      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-12 pb-12 md:pt-20 md:pb-20">
+        <div className="nosotros-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'start' }}>
+          {/* Left */}
+          <div>
+            <h2 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 'clamp(22px, 2.5vw, 30px)', color: '#0a0a0a', lineHeight: 1.2, margin: '0 0 16px' }}>
+              Conocé el mercado inmobiliario de Funes, Roldán y Rosario
+            </h2>
+            <p style={{ fontFamily: RALEWAY, fontSize: 'clamp(14px, 1.3vw, 16px)', color: '#6b7280', lineHeight: 1.7, margin: '0 0 32px' }}>
+              Más de 40 años acompañando a familias y empresas en la zona oeste de Rosario.
+              Datos actualizados, asesoramiento profesional y la transparencia que tu próxima inversión merece.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {BULLETS.map((b, i) => (
+                <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <div style={{ width: 40, height: 40, background: '#e8f5ee', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <b.icon size={20} color={GREEN} />
+                  </div>
+                  <p style={{ fontFamily: RALEWAY, fontSize: 14, color: '#374151', lineHeight: 1.5, margin: 0 }}>{b.text}</p>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Right — stats grid */}
+          <div className="nos-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            {STATS.map(s => (
+              <div key={s.label} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, textAlign: 'center' }}>
+                <div style={{ fontFamily: POPPINS, fontSize: 36, fontWeight: 600, color: GREEN, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                  {s.num}
+                </div>
+                <div style={{ marginTop: 6, fontFamily: RALEWAY, fontSize: 13, fontWeight: 500, color: '#6b7280' }}>
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -843,7 +787,7 @@ export default async function Home() {
       <DevelopmentsSection />
       <GuiaHomeSection />
       <NosotrosHomeSection />
-      <PorQueElegirnosSection />
+      <ConoceElMercadoSection />
     </>
   )
 }
