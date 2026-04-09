@@ -194,23 +194,27 @@ function createClusterIcon(cluster: L.MarkerCluster) {
 
 // ─── Auto fit bounds to show all properties ──────────────────────────────────
 
+const DEFAULT_CENTER: [number, number] = [-32.95, -60.75]
+const DEFAULT_ZOOM = 11
+
 function FitBounds({ properties }: { properties: TokkoProperty[] }) {
   const map = useMap()
   useEffect(() => {
-    if (!properties || properties.length === 0) return
-    const coords = properties
-      .filter(p => p.geo_lat && p.geo_long)
-      .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
-    if (coords.length === 0) return
     setTimeout(() => {
       map.invalidateSize()
+      // Mobile: always use fixed default encuadre
+      if (window.innerWidth < 768) {
+        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+        return
+      }
+      // Desktop: fit to data
+      if (!properties || properties.length === 0) return
+      const coords = properties
+        .filter(p => p.geo_lat && p.geo_long)
+        .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
+      if (coords.length === 0) return
       map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 })
-      setTimeout(() => {
-        if (map.getZoom() < 11) map.setZoom(11)
-        if (window.innerWidth < 768) {
-          map.setView([-32.9300, -60.9100], 11)
-        }
-      }, 150)
+      setTimeout(() => { if (map.getZoom() < 11) map.setZoom(11) }, 150)
     }, 300)
   }, [properties, map])
   return null
@@ -406,14 +410,17 @@ function ZonaFlyTo({ zona }: { zona: Zona }) {
 
 function MapMoveListener({ onMove }: { onMove: () => void }) {
   const map = useMap()
-  const initial = useRef(true)
+  const skipCount = useRef(0)
   useEffect(() => {
+    // Skip initial load moves (fitBounds, setView)
+    skipCount.current = 2
     const handler = () => {
-      if (initial.current) { initial.current = false; return }
+      if (skipCount.current > 0) { skipCount.current--; return }
       onMove()
     }
     map.on('movestart', handler)
-    return () => { map.off('movestart', handler) }
+    map.on('zoomstart', handler)
+    return () => { map.off('movestart', handler); map.off('zoomstart', handler) }
   }, [map, onMove])
   return null
 }
@@ -443,8 +450,8 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
 
   return (
     <MapContainer
-      center={[-32.9300, -60.9100]}
-      zoom={11}
+      center={DEFAULT_CENTER}
+      zoom={DEFAULT_ZOOM}
       style={{ height: '100%', width: '100%' }}
       zoomControl={false}
       scrollWheelZoom

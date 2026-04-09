@@ -26,6 +26,7 @@ import {
   type TokkoProperty,
   getMainPhoto,
   formatPrice,
+  getOperationType,
   getRoofedArea,
   getLotSurface,
   isLand,
@@ -130,7 +131,10 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const [filters, setFilters]           = useState<Filters>({ ...DEFAULTS, search: initialSearch })
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
-  const [mobileView, setMobileView]     = useState<'list' | 'map'>('list')
+  const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
+    if (typeof window === 'undefined') return 'map'
+    return (sessionStorage.getItem('si_mobile_view') as 'list' | 'map') || 'map'
+  })
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [listMode, setListMode]         = useState<ListMode>('compact')
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
@@ -160,8 +164,9 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     if (saved === 'compact' || saved === 'list') setListMode(saved)
   }, [])
 
-  // Fix mapa Safari iOS - forzar resize al mostrar
+  // Persist mobile view choice + Safari iOS fix
   useEffect(() => {
+    sessionStorage.setItem('si_mobile_view', mobileView)
     if (mobileView === 'map') {
       setTimeout(() => window.dispatchEvent(new Event('resize')), 300)
     }
@@ -598,20 +603,22 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
             onMapMove={closeBottomSheet}
           />
           <div className="absolute top-3 left-3 z-[999] pointer-events-none">
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-md border border-gray-100">
+            <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-md border border-gray-100">
               <span className="text-xs font-bold text-gray-900 font-numeric">
                 {visibleProperties.filter(p => p.geo_lat && p.geo_long).length}
               </span>
-              <span className="text-xs text-gray-500"> pines en el mapa</span>
+              <span className="text-xs text-gray-500"> propiedades</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Mobile Toggle ─────────────────────────────────────────────────── */}
+      {/* ── Mobile Toggle — hidden when preview card is open ────────────── */}
       <button
         onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
-        className="md:hidden fixed left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center gap-2 rounded-full"
+        className={`md:hidden fixed left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center gap-2 rounded-full transition-opacity duration-200 ${
+          showBottomSheet ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
         style={{
           bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
           background: '#1A5C38',
@@ -626,79 +633,104 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         }}
       >
         {mobileView === 'list' ? (
-          <>
-            <Map className="w-4 h-4" /> Mapa
-          </>
+          <><Map className="w-4 h-4" /> Mapa</>
         ) : (
-          <>
-            <LayoutGrid className="w-4 h-4" /> Lista
-          </>
+          <><LayoutGrid className="w-4 h-4" /> Lista</>
         )}
       </button>
 
-      {/* ── Mobile Property Preview Card ─────────────────────────────────── */}
+      {/* ── Mobile Property Preview Card (vertical Zillow-style) ──────── */}
       {selectedProperty && (
-        <Link
-          href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
-          className={`md:hidden fixed left-3 right-3 z-[9998] transition-all duration-200 ${
-            showBottomSheet ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
+        <div
+          className={`md:hidden fixed left-3 right-3 z-[9998] transition-all duration-250 ${
+            showBottomSheet ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'
           }`}
-          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)', maxWidth: 'calc(100vw - 24px)' }}
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', maxWidth: 'calc(100vw - 24px)' }}
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden flex" style={{ border: '1px solid #e5e7eb' }}>
-            <button
-              onClick={e => { e.preventDefault(); e.stopPropagation(); closeBottomSheet() }}
-              aria-label="Cerrar"
-              className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center"
-            >
-              <X className="w-3.5 h-3.5 text-gray-500" />
-            </button>
-            <div className="relative w-28 flex-shrink-0 bg-gray-100">
+          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden" style={{ border: '1px solid #e5e7eb' }}>
+            {/* Photo */}
+            <div className="relative w-full aspect-[16/10] bg-gray-100">
               {(() => {
                 const photo = getMainPhoto(selectedProperty)
                 return photo ? (
                   <Image src={photo} alt={selectedProperty.publication_title || selectedProperty.address}
-                    fill className="object-cover" sizes="112px" />
+                    fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <MapPin className="w-6 h-6 text-gray-300" />
+                    <MapPin className="w-8 h-8 text-gray-300" />
                   </div>
                 )
               })()}
+              {/* Operation badge */}
+              {(() => {
+                const op = getOperationType(selectedProperty)
+                return op ? (
+                  <span className="absolute top-2.5 left-2.5"
+                    style={{
+                      background: op === 'Venta' ? '#1A5C38' : op === 'Alquiler' ? '#2563eb' : '#7c3aed',
+                      color: '#fff', fontFamily: "'Raleway', system-ui, sans-serif",
+                      fontWeight: 600, fontSize: 11, textTransform: 'uppercase',
+                      padding: '5px 10px', borderRadius: 6,
+                    }}>
+                    {op}
+                  </span>
+                ) : null
+              })()}
+              {/* Close button */}
+              <button
+                onClick={e => { e.preventDefault(); e.stopPropagation(); closeBottomSheet() }}
+                aria-label="Cerrar"
+                className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/95 backdrop-blur shadow-md flex items-center justify-center"
+              >
+                <X className="w-4 h-4 text-gray-800" />
+              </button>
             </div>
-            <div className="flex-1 min-w-0 p-3 pr-8 flex flex-col gap-0.5">
-              {selectedProperty.type?.name && (
-                <span className="self-start px-2 py-0.5 rounded text-[10px] font-semibold uppercase text-white"
-                  style={{ background: '#1A5C38', fontFamily: "'Raleway', system-ui, sans-serif" }}>
-                  {translatePropertyType(selectedProperty.type.name)}
-                </span>
-              )}
-              <h3 className="text-[13px] font-medium text-gray-900 leading-tight line-clamp-2"
-                style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
-                {selectedProperty.publication_title || selectedProperty.address}
-              </h3>
-              <p className="text-[17px] font-bold text-gray-900"
-                style={{ fontFamily: "'Poppins', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums' }}>
+
+            {/* Body */}
+            <div style={{ padding: 14 }}>
+              <p style={{ fontFamily: "'Poppins', system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: '#0a0a0a', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums' }}>
                 {formatPrice(selectedProperty)}
               </p>
-              <p className="text-[11px] text-gray-500" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, color: '#6b7280', margin: '0 0 6px' }}>
                 {(() => {
                   const specs: string[] = []
                   const r = getRoofedArea(selectedProperty)
                   const land2 = isLand(selectedProperty)
                   const lot = getLotSurface(selectedProperty)
-                  if (r != null && r > 0) specs.push(`${r} m²`)
                   if (!land2 && (selectedProperty.suite_amount || selectedProperty.room_amount) > 0)
                     specs.push(`${selectedProperty.suite_amount || selectedProperty.room_amount} dorm`)
                   if (!land2 && selectedProperty.bathroom_amount > 0)
                     specs.push(`${selectedProperty.bathroom_amount} baño${selectedProperty.bathroom_amount > 1 ? 's' : ''}`)
-                  if (land2 && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot} m²`)
+                  if (r != null && r > 0) specs.push(`${r} m² cub`)
+                  if (lot != null && lot > 0 && lot !== r) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
+                  if (land2 && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
                   return specs.join(' · ')
                 })()}
               </p>
+              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: '#0a0a0a', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {translatePropertyType(selectedProperty.type?.name)}{selectedProperty.type?.name && (selectedProperty.fake_address || selectedProperty.address) ? ' · ' : ''}{selectedProperty.fake_address || selectedProperty.address}
+              </p>
+              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, color: '#6b7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {selectedProperty.location?.short_location || selectedProperty.location?.name || ''}
+              </p>
+
+              {/* CTA */}
+              <Link
+                href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
+                onClick={e => e.stopPropagation()}
+                className="block text-center mt-3 mb-1"
+                style={{
+                  background: '#1A5C38', color: '#fff',
+                  fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600,
+                  padding: '12px 24px', borderRadius: 12, textDecoration: 'none',
+                  minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                Ver propiedad completa →
+              </Link>
             </div>
           </div>
-        </Link>
+        </div>
       )}
     </div>
   )
