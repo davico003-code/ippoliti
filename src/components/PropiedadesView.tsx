@@ -15,30 +15,24 @@ import {
   ChevronDown,
   Bed,
   Bath,
-  Maximize2,
-  Home,
-  Car,
   LayoutGrid,
   LayoutList,
   Check,
   ArrowUpDown,
   Crosshair,
 } from 'lucide-react'
-import ShareCardButton from '@/components/ShareCardButton'
+import PropiedadCardGrid from '@/components/PropiedadCardGrid'
 import { ZONAS, type Zona } from '@/lib/zonas'
 import { getPoligono, isPointInPolygon } from '@/lib/zonas-poligonos'
 import {
   type TokkoProperty,
   getMainPhoto,
   formatPrice,
-  getOperationType,
   getRoofedArea,
   getLotSurface,
   isLand,
   translatePropertyType,
-  translateCondition,
   generatePropertySlug,
-  getDescription,
 } from '@/lib/tokko'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
@@ -108,214 +102,7 @@ function FilterSelect<T extends string>({
   )
 }
 
-// ─── Compact card (sidebar mini) ─────────────────────────────────────────────
-
-function CompactCard({ property, isSelected, onClick }: {
-  property: TokkoProperty; isSelected: boolean; onClick: () => void
-}) {
-  const photo = getMainPhoto(property)
-  const operation = getOperationType(property)
-  const price = formatPrice(property)
-  const roofed = getRoofedArea(property)
-  const lot = getLotSurface(property)
-  const land = isLand(property)
-  const slug = generatePropertySlug(property)
-  const starred = property.is_starred_on_web
-
-  return (
-    <div
-      onClick={onClick}
-      className={`flex gap-3 p-3 border-b cursor-pointer transition-all duration-150 group
-        ${starred ? 'border-b-brand-200 bg-brand-50/30' : 'border-b-gray-100'}
-        ${isSelected ? 'bg-green-50 border-l-[3px] border-l-brand-600' : 'hover:bg-[#F0F7F4] border-l-[3px] border-l-transparent'}`}
-    >
-      <div className="relative w-[152px] h-[112px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-        {photo ? (
-          <Image src={photo} alt={property.publication_title || property.address} fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="152px" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center"><MapPin className="w-8 h-8 text-gray-300" /></div>
-        )}
-        {starred && (
-          <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[9px] font-bold rounded bg-amber-400/90 text-gray-900 uppercase tracking-wide">
-            Destacada
-          </span>
-        )}
-        {operation && (
-          <span className={`absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wide text-white
-            ${operation === 'Venta' ? 'bg-gray-900/85' : 'bg-brand-600/85'}`}>{operation}</span>
-        )}
-      </div>
-      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 overflow-hidden">
-        <div>
-          {property.type?.name && (
-            <p className="text-[10px] font-bold text-brand-600 uppercase tracking-widest mb-0.5 truncate">{translatePropertyType(property.type.name)}</p>
-          )}
-          <h3 className={`text-[13px] font-bold leading-tight line-clamp-2 mb-1 transition-colors ${isSelected ? 'text-brand-700' : 'text-gray-900 group-hover:text-brand-700'}`}>
-            {property.publication_title || property.address}
-          </h3>
-          <div className="flex items-start gap-1 text-gray-400">
-            <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-brand-500" />
-            <span className="text-[11px] line-clamp-1">{property.fake_address || property.address}</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-2 text-[11px] flex-wrap">
-            {land ? (
-              lot != null && lot > 0 && (
-                <span className="flex items-center gap-0.5 text-gray-500"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> m² lote</span>
-              )
-            ) : (
-              <>
-                {roofed != null && roofed > 0 && (
-                  <span className="flex items-center gap-0.5 text-gray-500"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> cub.</span>
-                )}
-                {lot != null && lot > 0 && lot !== roofed && (
-                  <span className="flex items-center gap-0.5 text-gray-500"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> lote</span>
-                )}
-              </>
-            )}
-            {(property.suite_amount || property.room_amount) > 0 && (
-              <span className="flex items-center gap-0.5 text-gray-500"><Bed className="w-3 h-3" /><span className="font-numeric">{property.suite_amount || property.room_amount}</span></span>
-            )}
-            {property.bathroom_amount > 0 && (
-              <span className="flex items-center gap-0.5 text-gray-500"><Bath className="w-3 h-3" /><span className="font-numeric">{property.bathroom_amount}</span></span>
-            )}
-            <span className="font-bold text-gray-900 text-[12px] font-numeric">{price}</span>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
-            <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Expanded list card (Tokko-style, horizontal, full) ──────────────────────
-
-function ListCard({ property, isSelected, onClick, featured }: {
-  property: TokkoProperty; isSelected: boolean; onClick: () => void; featured?: boolean
-}) {
-  const photo = getMainPhoto(property)
-  const operation = getOperationType(property)
-  const price = formatPrice(property)
-  const roofed = getRoofedArea(property)
-  const lot = getLotSurface(property)
-  const land = isLand(property)
-  const slug = generatePropertySlug(property)
-  const typeName = translatePropertyType(property.type?.name)
-  const condition = translateCondition(property.property_condition)
-  const desc = getDescription(property)
-  const imgH = featured ? 'h-[220px]' : 'h-[160px]'
-
-  return (
-    <div
-      onClick={onClick}
-      className={`flex flex-col sm:flex-row rounded-xl overflow-hidden cursor-pointer transition-all duration-200 group
-        hover:shadow-md hover:-translate-y-0.5
-        ${property.is_starred_on_web ? 'border-2 border-brand-500 shadow-md' : 'border border-gray-100 shadow-sm'}
-        ${isSelected ? 'ring-2 ring-brand-500 shadow-md' : ''}
-        ${featured ? 'sm:min-h-[220px]' : ''}`}
-    >
-      {/* Photo — left */}
-      <div className={`relative w-full sm:w-[40%] ${imgH} sm:h-auto flex-shrink-0 bg-gray-100 overflow-hidden`}>
-        {photo ? (
-          <Image src={photo} alt={property.publication_title || property.address} fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 640px) 100vw, 40vw" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center"><MapPin className="w-12 h-12 text-gray-300" /></div>
-        )}
-        {operation && (
-          <span className={`absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold rounded uppercase tracking-wide text-white
-            ${operation === 'Venta' ? 'bg-gray-900/85' : 'bg-brand-600/85'}`}>{operation}</span>
-        )}
-        {property.is_starred_on_web && (
-          <span className="absolute top-3 right-3 px-2.5 py-1 text-[10px] font-bold rounded bg-amber-400/90 text-gray-900 uppercase tracking-wide">
-            Destacada
-          </span>
-        )}
-      </div>
-
-      {/* Content — center */}
-      <div className="flex-1 flex flex-col p-4 sm:p-5 min-w-0">
-        {typeName && (
-          <p className="text-[10px] font-bold text-brand-600 uppercase tracking-widest mb-1">{typeName}</p>
-        )}
-        <h3 className={`font-bold leading-tight mb-1.5 transition-colors line-clamp-2
-          ${featured ? 'text-base' : 'text-[14px]'}
-          ${isSelected ? 'text-brand-700' : 'text-gray-900 group-hover:text-brand-700'}`}>
-          {property.publication_title || property.address}
-        </h3>
-        <div className="flex items-center gap-1 text-brand-600 text-xs mb-2">
-          <MapPin className="w-3 h-3 flex-shrink-0" />
-          <span className="truncate">{property.fake_address || property.address}</span>
-        </div>
-
-        {/* Stats row */}
-        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-2">
-          {land ? (
-            lot != null && lot > 0 && (
-              <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{lot}</span> m² lote</span>
-            )
-          ) : (
-            <>
-              {roofed != null && roofed > 0 && (
-                <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{roofed}</span> m² cub.</span>
-              )}
-              {lot != null && lot > 0 && lot !== roofed && (
-                <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{lot}</span> m² lote</span>
-              )}
-            </>
-          )}
-          {(property.suite_amount || property.room_amount) > 0 && (
-            <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{property.suite_amount || property.room_amount}</span> dorm.</span>
-          )}
-          {property.bathroom_amount > 0 && (
-            <span className="flex items-center gap-1"><Bath className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{property.bathroom_amount}</span></span>
-          )}
-          {property.parking_lot_amount > 0 && (
-            <span className="flex items-center gap-1"><Car className="w-3.5 h-3.5" /><span className="font-numeric font-semibold">{property.parking_lot_amount}</span></span>
-          )}
-        </div>
-
-        {/* Short description */}
-        {desc && (
-          <p className="text-gray-400 text-xs line-clamp-2 mb-2 leading-relaxed">{desc}</p>
-        )}
-
-        {/* Condition badge */}
-        {condition && (
-          <span className="inline-block self-start px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide rounded bg-brand-50 text-brand-700 border border-brand-100">
-            {condition}
-          </span>
-        )}
-
-        <div className="mt-auto" />
-      </div>
-
-      {/* Price panel — right */}
-      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 sm:gap-3 bg-brand-600 px-4 sm:px-5 py-3 sm:py-5 sm:min-w-[140px] sm:rounded-r-xl">
-        <div className="text-white font-numeric">
-          <p className={`font-black leading-tight ${featured ? 'text-xl' : 'text-lg'}`}>{price}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/propiedades/${slug}`}
-            onClick={e => e.stopPropagation()}
-            className="px-3 py-1.5 bg-white text-brand-700 text-xs font-bold rounded-lg hover:bg-brand-50 transition-colors"
-          >
-            Consultar
-          </Link>
-          <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-            <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+// ─── Cards moved to PropiedadCardGrid.tsx ────────────────────────────────────
 
 // ─── PropiedadesView ──────────────────────────────────────────────────────────
 
@@ -646,15 +433,10 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                   Borrar filtros
                 </button>
               </div>
-            ) : listMode === 'compact' ? (
-              visibleProperties.map(p => (
-                <CompactCard key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
-              ))
             ) : (
-              <div className="p-3 space-y-4">
-                {visibleProperties.map((p, i) => (
-                  <ListCard key={p.id} property={p} isSelected={p.id === selectedId}
-                    onClick={() => handleCardClick(p)} featured={i === 0} />
+              <div className="p-4 grid grid-cols-1 xl:grid-cols-2 gap-4">
+                {visibleProperties.map(p => (
+                  <PropiedadCardGrid key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
                 ))}
               </div>
             )}
