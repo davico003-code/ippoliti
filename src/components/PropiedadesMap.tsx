@@ -388,171 +388,6 @@ function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => 
   )
 }
 
-// ─── Map type & layer switcher ───────────────────────────────────────────────
-
-type MapType = 'auto' | 'satellite' | 'street'
-
-const MAP_TILES: Record<MapType, { url: string; subdomains?: string[]; attribution: string }> = {
-  auto: {
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  },
-  satellite: {
-    url: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-    attribution: '&copy; Google',
-  },
-  street: {
-    url: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-    attribution: '&copy; Google',
-  },
-}
-
-function ZoomAutoSwitch({
-  mapType,
-  setMapType,
-  userOverride,
-}: {
-  mapType: MapType
-  setMapType: (t: MapType) => void
-  userOverride: React.MutableRefObject<boolean>
-}) {
-  const map = useMap()
-  const autoSwitched = useRef(false)
-  useEffect(() => {
-    const handler = () => {
-      if (userOverride.current) return
-      const z = map.getZoom()
-      if (z >= 17 && mapType === 'auto') {
-        autoSwitched.current = true
-        setMapType('satellite')
-      } else if (z < 17 && mapType === 'satellite' && autoSwitched.current) {
-        autoSwitched.current = false
-        setMapType('auto')
-      }
-    }
-    map.on('zoomend', handler)
-    return () => { map.off('zoomend', handler) }
-  }, [map, mapType, setMapType, userOverride])
-  return null
-}
-
-function LayersControl({
-  mapType,
-  onChange,
-}: {
-  mapType: MapType
-  onChange: (t: MapType) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const options: { value: MapType; label: string }[] = [
-    { value: 'auto', label: 'Automático' },
-    { value: 'satellite', label: 'Satélite' },
-    { value: 'street', label: 'Street View' },
-  ]
-  return (
-    <>
-      <button
-        onClick={() => setOpen(o => !o)}
-        title="Tipo de mapa"
-        style={{
-          position: 'absolute',
-          top: 10,
-          right: 10,
-          zIndex: 1000,
-          width: 40,
-          height: 40,
-          background: 'white',
-          borderRadius: 8,
-          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-          border: '1px solid #e5e7eb',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-        }}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="12 2 2 7 12 12 22 7 12 2" />
-          <polyline points="2 17 12 22 22 17" />
-          <polyline points="2 12 12 17 22 12" />
-        </svg>
-      </button>
-      {open && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 56,
-            right: 10,
-            zIndex: 1000,
-            background: 'white',
-            borderRadius: 12,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-            border: '1px solid #f1f5f9',
-            padding: 12,
-            width: 176,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 11,
-              textTransform: 'uppercase',
-              color: '#999',
-              fontWeight: 600,
-              letterSpacing: '0.05em',
-              marginBottom: 8,
-            }}
-          >
-            Tipo de mapa
-          </div>
-          {options.map(o => {
-            const active = mapType === o.value
-            return (
-              <button
-                key={o.value}
-                onClick={() => { onChange(o.value); setOpen(false) }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  width: '100%',
-                  padding: '8px 6px',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  color: active ? '#1A5C38' : '#374151',
-                  fontWeight: active ? 600 : 400,
-                  textAlign: 'left',
-                }}
-              >
-                <span
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: '50%',
-                    border: `2px solid ${active ? '#1A5C38' : '#cbd5e1'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {active && (
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1A5C38' }} />
-                  )}
-                </span>
-                {o.label}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </>
-  )
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 interface Props {
@@ -575,14 +410,6 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
 
   const craneIcon = useMemo(() => createCraneIcon(), [])
 
-  const [mapType, setMapType] = useState<MapType>('auto')
-  const userOverride = useRef(false)
-  const handleSetMapType = useCallback((t: MapType) => {
-    userOverride.current = true
-    setMapType(t)
-  }, [])
-  const tile = MAP_TILES[mapType]
-
   return (
     <MapContainer
       center={[-32.9300, -60.9100]}
@@ -592,14 +419,10 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
       scrollWheelZoom
     >
       <TileLayer
-        key={mapType}
-        url={tile.url}
-        attribution={tile.attribution}
-        subdomains={tile.subdomains as unknown as string}
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
         maxZoom={20}
       />
-      <ZoomAutoSwitch mapType={mapType} setMapType={setMapType} userOverride={userOverride} />
-      <LayersControl mapType={mapType} onChange={handleSetMapType} />
       <ZoomControl position="bottomright" />
       <FitBounds properties={mapped} />
       <MapFlyTo center={flyToCenter} />

@@ -309,7 +309,12 @@ export default async function PropertyPage({ params }: Props) {
               priority
             />
             {/* Back button */}
-            <BackButton />
+            <Link
+              href="/propiedades"
+              className="absolute top-4 left-4 w-9 h-9 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white"
+            >
+              <span className="text-lg leading-none">&larr;</span>
+            </Link>
           </div>
         ) : (
           <div className="w-full h-[200px] flex items-center justify-center bg-gray-200">
@@ -319,6 +324,7 @@ export default async function PropertyPage({ params }: Props) {
 
         {/* Info card */}
         <div className="mx-3 -mt-6 relative z-10 bg-white rounded-[20px] shadow-[0_2px_20px_rgba(0,0,0,0.08)] p-5 mb-4">
+          <BackButton />
           {/* Badges */}
           <div className="flex gap-2 mb-3">
             {operation && (
@@ -522,17 +528,12 @@ export default async function PropertyPage({ params }: Props) {
         )}
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
-          <Link
-            href="/propiedades"
-            className="hidden md:inline-block mb-4 text-[13px] font-semibold text-[#1A5C38] hover:underline"
-          >
-            ← Volver al catálogo
-          </Link>
           <div className="flex gap-10">
             {/* ── LEFT COLUMN (2/3) ── */}
             <div className="flex-1 min-w-0 space-y-6">
               {/* Title + badges + location */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <BackButton />
                 <h1 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight mb-3">
                   {property.publication_title || property.address}
                 </h1>

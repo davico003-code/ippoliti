@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Loader2 } from 'lucide-react'
+import { Search, Navigation, Loader2 } from 'lucide-react'
 
 export default function HeroSearch() {
   const [query, setQuery] = useState('')
@@ -79,7 +79,7 @@ export default function HeroSearch() {
           cursor: 'pointer',
         }}
       >
-        {locating ? <Loader2 className="w-5 h-5 animate-spin" /> : <MapPin className="w-5 h-5" />}
+        {locating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
       </button>
       <button
         type="submit"

@@ -123,11 +123,11 @@ function CompactCard({ property, isSelected, onClick }: {
   return (
     <div
       onClick={onClick}
-      className={`flex gap-3 p-2 md:p-3 border-b cursor-pointer transition-all duration-150 group
+      className={`flex gap-3 p-3 border-b cursor-pointer transition-all duration-150 group
         ${starred ? 'border-b-brand-200 bg-brand-50/30' : 'border-b-gray-100'}
         ${isSelected ? 'bg-green-50 border-l-[3px] border-l-brand-600' : 'hover:bg-[#F0F7F4] border-l-[3px] border-l-transparent'}`}
     >
-      <div className="relative w-[100px] h-[100px] md:w-[152px] md:h-[112px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+      <div className="relative w-[152px] h-[112px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
         {photo ? (
           <Image src={photo} alt={property.publication_title || property.address} fill
             className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="152px" />
@@ -190,95 +190,8 @@ function CompactCard({ property, isSelected, onClick }: {
   )
 }
 
-// ─── Square card (desktop grid, Zillow-style) ────────────────────────────────
-
-function SquareCard({ property, isSelected, onClick }: {
-  property: TokkoProperty; isSelected: boolean; onClick: () => void
-}) {
-  const photo = getMainPhoto(property)
-  const operation = getOperationType(property)
-  const price = formatPrice(property)
-  const roofed = getRoofedArea(property)
-  const lot = getLotSurface(property)
-  const land = isLand(property)
-  const slug = generatePropertySlug(property)
-  const beds = property.suite_amount || property.room_amount
-
-  return (
-    <div
-      onClick={onClick}
-      className={`group cursor-pointer rounded-2xl overflow-hidden bg-white border transition-all
-        ${isSelected ? 'border-brand-500 ring-2 ring-brand-500/30' : 'border-gray-100 hover:shadow-md hover:-translate-y-0.5'}`}
-      style={{ aspectRatio: '1 / 1', display: 'flex', flexDirection: 'column' }}
-    >
-      <div className="relative bg-gray-100" style={{ height: '55%', flexShrink: 0 }}>
-        {photo ? (
-          <Image
-            src={photo}
-            alt={property.publication_title || property.address}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 1024px) 50vw, 20vw"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <MapPin className="w-8 h-8 text-gray-300" />
-          </div>
-        )}
-        {operation && (
-          <span
-            className={`absolute top-2.5 left-2.5 px-2 py-0.5 text-[9px] font-bold rounded uppercase tracking-wide text-white ${
-              operation === 'Venta' ? 'bg-gray-900/85' : 'bg-brand-600/85'
-            }`}
-          >
-            {operation}
-          </span>
-        )}
-        {property.is_starred_on_web && (
-          <span className="absolute top-2.5 right-2.5 px-2 py-0.5 text-[9px] font-bold rounded bg-amber-400/90 text-gray-900 uppercase tracking-wide">
-            Destacada
-          </span>
-        )}
-      </div>
-      <div className="flex-1 min-h-0 p-3 flex flex-col">
-        {property.type?.name && (
-          <p className="text-[9px] font-bold text-brand-600 uppercase tracking-widest mb-0.5 truncate">
-            {translatePropertyType(property.type.name)}
-          </p>
-        )}
-        <h3 className="text-[12px] font-semibold text-gray-900 leading-tight line-clamp-2 mb-1">
-          {property.publication_title || property.address}
-        </h3>
-        <p className="text-[15px] font-bold text-gray-900 font-numeric leading-none mb-1.5">{price}</p>
-        <div className="flex items-center gap-2 text-[10px] text-gray-500 mt-auto flex-wrap">
-          {!land && roofed != null && roofed > 0 && (
-            <span className="flex items-center gap-0.5"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> m²</span>
-          )}
-          {land && lot != null && lot > 0 && (
-            <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> m²</span>
-          )}
-          {beds > 0 && (
-            <span className="flex items-center gap-0.5"><Bed className="w-3 h-3" /><span className="font-numeric">{beds}</span></span>
-          )}
-          {property.bathroom_amount > 0 && (
-            <span className="flex items-center gap-0.5"><Bath className="w-3 h-3" /><span className="font-numeric">{property.bathroom_amount}</span></span>
-          )}
-          <Link
-            href={`/propiedades/${slug}`}
-            onClick={e => e.stopPropagation()}
-            className="ml-auto text-brand-600 font-semibold hover:underline"
-          >
-            Ver →
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ─── Expanded list card (Tokko-style, horizontal, full) ──────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ListCard({ property, isSelected, onClick, featured }: {
   property: TokkoProperty; isSelected: boolean; onClick: () => void; featured?: boolean
 }) {
@@ -663,7 +576,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
               {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {opLabel}
             </p>
 
-            <div className="md:hidden flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 onClick={() => toggleListMode('compact')}
                 className={`p-1.5 rounded transition-colors ${listMode === 'compact' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
@@ -692,21 +605,17 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                   Borrar filtros
                 </button>
               </div>
+            ) : listMode === 'compact' ? (
+              visibleProperties.map(p => (
+                <CompactCard key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
+              ))
             ) : (
-              <>
-                {/* Mobile: compact list */}
-                <div className="md:hidden">
-                  {visibleProperties.map(p => (
-                    <CompactCard key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
-                  ))}
-                </div>
-                {/* Desktop: 2-column square grid */}
-                <div className="hidden md:grid grid-cols-2 gap-3 p-3">
-                  {visibleProperties.map(p => (
-                    <SquareCard key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
-                  ))}
-                </div>
-              </>
+              <div className="p-3 space-y-4">
+                {visibleProperties.map((p, i) => (
+                  <ListCard key={p.id} property={p} isSelected={p.id === selectedId}
+                    onClick={() => handleCardClick(p)} featured={i === 0} />
+                ))}
+              </div>
             )}
           </div>
         </div>
