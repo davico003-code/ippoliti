@@ -142,6 +142,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
   const [saveToast, setSaveToast]       = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [mobileSortOpen, setMobileSortOpen]       = useState(false)
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
 
@@ -613,31 +614,84 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         </div>
       </div>
 
-      {/* ── Mobile Toggle — hidden when preview card is open ────────────── */}
-      <button
-        onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
-        className={`md:hidden fixed left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center gap-2 rounded-full transition-opacity duration-200 ${
+      {/* ── Mobile Bottom Buttons — hidden when preview card is open ───── */}
+      <div
+        className={`md:hidden fixed left-1/2 -translate-x-1/2 z-[9999] flex gap-2.5 transition-opacity duration-200 ${
           showBottomSheet ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
-        style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
-          background: '#1A5C38',
-          color: '#fff',
-          padding: '14px 28px',
-          fontFamily: "'Raleway', system-ui, sans-serif",
-          fontSize: 15,
-          fontWeight: 600,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-          border: 'none',
-          minHeight: 48,
-        }}
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
       >
-        {mobileView === 'list' ? (
-          <><Map className="w-4 h-4" /> Mapa</>
-        ) : (
-          <><LayoutGrid className="w-4 h-4" /> Lista</>
+        {mobileView === 'list' && (
+          <button
+            onClick={() => setMobileSortOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full"
+            style={{
+              background: '#1A5C38', color: '#fff',
+              padding: '14px 22px', fontFamily: "'Raleway', system-ui, sans-serif",
+              fontSize: 14, fontWeight: 600, border: 'none', minHeight: 48,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+            }}
+          >
+            <ArrowUpDown className="w-4 h-4" /> Ordenar
+          </button>
         )}
-      </button>
+        <button
+          onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
+          className="inline-flex items-center gap-2 rounded-full"
+          style={{
+            background: '#1A5C38', color: '#fff',
+            padding: '14px 22px', fontFamily: "'Raleway', system-ui, sans-serif",
+            fontSize: 14, fontWeight: 600, border: 'none', minHeight: 48,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+          }}
+        >
+          {mobileView === 'list' ? (
+            <><Map className="w-4 h-4" /> Mapa</>
+          ) : (
+            <><LayoutGrid className="w-4 h-4" /> Lista</>
+          )}
+        </button>
+      </div>
+
+      {/* ── Mobile Sort Sheet ─────────────────────────────────────────────── */}
+      {mobileSortOpen && (
+        <>
+          <div className="fixed inset-0 z-[10000] bg-black/50" onClick={() => setMobileSortOpen(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[10001] bg-white flex flex-col"
+            style={{ borderRadius: '24px 24px 0 0', boxShadow: '0 -8px 40px rgba(0,0,0,0.15)', animation: 'slideUp 250ms ease-out' }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div />
+              <span style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 18, color: '#0a0a0a' }}>Ordenar por</span>
+              <button onClick={() => setMobileSortOpen(false)} className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}>
+              {SORT_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => { setSortBy(opt.value); setMobileSortOpen(false) }}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors"
+                  style={{
+                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontSize: 15,
+                    fontWeight: sortBy === opt.value ? 600 : 400,
+                    color: sortBy === opt.value ? '#1A5C38' : '#0a0a0a',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: '1px solid #f3f4f6',
+                    minHeight: 48,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {opt.label}
+                  {sortBy === opt.value && <Check className="w-5 h-5 text-[#1A5C38]" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── Mobile Property Preview Card (vertical Zillow-style) ──────── */}
       {selectedProperty && (

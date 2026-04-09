@@ -180,11 +180,15 @@ export function getBlueprintPhotos(property: TokkoProperty): string[] {
     .map((p) => p.image);
 }
 
-// Mapea "Sale"/"Rent" a "Venta"/"Alquiler"
+// Mapea operation_type de Tokko a español
 export function getOperationType(property: TokkoProperty): string {
   if (!property.operations || property.operations.length === 0) return '';
   const type = property.operations[0].operation_type;
-  return type === 'Sale' ? 'Venta' : type === 'Rent' ? 'Alquiler' : type;
+  if (type === 'Sale') return 'Venta';
+  if (type === 'Rent') return 'Alquiler';
+  const raw = String(type).toLowerCase();
+  if (raw.includes('temporary') || raw.includes('vacation')) return 'Temporario';
+  return String(type);
 }
 
 export function formatPrice(property: TokkoProperty): string {
