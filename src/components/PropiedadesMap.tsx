@@ -14,6 +14,7 @@ import {
   translatePropertyType,
   getTotalSurface,
 } from '@/lib/tokko'
+import type { Zona } from '@/lib/zonas'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -388,6 +389,97 @@ function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => 
   )
 }
 
+// ─── Zona polygon overlay ───────────────────────────────────────────────────
+
+function ZonaOverlay({ zona, poligono }: { zona: Zona; poligono: [number, number][] }) {
+  const map = useMap()
+
+  useEffect(() => {
+    const poly = L.polygon(poligono, {
+      color: '#1A5C38',
+      weight: 2.5,
+      opacity: 1,
+      fillColor: '#1A5C38',
+      fillOpacity: 0.08,
+      interactive: false,
+    }).addTo(map)
+
+    // Fit bounds with padding
+    const bounds = poly.getBounds()
+    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 })
+
+    // Label at center
+    const center = bounds.getCenter()
+    const label = L.marker(center, {
+      interactive: false,
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="
+          background:white;padding:6px 14px;border-radius:999px;
+          box-shadow:0 4px 12px rgba(0,0,0,0.12);
+          border:1.5px solid #1A5C38;
+          font-family:'Raleway',system-ui,sans-serif;
+          font-weight:600;font-size:13px;color:#1A5C38;
+          white-space:nowrap;pointer-events:none;
+        ">${zona.nombre}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 12],
+      }),
+      zIndexOffset: 3000,
+    }).addTo(map)
+
+    return () => {
+      poly.remove()
+      label.remove()
+    }
+  }, [map, zona, poligono])
+
+  return null
+}
+
+// ─── Zona fly-to (no polygon available) ─────────────────────────────────────
+
+function ZonaFlyTo({ zona }: { zona: Zona }) {
+  const map = useMap()
+  useEffect(() => {
+    const zoom = zona.tipo === 'barrio_cerrado' ? 16 : zona.tipo === 'barrio' ? 14 : 13
+    map.setView([zona.centro.lat, zona.centro.lng], zoom)
+  }, [map, zona])
+  return null
+}
+
+// ─── Remove zona filter button ──────────────────────────────────────────────
+
+function RemoveZonaButton({ onRemove }: { onRemove: () => void }) {
+  return (
+    <div style={{ position: 'absolute', top: 16, right: 10, zIndex: 1000 }}>
+      <button
+        onClick={onRemove}
+        style={{
+          background: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '8px 14px',
+          borderRadius: 999,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+          cursor: 'pointer',
+          fontFamily: "'Raleway',system-ui,sans-serif",
+          fontSize: 13,
+          fontWeight: 500,
+          color: '#6b7280',
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" />
+        </svg>
+        Quitar filtro de zona
+      </button>
+    </div>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 interface Props {
@@ -396,9 +488,12 @@ interface Props {
   onSelect: (id: number) => void
   flyToCenter: [number, number] | null
   onBoundsSearch?: (bounds: L.LatLngBounds) => void
+  activeZona?: Zona | null
+  activePoligono?: [number, number][] | null
+  onRemoveZona?: () => void
 }
 
-export default function PropiedadesMap({ properties, selectedId, onSelect, flyToCenter, onBoundsSearch }: Props) {
+export default function PropiedadesMap({ properties, selectedId, onSelect, flyToCenter, onBoundsSearch, activeZona, activePoligono, onRemoveZona }: Props) {
   const mapped = useMemo(() =>
     properties.filter(p => {
       if (!p.geo_lat || !p.geo_long) return false
@@ -429,6 +524,9 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
       <MapStyles />
       <LocateButton />
       {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
+      {activeZona && activePoligono && <ZonaOverlay zona={activeZona} poligono={activePoligono} />}
+      {activeZona && !activePoligono && <ZonaFlyTo zona={activeZona} />}
+      {activeZona && onRemoveZona && <RemoveZonaButton onRemove={onRemoveZona} />}
 
       {/* Legend */}
       <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'white', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: 'flex', flexDirection: 'column', gap: 4 }}>

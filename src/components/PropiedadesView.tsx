@@ -25,6 +25,8 @@ import {
   Crosshair,
 } from 'lucide-react'
 import ShareCardButton from '@/components/ShareCardButton'
+import { ZONAS, type Zona } from '@/lib/zonas'
+import { getPoligono, isPointInPolygon } from '@/lib/zonas-poligonos'
 import {
   type TokkoProperty,
   getMainPhoto,
@@ -321,6 +323,20 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const searchParams = useSearchParams()
   const initialSearch = searchParams.get('q') ?? ''
 
+  // Resolve zona from q param
+  const resolvedZona = useMemo<Zona | null>(() => {
+    if (!initialSearch) return null
+    const q = initialSearch.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    return ZONAS.find(z => {
+      const n = z.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      if (n === q) return true
+      return (z.aliases ?? []).some(a => a.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === q)
+    }) ?? null
+  }, [initialSearch])
+
+  const [activeZona, setActiveZona] = useState<Zona | null>(resolvedZona)
+  const activePoligono = useMemo(() => activeZona ? getPoligono(activeZona.id) : null, [activeZona])
+
   const [filters, setFilters]           = useState<Filters>({ ...DEFAULTS, search: initialSearch })
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
@@ -436,16 +452,41 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     }
   }), [properties, filters, sortBy])
 
-  // Apply map bounds filter if active
+  // Apply zona polygon filter, then map bounds filter
   const visibleProperties = useMemo(() => {
-    if (!mapBounds) return filtered
-    return filtered.filter(p => {
-      if (!p.geo_lat || !p.geo_long) return true
-      const lat = parseFloat(p.geo_lat)
-      const lng = parseFloat(p.geo_long)
-      return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
-    })
-  }, [filtered, mapBounds])
+    let result = filtered
+
+    // Filter by active zona polygon or bounds
+    if (activeZona) {
+      const poly = activePoligono
+      if (poly) {
+        result = result.filter(p => {
+          if (!p.geo_lat || !p.geo_long) return false
+          return isPointInPolygon(parseFloat(p.geo_lat), parseFloat(p.geo_long), poly)
+        })
+      } else if (activeZona.bounds) {
+        const b = activeZona.bounds
+        result = result.filter(p => {
+          if (!p.geo_lat || !p.geo_long) return false
+          const lat = parseFloat(p.geo_lat)
+          const lng = parseFloat(p.geo_long)
+          return lat >= b.south && lat <= b.north && lng >= b.west && lng <= b.east
+        })
+      }
+    }
+
+    // Apply manual map bounds filter
+    if (mapBounds && !activeZona) {
+      result = result.filter(p => {
+        if (!p.geo_lat || !p.geo_long) return true
+        const lat = parseFloat(p.geo_lat)
+        const lng = parseFloat(p.geo_long)
+        return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
+      })
+    }
+
+    return result
+  }, [filtered, mapBounds, activeZona, activePoligono])
 
   const handleCardClick = useCallback((property: TokkoProperty) => {
     setSelectedId(property.id)
@@ -634,6 +675,13 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                 west: bounds.getWest(),
                 east: bounds.getEast(),
               })
+            }}
+            activeZona={activeZona}
+            activePoligono={activePoligono}
+            onRemoveZona={() => {
+              setActiveZona(null)
+              setMapBounds(null)
+              setFilters(prev => ({ ...prev, search: '' }))
             }}
           />
           <div className="absolute top-3 left-3 z-[999] pointer-events-none">
