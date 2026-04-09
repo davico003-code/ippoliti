@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Navigation, Loader2 } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 
 const SUGERENCIAS = [
@@ -16,7 +16,6 @@ const SUGERENCIAS = [
 
 export default function HeroSearch() {
   const [query, setQuery] = useState('')
-  const [locating, setLocating] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -48,34 +47,13 @@ export default function HeroSearch() {
     setShowDropdown(false)
   }
 
-  function locate() {
-    if (!navigator.geolocation) return
-    setLocating(true)
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        setLocating(false)
-        router.push(`/propiedades?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`)
-      },
-      () => setLocating(false),
-      { enableHighAccuracy: true, timeout: 8000 }
-    )
-  }
-
   return (
-    <div ref={wrapperRef} style={{ position: 'relative' }}>
+    <div ref={wrapperRef} className="relative max-w-2xl mx-auto">
       <form
         onSubmit={submit}
-        style={{
-          background: '#fff',
-          borderRadius: 12,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          height: 52,
-          overflow: 'hidden',
-        }}
+        className="flex items-center h-12 md:h-14 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 pl-6 pr-2"
       >
-        <Search className="w-4 h-4 text-gray-400" style={{ marginLeft: 18, flexShrink: 0 }} />
+        <Search className="w-5 h-5 flex-shrink-0" style={{ color: '#6b7280' }} />
         <input
           type="text"
           value={query}
@@ -85,62 +63,35 @@ export default function HeroSearch() {
           }}
           onFocus={() => { if (filtered.length > 0) setShowDropdown(true) }}
           onKeyDown={e => {
-            if (e.key === 'Enter') {
-              submit(e)
-            }
+            if (e.key === 'Enter') submit(e)
           }}
           placeholder="¿Dónde querés buscar?"
           autoComplete="off"
-          style={{
-            flex: 1,
-            minWidth: 0,
-            border: 'none',
-            outline: 'none',
-            padding: '0 14px',
-            fontSize: 15,
-            background: 'transparent',
-            color: '#111',
-          }}
+          className="flex-1 min-w-0 border-none outline-none bg-transparent px-3 text-[#111] placeholder:text-[#9ca3af]"
+          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 16, fontWeight: 400 }}
         />
         <button
-          type="button"
-          onClick={locate}
-          title="Usar mi ubicación"
-          aria-label="Usar mi ubicación"
-          style={{
-            flexShrink: 0,
-            width: 40,
-            height: 40,
-            marginRight: 6,
-            borderRadius: 10,
-            border: 'none',
-            background: 'transparent',
-            color: '#1A5C38',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          {locating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
-        </button>
-        <button
           type="submit"
+          className="flex-shrink-0 h-10 md:h-11 rounded-full px-7 text-white border-none cursor-pointer"
           style={{
-            flexShrink: 0,
-            height: '100%',
             background: '#1A5C38',
-            color: '#fff',
-            border: 'none',
-            padding: '0 22px',
-            fontSize: 14,
+            fontFamily: 'Raleway, sans-serif',
+            fontSize: 15,
             fontWeight: 600,
-            cursor: 'pointer',
+            transition: 'background 180ms',
           }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
         >
           Buscar
         </button>
       </form>
+
+      <style>{`
+        @media (max-width: 480px) {
+          .relative.max-w-2xl input::placeholder { font-size: 14px; }
+        }
+      `}</style>
 
       {showDropdown && filtered.length > 0 && (
         <div
