@@ -16,9 +16,11 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
+  overflow-x: hidden;
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
