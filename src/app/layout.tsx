@@ -7,12 +7,14 @@ import Analytics from "@/components/Analytics";
 import TawkTo from "@/components/TawkTo";
 import ExitPopup from "@/components/ExitPopup";
 import Clarity from "@/components/Clarity";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
   title: "SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario",
   description:
     "Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.",
   metadataBase: new URL('https://siinmobiliaria.com'),
+  manifest: '/manifest.json',
   icons: {
     icon: '/icon.png',
     shortcut: '/favicon.ico',
@@ -120,6 +122,7 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
         <FloatingWhatsApp />
+        <ScrollToTop />
         <ExitPopup />
         <Analytics />
         <Clarity />

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X, MapPin } from 'lucide-react'
-import SearchAutocomplete from './SearchAutocomplete'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -23,11 +22,6 @@ export default function Navbar() {
               className="h-[32px] md:h-[44px] w-auto"
             />
           </Link>
-
-          {/* Center search — desktop */}
-          <div className="hidden md:block flex-1 mx-8 max-w-lg">
-            <SearchAutocomplete variant="navbar" />
-          </div>
 
           {/* Right links — desktop */}
           <div className="hidden md:flex items-center gap-5 flex-shrink-0">
@@ -70,9 +64,6 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden absolute w-full bg-white shadow-xl border-t border-gray-100 z-50">
           <div className="px-4 py-4 space-y-3">
-            {/* Mobile search with autocomplete */}
-            <SearchAutocomplete variant="navbar" onSelect={() => setIsOpen(false)} />
-
             <div className="space-y-1 pt-1">
               <Link
                 href="/propiedades"

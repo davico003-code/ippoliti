@@ -20,8 +20,32 @@ export default async function PropiedadesPage() {
   }
 
   return (
-    <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<PropiedadesSkeleton />}>
       <PropiedadesView properties={properties} />
     </Suspense>
+  )
+}
+
+function PropiedadesSkeleton() {
+  return (
+    <div className="h-[calc(100vh-64px)] flex flex-col bg-white">
+      <div className="h-[52px] border-b border-gray-200 bg-white" />
+      <div className="flex flex-1 min-h-0">
+        <div className="hidden md:flex flex-col w-[40%] border-r border-gray-200 overflow-hidden p-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex gap-3 animate-pulse">
+              <div className="w-[152px] h-[112px] rounded-lg bg-gray-200 flex-shrink-0" />
+              <div className="flex-1 flex flex-col gap-2 py-1">
+                <div className="h-3 w-1/3 bg-gray-200 rounded" />
+                <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                <div className="h-3 w-1/2 bg-gray-200 rounded" />
+                <div className="mt-auto h-4 w-1/3 bg-gray-200 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex-1 bg-gray-100 animate-pulse" />
+      </div>
+    </div>
   )
 }
