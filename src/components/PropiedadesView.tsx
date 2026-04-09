@@ -21,6 +21,8 @@ import {
 } from 'lucide-react'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
+import { buscarZonas } from '@/lib/zonas'
+import { highlightMatch } from '@/lib/highlight'
 import { ZONAS, type Zona } from '@/lib/zonas'
 import {
   type TokkoProperty,
@@ -143,6 +145,8 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const [saveToast, setSaveToast]       = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [mobileSortOpen, setMobileSortOpen]       = useState(false)
+  const [searchSuggestions, setSearchSuggestions] = useState(false)
+  const searchWrapRef                   = useRef<HTMLDivElement>(null)
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
 
@@ -177,6 +181,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false)
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) setSearchSuggestions(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -306,6 +311,8 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const opLabel = filters.operation === 'venta' ? 'en venta'
     : filters.operation === 'alquiler' ? 'en alquiler' : 'disponibles'
 
+  const searchZonas = useMemo(() => buscarZonas(filters.search, 6), [filters.search])
+
   // Count non-operation active filters for mobile badge
   const mobileActiveCount = [
     filters.type !== 'todos',
@@ -329,17 +336,64 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <div className="relative flex-1" ref={searchWrapRef}>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
             <input
               type="text"
               placeholder="Dirección, ciudad o barrio..."
               value={filters.search}
               aria-label="Buscar dirección, ciudad o barrio"
-              onChange={e => set('search', e.target.value)}
+              autoComplete="off"
+              onChange={e => {
+                set('search', e.target.value)
+                setSearchSuggestions(e.target.value.trim().length >= 2)
+              }}
+              onFocus={() => { if (searchZonas.length > 0 && filters.search.trim().length >= 2) setSearchSuggestions(true) }}
               className="w-full h-11 pl-10 pr-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 placeholder:text-gray-400"
               style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16, border: '1.5px solid #e5e7eb' }}
             />
+            {/* Autocomplete dropdown */}
+            {searchSuggestions && searchZonas.length > 0 && (
+              <div
+                className="absolute left-0 right-0 z-50 bg-white overflow-y-auto"
+                style={{
+                  top: '100%', marginTop: 4,
+                  border: '1px solid #e5e7eb', borderRadius: 12,
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+                  maxHeight: '50vh',
+                }}
+              >
+                {searchZonas.map(zona => (
+                  <button
+                    key={zona.id}
+                    type="button"
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => {
+                      set('search', zona.nombre)
+                      setSearchSuggestions(false)
+                    }}
+                    className="w-full flex items-center gap-3 text-left"
+                    style={{
+                      padding: '14px 16px',
+                      fontSize: 15,
+                      color: '#111',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: '1px solid #f3f4f6',
+                      cursor: 'pointer',
+                      minHeight: 48,
+                      fontFamily: "'Raleway', system-ui, sans-serif",
+                    }}
+                  >
+                    <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
+                    <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0 }}>
+                      {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <button
             onClick={() => {

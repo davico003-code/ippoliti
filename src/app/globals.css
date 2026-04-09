@@ -229,6 +229,13 @@ body.scroll-locked {
   z-index: 1 !important;
 }
 
+/* Prevent iOS auto-zoom on input focus — all inputs must be ≥16px on mobile */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Smooth scroll offset for fixed navbar */
 section[id],
 div[id="contacto"],
