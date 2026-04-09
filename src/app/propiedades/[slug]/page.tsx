@@ -529,7 +529,7 @@ export default async function PropertyPage({ params }: Props) {
         )}
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
-          <div className="flex gap-10">
+          <div className="flex gap-10 items-start">
             {/* ── LEFT COLUMN (2/3) ── */}
             <div className="flex-1 min-w-0 space-y-6">
               {/* Title + badges + location */}
@@ -737,7 +737,7 @@ export default async function PropertyPage({ params }: Props) {
 
             {/* ── RIGHT COLUMN (1/3) sticky ── */}
             <div className="w-[380px] shrink-0">
-              <div className="sticky top-24 space-y-4">
+              <div className="sticky top-24 space-y-4 max-h-[calc(100vh-112px)] overflow-y-auto scrollbar-none">
                 {/* Main card */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                   {/* WhatsApp button */}
