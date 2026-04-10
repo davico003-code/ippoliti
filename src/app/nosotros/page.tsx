@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://siinmobiliaria.com/nosotros' },
   openGraph: {
     title: 'Sobre nosotros | SI Inmobiliaria',
-    description: 'Tres generaciones acompañando familias en Funes, Roldán y Rosario desde 1983.',
+    description: 'Dos generaciones acompañando familias en Funes, Roldán y Rosario desde 1983.',
     url: 'https://siinmobiliaria.com/nosotros',
     images: ['/LDS.jpg'],
   },

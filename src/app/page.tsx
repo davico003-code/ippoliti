@@ -190,117 +190,61 @@ async function DevelopmentsSection() {
   devs = devs.slice(0, 2)
   const hausingPhoto = hausingProp ? getMainPhoto(hausingProp) : null
 
+  // All dev items (hausing + tokko devs) for rendering
+  const allDevItems = [
+    { id: 'hausing', name: 'Hausing — Casas de Diseño', photo: hausingPhoto, href: '/hausing', location: 'Funes', badge: 'CASAS PREMIUM', sub: 'Desde USD 380K' },
+    ...devs.map(dev => ({
+      id: String(dev.id),
+      name: dev.name,
+      photo: getDevMainPhoto(dev),
+      href: `/emprendimientos/${generateDevSlug(dev)}`,
+      location: dev.location?.name || dev.address || '',
+      badge: translateDevType(dev.type?.name || '') || getConstructionStatus(dev.construction_status) || '',
+      sub: dev.financing_details || '',
+    })),
+  ]
+
   return (
-    <section className="home-px home-section" style={{ background: '#f9fafb', padding: '80px 48px' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <p
-          style={{
-            fontFamily: POPPINS,
-            fontSize: 10,
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            color: GREEN,
-            fontWeight: 600,
-            margin: '0 0 12px',
-          }}
-        >
-          INVERSIÓN Y DESARROLLO
-        </p>
-        <h2
-          style={{
-            fontFamily: RALEWAY,
-            fontSize: 32,
-            fontWeight: 300,
-            color: '#0a0a0a',
-            letterSpacing: '-0.5px',
-            margin: '0 0 40px',
-          }}
-        >
+    <section className="home-section" style={{ background: '#f9fafb', padding: 0 }}>
+      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-8 pb-10 md:pt-16 md:pb-16">
+        <h2 style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#0a0a0a', lineHeight: 1.1, margin: 0, fontSize: 'clamp(24px, 3vw, 32px)', marginBottom: 'clamp(20px, 2vw, 32px)' }}>
           Emprendimientos
         </h2>
 
-        <div className="home-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-          {/* Hausing card */}
-          <Link href="/hausing" className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'border-color 0.3s ease, box-shadow 0.3s ease' }}>
-            <div style={{ position: 'relative', width: '100%', height: 180, background: '#f5f5f5' }}>
-              {hausingPhoto && (
-                <Image src={hausingPhoto} alt="Hausing" fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 33vw" />
-              )}
-            </div>
-            <div style={{ padding: 20 }}>
-              <span style={{ display: 'inline-block', background: 'rgba(26,92,56,0.1)', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, marginBottom: 12, letterSpacing: '0.5px' }}>
-                CASAS PREMIUM
-              </span>
-              <h3 style={{ fontFamily: POPPINS, fontSize: 16, fontWeight: 600, color: '#0a0a0a', margin: '0 0 6px' }}>Hausing — Casas de Diseño</h3>
-              <p style={{ fontFamily: POPPINS, fontSize: 12, color: '#6b7280', margin: '0 0 12px' }}>
-                Vida, Cadaques, Don Mateo · Funes
-              </p>
-              <p style={{ fontFamily: POPPINS, fontSize: 12, color: '#374151', margin: '0 0 16px' }}>
-                6 propiedades · desde USD 380K
-              </p>
-              <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: POPPINS }}>Ver →</span>
-            </div>
-          </Link>
-
-          {devs.map(dev => {
-            const photo = getDevMainPhoto(dev)
-            const slug = generateDevSlug(dev)
-            const status = getConstructionStatus(dev.construction_status)
-            const typeName = translateDevType(dev.type?.name || '')
-            return (
-              <Link key={dev.id} href={`/emprendimientos/${slug}`} className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'border-color 0.3s ease, box-shadow 0.3s ease' }}>
-                <div style={{ position: 'relative', width: '100%', height: 180, background: '#f5f5f5' }}>
-                  {photo ? (
-                    <Image src={photo} alt={dev.name} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 33vw" />
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                      <Building2 size={40} color="#ccc" />
-                    </div>
-                  )}
-                </div>
-                <div style={{ padding: 20 }}>
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-                    {typeName && (
-                      <span style={{ background: 'rgba(26,92,56,0.1)', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{typeName}</span>
-                    )}
-                    {status && (
-                      <span style={{ background: '#f3f4f6', color: '#6b7280', fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{status}</span>
-                    )}
-                  </div>
-                  <h3 style={{ fontFamily: POPPINS, fontSize: 16, fontWeight: 600, color: '#0a0a0a', margin: '0 0 6px' }}>{dev.name}</h3>
-                  <p style={{ fontFamily: POPPINS, fontSize: 12, color: '#6b7280', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <MapPin size={10} /> {dev.location?.name || dev.address}
-                  </p>
-                  {dev.financing_details && (
-                    <p style={{ fontFamily: POPPINS, fontSize: 12, color: '#374151', margin: '0 0 16px' }}>
-                      {dev.financing_details}
-                    </p>
-                  )}
-                  <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: POPPINS }}>Ver →</span>
-                </div>
-              </Link>
-            )
-          })}
+        {/* Desktop grid */}
+        <div className="home-grid-3 hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+          {allDevItems.map(item => (
+            <Link key={item.id} href={item.href} className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'box-shadow 0.3s ease' }}>
+              <div style={{ position: 'relative', width: '100%', height: 180, background: '#f5f5f5' }}>
+                {item.photo ? <Image src={item.photo} alt={item.name} fill style={{ objectFit: 'cover' }} sizes="33vw" /> : <div className="w-full h-full flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
+              </div>
+              <div style={{ padding: 16 }}>
+                {item.badge && <span style={{ display: 'inline-block', background: 'rgba(26,92,56,0.1)', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, marginBottom: 10, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{item.badge}</span>}
+                <h3 style={{ fontFamily: RALEWAY, fontSize: 16, fontWeight: 700, color: '#0a0a0a', margin: '0 0 4px' }}>{item.name}</h3>
+                <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#6b7280', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={10} /> {item.location}</p>
+                {item.sub && <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#374151', margin: '0 0 12px' }}>{item.sub}</p>}
+                <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: RALEWAY }}>Ver emprendimiento →</span>
+              </div>
+            </Link>
+          ))}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <Link
-            href="/emprendimientos"
-            style={{
-              display: 'inline-block',
-              border: `1px solid ${GREEN}`,
-              color: GREEN,
-              padding: '12px 32px',
-              borderRadius: 999,
-              fontFamily: POPPINS,
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: 'none',
-              transition: 'background 0.2s ease',
-            }}
-          >
-            Ver todos los emprendimientos →
-          </Link>
+        {/* Mobile carousel — tall overlay cards */}
+        <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none">
+          {allDevItems.map(item => (
+            <Link key={item.id} href={item.href} className="flex-shrink-0 snap-start block relative overflow-hidden" style={{ width: '72vw', maxWidth: 280, aspectRatio: '4/5', borderRadius: 16, textDecoration: 'none' }}>
+              {item.photo ? <Image src={item.photo} alt={item.name} fill className="object-cover" sizes="72vw" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              {item.badge && (
+                <span className="absolute top-3 left-3" style={{ background: GREEN, color: '#fff', fontFamily: RALEWAY, fontWeight: 600, fontSize: 10, textTransform: 'uppercase', padding: '4px 10px', borderRadius: 6 }}>{item.badge}</span>
+              )}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h3 style={{ fontFamily: RALEWAY, fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 4px', lineHeight: 1.2 }}>{item.name}</h3>
+                <p style={{ fontFamily: RALEWAY, fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: '0 0 12px' }}>{item.location}</p>
+                <span style={{ fontFamily: RALEWAY, fontSize: 13, fontWeight: 600, color: GREEN, background: '#fff', padding: '8px 16px', borderRadius: 999, display: 'inline-block' }}>Ver emprendimiento →</span>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
@@ -425,10 +369,10 @@ function GuiaHomeSection() {
             </div>
           </div>
 
-          {/* Mock celular */}
+          {/* Mock celular — desktop only */}
           <Link
             href="/guia-comprador"
-            className="guia-mock"
+            className="guia-mock hidden md:flex"
             style={{
               flexShrink: 0,
               width: 260,
@@ -567,7 +511,7 @@ function NosotrosHomeSection() {
                 margin: '0 0 32px',
               }}
             >
-              Tres generaciones acompañando familias en Funes, Roldán y Rosario. Una empresa
+              Dos generaciones acompañando familias en Funes, Roldán y Rosario. Una empresa
               familiar fundada en 1983 que se piensa como un estudio.
             </p>
             <div className="nos-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
@@ -630,7 +574,7 @@ function NosotrosHomeSection() {
 
 const STATS = [
   { num: '40+', label: 'Años en el mercado' },
-  { num: '+1000', label: 'Familias asesoradas' },
+  { num: '+1.500', label: 'Propiedades vendidas' },
   { num: '3', label: 'Ciudades de cobertura' },
   { num: '200+', label: 'Propiedades activas' },
 ]

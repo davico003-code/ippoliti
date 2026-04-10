@@ -67,7 +67,7 @@ export default function Navbar() {
         }`}
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
-        <div className="flex items-center justify-between h-14 px-5 relative">
+        <div className="flex items-center justify-between h-14 px-4 relative">
           {/* Hamburger — left */}
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -84,15 +84,27 @@ export default function Navbar() {
           <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             {scrolled ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src="/logo.png" alt="SI Inmobiliaria" style={{ height: 32, width: 'auto' }} />
+              <img src="/logo.png" alt="SI Inmobiliaria" style={{ height: 40, width: 'auto' }} />
             ) : (
-              <Image src="/logo-blanco.png" alt="SI Inmobiliaria" width={140} height={40}
-                style={{ height: 32, width: 'auto' }} priority />
+              <Image src="/logo-blanco.png" alt="SI Inmobiliaria" width={160} height={44}
+                style={{ height: 40, width: 'auto' }} priority />
             )}
           </Link>
 
-          {/* Spacer — right (balances the flex) */}
-          <div className="w-11 h-11" />
+          {/* Agentes button — right */}
+          <a
+            href="/agentes/login"
+            className="px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-colors"
+            style={{
+              background: scrolled ? '#fff' : 'rgba(255,255,255,0.15)',
+              border: scrolled ? '1.5px solid #e5e7eb' : '1.5px solid rgba(255,255,255,0.3)',
+              color: scrolled ? '#1A5C38' : '#fff',
+              fontFamily: "'Raleway', system-ui, sans-serif",
+              backdropFilter: scrolled ? 'none' : 'blur(8px)',
+            }}
+          >
+            Agentes
+          </a>
         </div>
       </nav>
 
