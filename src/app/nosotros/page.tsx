@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     title: 'Sobre nosotros | SI Inmobiliaria',
     description: 'Tres generaciones acompañando familias en Funes, Roldán y Rosario desde 1983.',
     url: 'https://siinmobiliaria.com/nosotros',
-    images: ['/nosotros/LAURASUSANADAVID.jpeg'],
+    images: ['/LDS.jpg'],
   },
 }
 
