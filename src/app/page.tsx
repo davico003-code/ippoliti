@@ -257,14 +257,27 @@ async function DevelopmentsSection() {
   return (
     <section className="home-px home-section" style={{ background: '#f9fafb', padding: '80px 48px' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <p
+          style={{
+            fontFamily: POPPINS,
+            fontSize: 10,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            color: GREEN,
+            fontWeight: 600,
+            margin: '0 0 12px',
+          }}
+        >
+          INVERSIÓN Y DESARROLLO
+        </p>
         <h2
           style={{
             fontFamily: RALEWAY,
-            fontSize: 'clamp(20px, 2.5vw, 28px)',
-            fontWeight: 700,
+            fontSize: 32,
+            fontWeight: 300,
             color: '#0a0a0a',
-            lineHeight: 1.2,
-            margin: '0 0 32px',
+            letterSpacing: '-0.5px',
+            margin: '0 0 40px',
           }}
         >
           Emprendimientos
@@ -272,24 +285,24 @@ async function DevelopmentsSection() {
 
         <div className="home-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {/* Hausing card */}
-          <Link href="/hausing" className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'box-shadow 0.2s ease, border-color 0.2s ease' }}>
+          <Link href="/hausing" className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'border-color 0.3s ease, box-shadow 0.3s ease' }}>
             <div style={{ position: 'relative', width: '100%', height: 180, background: '#f5f5f5' }}>
               {hausingPhoto && (
                 <Image src={hausingPhoto} alt="Hausing" fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 33vw" />
               )}
             </div>
             <div style={{ padding: 20 }}>
-              <span style={{ display: 'inline-block', background: '#e8f5ee', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, marginBottom: 12, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              <span style={{ display: 'inline-block', background: 'rgba(26,92,56,0.1)', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, marginBottom: 12, letterSpacing: '0.5px' }}>
                 CASAS PREMIUM
               </span>
-              <h3 style={{ fontFamily: RALEWAY, fontSize: 16, fontWeight: 700, color: '#0a0a0a', margin: '0 0 6px' }}>Hausing — Casas de Diseño</h3>
-              <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#6b7280', margin: '0 0 12px' }}>
+              <h3 style={{ fontFamily: POPPINS, fontSize: 16, fontWeight: 600, color: '#0a0a0a', margin: '0 0 6px' }}>Hausing — Casas de Diseño</h3>
+              <p style={{ fontFamily: POPPINS, fontSize: 12, color: '#6b7280', margin: '0 0 12px' }}>
                 Vida, Cadaques, Don Mateo · Funes
               </p>
-              <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#0a0a0a', margin: '0 0 16px' }}>
+              <p style={{ fontFamily: POPPINS, fontSize: 12, color: '#374151', margin: '0 0 16px' }}>
                 6 propiedades · desde USD 380K
               </p>
-              <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: RALEWAY }}>Ver →</span>
+              <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: POPPINS }}>Ver →</span>
             </div>
           </Link>
 
@@ -299,7 +312,7 @@ async function DevelopmentsSection() {
             const status = getConstructionStatus(dev.construction_status)
             const typeName = translateDevType(dev.type?.name || '')
             return (
-              <Link key={dev.id} href={`/emprendimientos/${slug}`} className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'box-shadow 0.2s ease, border-color 0.2s ease' }}>
+              <Link key={dev.id} href={`/emprendimientos/${slug}`} className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'border-color 0.3s ease, box-shadow 0.3s ease' }}>
                 <div style={{ position: 'relative', width: '100%', height: 180, background: '#f5f5f5' }}>
                   {photo ? (
                     <Image src={photo} alt={dev.name} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 33vw" />
@@ -312,22 +325,22 @@ async function DevelopmentsSection() {
                 <div style={{ padding: 20 }}>
                   <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
                     {typeName && (
-                      <span style={{ background: '#e8f5ee', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{typeName}</span>
+                      <span style={{ background: 'rgba(26,92,56,0.1)', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{typeName}</span>
                     )}
                     {status && (
                       <span style={{ background: '#f3f4f6', color: '#6b7280', fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{status}</span>
                     )}
                   </div>
-                  <h3 style={{ fontFamily: RALEWAY, fontSize: 16, fontWeight: 700, color: '#0a0a0a', margin: '0 0 6px' }}>{dev.name}</h3>
-                  <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#6b7280', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <h3 style={{ fontFamily: POPPINS, fontSize: 16, fontWeight: 600, color: '#0a0a0a', margin: '0 0 6px' }}>{dev.name}</h3>
+                  <p style={{ fontFamily: POPPINS, fontSize: 12, color: '#6b7280', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <MapPin size={10} /> {dev.location?.name || dev.address}
                   </p>
                   {dev.financing_details && (
-                    <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#0a0a0a', margin: '0 0 16px' }}>
+                    <p style={{ fontFamily: POPPINS, fontSize: 12, color: '#374151', margin: '0 0 16px' }}>
                       {dev.financing_details}
                     </p>
                   )}
-                  <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: RALEWAY }}>Ver →</span>
+                  <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: POPPINS }}>Ver →</span>
                 </div>
               </Link>
             )
