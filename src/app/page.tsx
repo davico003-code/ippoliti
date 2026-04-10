@@ -43,14 +43,32 @@ async function FeaturedPropertiesSection() {
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
       <div className="max-w-7xl mx-auto px-5 md:px-6 pt-12 pb-12 md:pt-20 md:pb-20">
+        {/* Eyebrow */}
+        <p style={{
+          fontFamily: RALEWAY, fontWeight: 600, textTransform: 'uppercase',
+          color: GREEN, letterSpacing: '0.2em', margin: 0,
+          fontSize: 'clamp(11px, 1vw, 12px)', marginBottom: 'clamp(8px, 0.8vw, 12px)',
+        }}>
+          HOY EN SI INMOBILIARIA
+        </p>
+
         {/* Title */}
         <h2 style={{
           fontFamily: RALEWAY, fontWeight: 700, color: '#0a0a0a',
-          lineHeight: 1.2, margin: 0,
-          fontSize: 'clamp(20px, 2.5vw, 28px)', marginBottom: 'clamp(24px, 2vw, 32px)',
+          lineHeight: 1.1, margin: 0,
+          fontSize: 'clamp(28px, 3.5vw, 42px)', marginBottom: 'clamp(8px, 0.5vw, 8px)',
         }}>
-          Propiedades destacadas en Funes, Roldán y Rosario
+          Propiedades destacadas
         </h2>
+
+        {/* Subtitle */}
+        <p style={{
+          fontFamily: RALEWAY, fontWeight: 400, color: '#6b7280',
+          lineHeight: 1.5, margin: 0,
+          fontSize: 'clamp(13px, 1.3vw, 16px)', marginBottom: 'clamp(32px, 2.5vw, 40px)',
+        }}>
+          Casas, departamentos y lotes en Funes, Roldán y Rosario
+        </p>
 
         {/* Cards — desktop grid / mobile carousel */}
         <div className="home-grid-3 hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search } from 'lucide-react'
+import { Search, ArrowRight } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
 
@@ -38,12 +38,13 @@ export default function HeroSearch() {
   }
 
   return (
-    <div ref={wrapperRef} className="relative max-w-2xl mx-auto">
+    <div ref={wrapperRef} className="relative mx-auto" style={{ maxWidth: 680 }}>
       <form
         onSubmit={submit}
-        className="flex items-center h-12 md:h-14 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 pl-6 pr-2"
+        className="flex items-center h-14 bg-white rounded-full shadow-xl pl-6 pr-1.5"
+        style={{ transition: 'box-shadow 200ms' }}
       >
-        <Search className="w-5 h-5 flex-shrink-0" style={{ color: '#6b7280' }} />
+        <Search className="w-5 h-5 flex-shrink-0" style={{ color: '#374151' }} />
         <input
           type="text"
           value={query}
@@ -59,30 +60,27 @@ export default function HeroSearch() {
           aria-label="Buscar por barrio, ciudad o dirección"
           autoComplete="off"
           className="flex-1 min-w-0 border-none outline-none bg-transparent px-3 text-[#111] placeholder:text-[#9ca3af]"
-          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 16, fontWeight: 400 }}
+          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 17, fontWeight: 500 }}
         />
+        {/* Desktop: text button */}
         <button
           type="submit"
-          className="flex-shrink-0 h-10 md:h-11 rounded-full px-7 text-white border-none cursor-pointer"
-          style={{
-            background: '#1A5C38',
-            fontFamily: 'Raleway, sans-serif',
-            fontSize: 15,
-            fontWeight: 600,
-            transition: 'background 180ms',
-          }}
+          className="hidden md:flex flex-shrink-0 h-11 rounded-full px-6 text-white items-center border-none cursor-pointer"
+          style={{ background: '#1A5C38', fontFamily: 'Raleway, sans-serif', fontSize: 14, fontWeight: 600, transition: 'background 180ms' }}
           onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
         >
           Buscar
         </button>
+        {/* Mobile: circular icon button */}
+        <button
+          type="submit"
+          className="md:hidden flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center border-none cursor-pointer"
+          style={{ background: '#1A5C38' }}
+        >
+          <ArrowRight className="w-5 h-5 text-white" />
+        </button>
       </form>
-
-      <style>{`
-        @media (max-width: 480px) {
-          .relative.max-w-2xl input::placeholder { font-size: 14px; }
-        }
-      `}</style>
 
       {showDropdown && filtered.length > 0 && (
         <div
