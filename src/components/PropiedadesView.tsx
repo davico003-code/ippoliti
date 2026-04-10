@@ -325,7 +325,60 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     <div className="h-[100dvh] md:h-[calc(100vh-64px)] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
       <h1 className="sr-only">Propiedades en venta y alquiler en Funes, Roldán y Rosario</h1>
 
-      {/* ── Mobile Filter Bar (2 rows) ────────────────────────────────────── */}
+      {/* ── Mobile Filter Bar ─────────────────────────────────────────────── */}
+      {/* Map view: minimal bar */}
+      {mobileView === 'map' && (
+        <div className="md:hidden flex-shrink-0 bg-white shadow-sm sticky top-0 z-[1000]"
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+          <div className="flex items-center gap-2 px-3 py-2">
+            <button onClick={() => setMobileView('list')} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0" aria-label="Volver a lista">
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <div className="relative flex-1" ref={searchWrapRef}>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
+              <input type="text" placeholder="Dirección, ciudad o barrio..." value={filters.search}
+                aria-label="Buscar" autoComplete="off"
+                onChange={e => { set('search', e.target.value); setSearchSuggestions(e.target.value.trim().length >= 2) }}
+                onFocus={() => { if (searchZonas.length > 0 && filters.search.trim().length >= 2) setSearchSuggestions(true) }}
+                className="w-full h-10 pl-10 pr-3 rounded-full bg-gray-50 focus:outline-none placeholder:text-gray-400"
+                style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16, border: '1.5px solid #e5e7eb' }}
+              />
+              {searchSuggestions && searchZonas.length > 0 && (
+                <div className="absolute left-0 right-0 z-50 bg-white overflow-y-auto" style={{ top: '100%', marginTop: 4, border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', maxHeight: '50vh' }}>
+                  {searchZonas.map(zona => (
+                    <button key={zona.id} type="button" onMouseDown={e => e.preventDefault()} onClick={() => { set('search', zona.nombre); setSearchSuggestions(false) }}
+                      className="w-full flex items-center gap-3 text-left" style={{ padding: '12px 16px', fontSize: 15, color: '#111', background: 'transparent', border: 'none', borderBottom: '1px solid #f3f4f6', cursor: 'pointer', minHeight: 44, fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button onClick={() => setMobileFiltersOpen(true)} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 relative" aria-label="Filtros">
+              <SlidersHorizontal className="w-4 h-4 text-gray-600" />
+              {mobileActiveCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">{mobileActiveCount}</span>}
+            </button>
+          </div>
+          {/* Pills row */}
+          <div className="flex gap-2 px-3 pb-2">
+            {(['venta', 'alquiler'] as const).map(op => (
+              <button key={op} onClick={() => set('operation', filters.operation === op ? 'todos' : op)}
+                style={{
+                  background: filters.operation === op ? '#1A5C38' : '#f5f5f5',
+                  color: filters.operation === op ? '#fff' : '#333',
+                  fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, fontWeight: 600,
+                  padding: '6px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                }}>
+                {op.charAt(0).toUpperCase() + op.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* List view: full filter bar */}
+      {mobileView === 'list' && (
       <div className="md:hidden flex-shrink-0 bg-white border-b border-gray-200 shadow-sm">
         {/* Row 1: Back + Search + Location */}
         <div className="flex items-center gap-2 px-3 pt-[env(safe-area-inset-top)] py-2">
@@ -459,6 +512,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           </button>
         </div>
       </div>
+      )}
 
       {/* ── Desktop Filter Bar ────────────────────────────────────────────── */}
       <div className="hidden md:flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-white shadow-sm flex-shrink-0 overflow-x-auto scrollbar-none">

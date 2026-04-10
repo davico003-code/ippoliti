@@ -117,30 +117,35 @@ async function FeaturedPropertiesSection() {
 
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-6 pb-8 md:pt-10 md:pb-10">
-        {/* Eyebrow */}
-        <p style={{
+      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-4 pb-2 md:pt-10 md:pb-10">
+        {/* Eyebrow — desktop only */}
+        <p className="hidden md:block" style={{
           fontFamily: RALEWAY, fontWeight: 600, textTransform: 'uppercase',
-          color: GREEN, letterSpacing: '0.2em', margin: 0,
-          fontSize: 'clamp(11px, 1vw, 12px)', marginBottom: 'clamp(8px, 0.8vw, 12px)',
+          color: GREEN, letterSpacing: '0.2em', margin: '0 0 12px', fontSize: 12,
         }}>
           HOY EN SI INMOBILIARIA
         </p>
 
-        {/* Title */}
-        <h2 style={{
-          fontFamily: RALEWAY, fontWeight: 700, color: '#0a0a0a',
-          lineHeight: 1.1, margin: 0,
-          fontSize: 'clamp(28px, 3.5vw, 42px)', marginBottom: 'clamp(8px, 0.5vw, 8px)',
-        }}>
-          Propiedades destacadas
-        </h2>
+        {/* Title row — mobile has inline "Ver todas" link */}
+        <div className="flex items-end justify-between mb-1 md:mb-2">
+          <h2 style={{
+            fontFamily: RALEWAY, fontWeight: 700, color: '#0a0a0a',
+            lineHeight: 1.1, margin: 0,
+            fontSize: 'clamp(22px, 3.5vw, 42px)',
+          }}>
+            Propiedades destacadas
+          </h2>
+          <Link href="/propiedades" className="md:hidden flex-shrink-0 ml-3"
+            style={{ fontFamily: RALEWAY, fontSize: 13, fontWeight: 600, color: GREEN, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            Ver todas →
+          </Link>
+        </div>
 
         {/* Subtitle */}
         <p style={{
           fontFamily: RALEWAY, fontWeight: 400, color: '#6b7280',
           lineHeight: 1.5, margin: 0,
-          fontSize: 'clamp(13px, 1.3vw, 16px)', marginBottom: 24,
+          fontSize: 'clamp(13px, 1.3vw, 16px)', marginBottom: 'clamp(16px, 1.5vw, 24px)',
         }}>
           Casas, departamentos y lotes en Funes, Roldán y Rosario
         </p>
@@ -155,7 +160,7 @@ async function FeaturedPropertiesSection() {
           {properties.map(p => renderCard(p, 'mobile'))}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 'clamp(20px, 2vw, 32px)' }}>
+        <div className="hidden md:block" style={{ textAlign: 'center', marginTop: 32 }}>
           <Link
             href="/propiedades"
             style={{
@@ -206,7 +211,7 @@ async function DevelopmentsSection() {
 
   return (
     <section className="home-section" style={{ background: '#f9fafb', padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-8 pb-10 md:pt-16 md:pb-16">
+      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-4 pb-4 md:pt-16 md:pb-16">
         <h2 style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#0a0a0a', lineHeight: 1.1, margin: 0, fontSize: 'clamp(24px, 3vw, 32px)', marginBottom: 'clamp(20px, 2vw, 32px)' }}>
           Emprendimientos
         </h2>
@@ -256,10 +261,9 @@ async function DevelopmentsSection() {
 function GuiaHomeSection() {
   return (
     <section
-      className="home-px home-section"
+      className="home-px home-section !py-6 md:!py-16"
       style={{
         background: '#ffffff',
-        padding: '80px 48px',
         borderTop: '1px solid #f3f4f6',
       }}
     >
