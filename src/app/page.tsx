@@ -14,7 +14,6 @@ import {
   getRoofedArea,
   getLotSurface,
   isLand,
-  translatePropertyType,
   type TokkoProperty,
 } from '@/lib/tokko'
 import {
@@ -40,9 +39,85 @@ async function FeaturedPropertiesSection() {
   }
   if (!properties || properties.length === 0) return null
 
+  const renderCard = (property: TokkoProperty, variant: 'desktop' | 'mobile') => {
+    const slug = generatePropertySlug(property)
+    const photo = getMainPhoto(property)
+    const price = formatPrice(property)
+    const operation = getOperationType(property)
+    const roofed = getRoofedArea(property)
+    const land = isLand(property)
+    const beds = property.suite_amount ?? property.room_amount
+    const baths = property.bathroom_amount
+    const address = property.fake_address || property.address
+    const location = property.location?.short_location || property.location?.name || ''
+    const specs: string[] = []
+    if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
+    if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
+    if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
+    if (land) { const lot = getLotSurface(property); if (lot != null && lot > 0) specs.push(`${lot.toLocaleString('es-AR')} m²`) }
+
+    const opBg = operation === 'Venta' ? GREEN : operation === 'Alquiler' ? '#2563eb' : '#7c3aed'
+
+    return (
+      <Link
+        key={property.id}
+        href={`/propiedades/${slug}`}
+        className={`prop-card block overflow-hidden ${variant === 'mobile' ? 'flex-shrink-0 snap-start' : ''}`}
+        style={{
+          borderRadius: 12,
+          textDecoration: 'none',
+          ...(variant === 'mobile' ? { width: '78vw', maxWidth: 320 } : {}),
+        }}
+      >
+        {/* Photo */}
+        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ aspectRatio: '4/3' }}>
+          {photo ? (
+            <Image src={photo} alt={property.publication_title || address} fill
+              className="object-cover prop-card-img" sizes={variant === 'mobile' ? '78vw' : '25vw'} />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
+          )}
+          {operation && (
+            <span style={{
+              position: 'absolute', top: 12, left: 12,
+              background: opBg, color: '#fff',
+              fontFamily: RALEWAY, fontWeight: 600, fontSize: 10,
+              textTransform: 'uppercase', letterSpacing: '0.05em',
+              padding: '4px 10px', borderRadius: 6,
+            }}>
+              {operation}
+            </span>
+          )}
+        </div>
+
+        {/* Info */}
+        <div style={{ padding: 12 }}>
+          <p style={{
+            fontFamily: POPPINS, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+            color: '#0a0a0a', margin: '0 0 2px', lineHeight: 1.2,
+            fontSize: variant === 'mobile' ? 20 : 22,
+          }}>
+            {price}
+          </p>
+          {specs.length > 0 && (
+            <p style={{ fontFamily: RALEWAY, fontSize: variant === 'mobile' ? 12 : 13, color: '#6b7280', margin: '0 0 4px' }}>
+              {specs.join(' · ')}
+            </p>
+          )}
+          <p style={{
+            fontFamily: RALEWAY, fontSize: variant === 'mobile' ? 12 : 13, color: '#9ca3af', margin: 0,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {address}{location ? `, ${location}` : ''}
+          </p>
+        </div>
+      </Link>
+    )
+  }
+
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-12 pb-12 md:pt-20 md:pb-20">
+      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-6 pb-8 md:pt-10 md:pb-10">
         {/* Eyebrow */}
         <p style={{
           fontFamily: RALEWAY, fontWeight: 600, textTransform: 'uppercase',
@@ -65,161 +140,22 @@ async function FeaturedPropertiesSection() {
         <p style={{
           fontFamily: RALEWAY, fontWeight: 400, color: '#6b7280',
           lineHeight: 1.5, margin: 0,
-          fontSize: 'clamp(13px, 1.3vw, 16px)', marginBottom: 'clamp(32px, 2.5vw, 40px)',
+          fontSize: 'clamp(13px, 1.3vw, 16px)', marginBottom: 24,
         }}>
           Casas, departamentos y lotes en Funes, Roldán y Rosario
         </p>
 
-        {/* Cards — desktop grid / mobile carousel */}
-        <div className="home-grid-3 hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
-          {properties.map(property => {
-            const slug = generatePropertySlug(property)
-            const photo = getMainPhoto(property)
-            const price = formatPrice(property)
-            const operation = getOperationType(property)
-            const roofed = getRoofedArea(property)
-            const lot = getLotSurface(property)
-            const land = isLand(property)
-            const beds = property.suite_amount ?? property.room_amount
-            const baths = property.bathroom_amount
-            const typeName = translatePropertyType(property.type?.name)
-            const address = property.fake_address || property.address
-            const location = property.location?.short_location || property.location?.name || ''
-
-            const specs: string[] = []
-            if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
-            if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
-            if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
-            if (lot != null && lot > 0 && lot !== roofed) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
-            if (land && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
-
-            return (
-              <Link
-                key={property.id}
-                href={`/propiedades/${slug}`}
-                className="prop-card"
-                style={{
-                  display: 'block',
-                  borderRadius: 'clamp(14px, 1.5vw, 16px)',
-                  border: '1px solid #e5e7eb',
-                  overflow: 'hidden',
-                  background: '#fff',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                  transition: 'box-shadow 200ms, border-color 200ms',
-                  textDecoration: 'none',
-                }}
-              >
-                {/* Photo */}
-                <div className="relative w-full bg-gray-100" style={{ aspectRatio: 'var(--card-ratio, 4/3)' }}>
-                  {photo ? (
-                    <Image
-                      src={photo}
-                      alt={property.publication_title || address}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', fontSize: 12 }}>
-                      Sin foto
-                    </div>
-                  )}
-                  {operation && (
-                    <span style={{
-                      position: 'absolute', top: 10, left: 10,
-                      background: GREEN, color: '#fff',
-                      fontFamily: RALEWAY, fontWeight: 600, fontSize: 11,
-                      textTransform: 'uppercase', padding: '5px 10px', borderRadius: 6,
-                    }}>
-                      {operation}
-                    </span>
-                  )}
-                </div>
-
-                {/* Body */}
-                <div className="featured-card-body" style={{ padding: 'clamp(12px, 1.2vw, 16px)' }}>
-                  <p style={{
-                    fontFamily: POPPINS, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                    color: '#0a0a0a', margin: '0 0 4px',
-                    fontSize: 'clamp(19px, 1.8vw, 22px)', lineHeight: 1.2,
-                  }}>
-                    {price}
-                  </p>
-                  {specs.length > 0 && (
-                    <p style={{ fontFamily: RALEWAY, color: '#6b7280', margin: '0 0 6px', fontSize: 'clamp(12px, 1vw, 13px)' }}>
-                      {specs.join(' · ')}
-                    </p>
-                  )}
-                  <p style={{
-                    fontFamily: RALEWAY, fontWeight: 500, color: '#0a0a0a', margin: '0 0 2px',
-                    fontSize: 'clamp(13px, 1vw, 14px)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {typeName}{typeName && address ? ' · ' : ''}{address}
-                  </p>
-                  <p style={{
-                    fontFamily: RALEWAY, color: '#6b7280', margin: 0,
-                    fontSize: 'clamp(11px, 1vw, 12px)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {location}
-                  </p>
-                </div>
-              </Link>
-            )
-          })}
+        {/* Desktop grid — 4 cols */}
+        <div className="home-featured-grid hidden md:grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          {properties.map(p => renderCard(p, 'desktop'))}
         </div>
 
         {/* Mobile carousel */}
         <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none">
-          {properties.map(property => {
-            const slug = generatePropertySlug(property)
-            const photo = getMainPhoto(property)
-            const price = formatPrice(property)
-            const operation = getOperationType(property)
-            const roofed = getRoofedArea(property)
-            const lot = getLotSurface(property)
-            const land = isLand(property)
-            const beds = property.suite_amount ?? property.room_amount
-            const baths = property.bathroom_amount
-            const typeName = translatePropertyType(property.type?.name)
-            const address = property.fake_address || property.address
-            const location = property.location?.short_location || property.location?.name || ''
-            const specs: string[] = []
-            if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
-            if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
-            if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
-            if (lot != null && lot > 0 && lot !== roofed) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
-            if (land && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
-
-            return (
-              <Link key={property.id} href={`/propiedades/${slug}`}
-                className="flex-shrink-0 snap-start"
-                style={{ width: '75vw', maxWidth: 320, borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', textDecoration: 'none' }}>
-                <div className="relative w-full bg-gray-100" style={{ aspectRatio: '16/10' }}>
-                  {photo ? (
-                    <Image src={photo} alt={property.publication_title || address} fill style={{ objectFit: 'cover' }} sizes="75vw" />
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', fontSize: 12 }}>Sin foto</div>
-                  )}
-                  {operation && (
-                    <span style={{ position: 'absolute', top: 8, left: 8, background: GREEN, color: '#fff', fontFamily: RALEWAY, fontWeight: 600, fontSize: 11, textTransform: 'uppercase', padding: '4px 8px', borderRadius: 6 }}>
-                      {operation}
-                    </span>
-                  )}
-                </div>
-                <div style={{ padding: 12 }}>
-                  <p style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 19, color: '#0a0a0a', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>{price}</p>
-                  {specs.length > 0 && <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#6b7280', margin: '0 0 4px' }}>{specs.join(' · ')}</p>}
-                  <p style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 13, color: '#0a0a0a', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{typeName}{typeName && address ? ' · ' : ''}{address}</p>
-                  <p style={{ fontFamily: RALEWAY, fontSize: 11, color: '#6b7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{location}</p>
-                </div>
-              </Link>
-            )
-          })}
+          {properties.map(p => renderCard(p, 'mobile'))}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 'clamp(24px, 2vw, 40px)' }}>
+        <div style={{ textAlign: 'center', marginTop: 'clamp(20px, 2vw, 32px)' }}>
           <Link
             href="/propiedades"
             style={{
@@ -795,21 +731,22 @@ export default async function Home() {
 
       <style>{`
         @media (hover: hover) {
-          .prop-card:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: #1A5C38 !important; }
-          .dev-card:hover { border-color: rgba(255,255,255,0.2) !important; }
-          .porque-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+          .prop-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+          .prop-card:hover .prop-card-img { transform: scale(1.05); }
+          .dev-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: #d1d5db !important; }
           .guia-mock:hover .guia-mock-frame { border-color: rgba(255,255,255,0.25); }
         }
+        .prop-card-img { transition: transform 400ms ease-out; }
         @media (max-width: 1024px) {
           .home-section { padding: 64px 32px !important; }
           .home-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+          .home-featured-grid { grid-template-columns: repeat(3, 1fr) !important; }
           .nosotros-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
           .guia-grid { flex-direction: column !important; }
         }
         @media (max-width: 640px) {
           .home-section { padding: 48px 24px !important; }
           .home-grid-3 { grid-template-columns: 1fr !important; gap: 16px !important; }
-          .prop-card { --card-ratio: 16/10; }
         }
       `}</style>
 
