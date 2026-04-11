@@ -165,15 +165,35 @@ export default async function PropertyPage({ params }: Props) {
   );
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`;
 
+  // ── Fetch all properties once (shared by similar + nearby) ──
+  let allProperties: TokkoProperty[] = [];
+  try {
+    const allData = await getProperties();
+    allProperties = allData.objects ?? [];
+  } catch (err) {
+    console.error('[property-detail] Error fetching all properties:', err instanceof Error ? err.message : err);
+  }
+
+  const distKm = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
+  const currentLng = property.geo_long ? parseFloat(property.geo_long) : null;
+  const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng);
+
   // ── Similar properties logic ──
   let similar: TokkoProperty[] = [];
   try {
-    const allData = await getProperties({ limit: 100 });
     const currentOp = property.operations?.[0]?.operation_type;
     const currentType = property.type?.name?.toLowerCase() ?? '';
     const currentPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0;
-    const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
-    const currentLng = property.geo_long ? parseFloat(property.geo_long) : null;
     const locStr = (property.location?.short_location ?? property.location?.name ?? property.fake_address ?? '').toLowerCase();
     const addrStr = (property.fake_address ?? property.address ?? '').toLowerCase();
     const allLocText = `${locStr} ${addrStr}`;
@@ -190,16 +210,7 @@ export default async function PropertyPage({ params }: Props) {
       }
     }
     const nearbyCities = currentCity ? (NEARBY[currentCity] ?? []) : [];
-    const distKm = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) ** 2 +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) ** 2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    };
-    const candidates = (allData.objects ?? []).filter(p => {
+    const candidates = allProperties.filter(p => {
       if (p.id === property!.id) return false;
       if (p.operations?.[0]?.operation_type !== currentOp) return false;
       if ((p.type?.name?.toLowerCase() ?? '') !== currentType) return false;
@@ -218,11 +229,11 @@ export default async function PropertyPage({ params }: Props) {
         if (ratio >= 0.7 && ratio <= 1.3) score += 3;
       }
       let dist = Infinity;
-      if (currentLat && currentLng && p.geo_lat && p.geo_long) {
+      if (hasCoords && p.geo_lat && p.geo_long) {
         const pLat = parseFloat(p.geo_lat);
         const pLng = parseFloat(p.geo_long);
         if (!isNaN(pLat) && !isNaN(pLng)) {
-          dist = distKm(currentLat, currentLng, pLat, pLng);
+          dist = distKm(currentLat!, currentLng!, pLat, pLng);
           if (dist < 2) score += 4;
           else if (dist < 5) score += 2;
           else if (dist < 15) score += 1;
@@ -232,38 +243,30 @@ export default async function PropertyPage({ params }: Props) {
     });
     scored.sort((a, b) => b.score !== a.score ? b.score - a.score : a.dist - b.dist);
     similar = scored.slice(0, 4).map(x => x.p);
-  } catch {}
+  } catch (err) {
+    console.error('[property-detail] Error computing similar properties:', err instanceof Error ? err.message : err);
+  }
 
-  // ── Nearby properties for map ──
+  // ── Nearby properties for map (reuses allProperties, no second fetch) ──
   const nearbyForMap: NearbyProperty[] = [];
-  try {
-    const propLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
-    const propLng = property.geo_long ? parseFloat(property.geo_long) : null;
-    if (propLat && propLng) {
-      const allData = await getProperties({ limit: 100 });
-      for (const p of allData.objects ?? []) {
-        if (p.id === property.id) continue;
-        if (!p.geo_lat || !p.geo_long) continue;
-        const pLat = parseFloat(p.geo_lat);
-        const pLng = parseFloat(p.geo_long);
-        if (isNaN(pLat) || isNaN(pLng)) continue;
-        const dLat = (pLat - propLat) * Math.PI / 180;
-        const dLon = (pLng - propLng) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) ** 2 +
-          Math.cos(propLat * Math.PI / 180) * Math.cos(pLat * Math.PI / 180) *
-          Math.sin(dLon / 2) ** 2;
-        const dist = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        if (dist <= 5) {
-          nearbyForMap.push({
-            id: p.id, lat: pLat, lng: pLng,
-            title: p.publication_title || p.address,
-            price: formatPrice(p),
-            slug: generatePropertySlug(p),
-          });
-        }
+  if (hasCoords) {
+    for (const p of allProperties) {
+      if (p.id === property.id) continue;
+      if (!p.geo_lat || !p.geo_long) continue;
+      const pLat = parseFloat(p.geo_lat);
+      const pLng = parseFloat(p.geo_long);
+      if (isNaN(pLat) || isNaN(pLng)) continue;
+      const dist = distKm(currentLat!, currentLng!, pLat, pLng);
+      if (dist <= 5) {
+        nearbyForMap.push({
+          id: p.id, lat: pLat, lng: pLng,
+          title: p.publication_title || p.address,
+          price: formatPrice(p),
+          slug: generatePropertySlug(p),
+        });
       }
     }
-  } catch {}
+  }
 
   // ── Spec items ──
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = [];

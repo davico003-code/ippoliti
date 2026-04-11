@@ -99,9 +99,13 @@ export default function SimilarProperties({ properties, currentPropertyId }: Pro
     return `https://wa.me/?text=${encodeURIComponent(msg)}`
   }, [compareUrl])
 
-  const copyCompareLink = () => {
+  const copyCompareLink = async () => {
     const fullUrl = `https://siinmobiliaria.com${compareUrl}`
-    navigator.clipboard.writeText(fullUrl)
+    try {
+      await navigator.clipboard.writeText(fullUrl)
+    } catch {
+      // Fallback for non-secure or denied contexts
+    }
     setLinkCopied(true)
     setTimeout(() => setLinkCopied(false), 2000)
   }
