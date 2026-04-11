@@ -49,6 +49,11 @@ export default function TasacionesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // Track submission
+    if (typeof window !== 'undefined') {
+      window.gtag?.('event', 'submit_tasacion', { method: 'whatsapp' })
+      window.fbq?.('track', 'Lead', { content_name: 'Tasación' })
+    }
     const lines = [
       'Hola! Quiero tasar mi propiedad', '',
       form.nombre && `Nombre: ${form.nombre}`,

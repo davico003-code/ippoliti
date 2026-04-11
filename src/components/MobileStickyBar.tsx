@@ -2,6 +2,7 @@
 
 import { MessageCircle, Phone } from 'lucide-react'
 import StoryPlate from './StoryPlate'
+import { events } from '@/lib/analytics'
 
 interface Props {
   whatsappUrl: string
@@ -48,6 +49,7 @@ export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => events.clickWhatsapp(undefined, title)}
           style={{ ...btnStyle, background: '#25D366', color: '#fff' }}
         >
           <MessageCircle className="w-[18px] h-[18px]" />
@@ -55,6 +57,7 @@ export default function MobileStickyBar({ whatsappUrl, slug, title, price, photo
         </a>
         <a
           href="tel:+5493412101694"
+          onClick={() => events.clickCall()}
           style={{ ...btnStyle, background: '#1A5C38', color: '#fff' }}
         >
           <Phone className="w-[18px] h-[18px]" />

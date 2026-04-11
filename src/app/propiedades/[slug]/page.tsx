@@ -15,6 +15,7 @@ import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyDescription from '@/components/PropertyDescription';
 import VisitWidget, { VisitMobileTrigger } from '@/components/VisitWidget';
 import BackButton from '@/components/BackButton';
+import PropertyViewTracker from '@/components/PropertyViewTracker';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
 import {
   getPropertyById,
@@ -296,6 +297,7 @@ export default async function PropertyPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <PropertyViewTracker propertyId={property.id} title={property.publication_title || property.address} price={price} />
 
       {/* ════════════════════════════════════════════
           MOBILE LAYOUT (md:hidden)
