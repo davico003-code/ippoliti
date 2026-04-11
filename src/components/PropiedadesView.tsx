@@ -150,19 +150,6 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
 
-  // Hide navbar on mobile for /propiedades
-  useEffect(() => {
-    const nav = document.querySelector('nav')
-    if (!nav) return
-    const mq = window.matchMedia('(max-width: 767px)')
-    const toggle = (e: MediaQueryListEvent | MediaQueryList) => {
-      nav.style.display = e.matches ? 'none' : ''
-    }
-    toggle(mq)
-    mq.addEventListener('change', toggle)
-    return () => { mq.removeEventListener('change', toggle); nav.style.display = '' }
-  }, [])
-
   // Persist listMode preference
   useEffect(() => {
     const saved = localStorage.getItem('si-list-mode') as ListMode | null
@@ -322,7 +309,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   ].filter(Boolean).length
 
   return (
-    <div className="h-[100dvh] md:h-[calc(100vh-64px)] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
+    <div className="h-[100dvh] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
       <h1 className="sr-only">Propiedades en venta y alquiler en Funes, Roldán y Rosario</h1>
 
       {/* ── Mobile Filter Bar ─────────────────────────────────────────────── */}
@@ -722,22 +709,22 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         </div>
       </div>
 
-      {/* ── Mobile Bottom Buttons — hidden when preview card is open ───── */}
+      {/* ── Mobile Bottom Buttons ───────────────────────────────────────── */}
       <div
-        className={`md:hidden fixed left-1/2 -translate-x-1/2 z-[9999] flex gap-2.5 transition-opacity duration-200 ${
+        className={`md:hidden fixed left-1/2 -translate-x-1/2 z-[9999] flex gap-3 transition-opacity duration-200 ${
           showBottomSheet ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', maxWidth: 280 }}
       >
         {mobileView === 'list' && (
           <button
             onClick={() => setMobileSortOpen(true)}
             className="inline-flex items-center gap-2 rounded-full"
             style={{
-              background: '#1A5C38', color: '#fff',
-              padding: '14px 22px', fontFamily: "'Raleway', system-ui, sans-serif",
-              fontSize: 14, fontWeight: 600, border: 'none', minHeight: 48,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+              background: '#111', color: '#fff',
+              padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif",
+              fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
             }}
           >
             <ArrowUpDown className="w-4 h-4" /> Ordenar
@@ -747,10 +734,10 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
           className="inline-flex items-center gap-2 rounded-full"
           style={{
-            background: '#1A5C38', color: '#fff',
-            padding: '14px 22px', fontFamily: "'Raleway', system-ui, sans-serif",
-            fontSize: 14, fontWeight: 600, border: 'none', minHeight: 48,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+            background: '#111', color: '#fff',
+            padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif",
+            fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
           }}
         >
           {mobileView === 'list' ? (

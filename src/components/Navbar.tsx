@@ -1,19 +1,24 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, X, MapPin } from 'lucide-react'
 
 export default function Navbar() {
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const hidden = pathname === '/propiedades'
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 480)
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
+
+  if (hidden) return null
 
   return (
     <>

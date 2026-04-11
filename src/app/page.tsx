@@ -1,6 +1,6 @@
 export const revalidate = 21600
 
-import { MapPin, Building2, BarChart3, GraduationCap, Handshake } from 'lucide-react'
+import { MapPin, Building2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
@@ -117,64 +117,33 @@ async function FeaturedPropertiesSection() {
 
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-4 pb-2 md:pt-10 md:pb-10">
-        {/* Eyebrow — desktop only */}
-        <p className="hidden md:block" style={{
-          fontFamily: RALEWAY, fontWeight: 600, textTransform: 'uppercase',
-          color: GREEN, letterSpacing: '0.2em', margin: '0 0 12px', fontSize: 12,
-        }}>
-          HOY EN SI INMOBILIARIA
-        </p>
-
-        {/* Title row — mobile has inline "Ver todas" link */}
-        <div className="flex items-end justify-between mb-1 md:mb-2">
-          <h2 style={{
-            fontFamily: RALEWAY, fontWeight: 700, color: '#0a0a0a',
-            lineHeight: 1.1, margin: 0,
-            fontSize: 'clamp(22px, 3.5vw, 42px)',
-          }}>
-            Propiedades destacadas
-          </h2>
-          <Link href="/propiedades" className="md:hidden flex-shrink-0 ml-3"
+      <div className="max-w-7xl mx-auto pl-4 pr-0 md:px-6 pt-4 pb-0 md:pt-10 md:pb-10">
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-3 md:mb-5 pr-4 md:pr-0">
+          <div>
+            <p className="hidden md:block" style={{ fontFamily: RALEWAY, fontWeight: 600, textTransform: 'uppercase', color: GREEN, letterSpacing: '0.2em', margin: '0 0 8px', fontSize: 12 }}>
+              HOY EN SI INMOBILIARIA
+            </p>
+            <h2 style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111', lineHeight: 1.1, margin: 0, fontSize: 'clamp(20px, 3vw, 36px)' }}>
+              Propiedades destacadas
+            </h2>
+            <p className="hidden md:block" style={{ fontFamily: RALEWAY, fontWeight: 400, color: '#6b7280', margin: '8px 0 0', fontSize: 15 }}>
+              Casas, departamentos y lotes en Funes, Roldán y Rosario
+            </p>
+          </div>
+          <Link href="/propiedades" className="flex-shrink-0 ml-3"
             style={{ fontFamily: RALEWAY, fontSize: 13, fontWeight: 600, color: GREEN, textDecoration: 'none', whiteSpace: 'nowrap' }}>
             Ver todas →
           </Link>
         </div>
 
-        {/* Subtitle */}
-        <p style={{
-          fontFamily: RALEWAY, fontWeight: 400, color: '#6b7280',
-          lineHeight: 1.5, margin: 0,
-          fontSize: 'clamp(13px, 1.3vw, 16px)', marginBottom: 'clamp(16px, 1.5vw, 24px)',
-        }}>
-          Casas, departamentos y lotes en Funes, Roldán y Rosario
-        </p>
-
-        {/* Desktop grid — 4 cols */}
-        <div className="home-featured-grid hidden md:grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-          {properties.map(p => renderCard(p, 'desktop'))}
-        </div>
-
-        {/* Mobile carousel */}
-        <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none">
+        {/* Single responsive carousel */}
+        <div className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory pb-4 pr-4 md:pr-0 scrollbar-none">
           {properties.map(p => renderCard(p, 'mobile'))}
         </div>
 
-        <div className="hidden md:block" style={{ textAlign: 'center', marginTop: 32 }}>
-          <Link
-            href="/propiedades"
-            style={{
-              display: 'inline-block',
-              border: `1px solid ${GREEN}`,
-              color: GREEN,
-              padding: '12px 32px',
-              borderRadius: 999,
-              fontFamily: RALEWAY,
-              fontSize: 14,
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
+        <div className="hidden md:block pr-4 md:pr-0" style={{ textAlign: 'center', marginTop: 24 }}>
+          <Link href="/propiedades" style={{ display: 'inline-block', border: `1px solid ${GREEN}`, color: GREEN, padding: '12px 32px', borderRadius: 999, fontFamily: RALEWAY, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
             Ver todas las propiedades →
           </Link>
         </div>
@@ -237,7 +206,7 @@ async function DevelopmentsSection() {
         {/* Mobile carousel — tall overlay cards */}
         <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none">
           {allDevItems.map(item => (
-            <Link key={item.id} href={item.href} className="flex-shrink-0 snap-start block relative overflow-hidden" style={{ width: '72vw', maxWidth: 280, aspectRatio: '4/5', borderRadius: 16, textDecoration: 'none' }}>
+            <Link key={item.id} href={item.href} className="flex-shrink-0 snap-start block relative overflow-hidden" style={{ width: 'calc(100vw - 48px)', maxWidth: 340, borderRadius: 16, textDecoration: 'none', height: 280 }}>
               {item.photo ? <Image src={item.photo} alt={item.name} fill className="object-cover" sizes="72vw" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {item.badge && (
@@ -574,65 +543,6 @@ function NosotrosHomeSection() {
   )
 }
 
-// ─── Conocé el mercado ───────────────────────────────────────────────────────
-
-const STATS = [
-  { num: '40+', label: 'Años en el mercado' },
-  { num: '+1.500', label: 'Propiedades vendidas' },
-  { num: '3', label: 'Ciudades de cobertura' },
-  { num: '200+', label: 'Propiedades activas' },
-]
-
-const BULLETS = [
-  { icon: BarChart3, text: 'Datos reales del mercado actualizados mensualmente' },
-  { icon: GraduationCap, text: 'Asesoramiento profesional con 40+ años de experiencia' },
-  { icon: Handshake, text: 'Acompañamiento integral de la operación de principio a fin' },
-]
-
-function ConoceElMercadoSection() {
-  return (
-    <section className="home-section" style={{ background: '#f9fafb', padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-12 pb-12 md:pt-20 md:pb-20">
-        <div className="nosotros-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'start' }}>
-          {/* Left */}
-          <div>
-            <h2 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 'clamp(22px, 2.5vw, 30px)', color: '#0a0a0a', lineHeight: 1.2, margin: '0 0 16px' }}>
-              Conocé el mercado inmobiliario de Funes, Roldán y Rosario
-            </h2>
-            <p style={{ fontFamily: RALEWAY, fontSize: 'clamp(14px, 1.3vw, 16px)', color: '#6b7280', lineHeight: 1.7, margin: '0 0 32px' }}>
-              Más de 40 años acompañando a familias y empresas en la zona oeste de Rosario.
-              Datos actualizados, asesoramiento profesional y la transparencia que tu próxima inversión merece.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {BULLETS.map((b, i) => (
-                <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <div style={{ width: 40, height: 40, background: '#e8f5ee', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <b.icon size={20} color={GREEN} />
-                  </div>
-                  <p style={{ fontFamily: RALEWAY, fontSize: 14, color: '#374151', lineHeight: 1.5, margin: 0 }}>{b.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right — stats grid */}
-          <div className="nos-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            {STATS.map(s => (
-              <div key={s.label} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, textAlign: 'center' }}>
-                <div style={{ fontFamily: POPPINS, fontSize: 36, fontWeight: 600, color: GREEN, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-                  {s.num}
-                </div>
-                <div style={{ marginTop: 6, fontFamily: RALEWAY, fontSize: 13, fontWeight: 500, color: '#6b7280' }}>
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 // ─── Metadata ────────────────────────────────────────────────────────────────
 
@@ -703,7 +613,6 @@ export default async function Home() {
       <DevelopmentsSection />
       <GuiaHomeSection />
       <NosotrosHomeSection />
-      <ConoceElMercadoSection />
     </>
   )
 }
