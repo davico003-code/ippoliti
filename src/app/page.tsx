@@ -39,7 +39,7 @@ async function FeaturedPropertiesSection() {
   }
   if (!properties || properties.length === 0) return null
 
-  const renderCard = (property: TokkoProperty, variant: 'desktop' | 'mobile') => {
+  const renderCard = (property: TokkoProperty) => {
     const slug = generatePropertySlug(property)
     const photo = getMainPhoto(property)
     const price = formatPrice(property)
@@ -56,58 +56,44 @@ async function FeaturedPropertiesSection() {
     if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
     if (land) { const lot = getLotSurface(property); if (lot != null && lot > 0) specs.push(`${lot.toLocaleString('es-AR')} m²`) }
 
-    const opBg = operation === 'Venta' ? GREEN : operation === 'Alquiler' ? '#2563eb' : '#7c3aed'
-
     return (
       <Link
         key={property.id}
         href={`/propiedades/${slug}`}
-        className={`prop-card block overflow-hidden ${variant === 'mobile' ? 'flex-shrink-0 snap-start' : ''}`}
+        className="prop-card block overflow-hidden flex-shrink-0 snap-start"
         style={{
-          borderRadius: 12,
+          borderRadius: 8,
+          border: '1px solid #e0e0e0',
           textDecoration: 'none',
-          ...(variant === 'mobile' ? { width: '78vw', maxWidth: 320 } : {}),
+          width: 'clamp(calc(85vw), 300px, 300px)',
         }}
       >
-        {/* Photo */}
-        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ aspectRatio: '4/3' }}>
+        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 180 }}>
           {photo ? (
             <Image src={photo} alt={property.publication_title || address} fill
-              className="object-cover prop-card-img" sizes={variant === 'mobile' ? '78vw' : '25vw'} />
+              className="object-cover prop-card-img" sizes="300px" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
           )}
           {operation && (
             <span style={{
-              position: 'absolute', top: 12, left: 12,
-              background: opBg, color: '#fff',
-              fontFamily: RALEWAY, fontWeight: 600, fontSize: 10,
-              textTransform: 'uppercase', letterSpacing: '0.05em',
-              padding: '4px 10px', borderRadius: 6,
+              position: 'absolute', top: 8, left: 8,
+              background: operation === 'Venta' ? '#E53E3E' : '#2563eb',
+              color: '#fff', fontFamily: RALEWAY, fontWeight: 700, fontSize: 11,
+              textTransform: 'uppercase', padding: '2px 8px', borderRadius: 4,
             }}>
               {operation}
             </span>
           )}
         </div>
-
-        {/* Info */}
         <div style={{ padding: 12 }}>
-          <p style={{
-            fontFamily: POPPINS, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-            color: '#0a0a0a', margin: '0 0 2px', lineHeight: 1.2,
-            fontSize: variant === 'mobile' ? 20 : 22,
-          }}>
+          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 18 }}>
             {price}
           </p>
           {specs.length > 0 && (
-            <p style={{ fontFamily: RALEWAY, fontSize: variant === 'mobile' ? 12 : 13, color: '#6b7280', margin: '0 0 4px' }}>
-              {specs.join(' · ')}
-            </p>
+            <p style={{ fontFamily: RALEWAY, fontSize: 13, color: '#1d1d1f', margin: '0 0 4px' }}>{specs.join(' · ')}</p>
           )}
-          <p style={{
-            fontFamily: RALEWAY, fontSize: variant === 'mobile' ? 12 : 13, color: '#9ca3af', margin: 0,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
+          <p style={{ fontFamily: RALEWAY, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {address}{location ? `, ${location}` : ''}
           </p>
         </div>
@@ -117,35 +103,21 @@ async function FeaturedPropertiesSection() {
 
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto pl-4 pr-0 md:px-6 pt-4 pb-0 md:pt-10 md:pb-10">
-        {/* Header row */}
-        <div className="flex items-center justify-between mb-3 md:mb-5 pr-4 md:pr-0">
-          <div>
-            <p className="hidden md:block" style={{ fontFamily: RALEWAY, fontWeight: 600, textTransform: 'uppercase', color: GREEN, letterSpacing: '0.2em', margin: '0 0 8px', fontSize: 12 }}>
-              HOY EN SI INMOBILIARIA
-            </p>
-            <h2 style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111', lineHeight: 1.1, margin: 0, fontSize: 'clamp(20px, 3vw, 36px)' }}>
-              Propiedades destacadas
-            </h2>
-            <p className="hidden md:block" style={{ fontFamily: RALEWAY, fontWeight: 400, color: '#6b7280', margin: '8px 0 0', fontSize: 15 }}>
-              Casas, departamentos y lotes en Funes, Roldán y Rosario
-            </p>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-2 md:pt-8 md:pb-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 style={{ fontFamily: RALEWAY, fontWeight: 700, color: '#1d1d1f', lineHeight: 1.2, margin: 0, fontSize: 22 }}>
+            Propiedades para vos
+          </h2>
           <Link href="/propiedades" className="flex-shrink-0 ml-3"
             style={{ fontFamily: RALEWAY, fontSize: 13, fontWeight: 600, color: GREEN, textDecoration: 'none', whiteSpace: 'nowrap' }}>
             Ver todas →
           </Link>
         </div>
 
-        {/* Single responsive carousel */}
-        <div className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory pb-4 pr-4 md:pr-0 scrollbar-none">
-          {properties.map(p => renderCard(p, 'mobile'))}
-        </div>
-
-        <div className="hidden md:block pr-4 md:pr-0" style={{ textAlign: 'center', marginTop: 24 }}>
-          <Link href="/propiedades" style={{ display: 'inline-block', border: `1px solid ${GREEN}`, color: GREEN, padding: '12px 32px', borderRadius: 999, fontFamily: RALEWAY, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
-            Ver todas las propiedades →
-          </Link>
+        {/* Carousel */}
+        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-3 scrollbar-none">
+          {properties.map(p => renderCard(p))}
         </div>
       </div>
     </section>
@@ -180,16 +152,16 @@ async function DevelopmentsSection() {
 
   return (
     <section className="home-section" style={{ background: '#f9fafb', padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-5 md:px-6 pt-4 pb-4 md:pt-16 md:pb-16">
-        <h2 style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#0a0a0a', lineHeight: 1.1, margin: 0, fontSize: 'clamp(24px, 3vw, 32px)', marginBottom: 'clamp(20px, 2vw, 32px)' }}>
-          Emprendimientos
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-4 md:pt-10 md:pb-10">
+        <h2 style={{ fontFamily: RALEWAY, fontWeight: 700, color: '#1d1d1f', lineHeight: 1.2, margin: '0 0 16px', fontSize: 22 }}>
+          Emprendimientos en la zona
         </h2>
 
         {/* Desktop grid */}
         <div className="home-grid-3 hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {allDevItems.map(item => (
-            <Link key={item.id} href={item.href} className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', textDecoration: 'none', transition: 'box-shadow 0.3s ease' }}>
-              <div style={{ position: 'relative', width: '100%', height: 180, background: '#f5f5f5' }}>
+            <Link key={item.id} href={item.href} className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, overflow: 'hidden', textDecoration: 'none', transition: 'box-shadow 0.3s ease' }}>
+              <div style={{ position: 'relative', width: '100%', height: 200, background: '#f5f5f5' }}>
                 {item.photo ? <Image src={item.photo} alt={item.name} fill style={{ objectFit: 'cover' }} sizes="33vw" /> : <div className="w-full h-full flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
               </div>
               <div style={{ padding: 16 }}>
@@ -206,7 +178,7 @@ async function DevelopmentsSection() {
         {/* Mobile carousel — tall overlay cards */}
         <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none">
           {allDevItems.map(item => (
-            <Link key={item.id} href={item.href} className="flex-shrink-0 snap-start block relative overflow-hidden" style={{ width: 'calc(100vw - 48px)', maxWidth: 340, borderRadius: 16, textDecoration: 'none', height: 280 }}>
+            <Link key={item.id} href={item.href} className="flex-shrink-0 snap-start block relative overflow-hidden" style={{ width: 'calc(90vw)', maxWidth: 360, borderRadius: 8, textDecoration: 'none', height: 280 }}>
               {item.photo ? <Image src={item.photo} alt={item.name} fill className="object-cover" sizes="72vw" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {item.badge && (
@@ -596,15 +568,14 @@ export default async function Home() {
         }
         .prop-card-img { transition: transform 400ms ease-out; }
         @media (max-width: 1024px) {
-          .home-section { padding: 64px 32px !important; }
+          .home-section { padding: 32px 24px !important; }
           .home-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
-          .home-featured-grid { grid-template-columns: repeat(3, 1fr) !important; }
-          .nosotros-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .nosotros-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
           .guia-grid { flex-direction: column !important; }
         }
         @media (max-width: 640px) {
-          .home-section { padding: 48px 24px !important; }
-          .home-grid-3 { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .home-section { padding: 24px 16px !important; }
+          .home-grid-3 { grid-template-columns: 1fr !important; gap: 12px !important; }
         }
       `}</style>
 

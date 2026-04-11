@@ -38,13 +38,13 @@ export default function HeroSearch() {
   }
 
   return (
-    <div ref={wrapperRef} className="relative mx-auto" style={{ maxWidth: 680 }}>
+    <div ref={wrapperRef} className="relative mx-auto" style={{ maxWidth: 560 }}>
       <form
         onSubmit={submit}
-        className="flex items-center h-14 bg-white rounded-full shadow-xl pl-6 pr-1.5"
-        style={{ transition: 'box-shadow 200ms' }}
+        className="flex items-center bg-white shadow-xl overflow-hidden"
+        style={{ height: 'clamp(48px, 5vw, 52px)', borderRadius: 8 }}
       >
-        <Search className="w-5 h-5 flex-shrink-0" style={{ color: '#374151' }} />
+        <Search className="w-5 h-5 flex-shrink-0 ml-4" style={{ color: '#374151' }} />
         <input
           type="text"
           value={query}
@@ -60,25 +60,17 @@ export default function HeroSearch() {
           aria-label="Buscar por barrio, ciudad o dirección"
           autoComplete="off"
           className="flex-1 min-w-0 border-none outline-none bg-transparent px-3 text-[#111] placeholder:text-[#9ca3af]"
-          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 17, fontWeight: 500 }}
+          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 16, fontWeight: 500 }}
         />
-        {/* Desktop: text button */}
         <button
           type="submit"
-          className="hidden md:flex flex-shrink-0 h-11 rounded-full px-6 text-white items-center border-none cursor-pointer"
-          style={{ background: '#1A5C38', fontFamily: 'Raleway, sans-serif', fontSize: 14, fontWeight: 600, transition: 'background 180ms' }}
+          className="flex-shrink-0 h-full flex items-center justify-center text-white border-none cursor-pointer"
+          style={{ background: '#1A5C38', fontFamily: 'Raleway, sans-serif', fontSize: 14, fontWeight: 700, padding: '0 24px', transition: 'background 180ms' }}
           onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
         >
-          Buscar
-        </button>
-        {/* Mobile: circular icon button */}
-        <button
-          type="submit"
-          className="md:hidden flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center border-none cursor-pointer"
-          style={{ background: '#1A5C38' }}
-        >
-          <ArrowRight className="w-5 h-5 text-white" />
+          <span className="hidden md:inline">Buscar</span>
+          <ArrowRight className="w-5 h-5 md:hidden" />
         </button>
       </form>
 
