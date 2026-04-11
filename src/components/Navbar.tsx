@@ -10,7 +10,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const hidden = pathname === '/propiedades'
+  const hidden = pathname.startsWith('/propiedades')
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 400)

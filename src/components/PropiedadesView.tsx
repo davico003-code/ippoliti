@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -115,6 +115,7 @@ function FilterSelect<T extends string>({
 
 export default function PropiedadesView({ properties }: { properties: TokkoProperty[] }) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const initialSearch = searchParams.get('q') ?? ''
 
   // Resolve zona from q param
@@ -672,7 +673,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                 {/* Mobile list */}
                 <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">
                   {visibleProperties.map(p => (
-                    <PropiedadCardGrid key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} variant="mobile" />
+                    <PropiedadCardGrid key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => router.push(`/propiedades/${generatePropertySlug(p)}`)} variant="mobile" />
                   ))}
                 </div>
               </>

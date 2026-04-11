@@ -65,7 +65,8 @@ async function FeaturedPropertiesSection() {
           borderRadius: 8,
           border: '1px solid #e0e0e0',
           textDecoration: 'none',
-          width: 'clamp(calc(85vw), 300px, 300px)',
+          width: 280,
+          minWidth: 280,
         }}
       >
         <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 180 }}>
@@ -314,91 +315,6 @@ function GuiaHomeSection() {
             </div>
           </div>
 
-          {/* Mock celular — desktop only */}
-          <Link
-            href="/guia-comprador"
-            className="guia-mock hidden md:flex"
-            style={{
-              flexShrink: 0,
-              width: 260,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textDecoration: 'none',
-            }}
-          >
-            <div
-              style={{
-                width: 220,
-                height: 440,
-                background: '#f9fafb',
-                borderRadius: 32,
-                border: '1px solid #e5e7eb',
-                padding: 18,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div
-                style={{
-                  width: 30,
-                  height: 30,
-                  background: GREEN,
-                  borderRadius: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  fontFamily: POPPINS,
-                  fontWeight: 700,
-                  fontSize: 12,
-                }}
-              >
-                SI
-              </div>
-              <div style={{ textAlign: 'center', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 12px' }}>
-                <p
-                  style={{
-                    fontFamily: RALEWAY,
-                    fontSize: 16,
-                    fontWeight: 600,
-                    color: '#0a0a0a',
-                    lineHeight: 1.3,
-                    margin: 0,
-                  }}
-                >
-                  Guía del<br />Comprador<br />
-                  <span style={{ fontSize: 12, fontWeight: 400, color: '#6b7280' }}>14 capítulos</span>
-                </p>
-              </div>
-              <div
-                style={{
-                  background: GREEN,
-                  color: '#fff',
-                  fontFamily: POPPINS,
-                  fontSize: 9,
-                  fontWeight: 600,
-                  padding: '6px 14px',
-                  borderRadius: 999,
-                }}
-              >
-                Leer →
-              </div>
-            </div>
-            <p
-              style={{
-                marginTop: 14,
-                fontFamily: RALEWAY,
-                fontSize: 11,
-                color: '#9ca3af',
-                textAlign: 'center',
-              }}
-            >
-              Clic para acceder →
-            </p>
-          </Link>
         </div>
       </div>
     </section>
