@@ -84,51 +84,6 @@ body {
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent-400 hover:bg-accent-500 text-white font-semibold rounded-lg transition-all duration-200;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-transparent border-2 border-navy-700 text-navy-700 hover:bg-navy-700 hover:text-white font-semibold rounded-lg transition-all duration-200;
-  }
-
-  .btn-outline-white {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-transparent border-2 border-white text-white hover:bg-white hover:text-navy-800 font-semibold rounded-lg transition-all duration-200;
-  }
-
-  .btn-brand {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-all duration-200;
-  }
-
-  .section-title {
-    @apply text-sm font-bold tracking-widest text-gold-500 uppercase mb-3;
-  }
-
-  .section-heading {
-    @apply text-3xl md:text-4xl lg:text-5xl font-bold text-navy-800 font-serif leading-tight;
-  }
-
-  .section-heading-white {
-    @apply text-3xl md:text-4xl lg:text-5xl font-bold text-white font-serif leading-tight;
-  }
-
-  .property-card {
-    @apply bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden group hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 flex flex-col h-full;
-  }
-
-  .input-field {
-    @apply block w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-200;
-  }
-
-  .badge-venta {
-    @apply px-3 py-1 text-xs font-bold rounded-full bg-navy-800 text-white uppercase tracking-wide;
-  }
-
-  .badge-alquiler {
-    @apply px-3 py-1 text-xs font-bold rounded-full bg-brand-600 text-white uppercase tracking-wide;
-  }
-}
 
 /* ── Leaflet popup customisation ─────────────────────────────────────────── */
 .ippoliti-popup .leaflet-popup-content-wrapper {
@@ -141,7 +96,7 @@ body {
 
 .ippoliti-popup .leaflet-popup-content {
   margin: 10px 20px 16px;
-  width: 260px !important;
+  width: 270px !important;
 }
 
 .ippoliti-popup .leaflet-popup-tip-container {
@@ -151,10 +106,6 @@ body {
 .ippoliti-popup .leaflet-popup-tip {
   background: white;
   box-shadow: none;
-}
-
-.ippoliti-popup .leaflet-popup-content {
-  width: 270px !important;
 }
 
 /* ── MarkerCluster overrides ─────────────────────────────────────────────── */
@@ -189,15 +140,11 @@ body {
   display: none;
 }
 
-/* Poppins for numeric content — global safety net */
-.font-numeric,
+/* Poppins for numeric content */
 .font-poppins,
-[class*="font-numeric"],
-[class*="font-poppins"],
 .stat-number,
-.price,
-.metric {
-  font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif !important;
+.price {
+  font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
 }
 
