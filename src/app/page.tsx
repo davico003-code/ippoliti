@@ -1,12 +1,11 @@
 export const revalidate = 21600
 
-import { MapPin, Building2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
+import EmprendimientosHome from '@/components/EmprendimientosHome'
 import {
   getFeaturedProperties,
-  getPropertyById,
   generatePropertySlug,
   getMainPhoto,
   formatPrice,
@@ -16,13 +15,6 @@ import {
   isLand,
   type TokkoProperty,
 } from '@/lib/tokko'
-import {
-  getDevelopments,
-  generateDevSlug,
-  getDevMainPhoto,
-  getConstructionStatus,
-  translateDevType,
-} from '@/lib/developments'
 
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
@@ -126,79 +118,6 @@ async function FeaturedPropertiesSection() {
   )
 }
 
-// ─── Developments Section ────────────────────────────────────────────────────
-
-async function DevelopmentsSection() {
-  const [devsRaw, hausingProp] = await Promise.all([
-    getDevelopments().catch(() => []),
-    getPropertyById(7875941).catch(() => null),
-  ])
-  let devs = devsRaw
-  if (devs.length === 0) return null
-  devs = devs.slice(0, 2)
-  const hausingPhoto = hausingProp ? getMainPhoto(hausingProp) : null
-
-  // All dev items (hausing + tokko devs) for rendering
-  const allDevItems = [
-    { id: 'hausing', name: 'Hausing — Casas de Diseño', photo: hausingPhoto, href: '/hausing', location: 'Funes', badge: 'CASAS PREMIUM', sub: 'Desde USD 380K' },
-    ...devs.map(dev => ({
-      id: String(dev.id),
-      name: dev.name,
-      photo: getDevMainPhoto(dev),
-      href: `/emprendimientos/${generateDevSlug(dev)}`,
-      location: dev.location?.name || dev.address || '',
-      badge: translateDevType(dev.type?.name || '') || getConstructionStatus(dev.construction_status) || '',
-      sub: dev.financing_details || '',
-    })),
-  ]
-
-  return (
-    <section className="home-section" style={{ background: '#f9fafb', padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-4 md:pt-10 md:pb-10">
-        <h2 style={{ fontFamily: RALEWAY, fontWeight: 700, color: '#1d1d1f', lineHeight: 1.2, margin: '0 0 16px', fontSize: 22 }}>
-          Emprendimientos en la zona
-        </h2>
-
-        {/* Desktop grid — overlay style */}
-        <div className="home-grid-3 hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-          {allDevItems.map(item => (
-            <Link key={item.id} href={item.href} className="dev-card block relative overflow-hidden" style={{ borderRadius: 12, textDecoration: 'none', height: 320, transition: 'box-shadow 0.3s ease' }}>
-              {item.photo ? <Image src={item.photo} alt={item.name} fill className="object-cover dev-card-img" sizes="33vw" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
-              {item.badge && (
-                <span className="absolute top-3 left-3" style={{ background: GREEN, color: '#fff', fontFamily: POPPINS, fontWeight: 700, fontSize: 10, textTransform: 'uppercase', padding: '4px 12px', borderRadius: 6, letterSpacing: '0.5px' }}>{item.badge}</span>
-              )}
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 style={{ fontFamily: RALEWAY, fontSize: 22, fontWeight: 700, color: '#fff', margin: '0 0 4px', lineHeight: 1.2 }}>{item.name}</h3>
-                <p style={{ fontFamily: POPPINS, fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={12} /> {item.location}</p>
-                {item.sub && <p style={{ fontFamily: POPPINS, fontSize: 13, color: 'rgba(255,255,255,0.7)', margin: '0 0 12px' }}>{item.sub}</p>}
-                <span style={{ fontFamily: POPPINS, fontSize: 13, fontWeight: 600, color: GREEN, background: '#fff', padding: '8px 18px', borderRadius: 999, display: 'inline-block' }}>Ver emprendimiento →</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Mobile carousel — tall overlay cards */}
-        <div className="md:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none">
-          {allDevItems.map(item => (
-            <Link key={item.id} href={item.href} className="flex-shrink-0 snap-start block relative overflow-hidden" style={{ width: 'calc(90vw)', maxWidth: 360, borderRadius: 8, textDecoration: 'none', height: 280 }}>
-              {item.photo ? <Image src={item.photo} alt={item.name} fill className="object-cover" sizes="72vw" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              {item.badge && (
-                <span className="absolute top-3 left-3" style={{ background: GREEN, color: '#fff', fontFamily: RALEWAY, fontWeight: 600, fontSize: 10, textTransform: 'uppercase', padding: '4px 10px', borderRadius: 6 }}>{item.badge}</span>
-              )}
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h3 style={{ fontFamily: RALEWAY, fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 4px', lineHeight: 1.2 }}>{item.name}</h3>
-                <p style={{ fontFamily: RALEWAY, fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: '0 0 12px' }}>{item.location}</p>
-                <span style={{ fontFamily: RALEWAY, fontSize: 13, fontWeight: 600, color: GREEN, background: '#fff', padding: '8px 16px', borderRadius: 999, display: 'inline-block' }}>Ver emprendimiento →</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 // ─── Guía Section ────────────────────────────────────────────────────────────
 
@@ -408,11 +327,9 @@ export default async function Home() {
         @media (hover: hover) {
           .prop-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.12); transform: scale(1.02); }
           .prop-card:hover .prop-card-img { transform: scale(1.05); }
-          .dev-card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
-          .dev-card:hover .dev-card-img { transform: scale(1.05); }
         }
-        .prop-card-img, .dev-card-img { transition: transform 400ms ease-out; }
-        .prop-card, .dev-card { transition: box-shadow 300ms, transform 300ms; }
+        .prop-card-img { transition: transform 400ms ease-out; }
+        .prop-card { transition: box-shadow 300ms, transform 300ms; }
         @media (max-width: 1024px) {
           .home-section { padding: 32px 24px !important; }
           .home-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
@@ -427,7 +344,7 @@ export default async function Home() {
 
       <HeroVideo />
       <FeaturedPropertiesSection />
-      <DevelopmentsSection />
+      <EmprendimientosHome />
       <GuiaHomeSection />
       <NosotrosHomeSection />
     </>
