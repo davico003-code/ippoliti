@@ -131,7 +131,7 @@ export default function OpenHousePopup() {
 
           {/* Partners */}
           <p style={{ marginTop: 16, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,0.55)', fontFamily: P, fontWeight: 300, lineHeight: 1.6 }}>
-            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>Hausing</span> construye · <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>SI · Crestale · SkyGarden</span> comercializan · <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>Morada · DeGuardia</span> decoran
+            <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>Hausing</span> construye · <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>Morada · DeGuardia</span> decoran
           </p>
         </div>
       </div>
