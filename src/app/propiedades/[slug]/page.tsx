@@ -73,6 +73,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: `${title} | SI Inmobiliaria`,
       description: desc,
+      alternates: { canonical: `https://siinmobiliaria.com/propiedades/${params.slug}` },
       openGraph: {
         title,
         description: ogDesc,
@@ -278,21 +279,54 @@ export default async function PropertyPage({ params }: Props) {
   if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: 'Cocheras', value: property.parking_lot_amount });
   if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface} m²` });
 
-  // JSON-LD
+  // JSON-LD — RealEstateListing + BreadcrumbList
   const mainPhotoUrl = getMainPhoto(property);
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: property.publication_title || property.address,
-    description,
-    image: mainPhotoUrl ? [mainPhotoUrl] : [],
-    offers: {
-      '@type': 'Offer',
-      price: property.operations?.[0]?.prices?.[0]?.price?.toString() ?? '0',
-      priceCurrency: property.operations?.[0]?.prices?.[0]?.currency ?? 'USD',
-      availability: 'https://schema.org/InStock',
+  const propPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0;
+  const propCurrency = property.operations?.[0]?.prices?.[0]?.currency ?? 'USD';
+  const propUrl = `https://siinmobiliaria.com/propiedades/${params.slug}`;
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'RealEstateListing',
+      name: property.publication_title || property.address,
+      description,
+      url: propUrl,
+      image: mainPhotoUrl ? [mainPhotoUrl] : [],
+      offers: {
+        '@type': 'Offer',
+        price: propPrice.toString(),
+        priceCurrency: propCurrency,
+        availability: 'https://schema.org/InStock',
+      },
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: property.real_address || property.fake_address || property.address,
+        addressLocality: property.location?.name || '',
+        addressRegion: 'Santa Fe',
+        addressCountry: 'AR',
+      },
+      ...(hasCoords ? {
+        geo: {
+          '@type': 'GeoCoordinates',
+          latitude: currentLat,
+          longitude: currentLng,
+        },
+      } : {}),
+      numberOfRooms: (property.suite_amount || property.room_amount || 0) + (property.bathroom_amount || 0),
+      numberOfBedrooms: property.suite_amount || property.room_amount || undefined,
+      numberOfBathroomsTotal: property.bathroom_amount || undefined,
+      floorSize: area ? { '@type': 'QuantitativeValue', value: area, unitCode: 'MTK' } : undefined,
     },
-  };
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://siinmobiliaria.com' },
+        { '@type': 'ListItem', position: 2, name: 'Propiedades', item: 'https://siinmobiliaria.com/propiedades' },
+        { '@type': 'ListItem', position: 3, name: property.publication_title || property.address, item: propUrl },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
