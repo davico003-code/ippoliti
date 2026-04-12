@@ -27,6 +27,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/terrenos-funes`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/casas-en-venta-roldan`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/terrenos-roldan`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/inmobiliaria-fisherton`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/casas-en-venta-fisherton`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
   ]
 
   let propertyRoutes: MetadataRoute.Sitemap = []
