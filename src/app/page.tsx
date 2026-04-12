@@ -97,17 +97,20 @@ async function FeaturedPropertiesSection() {
 
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-2 md:pt-8 md:pb-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 style={{ fontFamily: RALEWAY, fontWeight: 700, color: '#1d1d1f', lineHeight: 1.2, margin: 0, fontSize: 22 }}>
-            Propiedades para vos
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-8 pb-4 md:pt-10 md:pb-6">
+        {/* Header row */}
+        <div className="flex items-end justify-between">
+          <h2 className="text-2xl md:text-3xl tracking-tight" style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111827', lineHeight: 1.2, margin: 0 }}>
+            Nuestra selección
           </h2>
           <Link href="/propiedades" className="flex-shrink-0 ml-3"
-            style={{ fontFamily: RALEWAY, fontSize: 13, fontWeight: 600, color: GREEN, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            style={{ fontFamily: RALEWAY, fontSize: 14, fontWeight: 500, color: GREEN, textDecoration: 'none', whiteSpace: 'nowrap' }}>
             Ver todas →
           </Link>
         </div>
+        <p className="text-sm text-gray-500 mb-5 mt-1" style={{ fontFamily: RALEWAY }}>
+          Elegidas con criterio, no por algoritmo.
+        </p>
 
         {/* Carousel */}
         <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-3 scrollbar-none">

@@ -13,7 +13,7 @@ export default function Navbar() {
   const hidden = pathname.startsWith('/propiedades')
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 400)
+    const handler = () => setScrolled(window.scrollY > 80)
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
@@ -25,36 +25,41 @@ export default function Navbar() {
   return (
     <>
       {/* ── Desktop nav ── */}
-      <nav className="hidden md:block bg-white sticky top-0 z-40 w-full" style={{ borderBottom: '1px solid #e0e0e0' }}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between" style={{ height: 52 }}>
+      <nav className={`hidden md:block fixed top-0 left-0 right-0 z-40 transition-all duration-200 ${
+        scrolled ? 'bg-white/95 backdrop-blur-md border-b border-gray-100' : 'bg-transparent'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex-shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="SI Inmobiliaria" style={{ height: 36, width: 'auto' }} />
+              <Image
+                src="/logo-si.png"
+                alt="SI Inmobiliaria"
+                width={160}
+                height={28}
+                style={{ height: 32, width: 'auto', filter: scrolled ? 'brightness(0)' : 'none', transition: 'filter 0.2s' }}
+                priority
+              />
             </Link>
             <div className="flex items-center gap-5 flex-shrink-0">
-              <Link href="/propiedades?op=venta" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
-                Comprar
+              {[
+                { href: '/propiedades?op=venta', label: 'Comprar' },
+                { href: '/propiedades?op=alquiler', label: 'Alquilar' },
+                { href: '/tasaciones', label: 'Vender' },
+                { href: '/emprendimientos', label: 'Emprendimientos' },
+                { href: '/nosotros', label: 'Nosotros' },
+                { href: '/blog', label: 'Blog' },
+              ].map(item => (
+                <Link key={item.href} href={item.href}
+                  className="hover:text-[#1A5C38] transition-colors"
+                  style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: scrolled ? '#1d1d1f' : '#fff', textDecoration: 'none', letterSpacing: '0.3px' }}>
+                  {item.label}
+                </Link>
+              ))}
+              <Link href="/agentes"
+                className="hover:text-[#1A5C38] transition-colors"
+                style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: scrolled ? '#1d1d1f' : '#fff', textDecoration: 'none' }}>
+                Ingresar
               </Link>
-              <Link href="/propiedades?op=alquiler" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
-                Alquilar
-              </Link>
-              <Link href="/tasaciones" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
-                Vender
-              </Link>
-              <Link href="/emprendimientos" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
-                Emprendimientos
-              </Link>
-              <Link href="/nosotros" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
-                Nosotros
-              </Link>
-              <Link href="/blog" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
-                Blog
-              </Link>
-              <a href="/agentes/login" style={{ fontFamily: R, fontSize: 13, fontWeight: 700, padding: '6px 14px', borderRadius: 8, background: '#1A5C38', color: '#fff', textDecoration: 'none' }}
-                className="hover:bg-[#0f3d25] transition-colors">
-                Acceder
-              </a>
             </div>
           </div>
         </div>
@@ -63,34 +68,40 @@ export default function Navbar() {
       {/* ── Mobile nav ── */}
       <nav
         className={`md:hidden fixed top-0 left-0 right-0 z-40 transition-all duration-200 ${
-          scrolled ? 'bg-white' : 'bg-transparent'
+          scrolled ? 'bg-white/95 backdrop-blur-md border-b border-gray-100' : 'bg-transparent'
         }`}
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)', borderBottom: scrolled ? '1px solid #e0e0e0' : 'none' }}
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
-        <div className="flex items-center justify-between px-4 relative" style={{ height: 52 }}>
-          <button onClick={() => setIsOpen(!isOpen)} className="w-11 h-11 flex items-center justify-center" aria-label="Menú" aria-expanded={isOpen}>
-            {isOpen
-              ? <X className="w-6 h-6" style={{ color: scrolled ? '#1d1d1f' : '#fff' }} />
-              : <Menu className="w-6 h-6" style={{ color: scrolled ? '#1d1d1f' : '#fff' }} />}
-          </button>
-          <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            {scrolled ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src="/logo.png" alt="SI Inmobiliaria" style={{ height: 32, width: 'auto' }} />
-            ) : (
-              <Image src="/logo-blanco.png" alt="SI Inmobiliaria" width={140} height={36}
-                style={{ height: 32, width: 'auto' }} priority />
-            )}
+        <div className="flex items-center px-4 h-14">
+          {/* Left — hamburger */}
+          <div className="flex-1">
+            <button onClick={() => setIsOpen(!isOpen)} className="w-10 h-10 flex items-center justify-center" aria-label="Menú" aria-expanded={isOpen}>
+              {isOpen
+                ? <X className="w-6 h-6" style={{ color: scrolled ? '#1d1d1f' : '#fff' }} />
+                : <Menu className="w-6 h-6" style={{ color: scrolled ? '#1d1d1f' : '#fff' }} />}
+            </button>
+          </div>
+
+          {/* Center — logo */}
+          <Link href="/" className="flex-1 flex justify-center">
+            <Image
+              src="/logo-si.png"
+              alt="SI Inmobiliaria"
+              width={160}
+              height={28}
+              style={{ height: 28, width: 'auto', filter: scrolled ? 'brightness(0)' : 'none', transition: 'filter 0.2s' }}
+              priority
+            />
           </Link>
-          <a href="/agentes/login" className="text-[12px] font-bold transition-colors" style={{
-            fontFamily: R, padding: '5px 12px', borderRadius: 8,
-            background: scrolled ? '#fff' : 'rgba(255,255,255,0.15)',
-            border: scrolled ? '1px solid #e0e0e0' : '1px solid rgba(255,255,255,0.3)',
-            color: scrolled ? '#1A5C38' : '#fff', textDecoration: 'none',
-            backdropFilter: scrolled ? 'none' : 'blur(8px)',
-          }}>
-            Agentes
-          </a>
+
+          {/* Right — ingresar */}
+          <div className="flex-1 flex justify-end">
+            <Link href="/agentes"
+              className="transition-colors"
+              style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: scrolled ? '#1d1d1f' : '#fff', textDecoration: 'none' }}>
+              Ingresar
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -101,8 +112,8 @@ export default function Navbar() {
           <div className="absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl"
             style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)', animation: 'slideRight 200ms ease-out' }}>
             <div className="px-5 pb-4 mb-2 border-b border-gray-100 flex items-center justify-between">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="SI Inmobiliaria" style={{ height: 28, width: 'auto' }} />
+              <Image src="/logo-si.png" alt="SI Inmobiliaria" width={120} height={21}
+                style={{ height: 24, width: 'auto', filter: 'brightness(0)' }} />
               <button onClick={() => setIsOpen(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
                 <X className="w-4 h-4 text-gray-500" />
               </button>
@@ -123,10 +134,10 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ))}
-              <a href="/agentes/login" onClick={() => setIsOpen(false)}
+              <a href="/agentes" onClick={() => setIsOpen(false)}
                 className="flex items-center justify-center bg-[#1A5C38] text-white text-sm font-bold px-4 py-3 rounded-lg hover:bg-[#0f3d25] transition-colors mt-4"
                 style={{ fontFamily: R }}>
-                Acceder
+                Ingresar
               </a>
             </div>
           </div>
