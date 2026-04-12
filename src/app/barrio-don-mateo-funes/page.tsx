@@ -68,7 +68,7 @@ export default function BarrioDonMateoPage() {
                 En cuanto a inversión, Don Mateo tiene un potencial interesante. Al ser un barrio relativamente nuevo, los valores todavía están por debajo de los barrios más establecidos como Funes Hills o Kentucky. Pero el nivel de construcción y los amenities son equivalentes, lo que sugiere un recorrido alcista importante para los próximos años.
               </p>
               <p>
-                En SI Inmobiliaria tenemos propiedades en Don Mateo permanentemente. Si te interesa comprar o si ya vivís ahí y querés vender, nuestro equipo conoce el barrio en detalle. Hacemos tasaciones gratuitas y te acompañamos en todo el proceso de compraventa con la seriedad de más de 40 años en el mercado.
+                En SI Inmobiliaria tenemos propiedades en Don Mateo permanentemente. Si te interesa comprar o si ya vivís ahí y querés vender, nuestro equipo conoce el barrio en detalle. Hacemos tasaciones profesionales y te acompañamos en todo el proceso de compraventa con la seriedad de más de 40 años en el mercado.
               </p>
             </div>
           </div>

@@ -74,7 +74,7 @@ const faqJsonLd = {
 export const metadata: Metadata = {
   title: 'Inmobiliaria en Funes | Casas, Terrenos y Departamentos | SI Inmobiliaria',
   description:
-    'Inmobiliaria en Funes, Santa Fe. Venta y alquiler de casas, terrenos y departamentos en los mejores barrios: Funes Hills, Kentucky, Portal de Funes. +40 años de experiencia. Tasaciones gratis en 24hs.',
+    'Inmobiliaria en Funes, Santa Fe. Venta y alquiler de casas, terrenos y departamentos en los mejores barrios: Funes Hills, Kentucky, Portal de Funes. +40 años de experiencia. Tasaciones en 24hs.',
   keywords: 'inmobiliaria funes, casas en funes, terrenos en funes, propiedades funes, inmobiliaria funes santa fe, casas en venta funes, alquiler funes',
   openGraph: {
     title: 'Inmobiliaria en Funes | SI Inmobiliaria',
@@ -135,7 +135,7 @@ export default async function InmobiliariaFunesPage() {
               Ver propiedades en Funes
             </Link>
             <Link href="/tasaciones" className="px-8 py-4 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors">
-              Tasación gratuita
+              Solicitar tasación
             </Link>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default async function InmobiliariaFunesPage() {
               { num: properties.length + '+', label: 'Propiedades en Funes' },
               { num: '40+', label: 'Años de experiencia' },
               { num: '1.500+', label: 'Familias asesoradas' },
-              { num: '24hs', label: 'Tasación gratuita' },
+              { num: '24hs', label: 'Tasación express' },
             ].map(s => (
               <div key={s.label}>
                 <div className="text-3xl font-black text-[#1A5C38] font-numeric">{s.num}</div>
@@ -209,7 +209,7 @@ export default async function InmobiliariaFunesPage() {
               {[
                 'Venta de casas, departamentos y terrenos',
                 'Alquiler tradicional y temporario',
-                'Tasaciones profesionales gratuitas en 24 horas',
+                'Tasaciones profesionales en 24 horas',
                 'Asesoramiento legal con estudio jurídico propio',
                 'Gestión de créditos hipotecarios',
                 'Administración de propiedades y alquileres',
@@ -340,7 +340,7 @@ export default async function InmobiliariaFunesPage() {
             <Link href="/propiedades?operation=alquiler&location=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Alquiler en Funes</Link>
             <Link href="/inmobiliaria-roldan" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Inmobiliaria en Roldán</Link>
             <Link href="/guia-comprador" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Guía del comprador</Link>
-            <Link href="/tasaciones" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Tasaciones gratis</Link>
+            <Link href="/tasaciones" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Tasaciones profesionales</Link>
           </div>
         </div>
       </section>

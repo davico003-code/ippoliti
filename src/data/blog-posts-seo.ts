@@ -803,7 +803,7 @@ Cuándo NO necesitás un arquitecto
 
 Para refacciones menores como pintura, cambio de aberturas, renovación de baño o cocina sin modificar instalaciones, generalmente no necesitás un arquitecto. Un buen constructor o contratista de la zona puede hacer el trabajo.
 
-Tampoco necesitás un arquitecto para tasar tu propiedad — para eso estamos los corredores inmobiliarios matriculados. En SI Inmobiliaria hacemos tasaciones profesionales gratuitas basadas en comparación de mercado, que es el método más preciso para determinar el valor real de una propiedad en Roldán.
+Tampoco necesitás un arquitecto para tasar tu propiedad — para eso estamos los corredores inmobiliarios matriculados. En SI Inmobiliaria hacemos tasaciones profesionales basadas en comparación de mercado, que es el método más preciso para determinar el valor real de una propiedad en Roldán.
 
 Cómo elegir un buen arquitecto en la zona
 

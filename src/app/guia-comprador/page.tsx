@@ -198,7 +198,7 @@ Una tasación profesional se basa en comparables reales: operaciones efectivamen
 
 Los factores que definen el valor son: ubicación (barrio, manzana, orientación), superficie cubierta y del lote, antigüedad y estado de conservación, calidad constructiva, servicios disponibles, y el contexto del mercado.
 
-En SI Inmobiliaria realizamos tasaciones profesionales gratuitas con informe en 24 horas. No es solo un número: es un análisis del mercado con comparables reales, tendencias y recomendaciones.
+En SI Inmobiliaria realizamos tasaciones profesionales con informe en 24 horas. No es solo un número: es un análisis del mercado con comparables reales, tendencias y recomendaciones.
 
 Dato que no falla: si una propiedad tiene un precio significativamente menor al promedio de la zona, preguntá por qué. Puede ser una oportunidad genuina o puede haber un problema oculto.`,
   },
