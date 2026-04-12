@@ -20,7 +20,7 @@ import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import Analytics from "@/components/Analytics";
 import TawkTo from "@/components/TawkTo";
-import ExitPopup from "@/components/ExitPopup";
+import PopupManager from "@/components/PopupManager";
 import Clarity from "@/components/Clarity";
 import ScrollToTop from "@/components/ScrollToTop";
 
@@ -137,7 +137,7 @@ export default function RootLayout({
         <Footer />
         <FloatingWhatsApp />
         <ScrollToTop />
-        <ExitPopup />
+        <PopupManager />
         <Analytics />
         <Clarity />
         <TawkTo />
