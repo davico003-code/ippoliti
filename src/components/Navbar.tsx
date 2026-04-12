@@ -33,22 +33,22 @@ export default function Navbar() {
               <img src="/logo.png" alt="SI Inmobiliaria" style={{ height: 36, width: 'auto' }} />
             </Link>
             <div className="flex items-center gap-5 flex-shrink-0">
-              <Link href="/propiedades?op=venta" style={{ fontFamily: R, fontSize: 14, fontWeight: 700, color: '#1d1d1f', textDecoration: 'none' }} className="hover:text-[#1A5C38] transition-colors">
+              <Link href="/propiedades?op=venta" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
                 Comprar
               </Link>
-              <Link href="/propiedades?op=alquiler" style={{ fontFamily: R, fontSize: 14, fontWeight: 700, color: '#1d1d1f', textDecoration: 'none' }} className="hover:text-[#1A5C38] transition-colors">
+              <Link href="/propiedades?op=alquiler" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
                 Alquilar
               </Link>
-              <Link href="/tasaciones" style={{ fontFamily: R, fontSize: 14, fontWeight: 700, color: '#1d1d1f', textDecoration: 'none' }} className="hover:text-[#1A5C38] transition-colors">
+              <Link href="/tasaciones" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
                 Vender
               </Link>
-              <Link href="/emprendimientos" style={{ fontFamily: R, fontSize: 14, fontWeight: 700, color: '#1d1d1f', textDecoration: 'none' }} className="hover:text-[#1A5C38] transition-colors">
+              <Link href="/emprendimientos" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
                 Emprendimientos
               </Link>
-              <Link href="/nosotros" style={{ fontFamily: R, fontSize: 14, fontWeight: 700, color: '#1d1d1f', textDecoration: 'none' }} className="hover:text-[#1A5C38] transition-colors">
+              <Link href="/nosotros" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
                 Nosotros
               </Link>
-              <Link href="/blog" style={{ fontFamily: R, fontSize: 14, fontWeight: 700, color: '#1d1d1f', textDecoration: 'none' }} className="hover:text-[#1A5C38] transition-colors">
+              <Link href="/blog" style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#1d1d1f', textDecoration: 'none', letterSpacing: '0.3px' }} className="hover:text-[#1A5C38] transition-colors">
                 Blog
               </Link>
               <a href="/agentes/login" style={{ fontFamily: R, fontSize: 13, fontWeight: 700, padding: '6px 14px', borderRadius: 8, background: '#1A5C38', color: '#fff', textDecoration: 'none' }}

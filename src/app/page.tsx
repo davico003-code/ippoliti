@@ -62,39 +62,40 @@ async function FeaturedPropertiesSection() {
         href={`/propiedades/${slug}`}
         className="prop-card block overflow-hidden flex-shrink-0 snap-start"
         style={{
-          borderRadius: 8,
-          border: '1px solid #e0e0e0',
+          borderRadius: 12,
+          border: '1px solid #e8e8e8',
           textDecoration: 'none',
-          width: 280,
+          width: 'clamp(280px, 85vw, 340px)',
           minWidth: 280,
+          transition: 'box-shadow 300ms, transform 300ms',
         }}
       >
-        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 180 }}>
+        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 220 }}>
           {photo ? (
             <Image src={photo} alt={property.publication_title || address} fill
-              className="object-cover prop-card-img" sizes="300px" />
+              className="object-cover prop-card-img" sizes="340px" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
           )}
           {operation && (
             <span style={{
-              position: 'absolute', top: 8, left: 8,
+              position: 'absolute', top: 10, left: 10,
               background: operation === 'Venta' ? '#E53E3E' : '#2563eb',
-              color: '#fff', fontFamily: RALEWAY, fontWeight: 700, fontSize: 11,
-              textTransform: 'uppercase', padding: '2px 8px', borderRadius: 4,
+              color: '#fff', fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
+              textTransform: 'uppercase', padding: '3px 10px', borderRadius: 6,
             }}>
               {operation}
             </span>
           )}
         </div>
-        <div style={{ padding: 12 }}>
-          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 18 }}>
+        <div style={{ padding: 14 }}>
+          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 20 }}>
             {price}
           </p>
           {specs.length > 0 && (
-            <p style={{ fontFamily: RALEWAY, fontSize: 13, color: '#1d1d1f', margin: '0 0 4px' }}>{specs.join(' · ')}</p>
+            <p style={{ fontFamily: POPPINS, fontSize: 14, fontWeight: 500, color: '#1d1d1f', margin: '0 0 4px' }}>{specs.join(' · ')}</p>
           )}
-          <p style={{ fontFamily: RALEWAY, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {address}{location ? `, ${location}` : ''}
           </p>
         </div>
@@ -158,19 +159,20 @@ async function DevelopmentsSection() {
           Emprendimientos en la zona
         </h2>
 
-        {/* Desktop grid */}
+        {/* Desktop grid — overlay style */}
         <div className="home-grid-3 hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {allDevItems.map(item => (
-            <Link key={item.id} href={item.href} className="dev-card" style={{ display: 'block', background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, overflow: 'hidden', textDecoration: 'none', transition: 'box-shadow 0.3s ease' }}>
-              <div style={{ position: 'relative', width: '100%', height: 200, background: '#f5f5f5' }}>
-                {item.photo ? <Image src={item.photo} alt={item.name} fill style={{ objectFit: 'cover' }} sizes="33vw" /> : <div className="w-full h-full flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
-              </div>
-              <div style={{ padding: 16 }}>
-                {item.badge && <span style={{ display: 'inline-block', background: 'rgba(26,92,56,0.1)', color: GREEN, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20, marginBottom: 10, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{item.badge}</span>}
-                <h3 style={{ fontFamily: RALEWAY, fontSize: 16, fontWeight: 700, color: '#0a0a0a', margin: '0 0 4px' }}>{item.name}</h3>
-                <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#6b7280', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={10} /> {item.location}</p>
-                {item.sub && <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#374151', margin: '0 0 12px' }}>{item.sub}</p>}
-                <span style={{ color: GREEN, fontSize: 12, fontWeight: 600, fontFamily: RALEWAY }}>Ver emprendimiento →</span>
+            <Link key={item.id} href={item.href} className="dev-card block relative overflow-hidden" style={{ borderRadius: 12, textDecoration: 'none', height: 320, transition: 'box-shadow 0.3s ease' }}>
+              {item.photo ? <Image src={item.photo} alt={item.name} fill className="object-cover dev-card-img" sizes="33vw" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Building2 size={40} color="#ccc" /></div>}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+              {item.badge && (
+                <span className="absolute top-3 left-3" style={{ background: GREEN, color: '#fff', fontFamily: POPPINS, fontWeight: 700, fontSize: 10, textTransform: 'uppercase', padding: '4px 12px', borderRadius: 6, letterSpacing: '0.5px' }}>{item.badge}</span>
+              )}
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <h3 style={{ fontFamily: RALEWAY, fontSize: 22, fontWeight: 700, color: '#fff', margin: '0 0 4px', lineHeight: 1.2 }}>{item.name}</h3>
+                <p style={{ fontFamily: POPPINS, fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={12} /> {item.location}</p>
+                {item.sub && <p style={{ fontFamily: POPPINS, fontSize: 13, color: 'rgba(255,255,255,0.7)', margin: '0 0 12px' }}>{item.sub}</p>}
+                <span style={{ fontFamily: POPPINS, fontSize: 13, fontWeight: 600, color: GREEN, background: '#fff', padding: '8px 18px', borderRadius: 999, display: 'inline-block' }}>Ver emprendimiento →</span>
               </div>
             </Link>
           ))}
@@ -202,119 +204,46 @@ async function DevelopmentsSection() {
 
 function GuiaHomeSection() {
   return (
-    <section
-      className="home-px home-section !py-6 md:!py-16"
-      style={{
-        background: '#ffffff',
-        borderTop: '1px solid #f3f4f6',
-      }}
-    >
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div className="guia-grid" style={{ display: 'flex', gap: 56, alignItems: 'center' }}>
-          <div style={{ flex: 1 }}>
-            <p
-              style={{
-                fontFamily: RALEWAY,
-                fontSize: 11,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: GREEN,
-                fontWeight: 600,
-                margin: '0 0 16px',
-              }}
-            >
-              GUÍA GRATUITA · 14 CAPÍTULOS
-            </p>
-            <h2
-              style={{
-                fontFamily: RALEWAY,
-                fontSize: 'clamp(28px, 3.5vw, 40px)',
-                fontWeight: 700,
-                color: '#0a0a0a',
-                lineHeight: 1.1,
-                letterSpacing: '-0.5px',
-                margin: '0 0 16px',
-              }}
-            >
-              Comprá con <em style={{ fontStyle: 'italic', color: GREEN }}>inteligencia,</em>
-              <br />
-              no con suerte.
-            </h2>
-            <p
-              style={{
-                fontFamily: RALEWAY,
-                fontSize: 14,
-                color: '#6b7280',
-                lineHeight: 1.7,
-                maxWidth: 400,
-                margin: '0 0 28px',
-              }}
-            >
-              Todo lo que nadie te cuenta sobre comprar una propiedad en Funes y Roldán. Sin filtros,
-              sin letra chica, sin tiempo perdido.
-            </p>
-            <div
-              style={{
-                borderTop: '1px solid #f3f4f6',
-                borderBottom: '1px solid #f3f4f6',
-                margin: '0 0 28px',
-              }}
-            >
-              {[
-                { n: '01', t: 'Documentación, gastos ocultos y casos reales' },
-                { n: '02', t: 'Todo lo que nadie te cuenta del mercado local' },
-                { n: '03', t: 'Cómo negociar con criterio y sin ansiedad' },
-              ].map((item, i) => (
-                <div
-                  key={item.n}
-                  style={{
-                    display: 'flex',
-                    gap: 16,
-                    padding: '14px 0',
-                    borderTop: i > 0 ? '1px solid #f3f4f6' : 'none',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: POPPINS,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: GREEN,
-                      minWidth: 24,
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {item.n}
-                  </span>
-                  <span style={{ fontFamily: RALEWAY, fontSize: 13, color: '#374151' }}>
-                    {item.t}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-              <Link
-                href="/guia-comprador"
-                style={{
-                  display: 'inline-block',
-                  background: GREEN,
-                  color: '#fff',
-                  padding: '13px 28px',
-                  borderRadius: 999,
-                  fontFamily: POPPINS,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                }}
-              >
-                Leer la guía →
-              </Link>
-              <span style={{ fontFamily: RALEWAY, fontSize: 11, color: '#9ca3af' }}>
-                Acceso permanente · Sin registro
-              </span>
-            </div>
-          </div>
+    <section style={{ background: '#f9fafb', borderTop: '1px solid #f0f0f0' }}>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <div className="max-w-2xl">
+          <p style={{ fontFamily: POPPINS, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: GREEN, fontWeight: 600, margin: '0 0 12px' }}>
+            GUÍA GRATUITA · 14 CAPÍTULOS
+          </p>
+          <h2 style={{ fontFamily: RALEWAY, fontSize: 'clamp(26px, 3vw, 36px)', fontWeight: 700, color: '#1d1d1f', lineHeight: 1.15, margin: '0 0 12px' }}>
+            Comprá con <em style={{ fontStyle: 'italic', color: GREEN }}>inteligencia,</em> no con suerte.
+          </h2>
+          <p style={{ fontFamily: POPPINS, fontSize: 15, color: '#6b7280', lineHeight: 1.7, margin: '0 0 24px' }}>
+            Todo lo que necesitás saber antes de comprar en Funes y Roldán. Sin letra chica, sin tiempo perdido.
+          </p>
+        </div>
 
+        {/* Chapters grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {[
+            { n: '01', t: 'Documentación y gastos ocultos', d: 'Escritura, impuestos, comisiones y todo lo que nadie te avisa.' },
+            { n: '02', t: 'El mercado local al detalle', d: 'Precios reales, tendencias y zonas con mejor proyección.' },
+            { n: '03', t: 'Negociar sin perder dinero', d: 'Estrategias probadas para cerrar al mejor precio.' },
+          ].map(item => (
+            <div key={item.n} style={{ background: '#fff', borderRadius: 12, padding: 20, border: '1px solid #e8e8e8' }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 28, fontWeight: 800, color: GREEN, lineHeight: 1, display: 'block', marginBottom: 8, fontVariantNumeric: 'tabular-nums' }}>{item.n}</span>
+              <h3 style={{ fontFamily: RALEWAY, fontSize: 16, fontWeight: 700, color: '#1d1d1f', margin: '0 0 6px' }}>{item.t}</h3>
+              <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#6b7280', lineHeight: 1.5, margin: 0 }}>{item.d}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <Link href="/guia-comprador" style={{
+            display: 'inline-block', background: GREEN, color: '#fff',
+            padding: '14px 32px', borderRadius: 12, fontFamily: POPPINS,
+            fontSize: 15, fontWeight: 700, textDecoration: 'none',
+          }}>
+            Leer la guía — Es gratis →
+          </Link>
+          <span style={{ fontFamily: POPPINS, fontSize: 12, color: '#9ca3af' }}>
+            Sin registro · Acceso inmediato · 14 capítulos
+          </span>
         </div>
       </div>
     </section>
@@ -477,12 +406,13 @@ export default async function Home() {
 
       <style>{`
         @media (hover: hover) {
-          .prop-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+          .prop-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.12); transform: scale(1.02); }
           .prop-card:hover .prop-card-img { transform: scale(1.05); }
-          .dev-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: #d1d5db !important; }
-          .guia-mock:hover .guia-mock-frame { border-color: rgba(255,255,255,0.25); }
+          .dev-card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
+          .dev-card:hover .dev-card-img { transform: scale(1.05); }
         }
-        .prop-card-img { transition: transform 400ms ease-out; }
+        .prop-card-img, .dev-card-img { transition: transform 400ms ease-out; }
+        .prop-card, .dev-card { transition: box-shadow 300ms, transform 300ms; }
         @media (max-width: 1024px) {
           .home-section { padding: 32px 24px !important; }
           .home-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
