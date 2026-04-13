@@ -162,6 +162,17 @@ export default async function PropertyPage({ params }: Props) {
   const blueprints = getBlueprintPhotos(property);
   const files = (property.files || []).filter(f => f.file);
 
+  // ── Resolve real neighborhood from address vs divisions ──
+  // Sort longest-first so "Funes Town" matches before "Funes", then use
+  // word-boundary regex so "Centro" doesn't match inside "Centronorte".
+  const addrText = property.fake_address || property.address || '';
+  const sortedDivisions = [...(property.location?.divisions ?? [])]
+    .sort((a, b) => b.name.length - a.name.length);
+  const neighborhood = sortedDivisions.find(d => {
+    const escaped = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`\\b${escaped}\\b`, 'i').test(addrText);
+  })?.name;
+
   const whatsappMsg = encodeURIComponent(
     `Hola! Me interesa esta propiedad:\n\n*${property.publication_title || property.address}*\n📍 ${property.fake_address || property.address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${params.slug}`
   );
@@ -829,7 +840,7 @@ export default async function PropertyPage({ params }: Props) {
                     lotSurface={lotSurface}
                     parking={property.parking_lot_amount}
                     city={property.location?.name}
-                    neighborhood={property.location?.divisions?.[0]?.name}
+                    neighborhood={neighborhood}
                   />
                 </div>
 
@@ -875,7 +886,7 @@ export default async function PropertyPage({ params }: Props) {
         lotSurface={lotSurface}
         parking={property.parking_lot_amount}
         city={property.location?.name}
-        neighborhood={property.location?.divisions?.[0]?.name}
+        neighborhood={neighborhood}
       />
     </div>
   );

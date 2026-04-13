@@ -81,12 +81,12 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
 
     // ── Title sizing ──
     const et = buildEditorialTitle(propertyType || title, rooms, neighborhood || null, city || '')
-    ctx.font = '500 82px Raleway, system-ui, sans-serif'
+    ctx.font = '700 82px Raleway, system-ui, sans-serif'
     let tSz: number, pSz: number, sSz: number, tMB: number, tLines: string[]
     if (ctx.measureText(et).width <= cw) { tSz = 82; pSz = 96; sSz = 38; tMB = 42; tLines = [et] }
-    else { ctx.font = '500 68px Raleway, system-ui, sans-serif'; const w2 = wrap(ctx, et, cw)
+    else { ctx.font = '700 68px Raleway, system-ui, sans-serif'; const w2 = wrap(ctx, et, cw)
       if (w2.length <= 2) { tSz = 68; pSz = 78; sSz = 32; tMB = 32; tLines = w2.slice(0, 2) }
-      else { ctx.font = '500 58px Raleway, system-ui, sans-serif'; tSz = 58; pSz = 68; sSz = 28; tMB = 28; tLines = wrap(ctx, et, cw).slice(0, 2) }
+      else { ctx.font = '700 58px Raleway, system-ui, sans-serif'; tSz = 58; pSz = 68; sSz = 28; tMB = 28; tLines = wrap(ctx, et, cw).slice(0, 2) }
     }
 
     // ── Specs ──
@@ -124,7 +124,7 @@ export default function StoryPlate({ title, price, photo, operation, propertyTyp
     cy += pillH + pillMB
 
     // Title
-    ctx.fillStyle = '#fff'; ctx.font = `500 ${tSz}px Raleway, system-ui, sans-serif`
+    ctx.fillStyle = '#fff'; ctx.font = `700 ${tSz}px Raleway, system-ui, sans-serif`
     ctx.shadowColor = 'rgba(0,0,0,0.65)'; ctx.shadowBlur = 42; ctx.shadowOffsetY = 6
     for (const ln of tLines) { ctx.fillText(ln, px, cy); cy += Math.round(tSz * 1.1) }
     ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; cy += tMB
