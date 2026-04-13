@@ -1,0 +1,15 @@
+export const PRICE_OPTIONS = [
+  { value: 'sin-limite', label: 'Sin límite' },
+  { value: '50000', label: 'U$S 50K' },
+  { value: '100000', label: 'U$S 100K' },
+  { value: '150000', label: 'U$S 150K' },
+  { value: '200000', label: 'U$S 200K' },
+  { value: '250000', label: 'U$S 250K' },
+  { value: '300000', label: 'U$S 300K' },
+  { value: '350000', label: 'U$S 350K' },
+  { value: '400000', label: 'U$S 400K' },
+  { value: '450000', label: 'U$S 450K' },
+  { value: '500000', label: 'U$S 500K' },
+  { value: '600000', label: 'U$S 600K' },
+  { value: '700000', label: 'U$S 700K+' },
+]

@@ -351,6 +351,15 @@ function LocateButton() {
 
 function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => void }) {
   const map = useMap()
+
+  // Listen for external refresh trigger (from bottom refresh button)
+  useEffect(() => {
+    const handler = () => onSearch(map.getBounds())
+    window.addEventListener('si-refresh-bounds', handler)
+    return () => window.removeEventListener('si-refresh-bounds', handler)
+  }, [map, onSearch])
+
+  // Desktop-only: show "Buscar en esta zona" button on map move
   const [visible, setVisible] = useState(false)
   const initial = useRef(true)
 
@@ -366,7 +375,7 @@ function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => 
   if (!visible) return null
 
   return (
-    <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
+    <div className="hidden md:block" style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
       <button
         onClick={() => { onSearch(map.getBounds()); setVisible(false) }}
         style={{

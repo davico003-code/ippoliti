@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
+import { PRICE_OPTIONS } from '@/constants/filters'
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
@@ -38,13 +39,6 @@ const BEDS_OPTIONS = [
   { value: '4+', label: '4+' },
 ]
 
-const PRICE_OPTIONS = [
-  { value: 'sin-limite', label: 'Sin límite' },
-  { value: '50000', label: 'USD 50k' },
-  { value: '100000', label: 'USD 100k' },
-  { value: '200000', label: 'USD 200k' },
-  { value: '500000', label: 'USD 500k' },
-]
 
 const LOCATION_OPTIONS = [
   { value: 'todos', label: 'Todas' },

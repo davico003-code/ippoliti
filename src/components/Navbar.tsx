@@ -36,7 +36,8 @@ export default function Navbar() {
                 alt="SI Inmobiliaria"
                 width={160}
                 height={28}
-                style={{ height: 32, width: 'auto', filter: scrolled ? 'brightness(0)' : 'none', transition: 'filter 0.2s' }}
+                className="object-contain"
+                style={{ filter: scrolled ? 'brightness(0)' : 'none', transition: 'filter 0.2s' }}
                 priority
               />
             </Link>
@@ -83,13 +84,14 @@ export default function Navbar() {
           </div>
 
           {/* Center — logo */}
-          <Link href="/" className="flex-1 flex justify-center">
+          <Link href="/" className="flex justify-center">
             <Image
               src="/logo-si.png"
               alt="SI Inmobiliaria"
-              width={160}
-              height={28}
-              style={{ height: 28, width: 'auto', filter: scrolled ? 'brightness(0)' : 'none', transition: 'filter 0.2s' }}
+              width={137}
+              height={24}
+              className="object-contain"
+              style={{ filter: scrolled ? 'brightness(0)' : 'none', transition: 'filter 0.2s' }}
               priority
             />
           </Link>

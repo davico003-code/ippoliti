@@ -52,14 +52,13 @@ async function FeaturedPropertiesSection() {
       <Link
         key={property.id}
         href={`/propiedades/${slug}`}
-        className="prop-card block overflow-hidden flex-shrink-0 snap-start"
+        className="prop-card block overflow-hidden flex-shrink-0 snap-start rounded-xl bg-white border-0"
         style={{
-          borderRadius: 16,
           textDecoration: 'none',
           width: 'clamp(280px, 85vw, 340px)',
           minWidth: 280,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          transition: 'box-shadow 200ms, transform 300ms',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
+          transition: 'box-shadow 200ms',
         }}
       >
         <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 220 }}>
@@ -97,24 +96,39 @@ async function FeaturedPropertiesSection() {
 
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-8 pb-4 md:pt-10 md:pb-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-4 md:pt-8 md:pb-6">
         {/* Header row */}
         <div className="flex items-end justify-between">
           <h2 className="text-2xl md:text-3xl tracking-tight" style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111827', lineHeight: 1.2, margin: 0 }}>
             Nuestra selección
           </h2>
-          <Link href="/propiedades" className="flex-shrink-0 ml-3"
-            style={{ fontFamily: RALEWAY, fontSize: 14, fontWeight: 500, color: GREEN, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            Ver todas →
-          </Link>
         </div>
-        <p className="text-sm text-gray-500 mb-5 mt-1" style={{ fontFamily: RALEWAY }}>
+        <p className="text-sm text-gray-500 mb-4 mt-1" style={{ fontFamily: RALEWAY }}>
           Elegidas con criterio, no por algoritmo.
         </p>
 
         {/* Carousel */}
-        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-3 scrollbar-none">
-          {properties.map(p => renderCard(p))}
+        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-1 py-2 pb-3 scrollbar-none" style={{ overflowY: 'visible' }}>
+          {properties.map((p, i) => (
+            <>
+              {renderCard(p)}
+              {i === 0 && (
+                <Link
+                  key="ver-todas"
+                  href="/propiedades"
+                  className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
+                  style={{
+                    fontFamily: RALEWAY,
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  Ver todas →
+                </Link>
+              )}
+            </>
+          ))}
         </div>
       </div>
     </section>
@@ -328,7 +342,7 @@ export default async function Home() {
 
       <style>{`
         @media (hover: hover) {
-          .prop-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+          .prop-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.08) !important; }
           .prop-card:hover .prop-card-img { transform: scale(1.05); }
         }
         .prop-card-img { transition: transform 400ms ease-out; }
