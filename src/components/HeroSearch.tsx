@@ -38,11 +38,11 @@ export default function HeroSearch() {
   }
 
   return (
-    <div ref={wrapperRef} className="relative mx-auto" style={{ maxWidth: 560 }}>
+    <div ref={wrapperRef} className="relative mx-auto" style={{ maxWidth: 620 }}>
       <form
         onSubmit={submit}
         className="flex items-center bg-white shadow-xl overflow-hidden"
-        style={{ height: 'clamp(48px, 5vw, 52px)', borderRadius: 8 }}
+        style={{ height: 'clamp(52px, 6vw, 60px)', borderRadius: 12 }}
       >
         <Search className="w-5 h-5 flex-shrink-0 ml-4" style={{ color: '#374151' }} />
         <input
@@ -60,7 +60,7 @@ export default function HeroSearch() {
           aria-label="Buscar por barrio, ciudad o dirección"
           autoComplete="off"
           className="flex-1 min-w-0 border-none outline-none bg-transparent px-3 text-[#111] placeholder:text-[#9ca3af]"
-          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 16, fontWeight: 500 }}
+          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 'clamp(15px, 2vw, 16px)' as string, fontWeight: 500 }}
         />
         <button
           type="submit"

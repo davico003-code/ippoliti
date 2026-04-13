@@ -55,13 +55,13 @@ async function FeaturedPropertiesSection() {
         className="prop-card block overflow-hidden flex-shrink-0 snap-start rounded-xl bg-white border-0"
         style={{
           textDecoration: 'none',
-          width: 'clamp(280px, 85vw, 340px)',
-          minWidth: 280,
+          width: 'clamp(300px, 88vw, 380px)',
+          minWidth: 300,
           boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
           transition: 'box-shadow 200ms',
         }}
       >
-        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 220 }}>
+        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 'clamp(220px, 30vw, 260px)' }}>
           {photo ? (
             <Image src={photo} alt={property.publication_title || address} fill
               className="object-cover prop-card-img" sizes="340px" />
@@ -96,7 +96,7 @@ async function FeaturedPropertiesSection() {
 
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-4 md:pt-8 md:pb-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-4 md:pt-6 md:pb-6">
         {/* Header row */}
         <div className="flex items-end justify-between">
           <h2 className="text-2xl md:text-3xl tracking-tight" style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111827', lineHeight: 1.2, margin: 0 }}>

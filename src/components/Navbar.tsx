@@ -18,12 +18,10 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
-  if (hidden) return null
-
   const R = "'Raleway', system-ui, sans-serif"
 
   return (
-    <>
+    <div className={hidden ? 'hidden md:block' : ''}>
       {/* ── Desktop nav ── */}
       <nav className={`hidden md:block fixed top-0 left-0 right-0 z-40 transition-all duration-200 ${
         scrolled ? 'bg-white/95 backdrop-blur-md border-b border-gray-100' : 'bg-transparent'
@@ -147,6 +145,6 @@ export default function Navbar() {
       )}
 
       <style>{`@keyframes slideRight { from { transform: translateX(-100%); } to { transform: translateX(0); } }`}</style>
-    </>
+    </div>
   )
 }
