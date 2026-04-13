@@ -49,31 +49,28 @@ export default function EmprendimientosHome() {
   return (
     <section style={{ background: '#f9fafb' }}>
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-8 pb-6 md:pt-12 md:pb-10">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 style={{ fontFamily: R, fontWeight: 700, color: '#1d1d1f', fontSize: 22, margin: 0, lineHeight: 1.2 }}>
-            Emprendimientos en la zona
-          </h2>
-          <Link href="/emprendimientos" style={{ fontFamily: R, fontSize: 13, fontWeight: 600, color: '#1A5C38', textDecoration: 'none' }}>
-            Ver todos →
-          </Link>
-        </div>
+        {/* Header — title only, no link */}
+        <h2 className="text-2xl md:text-3xl tracking-tight mb-5" style={{ fontFamily: R, fontWeight: 800, color: '#111827', lineHeight: 1.2, margin: '0 0 20px' }}>
+          Proyectos destacados
+        </h2>
 
         {/* Scroll container */}
         <div
-          className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-3"
+          className="flex items-center gap-5 overflow-x-auto snap-x snap-mandatory pb-3"
           style={{ scrollbarColor: '#1A5C38 #e5e7eb', scrollbarWidth: 'thin' }}
         >
           {ITEMS.map(item => (
             <Link
               key={item.id}
               href={item.href}
-              className="emp-card flex-shrink-0 snap-start block relative overflow-hidden"
+              className="emp-card flex-shrink-0 snap-start block relative overflow-hidden bg-white"
               style={{
                 width: 'clamp(280px, 80vw, 320px)',
                 aspectRatio: '3/4',
                 borderRadius: 16,
                 textDecoration: 'none',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                transition: 'box-shadow 200ms',
               }}
             >
               <Image
@@ -121,27 +118,13 @@ export default function EmprendimientosHome() {
             </Link>
           ))}
 
-          {/* CTA card */}
+          {/* CTA pill button */}
           <Link
             href="/emprendimientos"
-            className="flex-shrink-0 snap-start flex flex-col items-center justify-center gap-3 group"
-            style={{
-              width: 'clamp(280px, 80vw, 320px)',
-              aspectRatio: '3/4',
-              borderRadius: 16,
-              border: '2px solid #1A5C38',
-              background: 'transparent',
-              textDecoration: 'none',
-              transition: 'background 0.2s ease',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,92,56,0.05)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            className="flex-shrink-0 flex items-center ml-1 px-8 py-4 rounded-full border-2 border-[#1A5C38] bg-white text-[#1A5C38] font-semibold text-base hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
+            style={{ fontFamily: R, textDecoration: 'none', whiteSpace: 'nowrap' }}
           >
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M12 8v8M8 12h8" />
-            </svg>
-            <span style={{ fontFamily: R, fontSize: 16, fontWeight: 600, color: '#1A5C38' }}>Ver todos</span>
+            Ver todos →
           </Link>
         </div>
       </div>
@@ -149,6 +132,7 @@ export default function EmprendimientosHome() {
       <style>{`
         .emp-card-img { transition: transform 0.4s ease; }
         @media (hover: hover) {
+          .emp-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important; }
           .emp-card:hover .emp-card-img { transform: scale(1.05); }
           .emp-card:hover .emp-card-overlay { background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 50%, transparent 100%) !important; }
         }

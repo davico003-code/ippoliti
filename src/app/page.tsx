@@ -54,12 +54,12 @@ async function FeaturedPropertiesSection() {
         href={`/propiedades/${slug}`}
         className="prop-card block overflow-hidden flex-shrink-0 snap-start"
         style={{
-          borderRadius: 12,
-          border: '1px solid #e8e8e8',
+          borderRadius: 16,
           textDecoration: 'none',
           width: 'clamp(280px, 85vw, 340px)',
           minWidth: 280,
-          transition: 'box-shadow 300ms, transform 300ms',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          transition: 'box-shadow 200ms, transform 300ms',
         }}
       >
         <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 220 }}>
@@ -328,7 +328,7 @@ export default async function Home() {
 
       <style>{`
         @media (hover: hover) {
-          .prop-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.12); transform: scale(1.02); }
+          .prop-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
           .prop-card:hover .prop-card-img { transform: scale(1.05); }
         }
         .prop-card-img { transition: transform 400ms ease-out; }
