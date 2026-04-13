@@ -35,7 +35,7 @@ export default async function PropiedadesPage() {
 
 function PropiedadesSkeleton() {
   return (
-    <div className="h-[calc(100vh-64px)] flex flex-col bg-white">
+    <div className="h-[100dvh] md:pt-[var(--header-height)] flex flex-col bg-white">
       <div className="h-[52px] border-b border-gray-200 bg-white" />
       <div className="flex flex-1 min-h-0">
         <div className="hidden md:flex flex-col w-[40%] border-r border-gray-200 overflow-hidden p-3 gap-3">

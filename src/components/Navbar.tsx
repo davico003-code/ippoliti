@@ -9,14 +9,18 @@ import { Menu, X } from 'lucide-react'
 export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const hidden = pathname.startsWith('/propiedades')
+  const [scrolled, setScrolled] = useState(hidden)
 
   useEffect(() => {
+    // On /propiedades the page doesn't scroll (overflow:hidden), so force
+    // the opaque header so it's visible over the white filter bar.
+    if (hidden) { setScrolled(true); return }
     const handler = () => setScrolled(window.scrollY > 80)
+    handler()
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
-  }, [])
+  }, [hidden])
 
   const R = "'Raleway', system-ui, sans-serif"
 
