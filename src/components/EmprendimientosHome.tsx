@@ -62,8 +62,7 @@ export default function EmprendimientosHome() {
           className="flex items-center gap-5 overflow-x-auto snap-x snap-mandatory px-1 py-2 pb-3"
           style={{ scrollbarColor: '#1A5C38 #e5e7eb', scrollbarWidth: 'thin', overflowY: 'visible' }}
         >
-          {ITEMS.map((item, i) => (
-            <>
+          {ITEMS.map(item => (
               <Link
                 key={item.id}
                 href={item.href}
@@ -119,25 +118,19 @@ export default function EmprendimientosHome() {
                   </p>
                 </div>
               </Link>
-
-              {/* CTA pill button after first card */}
-              {i === 0 && (
-                <Link
-                  key="ver-todos"
-                  href="/emprendimientos"
-                  className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
-                  style={{
-                    fontFamily: R,
-                    textDecoration: 'none',
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
-                  }}
-                >
-                  Ver todos →
-                </Link>
-              )}
-            </>
           ))}
+          <Link
+            href="/emprendimientos"
+            className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
+            style={{
+              fontFamily: R,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
+            }}
+          >
+            Ver todos →
+          </Link>
         </div>
       </div>
 

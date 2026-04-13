@@ -109,26 +109,19 @@ async function FeaturedPropertiesSection() {
 
         {/* Carousel */}
         <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-1 py-2 pb-3 scrollbar-none" style={{ overflowY: 'visible' }}>
-          {properties.map((p, i) => (
-            <>
-              {renderCard(p)}
-              {i === 0 && (
-                <Link
-                  key="ver-todas"
-                  href="/propiedades"
-                  className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
-                  style={{
-                    fontFamily: RALEWAY,
-                    textDecoration: 'none',
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
-                  }}
-                >
-                  Ver todas →
-                </Link>
-              )}
-            </>
-          ))}
+          {properties.map(p => renderCard(p))}
+          <Link
+            href="/propiedades"
+            className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
+            style={{
+              fontFamily: RALEWAY,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
+            }}
+          >
+            Ver todas →
+          </Link>
         </div>
       </div>
     </section>
