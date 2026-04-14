@@ -5,8 +5,8 @@ import HeroSearch from './HeroSearch'
 export default function HeroVideo() {
   return (
     <section
-      className="relative w-full h-[60vh] md:h-[65vh] bg-cover bg-center"
-      style={{ backgroundImage: "url('/hero-home.jpg')" }}
+      className="relative w-full bg-cover bg-center"
+      style={{ backgroundImage: "url('/hero-home.jpg')", height: 410 }}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/55" />
 
