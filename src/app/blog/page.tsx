@@ -93,8 +93,9 @@ function resolveCategory(slug: string, existing?: string): string {
   return 'Mercado'
 }
 
-export default function BlogPage() {
-  const posts = getAllPosts().map(p => ({
+export default async function BlogPage() {
+  const allPosts = await getAllPosts();
+  const posts = allPosts.map(p => ({
     slug: p.slug,
     title: p.title,
     summary: p.summary,

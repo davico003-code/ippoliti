@@ -230,10 +230,16 @@ Si estás pensando en vender antes de comprar, podés solicitar una tasación si
   },
 ]
 
-export function getPostBySlug(slug: string): BlogPost | undefined {
-  return posts.find(p => p.slug === slug)
+export async function getPostBySlug(slug: string): Promise<BlogPost | undefined> {
+  const local = posts.find(p => p.slug === slug);
+  if (local) return local;
+  const { getPostsDinamicos } = await import('./blog-posts-dinamicos');
+  const dinamicos = await getPostsDinamicos();
+  return dinamicos.find(p => p.slug === slug);
 }
 
-export function getAllPosts(): BlogPost[] {
-  return [...posts].sort((a, b) => b.date.localeCompare(a.date))
+export async function getAllPosts(): Promise<BlogPost[]> {
+  const { getPostsDinamicos } = await import('./blog-posts-dinamicos');
+  const dinamicos = await getPostsDinamicos();
+  return [...posts, ...dinamicos].sort((a, b) => b.date.localeCompare(a.date));
 }

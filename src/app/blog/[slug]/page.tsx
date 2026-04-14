@@ -7,12 +7,12 @@ interface Props {
   params: { slug: string }
 }
 
-export function generateStaticParams() {
-  return getAllPosts().map(p => ({ slug: p.slug }))
+export async function generateStaticParams() {
+  return (await getAllPosts()).map(p => ({ slug: p.slug }))
 }
 
-export function generateMetadata({ params }: Props): Metadata {
-  const post = getPostBySlug(params.slug)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const post = await getPostBySlug(params.slug)
   if (!post) return { title: 'Artículo no encontrado | SI Inmobiliaria' }
 
   return {
@@ -94,8 +94,8 @@ function resolveImage(slug: string, originalImage: string): string | null {
   return null
 }
 
-export default function BlogPostPage({ params }: Props) {
-  const post = getPostBySlug(params.slug)
+export default async function BlogPostPage({ params }: Props) {
+  const post = await getPostBySlug(params.slug)
 
   if (!post) {
     return (
@@ -108,7 +108,7 @@ export default function BlogPostPage({ params }: Props) {
     )
   }
 
-  const allPosts = getAllPosts()
+  const allPosts = await getAllPosts()
   const related = allPosts
     .filter(p => p.slug !== post.slug)
     .filter(p => post.category ? p.category === post.category : true)
