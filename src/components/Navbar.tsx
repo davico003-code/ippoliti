@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 
 const R = "'Raleway', system-ui, sans-serif"
@@ -34,17 +35,6 @@ function NavLink({ href, label }: { href: string; label: string }) {
   )
 }
 
-function LogoMark({ height = 36 }: { height?: number }) {
-  const fontSize = Math.round(height * 0.42)
-  return (
-    <div
-      className="flex items-center justify-center flex-shrink-0"
-      style={{ width: height, height, background: '#1A5C38', borderRadius: 8 }}
-    >
-      <span style={{ fontFamily: R, fontSize, fontWeight: 700, color: '#fff', lineHeight: 1 }}>SI</span>
-    </div>
-  )
-}
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -67,15 +57,19 @@ export default function Navbar() {
           {/* Centered logo (absolute) */}
           <Link
             href="/"
-            className="absolute left-1/2 top-1/2 flex items-center"
-            style={{ transform: 'translate(-50%, -50%)', gap: 10, textDecoration: 'none' }}
+            className="absolute left-1/2 top-1/2"
+            style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}
           >
-            <LogoMark height={40} />
-            <span
-              style={{ fontFamily: R, fontSize: 18, fontWeight: 600, color: '#111', letterSpacing: '0.5px', lineHeight: 1 }}
-            >
-              INMOBILIARIA
-            </span>
+            <Image
+              src="/LOGO_HORIZONTAL.png"
+              alt="SI Inmobiliaria"
+              width={246}
+              height={36}
+              className="object-contain"
+              style={{ height: 36, width: 'auto' }}
+              priority
+              quality={90}
+            />
           </Link>
 
           {/* Right menu + CTA */}
@@ -105,11 +99,17 @@ export default function Navbar() {
       >
         <div className="flex items-center justify-between px-4 h-14">
           {/* Left — logo */}
-          <Link href="/" className="flex items-center" style={{ gap: 8, textDecoration: 'none' }}>
-            <LogoMark height={32} />
-            <span style={{ fontFamily: R, fontSize: 15, fontWeight: 600, color: '#111', letterSpacing: '0.5px' }}>
-              INMOBILIARIA
-            </span>
+          <Link href="/" style={{ textDecoration: 'none' }}>
+            <Image
+              src="/LOGO_HORIZONTAL.png"
+              alt="SI Inmobiliaria"
+              width={205}
+              height={30}
+              className="object-contain"
+              style={{ height: 30, width: 'auto' }}
+              priority
+              quality={90}
+            />
           </Link>
 
           {/* Right — hamburger */}
@@ -133,9 +133,16 @@ export default function Navbar() {
             style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)', animation: 'slideRight 200ms ease-out' }}
           >
             <div className="px-5 pb-4 mb-2 border-b border-gray-100 flex items-center justify-between">
-              <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center" style={{ gap: 8, textDecoration: 'none' }}>
-                <LogoMark height={28} />
-                <span style={{ fontFamily: R, fontSize: 14, fontWeight: 600, color: '#111' }}>INMOBILIARIA</span>
+              <Link href="/" onClick={() => setIsOpen(false)} style={{ textDecoration: 'none' }}>
+                <Image
+                  src="/LOGO_HORIZONTAL.png"
+                  alt="SI Inmobiliaria"
+                  width={164}
+                  height={24}
+                  className="object-contain"
+                  style={{ height: 24, width: 'auto' }}
+                  quality={90}
+                />
               </Link>
               <button onClick={() => setIsOpen(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
                 <X className="w-4 h-4 text-gray-500" />
