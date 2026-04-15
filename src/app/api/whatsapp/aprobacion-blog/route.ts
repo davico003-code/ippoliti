@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   // Si vino como JSON (test manual), parseamos eso como fallback.
   let from = '';
   let texto = '';
-  let formParams: Record<string, string> = {};
+  const formParams: Record<string, string> = {};
 
   const cloneRaw = req.clone();
   const cloneJson = req.clone();
