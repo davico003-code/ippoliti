@@ -158,6 +158,16 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
     errores.push('contenido contiene HTML potencialmente peligroso (script, iframe, etc.)');
   }
 
+  // ── Villa Flores: barrio prohibido como foco ──
+  // Heurística: si aparece >2 veces o está en el título, se considera tema central
+  const VILLA_FLORES_RE = /villa[-\s]?flores/gi;
+  const titleMatch = VILLA_FLORES_RE.test(nota.titulo);
+  VILLA_FLORES_RE.lastIndex = 0;
+  const bodyMatches = (nota.contenido_markdown.match(VILLA_FLORES_RE) || []).length;
+  if (titleMatch || bodyMatches > 2) {
+    errores.push('contiene foco en Villa Flores, que está prohibido');
+  }
+
   return { ok: errores.length === 0, errores };
 }
 

@@ -4,6 +4,7 @@ export const TEMAS_PROHIBIDOS = [
   'Crypto, blockchain, tokenización, NFTs, stablecoins aplicados a real estate',
   'Comparaciones desfavorables con otras inmobiliarias de la zona (Vanzini, Crestale, Squaddra, Skygarden, Altos de Funes, Funes Inmobiliaria, RE/MAX, Eigen)',
   'Críticas directas a desarrolladores específicos o sus proyectos',
+  'Villa Flores (barrio de Roldán): NO proponer notas zoom a este barrio específico bajo ningún concepto, ni mencionarlo como foco principal o secundario de la nota. Está permitido mencionarlo de paso solo si aparece en comparaciones generales de múltiples barrios, pero nunca como tema central.',
 ];
 
 export const ADVERTENCIA_TABOOS = `
