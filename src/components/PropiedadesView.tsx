@@ -196,11 +196,25 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     .some(k => filters[k] !== DEFAULTS[k])
 
   // ─── Client-side filtering ──────────────────────────────────────────────────
+  // Normaliza texto: lowercase + NFD sin tildes (para que "roldan" matchee "Roldán")
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
   const filtered = useMemo(() => properties.filter(p => {
     if (filters.search) {
-      const q = filters.search.toLowerCase()
-      const haystack = [p.publication_title, p.address, p.fake_address, p.location?.short_location, p.location?.name]
-        .filter(Boolean).join(' ').toLowerCase()
+      const q = norm(filters.search)
+      // Incluir divisions y development porque Tokko clasifica barrios como "Cadaques (Funes Hills)"
+      // en divisions[].name y NO en location.name ni fake_address
+      const divisions = (p.location?.divisions ?? []).map(d => d.name).join(' ')
+      const development = p.development?.name ?? ''
+      const haystack = norm([
+        p.publication_title,
+        p.address,
+        p.fake_address,
+        p.location?.short_location,
+        p.location?.name,
+        divisions,
+        development,
+      ].filter(Boolean).join(' '))
       if (!haystack.includes(q)) return false
     }
     if (filters.operation !== 'todos') {
@@ -227,10 +241,8 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       if (currency === 'USD' && price > max) return false
     }
     if (filters.location !== 'todos') {
-      const loc = (p.location?.short_location ?? p.location?.name ?? '').toLowerCase()
-      const addr = (p.fake_address ?? p.address ?? '').toLowerCase()
-      const all = `${loc} ${addr}`
-      if (filters.location === 'roldan' && !all.includes('roldan') && !all.includes('roldán')) return false
+      const all = norm(`${p.location?.short_location ?? p.location?.name ?? ''} ${p.fake_address ?? p.address ?? ''}`)
+      if (filters.location === 'roldan' && !all.includes('roldan')) return false
       if (filters.location === 'rosario' && !all.includes('rosario')) return false
       if (filters.location === 'funes' && !all.includes('funes')) return false
     }

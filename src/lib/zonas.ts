@@ -110,12 +110,40 @@ const FUNES: Zona[] = [
     aliases: [],
   },
   {
+    // Vida 3 — Rossetti Desarrollos, 150 ha noroeste Funes, límite Roldán
     id: 'funes-vida-lagoon',
     nombre: 'Vida Lagoon',
     ciudad: 'Funes',
     tipo: 'barrio_cerrado',
     centro: { lat: -32.9070, lng: -60.8400 },
-    aliases: ['Vida', 'Lagoon'],
+    aliases: ['Vida', 'Lagoon', 'Vida 3', 'Vida III', 'Vida Crystal Lagoon', 'Crystal Lagoon'],
+  },
+  {
+    // Vida 1 — Rossetti Desarrollos, Av. Arturo Illia, límite Rosario
+    id: 'funes-vida-club-de-campo',
+    nombre: 'Vida Club de Campo',
+    ciudad: 'Funes',
+    tipo: 'barrio_cerrado',
+    centro: { lat: -32.9320, lng: -60.7830 },
+    aliases: ['Vida', 'Vida Club', 'Vida 1', 'Vida I', 'Barrio Vida'],
+  },
+  {
+    // Vida 2 — Rossetti Desarrollos, zona norte Funes, Mitre y Colonos de Funes
+    id: 'funes-vida-green',
+    nombre: 'Vida Green',
+    ciudad: 'Funes',
+    tipo: 'barrio_cerrado',
+    centro: { lat: -32.8950, lng: -60.8150 },
+    aliases: ['Vida', 'Green', 'Vida 2', 'Vida II'],
+  },
+  {
+    // Subdivision de Funes Hills (Tokko la clasifica así)
+    id: 'funes-cadaques',
+    nombre: 'Cadaques',
+    ciudad: 'Funes',
+    tipo: 'barrio_cerrado',
+    centro: { lat: -32.9100, lng: -60.8280 },
+    aliases: ['Cadaques Funes Hills', 'Cadaqués'],
   },
   {
     id: 'funes-carlos-pellegrini',

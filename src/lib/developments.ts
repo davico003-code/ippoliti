@@ -136,7 +136,7 @@ export { translateTag } from './tokko'
 // --- API ---
 
 export async function getDevelopments(): Promise<Development[]> {
-  const url = `${BASE_URL}/development/?key=${getApiKey()}&lang=es&format=json&limit=20`
+  const url = `${BASE_URL}/development/?key=${getApiKey()}&lang=es&format=json&limit=100`
   const res = await fetch(url, { next: { revalidate: 3600 } })
   if (!res.ok) throw new Error(`Tokko dev API error: ${res.status}`)
   const data: DevListResponse = await res.json()
