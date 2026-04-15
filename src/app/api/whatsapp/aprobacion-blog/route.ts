@@ -29,18 +29,59 @@ function parsearSeleccion(texto: string): number[] | null {
 }
 
 export async function POST(req: Request) {
+  // ── DIAGNOSTIC LOGS (no toques sin pensar) ──
+  const sig = req.headers.get('x-twilio-signature');
+  const ct = req.headers.get('content-type');
+  console.log('[aprobacion-blog] X-Twilio-Signature:', sig);
+  console.log('[aprobacion-blog] Content-Type:', ct);
+
+  // Clonamos el request para poder leer el body múltiples veces (raw + parsed)
+  const cloneRaw = req.clone();
+  const cloneJson = req.clone();
+  const cloneForm = req.clone();
+  let rawText = '';
+  try {
+    rawText = await cloneRaw.text();
+    console.log('[aprobacion-blog] body raw:', rawText);
+  } catch (e) {
+    console.log('[aprobacion-blog] error leyendo body raw:', e);
+  }
+
+  // Intentar parsear como formData (Twilio envía x-www-form-urlencoded)
+  let formFrom = '';
+  let formBody = '';
+  let formTo = '';
+  try {
+    const fd = await cloneForm.formData();
+    formFrom = String(fd.get('From') ?? '');
+    formBody = String(fd.get('Body') ?? '');
+    formTo = String(fd.get('To') ?? '');
+    console.log('[aprobacion-blog] formData From:', formFrom, '| Body:', formBody, '| To:', formTo);
+  } catch (e) {
+    console.log('[aprobacion-blog] error parseando formData:', e);
+  }
+
+  // Comparar From normalizado contra ADMIN_WHATSAPP_NUMBER
+  const adminEnv = process.env.ADMIN_WHATSAPP_NUMBER ?? '+5493413340916';
+  const fromNorm = formFrom.replace(/^whatsapp:/, '').trim();
+  const adminNorm = adminEnv.replace(/^whatsapp:/, '').trim();
+  console.log('[aprobacion-blog] from normalizado:', fromNorm, '| admin esperado:', adminNorm, '| match:', fromNorm === adminNorm);
+
   // TODO Fase 2: validar que el request viene del provider WhatsApp real
   // (signature check, token, etc.)
 
   let body: { from?: string; text?: string };
   try {
-    body = await req.json();
-  } catch {
+    body = await cloneJson.json();
+    console.log('[aprobacion-blog] body parseado JSON:', JSON.stringify(body));
+  } catch (e) {
+    console.log('[aprobacion-blog] body NO es JSON válido:', e instanceof Error ? e.message : String(e));
     return Response.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
   const texto = (body.text ?? '').trim();
   if (!texto) {
+    console.log('[aprobacion-blog] texto vacío después de parseo JSON, abortando');
     return Response.json({ error: 'Empty text' }, { status: 400 });
   }
 
