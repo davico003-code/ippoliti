@@ -123,18 +123,24 @@ function shortPrice(property: TokkoProperty): string {
 
 // ─── Price bubble DivIcon ─────────────────────────────────────────────────────
 
-function createPriceBubble(label: string, selected: boolean) {
-  const bg = selected ? '#145030' : '#1A5C38'
-  const scale = selected ? 'transform:scale(1.1);' : ''
-  const zExtra = selected ? 'z-index:9999;' : ''
+function createPriceBubble(label: string, selected: boolean, hovered: boolean = false) {
+  // selected > hovered (sin "selected"). Hover más claro y con outline amarillo.
+  const bg = selected ? '#145030' : hovered ? '#2D7A4F' : '#1A5C38'
+  const scale = selected || hovered ? 'transform:scale(1.1);' : ''
+  const zExtra = selected ? 'z-index:9999;' : hovered ? 'z-index:5000;' : ''
   const shadow = selected
     ? 'box-shadow:0 4px 14px rgba(0,0,0,0.35);'
+    : hovered
+    ? 'box-shadow:0 4px 14px rgba(26,92,56,0.45);'
     : 'box-shadow:0 2px 8px rgba(0,0,0,0.25);'
+  const border = hovered && !selected
+    ? '2px solid #FBBF24'
+    : '2px solid rgba(255,255,255,0.9)'
 
   const html = `
     <div style="
       position:relative;display:inline-block;${zExtra}${scale}
-      transition:transform .15s ease, box-shadow .15s ease;
+      transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
     ">
       <div style="
         background:${bg};color:#fff;
@@ -142,7 +148,7 @@ function createPriceBubble(label: string, selected: boolean) {
         font-weight:700;font-size:11px;
         padding:4px 8px;border-radius:6px;
         white-space:nowrap;line-height:1.2;
-        border:2px solid rgba(255,255,255,0.9);
+        border:${border};
         ${shadow}
         cursor:pointer;
       ">${label}</div>
@@ -437,14 +443,16 @@ function MapMoveListener({ onMove }: { onMove: () => void }) {
 interface Props {
   properties: TokkoProperty[]
   selectedId: number | null
+  hoveredId?: number | null
   onSelect: (id: number) => void
+  onDeselect?: () => void
   flyToCenter: [number, number] | null
   onBoundsSearch?: (bounds: L.LatLngBounds) => void
   activeZona?: Zona | null
   onMapMove?: () => void
 }
 
-export default function PropiedadesMap({ properties, selectedId, onSelect, flyToCenter, onBoundsSearch, activeZona, onMapMove }: Props) {
+export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, flyToCenter, onBoundsSearch, activeZona, onMapMove }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const mapped = useMemo(() =>
     properties.filter(p => {
@@ -505,6 +513,7 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
           const lat = parseFloat(property.geo_lat!)
           const lng = parseFloat(property.geo_long!)
           const isSelected = property.id === selectedId
+          const isHovered = property.id === hoveredId
           const priceLabel = shortPrice(property)
           const photo = getMainPhoto(property)
           const fullPrice = formatPrice(property)
@@ -516,9 +525,12 @@ export default function PropiedadesMap({ properties, selectedId, onSelect, flyTo
             <Marker
               key={property.id}
               position={[lat, lng]}
-              icon={createPriceBubble(priceLabel, isSelected)}
-              zIndexOffset={isSelected ? 1000 : 0}
-              eventHandlers={{ click: () => onSelect(property.id) }}
+              icon={createPriceBubble(priceLabel, isSelected, isHovered)}
+              zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
+              eventHandlers={{
+                click: () => onSelect(property.id),
+                popupclose: () => onDeselect?.(),
+              }}
             >
               {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
                 <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif" }}>

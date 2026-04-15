@@ -149,6 +149,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     setFilters({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
   }, [initialSearch, initialOperation])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
+  const [hoveredId, setHoveredId]       = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
     if (typeof window === 'undefined') return 'map'
@@ -370,6 +371,19 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       setShowBottomSheet(true)
     }
   }, [])
+
+  const handleMapDeselect = useCallback(() => {
+    setSelectedId(null)
+  }, [])
+
+  // Scroll automático a la card seleccionada (cuando el usuario clickea un marker)
+  useEffect(() => {
+    if (selectedId == null || !listRef.current) return
+    const el = listRef.current.querySelector<HTMLDivElement>(`[data-property-id="${selectedId}"]`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [selectedId])
 
   const closeBottomSheet = useCallback(() => {
     setShowBottomSheet(false)
@@ -744,13 +758,22 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                 {/* Desktop grid */}
                 <div className="hidden md:grid p-4 grid-cols-1 xl:grid-cols-2 gap-4">
                   {visibleProperties.map(p => (
-                    <PropiedadCardGrid key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
+                    <div
+                      key={p.id}
+                      data-property-id={p.id}
+                      onMouseEnter={() => setHoveredId(p.id)}
+                      onMouseLeave={() => setHoveredId(prev => (prev === p.id ? null : prev))}
+                    >
+                      <PropiedadCardGrid property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
+                    </div>
                   ))}
                 </div>
                 {/* Mobile list */}
                 <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">
                   {visibleProperties.map(p => (
-                    <PropiedadCardGrid key={p.id} property={p} isSelected={p.id === selectedId} onClick={() => router.push(`/propiedades/${generatePropertySlug(p)}`)} variant="mobile" />
+                    <div key={p.id} data-property-id={p.id}>
+                      <PropiedadCardGrid property={p} isSelected={p.id === selectedId} onClick={() => router.push(`/propiedades/${generatePropertySlug(p)}`)} variant="mobile" />
+                    </div>
                   ))}
                 </div>
               </>
@@ -763,7 +786,9 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
           <PropiedadesMap
             properties={filtered}
             selectedId={selectedId}
+            hoveredId={hoveredId}
             onSelect={handleMapSelect}
+            onDeselect={handleMapDeselect}
             flyToCenter={flyToCenter}
             onBoundsSearch={(bounds) => {
               setRefreshing(true)
