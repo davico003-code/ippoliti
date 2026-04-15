@@ -1,13 +1,7 @@
-import { list, del } from '@vercel/blob';
 import { Redis } from '@upstash/redis';
-import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
-
-interface NotaBlob {
-  titulo?: string;
-}
 
 function getRedis(): Redis {
   return new Redis({
@@ -23,71 +17,41 @@ export async function POST(req: Request) {
   }
 
   const log: string[] = [];
-  const result: Record<string, unknown> = {};
-
-  // 1.a) Listar
-  const { blobs } = await list({ prefix: 'blog-posts/' });
-  const slugs = blobs.map(b => b.pathname.replace('blog-posts/', '').replace('.json', ''));
-  log.push(`blobs encontrados: ${blobs.length}`);
-  result.allSlugs = slugs;
-
-  // 1.b) Identificar Villa Flores
-  const target = blobs.find(b => /villa[-_]?flores/i.test(b.pathname));
-  if (!target) {
-    log.push('NO se encontró ningún blob de Villa Flores');
-    result.log = log;
-    return Response.json(result);
-  }
-  const slug = target.pathname.replace('blog-posts/', '').replace('.json', '');
-  log.push(`target: ${slug}`);
-  result.slugBorrado = slug;
-
-  // Leer título
-  let titulo: string | null = null;
-  try {
-    const r = await fetch(target.url);
-    const data = (await r.json()) as NotaBlob;
-    titulo = data.titulo ?? null;
-    log.push(`titulo: "${titulo}"`);
-  } catch (err) {
-    log.push(`error leyendo blob: ${(err as Error).message}`);
-  }
-
-  // 1.c) Borrar blob
-  await del(target.url);
-  log.push(`blob borrado: ${target.pathname}`);
-
-  // 1.d) Borrar Redis
   const redis = getRedis();
-  const publicadaKey = `blog:publicada:${slug}`;
-  const delPub = await redis.del(publicadaKey);
-  log.push(`DEL ${publicadaKey} → ${delPub}`);
 
+  // Blob storage no está conectado al proyecto (no existe BLOB_READ_WRITE_TOKEN)
+  // → no hay nota publicada en Blob para borrar.
+  // El publicador falla silenciosamente cuando intenta escribir.
+  log.push('NOTA: Vercel Blob no está conectado al proyecto, ninguna nota se publicó nunca');
+
+  // Limpiar Redis ──
+  // 1. Borrar publicada por si quedó algún fantasma
+  const slugsCandidatos = [
+    'zoom-barrio-villa-flores-roldan-historia-infraestructura-y-oportunidades-inmobiliarias',
+    'villa-flores-roldan',
+    'villa-flores',
+    'zoom-barrio-villa-flores',
+    'seguridad-hogar-robo-proteccion-funes-roldan',
+  ];
+  for (const slug of slugsCandidatos) {
+    const r = await redis.del(`blog:publicada:${slug}`);
+    if (r > 0) log.push(`DEL blog:publicada:${slug} → ${r}`);
+  }
+
+  // 2. Filtrar temas_usados
   const usados = await redis.get<string[]>('blog:temas_usados');
   if (Array.isArray(usados)) {
-    const filtrados = usados.filter(t => {
-      if (titulo && t === titulo) return false;
-      return !/villa[-\s]?flores/i.test(t);
-    });
+    const filtrados = usados.filter(t => !/villa[-\s]?flores/i.test(t));
     if (filtrados.length !== usados.length) {
       await redis.set('blog:temas_usados', filtrados);
-      log.push(`temas_usados: removidos ${usados.length - filtrados.length}`);
-    } else {
-      log.push('temas_usados: sin cambios');
+      log.push(`temas_usados: removidos ${usados.length - filtrados.length} relacionados a Villa Flores`);
     }
   }
 
-  // 1.e) Revalidar (server-side directo)
-  revalidatePath('/blog');
-  revalidatePath(`/blog/${slug}`);
-  log.push(`revalidatePath /blog y /blog/${slug}`);
-
-  // 3) Cleanup Redis general
-  const cleaned: string[] = [];
+  // 3. Cleanup general
   const r1 = await redis.del('blog:temas_semana');
-  cleaned.push(`blog:temas_semana → ${r1}`);
+  log.push(`DEL blog:temas_semana → ${r1}`);
 
-  // SCAN blog:pendiente:*
   let cursor: string | number = 0;
   const toDelete: string[] = [];
   do {
@@ -96,7 +60,6 @@ export async function POST(req: Request) {
     cursor = scanResult[0];
   } while (String(cursor) !== '0');
 
-  // SCAN blog:temas_aprobados*
   cursor = 0;
   do {
     const scanResult: [string, string[]] = await redis.scan(cursor, { match: 'blog:temas_aprobados*', count: 100 });
@@ -106,10 +69,8 @@ export async function POST(req: Request) {
 
   for (const k of toDelete) {
     const r = await redis.del(k);
-    cleaned.push(`${k} → ${r}`);
+    log.push(`DEL ${k} → ${r}`);
   }
 
-  result.redisCleaned = cleaned;
-  result.log = log;
-  return Response.json(result);
+  return Response.json({ ok: true, log });
 }
