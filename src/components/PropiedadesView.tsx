@@ -138,6 +138,16 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const activeZona = resolvedZona
 
   const [filters, setFilters]           = useState<Filters>({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
+
+  // Reaccionar a cambios de URL sin remontaje. Cuando el usuario clickea
+  // "Comprar" o "Alquilar" en el header estando ya en /propiedades, Next.js
+  // hace navegación client-side y solo cambia searchParams; sin este efecto
+  // el filtro de operación quedaría con el valor viejo. Al cambiar la URL
+  // también limpiamos los demás filtros (beds, maxPrice, location, type)
+  // para evitar combinaciones inválidas heredadas de la sesión anterior.
+  useEffect(() => {
+    setFilters({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
+  }, [initialSearch, initialOperation])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
