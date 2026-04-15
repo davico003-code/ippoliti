@@ -16,7 +16,7 @@ import {
   LayoutList,
   Check,
   ArrowUpDown,
-  Bookmark,
+  Locate,
   ArrowLeft,
   RefreshCw,
 } from 'lucide-react'
@@ -159,11 +159,14 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
   const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
-  const [saveToast, setSaveToast]       = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [mobileSortOpen, setMobileSortOpen]       = useState(false)
   const [refreshing, setRefreshing]               = useState(false)
   const [searchSuggestions, setSearchSuggestions] = useState(false)
+  const [searchDropdownDesktop, setSearchDropdownDesktop] = useState(false)
+  const [locatingUser, setLocatingUser] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
+  const searchWrapDesktopRef = useRef<HTMLDivElement>(null)
   const searchWrapRef                   = useRef<HTMLDivElement>(null)
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
@@ -187,6 +190,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     function handleClick(e: MouseEvent) {
       if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false)
       if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) setSearchSuggestions(false)
+      if (searchWrapDesktopRef.current && !searchWrapDesktopRef.current.contains(e.target as Node)) setSearchDropdownDesktop(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -201,6 +205,58 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     setFilters(prev => ({ ...prev, [k]: v })), [])
 
   const reset = useCallback(() => setFilters(DEFAULTS), [])
+
+  // "Mi ubicación actual": obtiene coords + reverse geocoding con Nominatim
+  // y carga el nombre del lugar en el input de búsqueda.
+  const useMyLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationError('Tu navegador no soporta geolocalización')
+      return
+    }
+    setLocatingUser(true)
+    setLocationError(null)
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=es&zoom=14`,
+            { headers: { 'Accept': 'application/json' } },
+          )
+          if (!res.ok) throw new Error('Nominatim error')
+          const data = await res.json()
+          const addr = data.address ?? {}
+          // Preferir barrio/suburb → ciudad, con fallback progresivo
+          const nombre =
+            addr.neighbourhood ||
+            addr.suburb ||
+            addr.village ||
+            addr.town ||
+            addr.city ||
+            addr.city_district ||
+            addr.county ||
+            addr.state ||
+            data.display_name?.split(',')[0] ||
+            ''
+          if (!nombre) throw new Error('Sin resultados')
+          set('search', nombre)
+          setFlyToCenter([latitude, longitude])
+          setMobileView('map')
+          setSearchSuggestions(false)
+          setSearchDropdownDesktop(false)
+        } catch {
+          setLocationError('No se pudo obtener tu ubicación')
+        } finally {
+          setLocatingUser(false)
+        }
+      },
+      () => {
+        setLocatingUser(false)
+        setLocationError('No se pudo obtener tu ubicación')
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
+  }, [set])
 
   const hasActive = (Object.keys(DEFAULTS) as (keyof Filters)[])
     .some(k => filters[k] !== DEFAULTS[k])
@@ -363,14 +419,14 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
               autoComplete="off"
               onChange={e => {
                 set('search', e.target.value)
-                setSearchSuggestions(e.target.value.trim().length >= 2)
+                setSearchSuggestions(true)
               }}
-              onFocus={() => { if (searchZonas.length > 0 && filters.search.trim().length >= 2) setSearchSuggestions(true) }}
+              onFocus={() => setSearchSuggestions(true)}
               className="w-full h-11 pl-10 pr-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 placeholder:text-gray-400"
               style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16, border: '1.5px solid #e5e7eb' }}
             />
             {/* Autocomplete dropdown */}
-            {searchSuggestions && searchZonas.length > 0 && (
+            {searchSuggestions && (
               <div
                 className="absolute left-0 right-0 z-50 bg-white overflow-y-auto"
                 style={{
@@ -380,6 +436,36 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                   maxHeight: '50vh',
                 }}
               >
+                {/* Mi ubicación actual — siempre primera opción */}
+                <button
+                  type="button"
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={useMyLocation}
+                  disabled={locatingUser}
+                  className="w-full flex items-center gap-3 text-left"
+                  style={{
+                    padding: '14px 16px', fontSize: 15, color: '#1A5C38',
+                    background: 'transparent', border: 'none',
+                    borderBottom: '1px solid #f3f4f6',
+                    cursor: locatingUser ? 'wait' : 'pointer',
+                    minHeight: 48, fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontWeight: 600,
+                  }}
+                >
+                  {locatingUser ? (
+                    <div className="w-4 h-4 border-2 border-[#1A5C38]/30 border-t-[#1A5C38] rounded-full animate-spin flex-shrink-0" />
+                  ) : (
+                    <Locate className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
+                  )}
+                  <span className="flex-1">
+                    {locatingUser ? 'Obteniendo ubicación...' : 'Mi ubicación actual'}
+                  </span>
+                </button>
+                {locationError && (
+                  <div style={{ padding: '10px 16px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid #f3f4f6' }}>
+                    {locationError}
+                  </div>
+                )}
                 {searchZonas.map(zona => (
                   <button
                     key={zona.id}
@@ -412,21 +498,6 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
               </div>
             )}
           </div>
-          <button
-            onClick={() => {
-              if (!navigator.geolocation) return
-              navigator.geolocation.getCurrentPosition(
-                pos => { setMobileView('map'); setFlyToCenter([pos.coords.latitude, pos.coords.longitude]) },
-                () => {},
-                { enableHighAccuracy: true, timeout: 8000 }
-              )
-            }}
-            className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0"
-            style={{ border: '1.5px solid #e5e7eb' }}
-            aria-label="Mi ubicación"
-          >
-            <MapPin className="w-5 h-5 text-gray-400" />
-          </button>
         </div>
 
         {/* Row 2: Operation toggle + Filters button */}
@@ -479,14 +550,86 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
 
       {/* ── Desktop Filter Bar ────────────────────────────────────────────── */}
       <div className="hidden md:flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-white shadow-sm flex-shrink-0 overflow-x-auto scrollbar-none">
-        <div className="relative min-w-[170px] max-w-[220px] flex-shrink-0">
+        <div className="relative min-w-[220px] max-w-[260px] flex-shrink-0" ref={searchWrapDesktopRef}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
           <input type="text" placeholder="Dirección, ciudad o barrio..." value={filters.search}
             aria-label="Buscar barrio o dirección"
-            onChange={e => set('search', e.target.value)}
+            autoComplete="off"
+            onChange={e => { set('search', e.target.value); setSearchDropdownDesktop(true) }}
+            onFocus={() => setSearchDropdownDesktop(true)}
             className="w-full h-10 pl-8 pr-3 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all placeholder:text-gray-400"
             style={{ border: '1.5px solid #d1d5db', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
           />
+          {searchDropdownDesktop && (
+            <div
+              className="absolute left-0 right-0 z-50 bg-white overflow-y-auto"
+              style={{
+                top: '100%', marginTop: 4,
+                border: '1px solid #e5e7eb', borderRadius: 12,
+                boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+                maxHeight: '60vh', minWidth: 280,
+              }}
+            >
+              {/* Mi ubicación actual — siempre primera opción */}
+              <button
+                type="button"
+                onMouseDown={e => e.preventDefault()}
+                onClick={useMyLocation}
+                disabled={locatingUser}
+                className="w-full flex items-center gap-3 text-left"
+                style={{
+                  padding: '12px 14px', fontSize: 14, color: '#1A5C38',
+                  background: 'transparent', border: 'none',
+                  borderBottom: '1px solid #f3f4f6',
+                  cursor: locatingUser ? 'wait' : 'pointer',
+                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontWeight: 600,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#f0f7f4' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                {locatingUser ? (
+                  <div className="w-4 h-4 border-2 border-[#1A5C38]/30 border-t-[#1A5C38] rounded-full animate-spin flex-shrink-0" />
+                ) : (
+                  <Locate className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
+                )}
+                <span className="flex-1">
+                  {locatingUser ? 'Obteniendo ubicación...' : 'Mi ubicación actual'}
+                </span>
+              </button>
+              {locationError && (
+                <div style={{ padding: '10px 14px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid #f3f4f6' }}>
+                  {locationError}
+                </div>
+              )}
+              {searchZonas.map(zona => (
+                <button
+                  key={zona.id}
+                  type="button"
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={() => {
+                    set('search', zona.nombre)
+                    setSearchDropdownDesktop(false)
+                  }}
+                  className="w-full flex items-center gap-3 text-left"
+                  style={{
+                    padding: '10px 14px', fontSize: 14, color: '#111',
+                    background: 'transparent', border: 'none',
+                    borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
+                    fontFamily: "'Raleway', system-ui, sans-serif",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
+                  <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0 }}>
+                    {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
         <FilterSelect value={filters.operation} onChange={v => set('operation', v)}
@@ -510,49 +653,8 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
             </button>
           </>
         )}
-        <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
-        <button
-          onClick={() => {
-            if (!navigator.geolocation) return
-            navigator.geolocation.getCurrentPosition(
-              pos => { setMobileView('map'); setFlyToCenter([pos.coords.latitude, pos.coords.longitude]) },
-              () => {},
-              { enableHighAccuracy: true, timeout: 8000 }
-            )
-          }}
-          className="flex items-center gap-1.5 h-10 rounded-xl px-3.5 whitespace-nowrap flex-shrink-0 transition-all cursor-pointer"
-          style={{ border: '1.5px solid #d1d5db', background: '#fff', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 500, color: '#0a0a0a' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = '#0a0a0a' }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db' }}
-          title="Mi ubicación"
-        >
-          <MapPin className="w-4 h-4 text-gray-400" />
-          Mi ubicación
-        </button>
-        <button
-          onClick={() => setSaveToast(true)}
-          className="flex items-center gap-1.5 h-10 rounded-xl px-4 whitespace-nowrap flex-shrink-0 transition-colors cursor-pointer"
-          style={{ background: '#1A5C38', color: '#fff', border: 'none', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600 }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
-        >
-          <Bookmark className="w-4 h-4" />
-          Guardar
-        </button>
       </div>
 
-      {/* Save search toast */}
-      {saveToast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] bg-gray-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3"
-          style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
-        >
-          <Bookmark className="w-4 h-4 text-amber-400" />
-          Guardá búsquedas para recibir alertas de nuevas propiedades
-          <button onClick={() => setSaveToast(false)} className="ml-2 text-white/60 hover:text-white">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       {/* Mobile filter sheet */}
       <MobileFilterSheet
