@@ -179,8 +179,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <p style={{
             fontFamily: POPPINS,
-            fontWeight: 700,
-            fontSize: isMobile ? 19 : 20,
+            fontWeight: 800,
+            fontSize: isMobile ? 20 : 22,
             color: '#0a0a0a',
             margin: 0,
             lineHeight: 1.2,
@@ -196,14 +196,15 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         {specs.length > 0 && (
           <p style={{
             fontFamily: RALEWAY,
-            fontSize: 12,
-            color: '#6b7280',
+            fontSize: 13,
+            color: '#4b5563',
             margin: '0 0 6px',
             lineHeight: 1.4,
+            fontWeight: 400,
           }}>
             {specs.map((s, i) => (
               <span key={i}>
-                <span style={{ fontFamily: POPPINS, fontVariantNumeric: 'tabular-nums' }}>{s.num}</span>
+                <span style={{ fontFamily: POPPINS, fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: '#0a0a0a' }}>{s.num}</span>
                 {s.label}
                 {i < specs.length - 1 && <span style={{ margin: '0 6px', color: '#d1d5db' }}>&middot;</span>}
               </span>

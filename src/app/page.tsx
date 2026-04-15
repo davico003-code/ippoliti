@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
 import EmprendimientosHome from '@/components/EmprendimientosHome'
+import HorizontalCarousel from '@/components/HorizontalCarousel'
 import {
   getFeaturedProperties,
   generatePropertySlug,
@@ -42,11 +43,11 @@ async function FeaturedPropertiesSection() {
     const baths = property.bathroom_amount
     const address = property.fake_address || property.address
     const location = property.location?.short_location || property.location?.name || ''
-    const specs: string[] = []
-    if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
-    if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
-    if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
-    if (land) { const lot = getLotSurface(property); if (lot != null && lot > 0) specs.push(`${lot.toLocaleString('es-AR')} m²`) }
+    const specs: { num: string; unit: string }[] = []
+    if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
+    if (!land && baths != null && baths > 0) specs.push({ num: String(baths), unit: ` baño${baths > 1 ? 's' : ''}` })
+    if (roofed != null && roofed > 0) specs.push({ num: String(roofed), unit: ' m²' })
+    if (land) { const lot = getLotSurface(property); if (lot != null && lot > 0) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m²' }) }
 
     return (
       <Link
@@ -80,13 +81,21 @@ async function FeaturedPropertiesSection() {
           )}
         </div>
         <div style={{ padding: 14 }}>
-          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 20 }}>
+          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
             {price}
           </p>
           {specs.length > 0 && (
-            <p style={{ fontFamily: POPPINS, fontSize: 14, fontWeight: 500, color: '#1d1d1f', margin: '0 0 4px' }}>{specs.join(' · ')}</p>
+            <p style={{ fontFamily: POPPINS, fontSize: 14, color: '#1d1d1f', margin: '0 0 4px', fontWeight: 400 }}>
+              {specs.map((s, i) => (
+                <span key={i}>
+                  {i > 0 && ' · '}
+                  <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{s.num}</span>
+                  {s.unit}
+                </span>
+              ))}
+            </p>
           )}
-          <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
             {address}{location ? `, ${location}` : ''}
           </p>
         </div>
@@ -108,7 +117,7 @@ async function FeaturedPropertiesSection() {
         </p>
 
         {/* Carousel */}
-        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-1 py-2 pb-3 scrollbar-none" style={{ overflowY: 'visible' }}>
+        <HorizontalCarousel>
           {properties.map(p => renderCard(p))}
           <Link
             href="/propiedades"
@@ -122,7 +131,7 @@ async function FeaturedPropertiesSection() {
           >
             Ver todas →
           </Link>
-        </div>
+        </HorizontalCarousel>
       </div>
     </section>
   )

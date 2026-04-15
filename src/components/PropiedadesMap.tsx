@@ -553,26 +553,27 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                       )}
                     </div>
                   )}
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#1a1a1a', lineHeight: 1.3, margin: '0 0 4px' }}>
-                    {property.publication_title || property.address}
-                  </h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                     <span style={{
-                      fontSize: '18px', fontWeight: 800, color: '#1A5C38',
+                      fontSize: '22px', fontWeight: 800, color: '#1A5C38',
                       fontFamily: "'Poppins',system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
+                      lineHeight: 1.1,
                     }}>
                       {fullPrice}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#666', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.3, margin: '0 0 8px' }}>
+                    {property.publication_title || property.address}
+                  </h3>
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#4b5563', marginBottom: '12px' }}>
                     {area != null && area > 0 && (
-                      <span style={{ fontFamily: "'Poppins',system-ui,sans-serif" }}>{area} m²</span>
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{area}</span> m²</span>
                     )}
                     {(property.suite_amount || property.room_amount) > 0 && (
-                      <span>{property.suite_amount || property.room_amount} dorm.</span>
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
                     )}
                     {property.bathroom_amount > 0 && (
-                      <span>{property.bathroom_amount} baño{property.bathroom_amount > 1 ? 's' : ''}</span>
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
                     )}
                   </div>
                   <a
