@@ -17,10 +17,20 @@ interface NotaPublicadaBlob {
   cta_usado: string;
   fecha_publicacion: string;
   url_completa: string;
+  imagen_url?: string;
+  imagen_alt?: string;
+  imagen_photographer?: string;
+  imagen_photographer_url?: string;
 }
 
 function blobToBlogPost(nota: NotaPublicadaBlob): BlogPost {
   const fecha = new Date(nota.fecha_publicacion);
+  // Prioridad: imagen_url (Unsplash) → imagen_sugerida si es URL → placeholder
+  const image = nota.imagen_url
+    ?? (nota.imagen_sugerida.startsWith('http')
+      ? nota.imagen_sugerida
+      : '/blog/images/funes-barrios-arbolados-aerea.webp');
+
   return {
     slug: nota.slug,
     title: nota.titulo,
@@ -31,13 +41,13 @@ function blobToBlogPost(nota: NotaPublicadaBlob): BlogPost {
       year: 'numeric',
     }),
     source: 'SI Inmobiliaria',
-    image: nota.imagen_sugerida.startsWith('http')
-      ? nota.imagen_sugerida
-      : '/blog/images/funes-barrios-arbolados-aerea.webp',
+    image,
     summary: nota.bajada,
     content: nota.contenido_markdown,
     category: nota.categoria,
     author: 'David Flores',
+    imagen_photographer: nota.imagen_photographer,
+    imagen_photographer_url: nota.imagen_photographer_url,
   };
 }
 

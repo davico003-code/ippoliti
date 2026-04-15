@@ -11,6 +11,8 @@ export interface BlogPost {
   content: string       // full article body (HTML-safe plain text with paragraphs)
   category?: string
   author?: string
+  imagen_photographer?: string
+  imagen_photographer_url?: string
 }
 
 export const posts: BlogPost[] = [

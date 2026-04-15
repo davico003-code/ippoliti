@@ -73,3 +73,23 @@ curl -X POST -H "Authorization: Bearer $REVALIDATE_SECRET" \
 | `CRON_SECRET` | Secret para autenticar crons |
 | `REVALIDATE_SECRET` | Secret para revalidar rutas Next.js |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob (expuesta automáticamente si Blob está conectado al proyecto) |
+| `UNSPLASH_ACCESS_KEY` | (opcional) Para imágenes Unsplash matcheadas por keywords |
+
+## Integración Unsplash
+
+Cada nota publicada busca una imagen en Unsplash matcheada por sus keywords. La imagen se guarda en el blob junto con la atribución del fotógrafo, que se renderiza al final del cuerpo de la nota como exige la licencia de Unsplash.
+
+**Cómo obtener UNSPLASH_ACCESS_KEY:**
+1. Crear cuenta en https://unsplash.com
+2. Ir a https://unsplash.com/oauth/applications
+3. New Application → aceptar guidelines → completar nombre/descripción
+4. Copiar el Access Key (no el Secret Key)
+5. Setear en Vercel: `UNSPLASH_ACCESS_KEY`
+
+**Plan Demo (gratis):** 50 requests/hora. Suficiente para 2 notas/semana.
+
+**Si la env var no está:** el writer degrada elegantemente — `imagen_url` queda undefined y el frontend cae al placeholder de `imagen_sugerida` o al default `/blog/images/funes-barrios-arbolados-aerea.webp`.
+
+**Cumplimiento de licencia:**
+- Cada vez que se "usa" una foto se llama al endpoint `download_location` (lo hace `registrarDescargaUnsplash`).
+- La atribución al fotógrafo se renderiza al final del cuerpo de la nota con UTM tracking.

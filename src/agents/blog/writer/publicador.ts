@@ -1,6 +1,7 @@
 import { put } from '@vercel/blob';
 import { Redis } from '@upstash/redis';
 import { BLOG_REDIS_KEYS } from '../lib/redis-keys';
+import { buscarImagenUnsplash, registrarDescargaUnsplash } from './unsplash';
 import type { NotaDraft, NotaPublicada } from '../types';
 
 const BASE_URL = 'https://siinmobiliaria.com';
@@ -16,11 +17,28 @@ export async function publicarNota(nota: NotaDraft): Promise<NotaPublicada> {
   const fechaPublicacion = new Date().toISOString();
   const urlCompleta = `${BASE_URL}/blog/${nota.slug}`;
 
+  // 0. Buscar imagen Unsplash matcheada por keywords
+  const imagen = await buscarImagenUnsplash(nota.keywords);
+
   const publicada: NotaPublicada = {
     ...nota,
     fecha_publicacion: fechaPublicacion,
     url_completa: urlCompleta,
+    ...(imagen && {
+      imagen_url: imagen.url,
+      imagen_alt: imagen.alt,
+      imagen_photographer: imagen.photographer,
+      imagen_photographer_url: imagen.photographer_url,
+    }),
   };
+
+  // Registrar descarga (requisito de licencia Unsplash, no bloqueante)
+  if (imagen) {
+    registrarDescargaUnsplash(imagen.download_location).catch(() => {});
+    console.log(`[publicador] Imagen Unsplash: ${imagen.url} (foto de ${imagen.photographer})`);
+  } else {
+    console.log('[publicador] Sin imagen Unsplash, usando placeholder');
+  }
 
   // 1. Guardar en Vercel Blob
   const blobPath = `blog-posts/${nota.slug}.json`;

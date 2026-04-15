@@ -40,9 +40,14 @@ export interface NotaDraft {
   categoria: CategoriaNota;
   imagen_sugerida: string;
   cta_usado: CtaId;
+  imagen_url?: string;
 }
 
 export interface NotaPublicada extends NotaDraft {
   fecha_publicacion: string;
   url_completa: string;
+  imagen_url?: string;
+  imagen_alt?: string;
+  imagen_photographer?: string;
+  imagen_photographer_url?: string;
 }

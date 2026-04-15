@@ -245,6 +245,30 @@ export default async function BlogPostPage({ params }: Props) {
             })}
           </div>
 
+          {/* ── Atribución Unsplash (requisito de licencia) ── */}
+          {post.imagen_photographer && post.imagen_photographer_url && (
+            <p className="text-xs text-gray-500 mt-8 italic">
+              Foto:{' '}
+              <a
+                href={`${post.imagen_photographer_url}?utm_source=si_inmobiliaria&utm_medium=referral`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-gray-700"
+              >
+                {post.imagen_photographer}
+              </a>{' '}
+              en{' '}
+              <a
+                href="https://unsplash.com/?utm_source=si_inmobiliaria&utm_medium=referral"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-gray-700"
+              >
+                Unsplash
+              </a>
+            </p>
+          )}
+
           {/* ── CTA — Apple style ── */}
           <div className="mt-16 -mx-4 md:-mx-16 lg:-mx-24">
             <div className="bg-[#111] rounded-3xl px-8 py-16 md:py-20 text-center">
