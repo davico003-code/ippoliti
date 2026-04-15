@@ -17,6 +17,7 @@ import {
   Check,
   ArrowUpDown,
   Locate,
+  Clock,
   ArrowLeft,
   RefreshCw,
 } from 'lucide-react'
@@ -167,7 +168,33 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const [searchDropdownDesktop, setSearchDropdownDesktop] = useState(false)
   const [locatingUser, setLocatingUser] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [searchHistory, setSearchHistory] = useState<string[]>([])
   const searchWrapDesktopRef = useRef<HTMLDivElement>(null)
+
+  // Cargar historial persistente del localStorage al montar
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem('si_search_history')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+          setSearchHistory(parsed.filter((x): x is string => typeof x === 'string').slice(0, 5))
+        }
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  // Agregar término al historial (al principio, sin duplicados, max 5)
+  const pushToHistory = useCallback((term: string) => {
+    const t = term.trim()
+    if (!t) return
+    setSearchHistory(prev => {
+      const next = [t, ...prev.filter(x => x.toLowerCase() !== t.toLowerCase())].slice(0, 5)
+      try { localStorage.setItem('si_search_history', JSON.stringify(next)) } catch { /* ignore */ }
+      return next
+    })
+  }, [])
   const searchWrapRef                   = useRef<HTMLDivElement>(null)
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
@@ -241,6 +268,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
             ''
           if (!nombre) throw new Error('Sin resultados')
           set('search', nombre)
+          pushToHistory(nombre)
           setFlyToCenter([latitude, longitude])
           setMobileView('map')
           setSearchSuggestions(false)
@@ -257,7 +285,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
-  }, [set])
+  }, [set, pushToHistory])
 
   const hasActive = (Object.keys(DEFAULTS) as (keyof Filters)[])
     .some(k => filters[k] !== DEFAULTS[k])
@@ -436,6 +464,14 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                 setSearchSuggestions(true)
               }}
               onFocus={() => setSearchSuggestions(true)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  const v = filters.search.trim()
+                  if (v.length >= 2) pushToHistory(v)
+                  setSearchSuggestions(false)
+                  ;(e.currentTarget as HTMLInputElement).blur()
+                }
+              }}
               className="w-full h-11 pl-10 pr-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 placeholder:text-gray-400"
               style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16, border: '1.5px solid #e5e7eb' }}
             />
@@ -480,6 +516,36 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                     {locationError}
                   </div>
                 )}
+                {/* Búsquedas recientes — solo si no está escribiendo y hay historial */}
+                {filters.search.trim().length < 2 && searchHistory.length > 0 && (
+                  <>
+                    <div style={{ padding: '10px 16px 6px', fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                      Búsquedas recientes
+                    </div>
+                    {searchHistory.map(term => (
+                      <button
+                        key={term}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => {
+                          set('search', term)
+                          pushToHistory(term)
+                          setSearchSuggestions(false)
+                        }}
+                        className="w-full flex items-center gap-3 text-left"
+                        style={{
+                          padding: '12px 16px', fontSize: 15, color: '#111',
+                          background: 'transparent', border: 'none',
+                          borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
+                          minHeight: 44, fontFamily: "'Raleway', system-ui, sans-serif",
+                        }}
+                      >
+                        <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="flex-1 truncate">{term}</span>
+                      </button>
+                    ))}
+                  </>
+                )}
                 {searchZonas.map(zona => (
                   <button
                     key={zona.id}
@@ -487,6 +553,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                     onMouseDown={e => e.preventDefault()}
                     onClick={() => {
                       set('search', zona.nombre)
+                      pushToHistory(zona.nombre)
                       setSearchSuggestions(false)
                     }}
                     className="w-full flex items-center gap-3 text-left"
@@ -571,6 +638,14 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
             autoComplete="off"
             onChange={e => { set('search', e.target.value); setSearchDropdownDesktop(true) }}
             onFocus={() => setSearchDropdownDesktop(true)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                const v = filters.search.trim()
+                if (v.length >= 2) pushToHistory(v)
+                setSearchDropdownDesktop(false)
+                ;(e.currentTarget as HTMLInputElement).blur()
+              }
+            }}
             className="w-full h-10 pl-8 pr-3 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all placeholder:text-gray-400"
             style={{ border: '1.5px solid #d1d5db', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
           />
@@ -616,6 +691,38 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                   {locationError}
                 </div>
               )}
+              {/* Búsquedas recientes — solo si no está escribiendo y hay historial */}
+              {filters.search.trim().length < 2 && searchHistory.length > 0 && (
+                <>
+                  <div style={{ padding: '10px 14px 6px', fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                    Búsquedas recientes
+                  </div>
+                  {searchHistory.map(term => (
+                    <button
+                      key={term}
+                      type="button"
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => {
+                        set('search', term)
+                        pushToHistory(term)
+                        setSearchDropdownDesktop(false)
+                      }}
+                      className="w-full flex items-center gap-3 text-left"
+                      style={{
+                        padding: '10px 14px', fontSize: 14, color: '#111',
+                        background: 'transparent', border: 'none',
+                        borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
+                        fontFamily: "'Raleway', system-ui, sans-serif",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                    >
+                      <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="flex-1 truncate">{term}</span>
+                    </button>
+                  ))}
+                </>
+              )}
               {searchZonas.map(zona => (
                 <button
                   key={zona.id}
@@ -623,6 +730,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
                   onMouseDown={e => e.preventDefault()}
                   onClick={() => {
                     set('search', zona.nombre)
+                    pushToHistory(zona.nombre)
                     setSearchDropdownDesktop(false)
                   }}
                   className="w-full flex items-center gap-3 text-left"
