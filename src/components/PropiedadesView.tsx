@@ -119,6 +119,10 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   const searchParams = useSearchParams()
   const router = useRouter()
   const initialSearch = searchParams.get('q') ?? ''
+  // Leer operación desde la URL (el Navbar linkea a ?op=venta|alquiler)
+  const opParam = (searchParams.get('op') ?? searchParams.get('operacion') ?? '').toLowerCase()
+  const initialOperation: Operation =
+    opParam === 'venta' || opParam === 'alquiler' ? opParam : 'todos'
 
   // Resolve zona from q param
   const resolvedZona = useMemo<Zona | null>(() => {
@@ -133,7 +137,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
 
   const activeZona = resolvedZona
 
-  const [filters, setFilters]           = useState<Filters>({ ...DEFAULTS, search: initialSearch })
+  const [filters, setFilters]           = useState<Filters>({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
