@@ -197,7 +197,7 @@ function NosotrosHomeSection() {
         <div className="nosotros-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
           <div style={{ position: 'relative', width: '100%', height: 380, borderRadius: 16, overflow: 'hidden' }}>
             <Image
-              src="/LDS.jpg"
+              src="/LDS.webp"
               alt="Susana Ippoliti, David Flores y Laura Flores — Equipo SI Inmobiliaria"
               fill
               style={{ objectFit: 'cover', objectPosition: 'top' }}

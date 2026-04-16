@@ -22,7 +22,6 @@
     "@vercel/blob": "^2.3.3",
     "cheerio": "^1.2.0",
     "fast-xml-parser": "^5.5.12",
-    "framer-motion": "^12.38.0",
     "jose": "^6.2.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.577.0",

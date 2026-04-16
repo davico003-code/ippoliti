@@ -43,20 +43,12 @@ function buildPublicUrl(req: Request): string {
 }
 
 export async function POST(req: Request) {
-  // ── DIAGNOSTIC LOGS ──
-  const sig = req.headers.get('x-twilio-signature');
-  const ct = req.headers.get('content-type');
-  console.log('[aprobacion-blog] X-Twilio-Signature:', sig);
-  console.log('[aprobacion-blog] Content-Type:', ct);
-
   // Twilio Sandbox manda application/x-www-form-urlencoded.
-  // Tomamos el body como formData (funciona para form-urlencoded y multipart).
-  // Si vino como JSON (test manual), parseamos eso como fallback.
+  // Fallback a JSON para test manual con curl.
   let from = '';
   let texto = '';
   const formParams: Record<string, string> = {};
 
-  const cloneRaw = req.clone();
   const cloneJson = req.clone();
 
   try {
@@ -64,42 +56,31 @@ export async function POST(req: Request) {
     fd.forEach((v, k) => { formParams[k] = String(v); });
     from = String(fd.get('From') ?? '');
     texto = String(fd.get('Body') ?? '');
-    console.log('[aprobacion-blog] formData From:', from, '| Body:', texto, '| To:', String(fd.get('To') ?? ''));
-  } catch (e) {
-    console.log('[aprobacion-blog] formData falló, intentando JSON:', e instanceof Error ? e.message : String(e));
+  } catch {
     try {
       const body = (await cloneJson.json()) as { from?: string; text?: string; From?: string; Body?: string };
       from = body.From ?? body.from ?? '';
       texto = body.Body ?? body.text ?? '';
-      console.log('[aprobacion-blog] body JSON parseado: from=', from, 'texto=', texto);
-    } catch {
-      const raw = await cloneRaw.text();
-      console.log('[aprobacion-blog] body raw (no parseable):', raw);
-    }
+    } catch { /* body no parseable */ }
   }
 
   texto = texto.trim();
 
-  // ── Validación de firma Twilio (opcional, no rompe si falla) ──
+  // Validación de firma Twilio (opcional)
+  const sig = req.headers.get('x-twilio-signature');
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   if (sig && authToken && Object.keys(formParams).length > 0) {
     const url = buildPublicUrl(req);
-    const valid = twilio.validateRequest(authToken, sig, url, formParams);
-    console.log('[aprobacion-blog] validateRequest url=', url, '| valid=', valid);
-    if (!valid) {
-      console.warn('[aprobacion-blog] firma inválida pero no rechazamos (sandbox debug)');
-    }
+    twilio.validateRequest(authToken, sig, url, formParams);
   }
 
-  // ── Comparar From normalizado contra ADMIN_WHATSAPP_NUMBER ──
+  // Comparar From contra ADMIN_WHATSAPP_NUMBER
   const adminEnv = process.env.ADMIN_WHATSAPP_NUMBER ?? '+5493413340916';
   const fromNorm = normalizarNumero(from);
   const adminNorm = normalizarNumero(adminEnv);
   const isAdmin = fromNorm === adminNorm;
-  console.log('[aprobacion-blog] from=', fromNorm, '| admin=', adminNorm, '| match=', isAdmin);
 
   if (!texto) {
-    console.log('[aprobacion-blog] texto vacío, abortando');
     return new Response('<Response></Response>', {
       status: 200,
       headers: { 'Content-Type': 'text/xml' },
@@ -107,7 +88,6 @@ export async function POST(req: Request) {
   }
 
   if (from && !isAdmin) {
-    console.log('[aprobacion-blog] mensaje de número no-admin, ignorando');
     return new Response('<Response></Response>', {
       status: 200,
       headers: { 'Content-Type': 'text/xml' },

@@ -456,7 +456,7 @@ async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes'
                 return (
                   <Link key={id} href={`/propiedades/${slug}`} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div className="relative h-48 bg-gray-100 overflow-hidden">
-                      {photo && <img src={photo} alt={p.publication_title || p.address} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                      {photo && <Image src={photo} alt={p.publication_title || p.address} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 25vw" />}
                     </div>
                     <div className="p-4">
                       <p className="text-xs text-gray-400 mb-1">{translatePropertyType(p.type?.name)}</p>
@@ -490,7 +490,7 @@ async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes'
                 return (
                   <Link key={id} href={`/propiedades/${slug}`} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div className="relative h-48 bg-gray-100 overflow-hidden">
-                      {photo && <img src={photo} alt={p.publication_title || p.address} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                      {photo && <Image src={photo} alt={p.publication_title || p.address} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 25vw" />}
                     </div>
                     <div className="p-4">
                       <p className="text-xs text-gray-400 mb-1">{translatePropertyType(p.type?.name)}</p>

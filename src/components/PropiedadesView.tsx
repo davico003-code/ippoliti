@@ -384,7 +384,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       default:
         return 0
     }
-  }), [properties, filters, sortBy])
+  }), [properties, filters, sortBy, resolvedNeighborhoods])
 
   // Apply map bounds filter if active
   const visibleProperties = useMemo(() => {
