@@ -62,7 +62,7 @@ async function FeaturedPropertiesSection() {
           transition: 'box-shadow 200ms',
         }}
       >
-        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 'clamp(220px, 30vw, 260px)' }}>
+        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
           {photo ? (
             <Image src={photo} alt={property.publication_title || address} fill
               className="object-cover prop-card-img" sizes="340px" />
@@ -80,7 +80,7 @@ async function FeaturedPropertiesSection() {
             </span>
           )}
         </div>
-        <div style={{ padding: 14 }}>
+        <div style={{ padding: '10px 14px' }}>
           <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
             {price}
           </p>

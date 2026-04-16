@@ -90,7 +90,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       }}
     >
       {/* Image */}
-      <div className={`relative w-full bg-gray-100 overflow-hidden ${isMobile ? 'aspect-[16/10]' : 'aspect-[4/3]'}`}>
+      <div className="relative w-full bg-gray-100 overflow-hidden aspect-[16/9]">
         {images.length > 0 ? (
           <Image
             src={images[imgIdx]}
@@ -175,7 +175,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       </div>
 
       {/* Body */}
-      <div style={{ padding: 12 }}>
+      <div style={{ padding: '10px 12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <p style={{
             fontFamily: POPPINS,

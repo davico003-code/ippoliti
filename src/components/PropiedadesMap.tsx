@@ -535,7 +535,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
               {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
                 <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif" }}>
                   {photo && (
-                    <div style={{ margin: '-10px -20px 12px', height: '160px', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
                       <img
                         src={photo}
                         alt={property.publication_title || property.address}
