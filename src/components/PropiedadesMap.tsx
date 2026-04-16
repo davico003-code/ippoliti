@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
+import Link from 'next/link'
 import {
   type TokkoProperty,
   generatePropertySlug,
@@ -576,7 +577,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                       <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
                     )}
                   </div>
-                  <a
+                  <Link
                     href={`/propiedades/${slug}`}
                     style={{
                       display: 'block', textAlign: 'center',
@@ -589,7 +590,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                     onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
                   >
                     Ver propiedad →
-                  </a>
+                  </Link>
                 </div>
               </Popup>}
             </Marker>

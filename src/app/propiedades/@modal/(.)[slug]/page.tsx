@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Bed, Bath, Maximize, Phone, MessageCircle, Home, Car } from 'lucide-react';
 import PropertyModal from '@/components/PropertyModal';
+import PropertyModalNav from '@/components/PropertyModalNav';
 import ShareButtons from '@/components/ShareButtons';
 import VisitWidget from '@/components/VisitWidget';
 import BackButton from '@/components/BackButton';
@@ -96,7 +97,7 @@ export default async function PropertyModalPage({ params }: Props) {
 
   if ('notFound' in result || 'error' in result) {
     return (
-      <PropertyModal>
+      <PropertyModal slug={params.slug}>
         <div className="flex flex-col items-center justify-center min-h-[50vh] px-4">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Propiedad no encontrada</h1>
           <Link href="/propiedades" className="text-[#1A5C38] font-semibold hover:underline">
@@ -113,8 +114,14 @@ export default async function PropertyModalPage({ params }: Props) {
     similar, nearbyForMap, specs, hasCoords, currentLat, currentLng,
   } = result.data;
 
+  // 64px header + 44px tabs + 16px padding
+  const scrollMargin = { scrollMarginTop: 124 };
+
   return (
-    <PropertyModal>
+    <PropertyModal slug={params.slug}>
+      {/* Tabs de navegación sticky debajo del header */}
+      <PropertyModalNav />
+
       {/* Hero image */}
       {mainPhoto ? (
         <div className="relative w-full h-[40vh] md:h-[50vh]">
@@ -130,7 +137,7 @@ export default async function PropertyModalPage({ params }: Props) {
           {/* ── LEFT COLUMN ── */}
           <div className="flex-1 min-w-0 space-y-6">
             {/* Title + badges + price */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div id="resumen" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100" style={scrollMargin}>
               <BackButton />
               <h1 className="text-xl md:text-3xl font-black text-gray-900 leading-tight mb-3">
                 {property.publication_title || property.address}
@@ -151,7 +158,7 @@ export default async function PropertyModalPage({ params }: Props) {
 
             {/* Specs */}
             {specs.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div id="caracteristicas" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100" style={scrollMargin}>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Características</h2>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                   {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
@@ -161,7 +168,7 @@ export default async function PropertyModalPage({ params }: Props) {
 
             {/* Gallery */}
             {photos.length > 1 && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div id="galeria" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100" style={scrollMargin}>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Galería <span className="text-gray-400 text-sm font-normal font-numeric">{photos.length} fotos</span></h2>
                 <PhotoGallery photos={photos} alt={property.publication_title || property.address} />
               </div>
@@ -177,7 +184,7 @@ export default async function PropertyModalPage({ params }: Props) {
 
             {/* Description */}
             {description && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div id="descripcion" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100" style={scrollMargin}>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Descripción</h2>
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line text-[15px]">{description}</p>
               </div>
@@ -231,7 +238,7 @@ export default async function PropertyModalPage({ params }: Props) {
             )}
 
             {/* Map */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div id="ubicacion" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100" style={scrollMargin}>
               <h2 className="text-lg font-bold text-gray-900 mb-4">Ubicación</h2>
               <PropertyMap
                 lat={property.geo_lat ? parseFloat(property.geo_lat) : null}
@@ -248,9 +255,9 @@ export default async function PropertyModalPage({ params }: Props) {
             <SimilarProperties properties={similar} currentPropertyId={property.id} />
           </div>
 
-          {/* ── RIGHT COLUMN (sidebar sticky) — desktop only ── */}
-          <div className="w-full md:w-[380px] md:shrink-0">
-            <div className="md:sticky md:top-[60px] space-y-4 md:max-h-[calc(100vh-80px)] md:overflow-y-auto md:scrollbar-none">
+          {/* ── RIGHT COLUMN (sidebar sticky) ── */}
+          <div id="contacto" className="w-full md:w-[380px] md:shrink-0" style={scrollMargin}>
+            <div className="md:sticky md:top-[124px] space-y-4 md:max-h-[calc(100vh-140px)] md:overflow-y-auto md:scrollbar-none">
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#1ea952] text-white rounded-xl font-bold text-sm transition-colors mb-2">
