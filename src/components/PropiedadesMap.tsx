@@ -6,10 +6,8 @@ import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
-import Link from 'next/link'
 import {
   type TokkoProperty,
-  generatePropertySlug,
   getMainPhoto,
   formatPrice,
   translatePropertyType,
@@ -447,13 +445,14 @@ interface Props {
   hoveredId?: number | null
   onSelect: (id: number) => void
   onDeselect?: () => void
+  onOpenDetail?: (id: number) => void
   flyToCenter: [number, number] | null
   onBoundsSearch?: (bounds: L.LatLngBounds) => void
   activeZona?: Zona | null
   onMapMove?: () => void
 }
 
-export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, flyToCenter, onBoundsSearch, activeZona, onMapMove }: Props) {
+export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const mapped = useMemo(() =>
     properties.filter(p => {
@@ -518,7 +517,6 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           const priceLabel = shortPrice(property)
           const photo = getMainPhoto(property)
           const fullPrice = formatPrice(property)
-          const slug = generatePropertySlug(property)
           const typeName = translatePropertyType(property.type?.name)
           const area = getTotalSurface(property)
 
@@ -577,20 +575,20 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                       <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
                     )}
                   </div>
-                  <Link
-                    href={`/propiedades/${slug}`}
+                  <button
+                    onClick={() => onOpenDetail?.(property.id)}
                     style={{
-                      display: 'block', textAlign: 'center',
+                      display: 'block', width: '100%', textAlign: 'center',
                       background: '#1A5C38', color: 'white',
                       fontSize: '13px', fontWeight: 600,
                       padding: '9px 16px', borderRadius: '8px',
-                      textDecoration: 'none',
+                      border: 'none', cursor: 'pointer',
                     }}
                     onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
                     onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
                   >
                     Ver propiedad →
-                  </Link>
+                  </button>
                 </div>
               </Popup>}
             </Marker>

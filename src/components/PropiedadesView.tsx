@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import PropertyPanel from './PropertyPanel'
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -397,6 +398,8 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     })
   }, [filtered, mapBounds])
 
+  const [panelPropertyId, setPanelPropertyId] = useState<number | null>(null)
+
   const handleCardClick = useCallback((property: TokkoProperty) => {
     setSelectedId(property.id)
     if (property.geo_lat && property.geo_long) {
@@ -404,14 +407,14 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       const lng = parseFloat(property.geo_long)
       if (!isNaN(lat) && !isNaN(lng)) setFlyToCenter([lat, lng])
     }
-    // Desktop: navegar al detalle — intercepting route lo muestra como modal overlay
-    // Mobile: bottom sheet preview (click en la preview navega al detalle)
+    // Desktop: panel overlay (mapa visible detrás, tipo Zillow)
+    // Mobile: bottom sheet preview
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setShowBottomSheet(true)
     } else {
-      router.push(`/propiedades/${generatePropertySlug(property)}`)
+      setPanelPropertyId(property.id)
     }
-  }, [router])
+  }, [])
 
   const handleMapSelect = useCallback((id: number) => {
     setSelectedId(id)
@@ -917,6 +920,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
             hoveredId={hoveredId}
             onSelect={handleMapSelect}
             onDeselect={handleMapDeselect}
+            onOpenDetail={(id) => setPanelPropertyId(id)}
             flyToCenter={flyToCenter}
             onBoundsSearch={(bounds) => {
               setRefreshing(true)
@@ -1113,6 +1117,14 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
             </div>
           </div>
         </div>
+      )}
+
+      {/* Panel de detalle tipo Zillow (desktop) */}
+      {panelPropertyId != null && (
+        <PropertyPanel
+          propertyId={panelPropertyId}
+          onClose={() => { setPanelPropertyId(null); setSelectedId(null) }}
+        />
       )}
     </div>
   )
