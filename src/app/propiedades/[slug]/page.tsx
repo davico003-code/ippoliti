@@ -887,6 +887,8 @@ export default async function PropertyPage({ params }: Props) {
         parking={property.parking_lot_amount}
         city={property.location?.name}
         neighborhood={neighborhood}
+        propertyId={property.id}
+        propertyTitle={property.publication_title || property.address}
       />
     </div>
   );
