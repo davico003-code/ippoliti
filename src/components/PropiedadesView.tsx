@@ -294,12 +294,28 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
   // Normaliza texto: lowercase + NFD sin tildes (para que "roldan" matchee "Roldán")
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
+  // Resolver el barrio real de cada propiedad (NO usar divisions en bruto porque
+  // Tokko pone TODOS los barrios de la ciudad en divisions[], no solo el de la
+  // propiedad). Match del fake_address contra cada division individual.
+  const resolvedNeighborhoods = useMemo(() => {
+    const map: Record<number, string> = {}
+    for (const p of properties) {
+      const addrText = p.fake_address || p.address || ''
+      const divs = [...(p.location?.divisions ?? [])].sort((a, b) => b.name.length - a.name.length)
+      const match = divs.find(d => {
+        const escaped = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        return new RegExp(`\\b${escaped}\\b`, 'i').test(addrText)
+      })
+      map[p.id] = match?.name ?? ''
+    }
+    return map
+  }, [properties])
+
   const filtered = useMemo(() => properties.filter(p => {
     if (filters.search) {
       const q = norm(filters.search)
-      // Incluir divisions y development porque Tokko clasifica barrios como "Cadaques (Funes Hills)"
-      // en divisions[].name y NO en location.name ni fake_address
-      const divisions = (p.location?.divisions ?? []).map(d => d.name).join(' ')
+      // Solo incluir el barrio resuelto (no toda la lista de divisions de la ciudad)
+      const neighborhood = resolvedNeighborhoods[p.id] ?? ''
       const development = p.development?.name ?? ''
       const haystack = norm([
         p.publication_title,
@@ -307,7 +323,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         p.fake_address,
         p.location?.short_location,
         p.location?.name,
-        divisions,
+        neighborhood,
         development,
       ].filter(Boolean).join(' '))
       if (!haystack.includes(q)) return false
