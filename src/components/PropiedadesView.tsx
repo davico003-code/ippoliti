@@ -404,10 +404,14 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
       const lng = parseFloat(property.geo_long)
       if (!isNaN(lat) && !isNaN(lng)) setFlyToCenter([lat, lng])
     }
+    // Desktop: navegar al detalle — intercepting route lo muestra como modal overlay
+    // Mobile: bottom sheet preview (click en la preview navega al detalle)
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setShowBottomSheet(true)
+    } else {
+      router.push(`/propiedades/${generatePropertySlug(property)}`)
     }
-  }, [])
+  }, [router])
 
   const handleMapSelect = useCallback((id: number) => {
     setSelectedId(id)
