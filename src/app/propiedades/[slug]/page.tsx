@@ -13,7 +13,7 @@ import SimilarProperties from '@/components/SimilarProperties'
 import ShareButtons from '@/components/ShareButtons';
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyDescription from '@/components/PropertyDescription';
-import VisitWidget, { VisitMobileTrigger } from '@/components/VisitWidget';
+import VisitWidget from '@/components/VisitWidget';
 import BackButton from '@/components/BackButton';
 import PropertyViewTracker from '@/components/PropertyViewTracker';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
@@ -865,11 +865,6 @@ export default async function PropertyPage({ params }: Props) {
           </div>
         </div>
       </div>
-
-      {/* Mobile visit trigger — only for VENTA */}
-      {operation?.toLowerCase().includes('venta') && (
-        <VisitMobileTrigger propertyId={property.id} propertyTitle={property.publication_title || property.address} />
-      )}
 
       {/* Mobile sticky bar */}
       <MobileStickyBar

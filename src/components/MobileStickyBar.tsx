@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Calendar, MessageCircle, Share2, Link2, Check } from 'lucide-react'
 import StoryPlate from './StoryPlate'
+import VisitWidget from './VisitWidget'
 import { events } from '@/lib/analytics'
 
 interface Props {
@@ -30,6 +31,7 @@ export default function MobileStickyBar({
   propertyId, propertyTitle,
 }: Props) {
   const [shareOpen, setShareOpen] = useState(false)
+  const [visitOpen, setVisitOpen] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const shareRef = useRef<HTMLDivElement>(null)
 
@@ -58,14 +60,7 @@ export default function MobileStickyBar({
   }
 
   const handleVisita = () => {
-    // Scrollear hasta el widget de visita si existe, o abrir mailto/whatsapp
-    const visitEl = document.getElementById('visit-widget')
-    if (visitEl) {
-      visitEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    } else {
-      const msg = encodeURIComponent(`Hola! Quiero agendar una visita para: ${propertyTitle} (ID: ${propertyId})`)
-      window.open(`https://wa.me/5493412101694?text=${msg}`, '_blank')
-    }
+    setVisitOpen(true)
   }
 
   return (
@@ -246,6 +241,29 @@ export default function MobileStickyBar({
           )}
         </div>
       </div>
+
+      {/* Bottom-sheet de visita (misma UX que el VisitMobileTrigger original) */}
+      {visitOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end"
+          onClick={e => { if (e.target === e.currentTarget) setVisitOpen(false) }}
+        >
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative w-full max-h-[90vh] overflow-y-auto" style={{ animation: 'slideUp 250ms ease-out' }}>
+            <div className="bg-[#1A5C38] rounded-t-3xl p-6 pb-24">
+              <div className="w-10 h-1 rounded-full bg-white/30 mx-auto mb-4" />
+              <button
+                onClick={() => setVisitOpen(false)}
+                className="absolute top-5 right-5 text-white/50 hover:text-white text-xl leading-none"
+              >
+                &times;
+              </button>
+              <VisitWidget propertyId={propertyId} propertyTitle={propertyTitle} />
+            </div>
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
     </div>
   )
 }
