@@ -40,9 +40,14 @@ export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const isPropiedades = pathname.startsWith('/propiedades')
+  const isHome = pathname === '/'
+
+  // En home mobile: ocultar navbar global (HeroMobile tiene su propio header)
+  // En /propiedades mobile: ocultar navbar global (PropiedadesView tiene su propio header)
+  const hideOnMobile = isHome || isPropiedades
 
   return (
-    <div className={isPropiedades ? 'hidden lg:block' : ''}>
+    <div className={hideOnMobile ? 'hidden lg:block' : ''}>
       {/* ── Desktop nav (lg+) ── */}
       <nav
         className="hidden lg:block sticky top-0 left-0 right-0 z-[100] bg-white"
