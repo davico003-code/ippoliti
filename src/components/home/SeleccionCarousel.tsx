@@ -5,6 +5,7 @@ import {
   generatePropertySlug,
   getMainPhoto,
   formatPrice,
+  getOperationType,
   getRoofedArea,
   getLotSurface,
   isLand,
@@ -12,31 +13,11 @@ import {
   type TokkoProperty,
 } from '@/lib/tokko'
 
-// ─── Badge system ───────────────────────────────────────────────────────────
-
-export type BadgeVariant = 'oportunidad' | 'bajo-precio' | 'open-house' | 'exclusiva' | 'a-estrenar' | 'nuevo' | 'venta' | 'alquiler'
-
-const BADGE_CONFIG: Record<BadgeVariant, { label: string; bg: string }> = {
-  oportunidad:  { label: 'OPORTUNIDAD',       bg: '#dc2626' },
-  'bajo-precio':{ label: 'BAJÓ DE PRECIO',    bg: '#ea580c' },
-  'open-house': { label: 'OPEN HOUSE · SÁB 19', bg: '#2563eb' },
-  exclusiva:    { label: 'EXCLUSIVA',          bg: '#000000' },
-  'a-estrenar': { label: 'A ESTRENAR',         bg: '#1A5C38' },
-  nuevo:        { label: 'NUEVO',              bg: '#1f2937' },
-  venta:        { label: 'VENTA',              bg: '#1A5C38' },
-  alquiler:     { label: 'ALQUILER',           bg: '#2563eb' },
-}
-
-// Prioridad: OPORTUNIDAD > BAJÓ DE PRECIO > OPEN HOUSE > EXCLUSIVA > A ESTRENAR > NUEVO
-// TODO: conectar a campos reales de Tokko (priceChanged, openHouse dates, exclusivity flag)
-// Por ahora: demo visual con badges variados por posición en el array
-const DEMO_BADGES: BadgeVariant[] = [
-  'bajo-precio', 'a-estrenar', 'open-house', 'exclusiva', 'oportunidad', 'nuevo', 'venta', 'alquiler',
-]
-
-export function getBadgeFromProperty(_p: TokkoProperty, index: number): { label: string; bg: string } {
-  const variant = DEMO_BADGES[index % DEMO_BADGES.length]
-  return BADGE_CONFIG[variant]
+// Badge basado en operation_type real de Tokko
+function getBadge(p: TokkoProperty): { label: string; bg: string } {
+  const op = getOperationType(p)
+  if (op === 'Alquiler') return { label: 'ALQUILER', bg: '#2563eb' }
+  return { label: 'VENTA', bg: '#1A5C38' }
 }
 
 export default async function SeleccionCarousel() {
@@ -68,7 +49,7 @@ export default async function SeleccionCarousel() {
         className="mt-5 -mx-5 px-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2"
         style={{ scrollbarWidth: 'none' }}
       >
-        {properties.map((p, index) => {
+        {properties.map(p => {
           const slug = generatePropertySlug(p)
           const photo = getMainPhoto(p)
           const price = formatPrice(p)
@@ -78,7 +59,7 @@ export default async function SeleccionCarousel() {
           const baths = p.bathroom_amount
           const address = p.fake_address || p.address
           const location = p.location?.name || ''
-          const badge = getBadgeFromProperty(p, index)
+          const badge = getBadge(p)
 
           const specs: string[] = []
           if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
