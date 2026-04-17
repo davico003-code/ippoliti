@@ -71,12 +71,12 @@ export default function HeroMobile() {
         {/* Logo centrado */}
         <div className="absolute left-1/2 -translate-x-1/2">
           <Image
-            src="/LOGO_HORIZONTAL.png"
+            src="/logo-blanco.png"
             alt="SI Inmobiliaria"
             width={164}
             height={24}
             className="object-contain drop-shadow-md"
-            style={{ height: 24, width: 'auto', filter: 'brightness(0) invert(1)' }}
+            style={{ height: 24, width: 'auto' }}
             priority
           />
         </div>

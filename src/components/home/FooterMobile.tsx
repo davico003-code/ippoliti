@@ -142,12 +142,12 @@ export default function FooterMobile() {
       {/* 5. Brand + Legal */}
       <div className="px-5 py-7">
         <Image
-          src="/LOGO_HORIZONTAL.png"
+          src="/logo-blanco.png"
           alt="SI Inmobiliaria"
           width={164}
           height={24}
           className="object-contain opacity-90"
-          style={{ height: 28, width: 'auto', filter: 'brightness(0) invert(1)' }}
+          style={{ height: 28, width: 'auto' }}
         />
         <p className="font-poppins text-white/50 text-[12px] mt-3 leading-relaxed">
           Inmobiliaria familiar fundada en Roldán en 1983.<br />
