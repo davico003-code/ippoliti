@@ -32,7 +32,7 @@ const playfair = Playfair_Display({
 });
 
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import FooterWrapper from "@/components/FooterWrapper";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import Analytics from "@/components/Analytics";
 import TawkTo from "@/components/TawkTo";
@@ -150,7 +150,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Navbar />
         <main>{children}</main>
-        <Footer />
+        <FooterWrapper />
         <FloatingWhatsApp />
         <ScrollToTop />
         <PopupManager />
