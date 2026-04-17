@@ -24,26 +24,55 @@ import {
   translateDisposition,
   generatePropertySlug,
 } from '@/lib/tokko'
-import ShareButtons from './ShareButtons'
 import PropertyDescription from './PropertyDescription'
+import ShareButtons from './ShareButtons'
+import VisitWidget from './VisitWidget'
 
 const PhotoGallery = dynamic(() => import('./PhotoGallery'), { ssr: false })
 const PropertyMap = dynamic(() => import('./PropertyMap'), { ssr: false })
-const BlueprintGallery = dynamic(() => import('./BlueprintGallery'), { ssr: false })
+
+// ─── Styles ────────────────────────────────────────────────────────────────────
+
+const R = "'Raleway', system-ui, sans-serif"
+const P = "'Poppins', system-ui, sans-serif"
+const GREEN = '#1A5C38'
+const CARD = 'bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 mb-4'
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+  return (
+    <div className="flex flex-col items-center text-center gap-1.5 py-3 px-2 bg-[#f9fafb] rounded-xl">
+      <div style={{ color: GREEN }}>{icon}</div>
+      <span style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: '#111' }}>{value}</span>
+      <span style={{ fontSize: 11, fontWeight: 500, color: '#9ca3af' }}>{label}</span>
+    </div>
+  )
+}
+
+function SurfaceRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between border-b border-gray-100 pb-2.5 text-sm">
+      <span className="text-gray-500">{label}</span>
+      <span style={{ fontFamily: R, fontWeight: 700, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: '#111' }}>{value}</span>
+    </div>
+  )
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between border-b border-gray-100 pb-2.5 text-sm">
+      <span className="text-gray-500">{label}</span>
+      <span className="font-bold text-[#111]">{value}</span>
+    </div>
+  )
+}
+
+// ─── Main ──────────────────────────────────────────────────────────────────────
 
 interface Props {
   propertyId: number
   onClose: () => void
-}
-
-function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="flex flex-col items-center text-center gap-1 py-3 px-2 bg-[#f9fafb] rounded-xl">
-      <div className="text-[#1A5C38]">{icon}</div>
-      <span className="text-gray-900 font-bold text-sm font-numeric">{value}</span>
-      <span className="text-[11px] text-gray-400 font-medium">{label}</span>
-    </div>
-  )
 }
 
 export default function PropertyPanel({ propertyId, onClose }: Props) {
@@ -51,7 +80,6 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
-  // Fetch property data
   useEffect(() => {
     setLoading(true)
     setError(false)
@@ -61,66 +89,54 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
       .catch(() => { setError(true); setLoading(false) })
   }, [propertyId])
 
-  // Lock body scroll
+  useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = '' } }, [])
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
+  }, [onClose])
 
-  // Update URL (shallow) for sharing, restore on close
+  // URL shareable
   useEffect(() => {
     if (!property) return
     const slug = generatePropertySlug(property)
-    const prevUrl = window.location.href
+    const prev = window.location.pathname + window.location.search
     window.history.pushState(null, '', `/propiedades/${slug}`)
-    return () => { window.history.pushState(null, '', prevUrl) }
+    return () => { window.history.pushState(null, '', prev) }
   }, [property])
 
-  // Close on Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
+    const h = () => onClose()
+    window.addEventListener('popstate', h); return () => window.removeEventListener('popstate', h)
   }, [onClose])
 
-  // Close on browser back
-  useEffect(() => {
-    const handler = () => onClose()
-    window.addEventListener('popstate', handler)
-    return () => window.removeEventListener('popstate', handler)
-  }, [onClose])
-
-  if (loading) {
+  // Loading / Error
+  if (loading || error || !property) {
     return (
       <div className="fixed inset-0 z-[200]">
         <div className="absolute inset-0 bg-black/40" onClick={onClose} />
         <div className="absolute inset-y-0 right-0 w-full md:w-[55%] lg:w-[50%] xl:w-[45%] bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
-          <div className="animate-pulse p-6 space-y-4">
-            <div className="h-8 w-40 bg-gray-200 rounded" />
-            <div className="h-[300px] bg-gray-200 rounded-2xl" />
-            <div className="h-6 w-3/4 bg-gray-200 rounded" />
-            <div className="h-10 w-1/3 bg-gray-200 rounded" />
-          </div>
+          {loading ? (
+            <div className="animate-pulse p-6 space-y-4">
+              <div className="h-8 w-40 bg-gray-200 rounded" />
+              <div className="h-[280px] bg-gray-200 rounded-2xl" />
+              <div className="h-6 w-3/4 bg-gray-200 rounded" />
+              <div className="h-10 w-1/3 bg-gray-200 rounded" />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center px-6">
+                <p className="text-xl font-bold text-gray-900 mb-2">No se pudo cargar</p>
+                <button onClick={onClose} className="text-[#1A5C38] font-semibold">Volver</button>
+              </div>
+            </div>
+          )}
         </div>
         <style>{`@keyframes ppSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
       </div>
     )
   }
 
-  if (error || !property) {
-    return (
-      <div className="fixed inset-0 z-[200]">
-        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-        <div className="absolute inset-y-0 right-0 w-full md:w-[55%] bg-white flex items-center justify-center">
-          <div className="text-center px-6">
-            <p className="text-xl font-bold text-gray-900 mb-2">No se pudo cargar</p>
-            <button onClick={onClose} className="text-[#1A5C38] font-semibold">Volver</button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+  // ── Derived data ──
   const photos = getAllPhotos(property)
   const mainPhoto = photos[0] || getMainPhoto(property)
   const price = formatPrice(property)
@@ -131,21 +147,18 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
   const location = formatLocation(property)
   const propType = translatePropertyType(property.type?.name)
   const description = getDescription(property)
-  const blueprints = getBlueprintPhotos(property)
+  getBlueprintPhotos(property) // available for future use
   const slug = generatePropertySlug(property)
   const address = property.fake_address || property.address
 
-  // Resolve neighborhood
   const addrText = property.fake_address || property.address || ''
-  const sortedDivisions = [...(property.location?.divisions ?? [])].sort((a, b) => b.name.length - a.name.length)
-  const neighborhood = sortedDivisions.find(d => {
-    const escaped = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    return new RegExp(`\\b${escaped}\\b`, 'i').test(addrText)
+  const sortedDivs = [...(property.location?.divisions ?? [])].sort((a, b) => b.name.length - a.name.length)
+  const neighborhood = sortedDivs.find(d => {
+    const esc = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return new RegExp(`\\b${esc}\\b`, 'i').test(addrText)
   })?.name
 
-  const whatsappMsg = encodeURIComponent(
-    `Hola! Me interesa esta propiedad:\n\n*${property.publication_title || address}*\n📍 ${address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${slug}`
-  )
+  const whatsappMsg = encodeURIComponent(`Hola! Me interesa esta propiedad:\n\n*${property.publication_title || address}*\n📍 ${address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${slug}`)
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`
 
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
@@ -156,160 +169,216 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
   if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: 'Cocheras', value: property.parking_lot_amount })
   if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface} m²` })
 
+  const hasSurfaces = (roofedArea && roofedArea > 0) || parseFloat(property.semiroofed_surface) > 0 || parseFloat(property.total_surface) > 0 || parseFloat(property.surface) > 0
+  const hasDetails = property.age != null || translateCondition(property.property_condition) || translateOrientation(property.orientation) || property.suite_amount > 0 || property.floors_amount > 0 || translateDisposition(property.disposition)
+
   return (
     <div className="fixed inset-0 z-[200]">
-      {/* Backdrop — mapa visible detrás */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} style={{ animation: 'ppFadeIn 200ms ease-out' }} />
 
-      {/* Panel deslizante desde la derecha */}
-      <div
-        className="absolute inset-y-0 right-0 w-full md:w-[55%] lg:w-[50%] xl:w-[45%] bg-[#fafafa] overflow-y-auto"
-        style={{ animation: 'ppSlideIn 250ms ease-out' }}
-      >
-        {/* Header sticky */}
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6" style={{ height: 56 }}>
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-[#1A5C38] transition-colors"
-            style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
-          >
+      <div className="absolute inset-y-0 right-0 w-full md:w-[55%] lg:w-[50%] xl:w-[45%] bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 250ms ease-out' }}>
+
+        {/* ── HEADER sticky ── */}
+        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 flex items-center justify-between px-5" style={{ height: 56 }}>
+          <button onClick={onClose} className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-[#1A5C38] transition-colors" style={{ fontFamily: R }}>
             <ArrowLeft className="w-4 h-4" />
-            Volver a la búsqueda
+            <span className="hidden sm:inline">Volver a la búsqueda</span>
+            <span className="sm:hidden">Volver</span>
           </button>
-          <Link
-            href={`/propiedades/${slug}`}
-            className="text-xs font-medium text-gray-400 hover:text-[#1A5C38] transition-colors"
-          >
-            Abrir página completa →
+          <Link href={`/propiedades/${slug}`} className="text-xs font-medium text-gray-400 hover:text-[#1A5C38] transition-colors">
+            Abrir completa →
           </Link>
         </div>
 
-        {/* Hero image */}
+        {/* ── HERO IMAGE ── */}
         {mainPhoto && (
           <div className="relative w-full aspect-[16/9]">
             <Image src={mainPhoto} alt={property.publication_title || address} fill className="object-cover" sizes="50vw" priority />
+            {operation && (
+              <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white" style={{ background: operation === 'Venta' ? '#dc2626' : '#2563eb' }}>
+                {operation}
+              </span>
+            )}
+            {propType && (
+              <span className="absolute top-3 left-[90px] px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase" style={{ color: GREEN }}>
+                {propType}
+              </span>
+            )}
           </div>
         )}
 
-        <div className="p-4 md:p-6 space-y-5">
-          {/* Title + price */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <div className="flex gap-2 mb-2">
-              {operation && <span className="px-3 py-1 bg-[#1A5C38] text-white text-[11px] font-bold rounded-full uppercase">{operation}</span>}
-              {propType && <span className="px-3 py-1 bg-[#e8f5ee] text-[#1A5C38] text-[11px] font-bold rounded-full uppercase">{propType}</span>}
-            </div>
-            <h2 className="text-xl font-black text-gray-900 leading-tight mb-2">
-              {property.publication_title || address}
-            </h2>
-            <div className="flex items-center gap-1.5 mb-4">
-              <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
-              <span className="text-[13px] text-gray-500">{property.real_address || address}{location ? `, ${location}` : ''}</span>
-            </div>
-            <span className="text-[28px] font-extrabold text-[#111] font-numeric leading-none">{price}</span>
-          </div>
+        <div className="flex flex-col md:flex-row gap-4 p-4 md:p-5">
+          {/* ════ LEFT COLUMN ════ */}
+          <div className="flex-1 min-w-0">
 
-          {/* Contact */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2 py-3 bg-[#25D366] hover:bg-[#1ea952] text-white rounded-xl font-bold text-sm transition-colors mb-2">
-              <MessageCircle className="w-5 h-5" />Consultar por WhatsApp
-            </a>
-            <a href="tel:+5493412101694"
-              className="w-full flex items-center justify-center gap-2 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors mb-3">
-              <Phone className="w-5 h-5" />Llamar <span className="font-numeric">(341) 210-1694</span>
-            </a>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#1A5C38] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">DF</div>
-              <div>
-                <span className="text-sm font-bold text-gray-900 block">David Flores</span>
-                <span className="text-xs text-gray-400">Mat. N° 0621</span>
+            {/* CARD 1 — Título + Precio */}
+            <div className={CARD}>
+              <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 22, color: '#111', lineHeight: 1.25, marginBottom: 8 }}>
+                {property.publication_title || address}
+              </h2>
+              <div className="flex items-center gap-1.5 mb-4">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#e7f2eb' }}>
+                  <MapPin className="w-3 h-3" style={{ color: GREEN }} />
+                </div>
+                <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
+                  {property.real_address || address}{location ? `, ${location}` : ''}
+                </span>
+              </div>
+              <div style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
+                {price}
+              </div>
+            </div>
+
+            {/* CARD 2 — Características */}
+            {specs.length > 0 && (
+              <div className={CARD}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Características</h2>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
+                </div>
+              </div>
+            )}
+
+            {/* CARD 3 — Galería */}
+            {photos.length > 1 && (
+              <div className={CARD}>
+                <div className="flex items-baseline justify-between mb-4">
+                  <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111' }}>Galería</h2>
+                  <span style={{ fontFamily: P, fontSize: 13, color: '#9ca3af', fontVariantNumeric: 'tabular-nums' }}>{photos.length} fotos</span>
+                </div>
+                <PhotoGallery photos={photos} alt={property.publication_title || address} />
+              </div>
+            )}
+
+            {/* CARD 4 — Descripción */}
+            {description && (
+              <div className={CARD}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Descripción</h2>
+                <PropertyDescription text={description} />
+              </div>
+            )}
+
+            {/* CARD 5 — Superficies */}
+            {hasSurfaces && (
+              <div className={CARD}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Superficies</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {parseFloat(property.surface) > 0 && <SurfaceRow label="Terreno" value={`${parseFloat(property.surface)} m²`} />}
+                  {roofedArea != null && roofedArea > 0 && <SurfaceRow label="Cubierta" value={`${roofedArea} m²`} />}
+                  {parseFloat(property.semiroofed_surface) > 0 && <SurfaceRow label="Semicubierta" value={`${parseFloat(property.semiroofed_surface)} m²`} />}
+                  {parseFloat(property.total_surface) > 0 && <SurfaceRow label="Total" value={`${parseFloat(property.total_surface)} m²`} />}
+                </div>
+              </div>
+            )}
+
+            {/* CARD 6 — Detalles */}
+            {hasDetails && (
+              <div className={CARD}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Detalles</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+                  {property.age != null && property.age >= 0 && <DetailRow label="Antigüedad" value={property.age === 0 ? 'A estrenar' : `${property.age} años`} />}
+                  {translateCondition(property.property_condition) && <DetailRow label="Estado" value={translateCondition(property.property_condition)!} />}
+                  {translateOrientation(property.orientation) && <DetailRow label="Orientación" value={translateOrientation(property.orientation)!} />}
+                  {property.suite_amount > 0 && <DetailRow label="Suites" value={String(property.suite_amount)} />}
+                  {property.floors_amount > 0 && <DetailRow label="Plantas" value={String(property.floors_amount)} />}
+                  {translateDisposition(property.disposition) && <DetailRow label="Disposición" value={translateDisposition(property.disposition)!} />}
+                </div>
+              </div>
+            )}
+
+            {/* CARD 7 — Servicios y amenities */}
+            {property.tags && property.tags.length > 0 && (
+              <div className={CARD}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Servicios y amenities</h2>
+                <div className="flex flex-wrap gap-2">
+                  {property.tags.map(tag => (
+                    <span key={tag.id} className="px-4 py-1.5 rounded-full text-sm border border-gray-200" style={{ color: '#374151' }}>
+                      {translateTag(tag.name)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CARD 8 — Ubicación */}
+            <div className={CARD}>
+              <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Ubicación</h2>
+              <div className="rounded-[14px] overflow-hidden mb-3" style={{ aspectRatio: '16/9' }}>
+                <PropertyMap
+                  lat={property.geo_lat ? parseFloat(property.geo_lat) : null}
+                  lng={property.geo_long ? parseFloat(property.geo_long) : null}
+                  address={property.real_address || address}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#e7f2eb' }}>
+                  <MapPin className="w-3 h-3" style={{ color: GREEN }} />
+                </div>
+                <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
+                  {property.real_address || address}{location ? `, ${location}` : ''}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Specs */}
-          {specs.length > 0 && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Características</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
+          {/* ════ RIGHT COLUMN — sidebar sticky ════ */}
+          <div className="w-full md:w-[340px] md:shrink-0">
+            <div className="md:sticky md:top-[72px] space-y-4">
+
+              {/* CARD AGENTE */}
+              <div className="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100">
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
+                  style={{ background: '#25d366', color: '#fff' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#25d366' }}
+                >
+                  <MessageCircle className="w-5 h-5" />Consultar por WhatsApp
+                </a>
+                <a href="tel:+5493412101694"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
+                  style={{ border: '1.5px solid #e5e7eb', color: '#111' }}
+                >
+                  <Phone className="w-5 h-5" />Llamar <span className="font-numeric">(341) 210-1694</span>
+                </a>
+
+                <div className="border-t border-gray-100 pt-4 mt-2.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: GREEN, fontFamily: R }}>DF</div>
+                    <div className="flex-1 min-w-0">
+                      <span style={{ fontFamily: R, fontWeight: 700, fontSize: 16, color: '#111', display: 'block' }}>David Flores</span>
+                      <span className="text-xs text-gray-400">Mat. N° 0621</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider" style={{ background: '#e7f2eb', color: GREEN }}>Agente</span>
+                  </div>
+                </div>
+
+                {/* Compartir */}
+                <div className="border-t border-gray-100 mt-5 pt-4">
+                  <p className="text-xs text-gray-400 tracking-wider uppercase mb-3">Compartir propiedad</p>
+                  <ShareButtons
+                    slug={slug}
+                    title={property.publication_title || address}
+                    price={price}
+                    photo={mainPhoto}
+                    operation={operation}
+                    propertyType={propType}
+                    area={area}
+                    rooms={property.suite_amount || property.room_amount || 0}
+                    bathrooms={property.bathroom_amount}
+                    lotSurface={lotSurface}
+                    parking={property.parking_lot_amount}
+                    city={property.location?.name}
+                    neighborhood={neighborhood}
+                  />
+                </div>
               </div>
+
+              {/* CARD VISITA */}
+              {operation?.toLowerCase().includes('venta') && (
+                <VisitWidget propertyId={property.id} propertyTitle={property.publication_title || address} />
+              )}
             </div>
-          )}
-
-          {/* Gallery */}
-          {photos.length > 1 && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Galería <span className="text-gray-400 text-sm font-normal">{photos.length} fotos</span></h3>
-              <PhotoGallery photos={photos} alt={property.publication_title || address} />
-            </div>
-          )}
-
-          {/* Description */}
-          {description && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Descripción</h3>
-              <PropertyDescription text={description} />
-            </div>
-          )}
-
-          {/* Surfaces */}
-          {(roofedArea || parseFloat(property.semiroofed_surface) > 0 || parseFloat(property.total_surface) > 0 || parseFloat(property.surface) > 0) && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Superficies</h3>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                {parseFloat(property.surface) > 0 && <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-500">Terreno</span><span className="font-semibold font-numeric">{parseFloat(property.surface)} m²</span></div>}
-                {roofedArea != null && roofedArea > 0 && <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-500">Cubierta</span><span className="font-semibold font-numeric">{roofedArea} m²</span></div>}
-                {parseFloat(property.semiroofed_surface) > 0 && <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-500">Semicubierta</span><span className="font-semibold font-numeric">{parseFloat(property.semiroofed_surface)} m²</span></div>}
-                {parseFloat(property.total_surface) > 0 && <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-500">Total</span><span className="font-semibold font-numeric">{parseFloat(property.total_surface)} m²</span></div>}
-              </div>
-            </div>
-          )}
-
-          {/* Details */}
-          {(property.age != null || translateCondition(property.property_condition) || translateOrientation(property.orientation)) && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Detalles</h3>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                {property.age != null && property.age >= 0 && <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-500">Antigüedad</span><span className="font-semibold">{property.age === 0 ? 'A estrenar' : `${property.age} años`}</span></div>}
-                {translateCondition(property.property_condition) && <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-500">Estado</span><span className="font-semibold">{translateCondition(property.property_condition)}</span></div>}
-                {translateOrientation(property.orientation) && <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-500">Orientación</span><span className="font-semibold">{translateOrientation(property.orientation)}</span></div>}
-                {translateDisposition(property.disposition) && <div className="flex justify-between border-b border-gray-100 pb-2"><span className="text-gray-500">Disposición</span><span className="font-semibold">{translateDisposition(property.disposition)}</span></div>}
-              </div>
-            </div>
-          )}
-
-          {/* Tags */}
-          {property.tags && property.tags.length > 0 && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Servicios y amenities</h3>
-              <div className="flex flex-wrap gap-2">
-                {property.tags.map(tag => <span key={tag.id} className="px-3 py-1.5 bg-[#f7f7f7] text-gray-600 rounded-full text-sm font-medium">{translateTag(tag.name)}</span>)}
-              </div>
-            </div>
-          )}
-
-          {/* Blueprints */}
-          {blueprints.length > 0 && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Planos</h3>
-              <BlueprintGallery blueprints={blueprints} />
-            </div>
-          )}
-
-          {/* Map */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <h3 className="text-base font-bold text-gray-900 mb-3">Ubicación</h3>
-            <PropertyMap
-              lat={property.geo_lat ? parseFloat(property.geo_lat) : null}
-              lng={property.geo_long ? parseFloat(property.geo_long) : null}
-              address={property.real_address || address}
-            />
-          </div>
-
-          {/* Share */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <ShareButtons slug={slug} title={property.publication_title || address} price={price} photo={mainPhoto} operation={operation} propertyType={propType} area={area} rooms={property.suite_amount || property.room_amount || 0} bathrooms={property.bathroom_amount} lotSurface={lotSurface} parking={property.parking_lot_amount} city={property.location?.name} neighborhood={neighborhood} />
           </div>
         </div>
       </div>
