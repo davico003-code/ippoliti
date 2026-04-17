@@ -30,7 +30,7 @@ export default async function ProyectosCarousel() {
   try {
     developments = await getDevelopments()
   } catch {
-    return null
+    // Tokko API no disponible (ej: preview sin TOKKO_API_KEY)
   }
   if (!developments || developments.length === 0) return null
 

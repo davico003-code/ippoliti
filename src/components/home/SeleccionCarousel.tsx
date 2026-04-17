@@ -28,7 +28,7 @@ export default async function SeleccionCarousel() {
     const allData = await getProperties({ limit: 1 })
     totalCount = allData.meta?.total_count ?? 0
   } catch {
-    return null
+    // Tokko API no disponible (ej: preview sin TOKKO_API_KEY)
   }
   if (!properties || properties.length === 0) return null
 
