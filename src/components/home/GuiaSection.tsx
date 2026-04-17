@@ -21,7 +21,7 @@ export default function GuiaSection() {
       </section>
 
       {/* Escena 3D multi-device */}
-      <div className="relative overflow-hidden" style={{ aspectRatio: '1/1.05', background: 'radial-gradient(ellipse at 30% 40%, #f8f8f5 0%, #ebebe6 100%)', perspective: 2000 }}>
+      <div className="relative overflow-hidden" style={{ aspectRatio: '1/1.05', background: 'radial-gradient(ellipse at 30% 40%, #f8f8f5 0%, #ebebe6 100%)', perspective: 2000, WebkitPerspective: 2000, transformStyle: 'preserve-3d' as const }}>
 
         {/* Mesh gradient */}
         <div className="absolute inset-0" style={{
