@@ -5,7 +5,6 @@ import {
   generatePropertySlug,
   getMainPhoto,
   formatPrice,
-  getOperationType,
   getRoofedArea,
   getLotSurface,
   isLand,
@@ -13,29 +12,31 @@ import {
   type TokkoProperty,
 } from '@/lib/tokko'
 
-// Badge por prioridad: OPORTUNIDAD > BAJÓ DE PRECIO > OPEN HOUSE > EXCLUSIVA > A ESTRENAR > NUEVO
-function getBadge(p: TokkoProperty): { label: string; bg: string } | null {
-  const op = getOperationType(p)
+// ─── Badge system ───────────────────────────────────────────────────────────
 
-  // Prioridad heurística basada en datos de Tokko
-  const tags = (p.tags ?? []).map(t => t.name.toLowerCase())
-  const title = (p.publication_title ?? '').toLowerCase()
+export type BadgeVariant = 'oportunidad' | 'bajo-precio' | 'open-house' | 'exclusiva' | 'a-estrenar' | 'nuevo' | 'venta' | 'alquiler'
 
-  if (tags.some(t => t.includes('oportunidad')) || title.includes('oportunidad'))
-    return { label: 'OPORTUNIDAD', bg: '#dc2626' }
-  if (tags.some(t => t.includes('baj') && t.includes('precio')))
-    return { label: 'BAJÓ DE PRECIO', bg: '#ea580c' }
-  if (tags.some(t => t.includes('open house')))
-    return { label: 'OPEN HOUSE', bg: '#2563eb' }
-  if (tags.some(t => t.includes('exclusiv')) || p.is_starred_on_web)
-    return { label: 'EXCLUSIVA', bg: '#000000' }
-  if (p.age === 0 || tags.some(t => t.includes('estrenar')))
-    return { label: 'A ESTRENAR', bg: '#1A5C38' }
+const BADGE_CONFIG: Record<BadgeVariant, { label: string; bg: string }> = {
+  oportunidad:  { label: 'OPORTUNIDAD',       bg: '#dc2626' },
+  'bajo-precio':{ label: 'BAJÓ DE PRECIO',    bg: '#ea580c' },
+  'open-house': { label: 'OPEN HOUSE · SÁB 19', bg: '#2563eb' },
+  exclusiva:    { label: 'EXCLUSIVA',          bg: '#000000' },
+  'a-estrenar': { label: 'A ESTRENAR',         bg: '#1A5C38' },
+  nuevo:        { label: 'NUEVO',              bg: '#1f2937' },
+  venta:        { label: 'VENTA',              bg: '#1A5C38' },
+  alquiler:     { label: 'ALQUILER',           bg: '#2563eb' },
+}
 
-  // Default: operación
-  if (op === 'Venta') return { label: 'VENTA', bg: '#1A5C38' }
-  if (op === 'Alquiler') return { label: 'ALQUILER', bg: '#2563eb' }
-  return { label: 'NUEVO', bg: '#1f2937' }
+// Prioridad: OPORTUNIDAD > BAJÓ DE PRECIO > OPEN HOUSE > EXCLUSIVA > A ESTRENAR > NUEVO
+// TODO: conectar a campos reales de Tokko (priceChanged, openHouse dates, exclusivity flag)
+// Por ahora: demo visual con badges variados por posición en el array
+const DEMO_BADGES: BadgeVariant[] = [
+  'bajo-precio', 'a-estrenar', 'open-house', 'exclusiva', 'oportunidad', 'nuevo', 'venta', 'alquiler',
+]
+
+export function getBadgeFromProperty(_p: TokkoProperty, index: number): { label: string; bg: string } {
+  const variant = DEMO_BADGES[index % DEMO_BADGES.length]
+  return BADGE_CONFIG[variant]
 }
 
 export default async function SeleccionCarousel() {
@@ -67,7 +68,7 @@ export default async function SeleccionCarousel() {
         className="mt-5 -mx-5 px-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2"
         style={{ scrollbarWidth: 'none' }}
       >
-        {properties.map(p => {
+        {properties.map((p, index) => {
           const slug = generatePropertySlug(p)
           const photo = getMainPhoto(p)
           const price = formatPrice(p)
@@ -77,7 +78,7 @@ export default async function SeleccionCarousel() {
           const baths = p.bathroom_amount
           const address = p.fake_address || p.address
           const location = p.location?.name || ''
-          const badge = getBadge(p)
+          const badge = getBadgeFromProperty(p, index)
 
           const specs: string[] = []
           if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
