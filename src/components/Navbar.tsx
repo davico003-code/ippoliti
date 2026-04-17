@@ -40,11 +40,10 @@ export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const isPropiedades = pathname.startsWith('/propiedades')
-  const isHome = pathname === '/'
 
-  // En home mobile: ocultar navbar global (HeroMobile tiene su propio header)
-  // En /propiedades mobile: ocultar navbar global (PropiedadesView tiene su propio header)
-  const hideOnMobile = isHome || isPropiedades
+  // En /propiedades mobile: ocultar (PropiedadesView tiene su propio header)
+  // En home y demás rutas: MOSTRAR navbar blanco con logo + hamburguesa
+  const hideOnMobile = isPropiedades
 
   return (
     <div className={hideOnMobile ? 'hidden lg:block' : ''}>
@@ -99,10 +98,10 @@ export default function Navbar() {
 
       {/* ── Mobile nav (<lg) ── */}
       <nav
-        className="lg:hidden sticky top-0 left-0 right-0 z-[100] bg-white"
-        style={{ borderBottom: '1px solid #eee', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className="lg:hidden sticky top-0 left-0 right-0 z-[100] bg-white border-b border-gray-100"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
-        <div className="flex items-center justify-between px-4 h-14">
+        <div className="flex items-center justify-between px-5 py-2.5">
           {/* Left — logo */}
           <Link href="/" style={{ textDecoration: 'none' }}>
             <Image
