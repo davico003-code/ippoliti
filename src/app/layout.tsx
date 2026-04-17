@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Raleway, Poppins } from "next/font/google";
+import { Raleway, Poppins, Lora, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const raleway = Raleway({
@@ -15,6 +15,22 @@ const poppins = Poppins({
   variable: "--font-poppins",
   display: "swap",
 });
+const lora = Lora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-lora",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
@@ -121,7 +137,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${raleway.variable} ${poppins.variable}`}>
+    <html lang="es" className={`${raleway.variable} ${poppins.variable} ${lora.variable} ${playfair.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <link rel="preconnect" href="https://static.tokkobroker.com" />
