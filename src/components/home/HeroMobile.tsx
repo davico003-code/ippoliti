@@ -59,22 +59,15 @@ export default function HeroMobile() {
 
       {/* Contenido del hero (header global se encarga del navbar) */}
       <div className="flex-1 flex flex-col justify-center items-center px-6 text-white text-center relative z-10">
-        <h1
-          className="drop-shadow-lg"
-          style={{
-            fontFamily: "'Raleway', sans-serif",
-            fontWeight: 900,
-            fontSize: 40,
-            lineHeight: 1.02,
-          }}
-        >
-          Encontrá tu
-          <br />
-          próximo hogar
+        <h1 className="font-raleway font-black text-[34px] leading-[1.02] drop-shadow-lg whitespace-nowrap">
+          Encontrá tu hogar
         </h1>
+        <p className="font-poppins text-white/95 text-[14px] mt-1 drop-shadow">
+          Propiedades en Funes, Roldán y Rosario
+        </p>
 
         {/* Searchbar pill estilo Zillow */}
-        <div className="w-full mt-5 relative" ref={wrapperRef}>
+        <div className="w-full mt-3 relative" ref={wrapperRef}>
           <form
             onSubmit={submit}
             className="bg-white rounded-full shadow-xl flex items-center pl-5 pr-1.5 py-1.5"

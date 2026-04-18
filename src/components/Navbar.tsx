@@ -118,9 +118,9 @@ export default function Navbar() {
               src="/LOGO_HORIZONTAL.png"
               alt="SI Inmobiliaria"
               width={205}
-              height={28}
+              height={24}
               className="object-contain"
-              style={{ height: 28, width: 'auto' }}
+              style={{ height: 24, width: 'auto' }}
               priority
               quality={90}
             />
