@@ -63,8 +63,8 @@ export default function HeroMobile() {
           className="drop-shadow-lg"
           style={{
             fontFamily: "'Raleway', sans-serif",
-            fontWeight: 800,
-            fontSize: 34,
+            fontWeight: 900,
+            fontSize: 40,
             lineHeight: 1.02,
           }}
         >
