@@ -1,19 +1,15 @@
-'use client'
-
-import { useState } from 'react'
-import GuiaModal from './GuiaModal'
+import Link from 'next/link'
 
 const GREEN = '#1A5C38'
 
 export default function GuiaSection() {
-  const [modalOpen, setModalOpen] = useState(false)
 
   return (
     <>
       {/* Eyebrow + título */}
       <section className="px-5 pt-8 pb-2 bg-white">
         <p className="font-poppins text-[12px] font-bold tracking-[0.15em] uppercase" style={{ color: GREEN }}>
-          Guía gratuita · 14 capítulos
+          Guía gratuita · 13 capítulos
         </p>
         <h2 className="font-raleway font-black text-[26px] leading-[1.1] mt-2 text-gray-900">
           Comprá con <span className="italic" style={{ color: GREEN }}>inteligencia</span>, no con suerte.
@@ -47,7 +43,7 @@ export default function GuiaSection() {
 
         <div className="mt-4 flex items-center justify-center gap-5 text-center">
           {[
-            { num: '14', label: 'Capítulos' },
+            { num: '13', label: 'Capítulos' },
             { num: '62', label: 'Páginas' },
             { num: '100%', label: 'Online' },
           ].map((s, i) => (
@@ -61,24 +57,22 @@ export default function GuiaSection() {
           ))}
         </div>
 
-        <button
-          onClick={() => setModalOpen(true)}
+        <Link
+          href="/guia"
           className="mt-5 w-full text-white font-poppins font-bold text-[15px] flex items-center justify-center gap-2 px-5 py-4 rounded-2xl transition"
-          style={{ background: GREEN }}
+          style={{ background: GREEN, textDecoration: 'none' }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2">
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg>
           <span>Leer la guía gratuita</span>
-        </button>
+        </Link>
 
         <p className="font-poppins text-gray-400 text-[12px] mt-3 text-center">
-          Acceso permanente · Solo se pide una vez
+          Acceso permanente · Sin registro
         </p>
       </section>
-
-      <GuiaModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   )
 }

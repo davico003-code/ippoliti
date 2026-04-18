@@ -1,21 +1,16 @@
-'use client'
-
-import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
-import GuiaModal from './GuiaModal'
 
 const GREEN = '#1A5C38'
 
 const SPECS = [
-  { num: '14', label: 'Capítulos' },
+  { num: '13', label: 'Capítulos' },
   { num: '62', label: 'Páginas' },
   { num: '100%', label: 'Online' },
 ]
 
 export default function GuiaDesktop() {
-  const [modalOpen, setModalOpen] = useState(false)
-
   return (
     <>
       <section className="bg-white py-20 lg:py-28">
@@ -25,7 +20,7 @@ export default function GuiaDesktop() {
             {/* Columna izquierda: texto */}
             <div>
               <p className="font-poppins text-[13px] font-bold tracking-[0.2em] uppercase" style={{ color: GREEN }}>
-                Guía gratuita · 14 capítulos
+                Guía gratuita · 13 capítulos
               </p>
 
               <h2 className="font-raleway font-black text-[56px] leading-[1.05] mt-3 text-gray-900">
@@ -50,17 +45,17 @@ export default function GuiaDesktop() {
               </div>
 
               {/* CTA */}
-              <button
-                onClick={() => setModalOpen(true)}
+              <Link
+                href="/guia"
                 className="mt-8 inline-flex items-center gap-2 px-7 py-4 rounded-2xl text-white font-poppins font-bold text-[16px] transition hover:opacity-95"
-                style={{ background: GREEN }}
+                style={{ background: GREEN, textDecoration: 'none' }}
               >
                 <BookOpen className="w-5 h-5" />
                 <span>Leer la guía gratuita</span>
-              </button>
+              </Link>
 
               <p className="font-poppins text-gray-400 text-[13px] mt-4">
-                Acceso permanente · Solo se pide una vez
+                Acceso permanente · Sin registro
               </p>
             </div>
 
@@ -88,7 +83,6 @@ export default function GuiaDesktop() {
         </div>
       </section>
 
-      <GuiaModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   )
 }
