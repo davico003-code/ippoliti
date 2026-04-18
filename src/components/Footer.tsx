@@ -18,7 +18,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: 'INFORMACIÓN',
     links: [
       { label: 'Informes de mercado', href: '/informes' },
-      { label: 'Guía del Comprador', href: '/guia-comprador' },
+      { label: 'Guía del Comprador', href: '/guia' },
       { label: 'Blog', href: '/blog' },
       { label: 'Nosotros', href: '/nosotros' },
     ],

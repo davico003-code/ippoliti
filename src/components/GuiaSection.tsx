@@ -42,7 +42,7 @@ export default function GuiaSection() {
     setSuccess(true)
     setAlreadyAccessed(true)
     setTimeout(() => {
-      window.open('/guia-comprador', '_blank')
+      window.open('/guia', '_blank')
       setModalOpen(false)
       setSuccess(false)
       setNombre('')
@@ -89,7 +89,7 @@ export default function GuiaSection() {
             {alreadyAccessed ? (
               <a
                 className="gs-cta"
-                href="/guia-comprador"
+                href="/guia"
                 target="_blank"
                 rel="noopener noreferrer"
               >

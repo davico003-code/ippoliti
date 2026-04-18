@@ -19,10 +19,6 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/guia-comprador',
-        destination: '/guia-comprador.html',
-      },
-      {
         source: '/guia',
         destination: '/guia/index.html',
       },
@@ -30,6 +26,12 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Redirect vieja guía a la nueva
+      {
+        source: '/guia-comprador',
+        destination: '/guia',
+        permanent: true,
+      },
       // Redirect old domain to new
       {
         source: '/:path*',

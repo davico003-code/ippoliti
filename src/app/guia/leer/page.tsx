@@ -18,15 +18,15 @@ export default async function GuiaLeerPage() {
   const token = cookieStore.get(COOKIE_NAME)?.value
 
   if (!token) {
-    redirect('/guia-comprador')
+    redirect('/guia')
   }
 
   try {
     await jwtVerify(token, SECRET)
   } catch {
-    redirect('/guia-comprador')
+    redirect('/guia')
   }
 
-  // Cookie válida → redirigir a /guia-comprador que ya tiene todo el contenido
-  redirect('/guia-comprador')
+  // Cookie válida → redirigir a /guia
+  redirect('/guia')
 }
