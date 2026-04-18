@@ -98,33 +98,42 @@ export default function Navbar() {
 
       {/* ── Mobile nav (<lg) ── */}
       <nav
-        className="lg:hidden sticky top-0 left-0 right-0 z-[100] bg-white border-b border-gray-100"
+        className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
-        <div className="flex items-center justify-between px-5 py-2.5">
-          {/* Left — logo */}
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <Image
-              src="/LOGO_HORIZONTAL.png"
-              alt="SI Inmobiliaria"
-              width={205}
-              height={30}
-              className="object-contain"
-              style={{ height: 30, width: 'auto' }}
-              priority
-              quality={90}
-            />
-          </Link>
-
-          {/* Right — hamburger */}
+        <div className="relative flex items-center justify-between px-4 py-2.5">
+          {/* Left — hamburger */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="w-10 h-10 flex items-center justify-center"
             aria-label="Menú"
             aria-expanded={isOpen}
           >
-            {isOpen ? <X className="w-6 h-6 text-gray-800" /> : <Menu className="w-6 h-6 text-gray-800" />}
+            {isOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
           </button>
+
+          {/* Center — logo */}
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2" style={{ textDecoration: 'none' }}>
+            <Image
+              src="/LOGO_HORIZONTAL.png"
+              alt="SI Inmobiliaria"
+              width={205}
+              height={28}
+              className="object-contain"
+              style={{ height: 28, width: 'auto' }}
+              priority
+              quality={90}
+            />
+          </Link>
+
+          {/* Right — Ingresar */}
+          <Link
+            href="/agentes"
+            className="text-gray-600 text-sm font-medium"
+            style={{ fontFamily: "'Poppins', sans-serif", textDecoration: 'none' }}
+          >
+            Ingresar
+          </Link>
         </div>
       </nav>
 
