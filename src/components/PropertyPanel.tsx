@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Bed, Bath, Maximize, Home, Car, Phone, MessageCircle } from 'lucide-react'
+import { ArrowLeft, MapPin, Bed, Bath, Maximize, Home, Car, Phone, MessageCircle, Images } from 'lucide-react'
 import {
   type TokkoProperty,
   getAllPhotos,
@@ -28,8 +28,9 @@ import PropertyDescription from './PropertyDescription'
 import ShareButtons from './ShareButtons'
 import VisitWidget from './VisitWidget'
 
-const PhotoGallery = dynamic(() => import('./PhotoGallery'), { ssr: false })
 const PropertyMap = dynamic(() => import('./PropertyMap'), { ssr: false })
+const BlueprintGallery = dynamic(() => import('./BlueprintGallery'), { ssr: false })
+const NearbyPlaces = dynamic(() => import('./NearbyPlaces'), { ssr: false })
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
@@ -79,6 +80,7 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
   const [property, setProperty] = useState<TokkoProperty | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [showAllPhotos, setShowAllPhotos] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -89,7 +91,23 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
       .catch(() => { setError(true); setLoading(false) })
   }, [propertyId])
 
-  useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = '' } }, [])
+  // Lock body scroll preserving position
+  useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.overflow = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
@@ -147,7 +165,7 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
   const location = formatLocation(property)
   const propType = translatePropertyType(property.type?.name)
   const description = getDescription(property)
-  getBlueprintPhotos(property) // available for future use
+  const blueprints = getBlueprintPhotos(property)
   const slug = generatePropertySlug(property)
   const address = property.fake_address || property.address
 
@@ -190,20 +208,67 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
           </Link>
         </div>
 
-        {/* ── HERO IMAGE ── */}
-        {mainPhoto && (
-          <div className="relative w-full aspect-[16/9]">
-            <Image src={mainPhoto} alt={property.publication_title || address} fill className="object-cover" sizes="50vw" priority />
-            {operation && (
-              <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white" style={{ background: operation === 'Venta' ? '#dc2626' : '#2563eb' }}>
-                {operation}
-              </span>
+        {/* ── PHOTO GRID (Zillow style: 1 big + 4 small) ── */}
+        {photos.length > 0 && (
+          <div className="relative">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-1" style={{ maxHeight: 420 }}>
+              {/* Main photo — spans 3 cols */}
+              <div className="relative md:col-span-3 aspect-[16/10] md:aspect-auto overflow-hidden cursor-pointer" onClick={() => setShowAllPhotos(true)}>
+                <Image src={photos[0]} alt={property.publication_title || address} fill className="object-cover" sizes="60vw" priority />
+                {operation && (
+                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white" style={{ background: operation === 'Venta' ? '#dc2626' : '#2563eb' }}>
+                    {operation}
+                  </span>
+                )}
+                {propType && (
+                  <span className="absolute top-3 left-[90px] px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase" style={{ color: GREEN }}>
+                    {propType}
+                  </span>
+                )}
+              </div>
+              {/* 4 thumbnails — 2x2 grid */}
+              <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-1">
+                {[1, 2, 3, 4].map(i => {
+                  const photo = photos[i]
+                  const isLast = i === 4
+                  if (!photo) return <div key={i} className="bg-gray-100" />
+                  return (
+                    <div key={i} className="relative overflow-hidden cursor-pointer" onClick={() => setShowAllPhotos(true)}>
+                      <Image src={photo} alt="" fill className="object-cover" sizes="20vw" />
+                      {isLast && photos.length > 5 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-1.5">
+                          <Images className="w-4 h-4 text-white" />
+                          <span className="text-white text-sm font-semibold">Ver las {photos.length} fotos</span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            {/* Mobile: "Ver fotos" button */}
+            {photos.length > 1 && (
+              <button
+                onClick={() => setShowAllPhotos(true)}
+                className="md:hidden absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-800 flex items-center gap-1.5 shadow"
+              >
+                <Images className="w-3.5 h-3.5" /> {photos.length} fotos
+              </button>
             )}
-            {propType && (
-              <span className="absolute top-3 left-[90px] px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase" style={{ color: GREEN }}>
-                {propType}
-              </span>
-            )}
+          </div>
+        )}
+
+        {/* Lightbox fullscreen */}
+        {showAllPhotos && (
+          <div className="fixed inset-0 z-[300] bg-black">
+            <button onClick={() => setShowAllPhotos(false)} className="absolute top-4 right-4 z-10 text-white bg-white/20 rounded-full w-10 h-10 flex items-center justify-center text-xl hover:bg-white/30">&times;</button>
+            <div className="h-full overflow-y-auto p-4 pt-16">
+              <div className="max-w-4xl mx-auto space-y-2">
+                {photos.map((p, i) => (
+                  <Image key={i} src={p} alt={`Foto ${i + 1}`} width={1200} height={800} className="w-full h-auto rounded-lg" />
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -239,18 +304,7 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
               </div>
             )}
 
-            {/* CARD 3 — Galería */}
-            {photos.length > 1 && (
-              <div className={CARD}>
-                <div className="flex items-baseline justify-between mb-4">
-                  <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111' }}>Galería</h2>
-                  <span style={{ fontFamily: P, fontSize: 13, color: '#9ca3af', fontVariantNumeric: 'tabular-nums' }}>{photos.length} fotos</span>
-                </div>
-                <PhotoGallery photos={photos} alt={property.publication_title || address} />
-              </div>
-            )}
-
-            {/* CARD 4 — Descripción */}
+            {/* CARD 3 — Descripción */}
             {description && (
               <div className={CARD}>
                 <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Descripción</h2>
@@ -319,6 +373,23 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
                 </span>
               </div>
             </div>
+
+            {/* Planos */}
+            {blueprints.length > 0 && (
+              <div className={CARD}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Planos</h2>
+                <BlueprintGallery blueprints={blueprints} />
+              </div>
+            )}
+
+            {/* Lugares cercanos */}
+            {property.geo_lat && property.geo_long && (
+              <div className={CARD}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 4 }}>Lugares cercanos</h2>
+                <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
+                <NearbyPlaces lat={parseFloat(property.geo_lat)} lng={parseFloat(property.geo_long)} />
+              </div>
+            )}
           </div>
 
           {/* ════ RIGHT COLUMN — sidebar sticky ════ */}
