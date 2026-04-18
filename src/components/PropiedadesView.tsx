@@ -1124,6 +1124,7 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
         <PropertyPanel
           propertyId={panelPropertyId}
           onClose={() => { setPanelPropertyId(null); setSelectedId(null) }}
+          allProperties={properties}
         />
       )}
     </div>

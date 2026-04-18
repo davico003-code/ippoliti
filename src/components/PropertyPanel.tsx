@@ -27,6 +27,9 @@ import {
 import PropertyDescription from './PropertyDescription'
 import ShareButtons from './ShareButtons'
 import VisitWidget from './VisitWidget'
+import PropiedadCardGrid from './PropiedadCardGrid'
+import SimilarProperties from './SimilarProperties'
+import { useRouter } from 'next/navigation'
 
 const PropertyMap = dynamic(() => import('./PropertyMap'), { ssr: false })
 const BlueprintGallery = dynamic(() => import('./BlueprintGallery'), { ssr: false })
@@ -74,9 +77,21 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 interface Props {
   propertyId: number
   onClose: () => void
+  allProperties?: TokkoProperty[]
 }
 
-export default function PropertyPanel({ propertyId, onClose }: Props) {
+function distKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+export default function PropertyPanel({ propertyId, onClose, allProperties = [] }: Props) {
+  const router = useRouter()
   const [property, setProperty] = useState<TokkoProperty | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -189,6 +204,56 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
 
   const hasSurfaces = (roofedArea && roofedArea > 0) || parseFloat(property.semiroofed_surface) > 0 || parseFloat(property.total_surface) > 0 || parseFloat(property.surface) > 0
   const hasDetails = property.age != null || translateCondition(property.property_condition) || translateOrientation(property.orientation) || property.suite_amount > 0 || property.floors_amount > 0 || translateDisposition(property.disposition)
+
+  // ── Nearby (≤5km) + Similar (same op/type, score by price/beds/dist) ──
+  const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null
+  const currentLng = property.geo_long ? parseFloat(property.geo_long) : null
+  const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng)
+  const currentOp = property.operations?.[0]?.operation_type
+  const currentTypeName = property.type?.name?.toLowerCase() ?? ''
+  const currentPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0
+  const currentBeds = property.suite_amount || property.room_amount || 0
+
+  const nearbyList = hasCoords
+    ? allProperties.filter(p => {
+        if (p.id === property.id) return false
+        if (!p.geo_lat || !p.geo_long) return false
+        const lat = parseFloat(p.geo_lat); const lng = parseFloat(p.geo_long)
+        if (isNaN(lat) || isNaN(lng)) return false
+        return distKm(currentLat!, currentLng!, lat, lng) <= 5
+      }).slice(0, 12)
+    : []
+
+  const similarList = allProperties
+    .map(p => {
+      if (p.id === property.id) return null
+      if (p.operations?.[0]?.operation_type !== currentOp) return null
+      if ((p.type?.name?.toLowerCase() ?? '') !== currentTypeName) return null
+      let score = 0
+      const pPrice = p.operations?.[0]?.prices?.[0]?.price ?? 0
+      if (currentPrice > 0 && pPrice > 0) {
+        const ratio = pPrice / currentPrice
+        if (ratio >= 0.7 && ratio <= 1.3) score += 3
+        else if (ratio >= 0.5 && ratio <= 1.5) score += 1
+      }
+      const pBeds = p.suite_amount || p.room_amount || 0
+      if (currentBeds > 0 && pBeds === currentBeds) score += 2
+      else if (currentBeds > 0 && Math.abs(pBeds - currentBeds) === 1) score += 1
+      if (hasCoords && p.geo_lat && p.geo_long) {
+        const lat = parseFloat(p.geo_lat); const lng = parseFloat(p.geo_long)
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const d = distKm(currentLat!, currentLng!, lat, lng)
+          if (d < 2) score += 4
+          else if (d < 5) score += 2
+          else if (d < 15) score += 1
+        }
+      }
+      return score > 0 ? { p, score } : null
+    })
+    .filter((x): x is { p: TokkoProperty; score: number } => x != null)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8)
+    .map(x => x.p)
 
   return (
     <div className="fixed inset-0 z-[200]">
@@ -388,6 +453,35 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
                 <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 4 }}>Lugares cercanos</h2>
                 <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
                 <NearbyPlaces lat={parseFloat(property.geo_lat)} lng={parseFloat(property.geo_long)} />
+              </div>
+            )}
+
+            {/* Propiedades cercanas (≤5km) */}
+            {hasCoords && allProperties.length > 0 && (
+              <div className={CARD}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Otras opciones en la zona</h2>
+                {nearbyList.length === 0 ? (
+                  <p className="text-gray-400 text-sm">No hay propiedades similares disponibles en este momento.</p>
+                ) : (
+                  <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-1 px-1 pb-1" style={{ scrollSnapType: 'x mandatory' }}>
+                    {nearbyList.map(p => (
+                      <div key={p.id} className="flex-shrink-0 w-[280px]" style={{ scrollSnapAlign: 'start' }}>
+                        <PropiedadCardGrid
+                          property={p}
+                          isSelected={false}
+                          onClick={() => router.push(`/propiedades/${generatePropertySlug(p)}`)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Propiedades similares */}
+            {similarList.length > 0 && (
+              <div className={CARD}>
+                <SimilarProperties properties={similarList} currentPropertyId={property.id} />
               </div>
             )}
           </div>
