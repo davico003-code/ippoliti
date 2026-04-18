@@ -11,6 +11,8 @@ import ProyectosCarousel from '@/components/home/ProyectosCarousel'
 import GuiaSection from '@/components/home/GuiaSection'
 import ConfianzaSection from '@/components/home/ConfianzaSection'
 import FooterMobile from '@/components/home/FooterMobile'
+import GuiaDesktop from '@/components/home/GuiaDesktop'
+import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import {
   getFeaturedProperties,
   generatePropertySlug,
@@ -25,7 +27,6 @@ import {
 
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
-const GREEN = '#1A5C38'
 
 // ─── Featured Properties Section ─────────────────────────────────────────────
 
@@ -144,165 +145,6 @@ async function FeaturedPropertiesSection() {
 }
 
 
-// ─── Guía Section ────────────────────────────────────────────────────────────
-
-function GuiaHomeSection() {
-  return (
-    <section style={{ background: '#f9fafb', borderTop: '1px solid #f0f0f0' }}>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-16">
-        <div className="max-w-2xl">
-          <p style={{ fontFamily: POPPINS, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: GREEN, fontWeight: 600, margin: '0 0 12px' }}>
-            GUÍA GRATUITA · 14 CAPÍTULOS
-          </p>
-          <h2 style={{ fontFamily: RALEWAY, fontSize: 'clamp(26px, 3vw, 36px)', fontWeight: 700, color: '#1d1d1f', lineHeight: 1.15, margin: '0 0 12px' }}>
-            Comprá con <em style={{ fontStyle: 'italic', color: GREEN }}>inteligencia,</em> no con suerte.
-          </h2>
-          <p style={{ fontFamily: POPPINS, fontSize: 15, color: '#6b7280', lineHeight: 1.7, margin: '0 0 24px' }}>
-            Todo lo que necesitás saber antes de comprar en Funes y Roldán. Sin letra chica, sin tiempo perdido.
-          </p>
-        </div>
-
-        {/* Chapters grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {[
-            { n: '01', t: 'Documentación y gastos ocultos', d: 'Escritura, impuestos, comisiones y todo lo que nadie te avisa.' },
-            { n: '02', t: 'El mercado local al detalle', d: 'Precios reales, tendencias y zonas con mejor proyección.' },
-            { n: '03', t: 'Negociar sin perder dinero', d: 'Estrategias probadas para cerrar al mejor precio.' },
-          ].map(item => (
-            <div key={item.n} style={{ background: '#fff', borderRadius: 12, padding: 20, border: '1px solid #e8e8e8' }}>
-              <span style={{ fontFamily: POPPINS, fontSize: 28, fontWeight: 800, color: GREEN, lineHeight: 1, display: 'block', marginBottom: 8, fontVariantNumeric: 'tabular-nums' }}>{item.n}</span>
-              <h3 style={{ fontFamily: RALEWAY, fontSize: 16, fontWeight: 700, color: '#1d1d1f', margin: '0 0 6px' }}>{item.t}</h3>
-              <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#6b7280', lineHeight: 1.5, margin: 0 }}>{item.d}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <Link href="/guia-comprador" style={{
-            display: 'inline-block', background: GREEN, color: '#fff',
-            padding: '14px 32px', borderRadius: 12, fontFamily: POPPINS,
-            fontSize: 15, fontWeight: 700, textDecoration: 'none',
-          }}>
-            Leer la guía — Es gratis →
-          </Link>
-          <span style={{ fontFamily: POPPINS, fontSize: 12, color: '#9ca3af' }}>
-            Sin registro · Acceso inmediato · 14 capítulos
-          </span>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Nosotros Section ────────────────────────────────────────────────────────
-
-function NosotrosHomeSection() {
-  return (
-    <section className="home-px home-section" style={{ background: '#f5f5f7', padding: '80px 48px' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div className="nosotros-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
-          <div style={{ position: 'relative', width: '100%', height: 380, borderRadius: 16, overflow: 'hidden' }}>
-            <Image
-              src="/LDS.jpg"
-              alt="Susana Ippoliti, David Flores y Laura Flores — Equipo SI Inmobiliaria"
-              fill
-              style={{ objectFit: 'cover', objectPosition: 'top' }}
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          </div>
-          <div>
-            <p
-              style={{
-                fontFamily: POPPINS,
-                fontSize: 10,
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                color: GREEN,
-                fontWeight: 600,
-                margin: '0 0 12px',
-              }}
-            >
-              DESDE 1983
-            </p>
-            <h2
-              style={{
-                fontFamily: RALEWAY,
-                fontSize: 34,
-                fontWeight: 300,
-                color: '#1d1d1f',
-                letterSpacing: '-0.5px',
-                margin: '0 0 18px',
-              }}
-            >
-              Tu inmobiliaria de confianza.
-            </h2>
-            <p
-              style={{
-                fontFamily: POPPINS,
-                fontSize: 14,
-                color: '#6e6e73',
-                lineHeight: 1.7,
-                margin: '0 0 32px',
-              }}
-            >
-              Dos generaciones acompañando familias en Funes, Roldán y Rosario. Una empresa
-              familiar fundada en 1983 que se piensa como un estudio.
-            </p>
-            <div className="nos-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
-              {[
-                { num: '43', label: 'Años' },
-                { num: '3', label: 'Oficinas' },
-                { num: '20K+', label: 'Instagram' },
-                { num: '14', label: 'Personas' },
-              ].map(s => (
-                <div key={s.label} style={{ background: '#fff', borderRadius: 12, padding: 16, textAlign: 'center' }}>
-                  <div
-                    style={{
-                      fontFamily: POPPINS,
-                      fontSize: 26,
-                      fontWeight: 700,
-                      color: GREEN,
-                      lineHeight: 1,
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {s.num}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 6,
-                      fontFamily: POPPINS,
-                      fontSize: 10,
-                      color: '#999',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    {s.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Link
-              href="/nosotros"
-              style={{
-                color: GREEN,
-                fontFamily: POPPINS,
-                fontSize: 13,
-                fontWeight: 600,
-                borderBottom: `1px solid ${GREEN}`,
-                paddingBottom: 2,
-                textDecoration: 'none',
-              }}
-            >
-              Conocé nuestra historia →
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 
 // ─── Metadata ────────────────────────────────────────────────────────────────
@@ -378,8 +220,8 @@ export default async function Home() {
         <HeroVideo />
         <FeaturedPropertiesSection />
         <EmprendimientosHome />
-        <GuiaHomeSection />
-        <NosotrosHomeSection />
+        <GuiaDesktop />
+        <ConfianzaDesktop />
       </div>
     </>
   )
