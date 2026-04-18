@@ -5,6 +5,12 @@ import Image from 'next/image'
 import HeroVideo from '@/components/HeroVideo'
 import EmprendimientosHome from '@/components/EmprendimientosHome'
 import HorizontalCarousel from '@/components/HorizontalCarousel'
+import HeroMobile from '@/components/home/HeroMobile'
+import SeleccionCarousel from '@/components/home/SeleccionCarousel'
+import ProyectosCarousel from '@/components/home/ProyectosCarousel'
+import GuiaSection from '@/components/home/GuiaSection'
+import ConfianzaSection from '@/components/home/ConfianzaSection'
+import FooterMobile from '@/components/home/FooterMobile'
 import {
   getFeaturedProperties,
   generatePropertySlug,
@@ -342,30 +348,39 @@ export default async function Home() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }} />
 
-      <style>{`
-        @media (hover: hover) {
-          .prop-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.08) !important; }
-          .prop-card:hover .prop-card-img { transform: scale(1.05); }
-        }
-        .prop-card-img { transition: transform 400ms ease-out; }
-        .prop-card { transition: box-shadow 300ms, transform 300ms; }
-        @media (max-width: 1024px) {
-          .home-section { padding: 32px 24px !important; }
-          .home-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
-          .nosotros-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
-          .guia-grid { flex-direction: column !important; }
-        }
-        @media (max-width: 640px) {
-          .home-section { padding: 24px 16px !important; }
-          .home-grid-3 { grid-template-columns: 1fr !important; gap: 12px !important; }
-        }
-      `}</style>
+      {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
+      <div className="md:hidden">
+        <HeroMobile />
+        <SeleccionCarousel />
+        <ProyectosCarousel />
+        <GuiaSection />
+        <ConfianzaSection />
+        <FooterMobile />
+      </div>
 
-      <HeroVideo />
-      <FeaturedPropertiesSection />
-      <EmprendimientosHome />
-      <GuiaHomeSection />
-      <NosotrosHomeSection />
+      {/* ═══ DESKTOP (md+) — Layout existente ═══ */}
+      <div className="hidden md:block">
+        <style>{`
+          @media (hover: hover) {
+            .prop-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.08) !important; }
+            .prop-card:hover .prop-card-img { transform: scale(1.05); }
+          }
+          .prop-card-img { transition: transform 400ms ease-out; }
+          .prop-card { transition: box-shadow 300ms, transform 300ms; }
+          .home-section { padding: 32px 24px; }
+          .nosotros-grid { gap: 56px; }
+          @media (max-width: 1024px) {
+            .home-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+            .nosotros-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          }
+        `}</style>
+
+        <HeroVideo />
+        <FeaturedPropertiesSection />
+        <EmprendimientosHome />
+        <GuiaHomeSection />
+        <NosotrosHomeSection />
+      </div>
     </>
   )
 }

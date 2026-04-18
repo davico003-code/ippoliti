@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import Link from 'next/link'
-import { Search, Menu } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
 
@@ -58,41 +57,8 @@ export default function HeroMobile() {
         }}
       />
 
-      {/* Header transparente sobre el hero */}
-      <header
-        className="relative z-10 flex items-center justify-between px-4 pb-2"
-        style={{ paddingTop: 'max(env(safe-area-inset-top, 12px), 12px)' }}
-      >
-        {/* Hamburguesa — controlada por el Navbar global, acá solo visual */}
-        <button aria-label="Menú" className="p-1.5 text-white">
-          <Menu className="w-6 h-6" />
-        </button>
-
-        {/* Logo centrado */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <Image
-            src="/LOGO_HORIZONTAL.png"
-            alt="SI Inmobiliaria"
-            width={164}
-            height={24}
-            className="object-contain drop-shadow-md"
-            style={{ height: 24, width: 'auto', filter: 'brightness(0) invert(1)' }}
-            priority
-          />
-        </div>
-
-        {/* CTA derecha */}
-        <Link
-          href="/agentes"
-          className="text-white text-sm font-medium drop-shadow"
-          style={{ fontFamily: "'Poppins', sans-serif" }}
-        >
-          Ingresar
-        </Link>
-      </header>
-
-      {/* Contenido del hero */}
-      <div className="flex-1 flex flex-col justify-start items-center px-6 pt-6 text-white text-center relative z-10">
+      {/* Contenido del hero (header global se encarga del navbar) */}
+      <div className="flex-1 flex flex-col justify-center items-center px-6 text-white text-center relative z-10">
         <h1
           className="drop-shadow-lg"
           style={{

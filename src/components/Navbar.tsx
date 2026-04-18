@@ -41,8 +41,12 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const isPropiedades = pathname.startsWith('/propiedades')
 
+  // En /propiedades mobile: ocultar (PropiedadesView tiene su propio header)
+  // En home y demás rutas: MOSTRAR navbar blanco con logo + hamburguesa
+  const hideOnMobile = isPropiedades
+
   return (
-    <div className={isPropiedades ? 'hidden lg:block' : ''}>
+    <div className={hideOnMobile ? 'hidden lg:block' : ''}>
       {/* ── Desktop nav (lg+) ── */}
       <nav
         className="hidden lg:block sticky top-0 left-0 right-0 z-[100] bg-white"
@@ -94,33 +98,42 @@ export default function Navbar() {
 
       {/* ── Mobile nav (<lg) ── */}
       <nav
-        className="lg:hidden sticky top-0 left-0 right-0 z-[100] bg-white"
-        style={{ borderBottom: '1px solid #eee', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
-        <div className="flex items-center justify-between px-4 h-14">
-          {/* Left — logo */}
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <Image
-              src="/LOGO_HORIZONTAL.png"
-              alt="SI Inmobiliaria"
-              width={205}
-              height={30}
-              className="object-contain"
-              style={{ height: 30, width: 'auto' }}
-              priority
-              quality={90}
-            />
-          </Link>
-
-          {/* Right — hamburger */}
+        <div className="relative flex items-center justify-between px-4 py-2.5">
+          {/* Left — hamburger */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="w-10 h-10 flex items-center justify-center"
             aria-label="Menú"
             aria-expanded={isOpen}
           >
-            {isOpen ? <X className="w-6 h-6 text-gray-800" /> : <Menu className="w-6 h-6 text-gray-800" />}
+            {isOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
           </button>
+
+          {/* Center — logo */}
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2" style={{ textDecoration: 'none' }}>
+            <Image
+              src="/LOGO_HORIZONTAL.png"
+              alt="SI Inmobiliaria"
+              width={205}
+              height={28}
+              className="object-contain"
+              style={{ height: 28, width: 'auto' }}
+              priority
+              quality={90}
+            />
+          </Link>
+
+          {/* Right — Ingresar */}
+          <Link
+            href="/agentes"
+            className="text-gray-600 text-sm font-medium"
+            style={{ fontFamily: "'Poppins', sans-serif", textDecoration: 'none' }}
+          >
+            Ingresar
+          </Link>
         </div>
       </nav>
 
