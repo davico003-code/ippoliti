@@ -50,13 +50,13 @@ export default function ConfianzaSection() {
       {/* 1. Hero editorial con foto full-bleed + quote */}
       <section className="relative bg-gray-900 overflow-hidden">
         <div className="relative" style={{ aspectRatio: '4/5' }}>
-          {/* TODO: reemplazar por foto real en /public/nosotros/familia-flores.jpg */}
           <Image
-            src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=900&q=80"
+            src="/familia-flores.jpg"
             alt="Familia Flores — SI Inmobiliaria desde 1983"
-            fill
-            className="object-cover"
-            sizes="100vw"
+            width={900}
+            height={1125}
+            priority
+            className="w-full h-full object-cover"
           />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, transparent 35%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.92) 100%)' }} />
 
