@@ -12,8 +12,7 @@ const SEDES = [
     badgeRight: null,
     direccion: '1ro de Mayo 258, Roldán',
     horario: 'Lun a Vie · 9 a 17hs',
-    // TODO: reemplazar por foto real en /public/oficinas/roldan-historica.jpg
-    foto: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80',
+    foto: '/oficina-historica.webp',
   },
   {
     nombre: 'Oficina Ventas',
@@ -22,8 +21,7 @@ const SEDES = [
     badgeRight: null,
     direccion: 'Catamarca 775, Roldán',
     horario: 'Lun a Vie · 9 a 17hs',
-    // TODO: reemplazar por foto real en /public/oficinas/roldan-ventas.jpg
-    foto: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&q=80',
+    foto: '/oficina-ruta9.webp',
   },
   {
     nombre: 'Oficina Funes',
@@ -32,8 +30,7 @@ const SEDES = [
     badgeRight: 'NUEVO 2024',
     direccion: 'Hipólito Yrigoyen 2643, Funes',
     horario: 'Lun a Vie · 9 a 17hs',
-    // TODO: reemplazar por foto real en /public/oficinas/funes.jpg
-    foto: 'https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?w=600&q=80',
+    foto: '/oficina-funes.webp',
   },
 ]
 
