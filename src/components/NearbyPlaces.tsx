@@ -58,12 +58,26 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
       way["leisure"="park"](around:1000,${lat},${lng});
     );out center 60;`
 
-    fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: `data=${encodeURIComponent(overpassQuery)}`,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
-      .then(r => r.json())
+    const endpoints = [
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter',
+    ]
+    const fetchWithFallback = async () => {
+      for (const url of endpoints) {
+        try {
+          const r = await fetch(url, {
+            method: 'POST',
+            body: `data=${encodeURIComponent(overpassQuery)}`,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          })
+          if (!r.ok) continue
+          return await r.json()
+        } catch { /* try next mirror */ }
+      }
+      throw new Error('All Overpass mirrors failed')
+    }
+
+    fetchWithFallback()
       .then(data => {
         const result: Record<string, Place[]> = {}
         for (const cat of CATEGORIES) result[cat.key] = []
@@ -140,7 +154,15 @@ export default function NearbyPlaces({ lat, lng }: { lat: number; lng: number })
     )
   }
 
-  if (error || !hasAny) return null
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-1 font-poppins">Lugares cercanos</h2>
+        <p className="text-gray-400 text-sm font-poppins">Servicio de lugares cercanos temporalmente no disponible. Probá recargar en unos minutos.</p>
+      </div>
+    )
+  }
+  if (!hasAny) return null
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
