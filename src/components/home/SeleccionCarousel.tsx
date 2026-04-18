@@ -101,7 +101,7 @@ export default async function SeleccionCarousel() {
                 )}
               </div>
               <div className="p-3.5">
-                <p className="font-poppins font-bold text-lg" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                <p className="font-poppins font-black text-[22px] text-gray-900 tracking-tight leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {price}
                 </p>
                 {specs.length > 0 && (
