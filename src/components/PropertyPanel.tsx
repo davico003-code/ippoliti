@@ -114,7 +114,7 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
     return (
       <div className="fixed inset-0 z-[200]">
         <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-        <div className="absolute inset-y-0 right-0 w-full md:w-[55%] lg:w-[50%] xl:w-[45%] bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
+        <div className="absolute inset-0 md:inset-y-4 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] md:rounded-2xl bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
           {loading ? (
             <div className="animate-pulse p-6 space-y-4">
               <div className="h-8 w-40 bg-gray-200 rounded" />
@@ -176,7 +176,7 @@ export default function PropertyPanel({ propertyId, onClose }: Props) {
     <div className="fixed inset-0 z-[200]">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} style={{ animation: 'ppFadeIn 200ms ease-out' }} />
 
-      <div className="absolute inset-y-0 right-0 w-full md:w-[55%] lg:w-[50%] xl:w-[45%] bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 250ms ease-out' }}>
+      <div className="absolute inset-0 md:inset-y-4 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] md:rounded-2xl bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 250ms ease-out' }}>
 
         {/* ── HEADER sticky ── */}
         <div className="sticky top-0 z-50 bg-white border-b border-gray-200 flex items-center justify-between px-5" style={{ height: 56 }}>
