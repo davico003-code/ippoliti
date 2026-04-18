@@ -45,7 +45,7 @@ export default function GuiaModal({ open, onClose }: Props) {
       }
 
       // Cookie JWT seteada por el endpoint. Redirigir a la guía.
-      router.push('/guia-comprador')
+      router.push('/guia')
     } catch {
       setError('Error de conexión. Intentá de nuevo.')
       setLoading(false)

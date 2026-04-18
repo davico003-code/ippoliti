@@ -13,7 +13,7 @@ const NAV_LINKS = [
   { href: '/propiedades', label: 'Propiedades' },
   { href: '/emprendimientos', label: 'Emprendimientos' },
   { href: '/tasaciones', label: 'Tasaciones' },
-  { href: '/guia-comprador', label: 'Guía gratuita' },
+  { href: '/guia', label: 'Guía' },
   { href: '/nosotros', label: 'Nosotros' },
   { href: '/blog', label: 'Blog' },
 ]

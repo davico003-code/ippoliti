@@ -22,6 +22,10 @@ const nextConfig = {
         source: '/guia-comprador',
         destination: '/guia-comprador.html',
       },
+      {
+        source: '/guia',
+        destination: '/guia/index.html',
+      },
     ]
   },
   async redirects() {

@@ -101,7 +101,7 @@ export default function FooterMobile() {
             <p className="font-poppins text-white/40 text-[10px] font-bold tracking-[0.2em] uppercase mb-3">Servicios</p>
             <ul className="space-y-2.5">
               <li><Link href="/tasaciones" className="font-poppins text-white text-[13px]">Tasaciones</Link></li>
-              <li><Link href="/guia-comprador" className="font-poppins text-white/80 text-[13px]">Guía del comprador</Link></li>
+              <li><Link href="/guia" className="font-poppins text-white/80 text-[13px]">Guía del comprador</Link></li>
               <li><Link href="/blog" className="font-poppins text-white/80 text-[13px]">Blog</Link></li>
               <li><Link href="/informes" className="font-poppins text-white/80 text-[13px]">Informes de mercado</Link></li>
             </ul>
