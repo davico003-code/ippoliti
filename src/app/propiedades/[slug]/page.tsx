@@ -10,13 +10,15 @@ const NearbyPlaces = dynamic(() => import('@/components/NearbyPlaces'), { ssr: f
 const NearbyPropertiesMap = dynamic(() => import('@/components/NearbyPropertiesMap'), { ssr: false });
 const BlueprintGallery = dynamic(() => import('@/components/BlueprintGallery'), { ssr: false });
 import SimilarProperties from '@/components/SimilarProperties'
-import ShareButtons from '@/components/ShareButtons';
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyDescription from '@/components/PropertyDescription';
-import VisitWidget from '@/components/VisitWidget';
 import BackButton from '@/components/BackButton';
 import PropertyViewTracker from '@/components/PropertyViewTracker';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
+import PropertyGalleryHero from '@/components/property-detail/PropertyGalleryHero';
+import PropertyStickyNav from '@/components/property-detail/PropertyStickyNav';
+import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody';
+import PropertyDetailSidebar from '@/components/property-detail/PropertyDetailSidebar';
 import {
   getPropertyById,
   getProperties,
@@ -555,302 +557,33 @@ export default async function PropertyPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Full-width hero image */}
-        {mainPhoto ? (
-          <div className="relative w-full h-[70vh]">
-            <Image
-              src={mainPhoto}
-              alt={property.publication_title || property.address}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-          </div>
-        ) : (
-          <div className="w-full h-[40vh] flex items-center justify-center bg-gray-200">
-            <span className="text-gray-400">Sin fotos disponibles</span>
-          </div>
-        )}
+        {/* Zillow-style hero gallery (shared with modal) */}
+        <PropertyGalleryHero property={property} />
+
+        {/* Sticky tab nav (desktop only) — window-scroll mode */}
+        <PropertyStickyNav
+          sections={[
+            { id: 'overview', label: 'Overview' },
+            { id: 'caracteristicas', label: 'Características' },
+            { id: 'descripcion', label: 'Descripción' },
+            { id: 'planos', label: 'Planos' },
+            { id: 'ubicacion', label: 'Ubicación' },
+            { id: 'similares', label: 'Similares' },
+          ]}
+          stickyTop={0}
+        />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+          <div className="mb-4"><BackButton /></div>
           <div className="flex gap-10 items-start">
-            {/* ── LEFT COLUMN (2/3) ── */}
-            <div className="flex-1 min-w-0 space-y-6">
-              {/* Title + badges + location */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <BackButton />
-                <h1 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight mb-3">
-                  {property.publication_title || property.address}
-                </h1>
-                <div className="flex gap-2 mb-3">
-                  {operation && (
-                    <span className="px-3 py-1 bg-[#1A5C38] text-white text-[11px] font-bold rounded-full uppercase tracking-wide">
-                      {operation}
-                    </span>
-                  )}
-                  {propType && (
-                    <span className="px-3 py-1 bg-[#e8f5ee] text-[#1A5C38] text-[11px] font-bold rounded-full uppercase tracking-wide">
-                      {propType}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 mb-5">
-                  <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
-                  <span className="text-[13px] text-gray-500">
-                    {property.real_address || property.address}{location ? `, ${location}` : ''}
-                  </span>
-                </div>
-
-                {/* Price */}
-                <div>
-                  <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
-                  <span className="text-[32px] font-extrabold text-[#111] font-numeric leading-none">{price}</span>
-                </div>
-              </div>
-
-              {/* Características (icon specs) */}
-              {specs.length > 0 && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Características</h2>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                    {specs.map((s, i) => (
-                      <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Photo gallery */}
-              {photos.length > 1 && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">
-                    Galería <span className="text-gray-400 text-sm font-normal font-numeric">{photos.length} fotos</span>
-                  </h2>
-                  <PhotoGallery photos={photos} alt={property.publication_title || property.address} />
-                </div>
-              )}
-
-              {/* Video */}
-              {property.videos && property.videos.length > 0 && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Video</h2>
-                  <VideoSection videos={property.videos} />
-                </div>
-              )}
-
-              {/* Description */}
-              {description && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Descripción</h2>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-line text-[15px]">{description}</p>
-                </div>
-              )}
-
-              {/* Superficies */}
-              {(roofedArea || parseFloat(property.semiroofed_surface) > 0 || parseFloat(property.total_surface) > 0 || parseFloat(property.surface) > 0) && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Superficies</h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
-                    {parseFloat(property.surface) > 0 && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Terreno</span>
-                        <span className="font-semibold font-numeric">{parseFloat(property.surface)} m²</span>
-                      </div>
-                    )}
-                    {roofedArea != null && roofedArea > 0 && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Cubierta</span>
-                        <span className="font-semibold font-numeric">{roofedArea} m²</span>
-                      </div>
-                    )}
-                    {parseFloat(property.semiroofed_surface) > 0 && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Semicubierta</span>
-                        <span className="font-semibold font-numeric">{parseFloat(property.semiroofed_surface)} m²</span>
-                      </div>
-                    )}
-                    {parseFloat(property.total_surface) > 0 && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Total construido</span>
-                        <span className="font-semibold font-numeric">{parseFloat(property.total_surface)} m²</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Detalles */}
-              {(property.age != null || translateCondition(property.property_condition) || translateOrientation(property.orientation) || property.suite_amount > 0 || property.floors_amount > 0 || translateDisposition(property.disposition)) && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Detalles</h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
-                    {property.age != null && property.age >= 0 && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Antigüedad</span>
-                        <span className="font-semibold font-numeric">{property.age === 0 ? 'A estrenar' : `${property.age} años`}</span>
-                      </div>
-                    )}
-                    {translateCondition(property.property_condition) && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Estado</span>
-                        <span className="font-semibold">{translateCondition(property.property_condition)}</span>
-                      </div>
-                    )}
-                    {translateOrientation(property.orientation) && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Orientación</span>
-                        <span className="font-semibold">{translateOrientation(property.orientation)}</span>
-                      </div>
-                    )}
-                    {property.suite_amount > 0 && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Suites</span>
-                        <span className="font-semibold font-numeric">{property.suite_amount}</span>
-                      </div>
-                    )}
-                    {property.floors_amount > 0 && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Plantas</span>
-                        <span className="font-semibold font-numeric">{property.floors_amount}</span>
-                      </div>
-                    )}
-                    {translateDisposition(property.disposition) && (
-                      <div className="flex justify-between border-b border-gray-100 pb-2">
-                        <span className="text-gray-500">Disposición</span>
-                        <span className="font-semibold">{translateDisposition(property.disposition)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Tags */}
-              {property.tags && property.tags.length > 0 && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Servicios y amenities</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {property.tags.map((tag) => (
-                      <span key={tag.id} className="px-3 py-1.5 bg-[#f7f7f7] text-gray-600 rounded-full text-sm font-medium">
-                        {translateTag(tag.name)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Blueprints */}
-              {(blueprints.length > 0 || files.length > 0) && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Planos</h2>
-                  {blueprints.length > 0 && <div className="mb-4"><BlueprintGallery blueprints={blueprints} /></div>}
-                  {files.length > 0 && <FilesList files={files} />}
-                </div>
-              )}
-
-              {/* Map */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Ubicación</h2>
-                <PropertyMap
-                  lat={property.geo_lat ? parseFloat(property.geo_lat) : null}
-                  lng={property.geo_long ? parseFloat(property.geo_long) : null}
-                  address={property.real_address || property.fake_address || property.address}
-                />
-                <div className="flex items-center gap-2 mt-4 text-gray-500 text-sm">
-                  <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
-                  <span>
-                    {property.real_address || property.fake_address || property.address}
-                    {location ? `, ${location}` : ', Santa Fe'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Nearby places */}
-              {property.geo_lat && property.geo_long && (
-                <NearbyPlaces lat={parseFloat(property.geo_lat)} lng={parseFloat(property.geo_long)} />
-              )}
-
-              {/* Nearby properties map */}
-              {property.geo_lat && property.geo_long && nearbyForMap.length > 0 && (
-                <NearbyPropertiesMap
-                  lat={parseFloat(property.geo_lat)}
-                  lng={parseFloat(property.geo_long)}
-                  nearbyProperties={nearbyForMap}
-                />
-              )}
+            <div className="flex-1 min-w-0">
+              <PropertyDetailBody
+                property={property}
+                allProperties={allProperties}
+                whatsappUrl={whatsappUrl}
+              />
             </div>
-
-            {/* ── RIGHT COLUMN (1/3) sticky ── */}
-            <div className="w-[380px] shrink-0">
-              <div className="sticky top-24 space-y-4 max-h-[calc(100vh-112px)] overflow-y-auto scrollbar-none">
-                {/* Main card */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  {/* WhatsApp button */}
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#1ea952] text-white rounded-xl font-bold text-sm transition-colors mb-2"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    Consultar por WhatsApp
-                  </a>
-
-                  {/* Call button */}
-                  <a
-                    href="tel:+5493412101694"
-                    className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold text-sm transition-colors hover:bg-gray-50 mb-4"
-                  >
-                    <Phone className="w-5 h-5" />
-                    Llamar <span className="font-numeric">(341) 210-1694</span>
-                  </a>
-
-                  <hr className="border-gray-100 mb-4" />
-
-                  {/* Agent card */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-11 h-11 rounded-full bg-[#1A5C38] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                      DF
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-bold text-gray-900 block">David Flores</span>
-                      <span className="text-xs text-gray-400">Mat. N° 0621</span>
-                    </div>
-                    <span className="text-[10px] font-semibold text-[#1A5C38] bg-[#e8f5ee] px-2 py-0.5 rounded-full uppercase">Agente</span>
-                  </div>
-
-                  <hr className="border-gray-100" />
-
-                  {/* Share buttons */}
-                  <ShareButtons
-                    slug={params.slug}
-                    title={property.publication_title || property.address}
-                    price={price}
-                    photo={mainPhoto}
-                    operation={operation}
-                    propertyType={propType}
-                    area={area}
-                    rooms={property.suite_amount || property.room_amount || 0}
-                    bathrooms={property.bathroom_amount}
-                    lotSurface={lotSurface}
-                    parking={property.parking_lot_amount}
-                    city={property.location?.name}
-                    neighborhood={neighborhood}
-                  />
-                </div>
-
-                {/* Visit widget — only for VENTA */}
-                {operation?.toLowerCase().includes('venta') && (
-                  <VisitWidget propertyId={property.id} propertyTitle={property.publication_title || property.address} />
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Similar properties */}
-          <div className="mt-10">
-            <SimilarProperties properties={similar} currentPropertyId={property.id} />
+            <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={96} />
           </div>
 
           {/* Back */}

@@ -1,78 +1,35 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
-import Image from 'next/image'
+// Property detail modal/drawer used from the desktop property list.
+// Mobile navigates to the full /propiedades/[slug] page instead, so this
+// panel is effectively desktop-only — but we keep a mobile-friendly
+// fallback layout just in case the modal is ever opened from mobile.
+//
+// Content (body, sidebar, gallery, sticky nav) is shared with the full
+// page via src/components/property-detail/* to guarantee identical output.
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Bed, Bath, Maximize, Home, Car, Phone, MessageCircle, Images } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import {
   type TokkoProperty,
-  getAllPhotos,
   formatPrice,
-  getOperationType,
-  getRoofedArea,
-  getTotalSurface,
-  getLotSurface,
-  formatLocation,
-  getMainPhoto,
-  getDescription,
-  getBlueprintPhotos,
-  translatePropertyType,
-  translateTag,
-  translateCondition,
-  translateOrientation,
-  translateDisposition,
   generatePropertySlug,
 } from '@/lib/tokko'
-import PropertyDescription from './PropertyDescription'
-import ShareButtons from './ShareButtons'
-import VisitWidget from './VisitWidget'
-import PropiedadCardGrid from './PropiedadCardGrid'
-import SimilarProperties from './SimilarProperties'
-import { useRouter } from 'next/navigation'
-
-const PropertyMap = dynamic(() => import('./PropertyMap'), { ssr: false })
-const BlueprintGallery = dynamic(() => import('./BlueprintGallery'), { ssr: false })
-const NearbyPlaces = dynamic(() => import('./NearbyPlaces'), { ssr: false })
-
-// ─── Styles ────────────────────────────────────────────────────────────────────
+import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
+import PropertyStickyNav from './property-detail/PropertyStickyNav'
+import PropertyDetailBody from './property-detail/PropertyDetailBody'
+import PropertyDetailSidebar from './property-detail/PropertyDetailSidebar'
 
 const R = "'Raleway', system-ui, sans-serif"
-const P = "'Poppins', system-ui, sans-serif"
-const GREEN = '#1A5C38'
-const CARD = 'bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 mb-4'
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
-
-function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="flex flex-col items-center text-center gap-1.5 py-3 px-2 bg-[#f9fafb] rounded-xl">
-      <div style={{ color: GREEN }}>{icon}</div>
-      <span style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: '#111' }}>{value}</span>
-      <span style={{ fontSize: 11, fontWeight: 500, color: '#9ca3af' }}>{label}</span>
-    </div>
-  )
-}
-
-function SurfaceRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between border-b border-gray-100 pb-2.5 text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span style={{ fontFamily: R, fontWeight: 700, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: '#111' }}>{value}</span>
-    </div>
-  )
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between border-b border-gray-100 pb-2.5 text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-bold text-[#111]">{value}</span>
-    </div>
-  )
-}
-
-// ─── Main ──────────────────────────────────────────────────────────────────────
+const SECTIONS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'caracteristicas', label: 'Características' },
+  { id: 'descripcion', label: 'Descripción' },
+  { id: 'planos', label: 'Planos' },
+  { id: 'ubicacion', label: 'Ubicación' },
+  { id: 'similares', label: 'Similares' },
+]
 
 interface Props {
   propertyId: number
@@ -80,22 +37,12 @@ interface Props {
   allProperties?: TokkoProperty[]
 }
 
-function distKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
 export default function PropertyPanel({ propertyId, onClose, allProperties = [] }: Props) {
-  const router = useRouter()
   const [property, setProperty] = useState<TokkoProperty | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [showAllPhotos, setShowAllPhotos] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -105,6 +52,11 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
       .then((data: TokkoProperty) => { setProperty(data); setLoading(false) })
       .catch(() => { setError(true); setLoading(false) })
   }, [propertyId])
+
+  // Expose scroll container to the sticky nav once mounted
+  useEffect(() => {
+    if (scrollRef.current) setScrollRoot(scrollRef.current)
+  }, [property])
 
   // Lock body scroll preserving position
   useEffect(() => {
@@ -123,6 +75,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
       window.scrollTo(0, scrollY)
     }
   }, [])
+
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
@@ -169,382 +122,66 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
     )
   }
 
-  // ── Derived data ──
-  const photos = getAllPhotos(property)
-  const mainPhoto = photos[0] || getMainPhoto(property)
-  const price = formatPrice(property)
-  const operation = getOperationType(property)
-  const roofedArea = getRoofedArea(property)
-  const area = getTotalSurface(property)
-  const lotSurface = getLotSurface(property)
-  const location = formatLocation(property)
-  const propType = translatePropertyType(property.type?.name)
-  const description = getDescription(property)
-  const blueprints = getBlueprintPhotos(property)
   const slug = generatePropertySlug(property)
   const address = property.fake_address || property.address
-
-  const addrText = property.fake_address || property.address || ''
-  const sortedDivs = [...(property.location?.divisions ?? [])].sort((a, b) => b.name.length - a.name.length)
-  const neighborhood = sortedDivs.find(d => {
-    const esc = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    return new RegExp(`\\b${esc}\\b`, 'i').test(addrText)
-  })?.name
-
-  const whatsappMsg = encodeURIComponent(`Hola! Me interesa esta propiedad:\n\n*${property.publication_title || address}*\n📍 ${address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${slug}`)
+  const price = formatPrice(property)
+  const whatsappMsg = encodeURIComponent(
+    `Hola! Me interesa esta propiedad:\n\n*${property.publication_title || address}*\n📍 ${address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${slug}`
+  )
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`
-
-  const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
-  if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Superficie', value: `${area} m²` })
-  if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea} m²` })
-  if (property.suite_amount > 0) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Dormitorios', value: property.suite_amount })
-  if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: 'Baños', value: property.bathroom_amount })
-  if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: 'Cocheras', value: property.parking_lot_amount })
-  if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface} m²` })
-
-  const hasSurfaces = (roofedArea && roofedArea > 0) || parseFloat(property.semiroofed_surface) > 0 || parseFloat(property.total_surface) > 0 || parseFloat(property.surface) > 0
-  const hasDetails = property.age != null || translateCondition(property.property_condition) || translateOrientation(property.orientation) || property.suite_amount > 0 || property.floors_amount > 0 || translateDisposition(property.disposition)
-
-  // ── Nearby (≤5km) + Similar (same op/type, score by price/beds/dist) ──
-  const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null
-  const currentLng = property.geo_long ? parseFloat(property.geo_long) : null
-  const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng)
-  const currentOp = property.operations?.[0]?.operation_type
-  const currentTypeName = property.type?.name?.toLowerCase() ?? ''
-  const currentPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0
-  const currentBeds = property.suite_amount || property.room_amount || 0
-
-  const nearbyList = hasCoords
-    ? allProperties.filter(p => {
-        if (p.id === property.id) return false
-        if (!p.geo_lat || !p.geo_long) return false
-        const lat = parseFloat(p.geo_lat); const lng = parseFloat(p.geo_long)
-        if (isNaN(lat) || isNaN(lng)) return false
-        return distKm(currentLat!, currentLng!, lat, lng) <= 5
-      }).slice(0, 12)
-    : []
-
-  const similarList = allProperties
-    .map(p => {
-      if (p.id === property.id) return null
-      if (p.operations?.[0]?.operation_type !== currentOp) return null
-      if ((p.type?.name?.toLowerCase() ?? '') !== currentTypeName) return null
-      let score = 0
-      const pPrice = p.operations?.[0]?.prices?.[0]?.price ?? 0
-      if (currentPrice > 0 && pPrice > 0) {
-        const ratio = pPrice / currentPrice
-        if (ratio >= 0.7 && ratio <= 1.3) score += 3
-        else if (ratio >= 0.5 && ratio <= 1.5) score += 1
-      }
-      const pBeds = p.suite_amount || p.room_amount || 0
-      if (currentBeds > 0 && pBeds === currentBeds) score += 2
-      else if (currentBeds > 0 && Math.abs(pBeds - currentBeds) === 1) score += 1
-      if (hasCoords && p.geo_lat && p.geo_long) {
-        const lat = parseFloat(p.geo_lat); const lng = parseFloat(p.geo_long)
-        if (!isNaN(lat) && !isNaN(lng)) {
-          const d = distKm(currentLat!, currentLng!, lat, lng)
-          if (d < 2) score += 4
-          else if (d < 5) score += 2
-          else if (d < 15) score += 1
-        }
-      }
-      return score > 0 ? { p, score } : null
-    })
-    .filter((x): x is { p: TokkoProperty; score: number } => x != null)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 8)
-    .map(x => x.p)
 
   return (
     <div className="fixed inset-0 z-[200]">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} style={{ animation: 'ppFadeIn 200ms ease-out' }} />
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        style={{ animation: 'ppFadeIn 200ms ease-out' }}
+      />
 
-      <div className="absolute inset-0 md:inset-y-4 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] md:rounded-2xl bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 250ms ease-out' }}>
-
-        {/* ── HEADER sticky ── */}
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 flex items-center justify-between px-5" style={{ height: 56 }}>
-          <button onClick={onClose} className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-[#1A5C38] transition-colors" style={{ fontFamily: R }}>
+      <div
+        ref={scrollRef}
+        className="absolute inset-0 md:inset-y-4 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] md:rounded-2xl bg-[#fafafa] overflow-y-auto"
+        style={{ animation: 'ppSlideIn 250ms ease-out' }}
+      >
+        {/* Header sticky */}
+        <div
+          className="sticky top-0 z-40 bg-white border-b border-gray-200 flex items-center justify-between px-5"
+          style={{ height: 56 }}
+        >
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-[#1A5C38] transition-colors"
+            style={{ fontFamily: R }}
+          >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Volver a la búsqueda</span>
             <span className="sm:hidden">Volver</span>
           </button>
-          <Link href={`/propiedades/${slug}`} className="text-xs font-medium text-gray-400 hover:text-[#1A5C38] transition-colors">
+          <Link
+            href={`/propiedades/${slug}`}
+            className="text-xs font-medium text-gray-400 hover:text-[#1A5C38] transition-colors"
+          >
             Abrir completa →
           </Link>
         </div>
 
-        {/* ── PHOTO GRID (Zillow style: 1 big + 4 small) ── */}
-        {photos.length > 0 && (
-          <div className="relative">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-1" style={{ maxHeight: 420 }}>
-              {/* Main photo — spans 3 cols */}
-              <div className="relative md:col-span-3 aspect-[16/10] md:aspect-auto overflow-hidden cursor-pointer" onClick={() => setShowAllPhotos(true)}>
-                <Image src={photos[0]} alt={property.publication_title || address} fill className="object-cover" sizes="60vw" priority />
-                {operation && (
-                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white" style={{ background: operation === 'Venta' ? '#dc2626' : '#2563eb' }}>
-                    {operation}
-                  </span>
-                )}
-                {propType && (
-                  <span className="absolute top-3 left-[90px] px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase" style={{ color: GREEN }}>
-                    {propType}
-                  </span>
-                )}
-              </div>
-              {/* 4 thumbnails — 2x2 grid */}
-              <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-1">
-                {[1, 2, 3, 4].map(i => {
-                  const photo = photos[i]
-                  const isLast = i === 4
-                  if (!photo) return <div key={i} className="bg-gray-100" />
-                  return (
-                    <div key={i} className="relative overflow-hidden cursor-pointer" onClick={() => setShowAllPhotos(true)}>
-                      <Image src={photo} alt="" fill className="object-cover" sizes="20vw" />
-                      {isLast && photos.length > 5 && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-1.5">
-                          <Images className="w-4 h-4 text-white" />
-                          <span className="text-white text-sm font-semibold">Ver las {photos.length} fotos</span>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-            {/* Mobile: "Ver fotos" button */}
-            {photos.length > 1 && (
-              <button
-                onClick={() => setShowAllPhotos(true)}
-                className="md:hidden absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-800 flex items-center gap-1.5 shadow"
-              >
-                <Images className="w-3.5 h-3.5" /> {photos.length} fotos
-              </button>
-            )}
-          </div>
-        )}
+        {/* Galería Zillow (desktop only) */}
+        <PropertyGalleryHero property={property} />
 
-        {/* Lightbox fullscreen */}
-        {showAllPhotos && (
-          <div className="fixed inset-0 z-[300] bg-black">
-            <button onClick={() => setShowAllPhotos(false)} className="absolute top-4 right-4 z-10 text-white bg-white/20 rounded-full w-10 h-10 flex items-center justify-center text-xl hover:bg-white/30">&times;</button>
-            <div className="h-full overflow-y-auto p-4 pt-16">
-              <div className="max-w-4xl mx-auto space-y-2">
-                {photos.map((p, i) => (
-                  <Image key={i} src={p} alt={`Foto ${i + 1}`} width={1200} height={800} className="w-full h-auto rounded-lg" />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Sticky nav (desktop only) — ancla al top del modal (56px header) */}
+        <PropertyStickyNav sections={SECTIONS} scrollRoot={scrollRoot} stickyTop={56} />
 
-        <div className="flex flex-col md:flex-row gap-4 p-4 md:p-5">
-          {/* ════ LEFT COLUMN ════ */}
+        {/* Contenido */}
+        <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6">
           <div className="flex-1 min-w-0">
-
-            {/* CARD 1 — Título + Precio */}
-            <div className={CARD}>
-              <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 22, color: '#111', lineHeight: 1.25, marginBottom: 8 }}>
-                {property.publication_title || address}
-              </h2>
-              <div className="flex items-center gap-1.5 mb-4">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#e7f2eb' }}>
-                  <MapPin className="w-3 h-3" style={{ color: GREEN }} />
-                </div>
-                <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
-                  {property.real_address || address}{location ? `, ${location}` : ''}
-                </span>
-              </div>
-              <div style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
-                {price}
-              </div>
-            </div>
-
-            {/* CARD 2 — Características */}
-            {specs.length > 0 && (
-              <div className={CARD}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Características</h2>
-                <div className="grid grid-cols-3 gap-2.5">
-                  {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
-                </div>
-              </div>
-            )}
-
-            {/* CARD 3 — Descripción */}
-            {description && (
-              <div className={CARD}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Descripción</h2>
-                <PropertyDescription text={description} />
-              </div>
-            )}
-
-            {/* CARD 5 — Superficies */}
-            {hasSurfaces && (
-              <div className={CARD}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Superficies</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {parseFloat(property.surface) > 0 && <SurfaceRow label="Terreno" value={`${parseFloat(property.surface)} m²`} />}
-                  {roofedArea != null && roofedArea > 0 && <SurfaceRow label="Cubierta" value={`${roofedArea} m²`} />}
-                  {parseFloat(property.semiroofed_surface) > 0 && <SurfaceRow label="Semicubierta" value={`${parseFloat(property.semiroofed_surface)} m²`} />}
-                  {parseFloat(property.total_surface) > 0 && <SurfaceRow label="Total" value={`${parseFloat(property.total_surface)} m²`} />}
-                </div>
-              </div>
-            )}
-
-            {/* CARD 6 — Detalles */}
-            {hasDetails && (
-              <div className={CARD}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Detalles</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
-                  {property.age != null && property.age >= 0 && <DetailRow label="Antigüedad" value={property.age === 0 ? 'A estrenar' : `${property.age} años`} />}
-                  {translateCondition(property.property_condition) && <DetailRow label="Estado" value={translateCondition(property.property_condition)!} />}
-                  {translateOrientation(property.orientation) && <DetailRow label="Orientación" value={translateOrientation(property.orientation)!} />}
-                  {property.suite_amount > 0 && <DetailRow label="Suites" value={String(property.suite_amount)} />}
-                  {property.floors_amount > 0 && <DetailRow label="Plantas" value={String(property.floors_amount)} />}
-                  {translateDisposition(property.disposition) && <DetailRow label="Disposición" value={translateDisposition(property.disposition)!} />}
-                </div>
-              </div>
-            )}
-
-            {/* CARD 7 — Servicios y amenities */}
-            {property.tags && property.tags.length > 0 && (
-              <div className={CARD}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Servicios y amenities</h2>
-                <div className="flex flex-wrap gap-2">
-                  {property.tags.map(tag => (
-                    <span key={tag.id} className="px-4 py-1.5 rounded-full text-sm border border-gray-200" style={{ color: '#374151' }}>
-                      {translateTag(tag.name)}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* CARD 8 — Ubicación */}
-            <div className={CARD}>
-              <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Ubicación</h2>
-              <div className="rounded-[14px] overflow-hidden mb-3" style={{ aspectRatio: '16/9' }}>
-                <PropertyMap
-                  lat={property.geo_lat ? parseFloat(property.geo_lat) : null}
-                  lng={property.geo_long ? parseFloat(property.geo_long) : null}
-                  address={property.real_address || address}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#e7f2eb' }}>
-                  <MapPin className="w-3 h-3" style={{ color: GREEN }} />
-                </div>
-                <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
-                  {property.real_address || address}{location ? `, ${location}` : ''}
-                </span>
-              </div>
-            </div>
-
-            {/* Planos */}
-            {blueprints.length > 0 && (
-              <div className={CARD}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Planos</h2>
-                <BlueprintGallery blueprints={blueprints} />
-              </div>
-            )}
-
-            {/* Lugares cercanos */}
-            {property.geo_lat && property.geo_long && (
-              <div className={CARD}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 4 }}>Lugares cercanos</h2>
-                <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
-                <NearbyPlaces lat={parseFloat(property.geo_lat)} lng={parseFloat(property.geo_long)} />
-              </div>
-            )}
-
-            {/* Propiedades cercanas (≤5km) */}
-            {hasCoords && allProperties.length > 0 && (
-              <div className={CARD}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Otras opciones en la zona</h2>
-                {nearbyList.length === 0 ? (
-                  <p className="text-gray-400 text-sm">No hay propiedades similares disponibles en este momento.</p>
-                ) : (
-                  <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-1 px-1 pb-1" style={{ scrollSnapType: 'x mandatory' }}>
-                    {nearbyList.map(p => (
-                      <div key={p.id} className="flex-shrink-0 w-[280px]" style={{ scrollSnapAlign: 'start' }}>
-                        <PropiedadCardGrid
-                          property={p}
-                          isSelected={false}
-                          onClick={() => router.push(`/propiedades/${generatePropertySlug(p)}`)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Propiedades similares */}
-            {similarList.length > 0 && (
-              <div className={CARD}>
-                <SimilarProperties properties={similarList} currentPropertyId={property.id} />
-              </div>
-            )}
+            <PropertyDetailBody
+              property={property}
+              allProperties={allProperties}
+              whatsappUrl={whatsappUrl}
+              showMobileContact
+            />
           </div>
-
-          {/* ════ RIGHT COLUMN — sidebar sticky ════ */}
-          <div className="w-full md:w-[340px] md:shrink-0">
-            <div className="md:sticky md:top-[72px] space-y-4">
-
-              {/* CARD AGENTE */}
-              <div className="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100">
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
-                  style={{ background: '#25d366', color: '#fff' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#25d366' }}
-                >
-                  <MessageCircle className="w-5 h-5" />Consultar por WhatsApp
-                </a>
-                <a href="tel:+5493412101694"
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
-                  style={{ border: '1.5px solid #e5e7eb', color: '#111' }}
-                >
-                  <Phone className="w-5 h-5" />Llamar <span className="font-numeric">(341) 210-1694</span>
-                </a>
-
-                <div className="border-t border-gray-100 pt-4 mt-2.5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: GREEN, fontFamily: R }}>DF</div>
-                    <div className="flex-1 min-w-0">
-                      <span style={{ fontFamily: R, fontWeight: 700, fontSize: 16, color: '#111', display: 'block' }}>David Flores</span>
-                      <span className="text-xs text-gray-400">Mat. N° 0621</span>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider" style={{ background: '#e7f2eb', color: GREEN }}>Agente</span>
-                  </div>
-                </div>
-
-                {/* Compartir */}
-                <div className="border-t border-gray-100 mt-5 pt-4">
-                  <p className="text-xs text-gray-400 tracking-wider uppercase mb-3">Compartir propiedad</p>
-                  <ShareButtons
-                    slug={slug}
-                    title={property.publication_title || address}
-                    price={price}
-                    photo={mainPhoto}
-                    operation={operation}
-                    propertyType={propType}
-                    area={area}
-                    rooms={property.suite_amount || property.room_amount || 0}
-                    bathrooms={property.bathroom_amount}
-                    lotSurface={lotSurface}
-                    parking={property.parking_lot_amount}
-                    city={property.location?.name}
-                    neighborhood={neighborhood}
-                  />
-                </div>
-              </div>
-
-              {/* CARD VISITA */}
-              {operation?.toLowerCase().includes('venta') && (
-                <VisitWidget propertyId={property.id} propertyTitle={property.publication_title || address} />
-              )}
-            </div>
-          </div>
+          <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={120} />
         </div>
       </div>
 
