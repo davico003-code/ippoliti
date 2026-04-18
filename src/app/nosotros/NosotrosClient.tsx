@@ -196,15 +196,28 @@ export default function NosotrosClient() {
     <main className="bg-white text-gray-900">
 
       {/* HERO */}
-      <section className="relative h-[70vh] min-h-[500px] flex items-end overflow-hidden">
-        <Image src="/hero-nosotros.jpg" alt="Fachada SI Inmobiliaria" fill className="object-cover object-center" priority />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-16">
-          <p className="text-xs uppercase tracking-[0.25em] text-white/70 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Quiénes somos</p>
-          <h1 className="text-4xl md:text-6xl text-white leading-tight mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
+      <section className="relative h-[80vh] min-h-[560px] flex items-end overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1920&q=80&auto=format&fit=crop"
+          alt="Hogar cálido al atardecer"
+          fill
+          className="object-cover object-center"
+          priority
+          sizes="100vw"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%)' }}
+        />
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-20 md:pb-24">
+          <div className="inline-flex items-center gap-2 mb-5">
+            <span className="w-10 h-px" style={{ backgroundColor: '#ffffff80' }} />
+            <p className="text-xs uppercase tracking-[0.25em] text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>Quiénes somos</p>
+          </div>
+          <h1 className="text-4xl md:text-6xl text-white leading-tight mb-5" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
             Desde 1983 acompañando<br />cada decisión importante
           </h1>
-          <p className="text-lg text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <p className="text-lg text-white/85 max-w-2xl" style={{ fontFamily: 'Poppins, sans-serif' }}>
             Susana y David — dos generaciones de confianza en Roldán y Funes
           </p>
         </div>
@@ -236,12 +249,18 @@ export default function NosotrosClient() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { titulo: 'Misión', texto: 'Acompañar a cada persona en su camino inmobiliario, brindando un asesoramiento honesto, cercano y profesional.' },
-              { titulo: 'Visión', texto: 'Ser la inmobiliaria de referencia en Funes, Roldán y la región, reconocida por nuestra calidez humana, trayectoria y compromiso real con cada cliente.' },
-              { titulo: 'Valores', texto: 'Honestidad, compromiso y profesionalismo son los pilares que guían cada operación. Más de 40 años de trayectoria nos respaldan.' },
+              { titulo: 'Misión', texto: 'Acompañar a cada persona en su camino inmobiliario, brindando un asesoramiento honesto, cercano y profesional.', icon: '🌱' },
+              { titulo: 'Visión', texto: 'Ser la inmobiliaria de referencia en Funes, Roldán y la región, reconocida por nuestra calidez humana, trayectoria y compromiso real con cada cliente.', icon: '✨' },
+              { titulo: 'Valores', texto: 'Honestidad, compromiso y profesionalismo son los pilares que guían cada operación. Más de 40 años de trayectoria nos respaldan.', icon: '🤝' },
             ].map((item) => (
-              <div key={item.titulo} className="bg-white rounded-2xl p-8 shadow-sm">
-                <div className="w-8 h-1 rounded-full mb-5" style={{ backgroundColor: '#1A5C38' }} />
+              <div key={item.titulo} className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 text-2xl"
+                  style={{ backgroundColor: '#1A5C3815' }}
+                >
+                  <span aria-hidden>{item.icon}</span>
+                </div>
+                <div className="w-8 h-1 rounded-full mb-4" style={{ backgroundColor: '#1A5C38' }} />
                 <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: 'Raleway, sans-serif' }}>{item.titulo}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{item.texto}</p>
               </div>
@@ -280,6 +299,9 @@ export default function NosotrosClient() {
             <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestro equipo</h2>
             <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>Profesionales especializados en el mercado de Funes y Roldán</p>
           </div>
+
+          {/* TODO: Reemplazar iniciales por fotos reales del equipo cuando estén disponibles.
+              No usar stock photos como placeholder — mantenemos iniciales hasta tener fotos reales. */}
 
           {/* Asesores comerciales */}
           <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Asesores comerciales</p>
@@ -337,26 +359,79 @@ export default function NosotrosClient() {
 
       {/* HISTORIA */}
       <section className="py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Trayectoria</p>
             <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestra historia</h2>
           </div>
-          <div className="relative">
-            <div className="absolute left-[1.4rem] top-2 bottom-2 w-px hidden md:block" style={{ backgroundColor: '#1A5C38', opacity: 0.15 }} />
-            <div className="space-y-8">
-              {historia.map((h, i) => (
-                <div key={i} className="flex gap-8 items-start">
-                  <div className="hidden md:flex flex-col items-center w-12 shrink-0 pt-5">
-                    <div className="w-3 h-3 rounded-full ring-4 ring-white z-10" style={{ backgroundColor: '#1A5C38' }} />
+          <div className="grid lg:grid-cols-[1fr_380px] gap-12 items-start">
+            <div className="relative">
+              <div className="absolute left-[1.4rem] top-2 bottom-2 w-px hidden md:block" style={{ backgroundColor: '#1A5C38', opacity: 0.15 }} />
+              <div className="space-y-8">
+                {historia.map((h, i) => (
+                  <div key={i} className="flex gap-8 items-start">
+                    <div className="hidden md:flex flex-col items-center w-12 shrink-0 pt-5">
+                      <div className="w-3 h-3 rounded-full ring-4 ring-white z-10" style={{ backgroundColor: '#1A5C38' }} />
+                    </div>
+                    <div className="bg-gray-50 rounded-2xl p-7 flex-1">
+                      <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 text-white" style={{ backgroundColor: '#1A5C38', fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
+                      <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
+                      <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
+                    </div>
                   </div>
-                  <div className="bg-gray-50 rounded-2xl p-7 flex-1">
-                    <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 text-white" style={{ backgroundColor: '#1A5C38', fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
-                    <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
-                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Imagen lateral cálida — solo desktop */}
+            <aside className="hidden lg:block lg:sticky lg:top-24">
+              <div className="relative rounded-2xl overflow-hidden shadow-md aspect-[4/5]">
+                <Image
+                  src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&q=80&auto=format&fit=crop"
+                  alt="Hogar acogedor con luz natural"
+                  fill
+                  className="object-cover"
+                  sizes="380px"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(to top, rgba(26,92,56,0.55) 0%, rgba(26,92,56,0.08) 45%, transparent 100%)' }}
+                />
+                <div className="absolute bottom-6 left-6 right-6 text-white">
+                  <p className="text-sm mb-1 opacity-90" style={{ fontFamily: 'Poppins, sans-serif' }}>Más de</p>
+                  <p className="text-5xl mb-1 font-numeric" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>40 años</p>
+                  <p className="text-sm opacity-90" style={{ fontFamily: 'Poppins, sans-serif' }}>construyendo confianza</p>
                 </div>
-              ))}
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      {/* RESPIRO VISUAL — quote sobre imagen cálida */}
+      <section className="relative w-full h-[380px] md:h-[460px] overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1920&q=80&auto=format&fit=crop"
+          alt="Casa con luz natural"
+          fill
+          className="object-cover"
+          sizes="100vw"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.25) 100%)' }}
+        />
+        <div className="relative z-10 h-full flex items-center">
+          <div className="max-w-5xl mx-auto px-6 w-full">
+            <div className="max-w-2xl">
+              <div className="text-5xl md:text-6xl leading-none mb-4 text-white/90" style={{ fontFamily: 'Georgia, serif' }}>&ldquo;</div>
+              <p className="text-2xl md:text-3xl text-white leading-snug mb-6" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
+                Cada casa es una historia, y cada familia, una nueva página que empezamos juntos.
+              </p>
+              <div className="flex items-center gap-3">
+                <span className="w-10 h-px bg-white/60" />
+                <p className="text-xs uppercase tracking-[0.25em] text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>SI Inmobiliaria · desde 1983</p>
+              </div>
             </div>
           </div>
         </div>
@@ -436,15 +511,27 @@ export default function NosotrosClient() {
       </section>
 
       {/* CTA FINAL */}
-      <section className="py-24 bg-white">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>¿Querés trabajar con nosotros?</h2>
-          <p className="text-sm text-gray-500 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Contactanos y contanos tu proyecto. Te respondemos en menos de 24 horas.</p>
+      <section className="relative py-28 md:py-32 overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1920&q=80&auto=format&fit=crop"
+          alt="Llaves y bienvenida a un nuevo hogar"
+          fill
+          className="object-cover"
+          sizes="100vw"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(26,92,56,0.88) 0%, rgba(26,92,56,0.82) 100%)' }}
+        />
+        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center text-white">
+          <p className="text-xs uppercase tracking-[0.25em] mb-3 text-white/75" style={{ fontFamily: 'Poppins, sans-serif' }}>Dejanos acompañarte</p>
+          <h2 className="text-4xl md:text-5xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>¿Querés trabajar con nosotros?</h2>
+          <p className="text-base text-white/85 mb-10 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>Contactanos y contanos tu proyecto. Te respondemos en menos de 24 horas.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/tasaciones" className="px-8 py-3 rounded-full text-sm font-medium text-white transition-opacity hover:opacity-80" style={{ fontFamily: 'Poppins, sans-serif', backgroundColor: '#1A5C38' }}>
+            <a href="/tasaciones" className="px-8 py-3 rounded-full text-sm font-medium bg-white transition-opacity hover:opacity-90" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>
               Solicitá tu tasación en 24hs
             </a>
-            <a href="/propiedades" className="px-8 py-3 rounded-full text-sm font-medium border-2 transition-all hover:bg-[#1A5C38] hover:text-white" style={{ fontFamily: 'Poppins, sans-serif', borderColor: '#1A5C38', color: '#1A5C38' }}>
+            <a href="/propiedades" className="px-8 py-3 rounded-full text-sm font-medium border-2 border-white text-white transition-all hover:bg-white hover:text-[#1A5C38]" style={{ fontFamily: 'Poppins, sans-serif' }}>
               Ver propiedades
             </a>
           </div>
