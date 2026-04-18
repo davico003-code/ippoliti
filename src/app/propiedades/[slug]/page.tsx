@@ -48,15 +48,11 @@ interface Props {
 
 export const dynamicParams = true;
 
+// Lazy SSG: generate slug pages on-demand (first request) instead of at build time.
+// Tokko rate-limits (403) under the concurrent prerender load of ~219 properties,
+// which previously caused empty HTML on /propiedades.
 export async function generateStaticParams() {
-  try {
-    const data = await getProperties({ limit: 500 });
-    return (data.objects || []).map((p) => ({
-      slug: generatePropertySlug(p),
-    }));
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
