@@ -2,19 +2,21 @@
 
 import { usePathname } from 'next/navigation'
 import Footer from './Footer'
+import FooterDesktop from './home/FooterDesktop'
 
 export default function FooterWrapper() {
   const pathname = usePathname()
 
-  // En home mobile, FooterMobile se renderiza dentro de page.tsx
-  // Ocultar el footer global para evitar duplicación
   if (pathname === '/') {
+    // Home mobile: FooterMobile ya está dentro de page.tsx
+    // Home desktop: FooterDesktop nuevo
     return (
       <div className="hidden md:block">
-        <Footer />
+        <FooterDesktop />
       </div>
     )
   }
 
+  // Todas las demás rutas: footer global estándar
   return <Footer />
 }
