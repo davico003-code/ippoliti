@@ -15,10 +15,7 @@ import PropertyDescription from '@/components/PropertyDescription';
 import BackButton from '@/components/BackButton';
 import PropertyViewTracker from '@/components/PropertyViewTracker';
 import type { NearbyProperty } from '@/components/NearbyPropertiesMap';
-import PropertyGalleryHero from '@/components/property-detail/PropertyGalleryHero';
-import PropertyStickyNav from '@/components/property-detail/PropertyStickyNav';
-import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody';
-import PropertyDetailSidebar from '@/components/property-detail/PropertyDetailSidebar';
+import PropiedadesView from '@/components/PropiedadesView';
 import {
   getPropertyById,
   getProperties,
@@ -540,61 +537,12 @@ export default async function PropertyPage({ params }: Props) {
 
       {/* ════════════════════════════════════════════
           DESKTOP LAYOUT (hidden md:block)
+          Zillow-style: render the listing+map with the property panel
+          auto-opened on top. The shared PropertyPanel manages its own
+          URL/history so navigating between properties doesn't remount.
           ════════════════════════════════════════════ */}
       <div className="hidden md:block">
-        {/* Breadcrumb */}
-        <div className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
-            <nav className="flex items-center gap-2 text-sm text-gray-500">
-              <Link href="/" className="hover:text-[#1A5C38] transition-colors">Inicio</Link>
-              <span>/</span>
-              <Link href="/propiedades" className="hover:text-[#1A5C38] transition-colors">Propiedades</Link>
-              <span>/</span>
-              <span className="text-gray-900 font-medium line-clamp-1">
-                {property.publication_title || property.address}
-              </span>
-            </nav>
-          </div>
-        </div>
-
-        {/* Zillow-style hero gallery (shared with modal) — constrained to page width */}
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-6 pb-4">
-          <PropertyGalleryHero property={property} />
-        </div>
-
-        {/* Sticky tab nav (desktop only) — window-scroll mode */}
-        <PropertyStickyNav
-          sections={[
-            { id: 'overview', label: 'Overview' },
-            { id: 'caracteristicas', label: 'Características' },
-            { id: 'descripcion', label: 'Descripción' },
-            { id: 'planos', label: 'Planos' },
-            { id: 'ubicacion', label: 'Ubicación' },
-            { id: 'similares', label: 'Similares' },
-          ]}
-          stickyTop={0}
-        />
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
-          <div className="mb-4"><BackButton /></div>
-          <div className="flex gap-10 items-start">
-            <div className="flex-1 min-w-0">
-              <PropertyDetailBody
-                property={property}
-                allProperties={allProperties}
-                whatsappUrl={whatsappUrl}
-              />
-            </div>
-            <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={96} />
-          </div>
-
-          {/* Back */}
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <Link href="/propiedades" className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#0F3A23] font-bold transition-colors text-lg">
-              &larr; Volver al catálogo
-            </Link>
-          </div>
-        </div>
+        <PropiedadesView properties={allProperties} initialPropertyId={property.id} />
       </div>
 
       {/* Mobile sticky bar */}

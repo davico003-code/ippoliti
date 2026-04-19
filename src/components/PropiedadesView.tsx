@@ -117,7 +117,14 @@ function FilterSelect<T extends string>({
 
 // ─── PropiedadesView ──────────────────────────────────────────────────────────
 
-export default function PropiedadesView({ properties }: { properties: TokkoProperty[] }) {
+export default function PropiedadesView({
+  properties,
+  initialPropertyId,
+}: {
+  properties: TokkoProperty[]
+  /** If provided, the detail panel opens with this property on mount. Used by /propiedades/[slug] */
+  initialPropertyId?: number
+}) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const initialSearch = searchParams.get('q') ?? ''
@@ -398,7 +405,13 @@ export default function PropiedadesView({ properties }: { properties: TokkoPrope
     })
   }, [filtered, mapBounds])
 
-  const [panelPropertyId, setPanelPropertyId] = useState<number | null>(null)
+  const [panelPropertyId, setPanelPropertyId] = useState<number | null>(initialPropertyId ?? null)
+
+  // Re-sync panel state if navigating between /propiedades/[slug] URLs
+  // without remounting (e.g. clicking a nearby property inside the panel).
+  useEffect(() => {
+    if (initialPropertyId != null) setPanelPropertyId(initialPropertyId)
+  }, [initialPropertyId])
 
   const handleCardClick = useCallback((property: TokkoProperty) => {
     setSelectedId(property.id)

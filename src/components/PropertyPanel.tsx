@@ -1,14 +1,12 @@
 'use client'
 
-// Property detail modal/drawer used from the desktop property list.
-// Mobile navigates to the full /propiedades/[slug] page instead, so this
-// panel is effectively desktop-only — but we keep a mobile-friendly
-// fallback layout just in case the modal is ever opened from mobile.
+// Zillow-style property panel: always sits on top of the listing/map view.
+// Anchored to the top of the viewport below the site header, extends to the
+// bottom (including the global footer inside its own scroll). Mobile is not
+// touched — mobile users navigate to /propiedades/[slug] directly.
 //
-// Content (body, sidebar, gallery, sticky nav) is shared with the full
-// page via src/components/property-detail/* to guarantee identical output.
+// Content (body, sidebar, gallery, sticky nav) is shared with the full page.
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import {
   type TokkoProperty,
@@ -19,8 +17,11 @@ import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
 import PropertyStickyNav from './property-detail/PropertyStickyNav'
 import PropertyDetailBody from './property-detail/PropertyDetailBody'
 import PropertyDetailSidebar from './property-detail/PropertyDetailSidebar'
+import Footer from './Footer'
 
 const R = "'Raleway', system-ui, sans-serif"
+// Height of the sticky header INSIDE the panel (not the site header).
+const PANEL_HEADER_H = 56
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview' },
@@ -81,13 +82,17 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
     window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
   }, [onClose])
 
-  // URL shareable
+  // URL shareable — update the URL to /propiedades/[slug] while the panel is
+  // open. On close we intentionally pushState back to /propiedades (preserving
+  // search params) so the listing view stays clean.
   useEffect(() => {
     if (!property) return
     const slug = generatePropertySlug(property)
-    const prev = window.location.pathname + window.location.search
-    window.history.pushState(null, '', `/propiedades/${slug}`)
-    return () => { window.history.pushState(null, '', prev) }
+    const search = window.location.search
+    window.history.pushState(null, '', `/propiedades/${slug}${search}`)
+    return () => {
+      window.history.pushState(null, '', `/propiedades${window.location.search}`)
+    }
   }, [property])
 
   useEffect(() => {
@@ -98,9 +103,9 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   // Loading / Error
   if (loading || error || !property) {
     return (
-      <div className="fixed inset-0 z-[200]">
+      <div className="fixed inset-0 md:inset-x-0 z-[200]" style={{ top: 'var(--header-height, 76px)' }}>
         <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-        <div className="absolute inset-0 md:inset-y-4 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] md:rounded-2xl bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
+        <div className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
           {loading ? (
             <div className="animate-pulse p-6 space-y-4">
               <div className="h-8 w-40 bg-gray-200 rounded" />
@@ -131,7 +136,11 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`
 
   return (
-    <div className="fixed inset-0 z-[200]">
+    <div
+      className="fixed inset-0 md:inset-x-0 z-[200]"
+      style={{ top: 'var(--header-height, 76px)' }}
+    >
+      {/* Backdrop — cubre solo la zona bajo el header para que el header quede accesible */}
       <div
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
@@ -140,13 +149,13 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
 
       <div
         ref={scrollRef}
-        className="absolute inset-0 md:inset-y-4 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] md:rounded-2xl bg-[#fafafa] overflow-y-auto"
+        className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
         style={{ animation: 'ppSlideIn 250ms ease-out' }}
       >
-        {/* Header sticky */}
+        {/* Panel header sticky */}
         <div
           className="sticky top-0 z-40 bg-white border-b border-gray-200 flex items-center justify-between px-5"
-          style={{ height: 56 }}
+          style={{ height: PANEL_HEADER_H }}
         >
           <button
             onClick={onClose}
@@ -157,19 +166,15 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
             <span className="hidden sm:inline">Volver a la búsqueda</span>
             <span className="sm:hidden">Volver</span>
           </button>
-          <Link
-            href={`/propiedades/${slug}`}
-            className="text-xs font-medium text-gray-400 hover:text-[#1A5C38] transition-colors"
-          >
-            Abrir completa →
-          </Link>
         </div>
 
-        {/* Galería Zillow (desktop only) */}
-        <PropertyGalleryHero property={property} />
+        {/* Galería Zillow — constrained a padding del panel para no desbordar */}
+        <div className="px-4 md:px-6 pt-4 pb-2">
+          <PropertyGalleryHero property={property} />
+        </div>
 
-        {/* Sticky nav (desktop only) — ancla al top del modal (56px header) */}
-        <PropertyStickyNav sections={SECTIONS} scrollRoot={scrollRoot} stickyTop={56} />
+        {/* Sticky nav (desktop only) — ancla al top del modal (debajo del panel header) */}
+        <PropertyStickyNav sections={SECTIONS} scrollRoot={scrollRoot} stickyTop={PANEL_HEADER_H} />
 
         {/* Contenido */}
         <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6">
@@ -181,8 +186,11 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
               showMobileContact
             />
           </div>
-          <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={120} />
+          <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={PANEL_HEADER_H + 16} />
         </div>
+
+        {/* Footer global dentro del panel (al final del scroll interno) */}
+        <Footer />
       </div>
 
       <style>{`

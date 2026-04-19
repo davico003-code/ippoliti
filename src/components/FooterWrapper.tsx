@@ -17,6 +17,22 @@ export default function FooterWrapper() {
     )
   }
 
+  // /propiedades y /propiedades/[slug]: vista tipo app (desktop) — el footer
+  // se renderiza dentro del panel de la ficha cuando está abierta, no en el
+  // listado/mapa. Mobile conserva el footer global normal en /propiedades/[slug].
+  if (pathname === '/propiedades') {
+    return null
+  }
+  if (pathname?.startsWith('/propiedades/')) {
+    // En desktop ocultamos (lo renderiza el panel). En mobile la ruta [slug]
+    // sigue siendo la ficha completa y mantiene el footer global.
+    return (
+      <div className="md:hidden">
+        <Footer />
+      </div>
+    )
+  }
+
   // Todas las demás rutas: footer global estándar
   return <Footer />
 }
