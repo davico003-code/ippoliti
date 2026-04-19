@@ -28,7 +28,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
     <>
       {/* Grid only — parent is responsible for width constraint */}
       <div>
-        <div className="hidden md:grid grid-cols-5 grid-rows-2 gap-2 aspect-[16/9] rounded-2xl overflow-hidden">
+        <div className="hidden md:grid grid-cols-5 grid-rows-2 gap-2 h-[440px] rounded-2xl overflow-hidden">
           {/* Main photo — takes 3 cols × 2 rows */}
           <div
             className="relative col-span-3 row-span-2 cursor-pointer group overflow-hidden"
@@ -107,7 +107,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
 
       {/* Lightbox fullscreen — shared */}
       {showAll && (
-        <div className="fixed inset-0 z-[300] bg-black">
+        <div className="fixed inset-0 z-[10500] bg-black">
           <button
             onClick={() => setShowAll(false)}
             aria-label="Cerrar galería"

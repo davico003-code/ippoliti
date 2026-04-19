@@ -7,6 +7,8 @@
 //
 // Content (body, sidebar, gallery, sticky nav) is shared with the full page.
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import {
   type TokkoProperty,
@@ -103,9 +105,9 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   // Loading / Error
   if (loading || error || !property) {
     return (
-      <div className="fixed inset-0 md:inset-x-0 z-[200]" style={{ top: 'var(--header-height, 76px)' }}>
-        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-        <div className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
+      <div className="fixed inset-0 z-[9995]">
+        <div className="absolute inset-0 bg-black/65" onClick={onClose} />
+        <div className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto shadow-2xl" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
           {loading ? (
             <div className="animate-pulse p-6 space-y-4">
               <div className="h-8 w-40 bg-gray-200 rounded" />
@@ -136,13 +138,10 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`
 
   return (
-    <div
-      className="fixed inset-0 md:inset-x-0 z-[200]"
-      style={{ top: 'var(--header-height, 76px)' }}
-    >
-      {/* Backdrop — cubre solo la zona bajo el header para que el header quede accesible */}
+    <div className="fixed inset-0 z-[9995]">
+      {/* Backdrop — cubre TODO el viewport incluyendo el header del sitio */}
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/65"
         onClick={onClose}
         style={{ animation: 'ppFadeIn 200ms ease-out' }}
       />
@@ -152,20 +151,34 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
         className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
         style={{ animation: 'ppSlideIn 250ms ease-out' }}
       >
-        {/* Panel header sticky */}
+        {/* Panel header sticky — barra propia, logo SI centrado, volver a la izquierda */}
         <div
-          className="sticky top-0 z-40 bg-white border-b border-gray-200 flex items-center justify-between px-5"
+          className="sticky top-0 z-40 bg-white border-b border-gray-200 grid grid-cols-3 items-center px-5"
           style={{ height: PANEL_HEADER_H }}
         >
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-[#1A5C38] transition-colors"
-            style={{ fontFamily: R }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Volver a la búsqueda</span>
-            <span className="sm:hidden">Volver</span>
-          </button>
+          <div>
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-[#1A5C38] transition-colors"
+              style={{ fontFamily: R }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Volver a la búsqueda</span>
+              <span className="sm:hidden">Volver</span>
+            </button>
+          </div>
+          <Link href="/" className="flex items-center justify-center" aria-label="Ir a la página principal">
+            <Image
+              src="/LOGO_HORIZONTAL.png"
+              alt="SI Inmobiliaria"
+              width={140}
+              height={28}
+              className="object-contain"
+              style={{ height: 28, width: 'auto' }}
+              priority
+            />
+          </Link>
+          <div />
         </div>
 
         {/* Galería Zillow — constrained a padding del panel para no desbordar */}
