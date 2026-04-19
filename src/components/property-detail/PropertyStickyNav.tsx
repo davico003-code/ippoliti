@@ -60,11 +60,11 @@ export default function PropertyStickyNav({
   return (
     <nav
       ref={navRef}
-      className="hidden md:flex sticky z-30 bg-white border-b border-gray-200"
+      className="sticky z-30 bg-white border-b border-gray-200"
       style={{ top: stickyTop }}
       aria-label="Secciones de la propiedad"
     >
-      <div className="max-w-7xl mx-auto w-full px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8">
         <ul className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-none">
           {sections.map(s => {
             const isActive = active === s.id
