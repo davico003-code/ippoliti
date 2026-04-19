@@ -1,7 +1,9 @@
 'use client'
 
-// Zillow-style gallery: 1 big photo + 2x2 grid of thumbs (desktop).
-// Mobile: the component renders nothing — each parent supplies its own mobile hero.
+// Zillow-style gallery: 1 big photo (col-span-3 row-span-2) + 4 thumbs in a
+// 5-col grid, wrapped in a width-constrained container so it respects the
+// page layout. Desktop only — mobile renders nothing (parents keep their own
+// mobile hero).
 import { useState } from 'react'
 import Image from 'next/image'
 import { Images } from 'lucide-react'
@@ -19,17 +21,17 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
 
   if (photos.length === 0) return null
 
-  // Determine thumb slots — adapt when < 5 photos
   const thumbs = photos.slice(1, 5)
+  const hasOverlaySlot = photos.length > 5
 
   return (
     <>
-      {/* Zillow grid: desktop only */}
-      <div className="hidden md:block">
-        <div className="grid grid-cols-5 gap-1" style={{ maxHeight: 480 }}>
-          {/* Main photo (60%) */}
+      {/* Grid only — parent is responsible for width constraint */}
+      <div>
+        <div className="hidden md:grid grid-cols-5 grid-rows-2 gap-2 aspect-[16/9] rounded-2xl overflow-hidden">
+          {/* Main photo — takes 3 cols × 2 rows */}
           <div
-            className="relative col-span-3 aspect-[16/10] overflow-hidden cursor-pointer group"
+            className="relative col-span-3 row-span-2 cursor-pointer group overflow-hidden"
             onClick={() => setShowAll(true)}
           >
             <Image
@@ -58,46 +60,48 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
             )}
           </div>
 
-          {/* 2x2 thumbs (40%) */}
-          <div className="col-span-2 grid grid-cols-2 gap-1">
-            {Array.from({ length: 4 }).map((_, i) => {
-              const photo = thumbs[i]
-              const isLastSlot = i === 3
-              if (!photo) return <div key={i} className="bg-gray-100" />
-              return (
-                <div
-                  key={i}
-                  className="relative overflow-hidden cursor-pointer group"
-                  onClick={() => setShowAll(true)}
-                >
-                  <Image
-                    src={photo}
-                    alt=""
-                    fill
-                    className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                    sizes="20vw"
-                  />
-                  {isLastSlot && photos.length > 5 && (
-                    <div className="absolute inset-0 bg-black/55 flex items-center justify-center gap-1.5">
-                      <Images className="w-4 h-4 text-white" />
-                      <span className="text-white text-sm font-semibold">Ver las {photos.length} fotos</span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+          {/* 4 thumbs — each fills one cell */}
+          {Array.from({ length: 4 }).map((_, i) => {
+            const photo = thumbs[i]
+            const isLastSlot = i === 3
+            if (!photo) {
+              return <div key={i} className="bg-gray-100" />
+            }
+            return (
+              <div
+                key={i}
+                className="relative col-span-1 cursor-pointer group overflow-hidden"
+                onClick={() => setShowAll(true)}
+              >
+                <Image
+                  src={photo}
+                  alt=""
+                  fill
+                  className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                  sizes="20vw"
+                />
+                {isLastSlot && hasOverlaySlot && (
+                  <div className="absolute inset-0 bg-black/55 flex items-center justify-center gap-1.5">
+                    <Images className="w-4 h-4 text-white" />
+                    <span className="text-white text-sm font-semibold">Ver las {photos.length} fotos</span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
 
-        {/* Ver todas (floating) cuando no hay overlay automático */}
-        {photos.length > 1 && photos.length <= 5 && (
-          <button
-            onClick={() => setShowAll(true)}
-            className="relative -mt-12 ml-auto mr-4 flex items-center gap-1.5 bg-white/95 backdrop-blur px-4 py-2 rounded-lg text-xs font-semibold text-gray-800 shadow float-right"
-            style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
-          >
-            <Images className="w-3.5 h-3.5" /> Ver las {photos.length} fotos
-          </button>
+        {/* Fallback button when there's no "Ver X fotos" overlay (photos ≤ 5) */}
+        {photos.length > 1 && !hasOverlaySlot && (
+          <div className="hidden md:flex justify-end mt-3">
+            <button
+              onClick={() => setShowAll(true)}
+              className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg text-xs font-semibold text-gray-800 shadow-sm"
+              style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
+            >
+              <Images className="w-3.5 h-3.5" /> Ver las {photos.length} fotos
+            </button>
+          </div>
         )}
       </div>
 

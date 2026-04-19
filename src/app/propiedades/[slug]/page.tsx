@@ -557,8 +557,10 @@ export default async function PropertyPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Zillow-style hero gallery (shared with modal) */}
-        <PropertyGalleryHero property={property} />
+        {/* Zillow-style hero gallery (shared with modal) — constrained to page width */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-6 pb-4">
+          <PropertyGalleryHero property={property} />
+        </div>
 
         {/* Sticky tab nav (desktop only) — window-scroll mode */}
         <PropertyStickyNav

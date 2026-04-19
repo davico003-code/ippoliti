@@ -4,7 +4,6 @@
 // the modal (PropertyPanel) and the full page (/propiedades/[slug]).
 // Mobile is NOT rendered here — each parent keeps its own mobile layout.
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
 import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Phone } from 'lucide-react'
 import {
   type TokkoProperty,
@@ -21,17 +20,13 @@ import {
   translateCondition,
   translateOrientation,
   translateDisposition,
-  generatePropertySlug,
 } from '@/lib/tokko'
 import PropertyDescription from '../PropertyDescription'
-import PropiedadCardGrid from '../PropiedadCardGrid'
 import SimilarProperties from '../SimilarProperties'
-import type { NearbyProperty } from '../NearbyPropertiesMap'
 
 const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false })
 const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false })
 const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false })
-const NearbyPropertiesMap = dynamic(() => import('../NearbyPropertiesMap'), { ssr: false })
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
@@ -77,8 +72,6 @@ export default function PropertyDetailBody({
   /** If true, render a mobile-only contact card after the title (used inside the modal). */
   showMobileContact?: boolean
 }) {
-  const router = useRouter()
-
   // Derived
   const price = formatPrice(property)
   const operation = getOperationType(property)
@@ -122,30 +115,6 @@ export default function PropertyDetailBody({
     property.floors_amount > 0 ||
     translateDisposition(property.disposition)
 
-  // Nearby ≤5km
-  const nearbyList = hasCoords
-    ? allProperties
-        .filter(p => p.id !== property.id)
-        .filter(p => {
-          if (!p.geo_lat || !p.geo_long) return false
-          const lat = parseFloat(p.geo_lat); const lng = parseFloat(p.geo_long)
-          if (isNaN(lat) || isNaN(lng)) return false
-          return haversineKm(currentLat!, currentLng!, lat, lng) <= 5
-        })
-        .slice(0, 12)
-    : []
-
-  const nearbyForMap: NearbyProperty[] = nearbyList
-    .filter(p => p.geo_lat && p.geo_long)
-    .map(p => ({
-      id: p.id,
-      lat: parseFloat(p.geo_lat!),
-      lng: parseFloat(p.geo_long!),
-      title: p.publication_title || p.address,
-      price: formatPrice(p),
-      slug: generatePropertySlug(p),
-    }))
-
   const similarList = allProperties
     .map(p => {
       if (p.id === property.id) return null
@@ -174,7 +143,7 @@ export default function PropertyDetailBody({
     })
     .filter((x): x is { p: TokkoProperty; score: number } => x != null)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 8)
+    .slice(0, 4)
     .map(x => x.p)
 
   return (
@@ -319,32 +288,7 @@ export default function PropertyDetailBody({
         </section>
       )}
 
-      {/* PROPIEDADES CERCANAS (mapa + carrusel) */}
-      {hasCoords && nearbyForMap.length > 0 && (
-        <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Otras opciones en la zona</h2>
-          <div className="mb-5">
-            <NearbyPropertiesMap
-              lat={currentLat!}
-              lng={currentLng!}
-              nearbyProperties={nearbyForMap}
-            />
-          </div>
-          <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-1 px-1 pb-1" style={{ scrollSnapType: 'x mandatory' }}>
-            {nearbyList.map(p => (
-              <div key={p.id} className="flex-shrink-0 w-[280px]" style={{ scrollSnapAlign: 'start' }}>
-                <PropiedadCardGrid
-                  property={p}
-                  isSelected={false}
-                  onClick={() => router.push(`/propiedades/${generatePropertySlug(p)}`)}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* PROPIEDADES SIMILARES */}
+      {/* PROPIEDADES SIMILARES — única sección de recomendadas, 4 max */}
       {similarList.length > 0 && (
         <section id="similares" className={CARD}>
           <SimilarProperties properties={similarList} currentPropertyId={property.id} />
