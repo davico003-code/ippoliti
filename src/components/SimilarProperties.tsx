@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Maximize2, Home, Check, MessageCircle, Link2, Search, X } from 'lucide-react'
+import { MapPin, Check, MessageCircle, Link2, Search, X } from 'lucide-react'
 import {
   type TokkoProperty,
   generatePropertySlug,
@@ -163,8 +163,8 @@ export default function SimilarProperties({ properties, currentPropertyId }: Pro
         ))}
       </div>
 
-      {/* Cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Cards grid — desktop 4 cols, mobile 1 col full-width */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {sorted.map(property => {
           const photo = getMainPhoto(property)
           const slug = generatePropertySlug(property)
@@ -172,11 +172,25 @@ export default function SimilarProperties({ properties, currentPropertyId }: Pro
           const area = getTotalSurface(property)
           const roofed = getRoofedArea(property)
           const typeName = translatePropertyType(property.type?.name)
+          const op = property.operations?.[0]?.operation_type === 'Sale'
+            ? 'Venta'
+            : property.operations?.[0]?.operation_type === 'Rent'
+              ? 'Alquiler'
+              : null
+          const beds = property.suite_amount || property.room_amount || 0
+          const baths = property.bathroom_amount || 0
+          const sizeLabel = roofed && roofed > 0 ? `${roofed} m²` : area && area > 0 ? `${area} m²` : null
+          const specsBits: string[] = []
+          if (beds > 0) specsBits.push(`${beds} dorm`)
+          if (baths > 0) specsBits.push(`${baths} baño${baths > 1 ? 's' : ''}`)
+          if (sizeLabel) specsBits.push(sizeLabel)
           const isSelected = selected.has(property.id)
+          const loc = property.location?.short_location || property.location?.name || ''
+          const addr = property.fake_address || property.address
 
           return (
             <div key={property.id} className="relative">
-              {/* Select checkbox */}
+              {/* Select checkbox (compartir/comparar) */}
               <button
                 onClick={() => toggleSelect(property.id)}
                 className={`absolute top-3 right-3 z-20 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all shadow-sm ${
@@ -191,56 +205,54 @@ export default function SimilarProperties({ properties, currentPropertyId }: Pro
 
               <Link
                 href={`/propiedades/${slug}`}
-                className={`group relative rounded-xl overflow-hidden h-[260px] flex flex-col justify-end bg-gray-200 block transition-all ${
+                className={`group block bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5 hover:ring-2 hover:ring-[#1A5C38] ${
                   isSelected ? 'ring-2 ring-brand-600 ring-offset-2' : ''
                 }`}
               >
-                {/* Background photo */}
-                {photo && (
-                  <Image
-                    src={photo}
-                    alt={property.publication_title || property.address}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  />
-                )}
-
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-                {/* Top badges */}
-                <div className="absolute top-3 left-3 flex items-start gap-2 z-10">
+                {/* Photo 16:9, sin overlay de texto */}
+                <div className="relative w-full aspect-[16/9] bg-gray-100 overflow-hidden">
+                  {photo && (
+                    <Image
+                      src={photo}
+                      alt={property.publication_title || addr}
+                      fill
+                      className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
+                  )}
+                  {op && (
+                    <span
+                      className="absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[10px] font-bold rounded text-white uppercase tracking-wide"
+                      style={{ background: op === 'Venta' ? '#dc2626' : '#2563eb' }}
+                    >
+                      {op}
+                    </span>
+                  )}
                   {typeName && (
-                    <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-brand-600/90 text-white uppercase tracking-wide">
+                    <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[10px] font-bold rounded bg-white/95 text-[#1A5C38] uppercase tracking-wide">
                       {typeName}
-                    </span>
-                  )}
-                  {area != null && area > 0 && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-black/50 text-white backdrop-blur-sm font-numeric">
-                      <Maximize2 className="w-3 h-3" />
-                      {area} m²
-                    </span>
-                  )}
-                  {roofed != null && roofed > 0 && roofed !== area && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-black/50 text-white backdrop-blur-sm font-numeric">
-                      <Home className="w-3 h-3" />
-                      {roofed} cub.
                     </span>
                   )}
                 </div>
 
-                {/* Bottom content */}
-                <div className="relative z-10 p-4">
-                  <p className="text-white font-black text-lg font-numeric mb-1 drop-shadow-md">
+                {/* Info — debajo de la foto */}
+                <div className="p-4">
+                  <p className="text-gray-900 font-black text-xl font-numeric leading-none mb-2">
                     {price}
                   </p>
-                  <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight mb-1 drop-shadow-sm">
-                    {property.publication_title || property.address}
+                  {specsBits.length > 0 && (
+                    <p className="text-gray-600 text-sm mb-2 font-poppins">
+                      {specsBits.join(' · ')}
+                    </p>
+                  )}
+                  <h3 className="text-gray-900 text-sm font-semibold line-clamp-2 leading-snug mb-2 font-raleway">
+                    {property.publication_title || addr}
                   </h3>
-                  <div className="flex items-center gap-1 text-white/70 text-xs">
-                    <MapPin className="w-3 h-3 flex-shrink-0" />
-                    <span className="truncate">{property.fake_address || property.address}</span>
+                  <div className="flex items-center gap-1.5 text-gray-500 text-xs">
+                    <MapPin className="w-3 h-3 flex-shrink-0 text-[#1A5C38]" />
+                    <span className="truncate">
+                      {addr}{loc ? ` · ${loc}` : ''}
+                    </span>
                   </div>
                 </div>
               </Link>

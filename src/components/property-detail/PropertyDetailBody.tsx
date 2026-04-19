@@ -20,13 +20,16 @@ import {
   translateCondition,
   translateOrientation,
   translateDisposition,
+  generatePropertySlug,
 } from '@/lib/tokko'
 import PropertyDescription from '../PropertyDescription'
 import SimilarProperties from '../SimilarProperties'
+import type { NearbyProperty } from '../NearbyPropertiesMap'
 
 const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false })
 const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false })
 const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false })
+const NearbyPropertiesMap = dynamic(() => import('../NearbyPropertiesMap'), { ssr: false })
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
@@ -114,6 +117,27 @@ export default function PropertyDetailBody({
     property.suite_amount > 0 ||
     property.floors_amount > 0 ||
     translateDisposition(property.disposition)
+
+  // Nearby properties for the map (≤5km from current)
+  const nearbyForMap: NearbyProperty[] = hasCoords
+    ? allProperties
+        .filter(p => p.id !== property.id && p.geo_lat && p.geo_long)
+        .map(p => {
+          const lat = parseFloat(p.geo_lat!); const lng = parseFloat(p.geo_long!)
+          if (isNaN(lat) || isNaN(lng)) return null
+          if (haversineKm(currentLat!, currentLng!, lat, lng) > 5) return null
+          return {
+            id: p.id,
+            lat,
+            lng,
+            title: p.publication_title || p.address,
+            price: formatPrice(p),
+            slug: generatePropertySlug(p),
+          }
+        })
+        .filter((x): x is NearbyProperty => x != null)
+        .slice(0, 40)
+    : []
 
   const similarList = allProperties
     .map(p => {
@@ -286,6 +310,11 @@ export default function PropertyDetailBody({
           <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
           <NearbyPlaces lat={currentLat!} lng={currentLng!} />
         </section>
+      )}
+
+      {/* OTRAS PROPIEDADES EN LA ZONA — mapa con pines verdes */}
+      {hasCoords && nearbyForMap.length > 0 && (
+        <NearbyPropertiesMap lat={currentLat!} lng={currentLng!} nearbyProperties={nearbyForMap} />
       )}
 
       {/* PROPIEDADES SIMILARES — única sección de recomendadas, 4 max */}
