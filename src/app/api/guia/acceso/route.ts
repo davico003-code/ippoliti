@@ -1,11 +1,21 @@
 import { SignJWT } from 'jose'
 import { NextResponse } from 'next/server'
+import { Redis } from '@upstash/redis'
 
 export const dynamic = 'force-dynamic'
 
 const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET ?? 'si-secret-2026')
 const COOKIE_NAME = 'si_guia_token'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 365 días
+
+export interface GuiaRegistro {
+  nombre: string
+  email: string
+  whatsapp: string | null
+  fecha: string
+  ip: string | null
+  userAgent: string | null
+}
 
 export async function POST(req: Request) {
   let body: { nombre?: string; email?: string; whatsapp?: string | null }
@@ -21,6 +31,36 @@ export async function POST(req: Request) {
 
   if (!nombre || !email) {
     return NextResponse.json({ error: 'Nombre y email son obligatorios' }, { status: 400 })
+  }
+
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? req.headers.get('x-real-ip')
+    ?? null
+  const userAgent = req.headers.get('user-agent') ?? null
+  const registro: GuiaRegistro = {
+    nombre,
+    email,
+    whatsapp,
+    fecha: new Date().toISOString(),
+    ip,
+    userAgent,
+  }
+
+  // Persistir en Upstash Redis (misma infra que /api/leads)
+  try {
+    if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+      const redis = new Redis({
+        url: process.env.KV_REST_API_URL,
+        token: process.env.KV_REST_API_TOKEN,
+      })
+      const ts = Date.now()
+      await redis.set(`guia:registro:${ts}:${email}`, JSON.stringify(registro))
+      await redis.lpush('guia:registros:all', JSON.stringify(registro))
+    } else {
+      console.warn('[guia/acceso] Redis no configurado — registro sin persistir')
+    }
+  } catch (err) {
+    console.error('[guia/acceso] Error guardando en Redis:', err)
   }
 
   // Crear lead en Tokko (best-effort, no bloquea el acceso)

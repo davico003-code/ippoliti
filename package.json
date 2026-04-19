@@ -21,6 +21,7 @@
     "@upstash/redis": "^1.37.0",
     "@vercel/blob": "^2.3.3",
     "cheerio": "^1.2.0",
+    "exceljs": "^4.4.0",
     "fast-xml-parser": "^5.5.12",
     "framer-motion": "^12.38.0",
     "jose": "^6.2.2",
