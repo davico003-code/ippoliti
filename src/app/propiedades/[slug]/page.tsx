@@ -216,7 +216,7 @@ export default async function PropertyPage({ params }: Props) {
           de abajo queda intacto — por eso el wrapper tiene pb-28 para que el
           contenido no quede tapado por la barra flotante.
           ════════════════════════════════════════════ */}
-      <div className="md:hidden min-h-screen bg-[#fafafa] pb-28">
+      <div className="md:hidden min-h-screen bg-[#fafafa]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 112px)' }}>
         {/* Header propio de la ficha mobile — back + logo + (acciones) */}
         <div className="sticky top-0 z-40 bg-white border-b border-gray-200 grid grid-cols-3 items-center px-4" style={{ height: 56 }}>
           <Link

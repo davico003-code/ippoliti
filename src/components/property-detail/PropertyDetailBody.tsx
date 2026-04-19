@@ -25,6 +25,7 @@ import {
 import PropertyDescription from '../PropertyDescription'
 import SimilarProperties from '../SimilarProperties'
 import type { NearbyProperty } from '../NearbyPropertiesMap'
+import SectionBoundary from './SectionBoundary'
 
 const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false })
 const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false })
@@ -279,49 +280,59 @@ export default function PropertyDetailBody({
 
       {/* PLANOS */}
       {blueprints.length > 0 && (
-        <section id="planos" className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Planos</h2>
-          <BlueprintGallery blueprints={blueprints} />
-        </section>
+        <SectionBoundary name="planos">
+          <section id="planos" className={CARD}>
+            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Planos</h2>
+            <BlueprintGallery blueprints={blueprints} />
+          </section>
+        </SectionBoundary>
       )}
 
       {/* UBICACIÓN */}
-      <section id="ubicacion" className={CARD}>
-        <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Ubicación</h2>
-        <div className="rounded-[14px] overflow-hidden mb-3" style={{ aspectRatio: '16/9' }}>
-          <PropertyMap
-            lat={currentLat}
-            lng={currentLng}
-            address={property.real_address || address}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: GREEN }} />
-          <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
-            {property.real_address || address}{location ? `, ${location}` : ''}
-          </span>
-        </div>
-      </section>
+      <SectionBoundary name="ubicacion">
+        <section id="ubicacion" className={CARD}>
+          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Ubicación</h2>
+          <div className="rounded-[14px] overflow-hidden mb-3" style={{ aspectRatio: '16/9' }}>
+            <PropertyMap
+              lat={currentLat}
+              lng={currentLng}
+              address={property.real_address || address}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: GREEN }} />
+            <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
+              {property.real_address || address}{location ? `, ${location}` : ''}
+            </span>
+          </div>
+        </section>
+      </SectionBoundary>
 
       {/* LUGARES CERCANOS */}
       {hasCoords && (
-        <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 4 }}>Lugares cercanos</h2>
-          <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
-          <NearbyPlaces lat={currentLat!} lng={currentLng!} />
-        </section>
+        <SectionBoundary name="lugares-cercanos">
+          <section className={CARD}>
+            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 4 }}>Lugares cercanos</h2>
+            <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
+            <NearbyPlaces lat={currentLat!} lng={currentLng!} />
+          </section>
+        </SectionBoundary>
       )}
 
       {/* OTRAS PROPIEDADES EN LA ZONA — mapa con pines verdes */}
       {hasCoords && nearbyForMap.length > 0 && (
-        <NearbyPropertiesMap lat={currentLat!} lng={currentLng!} nearbyProperties={nearbyForMap} />
+        <SectionBoundary name="nearby-properties-map">
+          <NearbyPropertiesMap lat={currentLat!} lng={currentLng!} nearbyProperties={nearbyForMap} />
+        </SectionBoundary>
       )}
 
       {/* PROPIEDADES SIMILARES — única sección de recomendadas, 4 max */}
       {similarList.length > 0 && (
-        <section id="similares" className={CARD}>
-          <SimilarProperties properties={similarList} currentPropertyId={property.id} />
-        </section>
+        <SectionBoundary name="similares">
+          <section id="similares" className={CARD}>
+            <SimilarProperties properties={similarList} currentPropertyId={property.id} />
+          </section>
+        </SectionBoundary>
       )}
     </div>
   )
