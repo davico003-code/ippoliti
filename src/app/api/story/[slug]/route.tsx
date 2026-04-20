@@ -43,10 +43,12 @@ export async function GET(
           backgroundColor: '#0d1a12',
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
         {foto && (
+          // satori (ImageResponse) no soporta next/image — usamos <img> intencional
+          // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
           <img
             src={foto}
+            alt=""
             style={{
               position: 'absolute',
               top: 0,

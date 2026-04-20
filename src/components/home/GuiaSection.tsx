@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 const GREEN = '#1A5C38'
@@ -27,9 +28,12 @@ export default function GuiaSection() {
             filter: 'blur(6px)', zIndex: 0,
           }}
         />
-        <img
+        <Image
           src="/guia-mockup-3iphones.png"
           alt="Guía Comprá con Inteligencia — SI Inmobiliaria"
+          width={1200}
+          height={900}
+          sizes="(max-width: 768px) 100vw, 800px"
           className="relative w-full h-auto"
           style={{ zIndex: 1 }}
         />
