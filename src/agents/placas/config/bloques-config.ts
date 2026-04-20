@@ -12,6 +12,9 @@ import { renderBajada } from '../bloques/bajada'
 import { renderParrafo } from '../bloques/parrafo'
 import { renderFuente } from '../bloques/fuente'
 import { renderHandle } from '../bloques/handle'
+import { renderNumeroHero } from '../bloques/numero-hero'
+import { renderNumeroShock } from '../bloques/numero-shock'
+import { renderBreakdown } from '../bloques/breakdown'
 
 export interface RenderContext {
   fondo: Fondo
@@ -39,9 +42,9 @@ export const BLOQUES_REGISTRY: { [K in TipoBloque]: BloqueRenderer<K> | null } =
   titulo: renderTitulo,
   bajada: renderBajada,
   parrafo: renderParrafo,
-  'numero-hero': null,
-  'numero-shock': null,
-  breakdown: null,
+  'numero-hero': renderNumeroHero,
+  'numero-shock': renderNumeroShock,
+  breakdown: renderBreakdown,
   lista: null,
   cita: null,
   comparativa: null,
@@ -107,14 +110,14 @@ export const CATALOGO_BLOQUES: CatalogoBloque[] = [
     descripcion: 'Número gigante Poppins 800 a 272px. Soporta sup (superscript) para decimales "," o "%". Admite anotación lateral con valor + label uppercase.',
     props: '{ valor: string; sup?: string; anotacion_valor?: string; anotacion_label?: string }',
     cuando_usar:
-      'Cuando el número es la estrella: "21,2%" (valor="21", sup=",2%"), "USD 850" (valor="USD 850"), "+17,7%". La anotación agrega un dato secundario ("+ USD 7.000" + label "GANANCIA NETA · 12 MESES").',
+      'Cuando el número es la estrella. IMPORTANTE: `valor` debe ser CORTO (≤ 4 caracteres) para que entre holgado: "21", "850", "+17", "2.5x". Poné unidades y contexto en `sup` o `anotacion_label`. La anotación agrega un dato secundario ("+ USD 7.000" + label "GANANCIA NETA · 12 MESES"). Ejemplos completos: valor="21" + sup=",2%" · valor="850" + sup=" USD/m²" · valor="+17" + sup=",7%".',
   },
   {
     tipo: 'numero-shock',
     descripcion: 'Número extremo Poppins 800 a 360px. Siempre color verde brillante. Pensado para fondo oscuro.',
     props: '{ valor: string; sup?: string }',
     cuando_usar:
-      'Estadística potente sobre fondo verde-profundo que requiere impacto máximo. Acompañar siempre con un parrafo (texto-desc) y un bloque fuente debajo.',
+      'Estadística potente sobre fondo verde-profundo que requiere impacto máximo. IMPORTANTE: `valor` debe ser MUY CORTO (≤ 3 caracteres): "73", "8x", "+40". Ponele el símbolo en `sup`. Acompañar siempre con un parrafo (texto-desc) y un bloque fuente debajo.',
   },
   {
     tipo: 'breakdown',
