@@ -9,6 +9,9 @@ import type { Bloque, Fondo, TipoBloque } from '../types'
 import { renderEyebrow } from '../bloques/eyebrow'
 import { renderTitulo } from '../bloques/titulo'
 import { renderBajada } from '../bloques/bajada'
+import { renderParrafo } from '../bloques/parrafo'
+import { renderFuente } from '../bloques/fuente'
+import { renderHandle } from '../bloques/handle'
 
 export interface RenderContext {
   fondo: Fondo
@@ -35,7 +38,7 @@ export const BLOQUES_REGISTRY: { [K in TipoBloque]: BloqueRenderer<K> | null } =
   eyebrow: renderEyebrow,
   titulo: renderTitulo,
   bajada: renderBajada,
-  parrafo: null,
+  parrafo: renderParrafo,
   'numero-hero': null,
   'numero-shock': null,
   breakdown: null,
@@ -44,9 +47,9 @@ export const BLOQUES_REGISTRY: { [K in TipoBloque]: BloqueRenderer<K> | null } =
   comparativa: null,
   imagen: null,
   grafico: null,
-  fuente: null,
+  fuente: renderFuente,
   'cta-actions': null,
-  handle: null,
+  handle: renderHandle,
   divider: null,
   spacer: null,
 }
