@@ -62,7 +62,8 @@ export function LogoSI({ scale = 1, onDark = false }: LogoSIProps): ReactNode {
             color: '#ffffff',
             lineHeight: 1,
             letterSpacing: '0.02em',
-            transform: `translateY(${LOGO_BASE.siTranslateY})`,
+            // Compensación baseline Audiowide en px (Satori no acepta em)
+            transform: `translateY(${(siFontSize * LOGO_BASE.siTranslateYRatio).toFixed(2)}px)`,
           }}
         >
           SI

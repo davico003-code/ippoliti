@@ -341,6 +341,7 @@ export const LOGO_BASE = {
   /** Espacio entre caja SI e INMOBILIARIA */
   gap: 16, // 8 * 2
   inmoLetterSpacing: '0.14em',
-  /** Compensación baseline de Audiowide */
-  siTranslateY: '-0.05em',
+  /** Compensación baseline de Audiowide — ratio sobre siFontSize (Satori
+   *  requiere px absolutos, no em, así que el componente lo multiplica). */
+  siTranslateYRatio: -0.05,
 } as const

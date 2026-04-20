@@ -6,6 +6,9 @@
 
 import type { ReactNode } from 'react'
 import type { Bloque, Fondo, TipoBloque } from '../types'
+import { renderEyebrow } from '../bloques/eyebrow'
+import { renderTitulo } from '../bloques/titulo'
+import { renderBajada } from '../bloques/bajada'
 
 export interface RenderContext {
   fondo: Fondo
@@ -29,9 +32,9 @@ export type BloqueRenderer<T extends TipoBloque> = (
 ) => ReactNode
 
 export const BLOQUES_REGISTRY: { [K in TipoBloque]: BloqueRenderer<K> | null } = {
-  eyebrow: null,
-  titulo: null,
-  bajada: null,
+  eyebrow: renderEyebrow,
+  titulo: renderTitulo,
+  bajada: renderBajada,
   parrafo: null,
   'numero-hero': null,
   'numero-shock': null,
