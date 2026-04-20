@@ -1,29 +1,22 @@
 // Logo SI Inmobiliaria — componente JSX compatible con Satori.
+// Valores escalados del HTML de referencia (x2 porque el HTML estaba a 50%).
 //
-// Estructura:
-//   [cuadrado verde con "SI" en Audiowide blanco] [INMOBILIARIA en Montserrat]
+// Estructura: [caja verde cuadrada con "SI"] [gap] [INMOBILIARIA uppercase]
 //
 // Centrado óptico del "SI":
-//   - El glifo de Audiowide tiene baseline alto que deja un "hueco" visual
-//     en la parte inferior del cuadrado. Lo compensamos con `translateY(-0.05em)`
-//     sobre el span interno. Mismo truco que el del HTML de referencia.
-//   - El cuadrado usa display:flex + align/justify center + padding simétrico
-//     + line-height:1 para eliminar cualquier otro desplazamiento.
-//
-// Escalado: el componente acepta `scale` (1 = tamaño base del config, 0.5,
-// 0.75, 1.5, etc.). Todos los valores numéricos se multiplican; letter-spacing
-// y transform quedan relativos.
-//
-// `onDark` cambia el peso de INMOBILIARIA (700 sobre claro / 600 sobre oscuro)
-// y su color de texto (negro / blanco).
+//   - Audiowide tiene baseline alto → queda un "hueco" visual abajo.
+//   - Se compensa con `translateY(-0.05em)` en el span interno.
+//   - La caja tiene `min-height` y `min-width` para que no se encoja con
+//     glifos angostos y mantenga la proporción del HTML de referencia.
 
 import type { ReactNode } from 'react'
 import { COLORES, FUENTES, LOGO_BASE } from '../config/estilos-marca'
 
 export interface LogoSIProps {
-  /** Multiplicador sobre LOGO_BASE. Default 1. */
+  /** Multiplicador sobre LOGO_BASE. Default 1 (tamaño pie de placa). */
   scale?: number
-  /** true cuando la placa tiene fondo oscuro (ajusta peso + color INMOBILIARIA) */
+  /** true cuando la placa tiene fondo oscuro. Cambia el verde de la caja
+   *  y el peso/color de INMOBILIARIA. */
   onDark?: boolean
 }
 
@@ -32,6 +25,8 @@ export function LogoSI({ scale = 1, onDark = false }: LogoSIProps): ReactNode {
   const padY = LOGO_BASE.siPaddingY * scale
   const padX = LOGO_BASE.siPaddingX * scale
   const radius = LOGO_BASE.siBorderRadius * scale
+  const minHeight = LOGO_BASE.siMinHeight * scale
+  const minWidth = LOGO_BASE.siMinWidth * scale
   const inmoFontSize = LOGO_BASE.inmoFontSize * scale
   const gap = LOGO_BASE.gap * scale
 
@@ -41,6 +36,7 @@ export function LogoSI({ scale = 1, onDark = false }: LogoSIProps): ReactNode {
         display: 'flex',
         alignItems: 'center',
         gap: `${gap}px`,
+        lineHeight: 1,
       }}
     >
       {/* Caja verde con "SI" */}
@@ -49,9 +45,11 @@ export function LogoSI({ scale = 1, onDark = false }: LogoSIProps): ReactNode {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: COLORES.verdeMarca,
+          backgroundColor: onDark ? COLORES.verdeBrillante : COLORES.verdeMarca,
           padding: `${padY}px ${padX}px`,
           borderRadius: `${radius}px`,
+          minHeight: `${minHeight}px`,
+          minWidth: `${minWidth}px`,
           lineHeight: 1,
         }}
       >
@@ -59,12 +57,11 @@ export function LogoSI({ scale = 1, onDark = false }: LogoSIProps): ReactNode {
           style={{
             display: 'flex',
             fontFamily: FUENTES.audiowide,
-            fontWeight: 400, // único peso de Audiowide
+            fontWeight: 400,
             fontSize: `${siFontSize}px`,
             color: '#ffffff',
             lineHeight: 1,
             letterSpacing: '0.02em',
-            // Compensación baseline de Audiowide — crítico para centrado óptico
             transform: `translateY(${LOGO_BASE.siTranslateY})`,
           }}
         >

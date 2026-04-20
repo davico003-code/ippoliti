@@ -1,27 +1,23 @@
 // Tipos del sistema de placas — modelo de BLOQUES COMPONIBLES.
 //
-// Una placa no tiene "tipo". Es una composición de `bloques` que Claude
-// elige y ordena libremente. El renderer itera los bloques y los apila con
-// spacing coherente. Algunos elementos (logo) son chrome siempre presente.
+// Una placa tiene:
+//  - Chrome obligatorio: head-bar (tag izq + pag der) + logo al pie + meta-foot
+//  - Body: stack de bloques que Claude compone libremente
 //
-// Esto le da a Claude libertad real de composición: puede combinar
-// (ej: eyebrow + número + cita + fuente en una sola placa) o proponer
-// estructuras atípicas sin estar limitado a 9 "tipos" rígidos.
+// El chrome es layout fijo. Claude solo llena los 3 textos del chrome.
+// Los bloques van dentro del body, centrados verticalmente por default.
 
 // ─── Fondo y layout ────────────────────────────────────────────────────────
 export type Fondo = 'verde-profundo' | 'crema' | 'blanco'
 
-/** Cómo alinear el stack de bloques dentro de la zona segura. */
+/** Alineación vertical del stack de bloques dentro del body. Default 'centro'. */
 export type AlineacionVertical = 'centro' | 'arriba' | 'abajo'
 
-/** Cómo mostrar el logo en una placa específica. Default: 'pie'. */
-export type LogoMode = 'pie' | 'centrado-grande' | 'oculto'
-
-// ─── Bloques — discriminated union ─────────────────────────────────────────
+// ─── Bloques: discriminated union ─────────────────────────────────────────
 //
-// Claude arma cada placa eligiendo qué bloques incluir y en qué orden.
-// Cada bloque es autocontenido: lleva toda la data que necesita para renderizar.
-// El renderer decide los márgenes entre bloques según tipo previo/siguiente.
+// Claude arma el body de cada placa eligiendo qué bloques incluir y en qué
+// orden. Cada bloque es autocontenido. El renderer calcula márgenes entre
+// bloques según tipo previo/siguiente.
 
 export type TipoBloque =
   | 'eyebrow'
@@ -42,7 +38,7 @@ export type TipoBloque =
   | 'divider'
   | 'spacer'
 
-// ── Helpers ──
+// ── Helpers de tipo ──
 export interface ComparativaLado {
   label: string
   valor: string
@@ -53,7 +49,6 @@ export interface ImagenOverlay {
   numero?: string
   titulo?: string
   texto?: string
-  /** Posición del bloque de texto sobre la imagen. Default 'bottom'. */
   posicion?: 'top' | 'bottom' | 'center'
 }
 
@@ -62,68 +57,86 @@ export type GraficoData =
   | { tipo: 'linea'; datos: Array<{ label: string; valor: number }>; unidad?: string }
   | { tipo: 'dona'; datos: Array<{ label: string; valor: number }> }
 
-// ── Bloques concretos ──
 export type Bloque =
-  /** Categoría / contexto pequeño arriba de un título o número.
-   *  "Inversión · Funes", "Caso real", "Mercado · Rosario". */
+  /** Etiqueta corta con línea decorativa al frente. "Inversión · Funes" */
   | { tipo: 'eyebrow'; texto: string }
-  /** Título grande. Soporta `*italic*` y `**bold**` inline si se necesita
-   *  enfatizar una palabra. Tamaño ajustable. */
+  /** Título grande. Soporta `*italic*` y `**bold**` inline. */
   | { tipo: 'titulo'; texto: string; tamaño?: 'xl' | 'lg' | 'md'; italica?: boolean }
-  /** Bajada complementaria de un título. */
+  /** Frase complementaria al título (Raleway italic). */
   | { tipo: 'bajada'; texto: string }
-  /** Párrafo de texto corrido (sin viñeta, sin estilo especial). */
-  | { tipo: 'parrafo'; texto: string; italica?: boolean }
-  /** Número hero con unidad y contexto opcionales. El layout visual depende
-   *  del orden: si va arriba y solo, ocupa el centro; si viene después de
-   *  eyebrow + algo, actúa como dato destacado. */
+  /** Párrafo de texto. `tamaño: 'xl'` lo hace del tamaño de texto-desc (28px escalados). */
+  | {
+      tipo: 'parrafo'
+      texto: string
+      italica?: boolean
+      tamaño?: 'sm' | 'md' | 'lg' | 'xl'
+    }
+  /** Número hero con unidad + contexto opcionales. Anotación lateral. */
   | {
       tipo: 'numero-hero'
       valor: string
-      unidad?: string
-      /** Línea explicativa debajo o al lado. */
-      contexto?: string
+      /** Sufijo con superscript: "21" + sup: ",2%" */
+      sup?: string
+      /** Valor secundario de contexto al lado */
+      anotacion_valor?: string
+      /** Label uppercase debajo del valor secundario */
+      anotacion_label?: string
     }
-  /** Variante potente: número gigante en fondo oscuro + texto + fuente. */
-  | { tipo: 'numero-shock'; valor: string; texto: string; fuente: string }
-  /** Breakdown en columnas o filas: Compra / Gastos / Venta, etc. */
+  /** Variante potente: número gigante color verde brillante sobre fondo oscuro. */
+  | { tipo: 'numero-shock'; valor: string; sup?: string }
+  /** Breakdown: 2-4 items en columnas con líneas divisoras. */
   | { tipo: 'breakdown'; items: Array<{ label: string; valor: string }> }
-  /** Lista de items. Cada ≤ 90 chars para no romper layout. */
-  | { tipo: 'lista'; items: string[]; estilo?: 'numerada' | 'bullets' }
-  /** Cita editorial con atribución. Italic por default. */
+  /** Lista con título opcional + 3-4 items numerados/bullets. */
+  | {
+      tipo: 'lista'
+      /** Headline sobre los items (ej: "4 cosas que miramos antes de invertir"). */
+      titulo?: string
+      items: string[]
+      estilo?: 'numerada' | 'bullets'
+    }
+  /** Cita editorial con atribución. */
   | { tipo: 'cita'; frase: string; atribucion: string }
-  /** Dos bloques lado a lado con valores contrastados. */
+  /** Dos bloques lado a lado. */
   | { tipo: 'comparativa'; izquierda: ComparativaLado; derecha: ComparativaLado; titulo?: string }
-  /** Imagen (Unsplash) de fondo completo o con overlay de texto. */
+  /** Imagen Unsplash. Overlay opcional. */
   | { tipo: 'imagen'; url: string; alt?: string; overlay?: ImagenOverlay }
-  /** Gráfico SVG inline. */
+  /** Gráfico SVG (barras/línea/dona). */
   | { tipo: 'grafico'; data: GraficoData; titulo?: string }
-  /** Pie con cita de fuente pequeña. */
+  /** Cita de fuente al pie. Italic pequeño. */
   | { tipo: 'fuente'; texto: string }
   /** Iconos Like / Compartir / Seguinos (solo en CTA final). */
   | { tipo: 'cta-actions'; destacado?: 'seguir' | 'compartir' | 'like' }
-  /** Handle de Instagram (solo en CTA final). */
+  /** Handle IG (solo en CTA final). */
   | { tipo: 'handle'; texto: string }
-  /** Línea horizontal fina para separar secciones. */
+  /** Línea horizontal fina. Usar con moderación. */
   | { tipo: 'divider' }
-  /** Espacio vertical configurable. */
+  /** Espacio vertical vacío. */
   | { tipo: 'spacer'; tamaño?: 'xs' | 'sm' | 'md' | 'lg' }
 
-// ─── Placa: composición de bloques ─────────────────────────────────────────
+// ─── Placa: composición de bloques + chrome ────────────────────────────────
 
 export interface Placa {
   orden: number
   fondo: Fondo
-  /** Descriptor humano del propósito de la placa — para logs y la UI admin.
-   *  Ejemplos: "portada", "caso-real", "comparativa-zonas", "cta". */
+  /** Descriptor humano del propósito. Solo para logs y UI admin. */
   nombre?: string
+
+  // ── Chrome (obligatorio, Claude llena los 3 textos) ──────────────────────
+  /** Tag con puntito verde delante. Arriba-izquierda. Ejemplos:
+   *  "SI · Reporte 02", "Caso 01 · Venta · Funes", "Dato del mercado". */
+  head_bar_izquierda: string
+  /** Paginador o contexto corto. Arriba-derecha. Ejemplos:
+   *  "Funes · Oct 2025", "Página 02 / 06", "Gracias por leer". */
+  head_bar_derecha: string
+  /** Texto chico a la derecha del logo. Abajo-derecha. Ejemplos:
+   *  "Deslizá →", "Próximo →", "Última →", "@inmobiliaria.si". */
+  meta_foot: string
+
+  // ── Body ─────────────────────────────────────────────────────────────────
   bloques: Bloque[]
-  /** Alineación vertical del stack dentro de la zona segura. Default 'centro'. */
+
+  // ── Overrides opcionales ─────────────────────────────────────────────────
   alineacion?: AlineacionVertical
-  /** Override del logo. Default 'pie'. */
-  logo?: LogoMode
-  /** Override del número de slide (ej: "02 · 06"). Default: se calcula auto. */
-  ocultar_numero_slide?: boolean
 }
 
 export interface Carrusel {
@@ -137,8 +150,6 @@ export type EstadoPlaca = 'pendiente' | 'aprobada' | 'regenerada'
 
 export interface PlacaRenderizada {
   numero: number
-  /** Guardamos el shape completo de la placa para poder regenerar/editar sin
-   *  re-llamar a Claude. */
   placa: Placa
   url_png: string
   estado: EstadoPlaca
