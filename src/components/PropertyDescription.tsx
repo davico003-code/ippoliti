@@ -7,32 +7,62 @@ const GREEN = '#1A5C38'
 const R = "'Raleway', system-ui, sans-serif"
 
 function Block({ block }: { block: FormattedBlock }) {
-  if (block.type === 'heading') {
+  if (block.type === 'title') {
     return (
-      <p
-        className="mb-2 text-[15px] md:text-[16px] first:mt-0"
+      <span
+        className="section-title block text-[15.5px] md:text-[16.5px]"
         style={{
           fontFamily: R,
           fontWeight: 700,
-          color: '#111',
-          marginTop: 22,
-          lineHeight: 1.4,
+          color: '#111827',
+          marginTop: 28,
+          marginBottom: 10,
+          lineHeight: 1.35,
         }}
       >
-        {block.text}
-      </p>
+        {block.content}
+      </span>
     )
   }
+
+  if (block.type === 'dataGroup') {
+    return (
+      <div className="data-group" style={{ marginBottom: 16 }}>
+        {block.content.map((dl, i) => (
+          <span
+            key={i}
+            className="data-line block text-[15px] md:text-[15.5px]"
+            style={{
+              color: '#374151',
+              lineHeight: 1.6,
+              marginBottom: i === block.content.length - 1 ? 0 : 4,
+            }}
+          >
+            <strong style={{ fontWeight: 600, color: '#111827' }}>{dl.key}:</strong>{' '}
+            {dl.value}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  // paragraph
   return (
     <p
-      className="mb-4 text-[14px] md:text-[15px]"
+      className="text-[15px] md:text-[15.5px]"
       style={{
         color: '#374151',
-        lineHeight: 1.7,
+        lineHeight: 1.75,
+        marginBottom: 16,
         fontWeight: 400,
       }}
     >
-      {block.text}
+      {block.subtitle && (
+        <>
+          <strong style={{ fontWeight: 700, color: '#111827' }}>{block.subtitle}.</strong>{' '}
+        </>
+      )}
+      {block.content}
     </p>
   )
 }
@@ -47,13 +77,18 @@ export default function PropertyDescription({ text }: { text: string | null | un
   const isLong = rawLength > 420 || blocks.length > 5
 
   return (
-    <div>
+    <div className="prose-description">
       <div className="relative">
         <div
           className={isLong && !expanded ? 'overflow-hidden' : ''}
           style={isLong && !expanded ? { maxHeight: 220 } : undefined}
         >
-          {blocks.map((b, i) => <Block key={i} block={b} />)}
+          {/* Primer bloque sin margin-top extra (reset del section-title inicial) */}
+          {blocks.map((b, i) => (
+            <div key={i} style={i === 0 && b.type === 'title' ? { marginTop: 0 } : undefined}>
+              <Block block={b} />
+            </div>
+          ))}
         </div>
         {isLong && !expanded && (
           <div
@@ -65,10 +100,14 @@ export default function PropertyDescription({ text }: { text: string | null | un
       {isLong && (
         <button
           onClick={() => setExpanded(v => !v)}
-          className="mt-1 font-semibold text-sm hover:underline"
-          style={{ color: GREEN, fontFamily: R }}
+          className="mt-1 font-semibold text-sm hover:underline inline-flex items-center gap-1.5"
+          style={{ color: GREEN, fontFamily: R, fontWeight: 600 }}
         >
-          {expanded ? 'Ver menos' : 'Ver más'}
+          {expanded ? (
+            <>Ver menos <span aria-hidden>↑</span></>
+          ) : (
+            <>Ver más <span aria-hidden>↓</span></>
+          )}
         </button>
       )}
     </div>
