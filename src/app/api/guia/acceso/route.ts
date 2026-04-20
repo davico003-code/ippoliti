@@ -18,19 +18,36 @@ export interface GuiaRegistro {
 }
 
 export async function POST(req: Request) {
-  let body: { nombre?: string; email?: string; whatsapp?: string | null }
+  let body: { nombre?: string; email?: string; whatsapp?: string | null; website?: string; _start?: number }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
   }
 
+  // Anti-spam honeypot: bots suelen rellenar todos los campos. Si `website`
+  // viene con valor, asumimos bot y devolvemos 200 silencioso (no persistimos).
+  if (body.website) {
+    return NextResponse.json({ ok: true })
+  }
+  // Anti-spam timing: si el form se "envía" en < 1500ms desde que se montó,
+  // es casi seguro un bot. Aceptamos pero no persistimos.
+  if (typeof body._start === 'number' && Date.now() - body._start < 1500) {
+    return NextResponse.json({ ok: true })
+  }
+
   const nombre = (body.nombre ?? '').trim()
   const email = (body.email ?? '').trim()
   const whatsapp = (body.whatsapp ?? '').trim() || null
 
-  if (!nombre || !email) {
-    return NextResponse.json({ error: 'Nombre y email son obligatorios' }, { status: 400 })
+  if (!nombre || nombre.length < 2) {
+    return NextResponse.json({ error: 'Nombre debe tener al menos 2 caracteres' }, { status: 400 })
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: 'Email inválido' }, { status: 400 })
+  }
+  if (whatsapp && !/^[+\d\s()-]{7,20}$/.test(whatsapp)) {
+    return NextResponse.json({ error: 'WhatsApp inválido' }, { status: 400 })
   }
 
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()

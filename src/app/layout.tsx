@@ -35,6 +35,7 @@ import Navbar from "@/components/Navbar";
 import FooterWrapper from "@/components/FooterWrapper";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import Analytics from "@/components/Analytics";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import TawkTo from "@/components/TawkTo";
 import PopupManager from "@/components/PopupManager";
 import Clarity from "@/components/Clarity";
@@ -71,65 +72,118 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
-  name: "SI Inmobiliaria",
-  url: "https://siinmobiliaria.com",
-  logo: "https://siinmobiliaria.com/logo.png",
-  foundingDate: "1983",
-  telephone: "+54-341-210-1694",
-  location: [
-    {
-      "@type": "Place",
-      name: "SI Inmobiliaria - Funes",
-      telephone: "+54-341-210-1694",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Funes",
-        addressRegion: "Santa Fe",
-        addressCountry: "AR",
-      },
+const OFFICE_HOURS = [
+  {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    opens: "09:00",
+    closes: "17:00",
+  },
+]
+
+const OFFICES = [
+  {
+    "@type": "LocalBusiness",
+    "@id": "https://siinmobiliaria.com/#oficina-roldan-historica",
+    name: "SI Inmobiliaria — Oficina Histórica Roldán",
+    image: "https://siinmobiliaria.com/logo.png",
+    telephone: "+54-341-210-1694",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "1ro de Mayo 258",
+      addressLocality: "Roldán",
+      addressRegion: "Santa Fe",
+      postalCode: "S2134",
+      addressCountry: "AR",
     },
-    {
-      "@type": "Place",
-      name: "SI Inmobiliaria - Roldán Principal",
-      telephone: "+54-341-210-1694",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "1ro de Mayo 258",
-        addressLocality: "Roldán",
-        addressRegion: "Santa Fe",
-        addressCountry: "AR",
-      },
+    geo: { "@type": "GeoCoordinates", latitude: -32.8935, longitude: -60.9016 },
+    openingHoursSpecification: OFFICE_HOURS,
+    url: "https://siinmobiliaria.com",
+    priceRange: "$$",
+  },
+  {
+    "@type": "LocalBusiness",
+    "@id": "https://siinmobiliaria.com/#oficina-roldan-catamarca",
+    name: "SI Inmobiliaria — Oficina Ventas Roldán",
+    image: "https://siinmobiliaria.com/logo.png",
+    telephone: "+54-341-210-1694",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Catamarca 775",
+      addressLocality: "Roldán",
+      addressRegion: "Santa Fe",
+      postalCode: "S2134",
+      addressCountry: "AR",
     },
-    {
-      "@type": "Place",
-      name: "SI Inmobiliaria - Roldán Ventas",
-      telephone: "+54-341-210-1694",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "Catamarca 775",
-        addressLocality: "Roldán",
-        addressRegion: "Santa Fe",
-        addressCountry: "AR",
-      },
+    geo: { "@type": "GeoCoordinates", latitude: -32.8940, longitude: -60.9020 },
+    openingHoursSpecification: OFFICE_HOURS,
+    url: "https://siinmobiliaria.com",
+    priceRange: "$$",
+  },
+  {
+    "@type": "LocalBusiness",
+    "@id": "https://siinmobiliaria.com/#oficina-funes",
+    name: "SI Inmobiliaria — Oficina Funes",
+    image: "https://siinmobiliaria.com/logo.png",
+    telephone: "+54-341-210-1694",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Hipólito Yrigoyen 2643",
+      addressLocality: "Funes",
+      addressRegion: "Santa Fe",
+      postalCode: "S2132",
+      addressCountry: "AR",
     },
-  ],
-  areaServed: [
-    { "@type": "City", name: "Roldán" },
-    { "@type": "City", name: "Funes" },
-    { "@type": "City", name: "Rosario" },
-    { "@type": "City", name: "Granadero Baigorria" },
-    { "@type": "City", name: "San Lorenzo" },
-  ],
-  description:
-    "Inmobiliaria familiar fundada en 1983. Especialistas en Funes, Roldán y Rosario.",
-  sameAs: [
-    "https://www.instagram.com/inmobiliaria.si",
-    "https://www.tiktok.com/@si.inmobiliaria",
-  ],
-};
+    geo: { "@type": "GeoCoordinates", latitude: -32.9181, longitude: -60.8270 },
+    openingHoursSpecification: OFFICE_HOURS,
+    url: "https://siinmobiliaria.com",
+    priceRange: "$$",
+  },
+]
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "@id": "https://siinmobiliaria.com/#organization",
+    name: "SI Inmobiliaria",
+    alternateName: "Inmobiliaria Ippoliti",
+    url: "https://siinmobiliaria.com",
+    logo: "https://siinmobiliaria.com/logo.png",
+    foundingDate: "1983",
+    telephone: "+54-341-210-1694",
+    email: "contacto@siinmobiliaria.com",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Hipólito Yrigoyen 2643",
+      addressLocality: "Funes",
+      addressRegion: "Santa Fe",
+      postalCode: "S2132",
+      addressCountry: "AR",
+    },
+    location: OFFICES.map(o => ({ "@type": "Place", name: o.name, address: o.address })),
+    areaServed: [
+      { "@type": "City", name: "Roldán" },
+      { "@type": "City", name: "Funes" },
+      { "@type": "City", name: "Rosario" },
+      { "@type": "City", name: "Granadero Baigorria" },
+      { "@type": "City", name: "San Lorenzo" },
+      { "@type": "City", name: "Fisherton" },
+    ],
+    knowsAbout: ["compra-venta inmobiliaria", "tasaciones", "alquileres", "emprendimientos inmobiliarios"],
+    description:
+      "Inmobiliaria familiar fundada en 1983. Especialistas en casas, terrenos, departamentos y emprendimientos en Funes, Roldán y Rosario, Santa Fe, Argentina.",
+    sameAs: [
+      "https://www.instagram.com/inmobiliaria.si",
+      "https://www.tiktok.com/@si.inmobiliaria",
+    ],
+  },
+  ...OFFICES.map(office => ({
+    "@context": "https://schema.org",
+    ...office,
+    parentOrganization: { "@id": "https://siinmobiliaria.com/#organization" },
+  })),
+]
 
 export default function RootLayout({
   children,
@@ -155,6 +209,7 @@ export default function RootLayout({
         <ScrollToTop />
         <PopupManager />
         <Analytics />
+        <GoogleAnalytics />
         <Clarity />
         <TawkTo />
       </body>
