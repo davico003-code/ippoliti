@@ -28,7 +28,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="hover:text-[#1A5C38] transition-colors duration-200 whitespace-nowrap text-[13px] xl:text-[15px]"
+      className="hover:text-[#1A5C38] transition-colors duration-200 whitespace-nowrap text-[14px] xl:text-[17px]"
       style={{ fontFamily: R, fontWeight: 500, color: '#111', textDecoration: 'none' }}
     >
       {label}
@@ -82,7 +82,7 @@ export default function Navbar() {
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} />)}
             <Link
               href="/agentes"
-              className="hover:opacity-90 transition-colors duration-200 text-[13px] xl:text-[15px]"
+              className="hover:opacity-90 transition-colors duration-200 text-[14px] xl:text-[17px]"
               style={{
                 fontFamily: R, fontWeight: 500, color: '#fff',
                 background: '#1A5C38', padding: '10px 24px', borderRadius: 6,
