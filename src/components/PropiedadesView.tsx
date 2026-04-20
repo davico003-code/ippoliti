@@ -405,12 +405,17 @@ export default function PropiedadesView({
     })
   }, [filtered, mapBounds])
 
-  const [panelPropertyId, setPanelPropertyId] = useState<number | null>(initialPropertyId ?? null)
+  // Panel auto-open ONLY in desktop. En mobile la ficha se renderiza directo
+  // como página completa en [slug]/page.tsx mobile block — abrir el panel acá
+  // lockearía el body scroll aunque el panel esté display:none (el useEffect
+  // corre igual en React) y mataría el scroll mobile de la ficha.
+  const isDesktop = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+  const [panelPropertyId, setPanelPropertyId] = useState<number | null>(null)
 
-  // Re-sync panel state if navigating between /propiedades/[slug] URLs
-  // without remounting (e.g. clicking a nearby property inside the panel).
   useEffect(() => {
-    if (initialPropertyId != null) setPanelPropertyId(initialPropertyId)
+    if (initialPropertyId == null) return
+    if (!isDesktop()) return
+    setPanelPropertyId(initialPropertyId)
   }, [initialPropertyId])
 
   const handleCardClick = useCallback((property: TokkoProperty) => {
