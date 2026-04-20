@@ -9,6 +9,7 @@ import PropiedadesView from '@/components/PropiedadesView';
 import PropertyGalleryHero from '@/components/property-detail/PropertyGalleryHero';
 import PropertyStickyNav from '@/components/property-detail/PropertyStickyNav';
 import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody';
+import PropertyDetailSimilars from '@/components/property-detail/PropertyDetailSimilars';
 import {
   getPropertyById,
   getProperties,
@@ -268,6 +269,22 @@ export default async function PropertyPage({ params }: Props) {
             whatsappUrl={whatsappUrl}
             showMobileContact
           />
+        </div>
+
+        {/* Full-width: "Otras opciones para vos" */}
+        <div className="px-4 pb-6">
+          <PropertyDetailSimilars property={property} allProperties={allProperties} />
+        </div>
+
+        {/* Link "Volver al catálogo" */}
+        <div className="px-4 pb-6 pt-2 border-t border-gray-100">
+          <Link
+            href="/propiedades"
+            className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#0F3A23] font-bold text-base"
+            style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
+          >
+            ← Volver al catálogo
+          </Link>
         </div>
       </div>
 

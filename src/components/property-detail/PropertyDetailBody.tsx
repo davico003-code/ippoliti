@@ -23,9 +23,9 @@ import {
   generatePropertySlug,
 } from '@/lib/tokko'
 import PropertyDescription from '../PropertyDescription'
-import SimilarProperties from '../SimilarProperties'
 import type { NearbyProperty } from '../NearbyPropertiesMap'
 import SectionBoundary from './SectionBoundary'
+import PropertyVideo from './PropertyVideo'
 
 const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false })
 const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false })
@@ -91,10 +91,6 @@ export default function PropertyDetailBody({
   const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null
   const currentLng = property.geo_long ? parseFloat(property.geo_long) : null
   const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng)
-  const currentOp = property.operations?.[0]?.operation_type
-  const currentTypeName = property.type?.name?.toLowerCase() ?? ''
-  const currentPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0
-  const currentBeds = property.suite_amount || property.room_amount || 0
 
   // Specs (icon cards)
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
@@ -139,37 +135,6 @@ export default function PropertyDetailBody({
         .filter((x): x is NearbyProperty => x != null)
         .slice(0, 40)
     : []
-
-  const similarList = allProperties
-    .map(p => {
-      if (p.id === property.id) return null
-      if (p.operations?.[0]?.operation_type !== currentOp) return null
-      if ((p.type?.name?.toLowerCase() ?? '') !== currentTypeName) return null
-      let score = 0
-      const pPrice = p.operations?.[0]?.prices?.[0]?.price ?? 0
-      if (currentPrice > 0 && pPrice > 0) {
-        const ratio = pPrice / currentPrice
-        if (ratio >= 0.7 && ratio <= 1.3) score += 3
-        else if (ratio >= 0.5 && ratio <= 1.5) score += 1
-      }
-      const pBeds = p.suite_amount || p.room_amount || 0
-      if (currentBeds > 0 && pBeds === currentBeds) score += 2
-      else if (currentBeds > 0 && Math.abs(pBeds - currentBeds) === 1) score += 1
-      if (hasCoords && p.geo_lat && p.geo_long) {
-        const lat = parseFloat(p.geo_lat); const lng = parseFloat(p.geo_long)
-        if (!isNaN(lat) && !isNaN(lng)) {
-          const d = haversineKm(currentLat!, currentLng!, lat, lng)
-          if (d < 2) score += 4
-          else if (d < 5) score += 2
-          else if (d < 15) score += 1
-        }
-      }
-      return score > 0 ? { p, score } : null
-    })
-    .filter((x): x is { p: TokkoProperty; score: number } => x != null)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4)
-    .map(x => x.p)
 
   return (
     <div className="space-y-6">
@@ -226,6 +191,16 @@ export default function PropertyDetailBody({
             {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
           </div>
         </section>
+      )}
+
+      {/* VIDEO — arriba de la descripción, solo si la propiedad tiene videos */}
+      {property.videos && property.videos.length > 0 && (
+        <SectionBoundary name="video">
+          <section id="video" className={CARD}>
+            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Recorrido en video</h2>
+            <PropertyVideo videos={property.videos} fallbackPoster={property.photos?.[0]?.image ?? null} />
+          </section>
+        </SectionBoundary>
       )}
 
       {/* DESCRIPCIÓN */}
@@ -326,14 +301,8 @@ export default function PropertyDetailBody({
         </SectionBoundary>
       )}
 
-      {/* PROPIEDADES SIMILARES — única sección de recomendadas, 4 max */}
-      {similarList.length > 0 && (
-        <SectionBoundary name="similares">
-          <section id="similares" className={CARD}>
-            <SimilarProperties properties={similarList} currentPropertyId={property.id} />
-          </section>
-        </SectionBoundary>
-      )}
+      {/* "Otras opciones para vos" ya no va acá — el parent lo renderiza full-width
+          via <PropertyDetailSimilars /> debajo del grid de 2 columnas. */}
     </div>
   )
 }

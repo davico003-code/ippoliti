@@ -19,6 +19,7 @@ import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
 import PropertyStickyNav from './property-detail/PropertyStickyNav'
 import PropertyDetailBody from './property-detail/PropertyDetailBody'
 import PropertyDetailSidebar from './property-detail/PropertyDetailSidebar'
+import PropertyDetailSimilars from './property-detail/PropertyDetailSimilars'
 import Footer from './Footer'
 
 const R = "'Raleway', system-ui, sans-serif"
@@ -189,7 +190,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
         {/* Sticky nav (desktop only) — ancla al top del modal (debajo del panel header) */}
         <PropertyStickyNav sections={SECTIONS} scrollRoot={scrollRoot} stickyTop={PANEL_HEADER_H} />
 
-        {/* Contenido */}
+        {/* Contenido (2 cols en desktop: body + sidebar) */}
         <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6">
           <div className="flex-1 min-w-0">
             <PropertyDetailBody
@@ -200,6 +201,22 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
             />
           </div>
           <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={PANEL_HEADER_H + 16} />
+        </div>
+
+        {/* Full-width: "Otras opciones para vos" ocupa todo el ancho del panel */}
+        <div className="px-4 md:px-6 pb-6">
+          <PropertyDetailSimilars property={property} allProperties={allProperties} />
+        </div>
+
+        {/* Link "Volver al catálogo" — cierra la ficha igual que el header */}
+        <div className="px-4 md:px-6 pb-8 pt-2 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#0F3A23] font-bold transition-colors text-lg"
+            style={{ fontFamily: R }}
+          >
+            ← Volver al catálogo
+          </button>
         </div>
 
         {/* Footer global dentro del panel (al final del scroll interno) */}
