@@ -1046,9 +1046,13 @@ export default function PropiedadesView({
           }`}
           style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', maxWidth: 'calc(100vw - 24px)' }}
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden" style={{ border: '1px solid #e5e7eb' }}>
-            {/* Photo */}
-            <div className="relative w-full aspect-[16/10] bg-gray-100">
+          <Link
+            href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
+            className="relative block bg-white rounded-2xl shadow-2xl overflow-hidden"
+            style={{ border: '1px solid #e5e7eb' }}
+          >
+            {/* Photo — 16:9 (más bajo y compacto) */}
+            <div className="relative w-full aspect-[16/9] bg-gray-100">
               {(() => {
                 const photo = getMainPhoto(selectedProperty)
                 return photo ? (
@@ -1075,7 +1079,7 @@ export default function PropiedadesView({
                   </span>
                 ) : null
               })()}
-              {/* Close button */}
+              {/* Close button — stopPropagation para no navegar al Link padre */}
               <button
                 onClick={e => { e.preventDefault(); e.stopPropagation(); closeBottomSheet() }}
                 aria-label="Cerrar"
@@ -1085,7 +1089,7 @@ export default function PropiedadesView({
               </button>
             </div>
 
-            {/* Body */}
+            {/* Body — tap en cualquier parte abre la ficha completa */}
             <div style={{ padding: 14 }}>
               <p style={{ fontFamily: "'Poppins', system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: '#0a0a0a', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums' }}>
                 {formatPrice(selectedProperty)}
@@ -1112,23 +1116,8 @@ export default function PropiedadesView({
               <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, color: '#6b7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {selectedProperty.location?.short_location || selectedProperty.location?.name || ''}
               </p>
-
-              {/* CTA */}
-              <Link
-                href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
-                onClick={e => e.stopPropagation()}
-                className="block text-center mt-3 mb-1"
-                style={{
-                  background: '#1A5C38', color: '#fff',
-                  fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600,
-                  padding: '12px 24px', borderRadius: 12, textDecoration: 'none',
-                  minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-              >
-                Ver propiedad completa →
-              </Link>
             </div>
-          </div>
+          </Link>
         </div>
       )}
 
