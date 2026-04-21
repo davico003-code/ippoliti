@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /agentes/
 
 Sitemap: https://siinmobiliaria.com/sitemap.xml
+Llms: https://siinmobiliaria.com/llms.txt

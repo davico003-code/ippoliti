@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import EmailLink from '../EmailLink'
 
 const GREEN = '#1A5C38'
+const EMAIL_B64 = 'aW5mb0BzaWlubW9iaWxpYXJpYS5jb20='
 
 const SEDES_FOOTER = [
   { nombre: 'Oficina Histórica', year: '1983', extra: null, direccion: '1ro de Mayo 258, Roldán', horario: 'Lun a Vie · 9 a 17hs' },
@@ -9,11 +11,14 @@ const SEDES_FOOTER = [
   { nombre: 'Oficina Funes', year: '2024', extra: 'Inmobiliaria + Galería de Arte', direccion: 'Hipólito Yrigoyen 2643, Funes', horario: 'Lun a Vie · 9 a 17hs' },
 ]
 
-const REDES = [
+const REDES: { nombre: string; handle: string; href?: string; icon: string; disabled?: boolean }[] = [
   { nombre: 'Instagram', handle: '@inmobiliaria.si', href: 'https://www.instagram.com/inmobiliaria.si/', icon: 'ig' },
   { nombre: 'David Flores', handle: '@davidflores.pov', href: 'https://www.instagram.com/davidflores.pov', icon: 'ig' },
   { nombre: 'Podcast', handle: 'Charlas Que Sí', href: 'https://www.youtube.com/@mundosiinmobiliaria', icon: 'yt' },
-  { nombre: 'Facebook', handle: 'SI Inmobiliaria', href: 'https://www.facebook.com/inmobiliariaippoliti/', icon: 'fb' },
+  { nombre: 'Facebook', handle: 'SI INMOBILIARIA', href: 'https://www.facebook.com/inmobiliariaippoliti/', icon: 'fb' },
+  { nombre: 'TikTok', handle: '@si.inmobiliaria', href: 'https://www.tiktok.com/@si.inmobiliaria', icon: 'tt' },
+  { nombre: 'LinkedIn', handle: 'Próximamente', icon: 'li', disabled: true },
+  { nombre: 'X', handle: 'Próximamente', icon: 'x', disabled: true },
 ]
 
 function SocialIcon({ type }: { type: string }) {
@@ -25,6 +30,21 @@ function SocialIcon({ type }: { type: string }) {
   if (type === 'yt') return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{ color: GREEN }}>
       <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  )
+  if (type === 'tt') return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{ color: GREEN }}>
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.91a8.16 8.16 0 0 0 4.77 1.52V7a4.85 4.85 0 0 1-1.84-.31z" />
+    </svg>
+  )
+  if (type === 'li') return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{ color: GREEN }}>
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  )
+  if (type === 'x') return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" style={{ color: GREEN }}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   )
   return (
@@ -41,7 +61,7 @@ export default function FooterMobile() {
       <div className="px-5 pt-10 pb-8 border-b border-white/10">
         <Image
           src="/logo-blanco.png"
-          alt="SI Inmobiliaria"
+          alt="SI INMOBILIARIA"
           width={164}
           height={24}
           className="object-contain opacity-90"
@@ -50,27 +70,57 @@ export default function FooterMobile() {
         <p className="font-lora italic text-white/70 text-[15px] leading-relaxed mt-4 max-w-[280px]">
           Acompañamos familias en Funes y Roldán desde 1983.
         </p>
-        <a href="mailto:info@siinmobiliaria.com" className="mt-4 flex items-center gap-2 text-white/70 hover:text-white transition">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
-          <span className="font-poppins text-[13px]">info@siinmobiliaria.com</span>
-        </a>
+        <EmailLink
+          encoded={EMAIL_B64}
+          icon={
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+          }
+          label="Escribinos a SI INMOBILIARIA"
+          placeholder="Escribinos"
+          className="mt-4 flex items-center gap-2 text-white/70 hover:text-white transition"
+          textClassName="font-poppins text-[13px]"
+        />
       </div>
 
       {/* 2. Redes */}
       <div className="px-5 py-7 border-b border-white/10">
         <p className="font-poppins text-white/40 text-[10px] font-bold tracking-[0.2em] uppercase mb-4">Seguinos</p>
         <div className="grid grid-cols-2 gap-3">
-          {REDES.map(r => (
-            <a key={r.handle} href={r.href} target="_blank" rel="noopener noreferrer" className="bg-white/5 border border-white/10 rounded-xl p-3.5 hover:bg-white/10 transition">
-              <div className="flex items-center gap-2.5">
-                <SocialIcon type={r.icon} />
-                <div>
-                  <p className="font-poppins font-bold text-white text-[12px]">{r.nombre}</p>
-                  <p className="font-poppins text-white/50 text-[10px]">{r.handle}</p>
+          {REDES.map(r =>
+            r.disabled ? (
+              <div
+                key={`${r.icon}-${r.nombre}`}
+                aria-label={`${r.nombre} ${r.handle}`}
+                aria-disabled="true"
+                className="bg-white/5 border border-white/10 rounded-xl p-3.5 opacity-50 cursor-not-allowed"
+              >
+                <div className="flex items-center gap-2.5">
+                  <SocialIcon type={r.icon} />
+                  <div>
+                    <p className="font-poppins font-bold text-white text-[12px]">{r.nombre}</p>
+                    <p className="font-poppins text-white/50 text-[10px]">{r.handle}</p>
+                  </div>
                 </div>
               </div>
-            </a>
-          ))}
+            ) : (
+              <a
+                key={`${r.icon}-${r.nombre}`}
+                href={r.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${r.nombre} ${r.handle}`}
+                className="bg-white/5 border border-white/10 rounded-xl p-3.5 hover:bg-white/10 transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <SocialIcon type={r.icon} />
+                  <div>
+                    <p className="font-poppins font-bold text-white text-[12px]">{r.nombre}</p>
+                    <p className="font-poppins text-white/50 text-[10px]">{r.handle}</p>
+                  </div>
+                </div>
+              </a>
+            ),
+          )}
         </div>
       </div>
 
@@ -138,7 +188,7 @@ export default function FooterMobile() {
       <div className="px-5 py-7">
         <Image
           src="/logo-blanco.png"
-          alt="SI Inmobiliaria"
+          alt="SI INMOBILIARIA"
           width={164}
           height={24}
           className="object-contain opacity-90"
@@ -157,7 +207,7 @@ export default function FooterMobile() {
           <Link href="/terminos" className="font-poppins text-white/50 text-[11px]">Términos</Link>
         </div>
         <p className="font-poppins text-white/30 text-[11px] pt-4 border-t border-white/10" style={{ fontVariantNumeric: 'tabular-nums' }}>
-          © 1983–2026 SI Inmobiliaria · Todos los derechos reservados
+          © 1983–2026 SI INMOBILIARIA · Todos los derechos reservados
         </p>
       </div>
     </footer>

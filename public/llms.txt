@@ -1,0 +1,30 @@
+# SI INMOBILIARIA
+
+> Inmobiliaria familiar fundada en 1983. Operamos en Funes, Roldán y Rosario (Santa Fe, Argentina). Compra, venta, alquiler, tasaciones y emprendimientos. Corredor responsable: David Flores, Mat. N° 0621.
+
+## Propiedades
+
+- [Propiedades en venta](https://siinmobiliaria.com/propiedades?op=venta): casas, departamentos, terrenos y locales en venta en el corredor oeste de Rosario.
+- [Propiedades en alquiler](https://siinmobiliaria.com/propiedades?op=alquiler): inmuebles en alquiler en Funes, Roldán y Rosario.
+- [Emprendimientos](https://siinmobiliaria.com/emprendimientos): desarrollos en pozo y construcción en zonas de valorización.
+
+## Servicios
+
+- [Tasaciones](https://siinmobiliaria.com/tasaciones): tasación profesional en 24 horas con respaldo de Matrícula 0621.
+
+## Guías y contenido
+
+- [Guía del comprador](https://siinmobiliaria.com/guia): guía completa en 13 capítulos para compradores en Funes, Roldán y Rosario.
+- [Blog](https://siinmobiliaria.com/blog): notas semanales sobre mercado inmobiliario del corredor oeste, ROI, costos de construcción, zonas en valorización.
+- [Informes de mercado](https://siinmobiliaria.com/informes): reportes propios sobre operaciones, precios y tendencias.
+
+## Sobre nosotros
+
+- [Nosotros](https://siinmobiliaria.com/nosotros): historia, equipo familiar (Susana, David y Laura Flores) y matrícula.
+- [Contacto](https://siinmobiliaria.com/contacto): teléfono, WhatsApp y direcciones de las tres oficinas.
+
+## Optional
+
+- [Sitemap XML](https://siinmobiliaria.com/sitemap.xml)
+- [Política de privacidad](https://siinmobiliaria.com/privacidad)
+- [Términos y condiciones](https://siinmobiliaria.com/terminos)
