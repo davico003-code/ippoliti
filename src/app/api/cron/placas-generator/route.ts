@@ -16,8 +16,24 @@ export async function GET(req: Request) {
     const { ejecutarOrquestador } = await import(
       '@/agents/placas/lib/orquestador'
     )
+    const { notificarCarruselListo, notificarCarruselFallido } = await import(
+      '@/agents/placas/lib/notificar-admin'
+    )
     const slugParam = new URL(req.url).searchParams.get('slug') ?? undefined
     const result = await ejecutarOrquestador({ slug: slugParam })
+
+    if (result.ok) {
+      await notificarCarruselListo({
+        slug: result.slug,
+        titulo: result.titulo,
+        total: result.total,
+        ms_total: result.ms_total,
+        intentos_extractor: result.intentos_extractor,
+      })
+    } else {
+      await notificarCarruselFallido(result.slug, result.error)
+    }
+
     const status = result.ok ? 200 : 500
     return Response.json(
       { ...result, timestamp: new Date().toISOString() },
@@ -25,9 +41,11 @@ export async function GET(req: Request) {
     )
   } catch (err) {
     console.error('[placas-generator] Error:', err)
-    return Response.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
+    const { notificarCarruselFallido } = await import(
+      '@/agents/placas/lib/notificar-admin'
     )
+    const msg = err instanceof Error ? err.message : 'Unknown error'
+    await notificarCarruselFallido(undefined, msg)
+    return Response.json({ error: msg }, { status: 500 })
   }
 }
