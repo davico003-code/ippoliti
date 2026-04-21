@@ -15,6 +15,7 @@ import { renderHandle } from '../bloques/handle'
 import { renderNumeroHero } from '../bloques/numero-hero'
 import { renderNumeroShock } from '../bloques/numero-shock'
 import { renderBreakdown } from '../bloques/breakdown'
+import { renderLista } from '../bloques/lista'
 
 export interface RenderContext {
   fondo: Fondo
@@ -45,7 +46,7 @@ export const BLOQUES_REGISTRY: { [K in TipoBloque]: BloqueRenderer<K> | null } =
   'numero-hero': renderNumeroHero,
   'numero-shock': renderNumeroShock,
   breakdown: renderBreakdown,
-  lista: null,
+  lista: renderLista,
   cita: null,
   comparativa: null,
   imagen: null,
