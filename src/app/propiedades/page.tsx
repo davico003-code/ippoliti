@@ -7,16 +7,73 @@ import PropiedadesView from '@/components/PropiedadesView'
 // Runtime fetches are fine; build-time mass prerender was the problem.
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Propiedades en venta y alquiler en Funes, Roldán y Rosario | SI Inmobiliaria',
-  description: 'Explorá todas nuestras propiedades en venta y alquiler en Roldán, Rosario y Funes. Casas, departamentos, terrenos y emprendimientos.',
-  alternates: { canonical: 'https://siinmobiliaria.com/propiedades' },
-  openGraph: {
-    title: 'Propiedades en venta y alquiler | SI Inmobiliaria',
-    description: 'Casas, departamentos, terrenos y emprendimientos en Funes, Roldán y Rosario.',
-    url: 'https://siinmobiliaria.com/propiedades',
-    images: ['/og-image.jpg'],
-  },
+type SearchParams = { [key: string]: string | string[] | undefined }
+
+function firstValue(sp: SearchParams, key: string): string | undefined {
+  const v = sp[key]
+  return Array.isArray(v) ? v[0] : v
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams
+}): Promise<Metadata> {
+  // Enriquece title/description según filtros en URL. Mejora targeting de
+  // búsquedas "propiedades Funes", "alquiler Roldán", "casas en venta Rosario".
+  const op = firstValue(searchParams, 'op') // venta | alquiler
+  const type = firstValue(searchParams, 'type') // casa | departamento | terreno | local
+  const q = firstValue(searchParams, 'q') // barrio/zona libre
+
+  const opLabel =
+    op === 'venta' ? 'en venta' : op === 'alquiler' ? 'en alquiler' : 'en venta y alquiler'
+  const typeLabel =
+    type === 'casa'
+      ? 'Casas'
+      : type === 'departamento'
+        ? 'Departamentos'
+        : type === 'terreno'
+          ? 'Terrenos'
+          : type === 'local'
+            ? 'Locales'
+            : 'Propiedades'
+  const zoneLabel = q ? ` en ${q}` : ' en Funes, Roldán y Rosario'
+
+  const title = `${typeLabel} ${opLabel}${zoneLabel} | SI INMOBILIARIA`.slice(0, 70)
+  const description =
+    `${typeLabel} ${opLabel}${zoneLabel}. Casas en venta Funes, departamentos Rosario, terrenos Roldán y emprendimientos del corredor oeste. Inmobiliaria familiar desde 1983, Mat. N° 0621.`.slice(
+      0,
+      180,
+    )
+
+  const url = new URL('https://siinmobiliaria.com/propiedades')
+  if (op) url.searchParams.set('op', op)
+  if (type) url.searchParams.set('type', type)
+  if (q) url.searchParams.set('q', q)
+
+  return {
+    title,
+    description,
+    keywords: [
+      'inmobiliaria Funes',
+      'inmobiliaria Roldán',
+      'inmobiliaria Rosario',
+      'propiedades Santa Fe',
+      'casas en venta Funes',
+      'departamentos Rosario',
+      'terrenos Roldán',
+      'alquileres corredor oeste',
+    ],
+    alternates: { canonical: url.toString() },
+    openGraph: {
+      title,
+      description,
+      url: url.toString(),
+      siteName: 'SI INMOBILIARIA',
+      images: ['/og-image.jpg'],
+      type: 'website',
+    },
+  }
 }
 
 export default async function PropiedadesPage() {

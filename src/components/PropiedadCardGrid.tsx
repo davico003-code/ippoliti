@@ -65,7 +65,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   return (
     <div
       onClick={onClick}
-      className="group cursor-pointer"
+      data-property-card={property.id}
+      data-property-slug={slug}
+      className="property-card-ssr group cursor-pointer"
       style={{
         borderRadius: 14,
         border: isSelected ? '1px solid #1A5C38' : '1px solid #e5e7eb',
