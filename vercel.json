@@ -19,6 +19,14 @@
     {
       "path": "/api/cron/blog-writer-viernes",
       "schedule": "0 11 * * 5"
+    },
+    {
+      "path": "/api/cron/placas-generator",
+      "schedule": "5 11 * * 2"
+    },
+    {
+      "path": "/api/cron/placas-generator",
+      "schedule": "5 11 * * 5"
     }
   ]
 }
