@@ -13,7 +13,6 @@ import ConfianzaSection from '@/components/home/ConfianzaSection'
 import FooterMobile from '@/components/home/FooterMobile'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
-import HomeContentSections from '@/components/home/HomeContentSections'
 import {
   getFeaturedProperties,
   generatePropertySlug,
@@ -164,16 +163,33 @@ export const metadata = {
   },
 }
 
-// El JSON-LD RealEstateAgent/LocalBusiness global vive en app/layout.tsx
-// (más completo, con founder, areaServed expandido y sameAs de todas las
-// redes). Evitamos duplicarlo acá. El FAQPage JSON-LD lo emite
-// HomeContentSections inline junto con las preguntas.
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateAgent',
+  name: 'SI Inmobiliaria',
+  image: 'https://siinmobiliaria.com/logo.png',
+  url: 'https://siinmobiliaria.com',
+  logo: 'https://siinmobiliaria.com/logo.png',
+  telephone: '+5493412101694',
+  foundingDate: '1983',
+  founder: 'Susana Ippoliti',
+  description: 'Inmobiliaria familiar con más de 40 años de experiencia en Roldán, Funes y Rosario.',
+  address: [
+    { '@type': 'PostalAddress', streetAddress: 'Hipólito Yrigoyen 2643', addressLocality: 'Funes', addressRegion: 'Santa Fe', addressCountry: 'AR' },
+    { '@type': 'PostalAddress', streetAddress: '1ro de Mayo 258', addressLocality: 'Roldán', addressRegion: 'Santa Fe', addressCountry: 'AR' },
+    { '@type': 'PostalAddress', streetAddress: 'Catamarca 775', addressLocality: 'Roldán', addressRegion: 'Santa Fe', addressCountry: 'AR' },
+  ],
+  sameAs: ['https://www.instagram.com/inmobiliaria.si'],
+  areaServed: ['Roldán', 'Funes', 'Rosario', 'Fisherton'],
+}
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
 export default async function Home() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }} />
+
       {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
       <div className="md:hidden">
         <HeroMobile />
@@ -181,6 +197,7 @@ export default async function Home() {
         <ProyectosCarousel />
         <GuiaSection />
         <ConfianzaSection />
+        <FooterMobile />
       </div>
 
       {/* ═══ DESKTOP (md+) — Layout existente ═══ */}
@@ -205,17 +222,6 @@ export default async function Home() {
         <EmprendimientosHome />
         <GuiaDesktop />
         <ConfianzaDesktop />
-      </div>
-
-      {/* ═══ SECCIONES COMUNES (mobile + desktop) ═══
-       * Copy editorial indexable (zonas, por qué, servicios, FAQ).
-       * Responsive — sin duplicarse entre layouts. El FooterMobile
-       * del wrapper mobile queda al final porque el FooterWrapper
-       * global no se monta sobre el "/" en mobile. */}
-      <HomeContentSections />
-
-      <div className="md:hidden">
-        <FooterMobile />
       </div>
     </>
   )

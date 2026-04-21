@@ -44,7 +44,7 @@ export default function HeroMobile() {
       {/* Background image + overlay */}
       <Image
         src="/hero-home.jpg"
-        alt="Propiedades en Funes, Roldán y Rosario — SI INMOBILIARIA, inmobiliaria familiar desde 1983"
+        alt="Zona oeste del Gran Rosario — Funes y Roldán"
         fill
         className="object-cover"
         sizes="100vw"
