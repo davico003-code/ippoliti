@@ -143,7 +143,10 @@ function PlacaFrame({ placa }: { placa: Placa }): ReactNode {
   const tema = temaPara(placa.fondo)
   const onDark = placa.fondo === 'verde-profundo'
 
-  const alineacion = placa.alineacion ?? 'centro'
+  // Default 'arriba' (flex-start): el contenido se ancla al borde superior
+  // del body, entonces si hay overflow se clippea hacia abajo sin pisar el
+  // head-bar. La placa puede pedir 'centro' (hero stats) o 'abajo' explícito.
+  const alineacion = placa.alineacion ?? 'arriba'
   const justifyContent =
     alineacion === 'centro' ? 'center' : alineacion === 'arriba' ? 'flex-start' : 'flex-end'
 
@@ -171,15 +174,20 @@ function PlacaFrame({ placa }: { placa: Placa }): ReactNode {
           tema={tema}
         />
 
-        {/* Body: stack de bloques con alineación vertical */}
+        {/* Body: stack de bloques con alineación vertical.
+         * overflow: hidden + minHeight: 0 preserva la invariante "el chrome
+         * nunca se pisa": si el contenido supera el espacio del body, se
+         * clippea adentro del body sin invadir head-bar ni foot. */}
         <div
           style={{
             display: 'flex',
             flex: 1,
+            minHeight: 0,
+            overflow: 'hidden',
             flexDirection: 'column',
             justifyContent,
-            paddingTop: '36px',
-            paddingBottom: '36px',
+            paddingTop: '64px',
+            paddingBottom: '48px',
           }}
         >
           {placa.bloques.map((bloque, i) => {
