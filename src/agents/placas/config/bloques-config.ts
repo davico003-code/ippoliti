@@ -16,6 +16,7 @@ import { renderNumeroHero } from '../bloques/numero-hero'
 import { renderNumeroShock } from '../bloques/numero-shock'
 import { renderBreakdown } from '../bloques/breakdown'
 import { renderLista } from '../bloques/lista'
+import { renderCtaActions } from '../bloques/cta-actions'
 
 export interface RenderContext {
   fondo: Fondo
@@ -52,7 +53,7 @@ export const BLOQUES_REGISTRY: { [K in TipoBloque]: BloqueRenderer<K> | null } =
   imagen: null,
   grafico: null,
   fuente: renderFuente,
-  'cta-actions': null,
+  'cta-actions': renderCtaActions,
   handle: renderHandle,
   divider: null,
   spacer: null,
