@@ -1,4 +1,7 @@
-'use client'
+// Server component. HeroSearch sigue siendo client (tiene useState +
+// useRouter), pero el hero wrapper con el H1 y la descripción ahora se
+// renderiza server-side — el crawler lee el copy directo del HTML
+// inicial sin esperar a que hidrate el árbol client.
 
 import HeroSearch from './HeroSearch'
 

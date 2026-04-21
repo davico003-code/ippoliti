@@ -1,4 +1,6 @@
-'use client'
+// Server component. Contenido 100% estático (ITEMS hardcoded + Links +
+// Images). No había razón para hidratarlo — el crawler ahora ve cada
+// tarjeta de emprendimiento en el HTML inicial.
 
 import Link from 'next/link'
 import Image from 'next/image'
