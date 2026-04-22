@@ -50,7 +50,7 @@ export default function ConfianzaDesktop() {
           {/* Foto izquierda */}
           <div className="relative">
             <Image
-              src="/familia-flores.jpg"
+              src="/familia-flores.webp"
               alt="Familia Flores — SI Inmobiliaria desde 1983"
               width={900}
               height={1125}

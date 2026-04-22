@@ -29,7 +29,7 @@ export default function GuiaSection() {
           }}
         />
         <Image
-          src="/guia-mockup-3iphones.png"
+          src="/guia-mockup-3iphones.webp"
           alt="Guía Comprá con Inteligencia — SI Inmobiliaria"
           width={1200}
           height={900}

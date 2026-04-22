@@ -49,7 +49,7 @@ export default async function SeleccionCarousel() {
         className="mt-5 -mx-5 px-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2"
         style={{ scrollbarWidth: 'none' }}
       >
-        {properties.map(p => {
+        {properties.map((p, i) => {
           const slug = generatePropertySlug(p)
           const photo = getMainPhoto(p)
           const price = formatPrice(p)
@@ -87,6 +87,7 @@ export default async function SeleccionCarousel() {
                     fill
                     className="object-cover"
                     sizes="82vw"
+                    priority={i === 0}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
