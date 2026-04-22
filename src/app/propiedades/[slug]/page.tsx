@@ -17,12 +17,9 @@ import {
   getIdFromSlug,
   formatPrice,
   formatLocation,
-  getOperationType,
   getTotalSurface,
-  getLotSurface,
   getMainPhoto,
   getDescription,
-  translatePropertyType,
   type TokkoProperty,
 } from '@/lib/tokko';
 
@@ -92,22 +89,7 @@ export default async function PropertyPage({ params }: Props) {
   }
 
   const price = formatPrice(property);
-  const operation = getOperationType(property);
   const area = getTotalSurface(property);
-  const lotSurface = getLotSurface(property);
-  const propType = translatePropertyType(property.type?.name);
-  const mainPhoto = getMainPhoto(property);
-
-  // ── Resolve real neighborhood from address vs divisions ──
-  // Sort longest-first so "Funes Town" matches before "Funes", then use
-  // word-boundary regex so "Centro" doesn't match inside "Centronorte".
-  const addrText = property.fake_address || property.address || '';
-  const sortedDivisions = [...(property.location?.divisions ?? [])]
-    .sort((a, b) => b.name.length - a.name.length);
-  const neighborhood = sortedDivisions.find(d => {
-    const escaped = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`\\b${escaped}\\b`, 'i').test(addrText);
-  })?.name;
 
   const whatsappMsg = encodeURIComponent(
     `Hola! Me interesa esta propiedad:\n\n*${property.publication_title || property.address}*\n📍 ${property.fake_address || property.address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${params.slug}`
@@ -275,17 +257,6 @@ export default async function PropertyPage({ params }: Props) {
         whatsappUrl={whatsappUrl}
         slug={params.slug}
         title={property.publication_title || property.address}
-        price={price}
-        photo={mainPhoto}
-        operation={operation}
-        propertyType={propType}
-        area={area}
-        rooms={property.suite_amount || property.room_amount || 0}
-        bathrooms={property.bathroom_amount}
-        lotSurface={lotSurface}
-        parking={property.parking_lot_amount}
-        city={property.location?.name}
-        neighborhood={neighborhood}
         propertyId={property.id}
         propertyTitle={property.publication_title || property.address}
       />

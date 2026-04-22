@@ -4,12 +4,7 @@
 import { MessageCircle, Phone } from 'lucide-react'
 import {
   type TokkoProperty,
-  formatPrice,
   getOperationType,
-  getTotalSurface,
-  getLotSurface,
-  getMainPhoto,
-  translatePropertyType,
   generatePropertySlug,
 } from '@/lib/tokko'
 import ShareButtons from '../ShareButtons'
@@ -31,22 +26,9 @@ export default function PropertyDetailSidebar({
   whatsappUrl: string
   topOffset?: number
 }) {
-  const price = formatPrice(property)
   const operation = getOperationType(property)
-  const mainPhoto = getMainPhoto(property)
-  const propType = translatePropertyType(property.type?.name)
-  const area = getTotalSurface(property)
-  const lotSurface = getLotSurface(property)
   const slug = generatePropertySlug(property)
   const address = property.fake_address || property.address
-
-  // Resolve neighborhood from address vs divisions
-  const addrText = property.fake_address || property.address || ''
-  const sortedDivs = [...(property.location?.divisions ?? [])].sort((a, b) => b.name.length - a.name.length)
-  const neighborhood = sortedDivs.find(d => {
-    const esc = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    return new RegExp(`\\b${esc}\\b`, 'i').test(addrText)
-  })?.name
 
   return (
     <div className="w-full md:w-[360px] md:shrink-0">
@@ -97,17 +79,7 @@ export default function PropertyDetailSidebar({
             <ShareButtons
               slug={slug}
               title={property.publication_title || address}
-              price={price}
-              photo={mainPhoto}
-              operation={operation}
-              propertyType={propType}
-              area={area}
-              rooms={property.suite_amount || property.room_amount || 0}
-              bathrooms={property.bathroom_amount}
-              lotSurface={lotSurface}
-              parking={property.parking_lot_amount}
-              city={property.location?.name}
-              neighborhood={neighborhood}
+              placaHref={`/propiedades/${slug}/placa`}
             />
           </div>
         </div>
