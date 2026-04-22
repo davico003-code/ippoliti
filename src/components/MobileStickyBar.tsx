@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Calendar, MessageCircle, Share2, Link2, Check } from 'lucide-react'
-import StoryPlate from './StoryPlate'
+import Link from 'next/link'
+import { Calendar, MessageCircle, Share2, Link2, Check, Instagram } from 'lucide-react'
 import VisitWidget from './VisitWidget'
 import { events } from '@/lib/analytics'
 
@@ -10,25 +10,12 @@ interface Props {
   whatsappUrl: string
   slug: string
   title: string
-  price: string
-  photo: string | null
-  operation: string
-  propertyType: string
-  area: number | null
-  rooms: number
-  bathrooms: number
-  lotSurface?: number | null
-  parking?: number
-  city?: string
-  neighborhood?: string
   propertyId: number
   propertyTitle: string
 }
 
 export default function MobileStickyBar({
-  whatsappUrl, slug, title, price, photo, operation, propertyType,
-  area, rooms, bathrooms, lotSurface, parking, city, neighborhood,
-  propertyId, propertyTitle,
+  whatsappUrl, slug, title, propertyId, propertyTitle,
 }: Props) {
   const [shareOpen, setShareOpen] = useState(false)
   const [visitOpen, setVisitOpen] = useState(false)
@@ -119,35 +106,21 @@ export default function MobileStickyBar({
           <span style={{ fontSize: 9, fontWeight: 700, color: '#16a34a' }}>Chat</span>
         </div>
 
-        {/* 3. Placa (Instagram) */}
+        {/* 3. Placa (Instagram) — link a la página de selección de fotos */}
         <div className="flex flex-col items-center" style={{ gap: 2 }}>
-          <StoryPlate
-            title={title}
-            price={price}
-            photo={photo}
-            operation={operation}
-            propertyType={propertyType}
-            area={area}
-            rooms={rooms}
-            bathrooms={bathrooms}
-            lotSurface={lotSurface}
-            parking={parking}
-            slug={slug}
-            city={city}
-            neighborhood={neighborhood}
-            btnStyle={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+          <Link
+            href={`/propiedades/${slug}/placa`}
+            aria-label="Crear placa Instagram"
+            className="flex items-center justify-center"
+            style={{
               width: 46,
               height: 46,
               borderRadius: '50%',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              fontSize: 0,
+              background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
             }}
-          />
+          >
+            <Instagram className="w-[18px] h-[18px] text-white" />
+          </Link>
           <span style={{ fontSize: 9, fontWeight: 700, color: '#e04e8a' }}>Placa</span>
         </div>
 

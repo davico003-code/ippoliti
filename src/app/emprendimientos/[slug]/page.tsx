@@ -333,7 +333,8 @@ export default async function DevelopmentPage({ params }: Props) {
 
                 <hr className="border-gray-100" />
 
-                {/* Share */}
+                {/* Share — sin placaHref: el flujo de placa para emprendimientos
+                    necesita su propio adapter de datos (otro ticket). */}
                 <ShareButtons
                   slug={`emprendimientos/${params.slug}`}
                   title={dev.name}

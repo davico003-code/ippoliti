@@ -1,26 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageCircle, Link2, Check } from 'lucide-react'
-import StoryPlate from './StoryPlate'
+import Link from 'next/link'
+import { MessageCircle, Link2, Check, Instagram } from 'lucide-react'
 
 interface Props {
   slug: string
   title: string
-  price?: string
-  photo?: string | null
-  operation?: string
-  propertyType?: string
-  area?: number | null
-  rooms?: number
-  bathrooms?: number
-  lotSurface?: number | null
-  parking?: number
-  city?: string
-  neighborhood?: string
+  /**
+   * URL absoluta o relativa de la página de creación de placa.
+   * Si no se pasa, no se renderiza el botón Placa (caso típico:
+   * emprendimientos, donde la placa todavía no está implementada).
+   */
+  placaHref?: string
 }
 
-export default function ShareButtons({ slug, title, price, photo, operation, propertyType, area, rooms, bathrooms, lotSurface, parking, city, neighborhood }: Props) {
+export default function ShareButtons({ slug, title, placaHref }: Props) {
   const [copied, setCopied] = useState(false)
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
   const text = encodeURIComponent(`Mirá esta propiedad: ${title}\n${url}`)
@@ -54,7 +49,6 @@ export default function ShareButtons({ slug, title, price, photo, operation, pro
         Compartir propiedad
       </p>
       <div className="flex gap-2">
-
         {/* WhatsApp */}
         <a
           href={`https://wa.me/?text=${text}`}
@@ -79,24 +73,20 @@ export default function ShareButtons({ slug, title, price, photo, operation, pro
           {copied ? 'Copiado!' : 'Copiar'}
         </button>
 
-        {/* Placa Instagram */}
-        <StoryPlate
-          title={title}
-          price={price || 'Consultar'}
-          photo={photo || null}
-          operation={operation || ''}
-          propertyType={propertyType || ''}
-          area={area || null}
-          rooms={rooms || 0}
-          bathrooms={bathrooms || 0}
-          lotSurface={lotSurface}
-          parking={parking}
-          slug={slug}
-          city={city}
-          neighborhood={neighborhood}
-          btnStyle={btnStyle}
-        />
-
+        {/* Placa Instagram — solo si el caller proveyó la URL */}
+        {placaHref && (
+          <Link
+            href={placaHref}
+            style={{
+              ...btnStyle,
+              background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
+              color: '#fff',
+            }}
+          >
+            <Instagram size={16} />
+            Placa
+          </Link>
+        )}
       </div>
     </div>
   )
