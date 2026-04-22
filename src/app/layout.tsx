@@ -34,7 +34,7 @@ const playfair = Playfair_Display({
 import Navbar from "@/components/Navbar";
 import FooterWrapper from "@/components/FooterWrapper";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import Analytics from "@/components/Analytics";
+import MetaPixel from "@/components/MetaPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import TawkTo from "@/components/TawkTo";
 import PopupManager from "@/components/PopupManager";
@@ -208,7 +208,7 @@ export default function RootLayout({
         <FloatingWhatsApp />
         <ScrollToTop />
         <PopupManager />
-        <Analytics />
+        <MetaPixel />
         <GoogleAnalytics />
         <Clarity />
         <TawkTo />
