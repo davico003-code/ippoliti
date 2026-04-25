@@ -432,8 +432,10 @@ async function drawSplitCard(
   const bandContentH = pillH + bandGap + titleH + (featuresH > 0 ? bandGap + featuresH : 0)
   const bandH = BAND_PAD_TOP + bandContentH + BAND_PAD_BOTTOM
 
-  // Center band vertically so photo 1 and photo 2 end up the same height.
-  const BAND_TOP = Math.round(H / 2 - bandH / 2)
+  // Anchor the band's vertical center above the canvas midpoint so the
+  // bottom photo gets more visual weight than the top one.
+  const BAND_CENTER_Y = 820
+  const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
   const TOP_H = BAND_TOP
   const BOT_START = BAND_TOP + bandH
   const BOT_H = H - BOT_START
