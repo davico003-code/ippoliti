@@ -74,6 +74,16 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number): st
   return lines
 }
 
+function appendEllipsis(ctx: CanvasRenderingContext2D, line: string, maxW: number): string {
+  const ell = '…'
+  if (ctx.measureText(line + ell).width <= maxW) return line + ell
+  let truncated = line
+  while (truncated.length > 0 && ctx.measureText(truncated + ell).width > maxW) {
+    truncated = truncated.slice(0, -1).trimEnd()
+  }
+  return truncated + ell
+}
+
 function drawPill(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -391,22 +401,7 @@ async function drawSplitCard(
 
   const pills = buildPillTexts(props)
 
-  ctx.font = '700 100px Raleway, system-ui, sans-serif'
-  let tSize = 100
-  let tLines = wrapText(ctx, props.title, bandCw)
-  if (tLines.length > 3) {
-    ctx.font = '700 85px Raleway, system-ui, sans-serif'
-    tSize = 85
-    tLines = wrapText(ctx, props.title, bandCw)
-  }
-  if (tLines.length > 3) {
-    ctx.font = '700 72px Raleway, system-ui, sans-serif'
-    tSize = 72
-    tLines = wrapText(ctx, props.title, bandCw).slice(0, 3)
-  }
-  const lineH = Math.round(tSize * 1.05)
-  const titleH = tLines.length * lineH
-
+  // Stats sizing first — featuresH feeds into the title's MAX_BAND_H budget.
   const specs = buildSpecs(props)
   const SPEC_GAP = 20
   const SPEC_MAX = 48
@@ -429,12 +424,49 @@ async function drawSplitCard(
     ? 0
     : specSize * specLineCount + SPEC_LINE_GAP * (specLineCount - 1)
 
+  // Title sizing — adaptive font, max 3 lines (4 only at min size). Caps the
+  // title height so the band never exceeds MAX_BAND_H. As a last resort, the
+  // last visible line is truncated with ellipsis at TITLE_MIN_SIZE.
+  const TITLE_MAX_SIZE = 100
+  const TITLE_MIN_SIZE = 56
+  const TITLE_STEP = 4
+  const TITLE_HARD_MAX_HEIGHT = 280
+  const TITLE_MAX_LINES_NORMAL = 3
+  const TITLE_MAX_LINES_AT_MIN = 4
+  const MAX_BAND_H = 520
+  const titleHCapFromBand = MAX_BAND_H - BAND_PAD_TOP - pillH - bandGap
+    - (featuresH > 0 ? bandGap + featuresH : 0) - BAND_PAD_BOTTOM
+  const titleHCap = Math.min(TITLE_HARD_MAX_HEIGHT, titleHCapFromBand)
+
+  let tSize = TITLE_MAX_SIZE
+  let tLines: string[] = []
+  let lineH = 0
+  while (true) {
+    ctx.font = `700 ${tSize}px Raleway, system-ui, sans-serif`
+    tLines = wrapText(ctx, props.title, bandCw)
+    lineH = Math.round(tSize * 1.05)
+    const allowedLines = tSize <= TITLE_MIN_SIZE ? TITLE_MAX_LINES_AT_MIN : TITLE_MAX_LINES_NORMAL
+    const fits = tLines.length <= allowedLines && tLines.length * lineH <= titleHCap
+    if (fits) break
+    if (tSize <= TITLE_MIN_SIZE) {
+      if (tLines.length > TITLE_MAX_LINES_AT_MIN) {
+        const cap = TITLE_MAX_LINES_AT_MIN
+        const kept = tLines.slice(0, cap)
+        kept[cap - 1] = appendEllipsis(ctx, kept[cap - 1], bandCw)
+        tLines = kept
+      }
+      break
+    }
+    tSize -= TITLE_STEP
+  }
+  const titleH = tLines.length * lineH
+
   const bandContentH = pillH + bandGap + titleH + (featuresH > 0 ? bandGap + featuresH : 0)
   const bandH = BAND_PAD_TOP + bandContentH + BAND_PAD_BOTTOM
 
-  // Anchor the band's vertical center above the canvas midpoint so the
-  // bottom photo gets more visual weight than the top one.
-  const BAND_CENTER_Y = 820
+  // Anchor the band below the canvas midpoint so the top photo is dominant.
+  // Photos are intentionally NOT equal-height in this layout.
+  const BAND_CENTER_Y = 1070
   const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
   const TOP_H = BAND_TOP
   const BOT_START = BAND_TOP + bandH
@@ -518,11 +550,26 @@ async function drawSplitCard(
   // Bottom block — anchor footer last baseline at H - PADDING_BOTTOM (≥60 px from edge).
   const PADDING_BOTTOM = 60
   const priceLabelSize = 32
-  const priceValueSize = 120
   const footerH = 40 + 4 + 34
   const divH = 1
   const divMarginTop = 35
   const divMarginBottom = 44 // ≥40 px between divider and first footer line
+
+  // Adaptive price font size: start −10% smaller than before, then iteratively
+  // shrink until the rendered text fits inside PRICE_MAX_WIDTH so long prices
+  // (e.g. "USD 1.250.000") never overflow.
+  const PRICE_MAX_WIDTH = 600
+  const PRICE_MAX_SIZE = 92
+  const PRICE_MIN_SIZE = 60
+  const PRICE_STEP = 4
+  let priceValueSize = PRICE_MAX_SIZE
+  ctx.font = `700 ${priceValueSize}px Poppins, system-ui, sans-serif`
+  setLetterSpacing(ctx, -3.5)
+  while (priceValueSize > PRICE_MIN_SIZE && ctx.measureText(props.price).width > PRICE_MAX_WIDTH) {
+    priceValueSize -= PRICE_STEP
+    ctx.font = `700 ${priceValueSize}px Poppins, system-ui, sans-serif`
+  }
+  setLetterSpacing(ctx, 0)
 
   const footerY = H - PADDING_BOTTOM - footerH
   const dividerY = footerY - divMarginBottom - divH
