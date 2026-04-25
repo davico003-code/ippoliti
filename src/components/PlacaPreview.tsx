@@ -191,7 +191,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '55.7%',
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '52.6%',
           backgroundImage: `url(${photos[0]})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
         }}
@@ -199,7 +199,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: '55.7%', left: 0, width: '100%', height: '44.3%',
+          position: 'absolute', top: '52.6%', left: 0, width: '100%', height: '47.4%',
           backgroundImage: `url(${photos[1]})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
         }}
@@ -228,7 +228,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <div
         className="absolute left-0 right-0 bg-white flex flex-col"
         style={{
-          top: '55.7%',
+          top: '52.6%',
           transform: 'translateY(-50%)',
           padding: '2.6% 6.6%',
           gap: '2.1cqw',

@@ -466,7 +466,7 @@ async function drawSplitCard(
 
   // Anchor the band below the canvas midpoint so the top photo is dominant.
   // Photos are intentionally NOT equal-height in this layout.
-  const BAND_CENTER_Y = 1070
+  const BAND_CENTER_Y = 1010
   const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
   const TOP_H = BAND_TOP
   const BOT_START = BAND_TOP + bandH
