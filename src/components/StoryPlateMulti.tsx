@@ -523,7 +523,7 @@ async function drawSplitCard(
   const priceLabelBaseline = priceValueBaseline - priceValueSize - 8
 
   ctx.fillStyle = 'rgba(255,255,255,0.75)'
-  ctx.font = '600 32px Poppins, system-ui, sans-serif'
+  ctx.font = `600 ${priceLabelSize}px Poppins, system-ui, sans-serif`
   setLetterSpacing(ctx, 6)
   ctx.fillText('PRECIO', PAD, priceLabelBaseline)
   setLetterSpacing(ctx, 0)
