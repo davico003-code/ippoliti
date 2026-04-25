@@ -222,7 +222,8 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <img
         src="/logo-si-white.png"
         alt=""
-        style={{ position: 'absolute', top: '3.4%', left: '50%', transform: 'translateX(-50%)', height: '3.3%', width: 'auto' }}
+        // 1.4cqw ≈ 15 px sobre canvas de 1080 px — offset óptico replicado del canvas.
+        style={{ position: 'absolute', top: '3.4%', left: 'calc(50% + 1.4cqw)', transform: 'translateX(-50%)', height: '3.3%', width: 'auto' }}
       />
       <div
         className="absolute left-0 right-0 bg-white flex flex-col"

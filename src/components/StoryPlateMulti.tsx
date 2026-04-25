@@ -463,7 +463,12 @@ async function drawSplitCard(
   if (logo) {
     const lh = 62
     const lw = (logo.width / logo.height) * lh
-    const lx = Math.round((W - lw) / 2)
+    // The PNG is geometrically symmetric (≈1 px of transparent-padding asymmetry
+    // at this render size — negligible), but the dense green "SI" block carries
+    // more visual weight than the "INMOBILIARIA" wordmark and pulls the perceived
+    // center to the left. Push the logo right to optically balance the composition.
+    const LOGO_VISUAL_OFFSET_X = 15
+    const lx = Math.round((W - lw) / 2) + LOGO_VISUAL_OFFSET_X
     ctx.drawImage(logo, lx, 65, lw, lh)
   }
 
