@@ -191,7 +191,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '50%',
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '32%',
           backgroundImage: `url(${photos[0]})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
         }}
@@ -199,7 +199,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: '60%', left: 0, width: '100%', height: '40%',
+          position: 'absolute', top: '53%', left: 0, width: '100%', height: '47%',
           backgroundImage: `url(${photos[1]})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
         }}
@@ -215,21 +215,23 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
         aria-hidden
         style={{
           position: 'absolute', bottom: 0, left: 0, width: '100%', height: '30%',
-          background: 'linear-gradient(to top, rgba(0,0,0,0.88), transparent)',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.78) 35%, transparent)',
         }}
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/logo-si-white.png"
         alt=""
-        style={{ position: 'absolute', top: '3.4%', left: '7%', height: '4%', width: 'auto' }}
+        // 1.4cqw ≈ 15 px sobre canvas de 1080 px — offset óptico replicado del canvas.
+        style={{ position: 'absolute', top: '3.4%', left: 'calc(50% + 1.4cqw)', transform: 'translateX(-50%)', height: '3.3%', width: 'auto' }}
       />
       <div
         className="absolute left-0 right-0 bg-white flex flex-col"
         style={{
-          top: '45.5%',
-          padding: '3% 6.6%',
-          gap: '2.4cqw',
+          top: '42.7%',
+          transform: 'translateY(-50%)',
+          padding: '2.6% 6.6%',
+          gap: '2.1cqw',
           boxShadow: '0 0.7cqw 2cqw rgba(0,0,0,0.22)',
         }}
       >
@@ -249,7 +251,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       </div>
       <div
         className="absolute"
-        style={{ left: '7%', right: '7%', bottom: '4%', color: '#fff' }}
+        style={{ left: '7%', right: '7%', bottom: '3.2%', color: '#fff' }}
       >
         <p
           className="font-poppins"

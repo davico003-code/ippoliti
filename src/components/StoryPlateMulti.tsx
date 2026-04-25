@@ -135,6 +135,29 @@ function buildSpecs(props: { area: number | null; rooms: number; bathrooms: numb
   return sp
 }
 
+function measureFeaturesLineWidth(
+  ctx: CanvasRenderingContext2D,
+  specs: Spec[],
+  numSize: number,
+  unitSize: number,
+  gap: number,
+): number {
+  let w = 0
+  specs.forEach((s, i) => {
+    if (i > 0) {
+      ctx.font = `300 ${numSize}px Poppins, system-ui, sans-serif`
+      w += gap
+      w += ctx.measureText('·').width
+      w += gap
+    }
+    ctx.font = `700 ${numSize}px Poppins, system-ui, sans-serif`
+    w += ctx.measureText(s.num).width + 10
+    ctx.font = `400 ${unitSize}px Poppins, system-ui, sans-serif`
+    w += ctx.measureText(s.unit).width
+  })
+  return w
+}
+
 function drawFeaturesLine(
   ctx: CanvasRenderingContext2D,
   specs: Spec[],
@@ -354,37 +377,9 @@ async function drawSplitCard(
   ctx.fillStyle = '#0d1a12'
   ctx.fillRect(0, 0, W, H)
 
-  const TOP_H = 960
-  const BAND_TOP = 875
-  const BAND_PAD_TOP = 32
+  const BAND_PAD_TOP = 28
   const BAND_PAD_SIDES = 72
-  const BAND_PAD_BOTTOM = 38
-  const BOT_START = 1152
-  const BOT_H = H - BOT_START
-
-  if (photo1) drawCover(ctx, photo1, 0, 0, W, TOP_H)
-  else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, 0, W, TOP_H) }
-
-  if (photo2) drawCover(ctx, photo2, 0, BOT_START, W, BOT_H)
-  else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, BOT_START, W, BOT_H) }
-
-  const topShade = ctx.createLinearGradient(0, 0, 0, TOP_H * 0.18)
-  topShade.addColorStop(0, 'rgba(0,0,0,0.5)')
-  topShade.addColorStop(1, 'rgba(0,0,0,0)')
-  ctx.fillStyle = topShade
-  ctx.fillRect(0, 0, W, TOP_H * 0.18 + 40)
-
-  const botShade = ctx.createLinearGradient(0, BOT_START + BOT_H * 0.1, 0, H)
-  botShade.addColorStop(0, 'rgba(0,0,0,0)')
-  botShade.addColorStop(1, 'rgba(0,0,0,0.88)')
-  ctx.fillStyle = botShade
-  ctx.fillRect(0, BOT_START, W, BOT_H)
-
-  if (logo) {
-    const lh = 75
-    const lw = (logo.width / logo.height) * lh
-    ctx.drawImage(logo, PAD, 65, lw, lh)
-  }
+  const BAND_PAD_BOTTOM = 33
 
   const cw = W - PAD * 2
   const bandCw = W - BAND_PAD_SIDES * 2
@@ -392,7 +387,7 @@ async function drawSplitCard(
   const pillPadX = 22
   const pillFontSize = 24
   const pillGap = 12
-  const bandGap = 24
+  const bandGap = 21
 
   const pills = buildPillTexts(props)
 
@@ -413,11 +408,69 @@ async function drawSplitCard(
   const titleH = tLines.length * lineH
 
   const specs = buildSpecs(props)
-  const specNumSize = 48
-  const featuresH = specs.length > 0 ? specNumSize : 0
+  const SPEC_GAP = 20
+  const SPEC_MAX = 48
+  const SPEC_MIN = 36
+  const SPEC_STEP = 4
+  const SPEC_LINE_GAP = 12
+  let specSize = SPEC_MAX
+  let specLines: Spec[][] = specs.length > 0 ? [specs] : []
+  if (specs.length > 0) {
+    while (specSize > SPEC_MIN && measureFeaturesLineWidth(ctx, specs, specSize, specSize, SPEC_GAP) > bandCw) {
+      specSize -= SPEC_STEP
+    }
+    if (measureFeaturesLineWidth(ctx, specs, specSize, specSize, SPEC_GAP) > bandCw) {
+      const half = Math.ceil(specs.length / 2)
+      specLines = [specs.slice(0, half), specs.slice(half)]
+    }
+  }
+  const specLineCount = specLines.length
+  const featuresH = specLineCount === 0
+    ? 0
+    : specSize * specLineCount + SPEC_LINE_GAP * (specLineCount - 1)
 
   const bandContentH = pillH + bandGap + titleH + (featuresH > 0 ? bandGap + featuresH : 0)
   const bandH = BAND_PAD_TOP + bandContentH + BAND_PAD_BOTTOM
+
+  // Anchor the band's vertical center above the canvas midpoint so the
+  // bottom photo gets more visual weight than the top one.
+  const BAND_CENTER_Y = 820
+  const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
+  const TOP_H = BAND_TOP
+  const BOT_START = BAND_TOP + bandH
+  const BOT_H = H - BOT_START
+
+  if (photo1) drawCover(ctx, photo1, 0, 0, W, TOP_H)
+  else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, 0, W, TOP_H) }
+
+  if (photo2) drawCover(ctx, photo2, 0, BOT_START, W, BOT_H)
+  else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, BOT_START, W, BOT_H) }
+
+  const topShade = ctx.createLinearGradient(0, 0, 0, TOP_H * 0.18)
+  topShade.addColorStop(0, 'rgba(0,0,0,0.5)')
+  topShade.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = topShade
+  ctx.fillRect(0, 0, W, TOP_H * 0.18 + 40)
+
+  // Stronger gradient at the bottom to protect the footer text against bright photos.
+  const botShade = ctx.createLinearGradient(0, BOT_START + BOT_H * 0.1, 0, H)
+  botShade.addColorStop(0, 'rgba(0,0,0,0)')
+  botShade.addColorStop(0.7, 'rgba(0,0,0,0.78)')
+  botShade.addColorStop(1, 'rgba(0,0,0,0.92)')
+  ctx.fillStyle = botShade
+  ctx.fillRect(0, BOT_START, W, BOT_H)
+
+  if (logo) {
+    const lh = 62
+    const lw = (logo.width / logo.height) * lh
+    // The PNG is geometrically symmetric (≈1 px of transparent-padding asymmetry
+    // at this render size — negligible), but the dense green "SI" block carries
+    // more visual weight than the "INMOBILIARIA" wordmark and pulls the perceived
+    // center to the left. Push the logo right to optically balance the composition.
+    const LOGO_VISUAL_OFFSET_X = 15
+    const lx = Math.round((W - lw) / 2) + LOGO_VISUAL_OFFSET_X
+    ctx.drawImage(logo, lx, 65, lw, lh)
+  }
 
   ctx.save()
   ctx.shadowColor = 'rgba(0,0,0,0.22)'
@@ -449,38 +502,38 @@ async function drawSplitCard(
 
   if (featuresH > 0) {
     cy += bandGap
-    drawFeaturesLine(ctx, specs, BAND_PAD_SIDES, cy + specNumSize, {
-      color: '#1a1a1a',
-      sepColor: 'rgba(0,0,0,0.35)',
-      numSize: specNumSize,
-      unitSize: 48,
-      gap: 20,
-    })
-    cy += featuresH
+    let lineY = cy
+    for (const lineSpecs of specLines) {
+      drawFeaturesLine(ctx, lineSpecs, BAND_PAD_SIDES, lineY + specSize, {
+        color: '#1a1a1a',
+        sepColor: 'rgba(0,0,0,0.35)',
+        numSize: specSize,
+        unitSize: specSize,
+        gap: SPEC_GAP,
+      })
+      lineY += specSize + SPEC_LINE_GAP
+    }
   }
 
+  // Bottom block — anchor footer last baseline at H - PADDING_BOTTOM (≥60 px from edge).
+  const PADDING_BOTTOM = 60
   const priceLabelSize = 32
   const priceValueSize = 120
   const footerH = 40 + 4 + 34
-  const priceBlockH = priceLabelSize + 8 + priceValueSize
   const divH = 1
   const divMarginTop = 35
-  const divMarginBottom = 32
+  const divMarginBottom = 44 // ≥40 px between divider and first footer line
 
-  const bottomContentH = 20 + priceBlockH + divMarginTop + divH + divMarginBottom + footerH
-  let by = H - PAD - footerH - divMarginBottom - divH - divMarginTop - priceBlockH
-  by -= 0
-
-  const priceStart = BOT_START + BOT_H - bottomContentH - PAD + 75
-  by = priceStart
-  by += 20
+  const footerY = H - PADDING_BOTTOM - footerH
+  const dividerY = footerY - divMarginBottom - divH
+  const priceValueBaseline = dividerY - divMarginTop
+  const priceLabelBaseline = priceValueBaseline - priceValueSize - 8
 
   ctx.fillStyle = 'rgba(255,255,255,0.75)'
-  ctx.font = '600 32px Poppins, system-ui, sans-serif'
+  ctx.font = `600 ${priceLabelSize}px Poppins, system-ui, sans-serif`
   setLetterSpacing(ctx, 6)
-  ctx.fillText('PRECIO', PAD, by + priceLabelSize)
+  ctx.fillText('PRECIO', PAD, priceLabelBaseline)
   setLetterSpacing(ctx, 0)
-  by += priceLabelSize + 8
 
   ctx.fillStyle = '#fff'
   ctx.font = `700 ${priceValueSize}px Poppins, system-ui, sans-serif`
@@ -488,17 +541,15 @@ async function drawSplitCard(
   ctx.shadowBlur = 28
   ctx.shadowOffsetY = 4
   setLetterSpacing(ctx, -3.5)
-  ctx.fillText(props.price, PAD, by + priceValueSize)
+  ctx.fillText(props.price, PAD, priceValueBaseline)
   setLetterSpacing(ctx, 0)
   ctx.shadowBlur = 0
   ctx.shadowOffsetY = 0
-  by += priceValueSize + divMarginTop
 
   ctx.fillStyle = 'rgba(255,255,255,0.25)'
-  ctx.fillRect(PAD, by, cw, divH)
-  by += divH + divMarginBottom
+  ctx.fillRect(PAD, dividerY, cw, divH)
 
-  drawFooterRow(ctx, by, '#fff', 'rgba(255,255,255,0.7)')
+  drawFooterRow(ctx, footerY, '#fff', 'rgba(255,255,255,0.7)')
 }
 
 export default function StoryPlateMulti(props: StoryPlateMultiProps) {
