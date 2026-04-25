@@ -464,9 +464,9 @@ async function drawSplitCard(
   const bandContentH = pillH + bandGap + titleH + (featuresH > 0 ? bandGap + featuresH : 0)
   const bandH = BAND_PAD_TOP + bandContentH + BAND_PAD_BOTTOM
 
-  // Center the band on the canvas midpoint so both photos end up with the
-  // same height (±1 px tolerance from rounding).
-  const BAND_CENTER_Y = 960
+  // Anchor the band below the canvas midpoint so the top photo is dominant.
+  // Photos are intentionally NOT equal-height in this layout.
+  const BAND_CENTER_Y = 1070
   const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
   const TOP_H = BAND_TOP
   const BOT_START = BAND_TOP + bandH
@@ -550,11 +550,26 @@ async function drawSplitCard(
   // Bottom block — anchor footer last baseline at H - PADDING_BOTTOM (≥60 px from edge).
   const PADDING_BOTTOM = 60
   const priceLabelSize = 32
-  const priceValueSize = 102
   const footerH = 40 + 4 + 34
   const divH = 1
   const divMarginTop = 35
   const divMarginBottom = 44 // ≥40 px between divider and first footer line
+
+  // Adaptive price font size: start −10% smaller than before, then iteratively
+  // shrink until the rendered text fits inside PRICE_MAX_WIDTH so long prices
+  // (e.g. "USD 1.250.000") never overflow.
+  const PRICE_MAX_WIDTH = 600
+  const PRICE_MAX_SIZE = 92
+  const PRICE_MIN_SIZE = 60
+  const PRICE_STEP = 4
+  let priceValueSize = PRICE_MAX_SIZE
+  ctx.font = `700 ${priceValueSize}px Poppins, system-ui, sans-serif`
+  setLetterSpacing(ctx, -3.5)
+  while (priceValueSize > PRICE_MIN_SIZE && ctx.measureText(props.price).width > PRICE_MAX_WIDTH) {
+    priceValueSize -= PRICE_STEP
+    ctx.font = `700 ${priceValueSize}px Poppins, system-ui, sans-serif`
+  }
+  setLetterSpacing(ctx, 0)
 
   const footerY = H - PADDING_BOTTOM - footerH
   const dividerY = footerY - divMarginBottom - divH
