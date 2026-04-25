@@ -191,7 +191,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '32%',
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '50%',
           backgroundImage: `url(${photos[0]})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
         }}
@@ -199,7 +199,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: '53%', left: 0, width: '100%', height: '47%',
+          position: 'absolute', top: '50%', left: 0, width: '100%', height: '50%',
           backgroundImage: `url(${photos[1]})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
         }}
@@ -228,7 +228,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       <div
         className="absolute left-0 right-0 bg-white flex flex-col"
         style={{
-          top: '42.7%',
+          top: '50%',
           transform: 'translateY(-50%)',
           padding: '2.6% 6.6%',
           gap: '2.1cqw',
@@ -260,7 +260,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
         <p
           className="font-poppins"
           style={{
-            color: '#fff', fontWeight: 700, fontSize: '7.5cqw', lineHeight: 1,
+            color: '#fff', fontWeight: 700, fontSize: '6.4cqw', lineHeight: 1,
             letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums',
             textShadow: '0 0.3cqw 2cqw rgba(0,0,0,0.5)',
             marginTop: '0.6cqw', marginBottom: 0,
