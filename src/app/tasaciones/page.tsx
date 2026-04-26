@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { Camera, Megaphone, Share2, Globe, Newspaper, Database } from 'lucide-react'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 
 const TasacionesMap = dynamic(() => import('@/components/TasacionesMap'), {
@@ -73,68 +73,19 @@ export default function TasacionesPage() {
       <div className="max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
-          {/* ── LEFT ── */}
+          {/* ── LEFT — Imagen ── */}
           <div>
-            {/* Hero */}
-            <h1 className="text-[#1d1d1f] mb-3" style={{ fontSize: 38, fontWeight: 800, letterSpacing: -0.5, fontFamily: 'Raleway, sans-serif' }}>
-              Tasá tu propiedad con criterio
-            </h1>
-            <p className="text-[#6e6e73] text-[15px] leading-relaxed mb-8" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              Más de 43 años tasando propiedades en Funes, Roldán y Rosario. Informe profesional en 24 horas.
-            </p>
-
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://images.unsplash.com/photo-1554469384-e58fac16e23a?auto=format&fit=crop&w=1200&q=80"
-              alt="Análisis inmobiliario profesional"
-              className="w-full h-[220px] object-cover rounded-2xl mb-10"
+            <Image
+              src="/images/tasaciones/tasacion-941.webp"
+              alt="Tasación profesional de propiedades en Funes, Roldán y Rosario — SI INMOBILIARIA"
+              width={941}
+              height={1672}
+              sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 600px"
+              priority
+              placeholder="blur"
+              blurDataURL="data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAADwAQCdASoJABAAA4BaJZACdAD0sN0EYAAA/uhfXJL6y8YbYVlX1pg2Nz07dneoetgJ0PoJgzYwjrX6+/0AdW23CO9SJr0zeMUcX3mqMhnqBc4aODTRAAAA"
+              className="w-full h-auto rounded-2xl shadow-lg object-cover"
             />
-
-            {/* Cómo trabajamos */}
-            <div className="bg-white rounded-2xl p-6 md:p-8 mb-8">
-              <h3 className="text-lg font-bold text-[#1d1d1f] mb-6" style={{ fontFamily: 'Raleway, sans-serif' }}>Cómo trabajamos</h3>
-              <div className="space-y-0">
-                {[
-                  { num: '01', title: 'Coordinamos la visita', desc: 'Nos contactamos, agendamos y visitamos la propiedad en persona. Necesitamos los planos para un análisis preciso.' },
-                  { num: '02', title: 'Relevamiento completo', desc: 'Fotografía aérea con drone DJI Mavic 4 Pro, estado general, entorno, servicios y comparativa con operaciones reales de la zona.' },
-                  { num: '03', title: 'Informe en 24 horas', desc: 'Recibís un informe digital profesional con el valor real de tu propiedad y una estrategia de publicación personalizada.' },
-                ].map((step, i) => (
-                  <div key={step.num} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <span className="text-[#1A5C38] text-sm font-bold font-numeric w-9 h-9 rounded-full border-2 border-[#1A5C38] flex items-center justify-center shrink-0">
-                        {step.num}
-                      </span>
-                      {i < 2 && <div className="w-px flex-1 bg-[#1A5C38]/15 my-1" />}
-                    </div>
-                    <div className="pb-7">
-                      <h4 className="font-bold text-[#1d1d1f] text-sm mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{step.title}</h4>
-                      <p className="text-sm text-[#6e6e73] leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{step.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Cómo publicamos */}
-            <h3 className="text-lg font-bold text-[#1d1d1f] mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>Cómo publicamos tu propiedad</h3>
-            <p className="text-sm text-[#6e6e73] mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Una vez tasada, tu propiedad tiene máxima exposición</p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { icon: Camera, title: 'Fotografía aérea con drone', desc: 'DJI Mavic 4 Pro para fotos y video profesional que destacan tu propiedad.' },
-                { icon: Megaphone, title: 'Meta Ads', desc: 'Campañas publicitarias en Facebook e Instagram para maximizar la exposición de tu propiedad.' },
-                { icon: Share2, title: 'Presencia en redes sociales', desc: '+20K seguidores en Instagram @inmobiliaria.si y presencia activa en TikTok @si.inmobiliaria' },
-                { icon: Globe, title: 'Portales inmobiliarios', desc: 'Publicación en Zonaprop, Argenprop y MercadoLibre — los tres principales portales del país.' },
-                { icon: Newspaper, title: 'Medios locales', desc: 'Presencia en InfoFunes y El Roldanense, los medios de referencia de la zona.' },
-                { icon: Database, title: 'CRM profesional', desc: 'Gestión de leads y seguimiento de interesados con Tokko Broker.' },
-              ].map(c => (
-                <div key={c.title} className="bg-white rounded-2xl p-4" style={{ border: '1px solid #e5e5ea', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <c.icon className="w-5 h-5 text-[#1A5C38] mb-2" />
-                  <h5 className="text-sm font-bold text-[#1d1d1f] mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{c.title}</h5>
-                  <p className="text-xs text-[#6e6e73] leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{c.desc}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* ── RIGHT — Form ── */}
