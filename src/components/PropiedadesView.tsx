@@ -833,7 +833,7 @@ export default function PropiedadesView({
       <div className="flex flex-1 min-h-0">
 
         {/* Left: Property list */}
-        <div className={`flex flex-col border-r border-gray-200 w-full md:w-[40%] ${mobileView === 'map' ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex flex-col border-r border-gray-200 w-full md:w-[48%] ${mobileView === 'map' ? 'hidden md:flex' : 'flex'}`}>
 
           {/* Count header + sort + view toggle — desktop only */}
           <div className="hidden md:flex px-3 py-2 bg-gray-50 border-b border-gray-100 flex-shrink-0 items-center justify-between gap-2">
@@ -931,7 +931,7 @@ export default function PropiedadesView({
         </div>
 
         {/* Right: Map */}
-        <div className={`relative w-full md:w-[60%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
+        <div className={`relative w-full md:w-[52%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
           <PropiedadesMap
             properties={filtered}
             selectedId={selectedId}

@@ -41,7 +41,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
             </div>
           )}
           {operation && (
-            <span className={`absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold rounded uppercase tracking-wide text-white ${
+            <span className={`absolute top-3 left-3 px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wide text-white ${
               operation === 'Venta' ? 'bg-gray-900/80' : 'bg-brand-600/80'
             }`}>
               {operation}

@@ -39,7 +39,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const land = isLand(property)
   const typeName = translatePropertyType(property.type?.name)
   const slug = generatePropertySlug(property)
-  const starred = property.is_starred_on_web
   const beds = property.suite_amount || property.room_amount
   const baths = property.bathroom_amount
   const address = property.fake_address || property.address
@@ -132,7 +131,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           </>
         )}
 
-        {/* Badges top-left */}
+        {/* Badge top-left — operation only (Destacada eliminado) */}
         <div className="absolute top-2.5 left-2.5 flex gap-1.5">
           {operation && (
             <span style={{
@@ -143,24 +142,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
               fontWeight: 600,
               fontSize: 11,
               textTransform: 'uppercase',
-              padding: '5px 10px',
-              borderRadius: 6,
+              padding: '5px 14px',
+              borderRadius: 9999,
             }}>
               {operation}
-            </span>
-          )}
-          {starred && (
-            <span style={{
-              background: '#f59e0b',
-              color: '#fff',
-              fontFamily: RALEWAY,
-              fontWeight: 600,
-              fontSize: 11,
-              textTransform: 'uppercase',
-              padding: '5px 10px',
-              borderRadius: 6,
-            }}>
-              Destacada
             </span>
           )}
         </div>
