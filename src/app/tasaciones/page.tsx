@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
+import { LocateFixed } from 'lucide-react'
 
 const TasacionesMap = dynamic(() => import('@/components/TasacionesMap'), {
   ssr: false,
@@ -24,6 +25,8 @@ export default function TasacionesPage() {
     nombre: '', direccion: '', tipo: '', urgencia: '', motivo: '', mensaje: '',
   })
   const [coords, setCoords] = useState<[number, number]>([-32.9167, -60.9167])
+  const [geoLoading, setGeoLoading] = useState(false)
+  const [geoError, setGeoError] = useState(false)
   const geocodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }))
@@ -31,6 +34,24 @@ export default function TasacionesPage() {
   const handlePositionChange = useCallback((lat: number, lng: number) => {
     setCoords([lat, lng])
   }, [])
+
+  // Solo se llama desde el click del botón LocateFixed; nunca al montar.
+  const handleGeolocate = () => {
+    if (!navigator.geolocation || geoLoading) return
+    setGeoError(false)
+    setGeoLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords([pos.coords.latitude, pos.coords.longitude])
+        setGeoLoading(false)
+      },
+      () => {
+        setGeoError(true)
+        setGeoLoading(false)
+      },
+      { enableHighAccuracy: false, timeout: 8000 },
+    )
+  }
 
   const handleAddressChange = (value: string) => {
     update('direccion', value)
@@ -83,7 +104,7 @@ export default function TasacionesPage() {
               sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 600px"
               priority
               placeholder="blur"
-              blurDataURL="data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAADwAQCdASoJABAAA4BaJZACdAD0sN0EYAAA/uhfXJL6y8YbYVlX1pg2Nz07dneoetgJ0PoJgzYwjrX6+/0AdW23CO9SJr0zeMUcX3mqMhnqBc4aODTRAAAA"
+              blurDataURL="data:image/webp;base64,UklGRrwCAABXRUJQVlA4WAoAAAAgAAAAFwAAKgAASUNDUMgBAAAAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADZWUDggzgAAAPAGAJ0BKhgAKwA+hS6UR6UiIiE1W/wAoBCJQBOmX2hZIYg5+fa/HdekNGgcX2yEguy/4QvzYW27vl4g7fdDPMAA/vja8UEmW+PJHbuNpgR6k2m5Up7VGuZFmXdhjibxxsi0UmAI3WocuB0c2KpXVC9Wd84ZpxJIVZGvLrpwTgVUADmR6Y+KTo2p+CL2PxxkP3ZEqCt8u0f0bkKAmE3VUj9K+hs06jjDLuExpbBxHzBUjv78wzR0+3Y5VeerqiADJCIoJm1ye8lEonS51oAA"
               className="w-full h-auto rounded-2xl shadow-lg object-cover"
             />
           </div>
@@ -103,7 +124,35 @@ export default function TasacionesPage() {
 
                 <div>
                   <label className={labelClass}>Dirección del inmueble</label>
-                  <input type="text" value={form.direccion} onChange={e => handleAddressChange(e.target.value)} className={inputClass} placeholder="Calle, número, localidad" required />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={form.direccion}
+                      onChange={e => handleAddressChange(e.target.value)}
+                      className={`${inputClass} pr-12`}
+                      placeholder="Calle, número, localidad"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={handleGeolocate}
+                      disabled={geoLoading}
+                      aria-label="Usar mi ubicación actual"
+                      title="Usar mi ubicación actual"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#1A5C38] disabled:cursor-not-allowed transition-colors"
+                    >
+                      {geoLoading ? (
+                        <span className="block w-5 h-5 border-2 border-slate-300 border-t-[#1A5C38] rounded-full animate-spin" />
+                      ) : (
+                        <LocateFixed size={20} />
+                      )}
+                    </button>
+                  </div>
+                  {geoError && (
+                    <p className="text-slate-600 mt-1.5" style={{ fontSize: 13 }}>
+                      No pudimos obtener tu ubicación. Ingresala manualmente.
+                    </p>
+                  )}
                 </div>
 
                 <div>

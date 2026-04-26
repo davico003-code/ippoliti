@@ -28,26 +28,6 @@ function FlyTo({ center }: { center: [number, number] }) {
   return null
 }
 
-function GeolocateOnMount({ onLocate }: { onLocate: (lat: number, lng: number) => void }) {
-  const map = useMap()
-  const tried = useRef(false)
-  useEffect(() => {
-    if (tried.current) return
-    tried.current = true
-    if (!navigator.geolocation) return
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords
-        onLocate(latitude, longitude)
-        map.flyTo([latitude, longitude], 15, { duration: 0.8 })
-      },
-      () => {},
-      { enableHighAccuracy: false, timeout: 5000 }
-    )
-  }, [map, onLocate])
-  return null
-}
-
 interface Props {
   center: [number, number]
   onPositionChange: (lat: number, lng: number) => void
@@ -76,7 +56,6 @@ export default function TasacionesMap({ center, onPositionChange }: Props) {
           maxZoom={19}
         />
         <FlyTo center={center} />
-        <GeolocateOnMount onLocate={onPositionChange} />
         <Marker position={center} icon={markerIcon} draggable eventHandlers={handlers} />
       </MapContainer>
     </div>
