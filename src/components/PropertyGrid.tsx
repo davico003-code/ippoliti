@@ -26,7 +26,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 group flex flex-col h-full relative">
       <Link href={`/propiedades/${slug}`} className="flex flex-col h-full">
-        <div className="relative h-52 overflow-hidden bg-gray-100">
+        <div className="relative h-44 overflow-hidden bg-gray-100">
           {photo ? (
             <Image
               src={photo}
@@ -48,16 +48,16 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
             </span>
           )}
         </div>
-        <div className="p-4 flex-1 flex flex-col">
+        <div className="p-3 flex-1 flex flex-col">
           {property.type?.name && (
             <p className="text-brand-600 text-[10px] font-bold uppercase tracking-widest mb-1">
               {translatePropertyType(property.type.name)}
             </p>
           )}
-          <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-2 group-hover:text-brand-700 transition-colors">
+          <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1.5 group-hover:text-brand-700 transition-colors">
             {property.publication_title || property.address}
           </h3>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-2">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-1.5">
             {land ? (
               lot != null && lot > 0 && (
                 <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> m² lote</span>
