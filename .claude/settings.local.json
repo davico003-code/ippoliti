@@ -62,7 +62,11 @@
       "Bash(for f:*)",
       "Bash(do sed:*)",
       "Bash(echo \"Updated: $f\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(lsof -ti:3000)",
+      "Bash(grep -oE 'publication_title\\\\\\\\\":\\\\\\\\\"[^\\\\\\\\\"]{0,40}' /tmp/propiedades.html)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"next dev\")"
     ]
   }
 }
