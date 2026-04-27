@@ -136,6 +136,111 @@ export interface TokkoListResponse {
 
 // --- Helpers ---
 
+// Tokko devuelve campos extra que NO están declarados en las interfaces (p. ej.
+// location.url = "/api/v1/location/{id}/"). Cuando el array completo cruza el
+// boundary server→client, Next.js serializa esos campos al HTML y Google los
+// indexa como URLs bloqueadas por robots.txt.
+//
+// sanitizeProperty reconstruye el objeto property dejando SOLO los campos
+// declarados, así nada interno de la API de Tokko llega al HTML.
+export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
+  return {
+    id: p.id,
+    publication_title: p.publication_title,
+    address: p.address,
+    fake_address: p.fake_address,
+    real_address: p.real_address,
+    reference_code: p.reference_code,
+    description: p.description,
+    description_only: p.description_only,
+    rich_description: p.rich_description,
+    age: p.age,
+    roofed_surface: p.roofed_surface,
+    surface: p.surface,
+    total_surface: p.total_surface,
+    semiroofed_surface: p.semiroofed_surface,
+    unroofed_surface: p.unroofed_surface,
+    lot_number: p.lot_number,
+    room_amount: p.room_amount,
+    bathroom_amount: p.bathroom_amount,
+    toilet_amount: p.toilet_amount,
+    parking_lot_amount: p.parking_lot_amount,
+    covered_parking_lot: p.covered_parking_lot,
+    suite_amount: p.suite_amount,
+    floors_amount: p.floors_amount,
+    floor: p.floor,
+    photos: (p.photos ?? []).map((ph) => ({
+      description: ph.description,
+      image: ph.image,
+      is_blueprint: ph.is_blueprint,
+      is_front_cover: ph.is_front_cover,
+      order: ph.order,
+      original: ph.original,
+      thumb: ph.thumb,
+    })),
+    operations: (p.operations ?? []).map((op) => ({
+      operation_id: op.operation_id,
+      operation_type: op.operation_type,
+      prices: (op.prices ?? []).map((pr) => ({
+        currency: pr.currency,
+        is_promotional: pr.is_promotional,
+        period: pr.period,
+        price: pr.price,
+      })),
+    })),
+    type: p.type
+      ? { code: p.type.code, id: p.type.id, name: p.type.name }
+      : (p.type as TokkoPropertyType),
+    location: p.location
+      ? {
+          id: p.location.id,
+          name: p.location.name,
+          full_location: p.location.full_location,
+          short_location: p.location.short_location,
+          divisions: p.location.divisions
+            ? p.location.divisions.map((d) => ({ id: d.id, name: d.name }))
+            : undefined,
+        }
+      : (p.location as TokkoLocation),
+    geo_lat: p.geo_lat,
+    geo_long: p.geo_long,
+    web_price: p.web_price,
+    is_starred_on_web: p.is_starred_on_web,
+    status: p.status,
+    deleted_at: p.deleted_at,
+    tags: (p.tags ?? []).map((t) => ({ id: t.id, name: t.name, type: t.type })),
+    videos: (p.videos ?? []).map((v) => ({
+      id: v.id,
+      title: v.title,
+      description: v.description,
+      url: v.url,
+      player_url: v.player_url,
+      provider: v.provider,
+      provider_id: v.provider_id,
+      video_id: v.video_id,
+      order: v.order,
+    })),
+    property_condition: p.property_condition,
+    orientation: p.orientation,
+    disposition: p.disposition,
+    situation: p.situation,
+    files: (p.files ?? []).map((f) => ({ file: f.file })),
+    public_url: p.public_url,
+    development: p.development
+      ? { id: p.development.id, name: p.development.name }
+      : null,
+    producer: p.producer
+      ? {
+          id: p.producer.id,
+          name: p.producer.name,
+          phone: p.producer.phone,
+          email: p.producer.email,
+          picture: p.producer.picture,
+        }
+      : null,
+  };
+}
+
 export function generatePropertySlug(property: TokkoProperty): string {
   const base =
     property.publication_title ||

@@ -20,6 +20,7 @@ import {
   getTotalSurface,
   getMainPhoto,
   getDescription,
+  sanitizeProperty,
   type TokkoProperty,
 } from '@/lib/tokko';
 
@@ -80,7 +81,7 @@ export default async function PropertyPage({ params }: Props) {
 
   let property: TokkoProperty;
   try {
-    property = await getPropertyById(id);
+    property = sanitizeProperty(await getPropertyById(id));
   } catch (e) {
     if (e instanceof Error && e.message.includes('not found')) {
       notFound();
@@ -100,7 +101,7 @@ export default async function PropertyPage({ params }: Props) {
   let allProperties: TokkoProperty[] = [];
   try {
     const allData = await getProperties();
-    allProperties = allData.objects ?? [];
+    allProperties = (allData.objects ?? []).map(sanitizeProperty);
   } catch (err) {
     console.error('[property-detail] Error fetching all properties:', err instanceof Error ? err.message : err);
   }

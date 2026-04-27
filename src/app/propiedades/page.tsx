@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import { getProperties, type TokkoProperty } from '@/lib/tokko'
+import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
 import PropiedadesView from '@/components/PropiedadesView'
 
 // Force dynamic render to avoid build-time Tokko rate-limit (403) that empties the HTML.
@@ -23,7 +23,7 @@ export default async function PropiedadesPage() {
   let properties: TokkoProperty[] = []
   try {
     const data = await getProperties()
-    properties = data.objects ?? []
+    properties = (data.objects ?? []).map(sanitizeProperty)
   } catch (err) {
     console.error('[propiedades] Error fetching properties:', err instanceof Error ? err.message : err)
   }

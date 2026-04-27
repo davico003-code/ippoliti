@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getProperties, type TokkoProperty } from '@/lib/tokko'
+import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
 import PropertyGrid from '@/components/PropertyGrid'
 
 export const revalidate = 21600
@@ -29,7 +29,7 @@ export default async function AlquilerRoldanPage() {
   let properties: TokkoProperty[] = []
   try {
     const data = await getProperties({ limit: 100 })
-    properties = filterRentRoldan(data.objects ?? [])
+    properties = filterRentRoldan(data.objects ?? []).map(sanitizeProperty)
   } catch {}
 
   return (
