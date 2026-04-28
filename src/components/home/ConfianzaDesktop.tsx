@@ -44,7 +44,7 @@ export default function ConfianzaDesktop() {
   return (
     <>
       {/* 2.1 Hero editorial con foto familia — 2 columnas */}
-      <section className="relative bg-gray-900 overflow-hidden">
+      <section className="relative bg-brand-600 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2" style={{ minHeight: 600 }}>
           {/* Foto izquierda */}
           <div className="relative">
@@ -61,12 +61,12 @@ export default function ConfianzaDesktop() {
 
           {/* Texto derecha */}
           <div className="relative flex flex-col justify-center px-10 lg:px-16 py-16 lg:py-20 text-white">
-            <p className="font-poppins text-white/60 text-[12px] font-bold tracking-[0.25em] uppercase">
+            <p className="font-poppins text-white/80 text-[12px] font-bold tracking-[0.25em] uppercase">
               SI Inmobiliaria · Est. 1983
             </p>
 
             <div className="mt-4">
-              <span className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full font-poppins text-white text-[11px] font-bold tracking-wider" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <span className="bg-white/15 backdrop-blur-md border border-white/30 px-3 py-1.5 rounded-full font-poppins text-white text-[11px] font-bold tracking-wider" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 43 AÑOS
               </span>
             </div>
