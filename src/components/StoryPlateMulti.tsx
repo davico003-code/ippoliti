@@ -84,6 +84,13 @@ function appendEllipsis(ctx: CanvasRenderingContext2D, line: string, maxW: numbe
   return truncated + ell
 }
 
+// Abreviación de "dormitorios" → "dorm." para títulos largos del Split Card
+// que no entran en 2 líneas al min size. Solo se intenta antes de aplicar
+// elipsis (último recurso). Case-insensitive, palabra completa.
+function abbreviateTitle(text: string): string {
+  return text.replace(/\bdormitorios\b/gi, 'dorm.')
+}
+
 function drawPill(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -443,14 +450,25 @@ async function drawSplitCard(
   let tSize = TITLE_MAX_SIZE
   let tLines: string[] = []
   let lineH = 0
+  let titleToRender = props.title
   while (true) {
     ctx.font = `700 ${tSize}px Raleway, system-ui, sans-serif`
-    tLines = wrapText(ctx, props.title, bandCw)
+    tLines = wrapText(ctx, titleToRender, bandCw)
     lineH = Math.round(tSize * 1.05)
     const allowedLines = tSize <= TITLE_MIN_SIZE ? TITLE_MAX_LINES_AT_MIN : TITLE_MAX_LINES_NORMAL
     const fits = tLines.length <= allowedLines && tLines.length * lineH <= titleHCap
     if (fits) break
     if (tSize <= TITLE_MIN_SIZE) {
+      // Antes del último recurso (elipsis), intentar abreviar el título.
+      // El restart se hace una sola vez (gate: titleToRender === props.title).
+      if (titleToRender === props.title) {
+        const abbreviated = abbreviateTitle(props.title)
+        if (abbreviated !== props.title) {
+          titleToRender = abbreviated
+          tSize = TITLE_MAX_SIZE
+          continue
+        }
+      }
       if (tLines.length > TITLE_MAX_LINES_AT_MIN) {
         const cap = TITLE_MAX_LINES_AT_MIN
         const kept = tLines.slice(0, cap)
