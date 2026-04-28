@@ -78,7 +78,10 @@ export async function getPostsDinamicos(): Promise<BlogPost[]> {
     const posts = await Promise.all(
       blobs.map(async (blob) => {
         try {
-          const res = await fetch(blob.url, { cache: 'no-store' });
+          // force-cache: las notas son inmutables; el revalidate on-demand del
+          // publicador (POST /api/revalidate) invalida la página cuando cambia
+          // la lista. 'no-store' rompe SSG/ISR (DYNAMIC_SERVER_USAGE).
+          const res = await fetch(blob.url, { cache: 'force-cache' });
           const data = (await res.json()) as NotaPublicadaBlob;
           return blobToBlogPost(data);
         } catch (err) {
