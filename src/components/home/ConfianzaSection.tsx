@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { MapPin, Clock } from 'lucide-react'
 
 const GREEN = '#1A5C38'
@@ -119,7 +118,7 @@ export default function ConfianzaSection() {
           Nuestras sedes
         </p>
         <h3 className="font-raleway font-black text-[22px] leading-tight mt-1 text-gray-900">
-          Tres puertas. Mismo estudio.
+          Tres lugares para encontrarnos.
         </h3>
 
         <div className="mt-5 -mx-5 px-5 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
@@ -156,27 +155,6 @@ export default function ConfianzaSection() {
         </div>
       </section>
 
-      {/* 5. CTA final */}
-      <section className="px-5 pt-2 pb-10 bg-white">
-        <Link href="/nosotros" className="block bg-gray-900 text-white rounded-2xl p-5 hover:bg-gray-800 transition" style={{ textDecoration: 'none' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-poppins text-white/60 text-[10px] font-bold tracking-[0.15em] uppercase">
-                Conocé el equipo
-              </p>
-              <p className="font-raleway font-black text-[18px] mt-1 leading-tight">
-                La historia completa<br />de SI Inmobiliaria
-              </p>
-            </div>
-            <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 ml-3" style={{ background: GREEN }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </div>
-          </div>
-        </Link>
-      </section>
     </>
   )
 }

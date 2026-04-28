@@ -1,6 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
-import { MapPin, Clock, ArrowRight, Star } from 'lucide-react'
+import { MapPin, Clock, Star } from 'lucide-react'
 
 const GREEN = '#1A5C38'
 
@@ -45,7 +44,7 @@ export default function ConfianzaDesktop() {
   return (
     <>
       {/* 2.1 Hero editorial con foto familia — 2 columnas */}
-      <section className="relative bg-gray-900 overflow-hidden">
+      <section className="relative bg-neutral-950 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2" style={{ minHeight: 600 }}>
           {/* Foto izquierda */}
           <div className="relative">
@@ -62,12 +61,12 @@ export default function ConfianzaDesktop() {
 
           {/* Texto derecha */}
           <div className="relative flex flex-col justify-center px-10 lg:px-16 py-16 lg:py-20 text-white">
-            <p className="font-poppins text-white/60 text-[12px] font-bold tracking-[0.25em] uppercase">
+            <p className="font-poppins text-white/80 text-[12px] font-bold tracking-[0.25em] uppercase">
               SI Inmobiliaria · Est. 1983
             </p>
 
             <div className="mt-4">
-              <span className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full font-poppins text-white text-[11px] font-bold tracking-wider" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <span className="bg-white/15 backdrop-blur-md border border-white/30 px-3 py-1.5 rounded-full font-poppins text-white text-[11px] font-bold tracking-wider" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 43 AÑOS
               </span>
             </div>
@@ -129,7 +128,7 @@ export default function ConfianzaDesktop() {
               Nuestras sedes
             </p>
             <h3 className="font-raleway font-black text-[36px] leading-tight mt-2 text-gray-900">
-              Tres puertas. Mismo estudio.
+              Tres lugares para encontrarnos.
             </h3>
           </div>
 
@@ -178,26 +177,6 @@ export default function ConfianzaDesktop() {
         </div>
       </section>
 
-      {/* 2.5 CTA final negro */}
-      <section className="bg-white pb-24">
-        <div className="max-w-5xl mx-auto px-8">
-          <Link href="/nosotros" className="block bg-gray-900 text-white rounded-3xl p-10 hover:bg-gray-800 transition" style={{ textDecoration: 'none' }}>
-            <div className="flex items-center justify-between flex-wrap gap-6">
-              <div>
-                <p className="font-poppins text-white/60 text-[11px] font-bold tracking-[0.2em] uppercase">
-                  Conocé el equipo
-                </p>
-                <p className="font-raleway font-black text-[32px] mt-2 leading-tight">
-                  La historia completa de SI Inmobiliaria
-                </p>
-              </div>
-              <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0" style={{ background: GREEN }}>
-                <ArrowRight className="w-5 h-5 text-white" />
-              </div>
-            </div>
-          </Link>
-        </div>
-      </section>
     </>
   )
 }
