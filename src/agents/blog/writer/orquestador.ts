@@ -2,7 +2,7 @@ import { Redis } from '@upstash/redis';
 import { BLOG_REDIS_KEYS } from '../lib/redis-keys';
 import { seleccionarCTA } from '../config/ctas';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
-import { enviarWhatsAppAdmin } from '../lib/whatsapp';
+import { notificarConAlerta } from '../lib/alert';
 import { generarNotaConRetries } from './generar-nota';
 import { publicarNota } from './publicador';
 import type { TemaPropuesto } from '../types';
@@ -49,8 +49,9 @@ export async function ejecutarWriterDia(
   }
 
   if (aprobados.length < 1 || (dia === 'viernes' && aprobados.length < 2)) {
-    await enviarWhatsAppAdmin(
+    await notificarConAlerta(
       `⚠️ No hay temas aprobados para ${dia}. Revisá la aprobación del lunes (respondé al radar con 2 números).`,
+      `writer-${dia}: sin-temas`,
     );
     return { ok: false, error: 'sin-temas' };
   }
@@ -74,8 +75,9 @@ export async function ejecutarWriterDia(
     const razonesTxt = resultado.razones.map((r, i) => `${i + 1}. ${r}`).join('\n');
     const tituloFallido = resultado.ultimoDraft?.titulo ?? tema.titulo;
 
-    await enviarWhatsAppAdmin(
+    await notificarConAlerta(
       `❌ El writer falló para "${tituloFallido}" (${dia}).\n\nRazones:\n${razonesTxt}\n\nEditá manualmente y publicá vos.`,
+      `writer-${dia}: draft-invalido`,
     );
     return { ok: false, error: 'draft-invalido' };
   }
@@ -90,8 +92,9 @@ export async function ejecutarWriterDia(
 
   // 8. Notificar por WhatsApp
   const palabras = contarPalabras(resultado.nota.contenido_markdown);
-  await enviarWhatsAppAdmin(
+  await notificarConAlerta(
     `✅ Publicada: ${publicada.titulo}\nLink: ${publicada.url_completa}\nCTA: ${publicada.cta_usado}\nPalabras: ${palabras}`,
+    `writer-${dia}: publicada`,
   );
 
   return { ok: true, notaUrl: publicada.url_completa };

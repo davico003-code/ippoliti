@@ -14,16 +14,41 @@ export async function enviarWhatsAppAdmin(mensaje: string): Promise<void> {
   }
 
   const body = truncar(mensaje);
+  const tail4 = ADMIN_NUMBER.slice(-4);
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
 
-  // Modo stub si no hay credenciales Twilio (dev local sin setup)
-  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+  if (!sid || !token) {
+    const faltan = [!sid && 'TWILIO_ACCOUNT_SID', !token && 'TWILIO_AUTH_TOKEN']
+      .filter(Boolean)
+      .join(', ');
+    // Producción: fallar ruidosamente — el cron responde 500 y queda visible en Vercel.
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        `[whatsapp] Twilio no configurado en producción. Faltan: ${faltan}`,
+      );
+    }
+    // Dev: mantener stub para poder correr local sin Twilio.
     console.warn(
-      `[whatsapp] MODO STUB - configurar Twilio env vars. destino=${ADMIN_NUMBER} len=${body.length} preview="${body.slice(0, 80)}..."`,
+      `[whatsapp] MODO STUB (dev) — faltan: ${faltan}. destino=***${tail4} len=${body.length}`,
     );
     return;
   }
 
-  await enviarWhatsApp({ to: ADMIN_NUMBER, body });
+  console.log(`[whatsapp] Enviando ${body.length} chars a ***${tail4}`);
+  const res = await enviarWhatsApp({ to: ADMIN_NUMBER, body });
+  console.log(`[whatsapp] sid=${res.sid} status=${res.status} → ***${tail4}`);
+
+  // Twilio acepta el envío con status="queued" o "accepted" pero eso NO garantiza delivery.
+  // En el sandbox de Twilio, si el destinatario no mandó "join <código>" en las últimas 72h,
+  // el mensaje queda silenciosamente sin entregar.
+  if (res.status === 'queued' || res.status === 'accepted') {
+    console.warn(
+      `[whatsapp] status=${res.status} — Twilio aceptó el mensaje pero no confirma delivery. ` +
+        `Si usás Twilio Sandbox y el admin no envió "join <código>" en las últimas 72h, el mensaje NO llega. ` +
+        `Verificá en Twilio Console → Messaging → Try it out → WhatsApp.`,
+    );
+  }
 }
 
 export function getAdminNumber(): string {

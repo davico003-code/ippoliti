@@ -1,6 +1,6 @@
 import { Redis } from '@upstash/redis';
 import twilio from 'twilio';
-import { BLOG_REDIS_KEYS, TTL } from '@/agents/blog/lib/redis-keys';
+import { BLOG_REDIS_KEYS } from '@/agents/blog/lib/redis-keys';
 import { enviarWhatsAppAdmin } from '@/agents/blog/lib/whatsapp';
 import type { TemaPropuesto } from '@/agents/blog/types';
 
@@ -144,9 +144,9 @@ export async function POST(req: Request) {
     return new Response('<Response></Response>', { status: 200, headers: { 'Content-Type': 'text/xml' } });
   }
 
-  await redis.set(BLOG_REDIS_KEYS.temasAprobados, JSON.stringify(aprobados), {
-    ex: TTL.pendienteAprobacion,
-  });
+  // Sin TTL: la key se sobrescribe cada lunes por el siguiente radar.
+  // 48h era bug — expiraba antes del writer-viernes (Lun→Vie = 96h).
+  await redis.set(BLOG_REDIS_KEYS.temasAprobados, JSON.stringify(aprobados));
   console.log('[aprobacion-blog] guardados en Redis blog:temas_aprobados:', aprobados.map(a => a.titulo));
 
   // Agregar a temas usados (para dedupe futuro)

@@ -14,14 +14,14 @@ export async function GET(req: Request) {
     const { formatearPropuestasParaWhatsApp } = await import(
       '@/agents/blog/radar/formatear-whatsapp'
     );
-    const { enviarWhatsAppAdmin } = await import(
-      '@/agents/blog/lib/whatsapp'
+    const { notificarConAlerta } = await import(
+      '@/agents/blog/lib/alert'
     );
 
     const propuestas = await generarPropuestasSemanales();
     const mensaje = formatearPropuestasParaWhatsApp(propuestas);
 
-    await enviarWhatsAppAdmin(mensaje);
+    await notificarConAlerta(mensaje, 'blog-radar: propuestas semanales');
 
     return Response.json({
       success: true,
