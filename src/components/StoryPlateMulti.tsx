@@ -219,10 +219,10 @@ async function ensureFonts() {
   try { await document.fonts.ready } catch { /* ignore */ }
   const loads = [
     '400 34px Poppins', '400 52px Poppins', '600 32px Poppins',
-    '700 48px Poppins', '700 52px Poppins', '700 120px Poppins', '700 140px Poppins',
+    '700 48px Poppins', '700 52px Poppins', '700 98px Poppins', '700 120px Poppins', '700 140px Poppins',
     '300 52px Poppins',
     '400 40px Raleway', '700 24px Raleway', '700 40px Raleway',
-    '700 100px Raleway', '800 115px Raleway', '800 95px Raleway', '800 80px Raleway',
+    '700 100px Raleway', '800 92px Raleway', '800 76px Raleway', '800 64px Raleway',
   ]
   await Promise.all(loads.map(f => document.fonts.load(f).catch(() => null)))
 }
@@ -259,7 +259,8 @@ async function drawEditorialCover(
   if (logo) {
     const lh = 75
     const lw = (logo.width / logo.height) * lh
-    ctx.drawImage(logo, PAD, PAD, lw, lh)
+    const lx = Math.round((W - lw) / 2)
+    ctx.drawImage(logo, lx, PAD, lw, lh)
   }
 
   const cw = W - PAD * 2
@@ -271,17 +272,17 @@ async function drawEditorialCover(
 
   const pills = buildPillTexts(props)
 
-  ctx.font = '800 115px Raleway, system-ui, sans-serif'
-  let tSize = 115
+  ctx.font = '800 92px Raleway, system-ui, sans-serif'
+  let tSize = 92
   let tLines = wrapText(ctx, props.title, cw)
   if (tLines.length > 3) {
-    ctx.font = '800 95px Raleway, system-ui, sans-serif'
-    tSize = 95
+    ctx.font = '800 76px Raleway, system-ui, sans-serif'
+    tSize = 76
     tLines = wrapText(ctx, props.title, cw)
   }
   if (tLines.length > 3) {
-    ctx.font = '800 80px Raleway, system-ui, sans-serif'
-    tSize = 80
+    ctx.font = '800 64px Raleway, system-ui, sans-serif'
+    tSize = 64
     tLines = wrapText(ctx, props.title, cw).slice(0, 3)
   }
 
@@ -290,7 +291,7 @@ async function drawEditorialCover(
   const featuresH = specs.length > 0 ? specNumSize : 0
 
   const priceLabelSize = 32
-  const priceValueSize = 140
+  const priceValueSize = 98
 
   const titleH = tLines.length * tSize
   const pillsRowH = pillH
