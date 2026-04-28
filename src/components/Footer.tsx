@@ -2,7 +2,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
-const GREEN = '#1A5C38'
 const GOLD = '#C9A84C'
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
@@ -37,7 +36,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export default function Footer() {
   return (
-    <footer style={{ background: GREEN, padding: '48px 48px 32px', color: '#fff' }}>
+    <footer style={{ background: '#0A0A0A', padding: '48px 48px 32px', color: '#fff' }}>
       <style>{`
         .footer-top { display: flex; gap: 56px; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; }
         .footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; flex: 1; }

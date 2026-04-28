@@ -44,7 +44,7 @@ export default function ConfianzaDesktop() {
   return (
     <>
       {/* 2.1 Hero editorial con foto familia — 2 columnas */}
-      <section className="relative bg-brand-600 overflow-hidden">
+      <section className="relative bg-neutral-950 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2" style={{ minHeight: 600 }}>
           {/* Foto izquierda */}
           <div className="relative">

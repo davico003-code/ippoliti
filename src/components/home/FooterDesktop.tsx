@@ -43,7 +43,7 @@ function SocialIcon({ type }: { type: string }) {
 
 export default function FooterDesktop() {
   return (
-    <footer className="bg-brand-600 text-white">
+    <footer className="bg-neutral-950 text-white">
       <div className="max-w-7xl mx-auto px-8 pt-16 pb-10">
         {/* 4 columnas */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 lg:gap-8 pb-12 border-b border-white/15">

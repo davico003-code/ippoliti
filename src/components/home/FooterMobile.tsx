@@ -36,7 +36,7 @@ function SocialIcon({ type }: { type: string }) {
 
 export default function FooterMobile() {
   return (
-    <footer className="bg-brand-600 text-white">
+    <footer className="bg-neutral-950 text-white">
       {/* 1. Logo + tagline + email */}
       <div className="px-5 pt-10 pb-8 border-b border-white/10">
         <Image
