@@ -38,12 +38,15 @@ export async function llamarClaude(
 
   let lastError: unknown;
 
+  // Opus 4.7 deprecó el parámetro temperature; solo lo mandamos a otros modelos.
+  const supportsTemperature = !/opus-4-7/.test(model);
+
   for (let intento = 0; intento < MAX_RETRIES; intento++) {
     try {
       const response = await client.messages.create({
         model,
         max_tokens: maxTokens,
-        temperature: options.temperature ?? 1,
+        ...(supportsTemperature && { temperature: options.temperature ?? 1 }),
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       });
