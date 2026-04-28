@@ -135,7 +135,7 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
       <img
         src="/logo-si-white.png"
         alt=""
-        style={{ position: 'absolute', top: '4%', left: '7%', height: '4%', width: 'auto' }}
+        style={{ position: 'absolute', top: '4%', left: '50%', transform: 'translateX(-50%)', height: '4%', width: 'auto' }}
       />
       <div
         className="absolute flex flex-col"
@@ -147,7 +147,7 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
         <h3
           className="font-raleway"
           style={{
-            color: '#fff', fontWeight: 800, fontSize: '7cqw',
+            color: '#fff', fontWeight: 800, fontSize: '5.6cqw',
             lineHeight: 1, letterSpacing: '-0.025em',
             textShadow: '0 0.3cqw 2cqw rgba(0,0,0,0.45)',
             textWrap: 'balance' as React.CSSProperties['textWrap'],
@@ -166,7 +166,7 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
           <p
             className="font-poppins"
             style={{
-              color: '#fff', fontWeight: 700, fontSize: '8.5cqw', lineHeight: 1,
+              color: '#fff', fontWeight: 700, fontSize: '6cqw', lineHeight: 1,
               letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums',
               textShadow: '0 0.3cqw 2cqw rgba(0,0,0,0.45)',
               marginTop: '0.7cqw', marginBottom: 0,
