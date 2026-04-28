@@ -219,7 +219,7 @@ async function ensureFonts() {
   try { await document.fonts.ready } catch { /* ignore */ }
   const loads = [
     '400 34px Poppins', '400 52px Poppins', '600 32px Poppins',
-    '700 48px Poppins', '700 52px Poppins', '700 98px Poppins', '700 120px Poppins', '700 140px Poppins',
+    '700 42px Poppins', '700 44px Poppins', '700 48px Poppins', '700 52px Poppins', '700 56px Poppins', '700 60px Poppins', '700 64px Poppins', '700 98px Poppins', '700 120px Poppins', '700 140px Poppins',
     '300 52px Poppins',
     '400 40px Raleway', '700 24px Raleway', '700 40px Raleway',
     '700 100px Raleway', '800 92px Raleway', '800 76px Raleway', '800 64px Raleway',
@@ -433,8 +433,8 @@ async function drawSplitCard(
   const TITLE_MIN_SIZE = 56
   const TITLE_STEP = 4
   const TITLE_HARD_MAX_HEIGHT = 280
-  const TITLE_MAX_LINES_NORMAL = 3
-  const TITLE_MAX_LINES_AT_MIN = 4
+  const TITLE_MAX_LINES_NORMAL = 2
+  const TITLE_MAX_LINES_AT_MIN = 2
   const FIXED_BAND_H = 350
   const titleHCapFromBand = FIXED_BAND_H - BAND_PAD_TOP - pillH - bandGap
     - (featuresH > 0 ? bandGap + featuresH : 0) - BAND_PAD_BOTTOM
@@ -565,8 +565,8 @@ async function drawSplitCard(
   // shrink until the rendered text fits inside PRICE_MAX_WIDTH so long prices
   // (e.g. "USD 1.250.000") never overflow.
   const PRICE_MAX_WIDTH = 600
-  const PRICE_MAX_SIZE = 92
-  const PRICE_MIN_SIZE = 60
+  const PRICE_MAX_SIZE = 64
+  const PRICE_MIN_SIZE = 42
   const PRICE_STEP = 4
   let priceValueSize = PRICE_MAX_SIZE
   ctx.font = `700 ${priceValueSize}px Poppins, system-ui, sans-serif`

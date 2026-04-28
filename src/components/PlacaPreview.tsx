@@ -246,6 +246,10 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
             color: '#1a1a1a', fontWeight: 700, fontSize: '6cqw',
             lineHeight: 1.05, letterSpacing: '-0.02em',
             textWrap: 'balance' as React.CSSProperties['textWrap'],
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical' as React.CSSProperties['WebkitBoxOrient'],
+            overflow: 'hidden',
             margin: 0,
           }}
         >{props.title}</h3>
@@ -262,7 +266,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
         <p
           className="font-poppins"
           style={{
-            color: '#fff', fontWeight: 700, fontSize: '5.8cqw', lineHeight: 1,
+            color: '#fff', fontWeight: 700, fontSize: '4cqw', lineHeight: 1,
             letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums',
             textShadow: '0 0.3cqw 2cqw rgba(0,0,0,0.5)',
             marginTop: '0.6cqw', marginBottom: 0,
