@@ -403,7 +403,7 @@ async function drawSplitCard(
 
   const pills = buildPillTexts(props)
 
-  // Stats sizing first — featuresH feeds into the title's MAX_BAND_H budget.
+  // Stats sizing first — featuresH feeds into the title's FIXED_BAND_H budget.
   const specs = buildSpecs(props)
   const SPEC_GAP = 20
   const SPEC_MAX = 48
@@ -427,16 +427,16 @@ async function drawSplitCard(
     : specSize * specLineCount + SPEC_LINE_GAP * (specLineCount - 1)
 
   // Title sizing — adaptive font, max 3 lines (4 only at min size). Caps the
-  // title height so the band never exceeds MAX_BAND_H. As a last resort, the
-  // last visible line is truncated with ellipsis at TITLE_MIN_SIZE.
+  // title height so the band content fits inside FIXED_BAND_H. As a last
+  // resort, the last visible line is truncated with ellipsis at TITLE_MIN_SIZE.
   const TITLE_MAX_SIZE = 100
   const TITLE_MIN_SIZE = 56
   const TITLE_STEP = 4
   const TITLE_HARD_MAX_HEIGHT = 280
   const TITLE_MAX_LINES_NORMAL = 3
   const TITLE_MAX_LINES_AT_MIN = 4
-  const MAX_BAND_H = 520
-  const titleHCapFromBand = MAX_BAND_H - BAND_PAD_TOP - pillH - bandGap
+  const FIXED_BAND_H = 350
+  const titleHCapFromBand = FIXED_BAND_H - BAND_PAD_TOP - pillH - bandGap
     - (featuresH > 0 ? bandGap + featuresH : 0) - BAND_PAD_BOTTOM
   const titleHCap = Math.min(TITLE_HARD_MAX_HEIGHT, titleHCapFromBand)
 
@@ -463,12 +463,11 @@ async function drawSplitCard(
   }
   const titleH = tLines.length * lineH
 
-  const bandContentH = pillH + bandGap + titleH + (featuresH > 0 ? bandGap + featuresH : 0)
-  const bandH = BAND_PAD_TOP + bandContentH + BAND_PAD_BOTTOM
+  const bandH = FIXED_BAND_H
 
-  // Anchor the band below the canvas midpoint so the top photo is dominant.
-  // Photos are intentionally NOT equal-height in this layout.
-  const BAND_CENTER_Y = 1070
+  // Banda fija centrada en el medio del canvas. Fotos superior e inferior
+  // simétricas (785 px cada una con BAND_CENTER_Y=960 y FIXED_BAND_H=350).
+  const BAND_CENTER_Y = 960
   const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
   const TOP_H = BAND_TOP
   const BOT_START = BAND_TOP + bandH
@@ -514,7 +513,12 @@ async function drawSplitCard(
   ctx.fillRect(0, BAND_TOP, W, bandH)
   ctx.restore()
 
-  let cy = BAND_TOP + BAND_PAD_TOP
+  // Centrar verticalmente el contenido dentro de la banda fija cuando el
+  // título se achicó y queda espacio sobrante.
+  const innerSpace = FIXED_BAND_H - BAND_PAD_TOP - BAND_PAD_BOTTOM
+  const usedSpace = pillH + bandGap + titleH + (featuresH > 0 ? bandGap + featuresH : 0)
+  const verticalOffset = Math.max(0, Math.round((innerSpace - usedSpace) / 2))
+  let cy = BAND_TOP + BAND_PAD_TOP + verticalOffset
   let px = BAND_PAD_SIDES
   pills.forEach((t, i) => {
     const variant: PillVariant = i === 0 ? 'solid-green' : 'ghost-dark'
