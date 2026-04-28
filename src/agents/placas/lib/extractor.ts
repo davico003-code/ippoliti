@@ -9,7 +9,7 @@ import { CATALOGO_BLOQUES, CHROME_GUIDE } from '../config/bloques-config'
 import type { Carrusel, NotaParaExtractor } from '../types'
 import { asCarrusel, validarCarrusel } from './validaciones'
 
-const MODEL = 'claude-sonnet-4-5'
+const MODEL = 'claude-sonnet-4-6'
 const MAX_INTENTOS = 3
 const MAX_TOKENS = 8000
 const TEMPERATURE = 0.65

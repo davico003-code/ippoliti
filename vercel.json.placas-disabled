@@ -1,0 +1,13 @@
+{
+  "_comment": "Crons de placas en pausa. JSON puro no admite comentarios; este archivo es referencia para reactivar. Para volver a activar, mover las entradas de 'crons_disabled' al array 'crons' de vercel.json (martes 11:05 UTC y viernes 11:05 UTC, 5 min después del writer). Ver src/agents/placas/* y src/app/api/cron/placas-generator/route.ts.",
+  "crons_disabled": [
+    {
+      "path": "/api/cron/placas-generator",
+      "schedule": "5 11 * * 2"
+    },
+    {
+      "path": "/api/cron/placas-generator",
+      "schedule": "5 11 * * 5"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 export async function GET(req: Request) {
   const auth = req.headers.get('authorization');
@@ -15,9 +15,16 @@ export async function GET(req: Request) {
     return Response.json({ ...result, timestamp: new Date().toISOString() });
   } catch (err) {
     console.error('[blog-writer-viernes] Error:', err);
-    return Response.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
-    );
+    const errMsg = err instanceof Error ? err.message : 'Unknown error';
+    try {
+      const { notificarConAlerta } = await import('@/agents/blog/lib/alert');
+      await notificarConAlerta(
+        `❌ writer-viernes: error fatal no capturado\n\n${errMsg}`,
+        'writer-viernes: error-fatal',
+      );
+    } catch (alertErr) {
+      console.error('[blog-writer-viernes] alerta también falló:', alertErr);
+    }
+    return Response.json({ error: errMsg }, { status: 500 });
   }
 }

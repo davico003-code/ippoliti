@@ -6,7 +6,7 @@ import { getAllExistingSlugs } from '@/lib/blog-posts-dinamicos';
 import type { TemaPropuesto, NotaDraft } from '../types';
 import type { CTA } from '../config/ctas';
 
-const MODEL_WRITER = 'claude-opus-4-6';
+const MODEL_WRITER = 'claude-opus-4-7';
 const MAX_INTENTOS = 3;
 
 function stripJsonFences(raw: string): string {

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-const MODEL_DEFAULT = 'claude-opus-4-6';
+const MODEL_DEFAULT = 'claude-opus-4-7';
 const MAX_RETRIES = 3;
 
 let _client: Anthropic | null = null;
