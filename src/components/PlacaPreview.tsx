@@ -141,7 +141,7 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
         className="absolute flex flex-col"
         style={{ left: '7%', right: '7%', bottom: '4%', gap: '2.6cqw' }}
       >
-        <div className="flex flex-wrap" style={{ gap: '1.4cqw' }}>
+        <div className="flex flex-wrap" style={{ gap: '1.4cqw', marginBottom: '-1.4cqw' }}>
           {pills.map((p, i) => <Pill key={i} item={p} ghostVariant="ghost-light" />)}
         </div>
         <h3

@@ -269,6 +269,7 @@ async function drawEditorialCover(
   const pillFontSize = 24
   const pillGap = 14
   const gapItems = 50
+  const PILLS_TO_TITLE_GAP = 24
 
   const pills = buildPillTexts(props)
 
@@ -303,7 +304,7 @@ async function drawEditorialCover(
   const footerH = 40 + 4 + 34
 
   const totalBlockH = pillsRowH
-    + gapItems + titleH
+    + PILLS_TO_TITLE_GAP + titleH
     + (featuresH > 0 ? gapItems + featuresH : 0)
     + div1MarginTop + div1H + div1MarginBottom
     + priceBlockH
@@ -318,7 +319,7 @@ async function drawEditorialCover(
     const pw = drawPill(ctx, t, px, cy, { variant, fontSize: pillFontSize, textColor: '#fff', pillH, padX: pillPadX })
     px += pw + pillGap
   })
-  cy += pillsRowH + gapItems
+  cy += pillsRowH + PILLS_TO_TITLE_GAP
 
   ctx.fillStyle = '#fff'
   ctx.font = `800 ${tSize}px Raleway, system-ui, sans-serif`
