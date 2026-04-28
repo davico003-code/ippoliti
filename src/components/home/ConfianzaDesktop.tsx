@@ -128,7 +128,7 @@ export default function ConfianzaDesktop() {
               Nuestras sedes
             </p>
             <h3 className="font-raleway font-black text-[36px] leading-tight mt-2 text-gray-900">
-              Tres puertas. Mismo estudio.
+              Tres lugares para encontrarnos.
             </h3>
           </div>
 

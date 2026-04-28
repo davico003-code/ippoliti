@@ -118,7 +118,7 @@ export default function ConfianzaSection() {
           Nuestras sedes
         </p>
         <h3 className="font-raleway font-black text-[22px] leading-tight mt-1 text-gray-900">
-          Tres puertas. Mismo estudio.
+          Tres lugares para encontrarnos.
         </h3>
 
         <div className="mt-5 -mx-5 px-5 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
