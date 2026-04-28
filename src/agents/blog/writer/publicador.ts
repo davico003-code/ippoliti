@@ -40,11 +40,12 @@ export async function publicarNota(nota: NotaDraft): Promise<NotaPublicada> {
     console.log('[publicador] Sin imagen Unsplash, usando placeholder');
   }
 
-  // 1. Guardar en Vercel Blob
+  // 1. Guardar en Vercel Blob (store dedicado al blog, público)
   const blobPath = `blog-posts/${nota.slug}.json`;
   await put(blobPath, JSON.stringify(publicada), {
     access: 'public',
     contentType: 'application/json',
+    token: process.env.BLOG_READ_WRITE_TOKEN,
   });
   console.log(`[publicador] Blob guardado: ${blobPath}`);
 

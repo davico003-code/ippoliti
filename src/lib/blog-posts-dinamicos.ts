@@ -61,9 +61,10 @@ export async function getPostsDinamicos(): Promise<BlogPost[]> {
     const blobs: ListBlobResultBlob[] = [];
     let cursor: string | undefined;
 
-    // Paginar el listado de blobs
+    // Paginar el listado de blobs (store dedicado al blog)
+    const token = process.env.BLOG_READ_WRITE_TOKEN;
     do {
-      const result = await list({ prefix: 'blog-posts/', cursor });
+      const result = await list({ prefix: 'blog-posts/', cursor, token });
       blobs.push(...result.blobs);
       cursor = result.hasMore ? result.cursor : undefined;
     } while (cursor);

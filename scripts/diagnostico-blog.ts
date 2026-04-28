@@ -193,17 +193,20 @@ async function checkRedis(): Promise<void> {
 
 async function checkBlob(): Promise<void> {
   // El prefix real en publicador.ts es "blog-posts/" (no "blob-posts/").
-  // Listamos ambos por las dudas y reportamos cuál tiene contenido.
+  // El blog usa un store dedicado (BLOG_READ_WRITE_TOKEN); las placas
+  // siguen en el store viejo (BLOB_READ_WRITE_TOKEN).
   header('3. BLOB STORAGE');
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    console.log('  ✗ BLOB_READ_WRITE_TOKEN ausente — no puedo listar.');
+
+  const blogToken = process.env.BLOG_READ_WRITE_TOKEN;
+  if (!blogToken) {
+    console.log('  ✗ BLOG_READ_WRITE_TOKEN ausente — no puedo listar el store del blog.');
     return;
   }
 
   for (const prefix of ['blog-posts/', 'blob-posts/']) {
-    console.log(`\n● prefix="${prefix}"`);
+    console.log(`\n● prefix="${prefix}" (store blog)`);
     try {
-      const res = await list({ prefix, limit: 50 });
+      const res = await list({ prefix, limit: 50, token: blogToken });
       const blobs = [...res.blobs].sort(
         (a, b) =>
           new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
