@@ -1,8 +1,9 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
-const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
 const GREEN = '#1A5C38'
+const GOLD = '#C9A84C'
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -36,7 +37,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export default function Footer() {
   return (
-    <footer style={{ background: '#111', padding: '48px 48px 32px', color: '#fff' }}>
+    <footer style={{ background: GREEN, padding: '48px 48px 32px', color: '#fff' }}>
       <style>{`
         .footer-top { display: flex; gap: 56px; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; }
         .footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; flex: 1; }
@@ -53,50 +54,14 @@ export default function Footer() {
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div className="footer-top">
           {/* Logo */}
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flexShrink: 0 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                background: GREEN,
-                borderRadius: 6,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontFamily: POPPINS,
-                fontWeight: 700,
-                fontSize: 13,
-              }}
-            >
-              SI
-            </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: RALEWAY,
-                  fontWeight: 600,
-                  fontSize: 11,
-                  color: '#fff',
-                  letterSpacing: '1.2px',
-                  lineHeight: 1.2,
-                }}
-              >
-                INMOBILIARIA
-              </div>
-              <div
-                style={{
-                  fontFamily: POPPINS,
-                  fontSize: 9,
-                  color: 'rgba(255,255,255,0.4)',
-                  letterSpacing: '1px',
-                  marginTop: 2,
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                DESDE 1983
-              </div>
-            </div>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
+            <Image
+              src="/logo-blanco.png"
+              alt="SI Inmobiliaria"
+              width={164}
+              height={24}
+              style={{ height: 32, width: 'auto', objectFit: 'contain' }}
+            />
           </Link>
 
           {/* Columns */}
@@ -107,10 +72,10 @@ export default function Footer() {
                   style={{
                     fontFamily: POPPINS,
                     fontSize: 9,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '1.5px',
-                    color: 'rgba(255,255,255,0.35)',
+                    color: GOLD,
                     marginBottom: 16,
                   }}
                 >
@@ -125,7 +90,7 @@ export default function Footer() {
                       display: 'block',
                       fontFamily: POPPINS,
                       fontSize: 12,
-                      color: 'rgba(255,255,255,0.55)',
+                      color: 'rgba(255,255,255,0.85)',
                       textDecoration: 'none',
                       marginBottom: 8,
                       transition: 'color 0.2s ease',
@@ -141,7 +106,7 @@ export default function Footer() {
 
         <div
           style={{
-            borderTop: '0.5px solid rgba(255,255,255,0.1)',
+            borderTop: '0.5px solid rgba(255,255,255,0.2)',
             paddingTop: 24,
             display: 'flex',
             justifyContent: 'space-between',
@@ -154,7 +119,7 @@ export default function Footer() {
             style={{
               fontFamily: POPPINS,
               fontSize: 11,
-              color: 'rgba(255,255,255,0.3)',
+              color: 'rgba(255,255,255,0.7)',
               margin: 0,
               fontVariantNumeric: 'tabular-nums',
             }}
@@ -165,7 +130,7 @@ export default function Footer() {
             style={{
               fontFamily: POPPINS,
               fontSize: 11,
-              color: 'rgba(255,255,255,0.3)',
+              color: 'rgba(255,255,255,0.7)',
               display: 'flex',
               gap: 12,
             }}
