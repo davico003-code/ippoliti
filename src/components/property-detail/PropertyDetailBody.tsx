@@ -205,10 +205,12 @@ export default function PropertyDetailBody({
 
       {/* DESCRIPCIÓN */}
       {description && (
-        <section id="descripcion" className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Descripción</h2>
-          <PropertyDescription text={description} />
-        </section>
+        <SectionBoundary name="descripcion">
+          <section id="descripcion" className={CARD}>
+            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Descripción</h2>
+            <PropertyDescription text={description} />
+          </section>
+        </SectionBoundary>
       )}
 
       {/* SUPERFICIES */}
@@ -267,7 +269,7 @@ export default function PropertyDetailBody({
       <SectionBoundary name="ubicacion">
         <section id="ubicacion" className={CARD}>
           <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Ubicación</h2>
-          <div className="rounded-[14px] overflow-hidden mb-3" style={{ aspectRatio: '16/9' }}>
+          <div className="rounded-[14px] overflow-hidden mb-3" style={{ aspectRatio: '4/3' }}>
             <PropertyMap
               lat={currentLat}
               lng={currentLng}

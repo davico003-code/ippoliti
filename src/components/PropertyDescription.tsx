@@ -68,7 +68,13 @@ function Block({ block }: { block: FormattedBlock }) {
 }
 
 export default function PropertyDescription({ text }: { text: string | null | undefined }) {
-  const blocks = useMemo(() => formatDescription(text), [text])
+  const blocks = useMemo(() => {
+    const parsed = formatDescription(text)
+    if (parsed.length > 0) return parsed
+    const fallback = (text ?? '').trim()
+    if (!fallback) return []
+    return [{ type: 'paragraph', content: fallback }] as FormattedBlock[]
+  }, [text])
   const [expanded, setExpanded] = useState(false)
 
   if (blocks.length === 0) return null

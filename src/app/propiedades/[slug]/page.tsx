@@ -206,7 +206,7 @@ export default async function PropertyPage({ params }: Props) {
         {/* Sticky tabs con scroll horizontal */}
         <PropertyStickyNav
           sections={[
-            { id: 'overview', label: 'Overview' },
+            { id: 'overview', label: 'Resumen' },
             { id: 'caracteristicas', label: 'Características' },
             { id: 'descripcion', label: 'Descripción' },
             { id: 'planos', label: 'Planos' },

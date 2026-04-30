@@ -3,15 +3,18 @@
 // Lazy-loaded video embed. Renders a poster with a play button and mounts
 // the real iframe/video element only after the user clicks (or the section
 // enters the viewport, whichever comes first). Supports YouTube, Vimeo, MP4.
+//
+// On play we attempt to enter fullscreen automatically. If the browser
+// rejects the request (e.g. Safari iOS without user-gesture chain), we
+// silently fall back to inline playback inside the 16:9 container.
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import { Play } from 'lucide-react'
 import type { TokkoVideo } from '@/lib/tokko'
 
 type EmbedInfo =
-  | { kind: 'youtube'; src: string; thumb: string }
-  | { kind: 'vimeo'; src: string; thumb: string | null }
-  | { kind: 'mp4'; src: string; thumb: string | null }
+  | { kind: 'youtube'; src: string; thumbs: string[] }
+  | { kind: 'vimeo'; src: string; thumbs: string[] }
+  | { kind: 'mp4'; src: string; thumbs: string[] }
   | null
 
 function parseVideo(v: TokkoVideo, fallbackPoster: string | null): EmbedInfo {
@@ -32,8 +35,12 @@ function parseVideo(v: TokkoVideo, fallbackPoster: string | null): EmbedInfo {
   if (ytId) {
     return {
       kind: 'youtube',
-      src: `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1`,
-      thumb: `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`,
+      src: `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&fs=1`,
+      thumbs: [
+        `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg`,
+        `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`,
+        ...(fallbackPoster ? [fallbackPoster] : []),
+      ],
     }
   }
   // Vimeo
@@ -43,62 +50,113 @@ function parseVideo(v: TokkoVideo, fallbackPoster: string | null): EmbedInfo {
     return m ? m[1] : null
   })()
   if (vimeoId) {
-    return { kind: 'vimeo', src: `https://player.vimeo.com/video/${vimeoId}`, thumb: fallbackPoster }
+    return {
+      kind: 'vimeo',
+      src: `https://player.vimeo.com/video/${vimeoId}?fs=1`,
+      thumbs: fallbackPoster ? [fallbackPoster] : [],
+    }
   }
   // MP4
   if (/\.(mp4|webm|ogg)(\?|$)/i.test(rawUrl)) {
-    return { kind: 'mp4', src: rawUrl, thumb: fallbackPoster }
+    return { kind: 'mp4', src: rawUrl, thumbs: fallbackPoster ? [fallbackPoster] : [] }
   }
   return null
 }
 
+function tryFullscreen(el: HTMLElement | null) {
+  if (!el) return
+  const req =
+    el.requestFullscreen ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (el as any).webkitRequestFullscreen ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (el as any).msRequestFullscreen
+  if (typeof req === 'function') {
+    try {
+      const r = req.call(el)
+      if (r && typeof r.catch === 'function') r.catch(() => {})
+    } catch {
+      // Silently ignore — inline playback is the fallback.
+    }
+  }
+}
+
 function VideoEmbed({ video, fallbackPoster }: { video: TokkoVideo; fallbackPoster: string | null }) {
   const [active, setActive] = useState(false)
+  const [thumbIdx, setThumbIdx] = useState(0)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const videoElRef = useRef<HTMLVideoElement>(null)
   const info = parseVideo(video, fallbackPoster)
   if (!info) return null
 
   const title = video.title || 'Video de la propiedad'
+  const currentThumb = info.thumbs[thumbIdx]
+
+  const handlePlay = () => {
+    setActive(true)
+    // Defer fullscreen until the iframe/video has mounted in the DOM.
+    requestAnimationFrame(() => {
+      if (info.kind === 'mp4') {
+        const v = videoElRef.current
+        if (v) {
+          v.play().catch(() => {})
+          tryFullscreen(v)
+          return
+        }
+      }
+      tryFullscreen(wrapperRef.current)
+    })
+  }
 
   return (
-    <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+    <div ref={wrapperRef} className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
       {!active ? (
         <button
           type="button"
-          onClick={() => setActive(true)}
+          onClick={handlePlay}
           className="group absolute inset-0 flex items-center justify-center focus:outline-none"
           aria-label={`Reproducir ${title}`}
         >
-          {info.thumb ? (
-            <Image
-              src={info.thumb}
+          {currentThumb ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={currentThumb}
               alt={title}
-              fill
-              sizes="(max-width: 768px) 100vw, 900px"
-              className="object-cover"
               loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={() => setThumbIdx(i => (i + 1 < info.thumbs.length ? i + 1 : i))}
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-700" />
           )}
-          <div className="absolute inset-0 bg-black/35 group-hover:bg-black/25 transition-colors" />
-          <span className="relative z-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/95 group-hover:scale-105 transition-transform flex items-center justify-center shadow-lg">
-            <Play className="w-7 h-7 md:w-8 md:h-8 text-[#1A5C38] ml-1" fill="currentColor" />
+          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
+          <span
+            className="relative z-10 w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110"
+            style={{
+              background: 'rgba(26, 92, 56, 0.92)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: '2px solid rgba(255,255,255,0.85)',
+            }}
+          >
+            <Play className="w-9 h-9 md:w-11 md:h-11 text-white ml-1" fill="currentColor" />
           </span>
         </button>
       ) : info.kind === 'mp4' ? (
         <video
+          ref={videoElRef}
           src={info.src}
           controls
           autoPlay
           playsInline
           className="absolute inset-0 w-full h-full"
-          poster={info.thumb ?? undefined}
+          poster={currentThumb}
         />
       ) : (
         <iframe
-          src={info.src + (info.kind === 'youtube' ? '&autoplay=1' : '?autoplay=1')}
+          src={info.src + (info.kind === 'youtube' ? '&autoplay=1' : '&autoplay=1')}
           title={title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
           allowFullScreen
           loading="lazy"
           className="absolute inset-0 w-full h-full"

@@ -534,8 +534,8 @@ const BOILERPLATE = [
 
 // Devuelve la descripción limpia (texto plano, sin HTML, sin boilerplate)
 export function getDescription(property: TokkoProperty): string {
-  const raw = property.description || property.description_only || '';
-  const clean = raw.replace(/<[^>]*>/g, '').trim();
+  const raw = property.description || property.description_only || property.rich_description || '';
+  const clean = raw.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
   if (!clean) return '';
 
   // Remove the boilerplate footer if present (it might be appended to real content)

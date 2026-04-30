@@ -27,7 +27,7 @@ const R = "'Raleway', system-ui, sans-serif"
 const PANEL_HEADER_H = 56
 
 const SECTIONS = [
-  { id: 'overview', label: 'Overview' },
+  { id: 'overview', label: 'Resumen' },
   { id: 'caracteristicas', label: 'Características' },
   { id: 'descripcion', label: 'Descripción' },
   { id: 'planos', label: 'Planos' },
