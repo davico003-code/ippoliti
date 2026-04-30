@@ -99,7 +99,13 @@
       "Bash(awk -F= '{print $1}')",
       "Bash(grep -oE \"USD[^<]{0,40}\" /tmp/home.html)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(python3 -c ' *)",
+      "Bash(grep -oE 'descripcion[^\"]{0,30}' /Users/siinmobiliaria/.claude/projects/-Users-siinmobiliaria-ippoliti/a5f89270-0976-4b82-b910-5b4e2c2a56c2/tool-results/b667egu61.txt)",
+      "Bash(kill 14093)",
+      "Bash(lsof -i:3000)",
+      "Bash(kill 14271)",
+      "Bash(echo \"TS EXIT: $?\")"
     ]
   }
 }

@@ -535,23 +535,31 @@ const BOILERPLATE = [
 // Devuelve la descripción limpia (texto plano, sin HTML, sin boilerplate)
 export function getDescription(property: TokkoProperty): string {
   const raw = property.description || property.description_only || property.rich_description || '';
-  const clean = raw.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  let clean = raw.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
   if (!clean) return '';
 
-  // Remove the boilerplate footer if present (it might be appended to real content)
+  // Strip the explicit footer field if Tokko sent it appended.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const footer = (property as any).footer;
   if (typeof footer === 'string' && footer.trim()) {
     const footerClean = footer.replace(/<[^>]*>/g, '').trim();
     if (footerClean && clean.includes(footerClean)) {
-      const stripped = clean.replace(footerClean, '').trim();
-      return stripped;
+      clean = clean.replace(footerClean, '').trim();
     }
   }
 
-  // Fallback: if the entire text IS the boilerplate, discard it
+  // Tokko appends a boilerplate sales pitch at the bottom of every description.
+  // Cut it from the first occurrence of any boilerplate phrase to the end —
+  // earlier logic dropped the entire field when both phrases were present, which
+  // wiped out real content above the footer.
   const lower = clean.toLowerCase();
-  if (BOILERPLATE.every(phrase => lower.includes(phrase))) return '';
+  let cutIndex = -1;
+  for (const phrase of BOILERPLATE) {
+    const idx = lower.indexOf(phrase);
+    if (idx !== -1 && (cutIndex === -1 || idx < cutIndex)) cutIndex = idx;
+  }
+  if (cutIndex !== -1) clean = clean.slice(0, cutIndex).trim();
+
   return clean;
 }
 
