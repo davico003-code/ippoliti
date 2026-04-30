@@ -571,7 +571,7 @@ export async function getProperties(params?: {
   limit?: number;
   offset?: number;
 }): Promise<TokkoListResponse> {
-  const fetchPage = async (limit: number, offset: number) => {
+  const fetchPage = async (limit: number, offset: number): Promise<TokkoListResponse> => {
     const url = new URL(`${BASE_URL}/property/`);
     url.searchParams.set('key', getApiKey());
     url.searchParams.set('format', 'json');
@@ -588,15 +588,26 @@ export async function getProperties(params?: {
       url.searchParams.set('property_types', `[${params.typeId}]`);
     }
 
-    const res = await fetch(url.toString(), {
-      next: { revalidate: 3600 },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Tokko API error: ${res.status} ${res.statusText}`);
+    // Retry transient failures (403/429/5xx) — Tokko rate-limits cold renders.
+    let lastErr: unknown = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch(url.toString(), {
+          next: { revalidate: 3600 },
+        });
+        if (!res.ok) {
+          lastErr = new Error(`Tokko API error: ${res.status} ${res.statusText}`);
+          if (attempt < 2) { await new Promise(r => setTimeout(r, 500 * (attempt + 1))); continue; }
+          throw lastErr;
+        }
+        return (await res.json()) as TokkoListResponse;
+      } catch (e) {
+        lastErr = e;
+        if (attempt < 2) { await new Promise(r => setTimeout(r, 500 * (attempt + 1))); continue; }
+        throw e;
+      }
     }
-
-    return res.json() as Promise<TokkoListResponse>;
+    throw lastErr ?? new Error('Tokko API: unreachable');
   };
 
   const initialLimit = params?.limit ?? 100;

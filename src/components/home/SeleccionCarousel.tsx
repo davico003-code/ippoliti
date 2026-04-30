@@ -25,12 +25,15 @@ export default async function SeleccionCarousel() {
   let totalCount = 0
   try {
     properties = await getFeaturedProperties(8)
+  } catch {
+    // Tokko API no disponible — seguimos rendering la sección con el CTA.
+  }
+  try {
     const allData = await getProperties({ limit: 1 })
     totalCount = allData.meta?.total_count ?? 0
   } catch {
-    // Tokko API no disponible (ej: preview sin TOKKO_API_KEY)
+    // ok — usamos fallback en el CTA
   }
-  if (!properties || properties.length === 0) return null
 
   return (
     <section className="px-5 pt-4 pb-6">

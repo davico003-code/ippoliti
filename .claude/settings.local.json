@@ -105,7 +105,9 @@
       "Bash(kill 14093)",
       "Bash(lsof -i:3000)",
       "Bash(kill 14271)",
-      "Bash(echo \"TS EXIT: $?\")"
+      "Bash(echo \"TS EXIT: $?\")",
+      "Bash(kill 14827)",
+      "Bash(kill 14896)"
     ]
   }
 }
