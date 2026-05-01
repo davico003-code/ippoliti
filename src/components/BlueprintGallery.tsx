@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Image from 'next/image'
-import Lightbox from 'yet-another-react-lightbox'
+import { RotateCcw } from 'lucide-react'
+import Lightbox, { type ControllerRef } from 'yet-another-react-lightbox'
 import Zoom from 'yet-another-react-lightbox/plugins/zoom'
 import 'yet-another-react-lightbox/styles.css'
 
@@ -13,10 +14,39 @@ interface Props {
 export default function BlueprintGallery({ blueprints }: Props) {
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(0)
+  const lightboxRef = useRef<ControllerRef>(null)
 
   if (blueprints.length === 0) return null
 
   const slides = blueprints.map(src => ({ src }))
+  const isLast = blueprints.length > 1 && index >= blueprints.length - 1
+
+  const restartButton = (
+    <button
+      key="restart-blueprints"
+      type="button"
+      onClick={() => {
+        if (blueprints.length <= 1) return
+        lightboxRef.current?.prev({ count: blueprints.length - 1 })
+      }}
+      aria-label="Volver al primer plano"
+      className="yarl__button"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '0 14px',
+        height: 44,
+        color: '#fff',
+        fontFamily: "'Raleway', system-ui, sans-serif",
+        fontWeight: 600,
+        fontSize: 13,
+      }}
+    >
+      <RotateCcw className="w-4 h-4" />
+      <span>Volver al inicio</span>
+    </button>
+  )
 
   return (
     <>
@@ -47,16 +77,19 @@ export default function BlueprintGallery({ blueprints }: Props) {
         open={open}
         close={() => setOpen(false)}
         index={index}
+        controller={{ ref: lightboxRef, closeOnBackdropClick: true }}
         slides={slides}
         plugins={[Zoom]}
         on={{ view: ({ index: i }) => setIndex(i) }}
-        carousel={{ finite: false }}
+        carousel={{ finite: true }}
         animation={{ fade: 250, swipe: 200 }}
-        controller={{ closeOnBackdropClick: true }}
         zoom={{ maxZoomPixelRatio: 3, scrollToZoom: true }}
         styles={{
-          container: { backgroundColor: 'rgba(0,0,0,0.95)' },
+          container: { backgroundColor: '#000' },
           button: { filter: 'none' },
+        }}
+        toolbar={{
+          buttons: isLast ? [restartButton, 'close'] : ['close'],
         }}
         render={{
           iconPrev: () => (

@@ -107,7 +107,9 @@
       "Bash(kill 14271)",
       "Bash(echo \"TS EXIT: $?\")",
       "Bash(kill 14827)",
-      "Bash(kill 14896)"
+      "Bash(kill 14896)",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\(p.get\\('dependencies',{}\\).get\\('yet-another-react-lightbox','not found'\\)\\)\")",
+      "Bash(kill 16485)"
     ]
   }
 }

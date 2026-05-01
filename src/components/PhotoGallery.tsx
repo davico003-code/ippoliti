@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import Lightbox from 'yet-another-react-lightbox'
+import { RotateCcw } from 'lucide-react'
+import Lightbox, { type ControllerRef } from 'yet-another-react-lightbox'
 import 'yet-another-react-lightbox/styles.css'
 
 interface Props {
@@ -14,6 +15,7 @@ export default function PhotoGallery({ photos, alt }: Props) {
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+  const lightboxRef = useRef<ControllerRef>(null)
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -30,6 +32,34 @@ export default function PhotoGallery({ photos, alt }: Props) {
   if (photos.length === 0) return null
 
   const slides = photos.map(src => ({ src }))
+  const isLast = photos.length > 1 && index >= photos.length - 1
+
+  const restartButton = (
+    <button
+      key="restart-photos"
+      type="button"
+      onClick={() => {
+        if (photos.length <= 1) return
+        lightboxRef.current?.prev({ count: photos.length - 1 })
+      }}
+      aria-label="Volver a la primera foto"
+      className="yarl__button"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '0 14px',
+        height: 44,
+        color: '#fff',
+        fontFamily: "'Raleway', system-ui, sans-serif",
+        fontWeight: 600,
+        fontSize: 13,
+      }}
+    >
+      <RotateCcw className="w-4 h-4" />
+      <span>Volver al inicio</span>
+    </button>
+  )
 
   return (
     <>
@@ -63,12 +93,15 @@ export default function PhotoGallery({ photos, alt }: Props) {
           open={open}
           close={() => setOpen(false)}
           index={index}
+          controller={{ ref: lightboxRef, closeOnBackdropClick: true }}
           slides={slides}
           on={{ view: ({ index: i }) => setIndex(i) }}
-          carousel={{ finite: false }}
+          carousel={{ finite: true }}
           animation={{ fade: 250, swipe: 200 }}
-          controller={{ closeOnBackdropClick: true }}
-          styles={{ container: { backgroundColor: 'rgba(0,0,0,0.92)' }, button: { filter: 'none' } }}
+          styles={{ container: { backgroundColor: '#000' }, button: { filter: 'none' } }}
+          toolbar={{
+            buttons: isLast ? [restartButton, 'close'] : ['close'],
+          }}
           render={{
             iconPrev: () => <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>,
             iconNext: () => <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>,

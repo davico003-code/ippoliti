@@ -8,9 +8,18 @@
 // the two layouts are structurally different enough (mobile: single item,
 // desktop: 5-col grid with row-span) that unifying forced a tall 2×2 thumb
 // strip on mobile that filled the viewport.
-import { useState } from 'react'
+//
+// The fullscreen viewer is `yet-another-react-lightbox` — rendered via portal
+// so it escapes any transformed ancestor (PropertyPanel uses translateX which
+// would otherwise contain a `position: fixed` overlay and let the listing/map
+// leak around the edges). Configured with `finite: true` so the carousel
+// stops at the last slide instead of advancing to a blank slot, and a
+// "Volver al inicio" toolbar button appears on the last slide.
+import { useRef, useState } from 'react'
 import Image from 'next/image'
-import { Camera, Images } from 'lucide-react'
+import { Camera, Images, RotateCcw } from 'lucide-react'
+import Lightbox, { type ControllerRef } from 'yet-another-react-lightbox'
+import 'yet-another-react-lightbox/styles.css'
 import type { TokkoProperty } from '@/lib/tokko'
 import { getAllPhotos, getOperationType, translatePropertyType } from '@/lib/tokko'
 
@@ -18,7 +27,9 @@ const GREEN = '#1A5C38'
 
 export default function PropertyGalleryHero({ property }: { property: TokkoProperty }) {
   const photos = getAllPhotos(property)
-  const [showAll, setShowAll] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [index, setIndex] = useState(0)
+  const lightboxRef = useRef<ControllerRef>(null)
   const operation = getOperationType(property)
   const propType = translatePropertyType(property.type?.name)
   const address = property.fake_address || property.address
@@ -27,6 +38,39 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
 
   const thumbs = photos.slice(1, 5)
   const hasOverlaySlot = photos.length > 5
+  const isLast = photos.length > 1 && index >= photos.length - 1
+
+  const openAt = (i: number) => {
+    setIndex(i)
+    setOpen(true)
+  }
+
+  const restartButton = (
+    <button
+      key="restart-gallery"
+      type="button"
+      onClick={() => {
+        if (photos.length <= 1) return
+        lightboxRef.current?.prev({ count: photos.length - 1 })
+      }}
+      aria-label="Volver a la primera foto"
+      className="yarl__button"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '0 14px',
+        height: 44,
+        color: '#fff',
+        fontFamily: "'Raleway', system-ui, sans-serif",
+        fontWeight: 600,
+        fontSize: 13,
+      }}
+    >
+      <RotateCcw className="w-4 h-4" />
+      <span>Volver al inicio</span>
+    </button>
+  )
 
   return (
     <>
@@ -34,7 +78,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
       <div className="md:hidden">
         <div
           className="relative w-full h-[280px] rounded-xl overflow-hidden cursor-pointer"
-          onClick={() => setShowAll(true)}
+          onClick={() => openAt(0)}
         >
           <Image
             src={photos[0]}
@@ -74,7 +118,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
         <div className="grid grid-cols-5 grid-rows-2 gap-2 h-[440px] rounded-2xl overflow-hidden">
           <div
             className="relative col-span-3 row-span-2 cursor-pointer group overflow-hidden"
-            onClick={() => setShowAll(true)}
+            onClick={() => openAt(0)}
           >
             <Image
               src={photos[0]}
@@ -110,7 +154,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
               <div
                 key={i}
                 className="relative col-span-1 cursor-pointer group overflow-hidden"
-                onClick={() => setShowAll(true)}
+                onClick={() => openAt(i + 1)}
               >
                 <Image
                   src={photo}
@@ -120,7 +164,10 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
                   sizes="20vw"
                 />
                 {isLastSlot && hasOverlaySlot && (
-                  <div className="absolute inset-0 bg-black/55 flex items-center justify-center gap-1.5">
+                  <div
+                    className="absolute inset-0 bg-black/55 flex items-center justify-center gap-1.5"
+                    onClick={(e) => { e.stopPropagation(); openAt(0) }}
+                  >
                     <Images className="w-4 h-4 text-white" />
                     <span className="text-white text-sm font-semibold">Ver las {photos.length} fotos</span>
                   </div>
@@ -134,7 +181,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
         {photos.length > 1 && !hasOverlaySlot && (
           <div className="flex justify-end mt-3">
             <button
-              onClick={() => setShowAll(true)}
+              onClick={() => openAt(0)}
               className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg text-xs font-semibold text-gray-800 shadow-sm"
               style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
             >
@@ -144,32 +191,43 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
         )}
       </div>
 
-      {/* Lightbox fullscreen — compartido entre mobile y desktop */}
-      {showAll && (
-        <div className="fixed inset-0 z-[10500] bg-black">
-          <button
-            onClick={() => setShowAll(false)}
-            aria-label="Cerrar galería"
-            className="absolute top-4 right-4 z-10 text-white bg-white/20 rounded-full w-10 h-10 flex items-center justify-center text-xl hover:bg-white/30"
-          >
-            &times;
-          </button>
-          <div className="h-full overflow-y-auto p-4 pt-16">
-            <div className="max-w-4xl mx-auto space-y-2">
-              {photos.map((p, i) => (
-                <Image
-                  key={i}
-                  src={p}
-                  alt={`Foto ${i + 1}`}
-                  width={1200}
-                  height={800}
-                  className="w-full h-auto rounded-lg"
-                />
-              ))}
+      {/* Fullscreen lightbox (portal-rendered → escapes any transformed ancestor) */}
+      <Lightbox
+        open={open}
+        close={() => setOpen(false)}
+        index={index}
+        controller={{ ref: lightboxRef, closeOnBackdropClick: true }}
+        slides={photos.map(src => ({ src }))}
+        on={{ view: ({ index: i }) => setIndex(i) }}
+        carousel={{ finite: true, padding: 0 }}
+        animation={{ fade: 250, swipe: 200 }}
+        styles={{
+          container: { backgroundColor: '#000' },
+          button: { filter: 'none' },
+        }}
+        toolbar={{
+          buttons: isLast ? [restartButton, 'close'] : ['close'],
+        }}
+        render={{
+          iconPrev: () => (
+            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
             </div>
-          </div>
-        </div>
-      )}
+          ),
+          iconNext: () => (
+            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+            </div>
+          ),
+          iconClose: () => (
+            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </div>
+          ),
+          buttonPrev: photos.length <= 1 ? () => null : undefined,
+          buttonNext: photos.length <= 1 ? () => null : undefined,
+        }}
+      />
     </>
   )
 }
