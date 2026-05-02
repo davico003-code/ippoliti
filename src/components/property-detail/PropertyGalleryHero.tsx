@@ -9,71 +9,34 @@
 // desktop: 5-col grid with row-span) that unifying forced a tall 2×2 thumb
 // strip on mobile that filled the viewport.
 //
-// The fullscreen viewer is `yet-another-react-lightbox` — rendered via portal
-// so it escapes any transformed ancestor (PropertyPanel uses translateX which
-// would otherwise contain a `position: fixed` overlay and let the listing/map
-// leak around the edges). Configured with `finite: true` so the carousel
-// stops at the last slide instead of advancing to a blank slot, and a
-// "Volver al inicio" toolbar button appears on the last slide.
-import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+// The fullscreen viewer lives at the layout root (`GalleryLightboxProvider`).
+// We just call `openGallery(photos, startIndex)`. Doing this avoided two
+// failed attempts to render a local <Lightbox> here: the panel's `transform`
+// + `animation` create a containing block for `position: fixed`, so even a
+// `createPortal` to `document.body` wasn't enough — the React tree's
+// transform context still leaked via inherited stacking. Hoisting the
+// lightbox above PropertyPanel makes the bug impossible by construction.
 import Image from 'next/image'
-import { Camera, Images, RotateCcw } from 'lucide-react'
-import Lightbox, { type ControllerRef } from 'yet-another-react-lightbox'
+import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
 import { getAllPhotos, getOperationType, translatePropertyType } from '@/lib/tokko'
+import { useGalleryLightbox } from '@/components/lightbox/useGalleryLightbox'
 
 const GREEN = '#1A5C38'
 
 export default function PropertyGalleryHero({ property }: { property: TokkoProperty }) {
   const photos = getAllPhotos(property)
-  const [open, setOpen] = useState(false)
-  const [index, setIndex] = useState(0)
-  const [mounted, setMounted] = useState(false)
-  const lightboxRef = useRef<ControllerRef>(null)
+  const { openGallery } = useGalleryLightbox()
   const operation = getOperationType(property)
   const propType = translatePropertyType(property.type?.name)
   const address = property.fake_address || property.address
-
-  useEffect(() => { setMounted(true) }, [])
 
   if (photos.length === 0) return null
 
   const thumbs = photos.slice(1, 5)
   const hasOverlaySlot = photos.length > 5
-  const isLast = photos.length > 1 && index >= photos.length - 1
 
-  const openAt = (i: number) => {
-    setIndex(i)
-    setOpen(true)
-  }
-
-  const restartButton = (
-    <button
-      key="restart-gallery"
-      type="button"
-      onClick={() => {
-        if (photos.length <= 1) return
-        lightboxRef.current?.prev({ count: photos.length - 1 })
-      }}
-      aria-label="Volver a la primera foto"
-      className="yarl__button"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '0 14px',
-        height: 44,
-        color: '#fff',
-        fontFamily: "'Raleway', system-ui, sans-serif",
-        fontWeight: 600,
-        fontSize: 13,
-      }}
-    >
-      <RotateCcw className="w-4 h-4" />
-      <span>Volver al inicio</span>
-    </button>
-  )
+  const openAt = (i: number) => openGallery(photos, i)
 
   return (
     <>
@@ -193,50 +156,6 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
           </div>
         )}
       </div>
-
-      {/* Fullscreen lightbox — manual portal a document.body para escapar el
-          containing block que crean los `transform`/`animation` de PropertyPanel.
-          (YARL portea por defecto, pero el manual portal es nuestra red de
-          seguridad y garantiza que `position: fixed` siempre se ancle al viewport.) */}
-      {mounted && createPortal(
-        <Lightbox
-          open={open}
-          close={() => setOpen(false)}
-          index={index}
-          controller={{ ref: lightboxRef, closeOnBackdropClick: true }}
-          slides={photos.map(src => ({ src }))}
-          on={{ view: ({ index: i }) => setIndex(i) }}
-          carousel={{ finite: true, padding: 0 }}
-          animation={{ fade: 250, swipe: 200 }}
-          styles={{
-            container: { backgroundColor: '#000', zIndex: 99999 },
-            button: { filter: 'none' },
-          }}
-          toolbar={{
-            buttons: isLast ? [restartButton, 'close'] : ['close'],
-          }}
-          render={{
-            iconPrev: () => (
-              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-              </div>
-            ),
-            iconNext: () => (
-              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-              </div>
-            ),
-            iconClose: () => (
-              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
-              </div>
-            ),
-            buttonPrev: photos.length <= 1 ? () => null : undefined,
-            buttonNext: photos.length <= 1 ? () => null : undefined,
-          }}
-        />,
-        document.body,
-      )}
     </>
   )
 }

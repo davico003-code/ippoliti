@@ -1,10 +1,11 @@
 'use client'
 
+// Used by emprendimientos detail (developments). Mobile keeps the
+// TikTok-style vertical scroll viewer; desktop delegates to the global
+// `GalleryLightboxProvider` that lives at the layout root.
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { createPortal } from 'react-dom'
 import Image from 'next/image'
-import { RotateCcw } from 'lucide-react'
-import Lightbox, { type ControllerRef } from 'yet-another-react-lightbox'
+import { useGalleryLightbox } from '@/components/lightbox/useGalleryLightbox'
 
 interface Props {
   photos: string[]
@@ -12,13 +13,10 @@ interface Props {
 }
 
 export default function PhotoGallery({ photos, alt }: Props) {
-  const [open, setOpen] = useState(false)
-  const [index, setIndex] = useState(0)
+  const { openGallery } = useGalleryLightbox()
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileIndex, setMobileIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const lightboxRef = useRef<ControllerRef>(null)
-
-  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -28,41 +26,15 @@ export default function PhotoGallery({ photos, alt }: Props) {
   }, [])
 
   const handleOpen = useCallback((i: number) => {
-    setIndex(i)
-    setOpen(true)
-  }, [])
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setMobileIndex(i)
+      setMobileOpen(true)
+    } else {
+      openGallery(photos, i)
+    }
+  }, [openGallery, photos])
 
   if (photos.length === 0) return null
-
-  const slides = photos.map(src => ({ src }))
-  const isLast = photos.length > 1 && index >= photos.length - 1
-
-  const restartButton = (
-    <button
-      key="restart-photos"
-      type="button"
-      onClick={() => {
-        if (photos.length <= 1) return
-        lightboxRef.current?.prev({ count: photos.length - 1 })
-      }}
-      aria-label="Volver a la primera foto"
-      className="yarl__button"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '0 14px',
-        height: 44,
-        color: '#fff',
-        fontFamily: "'Raleway', system-ui, sans-serif",
-        fontWeight: 600,
-        fontSize: 13,
-      }}
-    >
-      <RotateCcw className="w-4 h-4" />
-      <span>Volver al inicio</span>
-    </button>
-  )
 
   return (
     <>
@@ -85,35 +57,9 @@ export default function PhotoGallery({ photos, alt }: Props) {
         ))}
       </div>
 
-      {/* Mobile TikTok-style viewer */}
-      {open && isMobile && (
-        <MobilePhotoViewer photos={photos} alt={alt} initialIndex={index} onClose={() => setOpen(false)} />
-      )}
-
-      {/* Desktop lightbox — manual portal a body para escapar contenedores transformados */}
-      {!isMobile && mounted && createPortal(
-        <Lightbox
-          open={open}
-          close={() => setOpen(false)}
-          index={index}
-          controller={{ ref: lightboxRef, closeOnBackdropClick: true }}
-          slides={slides}
-          on={{ view: ({ index: i }) => setIndex(i) }}
-          carousel={{ finite: true }}
-          animation={{ fade: 250, swipe: 200 }}
-          styles={{ container: { backgroundColor: '#000', zIndex: 99999 }, button: { filter: 'none' } }}
-          toolbar={{
-            buttons: isLast ? [restartButton, 'close'] : ['close'],
-          }}
-          render={{
-            iconPrev: () => <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>,
-            iconNext: () => <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>,
-            iconClose: () => <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>,
-            buttonPrev: photos.length <= 1 ? () => null : undefined,
-            buttonNext: photos.length <= 1 ? () => null : undefined,
-          }}
-        />,
-        document.body,
+      {/* Mobile TikTok-style viewer (preserved as-is from the original UX) */}
+      {mobileOpen && isMobile && (
+        <MobilePhotoViewer photos={photos} alt={alt} initialIndex={mobileIndex} onClose={() => setMobileOpen(false)} />
       )}
     </>
   )
