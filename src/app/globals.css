@@ -192,21 +192,3 @@ div[id="nosotros"] {
   scroll-margin-top: 5rem;
 }
 
-/* yet-another-react-lightbox — red de seguridad: forzamos que el visor cubra
-   SIEMPRE todo el viewport. Necesario porque la galería puede abrirse desde
-   PropertyPanel (que aplica `transform: translateX` y crea un containing
-   block para `position: fixed`); también blinda contra cualquier override de
-   Tailwind/global. Aplicamos el portal manual a `document.body`, así igual
-   estos selectores quedan a nivel root. */
-.yarl__root,
-.yarl__container,
-.yarl__portal {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 99999 !important;
-}
-.yarl__container {
-  background-color: #000 !important;
-}
