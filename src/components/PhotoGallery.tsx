@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { RotateCcw } from 'lucide-react'
 import Lightbox, { type ControllerRef } from 'yet-another-react-lightbox'
-import 'yet-another-react-lightbox/styles.css'
 
 interface Props {
   photos: string[]
@@ -15,7 +15,10 @@ export default function PhotoGallery({ photos, alt }: Props) {
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const lightboxRef = useRef<ControllerRef>(null)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -87,8 +90,8 @@ export default function PhotoGallery({ photos, alt }: Props) {
         <MobilePhotoViewer photos={photos} alt={alt} initialIndex={index} onClose={() => setOpen(false)} />
       )}
 
-      {/* Desktop lightbox */}
-      {!isMobile && (
+      {/* Desktop lightbox — manual portal a body para escapar contenedores transformados */}
+      {!isMobile && mounted && createPortal(
         <Lightbox
           open={open}
           close={() => setOpen(false)}
@@ -98,7 +101,7 @@ export default function PhotoGallery({ photos, alt }: Props) {
           on={{ view: ({ index: i }) => setIndex(i) }}
           carousel={{ finite: true }}
           animation={{ fade: 250, swipe: 200 }}
-          styles={{ container: { backgroundColor: '#000' }, button: { filter: 'none' } }}
+          styles={{ container: { backgroundColor: '#000', zIndex: 99999 }, button: { filter: 'none' } }}
           toolbar={{
             buttons: isLast ? [restartButton, 'close'] : ['close'],
           }}
@@ -109,7 +112,8 @@ export default function PhotoGallery({ photos, alt }: Props) {
             buttonPrev: photos.length <= 1 ? () => null : undefined,
             buttonNext: photos.length <= 1 ? () => null : undefined,
           }}
-        />
+        />,
+        document.body,
       )}
     </>
   )

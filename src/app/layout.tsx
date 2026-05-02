@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Raleway, Poppins, Lora, Playfair_Display } from "next/font/google";
+import "yet-another-react-lightbox/styles.css";
 import "./globals.css";
 
 const raleway = Raleway({

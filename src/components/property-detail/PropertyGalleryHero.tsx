@@ -15,11 +15,11 @@
 // leak around the edges). Configured with `finite: true` so the carousel
 // stops at the last slide instead of advancing to a blank slot, and a
 // "Volver al inicio" toolbar button appears on the last slide.
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { Camera, Images, RotateCcw } from 'lucide-react'
 import Lightbox, { type ControllerRef } from 'yet-another-react-lightbox'
-import 'yet-another-react-lightbox/styles.css'
 import type { TokkoProperty } from '@/lib/tokko'
 import { getAllPhotos, getOperationType, translatePropertyType } from '@/lib/tokko'
 
@@ -29,10 +29,13 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
   const photos = getAllPhotos(property)
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(0)
+  const [mounted, setMounted] = useState(false)
   const lightboxRef = useRef<ControllerRef>(null)
   const operation = getOperationType(property)
   const propType = translatePropertyType(property.type?.name)
   const address = property.fake_address || property.address
+
+  useEffect(() => { setMounted(true) }, [])
 
   if (photos.length === 0) return null
 
@@ -191,43 +194,49 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
         )}
       </div>
 
-      {/* Fullscreen lightbox (portal-rendered → escapes any transformed ancestor) */}
-      <Lightbox
-        open={open}
-        close={() => setOpen(false)}
-        index={index}
-        controller={{ ref: lightboxRef, closeOnBackdropClick: true }}
-        slides={photos.map(src => ({ src }))}
-        on={{ view: ({ index: i }) => setIndex(i) }}
-        carousel={{ finite: true, padding: 0 }}
-        animation={{ fade: 250, swipe: 200 }}
-        styles={{
-          container: { backgroundColor: '#000' },
-          button: { filter: 'none' },
-        }}
-        toolbar={{
-          buttons: isLast ? [restartButton, 'close'] : ['close'],
-        }}
-        render={{
-          iconPrev: () => (
-            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-            </div>
-          ),
-          iconNext: () => (
-            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-            </div>
-          ),
-          iconClose: () => (
-            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
-            </div>
-          ),
-          buttonPrev: photos.length <= 1 ? () => null : undefined,
-          buttonNext: photos.length <= 1 ? () => null : undefined,
-        }}
-      />
+      {/* Fullscreen lightbox — manual portal a document.body para escapar el
+          containing block que crean los `transform`/`animation` de PropertyPanel.
+          (YARL portea por defecto, pero el manual portal es nuestra red de
+          seguridad y garantiza que `position: fixed` siempre se ancle al viewport.) */}
+      {mounted && createPortal(
+        <Lightbox
+          open={open}
+          close={() => setOpen(false)}
+          index={index}
+          controller={{ ref: lightboxRef, closeOnBackdropClick: true }}
+          slides={photos.map(src => ({ src }))}
+          on={{ view: ({ index: i }) => setIndex(i) }}
+          carousel={{ finite: true, padding: 0 }}
+          animation={{ fade: 250, swipe: 200 }}
+          styles={{
+            container: { backgroundColor: '#000', zIndex: 99999 },
+            button: { filter: 'none' },
+          }}
+          toolbar={{
+            buttons: isLast ? [restartButton, 'close'] : ['close'],
+          }}
+          render={{
+            iconPrev: () => (
+              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </div>
+            ),
+            iconNext: () => (
+              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+              </div>
+            ),
+            iconClose: () => (
+              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </div>
+            ),
+            buttonPrev: photos.length <= 1 ? () => null : undefined,
+            buttonNext: photos.length <= 1 ? () => null : undefined,
+          }}
+        />,
+        document.body,
+      )}
     </>
   )
 }
