@@ -33,9 +33,9 @@ function StatusBanner({ status, propertyType }: { status?: 'none' | 'reservado' 
       aria-hidden
       style={{
         position: 'absolute',
-        top: '9.4%',
-        right: '-13cqw',
-        transform: 'rotate(35deg)',
+        top: '7.3%',
+        right: '0%',
+        transform: 'translateX(13%) rotate(35deg)',
         transformOrigin: 'center',
         background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
         color: '#fff',
@@ -43,7 +43,7 @@ function StatusBanner({ status, propertyType }: { status?: 'none' | 'reservado' 
         fontWeight: 800,
         fontSize: '3.9cqw',
         letterSpacing: '0.55cqw',
-        padding: '1.5cqw 8.5cqw',
+        padding: '1.2cqw 4cqw',
         textTransform: 'uppercase',
         boxShadow: '0 0.7cqw 2cqw rgba(0,0,0,0.4)',
         whiteSpace: 'nowrap',
@@ -58,6 +58,8 @@ function StatusBanner({ status, propertyType }: { status?: 'none' | 'reservado' 
 function AddressLine({ text, mode }: { text: string; mode: 'dark-on-light' | 'light-on-dark' }) {
   const color = mode === 'dark-on-light' ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.7)'
   const textShadow = mode === 'light-on-dark' ? '0 0.2cqw 1cqw rgba(0,0,0,0.45)' : 'none'
+  const fontSize = mode === 'dark-on-light' ? '2.1cqw' : '2.6cqw'
+  const svgSize = mode === 'dark-on-light' ? '1.7cqw' : '2cqw'
   return (
     <p
       className="font-poppins"
@@ -66,14 +68,14 @@ function AddressLine({ text, mode }: { text: string; mode: 'dark-on-light' | 'li
         alignItems: 'center',
         gap: '0.7cqw',
         margin: 0,
-        fontSize: '2.6cqw',
+        fontSize,
         fontWeight: 500,
         color,
         lineHeight: 1,
         textShadow,
       }}
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, width: '2cqw', height: '2cqw' }}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, width: svgSize, height: svgSize }}>
         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
         <circle cx="12" cy="10" r="3" />
       </svg>
@@ -115,10 +117,10 @@ function buildPills(p: BasePreviewProps, ghostVariant: 'ghost-light' | 'ghost-da
   return items
 }
 
-function FeaturesLine({ specs, color, sepColor }: { specs: Spec[]; color: string; sepColor: string }) {
+function FeaturesLine({ specs, color, sepColor, fontSize = '3.2cqw' }: { specs: Spec[]; color: string; sepColor: string; fontSize?: string }) {
   if (specs.length === 0) return null
   return (
-    <p className="font-poppins" style={{ fontSize: '3.2cqw', color, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+    <p className="font-poppins" style={{ fontSize, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
       {specs.map((s, i) => (
         <span key={i}>
           {i > 0 && <span style={{ color: sepColor, margin: '0 0.5em', fontWeight: 300 }}>·</span>}
@@ -144,7 +146,7 @@ function FooterRow({ primary, secondary }: { primary: string; secondary: string 
   )
 }
 
-function Pill({ item, ghostVariant }: { item: PillItem; ghostVariant: 'ghost-light' | 'ghost-dark' }) {
+function Pill({ item, ghostVariant, compact = false }: { item: PillItem; ghostVariant: 'ghost-light' | 'ghost-dark'; compact?: boolean }) {
   const isSolid = item.variant === 'solid'
   const isLight = ghostVariant === 'ghost-light'
   const style: React.CSSProperties = {
@@ -152,9 +154,9 @@ function Pill({ item, ghostVariant }: { item: PillItem; ghostVariant: 'ghost-lig
     alignItems: 'center',
     fontFamily: 'var(--font-raleway), Raleway, sans-serif',
     fontWeight: 700,
-    fontSize: '2.2cqw',
+    fontSize: compact ? '1.85cqw' : '2.2cqw',
     letterSpacing: '0.08em',
-    padding: '1.3cqw 2.6cqw',
+    padding: compact ? '1.1cqw 2.2cqw' : '1.3cqw 2.6cqw',
     borderRadius: 999,
     lineHeight: 1,
     whiteSpace: 'nowrap',
@@ -215,7 +217,7 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
         <h3
           className="font-raleway"
           style={{
-            color: '#fff', fontWeight: 800, fontSize: '5.6cqw',
+            color: '#fff', fontWeight: 800, fontSize: '4cqw',
             lineHeight: 1, letterSpacing: '-0.025em',
             textShadow: '0 0.3cqw 2cqw rgba(0,0,0,0.45)',
             textWrap: 'balance' as React.CSSProperties['textWrap'],
@@ -237,7 +239,7 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
           <p
             className="font-poppins"
             style={{
-              color: '#fff', fontWeight: 700, fontSize: '6cqw', lineHeight: 1,
+              color: '#fff', fontWeight: 700, fontSize: '4.2cqw', lineHeight: 1,
               letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums',
               textShadow: '0 0.3cqw 2cqw rgba(0,0,0,0.45)',
               marginTop: '0.7cqw', marginBottom: 0,
@@ -303,19 +305,19 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
           top: '50%',
           transform: 'translateY(-50%)',
           height: '18.23%',
-          padding: '2.6% 6.6%',
-          gap: '2.1cqw',
+          padding: '2.1% 6.6%',
+          gap: '1.5cqw',
           boxShadow: '0 0.7cqw 2cqw rgba(0,0,0,0.22)',
           justifyContent: 'center',
         }}
       >
         <div className="flex flex-wrap" style={{ gap: '1.2cqw' }}>
-          {pills.map((p, i) => <Pill key={i} item={p} ghostVariant="ghost-dark" />)}
+          {pills.map((p, i) => <Pill key={i} item={p} ghostVariant="ghost-dark" compact />)}
         </div>
         <h3
           className="font-raleway"
           style={{
-            color: '#1a1a1a', fontWeight: 700, fontSize: '6cqw',
+            color: '#1a1a1a', fontWeight: 700, fontSize: '7cqw',
             lineHeight: 1.05, letterSpacing: '-0.02em',
             textWrap: 'balance' as React.CSSProperties['textWrap'],
             display: '-webkit-box',
@@ -328,7 +330,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
         {props.addressLine && props.addressLine.trim().length > 0 && (
           <AddressLine text={props.addressLine} mode="dark-on-light" />
         )}
-        <FeaturesLine specs={specs} color="#1a1a1a" sepColor="rgba(0,0,0,0.35)" />
+        <FeaturesLine specs={specs} color="#1a1a1a" sepColor="rgba(0,0,0,0.35)" fontSize="2.7cqw" />
       </div>
       <div
         className="absolute"
