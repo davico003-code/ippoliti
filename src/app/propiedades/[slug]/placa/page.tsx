@@ -73,6 +73,12 @@ export default async function PlacaPage({ params }: Props) {
 
   const locationLabel = [neighborhood, city].filter(Boolean).join(' · ') || 'Propiedad'
 
+  const addressLine =
+    property.real_address?.trim() ||
+    property.fake_address?.trim() ||
+    property.address?.trim() ||
+    null
+
   return (
     <PlacaSelectorClient
       slug={params.slug}
@@ -89,6 +95,7 @@ export default async function PlacaPage({ params }: Props) {
       city={city}
       neighborhood={neighborhood}
       locationLabel={locationLabel}
+      addressLine={addressLine}
     />
   )
 }
