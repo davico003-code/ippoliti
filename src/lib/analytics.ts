@@ -65,4 +65,19 @@ export const events = {
 
   clickEmprendimiento: (name: string) =>
     trackEvent('click_emprendimiento', { emprendimiento_name: name }),
+
+  herramientasIndexView: () => trackEvent('herramientas_index_view'),
+
+  calculadoraCostosView: () => trackEvent('calculadora_costos_view'),
+  calculadoraCostosDescargar: () => trackEvent('calculadora_costos_descargar'),
+  calculadoraCostosWhatsapp: () => {
+    trackEvent('calculadora_costos_whatsapp_click')
+    trackFbEvent('Lead', { content_name: 'Calculadora costos alquiler' })
+  },
+
+  calculadoraAjusteView: () => trackEvent('calculadora_ajuste_view'),
+  calculadoraAjusteWhatsapp: () => {
+    trackEvent('calculadora_ajuste_whatsapp_click')
+    trackFbEvent('Lead', { content_name: 'Calculadora ajuste alquiler' })
+  },
 }

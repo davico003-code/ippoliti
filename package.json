@@ -24,6 +24,7 @@
     "exceljs": "^4.4.0",
     "fast-xml-parser": "^5.5.12",
     "framer-motion": "^12.38.0",
+    "html2canvas": "^1.4.1",
     "jose": "^6.2.2",
     "jszip": "^3.10.1",
     "leaflet": "^1.9.4",

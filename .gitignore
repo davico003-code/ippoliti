@@ -38,3 +38,5 @@ audit/
 
 # supabase cli
 supabase/.temp/
+
+_referencias/

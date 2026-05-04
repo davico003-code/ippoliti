@@ -19,6 +19,7 @@ const RIGHT_ITEMS = [
   { href: '/nosotros', label: 'Nosotros' },
   { href: '/blog', label: 'Blog' },
   { href: '/guia', label: 'Guía' },
+  { href: '/herramientas', label: 'Herramientas' },
   { href: '/informes', label: 'Informes' },
 ]
 

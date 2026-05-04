@@ -9,6 +9,20 @@
   --brand-light: #E8F2ED;
   --accent: #E63946;
   --header-height: 76px;
+
+  /* SI palette — herramientas */
+  --si-green: #1A5C38;
+  --si-green-dark: #0F3D24;
+  --si-green-soft: #2A8B5A;
+  --si-green-tint: #E8F1ED;
+  --cream: #F5F1EA;
+  --cream-deep: #EDE7DB;
+  --tinta: #1C1C1E;
+  --tinta-soft: #4A4845;
+  --tinta-mute: #8B847A;
+  --line: #E5DFD2;
+  --usd: #0E4A7B;
+  --usd-dark: #073357;
 }
 
 * {
