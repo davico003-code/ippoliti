@@ -86,10 +86,11 @@ function drawStatusBanner(
     ? { from: '#B8935A', to: '#8a6d40' }
     : { from: '#1A5C38', to: '#0d3d22' }
 
-  const BANNER_HEIGHT = 80
-  const BANNER_PADDING_X = 220
+  const BANNER_HEIGHT = 70
+  const BANNER_PADDING_X = 100
   const ROTATION_RAD = 35 * Math.PI / 180
-  const TOP_OFFSET = 180
+  const BANNER_ANCHOR_X = W - 140
+  const BANNER_ANCHOR_Y = 140
 
   ctx.save()
   ctx.font = '800 42px Raleway, system-ui, sans-serif'
@@ -97,7 +98,7 @@ function drawStatusBanner(
   const textWidth = ctx.measureText(text).width
   const bannerWidth = textWidth + BANNER_PADDING_X * 2
 
-  ctx.translate(W, TOP_OFFSET)
+  ctx.translate(BANNER_ANCHOR_X, BANNER_ANCHOR_Y)
   ctx.rotate(ROTATION_RAD)
 
   const rectX = -bannerWidth / 2
@@ -304,10 +305,10 @@ async function ensureFonts() {
   try { await document.fonts.ready } catch { /* ignore */ }
   const loads = [
     '400 34px Poppins', '400 52px Poppins', '500 28px Poppins', '600 32px Poppins',
-    '700 42px Poppins', '700 44px Poppins', '700 48px Poppins', '700 52px Poppins', '700 56px Poppins', '700 60px Poppins', '700 64px Poppins', '700 98px Poppins', '700 120px Poppins', '700 140px Poppins',
+    '700 42px Poppins', '700 44px Poppins', '700 48px Poppins', '700 52px Poppins', '700 56px Poppins', '700 60px Poppins', '700 64px Poppins', '700 68px Poppins', '700 98px Poppins', '700 120px Poppins', '700 140px Poppins',
     '300 52px Poppins',
     '400 40px Raleway', '700 24px Raleway', '700 40px Raleway',
-    '700 100px Raleway', '800 42px Raleway', '800 92px Raleway', '800 76px Raleway', '800 64px Raleway',
+    '700 100px Raleway', '800 42px Raleway', '800 44px Raleway', '800 52px Raleway', '800 64px Raleway', '800 76px Raleway', '800 92px Raleway',
   ]
   await Promise.all(loads.map(f => document.fonts.load(f).catch(() => null)))
 }
@@ -358,17 +359,17 @@ async function drawEditorialCover(
 
   const pills = buildPillTexts(props)
 
-  ctx.font = '800 92px Raleway, system-ui, sans-serif'
-  let tSize = 92
+  ctx.font = '800 64px Raleway, system-ui, sans-serif'
+  let tSize = 64
   let tLines = wrapText(ctx, props.title, cw)
   if (tLines.length > 3) {
-    ctx.font = '800 76px Raleway, system-ui, sans-serif'
-    tSize = 76
+    ctx.font = '800 52px Raleway, system-ui, sans-serif'
+    tSize = 52
     tLines = wrapText(ctx, props.title, cw)
   }
   if (tLines.length > 3) {
-    ctx.font = '800 64px Raleway, system-ui, sans-serif'
-    tSize = 64
+    ctx.font = '800 44px Raleway, system-ui, sans-serif'
+    tSize = 44
     tLines = wrapText(ctx, props.title, cw).slice(0, 3)
   }
 
@@ -377,7 +378,7 @@ async function drawEditorialCover(
   const featuresH = specs.length > 0 ? specNumSize : 0
 
   const priceLabelSize = 32
-  const priceValueSize = 98
+  const priceValueSize = 68
 
   // Address line constants (Editorial)
   const ADDRESS_FONT_SIZE = 28
@@ -505,27 +506,27 @@ async function drawSplitCard(
   ctx.fillStyle = '#0d1a12'
   ctx.fillRect(0, 0, W, H)
 
-  const BAND_PAD_TOP = 28
+  const BAND_PAD_TOP = 22
   const BAND_PAD_SIDES = 72
-  const BAND_PAD_BOTTOM = 33
+  const BAND_PAD_BOTTOM = 26
 
   const cw = W - PAD * 2
   const bandCw = W - BAND_PAD_SIDES * 2
-  const pillH = 54
-  const pillPadX = 22
-  const pillFontSize = 24
+  const pillH = 46
+  const pillPadX = 20
+  const pillFontSize = 20
   const pillGap = 12
-  const bandGap = 21
+  const bandGap = 14
 
   const pills = buildPillTexts(props)
 
   // Stats sizing first — featuresH feeds into the title's FIXED_BAND_H budget.
   const specs = buildSpecs(props)
   const SPEC_GAP = 20
-  const SPEC_MAX = 48
-  const SPEC_MIN = 36
+  const SPEC_MAX = 40
+  const SPEC_MIN = 30
   const SPEC_STEP = 4
-  const SPEC_LINE_GAP = 12
+  const SPEC_LINE_GAP = 8
   let specSize = SPEC_MAX
   let specLines: Spec[][] = specs.length > 0 ? [specs] : []
   if (specs.length > 0) {
@@ -543,9 +544,9 @@ async function drawSplitCard(
     : specSize * specLineCount + SPEC_LINE_GAP * (specLineCount - 1)
 
   // Address line constants (Split)
-  const ADDRESS_FONT_SIZE = 28
+  const ADDRESS_FONT_SIZE = 22
   const ADDRESS_GAP = 14
-  const PIN_SIZE = 22
+  const PIN_SIZE = 18
   const PIN_TO_TEXT_GAP = 8
   const hasAddress = !!(props.addressLine && props.addressLine.trim().length > 0)
   const addressBlockH = hasAddress ? ADDRESS_GAP + ADDRESS_FONT_SIZE : 0
@@ -553,8 +554,8 @@ async function drawSplitCard(
   // Title sizing — adaptive font, max 3 lines (4 only at min size). Caps the
   // title height so the band content fits inside FIXED_BAND_H. As a last
   // resort, the last visible line is truncated with ellipsis at TITLE_MIN_SIZE.
-  const TITLE_MAX_SIZE = 100
-  const TITLE_MIN_SIZE = 56
+  const TITLE_MAX_SIZE = 110
+  const TITLE_MIN_SIZE = 72
   const TITLE_STEP = 4
   const TITLE_HARD_MAX_HEIGHT = 280
   const TITLE_MAX_LINES_NORMAL = 2
