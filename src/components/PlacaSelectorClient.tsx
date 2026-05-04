@@ -27,10 +27,20 @@ interface Props {
   city: string | null
   neighborhood: string | null
   locationLabel: string
+  addressLine: string | null
+}
+
+type StatusToggle = 'none' | 'reservado' | 'vendido'
+
+function getSoldLabel(propertyType: string): string {
+  const t = (propertyType || '').toLowerCase()
+  const femeninos = /\b(casa|quinta|caba(ñ|n)a|cochera)\b/
+  return femeninos.test(t) ? 'Vendida' : 'Vendido'
 }
 
 export default function PlacaSelectorClient(props: Props) {
   const [selected, setSelected] = useState<string[]>([])
+  const [status, setStatus] = useState<StatusToggle>('none')
 
   const toggle = (full: string) => {
     setSelected(prev => {
@@ -67,6 +77,38 @@ export default function PlacaSelectorClient(props: Props) {
     parking: props.parking,
     city: props.city ?? undefined,
     neighborhood: props.neighborhood ?? undefined,
+    addressLine: props.addressLine ?? undefined,
+    status,
+  }
+
+  const soldLabel = getSoldLabel(props.propertyType)
+  const STATUS_COLORS: Record<Exclude<StatusToggle, 'none'>, string> = {
+    reservado: '#B8935A',
+    vendido: '#1A5C38',
+  }
+
+  const toggleStatus = (next: Exclude<StatusToggle, 'none'>) => {
+    setStatus(prev => (prev === next ? 'none' : next))
+  }
+
+  const statusBtnStyle = (key: Exclude<StatusToggle, 'none'>): React.CSSProperties => {
+    const color = STATUS_COLORS[key]
+    const active = status === key
+    return {
+      flex: 1,
+      height: 44,
+      borderRadius: 14,
+      border: `1.5px solid ${color}`,
+      background: active ? color : '#fff',
+      color: active ? '#fff' : color,
+      fontFamily: "'Raleway', system-ui, sans-serif",
+      fontWeight: 700,
+      fontSize: 14,
+      letterSpacing: '0.04em',
+      cursor: 'pointer',
+      transition: 'background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease',
+      boxShadow: active ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
+    }
   }
 
   const downloadBtnStyle: React.CSSProperties = {
@@ -130,6 +172,24 @@ export default function PlacaSelectorClient(props: Props) {
             >
               Elegí 1 o 2 fotos
             </p>
+            <div className="flex mb-4" style={{ gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => toggleStatus('reservado')}
+                aria-pressed={status === 'reservado'}
+                style={statusBtnStyle('reservado')}
+              >
+                Reservado
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleStatus('vendido')}
+                aria-pressed={status === 'vendido'}
+                style={statusBtnStyle('vendido')}
+              >
+                {soldLabel}
+              </button>
+            </div>
             {props.photos.length === 0 ? (
               <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
                 <p className="text-sm text-gray-500">Esta propiedad no tiene fotos disponibles.</p>

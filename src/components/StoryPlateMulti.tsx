@@ -17,6 +17,8 @@ export interface StoryPlateMultiProps {
   slug: string
   city?: string
   neighborhood?: string
+  addressLine?: string
+  status?: 'none' | 'reservado' | 'vendido'
   btnStyle?: React.CSSProperties
   buttonLabel?: string
   disabled?: boolean
@@ -43,6 +45,82 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 
 async function tryLoadImage(src: string): Promise<HTMLImageElement | null> {
   try { return await loadImage(src) } catch { return null }
+}
+
+function getSoldLabel(propertyType: string): string {
+  const t = (propertyType || '').toLowerCase()
+  const femeninos = /\b(casa|quinta|caba(ñ|n)a|cochera)\b/
+  return femeninos.test(t) ? 'VENDIDA' : 'VENDIDO'
+}
+
+function drawPin(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) {
+  ctx.save()
+  ctx.translate(x, y)
+  const scale = size / 24
+  ctx.scale(scale, scale)
+  ctx.strokeStyle = color
+  ctx.lineWidth = 2.2
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  ctx.moveTo(12, 23)
+  ctx.bezierCurveTo(12, 23, 21, 17, 21, 10)
+  ctx.bezierCurveTo(21, 5, 17, 1, 12, 1)
+  ctx.bezierCurveTo(7, 1, 3, 5, 3, 10)
+  ctx.bezierCurveTo(3, 17, 12, 23, 12, 23)
+  ctx.closePath()
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(12, 10, 3, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawStatusBanner(
+  ctx: CanvasRenderingContext2D,
+  status: 'reservado' | 'vendido',
+  propertyType: string
+) {
+  const text = status === 'reservado' ? 'RESERVADO' : getSoldLabel(propertyType)
+  const grad = status === 'reservado'
+    ? { from: '#B8935A', to: '#8a6d40' }
+    : { from: '#1A5C38', to: '#0d3d22' }
+
+  const BANNER_HEIGHT = 80
+  const BANNER_PADDING_X = 220
+  const ROTATION_RAD = 35 * Math.PI / 180
+  const TOP_OFFSET = 180
+
+  ctx.save()
+  ctx.font = '800 42px Raleway, system-ui, sans-serif'
+  try { (ctx as unknown as { letterSpacing: string }).letterSpacing = '6px' } catch { /* unsupported */ }
+  const textWidth = ctx.measureText(text).width
+  const bannerWidth = textWidth + BANNER_PADDING_X * 2
+
+  ctx.translate(W, TOP_OFFSET)
+  ctx.rotate(ROTATION_RAD)
+
+  const rectX = -bannerWidth / 2
+  const rectY = -BANNER_HEIGHT / 2
+
+  const gradient = ctx.createLinearGradient(rectX, rectY, rectX + bannerWidth, rectY + BANNER_HEIGHT)
+  gradient.addColorStop(0, grad.from)
+  gradient.addColorStop(1, grad.to)
+
+  ctx.shadowColor = 'rgba(0,0,0,0.4)'
+  ctx.shadowBlur = 24
+  ctx.shadowOffsetY = 6
+  ctx.fillStyle = gradient
+  ctx.fillRect(rectX, rectY, bannerWidth, BANNER_HEIGHT)
+
+  ctx.shadowBlur = 0
+  ctx.shadowOffsetY = 0
+  ctx.fillStyle = '#ffffff'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(text, 0, 0)
+
+  ctx.restore()
 }
 
 function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
@@ -225,11 +303,11 @@ function drawFooterRow(ctx: CanvasRenderingContext2D, y: number, primaryColor: s
 async function ensureFonts() {
   try { await document.fonts.ready } catch { /* ignore */ }
   const loads = [
-    '400 34px Poppins', '400 52px Poppins', '600 32px Poppins',
+    '400 34px Poppins', '400 52px Poppins', '500 28px Poppins', '600 32px Poppins',
     '700 42px Poppins', '700 44px Poppins', '700 48px Poppins', '700 52px Poppins', '700 56px Poppins', '700 60px Poppins', '700 64px Poppins', '700 98px Poppins', '700 120px Poppins', '700 140px Poppins',
     '300 52px Poppins',
     '400 40px Raleway', '700 24px Raleway', '700 40px Raleway',
-    '700 100px Raleway', '800 92px Raleway', '800 76px Raleway', '800 64px Raleway',
+    '700 100px Raleway', '800 42px Raleway', '800 92px Raleway', '800 76px Raleway', '800 64px Raleway',
   ]
   await Promise.all(loads.map(f => document.fonts.load(f).catch(() => null)))
 }
@@ -301,6 +379,14 @@ async function drawEditorialCover(
   const priceLabelSize = 32
   const priceValueSize = 98
 
+  // Address line constants (Editorial)
+  const ADDRESS_FONT_SIZE = 28
+  const ADDRESS_GAP = 14
+  const PIN_SIZE = 22
+  const PIN_TO_TEXT_GAP = 8
+  const hasAddress = !!(props.addressLine && props.addressLine.trim().length > 0)
+  const addressBlockH = hasAddress ? ADDRESS_GAP + ADDRESS_FONT_SIZE : 0
+
   const titleH = tLines.length * tSize
   const pillsRowH = pillH
   const div1MarginTop = 10
@@ -312,6 +398,7 @@ async function drawEditorialCover(
 
   const totalBlockH = pillsRowH
     + PILLS_TO_TITLE_GAP + titleH
+    + addressBlockH
     + (featuresH > 0 ? gapItems + featuresH : 0)
     + div1MarginTop + div1H + div1MarginBottom
     + priceBlockH
@@ -342,6 +429,24 @@ async function drawEditorialCover(
   setLetterSpacing(ctx, 0)
   ctx.shadowBlur = 0
   ctx.shadowOffsetY = 0
+
+  if (hasAddress) {
+    cy += ADDRESS_GAP
+    const pinColor = 'rgba(255,255,255,0.7)'
+    const textColor = 'rgba(255,255,255,0.7)'
+    const pinY = cy + (ADDRESS_FONT_SIZE - PIN_SIZE) / 2
+    ctx.save()
+    ctx.shadowColor = 'rgba(0,0,0,0.45)'
+    ctx.shadowBlur = 12
+    ctx.shadowOffsetY = 2
+    drawPin(ctx, PAD, pinY, PIN_SIZE, pinColor)
+    ctx.fillStyle = textColor
+    ctx.font = `500 ${ADDRESS_FONT_SIZE}px Poppins, system-ui, sans-serif`
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillText(props.addressLine!, PAD + PIN_SIZE + PIN_TO_TEXT_GAP, cy + ADDRESS_FONT_SIZE)
+    ctx.restore()
+    cy += ADDRESS_FONT_SIZE
+  }
 
   if (featuresH > 0) {
     cy += gapItems
@@ -384,6 +489,10 @@ async function drawEditorialCover(
   cy += div2H + gapItems
 
   drawFooterRow(ctx, cy, '#fff', 'rgba(255,255,255,0.7)')
+
+  if (props.status === 'reservado' || props.status === 'vendido') {
+    drawStatusBanner(ctx, props.status, props.propertyType)
+  }
 }
 
 async function drawSplitCard(
@@ -433,6 +542,14 @@ async function drawSplitCard(
     ? 0
     : specSize * specLineCount + SPEC_LINE_GAP * (specLineCount - 1)
 
+  // Address line constants (Split)
+  const ADDRESS_FONT_SIZE = 28
+  const ADDRESS_GAP = 14
+  const PIN_SIZE = 22
+  const PIN_TO_TEXT_GAP = 8
+  const hasAddress = !!(props.addressLine && props.addressLine.trim().length > 0)
+  const addressBlockH = hasAddress ? ADDRESS_GAP + ADDRESS_FONT_SIZE : 0
+
   // Title sizing — adaptive font, max 3 lines (4 only at min size). Caps the
   // title height so the band content fits inside FIXED_BAND_H. As a last
   // resort, the last visible line is truncated with ellipsis at TITLE_MIN_SIZE.
@@ -444,6 +561,7 @@ async function drawSplitCard(
   const TITLE_MAX_LINES_AT_MIN = 2
   const FIXED_BAND_H = 350
   const titleHCapFromBand = FIXED_BAND_H - BAND_PAD_TOP - pillH - bandGap
+    - addressBlockH
     - (featuresH > 0 ? bandGap + featuresH : 0) - BAND_PAD_BOTTOM
   const titleHCap = Math.min(TITLE_HARD_MAX_HEIGHT, titleHCapFromBand)
 
@@ -534,7 +652,7 @@ async function drawSplitCard(
   // Centrar verticalmente el contenido dentro de la banda fija cuando el
   // título se achicó y queda espacio sobrante.
   const innerSpace = FIXED_BAND_H - BAND_PAD_TOP - BAND_PAD_BOTTOM
-  const usedSpace = pillH + bandGap + titleH + (featuresH > 0 ? bandGap + featuresH : 0)
+  const usedSpace = pillH + bandGap + titleH + addressBlockH + (featuresH > 0 ? bandGap + featuresH : 0)
   const verticalOffset = Math.max(0, Math.round((innerSpace - usedSpace) / 2))
   let cy = BAND_TOP + BAND_PAD_TOP + verticalOffset
   let px = BAND_PAD_SIDES
@@ -555,6 +673,19 @@ async function drawSplitCard(
     cy += lineH
   }
   setLetterSpacing(ctx, 0)
+
+  if (hasAddress) {
+    cy += ADDRESS_GAP
+    const pinColor = 'rgba(0,0,0,0.55)'
+    const textColor = 'rgba(0,0,0,0.55)'
+    const pinY = cy + (ADDRESS_FONT_SIZE - PIN_SIZE) / 2
+    drawPin(ctx, BAND_PAD_SIDES, pinY, PIN_SIZE, pinColor)
+    ctx.fillStyle = textColor
+    ctx.font = `500 ${ADDRESS_FONT_SIZE}px Poppins, system-ui, sans-serif`
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillText(props.addressLine!, BAND_PAD_SIDES + PIN_SIZE + PIN_TO_TEXT_GAP, cy + ADDRESS_FONT_SIZE)
+    cy += ADDRESS_FONT_SIZE
+  }
 
   if (featuresH > 0) {
     cy += bandGap
@@ -621,6 +752,10 @@ async function drawSplitCard(
   ctx.fillRect(PAD, dividerY, cw, divH)
 
   drawFooterRow(ctx, footerY, '#fff', 'rgba(255,255,255,0.7)')
+
+  if (props.status === 'reservado' || props.status === 'vendido') {
+    drawStatusBanner(ctx, props.status, props.propertyType)
+  }
 }
 
 export default function StoryPlateMulti(props: StoryPlateMultiProps) {

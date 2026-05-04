@@ -12,6 +12,74 @@ interface BasePreviewProps {
   parking?: number
   city?: string
   neighborhood?: string
+  addressLine?: string
+  status?: 'none' | 'reservado' | 'vendido'
+}
+
+function getSoldLabel(propertyType: string): string {
+  const t = (propertyType || '').toLowerCase()
+  const femeninos = /\b(casa|quinta|caba(ñ|n)a|cochera)\b/
+  return femeninos.test(t) ? 'VENDIDA' : 'VENDIDO'
+}
+
+function StatusBanner({ status, propertyType }: { status?: 'none' | 'reservado' | 'vendido'; propertyType: string }) {
+  if (status !== 'reservado' && status !== 'vendido') return null
+  const text = status === 'reservado' ? 'RESERVADO' : getSoldLabel(propertyType)
+  const colors = status === 'reservado'
+    ? { from: '#B8935A', to: '#8a6d40' }
+    : { from: '#1A5C38', to: '#0d3d22' }
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        top: '9.4%',
+        right: '-13cqw',
+        transform: 'rotate(35deg)',
+        transformOrigin: 'center',
+        background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
+        color: '#fff',
+        fontFamily: 'var(--font-raleway), Raleway, sans-serif',
+        fontWeight: 800,
+        fontSize: '3.9cqw',
+        letterSpacing: '0.55cqw',
+        padding: '1.5cqw 8.5cqw',
+        textTransform: 'uppercase',
+        boxShadow: '0 0.7cqw 2cqw rgba(0,0,0,0.4)',
+        whiteSpace: 'nowrap',
+        lineHeight: 1,
+      }}
+    >
+      {text}
+    </div>
+  )
+}
+
+function AddressLine({ text, mode }: { text: string; mode: 'dark-on-light' | 'light-on-dark' }) {
+  const color = mode === 'dark-on-light' ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.7)'
+  const textShadow = mode === 'light-on-dark' ? '0 0.2cqw 1cqw rgba(0,0,0,0.45)' : 'none'
+  return (
+    <p
+      className="font-poppins"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.7cqw',
+        margin: 0,
+        fontSize: '2.6cqw',
+        fontWeight: 500,
+        color,
+        lineHeight: 1,
+        textShadow,
+      }}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, width: '2cqw', height: '2cqw' }}>
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+      <span>{text}</span>
+    </p>
+  )
 }
 
 interface Props extends BasePreviewProps {
@@ -156,6 +224,9 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
         >
           {props.title}
         </h3>
+        {props.addressLine && props.addressLine.trim().length > 0 && (
+          <AddressLine text={props.addressLine} mode="light-on-dark" />
+        )}
         <FeaturesLine specs={specs} color="#fff" sepColor="rgba(255,255,255,0.35)" />
         <div style={{ height: 1, background: 'rgba(255,255,255,0.28)' }} />
         <div>
@@ -176,6 +247,7 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
         <div style={{ height: 1, background: 'rgba(255,255,255,0.2)' }} />
         <FooterRow primary="#fff" secondary="rgba(255,255,255,0.7)" />
       </div>
+      <StatusBanner status={props.status} propertyType={props.propertyType} />
     </div>
   )
 }
@@ -253,6 +325,9 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
             margin: 0,
           }}
         >{props.title}</h3>
+        {props.addressLine && props.addressLine.trim().length > 0 && (
+          <AddressLine text={props.addressLine} mode="dark-on-light" />
+        )}
         <FeaturesLine specs={specs} color="#1a1a1a" sepColor="rgba(0,0,0,0.35)" />
       </div>
       <div
@@ -275,6 +350,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
         <div style={{ height: 1, background: 'rgba(255,255,255,0.25)', marginTop: '3cqw', marginBottom: '2.5cqw' }} />
         <FooterRow primary="#fff" secondary="rgba(255,255,255,0.7)" />
       </div>
+      <StatusBanner status={props.status} propertyType={props.propertyType} />
     </div>
   )
 }
