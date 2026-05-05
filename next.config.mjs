@@ -32,6 +32,22 @@ const nextConfig = {
         destination: '/guia',
         permanent: true,
       },
+      // Renombre /herramientas → /recursos
+      {
+        source: '/herramientas',
+        destination: '/recursos',
+        permanent: true,
+      },
+      {
+        source: '/herramientas/calculadora-alquiler',
+        destination: '/recursos/calculadora-alquiler',
+        permanent: true,
+      },
+      {
+        source: '/herramientas/ajuste-alquiler',
+        destination: '/recursos/ajuste-alquiler',
+        permanent: true,
+      },
       // Redirect old domain to new
       {
         source: '/:path*',

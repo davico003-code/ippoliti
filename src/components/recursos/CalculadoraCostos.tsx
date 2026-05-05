@@ -158,7 +158,7 @@ function NumInput({
 
 function Flash({ value, children }: { value: string | number; children: React.ReactNode }) {
   return (
-    <span key={String(value)} className="herramientas-flash">
+    <span key={String(value)} className="recursos-flash">
       {children}
     </span>
   )
@@ -359,16 +359,16 @@ export default function CalculadoraCostos() {
       style={{ background: '#FAFAF7' }}
     >
       <style>{`
-        @keyframes herramientasFlash {
+        @keyframes recursosFlash {
           0% { color: var(--si-green-soft); }
           100% { color: inherit; }
         }
-        .herramientas-flash > * { animation: herramientasFlash 0.45s ease-out; }
-        .herramientas-card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .herramientas-card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(20, 30, 25, 0.08); }
-        .herramientas-faq summary::-webkit-details-marker { display: none; }
-        .herramientas-faq summary { list-style: none; }
-        .herramientas-faq details > summary { cursor: pointer; }
+        .recursos-flash > * { animation: recursosFlash 0.45s ease-out; }
+        .recursos-card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .recursos-card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(20, 30, 25, 0.08); }
+        .recursos-faq summary::-webkit-details-marker { display: none; }
+        .recursos-faq summary { list-style: none; }
+        .recursos-faq details > summary { cursor: pointer; }
       `}</style>
 
       <div className="max-w-[860px] mx-auto px-5 pt-8 pb-20 font-raleway" style={{ color: 'var(--tinta)' }}>
@@ -724,7 +724,7 @@ export default function CalculadoraCostos() {
 
         {/* FAQ */}
         <section
-          className="herramientas-faq rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
+          className="recursos-faq rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
           style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
         >
           <h2

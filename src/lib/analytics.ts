@@ -66,7 +66,7 @@ export const events = {
   clickEmprendimiento: (name: string) =>
     trackEvent('click_emprendimiento', { emprendimiento_name: name }),
 
-  herramientasIndexView: () => trackEvent('herramientas_index_view'),
+  recursosIndexView: () => trackEvent('recursos_index_view'),
 
   calculadoraCostosView: () => trackEvent('calculadora_costos_view'),
   calculadoraCostosDescargar: () => trackEvent('calculadora_costos_descargar'),

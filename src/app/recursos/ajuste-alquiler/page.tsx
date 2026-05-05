@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
-import CalculadoraAjuste from '@/components/herramientas/CalculadoraAjuste'
-import Breadcrumbs from '@/components/herramientas/Breadcrumbs'
+import CalculadoraAjuste from '@/components/recursos/CalculadoraAjuste'
+import Breadcrumbs from '@/components/recursos/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: '¿Está bien calculado tu aumento de alquiler? | SI Inmobiliaria',
   description:
     'Verificá el ajuste de tu alquiler con la calculadora oficial. ICL, IPC, CasaPropia y todos los índices explicados. Para vivienda y comercio.',
   alternates: {
-    canonical: 'https://siinmobiliaria.com/herramientas/ajuste-alquiler',
+    canonical: 'https://siinmobiliaria.com/recursos/ajuste-alquiler',
   },
   keywords: [
     'calcular ajuste alquiler',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     title: '¿Está bien calculado tu aumento de alquiler?',
     description:
       'Verificá el ajuste con la calculadora oficial. ICL, IPC, CasaPropia y todos los índices explicados.',
-    url: 'https://siinmobiliaria.com/herramientas/ajuste-alquiler',
+    url: 'https://siinmobiliaria.com/recursos/ajuste-alquiler',
     siteName: 'SI Inmobiliaria',
     images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
     locale: 'es_AR',
@@ -40,12 +40,12 @@ const breadcrumbJsonLd = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://siinmobiliaria.com' },
-    { '@type': 'ListItem', position: 2, name: 'Herramientas', item: 'https://siinmobiliaria.com/herramientas' },
+    { '@type': 'ListItem', position: 2, name: 'Recursos', item: 'https://siinmobiliaria.com/recursos' },
     {
       '@type': 'ListItem',
       position: 3,
       name: 'Verificar ajuste de alquiler',
-      item: 'https://siinmobiliaria.com/herramientas/ajuste-alquiler',
+      item: 'https://siinmobiliaria.com/recursos/ajuste-alquiler',
     },
   ],
 }
@@ -54,7 +54,7 @@ const appJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
   name: 'Verificador de ajuste de alquiler',
-  url: 'https://siinmobiliaria.com/herramientas/ajuste-alquiler',
+  url: 'https://siinmobiliaria.com/recursos/ajuste-alquiler',
   description:
     'Verificá si el ajuste de tu alquiler está bien calculado. ICL, IPC, CasaPropia y otros índices explicados.',
   applicationCategory: 'FinanceApplication',
@@ -77,7 +77,7 @@ export default function AjusteAlquilerPage() {
           <Breadcrumbs
             items={[
               { label: 'Inicio', href: '/' },
-              { label: 'Herramientas', href: '/herramientas' },
+              { label: 'Recursos', href: '/recursos' },
               { label: 'Verificar ajuste de alquiler' },
             ]}
           />

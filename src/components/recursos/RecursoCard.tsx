@@ -9,7 +9,7 @@ type Props = {
   icon: React.ReactNode
 }
 
-export default function HerramientaCard({
+export default function RecursoCard({
   href,
   eyebrow,
   title,
@@ -29,10 +29,10 @@ export default function HerramientaCard({
       }}
     >
       <style>{`
-        .herramienta-card-link { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .herramienta-card-link:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(20, 30, 25, 0.10); }
+        .recurso-card-link { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .recurso-card-link:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(20, 30, 25, 0.10); }
       `}</style>
-      <div className="herramienta-card-link">
+      <div className="recurso-card-link">
         <div
           className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
           style={{ background: 'var(--si-green-tint)', color: 'var(--si-green)' }}
