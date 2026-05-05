@@ -80,4 +80,9 @@ export const events = {
     trackEvent('calculadora_ajuste_whatsapp_click')
     trackFbEvent('Lead', { content_name: 'Calculadora ajuste alquiler' })
   },
+
+  fichaPropiedadCalculadoraClick: () => {
+    trackEvent('ficha_propiedad_calculadora_click')
+    trackFbEvent('Lead', { content_name: 'Ficha propiedad → Calculadora costos' })
+  },
 }

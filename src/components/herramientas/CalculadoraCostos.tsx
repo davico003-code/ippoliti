@@ -1,24 +1,19 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Download } from 'lucide-react'
 import { events } from '@/lib/analytics'
+import {
+  calcularCostosIngreso,
+  VERIFICACION_ARS,
+  type Moneda,
+  type TipoFiscal as Tipo,
+} from '@/lib/calculadora-alquiler'
 import DepositoCard from './shared/DepositoCard'
 import DisclaimerInfo from './shared/DisclaimerInfo'
 import CtaWhatsapp from './shared/CtaWhatsapp'
 
-// ── Constantes (source of truth) ─────────────────────────────────────────
-const IVA = 0.21
-const HONORARIOS_PCT = 0.05
-const ADMIN_PCT = 0.03
-const VERIFICACION_ARS = 60_000
-const SELLADO_PCT: Record<Tipo, number> = {
-  vivienda: 0,
-  comercio: 0.012,
-}
-
-type Moneda = 'ARS' | 'USD'
-type Tipo = 'vivienda' | 'comercio'
 type Frecuencia = 'trimestral' | 'cuatrimestral'
 type Indice = 'ICL' | 'IPC'
 
@@ -166,6 +161,8 @@ function Flash({ value, children }: { value: string | number; children: React.Re
 
 // ── Componente principal ─────────────────────────────────────────────────
 export default function CalculadoraCostos() {
+  const searchParams = useSearchParams()
+
   const [moneda, setMoneda] = useState<Moneda>('ARS')
   const [tipo, setTipo] = useState<Tipo>('vivienda')
   const [frecuencia, setFrecuencia] = useState<Frecuencia>('cuatrimestral')
@@ -177,6 +174,35 @@ export default function CalculadoraCostos() {
   const [isCapturing, setIsCapturing] = useState<boolean>(false)
 
   const captureRef = useRef<HTMLDivElement>(null)
+
+  // Prefill desde query params (ej. cuando el usuario llega desde la card
+  // de la ficha de propiedad). Solo se aplica al mount; cambios posteriores
+  // del usuario no se sobrescriben.
+  useEffect(() => {
+    const qMoneda = searchParams?.get('moneda')
+    const qTipo = searchParams?.get('tipo')
+    const qAlquiler = searchParams?.get('alquiler')
+    const qMeses = searchParams?.get('meses')
+
+    if (qMoneda === 'ARS' || qMoneda === 'USD') setMoneda(qMoneda)
+    if (qTipo === 'vivienda' || qTipo === 'comercio') {
+      setTipo(qTipo)
+      // Reflejar la lógica de handleTipo: frecuencia + índice automáticos
+      if (qTipo === 'vivienda') {
+        setFrecuencia('cuatrimestral')
+        setIndice('ICL')
+      } else {
+        setFrecuencia('trimestral')
+        setIndice('IPC')
+      }
+    }
+    const a = qAlquiler ? parseFloat(qAlquiler) : NaN
+    if (Number.isFinite(a) && a > 0) setAlquiler(a)
+    const m = qMeses ? parseInt(qMeses, 10) : NaN
+    if (Number.isFinite(m) && m > 0) setMeses(m)
+    // Prefill intencionalmente solo-mount; no sobrescribir cambios manuales.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Track view + cotización oficial
   useEffect(() => {
@@ -216,35 +242,16 @@ export default function CalculadoraCostos() {
   }
 
   // ── Cálculo principal ──────────────────────────────────────────────────
-  const c = useMemo(() => {
-    const totalContrato = alquiler * meses
-    const honoBase = alquiler * meses * HONORARIOS_PCT
-    const honoTotal = honoBase * (1 + IVA)
-    const honoCuota = honoTotal / 3
-    const admin = alquiler * ADMIN_PCT * (1 + IVA)
-
-    // Sellado se calcula sobre el total del contrato convertido a pesos
-    const totalContratoArs = moneda === 'USD' ? totalContrato * cotizacion : totalContrato
-    const sellado = totalContratoArs * SELLADO_PCT[tipo]
-
-    // Verificación: $60.000 ARS fijo, siempre en pesos
-    const verificacion = VERIFICACION_ARS
-
-    // Depósito en USD: redondeo silencioso a múltiplo de 50
-    const depositoUsd =
-      moneda === 'USD' ? alquiler : Math.round(alquiler / cotizacion / 50) * 50
-
-    return { totalContrato, honoBase, honoTotal, honoCuota, admin, sellado, verificacion, depositoUsd }
-  }, [alquiler, meses, moneda, tipo, cotizacion])
+  const c = useMemo(
+    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion }),
+    [alquiler, meses, moneda, tipo, cotizacion],
+  )
 
   // Total al ingresar — separado por moneda
   // USD: alquiler + honoCuota + admin (USD)  ·  sellado + verificacion (ARS)
   // ARS: alquiler + honoCuota + sellado + verificacion + admin (ARS)
-  const totalUsd = moneda === 'USD' ? alquiler + c.honoCuota + c.admin : 0
-  const totalArs =
-    moneda === 'USD'
-      ? c.sellado + c.verificacion
-      : alquiler + c.honoCuota + c.sellado + c.verificacion + c.admin
+  const totalUsd = moneda === 'USD' ? c.totalSubMonedaContrato : 0
+  const totalArs = moneda === 'USD' ? c.totalSubARS : c.totalSubMonedaContrato
 
   // Timeline — Mes 1 = ingreso completo. Mes 2 y 3 = alquiler + honoCuota + admin. Mes 4+ = alquiler + admin.
   const mes1Usd = totalUsd
@@ -660,7 +667,7 @@ export default function CalculadoraCostos() {
 
           {/* DEPÓSITO */}
           <section className="mb-4">
-            <DepositoCard amountUsd={c.depositoUsd} />
+            <DepositoCard amountUsd={c.depositoUSD} />
           </section>
 
           {/* GARANTÍAS QUE NECESITÁS */}
