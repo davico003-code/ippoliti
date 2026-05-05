@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Download, Loader2 } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { events } from '@/lib/analytics'
 import {
   calcularCostosIngreso,
@@ -13,7 +13,6 @@ import {
 import DepositoCard from './shared/DepositoCard'
 import DisclaimerInfo from './shared/DisclaimerInfo'
 import CtaWhatsapp from './shared/CtaWhatsapp'
-import ResumenStory from './ResumenStory'
 
 type Frecuencia = 'trimestral' | 'cuatrimestral'
 type Indice = 'ICL' | 'IPC'
@@ -26,13 +25,6 @@ const fmtUsd = (n: number) =>
   `US$ ${n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 const fmt = (n: number, m: Moneda) => (m === 'USD' ? fmtUsd(n) : fmtArs(n))
-
-const todayStr = () => {
-  const d = new Date()
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  return `${dd}-${mm}-${d.getFullYear()}`
-}
 
 // ── Sub-componentes locales ──────────────────────────────────────────────
 function Toggle<T extends string>({
@@ -172,9 +164,6 @@ export default function CalculadoraCostos() {
   const [meses, setMeses] = useState<number>(24)
   const [cotizacion, setCotizacion] = useState<number>(1430)
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
-  const [isCapturing, setIsCapturing] = useState<boolean>(false)
-
-  const storyRef = useRef<HTMLDivElement>(null)
 
   // Prefill desde query params (ej. cuando el usuario llega desde la card
   // de la ficha de propiedad). Solo se aplica al mount; cambios posteriores
@@ -262,40 +251,26 @@ export default function CalculadoraCostos() {
   const mes4Usd = moneda === 'USD' ? alquiler + c.admin : 0
   const mes4Ars = moneda === 'USD' ? 0 : alquiler + c.admin
 
-  // ── Descarga JPG 1080×1920 (Story / WhatsApp) ──────────────────────────
-  const handleDescargar = async () => {
-    setIsCapturing(true)
+  // ── Descarga PDF — abre la planilla en nueva pestaña y dispara print() ─
+  // El browser muestra el diálogo nativo de impresión donde el usuario elige
+  // "Guardar como PDF". Cero dependencias server, vectorial nativo, funciona
+  // en cualquier dispositivo.
+  const handleDescargar = () => {
     events.calculadoraCostosDescargar()
-    // 2 frames para que React monte ResumenStory off-screen antes de capturar.
-    await new Promise<void>(r =>
-      requestAnimationFrame(() => requestAnimationFrame(() => r())),
+    const params = new URLSearchParams({
+      alquiler: String(alquiler),
+      meses: String(meses),
+      moneda,
+      tipo,
+      frecuencia,
+      indice,
+      cotizacion: String(cotizacion),
+    })
+    window.open(
+      `/recursos/calculadora-alquiler/planilla?${params.toString()}`,
+      '_blank',
+      'noopener,noreferrer',
     )
-    try {
-      if (!storyRef.current) return
-      const html2canvas = (await import('html2canvas')).default
-      const canvas = await html2canvas(storyRef.current, {
-        scale: 1,
-        width: 1080,
-        height: 1920,
-        backgroundColor: '#FAFAF7',
-        useCORS: true,
-        logging: false,
-      })
-      const blob: Blob | null = await new Promise(resolve =>
-        canvas.toBlob(b => resolve(b), 'image/jpeg', 0.92),
-      )
-      if (!blob) throw new Error('canvas.toBlob devolvió null')
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.download = `planilla-alquiler-SI-${todayStr()}.jpg`
-      link.href = url
-      link.click()
-      URL.revokeObjectURL(url)
-    } catch (e) {
-      console.error('Error al generar imagen', e)
-    } finally {
-      setIsCapturing(false)
-    }
   }
 
   // ── Helpers de render ──────────────────────────────────────────────────
@@ -661,9 +636,8 @@ export default function CalculadoraCostos() {
             <button
               type="button"
               onClick={handleDescargar}
-              disabled={isCapturing}
-              aria-label="Descargar planilla de costos como imagen JPG"
-              className="group relative w-full text-left rounded-2xl px-6 py-5 sm:px-8 sm:py-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-wait disabled:translate-y-0"
+              aria-label="Abrir planilla de costos para imprimir o guardar como PDF"
+              className="group relative w-full text-left rounded-2xl px-6 py-5 sm:px-8 sm:py-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
               style={{
                 background:
                   'linear-gradient(135deg, var(--si-green) 0%, var(--si-green-dark) 100%)',
@@ -691,11 +665,7 @@ export default function CalculadoraCostos() {
                     border: '1px solid rgba(255,255,255,0.22)',
                   }}
                 >
-                  {isCapturing ? (
-                    <Loader2 className="w-7 h-7 animate-spin" strokeWidth={2.25} />
-                  ) : (
-                    <Download className="w-7 h-7" strokeWidth={2.25} />
-                  )}
+                  <Download className="w-7 h-7" strokeWidth={2.25} />
                 </div>
 
                 <div className="min-w-0 flex-1">
@@ -703,20 +673,16 @@ export default function CalculadoraCostos() {
                     className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[1.8px] mb-1"
                     style={{ color: 'rgba(255,255,255,0.72)' }}
                   >
-                    {isCapturing
-                      ? 'Generando imagen'
-                      : 'Planilla de costos · imagen vertical'}
+                    Planilla de costos · PDF A4
                   </div>
                   <div className="font-raleway font-bold text-[22px] sm:text-[24px] leading-tight tracking-tight">
-                    {isCapturing ? 'Generando planilla…' : 'Descargar planilla'}
+                    Descargar planilla
                   </div>
                   <div
                     className="text-[13px] sm:text-[14px] mt-1 leading-snug"
                     style={{ color: 'rgba(255,255,255,0.82)' }}
                   >
-                    {isCapturing
-                      ? 'Esto tarda un par de segundos…'
-                      : 'JPG listo para enviar por WhatsApp'}
+                    PDF listo para imprimir y enviar
                   </div>
                 </div>
               </div>
@@ -885,31 +851,6 @@ export default function CalculadoraCostos() {
         />
       </div>
 
-      {/* Story off-screen — solo se monta durante captura para evitar render
-          extra en idle. position fixed + left -9999px lo saca del viewport
-          sin perder layout (no usar display:none, html2canvas no captura). */}
-      {isCapturing && (
-        <div
-          ref={storyRef}
-          aria-hidden
-          style={{
-            position: 'fixed',
-            left: -9999,
-            top: 0,
-            pointerEvents: 'none',
-          }}
-        >
-          <ResumenStory
-            alquiler={alquiler}
-            meses={meses}
-            moneda={moneda}
-            tipo={tipo}
-            frecuencia={frecuencia}
-            indice={indice}
-            c={c}
-          />
-        </div>
-      )}
     </div>
   )
 }
