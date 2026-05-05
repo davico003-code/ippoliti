@@ -1,5 +1,6 @@
 export const TEMAS_PROHIBIDOS = [
   'Política partidaria (nunca mencionar nombres de políticos actuales como Milei, Kicillof, Massa, Macri, etc. ni partidos)',
+  'Política local y cambios institucionales municipales: concejales y política local, concejo deliberante, elecciones locales, cambios de gabinete o secretarías, ampliación de bancas, redistribución de comisiones. NO proponer notas sobre estos temas — ni siquiera desde el ángulo "qué impacto tiene en el mercado inmobiliario". Reformular hacia indicadores neutros del mercado (oferta, demanda, precios, infraestructura, servicios públicos).',
   'Predicciones específicas de dólar o inflación futura (evitar ser categórico; usar disclaimers si es necesario tocar el tema)',
   'Crypto, blockchain, tokenización, NFTs, stablecoins aplicados a real estate',
   'Comparaciones desfavorables con otras inmobiliarias de la zona (Vanzini, Crestale, Squaddra, Skygarden, Altos de Funes, Funes Inmobiliaria, RE/MAX, Eigen)',
