@@ -13,6 +13,7 @@ import {
 import DepositoCard from './shared/DepositoCard'
 import DisclaimerInfo from './shared/DisclaimerInfo'
 import CtaWhatsapp from './shared/CtaWhatsapp'
+import ResumenStory from './ResumenStory'
 
 type Frecuencia = 'trimestral' | 'cuatrimestral'
 type Indice = 'ICL' | 'IPC'
@@ -173,7 +174,7 @@ export default function CalculadoraCostos() {
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
   const [isCapturing, setIsCapturing] = useState<boolean>(false)
 
-  const captureRef = useRef<HTMLDivElement>(null)
+  const storyRef = useRef<HTMLDivElement>(null)
 
   // Prefill desde query params (ej. cuando el usuario llega desde la card
   // de la ficha de propiedad). Solo se aplica al mount; cambios posteriores
@@ -261,29 +262,37 @@ export default function CalculadoraCostos() {
   const mes4Usd = moneda === 'USD' ? alquiler + c.admin : 0
   const mes4Ars = moneda === 'USD' ? 0 : alquiler + c.admin
 
-  // ── Descarga PNG ───────────────────────────────────────────────────────
+  // ── Descarga JPG 1080×1920 (Story / WhatsApp) ──────────────────────────
   const handleDescargar = async () => {
-    if (!captureRef.current) return
     setIsCapturing(true)
     events.calculadoraCostosDescargar()
-    // Esperar 2 frames para que el DOM termine de actualizar (oculta botones/CTA)
+    // 2 frames para que React monte ResumenStory off-screen antes de capturar.
     await new Promise<void>(r =>
       requestAnimationFrame(() => requestAnimationFrame(() => r())),
     )
     try {
+      if (!storyRef.current) return
       const html2canvas = (await import('html2canvas')).default
-      const canvas = await html2canvas(captureRef.current, {
-        scale: 2,
+      const canvas = await html2canvas(storyRef.current, {
+        scale: 1,
+        width: 1080,
+        height: 1920,
         backgroundColor: '#FAFAF7',
         useCORS: true,
         logging: false,
       })
+      const blob: Blob | null = await new Promise(resolve =>
+        canvas.toBlob(b => resolve(b), 'image/jpeg', 0.92),
+      )
+      if (!blob) throw new Error('canvas.toBlob devolvió null')
+      const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.download = `costos-alquiler-SI-${todayStr()}.png`
-      link.href = canvas.toDataURL('image/png')
+      link.download = `costos-alquiler-SI-${todayStr()}.jpg`
+      link.href = url
       link.click()
+      URL.revokeObjectURL(url)
     } catch (e) {
-      console.error('Error al generar PNG', e)
+      console.error('Error al generar imagen', e)
     } finally {
       setIsCapturing(false)
     }
@@ -532,29 +541,25 @@ export default function CalculadoraCostos() {
         </section>
 
         {/* ── BOTÓN DESCARGAR ── */}
-        {!isCapturing && (
-          <div className="flex justify-end mb-3">
-            <button
-              type="button"
-              onClick={handleDescargar}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all hover:-translate-y-px"
-              style={{
-                background: '#FFFFFF',
-                color: 'var(--si-green)',
-                border: '1px solid var(--line)',
-                boxShadow: '0 1px 2px rgba(20, 30, 25, 0.04)',
-              }}
-            >
-              <Download className="w-4 h-4" />
-              Descargar como imagen
-            </button>
-          </div>
-        )}
+        <div className="flex justify-end mb-3">
+          <button
+            type="button"
+            onClick={handleDescargar}
+            disabled={isCapturing}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all hover:-translate-y-px disabled:opacity-60 disabled:cursor-wait disabled:translate-y-0"
+            style={{
+              background: '#FFFFFF',
+              color: 'var(--si-green)',
+              border: '1px solid var(--line)',
+              boxShadow: '0 1px 2px rgba(20, 30, 25, 0.04)',
+            }}
+          >
+            <Download className="w-4 h-4" />
+            {isCapturing ? 'Generando…' : 'Descargar resumen'}
+          </button>
+        </div>
 
-        {/* ── ÁREA CAPTURABLE ── */}
-        <div ref={captureRef}>
-
-          {/* Tabla horizontal — 5 columnas / 2 cols mobile */}
+        {/* Tabla horizontal — 5 columnas / 2 cols mobile */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
             style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
@@ -721,9 +726,6 @@ export default function CalculadoraCostos() {
             </div>
           </section>
 
-        </div>
-        {/* ── /ÁREA CAPTURABLE ── */}
-
         {/* DISCLAIMER */}
         <div className="mb-4">
           <DisclaimerInfo />
@@ -829,13 +831,37 @@ export default function CalculadoraCostos() {
         </section>
 
         {/* CTA */}
-        {!isCapturing && (
-          <CtaWhatsapp
-            source="costos"
-            message={`Hola! Tengo dudas con los costos iniciales para alquilar. Estuve mirando un contrato de ${tipoLabel.toLowerCase()} ${moneda === 'USD' ? `de US$ ${alquiler}` : `de $ ${alquiler.toLocaleString('es-AR')}`} por ${meses} meses.`}
-          />
-        )}
+        <CtaWhatsapp
+          source="costos"
+          message={`Hola! Tengo dudas con los costos iniciales para alquilar. Estuve mirando un contrato de ${tipoLabel.toLowerCase()} ${moneda === 'USD' ? `de US$ ${alquiler}` : `de $ ${alquiler.toLocaleString('es-AR')}`} por ${meses} meses.`}
+        />
       </div>
+
+      {/* Story off-screen — solo se monta durante captura para evitar render
+          extra en idle. position fixed + left -9999px lo saca del viewport
+          sin perder layout (no usar display:none, html2canvas no captura). */}
+      {isCapturing && (
+        <div
+          ref={storyRef}
+          aria-hidden
+          style={{
+            position: 'fixed',
+            left: -9999,
+            top: 0,
+            pointerEvents: 'none',
+          }}
+        >
+          <ResumenStory
+            alquiler={alquiler}
+            meses={meses}
+            moneda={moneda}
+            tipo={tipo}
+            frecuencia={frecuencia}
+            indice={indice}
+            c={c}
+          />
+        </div>
+      )}
     </div>
   )
 }
