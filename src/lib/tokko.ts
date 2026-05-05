@@ -593,7 +593,7 @@ export async function getProperties(params?: {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const res = await fetch(url.toString(), {
-          next: { revalidate: 3600 },
+          next: { revalidate: 3600, tags: ['tokko-properties'] },
         });
         if (!res.ok) {
           lastErr = new Error(`Tokko API error: ${res.status} ${res.statusText}`);
@@ -643,7 +643,7 @@ export async function getPropertyById(id: number): Promise<TokkoProperty> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(url, {
-        next: { revalidate: 21600 },
+        next: { revalidate: 21600, tags: ['tokko-properties', `tokko-property-${id}`] },
       });
 
       if (res.status === 404) {

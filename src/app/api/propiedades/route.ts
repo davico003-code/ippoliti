@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   if (search) params.set('search_address', search)
 
   const res = await fetch(`https://www.tokkobroker.com/api/v1/property/?${params.toString()}`, {
-    next: { revalidate: 3600 },
+    next: { revalidate: 3600, tags: ['tokko-properties'] },
   })
 
   if (!res.ok) {

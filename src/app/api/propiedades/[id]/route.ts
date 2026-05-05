@@ -9,7 +9,7 @@ export async function GET(
 
   const res = await fetch(
     `https://www.tokkobroker.com/api/v1/property/${params.id}/?key=${apiKey}&format=json&lang=es`,
-    { next: { revalidate: 3600 } }
+    { next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${params.id}`] } }
   )
 
   if (!res.ok) return NextResponse.json({ error: 'Not found' }, { status: 404 })
