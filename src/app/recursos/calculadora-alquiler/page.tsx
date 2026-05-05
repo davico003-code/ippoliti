@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import CalculadoraCostos from '@/components/recursos/CalculadoraCostos'
 import Breadcrumbs from '@/components/recursos/Breadcrumbs'
 
@@ -84,7 +85,11 @@ export default function CalculadoraAlquilerPage() {
         </div>
       </div>
 
-      <CalculadoraCostos />
+      {/* Suspense necesario porque CalculadoraCostos usa useSearchParams() para
+          prefill desde la card de la ficha de propiedad. */}
+      <Suspense fallback={null}>
+        <CalculadoraCostos />
+      </Suspense>
     </>
   )
 }
