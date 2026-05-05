@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Download } from 'lucide-react'
+import { Download, Loader2 } from 'lucide-react'
 import { events } from '@/lib/analytics'
 import {
   calcularCostosIngreso,
@@ -287,7 +287,7 @@ export default function CalculadoraCostos() {
       if (!blob) throw new Error('canvas.toBlob devolvió null')
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.download = `costos-alquiler-SI-${todayStr()}.jpg`
+      link.download = `planilla-alquiler-SI-${todayStr()}.jpg`
       link.href = url
       link.click()
       URL.revokeObjectURL(url)
@@ -540,25 +540,6 @@ export default function CalculadoraCostos() {
           </details>
         </section>
 
-        {/* ── BOTÓN DESCARGAR ── */}
-        <div className="flex justify-end mb-3">
-          <button
-            type="button"
-            onClick={handleDescargar}
-            disabled={isCapturing}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all hover:-translate-y-px disabled:opacity-60 disabled:cursor-wait disabled:translate-y-0"
-            style={{
-              background: '#FFFFFF',
-              color: 'var(--si-green)',
-              border: '1px solid var(--line)',
-              boxShadow: '0 1px 2px rgba(20, 30, 25, 0.04)',
-            }}
-          >
-            <Download className="w-4 h-4" />
-            {isCapturing ? 'Generando…' : 'Descargar resumen'}
-          </button>
-        </div>
-
         {/* Tabla horizontal — 5 columnas / 2 cols mobile */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
@@ -673,6 +654,73 @@ export default function CalculadoraCostos() {
           {/* DEPÓSITO */}
           <section className="mb-4">
             <DepositoCard amountUsd={c.depositoUSD} />
+          </section>
+
+          {/* ── CTA DESCARGAR PLANILLA ── */}
+          <section className="mb-4">
+            <button
+              type="button"
+              onClick={handleDescargar}
+              disabled={isCapturing}
+              aria-label="Descargar planilla de costos como imagen JPG"
+              className="group relative w-full text-left rounded-2xl px-6 py-5 sm:px-8 sm:py-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-wait disabled:translate-y-0"
+              style={{
+                background:
+                  'linear-gradient(135deg, var(--si-green) 0%, var(--si-green-dark) 100%)',
+                color: '#fff',
+                boxShadow: '0 10px 28px rgba(15, 61, 36, 0.22)',
+              }}
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    'radial-gradient(circle at 90% 0%, rgba(255,255,255,0.10) 0%, transparent 55%)',
+                }}
+              />
+
+              <div className="relative flex items-center gap-4 sm:gap-5">
+                <div
+                  aria-hidden
+                  className="flex-shrink-0 flex items-center justify-center rounded-xl"
+                  style={{
+                    width: 56,
+                    height: 56,
+                    background: 'rgba(255,255,255,0.14)',
+                    border: '1px solid rgba(255,255,255,0.22)',
+                  }}
+                >
+                  {isCapturing ? (
+                    <Loader2 className="w-7 h-7 animate-spin" strokeWidth={2.25} />
+                  ) : (
+                    <Download className="w-7 h-7" strokeWidth={2.25} />
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div
+                    className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[1.8px] mb-1"
+                    style={{ color: 'rgba(255,255,255,0.72)' }}
+                  >
+                    {isCapturing
+                      ? 'Generando imagen'
+                      : 'Planilla de costos · imagen vertical'}
+                  </div>
+                  <div className="font-raleway font-bold text-[22px] sm:text-[24px] leading-tight tracking-tight">
+                    {isCapturing ? 'Generando planilla…' : 'Descargar planilla'}
+                  </div>
+                  <div
+                    className="text-[13px] sm:text-[14px] mt-1 leading-snug"
+                    style={{ color: 'rgba(255,255,255,0.82)' }}
+                  >
+                    {isCapturing
+                      ? 'Esto tarda un par de segundos…'
+                      : 'JPG listo para enviar por WhatsApp'}
+                  </div>
+                </div>
+              </div>
+            </button>
           </section>
 
           {/* GARANTÍAS QUE NECESITÁS */}
