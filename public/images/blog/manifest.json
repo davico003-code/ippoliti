@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "generado": "2026-05-05",
+  "nota": "Imágenes locales del blog. El agente debe leer este manifest para elegir la imagen más afín al título de cada nota. Las imágenes con uso_especial='no_portada_blog' NO deben elegirse como portada.",
+  "imagenes": [
+    {
+      "ruta": "/images/blog/funes-y-roldan/barrio-cerrado-laguna-aerea.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Vista aérea de barrio cerrado moderno con laguna artificial, casas blancas contemporáneas, canchas deportivas. Ideal para notas sobre barrios cerrados premium, desarrollos nuevos, vida en country.",
+      "tags": [
+        "barrio cerrado",
+        "country",
+        "laguna",
+        "desarrollo",
+        "premium",
+        "casas modernas",
+        "Funes",
+        "Roldán"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/funes-aerea-quintas-01.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Aérea de Funes mostrando zona de quintas tradicionales con piletas y mucha vegetación. Casas con parque, vida residencial.",
+      "tags": [
+        "Funes",
+        "quintas",
+        "casas con parque",
+        "vida residencial",
+        "vegetación",
+        "piletas"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/funes-aerea-panoramica.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Vista panorámica de Funes con avenida central larga atravesando la ciudad. Muestra la extensión y crecimiento urbano.",
+      "tags": [
+        "Funes",
+        "panorámica",
+        "crecimiento urbano",
+        "avenida",
+        "expansión",
+        "ciudad"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/funes-aerea-vegetacion.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Aérea cerrada de Funes con muchísima arboleda, casas con piletas ocultas entre el verde. Estilo de vida natural.",
+      "tags": [
+        "Funes",
+        "arboleda",
+        "naturaleza",
+        "estilo de vida",
+        "casas con pileta"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/funes-panoramica-campo.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Funes desde lejos, mostrando la transición entre el casco urbano y el campo. Útil para notas sobre crecimiento, urbanización, límites de la ciudad.",
+      "tags": [
+        "Funes",
+        "campo",
+        "urbanización",
+        "límite urbano",
+        "crecimiento",
+        "transición rural"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/roldan-las-tardes-01.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Las Tardes, Roldán: barrio residencial con campo lindero y loteos en desarrollo. Crecimiento de Roldán hacia el oeste.",
+      "tags": [
+        "Roldán",
+        "Las Tardes",
+        "loteo",
+        "crecimiento",
+        "barrio residencial"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/roldan-las-tardes-02.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Las Tardes, Roldán: vista alternativa del barrio con calles amplias, lotes desarrollados y otros sin construir.",
+      "tags": [
+        "Roldán",
+        "Las Tardes",
+        "lotes",
+        "desarrollo",
+        "barrio"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/roldan-atardeceres-fincas.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Zona de Roldán con countries y barrios tipo Atardeceres / Fincas, viviendas con quintas grandes y mucho verde.",
+      "tags": [
+        "Roldán",
+        "Fincas",
+        "Atardeceres",
+        "country",
+        "quintas grandes"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/cadaques-aerea.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Aérea de Cadaqués, complejo residencial cerrado con muchas viviendas similares en planificación tipo loteo cerrado.",
+      "tags": [
+        "Cadaqués",
+        "barrio cerrado",
+        "loteo",
+        "complejo residencial",
+        "Funes",
+        "Roldán"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/laguna-cristalina-aerea.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Crystal lagoon (laguna cristalina) de un desarrollo nuevo, amenity premium. Notas sobre tendencias, desarrollos novedosos.",
+      "tags": [
+        "crystal lagoon",
+        "amenity",
+        "desarrollo nuevo",
+        "premium",
+        "tendencia",
+        "innovación"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/barrio-aereo-denso.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Barrio residencial denso visto desde el aire, calles ortogonales, casas medianas. Representa la oferta media del oeste.",
+      "tags": [
+        "barrio residencial",
+        "oferta media",
+        "loteo urbano",
+        "vivienda media"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/country-arboles-pileta.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Country club con calle interior arbolada y pileta. Imagen muy evocadora del estilo de vida country tradicional.",
+      "tags": [
+        "country",
+        "arboleda",
+        "estilo de vida",
+        "pileta",
+        "tranquilidad",
+        "verde"
+      ]
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/zona-oeste-campo-aerea.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Aérea de zona oeste con campo lindero a la urbanización. Útil para notas sobre límites, agricultura urbana, expansión.",
+      "tags": [
+        "zona oeste",
+        "campo",
+        "expansión",
+        "límite urbano",
+        "agro",
+        "ruralidad"
+      ]
+    },
+    {
+      "ruta": "/images/blog/mercado-rosario/rosario-noche-aerea.jpg",
+      "categoria": "mercado-rosario",
+      "descripcion": "Rosario de noche desde el aire, mar de luces. Para notas sobre el mercado del Gran Rosario, ciudad capital, mirada metropolitana.",
+      "tags": [
+        "Rosario",
+        "noche",
+        "ciudad",
+        "metrópolis",
+        "mercado urbano",
+        "Gran Rosario"
+      ]
+    },
+    {
+      "ruta": "/images/blog/mercado-rosario/puente-rosario-victoria-atardecer.jpg",
+      "categoria": "mercado-rosario",
+      "descripcion": "Puente Rosario-Victoria al atardecer, postal icónica. Imagen fuerte para notas sobre Rosario, conectividad, mercado regional.",
+      "tags": [
+        "Rosario",
+        "puente",
+        "atardecer",
+        "icónico",
+        "conectividad",
+        "regional"
+      ]
+    },
+    {
+      "ruta": "/images/blog/generales/asesor-living-vertical.jpg",
+      "categoria": "generales",
+      "descripcion": "Retrato profesional en living, formato vertical. NO usar como portada de nota de blog (la portada es horizontal 16:9). Reservada para usos especiales: página de autor, perfil, etc.",
+      "tags": [
+        "retrato",
+        "vertical",
+        "perfil",
+        "autor"
+      ],
+      "uso_especial": "no_portada_blog"
+    }
+  ]
+}
