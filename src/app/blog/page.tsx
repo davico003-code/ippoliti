@@ -102,7 +102,9 @@ export default async function BlogPage() {
     dateDisplay: p.dateDisplay,
     image: PEXELS_IMAGES[p.slug]
       ? pexelsUrl(PEXELS_IMAGES[p.slug])
-      : p.image.startsWith('http')
+      // Acepta URLs http(s) y paths locales (ej. /images/blog/...). El fallback
+      // a Pexels solo aplica para entradas viejas sin imagen explícita.
+      : (p.image.startsWith('http') || p.image.startsWith('/'))
         ? p.image
         : pexelsUrl(323780),
     category: resolveCategory(p.slug, p.category),
