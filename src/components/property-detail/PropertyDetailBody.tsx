@@ -26,6 +26,7 @@ import PropertyDescription from '../PropertyDescription'
 import type { NearbyProperty } from '../NearbyPropertiesMap'
 import SectionBoundary from './SectionBoundary'
 import PropertyVideo from './PropertyVideo'
+import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 
 const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false })
 const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false })
@@ -87,6 +88,18 @@ export default function PropertyDetailBody({
   const description = getDescription(property)
   const blueprints = getBlueprintPhotos(property)
   const address = property.fake_address || property.address
+
+  // Costos iniciales — solo alquiler permanente (operation_type === 'Rent';
+  // 'Sale' y 'Temporary rent' / 'Temporary' quedan fuera).
+  const op0 = property.operations?.[0]
+  const price0 = op0?.prices?.[0]
+  const isAlquilerPermanente = op0?.operation_type === 'Rent'
+  const alquilerMonto = typeof price0?.price === 'number' ? price0.price : 0
+  const monedaContrato = price0?.currency
+  const showCostosIngreso =
+    isAlquilerPermanente &&
+    alquilerMonto > 0 &&
+    (monedaContrato === 'ARS' || monedaContrato === 'USD')
 
   const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null
   const currentLng = property.geo_long ? parseFloat(property.geo_long) : null
@@ -164,6 +177,15 @@ export default function PropertyDetailBody({
           </span>
         </div>
       </section>
+
+      {/* COSTOS INICIALES — solo alquiler permanente con precio + moneda válidos */}
+      {showCostosIngreso && (
+        <CostosIngresoMini
+          alquiler={alquilerMonto}
+          moneda={monedaContrato as 'ARS' | 'USD'}
+          tipoPropiedad={property.type?.name ?? ''}
+        />
+      )}
 
       {/* Mobile-only contact (inside modal, since modal is used only on desktop anyway this is defensive) */}
       {showMobileContact && (
