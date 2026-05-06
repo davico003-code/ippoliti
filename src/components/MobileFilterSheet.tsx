@@ -1,16 +1,19 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
-import { PRICE_OPTIONS } from '@/constants/filters'
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
 
+type Currency = 'USD' | 'ARS'
+
 interface Filters {
   type: string
   beds: string
-  maxPrice: string
+  priceMin: string
+  priceMax: string
+  currency: Currency
   location: string
 }
 
@@ -18,7 +21,8 @@ interface Props {
   open: boolean
   onClose: () => void
   filters: Filters
-  onChangeFilter: (key: string, value: string) => void
+  onChangeFilter: (key: 'type' | 'beds' | 'location', value: string) => void
+  onPriceChange: (min: string, max: string, currency: Currency) => void
   onReset: () => void
   resultCount: number
 }
@@ -47,6 +51,13 @@ const LOCATION_OPTIONS = [
   { value: 'rosario', label: 'Rosario' },
 ]
 
+const digitsOnly = (s: string) => s.replace(/\D/g, '')
+const formatThousands = (s: string) => {
+  const d = digitsOnly(s)
+  if (!d) return ''
+  return new Intl.NumberFormat('es-AR').format(parseInt(d, 10))
+}
+
 function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
@@ -70,7 +81,20 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
   )
 }
 
-export default function MobileFilterSheet({ open, onClose, filters, onChangeFilter, onReset, resultCount }: Props) {
+export default function MobileFilterSheet({ open, onClose, filters, onChangeFilter, onPriceChange, onReset, resultCount }: Props) {
+  // Estado local del precio: el usuario tipea sin que cada keystroke dispare
+  // un re-filtrado. Se commitea cuando hace blur o cierra el sheet.
+  const [localMin, setLocalMin] = useState(filters.priceMin)
+  const [localMax, setLocalMax] = useState(filters.priceMax)
+  const [localCur, setLocalCur] = useState<Currency>(filters.currency)
+
+  // Sync external → local cada vez que se abre o cambian props.
+  useEffect(() => {
+    setLocalMin(filters.priceMin)
+    setLocalMax(filters.priceMax)
+    setLocalCur(filters.currency)
+  }, [filters.priceMin, filters.priceMax, filters.currency, open])
+
   // Lock body scroll when sheet is open
   useEffect(() => {
     if (open) {
@@ -87,14 +111,33 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
 
   if (!open) return null
 
-  const hasActive = filters.type !== 'todos' || filters.beds !== 'todos' || filters.maxPrice !== 'sin-limite' || filters.location !== 'todos'
+  const minN = localMin ? parseInt(localMin, 10) : 0
+  const maxN = localMax ? parseInt(localMax, 10) : Number.POSITIVE_INFINITY
+  const priceInvalid = !!localMin && !!localMax && minN > maxN
+
+  const commitPrice = () => {
+    if (priceInvalid) return
+    if (localMin === filters.priceMin && localMax === filters.priceMax && localCur === filters.currency) return
+    onPriceChange(localMin, localMax, localCur)
+  }
+
+  const hasActive = filters.type !== 'todos'
+    || filters.beds !== 'todos'
+    || !!filters.priceMin
+    || !!filters.priceMax
+    || filters.location !== 'todos'
+
+  const handleClose = () => {
+    commitPrice()
+    onClose()
+  }
 
   return (
     <>
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-[10000] bg-black/50"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Sheet */}
@@ -112,7 +155,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
           <div />
           <span style={{ fontFamily: R, fontWeight: 700, fontSize: 20, color: '#0a0a0a' }}>Filtros</span>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -143,12 +186,76 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
 
           {/* Precio */}
           <div>
-            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: '#0a0a0a', marginBottom: 12 }}>Precio máximo (USD)</p>
-            <div className="flex flex-wrap gap-2">
-              {PRICE_OPTIONS.map(o => (
-                <Chip key={o.value} label={o.label} active={filters.maxPrice === o.value} onClick={() => onChangeFilter('maxPrice', o.value)} />
+            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: '#0a0a0a', marginBottom: 12 }}>Rango de precio</p>
+            {/* Currency segmented */}
+            <div className="flex rounded-full bg-gray-100 p-0.5 mb-3">
+              {(['USD', 'ARS'] as const).map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setLocalCur(c)}
+                  className="flex-1 py-2 rounded-full"
+                  style={{
+                    background: localCur === c ? '#1A5C38' : 'transparent',
+                    color: localCur === c ? '#fff' : '#6b7280',
+                    fontFamily: R,
+                    fontSize: 13,
+                    fontWeight: localCur === c ? 600 : 500,
+                    border: 'none',
+                    cursor: 'pointer',
+                    minHeight: 40,
+                  }}
+                >
+                  {c}
+                </button>
               ))}
             </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Mín"
+                aria-label="Precio mínimo"
+                value={formatThousands(localMin)}
+                onChange={e => setLocalMin(digitsOnly(e.target.value))}
+                onBlur={commitPrice}
+                style={{
+                  flex: 1,
+                  height: 48,
+                  padding: '0 14px',
+                  borderRadius: 12,
+                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid #e5e7eb',
+                  fontFamily: R,
+                  fontSize: 16,
+                  outline: 'none',
+                }}
+              />
+              <span className="text-gray-400">—</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Máx"
+                aria-label="Precio máximo"
+                value={formatThousands(localMax)}
+                onChange={e => setLocalMax(digitsOnly(e.target.value))}
+                onBlur={commitPrice}
+                style={{
+                  flex: 1,
+                  height: 48,
+                  padding: '0 14px',
+                  borderRadius: 12,
+                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid #e5e7eb',
+                  fontFamily: R,
+                  fontSize: 16,
+                  outline: 'none',
+                }}
+              />
+            </div>
+            {priceInvalid && (
+              <p style={{ fontFamily: R, fontSize: 12, color: '#dc2626', marginTop: 8 }}>
+                El mínimo debe ser menor o igual al máximo.
+              </p>
+            )}
           </div>
 
           {/* Ubicación */}
@@ -174,10 +281,11 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
             </button>
           )}
           <button
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={priceInvalid}
             className="flex-1"
             style={{
-              background: '#1A5C38',
+              background: priceInvalid ? '#9ca3af' : '#1A5C38',
               color: '#fff',
               fontFamily: R,
               fontSize: 16,
@@ -185,7 +293,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
               padding: '14px 24px',
               borderRadius: 14,
               border: 'none',
-              cursor: 'pointer',
+              cursor: priceInvalid ? 'not-allowed' : 'pointer',
             }}
           >
             Ver <span style={{ fontFamily: P, fontVariantNumeric: 'tabular-nums' }}>{resultCount}</span> propiedad{resultCount !== 1 ? 'es' : ''}

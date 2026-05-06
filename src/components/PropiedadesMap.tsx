@@ -276,16 +276,30 @@ function createUserLocationMarker() {
   })
 }
 
-function LocateButton() {
+function LocateButton({
+  onNearbyOrigin,
+  nearbyActive,
+}: {
+  onNearbyOrigin?: (lat: number, lng: number) => void
+  nearbyActive?: boolean
+}) {
   const map = useMap()
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
   const [marker, setMarker] = useState<L.Marker | null>(null)
 
+  // Limpiar marker cuando el modo cercanía se apaga (chip cerrado).
+  useEffect(() => {
+    if (!nearbyActive && marker) {
+      marker.remove()
+      setMarker(null)
+    }
+  }, [nearbyActive, marker])
+
   const handleClick = useCallback(() => {
     if (!navigator.geolocation) {
-      setToast('Tu navegador no soporta geolocalización')
-      setTimeout(() => setToast(''), 3000)
+      setToast('Tu navegador no admite geolocalización.')
+      setTimeout(() => setToast(''), 3500)
       return
     }
     setLoading(true)
@@ -297,15 +311,16 @@ function LocateButton() {
         const m = L.marker([latitude, longitude], { icon: createUserLocationMarker(), zIndexOffset: 2000 }).addTo(map)
         setMarker(m)
         setLoading(false)
+        onNearbyOrigin?.(latitude, longitude)
       },
       () => {
         setLoading(false)
-        setToast('Activá la ubicación en tu navegador')
-        setTimeout(() => setToast(''), 3000)
+        setToast('No pudimos acceder a tu ubicación. Activá los permisos en tu navegador.')
+        setTimeout(() => setToast(''), 3500)
       },
       { enableHighAccuracy: true, timeout: 8000 }
     )
-  }, [map, marker])
+  }, [map, marker, onNearbyOrigin])
 
   return (
     <>
@@ -314,21 +329,24 @@ function LocateButton() {
       >
         <button
           onClick={handleClick}
-          title="Mi ubicación"
+          title={nearbyActive ? 'Centrado en tu ubicación' : 'Centrar en mi ubicación'}
+          aria-label="Centrar en mi ubicación"
+          aria-pressed={nearbyActive}
           style={{
             width: 40, height: 40,
-            background: 'white',
+            background: nearbyActive ? '#1A5C38' : 'white',
             borderRadius: '50%',
             boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            border: '1px solid #e5e7eb',
+            border: nearbyActive ? '1px solid #1A5C38' : '1px solid #e5e7eb',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
+            transition: 'background 0.15s, border 0.15s',
           }}
         >
           {loading ? (
-            <div style={{ width: 18, height: 18, border: '2px solid #e5e7eb', borderTopColor: '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+            <div style={{ width: 18, height: 18, border: '2px solid #e5e7eb', borderTopColor: nearbyActive ? '#fff' : '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
           ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={nearbyActive ? '#fff' : '#3B82F6'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="3 11 22 2 13 21 11 13 3 11" />
             </svg>
           )}
@@ -450,9 +468,13 @@ interface Props {
   onBoundsSearch?: (bounds: L.LatLngBounds) => void
   activeZona?: Zona | null
   onMapMove?: () => void
+  /** Notifica al padre las coords del usuario tras un click en "Centrar". Activa modo cercanía. */
+  onNearbyOrigin?: (lat: number, lng: number) => void
+  /** Si true, el botón "Centrar" muestra estado activo (modo cercanía). */
+  nearbyActive?: boolean
 }
 
-export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove }: Props) {
+export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove, onNearbyOrigin, nearbyActive }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const mapped = useMemo(() =>
     properties.filter(p => {
@@ -482,7 +504,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       <FitBounds properties={mapped} />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
-      <LocateButton />
+      <LocateButton onNearbyOrigin={onNearbyOrigin} nearbyActive={nearbyActive} />
       {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
       {activeZona && <ZonaFlyTo zona={activeZona} />}
       {onMapMove && <MapMoveListener onMove={onMapMove} />}

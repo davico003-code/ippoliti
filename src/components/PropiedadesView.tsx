@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import PropertyPanel from './PropertyPanel'
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -38,7 +38,8 @@ import {
   translatePropertyType,
   generatePropertySlug,
 } from '@/lib/tokko'
-import { PRICE_OPTIONS } from '@/constants/filters'
+import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM } from '@/lib/geo'
+import { isSpecificSearch } from '@/lib/search'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
   ssr: false,
@@ -57,7 +58,7 @@ const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
 type Operation = 'todos' | 'venta' | 'alquiler'
 type PropType  = 'todos' | 'casa' | 'departamento' | 'terreno' | 'local'
 type Beds      = 'todos' | '1' | '2' | '3' | '4+'
-type MaxPrice  = 'sin-limite' | '50000' | '100000' | '150000' | '200000' | '250000' | '300000' | '350000' | '400000' | '450000' | '500000' | '600000' | '700000'
+type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
 type ListMode  = 'compact' | 'list'
 type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
@@ -72,12 +73,35 @@ const SORT_OPTIONS: { value: SortBy; label: string }[] = [
 
 interface Filters {
   search: string; operation: Operation; type: PropType
-  beds: Beds; maxPrice: MaxPrice; location: Location
+  beds: Beds; location: Location
+  // Precio: strings de dígitos (sin separadores). Vacío = sin tope en ese extremo.
+  priceMin: string; priceMax: string; currency: Currency
 }
 
 const DEFAULTS: Filters = {
   search: '', operation: 'todos', type: 'todos',
-  beds: 'todos', maxPrice: 'sin-limite', location: 'todos',
+  beds: 'todos', location: 'todos',
+  priceMin: '', priceMax: '', currency: 'USD',
+}
+
+// Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
+const digitsOnly = (s: string) => s.replace(/\D/g, '')
+
+// Formato es-AR con separador de miles (120000 → "120.000"). Para vacío devuelve ''.
+const formatThousands = (s: string) => {
+  const d = digitsOnly(s)
+  if (!d) return ''
+  return new Intl.NumberFormat('es-AR').format(parseInt(d, 10))
+}
+
+// Compacta para label de UI: 120000 → "120K", 1500000 → "1.5M".
+const compactPrice = (s: string) => {
+  const d = digitsOnly(s)
+  if (!d) return ''
+  const n = parseInt(d, 10)
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`.replace('.0', '')
+  if (n >= 1_000) return `${Math.round(n / 1_000)}K`
+  return n.toLocaleString('es-AR')
 }
 
 // ─── FilterSelect ────────────────────────────────────────────────────────────
@@ -113,6 +137,165 @@ function FilterSelect<T extends string>({
   )
 }
 
+// ─── PriceFilterDropdown (desktop: dropdown con inputs min/max + moneda) ────
+
+function PriceFilterDropdown({
+  min, max, currency, onApply,
+}: {
+  min: string; max: string; currency: Currency
+  onApply: (min: string, max: string, currency: Currency) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [localMin, setLocalMin] = useState(min)
+  const [localMax, setLocalMax] = useState(max)
+  const [localCur, setLocalCur] = useState<Currency>(currency)
+  const ref = useRef<HTMLDivElement>(null)
+  const active = !!min || !!max
+
+  useEffect(() => { setLocalMin(min); setLocalMax(max); setLocalCur(currency) }, [min, max, currency])
+
+  const minN = localMin ? parseInt(localMin, 10) : 0
+  const maxN = localMax ? parseInt(localMax, 10) : Number.POSITIVE_INFINITY
+  const invalid = !!localMin && !!localMax && minN > maxN
+
+  const commit = useCallback(() => {
+    if (invalid) return
+    if (localMin === min && localMax === max && localCur === currency) return
+    onApply(localMin, localMax, localCur)
+  }, [invalid, localMin, localMax, localCur, min, max, currency, onApply])
+
+  // Click fuera cierra y commitea pendientes.
+  useEffect(() => {
+    if (!open) return
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        commit()
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [open, commit])
+
+  const label = !active ? 'Precio'
+    : !min ? `${currency} hasta ${compactPrice(max)}`
+    : !max ? `${currency} desde ${compactPrice(min)}`
+    : `${currency} ${compactPrice(min)} - ${compactPrice(max)}`
+
+  return (
+    <div className="relative flex-shrink-0" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-label="Filtro de precio"
+        className="appearance-none h-10 rounded-xl pl-3.5 pr-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all flex items-center gap-1"
+        style={{
+          border: active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
+          background: '#fff',
+          color: active ? '#1A5C38' : '#0a0a0a',
+          fontFamily: "'Raleway', system-ui, sans-serif",
+          fontWeight: active ? 600 : 500,
+          fontSize: 14,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {label}
+        <ChevronDown className={`w-4 h-4 ${active ? 'text-[#1A5C38]' : 'text-gray-400'} ${open ? 'rotate-180' : ''} transition-transform`} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-100 p-4" style={{ minWidth: 300 }}>
+          <div className="flex rounded-full bg-gray-100 p-0.5 mb-3">
+            {(['USD', 'ARS'] as const).map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setLocalCur(c)}
+                className="flex-1 py-1.5 rounded-full"
+                style={{
+                  background: localCur === c ? '#1A5C38' : 'transparent',
+                  color: localCur === c ? '#fff' : '#6b7280',
+                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontSize: 12,
+                  fontWeight: localCur === c ? 600 : 500,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Mín"
+              aria-label="Precio mínimo"
+              value={formatThousands(localMin)}
+              onChange={e => setLocalMin(digitsOnly(e.target.value))}
+              onKeyDown={e => { if (e.key === 'Enter') { commit(); setOpen(false) } }}
+              className="flex-1 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
+              style={{
+                border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 14,
+              }}
+            />
+            <span className="text-gray-400">—</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Máx"
+              aria-label="Precio máximo"
+              value={formatThousands(localMax)}
+              onChange={e => setLocalMax(digitsOnly(e.target.value))}
+              onKeyDown={e => { if (e.key === 'Enter') { commit(); setOpen(false) } }}
+              className="flex-1 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
+              style={{
+                border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 14,
+              }}
+            />
+          </div>
+          {invalid && (
+            <p className="text-[12px] text-red-600 mt-2" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+              El mínimo debe ser menor o igual al máximo.
+            </p>
+          )}
+          <div className="flex gap-2 mt-3">
+            <button
+              type="button"
+              onClick={() => { setLocalMin(''); setLocalMax(''); onApply('', '', localCur); setOpen(false) }}
+              disabled={!active && !localMin && !localMax}
+              className="flex-1 h-9 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, fontWeight: 600, color: '#4b5563' }}
+            >
+              Limpiar
+            </button>
+            <button
+              type="button"
+              onClick={() => { commit(); setOpen(false) }}
+              disabled={invalid}
+              className="flex-1 h-9 rounded-lg text-white"
+              style={{
+                background: invalid ? '#9ca3af' : '#1A5C38',
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 12,
+                fontWeight: 600,
+                border: 'none',
+                cursor: invalid ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Aplicar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Cards moved to PropiedadCardGrid.tsx ────────────────────────────────────
 
 // ─── PropiedadesView ──────────────────────────────────────────────────────────
@@ -127,11 +310,18 @@ export default function PropiedadesView({
 }) {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
   const initialSearch = searchParams.get('q') ?? ''
-  // Leer operación desde la URL (el Navbar linkea a ?op=venta|alquiler)
-  const opParam = (searchParams.get('op') ?? searchParams.get('operacion') ?? '').toLowerCase()
+  // Leer operación desde la URL. Aceptamos `?operacion=venta|alquiler` (canónico, compartible)
+  // y `?op=venta|alquiler` (legacy del Navbar). Cualquier cambio interno escribe `operacion`.
+  const opParam = (searchParams.get('operacion') ?? searchParams.get('op') ?? '').toLowerCase()
   const initialOperation: Operation =
     opParam === 'venta' || opParam === 'alquiler' ? opParam : 'todos'
+  // Filtro de precio desde URL: ?precio_min=, ?precio_max=, ?moneda=USD|ARS
+  const initialPriceMin = digitsOnly(searchParams.get('precio_min') ?? '')
+  const initialPriceMax = digitsOnly(searchParams.get('precio_max') ?? '')
+  const monedaParam = (searchParams.get('moneda') ?? '').toUpperCase()
+  const initialCurrency: Currency = monedaParam === 'ARS' ? 'ARS' : 'USD'
 
   // Resolve zona from q param
   const resolvedZona = useMemo<Zona | null>(() => {
@@ -146,29 +336,56 @@ export default function PropiedadesView({
 
   const activeZona = resolvedZona
 
-  const [filters, setFilters]           = useState<Filters>({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
+  const [filters, setFilters]           = useState<Filters>({
+    ...DEFAULTS,
+    search: initialSearch,
+    operation: initialOperation,
+    priceMin: initialPriceMin,
+    priceMax: initialPriceMax,
+    currency: initialCurrency,
+  })
+  // True cuando el cambio de URL fue iniciado por la UI (updateOperation).
+  // Sirve para que el effect de sincronización URL→estado distinga ese caso
+  // del caso "el Navbar cambió la URL externamente" (donde sí queremos
+  // resetear los filtros heredados).
+  const internalUrlSyncRef = useRef(false)
 
   // Reaccionar a cambios de URL sin remontaje. Cuando el usuario clickea
-  // "Comprar" o "Alquilar" en el header estando ya en /propiedades, Next.js
+  // "Comprar" o "Alquilar" en el Navbar estando ya en /propiedades, Next.js
   // hace navegación client-side y solo cambia searchParams; sin este efecto
   // el filtro de operación quedaría con el valor viejo. Al cambiar la URL
-  // también limpiamos los demás filtros (beds, maxPrice, location, type)
-  // para evitar combinaciones inválidas heredadas de la sesión anterior.
+  // por navegación externa también limpiamos los demás filtros (beds, precio,
+  // location, type) para evitar combinaciones inválidas heredadas de la sesión.
   useEffect(() => {
+    if (internalUrlSyncRef.current) {
+      internalUrlSyncRef.current = false
+      return
+    }
     setFilters({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
   }, [initialSearch, initialOperation])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [hoveredId, setHoveredId]       = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
+  // Vista mobile (toggle Lista↔Mapa). En desktop ambos paneles son visibles
+  // siempre, así que esta variable solo afecta a <md.
+  // Default: 'map'. Si el usuario togglea manualmente, su preferencia queda
+  // en sessionStorage `si_view_preference` y gana sobre el default automático
+  // de búsquedas específicas.
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
     if (typeof window === 'undefined') return 'map'
-    return (sessionStorage.getItem('si_mobile_view') as 'list' | 'map') || 'map'
+    const pref = sessionStorage.getItem('si_view_preference')
+    return pref === 'list' || pref === 'map' ? pref : 'map'
   })
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [listMode, setListMode]         = useState<ListMode>('compact')
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
   const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
+  // Modo "cercanía": cuando el usuario clickea Centrar y damos OK al permiso
+  // de geolocalización, guardamos el origen acá. El listado y el mapa pasan a
+  // mostrar SOLO propiedades dentro de GEO_NEARBY_RADIUS_KM (5 km por default).
+  // El chip flotante permite cerrar el modo y volver al estado anterior.
+  const [nearbyOrigin, setNearbyOrigin] = useState<{ lat: number; lng: number } | null>(null)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [mobileSortOpen, setMobileSortOpen]       = useState(false)
   const [refreshing, setRefreshing]               = useState(false)
@@ -213,13 +430,22 @@ export default function PropiedadesView({
     if (saved === 'compact' || saved === 'list') setListMode(saved)
   }, [])
 
-  // Persist mobile view choice + Safari iOS fix
+  // Safari iOS fix: forzar reflow del mapa cuando se vuelve a mostrar.
+  // (Antes este effect también persistía mobileView a sessionStorage. Ahora
+  // la persistencia es explícita en setViewManually para no contaminar el
+  // sessionStorage con cambios automáticos del default por búsqueda.)
   useEffect(() => {
-    sessionStorage.setItem('si_mobile_view', mobileView)
     if (mobileView === 'map') {
       setTimeout(() => window.dispatchEvent(new Event('resize')), 300)
     }
   }, [mobileView])
+
+  // Helper para cambios DE USUARIO. Persiste la preferencia para que las
+  // búsquedas siguientes en la sesión la respeten sobre el default automático.
+  const setViewManually = useCallback((view: 'list' | 'map') => {
+    setMobileView(view)
+    try { sessionStorage.setItem('si_view_preference', view) } catch { /* ignore */ }
+  }, [])
 
   // Close sort dropdown on outside click
   useEffect(() => {
@@ -240,7 +466,54 @@ export default function PropiedadesView({
   const set = useCallback(<K extends keyof Filters>(k: K, v: Filters[K]) =>
     setFilters(prev => ({ ...prev, [k]: v })), [])
 
-  const reset = useCallback(() => setFilters(DEFAULTS), [])
+  const reset = useCallback(() => {
+    setFilters(DEFAULTS)
+    setNearbyOrigin(null)
+    // Limpiar también la URL para que un reload no re-aplique los filtros.
+    const filterKeys = ['operacion', 'op', 'precio_min', 'precio_max', 'moneda']
+    if (filterKeys.some(k => searchParams.has(k))) {
+      internalUrlSyncRef.current = true
+      const params = new URLSearchParams(Array.from(searchParams.entries()))
+      for (const k of filterKeys) params.delete(k)
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }
+  }, [pathname, router, searchParams])
+
+  // Cambia el filtro de operación y refleja el cambio en la URL para que sea
+  // compartible (`?operacion=venta|alquiler`). Preserva el resto de los query
+  // params actuales y normaliza el legacy `?op=` al canónico `?operacion=`.
+  // Marca el sync como "interno" para que el effect URL→estado no resetee
+  // beds/type/location/precios cuando el cambio salió de esta UI.
+  const updateOperation = useCallback((v: Operation) => {
+    setFilters(prev => ({ ...prev, operation: v }))
+    internalUrlSyncRef.current = true
+    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    params.delete('op')
+    if (v === 'todos') {
+      params.delete('operacion')
+    } else {
+      params.set('operacion', v)
+    }
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [pathname, router, searchParams])
+
+  // Aplica un rango de precio + moneda al estado y URL en una sola operación.
+  // `min`/`max` ya vienen sanitizados (solo dígitos). Vacío = sin tope ese extremo.
+  // Si min > max, NO commitea (la UI marca el error con el flag `priceError`).
+  const updatePrice = useCallback((min: string, max: string, currency: Currency) => {
+    setFilters(prev => ({ ...prev, priceMin: min, priceMax: max, currency }))
+    internalUrlSyncRef.current = true
+    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    if (min) params.set('precio_min', min); else params.delete('precio_min')
+    if (max) params.set('precio_max', max); else params.delete('precio_max')
+    // Solo persiste moneda en URL si hay algún tope activo (sin filtro de precio,
+    // la moneda es irrelevante a la búsqueda y mejor no ensuciar la URL).
+    if (min || max) params.set('moneda', currency); else params.delete('moneda')
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [pathname, router, searchParams])
 
   // "Mi ubicación actual": obtiene coords + reverse geocoding con Nominatim
   // y carga el nombre del lugar en el input de búsqueda.
@@ -278,7 +551,7 @@ export default function PropiedadesView({
           set('search', nombre)
           pushToHistory(nombre)
           setFlyToCenter([latitude, longitude])
-          setMobileView('map')
+          setViewManually('map')
           setSearchSuggestions(false)
           setSearchDropdownDesktop(false)
         } catch {
@@ -293,7 +566,7 @@ export default function PropiedadesView({
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
-  }, [set, pushToHistory])
+  }, [set, pushToHistory, setViewManually])
 
   const hasActive = (Object.keys(DEFAULTS) as (keyof Filters)[])
     .some(k => filters[k] !== DEFAULTS[k])
@@ -353,11 +626,17 @@ export default function PropiedadesView({
       if (filters.beds === '4+' && rooms < 4) return false
       if (filters.beds !== '4+' && rooms !== parseInt(filters.beds)) return false
     }
-    if (filters.maxPrice !== 'sin-limite') {
-      const max = parseInt(filters.maxPrice)
+    // Filtro de precio: cohorte por moneda. Si el usuario fija algún tope,
+    // solo se evalúan propiedades publicadas en esa moneda; las demás se
+    // descartan (decisión explícita: comparar USD vs ARS sin conversión sería
+    // engañoso porque dependería de un tipo de cambio que no manejamos).
+    if (filters.priceMin || filters.priceMax) {
+      const minNum = filters.priceMin ? parseInt(filters.priceMin, 10) : 0
+      const maxNum = filters.priceMax ? parseInt(filters.priceMax, 10) : Number.POSITIVE_INFINITY
       const price = p.operations?.[0]?.prices?.[0]?.price ?? 0
-      const currency = p.operations?.[0]?.prices?.[0]?.currency ?? ''
-      if (currency === 'USD' && price > max) return false
+      const propCur = p.operations?.[0]?.prices?.[0]?.currency ?? ''
+      if (propCur !== filters.currency) return false
+      if (price < minNum || price > maxNum) return false
     }
     if (filters.location !== 'todos') {
       const all = norm(`${p.location?.short_location ?? p.location?.name ?? ''} ${p.fake_address ?? p.address ?? ''}`)
@@ -394,16 +673,47 @@ export default function PropiedadesView({
     }
   }), [properties, filters, sortBy, resolvedNeighborhoods])
 
-  // Apply map bounds filter if active
+  // Lista para el mapa: aplica filtros + cercanía. NO aplica mapBounds porque
+  // el bounds se calcula desde el viewport y filtrar por bounds antes de
+  // pintar generaría un loop visual.
+  const propertiesForMap = useMemo(() => {
+    if (!nearbyOrigin) return filtered
+    return filterPropertiesByRadius(filtered, nearbyOrigin.lat, nearbyOrigin.lng)
+  }, [filtered, nearbyOrigin])
+
+  // Lista para el listado lateral: cercanía + bounds.
   const visibleProperties = useMemo(() => {
-    if (!mapBounds) return filtered
-    return filtered.filter(p => {
-      if (!p.geo_lat || !p.geo_long) return true
-      const lat = parseFloat(p.geo_lat)
-      const lng = parseFloat(p.geo_long)
-      return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
-    })
-  }, [filtered, mapBounds])
+    let list = propertiesForMap
+    if (mapBounds) {
+      list = list.filter(p => {
+        if (!p.geo_lat || !p.geo_long) return true
+        const lat = parseFloat(p.geo_lat)
+        const lng = parseFloat(p.geo_long)
+        return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
+      })
+    }
+    return list
+  }, [propertiesForMap, mapBounds])
+
+  // Default automático de vista mobile basado en isSpecificSearch.
+  // Solo aplica si el usuario aún NO togglea manualmente en la sesión
+  // (sessionStorage 'si_view_preference' ausente).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const pref = sessionStorage.getItem('si_view_preference')
+    if (pref === 'list' || pref === 'map') return
+    const auto: 'list' | 'map' = isSpecificSearch(filters.search, visibleProperties.length) ? 'list' : 'map'
+    setMobileView(prev => (prev === auto ? prev : auto))
+  }, [filters.search, visibleProperties.length])
+
+  // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
+  // que el filtro de radio sea el único activo (sino se acumulan).
+  const handleNearbyOrigin = useCallback((lat: number, lng: number) => {
+    setNearbyOrigin({ lat, lng })
+    setMapBounds(null)
+  }, [])
+
+  const clearNearby = useCallback(() => setNearbyOrigin(null), [])
 
   // Panel auto-open ONLY in desktop. En mobile la ficha se renderiza directo
   // como página completa en [slug]/page.tsx mobile block — abrir el panel acá
@@ -473,7 +783,7 @@ export default function PropiedadesView({
   const mobileActiveCount = [
     filters.type !== 'todos',
     filters.beds !== 'todos',
-    filters.maxPrice !== 'sin-limite',
+    !!filters.priceMin || !!filters.priceMax,
     filters.location !== 'todos',
   ].filter(Boolean).length
 
@@ -486,7 +796,7 @@ export default function PropiedadesView({
         {/* Row 1: Back + Search + Location */}
         <div className="flex items-center gap-2 px-3 pt-[env(safe-area-inset-top)] py-2">
           <button
-            onClick={() => mobileView === 'map' ? setMobileView('list') : window.history.back()}
+            onClick={() => mobileView === 'map' ? setViewManually('list') : window.history.back()}
             className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
             aria-label="Volver"
           >
@@ -629,7 +939,7 @@ export default function PropiedadesView({
             {(['venta', 'alquiler'] as const).map(op => (
               <button
                 key={op}
-                onClick={() => set('operation', filters.operation === op ? 'todos' : op)}
+                onClick={() => updateOperation(filters.operation === op ? 'todos' : op)}
                 className="flex-1 py-2.5 rounded-full text-center transition-all"
                 style={{
                   background: filters.operation === op ? '#1A5C38' : 'transparent',
@@ -795,14 +1105,18 @@ export default function PropiedadesView({
           )}
         </div>
         <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
-        <FilterSelect value={filters.operation} onChange={v => set('operation', v)}
+        <FilterSelect value={filters.operation} onChange={updateOperation}
           options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'}]} />
         <FilterSelect value={filters.type} onChange={v => set('type', v)}
           options={[{value:'todos',label:'Tipología'},{value:'casa',label:'Casa'},{value:'departamento',label:'Depto.'},{value:'terreno',label:'Terreno'},{value:'local',label:'Local'}]} />
         <FilterSelect value={filters.beds} onChange={v => set('beds', v)}
           options={[{value:'todos',label:'Dormitorios'},{value:'1',label:'1 dorm.'},{value:'2',label:'2 dorm.'},{value:'3',label:'3 dorm.'},{value:'4+',label:'4+ dorm.'}]} />
-        <FilterSelect value={filters.maxPrice} onChange={v => set('maxPrice', v)}
-          options={PRICE_OPTIONS.map(o => ({ value: o.value as MaxPrice, label: o.value === 'sin-limite' ? 'Precio máx.' : o.label }))} />
+        <PriceFilterDropdown
+          min={filters.priceMin}
+          max={filters.priceMax}
+          currency={filters.currency}
+          onApply={updatePrice}
+        />
         <FilterSelect value={filters.location} onChange={v => set('location', v)}
           options={[{value:'todos',label:'Ubicación'},{value:'roldan',label:'Roldán'},{value:'rosario',label:'Rosario'},{value:'funes',label:'Funes'}]} />
         {hasActive && (
@@ -825,6 +1139,7 @@ export default function PropiedadesView({
         onClose={() => setMobileFiltersOpen(false)}
         filters={filters}
         onChangeFilter={(k, v) => set(k as keyof Filters, v as never)}
+        onPriceChange={updatePrice}
         onReset={() => { reset(); setMobileFiltersOpen(false) }}
         resultCount={visibleProperties.length}
       />
@@ -896,9 +1211,27 @@ export default function PropiedadesView({
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
-                <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
-                <p className="text-gray-400 text-xs mb-4">Probá con otros filtros</p>
-                <button onClick={() => { reset(); setMapBounds(null) }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
+                {nearbyOrigin ? (
+                  <>
+                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                      No hay propiedades en un radio de {GEO_NEARBY_RADIUS_KM} km. Probá ampliar la búsqueda.
+                    </p>
+                  </>
+                ) : (filters.priceMin || filters.priceMax) ? (
+                  <>
+                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                      No encontramos propiedades en {filters.currency} en ese rango. Probá cambiar la moneda o ampliar el rango.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
+                    <p className="text-gray-400 text-xs mb-4">Probá con otros filtros</p>
+                  </>
+                )}
+                <button onClick={() => { reset(); setMapBounds(null); clearNearby() }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
                   Borrar filtros
                 </button>
               </div>
@@ -933,7 +1266,7 @@ export default function PropiedadesView({
         {/* Right: Map */}
         <div className={`relative w-full md:w-[52%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
           <PropiedadesMap
-            properties={filtered}
+            properties={propertiesForMap}
             selectedId={selectedId}
             hoveredId={hoveredId}
             onSelect={handleMapSelect}
@@ -952,7 +1285,38 @@ export default function PropiedadesView({
             }}
             activeZona={activeZona}
             onMapMove={closeBottomSheet}
+            onNearbyOrigin={handleNearbyOrigin}
+            nearbyActive={nearbyOrigin != null}
           />
+          {/* Chip "modo cercanía" — cerrable, sobre el mapa, no tapa el contador. */}
+          {nearbyOrigin && (
+            <div
+              className="absolute z-[1000] flex items-center gap-2 bg-[#1A5C38] text-white shadow-lg"
+              style={{
+                top: 12,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '8px 12px 8px 14px',
+                borderRadius: 999,
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                maxWidth: 'calc(100% - 24px)',
+              }}
+            >
+              <Locate className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">
+                Mostrando propiedades a menos de <span style={{ fontVariantNumeric: 'tabular-nums' }}>{GEO_NEARBY_RADIUS_KM}</span> km de tu ubicación
+              </span>
+              <button
+                onClick={clearNearby}
+                aria-label="Quitar filtro por cercanía"
+                className="flex-shrink-0 ml-1 w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           <div className="absolute top-3 left-3 z-[999] pointer-events-none">
             <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-md border border-gray-100">
               <span className="text-xs font-bold text-gray-900 font-numeric">
@@ -991,7 +1355,7 @@ export default function PropiedadesView({
           </button>
         )}
         <button
-          onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
+          onClick={() => setViewManually(mobileView === 'list' ? 'map' : 'list')}
           className="inline-flex items-center gap-2 rounded-full"
           style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
         >
