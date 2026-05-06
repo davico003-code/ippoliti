@@ -38,7 +38,6 @@ import {
   translatePropertyType,
   generatePropertySlug,
 } from '@/lib/tokko'
-import { PRICE_OPTIONS } from '@/constants/filters'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
   ssr: false,
@@ -57,7 +56,7 @@ const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
 type Operation = 'todos' | 'venta' | 'alquiler'
 type PropType  = 'todos' | 'casa' | 'departamento' | 'terreno' | 'local'
 type Beds      = 'todos' | '1' | '2' | '3' | '4+'
-type MaxPrice  = 'sin-limite' | '50000' | '100000' | '150000' | '200000' | '250000' | '300000' | '350000' | '400000' | '450000' | '500000' | '600000' | '700000'
+type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
 type ListMode  = 'compact' | 'list'
 type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
@@ -72,12 +71,35 @@ const SORT_OPTIONS: { value: SortBy; label: string }[] = [
 
 interface Filters {
   search: string; operation: Operation; type: PropType
-  beds: Beds; maxPrice: MaxPrice; location: Location
+  beds: Beds; location: Location
+  // Precio: strings de dígitos (sin separadores). Vacío = sin tope en ese extremo.
+  priceMin: string; priceMax: string; currency: Currency
 }
 
 const DEFAULTS: Filters = {
   search: '', operation: 'todos', type: 'todos',
-  beds: 'todos', maxPrice: 'sin-limite', location: 'todos',
+  beds: 'todos', location: 'todos',
+  priceMin: '', priceMax: '', currency: 'USD',
+}
+
+// Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
+const digitsOnly = (s: string) => s.replace(/\D/g, '')
+
+// Formato es-AR con separador de miles (120000 → "120.000"). Para vacío devuelve ''.
+const formatThousands = (s: string) => {
+  const d = digitsOnly(s)
+  if (!d) return ''
+  return new Intl.NumberFormat('es-AR').format(parseInt(d, 10))
+}
+
+// Compacta para label de UI: 120000 → "120K", 1500000 → "1.5M".
+const compactPrice = (s: string) => {
+  const d = digitsOnly(s)
+  if (!d) return ''
+  const n = parseInt(d, 10)
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`.replace('.0', '')
+  if (n >= 1_000) return `${Math.round(n / 1_000)}K`
+  return n.toLocaleString('es-AR')
 }
 
 // ─── FilterSelect ────────────────────────────────────────────────────────────
@@ -113,6 +135,165 @@ function FilterSelect<T extends string>({
   )
 }
 
+// ─── PriceFilterDropdown (desktop: dropdown con inputs min/max + moneda) ────
+
+function PriceFilterDropdown({
+  min, max, currency, onApply,
+}: {
+  min: string; max: string; currency: Currency
+  onApply: (min: string, max: string, currency: Currency) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [localMin, setLocalMin] = useState(min)
+  const [localMax, setLocalMax] = useState(max)
+  const [localCur, setLocalCur] = useState<Currency>(currency)
+  const ref = useRef<HTMLDivElement>(null)
+  const active = !!min || !!max
+
+  useEffect(() => { setLocalMin(min); setLocalMax(max); setLocalCur(currency) }, [min, max, currency])
+
+  const minN = localMin ? parseInt(localMin, 10) : 0
+  const maxN = localMax ? parseInt(localMax, 10) : Number.POSITIVE_INFINITY
+  const invalid = !!localMin && !!localMax && minN > maxN
+
+  const commit = useCallback(() => {
+    if (invalid) return
+    if (localMin === min && localMax === max && localCur === currency) return
+    onApply(localMin, localMax, localCur)
+  }, [invalid, localMin, localMax, localCur, min, max, currency, onApply])
+
+  // Click fuera cierra y commitea pendientes.
+  useEffect(() => {
+    if (!open) return
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        commit()
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [open, commit])
+
+  const label = !active ? 'Precio'
+    : !min ? `${currency} hasta ${compactPrice(max)}`
+    : !max ? `${currency} desde ${compactPrice(min)}`
+    : `${currency} ${compactPrice(min)} - ${compactPrice(max)}`
+
+  return (
+    <div className="relative flex-shrink-0" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-label="Filtro de precio"
+        className="appearance-none h-10 rounded-xl pl-3.5 pr-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all flex items-center gap-1"
+        style={{
+          border: active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
+          background: '#fff',
+          color: active ? '#1A5C38' : '#0a0a0a',
+          fontFamily: "'Raleway', system-ui, sans-serif",
+          fontWeight: active ? 600 : 500,
+          fontSize: 14,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {label}
+        <ChevronDown className={`w-4 h-4 ${active ? 'text-[#1A5C38]' : 'text-gray-400'} ${open ? 'rotate-180' : ''} transition-transform`} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-100 p-4" style={{ minWidth: 300 }}>
+          <div className="flex rounded-full bg-gray-100 p-0.5 mb-3">
+            {(['USD', 'ARS'] as const).map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setLocalCur(c)}
+                className="flex-1 py-1.5 rounded-full"
+                style={{
+                  background: localCur === c ? '#1A5C38' : 'transparent',
+                  color: localCur === c ? '#fff' : '#6b7280',
+                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontSize: 12,
+                  fontWeight: localCur === c ? 600 : 500,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Mín"
+              aria-label="Precio mínimo"
+              value={formatThousands(localMin)}
+              onChange={e => setLocalMin(digitsOnly(e.target.value))}
+              onKeyDown={e => { if (e.key === 'Enter') { commit(); setOpen(false) } }}
+              className="flex-1 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
+              style={{
+                border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 14,
+              }}
+            />
+            <span className="text-gray-400">—</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Máx"
+              aria-label="Precio máximo"
+              value={formatThousands(localMax)}
+              onChange={e => setLocalMax(digitsOnly(e.target.value))}
+              onKeyDown={e => { if (e.key === 'Enter') { commit(); setOpen(false) } }}
+              className="flex-1 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
+              style={{
+                border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 14,
+              }}
+            />
+          </div>
+          {invalid && (
+            <p className="text-[12px] text-red-600 mt-2" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+              El mínimo debe ser menor o igual al máximo.
+            </p>
+          )}
+          <div className="flex gap-2 mt-3">
+            <button
+              type="button"
+              onClick={() => { setLocalMin(''); setLocalMax(''); onApply('', '', localCur); setOpen(false) }}
+              disabled={!active && !localMin && !localMax}
+              className="flex-1 h-9 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, fontWeight: 600, color: '#4b5563' }}
+            >
+              Limpiar
+            </button>
+            <button
+              type="button"
+              onClick={() => { commit(); setOpen(false) }}
+              disabled={invalid}
+              className="flex-1 h-9 rounded-lg text-white"
+              style={{
+                background: invalid ? '#9ca3af' : '#1A5C38',
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 12,
+                fontWeight: 600,
+                border: 'none',
+                cursor: invalid ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Aplicar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Cards moved to PropiedadCardGrid.tsx ────────────────────────────────────
 
 // ─── PropiedadesView ──────────────────────────────────────────────────────────
@@ -134,6 +315,11 @@ export default function PropiedadesView({
   const opParam = (searchParams.get('operacion') ?? searchParams.get('op') ?? '').toLowerCase()
   const initialOperation: Operation =
     opParam === 'venta' || opParam === 'alquiler' ? opParam : 'todos'
+  // Filtro de precio desde URL: ?precio_min=, ?precio_max=, ?moneda=USD|ARS
+  const initialPriceMin = digitsOnly(searchParams.get('precio_min') ?? '')
+  const initialPriceMax = digitsOnly(searchParams.get('precio_max') ?? '')
+  const monedaParam = (searchParams.get('moneda') ?? '').toUpperCase()
+  const initialCurrency: Currency = monedaParam === 'ARS' ? 'ARS' : 'USD'
 
   // Resolve zona from q param
   const resolvedZona = useMemo<Zona | null>(() => {
@@ -148,7 +334,14 @@ export default function PropiedadesView({
 
   const activeZona = resolvedZona
 
-  const [filters, setFilters]           = useState<Filters>({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
+  const [filters, setFilters]           = useState<Filters>({
+    ...DEFAULTS,
+    search: initialSearch,
+    operation: initialOperation,
+    priceMin: initialPriceMin,
+    priceMax: initialPriceMax,
+    currency: initialCurrency,
+  })
   // True cuando el cambio de URL fue iniciado por la UI (updateOperation).
   // Sirve para que el effect de sincronización URL→estado distinga ese caso
   // del caso "el Navbar cambió la URL externamente" (donde sí queremos
@@ -159,7 +352,7 @@ export default function PropiedadesView({
   // "Comprar" o "Alquilar" en el Navbar estando ya en /propiedades, Next.js
   // hace navegación client-side y solo cambia searchParams; sin este efecto
   // el filtro de operación quedaría con el valor viejo. Al cambiar la URL
-  // por navegación externa también limpiamos los demás filtros (beds, maxPrice,
+  // por navegación externa también limpiamos los demás filtros (beds, precio,
   // location, type) para evitar combinaciones inválidas heredadas de la sesión.
   useEffect(() => {
     if (internalUrlSyncRef.current) {
@@ -253,12 +446,12 @@ export default function PropiedadesView({
 
   const reset = useCallback(() => {
     setFilters(DEFAULTS)
-    // Limpiar también la URL para que un reload no re-aplique la operación.
-    if (searchParams.has('operacion') || searchParams.has('op')) {
+    // Limpiar también la URL para que un reload no re-aplique los filtros.
+    const filterKeys = ['operacion', 'op', 'precio_min', 'precio_max', 'moneda']
+    if (filterKeys.some(k => searchParams.has(k))) {
       internalUrlSyncRef.current = true
       const params = new URLSearchParams(Array.from(searchParams.entries()))
-      params.delete('operacion')
-      params.delete('op')
+      for (const k of filterKeys) params.delete(k)
       const qs = params.toString()
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
     }
@@ -268,7 +461,7 @@ export default function PropiedadesView({
   // compartible (`?operacion=venta|alquiler`). Preserva el resto de los query
   // params actuales y normaliza el legacy `?op=` al canónico `?operacion=`.
   // Marca el sync como "interno" para que el effect URL→estado no resetee
-  // beds/type/location/maxPrice cuando el cambio salió de esta UI.
+  // beds/type/location/precios cuando el cambio salió de esta UI.
   const updateOperation = useCallback((v: Operation) => {
     setFilters(prev => ({ ...prev, operation: v }))
     internalUrlSyncRef.current = true
@@ -279,6 +472,22 @@ export default function PropiedadesView({
     } else {
       params.set('operacion', v)
     }
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [pathname, router, searchParams])
+
+  // Aplica un rango de precio + moneda al estado y URL en una sola operación.
+  // `min`/`max` ya vienen sanitizados (solo dígitos). Vacío = sin tope ese extremo.
+  // Si min > max, NO commitea (la UI marca el error con el flag `priceError`).
+  const updatePrice = useCallback((min: string, max: string, currency: Currency) => {
+    setFilters(prev => ({ ...prev, priceMin: min, priceMax: max, currency }))
+    internalUrlSyncRef.current = true
+    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    if (min) params.set('precio_min', min); else params.delete('precio_min')
+    if (max) params.set('precio_max', max); else params.delete('precio_max')
+    // Solo persiste moneda en URL si hay algún tope activo (sin filtro de precio,
+    // la moneda es irrelevante a la búsqueda y mejor no ensuciar la URL).
+    if (min || max) params.set('moneda', currency); else params.delete('moneda')
     const qs = params.toString()
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }, [pathname, router, searchParams])
@@ -394,11 +603,17 @@ export default function PropiedadesView({
       if (filters.beds === '4+' && rooms < 4) return false
       if (filters.beds !== '4+' && rooms !== parseInt(filters.beds)) return false
     }
-    if (filters.maxPrice !== 'sin-limite') {
-      const max = parseInt(filters.maxPrice)
+    // Filtro de precio: cohorte por moneda. Si el usuario fija algún tope,
+    // solo se evalúan propiedades publicadas en esa moneda; las demás se
+    // descartan (decisión explícita: comparar USD vs ARS sin conversión sería
+    // engañoso porque dependería de un tipo de cambio que no manejamos).
+    if (filters.priceMin || filters.priceMax) {
+      const minNum = filters.priceMin ? parseInt(filters.priceMin, 10) : 0
+      const maxNum = filters.priceMax ? parseInt(filters.priceMax, 10) : Number.POSITIVE_INFINITY
       const price = p.operations?.[0]?.prices?.[0]?.price ?? 0
-      const currency = p.operations?.[0]?.prices?.[0]?.currency ?? ''
-      if (currency === 'USD' && price > max) return false
+      const propCur = p.operations?.[0]?.prices?.[0]?.currency ?? ''
+      if (propCur !== filters.currency) return false
+      if (price < minNum || price > maxNum) return false
     }
     if (filters.location !== 'todos') {
       const all = norm(`${p.location?.short_location ?? p.location?.name ?? ''} ${p.fake_address ?? p.address ?? ''}`)
@@ -514,7 +729,7 @@ export default function PropiedadesView({
   const mobileActiveCount = [
     filters.type !== 'todos',
     filters.beds !== 'todos',
-    filters.maxPrice !== 'sin-limite',
+    !!filters.priceMin || !!filters.priceMax,
     filters.location !== 'todos',
   ].filter(Boolean).length
 
@@ -842,8 +1057,12 @@ export default function PropiedadesView({
           options={[{value:'todos',label:'Tipología'},{value:'casa',label:'Casa'},{value:'departamento',label:'Depto.'},{value:'terreno',label:'Terreno'},{value:'local',label:'Local'}]} />
         <FilterSelect value={filters.beds} onChange={v => set('beds', v)}
           options={[{value:'todos',label:'Dormitorios'},{value:'1',label:'1 dorm.'},{value:'2',label:'2 dorm.'},{value:'3',label:'3 dorm.'},{value:'4+',label:'4+ dorm.'}]} />
-        <FilterSelect value={filters.maxPrice} onChange={v => set('maxPrice', v)}
-          options={PRICE_OPTIONS.map(o => ({ value: o.value as MaxPrice, label: o.value === 'sin-limite' ? 'Precio máx.' : o.label }))} />
+        <PriceFilterDropdown
+          min={filters.priceMin}
+          max={filters.priceMax}
+          currency={filters.currency}
+          onApply={updatePrice}
+        />
         <FilterSelect value={filters.location} onChange={v => set('location', v)}
           options={[{value:'todos',label:'Ubicación'},{value:'roldan',label:'Roldán'},{value:'rosario',label:'Rosario'},{value:'funes',label:'Funes'}]} />
         {hasActive && (
@@ -866,6 +1085,7 @@ export default function PropiedadesView({
         onClose={() => setMobileFiltersOpen(false)}
         filters={filters}
         onChangeFilter={(k, v) => set(k as keyof Filters, v as never)}
+        onPriceChange={updatePrice}
         onReset={() => { reset(); setMobileFiltersOpen(false) }}
         resultCount={visibleProperties.length}
       />
@@ -937,8 +1157,19 @@ export default function PropiedadesView({
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
-                <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
-                <p className="text-gray-400 text-xs mb-4">Probá con otros filtros</p>
+                {(filters.priceMin || filters.priceMax) ? (
+                  <>
+                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                      No encontramos propiedades en {filters.currency} en ese rango. Probá cambiar la moneda o ampliar el rango.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
+                    <p className="text-gray-400 text-xs mb-4">Probá con otros filtros</p>
+                  </>
+                )}
                 <button onClick={() => { reset(); setMapBounds(null) }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
                   Borrar filtros
                 </button>
