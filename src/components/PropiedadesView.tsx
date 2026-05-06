@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import PropertyPanel from './PropertyPanel'
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -127,9 +127,11 @@ export default function PropiedadesView({
 }) {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
   const initialSearch = searchParams.get('q') ?? ''
-  // Leer operación desde la URL (el Navbar linkea a ?op=venta|alquiler)
-  const opParam = (searchParams.get('op') ?? searchParams.get('operacion') ?? '').toLowerCase()
+  // Leer operación desde la URL. Aceptamos `?operacion=venta|alquiler` (canónico, compartible)
+  // y `?op=venta|alquiler` (legacy del Navbar). Cualquier cambio interno escribe `operacion`.
+  const opParam = (searchParams.get('operacion') ?? searchParams.get('op') ?? '').toLowerCase()
   const initialOperation: Operation =
     opParam === 'venta' || opParam === 'alquiler' ? opParam : 'todos'
 
@@ -147,14 +149,23 @@ export default function PropiedadesView({
   const activeZona = resolvedZona
 
   const [filters, setFilters]           = useState<Filters>({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
+  // True cuando el cambio de URL fue iniciado por la UI (updateOperation).
+  // Sirve para que el effect de sincronización URL→estado distinga ese caso
+  // del caso "el Navbar cambió la URL externamente" (donde sí queremos
+  // resetear los filtros heredados).
+  const internalUrlSyncRef = useRef(false)
 
   // Reaccionar a cambios de URL sin remontaje. Cuando el usuario clickea
-  // "Comprar" o "Alquilar" en el header estando ya en /propiedades, Next.js
+  // "Comprar" o "Alquilar" en el Navbar estando ya en /propiedades, Next.js
   // hace navegación client-side y solo cambia searchParams; sin este efecto
   // el filtro de operación quedaría con el valor viejo. Al cambiar la URL
-  // también limpiamos los demás filtros (beds, maxPrice, location, type)
-  // para evitar combinaciones inválidas heredadas de la sesión anterior.
+  // por navegación externa también limpiamos los demás filtros (beds, maxPrice,
+  // location, type) para evitar combinaciones inválidas heredadas de la sesión.
   useEffect(() => {
+    if (internalUrlSyncRef.current) {
+      internalUrlSyncRef.current = false
+      return
+    }
     setFilters({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
   }, [initialSearch, initialOperation])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
@@ -240,7 +251,37 @@ export default function PropiedadesView({
   const set = useCallback(<K extends keyof Filters>(k: K, v: Filters[K]) =>
     setFilters(prev => ({ ...prev, [k]: v })), [])
 
-  const reset = useCallback(() => setFilters(DEFAULTS), [])
+  const reset = useCallback(() => {
+    setFilters(DEFAULTS)
+    // Limpiar también la URL para que un reload no re-aplique la operación.
+    if (searchParams.has('operacion') || searchParams.has('op')) {
+      internalUrlSyncRef.current = true
+      const params = new URLSearchParams(Array.from(searchParams.entries()))
+      params.delete('operacion')
+      params.delete('op')
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }
+  }, [pathname, router, searchParams])
+
+  // Cambia el filtro de operación y refleja el cambio en la URL para que sea
+  // compartible (`?operacion=venta|alquiler`). Preserva el resto de los query
+  // params actuales y normaliza el legacy `?op=` al canónico `?operacion=`.
+  // Marca el sync como "interno" para que el effect URL→estado no resetee
+  // beds/type/location/maxPrice cuando el cambio salió de esta UI.
+  const updateOperation = useCallback((v: Operation) => {
+    setFilters(prev => ({ ...prev, operation: v }))
+    internalUrlSyncRef.current = true
+    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    params.delete('op')
+    if (v === 'todos') {
+      params.delete('operacion')
+    } else {
+      params.set('operacion', v)
+    }
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [pathname, router, searchParams])
 
   // "Mi ubicación actual": obtiene coords + reverse geocoding con Nominatim
   // y carga el nombre del lugar en el input de búsqueda.
@@ -629,7 +670,7 @@ export default function PropiedadesView({
             {(['venta', 'alquiler'] as const).map(op => (
               <button
                 key={op}
-                onClick={() => set('operation', filters.operation === op ? 'todos' : op)}
+                onClick={() => updateOperation(filters.operation === op ? 'todos' : op)}
                 className="flex-1 py-2.5 rounded-full text-center transition-all"
                 style={{
                   background: filters.operation === op ? '#1A5C38' : 'transparent',
@@ -795,7 +836,7 @@ export default function PropiedadesView({
           )}
         </div>
         <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
-        <FilterSelect value={filters.operation} onChange={v => set('operation', v)}
+        <FilterSelect value={filters.operation} onChange={updateOperation}
           options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'}]} />
         <FilterSelect value={filters.type} onChange={v => set('type', v)}
           options={[{value:'todos',label:'Tipología'},{value:'casa',label:'Casa'},{value:'departamento',label:'Depto.'},{value:'terreno',label:'Terreno'},{value:'local',label:'Local'}]} />
