@@ -194,8 +194,14 @@ export default function RootLayout({
     <html lang="es" className={`${raleway.variable} ${poppins.variable} ${lora.variable} ${playfair.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-        <link rel="preconnect" href="https://static.tokkobroker.com" />
+        {/* Preconnect a CDNs externos para que el handshake DNS+TLS ya esté
+            hecho cuando el navegador pida las imágenes optimizadas por
+            next/image. crossOrigin="anonymous" es lo correcto para imágenes
+            servidas como recurso público (sin credenciales). */}
+        <link rel="preconnect" href="https://static.tokkobroker.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://static.tokkobroker.com" />
+        <link rel="preconnect" href="https://cdn.tokkobroker.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdn.tokkobroker.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -28,10 +28,26 @@ import SectionBoundary from './SectionBoundary'
 import PropertyVideo from './PropertyVideo'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 
-const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false })
-const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false })
-const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false })
-const NearbyPropertiesMap = dynamic(() => import('../NearbyPropertiesMap'), { ssr: false })
+// Skeletons mientras se carga el chunk JS — evitan que la sección quede en
+// blanco hasta que llega el bundle de Leaflet (mapa) o la galería de planos.
+// Altura aproximada al componente real para no saltar el layout.
+const MapSkeleton = () => (
+  <div className="w-full h-[320px] rounded-xl bg-gray-100 animate-pulse" aria-hidden />
+)
+const BlueprintSkeleton = () => (
+  <div className="w-full h-[280px] rounded-xl bg-gray-100 animate-pulse" aria-hidden />
+)
+const NearbyPlacesSkeleton = () => (
+  <div className="w-full h-[180px] rounded-xl bg-gray-100 animate-pulse" aria-hidden />
+)
+const NearbyMapSkeleton = () => (
+  <div className="w-full h-[360px] rounded-xl bg-gray-100 animate-pulse" aria-hidden />
+)
+
+const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false, loading: MapSkeleton })
+const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false, loading: BlueprintSkeleton })
+const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false, loading: NearbyPlacesSkeleton })
+const NearbyPropertiesMap = dynamic(() => import('../NearbyPropertiesMap'), { ssr: false, loading: NearbyMapSkeleton })
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"

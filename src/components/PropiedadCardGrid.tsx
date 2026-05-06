@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 import ShareCardButton from '@/components/ShareCardButton'
 import {
@@ -23,7 +24,9 @@ const POPPINS = "'Poppins', system-ui, sans-serif"
 export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop' }: {
   property: TokkoProperty
   isSelected: boolean
-  onClick: () => void
+  /** Si se pasa, se ejecuta antes de la navegación. Llamar e.preventDefault() para
+   * evitar que el Link navegue (caso desktop = abrir panel modal en su lugar). */
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
   variant?: 'desktop' | 'mobile'
 }) {
   const isMobile = variant === 'mobile'
@@ -61,15 +64,22 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
     setImgIdx(i => (i + 1) % images.length)
   }
 
+  // Render como <Link> para que Next prefetchee la ficha en hover (desktop)
+  // y al entrar al viewport (mobile). El onClick del padre puede llamar
+  // e.preventDefault() para evitar la navegación (caso desktop = abrir panel).
   return (
-    <div
+    <Link
+      href={`/propiedades/${slug}`}
+      prefetch
       onClick={onClick}
-      className="group cursor-pointer"
+      className="group cursor-pointer block"
       style={{
         borderRadius: 14,
         border: isSelected ? '1px solid #1A5C38' : '1px solid #e5e7eb',
         overflow: 'hidden',
         background: '#fff',
+        textDecoration: 'none',
+        color: 'inherit',
         boxShadow: isSelected
           ? '0 10px 25px rgba(0,0,0,0.1)'
           : '0 1px 3px rgba(0,0,0,0.06)',
@@ -223,6 +233,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         </p>
       </div>
 
-    </div>
+    </Link>
   )
 }
