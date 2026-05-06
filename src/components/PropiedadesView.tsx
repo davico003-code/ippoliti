@@ -38,6 +38,7 @@ import {
   translatePropertyType,
   generatePropertySlug,
 } from '@/lib/tokko'
+import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM } from '@/lib/geo'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
   ssr: false,
@@ -373,6 +374,11 @@ export default function PropiedadesView({
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
   const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
+  // Modo "cercanía": cuando el usuario clickea Centrar y damos OK al permiso
+  // de geolocalización, guardamos el origen acá. El listado y el mapa pasan a
+  // mostrar SOLO propiedades dentro de GEO_NEARBY_RADIUS_KM (5 km por default).
+  // El chip flotante permite cerrar el modo y volver al estado anterior.
+  const [nearbyOrigin, setNearbyOrigin] = useState<{ lat: number; lng: number } | null>(null)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [mobileSortOpen, setMobileSortOpen]       = useState(false)
   const [refreshing, setRefreshing]               = useState(false)
@@ -446,6 +452,7 @@ export default function PropiedadesView({
 
   const reset = useCallback(() => {
     setFilters(DEFAULTS)
+    setNearbyOrigin(null)
     // Limpiar también la URL para que un reload no re-aplique los filtros.
     const filterKeys = ['operacion', 'op', 'precio_min', 'precio_max', 'moneda']
     if (filterKeys.some(k => searchParams.has(k))) {
@@ -650,16 +657,36 @@ export default function PropiedadesView({
     }
   }), [properties, filters, sortBy, resolvedNeighborhoods])
 
-  // Apply map bounds filter if active
+  // Lista para el mapa: aplica filtros + cercanía. NO aplica mapBounds porque
+  // el bounds se calcula desde el viewport y filtrar por bounds antes de
+  // pintar generaría un loop visual.
+  const propertiesForMap = useMemo(() => {
+    if (!nearbyOrigin) return filtered
+    return filterPropertiesByRadius(filtered, nearbyOrigin.lat, nearbyOrigin.lng)
+  }, [filtered, nearbyOrigin])
+
+  // Lista para el listado lateral: cercanía + bounds.
   const visibleProperties = useMemo(() => {
-    if (!mapBounds) return filtered
-    return filtered.filter(p => {
-      if (!p.geo_lat || !p.geo_long) return true
-      const lat = parseFloat(p.geo_lat)
-      const lng = parseFloat(p.geo_long)
-      return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
-    })
-  }, [filtered, mapBounds])
+    let list = propertiesForMap
+    if (mapBounds) {
+      list = list.filter(p => {
+        if (!p.geo_lat || !p.geo_long) return true
+        const lat = parseFloat(p.geo_lat)
+        const lng = parseFloat(p.geo_long)
+        return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
+      })
+    }
+    return list
+  }, [propertiesForMap, mapBounds])
+
+  // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
+  // que el filtro de radio sea el único activo (sino se acumulan).
+  const handleNearbyOrigin = useCallback((lat: number, lng: number) => {
+    setNearbyOrigin({ lat, lng })
+    setMapBounds(null)
+  }, [])
+
+  const clearNearby = useCallback(() => setNearbyOrigin(null), [])
 
   // Panel auto-open ONLY in desktop. En mobile la ficha se renderiza directo
   // como página completa en [slug]/page.tsx mobile block — abrir el panel acá
@@ -1157,7 +1184,14 @@ export default function PropiedadesView({
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
-                {(filters.priceMin || filters.priceMax) ? (
+                {nearbyOrigin ? (
+                  <>
+                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                      No hay propiedades en un radio de {GEO_NEARBY_RADIUS_KM} km. Probá ampliar la búsqueda.
+                    </p>
+                  </>
+                ) : (filters.priceMin || filters.priceMax) ? (
                   <>
                     <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
                     <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
@@ -1170,7 +1204,7 @@ export default function PropiedadesView({
                     <p className="text-gray-400 text-xs mb-4">Probá con otros filtros</p>
                   </>
                 )}
-                <button onClick={() => { reset(); setMapBounds(null) }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
+                <button onClick={() => { reset(); setMapBounds(null); clearNearby() }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
                   Borrar filtros
                 </button>
               </div>
@@ -1205,7 +1239,7 @@ export default function PropiedadesView({
         {/* Right: Map */}
         <div className={`relative w-full md:w-[52%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
           <PropiedadesMap
-            properties={filtered}
+            properties={propertiesForMap}
             selectedId={selectedId}
             hoveredId={hoveredId}
             onSelect={handleMapSelect}
@@ -1224,7 +1258,38 @@ export default function PropiedadesView({
             }}
             activeZona={activeZona}
             onMapMove={closeBottomSheet}
+            onNearbyOrigin={handleNearbyOrigin}
+            nearbyActive={nearbyOrigin != null}
           />
+          {/* Chip "modo cercanía" — cerrable, sobre el mapa, no tapa el contador. */}
+          {nearbyOrigin && (
+            <div
+              className="absolute z-[1000] flex items-center gap-2 bg-[#1A5C38] text-white shadow-lg"
+              style={{
+                top: 12,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '8px 12px 8px 14px',
+                borderRadius: 999,
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                maxWidth: 'calc(100% - 24px)',
+              }}
+            >
+              <Locate className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">
+                Mostrando propiedades a menos de <span style={{ fontVariantNumeric: 'tabular-nums' }}>{GEO_NEARBY_RADIUS_KM}</span> km de tu ubicación
+              </span>
+              <button
+                onClick={clearNearby}
+                aria-label="Quitar filtro por cercanía"
+                className="flex-shrink-0 ml-1 w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           <div className="absolute top-3 left-3 z-[999] pointer-events-none">
             <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-md border border-gray-100">
               <span className="text-xs font-bold text-gray-900 font-numeric">
