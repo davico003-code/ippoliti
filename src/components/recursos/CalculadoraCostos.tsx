@@ -16,6 +16,7 @@ import CtaWhatsapp from './shared/CtaWhatsapp'
 
 type Frecuencia = 'trimestral' | 'cuatrimestral'
 type Indice = 'ICL' | 'IPC'
+type MesesPreset = 24 | 36 | 'custom' | null
 
 // ── Formatos ─────────────────────────────────────────────────────────────
 const fmtArs = (n: number) =>
@@ -93,6 +94,7 @@ function NumInput({
   suffix,
   min,
   step = 1,
+  placeholder,
 }: {
   id: string
   value: number
@@ -101,7 +103,12 @@ function NumInput({
   suffix?: string
   min?: number
   step?: number
+  /** Si se pasa, cuando value=0 el input se muestra vacío (no "0") y aparece el placeholder en gris claro. */
+  placeholder?: string
 }) {
+  // Si hay placeholder y el value es 0, dejamos el input vacío visualmente
+  // para que el usuario vea la sugerencia ("Ej: 500.000") en lugar de un cero literal.
+  const showEmpty = placeholder != null && (!Number.isFinite(value) || value === 0)
   return (
     <div
       className="flex items-center rounded-lg transition-all focus-within:bg-white"
@@ -122,14 +129,17 @@ function NumInput({
         id={id}
         type="number"
         inputMode="decimal"
-        value={Number.isFinite(value) ? value : 0}
+        value={showEmpty ? '' : (Number.isFinite(value) ? value : 0)}
         min={min}
         step={step}
+        placeholder={placeholder}
         onChange={e => {
-          const v = parseFloat(e.target.value)
+          const raw = e.target.value
+          if (raw === '') { onChange(0); return }
+          const v = parseFloat(raw)
           onChange(Number.isNaN(v) ? 0 : v)
         }}
-        className="flex-1 bg-transparent border-0 outline-none w-full px-2 py-3 font-poppins font-semibold text-[17px] tabular-nums"
+        className="flex-1 bg-transparent border-0 outline-none w-full px-2 py-3 font-poppins font-semibold text-[17px] tabular-nums placeholder:text-gray-300 placeholder:font-medium"
         style={{ color: 'var(--tinta)' }}
       />
       {suffix && (
@@ -160,24 +170,45 @@ export default function CalculadoraCostos() {
   const [tipo, setTipo] = useState<Tipo>('vivienda')
   const [frecuencia, setFrecuencia] = useState<Frecuencia>('cuatrimestral')
   const [indice, setIndice] = useState<Indice>('ICL')
-  const [alquiler, setAlquiler] = useState<number>(450_000)
-  const [meses, setMeses] = useState<number>(24)
+  // Inicio vacío: el usuario completa el alquiler para ver el cálculo.
+  const [alquiler, setAlquiler] = useState<number>(0)
+  // Expensas: campo informativo, NO entra en el cálculo. Se persiste en URL
+  // para que el flujo de compartir lo conserve.
+  const [expensas, setExpensas] = useState<number>(0)
+  // Duración como toggle (24/36/custom) + custom value. `meses` se deriva.
+  const [mesesPreset, setMesesPreset] = useState<MesesPreset>(null)
+  const [mesesCustom, setMesesCustom] = useState<number>(0)
   const [cotizacion, setCotizacion] = useState<number>(1430)
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
+  // Toast inline para feedback de "Compartir cálculo".
+  const [toast, setToast] = useState<string | null>(null)
 
-  // Prefill desde query params (ej. cuando el usuario llega desde la card
-  // de la ficha de propiedad). Solo se aplica al mount; cambios posteriores
-  // del usuario no se sobrescriben.
+  // Meses real para el cálculo. Cuando preset es null caemos a 24 (no se
+  // muestran resultados igual hasta que alquiler > 0, así que el valor solo
+  // entra al cálculo cuando ya hay un preset elegido).
+  const meses: number =
+    mesesPreset === 'custom'
+      ? (mesesCustom > 0 ? Math.round(mesesCustom) : 24)
+      : (mesesPreset ?? 24)
+
+  // Prefill desde query params (ej. cuando alguien comparte el link de la
+  // calculadora ya cargada). Solo se aplica al mount; cambios posteriores del
+  // usuario no se sobrescriben.
   useEffect(() => {
     const qMoneda = searchParams?.get('moneda')
     const qTipo = searchParams?.get('tipo')
     const qAlquiler = searchParams?.get('alquiler')
+    const qExpensas = searchParams?.get('expensas')
     const qMeses = searchParams?.get('meses')
+    const qFrecuencia = searchParams?.get('frecuencia')
+    const qIndice = searchParams?.get('indice')
 
     if (qMoneda === 'ARS' || qMoneda === 'USD') setMoneda(qMoneda)
     if (qTipo === 'vivienda' || qTipo === 'comercio') {
       setTipo(qTipo)
-      // Reflejar la lógica de handleTipo: frecuencia + índice automáticos
+      // Refleja la lógica de handleTipo: frecuencia + índice automáticos por
+      // tipo. Si el query trae frecuencia/indice explícitos, los aplicamos
+      // después y ganan sobre el default por tipo.
       if (qTipo === 'vivienda') {
         setFrecuencia('cuatrimestral')
         setIndice('ICL')
@@ -188,11 +219,28 @@ export default function CalculadoraCostos() {
     }
     const a = qAlquiler ? parseFloat(qAlquiler) : NaN
     if (Number.isFinite(a) && a > 0) setAlquiler(a)
+    const e = qExpensas ? parseFloat(qExpensas) : NaN
+    if (Number.isFinite(e) && e >= 0) setExpensas(e)
     const m = qMeses ? parseInt(qMeses, 10) : NaN
-    if (Number.isFinite(m) && m > 0) setMeses(m)
+    if (Number.isFinite(m) && m > 0) {
+      if (m === 24 || m === 36) {
+        setMesesPreset(m)
+        setMesesCustom(0)
+      } else {
+        setMesesPreset('custom')
+        setMesesCustom(m)
+      }
+    }
+    if (qFrecuencia === 'trimestral' || qFrecuencia === 'cuatrimestral') setFrecuencia(qFrecuencia)
+    if (qIndice === 'ICL' || qIndice === 'IPC') setIndice(qIndice)
     // Prefill intencionalmente solo-mount; no sobrescribir cambios manuales.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Si el usuario completa alquiler antes de elegir duración, default 24.
+  useEffect(() => {
+    if (alquiler > 0 && mesesPreset == null) setMesesPreset(24)
+  }, [alquiler, mesesPreset])
 
   // Track view + cotización oficial
   useEffect(() => {
@@ -218,17 +266,11 @@ export default function CalculadoraCostos() {
     }
   }
 
-  // Defaults razonables al cambiar moneda
+  // Cambiar moneda no toca el monto que cargó el usuario (UI arranca vacía,
+  // los defaults previos generaban un cálculo de ejemplo no deseado).
   const handleMoneda = (m: Moneda) => {
     if (m === moneda) return
     setMoneda(m)
-    if (m === 'USD') {
-      setAlquiler(800)
-      setMeses(36)
-    } else {
-      setAlquiler(450_000)
-      setMeses(24)
-    }
   }
 
   // ── Cálculo principal ──────────────────────────────────────────────────
@@ -271,6 +313,46 @@ export default function CalculadoraCostos() {
       '_blank',
       'noopener,noreferrer',
     )
+  }
+
+  // ── Compartir cálculo — Web Share API (mobile) o fallback clipboard ────
+  // Construye la URL pública de la calculadora con todos los valores actuales
+  // como query params. La persona que reciba el link la abre con el cálculo
+  // ya cargado y listo para mostrar.
+  const handleCompartir = async () => {
+    const params = new URLSearchParams({
+      alquiler: String(alquiler),
+      meses: String(meses),
+      moneda,
+      tipo,
+      expensas: String(expensas),
+      frecuencia,
+      indice,
+    })
+    const url = `${window.location.origin}/recursos/calculadora-alquiler?${params.toString()}`
+
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: 'Planilla de costos de alquiler — SI Inmobiliaria',
+          text: 'Mirá este cálculo de costos de alquiler',
+          url,
+        })
+        return
+      } catch (err) {
+        // Si el usuario cancela el share nativo, no caemos a clipboard.
+        if (err instanceof Error && err.name === 'AbortError') return
+        // Otros errores → caemos al fallback de clipboard.
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url)
+      setToast('Link copiado al portapapeles')
+    } catch {
+      setToast('No pudimos copiar el link, probá de nuevo')
+    }
+    setTimeout(() => setToast(null), 2000)
   }
 
   // ── Helpers de render ──────────────────────────────────────────────────
@@ -355,11 +437,23 @@ export default function CalculadoraCostos() {
           100% { color: inherit; }
         }
         .recursos-flash > * { animation: recursosFlash 0.45s ease-out; }
+        @keyframes recursosFadein {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .recursos-fadein { animation: recursosFadein 200ms ease-out; }
         .recursos-card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .recursos-card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(20, 30, 25, 0.08); }
         .recursos-faq summary::-webkit-details-marker { display: none; }
         .recursos-faq summary { list-style: none; }
         .recursos-faq details > summary { cursor: pointer; }
+        @keyframes recursosToast {
+          0%   { opacity: 0; transform: translateY(8px) translateX(-50%); }
+          15%  { opacity: 1; transform: translateY(0)   translateX(-50%); }
+          85%  { opacity: 1; transform: translateY(0)   translateX(-50%); }
+          100% { opacity: 0; transform: translateY(-4px) translateX(-50%); }
+        }
+        .recursos-toast { animation: recursosToast 2s ease-out forwards; }
       `}</style>
 
       <div className="max-w-[860px] mx-auto px-5 pt-8 pb-20 font-raleway" style={{ color: 'var(--tinta)' }}>
@@ -465,19 +559,71 @@ export default function CalculadoraCostos() {
                 prefix={moneda === 'USD' ? 'US$' : '$'}
                 min={0}
                 step={moneda === 'USD' ? 50 : 1000}
+                placeholder={moneda === 'USD' ? 'Ej: 500' : 'Ej: 500.000'}
               />
             </div>
             <div>
-              <Label htmlFor="meses">Duración del contrato</Label>
+              <Label htmlFor="expensas">Expensas mensuales (opcional)</Label>
               <NumInput
-                id="meses"
-                value={meses}
-                onChange={n => setMeses(Math.max(1, Math.round(n)))}
-                suffix="meses"
-                min={1}
-                step={1}
+                id="expensas"
+                value={expensas}
+                onChange={setExpensas}
+                prefix={moneda === 'USD' ? 'US$' : '$'}
+                min={0}
+                step={moneda === 'USD' ? 10 : 1000}
+                placeholder={moneda === 'USD' ? 'Ej: 30 (opcional)' : 'Ej: 30.000 (opcional)'}
               />
             </div>
+          </div>
+
+          {/* Duración del contrato — toggle 24 / 36 / Otro + input custom condicional */}
+          <div className="mt-4">
+            <Label htmlFor="meses-custom">Duración del contrato</Label>
+            <div
+              role="group"
+              className="grid gap-1.5 p-1 rounded-lg"
+              style={{
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                background: '#FAFAF7',
+                border: '1px solid var(--line)',
+              }}
+            >
+              {([24, 36, 'custom'] as const).map(opt => {
+                const active = mesesPreset === opt
+                const label = opt === 'custom' ? 'Otro' : `${opt} meses`
+                return (
+                  <button
+                    key={String(opt)}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setMesesPreset(opt)}
+                    className="px-3 py-2.5 rounded-md text-sm font-semibold transition-all font-raleway"
+                    style={{
+                      background: active ? 'var(--si-green)' : 'transparent',
+                      color: active ? '#fff' : 'var(--tinta-soft)',
+                      boxShadow: active ? '0 1px 4px rgba(26, 92, 56, 0.25)' : 'none',
+                      cursor: 'pointer',
+                      border: 'none',
+                    }}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+            {mesesPreset === 'custom' && (
+              <div className="mt-2.5">
+                <NumInput
+                  id="meses-custom"
+                  value={mesesCustom}
+                  onChange={n => setMesesCustom(n > 0 ? Math.round(n) : 0)}
+                  suffix="meses"
+                  min={1}
+                  step={1}
+                  placeholder="Ej: 18"
+                />
+              </div>
+            )}
           </div>
 
           {/* Avanzados */}
@@ -514,6 +660,57 @@ export default function CalculadoraCostos() {
             </div>
           </details>
         </section>
+
+        {/* ── Empty state (alquiler === 0) ───────────────────────────────── */}
+        {alquiler === 0 && (
+          <section
+            className="rounded-2xl p-7 mb-4 text-center recursos-fadein"
+            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+          >
+            <div
+              aria-hidden
+              className="mx-auto mb-3 flex items-center justify-center rounded-full"
+              style={{
+                width: 52, height: 52,
+                background: 'var(--si-green-tint)',
+                color: 'var(--si-green)',
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <rect x="4" y="2" width="16" height="20" rx="2" />
+                <line x1="8" y1="6" x2="16" y2="6" />
+                <line x1="8" y1="10" x2="10" y2="10" />
+                <line x1="13" y1="10" x2="16" y2="10" />
+                <line x1="8" y1="14" x2="10" y2="14" />
+                <line x1="13" y1="14" x2="16" y2="14" />
+                <line x1="8" y1="18" x2="10" y2="18" />
+                <line x1="13" y1="18" x2="16" y2="18" />
+              </svg>
+            </div>
+            <div
+              className="text-[11px] font-bold uppercase tracking-[1.6px] mb-2"
+              style={{ color: 'var(--si-green)' }}
+            >
+              Para empezar
+            </div>
+            <p
+              className="text-[16px] leading-snug max-w-[420px] mx-auto m-0 mb-2 font-medium"
+              style={{ color: 'var(--tinta)' }}
+            >
+              Ingresá el monto de tu alquiler para ver el cálculo completo de costos iniciales.
+            </p>
+            <p
+              className="text-[13px] leading-relaxed max-w-[480px] mx-auto m-0"
+              style={{ color: 'var(--tinta-mute)' }}
+            >
+              Ajustá los demás valores y vas a ver al instante el total a pagar al ingresar, depósito en USD, timeline de pagos mensuales y más.
+            </p>
+          </section>
+        )}
+
+        {/* ── Bloque de resultados — solo cuando hay alquiler > 0 ────────── */}
+        {alquiler > 0 && (
+          <div className="recursos-fadein">
 
         {/* Tabla horizontal — 5 columnas / 2 cols mobile */}
           <section
@@ -631,63 +828,108 @@ export default function CalculadoraCostos() {
             <DepositoCard amountUsd={c.depositoUSD} />
           </section>
 
-          {/* ── CTA DESCARGAR PLANILLA ── */}
-          <section className="mb-4">
-            <button
-              type="button"
-              onClick={handleDescargar}
-              aria-label="Abrir planilla de costos para imprimir o guardar como PDF"
-              className="group relative w-full text-left rounded-2xl px-6 py-5 sm:px-8 sm:py-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                background:
-                  'linear-gradient(135deg, var(--si-green) 0%, var(--si-green-dark) 100%)',
-                color: '#fff',
-                boxShadow: '0 10px 28px rgba(15, 61, 36, 0.22)',
-              }}
+          {/* ── CTA DESCARGAR + COMPARTIR — botonera compacta dual ──────────── */}
+          <section
+            className="rounded-2xl px-6 py-4 mb-4 shadow-sm"
+            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+          >
+            <div
+              className="text-[10px] font-bold uppercase tracking-[1.6px] mb-3"
+              style={{ color: 'var(--si-green)' }}
             >
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
+              Planilla de costos · PDF A4
+            </div>
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {/* Descargar — verde sólido */}
+              <button
+                type="button"
+                onClick={handleDescargar}
+                aria-label="Abrir planilla de costos para imprimir o guardar como PDF"
+                className="group relative text-left rounded-xl px-4 py-3 overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
                 style={{
                   background:
-                    'radial-gradient(circle at 90% 0%, rgba(255,255,255,0.10) 0%, transparent 55%)',
+                    'linear-gradient(135deg, var(--si-green) 0%, var(--si-green-dark) 100%)',
+                  color: '#fff',
+                  boxShadow: '0 6px 16px rgba(15, 61, 36, 0.18)',
+                  border: 'none',
                 }}
-              />
-
-              <div className="relative flex items-center gap-4 sm:gap-5">
-                <div
-                  aria-hidden
-                  className="flex-shrink-0 flex items-center justify-center rounded-xl"
-                  style={{
-                    width: 56,
-                    height: 56,
-                    background: 'rgba(255,255,255,0.14)',
-                    border: '1px solid rgba(255,255,255,0.22)',
-                  }}
-                >
-                  <Download className="w-7 h-7" strokeWidth={2.25} />
-                </div>
-
-                <div className="min-w-0 flex-1">
+              >
+                <div className="relative flex items-center gap-3">
                   <div
-                    className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[1.8px] mb-1"
-                    style={{ color: 'rgba(255,255,255,0.72)' }}
+                    aria-hidden
+                    className="flex-shrink-0 flex items-center justify-center rounded-lg"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      background: 'rgba(255,255,255,0.14)',
+                      border: '1px solid rgba(255,255,255,0.22)',
+                    }}
                   >
-                    Planilla de costos · PDF A4
+                    <Download className="w-[22px] h-[22px]" strokeWidth={2.25} />
                   </div>
-                  <div className="font-raleway font-bold text-[22px] sm:text-[24px] leading-tight tracking-tight">
-                    Descargar planilla
-                  </div>
-                  <div
-                    className="text-[13px] sm:text-[14px] mt-1 leading-snug"
-                    style={{ color: 'rgba(255,255,255,0.82)' }}
-                  >
-                    PDF listo para imprimir y enviar
+                  <div className="min-w-0 flex-1">
+                    <div className="font-raleway font-bold text-[18px] leading-tight tracking-tight">
+                      Descargar planilla
+                    </div>
+                    <div
+                      className="hidden sm:block text-[12px] mt-0.5 leading-snug"
+                      style={{ color: 'rgba(255,255,255,0.82)' }}
+                    >
+                      PDF listo para imprimir y enviar
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
+              </button>
+
+              {/* Compartir — verde con borde, fondo blanco */}
+              <button
+                type="button"
+                onClick={handleCompartir}
+                aria-label="Compartir el cálculo por link o app nativa"
+                className="group relative text-left rounded-xl px-4 py-3 overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
+                style={{
+                  background: '#FFFFFF',
+                  color: 'var(--si-green)',
+                  border: '1.5px solid var(--si-green)',
+                }}
+              >
+                <div className="relative flex items-center gap-3">
+                  <div
+                    aria-hidden
+                    className="flex-shrink-0 flex items-center justify-center rounded-lg"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      background: 'var(--si-green-tint)',
+                      border: '1px solid var(--si-green)',
+                      color: 'var(--si-green)',
+                    }}
+                  >
+                    {/* SVG inline (no lucide): cuadrado con flecha hacia arriba — share */}
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
+                      <polyline points="16 6 12 2 8 6" />
+                      <line x1="12" y1="2" x2="12" y2="15" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-raleway font-bold text-[18px] leading-tight tracking-tight">
+                      Compartir cálculo
+                    </div>
+                    <div
+                      className="hidden sm:block text-[12px] mt-0.5 leading-snug"
+                      style={{ color: 'var(--tinta-mute)' }}
+                    >
+                      Enviá el link con los valores cargados
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
           </section>
+
+          </div>
+        )}
 
           {/* GARANTÍAS QUE NECESITÁS */}
           <section
@@ -851,6 +1093,22 @@ export default function CalculadoraCostos() {
         />
       </div>
 
+      {/* Toast inline para feedback de "Compartir cálculo" — aparece sobre todo */}
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="recursos-toast fixed left-1/2 z-[10000] px-4 py-2.5 rounded-full shadow-lg text-[13px] font-semibold font-raleway"
+          style={{
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+            background: 'var(--si-green)',
+            color: '#fff',
+            boxShadow: '0 8px 24px rgba(15, 61, 36, 0.28)',
+          }}
+        >
+          {toast}
+        </div>
+      )}
     </div>
   )
 }
