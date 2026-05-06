@@ -57,7 +57,7 @@ export default async function ProyectosCarousel() {
             <Link
               key={dev.id}
               href={`/emprendimientos/${slug}`}
-              className="min-w-[78%] snap-start rounded-2xl overflow-hidden relative block"
+              className="min-w-[70%] snap-start rounded-2xl overflow-hidden relative block"
               style={{ aspectRatio: '4/5', textDecoration: 'none' }}
             >
               <Image
@@ -65,11 +65,11 @@ export default async function ProyectosCarousel() {
                 alt={dev.name}
                 fill
                 className="object-cover"
-                sizes="78vw"
+                sizes="70vw"
               />
               <div
                 className="absolute inset-0"
-                style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.40) 40%, rgba(0,0,0,0.30) 100%)' }}
+                style={{ background: 'linear-gradient(to bottom, transparent 0%, transparent 40%, rgba(0,0,0,0.3) 65%, rgba(0,0,0,0.85) 100%)' }}
               />
 
               {/* Badge arriba */}

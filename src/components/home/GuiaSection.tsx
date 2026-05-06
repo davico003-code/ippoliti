@@ -18,12 +18,12 @@ export default function GuiaSection() {
       </section>
 
       {/* Mockup 3 iPhones */}
-      <div className="relative bg-white overflow-hidden pt-4 pb-6">
+      <div className="relative bg-white overflow-hidden pt-2 pb-3">
         {/* Sombra elíptica debajo de la imagen */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
-            bottom: 18, width: '70%', height: 28,
+            bottom: 14, width: '52%', height: 22,
             background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.12) 45%, transparent 75%)',
             filter: 'blur(6px)', zIndex: 0,
           }}
@@ -33,8 +33,8 @@ export default function GuiaSection() {
           alt="Guía Comprá con Inteligencia — SI Inmobiliaria"
           width={1200}
           height={900}
-          sizes="(max-width: 768px) 100vw, 800px"
-          className="relative w-full h-auto"
+          sizes="(max-width: 768px) 75vw, 800px"
+          className="relative w-3/4 h-auto mx-auto block"
           style={{ zIndex: 1 }}
         />
       </div>
