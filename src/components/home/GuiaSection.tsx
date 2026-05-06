@@ -18,12 +18,12 @@ export default function GuiaSection() {
       </section>
 
       {/* Mockup 3 iPhones */}
-      <div className="relative bg-white overflow-hidden pt-2 pb-3">
+      <div className="relative bg-white overflow-hidden pt-0 pb-1">
         {/* Sombra elíptica debajo de la imagen */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
-            bottom: 14, width: '52%', height: 22,
+            bottom: 8, width: '52%', height: 20,
             background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.12) 45%, transparent 75%)',
             filter: 'blur(6px)', zIndex: 0,
           }}

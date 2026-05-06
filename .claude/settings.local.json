@@ -110,7 +110,8 @@
       "Bash(kill 14896)",
       "Bash(git -C /Users/siinmobiliaria/ippoliti add -u)",
       "Bash(git -C /Users/siinmobiliaria/ippoliti commit -m \"Mobile home: overlay solo abajo en proyectos + 3 cards visibles + escena guía 25% más chica\")",
-      "Bash(git -C /Users/siinmobiliaria/ippoliti push)"
+      "Bash(git -C /Users/siinmobiliaria/ippoliti push)",
+      "Bash(git -C /Users/siinmobiliaria/ippoliti commit -m \"Mobile home: overlay solo abajo + 4 proyectos visibles + escena guía 25% más chica\")"
     ]
   }
 }
