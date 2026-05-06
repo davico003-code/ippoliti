@@ -1246,7 +1246,15 @@ export default function PropiedadesView({
                       onMouseEnter={() => setHoveredId(p.id)}
                       onMouseLeave={() => setHoveredId(prev => (prev === p.id ? null : prev))}
                     >
-                      <PropiedadCardGrid property={p} isSelected={p.id === selectedId} onClick={() => handleCardClick(p)} />
+                      {/* Desktop: el card es <Link> que prefetchea, pero el click
+                          NO navega — abre el panel modal. preventDefault evita la
+                          navegación; el prefetch ya dejó la ruta lista por si el
+                          usuario decide ir a la URL completa. */}
+                      <PropiedadCardGrid
+                        property={p}
+                        isSelected={p.id === selectedId}
+                        onClick={e => { e.preventDefault(); handleCardClick(p) }}
+                      />
                     </div>
                   ))}
                 </div>
@@ -1254,7 +1262,9 @@ export default function PropiedadesView({
                 <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">
                   {visibleProperties.map(p => (
                     <div key={p.id} data-property-id={p.id}>
-                      <PropiedadCardGrid property={p} isSelected={p.id === selectedId} onClick={() => router.push(`/propiedades/${generatePropertySlug(p)}`)} variant="mobile" />
+                      {/* Mobile: el Link navega solo, sin onClick. El prefetch
+                          ocurre cuando la card entra al viewport. */}
+                      <PropiedadCardGrid property={p} isSelected={p.id === selectedId} variant="mobile" />
                     </div>
                   ))}
                 </div>
