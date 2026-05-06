@@ -34,7 +34,12 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad }: P
   const [cotizacion, setCotizacion] = useState<number>(1430)
 
   useEffect(() => {
-    fetch('https://dolarapi.com/v1/dolares/oficial')
+    // cache: 'force-cache' aprovecha el HTTP cache del browser entre fichas
+    // dentro de la misma sesión (cuando el usuario abre varias propiedades
+    // seguidas, no se vuelve a pegar a dolarapi.com en cada una).
+    // next.revalidate es no-op en client; queda anotado por si el fetch se
+    // mueve a server side en el futuro.
+    fetch('https://dolarapi.com/v1/dolares/oficial', { cache: 'force-cache', next: { revalidate: 3600 } })
       .then(r => (r.ok ? r.json() : null))
       .then(d => {
         const venta = d?.venta
