@@ -39,6 +39,7 @@ import {
   generatePropertySlug,
 } from '@/lib/tokko'
 import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM } from '@/lib/geo'
+import { isSpecificSearch } from '@/lib/search'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
   ssr: false,
@@ -365,9 +366,15 @@ export default function PropiedadesView({
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [hoveredId, setHoveredId]       = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
+  // Vista mobile (toggle Lista↔Mapa). En desktop ambos paneles son visibles
+  // siempre, así que esta variable solo afecta a <md.
+  // Default: 'map'. Si el usuario togglea manualmente, su preferencia queda
+  // en sessionStorage `si_view_preference` y gana sobre el default automático
+  // de búsquedas específicas.
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
     if (typeof window === 'undefined') return 'map'
-    return (sessionStorage.getItem('si_mobile_view') as 'list' | 'map') || 'map'
+    const pref = sessionStorage.getItem('si_view_preference')
+    return pref === 'list' || pref === 'map' ? pref : 'map'
   })
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [listMode, setListMode]         = useState<ListMode>('compact')
@@ -423,13 +430,22 @@ export default function PropiedadesView({
     if (saved === 'compact' || saved === 'list') setListMode(saved)
   }, [])
 
-  // Persist mobile view choice + Safari iOS fix
+  // Safari iOS fix: forzar reflow del mapa cuando se vuelve a mostrar.
+  // (Antes este effect también persistía mobileView a sessionStorage. Ahora
+  // la persistencia es explícita en setViewManually para no contaminar el
+  // sessionStorage con cambios automáticos del default por búsqueda.)
   useEffect(() => {
-    sessionStorage.setItem('si_mobile_view', mobileView)
     if (mobileView === 'map') {
       setTimeout(() => window.dispatchEvent(new Event('resize')), 300)
     }
   }, [mobileView])
+
+  // Helper para cambios DE USUARIO. Persiste la preferencia para que las
+  // búsquedas siguientes en la sesión la respeten sobre el default automático.
+  const setViewManually = useCallback((view: 'list' | 'map') => {
+    setMobileView(view)
+    try { sessionStorage.setItem('si_view_preference', view) } catch { /* ignore */ }
+  }, [])
 
   // Close sort dropdown on outside click
   useEffect(() => {
@@ -535,7 +551,7 @@ export default function PropiedadesView({
           set('search', nombre)
           pushToHistory(nombre)
           setFlyToCenter([latitude, longitude])
-          setMobileView('map')
+          setViewManually('map')
           setSearchSuggestions(false)
           setSearchDropdownDesktop(false)
         } catch {
@@ -550,7 +566,7 @@ export default function PropiedadesView({
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
-  }, [set, pushToHistory])
+  }, [set, pushToHistory, setViewManually])
 
   const hasActive = (Object.keys(DEFAULTS) as (keyof Filters)[])
     .some(k => filters[k] !== DEFAULTS[k])
@@ -679,6 +695,17 @@ export default function PropiedadesView({
     return list
   }, [propertiesForMap, mapBounds])
 
+  // Default automático de vista mobile basado en isSpecificSearch.
+  // Solo aplica si el usuario aún NO togglea manualmente en la sesión
+  // (sessionStorage 'si_view_preference' ausente).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const pref = sessionStorage.getItem('si_view_preference')
+    if (pref === 'list' || pref === 'map') return
+    const auto: 'list' | 'map' = isSpecificSearch(filters.search, visibleProperties.length) ? 'list' : 'map'
+    setMobileView(prev => (prev === auto ? prev : auto))
+  }, [filters.search, visibleProperties.length])
+
   // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
   // que el filtro de radio sea el único activo (sino se acumulan).
   const handleNearbyOrigin = useCallback((lat: number, lng: number) => {
@@ -769,7 +796,7 @@ export default function PropiedadesView({
         {/* Row 1: Back + Search + Location */}
         <div className="flex items-center gap-2 px-3 pt-[env(safe-area-inset-top)] py-2">
           <button
-            onClick={() => mobileView === 'map' ? setMobileView('list') : window.history.back()}
+            onClick={() => mobileView === 'map' ? setViewManually('list') : window.history.back()}
             className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
             aria-label="Volver"
           >
@@ -1328,7 +1355,7 @@ export default function PropiedadesView({
           </button>
         )}
         <button
-          onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
+          onClick={() => setViewManually(mobileView === 'list' ? 'map' : 'list')}
           className="inline-flex items-center gap-2 rounded-full"
           style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
         >
