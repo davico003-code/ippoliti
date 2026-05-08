@@ -23,7 +23,9 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
+import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesktopGridSkeleton'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { buscarZonas } from '@/lib/zonas'
 import { highlightMatch } from '@/lib/highlight'
 import { ZONAS, type Zona } from '@/lib/zonas'
@@ -52,6 +54,15 @@ const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
     </div>
   ),
 })
+
+// El grid desktop se importa lazy + ssr:false para no inflar el HTML inicial
+// (en mobile representa ~50% del documento). En SSR se sirve el skeleton; el
+// chunk real se descarga solo cuando el viewport >= md (gate por
+// useMediaQuery), evitando que mobile baje JS que no va a usar.
+const PropiedadesViewDesktopGrid = dynamic(
+  () => import('./PropiedadesViewDesktopGrid'),
+  { ssr: false, loading: () => <PropiedadesViewDesktopGridSkeleton /> }
+)
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
@@ -720,6 +731,9 @@ export default function PropiedadesView({
   // lockearía el body scroll aunque el panel esté display:none (el useEffect
   // corre igual en React) y mataría el scroll mobile de la ficha.
   const isDesktop = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+  // Reactivo para gate del DesktopGrid lazy. En SSR y primer paint client
+  // devuelve false, evitando que mobile descargue/monte el chunk del grid.
+  const isDesktopViewport = useMediaQuery('(min-width: 768px)')
   const [panelPropertyId, setPanelPropertyId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -1237,26 +1251,23 @@ export default function PropiedadesView({
               </div>
             ) : (
               <>
-                {/* Desktop grid */}
-                <div className="hidden md:grid p-4 grid-cols-1 xl:grid-cols-2 gap-4">
-                  {visibleProperties.map(p => (
-                    <div
-                      key={p.id}
-                      data-property-id={p.id}
-                      onMouseEnter={() => setHoveredId(p.id)}
-                      onMouseLeave={() => setHoveredId(prev => (prev === p.id ? null : prev))}
-                    >
-                      {/* Desktop: el card es <Link> que prefetchea, pero el click
-                          NO navega — abre el panel modal. preventDefault evita la
-                          navegación; el prefetch ya dejó la ruta lista por si el
-                          usuario decide ir a la URL completa. */}
-                      <PropiedadCardGrid
-                        property={p}
-                        isSelected={p.id === selectedId}
-                        onClick={e => { e.preventDefault(); handleCardClick(p) }}
-                      />
-                    </div>
-                  ))}
+                {/* Desktop grid — lazy + gate por viewport.
+                    Mobile NO descarga el chunk: isDesktopViewport=false en
+                    SSR y en primer paint mobile. Desktop ve el skeleton
+                    durante hidratación + descarga del chunk, luego el grid
+                    real. El skeleton replica grid-cols/gap/aspect-ratio
+                    para no causar CLS al swap. */}
+                <div className="hidden md:block">
+                  {isDesktopViewport ? (
+                    <PropiedadesViewDesktopGrid
+                      properties={visibleProperties}
+                      selectedId={selectedId}
+                      onHover={setHoveredId}
+                      onCardClick={handleCardClick}
+                    />
+                  ) : (
+                    <PropiedadesViewDesktopGridSkeleton />
+                  )}
                 </div>
                 {/* Mobile list */}
                 <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">

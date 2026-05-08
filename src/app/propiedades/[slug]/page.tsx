@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyViewTracker from '@/components/PropertyViewTracker';
-import PropiedadesView from '@/components/PropiedadesView';
+import PropertyDetailZillowDesktopPanel from '@/components/property-detail/PropertyDetailZillowDesktopPanel';
 import PropertyGalleryHero from '@/components/property-detail/PropertyGalleryHero';
 import PropertyStickyNav from '@/components/property-detail/PropertyStickyNav';
 import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody';
@@ -244,14 +244,16 @@ export default async function PropertyPage({ params }: Props) {
       </div>
 
       {/* ════════════════════════════════════════════
-          DESKTOP LAYOUT (hidden md:block)
-          Zillow-style: render the listing+map with the property panel
-          auto-opened on top. The shared PropertyPanel manages its own
-          URL/history so navigating between properties doesn't remount.
+          DESKTOP LAYOUT — Zillow-style listing+map con la ficha auto-abierta.
+          Se monta client-side con gate de viewport (>= md) para que mobile
+          NO descargue el chunk de PropiedadesView ni renderice 237 cards
+          en HTML. SSR de la ficha mobile queda en el bloque md:hidden de
+          arriba, intacto.
           ════════════════════════════════════════════ */}
-      <div className="hidden md:block">
-        <PropiedadesView properties={allProperties} initialPropertyId={property.id} />
-      </div>
+      <PropertyDetailZillowDesktopPanel
+        allProperties={allProperties}
+        initialPropertyId={property.id}
+      />
 
       {/* Mobile sticky bar */}
       <MobileStickyBar
