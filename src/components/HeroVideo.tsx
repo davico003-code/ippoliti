@@ -1,13 +1,15 @@
 'use client'
 
 import HeroSearch from './HeroSearch'
+import HeroVideoDesktop from './home/HeroVideoDesktop'
 
 export default function HeroVideo() {
   return (
     <section
-      className="relative w-full bg-cover bg-center"
+      className="relative w-full bg-cover bg-center overflow-hidden"
       style={{ backgroundImage: "url('/hero-home.jpg')", height: 410 }}
     >
+      <HeroVideoDesktop />
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/55" />
 
       <div className="relative z-10 h-full flex items-center justify-center px-4">
