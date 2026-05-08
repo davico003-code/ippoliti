@@ -1,33 +1,18 @@
 import type { Metadata } from "next";
-import { Raleway, Poppins, Lora, Playfair_Display } from "next/font/google";
+import { Raleway, Poppins } from "next/font/google";
 import "./globals.css";
 
 const raleway = Raleway({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "600", "700", "800"],
   variable: "--font-raleway",
   display: "swap",
 });
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "800"],
   variable: "--font-poppins",
-  display: "swap",
-});
-const lora = Lora({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-lora",
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "700", "900"],
-  style: ["normal", "italic"],
-  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -192,7 +177,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${raleway.variable} ${poppins.variable} ${lora.variable} ${playfair.variable}`}>
+    <html lang="es" className={`${raleway.variable} ${poppins.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         {/* Preconnect a CDNs externos para que el handshake DNS+TLS ya esté

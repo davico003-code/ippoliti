@@ -66,7 +66,7 @@ const nextConfig = {
   compress: true,
   images: {
     unoptimized: false,
-    formats: ['image/webp'],
+    formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2678400,
     deviceSizes: [360, 640, 828, 1080, 1920],
     remotePatterns: [

@@ -3,10 +3,6 @@ import type { Metadata } from 'next'
 import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
 import PropiedadesView from '@/components/PropiedadesView'
 
-// Force dynamic render to avoid build-time Tokko rate-limit (403) that empties the HTML.
-// Runtime fetches are fine; build-time mass prerender was the problem.
-export const dynamic = 'force-dynamic'
-
 export const metadata: Metadata = {
   title: 'Propiedades en venta y alquiler en Funes, Roldán y Rosario | SI Inmobiliaria',
   description: 'Explorá todas nuestras propiedades en venta y alquiler en Roldán, Rosario y Funes. Casas, departamentos, terrenos y emprendimientos.',

@@ -77,8 +77,8 @@ const config: Config = {
         numeric: ["Poppins", "system-ui", "sans-serif"],
         poppins: ["var(--font-poppins)", "Poppins", "system-ui", "sans-serif"],
         raleway: ["var(--font-raleway)", "Raleway", "system-ui", "sans-serif"],
-        lora: ["var(--font-lora)", "Lora", "Georgia", "serif"],
-        playfair: ["var(--font-playfair)", "Playfair Display", "Georgia", "serif"],
+        lora: ["Georgia", "Cambria", "Times New Roman", "Times", "serif"],
+        playfair: ["Georgia", "Cambria", "Times New Roman", "Times", "serif"],
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
