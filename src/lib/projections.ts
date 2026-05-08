@@ -50,6 +50,10 @@ export interface PropertyCardProjection {
   }>
 
   is_starred_on_web: boolean
+
+  // Para search por nombre de emprendimiento (PropiedadesView.tsx:611)
+  // y clustering de markers en el mapa (PropiedadesMap.tsx:36-39, 68-70).
+  development: { id: number; name: string } | null
 }
 
 export interface NearbyProperty {
@@ -107,5 +111,8 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
     surface: p.surface,
     photos: cover ? [cover] : [],
     is_starred_on_web: p.is_starred_on_web,
+    development: p.development
+      ? { id: p.development.id, name: p.development.name }
+      : null,
   }
 }

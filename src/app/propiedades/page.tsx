@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
+import { projectToCard, type PropertyCardProjection } from '@/lib/projections'
 import PropiedadesView from '@/components/PropiedadesView'
 
 // Force dynamic render to avoid build-time Tokko rate-limit (403) that empties the HTML.
@@ -20,17 +21,23 @@ export const metadata: Metadata = {
 }
 
 export default async function PropiedadesPage() {
-  let properties: TokkoProperty[] = []
+  // Proyectamos las propiedades a card-shape antes de pasar al client.
+  // Esto baja el RSC payload de la página de ~6.5 MB a ~2-3 MB porque
+  // descarta description (texto largo), tags, videos, files, producer y
+  // 29 de las 30 fotos por propiedad. PropiedadesView solo lee los campos
+  // de card/mapa/filtros, así que la projection es estructuralmente
+  // compatible — el cast es seguro.
+  let projected: PropertyCardProjection[] = []
   try {
     const data = await getProperties()
-    properties = (data.objects ?? []).map(sanitizeProperty)
+    projected = (data.objects ?? []).map(sanitizeProperty).map(projectToCard)
   } catch (err) {
     console.error('[propiedades] Error fetching properties:', err instanceof Error ? err.message : err)
   }
 
   return (
     <Suspense fallback={<PropiedadesSkeleton />}>
-      <PropiedadesView properties={properties} />
+      <PropiedadesView properties={projected as unknown as TokkoProperty[]} />
     </Suspense>
   )
 }
