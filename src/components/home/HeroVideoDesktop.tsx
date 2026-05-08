@@ -11,7 +11,7 @@ export default function HeroVideoDesktop() {
         loop
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         poster="/videos/hero-poster.webp"
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"

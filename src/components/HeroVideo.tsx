@@ -6,8 +6,8 @@ import HeroVideoDesktop from './home/HeroVideoDesktop'
 export default function HeroVideo() {
   return (
     <section
-      className="relative w-full bg-cover bg-center overflow-hidden"
-      style={{ backgroundImage: "url('/hero-home.jpg')", height: 410 }}
+      className="relative w-full bg-cover bg-center overflow-hidden h-[410px] lg:h-[483px] lg:-mt-[73px] lg:pt-[73px]"
+      style={{ backgroundImage: "url('/hero-home.jpg')" }}
     >
       <HeroVideoDesktop />
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/55" />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -23,12 +23,18 @@ const RIGHT_ITEMS = [
 
 const DRAWER_ITEMS = [...LEFT_ITEMS, ...RIGHT_ITEMS]
 
-function NavLink({ href, label }: { href: string; label: string }) {
+function NavLink({ href, label, transparent }: { href: string; label: string; transparent: boolean }) {
   return (
     <Link
       href={href}
       className="hover:text-[#1A5C38] transition-colors duration-200 whitespace-nowrap text-[14px] xl:text-[17px]"
-      style={{ fontFamily: R, fontWeight: 500, color: '#111', textDecoration: 'none' }}
+      style={{
+        fontFamily: R,
+        fontWeight: 500,
+        color: transparent ? '#fff' : '#111',
+        textDecoration: 'none',
+        textShadow: transparent ? '0 1px 4px rgba(0,0,0,0.45)' : 'none',
+      }}
     >
       {label}
     </Link>
@@ -39,7 +45,18 @@ function NavLink({ href, label }: { href: string; label: string }) {
 export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const isPropiedades = pathname.startsWith('/propiedades')
+  const isHome = pathname === '/'
+  const transparent = isHome && !scrolled
+
+  useEffect(() => {
+    if (!isHome) return
+    const onScroll = () => setScrolled(window.scrollY > 360)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [isHome])
 
   // En /propiedades mobile: ocultar (PropiedadesView tiene su propio header)
   // En home y demás rutas: MOSTRAR navbar blanco con logo + hamburguesa
@@ -49,13 +66,16 @@ export default function Navbar() {
     <div className={hideOnMobile ? 'hidden lg:block' : ''}>
       {/* ── Desktop nav (lg+) ── */}
       <nav
-        className="hidden lg:block sticky top-0 left-0 right-0 z-[100] bg-white"
-        style={{ borderBottom: '1px solid #eee' }}
+        className="hidden lg:block sticky top-0 left-0 right-0 z-[100] transition-colors duration-200"
+        style={{
+          background: transparent ? 'transparent' : '#fff',
+          borderBottom: transparent ? '1px solid transparent' : '1px solid #eee',
+        }}
       >
         <div className="relative mx-auto flex items-center" style={{ maxWidth: 1400, padding: '18px 40px' }}>
           {/* Left menu */}
           <div className="flex items-center gap-5 xl:gap-8">
-            {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} />)}
+            {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
           {/* Centered logo (absolute) */}
@@ -65,7 +85,7 @@ export default function Navbar() {
             style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}
           >
             <Image
-              src="/LOGO_HORIZONTAL.png"
+              src={transparent ? '/logo-si-white.png' : '/LOGO_HORIZONTAL.png'}
               alt="SI Inmobiliaria"
               width={246}
               height={36}
@@ -78,7 +98,7 @@ export default function Navbar() {
 
           {/* Right menu + CTA */}
           <div className="ml-auto flex items-center gap-5 xl:gap-8">
-            {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} />)}
+            {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
             <Link
               href="/agentes"
               className="hover:opacity-90 transition-colors duration-200 text-[14px] xl:text-[17px]"
