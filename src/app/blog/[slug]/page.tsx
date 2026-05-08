@@ -15,16 +15,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
   if (!post) return { title: 'Artículo no encontrado | SI Inmobiliaria' }
 
+  const url = `https://siinmobiliaria.com/blog/${params.slug}`
+  const hasExternalImage = post.image.startsWith('http')
+
   return {
     title: `${post.title} | Blog SI Inmobiliaria`,
     description: post.summary,
+    alternates: { canonical: url },
     openGraph: {
       title: post.title,
       description: post.summary,
       type: 'article',
       publishedTime: post.date,
       siteName: 'SI Inmobiliaria',
-      ...(post.image.startsWith('http') ? { images: [{ url: post.image, width: 800, height: 450 }] } : {}),
+      url,
+      ...(hasExternalImage ? { images: [{ url: post.image, width: 800, height: 450 }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.summary,
+      ...(hasExternalImage ? { images: [post.image] } : {}),
     },
   }
 }

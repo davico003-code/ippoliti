@@ -444,6 +444,4 @@ export function filterProperties(filters: {
 export const WHATSAPP_NUMBER = '5493412101694';
 export const WHATSAPP_URL = `https://wa.me/5493412101694`;
 export const PHONE_DISPLAY = '(341) 210-1694';
-export const EMAIL = 'ventas@inmobiliariaippoliti.com';
 export const ADDRESS = 'Catamarca 775, Roldán, Santa Fe';
-export const SITE_URL = 'https://inmobiliariaippoliti.com';
