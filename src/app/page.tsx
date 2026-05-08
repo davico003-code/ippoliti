@@ -35,9 +35,8 @@ async function FeaturedPropertiesSection() {
   try {
     properties = await getFeaturedProperties(6)
   } catch {
-    return null
+    // Tokko API no disponible — seguimos rendering la sección con el CTA.
   }
-  if (!properties || properties.length === 0) return null
 
   const renderCard = (property: TokkoProperty) => {
     const slug = generatePropertySlug(property)
@@ -123,22 +122,39 @@ async function FeaturedPropertiesSection() {
           Elegidas con criterio, no por algoritmo.
         </p>
 
-        {/* Carousel */}
-        <HorizontalCarousel>
-          {properties.map(p => renderCard(p))}
-          <Link
-            href="/propiedades"
-            className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
-            style={{
-              fontFamily: RALEWAY,
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
-            }}
-          >
-            Ver todas →
-          </Link>
-        </HorizontalCarousel>
+        {/* Carousel — fallback al CTA si no hay properties */}
+        {properties.length > 0 ? (
+          <HorizontalCarousel>
+            {properties.map(p => renderCard(p))}
+            <Link
+              href="/propiedades"
+              className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
+              style={{
+                fontFamily: RALEWAY,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
+              }}
+            >
+              Ver todas →
+            </Link>
+          </HorizontalCarousel>
+        ) : (
+          <div className="flex items-center justify-center min-h-[280px]">
+            <Link
+              href="/propiedades"
+              className="inline-flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
+              style={{
+                fontFamily: RALEWAY,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
+              }}
+            >
+              Ver todas las propiedades →
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   )
