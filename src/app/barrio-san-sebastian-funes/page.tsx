@@ -4,9 +4,13 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Propiedades en San Sebastián, Funes — SI Inmobiliaria',
   description: 'Casas, lotes y terrenos en barrio San Sebastián, Funes. Barrio cerrado premium a minutos de Rosario. SI Inmobiliaria — más de 40 años en la zona.',
+  alternates: { canonical: 'https://siinmobiliaria.com/barrio-san-sebastian-funes' },
   openGraph: {
     title: 'Propiedades en San Sebastián, Funes — SI Inmobiliaria',
     description: 'Barrio cerrado premium en Funes con seguridad 24hs, pileta, club house y canchas.',
+    url: 'https://siinmobiliaria.com/barrio-san-sebastian-funes',
+    type: 'website',
+    siteName: 'SI Inmobiliaria',
   },
 }
 

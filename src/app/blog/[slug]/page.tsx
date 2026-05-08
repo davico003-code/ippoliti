@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User } from 'lucide-react'
 import { getAllPosts, getPostBySlug } from '@/lib/blog'
@@ -319,8 +320,14 @@ export default async function BlogPostPage({ params }: Props) {
                     <Link key={r.slug} href={`/blog/${r.slug}`} className="group block">
                       <div className="relative aspect-video rounded-xl overflow-hidden mb-3 transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.02]">
                         {rImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={rImage} alt={r.title} className="w-full h-full object-cover" />
+                          <Image
+                            src={rImage}
+                            alt={r.title}
+                            fill
+                            sizes="(max-width: 640px) 100vw, 33vw"
+                            className="object-cover"
+                            loading="lazy"
+                          />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-[#1A5C38] to-[#0f3d26] flex items-center justify-center p-4">
                             <span className="text-white/80 text-sm font-semibold text-center leading-tight line-clamp-3">

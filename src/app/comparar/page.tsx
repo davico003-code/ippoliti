@@ -18,6 +18,7 @@ import {
 export const metadata: Metadata = {
   title: 'Selección de Propiedades | SI Inmobiliaria',
   description: 'Propiedades seleccionadas especialmente para vos por SI Inmobiliaria.',
+  robots: { index: false, follow: true },
 };
 
 interface Props {

@@ -9,9 +9,13 @@ export const metadata: Metadata = {
   title: 'Propiedades en Venta en Roldán | Casas, Terrenos y Departamentos',
   description:
     'Propiedades en venta en Roldán, Santa Fe. Casas, terrenos, departamentos y locales comerciales. SI Inmobiliaria - más de 40 años en el mercado inmobiliario de Roldán.',
+  alternates: { canonical: 'https://siinmobiliaria.com/propiedades-roldan' },
   openGraph: {
     title: 'Propiedades en Venta en Roldán | SI Inmobiliaria',
     description: 'Casas, terrenos y departamentos en venta en Roldán.',
+    url: 'https://siinmobiliaria.com/propiedades-roldan',
+    type: 'website',
+    siteName: 'SI Inmobiliaria',
   },
 }
 

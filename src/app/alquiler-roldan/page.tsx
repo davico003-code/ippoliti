@@ -9,9 +9,13 @@ export const metadata: Metadata = {
   title: 'Alquiler de Propiedades en Roldán | Casas y Departamentos',
   description:
     'Propiedades en alquiler en Roldán, Santa Fe. Casas, departamentos y locales comerciales. SI Inmobiliaria - administración profesional de alquileres desde 1983.',
+  alternates: { canonical: 'https://siinmobiliaria.com/alquiler-roldan' },
   openGraph: {
     title: 'Alquiler de Propiedades en Roldán | SI Inmobiliaria',
     description: 'Casas y departamentos en alquiler en Roldán.',
+    url: 'https://siinmobiliaria.com/alquiler-roldan',
+    type: 'website',
+    siteName: 'SI Inmobiliaria',
   },
 }
 

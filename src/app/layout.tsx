@@ -176,6 +176,7 @@ const jsonLd = [
     sameAs: [
       "https://www.instagram.com/inmobiliaria.si",
       "https://www.tiktok.com/@si.inmobiliaria",
+      "https://www.facebook.com/inmobiliariaippoliti/",
     ],
   },
   ...OFFICES.map(office => ({

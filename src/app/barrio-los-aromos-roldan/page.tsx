@@ -4,9 +4,13 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Propiedades en Los Aromos, Roldán — SI Inmobiliaria',
   description: 'Casas, lotes y terrenos en barrio Los Aromos, Roldán. Barrio abierto residencial con excelente conectividad a Rosario. SI Inmobiliaria — desde 1983.',
+  alternates: { canonical: 'https://siinmobiliaria.com/barrio-los-aromos-roldan' },
   openGraph: {
     title: 'Propiedades en Los Aromos, Roldán — SI Inmobiliaria',
     description: 'Barrio residencial en Roldán con lotes amplios y calles arboladas.',
+    url: 'https://siinmobiliaria.com/barrio-los-aromos-roldan',
+    type: 'website',
+    siteName: 'SI Inmobiliaria',
   },
 }
 

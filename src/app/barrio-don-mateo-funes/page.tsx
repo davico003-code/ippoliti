@@ -4,9 +4,13 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Propiedades en Don Mateo, Funes — SI Inmobiliaria',
   description: 'Casas y lotes en barrio Don Mateo, Funes. Barrio cerrado con pileta, club house y seguridad 24hs. Propiedades en venta y alquiler. SI Inmobiliaria.',
+  alternates: { canonical: 'https://siinmobiliaria.com/barrio-don-mateo-funes' },
   openGraph: {
     title: 'Propiedades en Don Mateo, Funes — SI Inmobiliaria',
     description: 'Barrio cerrado en Funes con amenities premium y excelente ubicación.',
+    url: 'https://siinmobiliaria.com/barrio-don-mateo-funes',
+    type: 'website',
+    siteName: 'SI Inmobiliaria',
   },
 }
 

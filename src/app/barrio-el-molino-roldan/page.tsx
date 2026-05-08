@@ -4,9 +4,13 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Propiedades en El Molino, Roldán — SI Inmobiliaria',
   description: 'Casas y lotes en barrio El Molino, Roldán. Barrio cerrado con seguridad, amenities y financiación. Venta de propiedades. SI Inmobiliaria — desde 1983.',
+  alternates: { canonical: 'https://siinmobiliaria.com/barrio-el-molino-roldan' },
   openGraph: {
     title: 'Propiedades en El Molino, Roldán — SI Inmobiliaria',
     description: 'Barrio cerrado en Roldán con lotes amplios, pileta y seguridad 24hs.',
+    url: 'https://siinmobiliaria.com/barrio-el-molino-roldan',
+    type: 'website',
+    siteName: 'SI Inmobiliaria',
   },
 }
 
