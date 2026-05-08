@@ -1,0 +1,111 @@
+// Projecciones livianas de TokkoProperty para evitar serializar la data
+// completa (descriptions largas, photos array de 30 entries, tags, videos,
+// etc.) cuando solo necesitamos los campos de card o de marker en mapa.
+//
+// PropertyCardProjection: lo que consumen PropiedadCardGrid + PropiedadesMap
+// + filtros de PropiedadesView. Mantiene shape parcial de TokkoProperty
+// para que getMainPhoto/formatPrice/generatePropertySlug compilen sin tocar.
+//
+// NearbyProperty: ultra-light, solo lo que el popup del marker en
+// NearbyPropertiesMap muestra (price + title + link al slug).
+
+import type { TokkoProperty } from './tokko'
+
+export interface PropertyCardProjection {
+  id: number
+  publication_title: string | null
+  address: string
+  fake_address: string | null
+  reference_code: string
+
+  type: { name: string }
+  location: { name: string; short_location: string } | null
+
+  operations: Array<{
+    operation_type: 'Sale' | 'Rent'
+    prices: Array<{
+      price: number
+      currency: string
+    }>
+  }>
+
+  geo_lat: string | null
+  geo_long: string | null
+
+  suite_amount: number
+  room_amount: number
+  bathroom_amount: number
+  roofed_surface: string
+  total_surface: string
+  surface: string
+
+  // Solo la cover (1 entry). Mantiene shape TokkoPhoto-compat para que
+  // getMainPhoto/getAllPhotos sigan funcionando sin cambios en el lib.
+  photos: Array<{
+    image: string
+    thumb: string
+    is_front_cover: boolean
+    is_blueprint: boolean
+    order: number
+  }>
+
+  is_starred_on_web: boolean
+}
+
+export interface NearbyProperty {
+  id: number
+  lat: number
+  lng: number
+  title: string
+  price: string
+  slug: string
+}
+
+// Devuelve la cover photo (front_cover && !blueprint), o el primer
+// no-blueprint, o null si no hay fotos. Replica getMainPhoto pero
+// devolviendo el objeto entero (no solo URL).
+function pickCoverPhoto(p: TokkoProperty) {
+  if (!p.photos || p.photos.length === 0) return null
+  const cover = p.photos.find(ph => ph.is_front_cover && !ph.is_blueprint)
+  const first = p.photos.find(ph => !ph.is_blueprint)
+  const chosen = cover || first || p.photos[0]
+  return {
+    image: chosen.image,
+    thumb: chosen.thumb,
+    is_front_cover: true,        // forzamos el flag para el helper getMainPhoto
+    is_blueprint: false,
+    order: chosen.order ?? 0,
+  }
+}
+
+export function projectToCard(p: TokkoProperty): PropertyCardProjection {
+  const cover = pickCoverPhoto(p)
+  return {
+    id: p.id,
+    publication_title: p.publication_title,
+    address: p.address,
+    fake_address: p.fake_address,
+    reference_code: p.reference_code,
+    type: { name: p.type?.name ?? '' },
+    location: p.location
+      ? { name: p.location.name, short_location: p.location.short_location }
+      : null,
+    operations: (p.operations ?? []).map(op => ({
+      operation_type: op.operation_type,
+      prices: (op.prices ?? []).map(pr => ({
+        price: pr.price,
+        currency: pr.currency,
+      })),
+    })),
+    geo_lat: p.geo_lat,
+    geo_long: p.geo_long,
+    suite_amount: p.suite_amount,
+    room_amount: p.room_amount,
+    bathroom_amount: p.bathroom_amount,
+    roofed_surface: p.roofed_surface,
+    total_surface: p.total_surface,
+    surface: p.surface,
+    photos: cover ? [cover] : [],
+    is_starred_on_web: p.is_starred_on_web,
+  }
+}

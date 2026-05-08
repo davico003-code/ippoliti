@@ -13,7 +13,6 @@ import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody'
 import PropertyDetailSimilars from '@/components/property-detail/PropertyDetailSimilars';
 import {
   getPropertyById,
-  getProperties,
   getIdFromSlug,
   formatPrice,
   formatLocation,
@@ -97,14 +96,11 @@ export default async function PropertyPage({ params }: Props) {
   );
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`;
 
-  // ── Fetch all properties once (shared by similar + nearby) ──
-  let allProperties: TokkoProperty[] = [];
-  try {
-    const allData = await getProperties();
-    allProperties = (allData.objects ?? []).map(sanitizeProperty);
-  } catch (err) {
-    console.error('[property-detail] Error fetching all properties:', err instanceof Error ? err.message : err);
-  }
+  // ── allProperties ya NO se fetchea SSR ──
+  // Los componentes que antes lo necesitaban (Similars, NearbyMap, ZillowPanel)
+  // ahora cada uno fetchea su propia data via /api/propiedades/{similar,nearby,list-cards}
+  // que están cacheados en CDN (s-maxage=900). Esto saca ~9 MB del RSC payload
+  // de la ficha mobile.
 
   const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
   const currentLng = property.geo_long ? parseFloat(property.geo_long) : null;
@@ -220,7 +216,6 @@ export default async function PropertyPage({ params }: Props) {
         <div className="px-4 py-4">
           <PropertyDetailBody
             property={property}
-            allProperties={allProperties}
             whatsappUrl={whatsappUrl}
             showMobileContact
           />
@@ -228,7 +223,7 @@ export default async function PropertyPage({ params }: Props) {
 
         {/* Full-width: "Otras opciones para vos" */}
         <div className="px-4 pb-6">
-          <PropertyDetailSimilars property={property} allProperties={allProperties} />
+          <PropertyDetailSimilars property={property} />
         </div>
 
         {/* Link "Volver al catálogo" */}
@@ -251,7 +246,6 @@ export default async function PropertyPage({ params }: Props) {
           arriba, intacto.
           ════════════════════════════════════════════ */}
       <PropertyDetailZillowDesktopPanel
-        allProperties={allProperties}
         initialPropertyId={property.id}
       />
 

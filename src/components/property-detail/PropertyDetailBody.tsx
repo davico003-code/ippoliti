@@ -20,13 +20,12 @@ import {
   translateCondition,
   translateOrientation,
   translateDisposition,
-  generatePropertySlug,
 } from '@/lib/tokko'
 import PropertyDescription from '../PropertyDescription'
-import type { NearbyProperty } from '../NearbyPropertiesMap'
 import SectionBoundary from './SectionBoundary'
 import PropertyVideo from './PropertyVideo'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
+import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
 
 // Skeletons mientras se carga el chunk JS — evitan que la sección quede en
 // blanco hasta que llega el bundle de Leaflet (mapa) o la galería de planos.
@@ -40,27 +39,15 @@ const BlueprintSkeleton = () => (
 const NearbyPlacesSkeleton = () => (
   <div className="w-full h-[180px] rounded-xl bg-gray-100 animate-pulse" aria-hidden />
 )
-const NearbyMapSkeleton = () => (
-  <div className="w-full h-[360px] rounded-xl bg-gray-100 animate-pulse" aria-hidden />
-)
 
 const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false, loading: MapSkeleton })
 const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false, loading: BlueprintSkeleton })
 const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false, loading: NearbyPlacesSkeleton })
-const NearbyPropertiesMap = dynamic(() => import('../NearbyPropertiesMap'), { ssr: false, loading: NearbyMapSkeleton })
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
 const GREEN = '#1A5C38'
 const CARD = 'bg-white rounded-2xl p-6 shadow-sm border border-gray-100'
-
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
 
 function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
@@ -83,7 +70,11 @@ function Row({ label, value, numeric = true }: { label: string; value: string; n
 
 export default function PropertyDetailBody({
   property,
-  allProperties = [],
+  // Compat: PropertyPanel todavía pasa allProperties. Lo aceptamos pero
+  // no lo usamos — el mapa de "otras propiedades cercanas" ahora vive
+  // en NearbyPropertiesMapClient que fetchea su propia data del endpoint.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  allProperties: _allProperties = [],
   whatsappUrl,
   showMobileContact = false,
 }: {
@@ -143,27 +134,6 @@ export default function PropertyDetailBody({
     property.suite_amount > 0 ||
     property.floors_amount > 0 ||
     translateDisposition(property.disposition)
-
-  // Nearby properties for the map (≤5km from current)
-  const nearbyForMap: NearbyProperty[] = hasCoords
-    ? allProperties
-        .filter(p => p.id !== property.id && p.geo_lat && p.geo_long)
-        .map(p => {
-          const lat = parseFloat(p.geo_lat!); const lng = parseFloat(p.geo_long!)
-          if (isNaN(lat) || isNaN(lng)) return null
-          if (haversineKm(currentLat!, currentLng!, lat, lng) > 5) return null
-          return {
-            id: p.id,
-            lat,
-            lng,
-            title: p.publication_title || p.address,
-            price: formatPrice(p),
-            slug: generatePropertySlug(p),
-          }
-        })
-        .filter((x): x is NearbyProperty => x != null)
-        .slice(0, 40)
-    : []
 
   return (
     <div className="space-y-6">
@@ -334,10 +304,16 @@ export default function PropertyDetailBody({
         </SectionBoundary>
       )}
 
-      {/* OTRAS PROPIEDADES EN LA ZONA — mapa con pines verdes */}
-      {hasCoords && nearbyForMap.length > 0 && (
+      {/* OTRAS PROPIEDADES EN LA ZONA — mapa con pines verdes.
+          El wrapper client fetchea /api/propiedades/nearby (cacheado en
+          CDN 15 min) y maneja loading/error/success internamente. */}
+      {hasCoords && (
         <SectionBoundary name="nearby-properties-map">
-          <NearbyPropertiesMap lat={currentLat!} lng={currentLng!} nearbyProperties={nearbyForMap} />
+          <NearbyPropertiesMapClient
+            lat={currentLat!}
+            lng={currentLng!}
+            excludeId={property.id}
+          />
         </SectionBoundary>
       )}
 
