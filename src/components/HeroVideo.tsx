@@ -6,13 +6,17 @@ import HeroVideoDesktop from './home/HeroVideoDesktop'
 export default function HeroVideo() {
   return (
     <section
-      className="relative w-full bg-cover bg-center overflow-hidden h-[410px] lg:h-[483px] lg:-mt-[73px] lg:pt-[73px]"
+      className="relative w-full bg-cover bg-center h-[547px] md:-mt-[73px] md:pt-[73px]"
       style={{ backgroundImage: "url('/hero-home.jpg')" }}
     >
       <HeroVideoDesktop />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/55" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/10 to-black/25" />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[110px] bg-gradient-to-b from-black/55 to-transparent pointer-events-none"
+      />
 
-      <div className="relative z-10 h-full flex items-center justify-center px-4">
+      <div className="relative z-10 h-full flex items-start justify-center px-4 pt-[140px]">
         <div className="w-full max-w-[620px] text-center">
           <h1
             className="text-white mb-3"
@@ -22,14 +26,15 @@ export default function HeroVideo() {
               fontSize: 'clamp(38px, 7vw, 56px)',
               lineHeight: 1,
               letterSpacing: '-0.03em',
-              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
             }}
           >
             Encontr&aacute; tu hogar
           </h1>
-          <p className="mb-6 md:mb-8" style={{
+          <p className="mb-3 md:mb-4" style={{
             fontFamily: 'var(--font-raleway), Raleway, sans-serif',
-            fontWeight: 500, fontSize: 'clamp(15px, 2vw, 17px)' as string, color: 'rgba(255,255,255,0.85)',
+            fontWeight: 600, fontSize: 'clamp(15px, 2vw, 17px)' as string, color: 'rgba(255,255,255,0.95)',
+            textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
           }}>
             Propiedades en Funes, Rold&aacute;n y Rosario
           </p>

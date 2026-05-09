@@ -87,7 +87,7 @@ export default function HeroSearch() {
             boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
             overflow: 'auto',
             maxHeight: 340,
-            zIndex: 50,
+            zIndex: 60,
           }}
         >
           {filtered.map(zona => (

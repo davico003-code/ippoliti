@@ -133,7 +133,7 @@ function EditorialPreview({ photo, props }: { photo: string | null; props: BaseP
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/logo-si-white.png"
+        src="/logo-blanco.png"
         alt=""
         style={{ position: 'absolute', top: '4%', left: '50%', transform: 'translateX(-50%)', height: '4%', width: 'auto' }}
       />
@@ -220,7 +220,7 @@ function SplitPreview({ photos, props }: { photos: string[]; props: BasePreviewP
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/logo-si-white.png"
+        src="/logo-blanco.png"
         alt=""
         // 1.4cqw ≈ 15 px sobre canvas de 1080 px — offset óptico replicado del canvas.
         style={{ position: 'absolute', top: '3.4%', left: 'calc(50% + 1.4cqw)', transform: 'translateX(-50%)', height: '3.3%', width: 'auto' }}

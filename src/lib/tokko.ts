@@ -115,9 +115,10 @@ export interface TokkoProperty {
   producer: {
     id: number;
     name: string;
-    phone: string;
-    email: string;
-    picture: string;
+    phone: string | null;
+    cellphone?: string | null;
+    email: string | null;
+    picture: string | null;
   } | null;
 }
 
@@ -233,12 +234,50 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
       ? {
           id: p.producer.id,
           name: p.producer.name,
-          phone: p.producer.phone,
-          email: p.producer.email,
-          picture: p.producer.picture,
+          phone: p.producer.phone ?? null,
+          cellphone: p.producer.cellphone ?? null,
+          email: p.producer.email ?? null,
+          picture: p.producer.picture ?? null,
         }
       : null,
   };
+}
+
+// ─── Productor (asesor asignado en Tokko) ───────────────────────────────────
+//
+// Tokko expone el `producer` por property — quien recibe las consultas. Antes
+// la ficha mostraba "David Flores" hardcodeado y el WhatsApp iba al número
+// general; ahora cada propiedad rutea al asesor real.
+
+const FALLBACK_WA_NUMBER = '5493412101694'
+const FALLBACK_PRODUCER_NAME = 'SI Inmobiliaria'
+
+// Normaliza un teléfono crudo a formato wa.me (54 + 9 + área + número, sin
+// símbolos). Si no se puede inferir, devuelve el número general.
+export function getProducerWhatsappNumber(property: TokkoProperty): string {
+  const raw = property.producer?.cellphone || property.producer?.phone || ''
+  const digits = String(raw).replace(/\D/g, '')
+  if (!digits) return FALLBACK_WA_NUMBER
+  if (digits.startsWith('549')) return digits
+  if (digits.startsWith('54')) return `549${digits.slice(2)}`
+  if (digits.startsWith('0')) return `549${digits.slice(1)}`
+  // Asume número AR sin código país ni 0 → completar con 549
+  return `549${digits}`
+}
+
+export function getProducerName(property: TokkoProperty): string {
+  return property.producer?.name?.trim() || FALLBACK_PRODUCER_NAME
+}
+
+// Construye el wa.me con mensaje pre-armado dirigido al productor real.
+export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string): string {
+  const number = getProducerWhatsappNumber(property)
+  const name = getProducerName(property)
+  const address = property.fake_address || property.address || ''
+  const code = property.reference_code ? ` (cod ${property.reference_code})` : ''
+  const url = `https://siinmobiliaria.com/propiedades/${slug}`
+  const text = `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 }
 
 export function generatePropertySlug(property: TokkoProperty): string {

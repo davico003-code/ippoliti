@@ -6,9 +6,20 @@ import {
   type TokkoProperty,
   getOperationType,
   generatePropertySlug,
+  formatPrice,
 } from '@/lib/tokko'
 import ShareButtons from '../ShareButtons'
 import VisitWidget from '../VisitWidget'
+import TourMeetWidget from './TourMeetWidget'
+
+const TOUR_MEET_USD_THRESHOLD = 450_000
+
+function getUsdPrice(property: TokkoProperty): number {
+  const op = property.operations?.[0]
+  if (!op?.prices) return 0
+  const usd = op.prices.find(p => p.currency === 'USD')
+  return usd?.price ?? 0
+}
 
 const R = "'Raleway', system-ui, sans-serif"
 const GREEN = '#1A5C38'
@@ -29,6 +40,11 @@ export default function PropertyDetailSidebar({
   const operation = getOperationType(property)
   const slug = generatePropertySlug(property)
   const address = property.fake_address || property.address
+  const isVenta = operation === 'Venta'
+  const usdPrice = getUsdPrice(property)
+  const isPremiumSale = isVenta && usdPrice >= TOUR_MEET_USD_THRESHOLD
+  const propertyTitle = property.publication_title || address
+  const propertyUrl = `https://siinmobiliaria.com/propiedades/${slug}`
 
   return (
     <div className="w-full md:w-[360px] md:shrink-0">
@@ -55,37 +71,72 @@ export default function PropertyDetailSidebar({
 
           <div className="border-t border-gray-100 pt-4 mt-2.5">
             <div className="flex items-center gap-3">
-              <div
-                className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                style={{ background: GREEN, fontFamily: R }}
-              >
-                DF
-              </div>
-              <div className="flex-1 min-w-0">
-                <span style={{ fontFamily: R, fontWeight: 700, fontSize: 16, color: '#111', display: 'block' }}>David Flores</span>
-                <span className="text-xs text-gray-400">Mat. N° 0621</span>
-              </div>
-              <span
-                className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider"
-                style={{ background: '#e7f2eb', color: GREEN }}
-              >
-                Agente
-              </span>
+              {(() => {
+                const producer = property.producer
+                const name = producer?.name?.trim() || 'SI Inmobiliaria'
+                const subtitle = producer?.email?.trim() || 'Equipo SI Inmobiliaria'
+                const initials = name
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map(s => s[0])
+                  .join('')
+                  .toUpperCase() || 'SI'
+                return (
+                  <>
+                    {producer?.picture ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={producer.picture}
+                        alt={name}
+                        width={44}
+                        height={44}
+                        className="w-11 h-11 rounded-full object-cover flex-shrink-0 bg-gray-100"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <div
+                        className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                        style={{ background: GREEN, fontFamily: R }}
+                      >
+                        {initials}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <span style={{ fontFamily: R, fontWeight: 700, fontSize: 16, color: '#111', display: 'block' }}>{name}</span>
+                      <span className="text-xs text-gray-400 block truncate">{subtitle}</span>
+                    </div>
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
+                      style={{ background: '#e7f2eb', color: GREEN }}
+                    >
+                      Asesor
+                    </span>
+                  </>
+                )
+              })()}
             </div>
           </div>
 
-          <div className="border-t border-gray-100 mt-5 pt-4">
-            <p className="text-xs text-gray-400 tracking-wider uppercase mb-3">Compartir propiedad</p>
-            <ShareButtons
-              slug={slug}
-              title={property.publication_title || address}
-              placaHref={`/propiedades/${slug}/placa`}
-            />
-          </div>
+          <ShareButtons
+            slug={slug}
+            title={property.publication_title || address}
+            placaHref={`/propiedades/${slug}/placa`}
+          />
         </div>
 
         {operation?.toLowerCase().includes('venta') && (
-          <VisitWidget propertyId={property.id} propertyTitle={property.publication_title || address} />
+          <VisitWidget propertyId={property.id} propertyTitle={propertyTitle} />
+        )}
+
+        {isPremiumSale && (
+          <TourMeetWidget
+            propertyId={property.id}
+            propertyTitle={propertyTitle}
+            propertyPrice={formatPrice(property)}
+            propertyUrl={propertyUrl}
+          />
         )}
       </div>
     </div>

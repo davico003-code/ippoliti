@@ -12,8 +12,8 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import {
   type TokkoProperty,
-  formatPrice,
   generatePropertySlug,
+  buildPropertyWhatsappUrl,
 } from '@/lib/tokko'
 import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
 import PropertyStickyNav from './property-detail/PropertyStickyNav'
@@ -131,12 +131,8 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   }
 
   const slug = generatePropertySlug(property)
-  const address = property.fake_address || property.address
-  const price = formatPrice(property)
-  const whatsappMsg = encodeURIComponent(
-    `Hola! Me interesa esta propiedad:\n\n*${property.publication_title || address}*\n📍 ${address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${slug}`
-  )
-  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`
+  // wa.me al productor asignado en Tokko; fallback al número general si no hay producer.
+  const whatsappUrl = buildPropertyWhatsappUrl(property, slug)
 
   return (
     <div className="fixed inset-0 z-[9995]">

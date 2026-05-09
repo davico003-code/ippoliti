@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import PropertyPanel from './PropertyPanel'
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -14,10 +15,10 @@ import {
   SlidersHorizontal,
   ChevronDown,
   LayoutGrid,
-  LayoutList,
   Check,
   ArrowUpDown,
   Locate,
+  LocateFixed,
   Clock,
   ArrowLeft,
   RefreshCw,
@@ -71,8 +72,9 @@ type PropType  = 'todos' | 'casa' | 'departamento' | 'terreno' | 'local'
 type Beds      = 'todos' | '1' | '2' | '3' | '4+'
 type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
-type ListMode  = 'compact' | 'list'
 type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
+// listMode era un toggle huérfano (compact|list) que no afectaba el render de
+// las cards; eliminado junto con su estado y los botones de la barra superior.
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
   { value: 'destacadas', label: 'Destacadas primero' },
@@ -149,6 +151,25 @@ function FilterSelect<T extends string>({
 }
 
 // ─── PriceFilterDropdown (desktop: dropdown con inputs min/max + moneda) ────
+//
+// El panel se renderiza vía portal a document.body porque el wrapper de la
+// filter bar usa `overflow-x-auto` y CSS computa `overflow-y` como `auto`
+// automáticamente, recortando el dropdown que sale hacia abajo del botón.
+
+const PRICE_PRESETS: Record<Currency, { label: string; min: string; max: string }[]> = {
+  USD: [
+    { label: 'Hasta 100K',   min: '',       max: '100000' },
+    { label: '100K - 250K',  min: '100000', max: '250000' },
+    { label: '250K - 500K',  min: '250000', max: '500000' },
+    { label: '500K+',        min: '500000', max: '' },
+  ],
+  ARS: [
+    { label: 'Hasta 50M',    min: '',          max: '50000000' },
+    { label: '50M - 150M',   min: '50000000',  max: '150000000' },
+    { label: '150M - 300M',  min: '150000000', max: '300000000' },
+    { label: '300M+',        min: '300000000', max: '' },
+  ],
+}
 
 function PriceFilterDropdown({
   min, max, currency, onApply,
@@ -160,74 +181,150 @@ function PriceFilterDropdown({
   const [localMin, setLocalMin] = useState(min)
   const [localMax, setLocalMax] = useState(max)
   const [localCur, setLocalCur] = useState<Currency>(currency)
-  const ref = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const active = !!min || !!max
 
+  // Sincronizar locals con props commiteados (URL → estado y al cerrar/cancelar)
   useEffect(() => { setLocalMin(min); setLocalMax(max); setLocalCur(currency) }, [min, max, currency])
 
   const minN = localMin ? parseInt(localMin, 10) : 0
   const maxN = localMax ? parseInt(localMax, 10) : Number.POSITIVE_INFINITY
   const invalid = !!localMin && !!localMax && minN > maxN
 
-  const commit = useCallback(() => {
+  const apply = useCallback(() => {
     if (invalid) return
-    if (localMin === min && localMax === max && localCur === currency) return
     onApply(localMin, localMax, localCur)
-  }, [invalid, localMin, localMax, localCur, min, max, currency, onApply])
+    setOpen(false)
+  }, [invalid, localMin, localMax, localCur, onApply])
 
-  // Click fuera cierra y commitea pendientes.
+  const clear = useCallback(() => {
+    setLocalMin(''); setLocalMax('')
+    onApply('', '', localCur)
+    setOpen(false)
+  }, [localCur, onApply])
+
+  // Cambiar moneda resetea los rangos (USD y ARS no son comparables sin TC).
+  const onCurrencyChange = (c: Currency) => {
+    setLocalCur(c)
+    setLocalMin('')
+    setLocalMax('')
+  }
+
+  const onPresetClick = (preset: { min: string; max: string }) => {
+    setLocalMin(preset.min)
+    setLocalMax(preset.max)
+  }
+
+  // Posicionamiento del panel: ancla al botón, se ajusta si queda fuera del viewport.
+  const updatePosition = useCallback(() => {
+    if (!buttonRef.current) return
+    const rect = buttonRef.current.getBoundingClientRect()
+    const dropdownWidth = 320
+    const viewportWidth = window.innerWidth
+    let left = rect.left
+    if (left + dropdownWidth > viewportWidth - 16) {
+      left = Math.max(16, viewportWidth - dropdownWidth - 16)
+    }
+    setPos({ top: rect.bottom + 4, left })
+  }, [])
+
   useEffect(() => {
     if (!open) return
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        commit()
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [open, updatePosition])
+
+  // Click fuera cierra y descarta cambios pendientes (revierte a props commiteados).
+  useEffect(() => {
+    if (!open) return
+    function onMouseDown(e: MouseEvent) {
+      const t = e.target as Node
+      if (buttonRef.current?.contains(t)) return
+      if (dropdownRef.current?.contains(t)) return
+      setLocalMin(min); setLocalMax(max); setLocalCur(currency)
+      setOpen(false)
+    }
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
+  }, [open, min, max, currency])
+
+  // Esc cierra
+  useEffect(() => {
+    if (!open) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setLocalMin(min); setLocalMax(max); setLocalCur(currency)
         setOpen(false)
       }
     }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [open, commit])
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, min, max, currency])
 
   const label = !active ? 'Precio'
-    : !min ? `${currency} hasta ${compactPrice(max)}`
-    : !max ? `${currency} desde ${compactPrice(min)}`
-    : `${currency} ${compactPrice(min)} - ${compactPrice(max)}`
+    : !min ? `Precio: hasta ${currency} ${compactPrice(max)}`
+    : !max ? `Precio: desde ${currency} ${compactPrice(min)}`
+    : `Precio: ${currency} ${compactPrice(min)} - ${compactPrice(max)}`
+
+  const presets = PRICE_PRESETS[localCur]
 
   return (
-    <div className="relative flex-shrink-0" ref={ref}>
+    <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen(o => !o)}
         aria-label="Filtro de precio"
-        className="appearance-none h-10 rounded-xl pl-3.5 pr-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all flex items-center gap-1"
+        aria-expanded={open}
+        className="appearance-none h-10 rounded-xl pl-3.5 pr-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all flex items-center gap-1 flex-shrink-0"
         style={{
-          border: active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
+          border: open || active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
           background: '#fff',
-          color: active ? '#1A5C38' : '#0a0a0a',
+          color: open || active ? '#1A5C38' : '#0a0a0a',
           fontFamily: "'Raleway', system-ui, sans-serif",
-          fontWeight: active ? 600 : 500,
+          fontWeight: open || active ? 600 : 500,
           fontSize: 14,
           whiteSpace: 'nowrap',
         }}
       >
         {label}
-        <ChevronDown className={`w-4 h-4 ${active ? 'text-[#1A5C38]' : 'text-gray-400'} ${open ? 'rotate-180' : ''} transition-transform`} />
+        <ChevronDown className={`w-4 h-4 ${open || active ? 'text-[#1A5C38]' : 'text-gray-400'} ${open ? 'rotate-180' : ''} transition-transform`} />
       </button>
-      {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-100 p-4" style={{ minWidth: 300 }}>
-          <div className="flex rounded-full bg-gray-100 p-0.5 mb-3">
-            {(['USD', 'ARS'] as const).map(c => (
+      {open && pos && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={dropdownRef}
+          className="fixed z-[9999] rounded-xl shadow-lg border border-gray-100 p-4"
+          style={{
+            top: pos.top,
+            left: pos.left,
+            width: 320,
+            backgroundColor: '#fff',
+            isolation: 'isolate',
+          }}
+          role="dialog"
+          aria-label="Filtro de precio"
+        >
+          {/* Selector de moneda (USD/ARS) — joined pill toggle */}
+          <div className="flex mb-3">
+            {(['USD', 'ARS'] as const).map((c, i) => (
               <button
                 key={c}
                 type="button"
-                onClick={() => setLocalCur(c)}
-                className="flex-1 py-1.5 rounded-full"
+                onClick={() => onCurrencyChange(c)}
+                className={`flex-1 h-9 transition-colors ${i === 0 ? 'rounded-l-md' : 'rounded-r-md'}`}
                 style={{
-                  background: localCur === c ? '#1A5C38' : 'transparent',
-                  color: localCur === c ? '#fff' : '#6b7280',
+                  background: localCur === c ? '#1A5C38' : '#f3f4f6',
+                  color: localCur === c ? '#fff' : '#374151',
                   fontFamily: "'Raleway', system-ui, sans-serif",
-                  fontSize: 12,
-                  fontWeight: localCur === c ? 600 : 500,
+                  fontSize: 13,
+                  fontWeight: localCur === c ? 700 : 500,
                   border: 'none',
                   cursor: 'pointer',
                 }}
@@ -236,15 +333,17 @@ function PriceFilterDropdown({
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Inputs min/max */}
+          <div className="flex items-center gap-2 mb-3">
             <input
               type="text"
               inputMode="numeric"
-              placeholder="Mín"
+              placeholder={`Desde ${localCur}`}
               aria-label="Precio mínimo"
               value={formatThousands(localMin)}
               onChange={e => setLocalMin(digitsOnly(e.target.value))}
-              onKeyDown={e => { if (e.key === 'Enter') { commit(); setOpen(false) } }}
+              onKeyDown={e => { if (e.key === 'Enter') apply() }}
               className="flex-1 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
                 border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
@@ -256,11 +355,11 @@ function PriceFilterDropdown({
             <input
               type="text"
               inputMode="numeric"
-              placeholder="Máx"
+              placeholder={`Hasta ${localCur}`}
               aria-label="Precio máximo"
               value={formatThousands(localMax)}
               onChange={e => setLocalMax(digitsOnly(e.target.value))}
-              onKeyDown={e => { if (e.key === 'Enter') { commit(); setOpen(false) } }}
+              onKeyDown={e => { if (e.key === 'Enter') apply() }}
               className="flex-1 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
                 border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
@@ -269,30 +368,69 @@ function PriceFilterDropdown({
               }}
             />
           </div>
+
           {invalid && (
-            <p className="text-[12px] text-red-600 mt-2" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
-              El mínimo debe ser menor o igual al máximo.
+            <p className="text-[12px] text-red-600 mb-2" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+              El mínimo no puede ser mayor al máximo
             </p>
           )}
-          <div className="flex gap-2 mt-3">
+
+          {/* Atajos rápidos */}
+          <div className="mb-3">
+            <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-2"
+               style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+              Rangos sugeridos
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {presets.map(p => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => onPresetClick(p)}
+                  className="h-8 px-2 rounded-md border border-gray-200 hover:border-[#1A5C38] hover:text-[#1A5C38] transition-colors"
+                  style={{
+                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: '#374151',
+                    background: '#fff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Botones inferiores */}
+          <div className="flex gap-2 pt-2 border-t border-gray-100">
             <button
               type="button"
-              onClick={() => { setLocalMin(''); setLocalMax(''); onApply('', '', localCur); setOpen(false) }}
+              onClick={clear}
               disabled={!active && !localMin && !localMax}
-              className="flex-1 h-9 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
-              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, fontWeight: 600, color: '#4b5563' }}
+              className="flex-1 h-9 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+              style={{
+                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#6b7280',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               Limpiar
             </button>
             <button
               type="button"
-              onClick={() => { commit(); setOpen(false) }}
+              onClick={apply}
               disabled={invalid}
-              className="flex-1 h-9 rounded-lg text-white"
+              className="flex-1 h-9 rounded-lg text-white transition-colors"
               style={{
                 background: invalid ? '#9ca3af' : '#1A5C38',
                 fontFamily: "'Raleway', system-ui, sans-serif",
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 600,
                 border: 'none',
                 cursor: invalid ? 'not-allowed' : 'pointer',
@@ -301,9 +439,10 @@ function PriceFilterDropdown({
               Aplicar
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
-    </div>
+    </>
   )
 }
 
@@ -388,7 +527,6 @@ export default function PropiedadesView({
     return pref === 'list' || pref === 'map' ? pref : 'map'
   })
   const [showBottomSheet, setShowBottomSheet] = useState(false)
-  const [listMode, setListMode]         = useState<ListMode>('compact')
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
   const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
@@ -435,11 +573,6 @@ export default function PropiedadesView({
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
 
-  // Persist listMode preference
-  useEffect(() => {
-    const saved = localStorage.getItem('si-list-mode') as ListMode | null
-    if (saved === 'compact' || saved === 'list') setListMode(saved)
-  }, [])
 
   // Safari iOS fix: forzar reflow del mapa cuando se vuelve a mostrar.
   // (Antes este effect también persistía mobileView a sessionStorage. Ahora
@@ -467,11 +600,6 @@ export default function PropiedadesView({
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  const toggleListMode = useCallback((mode: ListMode) => {
-    setListMode(mode)
-    localStorage.setItem('si-list-mode', mode)
   }, [])
 
   const set = useCallback(<K extends keyof Filters>(k: K, v: Filters[K]) =>
@@ -644,10 +772,13 @@ export default function PropiedadesView({
     if (filters.priceMin || filters.priceMax) {
       const minNum = filters.priceMin ? parseInt(filters.priceMin, 10) : 0
       const maxNum = filters.priceMax ? parseInt(filters.priceMax, 10) : Number.POSITIVE_INFINITY
-      const price = p.operations?.[0]?.prices?.[0]?.price ?? 0
-      const propCur = p.operations?.[0]?.prices?.[0]?.currency ?? ''
-      if (propCur !== filters.currency) return false
-      if (price < minNum || price > maxNum) return false
+      // Buscar el precio que coincida con la moneda seleccionada en lugar de
+      // asumir prices[0]. Tokko a veces devuelve múltiples prices en orden
+      // distinto al esperado y prices[0] hardcoded descartaba propiedades
+      // matcheables (bug del filtro de precio).
+      const matchingPrice = p.operations?.[0]?.prices?.find(pr => pr.currency === filters.currency)
+      if (!matchingPrice) return false
+      if (matchingPrice.price < minNum || matchingPrice.price > maxNum) return false
     }
     if (filters.location !== 'todos') {
       const all = norm(`${p.location?.short_location ?? p.location?.name ?? ''} ${p.fake_address ?? p.address ?? ''}`)
@@ -725,6 +856,34 @@ export default function PropiedadesView({
   }, [])
 
   const clearNearby = useCallback(() => setNearbyOrigin(null), [])
+
+  // Geolocalización + filtro a 5km. Disparado desde el icono LocateFixed del
+  // input desktop. A diferencia de useMyLocation (que hace reverse geocode y
+  // setea el texto del search), este callback aplica el filtro de proximidad
+  // (mismo modo que el chip flotante "Mostrando propiedades a menos de 5 km").
+  const useMyNearbyLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationError('Tu navegador no soporta geolocalización')
+      return
+    }
+    setLocatingUser(true)
+    setLocationError(null)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords
+        setNearbyOrigin({ lat: latitude, lng: longitude })
+        setMapBounds(null)
+        setFlyToCenter([latitude, longitude])
+        setViewManually('map')
+        setLocatingUser(false)
+      },
+      () => {
+        setLocatingUser(false)
+        setLocationError('No pudimos acceder a tu ubicación. Verificá los permisos del navegador.')
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
+  }, [setViewManually])
 
   // Panel auto-open ONLY in desktop. En mobile la ficha se renderiza directo
   // como página completa en [slug]/page.tsx mobile block — abrir el panel acá
@@ -1011,9 +1170,23 @@ export default function PropiedadesView({
                 ;(e.currentTarget as HTMLInputElement).blur()
               }
             }}
-            className="w-full h-10 pl-8 pr-3 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all placeholder:text-gray-400"
+            className="w-full h-10 pl-8 pr-9 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all placeholder:text-gray-400"
             style={{ border: '1.5px solid #d1d5db', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
           />
+          <button
+            type="button"
+            onClick={useMyNearbyLocation}
+            disabled={locatingUser}
+            aria-label="Usar mi ubicación actual"
+            title="Usar mi ubicación"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md text-gray-500 hover:text-[#1A5C38] hover:bg-gray-100 transition-colors disabled:cursor-wait"
+          >
+            {locatingUser ? (
+              <div className="w-3.5 h-3.5 border-2 border-[#1A5C38]/30 border-t-[#1A5C38] rounded-full animate-spin" />
+            ) : (
+              <LocateFixed className="w-4 h-4" />
+            )}
+          </button>
           {searchDropdownDesktop && (
             <div
               className="absolute left-0 right-0 z-50 bg-white overflow-y-auto"
@@ -1202,22 +1375,6 @@ export default function PropiedadesView({
               {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {opLabel}
             </p>
 
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                onClick={() => toggleListMode('compact')}
-                className={`p-1.5 rounded transition-colors ${listMode === 'compact' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-                title="Vista compacta"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => toggleListMode('list')}
-                className={`p-1.5 rounded transition-colors ${listMode === 'list' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-                title="Vista lista"
-              >
-                <LayoutList className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
 
           {/* List */}

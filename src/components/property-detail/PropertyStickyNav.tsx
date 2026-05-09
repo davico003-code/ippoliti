@@ -44,14 +44,17 @@ export default function PropertyStickyNav({
   const jumpTo = (id: string) => {
     const el = document.getElementById(id)
     if (!el) return
+    // Offset = sticky page header + altura del propio nav (medida) + buffer.
+    // Sin la altura del nav propio, el target queda tapado por la barra de tabs.
+    const navH = navRef.current?.offsetHeight ?? 0
+    const totalOffset = stickyTop + navH + 8
     if (scrollRoot) {
-      // Scroll inside the modal container
       const elTop = el.getBoundingClientRect().top
       const rootTop = scrollRoot.getBoundingClientRect().top
-      const offset = elTop - rootTop + scrollRoot.scrollTop - stickyTop - 16
+      const offset = elTop - rootTop + scrollRoot.scrollTop - totalOffset
       scrollRoot.scrollTo({ top: offset, behavior: 'smooth' })
     } else {
-      const y = el.getBoundingClientRect().top + window.scrollY - stickyTop - 16
+      const y = el.getBoundingClientRect().top + window.scrollY - totalOffset
       window.scrollTo({ top: y, behavior: 'smooth' })
     }
     setActive(id)

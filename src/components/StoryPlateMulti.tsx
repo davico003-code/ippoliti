@@ -25,7 +25,7 @@ export interface StoryPlateMultiProps {
 const W = 1080
 const H = 1920
 const PAD = 75
-const LOGO_URL = '/logo-si-white.png'
+const LOGO_URL = '/logo-blanco.png'
 
 type PillVariant = 'solid-green' | 'ghost-light' | 'ghost-dark'
 

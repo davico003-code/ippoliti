@@ -20,6 +20,7 @@ import {
   getMainPhoto,
   getDescription,
   sanitizeProperty,
+  buildPropertyWhatsappUrl,
   type TokkoProperty,
 } from '@/lib/tokko';
 
@@ -91,10 +92,9 @@ export default async function PropertyPage({ params }: Props) {
   const price = formatPrice(property);
   const area = getTotalSurface(property);
 
-  const whatsappMsg = encodeURIComponent(
-    `Hola! Me interesa esta propiedad:\n\n*${property.publication_title || property.address}*\n📍 ${property.fake_address || property.address}\n💰 ${price}\n\n🔗 https://siinmobiliaria.com/propiedades/${params.slug}`
-  );
-  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappMsg}`;
+  // El wa.me apunta al productor asignado en Tokko (asesor real de la propiedad);
+  // si producer es null, cae al número general 5493412101694.
+  const whatsappUrl = buildPropertyWhatsappUrl(property, params.slug);
 
   // ── allProperties ya NO se fetchea SSR ──
   // Los componentes que antes lo necesitaban (Similars, NearbyMap, ZillowPanel)

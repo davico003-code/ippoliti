@@ -31,11 +31,16 @@ export const metadata: Metadata = {
   description:
     "Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.",
   metadataBase: new URL('https://siinmobiliaria.com'),
-  manifest: '/manifest.json',
+  manifest: '/site.webmanifest',
   icons: {
-    icon: '/icon.png',
-    shortcut: '/favicon.ico',
-    apple: '/icon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   verification: {
     google: 'vzBOIhp_zjfmlEuh_-0vZ6K9PDOyNAY_wSet1AWsNUI',
@@ -195,7 +200,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <Navbar />
-        <main>{children}</main>
+        <main className="md:pt-[73px]">{children}</main>
         <FooterWrapper />
         <FloatingWhatsApp />
         <ScrollToTop />

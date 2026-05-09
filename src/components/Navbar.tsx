@@ -52,7 +52,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!isHome) return
-    const onScroll = () => setScrolled(window.scrollY > 360)
+    const onScroll = () => setScrolled(window.scrollY > 50)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -66,10 +66,11 @@ export default function Navbar() {
     <div className={hideOnMobile ? 'hidden lg:block' : ''}>
       {/* ── Desktop nav (lg+) ── */}
       <nav
-        className="hidden lg:block sticky top-0 left-0 right-0 z-[100] transition-colors duration-200"
+        className="hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
           background: transparent ? 'transparent' : '#fff',
           borderBottom: transparent ? '1px solid transparent' : '1px solid #eee',
+          boxShadow: transparent ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
         }}
       >
         <div className="relative mx-auto flex items-center" style={{ maxWidth: 1400, padding: '18px 40px' }}>
@@ -78,22 +79,42 @@ export default function Navbar() {
             {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
-          {/* Centered logo (absolute) */}
+          {/* Centered logo (absolute) — swap dinámico:
+              transparent (sobre el hero) → logo blanco webp con fallback .png vía <picture>;
+              opaco (scrolleado) → logo verde horizontal. */}
           <Link
             href="/"
             className="absolute left-1/2 top-1/2"
             style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}
           >
-            <Image
-              src={transparent ? '/logo-si-white.png' : '/LOGO_HORIZONTAL.png'}
-              alt="SI Inmobiliaria"
-              width={246}
-              height={36}
-              className="object-contain"
-              style={{ height: 36, width: 'auto' }}
-              priority
-              quality={90}
-            />
+            {transparent ? (
+              <picture>
+                <source srcSet="/logo-blanco.webp" type="image/webp" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logo-blanco.png"
+                  alt="SI Inmobiliaria"
+                  width={192}
+                  height={28}
+                  className="object-contain"
+                  style={{ height: 28, width: 'auto' }}
+                  fetchPriority="high"
+                  loading="eager"
+                  decoding="async"
+                />
+              </picture>
+            ) : (
+              <Image
+                src="/LOGO_HORIZONTAL.png"
+                alt="SI Inmobiliaria"
+                width={192}
+                height={28}
+                className="object-contain"
+                style={{ height: 28, width: 'auto' }}
+                priority
+                quality={90}
+              />
+            )}
           </Link>
 
           {/* Right menu + CTA */}
@@ -101,10 +122,10 @@ export default function Navbar() {
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
             <Link
               href="/agentes"
-              className="hover:opacity-90 transition-colors duration-200 text-[14px] xl:text-[17px]"
+              className="hover:opacity-90 transition-colors duration-200 text-sm"
               style={{
                 fontFamily: R, fontWeight: 500, color: '#fff',
-                background: '#1A5C38', padding: '10px 24px', borderRadius: 6,
+                background: '#1A5C38', padding: '8px 20px', borderRadius: 6,
                 textDecoration: 'none', whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
@@ -118,7 +139,7 @@ export default function Navbar() {
 
       {/* ── Mobile nav (<lg) ── */}
       <nav
-        className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+        className="md:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="relative flex items-center justify-between px-4 py-2.5">
@@ -159,7 +180,7 @@ export default function Navbar() {
 
       {/* ── Mobile drawer ── */}
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-[101]">
+        <div className="md:hidden fixed inset-0 z-[101]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
           <div
             className="absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl"
