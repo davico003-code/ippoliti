@@ -560,8 +560,8 @@ export default function NosotrosClient() {
   return (
     <main className="bg-white text-gray-900">
 
-      {/* HERO */}
-      <section className="relative h-[80vh] min-h-[560px] md:h-[600px] md:min-h-[600px] flex items-end justify-center overflow-hidden">
+      {/* HERO — solo imagen/video, sin texto encima */}
+      <section className="relative h-[70vh] min-h-[480px] md:h-[80vh] md:min-h-[560px] overflow-hidden">
         {/* Imagen fija en mobile (poster) */}
         <Image
           src="/videos/hero-nosotros-poster.webp"
@@ -575,30 +575,30 @@ export default function NosotrosClient() {
         {/* Video de fondo en desktop */}
         <HeroVideoNosotros />
 
-        {/* Overlay superior sutil (legibilidad del texto) */}
-        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
+        {/* Fade inferior blanco — empalme con la sección de abajo */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-20 md:h-28 bg-gradient-to-t from-white via-white/50 to-transparent" />
+      </section>
 
-        {/* Contenido alineado abajo */}
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 text-center pb-20 md:pb-32">
-          <div className="inline-flex items-center gap-2 mb-5">
-            <span className="w-10 h-px" style={{ backgroundColor: '#ffffff80' }} />
-            <p className="text-xs uppercase tracking-[0.25em] text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>Quiénes somos</p>
-            <span className="w-10 h-px" style={{ backgroundColor: '#ffffff80' }} />
+      {/* HEADLINE — bajo el hero */}
+      <section className="bg-white pt-12 pb-16 md:pt-16 md:pb-24">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-3 mb-6">
+            <span className="w-10 h-px bg-neutral-300" />
+            <p
+              className="text-xs uppercase tracking-widest text-neutral-500"
+              style={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Quiénes somos
+            </p>
+            <span className="w-10 h-px bg-neutral-300" />
           </div>
           <h1
-            className="text-4xl md:text-6xl text-white leading-tight"
-            style={{
-              fontFamily: 'Raleway, sans-serif',
-              fontWeight: 200,
-              textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
-            }}
+            className="text-3xl md:text-5xl lg:text-6xl font-bold text-black leading-tight"
+            style={{ fontFamily: 'Raleway, sans-serif' }}
           >
-            Desde 1983 acompañando<br />cada decisión importante
+            Desde 1983 acompañando<br className="hidden md:block" /> cada decisión importante
           </h1>
         </div>
-
-        {/* Fade inferior blanco — sutil, queda debajo del título */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-16 md:h-24 bg-gradient-to-t from-white via-white/40 to-transparent" />
       </section>
 
       {/* MISIÓN · VISIÓN · VALORES */}
