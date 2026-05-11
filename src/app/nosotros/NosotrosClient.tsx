@@ -132,21 +132,24 @@ function OficinasMapa() {
 
       mapInstance.current = map
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
         maxZoom: 19,
       }).addTo(map)
 
-      const blackIcon = L.divIcon({
-        html: `<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#000;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`,
-        iconSize: [34, 34],
-        iconAnchor: [17, 34],
-        popupAnchor: [0, -36],
-        className: '',
-      })
+      const makePin = (n: number) =>
+        L.divIcon({
+          html: `<div style="width:32px;height:32px;border-radius:9999px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-family:Poppins,sans-serif;font-weight:600;font-size:13px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35)">${n}</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+          popupAnchor: [0, -18],
+          className: '',
+        })
 
-      oficinas.forEach((o) => {
-        L.marker([o.lat, o.lng], { icon: blackIcon })
+      oficinas.forEach((o, idx) => {
+        L.marker([o.lat, o.lng], { icon: makePin(idx + 1) })
           .addTo(map)
           .bindPopup(
             `<div style="font-family:Poppins,sans-serif;min-width:160px;padding:4px 0">
@@ -172,7 +175,7 @@ function OficinasMapa() {
   return (
     <>
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossOrigin="" />
-      <div ref={mapRef} className="w-full rounded-2xl overflow-hidden shadow-md" style={{ height: '440px' }} />
+      <div ref={mapRef} className="w-full rounded-2xl overflow-hidden border border-neutral-200 shadow-md" style={{ height: '440px' }} />
     </>
   )
 }
@@ -285,12 +288,12 @@ export default function NosotrosClient() {
           </p>
         </div>
 
-        {/* Gradient inferior blanco — emerge sin corte */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-64 md:h-80 bg-gradient-to-t from-white via-white/70 to-transparent" />
+        {/* Fade inferior blanco — sutil, solo para empalmar con sección blanca */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-32 md:h-40 bg-gradient-to-t from-white via-white/40 to-transparent" />
       </section>
 
       {/* STATS */}
-      <section className="py-20 bg-white border-b border-gray-100">
+      <section className="py-20 md:py-24 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
             {[
@@ -311,8 +314,13 @@ export default function NosotrosClient() {
       </section>
 
       {/* MISIÓN · VISIÓN · VALORES */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 md:py-28 bg-neutral-50">
         <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Nuestros principios</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Misión, visión y valores</h2>
+            <div className="w-12 h-px bg-black mx-auto" />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { titulo: 'Misión', texto: 'Acompañar a cada persona en su camino inmobiliario, brindando un asesoramiento honesto, cercano y profesional.', Icon: Target },
@@ -342,11 +350,12 @@ export default function NosotrosClient() {
       </section>
 
       {/* NUESTRA DIRECCIÓN */}
-      <section className="py-24 bg-white">
+      <section className="py-20 md:py-28 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Liderazgo</p>
-            <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestra dirección</h2>
+          <div className="text-center mb-14">
+            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Liderazgo</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Nuestra dirección</h2>
+            <div className="w-12 h-px bg-black mx-auto" />
           </div>
           <div className="grid md:grid-cols-3 gap-12">
             {direccion.map((p) => (
@@ -364,12 +373,13 @@ export default function NosotrosClient() {
       </section>
 
       {/* EQUIPO COMPLETO (Tokko) */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-20 md:py-28 bg-white">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>El equipo</p>
-            <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestro equipo</h2>
-            <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>Profesionales especializados en el mercado de Funes y Roldán</p>
+          <div className="text-center mb-14">
+            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>El equipo</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Nuestro equipo</h2>
+            <div className="w-12 h-px bg-black mx-auto mb-5" />
+            <p className="text-sm text-neutral-500 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>Profesionales especializados en el mercado de Funes y Roldán</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 mb-14">
@@ -399,11 +409,12 @@ export default function NosotrosClient() {
       </section>
 
       {/* HISTORIA */}
-      <section className="py-24 bg-white">
+      <section className="py-20 md:py-28 bg-white">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Trayectoria</p>
-            <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestra historia</h2>
+          <div className="text-center mb-14">
+            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Nuestra historia</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>40 años de trayectoria</h2>
+            <div className="w-12 h-px bg-black mx-auto" />
           </div>
           <div className="grid lg:grid-cols-[1fr_380px] gap-12 items-start">
             <div className="relative">
@@ -414,7 +425,7 @@ export default function NosotrosClient() {
                     <div className="hidden md:flex flex-col items-center w-12 shrink-0 pt-5">
                       <div className="w-3 h-3 rounded-full ring-4 ring-white z-10 bg-black" />
                     </div>
-                    <div className="bg-gray-50 rounded-2xl p-7 flex-1">
+                    <div className="bg-neutral-50 rounded-2xl p-7 flex-1">
                       <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 text-white bg-black" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
                       <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
                       <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
@@ -424,12 +435,12 @@ export default function NosotrosClient() {
               </div>
             </div>
 
-            {/* Foto familia Flores — más de 40 años */}
+            {/* Fachada oficina Funes — más de 40 años */}
             <aside className="hidden lg:block lg:sticky lg:top-24">
               <div className="relative rounded-2xl overflow-hidden shadow-md aspect-[4/5]">
                 <Image
-                  src="/familia-flores.webp"
-                  alt="Familia Flores — SI Inmobiliaria, desde 1983"
+                  src="/oficina-funes.webp"
+                  alt="Oficina SI Inmobiliaria · Hipólito Yrigoyen 2643, Funes"
                   fill
                   className="object-cover object-center"
                   sizes="380px"
@@ -479,12 +490,13 @@ export default function NosotrosClient() {
       </section>
 
       {/* TESTIMONIOS */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-20 md:py-28 bg-neutral-50">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Testimonios</p>
-            <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Lo que dicen nuestros clientes</h2>
-            <p className="text-sm text-gray-400 mt-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Opiniones reales de familias que confiaron en nosotros</p>
+          <div className="text-center mb-14">
+            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Testimonios</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Lo que dicen nuestros clientes</h2>
+            <div className="w-12 h-px bg-black mx-auto mb-5" />
+            <p className="text-sm text-neutral-500 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>Opiniones reales de familias que confiaron en nosotros</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonios.map((t, i) => (
@@ -502,11 +514,12 @@ export default function NosotrosClient() {
       </section>
 
       {/* VIDEO INSTITUCIONAL */}
-      <section className="py-24 bg-white">
+      <section className="py-20 md:py-28 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Video institucional</p>
-          <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Conocé nuestra oficina</h2>
-          <p className="text-sm text-gray-400 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Visitanos en Funes o Roldán — te esperamos</p>
+          <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Video institucional</p>
+          <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Conocé nuestra oficina</h2>
+          <div className="w-12 h-px bg-black mx-auto mb-5" />
+          <p className="text-sm text-neutral-500 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Visitanos en Funes o Roldán — te esperamos</p>
           <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg">
             <iframe src="https://www.youtube.com/embed/l7woKym9w50" title="SI Inmobiliaria — Video institucional"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
@@ -515,29 +528,70 @@ export default function NosotrosClient() {
         </div>
       </section>
 
-      {/* OFICINAS + MAPA */}
-      <section className="py-24 bg-gray-50">
+      {/* OFICINAS + MAPA — sección oscura de contraste */}
+      <section className="py-20 md:py-28 bg-black text-white">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Ubicaciones</p>
-            <h2 className="text-4xl mb-3" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestras oficinas</h2>
-            <p className="text-sm text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>Tres ubicaciones para atenderte mejor</p>
+          <div className="text-center mb-14">
+            <p className="text-sm uppercase tracking-widest text-neutral-400 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Dónde estamos</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Nuestras oficinas</h2>
+            <div className="w-12 h-px bg-white mx-auto mb-5" />
+            <p className="text-sm text-neutral-400 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>Tres ubicaciones para atenderte mejor</p>
           </div>
           <div className="grid lg:grid-cols-2 gap-10 items-start">
             <div className="flex flex-col gap-5">
-              {oficinas.map((o) => (
-                <div key={o.titulo} className={`rounded-2xl p-7 flex gap-5 items-start ${o.highlight ? 'bg-black text-white shadow-lg' : 'bg-white shadow-sm'}`}>
-                  <span className="text-3xl shrink-0">{o.icon}</span>
+              {oficinas.map((o, idx) => (
+                <div
+                  key={o.titulo}
+                  className={`rounded-2xl p-6 md:p-7 flex gap-5 items-start border ${
+                    o.highlight
+                      ? 'bg-white text-black border-white'
+                      : 'bg-neutral-900 text-white border-white/10'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold ${
+                      o.highlight ? 'bg-black text-white' : 'bg-white text-black'
+                    }`}
+                    style={{ fontFamily: 'Poppins, sans-serif' }}
+                    aria-hidden
+                  >
+                    {idx + 1}
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <h3 className="text-base font-semibold" style={{ fontFamily: 'Raleway, sans-serif' }}>{o.titulo}</h3>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${o.highlight ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.badge}</span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          o.highlight ? 'bg-black/10 text-black/70' : 'bg-white/10 text-white/70'
+                        }`}
+                        style={{ fontFamily: 'Poppins, sans-serif' }}
+                      >
+                        {o.badge}
+                      </span>
                     </div>
-                    {o.subtitulo && <p className={`text-xs mb-2 ${o.highlight ? 'text-white/70' : 'text-gray-400'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.subtitulo}</p>}
-                    <p className={`text-sm ${o.highlight ? 'text-white/80' : 'text-gray-500'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.dir} · {o.horario}</p>
-                    <a href={o.maps} target="_blank" rel="noopener noreferrer"
-                      className={`inline-block mt-3 text-xs font-semibold underline underline-offset-2 ${o.highlight ? 'text-white/90' : 'text-black'}`}
-                      style={{ fontFamily: 'Poppins, sans-serif' }}>
+                    {o.subtitulo && (
+                      <p
+                        className={`text-xs mb-2 ${o.highlight ? 'text-black/60' : 'text-white/60'}`}
+                        style={{ fontFamily: 'Poppins, sans-serif' }}
+                      >
+                        {o.subtitulo}
+                      </p>
+                    )}
+                    <p
+                      className={`text-sm ${o.highlight ? 'text-black/75' : 'text-white/75'}`}
+                      style={{ fontFamily: 'Poppins, sans-serif' }}
+                    >
+                      {o.dir} · {o.horario}
+                    </p>
+                    <a
+                      href={o.maps}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-block mt-3 text-xs font-semibold underline underline-offset-2 ${
+                        o.highlight ? 'text-black' : 'text-white'
+                      }`}
+                      style={{ fontFamily: 'Poppins, sans-serif' }}
+                    >
                       Ver en Maps →
                     </a>
                   </div>
@@ -552,10 +606,11 @@ export default function NosotrosClient() {
       </section>
 
       {/* CTA FINAL — doble botón */}
-      <section className="relative py-24 md:py-28 bg-neutral-50">
+      <section className="relative py-20 md:py-28 bg-neutral-50">
         <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
-          <p className="text-xs uppercase tracking-[0.25em] mb-3 text-black/70" style={{ fontFamily: 'Poppins, sans-serif' }}>Dejanos acompañarte</p>
-          <h2 className="text-4xl md:text-5xl mb-4 text-black" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>¿Querés trabajar con nosotros?</h2>
+          <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Dejanos acompañarte</p>
+          <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>¿Querés trabajar con nosotros?</h2>
+          <div className="w-12 h-px bg-black mx-auto mb-6" />
           <p className="text-base text-neutral-600 mb-10 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
             Si querés vender tu propiedad o sumarte al equipo de SI, escribinos.
           </p>
