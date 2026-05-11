@@ -6,48 +6,6 @@ import { Target, Eye, Gem, Navigation, Phone, MessageCircle, Clock } from 'lucid
 import HeroVideoNosotros from '@/components/nosotros/HeroVideoNosotros'
 
 /* ─────────────────────────────────────────────
-   ANIMATED COUNTER
-───────────────────────────────────────────── */
-function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  const started = useRef(false)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true
-          const duration = 1800
-          const steps = 60
-          const increment = target / steps
-          let current = 0
-          const timer = setInterval(() => {
-            current += increment
-            if (current >= target) {
-              setCount(target)
-              clearInterval(timer)
-            } else {
-              setCount(Math.floor(current))
-            }
-          }, duration / steps)
-        }
-      },
-      { threshold: 0.3 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [target])
-
-  return (
-    <span ref={ref}>
-      {count}
-      {suffix}
-    </span>
-  )
-}
-
-/* ─────────────────────────────────────────────
    DATA
 ───────────────────────────────────────────── */
 const direccion = [
@@ -603,7 +561,7 @@ export default function NosotrosClient() {
     <main className="bg-white text-gray-900">
 
       {/* HERO */}
-      <section className="relative h-[80vh] min-h-[560px] md:h-[600px] md:min-h-[600px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[80vh] min-h-[560px] md:h-[600px] md:min-h-[600px] flex items-end justify-center overflow-hidden">
         {/* Imagen fija en mobile (poster) */}
         <Image
           src="/videos/hero-nosotros-poster.webp"
@@ -620,8 +578,8 @@ export default function NosotrosClient() {
         {/* Overlay superior sutil (legibilidad del texto) */}
         <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
 
-        {/* Contenido centrado */}
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 text-center">
+        {/* Contenido alineado abajo */}
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 text-center pb-20 md:pb-32">
           <div className="inline-flex items-center gap-2 mb-5">
             <span className="w-10 h-px" style={{ backgroundColor: '#ffffff80' }} />
             <p className="text-xs uppercase tracking-[0.25em] text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>Quiénes somos</p>
@@ -639,29 +597,8 @@ export default function NosotrosClient() {
           </h1>
         </div>
 
-        {/* Fade inferior blanco — sutil, solo para empalmar con sección blanca */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-32 md:h-40 bg-gradient-to-t from-white via-white/40 to-transparent" />
-      </section>
-
-      {/* STATS */}
-      <section className="py-20 md:py-24 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-            {[
-              { label: 'Años en el mercado', value: 43, suffix: '' },
-              { label: 'Operaciones concretadas', value: 1500, suffix: '+' },
-              { label: 'Oficinas', value: 3, suffix: '' },
-              { label: 'Propiedades activas', value: 200, suffix: '+' },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <p className="text-5xl md:text-6xl mb-2 font-numeric text-black" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
-                  <Counter target={stat.value} suffix={stat.suffix} />
-                </p>
-                <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Fade inferior blanco — sutil, queda debajo del título */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-16 md:h-24 bg-gradient-to-t from-white via-white/40 to-transparent" />
       </section>
 
       {/* MISIÓN · VISIÓN · VALORES */}
