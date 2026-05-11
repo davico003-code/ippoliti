@@ -89,7 +89,7 @@ export default function ExitPopup() {
         </button>
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="SI Inmobiliaria" className="h-8 mx-auto mb-4" />
+        <img src="/LOGO_HORIZONTAL.png" alt="SI Inmobiliaria" className="h-10 mx-auto mb-4" />
 
         {status === 'sent' ? (
           <div className="text-center py-4">

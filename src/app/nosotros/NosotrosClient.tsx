@@ -2,6 +2,8 @@
 
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
+import { Target, Eye, Gem } from 'lucide-react'
+import HeroVideoNosotros from '@/components/nosotros/HeroVideoNosotros'
 
 /* ─────────────────────────────────────────────
    ANIMATED COUNTER
@@ -69,29 +71,6 @@ const direccion = [
   },
 ]
 
-const administracion = [
-  { nombre: 'Marisa Benitez', rol: 'Administración' },
-  { nombre: 'Eliana Rojas', rol: 'Administración' },
-  { nombre: 'Sabrina Riters', rol: 'Administración' },
-  { nombre: 'Leticia Alexenicer', rol: 'Administración' },
-]
-
-const asesores = [
-  { nombre: 'Aldana Ruiz', rol: 'Asesora comercial' },
-  { nombre: 'Carolina Echen', rol: 'Asesora comercial' },
-  { nombre: 'Gino Pecchenino', rol: 'Asesor comercial' },
-  { nombre: 'Gisela Ramallo', rol: 'Asesora comercial' },
-  { nombre: 'Lucia Wilson', rol: 'Asesora comercial' },
-  { nombre: 'Maria Jose Espilocin', rol: 'Asesora comercial' },
-  { nombre: 'Mariana Orlate', rol: 'Asesora comercial' },
-  { nombre: 'Mauro Matteucci', rol: 'Asesor comercial' },
-]
-
-const soporte = [
-  { nombre: 'Micaela Gonzalez', rol: 'Marketing' },
-  { nombre: 'Julian Ruschneider', rol: 'Producción audiovisual' },
-]
-
 const historia = [
   { año: '1983', titulo: 'Fundación', desc: 'Susana Ippoliti abre la primera oficina en 1ro de Mayo 258, Roldán. Comienza una historia familiar de confianza y profesionalismo.' },
   { año: '2015', titulo: 'Segunda oficina en Roldán', desc: 'Apertura de la segunda oficina en Catamarca 775, Roldán. Consolidación como referente inmobiliario en la ciudad.' },
@@ -113,6 +92,16 @@ const oficinas = [
 
 function iniciales(nombre: string) {
   return nombre.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
+}
+
+type TokkoAgent = {
+  id: number
+  name: string
+  email: string
+  phone: string
+  cellphone: string
+  picture: string | null
+  position: string
 }
 
 /* ─────────────────────────────────────────────
@@ -148,8 +137,8 @@ function OficinasMapa() {
         maxZoom: 19,
       }).addTo(map)
 
-      const greenIcon = L.divIcon({
-        html: `<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#1A5C38;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`,
+      const blackIcon = L.divIcon({
+        html: `<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#000;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`,
         iconSize: [34, 34],
         iconAnchor: [17, 34],
         popupAnchor: [0, -36],
@@ -157,7 +146,7 @@ function OficinasMapa() {
       })
 
       oficinas.forEach((o) => {
-        L.marker([o.lat, o.lng], { icon: greenIcon })
+        L.marker([o.lat, o.lng], { icon: blackIcon })
           .addTo(map)
           .bindPopup(
             `<div style="font-family:Poppins,sans-serif;min-width:160px;padding:4px 0">
@@ -165,7 +154,7 @@ function OficinasMapa() {
               ${o.subtitulo ? `<p style="font-size:11px;color:#888;margin:0 0 4px">${o.subtitulo}</p>` : ''}
               <p style="font-size:12px;color:#555;margin:0 0 2px">${o.dir}</p>
               <p style="font-size:12px;color:#555;margin:0 0 8px">${o.horario}</p>
-              <a href="${o.maps}" target="_blank" style="font-size:12px;color:#1A5C38;font-weight:600;text-decoration:none">Ver en Maps →</a>
+              <a href="${o.maps}" target="_blank" style="font-size:12px;color:#000;font-weight:600;text-decoration:none">Ver en Maps →</a>
             </div>`,
             { maxWidth: 220 }
           )
@@ -189,38 +178,115 @@ function OficinasMapa() {
 }
 
 /* ─────────────────────────────────────────────
+   TEAM CARD (Tokko-driven)
+───────────────────────────────────────────── */
+function TeamCard({ agent }: { agent: TokkoAgent }) {
+  const [imgError, setImgError] = useState(false)
+  const hasPhoto = agent.picture && !imgError
+  return (
+    <div className="group flex flex-col items-center text-center">
+      <div className="relative w-32 h-32 sm:w-36 sm:h-36 mb-4 rounded-full overflow-hidden bg-black ring-1 ring-black/10 transition-transform duration-300 group-hover:scale-105">
+        {hasPhoto ? (
+          <Image
+            src={agent.picture!}
+            alt={agent.name}
+            fill
+            sizes="(min-width: 1024px) 144px, (min-width: 640px) 144px, 128px"
+            className="object-cover object-center"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-white text-xl tracking-wide" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 600 }}>
+            {iniciales(agent.name)}
+          </div>
+        )}
+      </div>
+      <p
+        className="text-sm font-bold leading-tight mb-1 text-black group-hover:underline underline-offset-4 decoration-black"
+        style={{ fontFamily: 'Raleway, sans-serif' }}
+      >
+        {agent.name}
+      </p>
+      {agent.position && (
+        <p className="text-xs text-neutral-500" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          {agent.position}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────
    PAGE
 ───────────────────────────────────────────── */
 export default function NosotrosClient() {
+  const [agents, setAgents] = useState<TokkoAgent[] | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/tokko/agents')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.agents) return
+        setAgents(data.agents as TokkoAgent[])
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <main className="bg-white text-gray-900">
 
       {/* HERO */}
-      <section className="relative h-[80vh] min-h-[560px] flex items-end overflow-hidden">
+      <section className="relative h-[80vh] min-h-[560px] md:h-[600px] md:min-h-[600px] flex items-center justify-center overflow-hidden">
+        {/* Imagen fija en mobile (poster) */}
         <Image
-          src="https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1920&q=80&auto=format&fit=crop"
-          alt="Hogar cálido al atardecer"
+          src="/videos/hero-nosotros-poster.webp"
+          alt="Equipo de SI Inmobiliaria"
           fill
-          className="object-cover object-center"
+          className="object-cover object-center md:hidden"
           priority
           sizes="100vw"
         />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%)' }}
-        />
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-20 md:pb-24">
+
+        {/* Video de fondo en desktop */}
+        <HeroVideoNosotros />
+
+        {/* Overlay superior sutil (legibilidad del texto) */}
+        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
+
+        {/* Contenido centrado */}
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 mb-5">
             <span className="w-10 h-px" style={{ backgroundColor: '#ffffff80' }} />
             <p className="text-xs uppercase tracking-[0.25em] text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>Quiénes somos</p>
+            <span className="w-10 h-px" style={{ backgroundColor: '#ffffff80' }} />
           </div>
-          <h1 className="text-4xl md:text-6xl text-white leading-tight mb-5" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
+          <h1
+            className="text-4xl md:text-6xl text-white leading-tight mb-5"
+            style={{
+              fontFamily: 'Raleway, sans-serif',
+              fontWeight: 200,
+              textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
+            }}
+          >
             Desde 1983 acompañando<br />cada decisión importante
           </h1>
-          <p className="text-lg text-white/85 max-w-2xl" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <p
+            className="text-lg text-white/85 max-w-2xl mx-auto"
+            style={{
+              fontFamily: 'Poppins, sans-serif',
+              textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
+            }}
+          >
             Susana y David — dos generaciones de confianza en Roldán y Funes
           </p>
         </div>
+
+        {/* Gradient inferior blanco — emerge sin corte */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-64 md:h-80 bg-gradient-to-t from-white via-white/70 to-transparent" />
       </section>
 
       {/* STATS */}
@@ -234,7 +300,7 @@ export default function NosotrosClient() {
               { label: 'Propiedades activas', value: 200, suffix: '+' },
             ].map((stat) => (
               <div key={stat.label}>
-                <p className="text-5xl md:text-6xl mb-2 font-numeric" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200, color: '#1A5C38' }}>
+                <p className="text-5xl md:text-6xl mb-2 font-numeric text-black" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
                   <Counter target={stat.value} suffix={stat.suffix} />
                 </p>
                 <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>{stat.label}</p>
@@ -245,24 +311,30 @@ export default function NosotrosClient() {
       </section>
 
       {/* MISIÓN · VISIÓN · VALORES */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { titulo: 'Misión', texto: 'Acompañar a cada persona en su camino inmobiliario, brindando un asesoramiento honesto, cercano y profesional.', icon: '🌱' },
-              { titulo: 'Visión', texto: 'Ser la inmobiliaria de referencia en Funes, Roldán y la región, reconocida por nuestra calidez humana, trayectoria y compromiso real con cada cliente.', icon: '✨' },
-              { titulo: 'Valores', texto: 'Honestidad, compromiso y profesionalismo son los pilares que guían cada operación. Más de 40 años de trayectoria nos respaldan.', icon: '🤝' },
-            ].map((item) => (
-              <div key={item.titulo} className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 text-2xl"
-                  style={{ backgroundColor: '#1A5C3815' }}
-                >
-                  <span aria-hidden>{item.icon}</span>
+              { titulo: 'Misión', texto: 'Acompañar a cada persona en su camino inmobiliario, brindando un asesoramiento honesto, cercano y profesional.', Icon: Target },
+              { titulo: 'Visión', texto: 'Ser la inmobiliaria de referencia en Funes, Roldán y la región, reconocida por nuestra calidez humana, trayectoria y compromiso real con cada cliente.', Icon: Eye },
+              { titulo: 'Valores', texto: 'Honestidad, compromiso y profesionalismo son los pilares que guían cada operación. Más de 40 años de trayectoria nos respaldan.', Icon: Gem },
+            ].map(({ titulo, texto, Icon }) => (
+              <div
+                key={titulo}
+                className="bg-white rounded-2xl p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 flex flex-col items-center text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center mb-6 p-4">
+                  <Icon className="w-full h-full text-white" strokeWidth={1.6} aria-hidden />
                 </div>
-                <div className="w-8 h-1 rounded-full mb-4" style={{ backgroundColor: '#1A5C38' }} />
-                <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: 'Raleway, sans-serif' }}>{item.titulo}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{item.texto}</p>
+                <h3
+                  className="text-base font-semibold uppercase tracking-wide mb-3 text-black"
+                  style={{ fontFamily: 'Raleway, sans-serif' }}
+                >
+                  {titulo}
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  {texto}
+                </p>
               </div>
             ))}
           </div>
@@ -273,17 +345,17 @@ export default function NosotrosClient() {
       <section className="py-24 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Liderazgo</p>
+            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Liderazgo</p>
             <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestra dirección</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-12">
             {direccion.map((p) => (
               <div key={p.nombre} className="flex flex-col items-center text-center group">
-                <div className="relative w-48 h-48 mb-6 rounded-full overflow-hidden ring-4 ring-gray-100 group-hover:ring-[#1A5C38]/30 transition-all duration-300 shadow-md">
-                  <Image src={p.foto} alt={p.nombre} fill className="object-cover object-top" />
+                <div className="relative w-48 h-48 mb-6 rounded-full overflow-hidden ring-4 ring-gray-100 group-hover:ring-black/30 transition-all duration-300 shadow-md">
+                  <Image src={p.foto} alt={p.nombre} fill className="object-cover object-top" sizes="192px" />
                 </div>
                 <h3 className="text-xl font-semibold mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{p.nombre}</h3>
-                <p className="text-sm mb-4" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>{p.cargo}</p>
+                <p className="text-sm mb-4 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>{p.cargo}</p>
                 <p className="text-sm text-gray-500 leading-relaxed max-w-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>{p.desc}</p>
               </div>
             ))}
@@ -291,66 +363,35 @@ export default function NosotrosClient() {
         </div>
       </section>
 
-      {/* EQUIPO COMPLETO */}
+      {/* EQUIPO COMPLETO (Tokko) */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>El equipo</p>
+            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>El equipo</p>
             <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestro equipo</h2>
             <p className="text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>Profesionales especializados en el mercado de Funes y Roldán</p>
           </div>
 
-          {/* TODO: Reemplazar iniciales por fotos reales del equipo cuando estén disponibles.
-              No usar stock photos como placeholder — mantenemos iniciales hasta tener fotos reales. */}
-
-          {/* Asesores comerciales */}
-          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Asesores comerciales</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mb-14">
-            {asesores.map((a) => (
-              <div key={a.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
-                  {iniciales(a.nombre)}
-                </div>
-                <p className="text-sm font-semibold leading-tight mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{a.nombre}</p>
-                <p className="text-xs text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>{a.rol}</p>
-              </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 mb-14">
+            {(agents ?? []).map((a) => (
+              <TeamCard key={a.id} agent={a} />
             ))}
-          </div>
-
-          {/* Administración */}
-          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Administración</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-14">
-            {administracion.map((a) => (
-              <div key={a.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#2D6A4F', fontFamily: 'Raleway, sans-serif' }}>
-                  {iniciales(a.nombre)}
+            {agents === null &&
+              Array.from({ length: 8 }).map((_, i) => (
+                <div key={`skel-${i}`} className="flex flex-col items-center">
+                  <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-neutral-200 animate-pulse mb-4" />
+                  <div className="h-3 w-24 bg-neutral-200 rounded animate-pulse mb-2" />
+                  <div className="h-2 w-16 bg-neutral-200 rounded animate-pulse" />
                 </div>
-                <p className="text-sm font-semibold leading-tight mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{a.nombre}</p>
-                <p className="text-xs text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>{a.rol}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Soporte */}
-          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>Soporte</p>
-          <div className="flex flex-wrap gap-5 mb-14">
-            {soporte.map((s) => (
-              <div key={s.nombre} className="bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow w-48">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 text-white text-lg font-semibold" style={{ backgroundColor: '#334155', fontFamily: 'Raleway, sans-serif' }}>
-                  {iniciales(s.nombre)}
-                </div>
-                <p className="text-sm font-semibold leading-tight mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{s.nombre}</p>
-                <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500" style={{ fontFamily: 'Poppins, sans-serif' }}>{s.rol}</span>
-              </div>
-            ))}
+              ))}
           </div>
 
           <div className="text-center">
             <p className="text-sm text-gray-400 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>¿Querés ser parte del equipo?</p>
             <a href="https://wa.me/5493412101694?text=Hola%2C%20me%20interesa%20sumarme%20al%20equipo%20de%20SI%20Inmobiliaria"
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium border-2 transition-all hover:text-white hover:bg-[#1A5C38]"
-              style={{ fontFamily: 'Poppins, sans-serif', borderColor: '#1A5C38', color: '#1A5C38' }}>
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium border-2 border-black text-black transition-all hover:bg-black hover:text-white"
+              style={{ fontFamily: 'Poppins, sans-serif' }}>
               Escribinos por WhatsApp
             </a>
           </div>
@@ -361,20 +402,20 @@ export default function NosotrosClient() {
       <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Trayectoria</p>
+            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Trayectoria</p>
             <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestra historia</h2>
           </div>
           <div className="grid lg:grid-cols-[1fr_380px] gap-12 items-start">
             <div className="relative">
-              <div className="absolute left-[1.4rem] top-2 bottom-2 w-px hidden md:block" style={{ backgroundColor: '#1A5C38', opacity: 0.15 }} />
+              <div className="absolute left-[1.4rem] top-2 bottom-2 w-px hidden md:block bg-black/15" />
               <div className="space-y-8">
                 {historia.map((h, i) => (
                   <div key={i} className="flex gap-8 items-start">
                     <div className="hidden md:flex flex-col items-center w-12 shrink-0 pt-5">
-                      <div className="w-3 h-3 rounded-full ring-4 ring-white z-10" style={{ backgroundColor: '#1A5C38' }} />
+                      <div className="w-3 h-3 rounded-full ring-4 ring-white z-10 bg-black" />
                     </div>
                     <div className="bg-gray-50 rounded-2xl p-7 flex-1">
-                      <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 text-white" style={{ backgroundColor: '#1A5C38', fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
+                      <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 text-white bg-black" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
                       <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
                       <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
                     </div>
@@ -383,19 +424,19 @@ export default function NosotrosClient() {
               </div>
             </div>
 
-            {/* Imagen lateral cálida — solo desktop */}
+            {/* Foto familia Flores — más de 40 años */}
             <aside className="hidden lg:block lg:sticky lg:top-24">
               <div className="relative rounded-2xl overflow-hidden shadow-md aspect-[4/5]">
                 <Image
-                  src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&q=80&auto=format&fit=crop"
-                  alt="Hogar acogedor con luz natural"
+                  src="/familia-flores.webp"
+                  alt="Familia Flores — SI Inmobiliaria, desde 1983"
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                   sizes="380px"
                 />
                 <div
                   className="absolute inset-0"
-                  style={{ background: 'linear-gradient(to top, rgba(26,92,56,0.55) 0%, rgba(26,92,56,0.08) 45%, transparent 100%)' }}
+                  style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.08) 45%, transparent 100%)' }}
                 />
                 <div className="absolute bottom-6 left-6 right-6 text-white">
                   <p className="text-sm mb-1 opacity-90" style={{ fontFamily: 'Poppins, sans-serif' }}>Más de</p>
@@ -441,14 +482,14 @@ export default function NosotrosClient() {
       <section className="py-24 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Testimonios</p>
+            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Testimonios</p>
             <h2 className="text-4xl" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Lo que dicen nuestros clientes</h2>
             <p className="text-sm text-gray-400 mt-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Opiniones reales de familias que confiaron en nosotros</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonios.map((t, i) => (
               <div key={i} className="bg-white rounded-2xl p-8 shadow-sm flex flex-col">
-                <div className="text-4xl mb-4 leading-none" style={{ color: '#1A5C38', fontFamily: 'Georgia, serif' }}>&ldquo;</div>
+                <div className="text-4xl mb-4 leading-none text-black" style={{ fontFamily: 'Georgia, serif' }}>&ldquo;</div>
                 <p className="text-sm text-gray-600 leading-relaxed flex-1 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>{t.texto}</p>
                 <div>
                   <p className="text-sm font-semibold" style={{ fontFamily: 'Raleway, sans-serif' }}>{t.nombre}</p>
@@ -463,7 +504,7 @@ export default function NosotrosClient() {
       {/* VIDEO INSTITUCIONAL */}
       <section className="py-24 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Video institucional</p>
+          <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Video institucional</p>
           <h2 className="text-4xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Conocé nuestra oficina</h2>
           <p className="text-sm text-gray-400 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Visitanos en Funes o Roldán — te esperamos</p>
           <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg">
@@ -478,14 +519,14 @@ export default function NosotrosClient() {
       <section className="py-24 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>Ubicaciones</p>
+            <p className="text-xs uppercase tracking-[0.2em] mb-3 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Ubicaciones</p>
             <h2 className="text-4xl mb-3" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>Nuestras oficinas</h2>
             <p className="text-sm text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>Tres ubicaciones para atenderte mejor</p>
           </div>
           <div className="grid lg:grid-cols-2 gap-10 items-start">
             <div className="flex flex-col gap-5">
               {oficinas.map((o) => (
-                <div key={o.titulo} className={`rounded-2xl p-7 flex gap-5 items-start ${o.highlight ? 'bg-[#1A5C38] text-white shadow-lg' : 'bg-white shadow-sm'}`}>
+                <div key={o.titulo} className={`rounded-2xl p-7 flex gap-5 items-start ${o.highlight ? 'bg-black text-white shadow-lg' : 'bg-white shadow-sm'}`}>
                   <span className="text-3xl shrink-0">{o.icon}</span>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
@@ -495,7 +536,7 @@ export default function NosotrosClient() {
                     {o.subtitulo && <p className={`text-xs mb-2 ${o.highlight ? 'text-white/70' : 'text-gray-400'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.subtitulo}</p>}
                     <p className={`text-sm ${o.highlight ? 'text-white/80' : 'text-gray-500'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{o.dir} · {o.horario}</p>
                     <a href={o.maps} target="_blank" rel="noopener noreferrer"
-                      className={`inline-block mt-3 text-xs font-semibold underline underline-offset-2 ${o.highlight ? 'text-white/90' : 'text-[#1A5C38]'}`}
+                      className={`inline-block mt-3 text-xs font-semibold underline underline-offset-2 ${o.highlight ? 'text-white/90' : 'text-black'}`}
                       style={{ fontFamily: 'Poppins, sans-serif' }}>
                       Ver en Maps →
                     </a>
@@ -510,29 +551,30 @@ export default function NosotrosClient() {
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section className="relative py-28 md:py-32 overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1920&q=80&auto=format&fit=crop"
-          alt="Llaves y bienvenida a un nuevo hogar"
-          fill
-          className="object-cover"
-          sizes="100vw"
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to bottom, rgba(26,92,56,0.88) 0%, rgba(26,92,56,0.82) 100%)' }}
-        />
-        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center text-white">
-          <p className="text-xs uppercase tracking-[0.25em] mb-3 text-white/75" style={{ fontFamily: 'Poppins, sans-serif' }}>Dejanos acompañarte</p>
-          <h2 className="text-4xl md:text-5xl mb-4" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>¿Querés trabajar con nosotros?</h2>
-          <p className="text-base text-white/85 mb-10 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>Contactanos y contanos tu proyecto. Te respondemos en menos de 24 horas.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/tasaciones" className="px-8 py-3 rounded-full text-sm font-medium bg-white transition-opacity hover:opacity-90" style={{ fontFamily: 'Poppins, sans-serif', color: '#1A5C38' }}>
-              Solicitá tu tasación en 24hs
+      {/* CTA FINAL — doble botón */}
+      <section className="relative py-24 md:py-28 bg-neutral-50">
+        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+          <p className="text-xs uppercase tracking-[0.25em] mb-3 text-black/70" style={{ fontFamily: 'Poppins, sans-serif' }}>Dejanos acompañarte</p>
+          <h2 className="text-4xl md:text-5xl mb-4 text-black" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>¿Querés trabajar con nosotros?</h2>
+          <p className="text-base text-neutral-600 mb-10 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Si querés vender tu propiedad o sumarte al equipo de SI, escribinos.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a
+              href="/tasaciones"
+              className="inline-flex items-center justify-center px-8 py-4 rounded-full text-sm font-semibold bg-black text-white transition-all hover:opacity-90"
+              style={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Vendé con nosotros
             </a>
-            <a href="/propiedades" className="px-8 py-3 rounded-full text-sm font-medium border-2 border-white text-white transition-all hover:bg-white hover:text-[#1A5C38]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              Ver propiedades
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSe3dth-z-OZEjrTKvXSvxiqEC2YFMD6GVkJEpuPPoa7PvfJWg/viewform?usp=sharing&ouid=105427159807754807240"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-8 py-4 rounded-full text-sm font-semibold border-2 border-black text-black transition-all hover:bg-black hover:text-white"
+              style={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Sumate a nuestro equipo
             </a>
           </div>
         </div>
