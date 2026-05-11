@@ -86,15 +86,23 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   }, [onClose])
 
   // URL shareable — update the URL to /propiedades/[slug] while the panel is
-  // open. On close we intentionally pushState back to /propiedades (preserving
-  // search params) so the listing view stays clean.
+  // open. Al cerrar restauramos el path que existía antes de abrir el panel:
+  // — si se abrió como overlay desde /propiedades, volvemos a /propiedades;
+  // — si se auto-abrió porque la ruta REAL es /propiedades/[slug] (mount via
+  //   PropertyDetailZillowDesktopPanel), dejamos la URL en /[slug] para que
+  //   coincida con el árbol React montado. Antes empujábamos /propiedades
+  //   siempre y el bloque mobile SSR del slug page quedaba con URL inconsistente,
+  //   filtrándose sobre el listado al cambiar a breakpoint mobile.
   useEffect(() => {
     if (!property) return
     const slug = generatePropertySlug(property)
     const search = window.location.search
-    window.history.pushState(null, '', `/propiedades/${slug}${search}`)
+    const targetUrl = `/propiedades/${slug}${search}`
+    const originalUrl = window.location.pathname + window.location.search
+    if (originalUrl === targetUrl) return
+    window.history.pushState(null, '', targetUrl)
     return () => {
-      window.history.pushState(null, '', `/propiedades${window.location.search}`)
+      window.history.pushState(null, '', originalUrl)
     }
   }, [property])
 
