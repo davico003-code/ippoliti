@@ -215,6 +215,7 @@ function ReviewCard({
 const WHATSAPP_NUMBER = '5493412101694'
 const TEL_FALLBACK = '+5493412101694'
 
+// Coordenadas verificadas contra Nominatim (OpenStreetMap) — 2026-05-11
 const oficinas = [
   {
     numero: '01',
@@ -225,8 +226,8 @@ const oficinas = [
     horario: 'Lunes a Viernes · 9 a 17hs',
     maps: 'https://maps.google.com/?q=Primero+de+Mayo+258+Roldan+Santa+Fe',
     tel: TEL_FALLBACK,
-    lat: -32.8935,
-    lng: -60.9016,
+    lat: -32.9012620,
+    lng: -60.9106239,
   },
   {
     numero: '02',
@@ -237,8 +238,8 @@ const oficinas = [
     horario: 'Lunes a Viernes · 9 a 17hs',
     maps: 'https://maps.google.com/?q=Catamarca+775+Roldan+Santa+Fe',
     tel: TEL_FALLBACK,
-    lat: -32.8940,
-    lng: -60.9020,
+    lat: -32.9054168,
+    lng: -60.9097686,
   },
   {
     numero: '03',
@@ -249,9 +250,14 @@ const oficinas = [
     horario: 'Lunes a Viernes · 9 a 17hs',
     maps: 'https://maps.google.com/?q=Hipolito+Yrigoyen+2643+Funes+Santa+Fe',
     tel: TEL_FALLBACK,
-    lat: -32.9181,
-    lng: -60.8270,
+    lat: -32.9263523,
+    lng: -60.8117412,
   },
+]
+
+const MAP_CENTER: [number, number] = [
+  oficinas.reduce((s, o) => s + o.lat, 0) / oficinas.length,
+  oficinas.reduce((s, o) => s + o.lng, 0) / oficinas.length,
 ]
 
 function iniciales(nombre: string) {
@@ -275,8 +281,9 @@ type TokkoAgent = {
 function makePinIcon(L: any, n: number, active: boolean) {
   const size = active ? 44 : 32
   const fontSize = active ? 16 : 13
+  const bg = active ? '#000000' : '#0A2818'
   return L.divIcon({
-    html: `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-family:Poppins,sans-serif;font-weight:600;font-size:${fontSize}px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);transition:width 0.2s,height 0.2s">${n}</div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-family:Poppins,sans-serif;font-weight:600;font-size:${fontSize}px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);transition:width 0.2s,height 0.2s,background 0.2s">${n}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -(size / 2 + 2)],
@@ -315,8 +322,8 @@ function OficinasMapa({
       })
 
       const map = L.map(mapRef.current, {
-        center: [-32.906, -60.864],
-        zoom: 12,
+        center: MAP_CENTER,
+        zoom: 13,
         zoomControl: true,
         scrollWheelZoom: false,
       })
@@ -449,23 +456,23 @@ function OficinasInteractivas() {
   }
 
   return (
-    <section className="py-20 md:py-28 bg-[#0A2818] text-white">
+    <section className="py-20 md:py-28 bg-neutral-50 text-black">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-14">
-          <p className="text-sm uppercase tracking-widest text-white/60 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
             Dónde estamos
           </p>
-          <h2 className="text-3xl md:text-5xl font-bold mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="text-3xl md:text-5xl font-bold mb-5 text-black" style={{ fontFamily: 'Raleway, sans-serif' }}>
             Nuestras oficinas
           </h2>
-          <div className="w-12 h-px bg-white/40 mx-auto mb-5" />
-          <p className="text-sm text-white/70 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <div className="w-12 h-px bg-black mx-auto mb-5" />
+          <p className="text-sm text-neutral-500 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
             Tres ubicaciones para atenderte mejor
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8 items-start">
-          {/* CARDS */}
+          {/* CARDS (verde oscuro sobre fondo claro) */}
           <div className="lg:col-span-2 flex flex-col gap-4 order-1 lg:order-none">
             {oficinas.map((o, idx) => {
               const active = activeIdx === idx
@@ -475,10 +482,10 @@ function OficinasInteractivas() {
                   type="button"
                   onMouseEnter={() => setActiveIdx(idx)}
                   onClick={() => handleCardActivate(idx)}
-                  className={`text-left rounded-2xl p-5 md:p-6 transition-all duration-200 border bg-white/5 hover:bg-white/10 ${
+                  className={`text-left rounded-2xl p-5 md:p-6 transition-all duration-200 bg-[#0A2818] text-white border ${
                     active
-                      ? 'border-white shadow-lg scale-[1.01]'
-                      : 'border-white/10'
+                      ? 'border-white/40 shadow-xl ring-2 ring-black/20 scale-[1.01]'
+                      : 'border-white/10 hover:border-white/25 hover:shadow-lg'
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -752,83 +759,54 @@ export default function NosotrosClient() {
         </div>
       </section>
 
-      {/* HISTORIA — sección verde oscuro */}
-      <section className="py-20 md:py-28 bg-[#0A2818] text-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
+      {/* HISTORIA — editorial sin foto stock, sobre verde oscuro */}
+      <section className="py-24 md:py-32 bg-[#0A2818] text-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-12">
             <p className="text-sm uppercase tracking-widest text-white/60 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Nuestra historia</p>
-            <h2 className="text-3xl md:text-5xl font-bold mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Más de 40 años</h2>
-            <div className="w-12 h-px bg-white/40 mx-auto mb-5" />
-            <p className="text-base text-white/70 font-light max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>construyendo confianza en Roldán y Funes</p>
+            <h2 className="text-5xl md:text-7xl font-bold mb-4 text-white leading-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>
+              Más de 40 años
+            </h2>
+            <p className="text-xl md:text-2xl text-white/70 font-light max-w-2xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              construyendo confianza en Roldán y Funes
+            </p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12 items-start">
-            <div className="relative">
-              <div className="absolute left-[1.4rem] top-2 bottom-2 w-px hidden md:block bg-white/15" />
-              <div className="space-y-6">
-                {historia.map((h, i) => (
-                  <div key={i} className="flex gap-6 md:gap-8 items-start">
-                    <div className="hidden md:flex flex-col items-center w-12 shrink-0 pt-5">
-                      <div className="w-3 h-3 rounded-full ring-4 ring-[#0A2818] z-10 bg-white" />
-                    </div>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-7 flex-1 backdrop-blur-sm">
-                      <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 bg-white text-[#0A2818]" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
-                      <h3 className="text-lg font-semibold mb-2 text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
-                      <p className="text-sm text-white/70 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
-                    </div>
+
+          {/* Stats grid editorial */}
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10 mb-16 border-y border-white/10 py-8">
+            {[
+              { num: '1983', label: 'Año de fundación' },
+              { num: '1.500+', label: 'Propiedades vendidas' },
+              { num: '3', label: 'Sucursales' },
+              { num: '20K+', label: 'Seguidores en Instagram' },
+            ].map((s) => (
+              <div key={s.label} className="px-3 md:px-6 text-center">
+                <p className="text-4xl md:text-5xl font-bold text-white tabular-nums mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  {s.num}
+                </p>
+                <p className="text-xs uppercase tracking-widest text-white/60" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  {s.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Timeline */}
+          <div className="relative max-w-3xl mx-auto">
+            <div className="absolute left-[1.4rem] top-2 bottom-2 w-px hidden md:block bg-white/15" />
+            <div className="space-y-6">
+              {historia.map((h, i) => (
+                <div key={i} className="flex gap-6 md:gap-8 items-start">
+                  <div className="hidden md:flex flex-col items-center w-12 shrink-0 pt-5">
+                    <div className="w-3 h-3 rounded-full ring-4 ring-[#0A2818] z-10 bg-white" />
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Foto oficina histórica 1983 */}
-            <aside className="lg:sticky lg:top-24 order-first lg:order-last">
-              <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-[4/5] ring-1 ring-white/10">
-                <Image
-                  src="/oficina-historica.webp"
-                  alt="Oficina histórica SI Inmobiliaria · Primero de Mayo 258, Roldán (1983)"
-                  fill
-                  className="object-cover object-center"
-                  sizes="(min-width: 1024px) 380px, 100vw"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{ background: 'linear-gradient(to top, rgba(10,40,24,0.85) 0%, rgba(10,40,24,0.12) 45%, transparent 100%)' }}
-                />
-                <div className="absolute bottom-6 left-6 right-6 text-white">
-                  <p className="text-xs uppercase tracking-widest text-white/70 mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>Desde 1983</p>
-                  <p className="text-2xl font-bold mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>Oficina histórica</p>
-                  <p className="text-sm text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>Primero de Mayo 258, Roldán</p>
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-7 flex-1 backdrop-blur-sm">
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 bg-white text-[#0A2818]" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
+                    <h3 className="text-lg font-semibold mb-2 text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
+                    <p className="text-sm text-white/70 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
+                  </div>
                 </div>
-              </div>
-            </aside>
-          </div>
-        </div>
-      </section>
-
-      {/* RESPIRO VISUAL — quote sobre imagen cálida */}
-      <section className="relative w-full h-[380px] md:h-[460px] overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1920&q=80&auto=format&fit=crop"
-          alt="Casa con luz natural"
-          fill
-          className="object-cover"
-          sizes="100vw"
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.25) 100%)' }}
-        />
-        <div className="relative z-10 h-full flex items-center">
-          <div className="max-w-5xl mx-auto px-6 w-full">
-            <div className="max-w-2xl">
-              <div className="text-5xl md:text-6xl leading-none mb-4 text-white/90" style={{ fontFamily: 'Georgia, serif' }}>&ldquo;</div>
-              <p className="text-2xl md:text-3xl text-white leading-snug mb-6" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 200 }}>
-                Cada casa es una historia, y cada familia, una nueva página que empezamos juntos.
-              </p>
-              <div className="flex items-center gap-3">
-                <span className="w-10 h-px bg-white/60" />
-                <p className="text-xs uppercase tracking-[0.25em] text-white/80" style={{ fontFamily: 'Poppins, sans-serif' }}>SI Inmobiliaria · desde 1983</p>
-              </div>
+              ))}
             </div>
           </div>
         </div>
