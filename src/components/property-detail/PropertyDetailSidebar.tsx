@@ -8,7 +8,7 @@ import {
   generatePropertySlug,
   formatPrice,
 } from '@/lib/tokko'
-import ShareButtons from '../ShareButtons'
+import ShareMenu from '../ShareMenu'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 
@@ -119,7 +119,8 @@ export default function PropertyDetailSidebar({
             </div>
           </div>
 
-          <ShareButtons
+          <ShareMenu
+            propertyId={property.id}
             slug={slug}
             title={property.publication_title || address}
             placaHref={`/propiedades/${slug}/placa`}
