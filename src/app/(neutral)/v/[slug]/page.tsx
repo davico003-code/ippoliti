@@ -15,6 +15,7 @@ import { cache } from 'react'
 
 import { getFicha, isLikelyBot, trackView } from '@/lib/ficha'
 import HeroGallery from '@/components/v/HeroGallery'
+import AudioSummaryNeutral from '@/components/v/AudioSummaryNeutral'
 import PriceHero from '@/components/v/PriceHero'
 import KeyDataGrid from '@/components/v/KeyDataGrid'
 import Surfaces from '@/components/v/Surfaces'
@@ -145,6 +146,9 @@ export default async function NeutralFichaPage({ params }: Props) {
           padding: '0 20px 40px',
         }}
       >
+        {/* Sección 1b: audio narrado (entre hero y precio) */}
+        <AudioSummaryNeutral propertyId={ficha.propertyId} title={s.tituloGenerico} />
+
         {/* Sección 2: precio + operación + tipología + zona */}
         <PriceHero snapshot={s} />
 

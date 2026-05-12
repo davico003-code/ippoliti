@@ -8,6 +8,7 @@ import {
   generatePropertySlug,
   formatPrice,
 } from '@/lib/tokko'
+import AudioSummary from '../AudioSummary'
 import ShareMenu from '../ShareMenu'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
@@ -50,6 +51,7 @@ export default function PropertyDetailSidebar({
     <div className="w-full md:w-[360px] md:shrink-0">
       <div className="md:sticky space-y-4" style={{ top: topOffset }}>
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <AudioSummary propertyId={property.id} title={propertyTitle} />
           <a
             href={whatsappUrl}
             target="_blank"
