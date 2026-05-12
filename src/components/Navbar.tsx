@@ -58,6 +58,9 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [isHome])
 
+  // Panel /fichas: layout propio con header simple, sin Navbar SI.
+  if (pathname === '/fichas' || pathname?.startsWith('/fichas/')) return null
+
   // En /propiedades mobile: ocultar (PropiedadesView tiene su propio header)
   // En home y demás rutas: MOSTRAR navbar blanco con logo + hamburguesa
   const hideOnMobile = isPropiedades

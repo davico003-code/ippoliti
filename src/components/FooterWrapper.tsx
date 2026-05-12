@@ -7,6 +7,9 @@ import FooterDesktop from './home/FooterDesktop'
 export default function FooterWrapper() {
   const pathname = usePathname()
 
+  // Panel /fichas: layout propio sin footer.
+  if (pathname === '/fichas' || pathname?.startsWith('/fichas/')) return null
+
   if (pathname === '/') {
     // Home mobile: FooterMobile ya está dentro de page.tsx
     // Home desktop: FooterDesktop nuevo
