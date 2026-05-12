@@ -271,6 +271,18 @@ export async function revocarFicha(slug: string): Promise<boolean> {
   return true
 }
 
+// User-agents que NO deben sumar a las stats: crawlers de Open Graph y bots
+// de preview de WhatsApp / Telegram / Facebook / Twitter / LinkedIn / etc.
+// Compartido entre el route handler /api/ficha/[slug] y la página /v/[slug]
+// para que el conteo sea consistente sin importar quién dispara el track.
+export const BOT_UA_RE =
+  /(bot|crawler|spider|slurp|facebookexternalhit|whatsapp|preview|telegram|skype|linkedin|embed|fetch)/i
+
+export function isLikelyBot(userAgent: string | null | undefined): boolean {
+  if (!userAgent) return false
+  return BOT_UA_RE.test(userAgent)
+}
+
 // Tracking de view: incrementa contador, anota IP (cap 50). Preserva TTL.
 export async function trackView(slug: string, ip: string): Promise<void> {
   const ttl = await redis.ttl(STATS_KEY(slug))

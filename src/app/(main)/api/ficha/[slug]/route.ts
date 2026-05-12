@@ -7,13 +7,11 @@
 
 import { NextResponse } from 'next/server'
 import { requireTeamCode } from '@/lib/teamAuth'
-import { getFicha, revocarFicha, trackView } from '@/lib/ficha'
+import { getFicha, revocarFicha, trackView, isLikelyBot } from '@/lib/ficha'
 
 interface Ctx {
   params: { slug: string }
 }
-
-const BOT_UA_RE = /(bot|crawler|spider|slurp|facebookexternalhit|whatsapp|preview|telegram|skype|linkedin|embed|fetch)/i
 
 function getClientIp(req: Request): string {
   const xff = req.headers.get('x-forwarded-for') || ''
@@ -32,8 +30,7 @@ export async function GET(req: Request, { params }: Ctx) {
 
   // Tracking — saltear bots de OG/preview (Facebook, WhatsApp, Telegram, etc).
   // Esto evita inflar views con crawlers de previews al pegar el link.
-  const ua = req.headers.get('user-agent') || ''
-  if (!BOT_UA_RE.test(ua)) {
+  if (!isLikelyBot(req.headers.get('user-agent'))) {
     await trackView(slug, getClientIp(req))
   }
 

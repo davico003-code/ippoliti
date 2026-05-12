@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import ExcelJS from 'exceljs'
 import { Redis } from '@upstash/redis'
-import type { GuiaRegistro } from '@/app/api/guia/acceso/route'
+import type { GuiaRegistro } from '../../../guia/acceso/route'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
