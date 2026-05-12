@@ -313,6 +313,18 @@ export async function crearFicha(input: {
   await redis.set(STATS_KEY(slug), JSON.stringify(initialStats), { ex: TTL_SECONDS })
   await redis.sadd(SET_KEY, slug)
 
+  // Fire-and-forget: precachear el audio narrado para que el primer visitante
+  // de la ficha no espere los 3-5s del round-trip a Anthropic + OpenAI. En
+  // serverless puede no completar antes de que Vercel mate el request, pero
+  // la generación on-demand del endpoint cubre ese caso (latencia +3-5s solo
+  // esa primera vez).
+  const base = process.env.NEXT_PUBLIC_BASE_URL || 'https://siinmobiliaria.com'
+  void fetch(`${base}/api/audio/generar-audio`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ propertyId: input.propertyId }),
+  }).catch(() => { /* silencioso */ })
+
   const domain = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
   return {
     slug,
