@@ -1,209 +1,287 @@
 'use client'
 
-// Galería principal de la ficha.
-// Mobile: full-bleed, aspect-ratio 4/3, swipe nativo, dots, contador.
-// Desktop: 16:9 con max-height 600px, flechas izq/der visibles.
-// Tap → abre Lightbox fullscreen con todas las fotos.
+// Galería principal de la ficha — patrón Zillow (replicado del sitio SI con
+// paleta neutra, sin marca):
+//   - Mobile: 1 sola foto hero ~280px alto, badge "Ver las N fotos" abajo a la
+//     derecha. Tap → lightbox vertical scrolleado con todas las fotos.
+//   - Desktop: grid 5 columnas × 2 filas de 440px. Foto principal ocupa cols
+//     1-3 × 2 rows; las 4 thumbs llenan cols 4-5 en 2×2. Si hay >5 fotos, la
+//     última thumb tiene overlay "Ver las N fotos".
+//
+// Lightbox: scroll vertical de todas las fotos (estilo SI), no swipe horiz.
+// Esc cierra. Body con overflow:hidden mientras está abierto.
 
-import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-
-import Lightbox from './Lightbox'
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import { Camera, Images, X } from 'lucide-react'
 
 export default function HeroGallery({ photos }: { photos: string[] }) {
-  const [active, setActive] = useState(0)
-  const [lightboxAt, setLightboxAt] = useState<number | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [showAll, setShowAll] = useState(false)
 
+  // Bloquear scroll body mientras lightbox abierto
   useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const onScroll = () => {
-      const idx = Math.round(el.scrollLeft / el.clientWidth)
-      setActive(Math.min(Math.max(idx, 0), photos.length - 1))
+    if (!showAll) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
     }
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
-  }, [photos.length])
+  }, [showAll])
 
-  const goTo = (i: number) => {
-    const el = containerRef.current
-    if (!el) return
-    el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' })
-  }
+  // Esc cierra
+  useEffect(() => {
+    if (!showAll) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAll(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [showAll])
 
   if (!photos || photos.length === 0) {
     return (
       <div
-        className="hero-gallery-empty"
         style={{ aspectRatio: '4 / 3', background: '#F3F3F3' }}
         aria-hidden
       />
     )
   }
 
-  const total = photos.length
-  const single = total === 1
+  const thumbs = photos.slice(1, 5)
+  const hasOverlaySlot = photos.length > 5
 
   return (
     <>
-      <div className="hero-gallery-wrap" style={{ position: 'relative' }}>
+      {/* ── MOBILE: foto única ~280px ───────────────────────────────────── */}
+      <div className="md:hidden">
         <div
-          ref={containerRef}
-          className="hero-gallery-scroll"
           style={{
-            display: 'flex',
-            overflowX: 'auto',
-            scrollSnapType: 'x mandatory',
-            scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch',
-            background: '#0A0A0A',
+            position: 'relative',
+            width: '100%',
+            height: 280,
+            cursor: 'pointer',
+            background: '#F3F3F3',
+          }}
+          onClick={() => setShowAll(true)}
+        >
+          <Image
+            src={photos[0]}
+            alt=""
+            fill
+            sizes="100vw"
+            priority
+            style={{ objectFit: 'cover' }}
+          />
+          {photos.length > 1 && (
+            <div
+              style={{
+                position: 'absolute',
+                right: 12,
+                bottom: 12,
+                background: 'rgba(255,255,255,0.95)',
+                padding: '8px 14px',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#1A1A1A',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              }}
+            >
+              <Camera size={14} />
+              Ver las {photos.length} fotos
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── DESKTOP: grid Zillow 5-col × 2 rows × 440px ─────────────────── */}
+      <div className="hidden md:block">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gridTemplateRows: 'repeat(2, 1fr)',
+            gap: 8,
+            height: 440,
+            borderRadius: 16,
+            overflow: 'hidden',
           }}
         >
-          {photos.map((url, i) => (
-            <div
-              key={i}
-              style={{
-                flex: '0 0 100%',
-                scrollSnapAlign: 'center',
-                aspectRatio: '4 / 3',
-                position: 'relative',
-              }}
-              onClick={() => setLightboxAt(i)}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={url}
-                alt=""
-                loading={i === 0 ? 'eager' : 'lazy'}
-                // @ts-expect-error fetchpriority is valid HTML
-                fetchpriority={i === 0 ? 'high' : 'low'}
-                decoding={i === 0 ? 'sync' : 'async'}
-                draggable={false}
+          {/* Principal */}
+          <div
+            className="hero-tile"
+            style={{
+              gridColumn: 'span 3',
+              gridRow: 'span 2',
+              position: 'relative',
+              cursor: 'pointer',
+              overflow: 'hidden',
+              background: '#F3F4F6',
+            }}
+            onClick={() => setShowAll(true)}
+          >
+            <Image
+              src={photos[0]}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              priority
+              style={{ objectFit: 'cover', transition: 'transform 300ms' }}
+            />
+          </div>
+
+          {/* 4 thumbs (cols 4-5 en 2×2) */}
+          {Array.from({ length: 4 }).map((_, i) => {
+            const photo = thumbs[i]
+            const isLast = i === 3
+            if (!photo) {
+              return <div key={i} style={{ background: '#F3F4F6' }} />
+            }
+            return (
+              <div
+                key={i}
+                className="hero-tile"
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  cursor: 'zoom-in',
-                  userSelect: 'none',
+                  position: 'relative',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  background: '#F3F4F6',
                 }}
-              />
-            </div>
-          ))}
+                onClick={() => setShowAll(true)}
+              >
+                <Image
+                  src={photo}
+                  alt=""
+                  fill
+                  sizes="20vw"
+                  style={{ objectFit: 'cover', transition: 'transform 300ms' }}
+                />
+                {isLast && hasOverlaySlot && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'rgba(0,0,0,0.55)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      color: '#fff',
+                    }}
+                  >
+                    <Images size={16} />
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>
+                      Ver las {photos.length} fotos
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
 
-        {/* Contador esquina inferior derecha */}
-        {!single && (
-          <div
-            style={{
-              position: 'absolute',
-              right: 12,
-              bottom: 12,
-              background: 'rgba(0,0,0,0.6)',
-              color: '#fff',
-              fontSize: 12,
-              fontWeight: 500,
-              padding: '4px 10px',
-              borderRadius: 999,
-              pointerEvents: 'none',
-            }}
-          >
-            {active + 1} / {total}
+        {/* Fallback: si hay >1 pero ≤5 fotos no hay overlay slot, mostrar
+            botón discreto debajo a la derecha */}
+        {photos.length > 1 && !hasOverlaySlot && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                background: '#fff',
+                border: '1px solid #E5E7EB',
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                color: '#1A1A1A',
+                fontFamily: 'inherit',
+              }}
+            >
+              <Images size={14} /> Ver las {photos.length} fotos
+            </button>
           </div>
-        )}
-
-        {/* Flechas desktop only */}
-        {!single && (
-          <>
-            <button
-              type="button"
-              aria-label="Foto anterior"
-              onClick={() => goTo(Math.max(active - 1, 0))}
-              className="hero-arrow hero-arrow-left"
-              style={{ ...arrowStyle, left: 12 }}
-              disabled={active === 0}
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <button
-              type="button"
-              aria-label="Foto siguiente"
-              onClick={() => goTo(Math.min(active + 1, total - 1))}
-              className="hero-arrow hero-arrow-right"
-              style={{ ...arrowStyle, right: 12 }}
-              disabled={active === total - 1}
-            >
-              <ChevronRight size={22} />
-            </button>
-          </>
         )}
       </div>
 
-      {/* Dots centradas debajo */}
-      {!single && (
+      {/* ── Lightbox vertical (replica patrón SI) ───────────────────────── */}
+      {showAll && (
         <div
+          role="dialog"
+          aria-modal="true"
           style={{
-            display: 'flex',
-            gap: 6,
-            justifyContent: 'center',
-            marginTop: 12,
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            background: '#0A0A0A',
           }}
         >
-          {photos.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`Ir a foto ${i + 1}`}
-              onClick={() => goTo(i)}
+          <button
+            type="button"
+            onClick={() => setShowAll(false)}
+            aria-label="Cerrar galería"
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              zIndex: 110,
+              width: 42,
+              height: 42,
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.18)',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <X size={20} />
+          </button>
+          <div
+            style={{
+              height: '100%',
+              overflowY: 'auto',
+              padding: '70px 16px 32px',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            <div
               style={{
-                width: i === active ? 22 : 6,
-                height: 6,
-                borderRadius: 3,
-                background: i === active ? '#1A1A1A' : '#D4D4D4',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                transition: 'width 180ms ease, background 180ms ease',
+                maxWidth: 1000,
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
               }}
-            />
-          ))}
+            >
+              {photos.map((p, i) => (
+                <Image
+                  key={i}
+                  src={p}
+                  alt={`Foto ${i + 1}`}
+                  width={1200}
+                  height={800}
+                  sizes="(max-width: 1000px) 100vw, 1000px"
+                  style={{ width: '100%', height: 'auto', borderRadius: 8 }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {lightboxAt !== null && (
-        <Lightbox
-          images={photos}
-          startIndex={lightboxAt}
-          onClose={() => setLightboxAt(null)}
-        />
-      )}
-
       <style>{`
-        .hero-gallery-scroll::-webkit-scrollbar { display: none; }
-        .hero-arrow { display: none; }
-        @media (min-width: 768px) {
-          .hero-gallery-scroll > div { aspect-ratio: 16 / 9 !important; max-height: 600px; }
-          .hero-gallery-wrap:hover .hero-arrow { display: flex; }
-        }
+        .hero-tile:hover img { transform: scale(1.02); }
       `}</style>
     </>
   )
-}
-
-const arrowStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: '50%',
-  transform: 'translateY(-50%)',
-  width: 42,
-  height: 42,
-  borderRadius: 999,
-  background: 'rgba(255,255,255,0.92)',
-  border: 'none',
-  color: '#1A1A1A',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-  zIndex: 2,
 }
