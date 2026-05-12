@@ -64,12 +64,6 @@ export interface FichaSnapshot {
 export interface Ficha {
   slug: string
   propertyId: number
-  colega: {
-    id: string
-    nombre: string
-    whatsapp: string
-    email: string | null
-  }
   notas: string                // notas internas, NUNCA renderizadas en /v
   createdAt: string            // ISO
   expiresAt: string            // ISO (createdAt + 30d)
@@ -166,7 +160,6 @@ export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
 
 export async function crearFicha(input: {
   propertyId: number
-  colega: Ficha['colega']
   notas?: string
   ip: string
   userAgent: string
@@ -188,12 +181,6 @@ export async function crearFicha(input: {
   const ficha: Ficha = {
     slug,
     propertyId: input.propertyId,
-    colega: {
-      id: input.colega.id,
-      nombre: input.colega.nombre,
-      whatsapp: input.colega.whatsapp,
-      email: input.colega.email ?? null,
-    },
     notas: (input.notas || '').trim(),
     createdAt: now.toISOString(),
     expiresAt: expiresAt.toISOString(),

@@ -17,7 +17,6 @@ import { cache } from 'react'
 import { getFicha, isLikelyBot, trackView } from '@/lib/ficha'
 import NeutralGallery from '@/components/v/NeutralGallery'
 import NeutralMap from '@/components/v/NeutralMap'
-import ContactCard from '@/components/v/ContactCard'
 import NeutralShareButton from '@/components/v/NeutralShareButton'
 
 const NEUTRAL_DOMAIN = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
@@ -319,7 +318,6 @@ export default async function NeutralFichaPage({ params }: Props) {
       )}
 
       <section style={{ marginTop: 44 }}>
-        <ContactCard colega={ficha.colega} />
         <NeutralShareButton url={url} />
       </section>
 

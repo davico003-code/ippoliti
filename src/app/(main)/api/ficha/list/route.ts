@@ -1,12 +1,7 @@
 // GET /api/ficha/list → lista TODAS las fichas activas con stats y días
-//                       restantes para el panel /fichas. Requiere X-Team-Code.
-//
-// Devuelve un payload "delgado" optimizado para tabla — sin notas internas
-// (que sí están en la key Redis pero no son útiles en el listado), pero sí con
-// generadoDesde para auditoría visual rápida.
+//                       restantes para el panel /fichas. Sin auth.
 
 import { NextResponse } from 'next/server'
-import { requireTeamCode } from '@/lib/teamAuth'
 import { listFichas } from '@/lib/ficha'
 
 function diasRestantes(expiresAt: string): number {
@@ -14,16 +9,12 @@ function diasRestantes(expiresAt: string): number {
   return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)))
 }
 
-export async function GET(req: Request) {
-  const block = requireTeamCode(req)
-  if (block) return block
-
+export async function GET() {
   try {
     const fichas = await listFichas()
     const items = fichas.map(f => ({
       slug: f.slug,
       propertyId: f.propertyId,
-      colega: f.colega,
       notas: f.notas,
       createdAt: f.createdAt,
       expiresAt: f.expiresAt,
@@ -31,7 +22,6 @@ export async function GET(req: Request) {
       diasRestantes: diasRestantes(f.expiresAt),
       generadoDesde: f.generadoDesde,
       stats: f.stats,
-      // Datos del snapshot que el panel usa para el thumbnail/título de fila
       preview: {
         titulo: f.snapshot.tituloGenerico,
         precio: f.snapshot.precio,
