@@ -1,13 +1,13 @@
-// Fichas white-label para colegas en verficha.casa.
+// Fichas white-label anónimas en verficha.casa.
 //
-// Cada ficha es un snapshot inmutable de una propiedad de Tokko, asociado a
-// UN colega externo y a UN slug público de 8 chars. La ficha vive 30 días en
-// Redis y NO se refetchea Tokko en cada view: el snapshot es la fuente de
-// verdad mientras la ficha está activa.
+// Cada ficha es un snapshot inmutable de una propiedad de Tokko, accesible vía
+// un slug público de 8 chars. La ficha vive 60 días en Redis y NO se refetchea
+// Tokko en cada view: el snapshot es la fuente de verdad mientras la ficha
+// está activa.
 //
 // Keys en Redis:
-//   ficha:{slug}             → JSON Ficha (TTL 30d)
-//   ficha:{slug}:stats       → JSON FichaStats (TTL 30d, mismo que ficha)
+//   ficha:{slug}             → JSON Ficha (TTL 60d)
+//   ficha:{slug}:stats       → JSON FichaStats (TTL 60d, mismo que ficha)
 //   fichas:all               → SET con slugs vivos (sin TTL, cleanup lazy)
 
 import { customAlphabet } from 'nanoid'
@@ -15,6 +15,7 @@ import { redis } from './redis'
 import {
   getPropertyById,
   getAllPhotos,
+  getBlueprintPhotos,
   getMainPhoto,
   formatPrice,
   getOperationType,
@@ -23,10 +24,15 @@ import {
   getTotalSurface,
   translatePropertyType,
   translateTag,
+  translateOrientation,
+  translateDisposition,
+  translateCondition,
+  translateSituation,
+  parseStreetOnly,
   type TokkoProperty,
 } from './tokko'
 
-const TTL_SECONDS = 30 * 24 * 60 * 60 // 30d
+const TTL_SECONDS = 60 * 24 * 60 * 60 // 60d
 const SET_KEY = 'fichas:all'
 const KEY = (slug: string) => `ficha:${slug}`
 const STATS_KEY = (slug: string) => `ficha:${slug}:stats`
@@ -39,24 +45,42 @@ export function generarSlug(): string {
 }
 
 export interface FichaSnapshot {
-  fotos: string[]            // URLs https absolutas
-  ogImage: string | null     // foto principal alta res, https absoluta
-  precio: string             // formateado: "USD 285.000"
+  fotos: string[]                    // URLs https absolutas (sin blueprints)
+  blueprints: string[]               // URLs de planos (separados de fotos)
+  ogImage: string | null             // foto principal alta res, https absoluta
+  precio: string                     // formateado: "USD 285.000"
   precioRaw: number
-  moneda: string             // "USD" | "ARS"
-  operacion: string          // "Venta" | "Alquiler"
-  tipo: string               // "Casa" | "Departamento" | ...
-  tituloGenerico: string     // "Casa 4 amb en Funes"
-  zonaAprox: string          // "Funes"
+  moneda: string                     // "USD" | "ARS"
+  operacion: string                  // "Venta" | "Alquiler" | "Alquiler temporario"
+  tipo: string                       // "Casa" | "Departamento" | ...
+  tituloGenerico: string             // "Casa 4 amb en Funes"
+  zonaAprox: string                  // "Funes" — último segmento de short_location
+  zonaCompleta: string               // "Charquito, Roldán" — barrio, ciudad
+  direccionCalle: string             // "Bv Sarmiento" — sin número
   m2cubiertos: number | null
   m2totales: number | null
+  m2semicubiertos: number | null
+  m2descubiertos: number | null
   ambientes: number | null
   dormitorios: number | null
   banos: number | null
   cocheras: number | null
   antiguedad: number | null
+  // Campos opcionales (pueden faltar; UI debe tolerar undefined)
+  expensas?: number                  // $ARS, undefined si 0 o no aplica
+  orientacion?: string               // traducido: "Norte", "Sur", ...
+  disposicion?: string               // traducido: "Frente", "Contrafrente"
+  estado?: string                    // traducido: "Excelente", "Muy bueno"
+  situacion?: string                 // traducido: "Vacío", "Inquilino"
+  piso?: string                      // depto: "3", "PB"
+  pisos?: number                     // casas: cantidad de plantas
+  frenteM?: number                   // metros lineales del lote
+  fondoM?: number                    // metros lineales del lote
+  extras?: Array<{ name: string; value: string }>  // extra_attributes filtrados
   descripcion: string
   caracteristicas: string[]
+  // Coords con offset 30-50m aplicado al crear (NO son las coords reales).
+  // Se renombraron a lat/lng para retrocompat del consumer.
   lat: number | null
   lng: number | null
 }
@@ -66,7 +90,7 @@ export interface Ficha {
   propertyId: number
   notas: string                // notas internas, NUNCA renderizadas en /v
   createdAt: string            // ISO
-  expiresAt: string            // ISO (createdAt + 30d)
+  expiresAt: string            // ISO (createdAt + 60d)
   revokedAt: string | null     // ISO si fue revocada manualmente
   generadoDesde: {
     ip: string
@@ -102,6 +126,15 @@ function deriveZonaAprox(property: TokkoProperty): string {
   return loc.name || ''
 }
 
+function deriveZonaCompleta(property: TokkoProperty): string {
+  const loc = property.location
+  if (!loc) return ''
+  const parts = (loc.short_location || '').split('|').map(s => s.trim()).filter(Boolean)
+  if (parts.length >= 2) return `${parts[parts.length - 1]}, ${parts[parts.length - 2]}`
+  if (parts.length === 1) return parts[0]
+  return loc.name || ''
+}
+
 function deriveTituloGenerico(tipo: string, ambientes: number | null, zona: string): string {
   const tipoStr = tipo || 'Propiedad'
   const ambStr = ambientes && ambientes > 0 ? `${ambientes} amb` : ''
@@ -109,16 +142,49 @@ function deriveTituloGenerico(tipo: string, ambientes: number | null, zona: stri
   return [tipoStr, ambStr, zonaStr].filter(Boolean).join(' ')
 }
 
+// Aplica un offset aleatorio de 30..50 metros a las coords reales para que el
+// pin del mapa no exponga la dirección exacta. Calculado al crear la ficha y
+// fijado durante sus 60 días de vida.
+function applyOffset(lat: number, lng: number): { lat: number; lng: number } {
+  const angle = Math.random() * 2 * Math.PI
+  const distM = 30 + Math.random() * 20
+  const dLat = (distM * Math.cos(angle)) / 111000
+  const dLng = (distM * Math.sin(angle)) / (111000 * Math.cos((lat * Math.PI) / 180))
+  return { lat: lat + dLat, lng: lng + dLng }
+}
+
+function parseNum(v: unknown): number | null {
+  const n = typeof v === 'string' ? parseFloat(v) : Number(v)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+function extractBlueprints(property: TokkoProperty): string[] {
+  return getBlueprintPhotos(property).filter(u => u.startsWith('https://'))
+}
+
+interface ExtraAttribute { name?: string; value?: string | number; is_expenditure?: boolean; is_measure?: boolean }
+function pickExtras(property: TokkoProperty): Array<{ name: string; value: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = ((property as any).extra_attributes || []) as ExtraAttribute[]
+  return raw
+    .map(a => {
+      const name = (a?.name || '').toString().trim()
+      const value = (a?.value ?? '').toString().trim()
+      return { name, value }
+    })
+    .filter(a => a.name && a.value && a.value !== '0' && a.value !== '0.00')
+}
+
 export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
-  const fotosPlanas = getAllPhotos(property)
-  const fotosOriginal = (property.photos || [])
+  const fotosPlanas = (property.photos || [])
     .filter(p => !p.is_blueprint)
     .sort((a, b) => a.order - b.order)
     .map(p => p.original || p.image)
     .filter(u => typeof u === 'string' && u.startsWith('https://'))
 
-  const ogImage = pickOgImage(fotosOriginal.length ? fotosOriginal : fotosPlanas)
-    || (() => {
+  const ogImage =
+    pickOgImage(fotosPlanas) ||
+    (() => {
       const main = getMainPhoto(property)
       return main && main.startsWith('https://') ? main : null
     })()
@@ -130,8 +196,37 @@ export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
   const ambientes = property.room_amount || null
   const zonaAprox = deriveZonaAprox(property)
 
+  // Coords con offset
+  const realLat = property.geo_lat ? parseFloat(property.geo_lat) : NaN
+  const realLng = property.geo_long ? parseFloat(property.geo_long) : NaN
+  let lat: number | null = null
+  let lng: number | null = null
+  if (Number.isFinite(realLat) && Number.isFinite(realLng)) {
+    const off = applyOffset(realLat, realLng)
+    lat = off.lat
+    lng = off.lng
+  }
+
+  // Direccion calle: prefiero real_address (sin marketing) sobre address
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const realAddr = (property as any).real_address || property.address || ''
+  const direccionCalle = parseStreetOnly(realAddr)
+
+  // Expensas — undefined si 0 o no aplica
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const expRaw = (property as any).expenses
+  const expensas = typeof expRaw === 'number' && expRaw > 0 ? expRaw : undefined
+
+  // Floor / floors_amount
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const piso = ((property as any).floor || '').toString().trim() || undefined
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pisosRaw = (property as any).floors_amount
+  const pisos = typeof pisosRaw === 'number' && pisosRaw > 0 ? pisosRaw : undefined
+
   return {
-    fotos: fotosPlanas.filter(u => u.startsWith('https://')),
+    fotos: fotosPlanas,
+    blueprints: extractBlueprints(property),
     ogImage,
     precio: formatPrice(property),
     precioRaw: priceObj?.price ?? 0,
@@ -140,19 +235,35 @@ export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
     tipo,
     tituloGenerico: deriveTituloGenerico(tipo, ambientes, zonaAprox),
     zonaAprox,
+    zonaCompleta: deriveZonaCompleta(property),
+    direccionCalle,
     m2cubiertos: getRoofedArea(property),
     m2totales: getTotalSurface(property),
+    m2semicubiertos: parseNum(property.semiroofed_surface) ?? null,
+    m2descubiertos: parseNum(property.unroofed_surface) ?? null,
     ambientes,
     dormitorios: property.suite_amount || null,
     banos: property.bathroom_amount || null,
     cocheras: property.parking_lot_amount || null,
     antiguedad: typeof property.age === 'number' && property.age >= 0 ? property.age : null,
+    expensas,
+    orientacion: translateOrientation(property.orientation) || undefined,
+    disposicion: translateDisposition(property.disposition) || undefined,
+    estado: translateCondition(property.property_condition) || undefined,
+    situacion: translateSituation(property.situation) || undefined,
+    piso,
+    pisos,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    frenteM: parseNum((property as any).front_measure) ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fondoM: parseNum((property as any).depth_measure) ?? undefined,
+    extras: pickExtras(property),
     descripcion: getDescription(property),
-    caracteristicas: Array.from(new Set(
-      (property.tags || []).map(t => translateTag(t.name)).filter(Boolean)
-    )),
-    lat: property.geo_lat ? parseFloat(property.geo_lat) || null : null,
-    lng: property.geo_long ? parseFloat(property.geo_long) || null : null,
+    caracteristicas: Array.from(
+      new Set((property.tags || []).map(t => translateTag(t.name)).filter(Boolean)),
+    ),
+    lat,
+    lng,
   }
 }
 

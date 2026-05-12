@@ -331,8 +331,27 @@ export function getOperationType(property: TokkoProperty): string {
   if (type === 'Sale') return 'Venta';
   if (type === 'Rent') return 'Alquiler';
   const raw = String(type).toLowerCase();
-  if (raw.includes('temporary') || raw.includes('vacation')) return 'Temporario';
+  if (raw.includes('temporary') || raw.includes('vacation')) return 'Alquiler temporario';
   return String(type);
+}
+
+// Extrae el nombre de calle sin número, para mostrar en /v sin filtrar dirección.
+//   "Bv Sarmiento 578" → "Bv Sarmiento"
+//   "Casilda 621 - Villa Elvira - Funes" → "Casilda"
+//   "Bv Sarmiento al 500" → "Bv Sarmiento" (drop conectores finales)
+export function parseStreetOnly(address: string | null | undefined): string {
+  const a = (address || '').replace(/\s+/g, ' ').trim()
+  if (!a) return ''
+  const m = a.match(/^(.+?)\s+\d/)
+  let street = m ? m[1] : a
+  street = street.replace(/[-,.]+$/, '').trim()
+  // Drop palabras conectoras finales que aparecen en formatos tipo "Calle al 500"
+  const stopWords = new Set(['al', 'a', 'esquina', 'esq', 'y'])
+  const words = street.split(' ')
+  while (words.length > 1 && stopWords.has(words[words.length - 1].toLowerCase())) {
+    words.pop()
+  }
+  return words.join(' ')
 }
 
 export function formatPrice(property: TokkoProperty): string {

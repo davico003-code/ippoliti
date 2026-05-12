@@ -223,7 +223,7 @@ export default function CompartirFichaModal({ propertyId, onClose }: Props) {
                 padding: '4px 10px', background: '#FEF3C7', color: '#92400E',
                 fontSize: 11, fontWeight: 600, borderRadius: 999,
               }}>
-                Expira en 30 días
+                Expira en 60 días
               </div>
 
               <a
