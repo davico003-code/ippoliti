@@ -1,7 +1,6 @@
-// Grid de datos clave. 2 columnas mobile / 4 columnas desktop.
-// Cada celda: icono lucide arriba, label uppercase chico, valor grande.
-// Solo renderiza datos no vacíos. Si es Land/Terreno prioriza frente/fondo
-// y omite dormitorios/baños/cocheras.
+// Grid de datos clave (NO superficies — esas viven en Surfaces.tsx).
+// 2 columnas mobile / 4 columnas desktop. Solo renderiza datos no vacíos.
+// Para terrenos: oculta dormitorios/baños/cocheras (no aplican).
 
 import {
   Bath,
@@ -11,10 +10,6 @@ import {
   Compass,
   Home,
   Car,
-  MoveHorizontal,
-  MoveVertical,
-  Ruler,
-  Square,
   type LucideIcon,
 } from 'lucide-react'
 import type { FichaSnapshot } from '@/lib/ficha'
@@ -37,10 +32,6 @@ export default function KeyDataGrid({ snapshot }: { snapshot: FichaSnapshot }) {
     if (s.banos) items.push({ Icon: Bath, label: 'Baños', value: String(s.banos) })
     if (s.cocheras) items.push({ Icon: Car, label: 'Cocheras', value: String(s.cocheras) })
   }
-  if (s.m2cubiertos) items.push({ Icon: Ruler, label: 'M² cubiertos', value: `${s.m2cubiertos}` })
-  if (s.m2totales) items.push({ Icon: Square, label: 'M² totales', value: `${s.m2totales}` })
-  if (s.frenteM) items.push({ Icon: MoveHorizontal, label: 'Frente', value: `${s.frenteM} m` })
-  if (s.fondoM) items.push({ Icon: MoveVertical, label: 'Fondo', value: `${s.fondoM} m` })
   if (typeof s.antiguedad === 'number') {
     items.push({
       Icon: Calendar,

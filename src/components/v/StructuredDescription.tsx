@@ -1,69 +1,90 @@
-// Sección 4: descripción.
-// Si la descripción de Tokko viene con headings tipo "Tipología:", "Distribución:",
-// "Terminaciones:", etc., los detecta y los renderiza como subsecciones con H3.
-// Caso default (mayoría de propiedades): un bloque continuo dividido en
-// párrafos por dobles saltos de línea o saltos simples si no hay dobles.
+'use client'
 
-const HEADING_KEYWORDS = [
-  'tipología',
-  'tipologia',
-  'ubicación',
-  'ubicacion',
-  'distribución',
-  'distribucion',
-  'terminaciones',
-  'entrega',
-  'etapa del inmueble',
-  'etapa',
-  'servicios',
-  'antigüedad',
-  'antiguedad',
-  'amenities',
-  'amenidades',
-  'características',
-  'caracteristicas',
-]
+// Replica del PropertyDescription del sitio SI con paleta neutra.
+// Reusa el parser lib/formatDescription (3 tipos de bloques: title /
+// dataGroup / paragraph con subtitle inline opcional).
+//
+// Fade + "Ver más" cuando la descripción es larga (>420 chars o >5 bloques).
 
-interface Block {
-  heading: string | null
-  body: string
+import { useMemo, useState } from 'react'
+import { formatDescription, type FormattedBlock } from '@/lib/formatDescription'
+
+const ACCENT = '#2563EB'
+
+function Block({ block }: { block: FormattedBlock }) {
+  if (block.type === 'title') {
+    return (
+      <h3
+        style={{
+          fontSize: 17,
+          fontWeight: 600,
+          color: '#1A1A1A',
+          marginTop: 28,
+          marginBottom: 10,
+          lineHeight: 1.35,
+          letterSpacing: '-0.005em',
+        }}
+      >
+        {block.content}
+      </h3>
+    )
+  }
+
+  if (block.type === 'dataGroup') {
+    return (
+      <div className="desc-data" style={{ marginBottom: 16 }}>
+        {block.content.map((dl, i) => (
+          <div
+            key={i}
+            style={{
+              color: '#4A4A4A',
+              fontSize: 16,
+              lineHeight: 1.6,
+              marginBottom: i === block.content.length - 1 ? 0 : 4,
+            }}
+          >
+            <strong style={{ fontWeight: 600, color: '#1A1A1A' }}>{dl.key}:</strong>{' '}
+            {dl.value}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <p
+      className="desc-para"
+      style={{
+        color: '#4A4A4A',
+        fontSize: 17,
+        lineHeight: 1.75,
+        marginBottom: 16,
+      }}
+    >
+      {block.subtitle && (
+        <>
+          <strong style={{ fontWeight: 700, color: '#1A1A1A' }}>{block.subtitle}.</strong>{' '}
+        </>
+      )}
+      {block.content}
+    </p>
+  )
 }
 
-function parseBlocks(text: string): Block[] {
-  const lines = text.split(/\r?\n/)
-  const blocks: Block[] = []
-  let current: Block = { heading: null, body: '' }
+export default function StructuredDescription({ text }: { text: string | null | undefined }) {
+  const blocks = useMemo(() => {
+    const parsed = formatDescription(text)
+    if (parsed.length > 0) return parsed
+    const fallback = (text ?? '').trim()
+    if (!fallback) return []
+    return [{ type: 'paragraph', content: fallback }] as FormattedBlock[]
+  }, [text])
+  const [expanded, setExpanded] = useState(false)
 
-  const isHeading = (line: string) => {
-    const m = line.match(/^\s*([A-Za-zÁÉÍÓÚáéíóúñÑ\s]+):\s*$/)
-    if (!m) return null
-    const word = m[1].trim().toLowerCase()
-    return HEADING_KEYWORDS.includes(word) ? m[1].trim() : null
-  }
+  if (blocks.length === 0) return null
 
-  for (const raw of lines) {
-    const heading = isHeading(raw)
-    if (heading) {
-      if (current.body.trim() || current.heading) {
-        blocks.push({ ...current, body: current.body.trim() })
-      }
-      current = { heading, body: '' }
-    } else {
-      current.body += raw + '\n'
-    }
-  }
-  if (current.body.trim() || current.heading) {
-    blocks.push({ ...current, body: current.body.trim() })
-  }
-
-  return blocks
-}
-
-export default function StructuredDescription({ text }: { text: string }) {
-  if (!text || !text.trim()) return null
-
-  const blocks = parseBlocks(text)
-  const hasStructure = blocks.some(b => b.heading)
+  const rawLength = (text ?? '').length
+  const isLong = rawLength > 420 || blocks.length > 5
 
   return (
     <section style={{ marginTop: 36 }}>
@@ -80,62 +101,70 @@ export default function StructuredDescription({ text }: { text: string }) {
         Descripción
       </h2>
 
-      {hasStructure ? (
-        blocks.map((b, i) => (
-          <div key={i} style={{ marginBottom: 24 }}>
-            {b.heading && (
-              <h3
-                style={{
-                  fontSize: 18,
-                  fontWeight: 500,
-                  color: '#1A1A1A',
-                  margin: '0 0 8px',
-                  letterSpacing: '-0.005em',
-                }}
-              >
-                {b.heading}
-              </h3>
-            )}
-            <Paragraphs text={b.body} />
-          </div>
-        ))
-      ) : (
-        <Paragraphs text={text} />
-      )}
-    </section>
-  )
-}
+      <div style={{ position: 'relative' }}>
+        <div
+          style={
+            isLong && !expanded
+              ? { maxHeight: 240, overflow: 'hidden' }
+              : undefined
+          }
+        >
+          {blocks.map((b, i) => (
+            <div
+              key={i}
+              style={
+                i === 0 && b.type === 'title' ? { marginTop: 0 } : undefined
+              }
+            >
+              <Block block={b} />
+            </div>
+          ))}
+        </div>
+        {isLong && !expanded && (
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 80,
+              pointerEvents: 'none',
+              background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 85%)',
+            }}
+          />
+        )}
+      </div>
 
-function Paragraphs({ text }: { text: string }) {
-  // Preferimos split por dobles saltos. Si no hay dobles, usamos saltos
-  // simples (descripciones tipo lista).
-  const hasDoubles = /\n\s*\n/.test(text)
-  const paras = hasDoubles
-    ? text.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean)
-    : text.split(/\n+/).map(p => p.trim()).filter(Boolean)
-
-  if (paras.length === 0) return null
-
-  return (
-    <div className="desc-body" style={{ color: '#4A4A4A' }}>
-      {paras.map((p, i) => (
-        <p
-          key={i}
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
           style={{
-            fontSize: 17,
-            lineHeight: 1.7,
-            margin: i === 0 ? 0 : '12px 0 0',
-            whiteSpace: 'pre-wrap',
+            marginTop: 8,
+            background: 'transparent',
+            border: 'none',
+            padding: 0,
+            color: ACCENT,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontFamily: 'inherit',
           }}
         >
-          {p}
-        </p>
-      ))}
+          {expanded ? <>Ver menos <span aria-hidden>↑</span></> : <>Ver más <span aria-hidden>↓</span></>}
+        </button>
+      )}
+
       <style>{`
         @media (min-width: 768px) {
-          .desc-body p { font-size: 18px !important; }
+          .desc-para { font-size: 18px !important; }
+          .desc-data > div { font-size: 17px !important; }
         }
       `}</style>
-    </div>
+    </section>
   )
 }

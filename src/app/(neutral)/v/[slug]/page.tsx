@@ -17,6 +17,7 @@ import { getFicha, isLikelyBot, trackView } from '@/lib/ficha'
 import HeroGallery from '@/components/v/HeroGallery'
 import PriceHero from '@/components/v/PriceHero'
 import KeyDataGrid from '@/components/v/KeyDataGrid'
+import Surfaces from '@/components/v/Surfaces'
 import StructuredDescription from '@/components/v/StructuredDescription'
 import AmenityChips from '@/components/v/AmenityChips'
 import BlueprintGallery from '@/components/v/BlueprintGallery'
@@ -163,10 +164,13 @@ export default async function NeutralFichaPage({ params }: Props) {
           {s.tituloGenerico} {s.precio && s.precio !== 'Consultar' ? `· ${s.precio}` : ''}
         </h1>
 
-        {/* Sección 3: datos clave */}
+        {/* Sección 3a: datos clave (sin superficies) */}
         <KeyDataGrid snapshot={s} />
 
-        {/* Sección 4: descripción estructurada */}
+        {/* Sección 3b: superficies (cubierta / total / terreno / frente / fondo) */}
+        <Surfaces snapshot={s} />
+
+        {/* Sección 4: descripción estructurada (parser SI replicado) */}
         <StructuredDescription text={s.descripcion} />
 
         {/* Sección 5: características */}

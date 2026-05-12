@@ -22,6 +22,7 @@ import {
   getDescription,
   getRoofedArea,
   getTotalSurface,
+  getLotSurface,
   translatePropertyType,
   translateTag,
   translateOrientation,
@@ -59,6 +60,7 @@ export interface FichaSnapshot {
   direccionCalle: string             // "Bv Sarmiento" — sin número
   m2cubiertos: number | null
   m2totales: number | null
+  m2terreno: number | null
   m2semicubiertos: number | null
   m2descubiertos: number | null
   ambientes: number | null
@@ -239,6 +241,7 @@ export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
     direccionCalle,
     m2cubiertos: getRoofedArea(property),
     m2totales: getTotalSurface(property),
+    m2terreno: getLotSurface(property),
     m2semicubiertos: parseNum(property.semiroofed_surface) ?? null,
     m2descubiertos: parseNum(property.unroofed_surface) ?? null,
     ambientes,
