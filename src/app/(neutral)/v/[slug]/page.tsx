@@ -22,6 +22,7 @@ import StructuredDescription from '@/components/v/StructuredDescription'
 import AmenityChips from '@/components/v/AmenityChips'
 import BlueprintGallery from '@/components/v/BlueprintGallery'
 import LocationMap from '@/components/v/LocationMap'
+import NearbyPlacesNeutral from '@/components/v/NearbyPlacesNeutral'
 import ShareCTA from '@/components/v/ShareCTA'
 import FloatingShareButton from '@/components/v/FloatingShareButton'
 
@@ -222,6 +223,11 @@ export default async function NeutralFichaPage({ params }: Props) {
             )}
             <LocationMap lat={s.lat as number} lng={s.lng as number} />
           </section>
+        )}
+
+        {/* Sección 7b: lugares cercanos (Overpass / OSM, lazy) */}
+        {hasCoords && (
+          <NearbyPlacesNeutral lat={s.lat as number} lng={s.lng as number} />
         )}
 
         {/* Sección 8: CTA compartir */}
