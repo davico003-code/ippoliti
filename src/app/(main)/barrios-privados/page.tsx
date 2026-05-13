@@ -17,22 +17,21 @@ import HubTracker from './HubTracker'
 const CANONICAL = 'https://siinmobiliaria.com/barrios-privados'
 
 export const metadata: Metadata = {
-  title: 'Barrios privados de Funes y Roldán | SI Inmobiliaria',
+  title: 'Barrios privados de Funes | SI Inmobiliaria',
   description:
-    'Los 11 barrios cerrados de Funes y Roldán analizados sin filtro. Premium, consolidados y en desarrollo. Conocelos con la mirada de un broker de dos generaciones.',
+    'Los 11 barrios cerrados de Funes analizados sin filtro. Premium, consolidados y en desarrollo. Conocelos con la mirada de un broker de dos generaciones.',
   keywords: [
     'barrios privados funes',
-    'barrios cerrados roldan',
-    'barrios privados funes roldan',
-    'club de campo santa fe',
+    'barrios cerrados funes',
+    'club de campo funes santa fe',
     'lotes en venta funes',
     'country messi rosario',
   ].join(', '),
   alternates: { canonical: CANONICAL },
   openGraph: {
-    title: 'Barrios privados de Funes y Roldán | SI Inmobiliaria',
+    title: 'Barrios privados de Funes | SI Inmobiliaria',
     description:
-      'Una guía completa, escrita por brokers que viven y trabajan en la zona. Los 11 barrios cerrados de Funes y Roldán analizados sin filtro.',
+      'Una guía completa, escrita por brokers que viven y trabajan en la zona. Los 11 barrios cerrados de Funes analizados sin filtro.',
     url: CANONICAL,
     type: 'website',
     siteName: 'SI INMOBILIARIA',
@@ -40,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Barrios privados de Funes y Roldán',
+    title: 'Barrios privados de Funes',
     description: '11 barrios analizados por SI Inmobiliaria — Mat. 0621',
     images: ['/og-default.jpg'],
   },
@@ -50,9 +49,9 @@ export default function BarriosPrivadosHub() {
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Barrios privados del corredor Funes–Roldán',
+    name: 'Barrios privados del corredor de Funes',
     description:
-      '11 barrios privados analizados por SI INMOBILIARIA — Mat. N° 0621. Funes y Roldán, Santa Fe, Argentina.',
+      '11 barrios privados analizados por SI INMOBILIARIA — Mat. N° 0621. Funes, Santa Fe, Argentina.',
     itemListElement: BARRIOS.map((b, i) => ({
       '@type': 'ListItem',
       position: i + 1,
@@ -88,15 +87,15 @@ export default function BarriosPrivadosHub() {
         <div className="mx-auto max-w-[1280px]">
           <p className="mb-8 flex items-center gap-4 font-raleway text-[16px] font-light italic text-[#8B7355] md:text-[18px]">
             <span className="block h-px w-[60px] bg-[#8B7355]" aria-hidden />
-            Funes y Roldán · Santa Fe
+            Funes · Santa Fe
           </p>
           <h1 className="mb-8 max-w-[1100px] font-raleway text-[clamp(48px,7vw,112px)] font-bold leading-none tracking-tight">
             Los 11 barrios privados de{' '}
-            <span className="font-bold italic text-[#8B7355]">Funes y Roldán.</span>
+            <span className="font-bold italic text-[#8B7355]">Funes.</span>
           </h1>
           <p className="mb-14 max-w-[760px] font-raleway text-[18px] font-normal leading-[1.55] text-[#2A2A2A] md:text-[22px]">
             Una guía completa, escrita por brokers que viven y trabajan en la zona. Los 11 barrios
-            cerrados de Funes y Roldán analizados sin filtro: lo que tienen, lo que les falta, y
+            cerrados de Funes analizados sin filtro: lo que tienen, lo que les falta, y
             para quién es cada uno. Si querés comprar bien, primero tenés que entender bien.
           </p>
           <ul className="flex flex-wrap gap-x-16 gap-y-6 border-t border-[rgba(15,15,15,0.08)] pt-8">

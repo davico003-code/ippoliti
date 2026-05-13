@@ -27,7 +27,6 @@ const TIERS: { value: FiltrosState['tier']; label: string }[] = [
 const ZONAS: { value: FiltrosState['zona']; label: string }[] = [
   { value: 'todas', label: 'Todas' },
   { value: 'funes', label: 'Funes' },
-  { value: 'roldan', label: 'Roldán' },
 ]
 
 const TAGS_FILTRABLES = [

@@ -34,7 +34,7 @@ export default function BarrioHero({ barrio }: Props) {
 
       <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-end px-6 pb-14 text-white">
         <span className={`mb-4 inline-block w-fit rounded-full px-3 py-1 text-xs font-medium ${tier.cls}`}>
-          {tier.label} · {barrio.zona === 'funes' ? 'Funes' : 'Roldán'}
+          {tier.label} · Funes
         </span>
         <h1 className="font-raleway text-4xl font-semibold leading-tight md:text-6xl">
           {barrio.nombreCompleto}

@@ -98,7 +98,7 @@ export default function BarrioPage({ params }: Props) {
     url: canonical,
     address: {
       '@type': 'PostalAddress',
-      addressLocality: barrio.zona === 'funes' ? 'Funes' : 'Roldán',
+      addressLocality: 'Funes',
       addressRegion: 'Santa Fe',
       addressCountry: 'AR',
       streetAddress: barrio.ubicacion.direccionIngreso,

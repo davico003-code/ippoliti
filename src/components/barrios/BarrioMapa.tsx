@@ -12,7 +12,7 @@ import { trackEvent } from '@/lib/analytics'
 const FUNES_CENTER: [number, number] = [-32.9159, -60.8073]
 
 // Coords plausibles para barrios sin coords explícitas (manualmente curadas
-// dentro del corredor Funes–Roldán). Si después David carga las exactas, este
+// dentro del corredor de Funes). Si después David carga las exactas, este
 // fallback se descarta automáticamente.
 const FALLBACK_COORDS: Record<string, [number, number]> = {
   'vida-lagoon': [-32.9095, -60.7965],

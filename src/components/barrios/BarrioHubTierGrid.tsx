@@ -49,7 +49,7 @@ function metaSummary(b: Barrio): string {
     return `${b.datosDuros.cantidadLotes} lotes · ${b.datosDuros.hectareasTotales} ha`
   }
   if (b.datosDuros.cantidadLotes) return `${b.datosDuros.cantidadLotes} lotes`
-  return `${b.zona === 'funes' ? 'Funes' : 'Roldán'}, Santa Fe`
+  return `Funes, Santa Fe`
 }
 
 export default function BarrioHubTierGrid() {
@@ -88,7 +88,7 @@ export default function BarrioHubTierGrid() {
 function BarrioHubCard({ barrio }: { barrio: Barrio }) {
   const ubicacion =
     barrio.ubicacionEditorial ??
-    (barrio.zona === 'funes' ? 'Funes, Santa Fe' : 'Roldán, Santa Fe')
+    'Funes, Santa Fe'
   const tierColor = barrio.tierColor ?? TIER_FALLBACK_COLOR[barrio.tier]
   const palette = barrio.palette
   const gradient = palette

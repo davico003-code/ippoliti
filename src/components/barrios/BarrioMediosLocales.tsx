@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
-// TODO: completar con David — links reales a columnas en InfoFunes / El Roldanense
+// TODO: completar con David — links reales a columnas en InfoFunes
 const COLUMNAS = [
   {
-    titulo: 'Por qué el corredor Funes–Roldán sigue absorbiendo demanda en 2026',
+    titulo: 'Por qué Funes sigue absorbiendo demanda en 2026',
     medio: 'InfoFunes',
     fecha: 'Marzo 2026',
     url: '#',
@@ -16,8 +16,8 @@ const COLUMNAS = [
     url: '#',
   },
   {
-    titulo: 'Roldán y Funes: dos perfiles distintos, mismo corredor',
-    medio: 'El Roldanense',
+    titulo: 'Cómo se mueve el ABC1 dentro de Funes hoy',
+    medio: 'InfoFunes',
     fecha: 'Enero 2026',
     url: '#',
   },
@@ -53,7 +53,7 @@ export default function BarrioMediosLocales() {
               <br />
               Co-director SI INMOBILIARIA
               <br />
-              Columnista en InfoFunes y El Roldanense
+              Columnista en InfoFunes
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export default function BarrioMediosLocales() {
               Análisis del corredor, en primera persona
             </h2>
             <p className="mb-6 text-base leading-relaxed text-stone-600">
-              David escribe columnas mensuales sobre el mercado de Funes y Roldán para los medios
+              David escribe columnas mensuales sobre el mercado de Funes para los medios
               locales. Si querés entender cómo se mueven los precios, dónde está la demanda y qué
               esperar de los próximos meses, leelo directo desde la fuente.
             </p>
@@ -85,7 +85,7 @@ export default function BarrioMediosLocales() {
             </ul>
             <p className="mt-4 text-xs text-stone-500">
               {/* TODO: cargar links reales y agregar CTA "Leer todas las columnas" */}
-              Próximamente: archivo completo de columnas con enlaces a InfoFunes y El Roldanense.
+              Próximamente: archivo completo de columnas con enlaces a InfoFunes.
             </p>
           </div>
         </div>

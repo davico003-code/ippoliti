@@ -50,8 +50,8 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     tierColor: '#666666',
     palette: { from: '#0E4E66', to: '#1A8FB0', accent: '#E8F4F8' },
     elementoSvg: 'olas',
-    subtitulo: 'Laguna cristalina de 23.300 m² en Roldán',
-    ubicacionEditorial: 'Roldán, Santa Fe',
+    subtitulo: 'Laguna cristalina de 23.300 m² en Funes',
+    ubicacionEditorial: 'Funes, Santa Fe',
     distanciaRosario: '20 min',
     stats: [
       { value: '1.042', unit: '', label: 'Lotes totales' },
@@ -71,15 +71,15 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     ],
     contenidoSEO: {
       intro:
-        'Vida Lagoon es un desarrollo de 100 hectáreas en Roldán organizado alrededor de una laguna cristalina Crystal Lagoons de 23.300 m². Distribuye 1.042 lotes en etapas, con los frentistas al agua como tier máximo del barrio.',
+        'Vida Lagoon es un desarrollo de 100 hectáreas en Funes organizado alrededor de una laguna cristalina Crystal Lagoons de 23.300 m². Distribuye 1.042 lotes en etapas, con los frentistas al agua como tier máximo del barrio.',
       vidaAdentro:
         'Club House frente a la laguna, playa de arena de uso común, escuela de náutica, embarcaderos de SUP y kayak, canchas de tenis y paddle. Seguridad 24 hs con doble portal. Perfil de vecindario: familias 30-45 años, varias mudadas desde Buenos Aires.',
       ubicacionTexto:
-        'Roldán, 20 minutos de Rosario por Autopista Rosario–Córdoba con acceso directo. Colegios privados de Funes (Belgrano, San Antonio, Woodlands) a menos de 15 minutos. GO Sanatorio sobre Ruta 9 a 10 minutos.',
+        'Funes, 20 minutos de Rosario por Autopista Rosario–Córdoba con acceso directo. Colegios privados de Funes (Belgrano, San Antonio, Woodlands) a menos de 15 minutos. GO Sanatorio sobre Ruta 9 a 10 minutos.',
       miradaBroker:
         'Vida Lagoon vende algo concreto: agua de baño dentro del barrio, todos los días, no como amenitie de fin de semana. El sistema Crystal Lagoons tiene casos probados en Chile, Uruguay y Brasil. Entrega por etapas hasta 2028: para vivir, andá; para invertir a 18-24 meses, margen ajustado por volatilidad cambiaria.',
       comparado:
-        'Único proyecto del eje Funes-Roldán con laguna cristalina apta para baño. Kentucky tiene golf y lago decorativo. Funes Lakes ofrece canales navegables sin baño cristalino. Vida CdC apunta a deporte sin componente acuática.',
+        'Único proyecto del eje Funes con laguna cristalina apta para baño. Kentucky tiene golf y lago decorativo. Funes Lakes ofrece canales navegables sin baño cristalino. Vida CdC apunta a deporte sin componente acuática.',
     },
     faqExtendida: [
       {
@@ -108,7 +108,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
           'Planes en cuotas en dólares, desde 24 hasta 60 cuotas según etapa. Para casos puntuales también se gestionan créditos hipotecarios.',
       },
     ],
-    keywords: 'vida lagoon roldan, barrio cerrado roldan, laguna cristalina, crystal lagoons argentina, lotes en venta roldan',
+    keywords: 'vida lagoon funes, barrio cerrado funes, laguna cristalina, crystal lagoons argentina, lotes en venta funes',
     comparativaKeys: ['Kentucky', 'Funes Lakes', 'Vida Club de Campo'],
   },
 
@@ -253,7 +253,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     palette: { from: '#1F4D2E', to: '#3D7050', accent: '#F0E8D0' },
     elementoSvg: 'golf',
     subtitulo: 'Practice de golf y Club House de autor',
-    ubicacionEditorial: 'Roldán, Santa Fe',
+    ubicacionEditorial: 'Funes, Santa Fe',
     distanciaRosario: '22 min',
     stats: [
       { value: '659', unit: '', label: 'Lotes totales' },
@@ -273,11 +273,11 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     ],
     contenidoSEO: {
       intro:
-        'Vida Club de Campo distribuye 659 lotes de 1.000 a 1.270 m² sobre 135 hectáreas en Roldán. Suma dos diferenciales: practice de golf propio con 3 greens-isla funcionales y un Club House de autor en hormigón visto y madera, planta octogonal con jardín central. Completan la propuesta 7-8 canchas de tenis de polvo de ladrillo.',
+        'Vida Club de Campo distribuye 659 lotes de 1.000 a 1.270 m² sobre 135 hectáreas en Funes. Suma dos diferenciales: practice de golf propio con 3 greens-isla funcionales y un Club House de autor en hormigón visto y madera, planta octogonal con jardín central. Completan la propuesta 7-8 canchas de tenis de polvo de ladrillo.',
       vidaAdentro:
         'El practice atrae golfistas que quieren entrenar a diario sin la formalidad de un campo de 18 hoyos. Las canchas de tenis lo convierten en polo tenístico real: torneos y escuela activa. Vecindario mixto: mitad familias ya instaladas, mitad lotes en construcción.',
       ubicacionTexto:
-        'Roldán, sobre el eje principal, con acceso directo a autopista. 22 minutos de Rosario, 5 del centro de Roldán, 10 de Funes. Colegios de Funes a 15 minutos. GO Sanatorio a 10.',
+        'Funes, sobre el eje principal, con acceso directo a autopista. 22 minutos de Rosario, 5 del centro de Funes. Colegios de Funes a 15 minutos. GO Sanatorio a 10.',
       miradaBroker:
         'Entendió cómo competir con Kentucky sin imitarlo. En vez de ofrecer un campo de 18 hoyos menor, ofrece un practice serio que cubre el 80% de la práctica habitual de un golfista, con costo de mantenimiento más bajo, lo que se refleja en expensas más razonables. Para familia ABC1 joven que quiere infraestructura premium sin la carga de un country tradicional, este es el barrio.',
       comparado:
@@ -310,7 +310,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
           'Restringido a propietarios e invitados según reglamento. Para conocer el espacio, la visita guiada con almuerzo se coordina con tu broker.',
       },
     ],
-    keywords: 'vida club de campo roldan, practice golf roldan, canchas tenis polvo ladrillo, club house arquitectura, barrio cerrado roldan premium',
+    keywords: 'vida club de campo funes, practice golf funes, canchas tenis polvo ladrillo, club house arquitectura, barrio cerrado funes premium',
     comparativaKeys: ['Kentucky', 'Vida Lagoon', 'Funes Lakes'],
   },
 
@@ -588,13 +588,13 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     palette: { from: '#5A4A2A', to: '#8A7A4A', accent: '#F0E8D0' },
     elementoSvg: 'trama-urbana',
     subtitulo: 'Centro comercial propio integrado al ingreso',
-    ubicacionEditorial: 'Roldán, Santa Fe',
+    ubicacionEditorial: 'Funes, Santa Fe',
     distanciaRosario: '21 min',
     stats: [
       { value: '294', unit: '', label: 'Lotes totales' },
       { value: '35', unit: 'ha', label: 'Superficie' },
       { value: 'Sí', unit: '', label: 'Centro comercial' },
-      { value: 'Roldán', unit: '', label: 'Ubicación' },
+      { value: 'Funes', unit: '', label: 'Ubicación' },
     ],
     amenitiesEditorial: [
       'Centro comercial propio',
@@ -609,13 +609,13 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     ],
     contenidoSEO: {
       intro:
-        'Vida Barrio Cerrado tiene una característica que en la zona casi no se replica: centro comercial propio integrado al ingreso, con locales gastronómicos, mini-market, peluquería y servicios profesionales. 35 hectáreas, 294 lotes. Es la idea de neighborhood village americano aplicada a Roldán.',
+        'Vida Barrio Cerrado tiene una característica que en la zona casi no se replica: centro comercial propio integrado al ingreso, con locales gastronómicos, mini-market, peluquería y servicios profesionales. 35 hectáreas, 294 lotes. Es la idea de neighborhood village americano aplicada a Funes.',
       vidaAdentro:
         'El centro comercial reduce dependencia del afuera: café, panadería, mini-market, peluquería, gimnasio y servicios profesionales a 3 minutos a pie. Club House integrado, lo que genera vida social activa. Pileta, canchas, SUM. Los locales abren progresivamente a medida que se completa la ocupación.',
       ubicacionTexto:
-        'Roldán, 21 minutos de Rosario por autopista, 5 del centro de Roldán. Parte del cluster Vida junto a Lagoon, Jardín y Green. Colegios privados dentro de los 15 minutos. GO Sanatorio a 10.',
+        'Funes, 21 minutos de Rosario por autopista, 5 del centro de Funes. Parte del cluster Vida junto a Lagoon, Jardín y Green. Colegios privados dentro de los 15 minutos. GO Sanatorio a 10.',
       miradaBroker:
-        'Probablemente la propuesta más innovadora del cluster Vida. El centro comercial integrado viene de barrios americanos tipo Town Center — resuelve algo concreto: hoy en la zona, para tomar un café fuera de casa hay que manejar 5-10 minutos al centro de Roldán o Funes. Acá está a 3 minutos a pie. Para inversión, el centro comercial es la apuesta más fuerte y el factor con mayor variabilidad: depende de qué tan rápido se ocupen los locales.',
+        'Probablemente la propuesta más innovadora del cluster Vida. El centro comercial integrado viene de barrios americanos tipo Town Center — resuelve algo concreto: hoy en la zona, para tomar un café fuera de casa hay que manejar 5-10 minutos al centro de Funes. Acá está a 3 minutos a pie. Para inversión, el centro comercial es la apuesta más fuerte y el factor con mayor variabilidad: depende de qué tan rápido se ocupen los locales.',
       comparado:
         'Dentro del cluster Vida, propuesta comercial diferenciada. Lagoon vende laguna, Jardín conectividad a autopista, Green valor de entrada — Vida BC vende vida comercial caminable. Frente a consolidados, en construcción pero con servicio que ningún consolidado tiene.',
     },
@@ -646,7 +646,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
           'El centro comercial tiene gestión propia separada por su naturaleza comercial. La estructura de costos del barrio se balancea con el ingreso de los locales.',
       },
     ],
-    keywords: 'vida barrio cerrado roldan, barrio cerrado con centro comercial, town center roldan, vida cluster roldan, lotes en venta roldan',
+    keywords: 'vida barrio cerrado funes, barrio cerrado con centro comercial, town center funes, vida cluster funes, lotes en venta funes',
     comparativaKeys: ['Vida Lagoon', 'Vida Jardín', 'Vida Green'],
   },
 
@@ -656,7 +656,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     palette: { from: '#3A5A3F', to: '#6A8A6F', accent: '#E8F0E8' },
     elementoSvg: 'jardin',
     subtitulo: 'Acceso directo a la autopista',
-    ubicacionEditorial: 'Roldán, Santa Fe',
+    ubicacionEditorial: 'Funes, Santa Fe',
     distanciaRosario: '20 min',
     stats: [
       { value: '242', unit: '', label: 'Lotes totales' },
@@ -680,7 +680,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
       vidaAdentro:
         "Lotes amplios para casas familiares con jardín generoso. Club House con pileta, canchas de tenis, SUM. Filosofía: 'jardín privado, comunidad pública'. Vecindario en formación: profesionales jóvenes con hijos, gente que valora salir rápido del barrio.",
       ubicacionTexto:
-        'Roldán, acceso directo a Autopista Rosario–Córdoba (sin colectoras). 20 minutos de Rosario, 5 del centro de Roldán, 10 de Funes. Parte del cluster Vida.',
+        'Funes, acceso directo a Autopista Rosario–Córdoba (sin colectoras). 20 minutos de Rosario, 5 del centro de Funes. Parte del cluster Vida.',
       miradaBroker:
         'Propuesta simple y eficaz: barrio cerrado bien hecho, lotes generosos, acceso logístico óptimo. No tiene amenities exuberantes pero tampoco intenta competir con Kentucky o Vida Lagoon. Lo que vende es simplicidad y logística — para profesionales jóvenes que viajan mucho a Rosario, este es de los más razonables. El acceso directo a autopista ahorra horas anuales reales.',
       comparado:
@@ -713,7 +713,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
           'Planes en cuotas en dólares con distintas modalidades según etapa. Para casos puntuales se gestionan créditos hipotecarios.',
       },
     ],
-    keywords: 'vida jardin roldan, barrio cerrado autopista, acceso directo autopista rosario cordoba, vida cluster roldan, lotes en roldan',
+    keywords: 'vida jardin funes, barrio cerrado autopista, acceso directo autopista rosario cordoba, vida cluster funes, lotes en funes',
     comparativaKeys: ['Vida Lagoon', 'Vida Barrio Cerrado', 'Vida Green'],
   },
 
@@ -723,7 +723,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     palette: { from: '#2A6A4A', to: '#4F9A6F', accent: '#E0F0E5' },
     elementoSvg: 'verde-fresco',
     subtitulo: 'Entrada al cluster Vida desde valor',
-    ubicacionEditorial: 'Roldán, Santa Fe',
+    ubicacionEditorial: 'Funes, Santa Fe',
     distanciaRosario: '21 min',
     stats: [
       { value: '419', unit: '', label: 'Lotes totales' },
@@ -748,7 +748,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
       vidaAdentro:
         'Casas tipo 150-200 m² construidos en lotes 500-700 m², sin sentirse apretado. Club House con pileta, canchas, SUM. Perfil: parejas jóvenes, primer hogar familiar, profesionales en formación. Es el barrio donde se arma la primera comunidad — chicos que crecen juntos, parejas que se hacen amigas en los primeros años.',
       ubicacionTexto:
-        'Roldán, parte del cluster Vida. 21 minutos de Rosario por autopista, 5 del centro de Roldán, 10 de Funes. Colegios privados dentro de los 15 minutos. GO Sanatorio a 10.',
+        'Funes, parte del cluster Vida. 21 minutos de Rosario por autopista, 5 del centro de Funes. Colegios privados dentro de los 15 minutos. GO Sanatorio a 10.',
       miradaBroker:
         'Para parejas jóvenes que quieren entrar al ecosistema de barrios cerrados desde ticket razonable. No es para amenities premium ni lotes grandes — es para primera casa propia en barrio cerrado, segura, con infraestructura nueva y comunidad fresca. Timing: comprar pre-entrega permite capturar apreciación de 15-25% típica entre pre-obra y obra terminada.',
       comparado:
@@ -781,7 +781,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
           'Define alturas máximas, retiros mínimos y lineamientos estéticos. Permite arquitectura contemporánea con flexibilidad.',
       },
     ],
-    keywords: 'vida green roldan, lotes 500 m2 roldan, barrio cerrado entrega 2026, primera casa barrio cerrado, vida cluster pre entrega',
+    keywords: 'vida green funes, lotes 500 m2 funes, barrio cerrado entrega 2026, primera casa barrio cerrado, vida cluster pre entrega',
     comparativaKeys: ['Vida Lagoon', 'Vida Jardín', 'Vida Barrio Cerrado'],
   },
 }

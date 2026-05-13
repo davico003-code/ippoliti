@@ -1,5 +1,5 @@
 // lib/barrios.ts
-// SI Inmobiliaria — Barrios privados del corredor Funes–Roldán
+// SI Inmobiliaria — Barrios privados del corredor de Funes
 // Generado: data curada por David Flores, Mat. 0621
 // IMPORTANTE: este archivo es la fuente única de verdad para /barrios-privados
 
@@ -10,7 +10,9 @@ export type BarrioTier =
   | "Consolidado"
   | "Consolidado con vida joven"
   | "En desarrollo";
-export type BarrioZona = "funes" | "roldan";
+// Hoy todos los barrios privados que cubrimos son de Funes. Si en el futuro
+// sumamos otra zona, extender la union.
+export type BarrioZona = "funes";
 
 export interface Amenity {
   id: string;
@@ -189,7 +191,7 @@ export const BARRIOS: Barrio[] = [
     miradaBroker: {
       titular: "El barrio más consolidado del corredor.",
       parrafo:
-        "Después de quince años vendiendo en el corredor Funes–Roldán, San Sebastián es uno de los barrios que recomiendo cuando un comprador me pregunta dónde se conserva mejor el valor. No es el más nuevo ni el de los lotes más grandes, pero tiene tres cosas que el mercado paga: consolidación real (no es un proyecto, es un barrio vivido), acceso directo a la autopista Rosario–Córdoba, y un Club House que funciona todos los días, no sólo en los renders.",
+        "Después de quince años vendiendo en el corredor de Funes, San Sebastián es uno de los barrios que recomiendo cuando un comprador me pregunta dónde se conserva mejor el valor. No es el más nuevo ni el de los lotes más grandes, pero tiene tres cosas que el mercado paga: consolidación real (no es un proyecto, es un barrio vivido), acceso directo a la autopista Rosario–Córdoba, y un Club House que funciona todos los días, no sólo en los renders.",
     },
     perfilComprador: [
       "Familias que quieren entrar a un barrio consolidado, no a un proyecto",
@@ -878,7 +880,7 @@ export const BARRIOS: Barrio[] = [
     seo: {
       metaTitle: "Funes Lakes — El único barrio náutico de Funes | SI Inmobiliaria",
       metaDescription:
-        "Funes Lakes: 409 lotes con salida privada al agua, 8 islas, 10 km de costa. Único barrio náutico del corredor Funes–Roldán. Stock y análisis por SI Inmobiliaria.",
+        "Funes Lakes: 409 lotes con salida privada al agua, 8 islas, 10 km de costa. Único barrio náutico del corredor de Funes. Stock y análisis por SI Inmobiliaria.",
       keywordsLongTail: [
         "funes lakes precios",
         "lote con agua privada funes",
