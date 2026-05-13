@@ -16,6 +16,7 @@ const LEFT_ITEMS = [
 ]
 
 const RIGHT_ITEMS = [
+  { href: '/barrios-privados', label: 'Barrios privados' },
   { href: '/nosotros', label: 'Nosotros' },
   { href: '/blog', label: 'Blog' },
   { href: '/recursos', label: 'Recursos' },
@@ -125,10 +126,10 @@ export default function Navbar() {
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
             <Link
               href="/agentes"
-              className="hover:opacity-90 transition-colors duration-200 text-sm"
+              className="hover:opacity-90 transition-colors duration-200 text-xs"
               style={{
                 fontFamily: R, fontWeight: 500, color: '#fff',
-                background: '#1A5C38', padding: '8px 20px', borderRadius: 6,
+                background: '#1A5C38', padding: '6px 14px', borderRadius: 5,
                 textDecoration: 'none', whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
