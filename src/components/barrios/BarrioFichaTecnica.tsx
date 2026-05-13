@@ -29,14 +29,7 @@ export default function BarrioFichaTecnica({ barrio }: Props) {
     value: barrio.estado.charAt(0).toUpperCase() + barrio.estado.slice(1).replace('-', ' '),
   })
   items.push({ label: 'Desarrollador', value: barrio.desarrollador })
-  if (barrio.comercial.precioLoteDesdeUSD) {
-    items.push({
-      label: 'Lote desde',
-      value: `USD ${barrio.comercial.precioLoteDesdeUSD.toLocaleString('es-AR')}`,
-    })
-  } else {
-    items.push({ label: 'Lote desde', value: 'Consultar precio actualizado' })
-  }
+  items.push({ label: 'Lote desde', value: 'Consultar precio actualizado' })
 
   return (
     <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">

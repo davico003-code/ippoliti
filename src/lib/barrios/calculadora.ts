@@ -51,15 +51,7 @@ const TIER_PRESUPUESTO_DEFAULT: Record<Barrio['tier'], Presupuesto[]> = {
 }
 
 function matchPresupuesto(barrio: Barrio, presupuesto: Presupuesto): { ok: boolean; razon?: string } {
-  const precio = barrio.comercial.precioLoteDesdeUSD
-  if (precio) {
-    const [min, max] = PRESUPUESTO_RANGOS[presupuesto]
-    if (precio >= min && precio <= max) {
-      return { ok: true, razon: `Encaja con tu presupuesto (lotes desde USD ${precio.toLocaleString('es-AR')})` }
-    }
-    return { ok: false }
-  }
-  // Sin precio confirmado: usar tier
+  // Sin precios hardcodeados en la data: scoring por tier del barrio
   if (TIER_PRESUPUESTO_DEFAULT[barrio.tier].includes(presupuesto)) {
     return { ok: true, razon: 'Ticket compatible con tu presupuesto (estimado por tier del barrio)' }
   }
@@ -190,11 +182,6 @@ export function scoreBarrios(input: CalculadoraInput): BarrioMatch[] {
     if (pres.ok) {
       score += 40
       if (pres.razon) razones.push(pres.razon)
-    } else {
-      // Penalizar si claramente está fuera del rango (precio confirmado)
-      if (barrio.comercial.precioLoteDesdeUSD) {
-        score -= 15
-      }
     }
 
     for (const p of input.prioridades.slice(0, 2)) {

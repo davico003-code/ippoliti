@@ -11,9 +11,7 @@ export function buildBarrioFaqs(barrio: Barrio): FAQ[] {
 
   faqs.push({
     pregunta: `¿Cuánto cuesta un lote en ${nombre}?`,
-    respuesta: barrio.comercial.precioLoteDesdeUSD
-      ? `Los lotes en ${nombre} arrancan en USD ${barrio.comercial.precioLoteDesdeUSD.toLocaleString('es-AR')}${barrio.comercial.notaComercial ? `. ${barrio.comercial.notaComercial}` : '.'} Pedí precio actualizado por WhatsApp.`
-      : `Hoy los precios en ${nombre} se mueven con stock, por eso preferimos pasártelos al día por WhatsApp en lugar de publicar números que se quedan viejos. // TODO: completar con David`,
+    respuesta: `Hoy los precios en ${nombre} se mueven con stock — preferimos pasártelos al día por WhatsApp en lugar de publicar números que se quedan viejos. En la sección "Lotes disponibles" vas a ver el stock vivo desde nuestro CRM.`,
   })
 
   if (barrio.datosDuros.medidaLoteDesde) {

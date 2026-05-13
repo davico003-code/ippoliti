@@ -17,14 +17,6 @@ export interface MiradaBroker {
   parrafo: string; // 3-5 oraciones de David como broker
 }
 
-export interface BarrioComercial {
-  precioLoteDesdeUSD?: number;
-  precioCasaDesdeUSD?: number;
-  expensasMensualARS?: number;
-  valorM2ConstruidoUSD?: number;
-  notaComercial?: string;
-}
-
 export interface Barrio {
   slug: string;
   nombre: string;
@@ -51,7 +43,6 @@ export interface Barrio {
   amenities: Amenity[];
   infraestructura: string[];
   seguridad: string[];
-  comercial: BarrioComercial;
   miradaBroker: MiradaBroker;
   perfilComprador: string[];
   tags: string[]; // para búsqueda: ["laguna", "golf", "tenis", "deportes-nauticos", etc.]
@@ -150,10 +141,7 @@ export const BARRIOS: Barrio[] = [
       "Alumbrado público",
       "Forestación planificada",
     ],
-    seguridad: ["Vigilancia 24hs", "Cerco olímpico", "Doble ingreso (principal + secundario)"],
-    comercial: {
-      // TODO: completar con datos de Tokko
-    },
+    seguridad: ["Vigilancia 24hs", "Cerco olímpico", "Doble ingreso (principal + secundario)", "Generador eléctrico en todo el barrio"],
     miradaBroker: {
       titular: "El barrio más consolidado del corredor.",
       parrafo:
@@ -196,8 +184,9 @@ export const BARRIOS: Barrio[] = [
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
-      referencia: "Funes — sector consolidado, junto a San Sebastián y Aguadas",
-      accesos: ["Autopista Rosario–Córdoba", "Av. Fuerza Aérea"],
+      direccionIngreso: "Pedro A. Ríos y José Hernández, Funes",
+      referencia: "Funes — zona noroeste, junto a barrios Funes Town y La Guillermina",
+      accesos: ["Calle José Hernández (conecta con Ruta 9 y Autopista Rosario–Córdoba)", "Pedro A. Ríos"],
     },
     datosDuros: {
       cantidadLotes: 1042,
@@ -227,9 +216,13 @@ export const BARRIOS: Barrio[] = [
       { id: "quincho", label: "Quinchos", icon: ICON.quincho },
       { id: "seguridad-24", label: "Seguridad 24hs", icon: ICON.seguridad },
     ],
-    infraestructura: ["Servicios completos (TODO: detallar)"],
+    infraestructura: [
+      "Electricidad subterránea",
+      "Red interna de agua y gas natural",
+      "Red cloacal y telecomunicaciones",
+      "Calles pavimentadas e iluminadas",
+    ],
     seguridad: ["Vigilancia 24hs", "Control de accesos"],
-    comercial: {},
     miradaBroker: {
       titular: "El primer barrio destino del interior del país.",
       parrafo:
@@ -280,9 +273,11 @@ export const BARRIOS: Barrio[] = [
       cantidadLotes: 294,
       medidaLoteDesde: 800,
       medidaLoteHasta: 1400,
+      hectareasTotales: 35,
       distintivos: [
         "Centro comercial propio en ingreso (supermercado, locales, oficinas)",
         "Club House con +120 m² de paredes verdes",
+        "Cerca del Aeropuerto Internacional Rosario y Shopping Fisherton Mall",
       ],
     },
     amenities: [
@@ -308,7 +303,6 @@ export const BARRIOS: Barrio[] = [
       "Telecomunicaciones",
     ],
     seguridad: ["Vigilancia 24hs"],
-    comercial: {},
     miradaBroker: {
       titular: "El barrio con servicios reales a la puerta.",
       parrafo:
@@ -346,48 +340,86 @@ export const BARRIOS: Barrio[] = [
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
-      referencia: "Funes, sobre arteria principal, a minutos del Aeropuerto Internacional Rosario",
-      accesos: ["Arteria principal Funes", "Acceso al Aeropuerto Rosario"],
+      direccionIngreso: "Av. Arturo Illia Bis y Golondrinas, Funes",
+      referencia:
+        "Funes, sobre Av. Arturo Illia, en el límite con Rosario. A minutos del Aeropuerto Internacional Rosario y del Shopping Fisherton Mall.",
+      accesos: ["Av. Arturo Illia Bis", "Acceso al Aeropuerto Rosario", "Autopista (vía Av. Illia)"],
     },
     datosDuros: {
       cantidadLotes: 659,
       medidaLoteDesde: 1000,
-      medidaLoteHasta: 1000,
-      distintivos: ["Lotes uniformes de 1.000 m²", "Cercanía al Aeropuerto Rosario"],
+      medidaLoteHasta: 1270,
+      hectareasTotales: 135,
+      distintivos: [
+        "Club House de autor en hormigón visto y madera (planta octogonal con jardín central)",
+        "Practice de golf propio con 3 greens-isla — caso raro fuera de Kentucky",
+        "Set de 7-8 canchas de tenis de polvo de ladrillo junto al reservorio",
+        "Portal de ingreso de diseño en hormigón visto sobre canal de agua",
+        "Lotes grandes y uniformes (1.000-1.270 m²)",
+        "Área comercial proyectada de 50.000 m² (supermercado, locales, oficinas)",
+        "Cercanía al Aeropuerto Internacional Rosario",
+      ],
     },
     amenities: [
-      { id: "clubhouse", label: "Club House", icon: ICON.clubhouse },
-      { id: "bar", label: "Bar / Restaurante", icon: ICON.bar },
+      { id: "clubhouse", label: "Club House de autor", icon: ICON.clubhouse },
+      { id: "practice-golf", label: "Practice de golf con greens-isla", icon: ICON.golf },
+      { id: "tenis-multi", label: "7-8 canchas de tenis de polvo de ladrillo", icon: ICON.tenis },
+      { id: "paddle", label: "Canchas de paddle", icon: ICON.paddle },
+      { id: "futbol", label: "Cancha de fútbol", icon: ICON.futbol },
+      { id: "bar", label: "Bar / Restaurante en Club House", icon: ICON.bar },
       { id: "lectura", label: "Sala de lectura", icon: ICON.clubhouse },
       { id: "quincho-2", label: "2 quinchos para eventos", icon: ICON.quincho },
       { id: "piscinas", label: "Piscinas adultos y niños", icon: ICON.pileta },
       { id: "solarium", label: "Solárium con mobiliario", icon: ICON.playa },
-      { id: "tenis", label: "Canchas de tenis", icon: ICON.tenis },
-      { id: "futbol", label: "Cancha de fútbol", icon: ICON.futbol },
-      { id: "juegos", label: "Juegos infantiles con arenero", icon: ICON.juegos },
-      { id: "laguna", label: "Laguna", icon: ICON.laguna },
+      { id: "juegos", label: "Juegos infantiles", icon: ICON.juegos },
+      { id: "reservorio", label: "Reservorio de agua propio", icon: ICON.laguna },
       { id: "seguridad-24", label: "Seguridad 24hs", icon: ICON.seguridad },
     ],
-    infraestructura: ["Servicios completos (TODO: detallar)"],
-    seguridad: ["Vigilancia 24hs"],
-    comercial: {},
+    infraestructura: [
+      "Agua potable",
+      "Luz (red eléctrica subterránea)",
+      "Cloacas",
+      "Calles asfaltadas e iluminadas",
+      "Cable e internet",
+    ],
+    seguridad: ["Vigilancia 24hs", "Portal de control de acceso", "Cerco perimetral"],
     miradaBroker: {
-      titular: "Lotes grandes y uniformes, sin lujo excesivo.",
+      titular: "Tiene practice de golf propio. El secreto mejor guardado del corredor.",
       parrafo:
-        "Vida Club de Campo apunta a un comprador específico: el que quiere un lote grande (los 1.000 m² son la norma, no la excepción), tranquilidad real, y un set de amenities sólido sin pagar el ticket de Lagoon. Es de los pocos barrios del corredor donde la mayoría de los lotes son del mismo tamaño, lo que da homogeneidad al barrio y previsibilidad al comprador. Si viajás seguido, sumá que estás a minutos del Aeropuerto de Rosario.",
+        "Vida Club de Campo es el barrio que más me sorprendió cuando lo recorrí en obra. La gente lo conoce por los lotes grandes (1.000-1.270 m² uniformes), pero pocos saben que tiene practice de golf con tres greens-isla dentro del barrio. Eso, sumado a un Club House de autor en hormigón visto y madera, y siete u ocho canchas de tenis de polvo de ladrillo frente al reservorio, te pone a un escalón de Kentucky con un ticket muy distinto. La otra mitad ya tiene casas habitadas, así que no estás comprando una promesa sino un barrio que ya está viviendo. Si viajás seguido, sumá que estás a minutos del Aeropuerto de Rosario.",
     },
     perfilComprador: [
       "Compradores que quieren lote grande (1.000 m²) como base",
+      "Golfistas que no quieren pagar Kentucky pero quieren practicar",
+      "Familias deportivas (mucho tenis disponible)",
       "Viajeros frecuentes que valoran cercanía al aeropuerto",
-      "Familias que buscan barrio tranquilo, no fiesta",
     ],
-    tags: ["lotes-grandes", "aeropuerto", "tenis", "futbol", "laguna"],
+    tags: ["lotes-grandes", "practice-golf", "aeropuerto", "tenis", "paddle", "futbol", "clubhouse-diseño", "reservorio"],
     tokko: { matchByTitle: ["vida club de campo"] },
-    imagenes: { hero: "/barrios/vida-club-de-campo/hero.jpg" },
+    imagenes: {
+      hero: "/barrios/vida-club-de-campo/hero-clubhouse-octogonal.jpg",
+      galeria: [
+        "/barrios/vida-club-de-campo/clubhouse-interior-techo-madera.jpg",
+        "/barrios/vida-club-de-campo/clubhouse-jardin-central.jpg",
+        "/barrios/vida-club-de-campo/clubhouse-vista-frontal.jpg",
+        "/barrios/vida-club-de-campo/clubhouse-arquitectura.jpg",
+        "/barrios/vida-club-de-campo/aerea-clubhouse-practice.jpg",
+        "/barrios/vida-club-de-campo/practice-golf-tenis.jpg",
+        "/barrios/vida-club-de-campo/practice-golf-detalle.jpg",
+        "/barrios/vida-club-de-campo/tenis-aerea.jpg",
+        "/barrios/vida-club-de-campo/tenis-paddle-paisaje.jpg",
+        "/barrios/vida-club-de-campo/portal-ingreso-aereo.jpg",
+        "/barrios/vida-club-de-campo/portal-ingreso-detalle.jpg",
+        "/barrios/vida-club-de-campo/aerea-barrio-completo.jpg",
+        "/barrios/vida-club-de-campo/aerea-lotes-casas.jpg",
+        "/barrios/vida-club-de-campo/cenital-clubhouse-conjunto.jpg",
+        "/barrios/vida-club-de-campo/conjunto-vertical.jpg",
+      ],
+    },
     seo: {
-      metaTitle: "Vida Club de Campo, Funes — Lotes de 1.000 m² | SI Inmobiliaria",
+      metaTitle: "Vida Club de Campo, Funes — Practice de golf, Club House de autor y lotes de 1.000 m² | SI Inmobiliaria",
       metaDescription:
-        "Vida Club de Campo: 659 lotes de 1.000 m² en Funes, a minutos del Aeropuerto Rosario. Club House, deportes y vida social activa. Stock por SI Inmobiliaria.",
+        "Vida Club de Campo: 659 lotes de 1.000 m² con practice de golf, Club House de autor en hormigón visto y 7 canchas de tenis. A minutos del Aeropuerto Rosario. Stock por SI Inmobiliaria.",
       keywordsLongTail: [
         "vida club de campo funes",
         "lote 1000 m2 funes",
@@ -439,7 +471,6 @@ export const BARRIOS: Barrio[] = [
       "Red cloacal",
     ],
     seguridad: ["Vigilancia 24hs"],
-    comercial: {},
     miradaBroker: {
       titular: "Acceso directo a la autopista y deportes en serio.",
       parrafo:
@@ -475,14 +506,15 @@ export const BARRIOS: Barrio[] = [
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
-      referencia: "Funes, sector norte (zona de gran crecimiento y proyección)",
-      accesos: ["Accesos al sector norte de Funes"],
+      direccionIngreso: "Bv. Mitre y Colonos de Funes, Funes",
+      referencia: "Funes, sector norte (zona de gran crecimiento y proyección), entre Funes City y Funes Norte",
+      accesos: ["Autopista Rosario–Córdoba (cercana)", "Av. Fuerza Aérea (cercana)"],
     },
     datosDuros: {
       cantidadLotes: 419,
       medidaLoteDesde: 500,
       medidaLoteHasta: 700,
-      distintivos: ["Ticket más accesible del universo Vida", "Set deportivo amplio"],
+      distintivos: ["Ticket más accesible del universo Vida", "Set deportivo amplio", "Entrega prevista: mediados 2026"],
     },
     amenities: [
       { id: "clubhouse", label: "Club House", icon: ICON.clubhouse },
@@ -496,9 +528,13 @@ export const BARRIOS: Barrio[] = [
       { id: "laguna", label: "Laguna", icon: ICON.laguna },
       { id: "seguridad-24", label: "Seguridad 24hs", icon: ICON.seguridad },
     ],
-    infraestructura: ["Servicios completos (TODO: detallar)"],
+    infraestructura: [
+      "Red eléctrica subterránea",
+      "Red de telecomunicaciones",
+      "Planta de ósmosis inversa (agua)",
+      "Red cloacal",
+    ],
     seguridad: ["Vigilancia 24hs"],
-    comercial: {},
     miradaBroker: {
       titular: "La entrada accesible al universo Vida.",
       parrafo:
@@ -540,6 +576,7 @@ export const BARRIOS: Barrio[] = [
     },
     datosDuros: {
       hectareasTotales: 242,
+      cantidadLotes: 676,
       medidaLoteDesde: 1200,
       medidaLoteHasta: 1200,
       distintivos: [
@@ -547,6 +584,8 @@ export const BARRIOS: Barrio[] = [
         "Lago artificial 7 hectáreas",
         "Añosas arboledas y tierras altas",
         "242 hectáreas — el más grande del corredor",
+        "Diseño urbano de Estudio BO (los mismos de San Sebastián y Funes Lakes)",
+        "Lotes ocupan solo el 36% del área total (resto verde + amenities)",
       ],
     },
     amenities: [
@@ -558,9 +597,13 @@ export const BARRIOS: Barrio[] = [
       { id: "parquizado", label: "Añosas arboledas", icon: ICON.parquizado },
       { id: "seguridad-24", label: "Seguridad 24hs", icon: ICON.seguridad },
     ],
-    infraestructura: ["Servicios completos (TODO: detallar)"],
-    seguridad: ["Vigilancia 24hs"],
-    comercial: {},
+    infraestructura: [
+      "Servicios completos (agua, luz, gas, cloacas)",
+      "Generador eléctrico de respaldo en todo el barrio",
+      "Caldera central",
+      "Calles internas pavimentadas y forestadas",
+    ],
+    seguridad: ["Vigilancia 24hs", "Cerco perimetral"],
     miradaBroker: {
       titular: "El único con golf de 18 hoyos. El clásico del corredor.",
       parrafo:
@@ -598,8 +641,9 @@ export const BARRIOS: Barrio[] = [
     estado: "consolidado",
     zona: "funes",
     ubicacion: {
-      referencia: "Funes",
-      accesos: ["TODO"],
+      referencia: "Funes, sobre Av. Fuerza Aérea, entre Cadaqués (al norte) y otros barrios consolidados",
+      direccionIngreso: "Av. Fuerza Aérea 2300, Funes",
+      accesos: ["Av. Fuerza Aérea", "Autopista Rosario–Córdoba (cercana)"],
     },
     datosDuros: {
       distintivos: ["Grupo electrógeno para todas las unidades (raro y diferencial)", "Barrio chico, comunidad consolidada"],
@@ -613,9 +657,12 @@ export const BARRIOS: Barrio[] = [
       { id: "electrogeno", label: "Grupo electrógeno para todas las unidades", icon: ICON.electrogeno },
       { id: "seguridad-24", label: "Seguridad 24hs", icon: ICON.seguridad },
     ],
-    infraestructura: ["Servicios completos (TODO: detallar)"],
+    infraestructura: [
+      "Servicios completos (agua, luz, gas, cloacas)",
+      "Grupo electrógeno integrado",
+      "Calles asfaltadas iluminadas",
+    ],
     seguridad: ["Vigilancia 24hs"],
-    comercial: {},
     miradaBroker: {
       titular: "Comunidad chica y grupo electrógeno para todas las unidades.",
       parrafo:
@@ -651,11 +698,20 @@ export const BARRIOS: Barrio[] = [
     estado: "consolidado",
     zona: "funes",
     ubicacion: {
-      referencia: "Funes, tierras altas",
-      accesos: ["TODO"],
+      referencia: "Funes, tierras altas — sobre Av. Fuerza Aérea (altura 3100), próximo a calle Galindo y al acceso a la Autopista",
+      direccionIngreso: "Av. Fuerza Aérea 3100, Funes",
+      distanciaCentroRosarioMin: 25,
+      accesos: ["Av. Fuerza Aérea", "Autopista Rosario–Córdoba (vía calle Galindo)", "Tres vías de acceso"],
     },
     datosDuros: {
-      distintivos: ["Boulevard central forestado desde el ingreso", "Tierras altas (mejor drenaje)"],
+      medidaLoteDesde: 800,
+      medidaLoteHasta: 950,
+      distintivos: [
+        "Boulevard central forestado desde el ingreso",
+        "Tierras altas (mejor drenaje)",
+        "Lotes estándar 800 m² (20 × 40 m)",
+        "Barrio maduro de 15-20+ años (forestación 100% desarrollada)",
+      ],
     },
     amenities: [
       { id: "clubhouse", label: "Club House con restaurant", icon: ICON.clubhouse },
@@ -666,9 +722,12 @@ export const BARRIOS: Barrio[] = [
       { id: "parquizado", label: "Boulevard central forestado", icon: ICON.parquizado },
       { id: "seguridad-24", label: "Seguridad 24hs", icon: ICON.seguridad },
     ],
-    infraestructura: ["Servicios completos (TODO: detallar)"],
-    seguridad: ["Vigilancia 24hs"],
-    comercial: {},
+    infraestructura: [
+      "Servicios completos (agua, luz, gas, cloacas)",
+      "Calles asfaltadas",
+      "Cableado subterráneo",
+    ],
+    seguridad: ["Vigilancia 24hs", "Acceso controlado"],
     miradaBroker: {
       titular: "Punto medio justo. Tierras altas y boulevard forestado.",
       parrafo:
@@ -704,6 +763,7 @@ export const BARRIOS: Barrio[] = [
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
+      direccionIngreso: "Cimarrón entre calle Rodríguez y Av. Fuerza Aérea, Funes",
       referencia: "Funes, junto a San Sebastián, Vida y Aguadas",
       distanciaCentroRosarioMin: 20,
       accesos: [
@@ -713,15 +773,15 @@ export const BARRIOS: Barrio[] = [
       ],
     },
     datosDuros: {
-      cantidadLotes: 409,
+      cantidadLotes: 485,
       medidaLoteDesde: 500,
       medidaLoteHasta: 790,
       hectareasTotales: 50,
       distintivos: [
         "100% de los lotes con salida privada al agua",
-        "8 islas independientes interconectadas",
+        "8 islas independientes interconectadas (Singapur, Sumatra, Borneo, Bali, Java, Timor, Komodo, Guinea)",
         "10 km de costa lineal",
-        "20 hectáreas de lagos y canales",
+        "20 hectáreas de lagos y canales (de 50 ha totales)",
         "Diseño Estudio BO (los mismos de San Sebastián y Kentucky)",
         "Único barrio náutico del corredor",
       ],
@@ -756,7 +816,6 @@ export const BARRIOS: Barrio[] = [
       "Segundo anillo: control vehicular independiente por cada una de las 8 islas",
       "Tercer anillo: cerco perimetral inteligente con sensores, cámaras y patrullaje",
     ],
-    comercial: {},
     miradaBroker: {
       titular: "El único barrio náutico real del interior del país.",
       parrafo:
@@ -796,19 +855,21 @@ export const BARRIOS: Barrio[] = [
     estado: "consolidado",
     zona: "funes",
     ubicacion: {
-      direccionIngreso: "Av. Fuerza Aérea 3102, Funes",
-      referencia: "Av. Fuerza Aérea 3102, próximo al acceso de calle Galindo",
-      distanciaCentroRosarioMin: 17,
-      accesos: ["Autopista Rosario–Córdoba", "Calle Mendoza", "Calle Córdoba"],
+      direccionIngreso: "Av. Fuerza Aérea 4204, Funes",
+      referencia: "Funes, sobre Av. Fuerza Aérea (altura 4200), próximo al acceso de calle Galindo. Cul de sac en sectores premium.",
+      distanciaCentroRosarioMin: 20,
+      accesos: ["Autopista Rosario–Córdoba", "Av. Fuerza Aérea", "Calle Galindo"],
     },
     datosDuros: {
+      cantidadLotes: 308,
       medidaLoteDesde: 800,
-      medidaLoteHasta: 850,
+      medidaLoteHasta: 1215,
       distintivos: [
         "Rotonda en el ingreso con centros de salud, comercios, panaderías y gimnasios",
         "4 canchas de tenis de polvo de ladrillo",
         "Doble vía de acceso controlado",
         "Forestación desarrollada (uno de los consolidados de referencia)",
+        "308 lotes 800-1.215 m² (un caso de cul de sac premium)",
       ],
     },
     amenities: [
@@ -835,11 +896,6 @@ export const BARRIOS: Barrio[] = [
       "Monitoreo 24hs (cámaras + personal físico)",
       "Doble vía de acceso controlado por guardias",
     ],
-    comercial: {
-      precioLoteDesdeUSD: 75000,
-      precioCasaDesdeUSD: 110000,
-      notaComercial: "Casas pueden superar los USD 440.000 según m² cubiertos y calidad. Datos preliminares — confirmar con stock actual.",
-    },
     miradaBroker: {
       titular: "El barrio más práctico del corredor. Tenis serio.",
       parrafo:
