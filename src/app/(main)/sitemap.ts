@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { getProperties, generatePropertySlug } from '@/lib/tokko'
 import { getAllPosts } from '@/lib/blog'
 import { getDevelopments, generateDevSlug } from '@/lib/developments'
+import { BARRIOS } from '@/lib/barrios'
 
 const BASE = 'https://siinmobiliaria.com'
 
@@ -73,5 +74,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })))
   } catch {}
 
-  return [...staticRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
+  const barriosRoutes: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE}/barrios-privados`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    ...BARRIOS.map((b) => ({
+      url: `${BASE}/barrios-privados/${b.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    })),
+  ]
+
+  return [...staticRoutes, ...barriosRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
 }

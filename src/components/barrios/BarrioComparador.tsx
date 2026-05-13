@@ -65,9 +65,12 @@ export default function BarrioComparador({ defaultSlugs = [] }: Props) {
 
   const toggle = (slug: string) => {
     setSelected((curr) => {
-      if (curr.includes(slug)) return curr.filter((s) => s !== slug)
-      if (curr.length >= MAX) return [...curr.slice(1), slug]
-      return [...curr, slug]
+      let next: string[]
+      if (curr.includes(slug)) next = curr.filter((s) => s !== slug)
+      else if (curr.length >= MAX) next = [...curr.slice(1), slug]
+      else next = [...curr, slug]
+      trackEvent('barrios_comparador_use', { slugs: next.join(','), action: curr.includes(slug) ? 'remove' : 'add' })
+      return next
     })
   }
 

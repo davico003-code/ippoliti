@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Barrio } from '@/lib/barrios'
+import { trackEvent } from '@/lib/analytics'
 import BarrioCard from './BarrioCard'
 import BarrioFiltros, { type FiltrosState } from './BarrioFiltros'
 
@@ -25,6 +26,23 @@ interface Props {
 export default function BarrioGrid({ barrios }: Props) {
   const [filtros, setFiltros] = useState<FiltrosState>(defaultFiltros)
   const [openFiltros, setOpenFiltros] = useState(false)
+  const firstRender = useRef(true)
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false
+      return
+    }
+    const id = setTimeout(() => {
+      trackEvent('barrios_filter_apply', {
+        tier: filtros.tier,
+        zona: filtros.zona,
+        loteMin: filtros.loteDesdeMin,
+        tags: filtros.tags.join(','),
+      })
+    }, 400)
+    return () => clearTimeout(id)
+  }, [filtros])
 
   const filtrados = useMemo(() => {
     return barrios
