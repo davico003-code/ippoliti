@@ -276,6 +276,13 @@ export async function generateAudio(
   const text = await generateResumen(propertyId, snapshot)
   const { buffer, charsUsed } = await synthesizeWithElevenLabs(text)
 
+  // El proyecto tiene 3 Blob stores conectados (placas private, ippoliti-blog
+  // public, siinmobiliaria-audio public). El default BLOB_READ_WRITE_TOKEN
+  // apunta a "placas" (private) y rechaza access:'public', así que el audio
+  // necesita su token propio.
+  const blobToken = process.env.AUDIO_BLOB_READ_WRITE_TOKEN
+  if (!blobToken) throw new Error('AUDIO_BLOB_READ_WRITE_TOKEN no configurada')
+
   // allowOverwrite porque si la URL del cache expira pero queremos regenerar,
   // pisamos el blob existente. Las URLs nuevas pueden cambiar (Vercel agrega
   // un sufijo random al pathname), así que cacheamos la nueva URL devuelta.
@@ -283,6 +290,7 @@ export async function generateAudio(
     access: 'public',
     contentType: 'audio/mpeg',
     allowOverwrite: true,
+    token: blobToken,
   })
 
   const meta: AudioMeta = {
