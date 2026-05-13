@@ -23,10 +23,10 @@ function generarNoTeConviene(b: Barrio): string[] {
   if ((b.datosDuros.medidaLoteDesde ?? 0) < 800 && otrosTags.has('lotes-grandes')) {
     flags.push('Buscás lotes de 1.000+ m² (acá los lotes son más chicos).')
   }
-  if (b.tier === 'premium') {
+  if (b.tier === 'Premium') {
     flags.push('Tu presupuesto está pensado para barrios accesibles.')
   }
-  if (b.tier === 'en-desarrollo' && b.estado !== 'consolidado') {
+  if (b.tier === 'En desarrollo' && b.estado !== 'consolidado') {
     flags.push('Querés mudarte ya con todo armado (este barrio todavía está en desarrollo).')
   }
   if (!b.amenities.some((a) => a.id.includes('seguridad'))) {

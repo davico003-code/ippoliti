@@ -28,9 +28,10 @@ const FALLBACK_COORDS: Record<string, [number, number]> = {
 }
 
 const TIER_COLOR: Record<Barrio['tier'], string> = {
-  premium: '#C9A84C',
-  consolidado: '#1A5C38',
-  'en-desarrollo': '#9CA3AF',
+  Premium: '#C9A961',
+  Consolidado: '#1A5C38',
+  'Consolidado con vida joven': '#3D8B5C',
+  'En desarrollo': '#666666',
 }
 
 function makeIcon(tier: Barrio['tier']) {
@@ -104,9 +105,10 @@ export default function BarrioMapa({ barrios = BARRIOS as Barrio[] }: Props) {
           <span>Puntos de interés ABC1</span>
         </label>
         <div className="ml-auto flex flex-wrap items-center gap-3 text-[11px] text-stone-600">
-          <Legend color={TIER_COLOR.premium} label="Premium" />
-          <Legend color={TIER_COLOR.consolidado} label="Consolidado" />
-          <Legend color={TIER_COLOR['en-desarrollo']} label="En desarrollo" />
+          <Legend color={TIER_COLOR.Premium} label="Premium" />
+          <Legend color={TIER_COLOR.Consolidado} label="Consolidado" />
+          <Legend color={TIER_COLOR['Consolidado con vida joven']} label="Vida joven" />
+          <Legend color={TIER_COLOR['En desarrollo']} label="En desarrollo" />
         </div>
       </div>
 

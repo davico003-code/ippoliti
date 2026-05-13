@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { BARRIOS, type Barrio } from '@/lib/barrios'
 
 const TICKET_DESCRIPCION: Record<Barrio['tier'], string> = {
-  premium: 'Premium',
-  consolidado: 'Medio-alto',
-  'en-desarrollo': 'Accesible',
+  Premium: 'Premium',
+  Consolidado: 'Medio-alto',
+  'Consolidado con vida joven': 'Medio',
+  'En desarrollo': 'Accesible',
 }
 
 interface Props {

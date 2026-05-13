@@ -38,9 +38,10 @@ const TAGS_SERVICIOS = new Set(['comercial', 'servicios-ingreso', 'delivery-inte
 const TAGS_TRANQUILIDAD = new Set(['comunidad-chica', 'consolidado', 'forestacion-madura', 'arboleda-madura'])
 
 const TIER_PRESUPUESTO_DEFAULT: Record<Barrio['tier'], Presupuesto[]> = {
-  premium: ['150-300k', 'mas-300k'],
-  consolidado: ['80-150k', '150-300k'],
-  'en-desarrollo': ['menos-80k', '80-150k'],
+  Premium: ['150-300k', 'mas-300k'],
+  Consolidado: ['80-150k', '150-300k'],
+  'Consolidado con vida joven': ['80-150k', '150-300k'],
+  'En desarrollo': ['menos-80k', '80-150k'],
 }
 
 function matchPresupuesto(barrio: Barrio, presupuesto: Presupuesto): { ok: boolean; razon?: string } {
@@ -76,16 +77,16 @@ function matchDeportes(b: Barrio): string | null {
 }
 
 function matchLifestyle(b: Barrio): string | null {
-  if (b.tier === 'premium') return 'Producto premium con foco en lifestyle'
+  if (b.tier === 'Premium') return 'Producto premium con foco en lifestyle'
   if (hasAnyTag(b, TAGS_LIFESTYLE)) return 'Diseño con foco en lifestyle, no solo en lote'
   return null
 }
 
 function matchInversion(b: Barrio): string | null {
-  if (b.tier === 'premium' && b.estado !== 'consolidado') {
+  if (b.tier === 'Premium' && b.estado !== 'consolidado') {
     return 'Premium en desarrollo — mayor upside de revalorización'
   }
-  if (b.tier === 'consolidado' || b.estado === 'consolidado') {
+  if (b.tier === 'Consolidado' || b.tier === 'Consolidado con vida joven' || b.estado === 'consolidado') {
     return 'Reventa demostrada, valor consolidado'
   }
   return null
@@ -150,7 +151,7 @@ function matchComposicion(b: Barrio, c: Composicion): string | null {
       if (tieneDeportes) return 'Ideal para hijos en edad deportiva'
       return null
     case 'jubilado-activo':
-      if (b.tags.includes('consolidado') || b.tier === 'consolidado') {
+      if (b.tags.includes('consolidado') || b.tier === 'Consolidado' || b.tier === 'Consolidado con vida joven') {
         return 'Comunidad consolidada y ritmo amable'
       }
       return null
@@ -159,7 +160,7 @@ function matchComposicion(b: Barrio, c: Composicion): string | null {
       if (b.tags.includes('coworking') || b.amenities.some((a) => a.id.includes('coworking'))) {
         return 'Tiene coworking integrado, ideal si trabajás desde casa'
       }
-      if (b.tier === 'premium') return 'Producto premium pensado para vida social activa'
+      if (b.tier === 'Premium') return 'Producto premium pensado para vida social activa'
       return null
   }
 }
@@ -193,7 +194,7 @@ export function scoreBarrios(input: CalculadoraInput): BarrioMatch[] {
     }
 
     // Pequeño boost por tier premium y consolidado (reduce ties)
-    if (barrio.tier === 'premium') score += 4
+    if (barrio.tier === 'Premium') score += 4
     if (barrio.estado === 'consolidado') score += 3
 
     results.push({ barrio, score, razones })

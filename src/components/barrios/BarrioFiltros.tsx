@@ -18,9 +18,10 @@ interface Props {
 
 const TIERS: { value: FiltrosState['tier']; label: string }[] = [
   { value: 'todos', label: 'Todos' },
-  { value: 'premium', label: 'Premium' },
-  { value: 'consolidado', label: 'Consolidado' },
-  { value: 'en-desarrollo', label: 'En desarrollo' },
+  { value: 'Premium', label: 'Premium' },
+  { value: 'Consolidado', label: 'Consolidado' },
+  { value: 'Consolidado con vida joven', label: 'Consolidado · vida joven' },
+  { value: 'En desarrollo', label: 'En desarrollo' },
 ]
 
 const ZONAS: { value: FiltrosState['zona']; label: string }[] = [

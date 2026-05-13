@@ -7,9 +7,10 @@ import BarrioCard from './BarrioCard'
 import BarrioFiltros, { type FiltrosState } from './BarrioFiltros'
 
 const TIER_ORDER: Record<Barrio['tier'], number> = {
-  premium: 0,
-  consolidado: 1,
-  'en-desarrollo': 2,
+  Premium: 0,
+  Consolidado: 1,
+  'Consolidado con vida joven': 2,
+  'En desarrollo': 3,
 }
 
 const defaultFiltros: FiltrosState = {

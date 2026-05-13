@@ -6,9 +6,10 @@ import { TAG_LABELS } from '@/lib/barrios'
 import BarrioImage from './BarrioImage'
 
 const TIER_LABEL: Record<Barrio['tier'], { label: string; cls: string }> = {
-  premium: { label: 'Premium', cls: 'bg-gold-500 text-navy-900' },
-  consolidado: { label: 'Consolidado', cls: 'bg-brand-600 text-white' },
-  'en-desarrollo': { label: 'En desarrollo', cls: 'bg-stone-200 text-stone-800' },
+  Premium: { label: 'Premium', cls: 'bg-gold-500 text-navy-900' },
+  Consolidado: { label: 'Consolidado', cls: 'bg-brand-600 text-white' },
+  'Consolidado con vida joven': { label: 'Consolidado · vida joven', cls: 'bg-[#3D8B5C] text-white' },
+  'En desarrollo': { label: 'En desarrollo', cls: 'bg-stone-200 text-stone-800' },
 }
 
 interface Props {

@@ -3,7 +3,13 @@
 // Generado: data curada por David Flores, Mat. 0621
 // IMPORTANTE: este archivo es la fuente única de verdad para /barrios-privados
 
-export type BarrioTier = "premium" | "consolidado" | "en-desarrollo";
+// Taxonomía editorial 4-tiers (2026-05): Premium / Consolidado / Consolidado con
+// vida joven / En desarrollo. Reemplaza la taxonomía legacy de 3 niveles.
+export type BarrioTier =
+  | "Premium"
+  | "Consolidado"
+  | "Consolidado con vida joven"
+  | "En desarrollo";
 export type BarrioZona = "funes" | "roldan";
 
 export interface Amenity {
@@ -15,6 +21,31 @@ export interface Amenity {
 export interface MiradaBroker {
   titular: string; // frase corta de cierre
   parrafo: string; // 3-5 oraciones de David como broker
+}
+
+// Campos editoriales SEO (provienen de barrios-editorial-data.ts y se mergean
+// al BARRIOS al construir el módulo). Todos opcionales — un barrio nuevo que
+// no tenga editorial cargado renderea normalmente sin esta sección.
+export interface StatEditorial {
+  value: string;
+  unit: string;
+  label: string;
+}
+export interface ContenidoSEO {
+  intro: string;
+  vidaAdentro: string;
+  ubicacionTexto: string;
+  miradaBroker: string;
+  comparado: string;
+}
+export interface FAQItem {
+  pregunta: string;
+  respuesta: string;
+}
+export interface BarrioPalette {
+  from: string;
+  to: string;
+  accent: string;
 }
 
 export interface Barrio {
@@ -65,6 +96,19 @@ export interface Barrio {
     metaDescription: string;
     keywordsLongTail: string[];
   };
+  // Editorial SEO (opcionales — provienen de barrios-editorial-data.ts)
+  subtitulo?: string;
+  tierColor?: string;
+  palette?: BarrioPalette;
+  elementoSvg?: string;
+  stats?: StatEditorial[];
+  amenitiesEditorial?: string[];
+  contenidoSEO?: ContenidoSEO;
+  faqExtendida?: FAQItem[];
+  keywords?: string;
+  comparativaKeys?: string[];
+  ubicacionEditorial?: string;
+  distanciaRosario?: string;
 }
 
 const ICON = {
@@ -100,7 +144,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "San Sebastián",
     nombreCompleto: "San Sebastián — Barrio Privado",
     desarrollador: "Rosseti–Rosental",
-    tier: "consolidado",
+    tier: "Consolidado con vida joven",
     estado: "consolidado",
     zona: "funes",
     ubicacion: {
@@ -180,7 +224,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Vida Lagoon",
     nombreCompleto: "Vida Lagoon — Barrio con Laguna Cristalina",
     desarrollador: "Rosseti–Rosental",
-    tier: "premium",
+    tier: "En desarrollo",
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
@@ -261,7 +305,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Vida Barrio Cerrado",
     nombreCompleto: "Vida — Un Barrio para Vivir",
     desarrollador: "Rosseti–Rosental",
-    tier: "en-desarrollo",
+    tier: "Consolidado con vida joven",
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
@@ -336,7 +380,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Vida Club de Campo",
     nombreCompleto: "Vida Club de Campo",
     desarrollador: "Rosseti–Rosental",
-    tier: "en-desarrollo",
+    tier: "En desarrollo",
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
@@ -434,7 +478,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Vida Jardín",
     nombreCompleto: "Vida Jardín",
     desarrollador: "Rosseti–Rosental",
-    tier: "en-desarrollo",
+    tier: "En desarrollo",
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
@@ -502,7 +546,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Vida Green",
     nombreCompleto: "Vida Green",
     desarrollador: "Rosseti–Rosental",
-    tier: "en-desarrollo",
+    tier: "En desarrollo",
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
@@ -566,7 +610,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Kentucky",
     nombreCompleto: "Kentucky Club de Campo",
     desarrollador: "Kentucky Club de Campo",
-    tier: "premium",
+    tier: "Premium",
     estado: "consolidado",
     zona: "funes",
     ubicacion: {
@@ -637,7 +681,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Funes Hills San Marino",
     nombreCompleto: "Funes Hills San Marino",
     desarrollador: "Funes Hills",
-    tier: "consolidado",
+    tier: "Consolidado",
     estado: "consolidado",
     zona: "funes",
     ubicacion: {
@@ -694,7 +738,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Funes Hills Cadaqués",
     nombreCompleto: "Funes Hills Cadaqués",
     desarrollador: "Funes Hills",
-    tier: "consolidado",
+    tier: "Consolidado",
     estado: "consolidado",
     zona: "funes",
     ubicacion: {
@@ -759,7 +803,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Funes Lakes",
     nombreCompleto: "Funes Lakes — Barrio Náutico",
     desarrollador: "Funes Lakes (diseño: Estudio BO)",
-    tier: "premium",
+    tier: "En desarrollo",
     estado: "en-desarrollo",
     zona: "funes",
     ubicacion: {
@@ -851,7 +895,7 @@ export const BARRIOS: Barrio[] = [
     nombre: "Funes Hills Miraflores",
     nombreCompleto: "Funes Hills Miraflores",
     desarrollador: "Funes Hills",
-    tier: "consolidado",
+    tier: "Consolidado",
     estado: "consolidado",
     zona: "funes",
     ubicacion: {
@@ -922,6 +966,15 @@ export const BARRIOS: Barrio[] = [
     },
   },
 ];
+
+// Merge editorial SEO data al BARRIOS al cargar el módulo.
+// El spread editorial GANA sobre la entrada base — la fuente de verdad del
+// contenido SEO (intro, mirada del broker, FAQ, etc.) es barrios-editorial-data.ts.
+import { BARRIOS_EDITORIAL as _BARRIOS_EDITORIAL } from "./barrios-editorial-data";
+for (const _b of BARRIOS) {
+  const _ed = _BARRIOS_EDITORIAL[_b.slug];
+  if (_ed) Object.assign(_b, _ed);
+}
 
 // Helpers para componentes
 export const getBarrioBySlug = (slug: string): Barrio | undefined =>
