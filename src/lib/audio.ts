@@ -3,17 +3,20 @@
 // Pipeline:
 //   1. generateResumen(propertyId, snapshot?) → llama Anthropic Haiku con un
 //      system prompt orientado a un resumen oral natural argentino. Cachea el
-//      texto en Redis (audio:resumen:{id}:text TTL 30d).
+//      texto en Redis (audio:resumen:v3:{id}:text TTL 30d).
 //   2. generateAudio(propertyId, snapshot?) → reusa generateResumen + llama
-//      OpenAI TTS (tts-1 / nova / 1.05x speed / mp3) → sube el buffer a
-//      Vercel Blob como audio/{id}.mp3 → cachea la URL en Redis
-//      (audio:resumen:{id}:url TTL 365d, las URLs del Blob son estables).
+//      ElevenLabs (eleven_multilingual_v2, voice configurada por env) → sube
+//      el buffer a Vercel Blob como audio/v3/{id}.mp3 → cachea la URL en
+//      Redis (audio:resumen:v3:{id}:url TTL 365d, las URLs del Blob son estables).
 //
 // El snapshot opcional permite reusar datos ya leídos (caso verficha.casa
 // que ya tiene el snapshot en mano) y evita el round-trip a Tokko.
+//
+// La generación es OPT-IN: se dispara únicamente desde /admin/audio. La ficha
+// no precachea audio automáticamente — si no hay audio cacheado, el componente
+// AudioSummary no se renderiza.
 
 import Anthropic from '@anthropic-ai/sdk'
-import OpenAI from 'openai'
 import { put } from '@vercel/blob'
 
 import { redis } from './redis'
@@ -32,19 +35,29 @@ import type { FichaSnapshot } from './ficha'
 const TEXT_TTL_SECONDS = 30 * 24 * 60 * 60 // 30d
 const URL_TTL_SECONDS = 365 * 24 * 60 * 60 // 365d (la URL del Blob es estable)
 
-// Bump esto cuando cambies SYSTEM_PROMPT o ajustes el formato esperado del
-// resumen. Las keys viejas quedan huérfanas en Redis (expiran solas), las
-// nuevas regeneran texto + audio con el nuevo formato.
-const PIPELINE_VERSION = 'v2'
+// Bump esto cuando cambies SYSTEM_PROMPT, el proveedor TTS o ajustes el formato
+// esperado del resumen. Las keys viejas quedan huérfanas en Redis (expiran
+// solas) y los blobs huérfanos en Vercel Blob se limpian a mano.
+//   v2 → OpenAI tts-1 voice nova (legacy)
+//   v3 → ElevenLabs eleven_multilingual_v2
+const PIPELINE_VERSION = 'v3'
 
 const TEXT_KEY = (id: number) => `audio:resumen:${PIPELINE_VERSION}:${id}:text`
 const URL_KEY = (id: number) => `audio:resumen:${PIPELINE_VERSION}:${id}:url`
 const BLOB_PATH = (id: number) => `audio/${PIPELINE_VERSION}/${id}.mp3`
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001'
-const TTS_MODEL = 'tts-1'
-const TTS_VOICE = 'nova'
-const TTS_SPEED = 1.05
+
+// ElevenLabs TTS config
+const ELEVENLABS_MODEL = 'eleven_multilingual_v2'
+const ELEVENLABS_VOICE_FALLBACK = 'QK4xDwo9ESPHA4JNUpX3'
+const ELEVENLABS_OUTPUT_FORMAT = 'mp3_44100_128'
+const ELEVENLABS_VOICE_SETTINGS = {
+  stability: 0.5,
+  similarity_boost: 0.75,
+  style: 0.0,
+  use_speaker_boost: true,
+} as const
 
 // ── System prompt: voz argentina, conversacional, 600-800 chars (~45-55s TTS) ──
 const SYSTEM_PROMPT = `Sos un asesor inmobiliario argentino con muchos años de oficio, describiendo una propiedad para un audio de presentación. Tu trabajo es generar un resumen oral que sea PLACENTERO de escuchar, como si la persona te tuviera al lado caminando por la propiedad. Lo va a escuchar alguien de 40 a 65 años desde su celular.
@@ -178,15 +191,35 @@ export async function generateResumen(
   return text
 }
 
-// ── Generate audio (TTS + Blob) ─────────────────────────────────────────────
+// ── Generate audio (ElevenLabs TTS + Blob) ──────────────────────────────────
 
-let _openai: OpenAI | null = null
-function openai(): OpenAI {
-  if (_openai) return _openai
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) throw new Error('OPENAI_API_KEY no configurada')
-  _openai = new OpenAI({ apiKey })
-  return _openai
+async function synthesizeWithElevenLabs(text: string): Promise<Buffer> {
+  const apiKey = process.env.ELEVENLABS_API_KEY
+  if (!apiKey) throw new Error('ELEVENLABS_API_KEY no configurada')
+
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || ELEVENLABS_VOICE_FALLBACK
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=${ELEVENLABS_OUTPUT_FORMAT}`
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'xi-api-key': apiKey,
+      'Content-Type': 'application/json',
+      Accept: 'audio/mpeg',
+    },
+    body: JSON.stringify({
+      text,
+      model_id: ELEVENLABS_MODEL,
+      voice_settings: ELEVENLABS_VOICE_SETTINGS,
+    }),
+  })
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '')
+    throw new Error(`ElevenLabs ${res.status}: ${detail.slice(0, 300) || res.statusText}`)
+  }
+
+  return Buffer.from(await res.arrayBuffer())
 }
 
 export async function generateAudio(
@@ -197,16 +230,7 @@ export async function generateAudio(
   if (cachedUrl && typeof cachedUrl === 'string') return cachedUrl
 
   const text = await generateResumen(propertyId, snapshot)
-
-  const speech = await openai().audio.speech.create({
-    model: TTS_MODEL,
-    voice: TTS_VOICE,
-    input: text,
-    speed: TTS_SPEED,
-    response_format: 'mp3',
-  })
-
-  const buffer = Buffer.from(await speech.arrayBuffer())
+  const buffer = await synthesizeWithElevenLabs(text)
 
   // allowOverwrite porque si la URL del cache expira pero queremos regenerar,
   // pisamos el blob existente. Las URLs nuevas pueden cambiar (Vercel agrega
