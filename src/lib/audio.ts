@@ -44,7 +44,23 @@ const PIPELINE_VERSION = 'v3'
 
 const TEXT_KEY = (id: number) => `audio:resumen:${PIPELINE_VERSION}:${id}:text`
 const URL_KEY = (id: number) => `audio:resumen:${PIPELINE_VERSION}:${id}:url`
+const META_KEY = (id: number) => `audio:resumen:${PIPELINE_VERSION}:${id}:meta`
 const BLOB_PATH = (id: number) => `audio/${PIPELINE_VERSION}/${id}.mp3`
+
+const AUDIO_KEY_PATTERN = `audio:resumen:${PIPELINE_VERSION}:*:url`
+const PROPERTY_ID_FROM_KEY = /^audio:resumen:[^:]+:(\d+):url$/
+
+export interface AudioMeta {
+  createdAt: string
+  charsUsed?: number
+  textLength: number
+}
+
+export interface AudioResult {
+  url: string
+  text: string
+  meta: AudioMeta
+}
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001'
 
@@ -193,7 +209,12 @@ export async function generateResumen(
 
 // ── Generate audio (ElevenLabs TTS + Blob) ──────────────────────────────────
 
-async function synthesizeWithElevenLabs(text: string): Promise<Buffer> {
+interface ElevenLabsSynthesis {
+  buffer: Buffer
+  charsUsed?: number
+}
+
+async function synthesizeWithElevenLabs(text: string): Promise<ElevenLabsSynthesis> {
   const apiKey = process.env.ELEVENLABS_API_KEY
   if (!apiKey) throw new Error('ELEVENLABS_API_KEY no configurada')
 
@@ -219,18 +240,41 @@ async function synthesizeWithElevenLabs(text: string): Promise<Buffer> {
     throw new Error(`ElevenLabs ${res.status}: ${detail.slice(0, 300) || res.statusText}`)
   }
 
-  return Buffer.from(await res.arrayBuffer())
+  // ElevenLabs devuelve el cost de la request en este header.
+  const costHeader = res.headers.get('character-cost') || res.headers.get('xi-character-cost')
+  const charsUsed = costHeader ? Number(costHeader) : undefined
+
+  const buffer = Buffer.from(await res.arrayBuffer())
+  return { buffer, charsUsed: Number.isFinite(charsUsed) ? charsUsed : undefined }
 }
 
+// `regenerate: true` pisa el cache de URL+meta (manteniendo el texto si ya está
+// cacheado, salvo que también lo invalides aparte). Útil para /admin/audio.
 export async function generateAudio(
   propertyId: number,
-  snapshot?: FichaSnapshot,
-): Promise<string> {
-  const cachedUrl = await redis.get<string>(URL_KEY(propertyId))
-  if (cachedUrl && typeof cachedUrl === 'string') return cachedUrl
+  options?: { snapshot?: FichaSnapshot; regenerate?: boolean },
+): Promise<AudioResult> {
+  const snapshot = options?.snapshot
+  const regenerate = options?.regenerate === true
+
+  if (!regenerate) {
+    const cachedUrl = await redis.get<string>(URL_KEY(propertyId))
+    if (cachedUrl && typeof cachedUrl === 'string') {
+      const text = (await redis.get<string>(TEXT_KEY(propertyId))) || ''
+      const meta = await getCachedAudioMeta(propertyId)
+      return {
+        url: cachedUrl,
+        text: typeof text === 'string' ? text : '',
+        meta: meta || {
+          createdAt: new Date(0).toISOString(),
+          textLength: typeof text === 'string' ? text.length : 0,
+        },
+      }
+    }
+  }
 
   const text = await generateResumen(propertyId, snapshot)
-  const buffer = await synthesizeWithElevenLabs(text)
+  const { buffer, charsUsed } = await synthesizeWithElevenLabs(text)
 
   // allowOverwrite porque si la URL del cache expira pero queremos regenerar,
   // pisamos el blob existente. Las URLs nuevas pueden cambiar (Vercel agrega
@@ -241,8 +285,16 @@ export async function generateAudio(
     allowOverwrite: true,
   })
 
+  const meta: AudioMeta = {
+    createdAt: new Date().toISOString(),
+    charsUsed,
+    textLength: text.length,
+  }
+
   await redis.set(URL_KEY(propertyId), blob.url, { ex: URL_TTL_SECONDS })
-  return blob.url
+  await redis.set(META_KEY(propertyId), JSON.stringify(meta), { ex: URL_TTL_SECONDS })
+
+  return { url: blob.url, text, meta }
 }
 
 // ── Lookup-only (no genera) ─────────────────────────────────────────────────
@@ -250,4 +302,44 @@ export async function generateAudio(
 export async function getCachedAudioUrl(propertyId: number): Promise<string | null> {
   const cached = await redis.get<string>(URL_KEY(propertyId))
   return typeof cached === 'string' ? cached : null
+}
+
+export async function getCachedAudioMeta(propertyId: number): Promise<AudioMeta | null> {
+  const raw = await redis.get<string | AudioMeta>(META_KEY(propertyId))
+  if (!raw) return null
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw) as AudioMeta } catch { return null }
+  }
+  return raw as AudioMeta
+}
+
+export async function getCachedAudioText(propertyId: number): Promise<string | null> {
+  const cached = await redis.get<string>(TEXT_KEY(propertyId))
+  return typeof cached === 'string' ? cached : null
+}
+
+/**
+ * Lista los property IDs que tienen audio cacheado en la pipeline actual.
+ * Usa SCAN (no KEYS) para no bloquear Redis con datasets grandes.
+ */
+export async function listCachedAudioPropertyIds(): Promise<number[]> {
+  const ids: number[] = []
+  let cursor = '0'
+  // Pageamos hasta encontrar el final (cursor === '0') o un tope defensivo.
+  for (let i = 0; i < 50; i++) {
+    const [next, batch] = await redis.scan(cursor, {
+      match: AUDIO_KEY_PATTERN,
+      count: 200,
+    }) as [string, string[]]
+    for (const key of batch) {
+      const m = key.match(PROPERTY_ID_FROM_KEY)
+      if (m) {
+        const id = Number(m[1])
+        if (Number.isFinite(id)) ids.push(id)
+      }
+    }
+    cursor = next
+    if (cursor === '0') break
+  }
+  return Array.from(new Set(ids))
 }
