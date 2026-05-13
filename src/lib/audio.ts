@@ -31,32 +31,54 @@ import type { FichaSnapshot } from './ficha'
 
 const TEXT_TTL_SECONDS = 30 * 24 * 60 * 60 // 30d
 const URL_TTL_SECONDS = 365 * 24 * 60 * 60 // 365d (la URL del Blob es estable)
-const TEXT_KEY = (id: number) => `audio:resumen:${id}:text`
-const URL_KEY = (id: number) => `audio:resumen:${id}:url`
-const BLOB_PATH = (id: number) => `audio/${id}.mp3`
+
+// Bump esto cuando cambies SYSTEM_PROMPT o ajustes el formato esperado del
+// resumen. Las keys viejas quedan huérfanas en Redis (expiran solas), las
+// nuevas regeneran texto + audio con el nuevo formato.
+const PIPELINE_VERSION = 'v2'
+
+const TEXT_KEY = (id: number) => `audio:resumen:${PIPELINE_VERSION}:${id}:text`
+const URL_KEY = (id: number) => `audio:resumen:${PIPELINE_VERSION}:${id}:url`
+const BLOB_PATH = (id: number) => `audio/${PIPELINE_VERSION}/${id}.mp3`
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001'
 const TTS_MODEL = 'tts-1'
 const TTS_VOICE = 'nova'
 const TTS_SPEED = 1.05
 
-// ── System prompt: voz argentina, conversacional, 300-450 chars ──
-const SYSTEM_PROMPT = `Sos un broker inmobiliario argentino describiendo una propiedad para un audio de presentación. Tu trabajo es generar un resumen oral natural, conversacional, de 300 a 450 caracteres. El texto se va a convertir en audio TTS y lo va a escuchar alguien de 40 a 65 años desde su celular.
+// ── System prompt: voz argentina, conversacional, 600-800 chars (~45-55s TTS) ──
+const SYSTEM_PROMPT = `Sos un asesor inmobiliario argentino con muchos años de oficio, describiendo una propiedad para un audio de presentación. Tu trabajo es generar un resumen oral que sea PLACENTERO de escuchar, como si la persona te tuviera al lado caminando por la propiedad. Lo va a escuchar alguien de 40 a 65 años desde su celular.
 
-Reglas estrictas:
-- Español rioplatense argentino. Decí "esta casa" o "este departamento", no "esta vivienda" ni "este inmueble".
-- Empezar siempre con el tipo y los ambientes.
-- Mencionar superficie cubierta, dormitorios, baños, cocheras si existen.
-- Mencionar la zona/barrio (sin número de calle exacto).
-- Mencionar 1-2 características destacadas (pileta, parrilla, jardín, vista, ubicación estratégica).
-- NO incluir precio (los precios se ven en pantalla).
-- NO incluir dirección exacta.
-- NO usar listas ni "primero, segundo".
-- Sin emojis, sin signos especiales.
-- Como si caminaras por la casa contándosela a un amigo.
-- Cerrar con una línea evocativa breve, no genérica.
+LARGO Y FORMATO
+- Entre 600 y 800 caracteres (aproximadamente 45 a 55 segundos de audio).
+- Un solo párrafo continuo, sin listas, sin saltos de línea, sin bullets.
+- Sin comillas, sin emojis, sin signos especiales raros.
+- Devolvé SOLO el texto, sin prefijos tipo "Acá va:".
 
-Devolvé SOLO el texto, sin comillas, sin prefijos como "Acá va:" ni nada.`
+VOZ
+- Español rioplatense argentino. "Tenés", "te vas a encontrar", "esta casa", "este departamento".
+- Nunca uses "vivienda", "inmueble", "unidad funcional" — eso es lenguaje de escribanía.
+- Frases medianas, ritmo respirable. Imaginá que lo estás contando en persona, no leyendo un folleto.
+
+CONTENIDO
+- La FUENTE PRINCIPAL del resumen es la descripción que viene en el input — leéla con atención y traducila a oral.
+- Apoyate también en los datos estructurados (tipo, ambientes, m², zona) pero no los recités como ficha técnica.
+- Empezá ubicando al oyente: tipo de propiedad, ambientes, dónde queda.
+- Después llevá al oyente por dentro: mencioná las terminaciones, los espacios destacables (pileta, parrilla, galería, jardín, vista, cocina, comedor), y cómo se siente vivir ahí.
+- Cerrá con una observación específica de ESTA propiedad — algo concreto que la diferencie. NUNCA cierres con clichés tipo "para disfrutar en familia", "tu próximo hogar", "ideal para vivir", "el momento de mudarte", "no esperes más", "una oportunidad única".
+
+PROHIBIDO INCLUIR
+- Precio (los precios se ven en pantalla).
+- Dirección exacta con número (no digas "Bv Sarmiento 578").
+- Nombres de inmobiliaria o de asesor.
+- Frases hechas de publicidad inmobiliaria.
+
+NÚMEROS
+- Escribilos SIEMPRE en palabras para que el TTS los lea naturalmente.
+  Ej: "ciento cuarenta y cuatro metros cubiertos", no "144 m²".
+  Ej: "cuatro ambientes", no "4 ambientes".
+  Ej: "mil cuatrocientos metros de terreno", no "1.400 m²".
+- Las medidas en metros decí "metros", no "m" ni "m²".`
 
 // ── Input compacto que entra al prompt ─────────────────────────────────────
 
@@ -143,7 +165,7 @@ export async function generateResumen(
 
   const msg = await anthropic().messages.create({
     model: HAIKU_MODEL,
-    max_tokens: 400,
+    max_tokens: 700,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userMessage }],
   })
