@@ -2,9 +2,11 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { BARRIOS, getBarrioBySlug } from '@/lib/barrios'
 import { buildBarrioFaqs } from '@/lib/barrios/faq'
+import { getPlanoUrl } from '@/lib/barrios/planos'
 
 import BarrioHero from '@/components/barrios/BarrioHero'
 import BarrioContenidoEditorial from '@/components/barrios/BarrioContenidoEditorial'
+import BarrioDescargas from '@/components/barrios/BarrioDescargas'
 import BarrioStockTokko from '@/components/barrios/BarrioStockTokko'
 import BarrioNewsletter from '@/components/barrios/BarrioNewsletter'
 import BarrioCTAFinal from '@/components/barrios/BarrioCTAFinal'
@@ -148,6 +150,14 @@ export default function BarrioPage({ params }: Props) {
       {/* 2. CONTENIDO EDITORIAL SEO — 8 capítulos según 11-landings/{slug}.html.
          Hero + 8 bloques + CTA = exactamente lo del HTML maestro. */}
       <BarrioContenidoEditorial barrio={barrio} />
+
+      {/* 3. DESCARGAS — plano PDF si está cargado, sino fallback WhatsApp.
+         Drop el archivo en /public/barrios/{slug}/plano.pdf y se conecta. */}
+      <BarrioDescargas
+        slug={barrio.slug}
+        nombre={barrio.nombre}
+        planoUrl={getPlanoUrl(barrio.slug)}
+      />
 
       {/* Funcionales que no están en el HTML maestro pero suman valor:
          stock vivo de Tokko + form de captura de lead. */}
