@@ -37,13 +37,6 @@ const TAGS_LIFESTYLE = new Set(['premium', 'playa', 'nautico', 'lifestyle', 'dis
 const TAGS_SERVICIOS = new Set(['comercial', 'servicios-ingreso', 'delivery-interno'])
 const TAGS_TRANQUILIDAD = new Set(['comunidad-chica', 'consolidado', 'forestacion-madura', 'arboleda-madura'])
 
-const PRESUPUESTO_RANGOS: Record<Presupuesto, [number, number]> = {
-  'menos-80k': [0, 80000],
-  '80-150k': [50000, 150000],
-  '150-300k': [100000, 300000],
-  'mas-300k': [200000, Number.POSITIVE_INFINITY],
-}
-
 const TIER_PRESUPUESTO_DEFAULT: Record<Barrio['tier'], Presupuesto[]> = {
   premium: ['150-300k', 'mas-300k'],
   consolidado: ['80-150k', '150-300k'],

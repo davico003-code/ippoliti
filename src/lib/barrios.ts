@@ -157,7 +157,7 @@ export const BARRIOS: Barrio[] = [
       matchByTitle: ["san sebastian", "san sebastián"],
     },
     imagenes: {
-      hero: "/barrios/san-sebastian/hero.jpg",
+      hero: "/barrios/san-sebastian/hero.svg",
       galeria: [],
       plano: "/barrios/san-sebastian/plano.jpg",
     },
@@ -239,7 +239,7 @@ export const BARRIOS: Barrio[] = [
       matchByTitle: ["vida lagoon"],
     },
     imagenes: {
-      hero: "/barrios/vida-lagoon/hero.jpg",
+      hero: "/barrios/vida-lagoon/hero.svg",
       galeria: [],
     },
     seo: {
@@ -317,7 +317,7 @@ export const BARRIOS: Barrio[] = [
     tokko: {
       matchByTitle: ["vida barrio cerrado", "vida un barrio"],
     },
-    imagenes: { hero: "/barrios/vida-barrio-cerrado/hero.jpg" },
+    imagenes: { hero: "/barrios/vida-barrio-cerrado/hero.svg" },
     seo: {
       metaTitle: "Vida Barrio Cerrado, Funes — Lotes con centro comercial | SI Inmobiliaria",
       metaDescription:
@@ -483,7 +483,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["paddle", "tenis", "futbol", "deportes", "autopista", "bicisendas", "ósmosis-inversa"],
     tokko: { matchByTitle: ["vida jardin", "vida jardín"] },
-    imagenes: { hero: "/barrios/vida-jardin/hero.jpg" },
+    imagenes: { hero: "/barrios/vida-jardin/hero.svg" },
     seo: {
       metaTitle: "Vida Jardín, Funes — Lotes deportivos sobre autopista | SI Inmobiliaria",
       metaDescription:
@@ -547,7 +547,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["accesible", "paddle", "tenis", "futbol", "laguna", "ticket-medio"],
     tokko: { matchByTitle: ["vida green"] },
-    imagenes: { hero: "/barrios/vida-green/hero.jpg" },
+    imagenes: { hero: "/barrios/vida-green/hero.svg" },
     seo: {
       metaTitle: "Vida Green, Funes — Lotes desde 500 m² | SI Inmobiliaria",
       metaDescription:
@@ -617,7 +617,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["golf", "premium", "consolidado", "lago", "tenis", "arboleda-madura", "tierras-altas", "diseño-estudio-bo"],
     tokko: { matchByTitle: ["kentucky"] },
-    imagenes: { hero: "/barrios/kentucky/hero.jpg" },
+    imagenes: { hero: "/barrios/kentucky/hero.svg" },
     seo: {
       metaTitle: "Kentucky Club de Campo, Funes — Lotes con golf 18 hoyos | SI Inmobiliaria",
       metaDescription:
@@ -675,7 +675,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["comunidad-chica", "grupo-electrogeno", "tenis", "futbol", "pileta"],
     tokko: { matchByTitle: ["san marino", "funes hills san marino"] },
-    imagenes: { hero: "/barrios/funes-hills-san-marino/hero.jpg" },
+    imagenes: { hero: "/barrios/funes-hills-san-marino/hero.svg" },
     seo: {
       metaTitle: "Funes Hills San Marino — Barrio cerrado con grupo electrógeno | SI Inmobiliaria",
       metaDescription:
@@ -740,7 +740,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["tierras-altas", "forestacion-madura", "tenis", "futbol", "pileta", "consolidado"],
     tokko: { matchByTitle: ["cadaques", "cadaqués", "funes hills cadaques"] },
-    imagenes: { hero: "/barrios/funes-hills-cadaques/hero.jpg" },
+    imagenes: { hero: "/barrios/funes-hills-cadaques/hero.svg" },
     seo: {
       metaTitle: "Funes Hills Cadaqués — Barrio cerrado en tierras altas | SI Inmobiliaria",
       metaDescription:
@@ -830,7 +830,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["nautico", "laguna", "premium", "diseño-estudio-bo", "playa", "coworking", "kayak", "paddle-surf"],
     tokko: { matchByTitle: ["funes lakes"] },
-    imagenes: { hero: "/barrios/funes-lakes/hero.jpg" },
+    imagenes: { hero: "/barrios/funes-lakes/hero.svg" },
     seo: {
       metaTitle: "Funes Lakes — El único barrio náutico de Funes | SI Inmobiliaria",
       metaDescription:
@@ -909,7 +909,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["consolidado", "tenis-polvo-ladrillo", "futbol", "pileta", "servicios-ingreso", "delivery-interno"],
     tokko: { matchByTitle: ["miraflores", "funes hills miraflores"] },
-    imagenes: { hero: "/barrios/funes-hills-miraflores/hero.jpg" },
+    imagenes: { hero: "/barrios/funes-hills-miraflores/hero.svg" },
     seo: {
       metaTitle: "Funes Hills Miraflores — Lotes y casas en venta | SI Inmobiliaria",
       metaDescription:
