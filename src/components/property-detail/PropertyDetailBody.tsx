@@ -176,6 +176,58 @@ export default function PropertyDetailBody({
       {/* Mobile-only contact (inside modal, since modal is used only on desktop anyway this is defensive) */}
       {showMobileContact && (
         <section className={`md:hidden ${CARD}`}>
+          {/* Agente — foto + nombre + badge */}
+          {(() => {
+            const producer = property.producer
+            const name = producer?.name?.trim() || 'SI Inmobiliaria'
+            const initials =
+              name
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(s => s[0])
+                .join('')
+                .toUpperCase() || 'SI'
+            return (
+              <div className="flex items-center gap-3 mb-4">
+                {producer?.picture ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={producer.picture}
+                    alt={name}
+                    width={44}
+                    height={44}
+                    className="w-11 h-11 rounded-full object-cover flex-shrink-0 bg-gray-100"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                    style={{ background: '#1A5C38', fontFamily: "'Raleway', system-ui, sans-serif" }}
+                  >
+                    {initials}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <span
+                    className="block"
+                    style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: '#111' }}
+                  >
+                    {name}
+                  </span>
+                  <span className="text-xs text-gray-400 block truncate">Asesor inmobiliario</span>
+                </div>
+                <span
+                  className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
+                  style={{ background: '#e7f2eb', color: '#1A5C38' }}
+                >
+                  Asesor
+                </span>
+              </div>
+            )
+          })()}
+
           <div className="grid grid-cols-2 gap-2.5">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"

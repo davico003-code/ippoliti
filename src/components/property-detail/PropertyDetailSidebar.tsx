@@ -76,7 +76,7 @@ export default function PropertyDetailSidebar({
               {(() => {
                 const producer = property.producer
                 const name = producer?.name?.trim() || 'SI Inmobiliaria'
-                const subtitle = producer?.email?.trim() || 'Equipo SI Inmobiliaria'
+                const subtitle = 'Asesor inmobiliario'
                 const initials = name
                   .split(/\s+/)
                   .filter(Boolean)
