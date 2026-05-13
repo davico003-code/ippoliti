@@ -3,17 +3,21 @@
 // Body: { propertyId: number }
 // Returns: { ok: true, url: string }
 //
-// Sin auth. Es el endpoint que consume el componente AudioSummary al hacer
-// click en "Escuchá esta propiedad". Devuelve la URL del MP3 servido por
-// Vercel Blob. Si ya existe en cache, devuelve inmediato; si no, genera
-// resumen → TTS → upload → cachea (tarda 3-5s la primera vez por propiedad).
+// Requiere header x-team-code (validado contra SI_TEAM_CODE). La generación
+// quema créditos de ElevenLabs, así que el endpoint quedó restringido al
+// panel interno /admin/audio. El front público consume el cache vía
+// /api/audio/check (que es público).
 
 import { NextResponse } from 'next/server'
 import { generateAudio } from '@/lib/audio'
+import { assertTeamCode } from '@/lib/team-auth'
 
 export const maxDuration = 60
 
 export async function POST(req: Request) {
+  const unauth = assertTeamCode(req)
+  if (unauth) return unauth
+
   let body: { propertyId?: number | string } = {}
   try {
     body = await req.json()

@@ -3,16 +3,20 @@
 // Body: { propertyId: number }
 // Returns: { ok: true, text: string }
 //
-// Sin auth (uso público en /propiedades/[slug] y /v/[slug]). Endpoint chico
-// que sirve sobre todo para debugging/inspección — el componente del front
-// usa /api/audio/generar-audio que ya incluye el resumen.
+// Requiere header x-team-code (validado contra SI_TEAM_CODE). Endpoint chico
+// que sirve para debugging / preview en /admin/audio — el flujo principal usa
+// /api/audio/generar-audio que ya incluye el resumen.
 
 import { NextResponse } from 'next/server'
 import { generateResumen } from '@/lib/audio'
+import { assertTeamCode } from '@/lib/team-auth'
 
 export const maxDuration = 60
 
 export async function POST(req: Request) {
+  const unauth = assertTeamCode(req)
+  if (unauth) return unauth
+
   let body: { propertyId?: number | string } = {}
   try {
     body = await req.json()
