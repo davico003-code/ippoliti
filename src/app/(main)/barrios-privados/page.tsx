@@ -5,7 +5,7 @@ import { HUB_FAQS } from '@/lib/barrios/faq'
 
 import BarrioMapaWrapper from '@/components/barrios/BarrioMapaWrapper'
 import BarrioCalculadora from '@/components/barrios/BarrioCalculadora'
-import BarrioGrid from '@/components/barrios/BarrioGrid'
+import BarrioHubTierGrid from '@/components/barrios/BarrioHubTierGrid'
 import BarrioComparador from '@/components/barrios/BarrioComparador'
 import BarrioStatStrip from '@/components/barrios/BarrioStatStrip'
 import BarrioMediosLocales from '@/components/barrios/BarrioMediosLocales'
@@ -17,23 +17,22 @@ import HubTracker from './HubTracker'
 const CANONICAL = 'https://siinmobiliaria.com/barrios-privados'
 
 export const metadata: Metadata = {
-  title: 'Barrios privados del corredor Funes–Roldán — Guía 2026 | SI INMOBILIARIA',
+  title: 'Barrios privados de Funes y Roldán | SI Inmobiliaria',
   description:
-    '11 barrios privados del corredor Funes–Roldán analizados por brokers locales: precios, lotes, amenities, comparativas y stock actualizado. Mat. N° 0621.',
+    'Los 11 barrios cerrados de Funes y Roldán analizados sin filtro. Premium, consolidados y en desarrollo. Conocelos con la mirada de un broker de dos generaciones.',
   keywords: [
     'barrios privados funes',
-    'barrios cerrados funes',
-    'barrios privados roldan',
-    'lotes barrio cerrado funes',
-    'comprar lote funes',
-    'barrio nautico funes',
-    'barrios con golf funes',
+    'barrios cerrados roldan',
+    'barrios privados funes roldan',
+    'club de campo santa fe',
+    'lotes en venta funes',
+    'country messi rosario',
   ].join(', '),
   alternates: { canonical: CANONICAL },
   openGraph: {
-    title: 'Barrios privados del corredor Funes–Roldán | SI INMOBILIARIA',
+    title: 'Barrios privados de Funes y Roldán | SI Inmobiliaria',
     description:
-      '11 barrios, una sola guía hecha por brokers que viven en la zona. Datos reales, precios actualizados, comparativas honestas.',
+      'Una guía completa, escrita por brokers que viven y trabajan en la zona. Los 11 barrios cerrados de Funes y Roldán analizados sin filtro.',
     url: CANONICAL,
     type: 'website',
     siteName: 'SI INMOBILIARIA',
@@ -41,8 +40,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Barrios privados del corredor Funes–Roldán',
-    description: '11 barrios analizados por SI INMOBILIARIA — Mat. N° 0621',
+    title: 'Barrios privados de Funes y Roldán',
+    description: '11 barrios analizados por SI Inmobiliaria — Mat. 0621',
     images: ['/og-default.jpg'],
   },
 }
@@ -84,68 +83,65 @@ export default function BarriosPrivadosHub() {
       />
       <HubTracker />
 
-      {/* 1. HERO */}
-      <section className="relative isolate overflow-hidden bg-navy-700 px-6 py-20 text-white md:py-28">
-        <div className="absolute inset-0 -z-10 opacity-30">
-          <svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" className="h-full w-full">
-            <defs>
-              <linearGradient id="hub-bg" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#1A5C38" />
-                <stop offset="100%" stopColor="#0D3620" />
-              </linearGradient>
-              <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="2" cy="2" r="1" fill="white" opacity="0.15" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#hub-bg)" />
-            <rect width="100%" height="100%" fill="url(#dots)" />
-          </svg>
-        </div>
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold-300">
-            Guía 2026 · SI INMOBILIARIA
+      {/* 1. HERO editorial (referencia: 11-landings/index.html) */}
+      <section className="border-b border-[rgba(15,15,15,0.08)] bg-white px-6 pb-24 pt-32 text-[#0F0F0F] md:px-10 md:pb-28 md:pt-44">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="mb-8 flex items-center gap-4 font-raleway text-[16px] font-light italic text-[#8B7355] md:text-[18px]">
+            <span className="block h-px w-[60px] bg-[#8B7355]" aria-hidden />
+            Funes y Roldán · Santa Fe
           </p>
-          <h1 className="mb-6 font-raleway text-4xl font-semibold leading-tight md:text-6xl">
-            Barrios privados del corredor Funes–Roldán
+          <h1 className="mb-8 max-w-[1100px] font-raleway text-[clamp(48px,7vw,112px)] font-bold leading-none tracking-tight">
+            Los 11 barrios privados de{' '}
+            <span className="font-bold italic text-[#8B7355]">Funes y Roldán.</span>
           </h1>
-          <p className="mb-8 text-base text-white/85 md:text-xl">
-            11 barrios, una sola guía hecha por brokers que viven en la zona. Datos reales, precios
-            actualizados, comparativas honestas.
+          <p className="mb-14 max-w-[760px] font-raleway text-[18px] font-normal leading-[1.55] text-[#2A2A2A] md:text-[22px]">
+            Una guía completa, escrita por brokers que viven y trabajan en la zona. Los 11 barrios
+            cerrados de Funes y Roldán analizados sin filtro: lo que tienen, lo que les falta, y
+            para quién es cada uno. Si querés comprar bien, primero tenés que entender bien.
           </p>
-          <ul className="mb-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/70 md:text-sm">
-            <li className="flex items-center gap-1.5">
-              <span className="h-1 w-1 rounded-full bg-gold-300" />
-              11 barrios analizados
+          <ul className="flex flex-wrap gap-x-16 gap-y-6 border-t border-[rgba(15,15,15,0.08)] pt-8">
+            <li>
+              <div className="font-poppins text-[36px] font-semibold leading-none tabular-nums">
+                11
+              </div>
+              <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[#6B6B6B]">
+                Barrios analizados
+              </div>
             </li>
-            <li className="flex items-center gap-1.5">
-              <span className="h-1 w-1 rounded-full bg-gold-300" />
-              +1.500 operaciones cerradas
+            <li>
+              <div className="font-poppins text-[36px] font-semibold leading-none tabular-nums">
+                4.500+
+              </div>
+              <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[#6B6B6B]">
+                Lotes en la zona
+              </div>
             </li>
-            <li className="flex items-center gap-1.5">
-              <span className="h-1 w-1 rounded-full bg-gold-300" />
-              Mat. N° 0621
+            <li>
+              <div className="font-poppins text-[36px] font-semibold leading-none tabular-nums">
+                1.500+
+              </div>
+              <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[#6B6B6B]">
+                Propiedades vendidas por SI
+              </div>
+            </li>
+            <li>
+              <div className="font-poppins text-[36px] font-semibold leading-none tabular-nums">
+                2
+              </div>
+              <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[#6B6B6B]">
+                Generaciones
+              </div>
             </li>
           </ul>
-          <div className="flex flex-wrap justify-center gap-3">
-            <a
-              href="#calculadora"
-              className="rounded-lg bg-gold-500 px-6 py-3 font-raleway text-sm font-semibold text-navy-900 shadow-lg transition hover:scale-105"
-            >
-              Encontrar mi barrio ideal
-            </a>
-            <a
-              href="#listado"
-              className="rounded-lg border border-white/40 bg-white/10 px-6 py-3 font-raleway text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
-            >
-              Ver todos los barrios
-            </a>
-          </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl space-y-24 px-6 py-16">
-        {/* 2. MAPA */}
-        <section>
+      {/* 2. TIER-GROUPED GRID (4 secciones: Premium → Consolidado → Consolidado con vida joven → En desarrollo) */}
+      <BarrioHubTierGrid />
+
+      <div className="mx-auto max-w-6xl space-y-24 px-6 py-20">
+        {/* 3. MAPA — herramienta visual del corredor */}
+        <section id="mapa" className="scroll-mt-24">
           <div className="mb-6 max-w-2xl">
             <h2 className="mb-2 font-raleway text-3xl font-semibold text-navy-700 md:text-4xl">
               Dónde está cada barrio
@@ -158,7 +154,7 @@ export default function BarriosPrivadosHub() {
           <BarrioMapaWrapper />
         </section>
 
-        {/* 3. CALCULADORA */}
+        {/* 4. CALCULADORA */}
         <section id="calculadora" className="scroll-mt-24">
           <div className="mb-6 max-w-2xl">
             <h2 className="mb-2 font-raleway text-3xl font-semibold text-navy-700 md:text-4xl">
@@ -170,20 +166,6 @@ export default function BarriosPrivadosHub() {
             </p>
           </div>
           <BarrioCalculadora />
-        </section>
-
-        {/* 4. FILTROS + GRID */}
-        <section id="listado" className="scroll-mt-24">
-          <div className="mb-6 max-w-2xl">
-            <h2 className="mb-2 font-raleway text-3xl font-semibold text-navy-700 md:text-4xl">
-              Los 11 barrios del corredor
-            </h2>
-            <p className="text-base text-stone-600">
-              Filtrá por tier, zona, tamaño de lote o característica. Default: premium primero,
-              consolidados después, en desarrollo al final.
-            </p>
-          </div>
-          <BarrioGrid barrios={BARRIOS} />
         </section>
 
         {/* 5. COMPARADOR */}
