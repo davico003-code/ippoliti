@@ -529,7 +529,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["paddle", "tenis", "futbol", "deportes", "autopista", "bicisendas", "ósmosis-inversa"],
     tokko: { matchByTitle: ["vida jardin", "vida jardín"] },
-    imagenes: { hero: "/barrios/vida-jardin/hero.svg" },
+    imagenes: { hero: "/barrios/vida-jardin/hero.jpg" },
     seo: {
       metaTitle: "Vida Jardín, Funes — Lotes deportivos sobre autopista | SI Inmobiliaria",
       metaDescription:
@@ -663,7 +663,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["golf", "premium", "consolidado", "lago", "tenis", "arboleda-madura", "tierras-altas", "diseño-estudio-bo"],
     tokko: { matchByTitle: ["kentucky"] },
-    imagenes: { hero: "/barrios/kentucky/hero.svg" },
+    imagenes: { hero: "/barrios/kentucky/hero.jpg" },
     seo: {
       metaTitle: "Kentucky Club de Campo, Funes — Lotes con golf 18 hoyos | SI Inmobiliaria",
       metaDescription:
@@ -955,7 +955,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["consolidado", "tenis-polvo-ladrillo", "futbol", "pileta", "servicios-ingreso", "delivery-interno"],
     tokko: { matchByTitle: ["miraflores", "funes hills miraflores"] },
-    imagenes: { hero: "/barrios/funes-hills-miraflores/hero.svg" },
+    imagenes: { hero: "/barrios/funes-hills-miraflores/hero.jpg" },
     seo: {
       metaTitle: "Funes Hills Miraflores — Lotes y casas en venta | SI Inmobiliaria",
       metaDescription:
