@@ -5,6 +5,7 @@ import { buildBarrioFaqs } from '@/lib/barrios/faq'
 
 import BarrioHero from '@/components/barrios/BarrioHero'
 import BarrioTabsNav from '@/components/barrios/BarrioTabsNav'
+import BarrioContenidoEditorial from '@/components/barrios/BarrioContenidoEditorial'
 import BarrioMiradaBroker from '@/components/barrios/BarrioMiradaBroker'
 import BarrioFichaTecnica from '@/components/barrios/BarrioFichaTecnica'
 import BarrioAmenities from '@/components/barrios/BarrioAmenities'
@@ -31,14 +32,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const barrio = getBarrioBySlug(params.slug)
   if (!barrio) return {}
   const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`
+
+  // Prefer editorial subtitulo + 155 chars del intro cuando existen.
+  const title = barrio.subtitulo
+    ? `${barrio.nombre} · ${barrio.subtitulo} | SI Inmobiliaria`
+    : barrio.seo.metaTitle
+  const description = barrio.contenidoSEO?.intro
+    ? barrio.contenidoSEO.intro.slice(0, 155).trim()
+    : barrio.seo.metaDescription
+  const keywords = barrio.keywords ?? barrio.seo.keywordsLongTail.join(', ')
+
   return {
-    title: barrio.seo.metaTitle,
-    description: barrio.seo.metaDescription,
-    keywords: barrio.seo.keywordsLongTail.join(', '),
+    title,
+    description,
+    keywords,
     alternates: { canonical },
     openGraph: {
-      title: barrio.seo.metaTitle,
-      description: barrio.seo.metaDescription,
+      title,
+      description,
       url: canonical,
       images: [barrio.imagenes.hero ?? '/og-default.jpg'],
       type: 'website',
@@ -46,8 +57,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: barrio.seo.metaTitle,
-      description: barrio.seo.metaDescription,
+      title,
+      description,
       images: [barrio.imagenes.hero ?? '/og-default.jpg'],
     },
   }
@@ -67,14 +78,24 @@ export default function BarrioPage({ params }: Props) {
   const barrio = getBarrioBySlug(params.slug)
   if (!barrio) notFound()
 
-  const faqs = buildBarrioFaqs(barrio)
+  // FAQ del JSON-LD: priorizar la editorial (faqExtendida del JSON) sobre
+  // la generada heurística (buildBarrioFaqs). Si no hay editorial, fallback.
+  const faqsParaJsonLd = barrio.faqExtendida?.length
+    ? barrio.faqExtendida
+    : buildBarrioFaqs(barrio)
+  const faqsLegacy = buildBarrioFaqs(barrio)
+
+  const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`
+  const description = barrio.contenidoSEO?.intro
+    ? barrio.contenidoSEO.intro.slice(0, 300).trim()
+    : barrio.seo.metaDescription
 
   const placeJsonLd = {
-    '@context': 'https://schema.org',
     '@type': 'Place',
+    '@id': `${canonical}#place`,
     name: barrio.nombreCompleto,
-    description: barrio.seo.metaDescription,
-    url: `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`,
+    description,
+    url: canonical,
     address: {
       '@type': 'PostalAddress',
       addressLocality: barrio.zona === 'funes' ? 'Funes' : 'Roldán',
@@ -94,25 +115,51 @@ export default function BarrioPage({ params }: Props) {
       : undefined,
   }
 
+  const breadcrumbJsonLd = {
+    '@type': 'BreadcrumbList',
+    '@id': `${canonical}#breadcrumb`,
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Inicio',
+        item: 'https://siinmobiliaria.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Barrios privados',
+        item: 'https://siinmobiliaria.com/barrios-privados',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: barrio.nombre,
+        item: canonical,
+      },
+    ],
+  }
+
   const faqJsonLd = {
-    '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqs.map((f) => ({
+    '@id': `${canonical}#faq`,
+    mainEntity: faqsParaJsonLd.map((f) => ({
       '@type': 'Question',
       name: f.pregunta,
       acceptedAnswer: { '@type': 'Answer', text: f.respuesta },
     })),
   }
 
+  const graphJsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [placeJsonLd, breadcrumbJsonLd, faqJsonLd],
+  }
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(placeJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(graphJsonLd) }}
       />
       <LandingTracker slug={barrio.slug} nombre={barrio.nombre} />
 
@@ -122,9 +169,16 @@ export default function BarrioPage({ params }: Props) {
       {/* 2. STICKY TAB NAV */}
       <BarrioTabsNav items={TABS} />
 
+      {/* 3. CONTENIDO EDITORIAL SEO (8 bloques) — renderea null si no hay
+         contenidoSEO en este barrio, garantizando no romper barrios sin
+         editorial cargado. */}
+      <section id="resumen" className="scroll-mt-24">
+        <BarrioContenidoEditorial barrio={barrio} />
+      </section>
+
       <div className="mx-auto max-w-6xl space-y-20 px-6 py-16">
-        {/* 3. MIRADA DEL BROKER */}
-        <section id="resumen" className="scroll-mt-24">
+        {/* 3-bis. MIRADA DEL BROKER (legacy — coexiste con el callout dark del editorial) */}
+        <section className="scroll-mt-24">
           <BarrioMiradaBroker barrio={barrio} />
         </section>
 
@@ -248,10 +302,12 @@ export default function BarrioPage({ params }: Props) {
           />
         </section>
 
-        {/* 15. FAQ */}
-        <section id="faq" className="scroll-mt-24">
-          <BarrioFAQ faqs={faqs} title={`Preguntas frecuentes sobre ${barrio.nombre}`} />
-        </section>
+        {/* 15. FAQ legacy (solo si NO hay faqExtendida del editorial — para evitar duplicar el FAQ rich del bloque 8 editorial) */}
+        {!barrio.faqExtendida?.length && (
+          <section id="faq" className="scroll-mt-24">
+            <BarrioFAQ faqs={faqsLegacy} title={`Preguntas frecuentes sobre ${barrio.nombre}`} />
+          </section>
+        )}
 
         {/* CONTACTO (newsletter por barrio) */}
         <section id="contacto" className="scroll-mt-24">
