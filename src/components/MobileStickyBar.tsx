@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Calendar, MessageCircle, Share2, Link2, Check, Instagram } from 'lucide-react'
+import { Calendar, MessageCircle, Share2, Link2, Check, Instagram, Sparkles } from 'lucide-react'
 import VisitWidget from './VisitWidget'
+import CompartirFichaModal from './CompartirFichaModal'
 import { events } from '@/lib/analytics'
 
 interface Props {
@@ -20,6 +21,7 @@ export default function MobileStickyBar({
   const [shareOpen, setShareOpen] = useState(false)
   const [visitOpen, setVisitOpen] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [fichaModalOpen, setFichaModalOpen] = useState(false)
   const shareRef = useRef<HTMLDivElement>(null)
 
   // Cerrar popup compartir al tocar fuera
@@ -210,10 +212,40 @@ export default function MobileStickyBar({
                 </div>
                 {linkCopied ? 'Copiado!' : 'Copiar link'}
               </button>
+
+              <div style={{ height: 1, background: '#f0f3f5', margin: '4px 12px' }} />
+
+              <button
+                onClick={() => { setShareOpen(false); setFichaModalOpen(true) }}
+                className="w-full flex items-center gap-3 text-left"
+                style={{
+                  padding: '12px 16px',
+                  background: '#fafaf8',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#1A5C38',
+                  fontFamily: "'Raleway', system-ui, sans-serif",
+                }}
+              >
+                <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#e7f2eb' }}>
+                  <Sparkles className="w-4 h-4" style={{ color: '#1A5C38' }} />
+                </div>
+                Link para colega
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {fichaModalOpen && (
+        <CompartirFichaModal
+          propertyId={propertyId}
+          propertyTitle={propertyTitle}
+          onClose={() => setFichaModalOpen(false)}
+        />
+      )}
 
       {/* Bottom-sheet de visita (misma UX que el VisitMobileTrigger original) */}
       {visitOpen && (
