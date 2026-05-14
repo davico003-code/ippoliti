@@ -23,19 +23,29 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   }
 
   try {
-    // renderToStream retorna un Node Readable en el runtime nodejs (a pesar
-    // del tipo declarado como ReadableStream). Cast + toWeb para Response.
+    // renderToStream retorna un Node Readable en el runtime nodejs. Para evitar
+    // bugs de streaming en algunos runtimes, lo colectamos en un Buffer antes
+    // de retornar — el PDF de una página A4 son ~80-200KB, no es problema de
+    // memoria.
     const nodeStream = (await renderToStream(<AutorizacionPDF data={auth} />)) as unknown as Readable
-    const webStream = Readable.toWeb(nodeStream) as unknown as ReadableStream<Uint8Array>
-    return new Response(webStream, {
+    const chunks: Buffer[] = []
+    for await (const chunk of nodeStream) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+    }
+    const pdfBuffer = Buffer.concat(chunks)
+    return new Response(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="acuerdo-comercializacion-${slug}.pdf"`,
+        'Content-Length': String(pdfBuffer.length),
         'Cache-Control': 'private, max-age=0, must-revalidate',
       },
     })
   } catch (e) {
-    console.error('PDF render error:', e)
-    return new Response('Error generando PDF', { status: 500 })
+    const msg = e instanceof Error ? `${e.message}\n${e.stack}` : String(e)
+    console.error('PDF render error for slug', slug, ':\n', msg)
+    return new Response(`Error generando PDF: ${e instanceof Error ? e.message : 'unknown'}`, {
+      status: 500,
+    })
   }
 }

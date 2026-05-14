@@ -10,6 +10,7 @@
 // runtime de Node (en Vercel functions process.cwd() apunta al .next/server).
 
 import { createHash } from 'node:crypto'
+import fs from 'node:fs'
 import path from 'node:path'
 import {
   Document,
@@ -30,6 +31,36 @@ import {
   getNumeracion,
   renderPreambuloPDF,
 } from '@/lib/autorizaciones/documentoTexto'
+
+// ── Logo (carga al boot, cacheado en memoria del proceso) ───────────────────
+//
+// process.cwd() en Vercel functions puede no apuntar a la raíz del repo. Probamos
+// varios candidatos. Si todos fallan, devolvemos la URL pública absoluta.
+
+const LOGO_URL_FALLBACK = 'https://siinmobiliaria.com/logo-si-horizontal.png'
+
+let cachedLogo: Buffer | string | null = null
+
+function getLogoSrc(): Buffer | string {
+  if (cachedLogo) return cachedLogo
+  const candidates = [
+    path.join(process.cwd(), 'public', 'logo-si-horizontal.png'),
+    path.join(process.cwd(), '..', 'public', 'logo-si-horizontal.png'),
+    path.join('/var/task/public', 'logo-si-horizontal.png'),
+  ]
+  for (const p of candidates) {
+    try {
+      const buf = fs.readFileSync(p)
+      cachedLogo = buf
+      return buf
+    } catch {
+      // siguiente candidato
+    }
+  }
+  // Fallback: dejamos que @react-pdf/renderer haga el fetch HTTP.
+  cachedLogo = LOGO_URL_FALLBACK
+  return LOGO_URL_FALLBACK
+}
 
 // ── Fuentes ────────────────────────────────────────────────────────────────
 
@@ -219,7 +250,7 @@ export function AutorizacionPDF({ data }: Props) {
   const num = getNumeracion({ hasServicios, hasExpensas, isExclusiva })
 
   const hash = hashSlugSignedAt(data.slug, data.signed_at)
-  const logoPath = path.join(process.cwd(), 'public', 'logo-si-horizontal.png')
+  const logoSrc = getLogoSrc()
 
   return (
     <Document
@@ -230,7 +261,7 @@ export function AutorizacionPDF({ data }: Props) {
       <Page size="A4" style={styles.page}>
         {/* Header / logo — Image de @react-pdf/renderer, no acepta alt */}
         {/* eslint-disable-next-line jsx-a11y/alt-text */}
-        <Image src={logoPath} style={styles.headerLogo} />
+        <Image src={logoSrc} style={styles.headerLogo} />
 
         {/* Título + fecha */}
         <Text style={styles.titulo}>{titulo}</Text>
