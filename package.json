@@ -36,6 +36,7 @@
     "react-dom": "^18",
     "react-leaflet": "^4.2.1",
     "react-leaflet-cluster": "^4.0.0",
+    "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.8.1",
     "twilio": "^5.13.1",
     "yet-another-react-lightbox": "^3.29.2"
@@ -44,6 +45,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-signature-canvas": "^1.0.7",
     "autoprefixer": "^10.4.19",
     "canvas": "^3.2.2",
     "dotenv": "^17.3.1",

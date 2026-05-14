@@ -16,7 +16,7 @@
 // `auth:{slug}` ya no existe, lo removemos del set al listar.
 
 import { customAlphabet } from 'nanoid'
-import { redis } from './redis'
+import { redis } from '../redis'
 
 const TTL_SECONDS = 90 * 24 * 60 * 60 // 90d
 const KEY = (slug: string) => `auth:${slug}`

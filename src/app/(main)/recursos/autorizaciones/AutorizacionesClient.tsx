@@ -31,6 +31,7 @@ import type {
   TipoAutorizacion,
   TipoPropiedad,
 } from '@/lib/autorizaciones'
+import { WHATSAPP_TEMPLATE } from '@/lib/autorizaciones/documentoTexto'
 
 const STORAGE_KEY = 'si_team_access'
 const GREEN = '#1A5C38'
@@ -44,10 +45,6 @@ const TEXT_SOFT = '#5A5A55'
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
 
-// TODO: reemplazar con el copy definitivo de David cuando lo defina.
-function buildWhatsAppMessage(direccion: string, url: string): string {
-  return `Hola! Te paso el link de la autorización de venta para ${direccion}.\nPodés revisarla y firmarla desde tu celular acá:\n${url}`
-}
 
 // ── Entry component ────────────────────────────────────────────────────────
 
@@ -383,7 +380,7 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
   const handleWhatsApp = async () => {
     const result = created || await createOnly()
     if (!result) return
-    const text = encodeURIComponent(buildWhatsAppMessage(form.direccion.trim(), result.url))
+    const text = encodeURIComponent(WHATSAPP_TEMPLATE(result.url))
     window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer')
   }
 
