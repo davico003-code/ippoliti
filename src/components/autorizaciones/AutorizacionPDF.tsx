@@ -64,21 +64,26 @@ function getLogoSrc(): Buffer | string {
 
 // ── Fuentes ────────────────────────────────────────────────────────────────
 //
-// TTFs alojados localmente en /public/fonts/. @react-pdf v4.5 tipa `src` como
-// string, así que usamos siempre URL absoluta a nuestro propio dominio (Next
-// sirve los TTF estáticamente desde /public/). Los TTF se fetchean una vez y
-// se cachean dentro del proceso por la propia lib.
+// Variable font Raleway hospedado en /public/fonts/raleway-variable.ttf.
+// Lo registramos para varios pesos apuntando al mismo archivo; @react-pdf
+// interpola el weight si soporta variable fonts. Si no, todo el documento
+// queda en el mismo grosor pero al menos renderea (graceful degradation
+// preferible al "Unknown font format" o "Failed to fetch").
+//
+// URL absoluta a nuestro propio dominio (Next sirve /public/ estáticamente).
 
 const FONT_BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://siinmobiliaria.com'
 
+const RALEWAY_VAR = `${FONT_BASE_URL}/fonts/raleway-variable.ttf`
+
 Font.register({
   family: 'Raleway',
   fonts: [
-    { src: `${FONT_BASE_URL}/fonts/raleway-light.ttf`, fontWeight: 300 },
-    { src: `${FONT_BASE_URL}/fonts/raleway-regular.ttf`, fontWeight: 400 },
-    { src: `${FONT_BASE_URL}/fonts/raleway-medium.ttf`, fontWeight: 500 },
-    { src: `${FONT_BASE_URL}/fonts/raleway-semibold.ttf`, fontWeight: 600 },
+    { src: RALEWAY_VAR, fontWeight: 300 },
+    { src: RALEWAY_VAR, fontWeight: 400 },
+    { src: RALEWAY_VAR, fontWeight: 500 },
+    { src: RALEWAY_VAR, fontWeight: 600 },
   ],
 })
 
