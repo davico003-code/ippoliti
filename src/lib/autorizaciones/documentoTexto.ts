@@ -16,7 +16,7 @@ import type { Autorizacion, TipoPropiedad } from './index'
 // ── WhatsApp ────────────────────────────────────────────────────────────────
 
 export const WHATSAPP_TEMPLATE = (url: string): string =>
-  `Hola! 👋 Te envío la autorización de venta para que la puedas revisar y firmar desde tu celular en 1 minuto:\n\n${url}\n\nCualquier consulta estoy a disposición.\n\nDavid Flores\nCorredor Inmobiliario Mat. N.º 0621\nSI INMOBILIARIA`
+  `Hola! 👋 Te envío el acuerdo de comercialización para que lo puedas revisar y firmar desde tu celular en 1 minuto:\n\n${url}\n\nCualquier consulta estoy a disposición.\n\nDavid Flores\nCorredor Inmobiliario Mat. N.º 0621\nSI INMOBILIARIA`
 
 // ── Labels ──────────────────────────────────────────────────────────────────
 
@@ -99,8 +99,8 @@ function formatARS(n: number): string {
 
 export function getTitulo(auth: Pick<Autorizacion, 'tipo'>): string {
   return auth.tipo === 'exclusiva'
-    ? 'AUTORIZACIÓN DE VENTA EXCLUSIVA'
-    : 'AUTORIZACIÓN DE VENTA'
+    ? 'ACUERDO DE COMERCIALIZACIÓN EXCLUSIVA'
+    : 'ACUERDO DE COMERCIALIZACIÓN'
 }
 
 // ── Preámbulo (con 4 placeholders dinámicos para live preview) ──────────────
@@ -315,7 +315,7 @@ export function getNumeracion(opts: {
 // ── Cierre ──────────────────────────────────────────────────────────────────
 
 export const CIERRE_CONSENTIMIENTO =
-  'En conformidad con lo expuesto, El Autorizante presta consentimiento al contenido de la presente autorización mediante firma electrónica, conforme la Ley Nacional N.º 25.506.'
+  'En conformidad con lo expuesto, El Autorizante presta consentimiento al contenido del presente acuerdo de comercialización mediante firma electrónica, conforme la Ley Nacional N.º 25.506.'
 
 export function formatCierreFirma(date: Date): string {
   return `Firmado digitalmente en la ciudad de Rosario, el ${formatFechaFirma(date)}.`

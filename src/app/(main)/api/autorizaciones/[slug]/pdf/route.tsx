@@ -30,7 +30,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     return new Response(webStream, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="autorizacion-venta-${slug}.pdf"`,
+        'Content-Disposition': `attachment; filename="acuerdo-comercializacion-${slug}.pdf"`,
         'Cache-Control': 'private, max-age=0, must-revalidate',
       },
     })

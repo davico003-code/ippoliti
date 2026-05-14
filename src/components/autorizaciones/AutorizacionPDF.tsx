@@ -223,9 +223,9 @@ export function AutorizacionPDF({ data }: Props) {
 
   return (
     <Document
-      title={`Autorización ${data.slug}`}
+      title={`Acuerdo ${data.slug}`}
       author="SI INMOBILIARIA SRL"
-      subject="Autorización de venta digital"
+      subject="Acuerdo de comercialización digital"
     >
       <Page size="A4" style={styles.page}>
         {/* Header / logo — Image de @react-pdf/renderer, no acepta alt */}
@@ -367,7 +367,7 @@ export function AutorizacionPDF({ data }: Props) {
           <Text style={styles.footerLine}>
             Documento generado digitalmente · SI INMOBILIARIA SRL · siinmobiliaria.com
           </Text>
-          <Text style={styles.footerLine}>ID de autorización: {data.slug}</Text>
+          <Text style={styles.footerLine}>ID de acuerdo: {data.slug}</Text>
           <Text style={styles.footerLine}>Hash de verificación: {hash}</Text>
         </View>
       </Page>

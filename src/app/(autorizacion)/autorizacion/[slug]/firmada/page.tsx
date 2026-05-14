@@ -58,7 +58,7 @@ export default async function FirmadaPage({ params }: Props) {
           lineHeight: 1.3,
         }}
       >
-        Autorización firmada
+        Acuerdo firmado
       </h1>
       <p
         style={{
@@ -81,7 +81,7 @@ export default async function FirmadaPage({ params }: Props) {
           maxWidth: 520,
         }}
       >
-        Recibimos tu autorización el <span style={{ color: TEXT_DARK, fontWeight: 500 }}>{fechaHora}</span> y ya está en manos de nuestro equipo. Nos pondremos en contacto a la brevedad para coordinar los próximos pasos.
+        Recibimos tu acuerdo el <span style={{ color: TEXT_DARK, fontWeight: 500 }}>{fechaHora}</span> y ya está en manos de nuestro equipo. Nos pondremos en contacto a la brevedad para coordinar los próximos pasos.
       </p>
 
       <a
