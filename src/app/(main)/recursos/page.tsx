@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import RecursoCard from '@/components/recursos/RecursoCard'
+import AdminAutorizacionesCard from '@/components/recursos/AdminAutorizacionesCard'
 import TrackPageView from '@/components/recursos/TrackPageView'
 
 export const metadata: Metadata = {
@@ -178,6 +179,7 @@ export default function RecursosIndexPage() {
               cta="Leer la guía"
               icon={IconBook}
             />
+            <AdminAutorizacionesCard />
           </div>
         </div>
       </div>
