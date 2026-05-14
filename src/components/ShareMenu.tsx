@@ -5,10 +5,7 @@
 //   1. WhatsApp (texto público con link siinmobiliaria.com)
 //   2. Copiar link público
 //   3. Placa Instagram (si hay placaHref)
-//   4. Generar link para colega → abre CompartirFichaModal
-//
-// La opción 4 es visible SIEMPRE: el gating de quién puede generar fichas
-// vive dentro del modal (Estado 0: código de equipo + localStorage).
+//   4. Generar link para colega → POST /api/ficha/crear + copia clipboard + toast
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
@@ -21,7 +18,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-import CompartirFichaModal from './CompartirFichaModal'
+import { generarYCopiarFichaLink } from '@/lib/share-ficha'
 
 interface Props {
   propertyId: number
@@ -35,7 +32,7 @@ const R = "'Raleway', system-ui, sans-serif"
 export default function ShareMenu({ propertyId, slug, title, placaHref }: Props) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [generando, setGenerando] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
@@ -162,31 +159,32 @@ export default function ShareMenu({ propertyId, slug, title, placaHref }: Props)
             <button
               type="button"
               role="menuitem"
-              onClick={() => {
+              disabled={generando}
+              onClick={async () => {
+                if (generando) return
                 setOpen(false)
-                setModalOpen(true)
+                setGenerando(true)
+                try {
+                  await generarYCopiarFichaLink(propertyId)
+                } finally {
+                  setGenerando(false)
+                }
               }}
               style={{
                 ...itemBase,
                 background: '#FAFAF8',
                 fontWeight: 600,
                 color: '#1A5C38',
+                opacity: generando ? 0.7 : 1,
+                cursor: generando ? 'wait' : 'pointer',
               }}
             >
               <Sparkles size={16} />
-              Generar link para colega
+              {generando ? 'Generando…' : 'Generar link para colega'}
             </button>
           </div>
         )}
       </div>
-
-      {modalOpen && (
-        <CompartirFichaModal
-          propertyId={propertyId}
-          propertyTitle={title}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
     </div>
   )
 }

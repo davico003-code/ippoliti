@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   // Sin openGraph default acá: cada page.tsx define el suyo. Si dejara uno
   // genérico, Next.js lo mergearía con el del page y filtraría datos del shell.
-  icons: {},
+  // El favicon lo provee app/(neutral)/icon.svg (file-based, detectado por Next).
 }
 
 export default function NeutralRootLayout({ children }: { children: React.ReactNode }) {
