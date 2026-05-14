@@ -21,10 +21,16 @@ interface Props {
   slug: string
   title: string
   priceLabel?: string
-  // Posicionamiento del botón flotante (default: top-right del padre relative)
+  // Modo flotante: posiciona el wrapper en absolute con top/right.
+  // Modo inline (default): el wrapper queda en el flujo normal del padre.
+  inline?: boolean
   top?: number | string
   right?: number | string
   size?: number
+  // Dirección del popover relativa al botón.
+  popoverDirection?: 'up' | 'down'
+  // Variante visual del botón (icono+container).
+  buttonVariant?: 'overlay' | 'card'
 }
 
 const R = "'Raleway', system-ui, sans-serif"
@@ -34,9 +40,12 @@ export default function PropertyShareButton({
   slug,
   title,
   priceLabel,
+  inline = false,
   top = 8,
   right = 8,
   size = 32,
+  popoverDirection = 'down',
+  buttonVariant = 'overlay',
 }: Props) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -109,10 +118,46 @@ export default function PropertyShareButton({
     }
   }
 
+  const wrapperStyle: React.CSSProperties = inline
+    ? { position: 'relative', display: 'inline-block' }
+    : { position: 'absolute', top, right, zIndex: 20 }
+
+  const buttonStyle: React.CSSProperties = buttonVariant === 'card'
+    ? {
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.9)',
+        border: '1px solid #f3f4f6',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+      }
+    : {
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.95)',
+        border: 'none',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+      }
+
+  const popoverPositionStyle: React.CSSProperties = popoverDirection === 'up'
+    ? { bottom: 'calc(100% + 8px)', right: 0 }
+    : { top: 'calc(100% + 8px)', right: 0 }
+
   return (
     <div
       ref={wrapRef}
-      style={{ position: 'absolute', top, right, zIndex: 20 }}
+      style={wrapperStyle}
       onClick={stopAll}
     >
       <button
@@ -120,22 +165,9 @@ export default function PropertyShareButton({
         onClick={onToggle}
         aria-label="Compartir propiedad"
         aria-expanded={open}
-        style={{
-          width: size,
-          height: size,
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.95)',
-          border: 'none',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-        }}
+        style={buttonStyle}
       >
-        <Share2 size={Math.round(size * 0.5)} style={{ color: '#1f2937' }} />
+        <Share2 size={Math.round(size * 0.5)} style={{ color: buttonVariant === 'card' ? '#6b7280' : '#1f2937' }} />
       </button>
 
       {open && (
@@ -144,8 +176,7 @@ export default function PropertyShareButton({
           onClick={stopAll}
           style={{
             position: 'absolute',
-            top: 'calc(100% + 8px)',
-            right: 0,
+            ...popoverPositionStyle,
             width: 220,
             background: '#fff',
             borderRadius: 14,

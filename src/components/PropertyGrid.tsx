@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Maximize2, Home, Bed, Bath } from 'lucide-react'
-import ShareCardButton from '@/components/ShareCardButton'
+import PropertyShareButton from '@/components/PropertyShareButton'
 import {
   type TokkoProperty,
   generatePropertySlug,
@@ -81,7 +81,16 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
           </div>
           <div className="mt-auto flex items-center justify-between">
             <span className="text-brand-600 font-black text-lg font-numeric">{price}</span>
-            <ShareCardButton slug={slug} title={property.publication_title || property.address} price={price} />
+            <PropertyShareButton
+              propertyId={property.id}
+              slug={slug}
+              title={property.publication_title || property.address || ''}
+              priceLabel={price}
+              inline
+              size={36}
+              popoverDirection="up"
+              buttonVariant="card"
+            />
           </div>
         </div>
       </Link>

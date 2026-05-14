@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Heart, ChevronLeft, ChevronRight } from 'lucide-react'
-import ShareCardButton from '@/components/ShareCardButton'
+import PropertyShareButton from '@/components/PropertyShareButton'
 import {
   type TokkoProperty,
   getAllPhotos,
@@ -184,7 +184,16 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             {price}
           </p>
           <div onClick={e => e.stopPropagation()}>
-            <ShareCardButton slug={slug} title={address} price={price} />
+            <PropertyShareButton
+              propertyId={property.id}
+              slug={slug}
+              title={address || ''}
+              priceLabel={price}
+              inline
+              size={36}
+              popoverDirection="up"
+              buttonVariant="card"
+            />
           </div>
         </div>
 
