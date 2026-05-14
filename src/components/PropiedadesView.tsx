@@ -26,6 +26,7 @@ import {
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
 import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesktopGridSkeleton'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
+import PropertyShareButton from '@/components/PropertyShareButton'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { buscarZonas } from '@/lib/zonas'
 import { highlightMatch } from '@/lib/highlight'
@@ -1634,6 +1635,16 @@ export default function PropiedadesView({
               >
                 <X className="w-4 h-4 text-gray-800" />
               </button>
+              {/* Share button — al lado del X */}
+              <PropertyShareButton
+                propertyId={selectedProperty.id}
+                slug={generatePropertySlug(selectedProperty)}
+                title={selectedProperty.publication_title || selectedProperty.address || ''}
+                priceLabel={formatPrice(selectedProperty)}
+                top={10}
+                right={48}
+                size={32}
+              />
             </div>
 
             {/* Body — tap en cualquier parte abre la ficha completa */}

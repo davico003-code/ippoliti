@@ -12,8 +12,10 @@ import {
   formatPrice,
   translatePropertyType,
   getTotalSurface,
+  generatePropertySlug,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
+import PropertyShareButton from './PropertyShareButton'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -554,7 +556,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
               }}
             >
               {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
-                <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif" }}>
+                <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif", position: 'relative' }}>
                   {photo && (
                     <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
                       <img
@@ -572,6 +574,15 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                           {typeName}
                         </span>
                       )}
+                      <PropertyShareButton
+                        propertyId={property.id}
+                        slug={generatePropertySlug(property)}
+                        title={property.publication_title || property.address || ''}
+                        priceLabel={fullPrice}
+                        top={8}
+                        right={8}
+                        size={32}
+                      />
                     </div>
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
