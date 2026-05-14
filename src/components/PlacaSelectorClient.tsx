@@ -15,6 +15,7 @@ export interface PlacaPhoto {
 interface Props {
   slug: string
   photos: PlacaPhoto[]
+  blueprints: PlacaPhoto[]
   title: string
   price: string
   operation: string
@@ -40,12 +41,14 @@ export default function PlacaSelectorClient(props: Props) {
     })
   }
 
-  // Preview always shows something: empty selection → first available photo
+  // Preview always shows something: empty selection → first available image
+  // (photos primero, planos como fallback si no hay fotos)
+  const firstAvailable = props.photos[0] || props.blueprints[0]
   const previewPhotos =
     selected.length > 0
       ? selected
-      : props.photos[0]
-        ? [props.photos[0].full]
+      : firstAvailable
+        ? [firstAvailable.full]
         : []
 
   const counterTone =
@@ -67,6 +70,43 @@ export default function PlacaSelectorClient(props: Props) {
     parking: props.parking,
     city: props.city ?? undefined,
     neighborhood: props.neighborhood ?? undefined,
+  }
+
+  const renderThumb = (p: PlacaPhoto) => {
+    const idx = selected.indexOf(p.full)
+    const isSelected = idx >= 0
+    const isFull = !isSelected && selected.length >= 2
+    return (
+      <button
+        key={p.full}
+        type="button"
+        onClick={() => toggle(p.full)}
+        disabled={isFull}
+        aria-pressed={isSelected}
+        className={`relative aspect-square overflow-hidden rounded-xl bg-gray-100 transition-all ${
+          isSelected
+            ? 'ring-4 ring-[#1A5C38]'
+            : 'ring-1 ring-gray-200 hover:ring-gray-400'
+        } ${isFull ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+      >
+        <Image
+          src={p.thumb}
+          alt=""
+          fill
+          sizes="(max-width: 768px) 50vw, 33vw"
+          className="object-cover"
+          unoptimized
+        />
+        {isSelected && (
+          <span
+            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#1A5C38] text-white text-sm font-bold flex items-center justify-center shadow-md"
+            style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
+          >
+            {idx + 1}
+          </span>
+        )}
+      </button>
+    )
   }
 
   const downloadBtnStyle: React.CSSProperties = {
@@ -122,56 +162,46 @@ export default function PlacaSelectorClient(props: Props) {
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-5 pb-44 md:pb-12">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_360px] gap-6 md:gap-8">
-          {/* Left: photo grid */}
+          {/* Left: image grid (photos + blueprints) */}
           <section>
             <p
               className="text-[11px] text-gray-500 mb-3 uppercase tracking-[0.15em] font-bold"
               style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
             >
-              Elegí 1 o 2 fotos
+              Elegí 1 o 2 imágenes
             </p>
-            {props.photos.length === 0 ? (
+
+            {props.photos.length > 0 && (
+              <>
+                <p
+                  className="text-[10px] text-gray-400 mb-2 uppercase tracking-[0.12em] font-bold"
+                  style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
+                >
+                  Fotos
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
+                  {props.photos.map(p => renderThumb(p))}
+                </div>
+              </>
+            )}
+
+            {props.blueprints.length > 0 && (
+              <>
+                <p
+                  className="text-[10px] text-gray-400 mb-2 uppercase tracking-[0.12em] font-bold"
+                  style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
+                >
+                  Planos
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {props.blueprints.map(p => renderThumb(p))}
+                </div>
+              </>
+            )}
+
+            {props.photos.length === 0 && props.blueprints.length === 0 && (
               <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
-                <p className="text-sm text-gray-500">Esta propiedad no tiene fotos disponibles.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {props.photos.map(p => {
-                  const idx = selected.indexOf(p.full)
-                  const isSelected = idx >= 0
-                  const isFull = !isSelected && selected.length >= 2
-                  return (
-                    <button
-                      key={p.full}
-                      type="button"
-                      onClick={() => toggle(p.full)}
-                      disabled={isFull}
-                      aria-pressed={isSelected}
-                      className={`relative aspect-square overflow-hidden rounded-xl bg-gray-100 transition-all ${
-                        isSelected
-                          ? 'ring-4 ring-[#1A5C38]'
-                          : 'ring-1 ring-gray-200 hover:ring-gray-400'
-                      } ${isFull ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                      <Image
-                        src={p.thumb}
-                        alt=""
-                        fill
-                        sizes="(max-width: 768px) 50vw, 33vw"
-                        className="object-cover"
-                        unoptimized
-                      />
-                      {isSelected && (
-                        <span
-                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#1A5C38] text-white text-sm font-bold flex items-center justify-center shadow-md"
-                          style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
-                        >
-                          {idx + 1}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
+                <p className="text-sm text-gray-500">Esta propiedad no tiene fotos ni planos disponibles.</p>
               </div>
             )}
           </section>
