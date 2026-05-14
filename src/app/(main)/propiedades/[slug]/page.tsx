@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 
+import AudioSummary from '@/components/AudioSummary';
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyViewTracker from '@/components/PropertyViewTracker';
 import PropertyDetailZillowDesktopPanel from '@/components/property-detail/PropertyDetailZillowDesktopPanel';
@@ -197,6 +198,15 @@ export default async function PropertyPage({ params }: Props) {
         {/* Galería Zillow adaptada a mobile (grande + 2x2 thumbs) */}
         <div className="px-4 pt-3 pb-2">
           <PropertyGalleryHero property={property} />
+        </div>
+
+        {/* Audio narrado (solo aparece si la propiedad tiene audio cacheado;
+            el componente se auto-oculta si /api/audio/check devuelve hasAudio:false) */}
+        <div className="px-4 pb-2">
+          <AudioSummary
+            propertyId={property.id}
+            title={property.publication_title || property.address}
+          />
         </div>
 
         {/* Sticky tabs con scroll horizontal */}
