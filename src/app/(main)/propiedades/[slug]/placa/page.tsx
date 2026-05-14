@@ -48,9 +48,14 @@ export default async function PlacaPage({ params }: Props) {
     throw e
   }
 
-  const photos: PlacaPhoto[] = (property.photos || [])
+  const allPhotos = (property.photos || []).sort((a, b) => a.order - b.order)
+
+  const photos: PlacaPhoto[] = allPhotos
     .filter(p => !p.is_blueprint)
-    .sort((a, b) => a.order - b.order)
+    .map(p => ({ thumb: p.thumb || p.image, full: p.image }))
+
+  const blueprints: PlacaPhoto[] = allPhotos
+    .filter(p => p.is_blueprint)
     .map(p => ({ thumb: p.thumb || p.image, full: p.image }))
 
   const title = property.publication_title || property.fake_address || property.address || 'Propiedad'
@@ -77,6 +82,7 @@ export default async function PlacaPage({ params }: Props) {
     <PlacaSelectorClient
       slug={params.slug}
       photos={photos}
+      blueprints={blueprints}
       title={title}
       price={price}
       operation={operation}
