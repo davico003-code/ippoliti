@@ -63,15 +63,22 @@ function getLogoSrc(): Buffer | string {
 }
 
 // ── Fuentes ────────────────────────────────────────────────────────────────
+//
+// TTFs alojados localmente en /public/fonts/. @react-pdf v4.5 tipa `src` como
+// string, así que usamos siempre URL absoluta a nuestro propio dominio (Next
+// sirve los TTF estáticamente desde /public/). Los TTF se fetchean una vez y
+// se cachean dentro del proceso por la propia lib.
 
-// Google Fonts CDN URLs para Raleway (subset latin, weights 300/400/500/600).
+const FONT_BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://siinmobiliaria.com'
+
 Font.register({
   family: 'Raleway',
   fonts: [
-    { src: 'https://fonts.gstatic.com/s/raleway/v34/1Ptug8zYS_SKggPNyC0IT4ttDfA.ttf', fontWeight: 300 },
-    { src: 'https://fonts.gstatic.com/s/raleway/v34/1Ptug8zYS_SKggPNyCIIT4ttDfA.ttf', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/raleway/v34/1Ptug8zYS_SKggPNyCMIT4ttDfA.ttf', fontWeight: 500 },
-    { src: 'https://fonts.gstatic.com/s/raleway/v34/1Ptug8zYS_SKggPNyC0IT4ttDfA.ttf', fontWeight: 600 },
+    { src: `${FONT_BASE_URL}/fonts/raleway-light.ttf`, fontWeight: 300 },
+    { src: `${FONT_BASE_URL}/fonts/raleway-regular.ttf`, fontWeight: 400 },
+    { src: `${FONT_BASE_URL}/fonts/raleway-medium.ttf`, fontWeight: 500 },
+    { src: `${FONT_BASE_URL}/fonts/raleway-semibold.ttf`, fontWeight: 600 },
   ],
 })
 
