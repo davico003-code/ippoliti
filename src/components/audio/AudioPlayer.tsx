@@ -78,7 +78,6 @@ export default function AudioPlayer({
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const trackRef = useRef<HTMLDivElement | null>(null)
-  const speedMenuRef = useRef<HTMLDivElement | null>(null)
   const hasPlayedOnce = useRef(false)
 
   const [visible, setVisible] = useState(false)
@@ -91,7 +90,6 @@ export default function AudioPlayer({
   const [error, setError] = useState<string | null>(null)
 
   const [speed, setSpeed] = useState<Speed>(1)
-  const [speedMenuOpen, setSpeedMenuOpen] = useState(false)
 
   // Fade-in al mount (consistente con el comportamiento histórico del player).
   useEffect(() => {
@@ -172,17 +170,6 @@ export default function AudioPlayer({
     } catch { /* not critical */ }
   }, [title, variant])
 
-  // Cierra dropdown speed si clickean afuera.
-  useEffect(() => {
-    if (!speedMenuOpen) return
-    const onDoc = (e: MouseEvent) => {
-      if (!speedMenuRef.current) return
-      if (!speedMenuRef.current.contains(e.target as Node)) setSpeedMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [speedMenuOpen])
-
   const togglePlay = async () => {
     const audio = audioRef.current
     if (!audio) return
@@ -244,12 +231,16 @@ export default function AudioPlayer({
     if (!audio) return
     audio.playbackRate = s
     setSpeed(s)
-    setSpeedMenuOpen(false)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(SPEED_STORAGE_KEY, String(s))
     }
     track('audio_speed_change', String(s), propertyId)
   }
+
+  const nextSpeed = (s: Speed): Speed =>
+    s === 1 ? 1.25 : s === 1.25 ? 1.5 : s === 1.5 ? 2 : 1
+
+  const cycleSpeed = () => changeSpeed(nextSpeed(speed))
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0
   const showHelperText = !playing && currentTime === 0
@@ -365,81 +356,30 @@ export default function AudioPlayer({
     </div>
   )
 
-  const speedSelector = (
-    <div ref={speedMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
-      <button
-        type="button"
-        onClick={() => setSpeedMenuOpen(o => !o)}
-        aria-haspopup="listbox"
-        aria-expanded={speedMenuOpen}
-        aria-label={`Velocidad de reproducción: ${speed}x`}
-        style={{
-          background: SPEED_BG,
-          padding: '4px 10px',
-          borderRadius: 6,
-          border: 'none',
-          cursor: 'pointer',
-          fontFamily: "'Poppins', system-ui, sans-serif",
-          fontSize: 12,
-          fontWeight: 500,
-          color: TIME_COLOR,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 4,
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {speed}x
-        <span aria-hidden style={{ fontSize: 9, lineHeight: 1 }}>▾</span>
-      </button>
-      {speedMenuOpen && (
-        <ul
-          role="listbox"
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: 'calc(100% + 4px)',
-            background: '#fff',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            padding: 4,
-            margin: 0,
-            listStyle: 'none',
-            zIndex: 10,
-            minWidth: 72,
-          }}
-        >
-          {SPEED_OPTIONS.map(opt => (
-            <li key={opt} role="none">
-              <button
-                type="button"
-                role="option"
-                aria-selected={opt === speed}
-                onClick={() => changeSpeed(opt)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'left',
-                  background: opt === speed ? SPEED_BG : 'transparent',
-                  border: 'none',
-                  padding: '6px 10px',
-                  borderRadius: 4,
-                  fontFamily: "'Poppins', system-ui, sans-serif",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: TIME_COLOR,
-                  cursor: 'pointer',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {opt}x
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+  const speedActive = speed !== 1
+  const speedToggle = (
+    <button
+      type="button"
+      onClick={cycleSpeed}
+      aria-label={`Velocidad actual: ${speed}x. Tocá para cambiar.`}
+      className="ap-speed"
+      style={{
+        flexShrink: 0,
+        background: speedActive ? color : SPEED_BG,
+        color: speedActive ? '#fff' : TIME_COLOR,
+        padding: '6px 10px',
+        borderRadius: 8,
+        border: 'none',
+        cursor: 'pointer',
+        fontFamily: "'Poppins', system-ui, sans-serif",
+        fontSize: 12,
+        fontWeight: 500,
+        fontVariantNumeric: 'tabular-nums',
+        lineHeight: 1,
+      }}
+    >
+      {speed}x
+    </button>
   )
 
   const helperText = (
@@ -486,19 +426,19 @@ export default function AudioPlayer({
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {speedToggle}
             {playButton}
             {progressBar}
             {times}
-            {speedSelector}
           </div>
         </>
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {speedToggle}
             {playButton}
             {progressBar}
             {times}
-            {speedSelector}
           </div>
           {helperText}
         </>
@@ -527,9 +467,12 @@ export default function AudioPlayer({
         }
         .ap-play--pulse { animation: ap-pulse 2s ease-in-out infinite; }
 
+        .ap-speed { transition: transform 150ms ease, background 150ms ease; }
+
         @media (hover: hover) {
           .ap-play { transition: transform 150ms ease; }
           .ap-play:hover { transform: scale(1.05); }
+          .ap-speed:hover { transform: scale(1.05); }
           .ap-track:hover .ap-thumb,
           .ap-track:focus-visible .ap-thumb { opacity: 1; }
         }
