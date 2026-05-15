@@ -303,3 +303,54 @@ export const CIERRE_FECHA_PLACEHOLDER = '__________'
 export function formatCierreFirma(date: Date): string {
   return `Firmado digitalmente en Funes, el ${formatFechaFirma(date)}.`
 }
+
+// ── Snapshot del documento (versionado retroactivo) ─────────────────────────
+//
+// Al firmar, guardamos en Redis una foto del documento ya renderizado con
+// los datos del firmante interpolados. El PDF futuro se genera desde este
+// snapshot, no desde getClausulas() — así si cambiamos la plantilla, los
+// acuerdos ya firmados conservan exactamente el texto que el cliente firmó.
+
+/** Bump cuando cambie el TEMPLATE legal (cláusulas, preámbulo, cierre). */
+export const DOCUMENTO_VERSION = '2026-05-15-v2-funes-difusion'
+
+export interface DocumentoSnapshot {
+  version: string
+  titulo: string
+  fecha_encabezado: string        // "Funes, 15 de mayo de 2026"
+  preambulo: string               // con datos del signer interpolados (sin tokens)
+  clausulas: Array<{
+    numero: number
+    titulo: string                // "Inmueble", "Plazo", etc.
+    contenido: string             // texto plano sin tags
+  }>
+  cierre_consentimiento: string
+  cierre_firma: string            // "Firmado digitalmente en Funes, el X."
+  lugar: 'Funes'
+}
+
+/**
+ * Genera el snapshot completo del documento con los datos del firmante.
+ * Llamado por marcarFirmada al momento de la firma; el resultado se guarda
+ * en `auth.documento_snapshot` y el PDF lo consume si está presente.
+ */
+export function buildDocumentoSnapshot(
+  auth: Autorizacion,
+  signer: NonNullable<Autorizacion['signer']>,
+  signedAt: Date,
+): DocumentoSnapshot {
+  return {
+    version: DOCUMENTO_VERSION,
+    titulo: getTitulo(auth),
+    fecha_encabezado: formatFechaEncabezado(signedAt),
+    preambulo: renderPreambuloPDF(signer),
+    clausulas: getClausulas(auth).map(cl => ({
+      numero: cl.numero,
+      titulo: cl.titulo,
+      contenido: chunksToString(cl.chunks),
+    })),
+    cierre_consentimiento: CIERRE_CONSENTIMIENTO,
+    cierre_firma: formatCierreFirma(signedAt),
+    lugar: 'Funes',
+  }
+}

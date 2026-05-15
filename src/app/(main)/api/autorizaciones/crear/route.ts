@@ -73,6 +73,11 @@ function validateBody(body: unknown): { ok: true; data: CrearInput } | { ok: fal
   const precio_venta_usd = parsePosNum(b.precio_venta_usd)
   const precio_publicacion_usd = parsePosNum(b.precio_publicacion_usd)
 
+  const notas_raw = b.notas_internas
+  const notas_internas = typeof notas_raw === 'string' && notas_raw.trim().length > 0
+    ? notas_raw.trim()
+    : undefined
+
   const cp = (b.cliente_precarga || {}) as Record<string, unknown>
   const cleanStr = (v: unknown): string | undefined => {
     if (typeof v !== 'string') return undefined
@@ -91,8 +96,9 @@ function validateBody(body: unknown): { ok: true; data: CrearInput } | { ok: fal
       servicios,
       tiene_expensas,
       expensas_monto_ars,
-      precio_venta_usd,
       precio_publicacion_usd,
+      precio_venta_usd,
+      notas_internas,
       cliente_precarga: {
         nombre: cleanStr(cp.nombre),
         dni: cleanStr(cp.dni),
