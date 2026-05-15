@@ -1610,7 +1610,7 @@ function RowActions({ auth }: { auth: Autorizacion }) {
           <Copy size={13} /> Copiar
         </button>
       )}
-      {auth.status === 'firmada' && (
+      {auth.status === 'firmada' ? (
         <a
           href={`/api/autorizaciones/${auth.slug}/pdf`}
           target="_blank"
@@ -1620,13 +1620,34 @@ function RowActions({ auth }: { auth: Autorizacion }) {
             alignItems: 'center',
             gap: 4,
             fontSize: 12,
-            color: TEXT_MUTED,
+            color: GREEN,
             textDecoration: 'none',
+            fontWeight: 600,
           }}
           title="Descargar PDF"
         >
           <FileText size={13} /> PDF
         </a>
+      ) : (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            fontSize: 12,
+            color: '#C4C4BD',
+            cursor: 'not-allowed',
+            opacity: 0.7,
+          }}
+          title={
+            auth.status === 'pendiente'
+              ? 'Disponible cuando el cliente firme'
+              : 'No disponible: el acuerdo expiró sin firma'
+          }
+          aria-disabled="true"
+        >
+          <FileText size={13} /> PDF
+        </span>
       )}
     </div>
   )
