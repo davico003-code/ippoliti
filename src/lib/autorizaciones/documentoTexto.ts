@@ -1,15 +1,17 @@
-// Fuente única de los textos legales de la autorización de venta.
+// Fuente única de los textos legales del acuerdo de comercialización.
 //
 // Importado por:
 //   - AutorizacionPublicaClient (vista web del cliente, live preview)
-//   - AutorizacionPDF (commit 3, render del PDF)
-//   - panel agente (template de WhatsApp + detalle slug)
+//   - AutorizacionPDF (render del PDF)
+//   - Panel agente (template de WhatsApp + detalle slug)
 //
 // Convención: las cláusulas y el preámbulo se devuelven como secuencias de
 // chunks { kind: 'text' | 'data', text } para que la vista web pueda renderizar
-// los datos (kind='data') con peso 500 color #1A1A1A sin background, y el cuerpo
-// (kind='text') con peso 300 color #2A2A28. El PDF colapsa chunks a string
-// aplicando el mismo contraste de peso.
+// los datos (kind='data') con peso 600 color #1A1A1A sin background, y el cuerpo
+// (kind='text') con peso 400 color #1A1A1A. El PDF colapsa chunks aplicando el
+// mismo contraste de peso.
+//
+// Lugar geográfico: Funes (encabezado, cierre, PDF). NO Rosario.
 
 import type { Autorizacion, TipoPropiedad } from './index'
 
@@ -46,7 +48,7 @@ export type Chunk = { kind: 'text' | 'data'; text: string }
 function t(text: string): Chunk { return { kind: 'text', text } }
 function d(text: string): Chunk { return { kind: 'data', text } }
 
-/** Convierte chunks a string plano para el PDF y para fallback de tests. */
+/** Convierte chunks a string plano para tests / fallback. */
 export function chunksToString(chunks: Chunk[]): string {
   return chunks.map(c => c.text).join('')
 }
@@ -60,7 +62,7 @@ export function formatFechaEncabezado(date: Date): string {
     year: 'numeric',
     timeZone: 'America/Argentina/Buenos_Aires',
   })
-  return `Rosario, ${fmt.format(date)}`
+  return `Funes, ${fmt.format(date)}`
 }
 
 export function formatFechaFirma(date: Date): string {
@@ -124,52 +126,46 @@ export function renderPreambuloPDF(signer: NonNullable<Autorizacion['signer']>):
 // ── Cláusulas ───────────────────────────────────────────────────────────────
 
 export interface ClausulaDef {
-  label: string                  // "1 · INMUEBLE"
+  key: string                    // 'inmueble' | 'expensas' | 'plazo' | ...
+  numero: number                 // 1, 2, 3...
+  titulo: string                 // 'Inmueble', 'Plazo', etc. (sin numero ni dos puntos)
   chunks: Chunk[]
 }
 
 export function getClausulas(auth: Autorizacion): ClausulaDef[] {
-  const hasServicios = SERVICIOS_ORDER.some(s => auth.servicios[s.key])
   const hasExpensas = auth.tiene_expensas && !!auth.expensas_monto_ars && auth.expensas_monto_ars > 0
   const isExclusiva = auth.tipo === 'exclusiva'
+  const hasServicios = SERVICIOS_ORDER.some(s => auth.servicios[s.key])
 
-  const numeros = getNumeracion({ hasServicios, hasExpensas, isExclusiva })
+  const numeros = getNumeracion({ hasExpensas, isExclusiva })
   const out: ClausulaDef[] = []
 
-  // 1 — INMUEBLE
+  // 1 — INMUEBLE (con servicios integrados)
   {
     const enForma = isExclusiva ? 'en forma EXCLUSIVA ' : ''
     const tipoLabel = PROPIEDAD_LABEL[auth.tipo_propiedad]
-    out.push({
-      label: `${numeros.inmueble} · INMUEBLE`,
-      chunks: [
-        t('El Autorizante autoriza '),
-        ...(enForma ? [d(enForma)] : []),
-        t('al Autorizado a ofrecer en venta el inmueble de su propiedad sito en '),
-        d(auth.direccion),
-        t(', identificado como '),
-        d(tipoLabel),
-        t('. Los datos descriptivos y técnicos del inmueble (medidas, superficie, partida inmobiliaria y demás detalles) se completarán por instrumento o anexo posterior.'),
-      ],
-    })
+    const chunks: Chunk[] = [
+      t('El Autorizante autoriza '),
+      ...(enForma ? [d(enForma)] : []),
+      t('al Autorizado a ofrecer en venta el inmueble sito en '),
+      d(auth.direccion),
+      t(', identificado como '),
+      d(tipoLabel),
+    ]
+    if (hasServicios) {
+      chunks.push(t(', con los siguientes servicios disponibles: '))
+      chunks.push(d(formatListaServicios(auth.servicios)))
+    }
+    chunks.push(t('. Los datos técnicos se completarán por anexo posterior.'))
+    out.push({ key: 'inmueble', numero: numeros.inmueble, titulo: 'Inmueble', chunks })
   }
 
-  // 2 — SERVICIOS (condicional)
-  if (hasServicios) {
-    out.push({
-      label: `${numeros.servicios} · SERVICIOS`,
-      chunks: [
-        t('El inmueble cuenta con los siguientes servicios disponibles: '),
-        d(formatListaServicios(auth.servicios)),
-        t('.'),
-      ],
-    })
-  }
-
-  // 3 — EXPENSAS (condicional)
+  // Expensas (condicional)
   if (hasExpensas) {
     out.push({
-      label: `${numeros.expensas} · EXPENSAS`,
+      key: 'expensas',
+      numero: numeros.expensas,
+      titulo: 'Expensas',
       chunks: [
         t('La propiedad genera expensas mensuales estimadas en $ '),
         d(formatARS(auth.expensas_monto_ars!)),
@@ -178,111 +174,97 @@ export function getClausulas(auth: Autorizacion): ClausulaDef[] {
     })
   }
 
-  // 4 — PLAZO
+  // Plazo (siempre, 2 variantes)
   {
-    const plazo = String(auth.plazo_dias)
+    const plazoStr = `${auth.plazo_dias} días`
     if (auth.renovacion_automatica) {
       out.push({
-        label: `${numeros.plazo} · PLAZO`,
+        key: 'plazo',
+        numero: numeros.plazo,
+        titulo: 'Plazo',
         chunks: [
-          t('La presente autorización tendrá una vigencia de '),
-          d(`${plazo} días`),
-          t(' corridos a partir de la fecha de la firma, renovable en forma automática por igual período, salvo revocación expresa notificada por escrito por cualquiera de las partes.'),
+          d(plazoStr),
+          t(' corridos desde la firma del presente acuerdo, renovables automáticamente por igual período salvo revocación expresa por escrito.'),
         ],
       })
     } else {
       out.push({
-        label: `${numeros.plazo} · PLAZO`,
+        key: 'plazo',
+        numero: numeros.plazo,
+        titulo: 'Plazo',
         chunks: [
-          t('La presente autorización tendrá una vigencia de '),
-          d(`${plazo} días`),
-          t(' corridos a partir de la fecha de la firma, sin renovación automática. Cualquier prórroga deberá ser ratificada expresamente por ambas partes.'),
+          d(plazoStr),
+          t(' corridos desde la firma del presente acuerdo, sin renovación automática. Cualquier prórroga deberá ser ratificada expresamente por ambas partes.'),
         ],
       })
     }
   }
 
-  // 5 — PRECIO (3 variantes)
+  // Precio (solo publicación, 2 variantes — NUNCA expone precio_venta_usd)
   {
-    const venta = auth.precio_venta_usd
     const pub = auth.precio_publicacion_usd
-    if (venta && venta > 0 && pub && pub > 0) {
+    if (pub && pub > 0) {
       out.push({
-        label: `${numeros.precio} · PRECIO`,
+        key: 'precio',
+        numero: numeros.precio,
+        titulo: 'Precio',
         chunks: [
-          t('El precio de venta del inmueble se fija en USD '),
-          d(formatUSD(venta)),
-          t(' (dólares estadounidenses billete) en efectivo. Se autoriza al Autorizado a publicar el inmueble por la suma de USD '),
+          t('El precio de publicación del inmueble se fija en USD '),
           d(formatUSD(pub)),
-          t('.'),
-        ],
-      })
-    } else if (venta && venta > 0) {
-      out.push({
-        label: `${numeros.precio} · PRECIO`,
-        chunks: [
-          t('El precio de venta del inmueble se fija en USD '),
-          d(formatUSD(venta)),
-          t(' (dólares estadounidenses billete) en efectivo. Se autoriza al Autorizado a publicar el inmueble por la misma suma.'),
+          t(' (dólares estadounidenses billete).'),
         ],
       })
     } else {
       out.push({
-        label: `${numeros.precio} · PRECIO`,
+        key: 'precio',
+        numero: numeros.precio,
+        titulo: 'Precio',
         chunks: [
-          t('El precio de venta del inmueble se acordará entre las partes por instrumento o comunicación posterior, formando parte integrante de la presente autorización.'),
+          t('El precio de publicación se acordará entre las partes por instrumento o comunicación posterior, formando parte integrante del presente acuerdo.'),
         ],
       })
     }
   }
 
-  // 6 — EXCLUSIVIDAD (condicional)
+  // Difusión (siempre)
+  out.push({
+    key: 'difusion',
+    numero: numeros.difusion,
+    titulo: 'Difusión',
+    chunks: [
+      t('El Autorizante autoriza al Autorizado a publicar y promocionar el inmueble en portales inmobiliarios, redes sociales, medios digitales y cualquier otro canal que considere conveniente, incluyendo el desarrollo de estrategias de marketing para concretar la venta.'),
+    ],
+  })
+
+  // Exclusividad (condicional)
   if (isExclusiva) {
     out.push({
-      label: `${numeros.exclusividad} · EXCLUSIVIDAD`,
+      key: 'exclusividad',
+      numero: numeros.exclusividad,
+      titulo: 'Exclusividad',
       chunks: [
-        t('El Autorizante declara que no tiene encomendada la venta del inmueble objeto de la presente autorización con ninguna otra inmobiliaria, y se compromete a no encomendarla a terceros mientras esta autorización se encuentre vigente.'),
+        t('El Autorizante declara que no tiene encomendada la venta del inmueble a ninguna otra inmobiliaria y se compromete a no encomendarla a terceros mientras el presente acuerdo esté vigente.'),
       ],
     })
   }
 
-  // 7 — VISITAS Y CARTEL
+  // Honorarios (siempre)
   out.push({
-    label: `${numeros.visitas} · VISITAS Y CARTEL`,
+    key: 'honorarios',
+    numero: numeros.honorarios,
+    titulo: 'Honorarios',
     chunks: [
-      t('El Autorizante permitirá la visita de los posibles compradores presentados por el Autorizado, en horarios coordinados previamente, y autoriza la colocación del cartel de venta en el inmueble.'),
+      t('Los honorarios de SI INMOBILIARIA serán del 3% + IVA sobre el precio efectivo de venta, abonados por el Autorizante al firmar el boleto de compraventa o instrumento equivalente.'),
     ],
   })
 
-  // 8 — RESERVAS
+  // Títulos (siempre, última)
   out.push({
-    label: `${numeros.reservas} · RESERVAS`,
+    key: 'titulos',
+    numero: numeros.titulos,
+    titulo: 'Títulos',
     chunks: [
-      t('El Autorizado queda facultado para tomar reservas ad referéndum del Autorizante por un monto equivalente al 10% del valor de la oferta recibida. Dichas reservas serán comunicadas al Autorizante dentro de las 48 horas hábiles de recibidas, a los fines de su ratificación o rechazo.'),
-    ],
-  })
-
-  // 9 — HONORARIOS
-  out.push({
-    label: `${numeros.honorarios} · HONORARIOS`,
-    chunks: [
-      t('Los honorarios de SI INMOBILIARIA SRL por su intervención serán del 3% (tres por ciento) más IVA, calculados sobre el precio efectivo de venta del inmueble. Dichos honorarios serán abonados por el Autorizante en oportunidad de la firma del boleto de compraventa o instrumento equivalente.'),
-    ],
-  })
-
-  // 10 — CONTINUIDAD
-  out.push({
-    label: `${numeros.continuidad} · CONTINUIDAD`,
-    chunks: [
-      t('El Autorizante abonará al Autorizado los honorarios íntegros pactados en la cláusula anterior si, aún caducada la presente autorización, la venta se concretara como consecuencia directa o indirecta de las gestiones de SI INMOBILIARIA SRL, es decir, a alguno de los clientes a quienes se les hubiera ofrecido o presentado el inmueble durante la vigencia de esta autorización.'),
-    ],
-  })
-
-  // 11 — TÍTULOS
-  out.push({
-    label: `${numeros.titulos} · TÍTULOS`,
-    chunks: [
-      t('El Autorizante declara bajo juramento que los títulos de propiedad del inmueble son perfectos, que el bien no se encuentra afectado por embargos, hipotecas, prendas ni gravamen alguno, que no es objeto de litigio judicial y que los titulares no se encuentran inhibidos para disponer del mismo. Se compromete a aportar al Autorizado, dentro de los 5 días de requerido, copias del título de propiedad, planos aprobados e impuestos al día.'),
+      t('El Autorizante declara que los títulos son perfectos, sin embargos, hipotecas, gravámenes, litigios ni inhibiciones, y aportará la documentación al Autorizado dentro de los 5 días.'),
     ],
   })
 
@@ -292,22 +274,18 @@ export function getClausulas(auth: Autorizacion): ClausulaDef[] {
 // ── Numeración dinámica ─────────────────────────────────────────────────────
 
 export function getNumeracion(opts: {
-  hasServicios: boolean
   hasExpensas: boolean
   isExclusiva: boolean
 }): Record<string, number> {
   let n = 1
   const map: Record<string, number> = {}
   map.inmueble = n++
-  if (opts.hasServicios) map.servicios = n++
   if (opts.hasExpensas) map.expensas = n++
   map.plazo = n++
   map.precio = n++
+  map.difusion = n++
   if (opts.isExclusiva) map.exclusividad = n++
-  map.visitas = n++
-  map.reservas = n++
   map.honorarios = n++
-  map.continuidad = n++
   map.titulos = n++
   return map
 }
@@ -315,8 +293,13 @@ export function getNumeracion(opts: {
 // ── Cierre ──────────────────────────────────────────────────────────────────
 
 export const CIERRE_CONSENTIMIENTO =
-  'En conformidad con lo expuesto, El Autorizante presta consentimiento al contenido del presente acuerdo de comercialización mediante firma electrónica, conforme la Ley Nacional N.º 25.506.'
+  'En conformidad, El Autorizante presta consentimiento al presente acuerdo mediante firma electrónica, conforme la Ley Nacional N.º 25.506.'
 
+/** Para pre-firma (cliente viendo `status === 'pendiente'`): fecha queda
+ *  vacía con guiones; reemplaza por valor real en post-firma. */
+export const CIERRE_FECHA_PLACEHOLDER = '__________'
+
+/** Para post-firma: "Firmado digitalmente en Funes, el 14 de mayo de 2026 a las 18:42 hs." */
 export function formatCierreFirma(date: Date): string {
-  return `Firmado digitalmente en la ciudad de Rosario, el ${formatFechaFirma(date)}.`
+  return `Firmado digitalmente en Funes, el ${formatFechaFirma(date)}.`
 }
