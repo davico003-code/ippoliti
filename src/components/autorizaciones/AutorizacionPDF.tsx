@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     paddingBottom: '2.5cm',
     paddingHorizontal: '2.5cm',
     fontFamily: 'Raleway',
-    fontWeight: 400,
+    fontWeight: 500,
     fontSize: 10.5,
     lineHeight: 1.6,
     color: COLOR_DARK,
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
   },
   clausulaNum: {
-    fontWeight: 600,
+    fontWeight: 700,
     color: COLOR_DARK,
   },
   clausulaTitulo: {
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     color: COLOR_DARK,
   },
   dataInline: {
-    fontWeight: 600,
+    fontWeight: 700,
     color: COLOR_DARK,
   },
   cierre: {
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   firmaLabel: {
     fontSize: 8,
-    fontWeight: 600,
+    fontWeight: 700,
     color: COLOR_MUTED,
     letterSpacing: 1.4,
     marginBottom: 6,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   firmaDataLabel: {
-    fontWeight: 600,
+    fontWeight: 700,
     color: COLOR_DARK,
   },
   firmaFecha: {
