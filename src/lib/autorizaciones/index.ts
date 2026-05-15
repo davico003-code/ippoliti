@@ -17,6 +17,7 @@
 
 import { customAlphabet } from 'nanoid'
 import { redis } from '../redis'
+import type { DocumentoSnapshot } from './documentoTexto'
 
 const TTL_SECONDS = 90 * 24 * 60 * 60 // 90d
 const KEY = (slug: string) => `auth:${slug}`
@@ -84,8 +85,12 @@ export interface Autorizacion {
   servicios: Servicios
   tiene_expensas: boolean
   expensas_monto_ars?: number
-  precio_venta_usd?: number
+  /** Público — aparece en el acuerdo del cliente. */
   precio_publicacion_usd?: number
+  /** INTERNO — solo visible en panel admin. NUNCA llega al documento del cliente ni al PDF. */
+  precio_venta_usd?: number
+  /** INTERNO — solo visible en panel admin. NUNCA llega al documento del cliente ni al PDF. */
+  notas_internas?: string
   cliente_precarga: ClientePrecarga
   agente: Agente
   created_at: string
@@ -93,6 +98,9 @@ export interface Autorizacion {
   status: AutorizacionStatus
   signed_at: string | null
   signer: Signer | null
+  /** Snapshot del documento al momento de la firma (versionado). Si está
+   *  presente, el PDF se genera desde acá en lugar de getClausulas(auth). */
+  documento_snapshot?: DocumentoSnapshot
 }
 
 // ── Input para crear ───────────────────────────────────────────────────────
@@ -106,8 +114,9 @@ export interface CrearInput {
   servicios: Servicios
   tiene_expensas: boolean
   expensas_monto_ars?: number
-  precio_venta_usd?: number
   precio_publicacion_usd?: number
+  precio_venta_usd?: number
+  notas_internas?: string
   cliente_precarga?: ClientePrecarga
 }
 
@@ -134,8 +143,9 @@ export async function crearAutorizacion(input: CrearInput): Promise<Autorizacion
     servicios: input.servicios,
     tiene_expensas: input.tiene_expensas,
     expensas_monto_ars: input.tiene_expensas ? input.expensas_monto_ars : undefined,
-    precio_venta_usd: input.precio_venta_usd,
     precio_publicacion_usd: input.precio_publicacion_usd,
+    precio_venta_usd: input.precio_venta_usd,
+    notas_internas: input.notas_internas,
     cliente_precarga: input.cliente_precarga || {},
     agente: AGENTE_DEFAULT,
     created_at: now.toISOString(),
@@ -165,21 +175,77 @@ export async function getAutorizacion(slug: string): Promise<Autorizacion | null
 }
 
 export async function marcarFirmada(slug: string, signer: Signer): Promise<Autorizacion | null> {
+  // Import dinámico para evitar ciclo (documentoTexto importa el tipo Autorizacion).
+  const { buildDocumentoSnapshot } = await import('./documentoTexto')
+
   const auth = await getAutorizacion(slug)
   if (!auth) return null
   if (auth.status !== 'pendiente') return auth
 
   const now = new Date()
-  const updated: Autorizacion = {
+  const partial: Autorizacion = {
     ...auth,
     status: 'firmada',
     signed_at: now.toISOString(),
     signer,
   }
+  // Snapshot del documento ya renderizado con datos del firmante. El PDF lo
+  // consume; si en el futuro cambiamos la plantilla, este snapshot conserva
+  // exactamente el texto que el cliente firmó.
+  const updated: Autorizacion = {
+    ...partial,
+    documento_snapshot: buildDocumentoSnapshot(partial, signer, now),
+  }
   await redis.set(KEY(slug), JSON.stringify(updated), { ex: TTL_SECONDS })
   await redis.zrem(LIST_PENDIENTE, slug)
   await redis.zadd(LIST_FIRMADA, { score: now.getTime(), member: slug })
   return updated
+}
+
+// ── Update parcial (campos internos) ───────────────────────────────────────
+
+/** Campos del schema que se pueden modificar vía PATCH desde el panel admin.
+ *  NO incluye campos del contrato firmado (preciso_publicacion, dirección, etc)
+ *  porque cambiarlos invalidaría el snapshot. */
+export interface UpdateInput {
+  precio_venta_usd?: number | null   // null = borrar
+  notas_internas?: string | null     // null = borrar
+  expires_at?: string                 // ISO, para extender
+}
+
+export async function actualizarAutorizacion(
+  slug: string,
+  patch: UpdateInput,
+): Promise<Autorizacion | null> {
+  const auth = await getAutorizacion(slug)
+  if (!auth) return null
+
+  const updated: Autorizacion = { ...auth }
+  if (patch.precio_venta_usd !== undefined) {
+    updated.precio_venta_usd = patch.precio_venta_usd === null ? undefined : patch.precio_venta_usd
+  }
+  if (patch.notas_internas !== undefined) {
+    updated.notas_internas = patch.notas_internas === null ? undefined : patch.notas_internas
+  }
+  if (patch.expires_at !== undefined) {
+    updated.expires_at = patch.expires_at
+  }
+  await redis.set(KEY(slug), JSON.stringify(updated), { ex: TTL_SECONDS })
+  return updated
+}
+
+// ── Eliminación ────────────────────────────────────────────────────────────
+
+/** Elimina el acuerdo del Redis (key + ambos sorted sets). Idempotente.
+ *  Retorna true si existía, false si no. */
+export async function eliminarAutorizacion(slug: string): Promise<boolean> {
+  const existed = (await redis.exists(KEY(slug))) === 1
+  await Promise.all([
+    redis.del(KEY(slug)),
+    redis.zrem(LIST_PENDIENTE, slug),
+    redis.zrem(LIST_FIRMADA, slug),
+  ])
+  return existed
 }
 
 // ── Listado ────────────────────────────────────────────────────────────────

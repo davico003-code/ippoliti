@@ -15,8 +15,8 @@ import {
   PLACEHOLDER_TOKENS,
   PREAMBULO_PLANTILLA,
   CIERRE_CONSENTIMIENTO,
+  CIERRE_FECHA_PLACEHOLDER,
   formatFechaEncabezado,
-  formatFechaFirma,
   getClausulas,
   getTitulo,
 } from '@/lib/autorizaciones/documentoTexto'
@@ -24,7 +24,6 @@ import {
 // ── Paleta ─────────────────────────────────────────────────────────────────
 const GREEN = '#1A5C38'
 const TEXT_DARK = '#1A1A1A'
-const TEXT_BODY = '#2A2A28'
 const TEXT_SOFT = '#5A5A55'
 const TEXT_MUTED = '#8A8A85'
 const TEXT_PLACEHOLDER = '#B5B5AE'
@@ -72,7 +71,6 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
 
   // Fecha encabezado: pre-firma usa new Date() (no created_at).
   const fechaEncabezado = useMemo(() => formatFechaEncabezado(new Date()), [])
-  const fechaCierreLive = useMemo(() => formatFechaFirma(new Date()), [])
 
   const titulo = getTitulo(auth)
   const clausulas = useMemo(() => getClausulas(auth), [auth])
@@ -149,9 +147,9 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
       <h1
         style={{
           fontFamily: R,
-          fontSize: 18,
-          fontWeight: 600,
-          letterSpacing: '0.04em',
+          fontSize: 17,
+          fontWeight: 700,
+          letterSpacing: '0.03em',
           color: TEXT_DARK,
           textAlign: 'center',
           margin: '8px 0 4px',
@@ -163,16 +161,16 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
       <p
         style={{
           fontFamily: R,
-          fontSize: 13,
+          fontSize: 12,
           color: TEXT_MUTED,
           textAlign: 'center',
-          margin: '0 0 28px',
+          margin: '0 0 24px',
         }}
       >
         {fechaEncabezado}
       </p>
 
-      {/* Preámbulo (live preview) */}
+      {/* Preámbulo (live preview de los 4 placeholders) */}
       <p style={paragraphStyle}>
         {preambuloPieces.map((p, i) => {
           if (p.kind === 'text') return <span key={i}>{p.text}</span>
@@ -192,24 +190,24 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
         })}
       </p>
 
-      {/* Cláusulas */}
+      {/* Cláusulas — estructura inline "1.- Inmueble: texto..." */}
       {clausulas.map(cl => (
-        <div key={cl.label} style={{ marginTop: 22 }}>
-          <p style={clausulaLabelStyle}>{cl.label}</p>
-          <p style={paragraphStyle}>
-            {cl.chunks.map((c, i) => (
-              <span key={i} style={c.kind === 'data' ? dataInlineStyle : undefined}>
-                {c.text}
-              </span>
-            ))}
-          </p>
-        </div>
+        <p key={cl.key} style={{ ...paragraphStyle, marginTop: 14 }}>
+          <span style={clausulaNumStyle}>{cl.numero}.- </span>
+          <span style={clausulaTituloStyle}>{cl.titulo}: </span>
+          {cl.chunks.map((c, i) => (
+            <span key={i} style={c.kind === 'data' ? dataInlineStyle : undefined}>
+              {c.text}
+            </span>
+          ))}
+        </p>
       ))}
 
       {/* Cierre */}
-      <p style={{ ...paragraphStyle, marginTop: 28 }}>{CIERRE_CONSENTIMIENTO}</p>
-      <p style={{ ...paragraphStyle, marginTop: 12 }}>
-        Firmado digitalmente en la ciudad de Rosario, el <span style={dataInlineStyle}>{fechaCierreLive}</span>.
+      <p style={{ ...paragraphStyle, marginTop: 20 }}>{CIERRE_CONSENTIMIENTO}</p>
+      <p style={{ ...paragraphStyle, marginTop: 8 }}>
+        Firmado digitalmente en Funes, el{' '}
+        <span style={placeholderStyle}>{CIERRE_FECHA_PLACEHOLDER}</span>.
       </p>
 
       {/* Separador */}
@@ -312,7 +310,7 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
           style={{ accentColor: GREEN, marginTop: 2 }}
         />
         <span>
-          Declaro que los datos son verídicos y presto conformidad al contenido de la presente autorización de venta.
+          Declaro que los datos son verídicos y presto conformidad al contenido del presente acuerdo.
         </span>
       </label>
 
@@ -342,7 +340,7 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
         }}
       >
         {submitting && <Loader2 size={16} className="animate-spin" />}
-        {submitting ? 'Procesando…' : 'Firmar y enviar autorización'}
+        {submitting ? 'Procesando…' : 'Firmar y enviar acuerdo'}
       </button>
 
       {error && (
@@ -370,7 +368,7 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
           lineHeight: 1.55,
         }}
       >
-        Tu firma manuscrita digital tiene validez probatoria conforme la Ley 25.506 de Argentina. Recibirás una copia descargable al finalizar.
+        Validez probatoria conforme Ley 25.506. Recibirás copia descargable al finalizar.
       </p>
 
       {/* Footer minimalista */}
@@ -401,32 +399,32 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
 
 const paragraphStyle: React.CSSProperties = {
   fontFamily: R,
-  fontSize: 14,
-  fontWeight: 300,
-  lineHeight: 1.6,
-  color: TEXT_BODY,
+  fontSize: 13.5,
+  fontWeight: 400,
+  lineHeight: 1.65,
+  color: TEXT_DARK,
   margin: 0,
   textAlign: 'justify',
 }
 
 const dataInlineStyle: React.CSSProperties = {
-  fontWeight: 500,
+  fontWeight: 600,
   color: TEXT_DARK,
 }
 
 const placeholderStyle: React.CSSProperties = {
-  fontWeight: 300,
+  fontWeight: 400,
   color: TEXT_PLACEHOLDER,
 }
 
-const clausulaLabelStyle: React.CSSProperties = {
-  fontFamily: P,
-  fontSize: 11,
+const clausulaNumStyle: React.CSSProperties = {
   fontWeight: 600,
-  color: LABEL_MUTED,
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase',
-  margin: '0 0 6px',
+  color: TEXT_DARK,
+}
+
+const clausulaTituloStyle: React.CSSProperties = {
+  fontWeight: 700,
+  color: TEXT_DARK,
 }
 
 type Token = (typeof PLACEHOLDER_TOKENS)[number]
