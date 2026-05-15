@@ -314,16 +314,19 @@ export function formatCierreFirma(date: Date): string {
 /** Bump cuando cambie el TEMPLATE legal (cláusulas, preámbulo, cierre). */
 export const DOCUMENTO_VERSION = '2026-05-15-v2-funes-difusion'
 
+export interface ClausulaSnapshot {
+  numero: number
+  titulo: string                  // "Inmueble", "Plazo", etc.
+  contenido: string               // texto plano (para audit / hashing)
+  chunks: Chunk[]                 // para render del PDF con highlight de datos
+}
+
 export interface DocumentoSnapshot {
   version: string
   titulo: string
   fecha_encabezado: string        // "Funes, 15 de mayo de 2026"
   preambulo: string               // con datos del signer interpolados (sin tokens)
-  clausulas: Array<{
-    numero: number
-    titulo: string                // "Inmueble", "Plazo", etc.
-    contenido: string             // texto plano sin tags
-  }>
+  clausulas: ClausulaSnapshot[]
   cierre_consentimiento: string
   cierre_firma: string            // "Firmado digitalmente en Funes, el X."
   lugar: 'Funes'
@@ -348,6 +351,7 @@ export function buildDocumentoSnapshot(
       numero: cl.numero,
       titulo: cl.titulo,
       contenido: chunksToString(cl.chunks),
+      chunks: cl.chunks,
     })),
     cierre_consentimiento: CIERRE_CONSENTIMIENTO,
     cierre_firma: formatCierreFirma(signedAt),
