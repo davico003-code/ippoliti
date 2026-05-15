@@ -245,8 +245,9 @@ interface FormState {
   }
   tieneExpensas: boolean
   expensasMonto: string
-  precioVenta: string
   precioPublicacion: string
+  precioVenta: string
+  notasInternas: string
 }
 
 const initialForm: FormState = {
@@ -262,8 +263,9 @@ const initialForm: FormState = {
   servicios: { luz: false, agua: false, gas: false, pavimento: false, cloacas: false },
   tieneExpensas: false,
   expensasMonto: '',
-  precioVenta: '',
   precioPublicacion: '',
+  precioVenta: '',
+  notasInternas: '',
 }
 
 interface CreatedResult {
@@ -333,8 +335,9 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
         servicios: form.servicios,
         tiene_expensas: form.tieneExpensas,
         expensas_monto_ars: form.tieneExpensas ? Number(form.expensasMonto) || 0 : undefined,
-        precio_venta_usd: form.precioVenta ? Number(form.precioVenta) : undefined,
         precio_publicacion_usd: form.precioPublicacion ? Number(form.precioPublicacion) : undefined,
+        precio_venta_usd: form.precioVenta ? Number(form.precioVenta) : undefined,
+        notas_internas: form.notasInternas.trim() || undefined,
         cliente_precarga: {
           nombre: form.cliente_nombre.trim() || undefined,
           dni: form.cliente_dni.trim() || undefined,
@@ -443,10 +446,12 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
           <SectionAdvanced
             open={advancedOpen}
             onToggle={() => setAdvancedOpen(o => !o)}
-            precioVenta={form.precioVenta}
             precioPublicacion={form.precioPublicacion}
-            onVenta={v => setForm(f => ({ ...f, precioVenta: v }))}
+            precioVenta={form.precioVenta}
+            notasInternas={form.notasInternas}
             onPub={v => setForm(f => ({ ...f, precioPublicacion: v }))}
+            onVenta={v => setForm(f => ({ ...f, precioVenta: v }))}
+            onNotas={v => setForm(f => ({ ...f, notasInternas: v }))}
           />
         </Card>
 
@@ -1029,21 +1034,47 @@ function SectionExpensas({
   )
 }
 
+// Colores para campos internos (visualmente diferenciados del público).
+const INTERNAL_BG = '#FFFDF5'
+const INTERNAL_BORDER = '#F0E4B8'
+const INTERNAL_LABEL_BG = '#FEF3C7'
+const INTERNAL_LABEL_TEXT = '#92400E'
+
 function SectionAdvanced({
   open,
   onToggle,
-  precioVenta,
   precioPublicacion,
-  onVenta,
+  precioVenta,
+  notasInternas,
   onPub,
+  onVenta,
+  onNotas,
 }: {
   open: boolean
   onToggle: () => void
-  precioVenta: string
   precioPublicacion: string
-  onVenta: (v: string) => void
+  precioVenta: string
+  notasInternas: string
   onPub: (v: string) => void
+  onVenta: (v: string) => void
+  onNotas: (v: string) => void
 }) {
+  const numericInputStyle: React.CSSProperties = {
+    width: '100%',
+    boxSizing: 'border-box',
+    padding: '11px 14px',
+    borderRadius: 10,
+    border: `1px solid ${LINE}`,
+    fontSize: 15,
+    fontFamily: R,
+    outline: 'none',
+    background: '#fff',
+  }
+  const internalInputStyle: React.CSSProperties = {
+    ...numericInputStyle,
+    border: `1px solid ${INTERNAL_BORDER}`,
+    background: '#fff',
+  }
   return (
     <div
       style={{
@@ -1075,57 +1106,119 @@ function SectionAdvanced({
         {open ? <ChevronUp size={16} color={TEXT_MUTED} /> : <ChevronDown size={16} color={TEXT_MUTED} />}
       </button>
       {open && (
-        <div style={{ padding: '0 16px 16px' }}>
-          <div className="grid-2">
-            <div>
-              <SectionLabel>Precio de venta (USD)</SectionLabel>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                value={precioVenta}
-                onChange={e => onVenta(e.target.value)}
-                placeholder="Opcional"
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '11px 14px',
-                  borderRadius: 10,
-                  border: `1px solid ${LINE}`,
-                  fontSize: 15,
-                  fontFamily: R,
-                  outline: 'none',
-                  background: '#fff',
-                }}
-              />
-            </div>
-            <div>
+        <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Precio de publicación — PÚBLICO (sin fondo amarillo) */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <SectionLabel>Precio de publicación (USD)</SectionLabel>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                value={precioPublicacion}
-                onChange={e => onPub(e.target.value)}
-                placeholder="Opcional"
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '11px 14px',
-                  borderRadius: 10,
-                  border: `1px solid ${LINE}`,
-                  fontSize: 15,
-                  fontFamily: R,
-                  outline: 'none',
-                  background: '#fff',
-                }}
-              />
+              <span style={publicPillStyle}>Público</span>
             </div>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={precioPublicacion}
+              onChange={e => onPub(e.target.value)}
+              placeholder="Opcional · aparece en el acuerdo del cliente"
+              style={numericInputStyle}
+            />
+          </div>
+
+          {/* Precio estimado de venta — INTERNO (caja amarilla) */}
+          <div
+            style={{
+              padding: 14,
+              borderRadius: 10,
+              background: INTERNAL_BG,
+              border: `1px solid ${INTERNAL_BORDER}`,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <SectionLabel>Precio estimado de venta (USD)</SectionLabel>
+              <span style={internalPillStyle}>🔒 Interno</span>
+            </div>
+            <p style={{ fontSize: 12, color: INTERNAL_LABEL_TEXT, margin: '0 0 8px', lineHeight: 1.5 }}>
+              Solo para uso interno. No aparece en el acuerdo del cliente ni en el PDF.
+            </p>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={precioVenta}
+              onChange={e => onVenta(e.target.value)}
+              placeholder="Opcional"
+              style={internalInputStyle}
+            />
+          </div>
+
+          {/* Notas internas — INTERNO (caja amarilla) */}
+          <div
+            style={{
+              padding: 14,
+              borderRadius: 10,
+              background: INTERNAL_BG,
+              border: `1px solid ${INTERNAL_BORDER}`,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <SectionLabel>Notas internas</SectionLabel>
+              <span style={internalPillStyle}>🔒 Interno</span>
+            </div>
+            <p style={{ fontSize: 12, color: INTERNAL_LABEL_TEXT, margin: '0 0 8px', lineHeight: 1.5 }}>
+              Solo para uso interno. No aparece en el acuerdo del cliente ni en el PDF.
+            </p>
+            <textarea
+              value={notasInternas}
+              onChange={e => onNotas(e.target.value)}
+              placeholder="Margen de negociación, comisiones especiales, recordatorios..."
+              rows={4}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                padding: '11px 14px',
+                borderRadius: 10,
+                border: `1px solid ${INTERNAL_BORDER}`,
+                fontSize: 14,
+                fontFamily: R,
+                outline: 'none',
+                background: '#fff',
+                resize: 'vertical',
+                minHeight: 80,
+                color: TEXT_DARK,
+                lineHeight: 1.5,
+              }}
+            />
           </div>
         </div>
       )}
     </div>
   )
+}
+
+const publicPillStyle: React.CSSProperties = {
+  display: 'inline-block',
+  background: GREEN_TINT,
+  color: GREEN_DARK_TEXT,
+  fontFamily: P,
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
+  padding: '2px 8px',
+  borderRadius: 999,
+}
+
+const internalPillStyle: React.CSSProperties = {
+  display: 'inline-block',
+  background: INTERNAL_LABEL_BG,
+  color: INTERNAL_LABEL_TEXT,
+  fontFamily: P,
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
+  padding: '2px 8px',
+  borderRadius: 999,
 }
 
 // ── Botonera ────────────────────────────────────────────────────────────────
