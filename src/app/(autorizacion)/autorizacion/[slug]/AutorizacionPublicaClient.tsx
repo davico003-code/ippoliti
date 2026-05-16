@@ -144,46 +144,23 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
   return (
     <div>
       {/* Título + fecha del documento */}
-      <h1
-        style={{
-          fontFamily: R,
-          fontSize: 17,
-          fontWeight: 700,
-          letterSpacing: '0.03em',
-          color: TEXT_DARK,
-          textAlign: 'center',
-          margin: '8px 0 4px',
-          lineHeight: 1.3,
-        }}
-      >
-        {titulo}
-      </h1>
-      <p
-        style={{
-          fontFamily: R,
-          fontSize: 12,
-          color: TEXT_MUTED,
-          textAlign: 'center',
-          margin: '0 0 24px',
-        }}
-      >
-        {fechaEncabezado}
-      </p>
+      <h1 className="doc-title">{titulo}</h1>
+      <p className="doc-fecha">{fechaEncabezado}</p>
 
       {/* Preámbulo (live preview de los 4 placeholders) */}
-      <p style={paragraphStyle}>
+      <p className="doc-paragraph">
         {preambuloPieces.map((p, i) => {
           if (p.kind === 'text') return <span key={i}>{p.text}</span>
           const val = valueFor(p.token).trim()
           if (val) {
             return (
-              <span key={i} style={dataInlineStyle}>
+              <span key={i} className="doc-data">
                 {val}
               </span>
             )
           }
           return (
-            <span key={i} style={placeholderStyle}>
+            <span key={i} className="doc-placeholder">
               {PLACEHOLDER_UNDERSCORE[p.token]}
             </span>
           )
@@ -192,11 +169,11 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
 
       {/* Cláusulas — estructura inline "1.- Inmueble: texto..." */}
       {clausulas.map(cl => (
-        <p key={cl.key} style={{ ...paragraphStyle, marginTop: 14 }}>
-          <span style={clausulaNumStyle}>{cl.numero}.- </span>
-          <span style={clausulaTituloStyle}>{cl.titulo}: </span>
+        <p key={cl.key} className="doc-paragraph">
+          <span className="doc-clausula-num">{cl.numero}.- </span>
+          <span className="doc-clausula-titulo">{cl.titulo}: </span>
           {cl.chunks.map((c, i) => (
-            <span key={i} style={c.kind === 'data' ? dataInlineStyle : undefined}>
+            <span key={i} className={c.kind === 'data' ? 'doc-data' : undefined}>
               {c.text}
             </span>
           ))}
@@ -204,10 +181,10 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
       ))}
 
       {/* Cierre */}
-      <p style={{ ...paragraphStyle, marginTop: 20 }}>{CIERRE_CONSENTIMIENTO}</p>
-      <p style={{ ...paragraphStyle, marginTop: 8 }}>
+      <p className="doc-paragraph">{CIERRE_CONSENTIMIENTO}</p>
+      <p className="doc-paragraph">
         Firmado digitalmente en Funes, el{' '}
-        <span style={placeholderStyle}>{CIERRE_FECHA_PLACEHOLDER}</span>.
+        <span className="doc-placeholder">{CIERRE_FECHA_PLACEHOLDER}</span>.
       </p>
 
       {/* Separador */}
@@ -390,42 +367,65 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin { animation: spin 1s linear infinite; }
+
+        /* ── Documento legal: tipografía priorizando legibilidad on-screen ── */
+        .doc-title {
+          font-family: ${R};
+          font-size: 19px;
+          font-weight: 700;
+          letter-spacing: 0.03em;
+          color: #0F0F0F;
+          text-align: center;
+          margin: 8px 0 4px;
+          line-height: 1.3;
+        }
+        .doc-fecha {
+          font-family: ${R};
+          font-size: 14px;
+          font-weight: 500;
+          color: ${TEXT_MUTED};
+          text-align: center;
+          margin: 0 0 24px;
+        }
+        .doc-paragraph {
+          font-family: ${R};
+          font-size: 16px;
+          font-weight: 500;
+          line-height: 1.75;
+          color: #0F0F0F;
+          margin: 0 0 18px;
+          text-align: justify;
+        }
+        .doc-data {
+          font-weight: 700;
+          color: #0F0F0F;
+        }
+        .doc-clausula-num {
+          font-weight: 700;
+          color: #0F0F0F;
+        }
+        .doc-clausula-titulo {
+          font-weight: 800;
+          color: #0F0F0F;
+        }
+        .doc-placeholder {
+          font-weight: 400;
+          color: ${TEXT_PLACEHOLDER};
+        }
+        @media (min-width: 720px) {
+          .doc-title { font-size: 22px; }
+          .doc-paragraph { font-size: 17px; }
+        }
       `}</style>
     </div>
   )
 }
 
 // ── Subcomponentes y estilos compartidos ───────────────────────────────────
-
-const paragraphStyle: React.CSSProperties = {
-  fontFamily: R,
-  fontSize: 13.5,
-  fontWeight: 400,
-  lineHeight: 1.65,
-  color: TEXT_DARK,
-  margin: 0,
-  textAlign: 'justify',
-}
-
-const dataInlineStyle: React.CSSProperties = {
-  fontWeight: 600,
-  color: TEXT_DARK,
-}
-
-const placeholderStyle: React.CSSProperties = {
-  fontWeight: 400,
-  color: TEXT_PLACEHOLDER,
-}
-
-const clausulaNumStyle: React.CSSProperties = {
-  fontWeight: 600,
-  color: TEXT_DARK,
-}
-
-const clausulaTituloStyle: React.CSSProperties = {
-  fontWeight: 700,
-  color: TEXT_DARK,
-}
+//
+// Los estilos del CUERPO del documento (título, fecha, párrafos, datos, etc)
+// están definidos como clases CSS en el <style> dentro del componente principal
+// (clases .doc-*), porque necesitan media query para responsive 16/17 y 19/22.
 
 type Token = (typeof PLACEHOLDER_TOKENS)[number]
 

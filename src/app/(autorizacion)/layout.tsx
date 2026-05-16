@@ -76,7 +76,7 @@ export default function AutorizacionRootLayout({ children }: { children: React.R
               width: '100%',
               maxWidth: 680,
               margin: '0 auto',
-              padding: '24px 20px 48px',
+              padding: 'clamp(28px, 5vw, 48px) clamp(22px, 4vw, 56px) 48px',
               boxSizing: 'border-box',
             }}
           >
