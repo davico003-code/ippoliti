@@ -75,6 +75,40 @@ export interface Signer {
   user_agent?: string
 }
 
+// ── Salud del acuerdo (interno, NUNCA expuesto al cliente) ─────────────────
+//
+// Registro del estado de la documentación del expediente — escritura/boleto,
+// planos, VEP/Mensura, y documentación complementaria. Permite al agente
+// evaluar si la propiedad es vendible legalmente.
+//
+// IMPORTANTE: este campo NO se expone al cliente. NO va al PDF ni al
+// documento_snapshot ni a la vista pública. Solo aparece en el panel admin
+// (detalle + listado) y en respuestas de APIs con team-code.
+
+export type SaludRespuestaSiNo = 'si' | 'no' | null
+export type SaludRespuestaSiNoNa = 'si' | 'no' | 'na' | null
+
+export interface SaludExtras {
+  impuestos: boolean
+  servicios: boolean
+  reglamento: boolean
+  libre_deuda: boolean
+}
+
+export interface Salud {
+  escritura: SaludRespuestaSiNo
+  boleto: SaludRespuestaSiNo
+  planos: SaludRespuestaSiNo
+  /** Notas de regularización (máx 1000 chars) */
+  planos_notas: string
+  mensura: SaludRespuestaSiNoNa
+  extras: SaludExtras
+  /** ISO timestamp del último guardado */
+  actualizada_en: string | null
+  /** Nombre del agente que guardó (toma de agente_creador o fallback "Equipo SI") */
+  actualizada_por: string | null
+}
+
 export interface Autorizacion {
   slug: string
   tipo: TipoAutorizacion
@@ -106,6 +140,9 @@ export interface Autorizacion {
   /** Snapshot del documento al momento de la firma (versionado). Si está
    *  presente, el PDF se genera desde acá en lugar de getClausulas(auth). */
   documento_snapshot?: DocumentoSnapshot
+  /** INTERNO — estado de la documentación del expediente. NUNCA llega al
+   *  documento del cliente, al PDF ni al snapshot. Solo panel admin. */
+  salud?: Salud | null
 }
 
 // ── Input para crear ───────────────────────────────────────────────────────
@@ -239,6 +276,22 @@ export async function actualizarAutorizacion(
   if (patch.expires_at !== undefined) {
     updated.expires_at = patch.expires_at
   }
+  await redis.set(KEY(slug), JSON.stringify(updated), { ex: TTL_SECONDS })
+  return updated
+}
+
+// ── Salud del acuerdo (update específico) ──────────────────────────────────
+
+/** Reemplaza el objeto salud completo (no patch parcial). El endpoint setea
+ *  actualizada_en y actualizada_por en el caller para que esta función no
+ *  acople tiempo/identidad — recibe el objeto ya formado. */
+export async function actualizarSalud(
+  slug: string,
+  salud: Salud,
+): Promise<Autorizacion | null> {
+  const auth = await getAutorizacion(slug)
+  if (!auth) return null
+  const updated: Autorizacion = { ...auth, salud }
   await redis.set(KEY(slug), JSON.stringify(updated), { ex: TTL_SECONDS })
   return updated
 }

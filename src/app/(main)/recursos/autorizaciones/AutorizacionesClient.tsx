@@ -32,6 +32,7 @@ import type {
   TipoPropiedad,
 } from '@/lib/autorizaciones'
 import { WHATSAPP_TEMPLATE } from '@/lib/autorizaciones/documentoTexto'
+import { SaludLucesMini } from '@/components/autorizaciones/SaludLucesMini'
 
 const STORAGE_KEY = 'si_team_access'
 const GREEN = '#1A5C38'
@@ -1611,6 +1612,7 @@ function ListadoTable({
                   <Th>Tipo</Th>
                   <Th>Plazo</Th>
                   <Th>Estado</Th>
+                  <Th>Salud</Th>
                   <Th align="right">Acciones</Th>
                 </tr>
               </thead>
@@ -1633,6 +1635,7 @@ function ListadoTable({
                     <Td>{a.tipo === 'exclusiva' ? 'Exclusiva' : 'No exclusiva'}</Td>
                     <Td>{a.plazo_dias} días</Td>
                     <Td><StatusBadge status={a.status} /></Td>
+                    <Td><SaludLucesMini salud={a.salud} /></Td>
                     <Td align="right">
                       <RowActions auth={a} />
                     </Td>

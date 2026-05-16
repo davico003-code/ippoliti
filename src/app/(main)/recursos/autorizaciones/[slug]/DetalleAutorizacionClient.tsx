@@ -33,6 +33,7 @@ import {
 } from '@/lib/autorizaciones/documentoTexto'
 
 import DeleteAcuerdoModal from './DeleteAcuerdoModal'
+import SaludAcuerdoSection from '@/components/autorizaciones/SaludAcuerdoSection'
 
 const STORAGE_KEY = 'si_team_access'
 const GREEN = '#1A5C38'
@@ -396,6 +397,14 @@ function DetalleContenido({
 
       {/* Card cliente firmante */}
       <ClienteFirmanteCard auth={auth} isFirmada={isFirmada} />
+
+      {/* Salud del acuerdo (interno — nunca al cliente) */}
+      <SaludAcuerdoSection
+        slug={auth.slug}
+        saludInicial={auth.salud ?? null}
+        teamCode={teamCode}
+        onSaludRefresh={salud => onAuthRefresh({ ...auth, salud })}
+      />
 
       {/* Botonera */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 18 }}>
