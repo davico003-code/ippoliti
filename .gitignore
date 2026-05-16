@@ -40,3 +40,14 @@ audit/
 supabase/.temp/
 
 _referencias/
+
+# Claude Code — locales (skills, MCP cache, logs)
+.claude/skills/
+.playwright-mcp/
+
+# Assets sueltos en public/ que no van al repo (videos IA, fotos crudas)
+public/CORTOS IA/
+public/OFICINA FUNES/
+public/Funes.jpg
+public/cadaques.jpg
+public/dji_fly_*.jpg
