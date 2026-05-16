@@ -5,13 +5,17 @@
 //      commit B v2 con versionado), renderea desde el snapshot — el cliente
 //      recibe exactamente el texto que firmó aunque cambiemos la plantilla.
 //   2. Si no existe (acuerdos firmados antes del versionado), generamos un
-//      snapshot on-the-fly con la plantilla VIGENTE + footer con disclaimer
-//      "Documento regenerado con plantilla vigente al {fecha}".
+//      snapshot on-the-fly con la plantilla VIGENTE + disclaimer al pie.
 //
-// Tipografía: Raleway 400 cuerpo / 600 datos resaltados.
-// Logo: a la derecha (estilo membrete formal), ~40px alto.
-// Footer en cada página: SI INMOBILIARIA + ID acuerdo + hash de verificación
-// (SHA-256 del slug + signed_at, truncado a 16 chars).
+// Diseño v3:
+//   - Tipografía Raleway 500 cuerpo / 700 datos (más bold para imprimir).
+//   - Cuerpo a 11pt, line-height 1.5 — priorizando legibilidad on-paper.
+//   - Márgenes ajustados (14mm sup / 12mm inf / 16mm laterales) para entrar
+//     en una sola hoja A4 sin sacrificar tamaño de fuente. Si no entra,
+//     se acepta segunda página (la legibilidad es prioridad absoluta).
+//   - Logo SI a la derecha, 30pt alto (estilo membrete formal).
+//   - Bloque de datos de oficina al pie (Funes, Yrigoyen 2643, Tel/WA).
+//   - Footer técnico comprimido a una sola línea con ID + Hash.
 
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
@@ -63,7 +67,7 @@ function getLogoSrc(): Buffer | string {
 // ── Fuentes ────────────────────────────────────────────────────────────────
 //
 // Variable font Raleway hospedado en /public/fonts/raleway-variable.ttf.
-// Registrado para varios pesos; @react-pdf interpola si soporta variable fonts.
+// Registrado para 400/500/600/700; @react-pdf interpola desde la variable.
 
 const FONT_BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://siinmobiliaria.com'
@@ -83,52 +87,57 @@ Font.register({
 // ── Estilos ─────────────────────────────────────────────────────────────────
 
 const COLOR_DARK = '#1A1A1A'
+const COLOR_DARKER = '#0F0F0F'
 const COLOR_MUTED = '#6B6B66'
-const COLOR_SOFT = '#8A8A85'
+const COLOR_SOFT = '#5A5A55'
+const COLOR_HINT = '#8A8A85'
 const COLOR_LINE = '#E5E5E0'
+const COLOR_LINE_DARK = '#D5D5D0'
+const COLOR_GREEN = '#1A5C38'
 const COLOR_AMBER = '#92400E'
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: '2.5cm',
-    paddingBottom: '2.5cm',
-    paddingHorizontal: '2.5cm',
+    paddingTop: '14mm',
+    paddingBottom: '12mm',
+    paddingHorizontal: '16mm',
     fontFamily: 'Raleway',
     fontWeight: 500,
-    fontSize: 10.5,
-    lineHeight: 1.6,
+    fontSize: 11,
+    lineHeight: 1.5,
     color: COLOR_DARK,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 20,
+    marginBottom: 6,
   },
   headerLogo: {
-    width: 130,
-    height: 36,
+    width: 110,
+    height: 30,
     objectFit: 'contain',
   },
   titulo: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: 700,
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     color: COLOR_DARK,
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   fechaEncabezado: {
-    fontSize: 9,
+    fontSize: 10,
+    fontWeight: 500,
     color: COLOR_SOFT,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   paragraph: {
-    marginBottom: 10,
+    marginBottom: 8,
     textAlign: 'justify',
   },
   clausulaPara: {
-    marginBottom: 10,
+    marginBottom: 6,
     textAlign: 'justify',
   },
   clausulaNum: {
@@ -141,64 +150,94 @@ const styles = StyleSheet.create({
   },
   dataInline: {
     fontWeight: 700,
-    color: COLOR_DARK,
+    color: COLOR_DARKER,
   },
   cierre: {
-    marginTop: 12,
-    marginBottom: 20,
+    marginTop: 10,
+    marginBottom: 8,
+    fontSize: 10.5,
+    fontWeight: 500,
+    color: COLOR_DARK,
     textAlign: 'justify',
   },
   firmaSection: {
-    marginTop: 8,
-    paddingTop: 14,
-    borderTopWidth: 0.6,
+    marginTop: 6,
+    paddingTop: 8,
+    borderTopWidth: 0.5,
     borderTopColor: COLOR_LINE,
     borderTopStyle: 'solid',
   },
   firmaLabel: {
-    fontSize: 8,
+    fontSize: 8.5,
     fontWeight: 700,
     color: COLOR_MUTED,
-    letterSpacing: 1.4,
-    marginBottom: 6,
+    letterSpacing: 1.2,
+    marginBottom: 5,
     textTransform: 'uppercase',
   },
   firmaImage: {
-    width: 200,
-    height: 80,
+    width: 170,
+    height: 60,
     objectFit: 'contain',
-    marginBottom: 6,
+    marginBottom: 5,
   },
   firmaLineaDatos: {
-    fontSize: 10,
+    fontSize: 9.5,
     color: COLOR_DARK,
-    marginBottom: 2,
+    marginBottom: 1.5,
   },
   firmaDataLabel: {
     fontWeight: 700,
     color: COLOR_DARK,
   },
   firmaFecha: {
-    marginTop: 6,
+    marginTop: 4,
+    fontSize: 8.5,
+    color: COLOR_HINT,
+  },
+  // ── Datos de oficina (bloque centrado con separadores) ──
+  oficinaWrap: {
+    marginTop: 8,
+    paddingTop: 6,
+    paddingBottom: 6,
+    borderTopWidth: 0.5,
+    borderTopColor: COLOR_LINE_DARK,
+    borderTopStyle: 'solid',
+    borderBottomWidth: 0.5,
+    borderBottomColor: COLOR_LINE_DARK,
+    borderBottomStyle: 'solid',
+    alignItems: 'center',
+  },
+  oficinaTitle: {
+    fontSize: 9.5,
+    fontWeight: 700,
+    color: COLOR_GREEN,
+    letterSpacing: 0.4,
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  oficinaLine: {
     fontSize: 9,
-    color: COLOR_SOFT,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: '1.2cm',
-    left: '2.5cm',
-    right: '2.5cm',
-    fontSize: 8,
-    color: COLOR_SOFT,
-    lineHeight: 1.45,
-  },
-  footerLine: {
-    marginBottom: 1,
-  },
-  footerWarn: {
-    marginBottom: 1,
-    color: COLOR_AMBER,
     fontWeight: 500,
+    color: COLOR_DARK,
+    lineHeight: 1.55,
+    textAlign: 'center',
+  },
+  // ── Footer técnico (una línea) ──
+  tecnico: {
+    marginTop: 3,
+    fontSize: 7.5,
+    fontWeight: 400,
+    color: COLOR_HINT,
+    textAlign: 'center',
+    lineHeight: 1.4,
+  },
+  tecnicoWarn: {
+    marginTop: 2,
+    fontSize: 7.5,
+    fontWeight: 500,
+    color: COLOR_AMBER,
+    textAlign: 'center',
   },
 })
 
@@ -208,7 +247,7 @@ function hashSlugSignedAt(slug: string, signedAtIso: string): string {
   return createHash('sha256').update(`${slug}|${signedAtIso}`).digest('hex').slice(0, 16)
 }
 
-/** Chunk inline resaltado (peso 600). */
+/** Chunk inline con datos resaltados (peso 700, color #0F0F0F). */
 function D({ children }: { children: React.ReactNode }) {
   return <Text style={styles.dataInline}>{children}</Text>
 }
@@ -247,7 +286,7 @@ export function AutorizacionPDF({ data }: Props) {
 
   // Si el acuerdo tiene snapshot guardado al firmar → lo usamos tal cual.
   // Si no (acuerdo viejo pre-versionado) → regeneramos con la plantilla
-  // vigente al momento del fetch y marcamos el footer con disclaimer.
+  // vigente al momento del fetch y marcamos un disclaimer al pie.
   const snapshot: DocumentoSnapshot =
     data.documento_snapshot || buildDocumentoSnapshot(data, data.signer, signedAt)
   const isRegenerated = !data.documento_snapshot
@@ -287,7 +326,7 @@ export function AutorizacionPDF({ data }: Props) {
           {snapshot.cierre_firma}
         </Text>
 
-        {/* Sección de firma manuscrita */}
+        {/* Sección de firma manuscrita (legal — Ley 25.506) */}
         <View style={styles.firmaSection} wrap={false}>
           <Text style={styles.firmaLabel}>FIRMA DEL AUTORIZANTE</Text>
           {/* eslint-disable-next-line jsx-a11y/alt-text */}
@@ -297,9 +336,8 @@ export function AutorizacionPDF({ data }: Props) {
           </Text>
           <Text style={styles.firmaLineaDatos}>
             DNI <Text style={styles.firmaDataLabel}>{data.signer.dni}</Text>
-          </Text>
-          <Text style={styles.firmaLineaDatos}>
-            Domicilio: <Text style={styles.firmaDataLabel}>{data.signer.domicilio}</Text>
+            {' · Domicilio: '}
+            <Text style={styles.firmaDataLabel}>{data.signer.domicilio}</Text>
           </Text>
           <Text style={styles.firmaLineaDatos}>
             Email: <Text style={styles.firmaDataLabel}>{data.signer.email}</Text>
@@ -307,19 +345,24 @@ export function AutorizacionPDF({ data }: Props) {
           <Text style={styles.firmaFecha}>Firmado digitalmente el {fechaFirma}</Text>
         </View>
 
-        {/* Footer fijo en cada página */}
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerLine}>
-            Documento generado digitalmente · SI INMOBILIARIA SRL · siinmobiliaria.com
+        {/* Bloque de oficina (al pie del documento) */}
+        <View style={styles.oficinaWrap}>
+          <Text style={styles.oficinaTitle}>SI INMOBILIARIA — Oficina Funes</Text>
+          <Text style={styles.oficinaLine}>Hipólito Yrigoyen 2643 · Funes, Santa Fe</Text>
+          <Text style={styles.oficinaLine}>
+            Tel / WhatsApp: 341 210 1694 · siinmobiliaria.com
           </Text>
-          <Text style={styles.footerLine}>ID de acuerdo: {data.slug}</Text>
-          <Text style={styles.footerLine}>Hash de verificación: {hash}</Text>
-          {isRegenerated && (
-            <Text style={styles.footerWarn}>
-              Documento regenerado con plantilla vigente al {fechaRegen} (sin snapshot original).
-            </Text>
-          )}
         </View>
+
+        {/* Footer técnico (una sola línea) */}
+        <Text style={styles.tecnico}>
+          Generado digitalmente · SI INMOBILIARIA SRL · ID: {data.slug} · Hash: {hash}
+        </Text>
+        {isRegenerated && (
+          <Text style={styles.tecnicoWarn}>
+            Documento regenerado con plantilla vigente al {fechaRegen} (sin snapshot original).
+          </Text>
+        )}
       </Page>
     </Document>
   )
