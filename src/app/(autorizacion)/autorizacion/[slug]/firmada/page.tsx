@@ -9,10 +9,7 @@ import { formatFechaFirma } from '@/lib/autorizaciones/documentoTexto'
 export const dynamic = 'force-dynamic'
 
 const GREEN = '#1A5C38'
-const TEXT_DARK = '#1A1A1A'
-const TEXT_SOFT = '#5A5A55'
 const TEXT_MUTED = '#8A8A85'
-const LABEL_MUTED = '#6B6B66'
 const LINE = '#E5E5E0'
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
@@ -52,8 +49,8 @@ export default async function FirmadaPage({ params }: Props) {
         style={{
           fontFamily: R,
           fontSize: 22,
-          fontWeight: 600,
-          color: TEXT_DARK,
+          fontWeight: 700,
+          color: '#0F0F0F',
           margin: '0 0 8px',
           lineHeight: 1.3,
         }}
@@ -64,24 +61,25 @@ export default async function FirmadaPage({ params }: Props) {
         style={{
           fontFamily: R,
           fontSize: 16,
-          color: TEXT_DARK,
+          fontWeight: 500,
+          color: '#0F0F0F',
           margin: '0 0 16px',
         }}
       >
-        Gracias, <span style={{ fontWeight: 500 }}>{firstName}</span>.
+        Gracias, <span style={{ fontWeight: 700 }}>{firstName}</span>.
       </p>
       <p
         style={{
           fontFamily: R,
-          fontSize: 14,
-          fontWeight: 300,
-          color: TEXT_SOFT,
-          lineHeight: 1.6,
+          fontSize: 16,
+          fontWeight: 500,
+          color: '#0F0F0F',
+          lineHeight: 1.7,
           margin: '0 auto 28px',
           maxWidth: 520,
         }}
       >
-        Recibimos tu acuerdo el <span style={{ color: TEXT_DARK, fontWeight: 500 }}>{fechaHora}</span> y ya está en manos de nuestro equipo. Nos pondremos en contacto a la brevedad para coordinar los próximos pasos.
+        Recibimos tu acuerdo el <span style={{ fontWeight: 700 }}>{fechaHora}</span> y ya está en manos de nuestro equipo. Nos pondremos en contacto a la brevedad para coordinar los próximos pasos.
       </p>
 
       <a
@@ -115,8 +113,8 @@ export default async function FirmadaPage({ params }: Props) {
         style={{
           fontFamily: P,
           fontSize: 11,
-          fontWeight: 600,
-          color: LABEL_MUTED,
+          fontWeight: 700,
+          color: '#3F3F3A',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
           margin: '0 0 10px',
@@ -124,13 +122,13 @@ export default async function FirmadaPage({ params }: Props) {
       >
         Datos de contacto del agente
       </p>
-      <p style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: TEXT_DARK, margin: '0 0 4px' }}>
+      <p style={{ fontFamily: R, fontSize: 16, fontWeight: 700, color: '#0F0F0F', margin: '0 0 4px' }}>
         {auth.agente.nombre}
       </p>
-      <p style={{ fontFamily: R, fontSize: 13, fontWeight: 400, color: TEXT_SOFT, margin: '0 0 4px' }}>
+      <p style={{ fontFamily: R, fontSize: 15, fontWeight: 500, color: '#0F0F0F', margin: '0 0 4px' }}>
         {auth.agente.rol} Mat. N.º {auth.agente.matricula}
       </p>
-      <p style={{ fontFamily: R, fontSize: 13, fontWeight: 400, color: TEXT_SOFT, margin: 0 }}>
+      <p style={{ fontFamily: R, fontSize: 15, fontWeight: 500, color: '#0F0F0F', margin: 0 }}>
         SI INMOBILIARIA · siinmobiliaria.com
       </p>
 
