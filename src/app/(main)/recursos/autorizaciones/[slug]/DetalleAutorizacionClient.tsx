@@ -377,6 +377,9 @@ function DetalleContenido({
         </p>
       </div>
 
+      {/* Card destacada: agente que generó el acuerdo (uso interno) */}
+      <AgenteCreadorCard auth={auth} />
+
       {/* Grid 2 cards de precio */}
       <PreciosGrid auth={auth} />
 
@@ -490,6 +493,84 @@ function DetalleContenido({
 }
 
 // ── Cards individuales ─────────────────────────────────────────────────────
+
+function AgenteCreadorCard({ auth }: { auth: Autorizacion }) {
+  const tieneAgente = !!auth.agente_creador && auth.agente_creador.trim().length > 0
+  return (
+    <div
+      style={{
+        background: '#F0F7F2',
+        border: '1px solid #C9E0D2',
+        borderRadius: 14,
+        padding: 18,
+        marginBottom: 18,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <p
+          style={{
+            fontFamily: P,
+            fontSize: 11,
+            fontWeight: 600,
+            color: GREEN_DARK_TEXT,
+            textTransform: 'uppercase',
+            letterSpacing: '0.14em',
+            margin: 0,
+          }}
+        >
+          Acuerdo generado por
+        </p>
+        <span
+          style={{
+            display: 'inline-block',
+            background: GREEN_TINT,
+            color: GREEN_DARK_TEXT,
+            fontFamily: P,
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            padding: '2px 8px',
+            borderRadius: 999,
+          }}
+        >
+          Agente
+        </span>
+      </div>
+      {tieneAgente ? (
+        <>
+          <p
+            style={{
+              fontFamily: R,
+              fontSize: 16,
+              fontWeight: 700,
+              color: TEXT_DARK,
+              margin: '0 0 4px',
+            }}
+          >
+            {auth.agente_creador}
+          </p>
+          <p style={{ fontFamily: R, fontSize: 11.5, color: TEXT_SOFT, margin: 0, lineHeight: 1.5 }}>
+            Registrado al crear el acuerdo · uso interno
+          </p>
+        </>
+      ) : (
+        <p
+          style={{
+            fontFamily: R,
+            fontSize: 14,
+            fontWeight: 500,
+            color: '#9A9A93',
+            margin: 0,
+            lineHeight: 1.5,
+          }}
+        >
+          No registrado · acuerdo previo a v3
+        </p>
+      )}
+    </div>
+  )
+}
 
 function PreciosGrid({ auth }: { auth: Autorizacion }) {
   const pub = auth.precio_publicacion_usd

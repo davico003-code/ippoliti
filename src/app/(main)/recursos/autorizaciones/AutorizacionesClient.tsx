@@ -227,6 +227,7 @@ const SERVICIOS: { key: keyof FormState['servicios']; label: string }[] = [
 ]
 
 interface FormState {
+  agenteCreador: string
   tipo: TipoAutorizacion
   plazoPreset: 60 | 90 | 120 | 'otro'
   plazoCustom: string
@@ -251,6 +252,7 @@ interface FormState {
 }
 
 const initialForm: FormState = {
+  agenteCreador: '',
   tipo: 'exclusiva',
   plazoPreset: 120,
   plazoCustom: '',
@@ -319,7 +321,9 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
     return Math.max(30, Math.min(365, n))
   }
 
-  const canSubmit = form.direccion.trim().length >= 3 && !creating
+  const agenteCreadorValid =
+    form.agenteCreador.trim().length >= 5 && /\s/.test(form.agenteCreador.trim())
+  const canSubmit = form.direccion.trim().length >= 3 && agenteCreadorValid && !creating
 
   const createOnly = async (): Promise<CreatedResult | null> => {
     if (!canSubmit) return null
@@ -327,6 +331,7 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
     setCreateError(null)
     try {
       const body = {
+        agente_creador: form.agenteCreador.trim(),
         tipo: form.tipo,
         plazo_dias: plazoFinal(),
         renovacion_automatica: form.renovacion,
@@ -395,6 +400,12 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
         <PageHeader />
 
         <Card>
+          <SectionAgenteCreador
+            value={form.agenteCreador}
+            onChange={v => setForm(f => ({ ...f, agenteCreador: v }))}
+            valid={agenteCreadorValid}
+          />
+
           <SectionTipo value={form.tipo} onChange={v => setForm(f => ({ ...f, tipo: v }))} />
 
           <div className="grid-2">
@@ -648,6 +659,102 @@ function Segmented<T extends string | number>({
           </button>
         )
       })}
+    </div>
+  )
+}
+
+function SectionAgenteCreador({
+  value,
+  onChange,
+  valid,
+}: {
+  value: string
+  onChange: (v: string) => void
+  valid: boolean
+}) {
+  const showError = value.length > 0 && !valid
+  return (
+    <div>
+      <p
+        style={{
+          fontFamily: P,
+          fontSize: 11,
+          color: GREEN,
+          textTransform: 'uppercase',
+          letterSpacing: '0.18em',
+          fontWeight: 600,
+          margin: '0 0 10px',
+        }}
+      >
+        Datos del agente
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <label
+          htmlFor="agente-creador"
+          style={{
+            fontFamily: R,
+            fontSize: 13,
+            fontWeight: 500,
+            color: TEXT_DARK,
+          }}
+        >
+          Nombre y apellido del agente
+        </label>
+        <span
+          style={{
+            display: 'inline-block',
+            background: GREEN_TINT,
+            color: GREEN_DARK_TEXT,
+            fontFamily: P,
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            padding: '2px 8px',
+            borderRadius: 999,
+          }}
+        >
+          Obligatorio
+        </span>
+      </div>
+      <input
+        id="agente-creador"
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder="Ej: David Flores"
+        required
+        autoComplete="name"
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+          padding: '12px 14px',
+          borderRadius: 10,
+          border: `1px solid ${showError ? '#FCA5A5' : LINE}`,
+          fontSize: 15,
+          fontFamily: R,
+          outline: 'none',
+        }}
+      />
+      <p
+        style={{
+          marginTop: 6,
+          fontFamily: R,
+          fontSize: 11.5,
+          color: '#8A8A85',
+          lineHeight: 1.5,
+        }}
+      >
+        Uso interno: identifica quién generó el acuerdo.{' '}
+        <strong style={{ fontWeight: 700, color: TEXT_SOFT }}>
+          No aparece en el documento del cliente.
+        </strong>
+      </p>
+      {showError && (
+        <p style={{ marginTop: 4, fontFamily: R, fontSize: 12, color: '#B91C1C' }}>
+          Ingresá nombre y apellido (mínimo 5 caracteres con espacio).
+        </p>
+      )}
     </div>
   )
 }
@@ -1499,6 +1606,7 @@ function ListadoTable({
               <thead>
                 <tr style={{ background: BG, borderBottom: `1px solid ${LINE}` }}>
                   <Th>Fecha</Th>
+                  <Th>Agente</Th>
                   <Th>Dirección</Th>
                   <Th>Tipo</Th>
                   <Th>Plazo</Th>
@@ -1510,6 +1618,13 @@ function ListadoTable({
                 {items.map(a => (
                   <tr key={a.slug} style={{ borderBottom: `1px solid ${LINE}` }}>
                     <Td>{fmtDate(a.created_at)}</Td>
+                    <Td>
+                      {a.agente_creador ? (
+                        <span style={{ color: TEXT_DARK }}>{a.agente_creador}</span>
+                      ) : (
+                        <span style={{ color: '#B5B5AE' }} title="No registrado · acuerdo previo a v3">—</span>
+                      )}
+                    </Td>
                     <Td>
                       <span style={{ fontWeight: 500, color: TEXT_DARK }}>{a.direccion}</span>
                       <br />
