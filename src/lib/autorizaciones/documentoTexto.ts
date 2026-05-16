@@ -1,5 +1,13 @@
 // Fuente única de los textos legales del acuerdo de comercialización.
 //
+// IMPORTANTE: Cualquier modificación a este archivo solo aplica a acuerdos
+// futuros y a acuerdos pendientes no firmados. Los acuerdos firmados
+// conservan su `documento_snapshot` original por validez legal (Ley 25.506).
+// Cada firma electrónica certifica conformidad con un texto específico —
+// modificar retroactivamente el texto invalidaría su valor probatorio.
+// Por eso, al cambiar el template, también se debe bumpear DOCUMENTO_VERSION
+// y verificar que los renderers (PDF, vista admin) prioricen el snapshot.
+//
 // Importado por:
 //   - AutorizacionPublicaClient (vista web del cliente, live preview)
 //   - AutorizacionPDF (render del PDF)
@@ -93,10 +101,6 @@ function formatUSD(n: number): string {
   return n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
-function formatARS(n: number): string {
-  return n.toLocaleString('es-AR', { maximumFractionDigits: 0 })
-}
-
 // ── Título dinámico ─────────────────────────────────────────────────────────
 
 export function getTitulo(auth: Pick<Autorizacion, 'tipo'>): string {
@@ -133,11 +137,10 @@ export interface ClausulaDef {
 }
 
 export function getClausulas(auth: Autorizacion): ClausulaDef[] {
-  const hasExpensas = auth.tiene_expensas && !!auth.expensas_monto_ars && auth.expensas_monto_ars > 0
   const isExclusiva = auth.tipo === 'exclusiva'
   const hasServicios = SERVICIOS_ORDER.some(s => auth.servicios[s.key])
 
-  const numeros = getNumeracion({ hasExpensas, isExclusiva })
+  const numeros = getNumeracion({ isExclusiva })
   const out: ClausulaDef[] = []
 
   // 1 — INMUEBLE (con servicios integrados)
@@ -156,23 +159,14 @@ export function getClausulas(auth: Autorizacion): ClausulaDef[] {
       chunks.push(t(', con los siguientes servicios disponibles: '))
       chunks.push(d(formatListaServicios(auth.servicios)))
     }
-    chunks.push(t('. Los datos técnicos se completarán por anexo posterior.'))
+    chunks.push(t('.'))
     out.push({ key: 'inmueble', numero: numeros.inmueble, titulo: 'Inmueble', chunks })
   }
 
-  // Expensas (condicional)
-  if (hasExpensas) {
-    out.push({
-      key: 'expensas',
-      numero: numeros.expensas,
-      titulo: 'Expensas',
-      chunks: [
-        t('La propiedad genera expensas mensuales estimadas en $ '),
-        d(formatARS(auth.expensas_monto_ars!)),
-        t(' (pesos argentinos), a cargo del titular hasta el momento de la posesión por parte del comprador.'),
-      ],
-    })
-  }
+  // NOTA v3: la cláusula EXPENSAS fue eliminada del documento legal.
+  // Los campos `tiene_expensas` y `expensas_monto_ars` se conservan en el
+  // schema/form/Redis como información interna, pero NUNCA se renderizan
+  // en el documento que firma el cliente.
 
   // Plazo (siempre, 2 variantes)
   {
@@ -232,7 +226,7 @@ export function getClausulas(auth: Autorizacion): ClausulaDef[] {
     numero: numeros.difusion,
     titulo: 'Difusión',
     chunks: [
-      t('El Autorizante autoriza al Autorizado a publicar y promocionar el inmueble en portales inmobiliarios, redes sociales, medios digitales y cualquier otro canal que considere conveniente, incluyendo el desarrollo de estrategias de marketing para concretar la venta.'),
+      t('El Autorizante autoriza al Autorizado a publicar y promocionar el inmueble en portales inmobiliarios, redes sociales, medios digitales y cualquier otro canal que considere conveniente.'),
     ],
   })
 
@@ -254,7 +248,7 @@ export function getClausulas(auth: Autorizacion): ClausulaDef[] {
     numero: numeros.honorarios,
     titulo: 'Honorarios',
     chunks: [
-      t('Los honorarios de SI INMOBILIARIA serán del 3% + IVA sobre el precio efectivo de venta, abonados por el Autorizante al firmar el boleto de compraventa o instrumento equivalente.'),
+      t('Los honorarios de SI INMOBILIARIA serán del 3% + IVA sobre el precio efectivo de venta, abonados por el Autorizante al firmar el boleto de compraventa o escritura traslativa de dominio, lo que fuere primero.'),
     ],
   })
 
@@ -273,14 +267,10 @@ export function getClausulas(auth: Autorizacion): ClausulaDef[] {
 
 // ── Numeración dinámica ─────────────────────────────────────────────────────
 
-export function getNumeracion(opts: {
-  hasExpensas: boolean
-  isExclusiva: boolean
-}): Record<string, number> {
+export function getNumeracion(opts: { isExclusiva: boolean }): Record<string, number> {
   let n = 1
   const map: Record<string, number> = {}
   map.inmueble = n++
-  if (opts.hasExpensas) map.expensas = n++
   map.plazo = n++
   map.precio = n++
   map.difusion = n++
@@ -312,7 +302,7 @@ export function formatCierreFirma(date: Date): string {
 // acuerdos ya firmados conservan exactamente el texto que el cliente firmó.
 
 /** Bump cuando cambie el TEMPLATE legal (cláusulas, preámbulo, cierre). */
-export const DOCUMENTO_VERSION = '2026-05-15-v2-funes-difusion'
+export const DOCUMENTO_VERSION = '2026-05-16-v3-sin-expensas-sin-anexo-difusion-acotada-honorarios-boleto-o-escritura'
 
 export interface ClausulaSnapshot {
   numero: number
