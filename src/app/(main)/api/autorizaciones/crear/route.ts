@@ -28,6 +28,11 @@ function validateBody(body: unknown): { ok: true; data: CrearInput } | { ok: fal
   if (!body || typeof body !== 'object') return { ok: false, error: 'Body inválido' }
   const b = body as Record<string, unknown>
 
+  const agente_creador = typeof b.agente_creador === 'string' ? b.agente_creador.trim() : ''
+  if (agente_creador.length < 5 || !/\s/.test(agente_creador)) {
+    return { ok: false, error: 'Falta el nombre del agente' }
+  }
+
   const tipo = b.tipo as TipoAutorizacion
   if (!TIPOS.includes(tipo)) return { ok: false, error: 'tipo inválido' }
 
@@ -104,6 +109,7 @@ function validateBody(body: unknown): { ok: true; data: CrearInput } | { ok: fal
         dni: cleanStr(cp.dni),
         email: cleanStr(cp.email),
       },
+      agente_creador,
     },
   }
 }

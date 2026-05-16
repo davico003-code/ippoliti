@@ -93,6 +93,11 @@ export interface Autorizacion {
   notas_internas?: string
   cliente_precarga: ClientePrecarga
   agente: Agente
+  /** INTERNO — nombre del agente que generó el acuerdo (tracking interno).
+   *  NUNCA aparece en el documento del cliente, el PDF, ni el snapshot.
+   *  Opcional en el tipo para no romper acuerdos previos a v3; el endpoint
+   *  POST /crear lo exige obligatorio para acuerdos nuevos. */
+  agente_creador?: string
   created_at: string
   expires_at: string
   status: AutorizacionStatus
@@ -118,6 +123,9 @@ export interface CrearInput {
   precio_venta_usd?: number
   notas_internas?: string
   cliente_precarga?: ClientePrecarga
+  /** Obligatorio en acuerdos nuevos (v3+). Identifica al agente que generó
+   *  el acuerdo para tracking interno. NO se expone al cliente ni al PDF. */
+  agente_creador: string
 }
 
 const AGENTE_DEFAULT: Agente = {
@@ -148,6 +156,7 @@ export async function crearAutorizacion(input: CrearInput): Promise<Autorizacion
     notas_internas: input.notas_internas,
     cliente_precarga: input.cliente_precarga || {},
     agente: AGENTE_DEFAULT,
+    agente_creador: input.agente_creador.trim(),
     created_at: now.toISOString(),
     expires_at: expires.toISOString(),
     status: 'pendiente',
