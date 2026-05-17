@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import TeamCodeGate from '@/components/si-school/TeamCodeGate'
 import SiSchoolShell from '@/components/si-school/SiSchoolShell'
 import WelcomeTour from '@/components/si-school/WelcomeTour'
+import MentorWelcomeCard from '@/components/si-school/MentorWelcomeCard'
 import type { CapacidadMeta } from '@/lib/si-school/types'
 import { getProgress, initProgress } from '@/lib/si-school/progress'
 import shell from '@/components/si-school/si-school.module.css'
@@ -74,6 +75,8 @@ function Overview({ capacidades }: { capacidades: CapacidadMeta[] }) {
           para corregir criterio cuando hace falta.
         </p>
       </header>
+
+      <MentorWelcomeCard />
 
       <div className={styles.gridCaps}>
         {capacidades.map((cap, idx) => {
