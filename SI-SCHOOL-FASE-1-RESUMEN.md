@@ -113,19 +113,22 @@ en esta fase.
 
 ## Preview de Vercel
 
-Rama pusheada a GitHub. URL del preview de Vercel — alias por branch
-determinístico:
+**Deploy verificado**: `dpl_GKgNZuzyd3658dPXXqXvFz5zsnGS` — Preview · Ready · build 1m.
+
+URL canónica (alias por branch, auto-actualiza con cada push):
 
 ```
 https://ippoliti-git-feat-si-school-davico-003-5861s-projects.vercel.app/recursos/si-school
 ```
 
-Si el alias por branch no estuviera disponible (Vercel a veces los
-genera con sufijo aleatorio), la URL exacta se ve con:
+URL inmutable del deploy específico:
 
 ```
-vercel ls ippoliti | head -6
+https://ippoliti-jnhpjh65p-davico-003-5861s-projects.vercel.app/recursos/si-school
 ```
+
+Smoke test ejecutado: GET `/recursos/si-school` → 200 OK (44 KB), HTML
+incluye "SI School" y meta `noindex`. Gate de auth se sirve correcto.
 
 Rutas a verificar visualmente:
 
