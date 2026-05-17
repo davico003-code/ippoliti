@@ -128,6 +128,38 @@ export default function AgentDashboard({ agentName }: Props) {
         </div>
       </Link>
 
+      {/* SI School card */}
+      <Link href="/recursos/si-school" className="block group anim-up anim-d1">
+        <div
+          className="bg-white rounded-[20px] p-[18px_20px] flex items-center gap-4 transition-transform duration-150 group-hover:-translate-y-0.5"
+          style={{ border: '1.5px solid #B8935A' }}
+        >
+          <div
+            className="w-12 h-12 rounded-[14px] flex items-center justify-center text-xl shrink-0 font-bold text-white"
+            style={{ background: '#1A5C38', fontFamily: 'Poppins, sans-serif' }}
+          >
+            SI
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-[16px] text-[#1C1C1E]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+              SI School
+            </h3>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <span className="text-[11px] font-semibold bg-[#B8935A]/15 text-[#854F0B] px-2 py-0.5 rounded-full">
+                Sistema operativo del agente
+              </span>
+              <span className="text-[11px] font-semibold bg-[#1A5C38]/10 text-[#1A5C38] px-2 py-0.5 rounded-full">
+                Fase 1 · Capacidad I
+              </span>
+            </div>
+            <p className="text-[12px] text-[#6E6E73] mt-1">
+              Los 3 principios, la frase fundacional y casos de criterio. Cápsulas cortas para leer entre llamados.
+            </p>
+          </div>
+          <span className="text-[#6E6E73] group-hover:text-[#1A5C38] transition-colors text-xl shrink-0">&rarr;</span>
+        </div>
+      </Link>
+
       {/* Modules */}
       <div className="anim-up anim-d2">
         <p className="text-[11px] font-semibold text-[#6E6E73] uppercase tracking-[0.08em] mb-3 px-1">

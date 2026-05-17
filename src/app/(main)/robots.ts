@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/admin/', '/agentes/'],
+      disallow: ['/api/', '/admin/', '/agentes/', '/recursos/si-school/'],
     },
     sitemap: 'https://siinmobiliaria.com/sitemap.xml',
   }
