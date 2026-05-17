@@ -55,8 +55,8 @@ export const CAPACIDADES_META: CapacidadMeta[] = [
     numero: 6,
     romano: 'VI',
     titulo: 'Sostener la cartera',
-    subtitulo: 'Postventa, referidos, relación de década',
-    descripcion: 'Cómo se transforma una operación cerrada en 3-10 operaciones futuras.',
+    subtitulo: 'Lo que define tu carrera a 10 años',
+    descripcion: 'Postventa, referidos activos, métricas personales y los 4 niveles de carrera del agente SI. El oficio de sostener cartera viva en el tiempo.',
     estado: 'bloqueada',
   },
 ]
