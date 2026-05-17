@@ -349,7 +349,12 @@ export default async function DevelopmentPage({ params }: Props) {
               </div>
 
               {/* Visit widget */}
-              <VisitWidget propertyId={dev.id} propertyTitle={dev.name} />
+              <VisitWidget
+                propertyId={dev.id}
+                propertyTitle={dev.name}
+                propertyUrl={`https://siinmobiliaria.com/emprendimientos/${params.slug}`}
+                source="emprendimiento"
+              />
             </div>
           </div>
         </div>

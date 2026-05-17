@@ -35,6 +35,7 @@ export default function MobileStickyBar({
   }, [shareOpen])
 
   const propertyUrl = `https://siinmobiliaria.com/propiedades/${slug}`
+  // (también lo pasamos al VisitWidget para enriquecer el mensaje WhatsApp)
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(propertyUrl)
@@ -266,7 +267,12 @@ export default function MobileStickyBar({
               >
                 &times;
               </button>
-              <VisitWidget propertyId={propertyId} propertyTitle={propertyTitle} />
+              <VisitWidget
+                propertyId={propertyId}
+                propertyTitle={propertyTitle}
+                propertyUrl={propertyUrl}
+                source="mobile-sticky"
+              />
             </div>
           </div>
         </div>
