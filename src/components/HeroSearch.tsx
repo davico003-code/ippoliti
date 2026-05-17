@@ -38,17 +38,17 @@ export default function HeroSearch() {
   }
 
   return (
-    <div ref={wrapperRef} className="relative mx-auto w-full" style={{ maxWidth: 460 }}>
+    <div ref={wrapperRef} className="relative mx-auto w-full" style={{ maxWidth: 540 }}>
       <form
         onSubmit={submit}
         className="flex items-center bg-white shadow-xl"
         style={{
           borderRadius: 9999,
-          padding: '5px 5px 5px 20px',
-          gap: 10,
+          padding: '8px 8px 8px 24px',
+          gap: 12,
         }}
       >
-        <Search size={16} style={{ color: '#888780', flexShrink: 0 }} aria-hidden="true" />
+        <Search size={18} style={{ color: '#888780', flexShrink: 0 }} aria-hidden="true" />
         <input
           type="text"
           value={query}
@@ -66,7 +66,7 @@ export default function HeroSearch() {
           className="flex-1 min-w-0 border-none outline-none bg-transparent placeholder:text-[#888780]"
           style={{
             fontFamily: 'Raleway, sans-serif',
-            fontSize: 14,
+            fontSize: 15,
             color: '#111',
             background: 'transparent',
           }}
@@ -77,9 +77,9 @@ export default function HeroSearch() {
           style={{
             background: '#1A5C38',
             fontFamily: 'Raleway, sans-serif',
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 500,
-            padding: '9px 22px',
+            padding: '12px 28px',
             borderRadius: 9999,
             transition: 'background 180ms',
           }}

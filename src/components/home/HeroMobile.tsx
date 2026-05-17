@@ -73,11 +73,11 @@ export default function HeroMobile() {
             className="bg-white shadow-xl flex items-center"
             style={{
               borderRadius: 9999,
-              padding: '5px 5px 5px 20px',
+              padding: '7px 7px 7px 22px',
               gap: 10,
             }}
           >
-            <Search size={16} style={{ color: '#888780', flexShrink: 0 }} aria-hidden="true" />
+            <Search size={18} style={{ color: '#888780', flexShrink: 0 }} aria-hidden="true" />
             <input
               type="text"
               value={query}
@@ -92,7 +92,7 @@ export default function HeroMobile() {
               className="flex-1 min-w-0 outline-none bg-transparent placeholder:text-[#888780]"
               style={{
                 fontFamily: 'Raleway, sans-serif',
-                fontSize: 14,
+                fontSize: 15,
                 color: '#111',
               }}
             />
@@ -102,9 +102,9 @@ export default function HeroMobile() {
               style={{
                 background: '#1A5C38',
                 fontFamily: 'Raleway, sans-serif',
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 500,
-                padding: '9px 22px',
+                padding: '11px 24px',
                 borderRadius: 9999,
                 transition: 'background 180ms',
               }}
