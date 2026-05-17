@@ -23,6 +23,7 @@ const TOTAL_CAPSULAS: Record<string, number> = {
   'capacidad-03': 7,
   'capacidad-04': 9,
   'capacidad-05': 8,
+  'capacidad-06': 6,
 }
 
 export default function CapacidadView({ capacidad }: Props) {
