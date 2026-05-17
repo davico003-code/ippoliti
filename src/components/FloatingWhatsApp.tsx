@@ -10,6 +10,9 @@ export default function FloatingWhatsApp() {
 
   // Hide on property detail pages (they have their own sticky bar with WhatsApp)
   if (pathname.startsWith('/propiedades/') && pathname !== '/propiedades') return null
+  // Hide on /recursos — la propia página tiene su CTA "Hablar con un agente"
+  // en el bloque verde inferior con el mismo número.
+  if (pathname === '/recursos') return null
 
   return (
     <Link
