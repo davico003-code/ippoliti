@@ -17,7 +17,7 @@ Tampoco vas a encontrar acá frases motivacionales pegadas en la pared. Lo que v
 
 **Cómo va a funcionar esto:**
 
-Vas a avanzar por 6 capacidades. Cada una se desbloquea cuando demostrás que la dominás — no cuando terminás de leer. Para eso vas a tener dos cosas todo el tiempo al lado:
+Vas a avanzar por 6 capacidades durante los próximos 3 o 4 meses. Cada una se desbloquea cuando demostrás que la dominás — no cuando terminás de leer. Después de SI School siguen los siguientes programas: marca personal avanzada, inversores, desarrolladores, negociación. Aggiornarse no es opcional acá — es parte del oficio. Para eso vas a tener dos cosas todo el tiempo al lado:
 
 - **Mentor David en el chat de la derecha**, que te va a hacer preguntas, evaluar tus respuestas y corregirte cuando hace falta. No es complaciente. Si algo está flojo, te lo dice.
 - **Casos de criterio** con situaciones reales del mercado de Funes y Roldán. Tu trabajo no es responder lo que crees que está bien — es defender por escrito por qué pensás lo que pensás.

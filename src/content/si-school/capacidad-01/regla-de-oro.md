@@ -2,4 +2,4 @@
 titulo: "Regla de oro · Capacidad I"
 ---
 
-> **No vendas propiedades. Construí conversaciones y relaciones. El resto se acomoda solo.**
+> **No te escondas atrás de la marca. La relación con el cliente es tuya — cuidala como si dependiera tu carrera, porque depende.**

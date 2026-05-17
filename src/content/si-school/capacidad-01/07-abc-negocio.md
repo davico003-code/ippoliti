@@ -47,6 +47,7 @@ Sos:
 - El que conduce conversaciones que terminan en decisiones
 - El que ordena información para que las operaciones no se caigan
 - El que sostiene la relación cuando todos los demás ya se olvidaron del cliente
+- **El que vuelve a aparecer cuando el cliente toma su próxima decisión — sea esa decisión 2 años después o 12.**
 
 **Para que te quede grabado:**
 

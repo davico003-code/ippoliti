@@ -31,7 +31,7 @@ Te muestro qué significa en concreto:
 
 Esto **no es para impresionar**. No es para que el cliente diga "qué bueno este chico, cómo se preocupa". Si lo hacés con esa intención, se nota, y suena falso.
 
-Lo hacés porque ese es el estándar profesional SI. Punto. No esperás que te lo reconozcan. No lo medís en cuántos referidos te trajo. Lo hacés porque así trabajás vos. El reconocimiento llega solo, con el tiempo, y siempre llega más de lo que esperabas.
+Lo hacés porque ese es **tu** estándar profesional — respaldado por el sistema SI. Punto. No esperás que te lo reconozcan. No lo medís en cuántos referidos te trajo. Lo hacés porque así trabajás vos. El reconocimiento llega solo, con el tiempo, y siempre llega más de lo que esperabas.
 
 **Lo que NO es dar más:**
 

@@ -7,7 +7,7 @@ tiempoMin: 4
 
 ### Qué hay adentro de esta caja y cómo se conecta
 
-Ahora que entendiste cómo pensamos, te muestro con qué operás. Esto es lo que en otras inmobiliarias no existe — o existe partido en 5 herramientas distintas que no se hablan entre sí.
+Ahora que entendiste cómo pensamos, te muestro las herramientas con las que vas a operar. No son herramientas que SI te presta — son herramientas que SI puso en tu mano para que vos hagas tu trabajo mejor que cualquier agente del mercado. **El sistema te respalda. Vos sos el que opera.** Esto es lo que en otras inmobiliarias no existe — o existe partido en 5 herramientas distintas que no se hablan entre sí.
 
 **Empezamos por las herramientas externas que vas a usar:**
 
