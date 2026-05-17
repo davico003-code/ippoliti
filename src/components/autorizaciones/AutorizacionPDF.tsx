@@ -8,11 +8,13 @@
 //      snapshot on-the-fly con la plantilla VIGENTE + disclaimer al pie.
 //
 // Diseño v3:
-//   - Tipografía Raleway 500 cuerpo / 700 datos (más bold para imprimir).
-//   - Cuerpo a 11pt, line-height 1.5 — priorizando legibilidad on-paper.
-//   - Márgenes ajustados (14mm sup / 12mm inf / 16mm laterales) para entrar
-//     en una sola hoja A4 sin sacrificar tamaño de fuente. Si no entra,
-//     se acepta segunda página (la legibilidad es prioridad absoluta).
+//   - Tipografía Inter 600 cuerpo / 700 datos (más bold y sin bug "fi"
+//     que Raleway+@react-pdf producía: "firma"→"frma", "Oficina"→"Ofcina").
+//     La WEB sigue usando Raleway; solo el PDF cambia.
+//   - Cuerpo a 11pt, line-height 1.4 — priorizando legibilidad on-paper.
+//   - Márgenes ajustados (12mm sup / 10mm inf / 16mm laterales) para entrar
+//     en una sola hoja A4. Si no entra, el bloque inferior (firma + oficina
+//     + footer) salta entero a página 2 con wrap={false}.
 //   - Logo SI a la derecha, 30pt alto (estilo membrete formal).
 //   - Bloque de datos de oficina al pie (Funes, Yrigoyen 2643, Tel/WA).
 //   - Footer técnico comprimido a una sola línea con ID + Hash.
@@ -66,29 +68,29 @@ function getLogoSrc(): Buffer | string {
 
 // ── Fuentes ────────────────────────────────────────────────────────────────
 //
-// Variable font Raleway hospedado en /public/fonts/raleway-variable.ttf.
-// Registrado para 400/500/600/700; @react-pdf interpola desde la variable.
+// El PDF usa Inter (TTFs estáticos en /public/fonts/Inter-{Regular,SemiBold,
+// Bold}.ttf descargados de fonts.gstatic.com). Reemplaza a Raleway por bugs
+// conocidos de @react-pdf con ligaduras OpenType de Raleway que producían
+// "frma"/"Ofcina"/"identifcado" en el PDF.
+//
+// IMPORTANTE: la WEB del cliente sigue usando Raleway (cargado via
+// next/font/google en el layout) — el cambio es quirúrgico, solo PDF.
 
 const FONT_BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://siinmobiliaria.com'
 
-const RALEWAY_VAR = `${FONT_BASE_URL}/fonts/raleway-variable.ttf`
-
 Font.register({
-  family: 'Raleway',
+  family: 'Inter',
   fonts: [
-    { src: RALEWAY_VAR, fontWeight: 400 },
-    { src: RALEWAY_VAR, fontWeight: 500 },
-    { src: RALEWAY_VAR, fontWeight: 600 },
-    { src: RALEWAY_VAR, fontWeight: 700 },
+    { src: `${FONT_BASE_URL}/fonts/Inter-Regular.ttf`, fontWeight: 400 },
+    { src: `${FONT_BASE_URL}/fonts/Inter-SemiBold.ttf`, fontWeight: 600 },
+    { src: `${FONT_BASE_URL}/fonts/Inter-Bold.ttf`, fontWeight: 700 },
   ],
 })
 
 // Desactivar el hyphenation callback de @react-pdf: por default rompe palabras
-// largas y en algunas combinaciones con fonts variables genera bugs de
-// rendereo donde caen ligaduras OpenType "fi"/"fl" ("firma" → "frma",
-// "Oficina" → "Ofcina"). Devolver [word] preserva el texto original y
-// estabiliza el rendereo de glyphs.
+// largas y desestabiliza el rendereo. Devolver [word] preserva el texto
+// original.
 Font.registerHyphenationCallback(word => [word])
 
 // ── Estilos ─────────────────────────────────────────────────────────────────
@@ -98,7 +100,6 @@ const COLOR_DARKER = '#0F0F0F'
 const COLOR_MUTED = '#6B6B66'
 const COLOR_SOFT = '#5A5A55'
 const COLOR_HINT = '#8A8A85'
-const COLOR_LINE = '#E5E5E0'
 const COLOR_LINE_DARK = '#D5D5D0'
 const COLOR_GREEN = '#1A5C38'
 const COLOR_AMBER = '#92400E'
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     paddingTop: '12mm',
     paddingBottom: '10mm',
     paddingHorizontal: '16mm',
-    fontFamily: 'Raleway',
+    fontFamily: 'Inter',
     fontWeight: 600,
     fontSize: 11,
     lineHeight: 1.4,
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 6,
+    marginBottom: 5,
   },
   headerLogo: {
     width: 110,
@@ -127,20 +128,20 @@ const styles = StyleSheet.create({
   titulo: {
     fontSize: 15,
     fontWeight: 700,
-    letterSpacing: 0.6,
+    letterSpacing: 0.3,
     color: COLOR_DARK,
     textAlign: 'center',
     marginBottom: 3,
   },
   fechaEncabezado: {
     fontSize: 10,
-    fontWeight: 500,
+    fontWeight: 600,
     color: COLOR_SOFT,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   paragraph: {
-    marginBottom: 6,
+    marginBottom: 7,
     textAlign: 'justify',
   },
   clausulaPara: {
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     color: COLOR_DARKER,
   },
   cierre: {
-    marginTop: 8,
+    marginTop: 9,
     marginBottom: 6,
     fontSize: 10.5,
     fontWeight: 600,
@@ -168,11 +169,7 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
   },
   firmaSection: {
-    marginTop: 6,
-    paddingTop: 8,
-    borderTopWidth: 0.5,
-    borderTopColor: COLOR_LINE,
-    borderTopStyle: 'solid',
+    marginTop: 8,
   },
   firmaLabel: {
     fontSize: 8.5,
@@ -189,7 +186,8 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   firmaLineaDatos: {
-    fontSize: 9.5,
+    fontSize: 10,
+    fontWeight: 600,
     color: COLOR_DARK,
     marginBottom: 1.5,
   },
@@ -200,6 +198,7 @@ const styles = StyleSheet.create({
   firmaFecha: {
     marginTop: 4,
     fontSize: 8.5,
+    fontWeight: 500,
     color: COLOR_HINT,
   },
   // ── Datos de oficina (bloque centrado con separadores) ──
@@ -335,45 +334,50 @@ export function AutorizacionPDF({ data }: Props) {
           {snapshot.cierre_firma}
         </Text>
 
-        {/* Sección de firma manuscrita (legal — Ley 25.506) */}
-        <View style={styles.firmaSection} wrap={false}>
-          <Text style={styles.firmaLabel}>FIRMA DEL AUTORIZANTE</Text>
-          {/* eslint-disable-next-line jsx-a11y/alt-text */}
-          <Image src={data.signer.firma_base64} style={styles.firmaImage} />
-          <Text style={styles.firmaLineaDatos}>
-            <Text style={styles.firmaDataLabel}>{data.signer.nombre}</Text>
-          </Text>
-          <Text style={styles.firmaLineaDatos}>
-            DNI <Text style={styles.firmaDataLabel}>{data.signer.dni}</Text>
-            {' · Domicilio: '}
-            <Text style={styles.firmaDataLabel}>{data.signer.domicilio}</Text>
-          </Text>
-          <Text style={styles.firmaLineaDatos}>
-            Email: <Text style={styles.firmaDataLabel}>{data.signer.email}</Text>
-          </Text>
-          <Text style={styles.firmaFecha}>Firmado digitalmente el {fechaFirma}</Text>
-        </View>
-
-        {/* Bloque oficina + footer técnico — wrap=false para que NUNCA se
-            parta entre páginas (corte feo del bloque al final de página 1) */}
-        <View style={styles.bloqueOficinaWrap} wrap={false}>
-          <View style={styles.oficinaWrap}>
-            <Text style={styles.oficinaTitle}>SI INMOBILIARIA — Oficina Funes</Text>
-            <Text style={styles.oficinaLine}>Hipólito Yrigoyen 2643 · Funes, Santa Fe</Text>
-            <Text style={styles.oficinaLine}>
-              Tel / WhatsApp: 341 210 1694 · siinmobiliaria.com
+        {/* Bloque inferior completo (firma + oficina + footer técnico) en un
+            solo wrap={false}: si no entra al final de pág 1, salta entero
+            a pág 2. Garantiza que la firma manuscrita NUNCA se separa del
+            bloque de oficina ni del footer técnico (cortes feos). */}
+        <View wrap={false}>
+          {/* Sección de firma manuscrita (legal — Ley 25.506) */}
+          <View style={styles.firmaSection}>
+            <Text style={styles.firmaLabel}>FIRMA DEL AUTORIZANTE</Text>
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            <Image src={data.signer.firma_base64} style={styles.firmaImage} />
+            <Text style={styles.firmaLineaDatos}>
+              <Text style={styles.firmaDataLabel}>{data.signer.nombre}</Text>
             </Text>
+            <Text style={styles.firmaLineaDatos}>
+              DNI <Text style={styles.firmaDataLabel}>{data.signer.dni}</Text>
+              {' · Domicilio: '}
+              <Text style={styles.firmaDataLabel}>{data.signer.domicilio}</Text>
+            </Text>
+            <Text style={styles.firmaLineaDatos}>
+              Email: <Text style={styles.firmaDataLabel}>{data.signer.email}</Text>
+            </Text>
+            <Text style={styles.firmaFecha}>Firmado digitalmente el {fechaFirma}</Text>
           </View>
 
-          {/* Footer técnico (una sola línea) */}
-          <Text style={styles.tecnico}>
-            Generado digitalmente · SI INMOBILIARIA SRL · ID: {data.slug} · Hash: {hash}
-          </Text>
-          {isRegenerated && (
-            <Text style={styles.tecnicoWarn}>
-              Documento regenerado con plantilla vigente al {fechaRegen} (sin snapshot original).
+          {/* Bloque oficina */}
+          <View style={styles.bloqueOficinaWrap}>
+            <View style={styles.oficinaWrap}>
+              <Text style={styles.oficinaTitle}>SI INMOBILIARIA — Oficina Funes</Text>
+              <Text style={styles.oficinaLine}>Hipólito Yrigoyen 2643 · Funes, Santa Fe</Text>
+              <Text style={styles.oficinaLine}>
+                Tel / WhatsApp: 341 210 1694 · siinmobiliaria.com
+              </Text>
+            </View>
+
+            {/* Footer técnico (una sola línea) */}
+            <Text style={styles.tecnico}>
+              Generado digitalmente · SI INMOBILIARIA SRL · ID: {data.slug} · Hash: {hash}
             </Text>
-          )}
+            {isRegenerated && (
+              <Text style={styles.tecnicoWarn}>
+                Documento regenerado con plantilla vigente al {fechaRegen} (sin snapshot original).
+              </Text>
+            )}
+          </View>
         </View>
       </Page>
     </Document>
