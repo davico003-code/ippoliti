@@ -36,9 +36,9 @@ export const CAPACIDADES_META: CapacidadMeta[] = [
     slug: 'capacidad-04',
     numero: 4,
     romano: 'IV',
-    titulo: 'Captar con criterio SI',
-    subtitulo: 'Tasaciones, entrevistas y Acuerdo de Comercialización Digital',
-    descripcion: 'Cómo se capta una propiedad bien preciada, con plazos claros y un dueño alineado.',
+    titulo: 'Conducir conversaciones con compradores',
+    subtitulo: 'El sistema de selección con feedback de SI',
+    descripcion: 'Cómo conducir un lead desde la primera consulta hasta una visita real. NURC para compradores, selección curada, feedback estructurado.',
     estado: 'bloqueada',
   },
   {
