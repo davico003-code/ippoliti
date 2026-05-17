@@ -23,6 +23,7 @@ const TOTAL_CAPSULAS_PER_CAP: Record<string, number> = {
   'capacidad-02': 5,
   'capacidad-03': 7,
   'capacidad-04': 9,
+  'capacidad-05': 8,
 }
 
 function resolveEstados(metas: CapacidadMeta[]): ResolvedCap[] {

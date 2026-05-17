@@ -16,6 +16,7 @@ const TOTAL_CAPSULAS: Record<string, number> = {
   'capacidad-02': 5,
   'capacidad-03': 7,
   'capacidad-04': 9,
+  'capacidad-05': 8,
 }
 
 interface Props {
