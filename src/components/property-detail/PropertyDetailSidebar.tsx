@@ -130,7 +130,12 @@ export default function PropertyDetailSidebar({
         </div>
 
         {operation?.toLowerCase().includes('venta') && (
-          <VisitWidget propertyId={property.id} propertyTitle={propertyTitle} />
+          <VisitWidget
+            propertyId={property.id}
+            propertyTitle={propertyTitle}
+            propertyUrl={propertyUrl}
+            source="desktop-sidebar"
+          />
         )}
 
         {isPremiumSale && (

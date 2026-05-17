@@ -1,11 +1,16 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Clock, Check, ChevronRight, ChevronDown, Calendar } from 'lucide-react'
+import { Clock, Check, ChevronRight, ChevronDown } from 'lucide-react'
 
 interface Props {
   propertyId: number
   propertyTitle: string
+  /** URL pública de la ficha (siinmobiliaria.com/propiedades/{slug}).
+   *  Si se pasa, se incluye en el mensaje de WhatsApp al agente. */
+  propertyUrl?: string
+  /** De dónde viene el lead (para tracking interno). */
+  source?: 'mobile-sticky' | 'desktop-sidebar' | 'emprendimiento' | 'otro'
 }
 
 function getNextBusinessDays(count: number): Date[] {
@@ -24,7 +29,12 @@ const HOURS = Array.from({ length: 9 }, (_, i) => `${9 + i}:00 hs`)
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
-export default function VisitWidget({ propertyId, propertyTitle }: Props) {
+export default function VisitWidget({
+  propertyId,
+  propertyTitle,
+  propertyUrl,
+  source = 'otro',
+}: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [selectedHour, setSelectedHour] = useState('')
@@ -61,14 +71,25 @@ export default function VisitWidget({ propertyId, propertyTitle }: Props) {
           horario: selectedHour,
           propiedad_id: propertyId,
           propiedad_titulo: propertyTitle,
+          propiedad_url: propertyUrl,
           tipo: 'venta',
+          source,
         }),
       })
     } catch {}
 
-    const msg = encodeURIComponent(
-      `Hola, quiero agendar una visita el ${dateLabel} a las ${selectedHour}. Soy ${nombre.trim()}, mi teléfono es ${telefono.trim()}.`
-    )
+    // Mensaje WhatsApp del cliente al agente:
+    // - Identifica de qué propiedad viene + link a la ficha
+    // - Día y hora propuestos
+    // - Datos de contacto del cliente
+    const lineas = [
+      `Hola! 👋 Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
+      ``,
+      `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour}.`,
+      ``,
+      `Soy ${nombre.trim()}, mi teléfono es ${telefono.trim()}.`,
+    ]
+    const msg = encodeURIComponent(lineas.join('\n'))
     window.open(`https://wa.me/5493412101694?text=${msg}`, '_blank')
 
     setLoading(false)
@@ -238,40 +259,3 @@ export default function VisitWidget({ propertyId, propertyTitle }: Props) {
   )
 }
 
-/* ── Mobile trigger + bottom sheet ── */
-export function VisitMobileTrigger({ propertyId, propertyTitle }: Props) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-[60px] left-3 right-3 z-40 md:hidden py-3 bg-[#1A5C38] text-white font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2"
-      >
-        <Calendar className="w-4 h-4" />
-        Solicitá una visita
-      </button>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-50 md:hidden flex items-end"
-          onClick={e => { if (e.target === e.currentTarget) setOpen(false) }}
-        >
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative w-full max-h-[90vh] overflow-y-auto animate-slide-up">
-            <div className="bg-[#1A5C38] rounded-t-3xl p-6 pb-24">
-              <div className="w-10 h-1 rounded-full bg-white/30 mx-auto mb-4" />
-              <button
-                onClick={() => setOpen(false)}
-                className="absolute top-5 right-5 text-white/50 hover:text-white text-xl leading-none"
-              >
-                &times;
-              </button>
-              <VisitWidget propertyId={propertyId} propertyTitle={propertyTitle} />
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
