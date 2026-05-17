@@ -84,6 +84,13 @@ Font.register({
   ],
 })
 
+// Desactivar el hyphenation callback de @react-pdf: por default rompe palabras
+// largas y en algunas combinaciones con fonts variables genera bugs de
+// rendereo donde caen ligaduras OpenType "fi"/"fl" ("firma" → "frma",
+// "Oficina" → "Ofcina"). Devolver [word] preserva el texto original y
+// estabiliza el rendereo de glyphs.
+Font.registerHyphenationCallback(word => [word])
+
 // ── Estilos ─────────────────────────────────────────────────────────────────
 
 const COLOR_DARK = '#1A1A1A'
@@ -98,13 +105,13 @@ const COLOR_AMBER = '#92400E'
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: '14mm',
-    paddingBottom: '12mm',
+    paddingTop: '12mm',
+    paddingBottom: '10mm',
     paddingHorizontal: '16mm',
     fontFamily: 'Raleway',
-    fontWeight: 500,
+    fontWeight: 600,
     fontSize: 11,
-    lineHeight: 1.5,
+    lineHeight: 1.4,
     color: COLOR_DARK,
   },
   headerRow: {
@@ -133,11 +140,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   paragraph: {
-    marginBottom: 8,
+    marginBottom: 6,
     textAlign: 'justify',
   },
   clausulaPara: {
-    marginBottom: 6,
+    marginBottom: 5,
     textAlign: 'justify',
   },
   clausulaNum: {
@@ -153,10 +160,10 @@ const styles = StyleSheet.create({
     color: COLOR_DARKER,
   },
   cierre: {
-    marginTop: 10,
-    marginBottom: 8,
+    marginTop: 8,
+    marginBottom: 6,
     fontSize: 10.5,
-    fontWeight: 500,
+    fontWeight: 600,
     color: COLOR_DARK,
     textAlign: 'justify',
   },
@@ -196,10 +203,12 @@ const styles = StyleSheet.create({
     color: COLOR_HINT,
   },
   // ── Datos de oficina (bloque centrado con separadores) ──
+  bloqueOficinaWrap: {
+    marginTop: 6,
+  },
   oficinaWrap: {
-    marginTop: 8,
-    paddingTop: 6,
-    paddingBottom: 6,
+    paddingTop: 4,
+    paddingBottom: 4,
     borderTopWidth: 0.5,
     borderTopColor: COLOR_LINE_DARK,
     borderTopStyle: 'solid',
@@ -218,7 +227,7 @@ const styles = StyleSheet.create({
   },
   oficinaLine: {
     fontSize: 9,
-    fontWeight: 500,
+    fontWeight: 600,
     color: COLOR_DARK,
     lineHeight: 1.55,
     textAlign: 'center',
@@ -345,24 +354,27 @@ export function AutorizacionPDF({ data }: Props) {
           <Text style={styles.firmaFecha}>Firmado digitalmente el {fechaFirma}</Text>
         </View>
 
-        {/* Bloque de oficina (al pie del documento) */}
-        <View style={styles.oficinaWrap}>
-          <Text style={styles.oficinaTitle}>SI INMOBILIARIA — Oficina Funes</Text>
-          <Text style={styles.oficinaLine}>Hipólito Yrigoyen 2643 · Funes, Santa Fe</Text>
-          <Text style={styles.oficinaLine}>
-            Tel / WhatsApp: 341 210 1694 · siinmobiliaria.com
-          </Text>
-        </View>
+        {/* Bloque oficina + footer técnico — wrap=false para que NUNCA se
+            parta entre páginas (corte feo del bloque al final de página 1) */}
+        <View style={styles.bloqueOficinaWrap} wrap={false}>
+          <View style={styles.oficinaWrap}>
+            <Text style={styles.oficinaTitle}>SI INMOBILIARIA — Oficina Funes</Text>
+            <Text style={styles.oficinaLine}>Hipólito Yrigoyen 2643 · Funes, Santa Fe</Text>
+            <Text style={styles.oficinaLine}>
+              Tel / WhatsApp: 341 210 1694 · siinmobiliaria.com
+            </Text>
+          </View>
 
-        {/* Footer técnico (una sola línea) */}
-        <Text style={styles.tecnico}>
-          Generado digitalmente · SI INMOBILIARIA SRL · ID: {data.slug} · Hash: {hash}
-        </Text>
-        {isRegenerated && (
-          <Text style={styles.tecnicoWarn}>
-            Documento regenerado con plantilla vigente al {fechaRegen} (sin snapshot original).
+          {/* Footer técnico (una sola línea) */}
+          <Text style={styles.tecnico}>
+            Generado digitalmente · SI INMOBILIARIA SRL · ID: {data.slug} · Hash: {hash}
           </Text>
-        )}
+          {isRegenerated && (
+            <Text style={styles.tecnicoWarn}>
+              Documento regenerado con plantilla vigente al {fechaRegen} (sin snapshot original).
+            </Text>
+          )}
+        </View>
       </Page>
     </Document>
   )
