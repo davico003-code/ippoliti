@@ -63,14 +63,6 @@ const collectionJsonLd = {
       name: 'Guía del comprador',
       url: 'https://siinmobiliaria.com/guia',
     },
-    {
-      '@type': 'WebApplication',
-      name: 'Acuerdo de comercialización digital',
-      url: 'https://siinmobiliaria.com/recursos/autorizaciones',
-      applicationCategory: 'BusinessApplication',
-      operatingSystem: 'Web',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'ARS' },
-    },
   ],
 }
 
@@ -125,22 +117,6 @@ const IconBook = (
   >
     <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.5a1.5 1.5 0 0 0 0 3H19" />
     <path d="M9 7h7M9 11h7M9 15h5" />
-  </svg>
-)
-
-const IconSignature = (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-6 h-6"
-    aria-hidden
-  >
-    <path d="M3 17c2-1 4-3 6-5s4-4 6-4 2 2 0 4-4 4-2 5 4-1 6-3" />
-    <path d="M3 21h18" />
   </svg>
 )
 
@@ -201,14 +177,6 @@ export default function RecursosIndexPage() {
               description="Todo lo que tenés que saber antes de comprar tu propiedad: pasos, documentación, escritura, gastos. Te acompañamos en cada etapa."
               cta="Leer la guía"
               icon={IconBook}
-            />
-            <RecursoCard
-              href="/recursos/autorizaciones"
-              eyebrow="Para vender"
-              title="Acuerdo de comercialización digital"
-              description="Firmá online el acuerdo para comercializar tu propiedad con SI Inmobiliaria. Sin papeles, desde el celular, en menos de un minuto."
-              cta="Generar acuerdo"
-              icon={IconSignature}
             />
           </div>
         </div>
