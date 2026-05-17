@@ -57,7 +57,7 @@ function CapacidadBody({ cap }: { cap: Capacidad }) {
     sync()
     window.addEventListener('si-school-progress-updated', sync)
     return () => window.removeEventListener('si-school-progress-updated', sync)
-  }, [cap.slug])
+  }, [cap.slug, cap.capsulas.length])
 
   if (!unlocked) {
     return (
