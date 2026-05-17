@@ -45,6 +45,10 @@ export default function AgentShell({ agentName, agentRole, children }: Props) {
 
   // Don't wrap login page
   if (pathname === '/agentes/login') return <>{children}</>
+  // Don't wrap the rediseñada home — AgentDashboardV2 renderiza su propio
+  // header. El AgentShell sigue activo para las subrutas (clientes,
+  // seleccion, modulo, etc).
+  if (pathname === '/agentes') return <>{children}</>
 
   const isActive = (href: string) => {
     if (href === '/agentes') return pathname === '/agentes'
