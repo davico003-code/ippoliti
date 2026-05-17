@@ -4,9 +4,54 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X } from 'lucide-react'
+import { Menu, User, X } from 'lucide-react'
 
 const R = "'Raleway', system-ui, sans-serif"
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return ''
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
+  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase()
+}
+
+type IngresarButtonProps = {
+  agent: { name: string } | null
+  onClick?: () => void
+}
+
+function IngresarButton({ agent, onClick }: IngresarButtonProps) {
+  const isAuthed = !!agent
+  return (
+    <Link
+      href="/agentes"
+      onClick={onClick}
+      aria-label={isAuthed ? `Cuenta de ${agent!.name}` : 'Ingresar'}
+      className="inline-flex items-center justify-center transition-colors duration-200"
+      style={{
+        width: 40,
+        height: 40,
+        background: '#1A5C38',
+        border: '2px solid rgba(255,255,255,0.25)',
+        borderRadius: 9999,
+        cursor: 'pointer',
+        textDecoration: 'none',
+        color: '#fff',
+        flexShrink: 0,
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
+      onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
+    >
+      {isAuthed ? (
+        <span style={{ fontFamily: R, fontWeight: 500, fontSize: 13, color: '#fff', lineHeight: 1 }}>
+          {getInitials(agent!.name)}
+        </span>
+      ) : (
+        <User size={18} strokeWidth={2} color="#fff" />
+      )}
+    </Link>
+  )
+}
 
 const LEFT_ITEMS = [
   { href: '/propiedades?op=venta', label: 'Comprar' },
@@ -43,7 +88,11 @@ function NavLink({ href, label, transparent }: { href: string; label: string; tr
 }
 
 
-export default function Navbar() {
+type NavbarProps = {
+  agent?: { name: string } | null
+}
+
+export default function Navbar({ agent = null }: NavbarProps) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -124,19 +173,7 @@ export default function Navbar() {
           {/* Right menu + CTA */}
           <div className="ml-auto flex items-center gap-5 xl:gap-8">
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
-            <Link
-              href="/agentes"
-              className="hover:opacity-90 transition-colors duration-200 text-xs"
-              style={{
-                fontFamily: R, fontWeight: 500, color: '#fff',
-                background: '#1A5C38', padding: '6px 14px', borderRadius: 5,
-                textDecoration: 'none', whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
-            >
-              Ingresar
-            </Link>
+            <IngresarButton agent={agent} />
           </div>
         </div>
       </nav>
@@ -171,14 +208,8 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Right — Ingresar */}
-          <Link
-            href="/agentes"
-            className="text-gray-600 text-sm font-medium"
-            style={{ fontFamily: "'Poppins', sans-serif", textDecoration: 'none' }}
-          >
-            Ingresar
-          </Link>
+          {/* Right — Ingresar (círculo con halo) */}
+          <IngresarButton agent={agent} />
         </div>
       </nav>
 

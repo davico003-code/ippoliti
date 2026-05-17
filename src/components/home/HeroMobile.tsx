@@ -66,12 +66,18 @@ export default function HeroMobile() {
           Propiedades en Funes, Roldán y Rosario
         </p>
 
-        {/* Searchbar pill estilo Zillow */}
-        <div className="w-full mt-3 relative" ref={wrapperRef}>
+        {/* Searchbar pill unificado */}
+        <div className="w-full mt-3 relative mx-auto" style={{ maxWidth: 460 }} ref={wrapperRef}>
           <form
             onSubmit={submit}
-            className="bg-white rounded-full shadow-xl flex items-center pl-5 pr-1.5 py-1.5"
+            className="bg-white shadow-xl flex items-center"
+            style={{
+              borderRadius: 9999,
+              padding: '5px 5px 5px 20px',
+              gap: 10,
+            }}
           >
+            <Search size={16} style={{ color: '#888780', flexShrink: 0 }} aria-hidden="true" />
             <input
               type="text"
               value={query}
@@ -80,19 +86,30 @@ export default function HeroMobile() {
                 setShowDropdown(e.target.value.trim().length >= 2)
               }}
               onFocus={() => { if (query.trim().length >= 2 && filtered.length > 0) setShowDropdown(true) }}
-              placeholder="Dirección, barrio, ciudad"
+              placeholder="¿Dónde querés buscar?"
               aria-label="Buscar por barrio, ciudad o dirección"
               autoComplete="off"
-              className="flex-1 outline-none text-gray-700 placeholder-gray-400 text-sm bg-transparent"
-              style={{ fontFamily: "'Poppins', sans-serif" }}
+              className="flex-1 min-w-0 outline-none bg-transparent placeholder:text-[#888780]"
+              style={{
+                fontFamily: 'Raleway, sans-serif',
+                fontSize: 14,
+                color: '#111',
+              }}
             />
             <button
               type="submit"
-              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-              style={{ background: '#1A5C38' }}
-              aria-label="Buscar"
+              className="shrink-0 text-white border-none cursor-pointer"
+              style={{
+                background: '#1A5C38',
+                fontFamily: 'Raleway, sans-serif',
+                fontSize: 13,
+                fontWeight: 500,
+                padding: '9px 22px',
+                borderRadius: 9999,
+                transition: 'background 180ms',
+              }}
             >
-              <Search className="w-4 h-4 text-white" />
+              Buscar
             </button>
           </form>
 

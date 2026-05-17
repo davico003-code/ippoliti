@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, ArrowRight } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
 
@@ -38,13 +38,17 @@ export default function HeroSearch() {
   }
 
   return (
-    <div ref={wrapperRef} className="relative mx-auto" style={{ maxWidth: 620 }}>
+    <div ref={wrapperRef} className="relative mx-auto w-full" style={{ maxWidth: 460 }}>
       <form
         onSubmit={submit}
-        className="flex items-center bg-white shadow-xl overflow-hidden"
-        style={{ height: 'clamp(52px, 6vw, 60px)', borderRadius: 12 }}
+        className="flex items-center bg-white shadow-xl"
+        style={{
+          borderRadius: 9999,
+          padding: '5px 5px 5px 20px',
+          gap: 10,
+        }}
       >
-        <Search className="w-5 h-5 flex-shrink-0 ml-4" style={{ color: '#374151' }} />
+        <Search size={16} style={{ color: '#888780', flexShrink: 0 }} aria-hidden="true" />
         <input
           type="text"
           value={query}
@@ -59,18 +63,30 @@ export default function HeroSearch() {
           placeholder="¿Dónde querés buscar?"
           aria-label="Buscar por barrio, ciudad o dirección"
           autoComplete="off"
-          className="flex-1 min-w-0 border-none outline-none bg-transparent px-3 text-[#111] placeholder:text-[#9ca3af]"
-          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 'clamp(15px, 2vw, 16px)' as string, fontWeight: 500 }}
+          className="flex-1 min-w-0 border-none outline-none bg-transparent placeholder:text-[#888780]"
+          style={{
+            fontFamily: 'Raleway, sans-serif',
+            fontSize: 14,
+            color: '#111',
+            background: 'transparent',
+          }}
         />
         <button
           type="submit"
-          className="flex-shrink-0 h-full flex items-center justify-center text-white border-none cursor-pointer"
-          style={{ background: '#1A5C38', fontFamily: 'Raleway, sans-serif', fontSize: 14, fontWeight: 700, padding: '0 24px', transition: 'background 180ms' }}
+          className="flex-shrink-0 text-white border-none cursor-pointer"
+          style={{
+            background: '#1A5C38',
+            fontFamily: 'Raleway, sans-serif',
+            fontSize: 13,
+            fontWeight: 500,
+            padding: '9px 22px',
+            borderRadius: 9999,
+            transition: 'background 180ms',
+          }}
           onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
         >
-          <span className="hidden md:inline">Buscar</span>
-          <ArrowRight className="w-5 h-5 md:hidden" />
+          Buscar
         </button>
       </form>
 

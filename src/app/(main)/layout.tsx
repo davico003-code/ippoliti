@@ -17,6 +17,7 @@ const poppins = Poppins({
 });
 
 import Navbar from "@/components/Navbar";
+import { getAgentFromCookies } from "@/lib/auth";
 import FooterWrapper from "@/components/FooterWrapper";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import MetaPixel from "@/components/MetaPixel";
@@ -176,11 +177,13 @@ const jsonLd = [
   })),
 ]
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const agent = await getAgentFromCookies()
+  const navAgent = agent ? { name: agent.name } : null
   return (
     <html lang="es" className={`${raleway.variable} ${poppins.variable}`}>
       <head>
@@ -199,7 +202,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Navbar />
+        <Navbar agent={navAgent} />
         <main className="md:pt-[73px]">{children}</main>
         <FooterWrapper />
         <FloatingWhatsApp />
