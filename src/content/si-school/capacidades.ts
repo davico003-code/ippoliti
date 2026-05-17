@@ -46,8 +46,8 @@ export const CAPACIDADES_META: CapacidadMeta[] = [
     numero: 5,
     romano: 'V',
     titulo: 'Cerrar operaciones',
-    subtitulo: 'Visita, negociación, cierre',
-    descripcion: 'Las decisiones que se toman en el último 10% del proceso. Donde la mayoría se cae.',
+    subtitulo: 'Del gancho a la escritura',
+    descripcion: 'Negociación, oferta, referéndum, seña a 48 horas y acompañamiento hasta la escritura. El sistema SI para cerrar bien y no perder al cliente en el camino.',
     estado: 'bloqueada',
   },
   {
