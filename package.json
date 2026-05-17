@@ -25,6 +25,7 @@
     "exceljs": "^4.4.0",
     "fast-xml-parser": "^5.5.12",
     "framer-motion": "^12.38.0",
+    "gray-matter": "^4.0.3",
     "jose": "^6.2.2",
     "jszip": "^3.10.1",
     "leaflet": "^1.9.4",
@@ -39,6 +40,8 @@
     "react-leaflet-cluster": "^4.0.0",
     "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.8.1",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1",
     "twilio": "^5.13.1",
     "yet-another-react-lightbox": "^3.29.2"
   },
