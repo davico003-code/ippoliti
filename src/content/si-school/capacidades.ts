@@ -27,9 +27,9 @@ export const CAPACIDADES_META: CapacidadMeta[] = [
     slug: 'capacidad-03',
     numero: 3,
     romano: 'III',
-    titulo: 'Generar y conducir conversaciones',
-    subtitulo: 'El sistema central: filtrar, calificar, conducir',
-    descripcion: 'NURC, selecciones con feedback, WhatsApp profesional. El corazón operativo del oficio.',
+    titulo: 'Captar con criterio SI',
+    subtitulo: 'Cómo construir cartera con salud',
+    descripcion: 'NURC, entrevista, Acuerdo de Comercialización Digital. El sistema de captación de SI para no perder tiempo con propiedades inviables.',
     estado: 'bloqueada',
   },
   {
