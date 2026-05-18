@@ -1,6 +1,3 @@
-'use client'
-
-import { useState } from 'react'
 import Image from 'next/image'
 
 export type HubTier = 'premium' | 'consolidado' | 'joven' | 'desarrollo'
@@ -13,16 +10,14 @@ const TIER_GRADIENT: Record<HubTier, string> = {
 }
 
 interface Props {
-  slug: string
+  src: string | null
   nombre: string
   tier: HubTier
   priority?: boolean
 }
 
-export default function BarrioHubCardImage({ slug, nombre, tier, priority = false }: Props) {
-  const [errored, setErrored] = useState(false)
-
-  if (errored) {
+export default function BarrioHubCardImage({ src, nombre, tier, priority = false }: Props) {
+  if (!src) {
     return (
       <div
         role="img"
@@ -40,14 +35,13 @@ export default function BarrioHubCardImage({ slug, nombre, tier, priority = fals
 
   return (
     <Image
-      src={`/barrios/${slug}.jpg`}
+      src={src}
       alt={`Vista de ${nombre} — barrio privado en Funes`}
       fill
       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
       loading={priority ? 'eager' : 'lazy'}
       priority={priority}
       className="object-cover"
-      onError={() => setErrored(true)}
     />
   )
 }

@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
@@ -8,6 +10,26 @@ import BarrioHubCardImage, { type HubTier } from '@/components/barrios/BarrioHub
 import BarrioFAQ from '@/components/barrios/BarrioFAQ'
 import HubTracker from './HubTracker'
 import type { MapaBarrio } from '@/components/barrios/BarrioMapa'
+
+// Auto-discovery de la foto principal de cada barrio.
+// Heurística: si existe un archivo `hero*` lo prioriza; sino, el primero alfabético.
+// Se ejecuta en server (build/SSR), nunca llega al cliente.
+function getBarrioHero(slug: string): string | null {
+  try {
+    const dir = path.join(process.cwd(), 'public', 'barrios', slug)
+    if (!fs.existsSync(dir)) return null
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => /\.(jpe?g|png|webp)$/i.test(f))
+      .sort((a, b) => a.localeCompare(b, 'es'))
+    if (files.length === 0) return null
+    const hero = files.find((f) => /^hero(\.|[-_ ])/i.test(f))
+    const pick = hero ?? files[0]!
+    return `/barrios/${slug}/${encodeURIComponent(pick)}`
+  } catch {
+    return null
+  }
+}
 
 const BarrioMapaWrapper = dynamic(() => import('@/components/barrios/BarrioMapa'), {
   ssr: false,
@@ -388,7 +410,7 @@ export default function BarriosPrivadosHub() {
                   >
                     <div className="bp-card-img">
                       <BarrioHubCardImage
-                        slug={b.slug}
+                        src={getBarrioHero(b.slug)}
                         nombre={b.nombre}
                         tier={group.tier}
                       />
