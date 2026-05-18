@@ -207,8 +207,8 @@ function createClusterIcon(cluster: L.MarkerCluster) {
 // Cuando el usuario filtra por Ubicación, ZonaFlyTo lo lleva a la zona;
 // cuando limpia el filtro, este componente no re-dispara (solo corre al montar).
 
-const DEFAULT_CENTER: [number, number] = [-32.9145, -60.8200]
-const DEFAULT_ZOOM = 12
+export const DEFAULT_CENTER: [number, number] = [-32.9145, -60.8200]
+export const DEFAULT_ZOOM = 12
 
 function InitialView() {
   const map = useMap()
@@ -226,11 +226,19 @@ function InitialView() {
 }
 
 // ─── Map fly-to controller ────────────────────────────────────────────────────
+//
+// El tercer slot del tuple es el zoom destino. Sin él, asume 16 (zoom in a
+// una propiedad seleccionada). Pasarlo explícito sirve para reset al
+// encuadre inicial: [DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM].
 
-function MapFlyTo({ center }: { center: [number, number] | null }) {
+export type FlyToTarget = [number, number] | [number, number, number]
+
+function MapFlyTo({ center }: { center: FlyToTarget | null }) {
   const map = useMap()
   useEffect(() => {
-    if (center) map.flyTo(center, 16, { duration: 0.7, easeLinearity: 0.4 })
+    if (!center) return
+    const zoom = center[2] ?? 16
+    map.flyTo([center[0], center[1]], zoom, { duration: 0.7, easeLinearity: 0.4 })
   }, [center, map])
   return null
 }
@@ -468,7 +476,7 @@ interface Props {
   onSelect: (id: number) => void
   onDeselect?: () => void
   onOpenDetail?: (id: number) => void
-  flyToCenter: [number, number] | null
+  flyToCenter: FlyToTarget | null
   onBoundsSearch?: (bounds: L.LatLngBounds) => void
   activeZona?: Zona | null
   onMapMove?: () => void

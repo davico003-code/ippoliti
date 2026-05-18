@@ -42,7 +42,8 @@ import {
   translatePropertyType,
   generatePropertySlug,
 } from '@/lib/tokko'
-import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM } from '@/lib/geo'
+import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } from '@/lib/geo'
+import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget } from '@/components/PropiedadesMap'
 import { isSpecificSearch } from '@/lib/search'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
@@ -516,7 +517,7 @@ export default function PropiedadesView({
   }, [initialSearch, initialOperation])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [hoveredId, setHoveredId]       = useState<number | null>(null)
-  const [flyToCenter, setFlyToCenter]   = useState<[number, number] | null>(null)
+  const [flyToCenter, setFlyToCenter]   = useState<FlyToTarget | null>(null)
   // Vista mobile (toggle Lista↔Mapa). En desktop ambos paneles son visibles
   // siempre, así que esta variable solo afecta a <md.
   // Default: 'map'. Si el usuario togglea manualmente, su preferencia queda
@@ -603,8 +604,14 @@ export default function PropiedadesView({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  const set = useCallback(<K extends keyof Filters>(k: K, v: Filters[K]) =>
-    setFilters(prev => ({ ...prev, [k]: v })), [])
+  const set = useCallback(<K extends keyof Filters>(k: K, v: Filters[K]) => {
+    setFilters(prev => ({ ...prev, [k]: v }))
+    // Si el usuario aplica un filtro de Ubicación específica, cancelamos el
+    // modo "cercanía": no tiene sentido tener "1 km a la redonda" + "Roldán".
+    if (k === 'location' && v !== 'todos') {
+      setNearbyOrigin(null)
+    }
+  }, [])
 
   const reset = useCallback(() => {
     setFilters(DEFAULTS)
@@ -819,9 +826,18 @@ export default function PropiedadesView({
   // Lista para el mapa: aplica filtros + cercanía. NO aplica mapBounds porque
   // el bounds se calcula desde el viewport y filtrar por bounds antes de
   // pintar generaría un loop visual.
+  //
+  // Cuando hay nearbyOrigin, además ORDENA por distancia ascendente (más
+  // cercanas primero), independiente del sortBy del dropdown — tiene sentido
+  // que "buscar cerca" priorice cercanía por encima de destacadas/precio.
   const propertiesForMap = useMemo(() => {
     if (!nearbyOrigin) return filtered
-    return filterPropertiesByRadius(filtered, nearbyOrigin.lat, nearbyOrigin.lng)
+    const within = filterPropertiesByRadius(filtered, nearbyOrigin.lat, nearbyOrigin.lng)
+    return within.slice().sort((a, b) => {
+      const da = distanceToProperty(a, nearbyOrigin.lat, nearbyOrigin.lng) ?? Infinity
+      const db = distanceToProperty(b, nearbyOrigin.lat, nearbyOrigin.lng) ?? Infinity
+      return da - db
+    })
   }, [filtered, nearbyOrigin])
 
   // Lista para el listado lateral: cercanía + bounds.
@@ -856,7 +872,13 @@ export default function PropiedadesView({
     setMapBounds(null)
   }, [])
 
-  const clearNearby = useCallback(() => setNearbyOrigin(null), [])
+  // Al cerrar el chip "menos de 1 km", limpiamos el filtro Y mandamos al mapa
+  // de vuelta al encuadre inicial (Funes/Roldán/Fisherton). Sino el mapa se
+  // queda donde lo dejó el flyTo de la geolocalización del usuario.
+  const clearNearby = useCallback(() => {
+    setNearbyOrigin(null)
+    setFlyToCenter([MAP_DEFAULT_CENTER[0], MAP_DEFAULT_CENTER[1], MAP_DEFAULT_ZOOM])
+  }, [])
 
   // Geolocalización + filtro a 5km. Disparado desde el icono LocateFixed del
   // input desktop. A diferencia de useMyLocation (que hace reverse geocode y
@@ -1385,10 +1407,18 @@ export default function PropiedadesView({
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
                 {nearbyOrigin ? (
                   <>
-                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
-                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
-                      No hay propiedades en un radio de {GEO_NEARBY_RADIUS_KM} km. Probá ampliar la búsqueda.
+                    <p className="text-gray-700 font-semibold text-sm mb-1">
+                      No hay propiedades a {GEO_NEARBY_RADIUS_KM} km de tu ubicación.
                     </p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                      Probá ampliar la búsqueda o navegá el mapa.
+                    </p>
+                    <button
+                      onClick={clearNearby}
+                      className="bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors mb-2"
+                    >
+                      Ver todas las propiedades
+                    </button>
                   </>
                 ) : (filters.priceMin || filters.priceMax) ? (
                   <>
@@ -1422,6 +1452,7 @@ export default function PropiedadesView({
                       selectedId={selectedId}
                       onHover={setHoveredId}
                       onCardClick={handleCardClick}
+                      nearbyOrigin={nearbyOrigin}
                     />
                   ) : (
                     <PropiedadesViewDesktopGridSkeleton />
@@ -1433,7 +1464,12 @@ export default function PropiedadesView({
                     <div key={p.id} data-property-id={p.id}>
                       {/* Mobile: el Link navega solo, sin onClick. El prefetch
                           ocurre cuando la card entra al viewport. */}
-                      <PropiedadCardGrid property={p} isSelected={p.id === selectedId} variant="mobile" />
+                      <PropiedadCardGrid
+                        property={p}
+                        isSelected={p.id === selectedId}
+                        variant="mobile"
+                        distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
+                      />
                     </div>
                   ))}
                 </div>

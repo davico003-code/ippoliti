@@ -2,12 +2,15 @@
 
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
 import type { TokkoProperty } from '@/lib/tokko'
+import { distanceToProperty } from '@/lib/geo'
 
 interface Props {
   properties: TokkoProperty[]
   selectedId: number | null
   onHover: (id: number | null) => void
   onCardClick: (p: TokkoProperty) => void
+  /** Si está seteado, cada card muestra "a X m/km" calculado desde este origen. */
+  nearbyOrigin?: { lat: number; lng: number } | null
 }
 
 export default function PropiedadesViewDesktopGrid({
@@ -15,6 +18,7 @@ export default function PropiedadesViewDesktopGrid({
   selectedId,
   onHover,
   onCardClick,
+  nearbyOrigin = null,
 }: Props) {
   return (
     <div className="grid p-4 grid-cols-1 xl:grid-cols-2 gap-4">
@@ -29,6 +33,7 @@ export default function PropiedadesViewDesktopGrid({
             property={p}
             isSelected={p.id === selectedId}
             onClick={e => { e.preventDefault(); onCardClick(p) }}
+            distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
           />
         </div>
       ))}

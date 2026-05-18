@@ -7,7 +7,34 @@
  * de la utilidad para que los consumers no tengan que hacer adapters.
  */
 
-export const GEO_NEARBY_RADIUS_KM = 5
+export const GEO_NEARBY_RADIUS_KM = 1
+
+/**
+ * Distancia en km de una propiedad de Tokko a un origen, o null si la
+ * propiedad no tiene coords parseables. Usado por las cards del listado
+ * para mostrar "a 350 m" / "a 1,2 km" cuando hay geo activa.
+ */
+export function distanceToProperty(
+  property: { geo_lat?: string | null; geo_long?: string | null },
+  originLat: number,
+  originLng: number,
+): number | null {
+  if (property.geo_lat == null || property.geo_long == null) return null
+  const lat = parseFloat(property.geo_lat)
+  const lng = parseFloat(property.geo_long)
+  if (Number.isNaN(lat) || Number.isNaN(lng)) return null
+  return haversineDistance(originLat, originLng, lat, lng)
+}
+
+/**
+ * Formato AR para distancias chicas: <1 km usa "350 m" entero, ≥1 km usa
+ * "1,2 km" con coma decimal y un solo decimal.
+ */
+export function formatDistanceAR(km: number): string {
+  if (!Number.isFinite(km) || km < 0) return ''
+  if (km < 1) return `${Math.round(km * 1000)} m`
+  return `${km.toFixed(1).replace('.', ',')} km`
+}
 
 const EARTH_RADIUS_KM = 6371
 

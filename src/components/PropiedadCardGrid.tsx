@@ -17,17 +17,21 @@ import {
   translatePropertyType,
   generatePropertySlug,
 } from '@/lib/tokko'
+import { formatDistanceAR } from '@/lib/geo'
 
 const RALEWAY = "'Raleway', system-ui, sans-serif"
 const POPPINS = "'Poppins', system-ui, sans-serif"
 
-export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop' }: {
+export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop', distanceKm }: {
   property: TokkoProperty
   isSelected: boolean
   /** Si se pasa, se ejecuta antes de la navegación. Llamar e.preventDefault() para
    * evitar que el Link navegue (caso desktop = abrir panel modal en su lugar). */
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
   variant?: 'desktop' | 'mobile'
+  /** Distancia en km desde la ubicación del usuario (modo "buscar cerca").
+   *  Null/undefined → no se muestra. */
+  distanceKm?: number | null
 }) {
   const isMobile = variant === 'mobile'
   const photos = getAllPhotos(property)
@@ -240,6 +244,19 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         }}>
           {location}
         </p>
+
+        {distanceKm != null && Number.isFinite(distanceKm) && (
+          <p style={{
+            fontFamily: RALEWAY,
+            fontSize: 12,
+            fontWeight: 600,
+            color: '#1A5C38',
+            margin: '2px 0 0',
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            a {formatDistanceAR(distanceKm)}
+          </p>
+        )}
       </div>
 
     </Link>
