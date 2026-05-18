@@ -1,11 +1,7 @@
-import ClientesPanel from '@/components/seleccion/ClientesPanel'
+import { redirect } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
-
+// Ruta deprecada. El Seguimiento de Clientes vive ahora en /agentes/seleccion.
+// Server-side redirect para no romper bookmarks de agentes.
 export default function AgentesClientesPage() {
-  return (
-    <div className="max-w-3xl mx-auto">
-      <ClientesPanel />
-    </div>
-  )
+  redirect('/agentes/seleccion')
 }

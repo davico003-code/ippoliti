@@ -131,7 +131,7 @@ export default function AgentDashboardV2({
           }}
         >
           <PlacaCard
-            href="/agentes/clientes"
+            href="/agentes/seleccion"
             icon={<Users size={22} strokeWidth={1.8} />}
             iconColor={GREEN}
             iconBg={GREEN_TINT}
