@@ -119,6 +119,10 @@ export interface Autorizacion {
   servicios: Servicios
   tiene_expensas: boolean
   expensas_monto_ars?: number
+  /** Si la propiedad está hipotecada. Si true, el PDF omite la cláusula de
+   *  Títulos (que declara "títulos perfectos, sin hipotecas"). Sin info
+   *  adicional — solo el flag. Default false (retrocompat acuerdos previos). */
+  hipotecada?: boolean
   /** Público — aparece en el acuerdo del cliente. */
   precio_publicacion_usd?: number
   /** INTERNO — solo visible en panel admin. NUNCA llega al documento del cliente ni al PDF. */
@@ -156,6 +160,7 @@ export interface CrearInput {
   servicios: Servicios
   tiene_expensas: boolean
   expensas_monto_ars?: number
+  hipotecada?: boolean
   precio_publicacion_usd?: number
   precio_venta_usd?: number
   notas_internas?: string
@@ -188,6 +193,7 @@ export async function crearAutorizacion(input: CrearInput): Promise<Autorizacion
     servicios: input.servicios,
     tiene_expensas: input.tiene_expensas,
     expensas_monto_ars: input.tiene_expensas ? input.expensas_monto_ars : undefined,
+    hipotecada: Boolean(input.hipotecada),
     precio_publicacion_usd: input.precio_publicacion_usd,
     precio_venta_usd: input.precio_venta_usd,
     notas_internas: input.notas_internas,

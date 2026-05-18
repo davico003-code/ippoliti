@@ -70,6 +70,8 @@ function validateBody(body: unknown): { ok: true; data: CrearInput } | { ok: fal
     expensas_monto_ars = Math.round(n)
   }
 
+  const hipotecada = Boolean(b.hipotecada)
+
   const parsePosNum = (v: unknown): number | undefined => {
     if (v == null || v === '') return undefined
     const n = Number(v)
@@ -101,6 +103,7 @@ function validateBody(body: unknown): { ok: true; data: CrearInput } | { ok: fal
       servicios,
       tiene_expensas,
       expensas_monto_ars,
+      hipotecada,
       precio_publicacion_usd,
       precio_venta_usd,
       notas_internas,

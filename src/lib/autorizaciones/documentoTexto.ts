@@ -139,8 +139,9 @@ export interface ClausulaDef {
 export function getClausulas(auth: Autorizacion): ClausulaDef[] {
   const isExclusiva = auth.tipo === 'exclusiva'
   const hasServicios = SERVICIOS_ORDER.some(s => auth.servicios[s.key])
+  const hipotecada = Boolean(auth.hipotecada)
 
-  const numeros = getNumeracion({ isExclusiva })
+  const numeros = getNumeracion({ isExclusiva, hipotecada })
   const out: ClausulaDef[] = []
 
   // 1 — INMUEBLE (con servicios integrados)
@@ -252,22 +253,26 @@ export function getClausulas(auth: Autorizacion): ClausulaDef[] {
     ],
   })
 
-  // Títulos (siempre, última)
-  out.push({
-    key: 'titulos',
-    numero: numeros.titulos,
-    titulo: 'Títulos',
-    chunks: [
-      t('El Autorizante declara que los títulos son perfectos, sin embargos, hipotecas, gravámenes, litigios ni inhibiciones, y aportará la documentación al Autorizado dentro de los 5 días.'),
-    ],
-  })
+  // Títulos (omitida cuando hipotecada=true: la declaración de "títulos
+  // perfectos, sin hipotecas" no aplica a una propiedad efectivamente
+  // hipotecada; se saca limpio del documento, no se reemplaza por nada).
+  if (!hipotecada) {
+    out.push({
+      key: 'titulos',
+      numero: numeros.titulos,
+      titulo: 'Títulos',
+      chunks: [
+        t('El Autorizante declara que los títulos son perfectos, sin embargos, hipotecas, gravámenes, litigios ni inhibiciones, y aportará la documentación al Autorizado dentro de los 5 días.'),
+      ],
+    })
+  }
 
   return out
 }
 
 // ── Numeración dinámica ─────────────────────────────────────────────────────
 
-export function getNumeracion(opts: { isExclusiva: boolean }): Record<string, number> {
+export function getNumeracion(opts: { isExclusiva: boolean; hipotecada?: boolean }): Record<string, number> {
   let n = 1
   const map: Record<string, number> = {}
   map.inmueble = n++
@@ -276,7 +281,7 @@ export function getNumeracion(opts: { isExclusiva: boolean }): Record<string, nu
   map.difusion = n++
   if (opts.isExclusiva) map.exclusividad = n++
   map.honorarios = n++
-  map.titulos = n++
+  if (!opts.hipotecada) map.titulos = n++
   return map
 }
 
@@ -302,7 +307,7 @@ export function formatCierreFirma(date: Date): string {
 // acuerdos ya firmados conservan exactamente el texto que el cliente firmó.
 
 /** Bump cuando cambie el TEMPLATE legal (cláusulas, preámbulo, cierre). */
-export const DOCUMENTO_VERSION = '2026-05-16-v3-sin-expensas-sin-anexo-difusion-acotada-honorarios-boleto-o-escritura'
+export const DOCUMENTO_VERSION = '2026-05-18-v4-hipoteca-omite-clausula-titulos'
 
 export interface ClausulaSnapshot {
   numero: number

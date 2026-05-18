@@ -33,6 +33,7 @@ import type {
 } from '@/lib/autorizaciones'
 import { WHATSAPP_TEMPLATE } from '@/lib/autorizaciones/documentoTexto'
 import { SaludLucesMini } from '@/components/autorizaciones/SaludLucesMini'
+import MoneyInput from '@/components/forms/MoneyInput'
 
 const STORAGE_KEY = 'si_team_access'
 const GREEN = '#1A5C38'
@@ -246,9 +247,10 @@ interface FormState {
     cloacas: boolean
   }
   tieneExpensas: boolean
-  expensasMonto: string
-  precioPublicacion: string
-  precioVenta: string
+  expensasMonto: number | undefined
+  hipotecada: boolean
+  precioPublicacion: number | undefined
+  precioVenta: number | undefined
   notasInternas: string
 }
 
@@ -265,9 +267,10 @@ const initialForm: FormState = {
   cliente_email: '',
   servicios: { luz: false, agua: false, gas: false, pavimento: false, cloacas: false },
   tieneExpensas: false,
-  expensasMonto: '',
-  precioPublicacion: '',
-  precioVenta: '',
+  expensasMonto: undefined,
+  hipotecada: false,
+  precioPublicacion: undefined,
+  precioVenta: undefined,
   notasInternas: '',
 }
 
@@ -340,9 +343,10 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
         tipo_propiedad: form.tipo_propiedad,
         servicios: form.servicios,
         tiene_expensas: form.tieneExpensas,
-        expensas_monto_ars: form.tieneExpensas ? Number(form.expensasMonto) || 0 : undefined,
-        precio_publicacion_usd: form.precioPublicacion ? Number(form.precioPublicacion) : undefined,
-        precio_venta_usd: form.precioVenta ? Number(form.precioVenta) : undefined,
+        expensas_monto_ars: form.tieneExpensas ? form.expensasMonto ?? 0 : undefined,
+        hipotecada: form.hipotecada,
+        precio_publicacion_usd: form.precioPublicacion,
+        precio_venta_usd: form.precioVenta,
         notas_internas: form.notasInternas.trim() || undefined,
         cliente_precarga: {
           nombre: form.cliente_nombre.trim() || undefined,
@@ -453,6 +457,11 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
             monto={form.expensasMonto}
             onToggle={v => setForm(f => ({ ...f, tieneExpensas: v }))}
             onMonto={v => setForm(f => ({ ...f, expensasMonto: v }))}
+          />
+
+          <SectionHipoteca
+            on={form.hipotecada}
+            onToggle={v => setForm(f => ({ ...f, hipotecada: v }))}
           />
 
           <SectionAdvanced
@@ -1068,9 +1077,9 @@ function SectionExpensas({
   onMonto,
 }: {
   on: boolean
-  monto: string
+  monto: number | undefined
   onToggle: (v: boolean) => void
-  onMonto: (v: string) => void
+  onMonto: (v: number | undefined) => void
 }) {
   return (
     <div>
@@ -1116,12 +1125,9 @@ function SectionExpensas({
             >
               $
             </span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
+            <MoneyInput
               value={monto}
-              onChange={e => onMonto(e.target.value)}
+              onChange={onMonto}
               placeholder="Monto mensual (ARS)"
               style={{
                 width: '100%',
@@ -1137,6 +1143,47 @@ function SectionExpensas({
             />
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function SectionHipoteca({
+  on,
+  onToggle,
+}: {
+  on: boolean
+  onToggle: (v: boolean) => void
+}) {
+  return (
+    <div>
+      <SectionLabel>¿La propiedad está hipotecada?</SectionLabel>
+      <div
+        style={{
+          padding: 16,
+          borderRadius: 12,
+          border: `1px solid ${LINE}`,
+          background: BG,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 500, color: TEXT_DARK, margin: '0 0 2px' }}>
+              ¿La propiedad está hipotecada?
+            </p>
+            <p style={{ fontSize: 12, color: TEXT_MUTED, margin: 0 }}>
+              Si está activado, se ajustan las cláusulas legales del acuerdo.
+            </p>
+          </div>
+          <Switch value={on} onChange={onToggle} />
+        </div>
       </div>
     </div>
   )
@@ -1160,11 +1207,11 @@ function SectionAdvanced({
 }: {
   open: boolean
   onToggle: () => void
-  precioPublicacion: string
-  precioVenta: string
+  precioPublicacion: number | undefined
+  precioVenta: number | undefined
   notasInternas: string
-  onPub: (v: string) => void
-  onVenta: (v: string) => void
+  onPub: (v: number | undefined) => void
+  onVenta: (v: number | undefined) => void
   onNotas: (v: string) => void
 }) {
   const numericInputStyle: React.CSSProperties = {
@@ -1221,12 +1268,9 @@ function SectionAdvanced({
               <SectionLabel>Precio de publicación (USD)</SectionLabel>
               <span style={publicPillStyle}>Público</span>
             </div>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
+            <MoneyInput
               value={precioPublicacion}
-              onChange={e => onPub(e.target.value)}
+              onChange={onPub}
               placeholder="Opcional · aparece en el acuerdo del cliente"
               style={numericInputStyle}
             />
@@ -1248,12 +1292,9 @@ function SectionAdvanced({
             <p style={{ fontSize: 12, color: INTERNAL_LABEL_TEXT, margin: '0 0 8px', lineHeight: 1.5 }}>
               Solo para uso interno. No aparece en el acuerdo del cliente ni en el PDF.
             </p>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
+            <MoneyInput
               value={precioVenta}
-              onChange={e => onVenta(e.target.value)}
+              onChange={onVenta}
               placeholder="Opcional"
               style={internalInputStyle}
             />
