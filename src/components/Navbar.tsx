@@ -88,14 +88,11 @@ function NavLink({ href, label, transparent }: { href: string; label: string; tr
 }
 
 
-type NavbarProps = {
-  agent?: { name: string } | null
-}
-
-export default function Navbar({ agent = null }: NavbarProps) {
+export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [agent, setAgent] = useState<{ name: string } | null>(null)
   const isPropiedades = pathname.startsWith('/propiedades')
   const isHome = pathname === '/'
   const transparent = isHome && !scrolled
@@ -107,6 +104,15 @@ export default function Navbar({ agent = null }: NavbarProps) {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [isHome])
+
+  useEffect(() => {
+    let alive = true
+    fetch('/api/agentes/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : { agent: null }))
+      .then((data) => { if (alive) setAgent(data.agent ?? null) })
+      .catch(() => { if (alive) setAgent(null) })
+    return () => { alive = false }
+  }, [pathname])
 
   // Panel /fichas: layout propio con header simple, sin Navbar SI.
   if (pathname === '/fichas' || pathname?.startsWith('/fichas/')) return null
