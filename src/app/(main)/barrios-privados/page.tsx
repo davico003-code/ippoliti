@@ -39,9 +39,16 @@ const BarrioMapaWrapper = dynamic(() => import('@/components/barrios/BarrioMapa'
         height: '100%',
         width: '100%',
         background: '#F3EFE7',
-        borderRadius: 12,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Poppins, sans-serif',
+        fontSize: 13,
+        color: '#9CA3AF',
       }}
-    />
+    >
+      Cargando mapa…
+    </div>
   ),
 })
 

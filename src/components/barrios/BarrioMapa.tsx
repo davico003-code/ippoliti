@@ -1,7 +1,7 @@
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L, { type LatLngBoundsExpression } from 'leaflet'
@@ -68,10 +68,11 @@ interface Props {
 }
 
 export default function BarrioMapa({ barrios }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-
   return (
-    <div ref={containerRef} className="barrio-mapa-container">
+    <div
+      className="barrio-mapa-container"
+      style={{ position: 'relative', height: '100%', width: '100%' }}
+    >
       <MapContainer
         center={FUNES_CENTER}
         zoom={13}
