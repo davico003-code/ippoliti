@@ -34,6 +34,7 @@ import type {
 import { WHATSAPP_TEMPLATE } from '@/lib/autorizaciones/documentoTexto'
 import { SaludLucesMini } from '@/components/autorizaciones/SaludLucesMini'
 import MoneyInput from '@/components/forms/MoneyInput'
+import BackLink from '@/components/ui/BackLink'
 
 const STORAGE_KEY = 'si_team_access'
 const GREEN = '#1A5C38'
@@ -402,6 +403,9 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
       <Header onLogout={onLogout} />
 
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '36px 20px 80px' }}>
+        <div style={{ marginBottom: 16 }}>
+          <BackLink href="/agentes" label="Volver a agentes" />
+        </div>
         <PageHeader />
 
         <Card>
@@ -436,6 +440,11 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
             onChange={v => setForm(f => ({ ...f, tipo_propiedad: v }))}
           />
 
+          <SectionPrecioPublicacion
+            value={form.precioPublicacion}
+            onChange={v => setForm(f => ({ ...f, precioPublicacion: v }))}
+          />
+
           <SectionCliente
             nombre={form.cliente_nombre}
             dni={form.cliente_dni}
@@ -467,10 +476,8 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
           <SectionAdvanced
             open={advancedOpen}
             onToggle={() => setAdvancedOpen(o => !o)}
-            precioPublicacion={form.precioPublicacion}
             precioVenta={form.precioVenta}
             notasInternas={form.notasInternas}
-            onPub={v => setForm(f => ({ ...f, precioPublicacion: v }))}
             onVenta={v => setForm(f => ({ ...f, precioVenta: v }))}
             onNotas={v => setForm(f => ({ ...f, notasInternas: v }))}
           />
@@ -1195,26 +1202,14 @@ const INTERNAL_BORDER = '#F0E4B8'
 const INTERNAL_LABEL_BG = '#FEF3C7'
 const INTERNAL_LABEL_TEXT = '#92400E'
 
-function SectionAdvanced({
-  open,
-  onToggle,
-  precioPublicacion,
-  precioVenta,
-  notasInternas,
-  onPub,
-  onVenta,
-  onNotas,
+function SectionPrecioPublicacion({
+  value,
+  onChange,
 }: {
-  open: boolean
-  onToggle: () => void
-  precioPublicacion: number | undefined
-  precioVenta: number | undefined
-  notasInternas: string
-  onPub: (v: number | undefined) => void
-  onVenta: (v: number | undefined) => void
-  onNotas: (v: string) => void
+  value: number | undefined
+  onChange: (v: number | undefined) => void
 }) {
-  const numericInputStyle: React.CSSProperties = {
+  const inputStyle: React.CSSProperties = {
     width: '100%',
     boxSizing: 'border-box',
     padding: '11px 14px',
@@ -1225,9 +1220,46 @@ function SectionAdvanced({
     outline: 'none',
     background: '#fff',
   }
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <SectionLabel>Precio de publicación (USD)</SectionLabel>
+        <span style={publicPillStyle}>Público</span>
+      </div>
+      <MoneyInput
+        value={value}
+        onChange={onChange}
+        placeholder="Opcional · aparece en el acuerdo del cliente"
+        style={inputStyle}
+      />
+    </div>
+  )
+}
+
+function SectionAdvanced({
+  open,
+  onToggle,
+  precioVenta,
+  notasInternas,
+  onVenta,
+  onNotas,
+}: {
+  open: boolean
+  onToggle: () => void
+  precioVenta: number | undefined
+  notasInternas: string
+  onVenta: (v: number | undefined) => void
+  onNotas: (v: string) => void
+}) {
   const internalInputStyle: React.CSSProperties = {
-    ...numericInputStyle,
+    width: '100%',
+    boxSizing: 'border-box',
+    padding: '11px 14px',
+    borderRadius: 10,
     border: `1px solid ${INTERNAL_BORDER}`,
+    fontSize: 15,
+    fontFamily: R,
+    outline: 'none',
     background: '#fff',
   }
   return (
@@ -1262,20 +1294,6 @@ function SectionAdvanced({
       </button>
       {open && (
         <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Precio de publicación — PÚBLICO (sin fondo amarillo) */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <SectionLabel>Precio de publicación (USD)</SectionLabel>
-              <span style={publicPillStyle}>Público</span>
-            </div>
-            <MoneyInput
-              value={precioPublicacion}
-              onChange={onPub}
-              placeholder="Opcional · aparece en el acuerdo del cliente"
-              style={numericInputStyle}
-            />
-          </div>
-
           {/* Precio estimado de venta — INTERNO (caja amarilla) */}
           <div
             style={{

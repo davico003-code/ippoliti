@@ -15,7 +15,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft,
   Check,
   Copy,
   FileText,
@@ -34,6 +33,7 @@ import {
 
 import DeleteAcuerdoModal from './DeleteAcuerdoModal'
 import SaludAcuerdoSection from '@/components/autorizaciones/SaludAcuerdoSection'
+import BackLink from '@/components/ui/BackLink'
 
 const STORAGE_KEY = 'si_team_access'
 const GREEN = '#1A5C38'
@@ -163,20 +163,10 @@ function DetalleView({
       <Header onLogout={onLogout} />
 
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '24px 20px 60px' }}>
-        <Link
-          href="/recursos/autorizaciones"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 13,
-            color: TEXT_MUTED,
-            textDecoration: 'none',
-            marginBottom: 16,
-          }}
-        >
-          <ArrowLeft size={14} /> Volver al listado
-        </Link>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 16 }}>
+          <BackLink href="/agentes" label="Volver a agentes" />
+          <BackLink href="/recursos/autorizaciones" label="Volver al listado" />
+        </div>
 
         {loading && (
           <div style={{ padding: 40, textAlign: 'center', color: TEXT_MUTED }}>
