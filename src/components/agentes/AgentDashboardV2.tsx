@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
@@ -239,18 +238,6 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
           flexWrap: 'wrap',
         }}
       >
-        <Link href="/agentes" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
-          <Image
-            src="/LOGO_HORIZONTAL.png"
-            alt="SI Inmobiliaria"
-            width={273}
-            height={40}
-            priority
-            className="agent-header-logo"
-            style={{ height: 40, width: 'auto' }}
-          />
-        </Link>
-
         <div
           style={{
             marginLeft: 'auto',
@@ -305,9 +292,6 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
       </div>
 
       <style>{`
-        @media (max-width: 600px) {
-          .agent-header-logo { height: 32px !important; }
-        }
         .agent-placa-card:hover {
           border-color: ${GREEN} !important;
           box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
