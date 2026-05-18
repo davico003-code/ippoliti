@@ -1,217 +1,195 @@
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useMemo, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { MapContainer, TileLayer, Marker, Popup, LayerGroup, CircleMarker } from 'react-leaflet'
-import L from 'leaflet'
-import { BARRIOS, type Barrio } from '@/lib/barrios'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import L, { type LatLngBoundsExpression } from 'leaflet'
 import { trackEvent } from '@/lib/analytics'
+import type { HubTier } from './BarrioHubCardImage'
 
-// Funes centroide aproximado — usado cuando un barrio no tiene coords
-const FUNES_CENTER: [number, number] = [-32.9159, -60.8073]
+const FUNES_CENTER: [number, number] = [-32.92, -60.83]
 
-// Coords plausibles para barrios sin coords explícitas (manualmente curadas
-// dentro del corredor de Funes). Si después David carga las exactas, este
-// fallback se descarta automáticamente.
-const FALLBACK_COORDS: Record<string, [number, number]> = {
-  'vida-lagoon': [-32.9095, -60.7965],
-  'vida-barrio-cerrado': [-32.9152, -60.7901],
-  'vida-club-de-campo': [-32.9213, -60.7847],
-  'vida-jardin': [-32.9075, -60.8045],
-  'vida-green': [-32.9015, -60.8132],
-  kentucky: [-32.9234, -60.8189],
-  'funes-hills-san-marino': [-32.9182, -60.8255],
-  'funes-hills-cadaques': [-32.9119, -60.8302],
-  'funes-lakes': [-32.9047, -60.7889],
-  'funes-hills-miraflores': [-32.9128, -60.8161],
+const TIER_COLOR: Record<HubTier, string> = {
+  premium: '#1A5C38',
+  consolidado: '#4A7C5C',
+  joven: '#B8935A',
+  desarrollo: '#8B5A2B',
 }
 
-const TIER_COLOR: Record<Barrio['tier'], string> = {
-  Premium: '#C9A961',
-  Consolidado: '#1A5C38',
-  'Consolidado con vida joven': '#3D8B5C',
-  'En desarrollo': '#666666',
+const TIER_BADGE: Record<HubTier, { label: string; bg: string; color: string }> = {
+  premium: { label: 'PREMIUM', bg: '#1A5C38', color: '#FFFFFF' },
+  consolidado: { label: 'CONSOLIDADO', bg: '#DCE9E1', color: '#1A5C38' },
+  joven: { label: 'VIDA JOVEN', bg: '#F4E9D5', color: '#7A5A1E' },
+  desarrollo: { label: 'EN DESARROLLO', bg: '#FDF1E4', color: '#8B5A2B' },
 }
 
-function makeIcon(tier: Barrio['tier']) {
-  const color = TIER_COLOR[tier]
+export interface MapaBarrio {
+  slug: string
+  nombre: string
+  tier: HubTier
+  descripcion: string
+  lat: number
+  lng: number
+}
+
+function iniciales(nombre: string): string {
+  const palabras = nombre
+    .replace(/[^a-zA-Záéíóúñ ]/gi, '')
+    .trim()
+    .split(/\s+/)
+  if (palabras.length >= 2) return (palabras[0]![0]! + palabras[1]![0]!).toUpperCase()
+  return nombre.slice(0, 2).toUpperCase()
+}
+
+function makeIcon(barrio: MapaBarrio): L.DivIcon {
+  const color = TIER_COLOR[barrio.tier]
+  const ini = iniciales(barrio.nombre)
   return L.divIcon({
-    className: '',
-    html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 30 42" style="filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))">
-      <path d="M15 0C6.716 0 0 6.716 0 15c0 10.444 15 27 15 27S30 25.444 30 15C30 6.716 23.284 0 15 0z" fill="${color}" stroke="white" stroke-width="2.5"/>
-      <circle cx="15" cy="15" r="6" fill="white"/>
-    </svg>`,
-    iconSize: [32, 42],
-    iconAnchor: [16, 42],
+    className: 'barrio-marker-wrapper',
+    html: `<div class="barrio-marker barrio-marker-${barrio.tier}" style="background:${color}">${ini}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
   })
 }
 
-// Puntos de interés ABC1 (coords plausibles del corredor — David puede ajustar)
-const POIS = [
-  { id: 'aeropuerto', label: 'Aeropuerto Rosario', lat: -32.9036, lng: -60.7853, kind: 'transporte' },
-  { id: 'autopista-15', label: 'Autopista — Garita 15', lat: -32.9255, lng: -60.7945, kind: 'transporte' },
-  { id: 'colegio-tarbut', label: 'Colegio Tarbut', lat: -32.9099, lng: -60.7991, kind: 'colegio' },
-  { id: 'colegio-anglo', label: 'The Anglo School', lat: -32.9132, lng: -60.7843, kind: 'colegio' },
-  { id: 'colegio-jeanmaire', label: 'Jean Piaget / Lasalle', lat: -32.9189, lng: -60.8222, kind: 'colegio' },
-  { id: 'sanatorio-eldo', label: 'Centro de Salud Funes', lat: -32.9165, lng: -60.8156, kind: 'salud' },
-  { id: 'jumbo-funes', label: 'Jumbo Funes', lat: -32.9201, lng: -60.8132, kind: 'super' },
-  { id: 'la-anonima', label: 'La Anónima Funes', lat: -32.9156, lng: -60.8094, kind: 'super' },
-]
-
-const POI_KIND_COLOR: Record<string, string> = {
-  transporte: '#0EA5E9',
-  colegio: '#7C3AED',
-  salud: '#E11D48',
-  super: '#F59E0B',
+function FitBounds({ markers }: { markers: MapaBarrio[] }) {
+  const map = useMap()
+  useEffect(() => {
+    if (markers.length === 0) return
+    const bounds: LatLngBoundsExpression = markers.map((m) => [m.lat, m.lng])
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
+  }, [map, markers])
+  return null
 }
 
 interface Props {
-  barrios?: Barrio[]
+  barrios: MapaBarrio[]
 }
 
-export default function BarrioMapa({ barrios = BARRIOS as Barrio[] }: Props) {
-  const [showAccesos, setShowAccesos] = useState(true)
-  const [showPOIs, setShowPOIs] = useState(true)
-
-  const markers = useMemo(() => {
-    return barrios.map((b) => {
-      const c = b.ubicacion.coordenadas
-      const fallback = FALLBACK_COORDS[b.slug]
-      const coords: [number, number] = c ? [c.lat, c.lng] : fallback ?? FUNES_CENTER
-      return { barrio: b, coords }
-    })
-  }, [barrios])
+export default function BarrioMapa({ barrios }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 text-xs">
-        <label className="flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            checked={showAccesos}
-            onChange={() => setShowAccesos((v) => !v)}
-            className="accent-brand-600"
-          />
-          <span>Accesos (autopista / aeropuerto)</span>
-        </label>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            checked={showPOIs}
-            onChange={() => setShowPOIs((v) => !v)}
-            className="accent-brand-600"
-          />
-          <span>Puntos de interés ABC1</span>
-        </label>
-        <div className="ml-auto flex flex-wrap items-center gap-3 text-[11px] text-stone-600">
-          <Legend color={TIER_COLOR.Premium} label="Premium" />
-          <Legend color={TIER_COLOR.Consolidado} label="Consolidado" />
-          <Legend color={TIER_COLOR['Consolidado con vida joven']} label="Vida joven" />
-          <Legend color={TIER_COLOR['En desarrollo']} label="En desarrollo" />
-        </div>
-      </div>
-
-      <div className="relative h-[460px] w-full overflow-hidden rounded-xl ring-1 ring-stone-200">
-        <MapContainer
-          center={FUNES_CENTER}
-          zoom={12}
-          scrollWheelZoom={false}
-          className="h-full w-full"
-        >
-          <TileLayer
-            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {markers.map(({ barrio, coords }) => (
+    <div ref={containerRef} className="barrio-mapa-container">
+      <MapContainer
+        center={FUNES_CENTER}
+        zoom={13}
+        scrollWheelZoom={false}
+        zoomControl
+        style={{ height: '100%', width: '100%' }}
+      >
+        <TileLayer
+          attribution="&copy; OpenStreetMap &copy; CARTO"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          subdomains="abcd"
+        />
+        <FitBounds markers={barrios} />
+        {barrios.map((b) => {
+          const badge = TIER_BADGE[b.tier]
+          return (
             <Marker
-              key={barrio.slug}
-              position={coords}
-              icon={makeIcon(barrio.tier)}
+              key={b.slug}
+              position={[b.lat, b.lng]}
+              icon={makeIcon(b)}
               eventHandlers={{
                 click: () =>
                   trackEvent('barrios_mapa_interact', {
-                    slug: barrio.slug,
+                    slug: b.slug,
                     action: 'marker_click',
                   }),
               }}
             >
-              <Popup>
-                <div className="space-y-1">
-                  <p className="font-raleway text-base font-semibold text-navy-700">
-                    {barrio.nombre}
-                  </p>
-                  <p className="text-xs text-stone-600">
-                    {barrio.datosDuros.medidaLoteDesde
-                      ? `Lotes desde ${barrio.datosDuros.medidaLoteDesde} m²`
-                      : 'Consultar disponibilidad'}
-                  </p>
-                  <Link
-                    href={`/barrios-privados/${barrio.slug}`}
-                    className="mt-1 inline-block text-xs font-medium text-brand-700 underline"
-                  >
-                    Ver detalle →
-                  </Link>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-
-          {showPOIs && (
-            <LayerGroup>
-              {POIS.map((p) => (
-                <CircleMarker
-                  key={p.id}
-                  center={[p.lat, p.lng]}
-                  radius={7}
-                  pathOptions={{
-                    color: POI_KIND_COLOR[p.kind] ?? '#666',
-                    fillColor: POI_KIND_COLOR[p.kind] ?? '#666',
-                    fillOpacity: 0.9,
-                    weight: 2,
+              <Popup className="barrio-mapa-popup">
+                <span
+                  style={{
+                    display: 'inline-block',
+                    fontFamily: 'Raleway, sans-serif',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '0.12em',
+                    padding: '4px 8px',
+                    borderRadius: 4,
+                    background: badge.bg,
+                    color: badge.color,
+                    marginBottom: 8,
                   }}
                 >
-                  <Popup>
-                    <p className="text-xs text-navy-700">
-                      <span className="font-medium">{p.label}</span>
-                      <br />
-                      <span className="text-stone-500 capitalize">{p.kind}</span>
-                    </p>
-                  </Popup>
-                </CircleMarker>
-              ))}
-            </LayerGroup>
-          )}
-
-          {showAccesos && (
-            <LayerGroup>
-              <CircleMarker
-                center={[-32.9255, -60.7945]}
-                radius={10}
-                pathOptions={{ color: '#1A5C38', fillColor: '#1A5C38', fillOpacity: 0.3 }}
-              >
-                <Popup>
-                  <p className="text-xs">Autopista Rosario–Córdoba — Garita 15</p>
-                </Popup>
-              </CircleMarker>
-            </LayerGroup>
-          )}
-        </MapContainer>
-      </div>
+                  {badge.label}
+                </span>
+                <p
+                  style={{
+                    fontFamily: 'Raleway, sans-serif',
+                    fontWeight: 600,
+                    fontSize: 16,
+                    color: '#0F0F0F',
+                    margin: '0 0 4px',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {b.nombre}
+                </p>
+                <p
+                  style={{
+                    fontFamily: 'Poppins, sans-serif',
+                    fontSize: 12,
+                    color: '#6B7280',
+                    margin: '0 0 10px',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {b.descripcion}
+                </p>
+                <Link
+                  href={`/barrios-privados/${b.slug}`}
+                  style={{
+                    fontFamily: 'Raleway, sans-serif',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: '#1A5C38',
+                    textDecoration: 'none',
+                  }}
+                  className="barrio-mapa-popup-link"
+                >
+                  Conocer el barrio →
+                </Link>
+              </Popup>
+            </Marker>
+          )
+        })}
+      </MapContainer>
+      <style>{`
+        .barrio-marker-wrapper { background: transparent !important; border: none !important; }
+        .barrio-marker {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          border: 3px solid #fff;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-family: 'Raleway', sans-serif;
+          font-weight: 700;
+          font-size: 11px;
+          line-height: 1;
+          transition: transform 180ms ease;
+          cursor: pointer;
+        }
+        .barrio-marker:hover { transform: scale(1.15); }
+        .barrio-mapa-popup .leaflet-popup-content-wrapper {
+          width: 240px;
+          border-radius: 10px;
+          padding: 0;
+        }
+        .barrio-mapa-popup .leaflet-popup-content {
+          margin: 14px 16px 12px;
+          width: auto !important;
+        }
+        .barrio-mapa-popup .leaflet-popup-tip { background: #fff; }
+        .barrio-mapa-popup-link:hover { text-decoration: underline; }
+      `}</style>
     </div>
-  )
-}
-
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-block h-2.5 w-2.5 rounded-full"
-        style={{ backgroundColor: color }}
-        aria-hidden
-      />
-      {label}
-    </span>
   )
 }

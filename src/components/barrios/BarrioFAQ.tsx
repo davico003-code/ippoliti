@@ -8,39 +8,83 @@ interface Props {
   title?: string
 }
 
-export default function BarrioFAQ({ faqs, title = 'Preguntas frecuentes' }: Props) {
+export default function BarrioFAQ({ faqs, title }: Props) {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
     <div>
       {title && (
-        <h3 className="mb-6 font-raleway text-2xl font-semibold text-navy-700 md:text-3xl">
+        <h3
+          style={{
+            fontFamily: 'Raleway, sans-serif',
+            fontWeight: 600,
+            fontSize: 22,
+            color: '#0F0F0F',
+            margin: '0 0 24px',
+          }}
+        >
           {title}
         </h3>
       )}
-      <div className="divide-y divide-stone-200 rounded-xl bg-white ring-1 ring-stone-200">
+      <div>
         {faqs.map((f, i) => {
           const isOpen = open === i
           return (
-            <div key={f.pregunta}>
+            <div
+              key={f.pregunta}
+              style={{ borderBottom: '1px solid rgba(15,15,15,0.1)' }}
+            >
               <button
                 type="button"
                 onClick={() => setOpen(isOpen ? null : i)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-stone-50"
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '18px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 16,
+                  textAlign: 'left',
+                  fontFamily: 'Raleway, sans-serif',
+                  fontWeight: 500,
+                  fontSize: 16,
+                  color: '#0F0F0F',
+                  lineHeight: 1.4,
+                }}
               >
-                <span className="font-raleway text-base font-medium text-navy-700">
-                  {f.pregunta}
-                </span>
+                <span>{f.pregunta}</span>
                 <span
-                  className={`text-xl text-brand-600 transition-transform ${isOpen ? 'rotate-45' : ''}`}
                   aria-hidden
+                  style={{
+                    flexShrink: 0,
+                    fontFamily: 'Raleway, sans-serif',
+                    fontSize: 22,
+                    fontWeight: 300,
+                    color: '#1A5C38',
+                    lineHeight: 1,
+                    width: 20,
+                    textAlign: 'center',
+                  }}
                 >
-                  +
+                  {isOpen ? '−' : '+'}
                 </span>
               </button>
               {isOpen && (
-                <div className="px-5 pb-5 text-sm leading-relaxed text-stone-700">{f.respuesta}</div>
+                <div
+                  style={{
+                    fontFamily: 'Poppins, sans-serif',
+                    fontSize: 14,
+                    color: '#6B7280',
+                    lineHeight: 1.6,
+                    paddingBottom: 18,
+                  }}
+                >
+                  {f.respuesta}
+                </div>
               )}
             </div>
           )
