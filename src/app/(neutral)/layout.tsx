@@ -29,7 +29,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   // Sin openGraph default acá: cada page.tsx define el suyo. Si dejara uno
   // genérico, Next.js lo mergearía con el del page y filtraría datos del shell.
-  // El favicon lo provee app/(neutral)/icon.svg (file-based, detectado por Next).
+  //
+  // FAVICON NEUTRO — verficha.casa NO tiene branding SI ni propio. data:, es
+  // un data URI vacío estándar que evita el fallback automático del browser
+  // a /favicon.ico (que sí es SI Inmobiliaria, servido desde public/ para
+  // el dominio siinmobiliaria.com).
+  icons: {
+    icon: [{ url: 'data:,' }],
+    shortcut: [{ url: 'data:,' }],
+    apple: [{ url: 'data:,' }],
+  },
 }
 
 export default function NeutralRootLayout({ children }: { children: React.ReactNode }) {
