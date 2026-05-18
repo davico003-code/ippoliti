@@ -199,31 +199,29 @@ function createClusterIcon(cluster: L.MarkerCluster) {
   })
 }
 
-// ─── Auto fit bounds to show all properties ──────────────────────────────────
+// ─── Encuadre inicial fijo ───────────────────────────────────────────────────
+//
+// Centroide entre Funes, Roldán y Fisherton para que arranquen los 3 polos
+// del corredor oeste visibles. NO depende de los resultados del listado —
+// la posición es estable a través de recargas y filtros que no aplican zona.
+// Cuando el usuario filtra por Ubicación, ZonaFlyTo lo lleva a la zona;
+// cuando limpia el filtro, este componente no re-dispara (solo corre al montar).
 
-const DEFAULT_CENTER: [number, number] = [-32.95, -60.75]
-const DEFAULT_ZOOM = 11
+const DEFAULT_CENTER: [number, number] = [-32.9145, -60.8200]
+const DEFAULT_ZOOM = 12
 
-function FitBounds({ properties }: { properties: TokkoProperty[] }) {
+function InitialView() {
   const map = useMap()
   useEffect(() => {
-    setTimeout(() => {
+    // setTimeout corto para que MapContainer termine de medirse antes de
+    // invalidateSize (sino el primer render queda con tiles cortadas en flex).
+    const t = setTimeout(() => {
       map.invalidateSize()
-      // Mobile: always use fixed default encuadre
-      if (window.innerWidth < 768) {
-        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
-        return
-      }
-      // Desktop: fit to data
-      if (!properties || properties.length === 0) return
-      const coords = properties
-        .filter(p => p.geo_lat && p.geo_long)
-        .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
-      if (coords.length === 0) return
-      map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 15 })
-      setTimeout(() => { if (map.getZoom() < 11) map.setZoom(11) }, 150)
-    }, 300)
-  }, [properties, map])
+      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+    }, 200)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   return null
 }
 
@@ -300,7 +298,7 @@ function LocateButton({
 
   const handleClick = useCallback(() => {
     if (!navigator.geolocation) {
-      setToast('Tu navegador no admite geolocalización.')
+      setToast('No pudimos obtener tu ubicación.')
       setTimeout(() => setToast(''), 3500)
       return
     }
@@ -308,19 +306,23 @@ function LocateButton({
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords
-        map.flyTo([latitude, longitude], 14, { duration: 1 })
+        // Zoom 14 ≈ 1km de radio visible. flyTo con duración suave.
+        map.flyTo([latitude, longitude], 14, { duration: 1.2 })
         if (marker) marker.remove()
         const m = L.marker([latitude, longitude], { icon: createUserLocationMarker(), zIndexOffset: 2000 }).addTo(map)
         setMarker(m)
         setLoading(false)
         onNearbyOrigin?.(latitude, longitude)
       },
-      () => {
+      (err) => {
         setLoading(false)
-        setToast('No pudimos acceder a tu ubicación. Activá los permisos en tu navegador.')
+        const msg = err.code === err.PERMISSION_DENIED
+          ? 'Necesitamos acceso a tu ubicación para encontrar propiedades cerca tuyo.'
+          : 'No pudimos obtener tu ubicación.'
+        setToast(msg)
         setTimeout(() => setToast(''), 3500)
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     )
   }, [map, marker, onNearbyOrigin])
 
@@ -503,7 +505,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
         maxZoom={20}
       />
       <ZoomControl position="bottomright" />
-      <FitBounds properties={mapped} />
+      <InitialView />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
       <LocateButton onNearbyOrigin={onNearbyOrigin} nearbyActive={nearbyActive} />
