@@ -48,6 +48,13 @@ function firstParagraph(text: string, maxLen = 160): string {
   return (lastSpace > 80 ? cut.slice(0, lastSpace) : cut).trim() + '…'
 }
 
+// Defensa en profundidad: si una descripción de Tokko trajera branding SI,
+// se filtra antes de meterlo en el preview de la ficha neutra.
+const SI_TERMS = /\b(SI INMOBILIARIA|Susana Ippoliti|SusanaIppoliti|siinmobiliaria\.com|@davidflores\.pov|@inmobiliaria\.si)\b/gi
+function stripSI(s: string): string {
+  return s.replace(SI_TERMS, '').replace(/\s+/g, ' ').trim()
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ficha = await getFichaCached(params.slug)
 
@@ -60,29 +67,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const s = ficha.snapshot
-  const titulo =
+  const tituloBase =
     s.precio && s.precio !== 'Consultar'
       ? `${s.tituloGenerico} · ${s.precio}`
       : s.tituloGenerico
-  const desc = firstParagraph(s.descripcion, 160)
+  const titulo = stripSI(tituloBase) || 'Ficha de propiedad'
+  const descRaw = firstParagraph(s.descripcion, 160)
+  const desc = stripSI(descRaw) || stripSI(s.tituloGenerico) || 'Ficha de propiedad'
   const url = `https://${NEUTRAL_DOMAIN}/${params.slug}`
   const img = s.ogImage || s.fotos[0] || null
 
   return {
     title: titulo,
-    description: desc || s.tituloGenerico,
+    description: desc,
     alternates: { canonical: url },
     robots: { index: false, follow: false },
+    // Sin siteName: la ficha es neutra (verficha.casa es solo el dominio,
+    // no se expone como "marca" en og:site_name).
     openGraph: {
       title: titulo,
-      description: desc || s.tituloGenerico,
+      description: desc,
       url,
       type: 'website',
-      siteName: NEUTRAL_DOMAIN,
       ...(img
         ? {
             images: [
-              { url: img, width: 1200, height: 630, alt: s.tituloGenerico },
+              { url: img, width: 1200, height: 630, alt: titulo },
             ],
           }
         : {}),
@@ -90,7 +100,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: titulo,
-      description: desc || s.tituloGenerico,
+      description: desc,
       ...(img ? { images: [img] } : {}),
     },
   }
