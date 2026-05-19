@@ -272,15 +272,50 @@ function MapStyles() {
 // ─── User location button ────────────────────────────────────────────────────
 
 function createUserLocationMarker() {
+  // iconSize amplio para que la animación scale(3.5) no quede recortada por
+  // el contenedor del divIcon de Leaflet.
   return L.divIcon({
     className: '',
-    html: `<div style="position:relative;display:flex;align-items:center;justify-content:center">
-      <div style="position:absolute;width:32px;height:32px;border-radius:50%;background:rgba(59,130,246,0.2);animation:locPulse 2s ease-out infinite"></div>
-      <div style="width:14px;height:14px;border-radius:50%;background:#3B82F6;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);position:relative;z-index:1"></div>
+    html: `<div class="user-location-marker">
+      <div class="user-location-pulse"></div>
+      <div class="user-location-dot"></div>
     </div>
-    <style>@keyframes locPulse{0%{transform:scale(0.8);opacity:1}100%{transform:scale(2.2);opacity:0}}</style>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    <style>
+      .user-location-marker {
+        position: relative;
+        width: 18px;
+        height: 18px;
+      }
+      .user-location-dot {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 14px;
+        height: 14px;
+        background: #1e40af;
+        border: 2px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 6px rgba(0,0,0,0.3);
+        z-index: 2;
+      }
+      .user-location-pulse {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 14px;
+        height: 14px;
+        background: rgba(30, 64, 175, 0.35);
+        border-radius: 50%;
+        animation: userLocationPulse 1.8s ease-out infinite;
+        z-index: 1;
+      }
+      @keyframes userLocationPulse {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+        100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
+      }
+    </style>`,
+    iconSize: [60, 60],
+    iconAnchor: [30, 30],
   })
 }
 
@@ -438,13 +473,36 @@ function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => 
 }
 
 // ─── Zona fly-to ────────────────────────────────────────────────────────────
+//
+// Cuando se aplica un filtro de barrio, el mapa hace flyToBounds usando las
+// coords de las propiedades filtradas (no el centroide hardcoded de la zona)
+// para que el encuadre real refleje dónde están los inmuebles del listado.
+// maxZoom 15 evita acercarse de más cuando hay pocos puntos pegados.
+// Fallback al centroide de la zona si las propiedades no tienen coords.
 
-function ZonaFlyTo({ zona }: { zona: Zona }) {
+function ZonaFlyTo({ zona, properties }: { zona: Zona; properties: TokkoProperty[] }) {
   const map = useMap()
   useEffect(() => {
-    const zoom = zona.tipo === 'barrio_cerrado' ? 16 : zona.tipo === 'barrio' ? 14 : 13
-    map.setView([zona.centro.lat, zona.centro.lng], zoom)
-  }, [map, zona])
+    const coords = properties
+      .filter(p => p.geo_lat && p.geo_long)
+      .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
+      .filter(([lat, lng]) => !Number.isNaN(lat) && !Number.isNaN(lng))
+
+    if (coords.length === 0) {
+      const zoom = zona.tipo === 'barrio_cerrado' ? 16 : zona.tipo === 'barrio' ? 14 : 13
+      map.flyTo([zona.centro.lat, zona.centro.lng], zoom, { duration: 1.2 })
+      return
+    }
+    if (coords.length === 1) {
+      map.flyTo(coords[0]!, 15, { duration: 1.2 })
+      return
+    }
+    map.flyToBounds(L.latLngBounds(coords), {
+      padding: [60, 60],
+      maxZoom: 15,
+      duration: 1.2,
+    })
+  }, [map, zona, properties])
   return null
 }
 
@@ -518,7 +576,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       <MapStyles />
       <LocateButton onNearbyOrigin={onNearbyOrigin} nearbyActive={nearbyActive} />
       {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
-      {activeZona && <ZonaFlyTo zona={activeZona} />}
+      {activeZona && <ZonaFlyTo zona={activeZona} properties={mapped} />}
       {onMapMove && <MapMoveListener onMove={onMapMove} />}
 
       {/* Legend — hidden on mobile */}

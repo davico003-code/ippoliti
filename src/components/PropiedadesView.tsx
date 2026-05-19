@@ -662,8 +662,12 @@ export default function PropiedadesView({
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }, [pathname, router, searchParams])
 
-  // "Mi ubicación actual": obtiene coords + reverse geocoding con Nominatim
-  // y carga el nombre del lugar en el input de búsqueda.
+  // "Mi ubicación actual": activa el modo cercanía (filtro 1 km) y centra el
+  // mapa. NO hace reverse geocoding ni escribe el nombre del barrio en el
+  // input — eso aplicaba un segundo filtro de texto que limitaba la búsqueda
+  // y se mezclaba con el filtro de proximidad. Solo proximidad: 1 km a la
+  // redonda + el resto de los filtros activos del usuario (operación,
+  // tipología, dormitorios, precio) se respetan.
   const useMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationError('Tu navegador no soporta geolocalización')
@@ -672,48 +676,29 @@ export default function PropiedadesView({
     setLocatingUser(true)
     setLocationError(null)
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
         const { latitude, longitude } = pos.coords
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=es&zoom=14`,
-            { headers: { 'Accept': 'application/json' } },
-          )
-          if (!res.ok) throw new Error('Nominatim error')
-          const data = await res.json()
-          const addr = data.address ?? {}
-          // Preferir barrio/suburb → ciudad, con fallback progresivo
-          const nombre =
-            addr.neighbourhood ||
-            addr.suburb ||
-            addr.village ||
-            addr.town ||
-            addr.city ||
-            addr.city_district ||
-            addr.county ||
-            addr.state ||
-            data.display_name?.split(',')[0] ||
-            ''
-          if (!nombre) throw new Error('Sin resultados')
-          set('search', nombre)
-          pushToHistory(nombre)
-          setFlyToCenter([latitude, longitude])
-          setViewManually('map')
-          setSearchSuggestions(false)
-          setSearchDropdownDesktop(false)
-        } catch {
-          setLocationError('No se pudo obtener tu ubicación')
-        } finally {
-          setLocatingUser(false)
-        }
-      },
-      () => {
+        // Limpiar el input de búsqueda y cualquier filtro de zona específica.
+        // El modo cercanía es excluyente con los filtros de texto/zona.
+        setFilters(prev => ({ ...prev, search: '', location: 'todos' }))
+        setNearbyOrigin({ lat: latitude, lng: longitude })
+        setMapBounds(null)
+        setFlyToCenter([latitude, longitude, 14])
+        setViewManually('map')
+        setSearchSuggestions(false)
+        setSearchDropdownDesktop(false)
         setLocatingUser(false)
-        setLocationError('No se pudo obtener tu ubicación')
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      (err) => {
+        setLocatingUser(false)
+        const msg = err.code === err.PERMISSION_DENIED
+          ? 'Necesitamos acceso a tu ubicación para encontrar propiedades cerca tuyo.'
+          : 'No se pudo obtener tu ubicación'
+        setLocationError(msg)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     )
-  }, [set, pushToHistory, setViewManually])
+  }, [setViewManually])
 
   const hasActive = (Object.keys(DEFAULTS) as (keyof Filters)[])
     .some(k => filters[k] !== DEFAULTS[k])
