@@ -5,7 +5,7 @@ tipo: "lectura"
 tiempoMin: 5
 ---
 
-Susana, fundadora de SI, desarrolló durante **40 años de oficio** una metodología para calificar propiedades antes de tomarlas. Se llama **NURC**. Es la herramienta más importante de esta capacidad y la vas a aplicar en cada pretasación que hagas durante toda tu carrera.
+**NURC** es una metodología para calificar propiedades antes de tomarlas. En SI la aplicamos hace años y la consideramos **la herramienta más importante de esta capacidad**. La vas a aplicar en cada pretasación que hagas durante toda tu carrera.
 
 NURC es un acrónimo que evalúa **cuatro variables** del propietario que quiere vender:
 
