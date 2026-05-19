@@ -5,40 +5,39 @@ tipo: "lectura"
 tiempoMin: 5
 ---
 
-La primera reunión con un propietario tiene dos objetivos: aplicar NURC para evaluar la propiedad, y construir suficiente confianza para que el propietario quiera trabajar con vos.
+La primera reunión con un propietario tiene **dos objetivos**: aplicar **NURC** para evaluar la propiedad, y **construir suficiente confianza** para que el propietario quiera trabajar con vos.
 
-Cómo entrás importa. No entrás como vendedor — entrás como profesional que viene a entender una situación y dar criterio. Saludás natural, te tomás 5 minutos de conversación humana antes de empezar a hablar del negocio, mostrás interés genuino por la casa y por la persona.
+Cómo entrás importa. **No entrás como vendedor — entrás como profesional que viene a entender una situación y dar criterio.** Saludás natural, te tomás 5 minutos de conversación humana antes de empezar a hablar del negocio, mostrás interés genuino por la casa y por la persona.
 
 Las preguntas que hacés durante la pretasación son las que te van a dar las respuestas de NURC. Ejemplos concretos:
 
-- "¿Por qué decidieron vender en este momento?" → mide Necesidad
-- "¿Tienen alguna fecha en la cabeza para concretar la venta?" → mide Urgencia
-- "¿Investigaron cómo está el mercado en su zona últimamente? ¿Qué les pareció?" → mide Realismo
-- "¿Tienen pensado qué van a hacer después de la venta?" → mide Capacidad económica y emocional
+- "¿Por qué decidieron vender en este momento?" → mide **Necesidad**
+- "¿Tienen alguna fecha en la cabeza para concretar la venta?" → mide **Urgencia**
+- "¿Investigaron cómo está el mercado en su zona últimamente? ¿Qué les pareció?" → mide **Realismo**
+- "¿Tienen pensado qué van a hacer después de la venta?" → mide **Capacidad** económica y emocional
 
-Estas preguntas no son interrogatorio. Son conversación profesional. Mientras hablás, escuchás con atención y vas armando el cuadro mental.
+Estas preguntas **no son interrogatorio**. Son conversación profesional. Mientras hablás, escuchás con atención y vas armando el cuadro mental.
 
-Al final de la reunión, si todo cuadra y la propiedad es viable, pasás al Acuerdo de Comercialización Digital.
+Al final de la reunión, si todo cuadra y la propiedad es viable, pasás al **Acuerdo de Comercialización Digital**.
 
 **Qué es el Acuerdo de Comercialización Digital:**
 
-Es un formulario digital que el agente arma en menos de un minuto desde su celular o computadora. Le llega al propietario por WhatsApp como un link. El propietario lo abre, completa los datos que falten, y lo firma con el dedo en la pantalla. Queda guardado en el sistema de SI como prueba legal.
+Es un formulario digital que el agente arma en menos de un minuto desde su celular o computadora. Le llega al propietario por WhatsApp como un link. El propietario lo abre, completa los datos que falten, y lo firma con el dedo en la pantalla. **Queda guardado en el sistema de SI como prueba legal.**
 
 Tiene los siguientes campos:
 
-- Tipo de autorización: exclusiva o no exclusiva (la postura SI es siempre exclusiva, salvo casos justificados)
-- Plazo: 60, 90, 120 días u otro. El mínimo aceptable para SI es 90 días. El plazo ideal es 120, que es el que está como default en el sistema. 60 días solo se acepta en casos muy específicos y con muy buena razón
+- Tipo de autorización: exclusiva o no exclusiva (la postura SI es **siempre exclusiva**, salvo casos justificados)
+- Plazo: **60, 90, 120 días** u otro. El mínimo aceptable para SI es **90 días**. El plazo ideal es **120**, que es el que está como default en el sistema. 60 días solo se acepta en casos muy específicos y con muy buena razón
 - Renovación automática: viene activada por default, salvo que el propietario pida desactivarla
 - Dirección, tipo de propiedad, datos del cliente, servicios disponibles
 - Documentación que se va a entregar
 
-**Regla SI sobre el Acuerdo:**
-
-Sin Acuerdo firmado, una propiedad no entra al sistema. No hay excepciones operativas, salvo el caso de desarrolladores grandes donde se trabaja con otros mecanismos contractuales. Y aun en ese caso, se intenta firmar el Acuerdo igual.
+> **REGLA:**
+> Sin Acuerdo firmado, una propiedad no entra al sistema. No hay excepciones operativas, salvo el caso de desarrolladores grandes donde se trabaja con otros mecanismos contractuales. Y aun en ese caso, se intenta firmar el Acuerdo igual.
 
 **Cómo pedir la firma:**
 
-Acá viene la parte que más le cuesta al agente nuevo. Pedir que firmen el Acuerdo en la primera reunión. Suena agresivo, pero no lo es si la reunión fue bien hecha.
+Acá viene la parte que más le cuesta al agente nuevo. **Pedir que firmen el Acuerdo en la primera reunión.** Suena agresivo, pero no lo es si la reunión fue bien hecha.
 
 Tres formas de pedirlo, según el tipo de propietario:
 
@@ -53,12 +52,12 @@ Tres formas de pedirlo, según el tipo de propietario:
 
 **Sobre familiares y conocidos:**
 
-Hay una excepción razonable: con familia directa (padres, hermanos, hijos), la confianza está dada y forzar la firma puede sonar raro. En esos casos, la ficha de la propiedad se carga igual en el sistema con toda la información completa, pero la firma del Acuerdo es opcional.
+Hay una excepción razonable: con **familia directa** (padres, hermanos, hijos), la confianza está dada y forzar la firma puede sonar raro. En esos casos, la ficha de la propiedad se carga igual en el sistema con toda la información completa, pero la firma del Acuerdo es opcional.
 
-Con conocidos cercanos, amigos o familia más lejana, sí se pide el Acuerdo. La confianza no exime del proceso profesional — al revés: con conocidos hay que ser más profesional, no menos, porque ahí se juega tu reputación con todo tu entorno.
+Con conocidos cercanos, amigos o familia más lejana, sí se pide el Acuerdo. **La confianza no exime del proceso profesional — al revés: con conocidos hay que ser más profesional, no menos, porque ahí se juega tu reputación con todo tu entorno.**
 
 **Insistir con los papeles:**
 
 El propietario tiende a dilatar la entrega de documentación. "Después te paso el plano", "El título lo tiene mi escribano", "Los servicios al día los tengo en otro lado". El agente nuevo se acomoda a esa demora porque no quiere "molestar".
 
-Esto es un error. La regla SI es clara: una propiedad no se publica con documentación incompleta. La insistencia con los papeles no es molestar — es profesionalismo. Un propietario que se ofende porque le pedís documentación, no es propietario para SI. Y un propietario que entrega los papeles a tiempo está demostrando que es serio y que la operación va a llegar a cierre.
+Esto es un error. **La regla SI es clara: una propiedad no se publica con documentación incompleta.** La insistencia con los papeles no es molestar — es profesionalismo. *Un propietario que se ofende porque le pedís documentación, no es propietario para SI.* Y un propietario que entrega los papeles a tiempo está demostrando que es serio y que la operación va a llegar a cierre.

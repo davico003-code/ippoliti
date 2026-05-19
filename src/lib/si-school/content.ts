@@ -22,9 +22,103 @@ import type {
 
 const CONTENT_ROOT = path.join(process.cwd(), 'src', 'content', 'si-school')
 
+// Plugin de remark que detecta blockquotes especiales y los transforma en
+// callouts (aside) con label + ícono. Sintaxis:
+//   > **OBJETIVO:** texto…       → callout principal verde
+//   > **REGLA:** texto…          → callout principal verde
+//   > **REGLA DE ORO:** texto…   → callout principal verde
+//   > **NOTA:** texto…           → callout de advertencia gold
+//   > **ATENCIÓN:** texto…       → callout de advertencia gold
+// El label arriba refleja literalmente lo que escribiste entre los asteriscos
+// (sin los dos puntos), así "OBJETIVO DEL CUATRIMESTRE:" también funciona.
+function remarkCallouts() {
+  return (tree: unknown) => {
+    const root = tree as { children?: MdNode[] }
+    if (!Array.isArray(root.children)) return
+    for (const node of root.children) {
+      transformBlockquote(node)
+    }
+  }
+}
+
+type MdNode = {
+  type: string
+  value?: string
+  children?: MdNode[]
+  data?: { hName?: string; hProperties?: Record<string, unknown> }
+}
+
+function transformBlockquote(node: MdNode): void {
+  if (!node || node.type !== 'blockquote') return
+  const firstPara = node.children?.[0]
+  if (!firstPara || firstPara.type !== 'paragraph') return
+  const firstStrong = firstPara.children?.[0]
+  if (!firstStrong || firstStrong.type !== 'strong') return
+
+  let strongTxt = ''
+  for (const c of firstStrong.children ?? []) {
+    if (c.type === 'text' && typeof c.value === 'string') strongTxt += c.value
+  }
+  const m = strongTxt.match(/^\s*([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]*?)\s*:\s*$/)
+  if (!m) return
+  const labelRaw = m[1].trim()
+  const firstWord = labelRaw.split(/\s+/)[0].toUpperCase()
+
+  let variant: 'principal' | 'nota'
+  let icon: string
+  if (firstWord === 'OBJETIVO' || firstWord === 'REGLA') {
+    variant = 'principal'
+    icon = '✓'
+  } else if (firstWord === 'NOTA' || firstWord === 'ATENCIÓN' || firstWord === 'ATENCION') {
+    variant = 'nota'
+    icon = '!'
+  } else {
+    return
+  }
+
+  // Sacar el strong inicial del párrafo.
+  firstPara.children = (firstPara.children ?? []).slice(1)
+  // Trim leading whitespace de los nodos de texto que quedaron primero.
+  const head = firstPara.children[0]
+  if (head?.type === 'text' && typeof head.value === 'string') {
+    head.value = head.value.replace(/^[\s \n]+/, '')
+    if (head.value === '') firstPara.children.shift()
+  }
+  // Si el párrafo quedó vacío, lo dropeo.
+  if (firstPara.children.length === 0) {
+    node.children = (node.children ?? []).slice(1)
+  }
+
+  // Header HTML (label + ícono) al inicio.
+  const header: MdNode = {
+    type: 'html',
+    value:
+      `<div class="calloutHeader">` +
+      `<span class="calloutIcon" aria-hidden="true">${icon}</span>` +
+      `<span class="calloutLabel">${escapeHtml(labelRaw.toUpperCase())}</span>` +
+      `</div>`,
+  }
+  node.children = [header, ...(node.children ?? [])]
+
+  // Renderizar como <aside class="callout…">.
+  const className = variant === 'principal' ? 'calloutPrincipal' : 'calloutNota'
+  node.data = {
+    hName: 'aside',
+    hProperties: { className: [className], dataCallout: variant },
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) =>
+    c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : '&#39;',
+  )
+}
+
 function mdToHtmlSync(md: string): string {
-  // remark().processSync devuelve VFile con .toString() = HTML
-  const file = remark().use(remarkHtml).processSync(md)
+  const file = remark()
+    .use(remarkCallouts)
+    .use(remarkHtml, { sanitize: false })
+    .processSync(md)
   return String(file)
 }
 
