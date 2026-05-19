@@ -219,15 +219,18 @@ function PriceFilterDropdown({
     setLocalMax(preset.max)
   }
 
-  // Posicionamiento del panel: ancla al botón, se ajusta si queda fuera del viewport.
+  // Posicionamiento del panel: por defecto alineado al borde izquierdo del botón.
+  // Si invadiría visualmente el mapa (columna derecha del listado, desde el 48% del
+  // viewport en desktop), se "flipea" para alinearse al borde derecho del botón.
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return
     const rect = buttonRef.current.getBoundingClientRect()
     const dropdownWidth = 320
-    const viewportWidth = window.innerWidth
+    const vw = window.innerWidth
+    const availableRight = vw >= 768 ? vw * 0.48 - 8 : vw - 16
     let left = rect.left
-    if (left + dropdownWidth > viewportWidth - 16) {
-      left = Math.max(16, viewportWidth - dropdownWidth - 16)
+    if (left + dropdownWidth > availableRight) {
+      left = Math.max(16, rect.right - dropdownWidth)
     }
     setPos({ top: rect.bottom + 4, left })
   }, [])
