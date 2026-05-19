@@ -86,14 +86,16 @@ function Label({ children, htmlFor }: { children: React.ReactNode; htmlFor?: str
   )
 }
 
+// Formateador único reutilizado. Sin decimales — esta calculadora trabaja con
+// enteros (pesos redondos / dólares sin centavos para el alquiler).
+const fmtMiles = new Intl.NumberFormat('es-AR')
+
 function NumInput({
   id,
   value,
   onChange,
   prefix,
   suffix,
-  min,
-  step = 1,
   placeholder,
 }: {
   id: string
@@ -101,14 +103,49 @@ function NumInput({
   onChange: (n: number) => void
   prefix?: string
   suffix?: string
-  min?: number
-  step?: number
   /** Si se pasa, cuando value=0 el input se muestra vacío (no "0") y aparece el placeholder en gris claro. */
   placeholder?: string
 }) {
   // Si hay placeholder y el value es 0, dejamos el input vacío visualmente
   // para que el usuario vea la sugerencia ("Ej: 500.000") en lugar de un cero literal.
   const showEmpty = placeholder != null && (!Number.isFinite(value) || value === 0)
+
+  // Estado interno: string formateado para presentación. El estado del padre
+  // sigue siendo Number puro — el formateo es solo en el render del input.
+  const [displayValue, setDisplayValue] = useState<string>(() =>
+    showEmpty ? '' : fmtMiles.format(Number.isFinite(value) ? Math.round(value) : 0),
+  )
+
+  // Sincroniza el display con cambios externos al input (query params al
+  // mount, reset, cambio de moneda, etc). No reformatea si el valor numérico
+  // ya coincide con lo que está escrito — evita que el cursor del usuario
+  // salte mientras tipea.
+  useEffect(() => {
+    const numeric = Number.isFinite(value) ? Math.round(value) : 0
+    const currentParsed = parseInt(displayValue.replace(/\D/g, ''), 10)
+    const currentNumeric = Number.isFinite(currentParsed) ? currentParsed : 0
+    if (currentNumeric === numeric) return
+    if (placeholder != null && numeric === 0) setDisplayValue('')
+    else setDisplayValue(fmtMiles.format(numeric))
+    // displayValue intencionalmente excluido — sincronizamos cuando el valor
+    // externo cambia, no cuando el usuario tipea.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, placeholder])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Acepta dígitos solamente — esto absorbe naturalmente "1.500.000",
+    // "1,500,000" o "$1.500.000" pegados del clipboard.
+    const cleaned = e.target.value.replace(/\D/g, '')
+    if (cleaned === '') {
+      setDisplayValue('')
+      onChange(0)
+      return
+    }
+    const n = parseInt(cleaned, 10)
+    setDisplayValue(fmtMiles.format(n))
+    onChange(n)
+  }
+
   return (
     <div
       className="flex items-center rounded-lg transition-all focus-within:bg-white"
@@ -127,18 +164,12 @@ function NumInput({
       )}
       <input
         id={id}
-        type="number"
-        inputMode="decimal"
-        value={showEmpty ? '' : (Number.isFinite(value) ? value : 0)}
-        min={min}
-        step={step}
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        value={displayValue}
         placeholder={placeholder}
-        onChange={e => {
-          const raw = e.target.value
-          if (raw === '') { onChange(0); return }
-          const v = parseFloat(raw)
-          onChange(Number.isNaN(v) ? 0 : v)
-        }}
+        onChange={handleChange}
         className="flex-1 bg-transparent border-0 outline-none w-full px-2 py-3 font-poppins font-semibold text-[17px] tabular-nums placeholder:text-gray-300 placeholder:font-medium"
         style={{ color: 'var(--tinta)' }}
       />
@@ -557,8 +588,6 @@ export default function CalculadoraCostos() {
                 value={alquiler}
                 onChange={setAlquiler}
                 prefix={moneda === 'USD' ? 'US$' : '$'}
-                min={0}
-                step={moneda === 'USD' ? 50 : 1000}
                 placeholder={moneda === 'USD' ? 'Ej: 500' : 'Ej: 500.000'}
               />
             </div>
@@ -569,8 +598,6 @@ export default function CalculadoraCostos() {
                 value={expensas}
                 onChange={setExpensas}
                 prefix={moneda === 'USD' ? 'US$' : '$'}
-                min={0}
-                step={moneda === 'USD' ? 10 : 1000}
                 placeholder={moneda === 'USD' ? 'Ej: 30 (opcional)' : 'Ej: 30.000 (opcional)'}
               />
             </div>
@@ -618,8 +645,6 @@ export default function CalculadoraCostos() {
                   value={mesesCustom}
                   onChange={n => setMesesCustom(n > 0 ? Math.round(n) : 0)}
                   suffix="meses"
-                  min={1}
-                  step={1}
                   placeholder="Ej: 18"
                 />
               </div>
@@ -650,8 +675,6 @@ export default function CalculadoraCostos() {
                   value={cotizacion}
                   onChange={n => setCotizacion(n > 0 ? n : 1)}
                   prefix="$"
-                  min={1}
-                  step={10}
                 />
                 <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
                   Se usa para el depósito y para convertir el sellado cuando el alquiler está en USD.
