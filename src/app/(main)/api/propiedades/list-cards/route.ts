@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getProperties, sanitizeProperty } from '@/lib/tokko'
-import { projectToCard } from '@/lib/projections'
+import { enrichCardsWithAudio, projectToCard } from '@/lib/projections'
 
 // Devuelve TODAS las propiedades disponibles proyectadas a card-shape
 // (sin description, photos array, tags, videos, etc.). Lo consumen los
@@ -16,6 +16,7 @@ export async function GET() {
     const data = await getProperties()
     const sanitized = (data.objects ?? []).map(sanitizeProperty)
     const objects = sanitized.map(projectToCard)
+    await enrichCardsWithAudio(objects)
     return NextResponse.json(
       { objects, meta: { total_count: objects.length } },
       {

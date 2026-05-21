@@ -327,6 +327,45 @@ export async function getCachedAudioText(propertyId: number): Promise<string | n
 }
 
 /**
+ * Bulk lookup de URLs cacheadas para enriquecer listados de propiedades en
+ * un solo round-trip a Redis (MGET). Devuelve un Record { id → url|null };
+ * los IDs sin audio quedan en null para que el caller no tenga que adivinar.
+ *
+ * Reusa las keys del pipeline existente (audio:resumen:v3:{id}:url) — no
+ * duplicamos data en otra namespace.
+ */
+export async function getAudioUrlsBulk(
+  propertyIds: number[],
+): Promise<Record<number, string | null>> {
+  const out: Record<number, string | null> = {}
+  if (propertyIds.length === 0) return out
+
+  // Dedup defensivo — si el listado trae IDs repetidos, evita keys duplicadas.
+  const uniqueIds = Array.from(new Set(propertyIds.filter(id => Number.isFinite(id))))
+  if (uniqueIds.length === 0) return out
+
+  const keys = uniqueIds.map(id => URL_KEY(id))
+  try {
+    const values = (await redis.mget(...keys)) as Array<string | null>
+    uniqueIds.forEach((id, i) => {
+      const v = values[i]
+      out[id] = typeof v === 'string' && v.length > 0 ? v : null
+    })
+  } catch (e) {
+    console.error('[audio] getAudioUrlsBulk failed:', e)
+    // Soft-fail: si Redis cae, devolvemos todas las propiedades como sin audio
+    // antes que romper el listado. El UI simplemente no muestra el play button.
+    for (const id of uniqueIds) out[id] = null
+  }
+
+  // Aseguramos que los IDs originales (incluso duplicados) tengan entrada.
+  for (const id of propertyIds) {
+    if (Number.isFinite(id) && !(id in out)) out[id] = null
+  }
+  return out
+}
+
+/**
  * Lista los property IDs que tienen audio cacheado en la pipeline actual.
  * Usa SCAN (no KEYS) para no bloquear Redis con datasets grandes.
  */

@@ -25,6 +25,7 @@ import TawkTo from "@/components/TawkTo";
 import PopupManager from "@/components/PopupManager";
 import Clarity from "@/components/Clarity";
 import ScrollToTop from "@/components/ScrollToTop";
+import { AudioPlayerProvider } from "@/components/audio/AudioPlayerProvider";
 
 export const metadata: Metadata = {
   title: "SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario",
@@ -199,16 +200,18 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Navbar />
-        <main className="md:pt-[73px]">{children}</main>
-        <FooterWrapper />
-        <FloatingWhatsApp />
-        <ScrollToTop />
-        <PopupManager />
-        <MetaPixel />
-        <GoogleAnalytics />
-        <Clarity />
-        <TawkTo />
+        <AudioPlayerProvider>
+          <Navbar />
+          <main className="md:pt-[73px]">{children}</main>
+          <FooterWrapper />
+          <FloatingWhatsApp />
+          <ScrollToTop />
+          <PopupManager />
+          <MetaPixel />
+          <GoogleAnalytics />
+          <Clarity />
+          <TawkTo />
+        </AudioPlayerProvider>
       </body>
     </html>
   );
