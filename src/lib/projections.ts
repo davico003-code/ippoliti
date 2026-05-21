@@ -9,6 +9,7 @@
 // NearbyProperty: ultra-light, solo lo que el popup del marker en
 // NearbyPropertiesMap muestra (price + title + link al slug).
 
+import { getAudioUrlsBulk } from './audio'
 import type { TokkoProperty } from './tokko'
 
 export interface PropertyCardProjection {
@@ -54,6 +55,11 @@ export interface PropertyCardProjection {
   // Para search por nombre de emprendimiento (PropiedadesView.tsx:611)
   // y clustering de markers en el mapa (PropiedadesMap.tsx:36-39, 68-70).
   development: { id: number; name: string } | null
+
+  // URL pública del audio narrado (Vercel Blob). Si la propiedad no tiene
+  // audio generado, queda null y el card no renderiza el botón de play.
+  // Se popula vía enrichCardsWithAudio() después de projectToCard().
+  audioUrl: string | null
 }
 
 export interface NearbyProperty {
@@ -114,5 +120,24 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
     development: p.development
       ? { id: p.development.id, name: p.development.name }
       : null,
+    audioUrl: null,
   }
+}
+
+/**
+ * Enriquece un set de cards con la URL del audio narrado vía un único MGET
+ * a Redis. Si una propiedad no tiene audio, queda con audioUrl=null.
+ * Soft-fail: si Redis falla, todas las cards quedan en null (no rompe el
+ * listado).
+ */
+export async function enrichCardsWithAudio<T extends { id: number; audioUrl: string | null }>(
+  cards: T[],
+): Promise<T[]> {
+  if (cards.length === 0) return cards
+  const ids = cards.map(c => c.id)
+  const urls = await getAudioUrlsBulk(ids)
+  for (const card of cards) {
+    card.audioUrl = urls[card.id] ?? null
+  }
+  return cards
 }

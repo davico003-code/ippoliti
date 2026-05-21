@@ -120,6 +120,10 @@ export interface TokkoProperty {
     email: string | null;
     picture: string | null;
   } | null;
+  // Enriquecimiento opcional server-side: URL del audio narrado de la
+  // propiedad (Vercel Blob) si fue generado en /admin/audio. Populado por
+  // enrichCardsWithAudio() en los endpoints que sirven listados al cliente.
+  audioUrl?: string | null;
 }
 
 export interface TokkoMeta {

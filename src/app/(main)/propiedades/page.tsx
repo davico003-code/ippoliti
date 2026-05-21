@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
-import { projectToCard, type PropertyCardProjection } from '@/lib/projections'
+import { enrichCardsWithAudio, projectToCard, type PropertyCardProjection } from '@/lib/projections'
 import PropiedadesView from '@/components/PropiedadesView'
 
 // Force dynamic render to avoid build-time Tokko rate-limit (403) that empties the HTML.
@@ -31,6 +31,9 @@ export default async function PropiedadesPage() {
   try {
     const data = await getProperties()
     projected = (data.objects ?? []).map(sanitizeProperty).map(projectToCard)
+    // Enriquecimiento bulk de audioUrl (un solo MGET a Redis). Soft-fail si
+    // Redis cae: las cards quedan con audioUrl=null y no se muestra el play.
+    await enrichCardsWithAudio(projected)
   } catch (err) {
     console.error('[propiedades] Error fetching properties:', err instanceof Error ? err.message : err)
   }

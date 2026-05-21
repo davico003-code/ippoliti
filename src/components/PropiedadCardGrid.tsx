@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'
+import { PlayAudioButton } from '@/components/audio/AudioPlayerProvider'
 import {
   type TokkoProperty,
   getAllPhotos,
@@ -164,13 +165,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           )}
         </div>
 
-        {/* Heart top-right */}
-        <button
-          onClick={e => { e.preventDefault(); e.stopPropagation() }}
-          className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/95 backdrop-blur flex items-center justify-center hover:scale-105 transition-transform"
-        >
-          <Heart className="w-[18px] h-[18px] text-gray-500" />
-        </button>
+        {/* Audio narrado top-right (solo si la propiedad tiene audio generado) */}
+        {property.audioUrl && (
+          <PlayAudioButton propertyId={property.id} audioUrl={property.audioUrl} />
+        )}
       </div>
 
       {/* Body */}
