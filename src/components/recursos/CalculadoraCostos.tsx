@@ -237,16 +237,11 @@ export default function CalculadoraCostos() {
     if (qMoneda === 'ARS' || qMoneda === 'USD') setMoneda(qMoneda)
     if (qTipo === 'vivienda' || qTipo === 'comercio') {
       setTipo(qTipo)
-      // Refleja la lógica de handleTipo: frecuencia + índice automáticos por
-      // tipo. Si el query trae frecuencia/indice explícitos, los aplicamos
-      // después y ganan sobre el default por tipo.
-      if (qTipo === 'vivienda') {
-        setFrecuencia('cuatrimestral')
-        setIndice('ICL')
-      } else {
-        setFrecuencia('trimestral')
-        setIndice('IPC')
-      }
+      // Refleja la lógica de handleTipo: ambos tipos arrancan con
+      // cuatrimestral + ICL. Si el query trae frecuencia/indice explícitos,
+      // se aplican después y ganan sobre el default.
+      setFrecuencia('cuatrimestral')
+      setIndice('ICL')
     }
     const a = qAlquiler ? parseFloat(qAlquiler) : NaN
     if (Number.isFinite(a) && a > 0) setAlquiler(a)
@@ -285,16 +280,12 @@ export default function CalculadoraCostos() {
       .catch(() => {})
   }, [])
 
-  // Auto-select frecuencia + índice al cambiar tipo
+  // Auto-select frecuencia + índice al cambiar tipo — ambos arrancan en
+  // cuatrimestral + ICL. El usuario puede cambiarlo manualmente.
   const handleTipo = (t: Tipo) => {
     setTipo(t)
-    if (t === 'vivienda') {
-      setFrecuencia('cuatrimestral')
-      setIndice('ICL')
-    } else {
-      setFrecuencia('trimestral')
-      setIndice('IPC')
-    }
+    setFrecuencia('cuatrimestral')
+    setIndice('ICL')
   }
 
   // Cambiar moneda no toca el monto que cargó el usuario (UI arranca vacía,
