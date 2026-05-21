@@ -63,6 +63,24 @@ export function getMesesDefault(tipoFiscal: TipoFiscal): 24 | 36 {
   return tipoFiscal === 'comercio' ? 36 : 24
 }
 
+// Redondeo del depósito en garantía. Regla "umbral 15": cualquier exceso de
+// USD 15 o más sobre el múltiplo de 50 redondea hacia arriba; menos, queda
+// abajo. Piso mínimo USD 50. Aplicada en calculadora completa, ficha de
+// propiedad (CostosIngresoMini) y planilla descargable.
+export function redondearDeposito(montoUSD: number): number {
+  if (!Number.isFinite(montoUSD) || montoUSD <= 50) return 50
+  const piso = Math.floor(montoUSD / 50) * 50
+  const exceso = montoUSD - piso
+  return exceso >= 15 ? piso + 50 : piso
+}
+
+// Alternativa "más cercano" (Math.round) — descartada el 21-may-2026 a favor
+// de la regla "umbral 15" que coincide con los ejemplos pactados con David.
+// export function redondearDepositoMasCercano(montoUSD: number): number {
+//   if (!Number.isFinite(montoUSD) || montoUSD <= 50) return 50
+//   return Math.round(montoUSD / 50) * 50
+// }
+
 export interface CalcularInput {
   alquiler: number
   meses: number
@@ -80,7 +98,7 @@ export interface CalcularOutput {
   admin: number            // misma moneda del contrato
   totalSubMonedaContrato: number  // monto en la moneda del contrato (USD si USD, ARS si ARS)
   totalSubARS: number      // monto adicional en pesos (sellado + verificación cuando contrato USD; 0 cuando contrato ARS)
-  depositoUSD: number      // siempre USD, redondeado a múltiplo de 50 cuando contrato ARS
+  depositoUSD: number      // siempre USD, redondeado vía redondearDeposito() (umbral 15, piso 50)
   depositoEquivARS: number // depositoUSD × cotizacion (para mostrar referencia)
 }
 
@@ -111,9 +129,10 @@ export function calcularCostosIngreso({
       : alquiler + honoCuota + sellado + verificacion + admin
   const totalSubARS = moneda === 'USD' ? sellado + verificacion : 0
 
-  // Depósito en USD: redondeo silencioso a múltiplo de 50 cuando contrato ARS
-  const depositoUSD =
-    moneda === 'USD' ? alquiler : Math.round(alquiler / cotizacion / 50) * 50
+  // Depósito en USD: regla umbral 15 con piso 50. Se aplica tanto a
+  // contratos ARS (convertidos por cotización) como USD (alquiler directo).
+  const depositoCrudoUSD = moneda === 'USD' ? alquiler : alquiler / cotizacion
+  const depositoUSD = redondearDeposito(depositoCrudoUSD)
   const depositoEquivARS = depositoUSD * cotizacion
 
   return {

@@ -731,9 +731,15 @@ export default function PlanillaPrintable() {
         <div className="disclaimer">
           <div className="disclaimer-title">Aclaración importante</div>
           <div className="disclaimer-text">
-            Los valores son estimativos, no contractuales y pueden cambiar sin
-            previo aviso. Cálculo automático e informativo. Ante dudas,
-            consultanos.
+            <p>
+              Estos valores son estimaciones basadas en usos y costumbres de
+              ajuste en locaciones. El ajuste pactado con el propietario puede
+              ser distinto.
+            </p>
+            <p style={{ marginTop: 6 }}>
+              Te recomendamos consultarnos siempre antes de firmar el contrato.
+              Por esta misma razón, este cálculo no tiene carácter contractual.
+            </p>
           </div>
         </div>
 
