@@ -164,22 +164,12 @@ export default function EmprendimientosHome() {
           .emp-card:hover .emp-card-overlay { background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 50%, transparent 100%) !important; }
         }
 
-        /* Pulse opacity-only del CTA (no scale, no chillón). Pasa de
-           opacidad 0.85 → 1.0 → 0.85 en 3s, indefinido. Al hover del
-           card se queda opaco 1.0 sin pulsar. */
-        @keyframes emp-cta-pulse {
-          0%, 100% { opacity: 0.85; }
-          50%      { opacity: 1; }
-        }
-        .emp-card-cta { animation: emp-cta-pulse 3s ease-in-out infinite; }
-        .emp-card:hover .emp-card-cta { animation: none; opacity: 1; }
-
-        /* Accesibilidad: deshabilitar zoom y pulse cuando el usuario
-           pide menos movimiento. El play en hover sigue funcionando. */
+        /* Accesibilidad: deshabilitar zoom cuando el usuario pide menos
+           movimiento. El play en hover sigue funcionando (no es animación,
+           es comportamiento). */
         @media (prefers-reduced-motion: reduce) {
           .emp-card-img { transition: none; }
           .emp-card:hover .emp-card-img { transform: none; }
-          .emp-card-cta { animation: none; }
         }
       `}</style>
     </section>
