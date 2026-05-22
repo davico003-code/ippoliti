@@ -61,6 +61,10 @@ export default function ExitPopup() {
           operation: form.operacion,
           propertyType: form.tipo,
           budget: form.operacion === 'Venta' ? form.presupuesto : undefined,
+          // Etiqueta para separar suscriptores del newsletter del resto de
+          // leads "web". Consumido por la placa "Suscriptores Newsletter"
+          // del panel /agentes (rol admin) vía lib/leads.ts.
+          origen: 'newsletter',
         }),
       })
       if (res.ok) {
