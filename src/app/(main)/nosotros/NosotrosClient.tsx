@@ -4,6 +4,20 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { Target, Eye, Gem, Navigation, Phone, MessageCircle, Clock } from 'lucide-react'
 import HeroVideoNosotros from '@/components/nosotros/HeroVideoNosotros'
+import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
+
+// Liderazgo (Susana, David, Laura) ya aparece en la sección "Nuestra
+// dirección"; los excluimos del grid de agentes para no duplicar.
+const EXCLUIDOS_DEL_GRID = ['David Flores', 'Laura Flores']
+
+// Altas recientes que aún no figuran en Tokko. Se hardcodean para que ya
+// aparezcan en el grid; cuando entren al CRM se pueden remover de acá.
+// id negativo para no chocar con IDs reales de Tokko (todos positivos).
+const AGENTES_EXTRA = [
+  { id: -1, name: 'Marisa Benitez', email: '', phone: '', cellphone: '', picture: null, position: '' },
+  { id: -2, name: 'Sabrina Riters', email: '', phone: '', cellphone: '', picture: null, position: '' },
+  { id: -3, name: 'Eliana Rojas',   email: '', phone: '', cellphone: '', picture: null, position: '' },
+]
 
 /* ─────────────────────────────────────────────
    DATA
@@ -671,7 +685,10 @@ export default function NosotrosClient() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 mb-14">
-            {(agents ?? []).map((a) => (
+            {agents !== null && [
+              ...agents.filter((a) => !EXCLUIDOS_DEL_GRID.includes(a.name)),
+              ...AGENTES_EXTRA,
+            ].map((a) => (
               <TeamCard key={a.id} agent={a} />
             ))}
             {agents === null &&
@@ -818,11 +835,30 @@ export default function NosotrosClient() {
           <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Conocé nuestra oficina</h2>
           <div className="w-12 h-px bg-black mx-auto mb-5" />
           <p className="text-sm text-neutral-500 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Visitanos en Funes o Roldán — te esperamos</p>
-          <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg">
-            <iframe src="https://www.youtube.com/embed/l7woKym9w50" title="SI Inmobiliaria — Video institucional"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
-              className="absolute inset-0 w-full h-full" />
-          </div>
+        </div>
+        <div className="max-w-[1100px] mx-auto px-6">
+          <YoutubeEmbed
+            videoId="4zu7ACCErzk"
+            title="SI Inmobiliaria — Video institucional"
+            className="w-full aspect-video rounded-2xl overflow-hidden shadow-lg"
+          />
+        </div>
+      </section>
+
+      {/* CHARLAS QUE SÍ — entrevista a Susana */}
+      <section className="pb-20 md:pb-28 bg-white">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>Charlas Que Sí</p>
+          <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>La historia de SI, contada por Susana</h2>
+          <div className="w-12 h-px bg-black mx-auto mb-5" />
+          <p className="text-sm text-neutral-500 mb-10" style={{ fontFamily: 'Raleway, sans-serif' }}>David entrevista a la fundadora sobre los 40+ años de la inmobiliaria.</p>
+        </div>
+        <div className="max-w-[1100px] mx-auto px-6">
+          <YoutubeEmbed
+            videoId="hx7wlATWXT0"
+            title="Charlas Que Sí — La historia de SI Inmobiliaria"
+            className="w-full aspect-video rounded-2xl overflow-hidden shadow-lg"
+          />
         </div>
       </section>
 
