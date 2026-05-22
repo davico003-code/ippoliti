@@ -1,12 +1,24 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import ProjectMediaCard from '@/components/home/ProjectMediaCard'
 
 const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const P = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
 
-const ITEMS = [
+interface Item {
+  id: string
+  badge: string
+  title: string
+  location: string
+  price: string
+  href: string
+  image: string
+  /** URL sin extensión; el componente arma `${videoUrl}.webm` y `.mp4`. */
+  videoUrl?: string
+}
+
+const ITEMS: Item[] = [
   {
     id: 'hausing',
     badge: 'Casas Premium',
@@ -15,6 +27,7 @@ const ITEMS = [
     price: 'Desde USD 380K · Financiación en dólares',
     href: '/hausing',
     image: '/hausing-portada.jpg',
+    videoUrl: '/videos/proyectos/hausing',
   },
   {
     id: 'dockgarden',
@@ -24,6 +37,7 @@ const ITEMS = [
     price: 'Entrega 20% + 36 cuotas fijas en USD',
     href: '/emprendimientos/67173-dockgarden-aldea-fisherton',
     image: 'https://static.tokkobroker.com/dev_pictures/67173_93775060846060385394324593876733363454956168345677306486130087037249128718036.jpg',
+    videoUrl: '/videos/proyectos/dockgarden',
   },
   {
     id: 'distrito-roldan',
@@ -33,6 +47,7 @@ const ITEMS = [
     price: 'Entrega 40% + 18 cuotas fijas en USD',
     href: '/emprendimientos/67178-distrito-roldan',
     image: 'https://static.tokkobroker.com/dev_pictures/67178_41755302210101797952152961824111367170079757743169980171710493926367681957871.jpg',
+    videoUrl: '/videos/proyectos/distrito-roldan',
   },
   {
     id: 'aurea',
@@ -42,6 +57,7 @@ const ITEMS = [
     price: 'Lotes desde 500m² · Financiación disponible',
     href: '/propiedades/7296792-lotes-en-venta-desde-500m2-barrio-privado-aurea-en-roldan',
     image: '/aurea-portada.jpg',
+    videoUrl: '/videos/proyectos/aurea',
   },
 ]
 
@@ -75,11 +91,10 @@ export default function EmprendimientosHome() {
                   transition: 'box-shadow 200ms',
                 }}
               >
-                <Image
-                  src={item.image}
+                <ProjectMediaCard
+                  imageUrl={item.image}
+                  videoUrl={item.videoUrl}
                   alt={item.title}
-                  fill
-                  className="object-cover emp-card-img"
                   sizes="320px"
                 />
                 <div className="absolute inset-0 emp-card-overlay" style={{
