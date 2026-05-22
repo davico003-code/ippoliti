@@ -14,9 +14,10 @@ const EXCLUIDOS_DEL_GRID = ['David Flores', 'Laura Flores']
 // aparezcan en el grid; cuando entren al CRM se pueden remover de acá.
 // id negativo para no chocar con IDs reales de Tokko (todos positivos).
 const AGENTES_EXTRA = [
-  { id: -1, name: 'Marisa Benitez', email: '', phone: '', cellphone: '', picture: null, position: '' },
-  { id: -2, name: 'Sabrina Riters', email: '', phone: '', cellphone: '', picture: null, position: '' },
-  { id: -3, name: 'Eliana Rojas',   email: '', phone: '', cellphone: '', picture: null, position: '' },
+  { id: -1, name: 'Marisa Benitez',     email: '', phone: '', cellphone: '', picture: null, position: '' },
+  { id: -2, name: 'Sabrina Riters',     email: '', phone: '', cellphone: '', picture: null, position: '' },
+  { id: -3, name: 'Eliana Rojas',       email: '', phone: '', cellphone: '', picture: null, position: '' },
+  { id: -4, name: 'Julian Ruschneider', email: '', phone: '', cellphone: '', picture: null, position: '' },
 ]
 
 /* ─────────────────────────────────────────────
@@ -382,7 +383,10 @@ function TeamCard({ agent }: { agent: TokkoAgent }) {
   const hasPhoto = agent.picture && !imgError
   return (
     <div className="group flex flex-col items-center text-center">
-      <div className="relative w-32 h-32 sm:w-36 sm:h-36 mb-4 rounded-full overflow-hidden bg-black ring-1 ring-black/10 transition-transform duration-300 group-hover:scale-105">
+      <div
+        className="relative w-32 h-32 sm:w-36 sm:h-36 mb-4 rounded-full overflow-hidden ring-1 ring-black/10 transition-transform duration-300 group-hover:scale-105"
+        style={{ background: hasPhoto ? '#000' : '#1A5C38' }}
+      >
         {hasPhoto ? (
           <Image
             src={agent.picture!}
@@ -393,7 +397,10 @@ function TeamCard({ agent }: { agent: TokkoAgent }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-white text-xl tracking-wide" style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 600 }}>
+          <div
+            className="absolute inset-0 flex items-center justify-center text-white text-3xl"
+            style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 600 }}
+          >
             {iniciales(agent.name)}
           </div>
         )}
@@ -593,37 +600,50 @@ export default function NosotrosClient() {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-20 md:h-28 bg-gradient-to-t from-white via-white/50 to-transparent" />
       </section>
 
-      {/* HEADLINE — bajo el hero */}
-      <section className="bg-white pt-12 pb-16 md:pt-16 md:pb-24">
+      {/* QUIÉNES SOMOS + PRINCIPIOS — unificadas bajo un fondo crema */}
+      <section className="pt-12 pb-20 md:pt-16 md:pb-24" style={{ backgroundColor: '#FAFAF7' }}>
         <div className="max-w-4xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-3 mb-6">
-            <span className="w-10 h-px bg-neutral-300" />
+            <span className="w-10 h-px" style={{ background: '#1A5C38' }} />
             <p
-              className="text-xs uppercase tracking-widest text-neutral-500"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
+              className="text-xs uppercase tracking-widest"
+              style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}
             >
               Quiénes somos
             </p>
-            <span className="w-10 h-px bg-neutral-300" />
+            <span className="w-10 h-px" style={{ background: '#1A5C38' }} />
           </div>
           <h1
-            className="text-3xl md:text-5xl lg:text-6xl font-bold text-black leading-tight"
-            style={{ fontFamily: 'Raleway, sans-serif' }}
+            className="text-4xl md:text-5xl font-bold leading-tight mb-6"
+            style={{ color: '#0A0A0A', fontFamily: 'Raleway, sans-serif' }}
           >
             Desde 1983 acompañando<br className="hidden md:block" /> cada decisión importante
           </h1>
+          <p
+            className="text-base md:text-lg leading-relaxed mx-auto"
+            style={{ color: '#525252', fontFamily: 'Raleway, sans-serif', maxWidth: 700 }}
+          >
+            Dos generaciones, más de 1.500 propiedades vendidas y un mismo compromiso:
+            que cada cliente reciba el mismo cuidado que le daríamos a una persona de
+            nuestra familia.
+          </p>
         </div>
-      </section>
 
-      {/* MISIÓN · VISIÓN · VALORES */}
-      <section className="py-20 md:py-28 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Nuestros principios</p>
-            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Misión, visión y valores</h2>
-            <div className="w-12 h-px bg-black mx-auto" />
+        {/* Sub-bloque PRINCIPIOS — mismo fondo crema, separación ~mitad de antes */}
+        <div className="max-w-5xl mx-auto px-6 mt-14 md:mt-16">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-3">
+              <span className="w-10 h-px" style={{ background: '#1A5C38' }} />
+              <p
+                className="text-xs uppercase tracking-widest"
+                style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}
+              >
+                Nuestros principios
+              </p>
+              <span className="w-10 h-px" style={{ background: '#1A5C38' }} />
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
               { titulo: 'Misión', texto: 'Acompañar a cada persona en su camino inmobiliario, brindando un asesoramiento honesto, cercano y profesional.', Icon: Target },
               { titulo: 'Visión', texto: 'Ser la inmobiliaria de referencia en Funes, Roldán y la región, reconocida por nuestra calidez humana, trayectoria y compromiso real con cada cliente.', Icon: Eye },
@@ -631,18 +651,24 @@ export default function NosotrosClient() {
             ].map(({ titulo, texto, Icon }) => (
               <div
                 key={titulo}
-                className="bg-neutral-50 rounded-2xl p-8 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center text-center"
+                className="bg-white rounded-2xl p-8 md:p-10 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center"
               >
-                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center mb-6 p-4">
-                  <Icon className="w-full h-full text-white" strokeWidth={1.6} aria-hidden />
+                <div
+                  className="rounded-full flex items-center justify-center mb-6"
+                  style={{ width: 56, height: 56, background: '#1A5C38' }}
+                >
+                  <Icon size={24} className="text-white" strokeWidth={1.8} aria-hidden />
                 </div>
                 <h3
-                  className="text-base font-semibold uppercase tracking-wide mb-3 text-black"
-                  style={{ fontFamily: 'Raleway, sans-serif' }}
+                  className="text-base font-semibold uppercase tracking-wide mb-3"
+                  style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}
                 >
                   {titulo}
                 </h3>
-                <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: '#404040', fontFamily: 'Raleway, sans-serif' }}
+                >
                   {texto}
                 </p>
               </div>
@@ -685,12 +711,19 @@ export default function NosotrosClient() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 mb-14">
-            {agents !== null && [
-              ...agents.filter((a) => !EXCLUIDOS_DEL_GRID.includes(a.name)),
-              ...AGENTES_EXTRA,
-            ].map((a) => (
-              <TeamCard key={a.id} agent={a} />
-            ))}
+            {agents !== null && (() => {
+              const todos = [
+                ...agents.filter((a) => !EXCLUIDOS_DEL_GRID.includes(a.name)),
+                ...AGENTES_EXTRA,
+              ]
+              // Render: primero todos los que tienen foto en orden de Tokko,
+              // después los que solo tienen iniciales (sin foto al final).
+              const conFoto = todos.filter((a) => !!a.picture)
+              const sinFoto = todos.filter((a) => !a.picture)
+              return [...conFoto, ...sinFoto].map((a) => (
+                <TeamCard key={a.id} agent={a} />
+              ))
+            })()}
             {agents === null &&
               Array.from({ length: 8 }).map((_, i) => (
                 <div key={`skel-${i}`} className="flex flex-col items-center">
@@ -849,7 +882,7 @@ export default function NosotrosClient() {
       <section className="pb-20 md:pb-28 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>Charlas Que Sí</p>
-          <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>La historia de SI, contada por Susana</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-black mb-5 md:whitespace-nowrap" style={{ fontFamily: 'Raleway, sans-serif' }}>La historia de SI INMOBILIARIA, contada por Susana</h2>
           <div className="w-12 h-px bg-black mx-auto mb-5" />
           <p className="text-sm text-neutral-500 mb-10" style={{ fontFamily: 'Raleway, sans-serif' }}>David entrevista a la fundadora sobre los 40+ años de la inmobiliaria.</p>
         </div>
