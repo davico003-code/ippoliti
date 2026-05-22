@@ -7,6 +7,9 @@ import { distanceToProperty } from '@/lib/geo'
 interface Props {
   properties: TokkoProperty[]
   selectedId: number | null
+  /** Sync con mapa: cuando el mouse hover un pin del mapa, el padre setea
+   *  hoveredId y este componente highlightea la card correspondiente. */
+  hoveredId?: number | null
   onHover: (id: number | null) => void
   onCardClick: (p: TokkoProperty) => void
   /** Si está seteado, cada card muestra "a X m/km" calculado desde este origen. */
@@ -16,6 +19,7 @@ interface Props {
 export default function PropiedadesViewDesktopGrid({
   properties,
   selectedId,
+  hoveredId = null,
   onHover,
   onCardClick,
   nearbyOrigin = null,
@@ -32,6 +36,7 @@ export default function PropiedadesViewDesktopGrid({
           <PropiedadCardGrid
             property={p}
             isSelected={p.id === selectedId}
+            isHovered={p.id === hoveredId}
             onClick={e => { e.preventDefault(); onCardClick(p) }}
             distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
           />

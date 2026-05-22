@@ -948,6 +948,18 @@ export default function PropiedadesView({
     }
   }, [selectedId])
 
+  // Hover desde el pin del mapa → scroll suave de la card al viewport del
+  // listado. Usa block:'nearest' para no centrar (menos invasivo que el
+  // scroll de selectedId, que sí centra al click). El borde verde lo aplica
+  // el PropiedadCardGrid via prop isHovered.
+  useEffect(() => {
+    if (hoveredId == null || !listRef.current) return
+    const el = listRef.current.querySelector<HTMLDivElement>(`[data-property-id="${hoveredId}"]`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [hoveredId])
+
   const closeBottomSheet = useCallback(() => {
     setShowBottomSheet(false)
     setSelectedId(null)
@@ -1438,6 +1450,7 @@ export default function PropiedadesView({
                     <PropiedadesViewDesktopGrid
                       properties={visibleProperties}
                       selectedId={selectedId}
+                      hoveredId={hoveredId}
                       onHover={setHoveredId}
                       onCardClick={handleCardClick}
                       nearbyOrigin={nearbyOrigin}
@@ -1490,6 +1503,7 @@ export default function PropiedadesView({
             onMapMove={closeBottomSheet}
             onNearbyOrigin={handleNearbyOrigin}
             nearbyActive={nearbyOrigin != null}
+            onPinHover={setHoveredId}
           />
           {/* Chip "modo cercanía" — cerrable, sobre el mapa, no tapa el contador. */}
           {nearbyOrigin && (

@@ -13,6 +13,10 @@ export default function FloatingWhatsApp() {
   // Hide on /recursos — la propia página tiene su CTA "Hablar con un agente"
   // en el bloque verde inferior con el mismo número.
   if (pathname === '/recursos') return null
+  // Hide on /propiedades — se superpone al zoom del mapa y los filtros ya
+  // saturan la vista. Solo /propiedades exacto (las fichas individuales
+  // /propiedades/[id] mantienen el botón porque ahí sí queremos consulta).
+  if (pathname === '/propiedades') return null
 
   return (
     <Link
