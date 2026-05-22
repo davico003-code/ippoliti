@@ -4,6 +4,7 @@
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import {
   type TokkoProperty,
@@ -85,85 +86,68 @@ function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoPro
   return { standalone, devGroups }
 }
 
-// ─── Short price label for map bubbles ────────────────────────────────────────
-//
-// Spec /propiedades (Zillow-style pins):
-//   < 1.000.000 USD   → "U$S 999K" (redondeo a miles, sin decimales)
-//   1.000.000 - 9.999.999 USD → "U$S 1.15M" (2 decimales hasta 1, 1 decimal acá)
-//                      → spec dice 1 decimal, ej "U$S 1.15M" parece typo del
-//                        usuario; voy con 1 decimal (ej "U$S 1.1M"). Para 1.15M
-//                        muestra "U$S 1.2M" (redondeo).
-//   >= 10.000.000 USD → "U$S 12M" (sin decimales)
-//   ARS o sin precio público → "Consultar"
+function createCraneIcon() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      background:#1A5C38;color:white;
+      width:32px;height:32px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white;
+    "><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-6 7 6v12"/><path d="M9 20v-6h6v6"/><path d="M12 2v6"/><path d="M8 8h8"/></svg></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18],
+  })
+}
 
-export function formatPriceCompact(property: TokkoProperty): string {
+// ─── Short price label for map bubbles ────────────────────────────────────────
+
+function shortPrice(property: TokkoProperty): string {
   const op = property.operations?.[0]
   if (!op?.prices?.[0]) return 'Consultar'
   const p = op.prices[0]
   if (!p.price || p.price === 0) return 'Consultar'
-  // ARS → Consultar (spec: pin no expone precio en ARS por estabilidad cambiaria)
-  if (p.currency !== 'USD') return 'Consultar'
 
-  if (p.price >= 10_000_000) {
-    return `U$S ${Math.round(p.price / 1_000_000)}M`
-  }
+  const currency = p.currency === 'USD' ? 'U$S' : '$'
+
   if (p.price >= 1_000_000) {
     const m = (p.price / 1_000_000).toFixed(1).replace('.0', '')
-    return `U$S ${m}M`
+    return `${currency} ${m}M`
   }
   if (p.price >= 1_000) {
-    return `U$S ${Math.round(p.price / 1_000)}K`
+    const k = Math.round(p.price / 1_000)
+    return `${currency} ${k}K`
   }
-  return `U$S ${p.price.toLocaleString('es-AR')}`
+  return `${currency} ${p.price.toLocaleString('es-AR')}`
 }
 
 // ─── Price bubble DivIcon ─────────────────────────────────────────────────────
-//
-// Estilo Zillow: pill rectangular con triangulito hacia abajo, precio adentro.
-//   Default → bg verde brand, texto blanco
-//   Hover (sync con card o mouse en pin) → bg #0F2419, scale 1.05, transition 150ms (CSS)
-//   Selected (click o sync con card) → bg blanco, texto verde, border 2px verde
-//   "kind" controla la paleta: 'property' (verde brand) vs 'dev' (dorado).
-//
-// El bounce sync con card lo aplica una clase CSS inyectada por MapStyles,
-// que se monta cuando hoveredId === id. No hace falta hacer nada acá.
 
-type PinKind = 'property' | 'dev'
-
-function createPriceBubble(label: string, selected: boolean, hovered: boolean, kind: PinKind = 'property') {
-  // Colores por kind
-  const baseBg     = kind === 'dev' ? '#D4A24C' : '#1A5C38'
-  const hoverBg    = kind === 'dev' ? '#9C7935' : '#0F2419'
-  const accentText = kind === 'dev' ? '#7A5F2A' : '#1A5C38' // para estado selected (texto sobre bg blanco)
-
-  // Estado selected: bg blanco + texto del color brand + border 2px brand
-  const bg     = selected ? '#FFFFFF' : hovered ? hoverBg : baseBg
-  const color  = selected ? accentText : '#FFFFFF'
-  const border = selected ? `2px solid ${baseBg}` : '1px solid rgba(255,255,255,0.85)'
-  const scale  = hovered ? 'transform:scale(1.05);' : ''
-  // Bounce cuando hovered: se ejecuta al re-renderizar el divIcon con
-  // hovered=true (ej. sync con card). Como Leaflet hace setIcon → swap del
-  // inner DOM, la animation arranca de cero cada vez que entra a este estado.
-  const bounce = hovered ? 'animation:si-pin-bounce 0.6s ease-in-out;' : ''
+function createPriceBubble(label: string, selected: boolean, hovered: boolean = false) {
+  // selected > hovered (sin "selected"). Hover más claro y con outline amarillo.
+  const bg = selected ? '#145030' : hovered ? '#2D7A4F' : '#1A5C38'
+  const scale = selected || hovered ? 'transform:scale(1.1);' : ''
   const zExtra = selected ? 'z-index:9999;' : hovered ? 'z-index:5000;' : ''
   const shadow = selected
-    ? `box-shadow:0 4px 14px ${kind === 'dev' ? 'rgba(212,162,76,0.45)' : 'rgba(26,92,56,0.45)'};`
-    : 'box-shadow:0 2px 6px rgba(0,0,0,0.22);'
-  // Triangulito: hereda bg (sólido). Cuando selected (bg blanco), el triangulito
-  // muestra el color brand para mantener la coherencia con el border.
-  const arrowColor = selected ? baseBg : bg
+    ? 'box-shadow:0 4px 14px rgba(0,0,0,0.35);'
+    : hovered
+    ? 'box-shadow:0 4px 14px rgba(26,92,56,0.45);'
+    : 'box-shadow:0 2px 8px rgba(0,0,0,0.25);'
+  const border = hovered && !selected
+    ? '2px solid #FBBF24'
+    : '2px solid rgba(255,255,255,0.9)'
 
   const html = `
     <div style="
-      position:relative;display:inline-block;${zExtra}${scale}${bounce}
-      transition:transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+      position:relative;display:inline-block;${zExtra}${scale}
+      transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
     ">
       <div style="
-        background:${bg};color:${color};
+        background:${bg};color:#fff;
         font-family:'Poppins',system-ui,sans-serif;
-        font-weight:600;font-size:12px;
-        font-variant-numeric:tabular-nums;
-        padding:4px 8px;border-radius:4px;
+        font-weight:700;font-size:11px;
+        padding:4px 8px;border-radius:6px;
         white-space:nowrap;line-height:1.2;
         border:${border};
         ${shadow}
@@ -173,11 +157,11 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean, k
         width:0;height:0;margin:0 auto;
         border-left:6px solid transparent;
         border-right:6px solid transparent;
-        border-top:6px solid ${arrowColor};
+        border-top:6px solid ${bg};
       "></div>
     </div>`
 
-  // Width estimate (chars * ~7px + padding)
+  // Estimate width based on character count
   const charW = 7
   const w = Math.max(label.length * charW + 24, 60)
 
@@ -187,6 +171,31 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean, k
     iconSize: [w, 34],
     iconAnchor: [w / 2, 34],
     popupAnchor: [0, -36],
+  })
+}
+
+// ─── Cluster icon ─────────────────────────────────────────────────────────────
+
+function createClusterIcon(cluster: L.MarkerCluster) {
+  const count = cluster.getChildCount()
+  const label = count > 99 ? '99+' : String(count)
+
+  return L.divIcon({
+    className: '',
+    html: `
+      <div style="
+        background:#0D3620;color:#fff;
+        font-family:'Poppins',system-ui,sans-serif;
+        font-weight:800;font-size:13px;
+        width:44px;height:44px;
+        border-radius:50%;
+        display:flex;align-items:center;justify-content:center;
+        border:3px solid rgba(255,255,255,0.9);
+        box-shadow:0 3px 12px rgba(0,0,0,0.3);
+        cursor:pointer;
+      ">${label}</div>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
   })
 }
 
@@ -234,12 +243,7 @@ function MapFlyTo({ center }: { center: FlyToTarget | null }) {
   return null
 }
 
-// ─── Hover/bounce style injector ──────────────────────────────────────────────
-//
-// Bounce: clase aplicada al marker cuando hoveredId === id (sync desde card).
-// Se hace via L.Marker.setIcon recreando el divIcon con isHovered=true; el
-// "bounce" lo activa esta clase agregada al wrapper de Leaflet via
-// `marker.getElement().classList.add('si-pin-bounce')` desde el componente.
+// ─── Hover style injector ─────────────────────────────────────────────────────
 
 function MapStyles() {
   const map = useMap()
@@ -250,70 +254,18 @@ function MapStyles() {
       style.id = 'price-bubble-styles'
       style.textContent = `
         .leaflet-marker-icon:hover { z-index: 9999 !important; }
-        .si-pin-bounce {
-          animation: si-pin-bounce 0.6s ease-in-out;
+        .leaflet-marker-icon:hover > div > div:first-child {
+          background: #2D7A4F !important;
+          transform: scale(1.1);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
         }
-        @keyframes si-pin-bounce {
-          0%, 100% { transform: translateY(0); }
-          25%      { transform: translateY(-8px); }
-          50%      { transform: translateY(0); }
-          75%      { transform: translateY(-4px); }
+        .marker-cluster-animated {
+          transition: transform 0.3s ease;
         }
       `
       container.appendChild(style)
     }
   }, [map])
-  return null
-}
-
-// ─── Viewport-based pin filter ───────────────────────────────────────────────
-//
-// Con 200+ propiedades, renderizar todos los pins simultáneamente causa lag
-// en pan/zoom. Este helper escucha moveend/zoomend (throttle 150ms) y devuelve
-// el subset de IDs cuyo lat/lng está dentro del bounds del mapa.
-//
-// Nota: NO afecta el listado lateral; ese sigue mostrando TODAS las
-// propiedades. Solo filtra qué pins se dibujan en el mapa.
-
-function ViewportPinFilter({
-  points,
-  onChange,
-}: {
-  points: { id: string | number; lat: number; lng: number }[]
-  onChange: (visibleIds: Set<string | number>) => void
-}) {
-  const map = useMap()
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
-
-  useEffect(() => {
-    const compute = () => {
-      const b = map.getBounds()
-      const next = new Set<string | number>()
-      for (const p of points) {
-        if (b.contains([p.lat, p.lng])) next.add(p.id)
-      }
-      onChangeRef.current(next)
-    }
-    // Throttle 150ms (trailing): si llegan eventos seguidos, programa un
-    // solo recompute al final. Evita recomputar 60 veces durante un pan.
-    const scheduleCompute = () => {
-      if (timerRef.current) return
-      timerRef.current = setTimeout(() => {
-        timerRef.current = null
-        compute()
-      }, 150)
-    }
-    compute() // initial
-    map.on('moveend', scheduleCompute)
-    map.on('zoomend', scheduleCompute)
-    return () => {
-      map.off('moveend', scheduleCompute)
-      map.off('zoomend', scheduleCompute)
-      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
-    }
-  }, [map, points])
   return null
 }
 
@@ -590,12 +542,9 @@ interface Props {
   onNearbyOrigin?: (lat: number, lng: number) => void
   /** Si true, el botón "Centrar" muestra estado activo (modo cercanía). */
   nearbyActive?: boolean
-  /** Mouse enter/leave en un pin → setea hoveredId en el padre para
-   *  highlightear + scrollear el card correspondiente. */
-  onPinHover?: (id: number | null) => void
 }
 
-export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove, onNearbyOrigin, nearbyActive, onPinHover }: Props) {
+export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove, onNearbyOrigin, nearbyActive }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const mapped = useMemo(() =>
     properties.filter(p => {
@@ -606,12 +555,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
 
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
 
-  // Viewport-based rendering: solo dibujar pins dentro del bounds actual.
-  const allPoints = useMemo(() => [
-    ...standalone.map(p => ({ id: p.id, lat: parseFloat(p.geo_lat!), lng: parseFloat(p.geo_long!) })),
-    ...devGroups.map(g => ({ id: `dev-${g.devId}`, lat: g.lat, lng: g.lng })),
-  ], [standalone, devGroups])
-  const [visibleIds, setVisibleIds] = useState<Set<string | number>>(() => new Set())
+  const craneIcon = useMemo(() => createCraneIcon(), [])
 
   return (
     <MapContainer
@@ -642,160 +586,158 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           <span style={{ color: '#666' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#D4A24C', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 20V8l7-6 7 6v12"/></svg>
+          </div>
           <span style={{ color: '#666' }}>Emprendimiento</span>
         </div>
       </div>
 
-      {/* Viewport filter — listens moveend/zoomend (throttled 150ms) and
-          decides which pins fall inside the current bounds. */}
-      <ViewportPinFilter points={allPoints} onChange={setVisibleIds} />
+      <MarkerClusterGroup
+        chunkedLoading
+        maxClusterRadius={50}
+        spiderfyOnMaxZoom
+        showCoverageOnHover={false}
+        iconCreateFunction={createClusterIcon}
+      >
+        {/* Standalone properties */}
+        {standalone.map(property => {
+          const lat = parseFloat(property.geo_lat!)
+          const lng = parseFloat(property.geo_long!)
+          const isSelected = property.id === selectedId
+          const isHovered = property.id === hoveredId
+          const priceLabel = shortPrice(property)
+          const photo = getMainPhoto(property)
+          const fullPrice = formatPrice(property)
+          const typeName = translatePropertyType(property.type?.name)
+          const area = getTotalSurface(property)
 
-      {/* Standalone properties — Zillow-style price pins, no clustering. */}
-      {standalone.map(property => {
-        if (!visibleIds.has(property.id)) return null
-        const lat = parseFloat(property.geo_lat!)
-        const lng = parseFloat(property.geo_long!)
-        const isSelected = property.id === selectedId
-        const isHovered  = property.id === hoveredId
-        const priceLabel = formatPriceCompact(property)
-        const photo      = getMainPhoto(property)
-        const fullPrice  = formatPrice(property)
-        const typeName   = translatePropertyType(property.type?.name)
-        const area       = getTotalSurface(property)
-
-        return (
-          <Marker
-            key={property.id}
-            position={[lat, lng]}
-            icon={createPriceBubble(priceLabel, isSelected, isHovered, 'property')}
-            zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
-            eventHandlers={{
-              click: () => onSelect(property.id),
-              popupclose: () => onDeselect?.(),
-              mouseover: () => onPinHover?.(property.id),
-              mouseout: () => onPinHover?.(null),
-            }}
-          >
-            {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
-              <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif", position: 'relative' }}>
-                {photo && (
-                  <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
-                    <img
-                      src={photo}
-                      alt={property.publication_title || property.address}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    />
-                    {typeName && (
-                      <span style={{
-                        position: 'absolute', top: '8px', left: '8px',
-                        background: 'rgba(26,92,56,0.85)', color: '#fff',
-                        fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-                        letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
-                      }}>
-                        {typeName}
-                      </span>
-                    )}
-                    <PropertyShareButton
-                      propertyId={property.id}
-                      slug={generatePropertySlug(property)}
-                      title={property.publication_title || property.address || ''}
-                      priceLabel={fullPrice}
-                      top={8}
-                      right={8}
-                      size={32}
-                    />
+          return (
+            <Marker
+              key={property.id}
+              position={[lat, lng]}
+              icon={createPriceBubble(priceLabel, isSelected, isHovered)}
+              zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
+              eventHandlers={{
+                click: () => onSelect(property.id),
+                popupclose: () => onDeselect?.(),
+              }}
+            >
+              {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
+                <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif", position: 'relative' }}>
+                  {photo && (
+                    <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
+                      <img
+                        src={photo}
+                        alt={property.publication_title || property.address}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                      {typeName && (
+                        <span style={{
+                          position: 'absolute', top: '8px', left: '8px',
+                          background: 'rgba(26,92,56,0.85)', color: '#fff',
+                          fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+                          letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
+                        }}>
+                          {typeName}
+                        </span>
+                      )}
+                      <PropertyShareButton
+                        propertyId={property.id}
+                        slug={generatePropertySlug(property)}
+                        title={property.publication_title || property.address || ''}
+                        priceLabel={fullPrice}
+                        top={8}
+                        right={8}
+                        size={32}
+                      />
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <span style={{
+                      fontSize: '22px', fontWeight: 800, color: '#1A5C38',
+                      fontFamily: "'Poppins',system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
+                      lineHeight: 1.1,
+                    }}>
+                      {fullPrice}
+                    </span>
                   </div>
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{
-                    fontSize: '22px', fontWeight: 800, color: '#1A5C38',
-                    fontFamily: "'Poppins',system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
-                    lineHeight: 1.1,
-                  }}>
-                    {fullPrice}
-                  </span>
+                  <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.3, margin: '0 0 8px' }}>
+                    {property.publication_title || property.address}
+                  </h3>
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#4b5563', marginBottom: '12px' }}>
+                    {area != null && area > 0 && (
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{area}</span> m²</span>
+                    )}
+                    {(property.suite_amount || property.room_amount) > 0 && (
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
+                    )}
+                    {property.bathroom_amount > 0 && (
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => onOpenDetail?.(property.id)}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'center',
+                      background: '#1A5C38', color: 'white',
+                      fontSize: '13px', fontWeight: 600,
+                      padding: '9px 16px', borderRadius: '8px',
+                      border: 'none', cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
+                  >
+                    Ver propiedad →
+                  </button>
                 </div>
-                <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.3, margin: '0 0 8px' }}>
-                  {property.publication_title || property.address}
-                </h3>
-                <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#4b5563', marginBottom: '12px' }}>
-                  {area != null && area > 0 && (
-                    <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{area}</span> m²</span>
-                  )}
-                  {(property.suite_amount || property.room_amount) > 0 && (
-                    <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
-                  )}
-                  {property.bathroom_amount > 0 && (
-                    <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => onOpenDetail?.(property.id)}
-                  style={{
-                    display: 'block', width: '100%', textAlign: 'center',
-                    background: '#1A5C38', color: 'white',
-                    fontSize: '13px', fontWeight: 600,
-                    padding: '9px 16px', borderRadius: '8px',
-                    border: 'none', cursor: 'pointer',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
-                >
-                  Ver detalle →
-                </button>
-              </div>
-            </Popup>}
-          </Marker>
-        )
-      })}
+              </Popup>}
+            </Marker>
+          )
+        })}
+      </MarkerClusterGroup>
 
-      {/* Development markers — pill dorada con "Desde {minPrice}" */}
-      {devGroups.map(g => {
-        const devKey = `dev-${g.devId}`
-        if (!visibleIds.has(devKey)) return null
-        const label = g.minPrice === 'Consultar' ? g.devName : `Desde ${g.minPrice}`
-        return (
-          <Marker
-            key={devKey}
-            position={[g.lat, g.lng]}
-            icon={createPriceBubble(label, false, false, 'dev')}
-            zIndexOffset={500}
-          >
-            <Popup maxWidth={260} className="ippoliti-popup">
-              <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#D4A24C', display: 'block', marginBottom: 4 }}>
-                  Emprendimiento
-                </span>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', margin: '0 0 6px' }}>
-                  {g.devName}
-                </h3>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#1A5C38', fontFamily: "'Poppins',system-ui,sans-serif", marginBottom: 8 }}>
-                  Desde {g.minPrice}
-                </div>
-                <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#666', marginBottom: 12 }}>
-                  <span>{g.units.length} unidad{g.units.length !== 1 ? 'es' : ''}</span>
-                  {g.dormRange && <span>{g.dormRange}</span>}
-                </div>
-                <a
-                  href={`/emprendimientos/${g.slug}`}
-                  style={{
-                    display: 'block', textAlign: 'center',
-                    background: '#1A5C38', color: 'white',
-                    fontSize: 13, fontWeight: 600,
-                    padding: '9px 16px', borderRadius: 8,
-                    textDecoration: 'none',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
-                >
-                  Ver emprendimiento →
-                </a>
+      {/* Development markers — outside cluster group */}
+      {devGroups.map(g => (
+        <Marker
+          key={`dev-${g.devId}`}
+          position={[g.lat, g.lng]}
+          icon={craneIcon}
+          zIndexOffset={500}
+        >
+          <Popup maxWidth={260} className="ippoliti-popup">
+            <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A5C38', display: 'block', marginBottom: 4 }}>
+                Emprendimiento
+              </span>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', margin: '0 0 6px' }}>
+                {g.devName}
+              </h3>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#1A5C38', fontFamily: "'Poppins',system-ui,sans-serif", marginBottom: 8 }}>
+                Desde {g.minPrice}
               </div>
-            </Popup>
-          </Marker>
-        )
-      })}
+              <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#666', marginBottom: 12 }}>
+                <span>{g.units.length} unidad{g.units.length !== 1 ? 'es' : ''}</span>
+                {g.dormRange && <span>{g.dormRange}</span>}
+              </div>
+              <a
+                href={`/emprendimientos/${g.slug}`}
+                style={{
+                  display: 'block', textAlign: 'center',
+                  background: '#1A5C38', color: 'white',
+                  fontSize: 13, fontWeight: 600,
+                  padding: '9px 16px', borderRadius: 8,
+                  textDecoration: 'none',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
+              >
+                Ver emprendimiento →
+              </a>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
     </MapContainer>
   )
 }

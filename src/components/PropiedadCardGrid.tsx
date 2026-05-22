@@ -23,13 +23,9 @@ import { formatDistanceAR } from '@/lib/geo'
 const RALEWAY = "'Raleway', system-ui, sans-serif"
 const POPPINS = "'Poppins', system-ui, sans-serif"
 
-export default function PropiedadCardGrid({ property, isSelected, isHovered = false, onClick, variant = 'desktop', distanceKm }: {
+export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop', distanceKm }: {
   property: TokkoProperty
   isSelected: boolean
-  /** Sync con mapa: true cuando el mouse hovered el pin correspondiente en el
-   *  mapa. El padre lo setea via hoveredId. Aplica un border verde 2px sutil
-   *  para guiar la vista. */
-  isHovered?: boolean
   /** Si se pasa, se ejecuta antes de la navegación. Llamar e.preventDefault() para
    * evitar que el Link navegue (caso desktop = abrir panel modal en su lugar). */
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
@@ -84,14 +80,7 @@ export default function PropiedadCardGrid({ property, isSelected, isHovered = fa
       className="group cursor-pointer block"
       style={{
         borderRadius: 14,
-        // isHovered (sync con mapa) usa border 2px verde sutil; isSelected
-        // 1px verde + sombra (estado más fuerte). Hover natural del mouse
-        // sobre la card también levanta el border, manejado en el JS abajo.
-        border: isSelected
-          ? '1px solid #1A5C38'
-          : isHovered
-          ? '2px solid #1A5C38'
-          : '1px solid #e5e7eb',
+        border: isSelected ? '1px solid #1A5C38' : '1px solid #e5e7eb',
         overflow: 'hidden',
         background: '#fff',
         textDecoration: 'none',
@@ -99,16 +88,16 @@ export default function PropiedadCardGrid({ property, isSelected, isHovered = fa
         boxShadow: isSelected
           ? '0 10px 25px rgba(0,0,0,0.1)'
           : '0 1px 3px rgba(0,0,0,0.06)',
-        transition: 'box-shadow 200ms, border-color 200ms, border-width 150ms',
+        transition: 'box-shadow 200ms, border-color 200ms',
       }}
       onMouseEnter={e => {
-        if (!isSelected && !isHovered) {
+        if (!isSelected) {
           e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)'
           e.currentTarget.style.borderColor = '#1A5C38'
         }
       }}
       onMouseLeave={e => {
-        if (!isSelected && !isHovered) {
+        if (!isSelected) {
           e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
           e.currentTarget.style.borderColor = '#e5e7eb'
         }
