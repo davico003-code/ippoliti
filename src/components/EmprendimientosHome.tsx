@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import ProjectMediaCard from '@/components/home/ProjectMediaCard'
 
@@ -62,6 +63,9 @@ const ITEMS: Item[] = [
 ]
 
 export default function EmprendimientosHome() {
+  // Solo una card a la vez puede estar en hover (controla play/pause del video).
+  const [hoveringId, setHoveringId] = useState<string | null>(null)
+
   return (
     <section style={{ background: '#f9fafb' }}>
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-6 md:pt-10 md:pb-10">
@@ -82,20 +86,22 @@ export default function EmprendimientosHome() {
               <Link
                 key={item.id}
                 href={item.href}
-                className="emp-card flex-shrink-0 snap-start block relative overflow-hidden bg-white rounded-xl border-0"
+                className="emp-card flex-shrink-0 snap-start block relative overflow-hidden bg-white rounded-xl border-0 shadow-md hover:shadow-xl"
                 style={{
                   width: 'clamp(280px, 80vw, 320px)',
                   aspectRatio: '3/4',
                   textDecoration: 'none',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
-                  transition: 'box-shadow 200ms',
+                  transition: 'box-shadow 300ms',
                 }}
+                onMouseEnter={() => setHoveringId(item.id)}
+                onMouseLeave={() => setHoveringId(prev => (prev === item.id ? null : prev))}
               >
                 <ProjectMediaCard
                   imageUrl={item.image}
                   videoUrl={item.videoUrl}
                   alt={item.title}
                   sizes="320px"
+                  isHovering={hoveringId === item.id}
                 />
                 <div className="absolute inset-0 emp-card-overlay" style={{
                   background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)',
@@ -150,11 +156,30 @@ export default function EmprendimientosHome() {
       </div>
 
       <style>{`
-        .emp-card-img { transition: transform 0.4s ease; }
+        /* Zoom suave del media al hover — solo afecta a img/video, no al
+           overlay, badge ni textos (que son siblings fuera del wrapper). */
+        .emp-card-img { transition: transform 500ms ease-out; }
         @media (hover: hover) {
-          .emp-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.08) !important; }
           .emp-card:hover .emp-card-img { transform: scale(1.05); }
           .emp-card:hover .emp-card-overlay { background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 50%, transparent 100%) !important; }
+        }
+
+        /* Pulse opacity-only del CTA (no scale, no chillón). Pasa de
+           opacidad 0.85 → 1.0 → 0.85 en 3s, indefinido. Al hover del
+           card se queda opaco 1.0 sin pulsar. */
+        @keyframes emp-cta-pulse {
+          0%, 100% { opacity: 0.85; }
+          50%      { opacity: 1; }
+        }
+        .emp-card-cta { animation: emp-cta-pulse 3s ease-in-out infinite; }
+        .emp-card:hover .emp-card-cta { animation: none; opacity: 1; }
+
+        /* Accesibilidad: deshabilitar zoom y pulse cuando el usuario
+           pide menos movimiento. El play en hover sigue funcionando. */
+        @media (prefers-reduced-motion: reduce) {
+          .emp-card-img { transition: none; }
+          .emp-card:hover .emp-card-img { transform: none; }
+          .emp-card-cta { animation: none; }
         }
       `}</style>
     </section>
