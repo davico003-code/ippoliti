@@ -47,8 +47,7 @@ const direccion = [
 const historia = [
   { año: '1983', titulo: 'Fundación', desc: 'Susana Ippoliti abre la primera oficina en 1ro de Mayo 258, Roldán. Comienza una historia familiar de confianza y profesionalismo.' },
   { año: '2015', titulo: 'Segunda oficina en Roldán', desc: 'Apertura de la segunda oficina en Catamarca 775, Roldán. Consolidación como referente inmobiliario en la ciudad.' },
-  { año: '2022', titulo: 'Expansión a Funes', desc: 'Aprobación del Concejo Deliberante de Funes para construir la nueva sede en Hipólito Yrigoyen 2643.' },
-  { año: '2024', titulo: 'Oficina Funes + Galería + Rebranding', desc: 'Inauguración de la oficina en Funes, un espacio único que combina inmobiliaria con galería de arte. Nace SI Inmobiliaria.' },
+  { año: '2024', titulo: 'Nueva oficina, galería de arte y rebranding', desc: 'En noviembre inauguramos la nueva oficina en Funes, un espacio único que combina inmobiliaria y galería de arte x PARED. En paralelo nace SI Inmobiliaria, con una identidad renovada para una nueva etapa.' },
 ]
 
 const testimonios: { texto: string; nombre: string; etiqueta: string; antiguedad: string }[] = [
