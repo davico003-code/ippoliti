@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
@@ -40,25 +41,15 @@ export default function HeroMobile() {
 
   return (
     <section className="relative flex flex-col overflow-hidden" style={{ height: 290 }}>
-      {/* Background: oficina Gallery de Funes (mobile only — el desktop
-          vive en otro componente y mantiene el <video>). <picture> nativo
-          sirve mejor que next/image para servir WebP 1x/2x + JPG fallback
-          sin pasar por el optimizador. */}
-      <picture>
-        <source
-          srcSet="/images/hero/hero-mobile.webp 1x, /images/hero/hero-mobile@2x.webp 2x"
-          type="image/webp"
-        />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/hero/hero-mobile.jpg"
-          alt="Oficina Gallery de SI Inmobiliaria en Funes"
-          loading="eager"
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      </picture>
+      {/* Background image + overlay */}
+      <Image
+        src="/hero-home.jpg"
+        alt="Zona oeste del Gran Rosario — Funes y Roldán"
+        fill
+        className="object-cover"
+        sizes="100vw"
+        priority
+      />
       <div
         className="absolute inset-0"
         style={{

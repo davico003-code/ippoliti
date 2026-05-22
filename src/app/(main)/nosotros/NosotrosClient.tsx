@@ -562,6 +562,7 @@ function OficinasInteractivas() {
 ───────────────────────────────────────────── */
 export default function NosotrosClient() {
   const [agents, setAgents] = useState<TokkoAgent[] | null>(null)
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -577,23 +578,46 @@ export default function NosotrosClient() {
     }
   }, [])
 
+  // Hero: en mobile servimos imagen estática (no descarga el .mp4); en desktop
+  // se mantiene el <video>. Render condicional con if (no CSS hidden) para
+  // evitar el preload="metadata" del video en celular.
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    setIsMobile(mq.matches)
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
   return (
     <main className="bg-white text-gray-900">
 
       {/* HERO — solo imagen/video, sin texto encima */}
       <section className="relative h-[70vh] min-h-[480px] md:h-[80vh] md:min-h-[560px] overflow-hidden">
-        {/* Imagen fija en mobile (poster) */}
-        <Image
-          src="/videos/hero-nosotros-poster.webp"
-          alt="Equipo de SI Inmobiliaria"
-          fill
-          className="object-cover object-center md:hidden"
-          priority
-          sizes="100vw"
-        />
-
-        {/* Video de fondo en desktop */}
-        <HeroVideoNosotros />
+        {isMobile === false ? (
+          /* Desktop: video de fondo, igual que antes. Solo se monta cuando
+             la matchMedia confirma que NO es mobile, así garantizamos que el
+             .mp4/.webm nunca entre al HTML en celular (ni siquiera por SSR). */
+          <HeroVideoNosotros />
+        ) : (
+          /* Mobile + SSR/initial: <picture> nativo con WebP 1x/2x + JPG
+             fallback. El video no se monta, así que el .mp4 no se descarga. */
+          <picture>
+            <source
+              srcSet="/images/hero/nosotros-mobile.webp 1x, /images/hero/nosotros-mobile@2x.webp 2x"
+              type="image/webp"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/hero/nosotros-mobile.jpg"
+              alt="Oficina Gallery de SI Inmobiliaria en Funes"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </picture>
+        )}
 
         {/* Fade inferior blanco — empalme con la sección de abajo */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-20 md:h-28 bg-gradient-to-t from-white via-white/50 to-transparent" />
