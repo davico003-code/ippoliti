@@ -61,7 +61,7 @@ const LEFT_ITEMS = [
 ]
 
 const RIGHT_ITEMS = [
-  { href: '/barrios-privados', label: 'Barrios privados' },
+  { href: '/barrios-privados', label: 'Barrios cerrados' },
   { href: '/nosotros', label: 'Nosotros' },
   { href: '/blog', label: 'Blog' },
   { href: '/recursos', label: 'Recursos' },

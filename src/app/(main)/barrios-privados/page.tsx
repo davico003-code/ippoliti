@@ -55,19 +55,19 @@ const BarrioMapaWrapper = dynamic(() => import('@/components/barrios/BarrioMapa'
 const CANONICAL = 'https://siinmobiliaria.com/barrios-privados'
 
 export const metadata: Metadata = {
-  title: 'Barrios privados de Funes | SI Inmobiliaria',
+  title: 'Barrios cerrados de Funes | SI Inmobiliaria',
   description:
     'Los 11 barrios cerrados de Funes analizados sin filtro. Premium, consolidados y en desarrollo. Conocelos con la mirada de un broker de dos generaciones.',
   keywords: [
-    'barrios privados funes',
     'barrios cerrados funes',
+    'barrios privados funes',
     'club de campo funes santa fe',
     'lotes en venta funes',
     'country messi rosario',
   ].join(', '),
   alternates: { canonical: CANONICAL },
   openGraph: {
-    title: 'Barrios privados de Funes | SI Inmobiliaria',
+    title: 'Barrios cerrados de Funes | SI Inmobiliaria',
     description:
       'Una guía completa, escrita por brokers que viven y trabajan en la zona. Los 11 barrios cerrados de Funes analizados sin filtro.',
     url: CANONICAL,
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Barrios privados de Funes',
+    title: 'Barrios cerrados de Funes',
     description: '11 barrios analizados por SI Inmobiliaria — Mat. 0621',
     images: ['/og-default.jpg'],
   },
@@ -257,9 +257,9 @@ export default function BarriosPrivadosHub() {
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Barrios privados del corredor de Funes',
+    name: 'Barrios cerrados del corredor de Funes',
     description:
-      '11 barrios privados analizados por SI INMOBILIARIA — Mat. N° 0621. Funes, Santa Fe, Argentina.',
+      '11 barrios cerrados analizados por SI INMOBILIARIA — Mat. N° 0621. Funes, Santa Fe, Argentina.',
     itemListElement: BARRIOS.map((b, i) => ({
       '@type': 'ListItem',
       position: i + 1,
@@ -323,7 +323,7 @@ export default function BarriosPrivadosHub() {
               letterSpacing: '-0.01em',
             }}
           >
-            Los 11 barrios privados de Funes.
+            Los 11 barrios cerrados de Funes.
           </h1>
           <p
             style={{

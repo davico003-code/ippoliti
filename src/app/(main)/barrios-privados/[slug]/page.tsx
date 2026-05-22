@@ -109,7 +109,7 @@ export default function BarrioPage({ params }: Props) {
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'Barrios privados',
+        name: 'Barrios cerrados',
         item: 'https://siinmobiliaria.com/barrios-privados',
       },
       {
