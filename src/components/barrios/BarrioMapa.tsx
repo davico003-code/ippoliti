@@ -15,13 +15,17 @@ const TIER_COLOR: Record<HubTier, string> = {
   consolidado: '#4A7C5C',
   joven: '#B8935A',
   desarrollo: '#8B5A2B',
+  // Próximamente no se agrega al mapa hoy (lat/lng pendientes); el color
+  // sirve por si en una próxima iteración aparece un pin.
+  proximamente: '#0A0A0A',
 }
 
 const TIER_BADGE: Record<HubTier, { label: string; bg: string; color: string }> = {
   premium: { label: 'PREMIUM', bg: '#1A5C38', color: '#FFFFFF' },
-  consolidado: { label: 'CONSOLIDADO', bg: '#DCE9E1', color: '#1A5C38' },
-  joven: { label: 'VIDA JOVEN', bg: '#F4E9D5', color: '#7A5A1E' },
-  desarrollo: { label: 'EN DESARROLLO', bg: '#FDF1E4', color: '#8B5A2B' },
+  consolidado: { label: 'CONSOLIDADO', bg: '#D4A24C', color: '#0A0A0A' },
+  joven: { label: 'VIDA JOVEN', bg: '#E8B547', color: '#0A0A0A' },
+  desarrollo: { label: 'EN DESARROLLO', bg: '#8B6F47', color: '#FFFFFF' },
+  proximamente: { label: 'PRÓXIMAMENTE', bg: 'rgba(10,10,10,0.8)', color: '#FFFFFF' },
 }
 
 export interface MapaBarrio {

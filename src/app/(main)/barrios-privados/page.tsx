@@ -89,8 +89,9 @@ interface HubBarrio {
   descripcion: string
   meta1: string
   meta2: string
-  lat: number
-  lng: number
+  // lat/lng son opcionales: los "Próximamente" no van al mapa todavía.
+  lat?: number
+  lng?: number
 }
 
 interface TierGroup {
@@ -121,7 +122,7 @@ const TIERS: TierGroup[] = [
   },
   {
     tier: 'consolidado',
-    badge: { label: 'CONSOLIDADO', bg: '#DCE9E1', color: '#1A5C38' },
+    badge: { label: 'CONSOLIDADO', bg: '#D4A24C', color: '#0A0A0A' },
     h2: 'Los tres Funes Hills',
     sub: 'Comunidad establecida, vecindario probado.',
     barrios: [
@@ -156,7 +157,7 @@ const TIERS: TierGroup[] = [
   },
   {
     tier: 'joven',
-    badge: { label: 'VIDA JOVEN', bg: '#F4E9D5', color: '#7A5A1E' },
+    badge: { label: 'VIDA JOVEN', bg: '#E8B547', color: '#0A0A0A' },
     h2: 'Consolidado con dinámica joven',
     sub: 'Vecindario más joven y dinámico.',
     barrios: [
@@ -182,7 +183,7 @@ const TIERS: TierGroup[] = [
   },
   {
     tier: 'desarrollo',
-    badge: { label: 'EN DESARROLLO', bg: '#FDF1E4', color: '#8B5A2B' },
+    badge: { label: 'EN DESARROLLO', bg: '#8B6F47', color: '#FFFFFF' },
     h2: 'Proyectos en obra activa',
     sub: 'Oportunidad de entrar antes de la entrega final.',
     barrios: [
@@ -233,6 +234,20 @@ const TIERS: TierGroup[] = [
       },
     ],
   },
+  {
+    tier: 'proximamente',
+    badge: { label: 'PRÓXIMAMENTE', bg: 'rgba(10,10,10,0.8)', color: '#FFFFFF' },
+    h2: 'Próximos lanzamientos',
+    sub: 'Barrios en preventa o pronto a salir al mercado.',
+    // 4 barrios nuevos — David completa info real cuando esté firme.
+    // Sin lat/lng: quedan fuera del mapa hasta la segunda iteración.
+    barrios: [
+      { slug: 'aguadas',        nombre: 'Aguadas',        descripcion: 'Información próximamente', meta1: '', meta2: '' },
+      { slug: 'la-finca-1',     nombre: 'La Finca 1',     descripcion: 'Información próximamente', meta1: '', meta2: '' },
+      { slug: 'haras-de-funes', nombre: 'Haras de Funes', descripcion: 'Información próximamente', meta1: '', meta2: '' },
+      { slug: 'la-finca-2',     nombre: 'La Finca 2',     descripcion: 'Información próximamente', meta1: '', meta2: '' },
+    ],
+  },
 ]
 
 const MAPA_LEYENDA: { tier: HubTier; label: string; color: string }[] = [
@@ -243,23 +258,31 @@ const MAPA_LEYENDA: { tier: HubTier; label: string; color: string }[] = [
 ]
 
 export default function BarriosPrivadosHub() {
+  // Mapa: filtra barrios sin coordenadas (los "Próximamente" no van al
+  // mapa en esta iteración).
   const mapaBarrios: MapaBarrio[] = TIERS.flatMap((t) =>
-    t.barrios.map((b) => ({
-      slug: b.slug,
-      nombre: b.nombre,
-      tier: t.tier,
-      descripcion: b.descripcion,
-      lat: b.lat,
-      lng: b.lng,
-    })),
+    t.barrios
+      .filter((b): b is HubBarrio & { lat: number; lng: number } =>
+        Number.isFinite(b.lat) && Number.isFinite(b.lng),
+      )
+      .map((b) => ({
+        slug: b.slug,
+        nombre: b.nombre,
+        tier: t.tier,
+        descripcion: b.descripcion,
+        lat: b.lat,
+        lng: b.lng,
+      })),
   )
+
+  // Total dinámico para el H1 (incluye los "Próximamente").
+  const totalBarrios = TIERS.reduce((acc, t) => acc + t.barrios.length, 0)
 
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: 'Barrios cerrados del corredor de Funes',
-    description:
-      '11 barrios cerrados analizados por SI INMOBILIARIA — Mat. N° 0621. Funes, Santa Fe, Argentina.',
+    description: `${BARRIOS.length} barrios cerrados analizados por SI INMOBILIARIA — Mat. N° 0621. Funes, Santa Fe, Argentina.`,
     itemListElement: BARRIOS.map((b, i) => ({
       '@type': 'ListItem',
       position: i + 1,
@@ -310,7 +333,7 @@ export default function BarriosPrivadosHub() {
               margin: '0 0 20px',
             }}
           >
-            Funes · Santa Fe
+            Funes <span style={{ color: '#D4A24C' }}>·</span> Santa Fe
           </p>
           <h1
             style={{
@@ -323,11 +346,11 @@ export default function BarriosPrivadosHub() {
               letterSpacing: '-0.01em',
             }}
           >
-            Los 11 barrios cerrados de Funes.
+            Los <span style={{ fontFamily: 'Poppins, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{totalBarrios}</span> barrios cerrados de Funes.
           </h1>
           <p
             style={{
-              fontFamily: 'Poppins, sans-serif',
+              fontFamily: 'Raleway, sans-serif',
               fontSize: 17,
               fontWeight: 400,
               color: '#6B7280',
@@ -336,9 +359,18 @@ export default function BarriosPrivadosHub() {
               margin: 0,
             }}
           >
-            Información útil sobre los 11 barrios cerrados de Funes: amenities, escala y para qué
+            Información útil sobre los barrios cerrados de Funes: amenities, escala y para qué
             tipo de comprador funciona cada uno.
           </p>
+          <div
+            aria-hidden
+            style={{
+              width: 60,
+              height: 2,
+              background: '#D4A24C',
+              marginTop: 32,
+            }}
+          />
         </div>
       </section>
 
@@ -363,10 +395,10 @@ export default function BarriosPrivadosHub() {
                     fontFamily: 'Raleway, sans-serif',
                     fontSize: 11,
                     fontWeight: 600,
-                    letterSpacing: '0.12em',
+                    letterSpacing: '0.14em',
                     textTransform: 'uppercase',
-                    padding: '4px 10px',
-                    borderRadius: 4,
+                    padding: '5px 12px',
+                    borderRadius: 9999,
                     background: group.badge.bg,
                     color: group.badge.color,
                   }}
@@ -376,8 +408,8 @@ export default function BarriosPrivadosHub() {
                 <h2
                   style={{
                     fontFamily: 'Raleway, sans-serif',
-                    fontWeight: 600,
-                    fontSize: 22,
+                    fontWeight: 700,
+                    fontSize: 24,
                     color: '#0F0F0F',
                     margin: 0,
                     lineHeight: 1.2,
@@ -390,6 +422,7 @@ export default function BarriosPrivadosHub() {
                     marginLeft: 'auto',
                     fontFamily: 'Poppins, sans-serif',
                     fontSize: 13,
+                    fontVariantNumeric: 'tabular-nums',
                     color: '#9CA3AF',
                   }}
                 >
@@ -408,77 +441,115 @@ export default function BarriosPrivadosHub() {
                 {group.sub}
               </p>
               <div className="bp-card-grid">
-                {group.barrios.map((b) => (
-                  <Link
-                    key={b.slug}
-                    href={`/barrios-privados/${b.slug}`}
-                    className="bp-card"
-                    aria-label={`Conocer ${b.nombre} — ${b.descripcion}`}
-                  >
-                    <div className="bp-card-img">
-                      <BarrioHubCardImage
-                        src={getBarrioHero(b.slug)}
-                        nombre={b.nombre}
-                        tier={group.tier}
-                      />
-                    </div>
-                    <div className="bp-card-body">
-                      <span
-                        style={{
-                          fontFamily: 'Raleway, sans-serif',
-                          fontSize: 12,
-                          fontWeight: 600,
-                          letterSpacing: '0.05em',
-                          textTransform: 'uppercase',
-                          color: '#B8935A',
-                          display: 'block',
-                          marginBottom: 8,
-                        }}
-                      >
-                        {group.badge.label}
-                      </span>
-                      <h3
-                        style={{
-                          fontFamily: 'Raleway, sans-serif',
-                          fontWeight: 600,
-                          fontSize: 19,
-                          color: '#0F0F0F',
-                          margin: '0 0 8px',
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        {b.nombre}
-                      </h3>
-                      <p
-                        style={{
-                          fontFamily: 'Poppins, sans-serif',
-                          fontSize: 14,
-                          color: '#6B7280',
-                          lineHeight: 1.5,
-                          margin: 0,
-                          minHeight: 42,
-                        }}
-                      >
-                        {b.descripcion}
-                      </p>
-                      <div
-                        style={{
-                          marginTop: 14,
-                          paddingTop: 12,
-                          borderTop: '1px solid rgba(15,15,15,0.08)',
-                          display: 'flex',
-                          gap: 14,
-                          fontFamily: 'Poppins, sans-serif',
-                          fontSize: 12,
-                          color: '#6B7280',
-                        }}
-                      >
-                        <span>{b.meta1}</span>
-                        <span>{b.meta2}</span>
+                {group.barrios.map((b) => {
+                  const isProx = group.tier === 'proximamente'
+                  const cardBody = (
+                    <>
+                      <div className="bp-card-img-wrap">
+                        <div className={`bp-card-img${isProx ? ' bp-card-img--prox' : ''}`}>
+                          <BarrioHubCardImage
+                            src={getBarrioHero(b.slug)}
+                            nombre={b.nombre}
+                            tier={group.tier}
+                          />
+                        </div>
+                        {isProx && <div aria-hidden className="bp-card-img-overlay" />}
+                        <span
+                          className="bp-card-badge"
+                          style={{
+                            background: group.badge.bg,
+                            color: group.badge.color,
+                            ...(isProx
+                              ? { backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }
+                              : {}),
+                          }}
+                        >
+                          {group.badge.label}
+                        </span>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                      <div className="bp-card-body">
+                        <h3
+                          style={{
+                            fontFamily: 'Raleway, sans-serif',
+                            fontWeight: 700,
+                            fontSize: 22,
+                            color: '#0F0F0F',
+                            margin: '0 0 8px',
+                            lineHeight: 1.2,
+                            letterSpacing: '-0.01em',
+                          }}
+                        >
+                          {b.nombre}
+                        </h3>
+                        <p
+                          style={{
+                            fontFamily: 'Raleway, sans-serif',
+                            fontSize: 14,
+                            color: '#525252',
+                            lineHeight: 1.55,
+                            margin: 0,
+                            minHeight: isProx ? 0 : 42,
+                          }}
+                        >
+                          {b.descripcion}
+                        </p>
+                        {isProx ? (
+                          <div
+                            style={{
+                              marginTop: 14,
+                              paddingTop: 12,
+                              borderTop: '1px solid rgba(15,15,15,0.08)',
+                              fontFamily: 'Raleway, sans-serif',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              letterSpacing: '0.06em',
+                              textTransform: 'uppercase',
+                              color: '#737373',
+                            }}
+                          >
+                            Más información próximamente
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              marginTop: 14,
+                              paddingTop: 12,
+                              borderTop: '1px solid #E5E5E5',
+                              display: 'flex',
+                              gap: 14,
+                              fontFamily: 'Poppins, sans-serif',
+                              fontSize: 13,
+                              fontVariantNumeric: 'tabular-nums',
+                              color: '#404040',
+                            }}
+                          >
+                            <span>{b.meta1}</span>
+                            <span>{b.meta2}</span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )
+
+                  if (isProx) {
+                    // Sin Link: los 4 nuevos todavía no tienen landing.
+                    return (
+                      <div key={b.slug} className="bp-card bp-card--prox" aria-label={`${b.nombre} — próximamente`}>
+                        {cardBody}
+                      </div>
+                    )
+                  }
+                  return (
+                    <Link
+                      key={b.slug}
+                      href={`/barrios-privados/${b.slug}`}
+                      className="bp-card"
+                      aria-label={`Conocer ${b.nombre} — ${b.descripcion}`}
+                    >
+                      {cardBody}
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           ))}
@@ -687,23 +758,60 @@ export default function BarriosPrivadosHub() {
           flex-direction: column;
           background: #fff;
           border: 1px solid rgba(15,15,15,0.08);
-          border-radius: 12px;
+          border-radius: 16px;
           overflow: hidden;
           text-decoration: none;
           color: inherit;
-          transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+          box-shadow: 0 1px 2px rgba(15,15,15,0.04);
+          transition: transform 500ms ease, box-shadow 300ms ease, border-color 220ms ease;
         }
-        .bp-card:hover {
-          border-color: #1A5C38;
-          transform: translateY(-2px);
-          box-shadow: 0 12px 28px rgba(15,15,15,0.08);
+        @media (hover: hover) {
+          .bp-card:hover {
+            border-color: #1A5C38;
+            transform: scale(1.02);
+            box-shadow: 0 20px 40px rgba(15,15,15,0.12);
+          }
+          .bp-card:hover .bp-card-img > * { transform: scale(1.05); }
+          .bp-card--prox:hover .bp-card-img--prox > * { filter: none; opacity: 1; }
         }
-        .bp-card-img {
+        .bp-card-img-wrap {
           position: relative;
           width: 100%;
-          aspect-ratio: 3 / 4;
+          aspect-ratio: 4 / 5;
           background: #F3EFE7;
           overflow: hidden;
+        }
+        .bp-card-img { position: absolute; inset: 0; }
+        .bp-card-img > * {
+          transition: transform 700ms ease, filter 600ms ease, opacity 600ms ease;
+        }
+        /* "Próximamente": foto en grayscale + opacity 70 hasta el hover. */
+        .bp-card-img--prox > * { filter: grayscale(1); opacity: 0.7; }
+        /* Velado sutil sobre la foto de "Próximamente" para insinuar
+           "no disponible aún". */
+        .bp-card-img-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(10,10,10,0.2);
+          pointer-events: none;
+          z-index: 1;
+        }
+        .bp-card-badge {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          z-index: 2;
+          font-family: 'Raleway', sans-serif;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          padding: 6px 12px;
+          border-radius: 9999px;
+        }
+        .bp-card--prox {
+          /* Cursor default para insinuar que no es clickeable. */
+          cursor: default;
         }
         .bp-card-body { padding: 18px 20px 20px; }
         .bp-mapa { padding: 56px 0; }
@@ -738,7 +846,7 @@ export default function BarriosPrivadosHub() {
         .bp-cta { padding: 64px 0; }
         .bp-cta-button:hover {
           background: #FFFFFF !important;
-          transform: translateY(-2px);
+          transform: scale(1.02);
         }
 
         @media (min-width: 768px) {
