@@ -14,7 +14,7 @@ interface Props {
 export default function BarrioCTAFinal({
   title = '¿Querés que un broker local te ayude a elegir?',
   subtitle = 'Ahorrate semanas de búsqueda. Te organizamos visitas a los barrios que te interesan en una sola tarde.',
-  waText = 'Hola David, vi la página de barrios privados y quiero que me orienten.',
+  waText = 'Hola David, vi la página de barrios cerrados y quiero que me orienten.',
   ubicacion = 'cta-final-hub',
   slug,
 }: Props) {

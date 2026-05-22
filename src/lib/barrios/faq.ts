@@ -90,7 +90,7 @@ export const HUB_FAQS: FAQ[] = [
       'Kentucky Club de Campo es el único del corredor con campo de golf de 18 hoyos dentro del perímetro. Sus 242 hectáreas también incluyen lago artificial de 7 ha y arboleda añosa.',
   },
   {
-    pregunta: '¿Cuáles son los barrios privados más nuevos del corredor?',
+    pregunta: '¿Cuáles son los barrios cerrados más nuevos del corredor?',
     respuesta:
       'Los más nuevos son los del universo Vida (Lagoon, Barrio Cerrado, Club de Campo, Jardín, Green) y Funes Lakes, todos en distintas etapas de desarrollo. Vida Lagoon es el primer "barrio destino" del interior del país.',
   },
