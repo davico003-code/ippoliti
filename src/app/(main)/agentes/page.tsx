@@ -4,6 +4,7 @@ import { verifyAgentToken } from '@/lib/auth'
 import AgentDashboardV2 from '@/components/agentes/AgentDashboardV2'
 import { getAllClientes } from '@/lib/clientes'
 import { listAutorizaciones } from '@/lib/autorizaciones'
+import { countNewsletterLeads } from '@/lib/leads'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,10 +16,15 @@ export default async function AgentesPage() {
   const agent = await verifyAgentToken(token)
   if (!agent) redirect('/agentes/login')
 
+  // Newsletter solo se consulta para admins (la placa no se renderiza para
+  // agentes comunes). Evita pegarle a Redis innecesariamente.
+  const isAdmin = agent.role === 'admin'
+
   // Stats globales (Fase 1 sin scope por agente; TODO Fase 2: filtrar por agentId).
-  const [clientes, autorizaciones] = await Promise.all([
+  const [clientes, autorizaciones, newsletter] = await Promise.all([
     getAllClientes().catch(() => []),
     listAutorizaciones({ status: 'all', limit: 200 }).catch(() => ({ items: [], hasMore: false })),
+    isAdmin ? countNewsletterLeads() : Promise.resolve({ total: 0, esteMes: 0 }),
   ])
 
   // Autorizaciones creadas este mes.
@@ -35,6 +41,8 @@ export default async function AgentesPage() {
       agentRole={agent.role}
       clientesEnCartera={clientes.length}
       autorizacionesEsteMes={autorizacionesEsteMes}
+      newsletterTotal={newsletter.total}
+      newsletterEsteMes={newsletter.esteMes}
     />
   )
 }

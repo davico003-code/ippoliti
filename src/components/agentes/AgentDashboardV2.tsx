@@ -7,6 +7,7 @@ import {
   BarChart3,
   FileText,
   GraduationCap,
+  Mail,
   MessageSquare,
   Users,
 } from 'lucide-react'
@@ -62,6 +63,10 @@ interface Props {
   agentRole: 'admin' | 'agent'
   clientesEnCartera: number
   autorizacionesEsteMes: number
+  /** Total de suscriptores newsletter (solo se popula si admin). */
+  newsletterTotal?: number
+  /** Suscriptos newsletter este mes (solo se popula si admin). */
+  newsletterEsteMes?: number
 }
 
 export default function AgentDashboardV2({
@@ -69,6 +74,8 @@ export default function AgentDashboardV2({
   agentRole,
   clientesEnCartera,
   autorizacionesEsteMes,
+  newsletterTotal = 0,
+  newsletterEsteMes = 0,
 }: Props) {
   const firstName = agentName.split(' ')[0]
   const initials = getInitials(agentName)
@@ -202,7 +209,14 @@ export default function AgentDashboardV2({
           />
         </div>
 
-        {isAdmin && <AdminSection clientesGlobal={clientesEnCartera} autorizacionesMes={autorizacionesEsteMes} />}
+        {isAdmin && (
+          <AdminSection
+            clientesGlobal={clientesEnCartera}
+            autorizacionesMes={autorizacionesEsteMes}
+            newsletterTotal={newsletterTotal}
+            newsletterEsteMes={newsletterEsteMes}
+          />
+        )}
       </main>
     </div>
   )
@@ -475,9 +489,13 @@ function ProgressBar({ done, total, label }: { done: number; total: number; labe
 function AdminSection({
   clientesGlobal,
   autorizacionesMes,
+  newsletterTotal,
+  newsletterEsteMes,
 }: {
   clientesGlobal: number
   autorizacionesMes: number
+  newsletterTotal: number
+  newsletterEsteMes: number
 }) {
   // TODO Fase 2: reemplazar mocks por datos reales del equipo
   const agentesActivos = ADMIN_MOCK_AGENTS.length
@@ -493,8 +511,34 @@ function AdminSection({
     [agentesActivos, clientesGlobal, autorizacionesMes, completos],
   )
 
+  const newsletterStat = newsletterEsteMes > 0
+    ? `${newsletterTotal} suscriptos · ${newsletterEsteMes} este mes`
+    : `${newsletterTotal} suscriptos`
+
   return (
     <section aria-label="Vista de administrador" style={{ marginTop: 16 }}>
+      <SectionTitle>Administrador</SectionTitle>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 18,
+          marginBottom: 28,
+        }}
+      >
+        <PlacaCard
+          href="/agentes/newsletter"
+          icon={<Mail size={22} strokeWidth={1.8} />}
+          iconColor={GREEN}
+          iconBg={GREEN_TINT}
+          title="Suscriptores Newsletter"
+          description="Personas que dejaron sus datos en el popup “¿Encontraste lo que buscabas?”. Exportá la lista o contactalos por WhatsApp."
+          statLabel={newsletterStat}
+          statColor={GREEN}
+        />
+      </div>
+
       <SectionTitle>Vista de Administrador</SectionTitle>
 
       <div
