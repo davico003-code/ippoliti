@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import type { FAQ } from '@/lib/barrios/faq'
 
 interface Props {
@@ -26,61 +27,53 @@ export default function BarrioFAQ({ faqs, title }: Props) {
           {title}
         </h3>
       )}
-      <div>
+      <div className="flex flex-col gap-3">
         {faqs.map((f, i) => {
           const isOpen = open === i
           return (
             <div
               key={f.pregunta}
-              style={{ borderBottom: '1px solid rgba(15,15,15,0.1)' }}
+              className="bg-white rounded-xl border border-neutral-200 transition-shadow hover:shadow-sm"
             >
               <button
                 type="button"
                 onClick={() => setOpen(isOpen ? null : i)}
                 aria-expanded={isOpen}
-                style={{
-                  width: '100%',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '18px 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 16,
-                  textAlign: 'left',
-                  fontFamily: 'Raleway, sans-serif',
-                  fontWeight: 500,
-                  fontSize: 16,
-                  color: '#0F0F0F',
-                  lineHeight: 1.4,
-                }}
+                className="w-full flex items-center justify-between gap-4 text-left p-6"
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
               >
-                <span>{f.pregunta}</span>
                 <span
+                  className="text-base md:text-lg"
+                  style={{
+                    fontFamily: 'Raleway, sans-serif',
+                    fontWeight: 600,
+                    color: '#0F0F0F',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {f.pregunta}
+                </span>
+                <ChevronDown
+                  size={20}
+                  strokeWidth={2}
                   aria-hidden
                   style={{
                     flexShrink: 0,
-                    fontFamily: 'Raleway, sans-serif',
-                    fontSize: 22,
-                    fontWeight: 300,
                     color: '#1A5C38',
-                    lineHeight: 1,
-                    width: 20,
-                    textAlign: 'center',
+                    transition: 'transform 300ms ease',
+                    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                   }}
-                >
-                  {isOpen ? '−' : '+'}
-                </span>
+                />
               </button>
               {isOpen && (
                 <div
+                  className="px-6 pb-6"
                   style={{
-                    fontFamily: 'Poppins, sans-serif',
-                    fontSize: 14,
-                    color: '#6B7280',
-                    lineHeight: 1.6,
-                    paddingBottom: 18,
+                    fontFamily: 'Raleway, sans-serif',
+                    fontSize: 15,
+                    color: '#525252',
+                    lineHeight: 1.65,
+                    paddingTop: 0,
                   }}
                 >
                   {f.respuesta}

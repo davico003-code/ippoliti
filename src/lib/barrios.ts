@@ -9,7 +9,8 @@ export type BarrioTier =
   | "Premium"
   | "Consolidado"
   | "Consolidado con vida joven"
-  | "En desarrollo";
+  | "En desarrollo"
+  | "Próximamente";
 // Hoy todos los barrios privados que cubrimos son de Funes. Si en el futuro
 // sumamos otra zona, extender la union.
 export type BarrioZona = "funes";

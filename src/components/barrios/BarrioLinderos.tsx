@@ -6,6 +6,7 @@ const TICKET_DESCRIPCION: Record<Barrio['tier'], string> = {
   Consolidado: 'Medio-alto',
   'Consolidado con vida joven': 'Medio',
   'En desarrollo': 'Accesible',
+  'Próximamente': 'A confirmar',
 }
 
 interface Props {

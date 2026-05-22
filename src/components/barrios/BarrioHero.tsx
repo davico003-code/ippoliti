@@ -10,6 +10,11 @@ const TIER_LABEL: Record<Barrio['tier'], { label: string; cls: string }> = {
   Consolidado: { label: 'Consolidado', cls: 'bg-brand-600 text-white' },
   'Consolidado con vida joven': { label: 'Consolidado · vida joven', cls: 'bg-[#3D8B5C] text-white' },
   'En desarrollo': { label: 'En desarrollo', cls: 'bg-white/90 text-navy-800' },
+  // Próximamente: hoy ningún Barrio del array BARRIOS usa este tier
+  // (los "Próximamente" del hub viven solo en page.tsx). Entry obligatoria
+  // por el Record<>; si en el futuro se agrega uno con landing propia,
+  // tunear este label/cls.
+  'Próximamente': { label: 'Próximamente', cls: 'bg-black/80 text-white backdrop-blur-sm' },
 }
 
 interface Props {
