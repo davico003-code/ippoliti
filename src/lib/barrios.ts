@@ -112,6 +112,10 @@ export interface Barrio {
   comparativaKeys?: string[];
   ubicacionEditorial?: string;
   distanciaRosario?: string;
+  // Expensas mensuales aproximadas — texto libre (ej. "$ 180.000/mes (jun 2026)").
+  // Si está vacío/undefined, la ficha muestra "Consultar" como placeholder.
+  // Próximamente David lo va a poblar barrio por barrio.
+  expensas?: string;
 }
 
 const ICON = {
