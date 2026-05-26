@@ -1,38 +1,52 @@
-import { notFound } from 'next/navigation'
-import type { Metadata } from 'next'
-import { BARRIOS, getBarrioBySlug } from '@/lib/barrios'
-import { buildBarrioFaqs } from '@/lib/barrios/faq'
-import { getPlanoUrl } from '@/lib/barrios/planos'
+// Ficha individual /barrios-privados/[slug] — rediseño compacto 2026-05.
+//
+// Composición orientada a INFO ÚTIL, no a storytelling editorial. Cada sección
+// solo se renderea si el barrio tiene la data correspondiente (no inventar).
+// Slot de Expensas con placeholder "Consultar" hasta que David popule el campo
+// barrio.expensas en lib/barrios.ts.
+//
+// Mantiene: metadata, JSON-LD (Place + Breadcrumb + FAQPage), LandingTracker,
+// stock vivo de Tokko (lotes + casas), form de captura (BarrioNewsletter),
+// CTA final con WhatsApp + visita guiada.
 
-import BarrioHero from '@/components/barrios/BarrioHero'
-import BarrioContenidoEditorial from '@/components/barrios/BarrioContenidoEditorial'
-import BarrioDescargas from '@/components/barrios/BarrioDescargas'
-import BarrioStockTokko from '@/components/barrios/BarrioStockTokko'
-import BarrioNewsletter from '@/components/barrios/BarrioNewsletter'
-import BarrioCTAFinal from '@/components/barrios/BarrioCTAFinal'
-import LandingTracker from './LandingTracker'
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { BARRIOS, getBarrioBySlug } from "@/lib/barrios";
+import { buildBarrioFaqs } from "@/lib/barrios/faq";
+import { getPlanoUrl } from "@/lib/barrios/planos";
+
+import BarrioStockTokko from "@/components/barrios/BarrioStockTokko";
+import BarrioNewsletter from "@/components/barrios/BarrioNewsletter";
+import BarrioCTAFinal from "@/components/barrios/BarrioCTAFinal";
+import LandingTracker from "./LandingTracker";
+
+import FichaHero from "./_components/FichaHero";
+import FichaDatosDuros from "./_components/FichaDatosDuros";
+import FichaExpensasSlot from "./_components/FichaExpensasSlot";
+import FichaCaracteristicas from "./_components/FichaCaracteristicas";
+import FichaUbicacion from "./_components/FichaUbicacion";
+import FichaPlano from "./_components/FichaPlano";
 
 interface Props {
-  params: { slug: string }
+  params: { slug: string };
 }
 
 export function generateStaticParams() {
-  return BARRIOS.map((b) => ({ slug: b.slug }))
+  return BARRIOS.map((b) => ({ slug: b.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const barrio = getBarrioBySlug(params.slug)
-  if (!barrio) return {}
-  const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`
+  const barrio = getBarrioBySlug(params.slug);
+  if (!barrio) return {};
+  const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`;
 
-  // Prefer editorial subtitulo + 155 chars del intro cuando existen.
   const title = barrio.subtitulo
     ? `${barrio.nombre} · ${barrio.subtitulo} | SI Inmobiliaria`
-    : barrio.seo.metaTitle
+    : barrio.seo.metaTitle;
   const description = barrio.contenidoSEO?.intro
     ? barrio.contenidoSEO.intro.slice(0, 155).trim()
-    : barrio.seo.metaDescription
-  const keywords = barrio.keywords ?? barrio.seo.keywordsLongTail.join(', ')
+    : barrio.seo.metaDescription;
+  const keywords = barrio.keywords ?? barrio.seo.keywordsLongTail.join(", ");
 
   return {
     title,
@@ -43,98 +57,80 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: canonical,
-      images: [barrio.imagenes.hero ?? '/og-default.jpg'],
-      type: 'website',
-      siteName: 'SI INMOBILIARIA',
+      images: [barrio.imagenes.hero ?? "/og-default.jpg"],
+      type: "website",
+      siteName: "SI INMOBILIARIA",
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title,
       description,
-      images: [barrio.imagenes.hero ?? '/og-default.jpg'],
+      images: [barrio.imagenes.hero ?? "/og-default.jpg"],
     },
-  }
+  };
 }
 
 export default function BarrioPage({ params }: Props) {
-  const barrio = getBarrioBySlug(params.slug)
-  if (!barrio) notFound()
+  const barrio = getBarrioBySlug(params.slug);
+  if (!barrio) notFound();
 
-  // FAQ del JSON-LD: priorizar la editorial (faqExtendida del JSON) sobre
-  // la generada heurística (buildBarrioFaqs). Si no hay editorial, fallback.
+  // JSON-LD (sin cambios respecto a la versión anterior)
   const faqsParaJsonLd = barrio.faqExtendida?.length
     ? barrio.faqExtendida
-    : buildBarrioFaqs(barrio)
+    : buildBarrioFaqs(barrio);
 
-  const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`
+  const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`;
   const description = barrio.contenidoSEO?.intro
     ? barrio.contenidoSEO.intro.slice(0, 300).trim()
-    : barrio.seo.metaDescription
+    : barrio.seo.metaDescription;
 
   const placeJsonLd = {
-    '@type': 'Place',
-    '@id': `${canonical}#place`,
+    "@type": "Place",
+    "@id": `${canonical}#place`,
     name: barrio.nombreCompleto,
     description,
     url: canonical,
     address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Funes',
-      addressRegion: 'Santa Fe',
-      addressCountry: 'AR',
+      "@type": "PostalAddress",
+      addressLocality: "Funes",
+      addressRegion: "Santa Fe",
+      addressCountry: "AR",
       streetAddress: barrio.ubicacion.direccionIngreso,
     },
     geo: barrio.ubicacion.coordenadas
       ? {
-          '@type': 'GeoCoordinates',
+          "@type": "GeoCoordinates",
           latitude: barrio.ubicacion.coordenadas.lat,
           longitude: barrio.ubicacion.coordenadas.lng,
         }
       : undefined,
-    image: barrio.imagenes.hero
-      ? `https://siinmobiliaria.com${barrio.imagenes.hero}`
-      : undefined,
-  }
+    image: barrio.imagenes.hero ? `https://siinmobiliaria.com${barrio.imagenes.hero}` : undefined,
+  };
 
   const breadcrumbJsonLd = {
-    '@type': 'BreadcrumbList',
-    '@id': `${canonical}#breadcrumb`,
+    "@type": "BreadcrumbList",
+    "@id": `${canonical}#breadcrumb`,
     itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Inicio',
-        item: 'https://siinmobiliaria.com',
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Barrios cerrados',
-        item: 'https://siinmobiliaria.com/barrios-privados',
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: barrio.nombre,
-        item: canonical,
-      },
+      { "@type": "ListItem", position: 1, name: "Inicio", item: "https://siinmobiliaria.com" },
+      { "@type": "ListItem", position: 2, name: "Barrios cerrados", item: "https://siinmobiliaria.com/barrios-privados" },
+      { "@type": "ListItem", position: 3, name: barrio.nombre, item: canonical },
     ],
-  }
+  };
 
   const faqJsonLd = {
-    '@type': 'FAQPage',
-    '@id': `${canonical}#faq`,
+    "@type": "FAQPage",
+    "@id": `${canonical}#faq`,
     mainEntity: faqsParaJsonLd.map((f) => ({
-      '@type': 'Question',
+      "@type": "Question",
       name: f.pregunta,
-      acceptedAnswer: { '@type': 'Answer', text: f.respuesta },
+      acceptedAnswer: { "@type": "Answer", text: f.respuesta },
     })),
-  }
+  };
 
   const graphJsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [placeJsonLd, breadcrumbJsonLd, faqJsonLd],
-  }
+    "@context": "https://schema.org",
+    "@graph": [placeJsonLd, breadcrumbJsonLd, faqJsonLd],
+  };
 
   return (
     <>
@@ -144,40 +140,59 @@ export default function BarrioPage({ params }: Props) {
       />
       <LandingTracker slug={barrio.slug} nombre={barrio.nombre} />
 
-      {/* 1. HERO — foto real o placeholder SVG por barrio */}
-      <BarrioHero barrio={barrio} />
+      {/* 1. Hero compacto (320px alto / 240px mobile) — foto + breadcrumb + tier + nombre */}
+      <FichaHero barrio={barrio} />
 
-      {/* 2. CONTENIDO EDITORIAL SEO — 8 capítulos según 11-landings/{slug}.html.
-         Hero + 8 bloques + CTA = exactamente lo del HTML maestro. */}
-      <BarrioContenidoEditorial barrio={barrio} />
+      {/* 2. Datos duros — grid de números (lotes, ha, m² lote, espacios verdes) */}
+      <FichaDatosDuros barrio={barrio} />
 
-      {/* 3. DESCARGAS — plano PDF si está cargado, sino fallback WhatsApp.
-         Drop el archivo en /public/barrios/{slug}/plano.pdf y se conecta. */}
-      <BarrioDescargas
-        slug={barrio.slug}
-        nombre={barrio.nombre}
-        planoUrl={getPlanoUrl(barrio.slug)}
-      />
+      {/* 3. Expensas — slot con placeholder hasta que tengamos el dato real */}
+      <FichaExpensasSlot barrio={barrio} />
 
-      {/* Funcionales que no están en el HTML maestro pero suman valor:
-         stock vivo de Tokko + form de captura de lead. */}
-      <div className="mx-auto max-w-[1280px] space-y-20 px-6 py-16 md:px-10">
+      {/* 4. Características — amenities + infraestructura + seguridad */}
+      <FichaCaracteristicas barrio={barrio} />
+
+      {/* 5. Ubicación — dirección + accesos + distancia centro Rosario */}
+      <FichaUbicacion barrio={barrio} />
+
+      {/* 6. Plano descargable */}
+      <FichaPlano slug={barrio.slug} nombre={barrio.nombre} planoUrl={getPlanoUrl(barrio.slug)} />
+
+      {/* 7. Stock disponible — lotes + casas (live Tokko) */}
+      <div className="mx-auto max-w-[1280px] space-y-12 px-6 py-12 md:px-10">
         <section id="lotes" className="scroll-mt-24">
-          <h2 className="mb-6 font-raleway text-2xl font-semibold text-navy-700 md:text-3xl">
+          <h2
+            style={{
+              fontFamily: "var(--font-raleway), 'Raleway', system-ui, sans-serif",
+              fontWeight: 700,
+              fontSize: 20,
+              color: "#0a0a0a",
+              margin: "0 0 18px",
+              letterSpacing: "-0.01em",
+            }}
+          >
             Lotes disponibles en {barrio.nombre}
           </h2>
           <BarrioStockTokko slug={barrio.slug} nombre={barrio.nombre} tipo="Terreno" />
         </section>
 
         <section>
-          <BarrioStockTokko
-            slug={barrio.slug}
-            nombre={barrio.nombre}
-            tipo="Casa"
-            title={`Casas en venta en ${barrio.nombre}`}
-          />
+          <h2
+            style={{
+              fontFamily: "var(--font-raleway), 'Raleway', system-ui, sans-serif",
+              fontWeight: 700,
+              fontSize: 20,
+              color: "#0a0a0a",
+              margin: "0 0 18px",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Casas en venta en {barrio.nombre}
+          </h2>
+          <BarrioStockTokko slug={barrio.slug} nombre={barrio.nombre} tipo="Casa" />
         </section>
 
+        {/* 8. Newsletter — form compacto para captura lead */}
         <section id="contacto" className="scroll-mt-24">
           <BarrioNewsletter
             defaultBarrioSlug={barrio.slug}
@@ -188,7 +203,7 @@ export default function BarrioPage({ params }: Props) {
         </section>
       </div>
 
-      {/* 3. CTA FINAL — referencia: cta-finale del HTML maestro */}
+      {/* 9. CTA final — visita guiada + WhatsApp */}
       <BarrioCTAFinal
         slug={barrio.slug}
         ubicacion={`cta-final-${barrio.slug}`}
@@ -197,5 +212,5 @@ export default function BarrioPage({ params }: Props) {
         waText={`Hola SI, quiero info sobre ${barrio.nombre}.`}
       />
     </>
-  )
+  );
 }
