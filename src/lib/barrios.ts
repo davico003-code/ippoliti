@@ -1008,3 +1008,193 @@ export const TAG_LABELS: Record<string, string> = {
   consolidado: "Consolidado",
   "diseño-estudio-bo": "Diseño Estudio BO",
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HUB /barrios-privados — datos específicos del rediseño 2026-05
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Lo de abajo es exclusivo del HUB: marker sigla, descripción 1-línea para card,
+// 3 datos cortos, amenities tipadas para chips, coords verificadas con Google
+// Places, ruta a la foto principal en /public/barrios/{slug}/.
+//
+// NO toca el array BARRIOS de arriba (para no romper fichas individuales).
+// Los 4 "Próximamente" (aguadas, la-finca-1, la-finca-2, haras-de-funes) no
+// tienen entry en BARRIOS porque aún no hay ficha — solo viven en el HUB.
+
+export type AmenityHubId = "golf" | "laguna" | "grupo-electrogeno" | "acceso-peatonal";
+export type HubTierId = "premium" | "consolidado" | "desarrollo" | "proximamente";
+
+export interface HubBarrio {
+  slug: string;
+  sigla: string;            // 2 letras para marker del mapa
+  nombre: string;
+  tier: HubTierId;
+  descripcion: string;      // 1 línea para card del HUB
+  datos: string[];          // 3 datos cortos. El primer chunk numérico se enfatiza.
+  amenities: AmenityHubId[];
+  lat: number;
+  lng: number;
+  imagenHero: string;       // path al JPG en /public/barrios/{slug}/...
+                            // vacío para Próximamente → gradient fallback.
+}
+
+// HUB data por slug — coords verificadas Google Places (2026-05). Estas
+// coords pueden diferir de barrio.ubicacion.coordenadas (las del HUB son las
+// que se muestran en el mapa principal; las de la ficha mantienen su flujo).
+const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
+  "kentucky": {
+    sigla: "KE",
+    descripcion: "El country tradicional de Funes con golf 18 hoyos. Marca histórica, vecindario discreto.",
+    datos: ["676 lotes", "242 ha", "Golf 18 hoyos"],
+    amenities: ["golf"],
+    lat: -32.9407, lng: -60.8273,
+    imagenHero: "/barrios/kentucky/dji_fly_20260120_174120_0248_1768942128667_photo.jpg",
+  },
+  "funes-hills-san-marino": {
+    sigla: "FH",
+    descripcion: "Comunidad chica con grupo electrógeno integrado al 100% del barrio.",
+    datos: ["Escala chica", "Electrógeno 100%", "Familiar"],
+    amenities: ["grupo-electrogeno"],
+    lat: -32.9276, lng: -60.8246,
+    imagenHero: "/barrios/funes-hills-san-marino/dji_fly_20241128_131904_0705_1732842535526_photo.jpg",
+  },
+  "funes-hills-cadaques": {
+    sigla: "FH",
+    descripcion: "Lotes de 800 m² en las tierras altas de Funes. Diseño espacioso y consolidado.",
+    datos: ["800 m² típico", "Tierras altas", "100% habitado"],
+    amenities: [],
+    lat: -32.9296, lng: -60.8278,
+    imagenHero: "/barrios/funes-hills-cadaques/DJI_0093.jpg",
+  },
+  "funes-hills-miraflores": {
+    sigla: "FH",
+    descripcion: "Polo tenístico del cluster Funes Hills. Reventa demostrada y vecindario consolidado.",
+    datos: ["308 lotes", "800–1.215 m²", "Tenis"],
+    amenities: [],
+    lat: -32.9298, lng: -60.8398,
+    imagenHero: "/barrios/funes-hills-miraflores/339F719E-1BB0-4A2F-B487-A96A61CC4F03.jpg",
+  },
+  "san-sebastian": {
+    sigla: "SS",
+    descripcion: "Generador eléctrico para todo el barrio. Comunidad joven y dinámica con escala media.",
+    datos: ["587 lotes", "68 ha", "Generador"],
+    amenities: ["grupo-electrogeno"],
+    lat: -32.9296, lng: -60.8115,
+    imagenHero: "/barrios/san-sebastian/dji_fly_20250123_163818_0326_1738178485894_photo.jpg",
+  },
+  "vida-barrio-cerrado": {
+    sigla: "VB",
+    descripcion: "Centro comercial propio integrado al ingreso. Vecindario joven con servicios.",
+    datos: ["294 lotes", "35 ha", "Centro comercial"],
+    amenities: ["acceso-peatonal"],
+    lat: -32.9291, lng: -60.7931,
+    imagenHero: "/barrios/vida-barrio-cerrado/dji_fly_20250217_175840_0535_1739834666297_photo.jpg",
+  },
+  "vida-lagoon": {
+    sigla: "VL",
+    descripcion: "Laguna cristalina de 23.300 m² en Funes. Oportunidad de entrar antes de la entrega final.",
+    datos: ["1.042 lotes", "100 ha", "Laguna 23.300 m²"],
+    amenities: ["laguna"],
+    lat: -32.9100, lng: -60.8422,
+    imagenHero: "/barrios/vida-lagoon/dji_fly_20241209_135900_0075_1733763810528_photo.jpg",
+  },
+  "vida-club-de-campo": {
+    sigla: "VC",
+    descripcion: "Practice de golf y Club House de autor. Diseño contemporáneo a escala campestre.",
+    datos: ["659 lotes", "135 ha", "Golf practice"],
+    amenities: ["golf"],
+    lat: -32.9300, lng: -60.7857,
+    imagenHero: "/barrios/vida-club-de-campo/aerea-barrio-completo.jpg",
+  },
+  "vida-jardin": {
+    sigla: "VJ",
+    descripcion: "Acceso directo a la autopista. Lotes amplios y ubicación estratégica.",
+    datos: ["242 lotes", "800–1.100 m²", "A autopista"],
+    amenities: [],
+    lat: -32.9307, lng: -60.8468,
+    imagenHero: "/barrios/vida-jardin/foto-2.jpg",
+  },
+  "vida-green": {
+    sigla: "VG",
+    descripcion: "Entrada al cluster Vida desde valor. Ideal para entrar al ecosistema sin ticket alto.",
+    datos: ["419 lotes", "500–700 m²", "Entry-level"],
+    amenities: [],
+    lat: -32.8968, lng: -60.8014,
+    imagenHero: "/barrios/vida-green/vida green.jpg",
+  },
+  "funes-lakes": {
+    sigla: "FL",
+    descripcion: "Barrio náutico de 8 islas conectadas. Único en el corredor con esta tipología.",
+    datos: ["485 lotes", "50 ha", "8 islas"],
+    amenities: ["laguna"],
+    lat: -32.9377, lng: -60.8024,
+    imagenHero: "/barrios/funes-lakes/IMG_8508.JPG",
+  },
+};
+
+// Próximamente — entries solo para el HUB (no hay Barrio completo aún).
+const PROXIMAMENTE_HUB: HubBarrio[] = [
+  { slug: "aguadas", sigla: "AG", nombre: "Aguadas", tier: "proximamente",
+    descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
+    datos: [], amenities: [], lat: -32.9394, lng: -60.8117, imagenHero: "" },
+  { slug: "la-finca-1", sigla: "LF", nombre: "La Finca 1", tier: "proximamente",
+    descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
+    datos: [], amenities: [], lat: -32.9277, lng: -60.7732, imagenHero: "" },
+  { slug: "la-finca-2", sigla: "LF", nombre: "La Finca 2", tier: "proximamente",
+    descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
+    datos: [], amenities: [], lat: -32.9097, lng: -60.8187, imagenHero: "" },
+  { slug: "haras-de-funes", sigla: "HD", nombre: "Haras de Funes", tier: "proximamente",
+    descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
+    datos: [], amenities: [], lat: -32.9530, lng: -60.8371, imagenHero: "" },
+];
+
+// Mapeo del tier rico (modelo Barrio) al tier simplificado del HUB (4 buckets).
+export function mapTierToHubTier(t: BarrioTier): HubTierId {
+  if (t === "Premium") return "premium";
+  if (t === "Consolidado" || t === "Consolidado con vida joven") return "consolidado";
+  if (t === "En desarrollo") return "desarrollo";
+  return "proximamente";
+}
+
+// Orden canónico del HUB: premium → consolidado → desarrollo → proximamente.
+// Dentro de cada bucket, sigue el orden del array BARRIOS (ya curado por David).
+const TIER_ORDER: Record<HubTierId, number> = {
+  premium: 0,
+  consolidado: 1,
+  desarrollo: 2,
+  proximamente: 3,
+};
+
+export function getBarriosHub(): HubBarrio[] {
+  const fromBarrios: HubBarrio[] = BARRIOS
+    .filter((b) => HUB_DATA[b.slug])
+    .map((b) => ({
+      slug: b.slug,
+      nombre: b.nombre,
+      tier: mapTierToHubTier(b.tier),
+      ...HUB_DATA[b.slug]!,
+    }));
+  const all = [...fromBarrios, ...PROXIMAMENTE_HUB];
+  // Sort estable por tier-bucket (sin reordenar dentro de cada bucket).
+  return all.sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]);
+}
+
+export const AMENITIES_HUB_META: ReadonlyArray<{
+  id: AmenityHubId;
+  label: string;
+  icon: string;        // nombre del ícono Lucide
+  colorFrom: string;
+  colorTo: string;
+}> = [
+  { id: "golf",              label: "Golf",                        icon: "Flag",       colorFrom: "#2d8a4f", colorTo: "#1A5C38" },
+  { id: "laguna",            label: "Laguna",                      icon: "Waves",      colorFrom: "#5b9bd5", colorTo: "#2d5a8a" },
+  { id: "grupo-electrogeno", label: "Grupo electrógeno",           icon: "Zap",        colorFrom: "#d4a04a", colorTo: "#B8935A" },
+  { id: "acceso-peatonal",   label: "Acceso peatonal a servicios", icon: "Footprints", colorFrom: "#a89070", colorTo: "#6e5a3a" },
+];
+
+export const TIER_HUB_META: Record<HubTierId, { label: string; badgeBg: string; badgeColor: string }> = {
+  premium:      { label: "Premium",       badgeBg: "rgba(255,255,255,0.95)", badgeColor: "#1A5C38" },
+  consolidado:  { label: "Consolidado",   badgeBg: "rgba(255,255,255,0.95)", badgeColor: "#B8935A" },
+  desarrollo:   { label: "En desarrollo", badgeBg: "#B8935A",                badgeColor: "#ffffff" },
+  proximamente: { label: "Próximamente",  badgeBg: "#0a0a0a",                badgeColor: "#ffffff" },
+};
