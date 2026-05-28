@@ -183,6 +183,18 @@ export default async function DevelopmentPage({ params }: Props) {
           {/* Left column */}
           <div className="lg:col-span-2 space-y-8">
 
+            {/* Tour 360° — elemento principal, arriba del todo. Solo si hay tour configurado. */}
+            {TOURS_360[String(dev.id)] && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Tour 360°</h2>
+                <Tour360
+                  url={TOURS_360[String(dev.id)]}
+                  titulo={`Tour 360° ${dev.name}`}
+                  poster={mainPhoto ?? undefined}
+                />
+              </div>
+            )}
+
             {/* Key specs grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
@@ -206,18 +218,6 @@ export default async function DevelopmentPage({ params }: Props) {
                 <p className="text-sm font-bold text-gray-900">{dev.location?.name || 'Consultar'}</p>
               </div>
             </div>
-
-            {/* Tour 360° — entre datos rápidos y unidades. Solo si hay tour configurado. */}
-            {TOURS_360[String(dev.id)] && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Tour 360°</h2>
-                <Tour360
-                  url={TOURS_360[String(dev.id)]}
-                  titulo={`Tour 360° ${dev.name}`}
-                  poster={mainPhoto ?? undefined}
-                />
-              </div>
-            )}
 
             {/* Units section — before description */}
             <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} />

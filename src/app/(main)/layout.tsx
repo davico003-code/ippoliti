@@ -16,7 +16,7 @@ const poppins = Poppins({
   display: "swap",
 });
 
-import Navbar from "@/components/Navbar";
+import ConditionalChrome from "@/components/ConditionalChrome";
 import FooterWrapper from "@/components/FooterWrapper";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import MetaPixel from "@/components/MetaPixel";
@@ -201,8 +201,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <AudioPlayerProvider>
-          <Navbar />
-          <main className="md:pt-[73px]">{children}</main>
+          <ConditionalChrome>{children}</ConditionalChrome>
           <FooterWrapper />
           <FloatingWhatsApp />
           <ScrollToTop />
