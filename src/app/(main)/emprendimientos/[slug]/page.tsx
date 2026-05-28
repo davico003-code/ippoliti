@@ -207,18 +207,16 @@ export default async function DevelopmentPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Tour 360° — full-bleed entre datos rápidos y unidades. Solo si hay tour configurado. */}
+            {/* Tour 360° — entre datos rápidos y unidades. Solo si hay tour configurado. */}
             {TOURS_360[String(dev.id)] && (
-              <section className="relative mx-[calc(50%-50vw)] w-screen">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                  <h2 className="text-xl font-bold text-gray-900">Tour 360°</h2>
-                </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Tour 360°</h2>
                 <Tour360
                   url={TOURS_360[String(dev.id)]}
                   titulo={`Tour 360° ${dev.name}`}
                   poster={mainPhoto ?? undefined}
                 />
-              </section>
+              </div>
             )}
 
             {/* Units section — before description */}
