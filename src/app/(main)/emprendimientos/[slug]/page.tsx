@@ -20,8 +20,6 @@ import {
 import DevUnitsSection from '@/components/DevUnitsSection'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
-import Tour360 from '@/components/Tour360'
-import { TOURS_360 } from '@/lib/tours360'
 import { getClienteFormatted } from '@/lib/clientes'
 import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug, getMainPhoto, translatePropertyType, getTotalSurface } from '@/lib/tokko'
 
@@ -246,18 +244,6 @@ export default async function DevelopmentPage({ params }: Props) {
                 </div>
               )
             })()}
-
-            {/* Tour 360° — solo si el emprendimiento tiene tour configurado en TOURS_360 */}
-            {TOURS_360[String(dev.id)] && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Tour 360°</h2>
-                <Tour360
-                  url={TOURS_360[String(dev.id)]}
-                  titulo={`Tour 360° ${dev.name}`}
-                  poster={mainPhoto ?? undefined}
-                />
-              </div>
-            )}
 
             {/* Photo gallery with lightbox */}
             {photos.length > 1 && (
