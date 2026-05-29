@@ -23,6 +23,13 @@ import VisitWidget from '@/components/VisitWidget'
 import HeroTour360 from '@/components/HeroTour360'
 import BotonVolver from '@/components/BotonVolver'
 import { TOURS_360 } from '@/lib/tours360'
+import { distritoFontVars, montserrat } from '@/components/distrito-roldan/fonts'
+import SeccionIntro from '@/components/distrito-roldan/SeccionIntro'
+import SeccionMasterplan from '@/components/distrito-roldan/SeccionMasterplan'
+import SeccionRenders from '@/components/distrito-roldan/SeccionRenders'
+import SeccionUbicacion from '@/components/distrito-roldan/SeccionUbicacion'
+import SeccionServicios from '@/components/distrito-roldan/SeccionServicios'
+import SeccionCtaFinanciacion from '@/components/distrito-roldan/SeccionCtaFinanciacion'
 import { getClienteFormatted } from '@/lib/clientes'
 import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug, getMainPhoto, translatePropertyType, getTotalSurface } from '@/lib/tokko'
 
@@ -140,11 +147,15 @@ export default async function DevelopmentPage({ params }: Props) {
     },
   }
 
+  // Distrito Roldán (67178): rediseño con tour como hero + secciones de marca.
+  const tourUrl = TOURS_360[String(dev.id)]
+  const isDistrito = Boolean(tourUrl)
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${isDistrito ? distritoFontVars : ''}`}>
       {/* Botón Volver — solo en páginas con tour (mismo gate que el hero del tour).
           Con el Navbar oculto en 67178, es la única navegación visible arriba. */}
-      {TOURS_360[String(dev.id)] && <BotonVolver />}
+      {isDistrito && <BotonVolver />}
 
       <script
         type="application/ld+json"
@@ -153,8 +164,8 @@ export default async function DevelopmentPage({ params }: Props) {
 
       {/* Hero — tour 360° cargado directo si está configurado (67178);
           si no, la imagen original con título y badges. */}
-      {TOURS_360[String(dev.id)] ? (
-        <HeroTour360 url={TOURS_360[String(dev.id)]} titulo="Tour 360° Distrito Roldán" />
+      {isDistrito ? (
+        <HeroTour360 url={tourUrl} titulo="Tour 360° Distrito Roldán" />
       ) : mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
           <Image src={mainPhoto} alt={dev.name} fill className="object-cover" sizes="100vw" priority />
@@ -186,40 +197,54 @@ export default async function DevelopmentPage({ params }: Props) {
         </div>
       )}
 
+      {/* Secciones de marca de Distrito Roldán (solo 67178), full-width entre
+          el hero y el contenido estándar (Unidades / Video / Galería). */}
+      {isDistrito && (
+        <>
+          <SeccionIntro />
+          <SeccionMasterplan />
+          <SeccionRenders />
+          <SeccionUbicacion />
+          <SeccionServicios />
+        </>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Left column */}
           <div className="lg:col-span-2 space-y-8">
 
-            {/* Key specs grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-                <Building2 className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Tipología</p>
-                <p className="text-sm font-bold text-gray-900">{typeName}</p>
+            {/* Key specs grid — oculto en 67178 (lo reemplaza la card del Intro) */}
+            {!isDistrito && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+                  <Building2 className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Tipología</p>
+                  <p className="text-sm font-bold text-gray-900">{typeName}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+                  <Calendar className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Estado</p>
+                  <p className="text-sm font-bold text-gray-900">{status}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+                  <Banknote className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Financiación</p>
+                  <p className="text-sm font-bold text-gray-900">{dev.financing_details || 'Consultar'}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+                  <MapPin className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ubicación</p>
+                  <p className="text-sm font-bold text-gray-900">{dev.location?.name || 'Consultar'}</p>
+                </div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-                <Calendar className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Estado</p>
-                <p className="text-sm font-bold text-gray-900">{status}</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-                <Banknote className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Financiación</p>
-                <p className="text-sm font-bold text-gray-900">{dev.financing_details || 'Consultar'}</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-                <MapPin className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ubicación</p>
-                <p className="text-sm font-bold text-gray-900">{dev.location?.name || 'Consultar'}</p>
-              </div>
-            </div>
+            )}
 
             {/* Units section — before description */}
             <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} />
 
-            {/* Description */}
-            {paragraphs.length > 0 && (
+            {/* Description — oculto en 67178 (el Intro trae su propio lead) */}
+            {!isDistrito && paragraphs.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Sobre el emprendimiento</h2>
                 <div className="space-y-4">
@@ -266,8 +291,8 @@ export default async function DevelopmentPage({ params }: Props) {
               </div>
             )}
 
-            {/* Tags / amenities */}
-            {dev.tags && dev.tags.length > 0 && (
+            {/* Tags / amenities — oculto en 67178 (lo reemplaza SeccionServicios) */}
+            {!isDistrito && dev.tags && dev.tags.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Servicios y amenities</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -281,13 +306,13 @@ export default async function DevelopmentPage({ params }: Props) {
               </div>
             )}
 
-            {/* Lugares cercanos */}
-            {dev.geo_lat && dev.geo_long && (
+            {/* Lugares cercanos — oculto en 67178 (lo reemplaza SeccionUbicacion) */}
+            {!isDistrito && dev.geo_lat && dev.geo_long && (
               <NearbyPlaces lat={dev.geo_lat} lng={dev.geo_long} />
             )}
 
-            {/* Location map */}
-            {dev.geo_lat && dev.geo_long && (
+            {/* Location map — oculto en 67178 (lo reemplaza SeccionUbicacion) */}
+            {!isDistrito && dev.geo_lat && dev.geo_long && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Ubicación</h2>
                 <PropertyMap
@@ -331,7 +356,7 @@ export default async function DevelopmentPage({ params }: Props) {
 
                 {/* Agent card */}
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-11 h-11 rounded-full bg-[#1A5C38] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                  <div className={`w-11 h-11 rounded-full bg-[#1A5C38] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${isDistrito ? montserrat.className : ''}`}>
                     DF
                   </div>
                   <div className="flex-1 min-w-0">
@@ -350,10 +375,12 @@ export default async function DevelopmentPage({ params }: Props) {
                   title={dev.name}
                 />
 
-                {dev.financing_details && (
+                {(isDistrito || dev.financing_details) && (
                   <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-100">
                     <p className="text-xs text-[#1A5C38] font-bold uppercase tracking-wider mb-1">Financiación</p>
-                    <p className="text-[#1A5C38] font-bold text-sm">{dev.financing_details}</p>
+                    <p className="text-[#1A5C38] font-bold text-sm">
+                      {isDistrito ? 'Entrega 30% + 24 cuotas fijas en dólares' : dev.financing_details}
+                    </p>
                   </div>
                 )}
               </div>
@@ -402,6 +429,9 @@ export default async function DevelopmentPage({ params }: Props) {
           </Link>
         </div>
       </div>
+
+      {/* CTA financiación — cierre full-width, solo Distrito Roldán */}
+      {isDistrito && <SeccionCtaFinanciacion />}
     </div>
   )
 }
