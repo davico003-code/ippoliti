@@ -340,7 +340,7 @@ function PriceFilterDropdown({
           </div>
 
           {/* Inputs min/max */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex w-full items-center gap-2 mb-3">
             <input
               type="text"
               inputMode="numeric"
@@ -349,14 +349,15 @@ function PriceFilterDropdown({
               value={formatThousands(localMin)}
               onChange={e => setLocalMin(digitsOnly(e.target.value))}
               onKeyDown={e => { if (e.key === 'Enter') apply() }}
-              className="flex-1 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
+              className="flex-1 min-w-0 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
                 border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
                 fontFamily: "'Raleway', system-ui, sans-serif",
                 fontSize: 14,
+                boxSizing: 'border-box',
               }}
             />
-            <span className="text-gray-400">—</span>
+            <span className="shrink-0 mx-0.5 text-gray-400">—</span>
             <input
               type="text"
               inputMode="numeric"
@@ -365,11 +366,12 @@ function PriceFilterDropdown({
               value={formatThousands(localMax)}
               onChange={e => setLocalMax(digitsOnly(e.target.value))}
               onKeyDown={e => { if (e.key === 'Enter') apply() }}
-              className="flex-1 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
+              className="flex-1 min-w-0 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
                 border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
                 fontFamily: "'Raleway', system-ui, sans-serif",
                 fontSize: 14,
+                boxSizing: 'border-box',
               }}
             />
           </div>
