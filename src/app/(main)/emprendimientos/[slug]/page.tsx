@@ -21,6 +21,7 @@ import DevUnitsSection from '@/components/DevUnitsSection'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
 import Tour360 from '@/components/Tour360'
+import BotonVolver from '@/components/BotonVolver'
 import { TOURS_360 } from '@/lib/tours360'
 import { getClienteFormatted } from '@/lib/clientes'
 import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug, getMainPhoto, translatePropertyType, getTotalSurface } from '@/lib/tokko'
@@ -141,6 +142,10 @@ export default async function DevelopmentPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Botón Volver — solo en páginas con tour (mismo gate que Tour360).
+          Con el Navbar oculto en 67178, es la única navegación visible arriba. */}
+      {TOURS_360[String(dev.id)] && <BotonVolver />}
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
