@@ -20,7 +20,7 @@ import {
 import DevUnitsSection from '@/components/DevUnitsSection'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
-import Tour360 from '@/components/Tour360'
+import HeroTour360 from '@/components/HeroTour360'
 import BotonVolver from '@/components/BotonVolver'
 import { TOURS_360 } from '@/lib/tours360'
 import { getClienteFormatted } from '@/lib/clientes'
@@ -142,7 +142,7 @@ export default async function DevelopmentPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Botón Volver — solo en páginas con tour (mismo gate que Tour360).
+      {/* Botón Volver — solo en páginas con tour (mismo gate que el hero del tour).
           Con el Navbar oculto en 67178, es la única navegación visible arriba. */}
       {TOURS_360[String(dev.id)] && <BotonVolver />}
 
@@ -151,8 +151,11 @@ export default async function DevelopmentPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Hero image — full screen */}
-      {mainPhoto ? (
+      {/* Hero — tour 360° cargado directo si está configurado (67178);
+          si no, la imagen original con título y badges. */}
+      {TOURS_360[String(dev.id)] ? (
+        <HeroTour360 url={TOURS_360[String(dev.id)]} titulo="Tour 360° Distrito Roldán" />
+      ) : mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
           <Image src={mainPhoto} alt={dev.name} fill className="object-cover" sizes="100vw" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
@@ -187,18 +190,6 @@ export default async function DevelopmentPage({ params }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Left column */}
           <div className="lg:col-span-2 space-y-8">
-
-            {/* Tour 360° — elemento principal, arriba del todo. Solo si hay tour configurado. */}
-            {TOURS_360[String(dev.id)] && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Tour 360°</h2>
-                <Tour360
-                  url={TOURS_360[String(dev.id)]}
-                  titulo={`Tour 360° ${dev.name}`}
-                  poster={mainPhoto ?? undefined}
-                />
-              </div>
-            )}
 
             {/* Key specs grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
