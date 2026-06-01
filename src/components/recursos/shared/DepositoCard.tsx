@@ -33,7 +33,7 @@ export default function DepositoCard({ amountUsd }: Props) {
           className="text-sm font-medium mt-2"
           style={{ color: 'rgba(255,255,255,0.78)' }}
         >
-          Equivalente a 1 mes de alquiler · estimativo al cambio de hoy.
+          1 mes de alquiler · estimativo al cambio de hoy.
         </div>
       </div>
     </div>
