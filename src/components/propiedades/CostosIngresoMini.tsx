@@ -20,8 +20,6 @@ const fmtArs = (n: number) =>
   `$ ${Math.round(n).toLocaleString('es-AR')}`
 const fmtUsd = (n: number) =>
   `US$ ${n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-const fmtUsdInt = (n: number) =>
-  `US$ ${Math.round(n).toLocaleString('es-AR')}`
 
 export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad }: Props) {
   const tipoFiscal = useMemo(() => detectarTipoFiscal(tipoPropiedad), [tipoPropiedad])
@@ -191,22 +189,16 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad }: P
         >
           <div style={{ ...eyebrowStyle, color: 'var(--usd)' }}>Depósito en garantía</div>
           <div
-            className="font-poppins tabular-nums"
-            style={{ fontSize: 24, fontWeight: 700, color: 'var(--tinta)', lineHeight: 1.1, marginTop: 6 }}
+            className="font-poppins"
+            style={{ fontSize: 20, fontWeight: 700, color: 'var(--tinta)', lineHeight: 1.15, marginTop: 6 }}
           >
-            {fmtUsdInt(c.depositoUSD)}
+            1 mes de alquiler
           </div>
           <div
             className="font-poppins"
             style={{ fontSize: 11, color: 'var(--tinta-mute)', marginTop: 6, lineHeight: 1.4 }}
           >
-            estimativo · 1 mes
-          </div>
-          <div
-            className="font-poppins tabular-nums"
-            style={{ fontSize: 12, color: 'var(--tinta-soft)', marginTop: 2 }}
-          >
-            ≈ {fmtArs(c.depositoEquivARS)}
+            Se devuelve al finalizar el contrato
           </div>
         </div>
       </div>

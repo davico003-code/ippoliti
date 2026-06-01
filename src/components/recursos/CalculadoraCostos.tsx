@@ -668,7 +668,7 @@ export default function CalculadoraCostos() {
                   prefix="$"
                 />
                 <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
-                  Se usa para el depósito y para convertir el sellado cuando el alquiler está en USD.
+                  Se usa para convertir el sellado cuando el alquiler está en USD.
                 </p>
               </div>
             </div>
@@ -717,7 +717,7 @@ export default function CalculadoraCostos() {
               className="text-[13px] leading-relaxed max-w-[480px] mx-auto m-0"
               style={{ color: 'var(--tinta-mute)' }}
             >
-              Ajustá los demás valores y vas a ver al instante el total a pagar al ingresar, depósito en USD, timeline de pagos mensuales y más.
+              Ajustá los demás valores y vas a ver al instante el total a pagar al ingresar, depósito, timeline de pagos mensuales y más.
             </p>
           </section>
         )}
@@ -839,7 +839,7 @@ export default function CalculadoraCostos() {
 
           {/* DEPÓSITO */}
           <section className="mb-4">
-            <DepositoCard amountUsd={c.depositoUSD} />
+            <DepositoCard />
           </section>
 
           {/* ── CTA DESCARGAR + COMPARTIR — botonera compacta dual ──────────── */}

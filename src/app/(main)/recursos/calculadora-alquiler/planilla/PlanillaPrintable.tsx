@@ -17,8 +17,6 @@ const fmtUsd = (n: number) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`
-const fmtUsdInt = (n: number) =>
-  `US$ ${Math.round(n).toLocaleString('es-AR')}`
 const fmt = (n: number, m: Moneda) => (m === 'USD' ? fmtUsd(n) : fmtArs(n))
 
 const WHATSAPP_NUM = '5493413415159'
@@ -673,18 +671,13 @@ export default function PlanillaPrintable() {
             <tbody>
               <tr>
                 <td>
-                  <div className="label">Depósito · 1 mes de alquiler en USD</div>
+                  <div className="label">Monto del depósito</div>
                   <div className="label-sub">
-                    Estimativo al cambio del día. Se devuelve en dólares al
-                    finalizar el contrato sin acrecida.
+                    Se entrega al ingresar al inmueble. Se devuelve al
+                    finalizar el contrato.
                   </div>
                 </td>
-                <td className="value">
-                  {fmtUsdInt(c.depositoUSD)}
-                  <span className="value-sub">
-                    ≈ {fmtArs(c.depositoEquivARS)}
-                  </span>
-                </td>
+                <td className="value">1 mes de alquiler</td>
               </tr>
             </tbody>
           </table>
