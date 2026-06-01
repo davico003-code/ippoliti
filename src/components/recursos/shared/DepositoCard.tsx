@@ -1,10 +1,4 @@
-type Props = {
-  amountUsd: number
-}
-
-const fmtUsd = (n: number) => `US$ ${Math.round(n).toLocaleString('es-AR')}`
-
-export default function DepositoCard({ amountUsd }: Props) {
+export default function DepositoCard() {
   return (
     <div
       className="rounded-2xl p-6 md:p-7 text-white shadow-sm relative overflow-hidden"
@@ -26,14 +20,14 @@ export default function DepositoCard({ amountUsd }: Props) {
         >
           Depósito de garantía
         </div>
-        <div className="font-poppins font-bold text-[clamp(28px,6vw,38px)] leading-none tracking-tight tabular-nums">
-          {fmtUsd(amountUsd)}
+        <div className="font-poppins font-bold text-[clamp(28px,6vw,38px)] leading-none tracking-tight">
+          1 mes de alquiler
         </div>
         <div
           className="text-sm font-medium mt-2"
           style={{ color: 'rgba(255,255,255,0.78)' }}
         >
-          1 mes de alquiler · estimativo al cambio de hoy.
+          Se entrega al ingresar al inmueble. Se devuelve al finalizar el contrato.
         </div>
       </div>
     </div>
