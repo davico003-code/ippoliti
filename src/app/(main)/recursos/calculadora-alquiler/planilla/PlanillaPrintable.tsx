@@ -27,6 +27,9 @@ const WHATSAPP_DISPLAY = '+54 9 341 341 5159'
 // CSS portado de _referencias/planilla-alquiler-A4.html. Embebido como string
 // para que las reglas globales (oculta navbar/footer del sitio + estilos del
 // documento + @page A4) viajen junto al component sin depender de globals.css.
+// Layout comprimido para entrar SIEMPRE en una sola hoja A4 al imprimir
+// (Cmd+P → Guardar como PDF). Paddings, tipografías y márgenes ajustados;
+// info-grid en 3 columnas; @page con margins de 10mm/12mm.
 const PLANILLA_CSS = `
 /* Oculta el shell del sitio (navbar, footer, popups, scroll, whatsapp flotante).
    El layout root no se puede sobrescribir, pero podemos ocultar todo lo que no
@@ -50,18 +53,39 @@ html, body {
   background: #fff !important;
   font-family: 'Raleway', system-ui, sans-serif;
   color: var(--tinta);
-  line-height: 1.5;
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
+
+/* CTA de impresión: visible en pantalla, fuera del flujo (no afecta la altura
+   de la hoja), oculto al imprimir vía .no-print. */
+.planilla-print-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 50;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  color: #fff;
+  background: var(--si-green);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+}
+.planilla-print-btn:hover { background: #14492c; }
 
 .planilla-page {
   width: 794px;
   min-height: 1123px;
   background: var(--paper);
   margin: 0 auto;
-  padding: 64px 72px;
+  padding: 40px 48px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -70,25 +94,26 @@ html, body {
 
 .planilla-page .header {
   text-align: left;
-  padding-bottom: 18px;
+  padding-bottom: 12px;
   border-bottom: 2px solid var(--si-green);
-  margin-bottom: 32px;
+  margin-bottom: 14px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
 }
-.planilla-page .header-logo { height: 36px; width: auto; display: block; }
+.planilla-page .header-logo { height: 28px; width: auto; display: block; }
 .planilla-page .header-meta {
   font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--tinta-mute);
   text-align: right;
+  line-height: 1.4;
 }
 
-.planilla-page .doc-title { margin-bottom: 36px; }
+.planilla-page .doc-title { margin-bottom: 14px; }
 .planilla-page .doc-eyebrow {
   font-family: 'Raleway', sans-serif;
   font-size: 11px;
@@ -96,20 +121,20 @@ html, body {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--si-green);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .planilla-page .doc-h1 {
   font-family: 'Raleway', sans-serif;
   font-weight: 800;
-  font-size: 28px;
+  font-size: 22px;
   color: var(--tinta);
   letter-spacing: -0.5px;
   line-height: 1.1;
 }
 
 .planilla-page .hero {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
 }
 .planilla-page .hero-grid {
@@ -125,35 +150,35 @@ html, body {
   letter-spacing: 1.6px;
   text-transform: uppercase;
   color: var(--tinta-mute);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .planilla-page .hero-value {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  font-size: 30px;
+  font-size: 24px;
   color: var(--tinta);
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
+  line-height: 1.3;
   letter-spacing: -0.5px;
 }
-.planilla-page .hero-value.ajuste { font-size: 18px; font-weight: 600; }
+.planilla-page .hero-value.ajuste { font-size: 16px; font-weight: 600; }
 .planilla-page .hero-value .per {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--tinta-mute);
   margin-left: 4px;
 }
 .planilla-page .hero-sub {
   font-family: 'Raleway', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--tinta-soft);
-  margin-top: 4px;
+  margin-top: 3px;
   font-weight: 500;
 }
 
 .planilla-page .total {
-  margin-bottom: 36px;
-  padding: 20px 24px;
+  margin-bottom: 14px;
+  padding: 11px 20px;
   background: var(--si-green-tint);
   border-top: 3px solid var(--si-green);
   border-bottom: 1px solid var(--si-green);
@@ -164,7 +189,7 @@ html, body {
 .planilla-page .total-label {
   font-family: 'Raleway', sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--si-green);
@@ -172,28 +197,28 @@ html, body {
 .planilla-page .total-amount {
   font-family: 'Poppins', sans-serif;
   font-weight: 800;
-  font-size: 36px;
+  font-size: 26px;
   color: var(--si-green);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.5px;
-  line-height: 1;
+  line-height: 1.3;
 }
 .planilla-page .total-amount-extra {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   margin-left: 8px;
 }
 
-.planilla-page .section { margin-bottom: 32px; }
+.planilla-page .section { margin-bottom: 12px; }
 .planilla-page .section-head {
-  margin-bottom: 14px;
-  padding-bottom: 8px;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
   border-bottom: 1px solid var(--si-green);
 }
 .planilla-page .section-title {
   font-family: 'Raleway', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 1.8px;
   text-transform: uppercase;
   color: var(--si-green);
@@ -202,34 +227,37 @@ html, body {
 .planilla-page .tabla { width: 100%; border-collapse: collapse; }
 .planilla-page .tabla tr { border-bottom: 1px solid var(--line-soft); }
 .planilla-page .tabla tr:last-child { border-bottom: none; }
-.planilla-page .tabla td { padding: 10px 0; vertical-align: middle; }
+.planilla-page .tabla td { padding: 5px 0; vertical-align: middle; }
 .planilla-page .tabla .label {
   font-family: 'Raleway', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--tinta);
+  line-height: 1.3;
 }
 .planilla-page .tabla .label-sub {
   display: block;
   font-family: 'Raleway', sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--tinta-mute);
-  margin-top: 2px;
+  margin-top: 1px;
+  line-height: 1.35;
 }
 .planilla-page .tabla .value {
   text-align: right;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--tinta);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  line-height: 1.3;
 }
 .planilla-page .tabla .value-sub {
   display: block;
   font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--tinta-mute);
   font-weight: 400;
   margin-top: 1px;
@@ -237,25 +265,25 @@ html, body {
 
 .planilla-page .info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 24px;
-  margin-bottom: 24px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px 18px;
+  margin-bottom: 10px;
 }
-.planilla-page .info-block { border-left: 3px solid var(--si-green); padding-left: 14px; }
-.planilla-page .info-block.full { grid-column: 1 / -1; }
+.planilla-page .info-block { border-left: 3px solid var(--si-green); padding-left: 12px; }
 .planilla-page .info-block-title {
   font-family: 'Raleway', sans-serif;
   font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 1.5px;
+  font-size: 10px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
   color: var(--si-green);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  line-height: 1.3;
 }
 .planilla-page .info-block-content {
   font-family: 'Raleway', sans-serif;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 10.5px;
+  line-height: 1.35;
   color: var(--tinta-soft);
 }
 .planilla-page .info-block-content strong { color: var(--tinta); font-weight: 700; }
@@ -267,9 +295,9 @@ html, body {
 }
 .planilla-page .info-block-content ol li {
   counter-increment: opcion;
-  padding-left: 22px;
+  padding-left: 18px;
   position: relative;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .planilla-page .info-block-content ol li::before {
   content: counter(opcion) ".";
@@ -278,53 +306,53 @@ html, body {
   top: 0;
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 11px;
   color: var(--si-green);
 }
 
 .planilla-page .disclaimer {
   border: 1px solid var(--tinta);
-  padding: 14px 18px;
-  margin-bottom: 24px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
 }
 .planilla-page .disclaimer-title {
   font-family: 'Raleway', sans-serif;
   font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 1.5px;
+  font-size: 10px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--tinta);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .planilla-page .disclaimer-text {
   font-family: 'Raleway', sans-serif;
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 10.5px;
+  line-height: 1.35;
   color: var(--tinta-soft);
 }
 
 .planilla-page .footer {
   margin-top: auto;
-  padding-top: 20px;
+  padding-top: 12px;
   border-top: 2px solid var(--si-green);
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 24px;
   align-items: end;
 }
-.planilla-page .footer-logo { height: 24px; width: auto; display: block; margin-bottom: 8px; }
+.planilla-page .footer-logo { height: 20px; width: auto; display: block; margin-bottom: 5px; }
 .planilla-page .footer-tagline {
   font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--tinta-mute);
   font-weight: 500;
   letter-spacing: 0.8px;
 }
 .planilla-page .footer-web {
   font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--tinta-soft);
-  margin-top: 8px;
+  margin-top: 5px;
   font-weight: 500;
 }
 .planilla-page .footer-contact { text-align: right; }
@@ -340,13 +368,13 @@ html, body {
 .planilla-page .footer-contact-value {
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--si-green);
   font-variant-numeric: tabular-nums;
 }
 .planilla-page .footer-contact-link {
   font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--tinta-mute);
   margin-top: 2px;
 }
@@ -379,7 +407,8 @@ html, body {
 @media print {
   body > *:not(main):not(script) { display: none !important; }
   main > *:not(.planilla-page) { display: none !important; }
-  .planilla-page { box-shadow: none; margin: 0 !important; padding: 18mm 16mm; }
+  .no-print { display: none !important; }
+  .planilla-page { box-shadow: none; margin: 0 !important; padding: 10mm 12mm; }
 }
 `
 
@@ -521,6 +550,13 @@ export default function PlanillaPrintable() {
     <>
       <style dangerouslySetInnerHTML={{ __html: PLANILLA_CSS }} />
       <div className="planilla-page">
+        <button
+          type="button"
+          className="planilla-print-btn no-print"
+          onClick={() => window.print()}
+        >
+          Imprimir / Guardar PDF
+        </button>
         <header className="header">
           {/* Logo cargado desde /public, mismo origen, no requiere optimization. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -717,7 +753,7 @@ export default function PlanillaPrintable() {
               vecinos (linderos).
             </div>
           </div>
-          <div className="info-block full">
+          <div className="info-block">
             <div className="info-block-title">
               Gastos mensuales a cargo del inquilino
             </div>
@@ -736,7 +772,7 @@ export default function PlanillaPrintable() {
               ajuste en locaciones. El ajuste pactado con el propietario puede
               ser distinto.
             </p>
-            <p style={{ marginTop: 6 }}>
+            <p style={{ marginTop: 4 }}>
               Te recomendamos consultarnos siempre antes de firmar el contrato.
               Por esta misma razón, este cálculo no tiene carácter contractual.
             </p>
