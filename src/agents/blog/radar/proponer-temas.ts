@@ -7,8 +7,10 @@ import { puntuarTitular } from '../lib/scoring';
 import { filtrarTemasUsados } from '../lib/dedupe';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
 import { llamarClaude } from '../lib/claude-client';
+import { notificarConAlerta } from '../lib/alert';
 import { BLOG_REDIS_KEYS, TTL } from '../lib/redis-keys';
 import { TEMAS_EVERGREEN } from './temas-evergreen';
+import { getAllPosts } from '@/lib/blog';
 import type { TemaPropuesto } from '../types';
 
 const CONCURRENCY = 5;
@@ -123,23 +125,47 @@ Sin markdown, sin explicaciones, solo el JSON.`;
     return TEMAS_EVERGREEN.slice(0, TOTAL_PROPUESTAS);
   }
 
-  // 7. Deduplicar contra temas ya usados
+  // 7. Deduplicar: contra temasUsados (últimos 30 aprobados) Y contra TODO lo
+  //    publicado real (títulos de getAllPosts: estáticas + dinámicas). Cierra
+  //    el mismo agujero que el writer, en el extremo de las propuestas. Mismo
+  //    criterio (filtrarTemasUsados → normalizar/jaccard, umbral 0.6).
   const redis = getRedis();
   const usadosRaw = await redis.get<string[]>(BLOG_REDIS_KEYS.temasUsados);
   const usados = usadosRaw ?? [];
+  let titulosPublicados: string[] = [];
+  try {
+    titulosPublicados = (await getAllPosts()).map(p => p.title);
+  } catch (e) {
+    console.warn('[radar] no se pudo leer publicados para dedup:', e);
+  }
+  const corpus = [...titulosPublicados, ...usados];
 
-  let filtradas = filtrarTemasUsados(propuestas, usados);
+  let filtradas = filtrarTemasUsados(propuestas, corpus);
 
-  // 8. Completar con evergreen si quedan menos de 5
+  // 8. Completar con evergreen SOLO si está fresco: se deduplica contra el
+  //    corpus completo (publicados + usados) y contra las propuestas ya
+  //    elegidas. Nunca se rellena con un tema ya cubierto.
   if (filtradas.length < TOTAL_PROPUESTAS) {
-    const evergreenFiltrados = filtrarTemasUsados(TEMAS_EVERGREEN, usados);
-    for (const eg of evergreenFiltrados) {
+    const evergreenFrescos = filtrarTemasUsados(TEMAS_EVERGREEN, [
+      ...corpus,
+      ...filtradas.map(f => f.titulo),
+    ]);
+    for (const eg of evergreenFrescos) {
       if (filtradas.length >= TOTAL_PROPUESTAS) break;
       filtradas.push(eg);
     }
   }
 
   filtradas = filtradas.slice(0, TOTAL_PROPUESTAS);
+
+  // Si no se llega a 5 temas frescos, NO se rellena con repetidos: se proponen
+  // menos (3-4) y se avisa. Mejor pocas frescas que 5 con temas ya cubiertos.
+  if (filtradas.length < TOTAL_PROPUESTAS) {
+    await notificarConAlerta(
+      `📋 Radar: solo ${filtradas.length} tema(s) fresco(s) esta semana (no se rellenó con repetidos). Revisá las propuestas antes de aprobar.`,
+      'radar: pocas-propuestas',
+    );
+  }
 
   // 9. Guardar en Redis
   await redis.set(BLOG_REDIS_KEYS.temasSemana, JSON.stringify(filtradas), {
