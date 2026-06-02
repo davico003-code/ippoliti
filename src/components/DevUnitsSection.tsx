@@ -169,7 +169,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
 
       {/* Grid distrito — cards verticales estilo Zillow (2 cols desktop) */}
       {isDistrito ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map(u => {
             const photo = getPhoto(u)
             const area = getArea(u)
@@ -228,7 +228,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
                   </p>
 
                   {/* Precio destacado */}
-                  <p className="mt-1" style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 24, color: '#0F3F26', letterSpacing: '-0.01em' }}>
+                  <p className="mt-1" style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 24, color: '#0F3F26', letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>
                     {price?.price ? `USD ${price.price.toLocaleString('es-AR')}` : 'Consultar'}
                   </p>
 
