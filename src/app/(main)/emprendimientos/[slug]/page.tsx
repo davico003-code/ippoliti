@@ -241,7 +241,7 @@ export default async function DevelopmentPage({ params }: Props) {
             )}
 
             {/* Units section — before description */}
-            <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} variant={isDistrito ? 'distrito' : 'default'} />
+            <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} variant={isDistrito ? 'distrito' : 'default'} location={dev.location?.name} />
 
             {/* Description — oculto en 67178 (el Intro trae su propio lead) */}
             {!isDistrito && paragraphs.length > 0 && (

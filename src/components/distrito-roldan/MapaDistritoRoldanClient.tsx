@@ -158,12 +158,27 @@ export default function MapaDistritoRoldanClient() {
         className: 'tt-main',
       })
 
-    // El contenedor se mide tarde en algunos layouts → re-medir para evitar
-    // tiles grises / mapa mal centrado.
-    const t = setTimeout(() => map.invalidateSize(), 200)
+    // El contenedor se mide tarde (sección lejos del fold, aspect-ratio que
+    // resuelve después del primer paint) → Leaflet renderiza tiles grises si
+    // su tamaño quedó en 0. Re-medimos de forma agresiva:
+    //  - rAF + varios timeouts para cubrir el primer layout,
+    //  - ResizeObserver para cualquier cambio de tamaño posterior.
+    const safeInvalidate = () => {
+      if (mapRef.current) mapRef.current.invalidateSize()
+    }
+    const raf = requestAnimationFrame(safeInvalidate)
+    const timeouts = [0, 200, 600].map((ms) => setTimeout(safeInvalidate, ms))
+
+    let ro: ResizeObserver | null = null
+    if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+      ro = new ResizeObserver(safeInvalidate)
+      ro.observe(containerRef.current)
+    }
 
     return () => {
-      clearTimeout(t)
+      cancelAnimationFrame(raf)
+      timeouts.forEach(clearTimeout)
+      if (ro) ro.disconnect()
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
       if (countFrameRef.current) cancelAnimationFrame(countFrameRef.current)
       map.remove()
