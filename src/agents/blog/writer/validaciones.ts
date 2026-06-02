@@ -170,16 +170,3 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
 
   return { ok: errores.length === 0, errores };
 }
-
-export function generarSlugUnico(
-  slugBase: string,
-  slugsExistentes: Set<string>,
-): string {
-  if (!slugsExistentes.has(slugBase)) return slugBase;
-
-  let i = 2;
-  while (slugsExistentes.has(`${slugBase}-${i}`)) {
-    i++;
-  }
-  return `${slugBase}-${i}`;
-}

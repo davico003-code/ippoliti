@@ -1,7 +1,7 @@
 import { llamarClaude } from '../lib/claude-client';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
 import { buildSystemPrompt, buildUserPrompt } from './prompts';
-import { validarNotaDraft, generarSlugUnico } from './validaciones';
+import { validarNotaDraft } from './validaciones';
 import { getAllExistingSlugs } from '@/lib/blog-posts-dinamicos';
 import type { TemaPropuesto, NotaDraft } from '../types';
 import type { CTA } from '../config/ctas';
@@ -78,8 +78,19 @@ export async function generarNotaConRetries(
     ultimoDraft = nota;
 
     if (resultado.ok) {
-      // Asegurar slug único
-      nota.slug = generarSlugUnico(nota.slug, slugsExistentes);
+      // Abortar si el slug ya existe entre TODO lo publicado (estáticas +
+      // dinámicas). NO se agrega sufijo -N: eso era la vía de escape que
+      // dejaba publicar duplicados. Se reintenta pidiendo otro ángulo; si tras
+      // los reintentos sigue colisionando, devuelve ok:false y el orquestador
+      // avisa (no publica).
+      if (slugsExistentes.has(nota.slug)) {
+        ultimasRazones = [
+          `El slug "${nota.slug}" ya existe entre las notas publicadas. Generá un ángulo y un slug distintos (no se permiten sufijos -2/-3).`,
+        ];
+        console.warn(`[writer] Intento ${intento}: slug duplicado "${nota.slug}", reintentando`);
+        ultimoDraft = nota;
+        continue;
+      }
       console.log(`[writer] Intento ${intento}: APROBADO → slug="${nota.slug}"`);
       return { ok: true, nota };
     }

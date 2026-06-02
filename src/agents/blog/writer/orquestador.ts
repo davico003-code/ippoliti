@@ -5,6 +5,8 @@ import { obtenerContextoEconomico } from '../lib/datos-economicos';
 import { notificarConAlerta } from '../lib/alert';
 import { generarNotaConRetries } from './generar-nota';
 import { publicarNota } from './publicador';
+import { filtrarTemasUsados } from '../lib/dedupe';
+import { getAllPosts } from '@/lib/blog';
 import type { TemaPropuesto } from '../types';
 
 function getRedis(): Redis {
@@ -48,16 +50,41 @@ export async function ejecutarWriterDia(
     aprobados = [];
   }
 
-  if (aprobados.length < 1 || (dia === 'viernes' && aprobados.length < 2)) {
+  // Cola FIFO: cada corrida consume el primero. Si quedó vacía (porque ya se
+  // consumieron los temas de la semana), NO se republica nada ni se publica
+  // vacío: se saltea el ciclo con aviso.
+  if (aprobados.length < 1) {
     await notificarConAlerta(
-      `⚠️ No hay temas aprobados para ${dia}. Revisá la aprobación del lunes (respondé al radar con 2 números).`,
+      `⚠️ No hay temas aprobados para ${dia}. No se publica nada. Aprobá temas nuevos respondiendo al radar del lunes (2 números).`,
       `writer-${dia}: sin-temas`,
     );
     return { ok: false, error: 'sin-temas' };
   }
 
-  // 2. Elegir tema según el día
-  const tema = dia === 'martes' ? aprobados[0] : aprobados[1];
+  // 2. Tomar el primero de la cola
+  const tema = aprobados[0];
+
+  // 2b. Dedup ANTES de generar — contra TODO lo publicado real (estáticas +
+  //     dinámicas vía getAllPosts) y contra temasUsados. Cierra el agujero
+  //     original (que solo chequeaba temasUsados). Si el tema ya existe, se
+  //     consume (sale de la cola) y se saltea el ciclo con aviso.
+  const usadosRaw = await redis.get<string[]>(BLOG_REDIS_KEYS.temasUsados);
+  const usados = usadosRaw ?? [];
+  let titulosPublicados: string[] = [];
+  try {
+    titulosPublicados = (await getAllPosts()).map(p => p.title);
+  } catch (e) {
+    console.warn('[orquestador] no se pudo leer publicados para dedup:', e);
+  }
+  const noDuplicado = filtrarTemasUsados([tema], [...titulosPublicados, ...usados]);
+  if (noDuplicado.length === 0) {
+    await redis.set(BLOG_REDIS_KEYS.temasAprobados, JSON.stringify(aprobados.slice(1)));
+    await notificarConAlerta(
+      `⚠️ "${tema.titulo}" (${dia}) ya estaba publicado o usado. Lo salteo y lo saco de la cola. Aprobá un tema nuevo.`,
+      `writer-${dia}: tema-duplicado`,
+    );
+    return { ok: false, error: 'tema-duplicado' };
+  }
 
   // 3. Elegir CTA (rotar)
   const ultimosCTAsRaw = await redis.get<string[]>(BLOG_REDIS_KEYS.ultimosCTAs);
@@ -85,6 +112,10 @@ export async function ejecutarWriterDia(
   // 6. Publicar
   console.log(`[orquestador] Publicando "${resultado.nota.titulo}"`);
   const publicada = await publicarNota(resultado.nota);
+
+  // 6b. Consumir el tema de la cola SOLO tras publicar OK (si la generación
+  //     falla, queda en la cola para reintentar el próximo ciclo, no se pierde).
+  await redis.set(BLOG_REDIS_KEYS.temasAprobados, JSON.stringify(aprobados.slice(1)));
 
   // 7. Actualizar últimos CTAs
   ultimosCTAs.push(resultado.nota.cta_usado);
