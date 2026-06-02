@@ -1,6 +1,7 @@
 import Image from 'next/image'
 
 const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
+const POPPINS = 'var(--font-poppins), Poppins, sans-serif'
 
 interface Bloque {
   cifra: string
@@ -19,7 +20,7 @@ const BLOQUES: Bloque[] = [
     frase: 'La calma que buscás, con la conexión que necesitás.',
     detalle:
       'Pensados para quienes buscan la calma de un entorno seguro, con calles pavimentadas, forestación planificada y servicios subterráneos que garantizan estética, confort y conectividad. Superficie promedio desde 450 m².',
-    img: '/images/distrito-roldan/render-residencial.jpg',
+    img: '/images/distrito-roldan/render-residencial.webp',
     alt: 'Render del área residencial de Distrito Roldán',
     imagenDerecha: false,
   },
@@ -29,7 +30,7 @@ const BLOQUES: Bloque[] = [
     frase: 'Con frente Ruta 9 y dársenas de estacionamiento.',
     detalle:
       'Ubicados al frente sobre Ruta Nacional 9, ideales para locales, oficinas o desarrollos de renta. Superficie promedio de 630 m². Visibilidad y tránsito asegurado en una zona en plena expansión.',
-    img: '/images/distrito-roldan/render-comercial.jpg',
+    img: '/images/distrito-roldan/render-comercial.webp',
     alt: 'Render del área comercial de Distrito Roldán',
     imagenDerecha: true,
   },
@@ -51,7 +52,7 @@ export default function SeccionRenders() {
 
             {/* Texto */}
             <div className={b.imagenDerecha ? 'order-2 lg:order-1' : 'order-2'}>
-              <p style={{ fontFamily: RALEWAY, fontWeight: 200, fontSize: 'clamp(72px, 8vw, 120px)', lineHeight: 1, color: '#1A5C38' }}>
+              <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 'clamp(72px, 8vw, 120px)', lineHeight: 1, color: '#1A5C38' }}>
                 {b.cifra}
               </p>
               <p className="mb-6 mt-2 uppercase text-[#1A5C38]" style={{ fontWeight: 600, letterSpacing: '0.18em', fontSize: 13 }}>

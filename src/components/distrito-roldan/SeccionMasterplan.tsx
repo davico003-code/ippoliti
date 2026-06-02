@@ -1,4 +1,5 @@
 const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
+const POPPINS = 'var(--font-poppins), Poppins, sans-serif'
 
 const ITEMS = [
   {
@@ -47,7 +48,7 @@ export default function SeccionMasterplan() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
           {ITEMS.map((it) => (
             <div key={it.label} className="border-t border-white/[0.18] pt-8">
-              <p style={{ fontFamily: RALEWAY, fontWeight: 200, fontSize: 'clamp(72px, 9vw, 128px)', lineHeight: 1, letterSpacing: '-0.04em' }}>
+              <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 'clamp(72px, 9vw, 128px)', lineHeight: 1, letterSpacing: '-0.04em' }}>
                 {it.n}
               </p>
               <p className="mt-3 uppercase text-[#D4B384]" style={{ fontWeight: 500, letterSpacing: '0.14em', fontSize: 13 }}>
