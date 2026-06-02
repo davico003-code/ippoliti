@@ -401,7 +401,7 @@ html, body {
   text-decoration: underline;
 }
 
-@page { size: A4; margin: 5mm; }
+@page { size: A4; margin: 8mm; }
 @media print {
   html, body {
     margin: 0 !important;
@@ -413,17 +413,18 @@ html, body {
   main > *:not(.planilla-page) { display: none !important; }
   .no-print { display: none !important; }
   /* min-height: 0 es el fix clave — la caja deja de forzar el alto de A4 y se
-     ajusta al contenido, eliminando la página 2 fantasma. */
+     ajusta al contenido, eliminando la página 2 fantasma. El llenado de la
+     hoja se logra con tipografía/espaciado, no forzando altura. */
   .planilla-page {
     box-shadow: none;
     margin: 0 !important;
-    padding: 6mm 8mm !important;
+    padding: 12mm 14mm !important;
     max-height: none !important;
     min-height: 0 !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
-    line-height: 1.25 !important;
-    font-size: 10.5px !important;
+    line-height: 1.4 !important;
+    font-size: 12px !important;
   }
   /* Sin margen residual debajo del último bloque (footer). */
   .planilla-page > *:last-child { margin-bottom: 0 !important; }
@@ -434,8 +435,24 @@ html, body {
   .planilla-page .footer {
     page-break-inside: avoid !important;
   }
-  .planilla-page .hero-value { font-size: 18px !important; }
-  .planilla-page .total-amount { font-size: 22px !important; }
+  /* Rebalanceo print: usar toda la altura útil de la hoja con tipografías
+     legibles (mínimo 11-12px) y secciones con más respiración. */
+  .planilla-page .section { margin-bottom: 14px !important; }
+  .planilla-page .section-title { font-size: 13px !important; }
+  .planilla-page .tabla .label { font-size: 12px !important; }
+  .planilla-page .tabla .label-sub { font-size: 10.5px !important; }
+  .planilla-page .tabla .value { font-size: 14px !important; line-height: 1.3 !important; }
+  .planilla-page .hero-value { font-size: 22px !important; line-height: 1.3 !important; }
+  .planilla-page .hero-value.ajuste { font-size: 16px !important; }
+  .planilla-page .hero-sub { font-size: 12px !important; }
+  .planilla-page .total { padding: 16px 20px !important; }
+  .planilla-page .total-amount { font-size: 28px !important; line-height: 1.3 !important; }
+  .planilla-page .disclaimer { padding: 12px 16px !important; }
+  .planilla-page .disclaimer-text { font-size: 11px !important; }
+  .planilla-page .info-grid { gap: 12px 20px !important; }
+  .planilla-page .info-block-content { font-size: 11px !important; }
+  /* Espacio respirable entre el último bloque y el footer (sin margin-top:auto). */
+  .planilla-page .footer { margin-top: 24px !important; padding-top: 14px !important; }
 }
 `
 
