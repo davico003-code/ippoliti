@@ -36,6 +36,7 @@ export default async function HausingPage() {
         .prop-img { transition: transform 0.7s cubic-bezier(0.16,1,0.3,1); }
         .prop-arrow { transition: transform 0.3s ease; }
         @media (max-width: 768px) {
+          .hausing-logo { height: 26px !important; }
           .hero-title { font-size: clamp(42px, 10vw, 80px) !important; }
           .prop-grid { grid-template-columns: 1fr !important; }
           .prop-inner { flex-direction: column !important; min-height: auto !important; }
@@ -51,10 +52,8 @@ export default async function HausingPage() {
       {/* NAV */}
       <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,padding:"20px 40px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)",backdropFilter:"blur(20px)"}}>
         <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
-          <div style={{width:"32px",height:"32px",background:"#fff",borderRadius:"8px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{color:"#000",fontWeight:900,fontSize:"14px"}}>H</span>
-          </div>
-          <span style={{color:"#fff",fontWeight:700,fontSize:"15px",letterSpacing:"0.05em"}}>HAUSING</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/hausing-logo.svg" alt="Hausing" className="hausing-logo" style={{height:"30px",width:"auto",display:"block",filter:"brightness(0) invert(1)"}} />
         </div>
         <Link href="/" style={{color:"rgba(255,255,255,0.6)",fontSize:"13px",textDecoration:"none",display:"flex",alignItems:"center",gap:"6px"}}>
           &larr; SI Inmobiliaria
