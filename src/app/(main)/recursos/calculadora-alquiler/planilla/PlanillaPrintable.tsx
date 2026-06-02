@@ -401,12 +401,41 @@ html, body {
   text-decoration: underline;
 }
 
-@page { size: A4; margin: 0; }
+@page { size: A4; margin: 5mm; }
 @media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
   body > *:not(main):not(script) { display: none !important; }
   main > *:not(.planilla-page) { display: none !important; }
   .no-print { display: none !important; }
-  .planilla-page { box-shadow: none; margin: 0 !important; padding: 8mm 10mm; }
+  /* min-height: 0 es el fix clave — la caja deja de forzar el alto de A4 y se
+     ajusta al contenido, eliminando la página 2 fantasma. */
+  .planilla-page {
+    box-shadow: none;
+    margin: 0 !important;
+    padding: 6mm 8mm !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    line-height: 1.25 !important;
+    font-size: 10.5px !important;
+  }
+  /* Sin margen residual debajo del último bloque (footer). */
+  .planilla-page > *:last-child { margin-bottom: 0 !important; }
+  /* Evitar que un bloque se parta entre páginas. */
+  .planilla-page .section,
+  .planilla-page .info-grid,
+  .planilla-page .disclaimer,
+  .planilla-page .footer {
+    page-break-inside: avoid !important;
+  }
+  .planilla-page .hero-value { font-size: 18px !important; }
+  .planilla-page .total-amount { font-size: 22px !important; }
 }
 `
 
