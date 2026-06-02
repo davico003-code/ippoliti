@@ -51,7 +51,7 @@ html, body {
   background: #fff !important;
   font-family: 'Raleway', system-ui, sans-serif;
   color: var(--tinta);
-  line-height: 1.4;
+  line-height: 1.3;
   -webkit-font-smoothing: antialiased;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -83,7 +83,7 @@ html, body {
   min-height: 1123px;
   background: var(--paper);
   margin: 0 auto;
-  padding: 40px 48px;
+  padding: 32px 38px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -111,28 +111,28 @@ html, body {
   line-height: 1.4;
 }
 
-.planilla-page .doc-title { margin-bottom: 14px; }
+.planilla-page .doc-title { margin-bottom: 7px; }
 .planilla-page .doc-eyebrow {
   font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--si-green);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .planilla-page .doc-h1 {
   font-family: 'Raleway', sans-serif;
   font-weight: 800;
-  font-size: 22px;
+  font-size: 19px;
   color: var(--tinta);
   letter-spacing: -0.5px;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .planilla-page .hero {
-  margin-bottom: 14px;
-  padding-bottom: 12px;
+  margin-bottom: 9px;
+  padding-bottom: 7px;
   border-bottom: 1px solid var(--line);
 }
 .planilla-page .hero-grid {
@@ -153,13 +153,13 @@ html, body {
 .planilla-page .hero-value {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  font-size: 24px;
+  font-size: 19px;
   color: var(--tinta);
   font-variant-numeric: tabular-nums;
-  line-height: 1.3;
+  line-height: 1.2;
   letter-spacing: -0.5px;
 }
-.planilla-page .hero-value.ajuste { font-size: 16px; font-weight: 600; }
+.planilla-page .hero-value.ajuste { font-size: 14px; font-weight: 600; }
 .planilla-page .hero-value .per {
   font-size: 13px;
   font-weight: 500;
@@ -175,8 +175,8 @@ html, body {
 }
 
 .planilla-page .total {
-  margin-bottom: 14px;
-  padding: 11px 20px;
+  margin-bottom: 8px;
+  padding: 10px 16px;
   background: var(--si-green-tint);
   border-top: 3px solid var(--si-green);
   border-bottom: 1px solid var(--si-green);
@@ -195,11 +195,11 @@ html, body {
 .planilla-page .total-amount {
   font-family: 'Poppins', sans-serif;
   font-weight: 800;
-  font-size: 26px;
+  font-size: 23px;
   color: var(--si-green);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.5px;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 .planilla-page .total-amount-extra {
   font-size: 13px;
@@ -207,10 +207,10 @@ html, body {
   margin-left: 8px;
 }
 
-.planilla-page .section { margin-bottom: 12px; }
+.planilla-page .section { margin-bottom: 8px; }
 .planilla-page .section-head {
-  margin-bottom: 6px;
-  padding-bottom: 5px;
+  margin-bottom: 4px;
+  padding-bottom: 3px;
   border-bottom: 1px solid var(--si-green);
 }
 .planilla-page .section-title {
@@ -225,32 +225,32 @@ html, body {
 .planilla-page .tabla { width: 100%; border-collapse: collapse; }
 .planilla-page .tabla tr { border-bottom: 1px solid var(--line-soft); }
 .planilla-page .tabla tr:last-child { border-bottom: none; }
-.planilla-page .tabla td { padding: 5px 0; vertical-align: middle; }
+.planilla-page .tabla td { padding: 4px 0; vertical-align: middle; }
 .planilla-page .tabla .label {
   font-family: 'Raleway', sans-serif;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--tinta);
-  line-height: 1.3;
+  line-height: 1.25;
 }
 .planilla-page .tabla .label-sub {
   display: block;
   font-family: 'Raleway', sans-serif;
   font-weight: 400;
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--tinta-mute);
   margin-top: 1px;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 .planilla-page .tabla .value {
   text-align: right;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--tinta);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 .planilla-page .tabla .value-sub {
   display: block;
@@ -264,8 +264,8 @@ html, body {
 .planilla-page .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px 18px;
-  margin-bottom: 10px;
+  gap: 8px 14px;
+  margin-bottom: 6px;
 }
 .planilla-page .info-block { border-left: 3px solid var(--si-green); padding-left: 12px; }
 .planilla-page .info-block-title {
@@ -280,8 +280,8 @@ html, body {
 }
 .planilla-page .info-block-content {
   font-family: 'Raleway', sans-serif;
-  font-size: 10.5px;
-  line-height: 1.35;
+  font-size: 10px;
+  line-height: 1.3;
   color: var(--tinta-soft);
 }
 .planilla-page .info-block-content strong { color: var(--tinta); font-weight: 700; }
@@ -310,8 +310,8 @@ html, body {
 
 .planilla-page .disclaimer {
   border: 1px solid var(--tinta);
-  padding: 10px 14px;
-  margin-bottom: 10px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
 }
 .planilla-page .disclaimer-title {
   font-family: 'Raleway', sans-serif;
@@ -324,39 +324,39 @@ html, body {
 }
 .planilla-page .disclaimer-text {
   font-family: 'Raleway', sans-serif;
-  font-size: 10.5px;
-  line-height: 1.35;
+  font-size: 9.5px;
+  line-height: 1.3;
   color: var(--tinta-soft);
 }
 
 .planilla-page .footer {
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: 7px;
   border-top: 2px solid var(--si-green);
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 24px;
+  gap: 16px;
   align-items: end;
 }
-.planilla-page .footer-logo { height: 20px; width: auto; display: block; margin-bottom: 5px; }
+.planilla-page .footer-logo { height: 18px; width: auto; display: block; margin-bottom: 3px; }
 .planilla-page .footer-tagline {
   font-family: 'Raleway', sans-serif;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--tinta-mute);
   font-weight: 500;
   letter-spacing: 0.8px;
 }
 .planilla-page .footer-web {
   font-family: 'Raleway', sans-serif;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--tinta-soft);
-  margin-top: 5px;
+  margin-top: 3px;
   font-weight: 500;
 }
 .planilla-page .footer-contact { text-align: right; }
 .planilla-page .footer-contact-label {
   font-family: 'Raleway', sans-serif;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
@@ -366,13 +366,13 @@ html, body {
 .planilla-page .footer-contact-value {
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--si-green);
   font-variant-numeric: tabular-nums;
 }
 .planilla-page .footer-contact-link {
   font-family: 'Raleway', sans-serif;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--tinta-mute);
   margin-top: 2px;
 }
@@ -406,7 +406,7 @@ html, body {
   body > *:not(main):not(script) { display: none !important; }
   main > *:not(.planilla-page) { display: none !important; }
   .no-print { display: none !important; }
-  .planilla-page { box-shadow: none; margin: 0 !important; padding: 10mm 12mm; }
+  .planilla-page { box-shadow: none; margin: 0 !important; padding: 8mm 10mm; }
 }
 `
 
