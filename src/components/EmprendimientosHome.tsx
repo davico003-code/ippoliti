@@ -45,7 +45,7 @@ const ITEMS: Item[] = [
     badge: 'Barrio Abierto',
     title: 'Distrito Roldán',
     location: 'Roldán',
-    price: 'Entrega 40% + 18 cuotas fijas en USD',
+    price: 'Entrega 30% + 24 cuotas fijas en USD',
     href: '/emprendimientos/67178-distrito-roldan',
     image: 'https://static.tokkobroker.com/dev_pictures/67178_41755302210101797952152961824111367170079757743169980171710493926367681957871.jpg',
     videoUrl: '/videos/proyectos/distrito-roldan',
