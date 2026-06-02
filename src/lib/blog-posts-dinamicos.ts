@@ -57,13 +57,40 @@ interface NotaPublicadaBlob {
   imagen_photographer_url?: string;
 }
 
+// 11 imágenes aéreas curadas (Funes/Roldán) en public/blog/images/. El default
+// por nota se asigna por hash del slug → estable (mismo slug = misma imagen
+// siempre, sin importar cuántas notas haya) y repartido entre las 11.
+const IMAGENES_BLOG = [
+  '/blog/images/funes-autopista-acceso-aerea.webp',
+  '/blog/images/funes-avenida-arbolada-campo.webp',
+  '/blog/images/funes-barrio-cerrado-lotes-aereo.webp',
+  '/blog/images/funes-barrios-arbolados-aerea.webp',
+  '/blog/images/funes-barrios-nuevos-aereo.webp',
+  '/blog/images/funes-casas-piletas-barrios-aereo.webp',
+  '/blog/images/funes-roldan-zona-oeste-aerea.webp',
+  '/blog/images/funes-vista-aerea-barrios-2026.webp',
+  '/blog/images/funes-zona-residencial-arboles-aereo.webp',
+  '/blog/images/roldan-vista-aerea-autopista.webp',
+  '/blog/images/roldan-vista-aerea-panoramica.webp',
+] as const;
+
+// Hash estable (multiplicador 31, 32-bit) → índice en IMAGENES_BLOG. Pura
+// función del slug: determinística entre renders y revalidaciones.
+export function imagenPorSlug(slug: string): string {
+  let h = 0;
+  for (let i = 0; i < slug.length; i++) {
+    h = (Math.imul(h, 31) + slug.charCodeAt(i)) >>> 0;
+  }
+  return IMAGENES_BLOG[h % IMAGENES_BLOG.length];
+}
+
 function blobToBlogPost(nota: NotaPublicadaBlob): BlogPost {
   const fecha = new Date(nota.fecha_publicacion);
-  // Prioridad: imagen_url (Unsplash) → imagen_sugerida si es URL → placeholder
-  const image = nota.imagen_url
-    ?? (nota.imagen_sugerida.startsWith('http')
-      ? nota.imagen_sugerida
-      : '/blog/images/funes-barrios-arbolados-aerea.webp');
+  // imagen_url (legacy Unsplash, hoy null en todas) → si no, asignación
+  // determinística por hash del slug. Aplica retroactivamente a las notas
+  // viejas que caían al fallback único. El override manual tiene prioridad y se
+  // aplica en getAllPosts/getPostBySlug (override > imagen_url > hash).
+  const image = nota.imagen_url ?? imagenPorSlug(nota.slug);
 
   return {
     slug: nota.slug,

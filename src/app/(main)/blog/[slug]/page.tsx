@@ -102,7 +102,10 @@ function resolveImage(slug: string, originalImage: string): string | null {
     const id = PEXELS_IMAGES[slug]
     return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=800`
   }
-  if (originalImage.startsWith('http')) return originalImage
+  // Acepta URLs http(s) (Unsplash/Pexels/Blob override) y paths locales /blog/…
+  // (la asignación determinística por hash del slug). Sin esto, el detalle
+  // mostraba el gradiente verde para las notas con imagen local.
+  if (originalImage.startsWith('http') || originalImage.startsWith('/')) return originalImage
   return null
 }
 

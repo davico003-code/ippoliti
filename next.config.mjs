@@ -76,6 +76,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.pexels.com' },
       { protocol: 'https', hostname: 'cdn.tokkobroker.com' },
       { protocol: 'http', hostname: 'static.tokkobroker.com' },
+      // Overrides de imagen de notas subidos a Vercel Blob (/admin/notas).
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
     ],
   },
 };
