@@ -36,6 +36,7 @@ function translateType(name: string): string {
 }
 
 const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
+const POPPINS = 'var(--font-poppins), Poppins, sans-serif'
 
 // Deriva si la unidad es comercial a partir del título o la categoría.
 function isComercial(u: DevUnit): boolean {
@@ -56,9 +57,10 @@ interface Props {
   devName: string
   whatsappUrl: string
   variant?: 'default' | 'distrito'
+  location?: string
 }
 
-export default function DevUnitsSection({ units, devName, whatsappUrl, variant = 'default' }: Props) {
+export default function DevUnitsSection({ units, devName, whatsappUrl, variant = 'default', location }: Props) {
   const isDistrito = variant === 'distrito'
   const [activeTab, setActiveTab] = useState<number | null>(null)
 
@@ -165,36 +167,33 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
         </div>
       )}
 
-      {/* Grid distrito — cards horizontales full-width */}
+      {/* Grid distrito — cards verticales estilo Zillow (2 cols desktop) */}
       {isDistrito ? (
-        <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {filtered.map(u => {
             const photo = getPhoto(u)
             const area = getArea(u)
             const price = u.operations?.[0]?.prices?.[0]
             const comercial = isComercial(u)
-            const stats: { label: string; value: string; highlight?: boolean }[] = []
-            if (area > 0) stats.push({ label: 'Superficie', value: `${area} m²` })
-            stats.push({
-              label: 'Precio',
-              value: price?.price ? `USD ${price.price.toLocaleString('es-AR')}` : 'Consultar',
-              highlight: true,
-            })
-            stats.push({ label: 'Tipo', value: comercial ? 'Comercial' : 'Residencial' })
+            const disponible = u.status === 1
+            // Datos en fila — solo lo que viene de Tokko (sin "—" ni inventos).
+            const datos: { label: string; value: string }[] = []
+            if (area > 0) datos.push({ label: 'Superficie', value: `${area} m²` })
+            datos.push({ label: 'Tipo', value: comercial ? 'Comercial' : 'Residencial' })
 
             return (
               <div
                 key={u.id}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md md:flex-row"
+                className="group flex flex-col overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl"
               >
-                {/* Imagen (izquierda 40%) */}
-                <div className="relative aspect-[4/3] w-full bg-[#F2F2F7] md:aspect-auto md:min-h-[240px] md:w-2/5 md:self-stretch">
+                {/* Imagen + badges */}
+                <div className="relative aspect-[4/3] bg-[#F2F2F7]">
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={photo}
                       alt={u.publication_title || u.reference_code}
-                      className="absolute inset-0 h-full w-full rounded-2xl object-cover md:rounded-none"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -203,48 +202,55 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
                       </svg>
                     </div>
                   )}
-                </div>
-
-                {/* Contenido (derecha 60%) */}
-                <div className="flex flex-1 flex-col gap-3 p-6 md:w-3/5">
+                  {/* Badge tipo (top-left) */}
                   <span
-                    className="self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-white"
-                    style={{ background: comercial ? '#B8935A' : '#1A5C38' }}
+                    className="absolute left-3 top-3 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.1em] text-white"
+                    style={{ fontFamily: RALEWAY, fontWeight: 600, background: comercial ? '#B8935A' : '#1A5C38' }}
                   >
                     {comercial ? 'Comercial' : 'Residencial'}
                   </span>
+                  {/* Badge disponible (top-right) — solo si Tokko marca disponible */}
+                  {disponible && (
+                    <span
+                      className="absolute right-3 top-3 rounded-full bg-[#e8f5ee] px-3 py-1 text-[10px] uppercase tracking-[0.1em] text-[#1A5C38]"
+                      style={{ fontFamily: RALEWAY, fontWeight: 600 }}
+                    >
+                      Disponible
+                    </span>
+                  )}
+                </div>
 
-                  <h3 style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 22, color: '#0F3F26', lineHeight: 1.2 }}>
-                    {getUnitTitle(u)}
-                  </h3>
+                {/* Cuerpo */}
+                <div className="flex flex-1 flex-col p-5">
+                  {/* Eyebrow ubicación */}
+                  <p className="uppercase text-[#6b6b6b]" style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 11, letterSpacing: '0.06em' }}>
+                    {devName}{location ? ` · ${location}` : ''}
+                  </p>
 
-                  <div className="flex flex-wrap items-stretch gap-y-2">
-                    {stats.map((s, i) => (
-                      <div key={s.label} className="flex items-stretch">
-                        {i > 0 && <span className="mx-4 w-px self-stretch bg-gray-200" />}
-                        <div className="flex flex-col justify-end">
-                          <span className="text-[10px] uppercase tracking-[0.1em] text-gray-400">{s.label}</span>
-                          <span
-                            style={{
-                              fontFamily: RALEWAY,
-                              fontWeight: 600,
-                              color: s.highlight ? '#1A5C38' : '#0F3F26',
-                              fontSize: s.highlight ? 26 : 16,
-                              letterSpacing: '-0.01em',
-                            }}
-                            className={s.highlight ? 'font-numeric' : undefined}
-                          >
-                            {s.value}
-                          </span>
+                  {/* Precio destacado */}
+                  <p className="mt-1" style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 24, color: '#0F3F26', letterSpacing: '-0.01em' }}>
+                    {price?.price ? `USD ${price.price.toLocaleString('es-AR')}` : 'Consultar'}
+                  </p>
+
+                  {/* Separador */}
+                  <div className="mt-3 border-t border-[#e8e3da] pt-3">
+                    {/* Datos en fila */}
+                    <div className={`grid gap-3 ${datos.length >= 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                      {datos.map(d => (
+                        <div key={d.label}>
+                          <p className="uppercase text-[#888]" style={{ fontSize: 10, letterSpacing: '0.08em' }}>{d.label}</p>
+                          <p className="mt-0.5" style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 14, color: '#0F3F26' }}>{d.value}</p>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="mt-auto flex justify-end pt-2">
+                  {/* Botón */}
+                  <div className="mt-5">
                     <Link
                       href={`/propiedades/${u.id}-unidad`}
-                      className="rounded-full bg-[#1A5C38] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#145030]"
+                      className="block w-full rounded-md bg-[#1A5C38] px-5 py-3 text-center text-white transition-colors hover:bg-[#0F3F26]"
+                      style={{ fontFamily: POPPINS, fontWeight: 500, fontSize: 13 }}
                     >
                       Ver unidad &rarr;
                     </Link>
