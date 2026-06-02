@@ -170,6 +170,7 @@ export default function PropertyDetailBody({
           alquiler={alquilerMonto}
           moneda={monedaContrato as 'ARS' | 'USD'}
           tipoPropiedad={property.type?.name ?? ''}
+          propertyId={property.id}
         />
       )}
 

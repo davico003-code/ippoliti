@@ -14,16 +14,22 @@ interface Props {
   alquiler: number
   moneda: 'ARS' | 'USD'
   tipoPropiedad: string
+  propertyId: number
 }
+
+// Excepción: propiedades puntuales que no tienen gasto administrativo mensual.
+// Cuando aparezca otra, se agrega su ID acá. (8089309: Local comercial Ruta 9, Funes)
+const SIN_ADMIN_PROPERTY_IDS = [8089309]
 
 const fmtArs = (n: number) =>
   `$ ${Math.round(n).toLocaleString('es-AR')}`
 const fmtUsd = (n: number) =>
   `US$ ${n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
-export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad }: Props) {
+export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, propertyId }: Props) {
   const tipoFiscal = useMemo(() => detectarTipoFiscal(tipoPropiedad), [tipoPropiedad])
   const isComercio = tipoFiscal === 'comercio'
+  const sinAdmin = SIN_ADMIN_PROPERTY_IDS.includes(propertyId)
 
   // Vivienda fija en 24m (default UX). Comercio inicia en 24m con toggle 24/36.
   const [mesesElegidos, setMesesElegidos] = useState<24 | 36>(24)
@@ -62,6 +68,12 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad }: P
   if (!Number.isFinite(alquiler) || alquiler <= 0) return null
   if (moneda !== 'ARS' && moneda !== 'USD') return null
 
+  // Excepción admin=0: el total al ingresar se muestra sin el gasto
+  // administrativo (c.admin sale del total en la moneda del contrato).
+  const totalMonedaContrato = sinAdmin
+    ? c.totalSubMonedaContrato - c.admin
+    : c.totalSubMonedaContrato
+
   // Link a calculadora completa con prefill. Si comercio, usa la elección
   // del usuario; si vivienda, getMesesDefault() devuelve 24.
   const mesesParaLink = isComercio ? meses : getMesesDefault(tipoFiscal)
@@ -97,6 +109,21 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad }: P
       >
         Costos iniciales estimativos
       </h2>
+
+      {sinAdmin && (
+        <p
+          style={{
+            fontStyle: 'italic',
+            fontSize: 11,
+            lineHeight: 1.4,
+            color: 'var(--tinta-mute)',
+            margin: '0 0 12px',
+            fontFamily: "'Raleway', system-ui, sans-serif",
+          }}
+        >
+          Esta propiedad no incluye gasto administrativo mensual.
+        </p>
+      )}
 
       {isComercio && (
         <div className="mb-4">
@@ -153,7 +180,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad }: P
                 className="font-poppins tabular-nums"
                 style={{ fontSize: 22, fontWeight: 700, color: 'var(--tinta)', lineHeight: 1.1, marginTop: 6 }}
               >
-                {fmtUsd(c.totalSubMonedaContrato)}
+                {fmtUsd(totalMonedaContrato)}
               </div>
               <div
                 className="font-poppins tabular-nums"
@@ -167,7 +194,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad }: P
               className="font-poppins tabular-nums"
               style={{ fontSize: 24, fontWeight: 700, color: 'var(--tinta)', lineHeight: 1.1, marginTop: 6 }}
             >
-              {fmtArs(c.totalSubMonedaContrato)}
+              {fmtArs(totalMonedaContrato)}
             </div>
           )}
           <div
