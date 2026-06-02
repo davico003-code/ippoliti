@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check": "tsc --noEmit && next lint",
+    "check": "tsc --noEmit && next lint && node scripts/check-public-images.mjs",
     "prepare": "husky"
   },
   "lint-staged": {
