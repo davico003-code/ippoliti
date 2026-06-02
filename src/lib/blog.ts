@@ -233,15 +233,29 @@ Si estás pensando en vender antes de comprar, podés solicitar una tasación si
 ]
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | undefined> {
-  const local = posts.find(p => p.slug === slug);
-  if (local) return local;
-  const { getPostsDinamicos } = await import('./blog-posts-dinamicos');
-  const dinamicos = await getPostsDinamicos();
-  return dinamicos.find(p => p.slug === slug);
+  const { getPostsDinamicos, getBlogRedirects, getImageOverrides } =
+    await import('./blog-posts-dinamicos');
+  // Borrada (soft-delete): el middleware ya hace 301; defensa en profundidad.
+  const redirects = await getBlogRedirects();
+  if (redirects[slug]) return undefined;
+  const local =
+    posts.find(p => p.slug === slug) ??
+    (await getPostsDinamicos()).find(p => p.slug === slug);
+  if (!local) return undefined;
+  const overrides = await getImageOverrides();
+  return overrides[slug] ? { ...local, image: overrides[slug] } : local;
 }
 
 export async function getAllPosts(): Promise<BlogPost[]> {
-  const { getPostsDinamicos } = await import('./blog-posts-dinamicos');
-  const dinamicos = await getPostsDinamicos();
-  return [...posts, ...dinamicos].sort((a, b) => b.date.localeCompare(a.date));
+  const { getPostsDinamicos, getBlogRedirects, getImageOverrides } =
+    await import('./blog-posts-dinamicos');
+  const [dinamicos, redirects, overrides] = await Promise.all([
+    getPostsDinamicos(),
+    getBlogRedirects(),
+    getImageOverrides(),
+  ]);
+  return [...posts, ...dinamicos]
+    .filter(p => !redirects[p.slug])                                  // tombstone: oculta borradas (estáticas y dinámicas)
+    .map(p => (overrides[p.slug] ? { ...p, image: overrides[p.slug] } : p))
+    .sort((a, b) => b.date.localeCompare(a.date));
 }

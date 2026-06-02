@@ -1,9 +1,34 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
+import { Redis } from '@upstash/redis'
 
 const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET ?? 'si-secret-2026')
 const COOKIE_NAME = 'si_agent_token'
+
+// Cliente Upstash directo: mismo SDK y env vars que @/lib/redis, pero sin
+// importar ese módulo para no arrastrar nanoid al bundle edge del middleware.
+// Leer con hgetall (mismo SDK que el hset de la escritura) garantiza
+// serialización idéntica, sin riesgo de comillas JSON en el destino.
+const redisEdge = new Redis({
+  url: process.env.KV_REST_API_URL!,
+  token: process.env.KV_REST_API_TOKEN!,
+})
+
+// Cache en memoria (~60s) del mapa de notas borradas (blog:redirects).
+let _redirCache: { map: Record<string, string>; ts: number } | null = null
+const REDIR_TTL_MS = 60_000
+
+async function getBlogRedirects(): Promise<Record<string, string>> {
+  if (_redirCache && Date.now() - _redirCache.ts < REDIR_TTL_MS) return _redirCache.map
+  try {
+    const map = (await redisEdge.hgetall<Record<string, string>>('blog:redirects')) ?? {}
+    _redirCache = { map, ts: Date.now() }
+    return map
+  } catch {
+    return _redirCache?.map ?? {}
+  }
+}
 
 // Hosts neutros que sirven la ficha white-label. Se rewrite-an internamente al
 // route group (neutral)/v/[slug]. Cualquier path que no matchee el patrón de
@@ -32,6 +57,20 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/v/__nf__'
     return NextResponse.rewrite(url)
+  }
+
+  // ── Blog: 301 de notas borradas (soft-delete vía blog:redirects) ───────
+  if (pathname.startsWith('/blog/')) {
+    const slug = pathname.slice('/blog/'.length)
+    if (slug && !slug.includes('/')) {
+      const destino = (await getBlogRedirects())[slug]
+      if (destino) {
+        const target = destino.startsWith('http')
+          ? destino
+          : new URL(destino, request.url).toString()
+        return NextResponse.redirect(target, 301)
+      }
+    }
   }
 
   // ── siinmobiliaria.com: lógica original de protección /agentes/* ───────

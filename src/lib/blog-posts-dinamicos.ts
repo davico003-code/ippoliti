@@ -1,9 +1,43 @@
 import { list, type ListBlobResultBlob } from '@vercel/blob';
+import { redis } from './redis';
 import type { BlogPost } from './blog';
 
 // Cache simple en memoria (60 segundos)
 let _cache: { posts: BlogPost[]; ts: number } | null = null;
 const CACHE_TTL_MS = 60_000;
+
+// Caches de metadata de Redis (tombstones + overrides de imagen), 60s.
+let _redirCache: { map: Record<string, string>; ts: number } | null = null;
+let _imgCache: { map: Record<string, string>; ts: number } | null = null;
+const META_TTL_MS = 60_000;
+
+// Notas borradas (soft-delete): slug → URL destino del 301. Sirve de tombstone
+// (se filtra del listado público) y de fuente del redirect. NO se destruye el
+// Blob; quitar el slug del hash revierte el borrado.
+export async function getBlogRedirects(): Promise<Record<string, string>> {
+  if (_redirCache && Date.now() - _redirCache.ts < META_TTL_MS) return _redirCache.map;
+  try {
+    const map = (await redis.hgetall<Record<string, string>>('blog:redirects')) ?? {};
+    _redirCache = { map, ts: Date.now() };
+    return map;
+  } catch (err) {
+    console.warn('[blog] error leyendo blog:redirects:', err);
+    return _redirCache?.map ?? {};
+  }
+}
+
+// Override manual de imagen por nota: slug → URL de imagen (Blob).
+export async function getImageOverrides(): Promise<Record<string, string>> {
+  if (_imgCache && Date.now() - _imgCache.ts < META_TTL_MS) return _imgCache.map;
+  try {
+    const map = (await redis.hgetall<Record<string, string>>('blog:image_override')) ?? {};
+    _imgCache = { map, ts: Date.now() };
+    return map;
+  } catch (err) {
+    console.warn('[blog] error leyendo blog:image_override:', err);
+    return _imgCache?.map ?? {};
+  }
+}
 
 interface NotaPublicadaBlob {
   titulo: string;

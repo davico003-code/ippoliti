@@ -9,7 +9,7 @@ const STOP_WORDS_ES = new Set([
   'hay', 'ser', 'son', 'fue', 'han', 'ha', 'tiene', 'puede',
 ]);
 
-function normalizar(texto: string): Set<string> {
+export function normalizar(texto: string): Set<string> {
   const limpio = texto
     .toLowerCase()
     .normalize('NFD')
@@ -21,7 +21,7 @@ function normalizar(texto: string): Set<string> {
   return new Set(limpio);
 }
 
-function jaccard(a: Set<string>, b: Set<string>): number {
+export function jaccard(a: Set<string>, b: Set<string>): number {
   if (a.size === 0 && b.size === 0) return 1;
   let interseccion = 0;
   a.forEach(token => {
