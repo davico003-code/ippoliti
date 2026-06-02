@@ -35,6 +35,14 @@ function translateType(name: string): string {
   return TYPE_MAP[name] || name
 }
 
+const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
+
+// Deriva si la unidad es comercial a partir del título o la categoría.
+function isComercial(u: DevUnit): boolean {
+  const hay = `${u.publication_title || ''} ${translateType(u.type?.name || '')}`.toLowerCase()
+  return hay.includes('comercial') || hay.includes('local') || hay.includes('oficina')
+}
+
 function getUnitTitle(u: DevUnit): string {
   // Prefer publication_title or address over reference_code
   if (u.publication_title && !u.publication_title.match(/^[A-Z]{2,4}\d{5,}/)) return u.publication_title
@@ -47,9 +55,11 @@ interface Props {
   units: DevUnit[]
   devName: string
   whatsappUrl: string
+  variant?: 'default' | 'distrito'
 }
 
-export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) {
+export default function DevUnitsSection({ units, devName, whatsappUrl, variant = 'default' }: Props) {
+  const isDistrito = variant === 'distrito'
   const [activeTab, setActiveTab] = useState<number | null>(null)
 
   // Build available tabs from real data
@@ -155,7 +165,97 @@ export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) 
         </div>
       )}
 
-      {/* Grid */}
+      {/* Grid distrito — cards horizontales full-width */}
+      {isDistrito ? (
+        <div className="flex flex-col gap-6">
+          {filtered.map(u => {
+            const photo = getPhoto(u)
+            const area = getArea(u)
+            const price = u.operations?.[0]?.prices?.[0]
+            const comercial = isComercial(u)
+            const stats: { label: string; value: string; highlight?: boolean }[] = []
+            if (area > 0) stats.push({ label: 'Superficie', value: `${area} m²` })
+            stats.push({
+              label: 'Precio',
+              value: price?.price ? `USD ${price.price.toLocaleString('es-AR')}` : 'Consultar',
+              highlight: true,
+            })
+            stats.push({ label: 'Tipo', value: comercial ? 'Comercial' : 'Residencial' })
+
+            return (
+              <div
+                key={u.id}
+                className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md md:flex-row"
+              >
+                {/* Imagen (izquierda 40%) */}
+                <div className="relative aspect-[4/3] w-full bg-[#F2F2F7] md:aspect-auto md:min-h-[240px] md:w-2/5 md:self-stretch">
+                  {photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={photo}
+                      alt={u.publication_title || u.reference_code}
+                      className="absolute inset-0 h-full w-full rounded-2xl object-cover md:rounded-none"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 3v18" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+
+                {/* Contenido (derecha 60%) */}
+                <div className="flex flex-1 flex-col gap-3 p-6 md:w-3/5">
+                  <span
+                    className="self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-white"
+                    style={{ background: comercial ? '#B8935A' : '#1A5C38' }}
+                  >
+                    {comercial ? 'Comercial' : 'Residencial'}
+                  </span>
+
+                  <h3 style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 22, color: '#0F3F26', lineHeight: 1.2 }}>
+                    {getUnitTitle(u)}
+                  </h3>
+
+                  <div className="flex flex-wrap items-stretch gap-y-2">
+                    {stats.map((s, i) => (
+                      <div key={s.label} className="flex items-stretch">
+                        {i > 0 && <span className="mx-4 w-px self-stretch bg-gray-200" />}
+                        <div className="flex flex-col justify-end">
+                          <span className="text-[10px] uppercase tracking-[0.1em] text-gray-400">{s.label}</span>
+                          <span
+                            style={{
+                              fontFamily: RALEWAY,
+                              fontWeight: 600,
+                              color: s.highlight ? '#1A5C38' : '#0F3F26',
+                              fontSize: s.highlight ? 26 : 16,
+                              letterSpacing: '-0.01em',
+                            }}
+                            className={s.highlight ? 'font-numeric' : undefined}
+                          >
+                            {s.value}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-auto flex justify-end pt-2">
+                    <Link
+                      href={`/propiedades/${u.id}-unidad`}
+                      className="rounded-full bg-[#1A5C38] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#145030]"
+                    >
+                      Ver unidad &rarr;
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+      /* Grid default */
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(u => {
           const photo = getPhoto(u)
@@ -212,6 +312,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl }: Props) 
           )
         })}
       </div>
+      )}
     </div>
   )
 }

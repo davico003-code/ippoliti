@@ -8,9 +8,11 @@ import 'yet-another-react-lightbox/styles.css'
 interface Props {
   photos: string[]
   alt: string
+  variant?: 'default' | 'distrito'
 }
 
-export default function PhotoGallery({ photos, alt }: Props) {
+export default function PhotoGallery({ photos, alt, variant = 'default' }: Props) {
+  const isDistrito = variant === 'distrito'
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
@@ -33,19 +35,27 @@ export default function PhotoGallery({ photos, alt }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div
+        className={
+          isDistrito
+            ? 'grid grid-cols-1 min-[520px]:grid-cols-2 md:grid-cols-3 gap-4'
+            : 'grid grid-cols-2 sm:grid-cols-3 gap-3'
+        }
+      >
         {photos.map((photo, i) => (
           <button
             key={i}
             onClick={() => handleOpen(i)}
-            className="relative h-40 bg-gray-100 rounded-lg overflow-hidden group cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className={`relative bg-gray-100 overflow-hidden group cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500 ${
+              isDistrito ? 'h-56 md:h-64 rounded-2xl' : 'h-40 rounded-lg'
+            }`}
           >
             <Image
               src={photo}
               alt={`${alt} - Foto ${i + 1}`}
               fill
               className="object-cover group-hover:scale-110 transition-transform duration-500"
-              sizes="(max-width: 640px) 50vw, 33vw"
+              sizes={isDistrito ? '(max-width: 520px) 100vw, (max-width: 768px) 50vw, 33vw' : '(max-width: 640px) 50vw, 33vw'}
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
           </button>

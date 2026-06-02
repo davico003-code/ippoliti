@@ -209,10 +209,10 @@ export default async function DevelopmentPage({ params }: Props) {
         </>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Left column */}
-          <div className="lg:col-span-2 space-y-8">
+      <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-10 ${isDistrito ? 'max-w-[1180px]' : 'max-w-7xl'}`}>
+        <div className={`grid grid-cols-1 gap-10 ${isDistrito ? '' : 'lg:grid-cols-3'}`}>
+          {/* Left column — full width en 67178 (sin sidebar) */}
+          <div className={isDistrito ? 'space-y-8' : 'lg:col-span-2 space-y-8'}>
 
             {/* Key specs grid — oculto en 67178 (lo reemplaza la card del Intro) */}
             {!isDistrito && (
@@ -241,7 +241,7 @@ export default async function DevelopmentPage({ params }: Props) {
             )}
 
             {/* Units section — before description */}
-            <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} />
+            <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} variant={isDistrito ? 'distrito' : 'default'} />
 
             {/* Description — oculto en 67178 (el Intro trae su propio lead) */}
             {!isDistrito && paragraphs.length > 0 && (
@@ -255,8 +255,8 @@ export default async function DevelopmentPage({ params }: Props) {
               </div>
             )}
 
-            {/* Video */}
-            {dev.videos && dev.videos.length > 0 && (() => {
+            {/* Video — oculto en 67178 (se quitó la sección de video) */}
+            {!isDistrito && dev.videos && dev.videos.length > 0 && (() => {
               const video = dev.videos[0]
               const embedUrl = video.provider === 'youtube' && video.player_url
                 ? (video.player_url.startsWith('https://www.youtube.com/embed/')
@@ -287,7 +287,7 @@ export default async function DevelopmentPage({ params }: Props) {
                   Galería
                   <span className="text-gray-400 text-sm font-normal ml-2 font-numeric">{photos.length} fotos</span>
                 </h2>
-                <PhotoGallery photos={photos} alt={dev.name} />
+                <PhotoGallery photos={photos} alt={dev.name} variant={isDistrito ? 'distrito' : 'default'} />
               </div>
             )}
 
@@ -328,7 +328,9 @@ export default async function DevelopmentPage({ params }: Props) {
             )}
           </div>
 
-          {/* Right column — Contact (same as property page) */}
+          {/* Right column — Contact (same as property page). Oculta en 67178:
+              el contacto vive en el FAB + la CTA verde de cierre. */}
+          {!isDistrito && (
           <div className="space-y-4">
             <div className="sticky top-24 space-y-4">
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -394,10 +396,11 @@ export default async function DevelopmentPage({ params }: Props) {
               />
             </div>
           </div>
+          )}
         </div>
 
-        {/* Other developments */}
-        {otherDevs.length > 0 && (
+        {/* Other developments — oculto en 67178 */}
+        {!isDistrito && otherDevs.length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Otros emprendimientos</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -422,16 +425,33 @@ export default async function DevelopmentPage({ params }: Props) {
           </div>
         )}
 
-        {/* Back */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <Link href="/emprendimientos" className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#15472c] font-bold transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Volver a emprendimientos
-          </Link>
-        </div>
+        {/* Back — oculto en 67178 (ya está el BotonVolver fijo arriba) */}
+        {!isDistrito && (
+          <div className="mt-12 pt-8 border-t border-gray-200">
+            <Link href="/emprendimientos" className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#15472c] font-bold transition-colors">
+              <ArrowLeft className="w-4 h-4" /> Volver a emprendimientos
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* CTA financiación — cierre full-width, solo Distrito Roldán */}
       {isDistrito && <SeccionCtaFinanciacion />}
+
+      {/* FAB WhatsApp dedicado — solo 67178 (el global se oculta acá). */}
+      {isDistrito && (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener"
+          aria-label="Consultar por WhatsApp"
+          className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_4px_14px_rgba(37,211,102,0.45)] transition-transform hover:scale-105 hover:bg-[#1ea952]"
+        >
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/>
+          </svg>
+        </a>
+      )}
     </div>
   )
 }

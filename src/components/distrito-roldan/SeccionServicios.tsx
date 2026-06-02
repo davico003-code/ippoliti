@@ -3,7 +3,7 @@ import { Zap, Droplets, Flame, Construction, TreePine, Store } from 'lucide-reac
 const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
 
 const ITEMS = [
-  { Icon: Zap, titulo: 'Red Eléctrica', desc: 'Iluminación eficiente subterránea en todas las calles.' },
+  { Icon: Zap, titulo: 'Red Eléctrica', desc: 'Red eléctrica e iluminación eficiente.' },
   { Icon: Droplets, titulo: 'Agua Potable', desc: 'Red de agua potable conectada a toda la urbanización.' },
   { Icon: Flame, titulo: 'Gas Natural', desc: 'Conexión de gas natural disponible para cada lote.' },
   { Icon: Construction, titulo: 'Pavimento', desc: 'Cordón cuneta y pavimento en todas sus calles.' },
