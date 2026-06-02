@@ -419,6 +419,7 @@ interface ParsedInput {
   frecuencia: Frecuencia
   indice: Indice
   cotizacion: number
+  sinAdmin: boolean
 }
 
 interface ParsedError {
@@ -435,6 +436,7 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
   const tipoRaw = sp.get('tipo')
   const frecuenciaRaw = sp.get('frecuencia')
   const indiceRaw = sp.get('indice')
+  const sinAdmin = sp.get('sinAdmin') === '1'
 
   if (!Number.isFinite(alquiler) || alquiler <= 0)
     return { ok: false, reason: 'El monto del alquiler es inválido.' }
@@ -455,6 +457,7 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
     frecuencia,
     indice,
     cotizacion,
+    sinAdmin,
   }
 }
 
@@ -504,9 +507,10 @@ export default function PlanillaPrintable() {
     )
   }
 
-  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion } =
+  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, sinAdmin } =
     parsed
-  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion })
+  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, sinAdmin })
+  const adminLabel = sinAdmin ? '' : ' + admin'
 
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
   const monedaLabel = moneda === 'USD' ? 'en dólares' : 'en pesos'
@@ -613,6 +617,11 @@ export default function PlanillaPrintable() {
           <div className="section-head">
             <div className="section-title">Desglose del monto al ingresar</div>
           </div>
+          {sinAdmin && (
+            <div className="label-sub" style={{ fontStyle: 'italic', marginBottom: 4 }}>
+              Esta propiedad no incluye gasto administrativo mensual.
+            </div>
+          )}
           <table className="tabla">
             <tbody>
               <tr>
@@ -650,15 +659,17 @@ export default function PlanillaPrintable() {
                 </td>
                 <td className="value">{fmtArs(c.verificacion)}</td>
               </tr>
-              <tr>
-                <td>
-                  <div className="label">Gasto administrativo</div>
-                  <div className="label-sub">
-                    3% del alquiler + IVA · regulado por COCIR
-                  </div>
-                </td>
-                <td className="value">{fmt(c.admin, moneda)}</td>
-              </tr>
+              {!sinAdmin && (
+                <tr>
+                  <td>
+                    <div className="label">Gasto administrativo</div>
+                    <div className="label-sub">
+                      3% del alquiler + IVA · regulado por COCIR
+                    </div>
+                  </td>
+                  <td className="value">{fmt(c.admin, moneda)}</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -693,7 +704,7 @@ export default function PlanillaPrintable() {
                 <td>
                   <div className="label">Mes 1 · día que ingresás</div>
                   <div className="label-sub">
-                    Alquiler + 1ª cuota honorarios + sellado + garantes + admin
+                    Alquiler + 1ª cuota honorarios + sellado + garantes{adminLabel}
                   </div>
                 </td>
                 <td className="value">
@@ -704,7 +715,7 @@ export default function PlanillaPrintable() {
                 <td>
                   <div className="label">Mes 2 y 3</div>
                   <div className="label-sub">
-                    Alquiler + 2ª/3ª cuota honorarios + admin
+                    Alquiler + 2ª/3ª cuota honorarios{adminLabel}
                   </div>
                 </td>
                 <td className="value">{fmt(mes23, moneda)}</td>
@@ -713,7 +724,7 @@ export default function PlanillaPrintable() {
                 <td>
                   <div className="label">Mes 4 en adelante</div>
                   <div className="label-sub">
-                    Alquiler + admin · {ajusteFinalContrato}
+                    Alquiler{adminLabel} · {ajusteFinalContrato}
                   </div>
                 </td>
                 <td className="value">{fmt(mes4, moneda)}</td>

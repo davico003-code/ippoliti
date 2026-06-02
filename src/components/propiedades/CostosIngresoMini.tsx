@@ -60,29 +60,27 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
         moneda: moneda as Moneda,
         tipo: tipoFiscal,
         cotizacion,
+        sinAdmin,
       }),
-    [alquiler, meses, moneda, tipoFiscal, cotizacion],
+    [alquiler, meses, moneda, tipoFiscal, cotizacion, sinAdmin],
   )
 
   // Defensive: no renderizar si datos inválidos
   if (!Number.isFinite(alquiler) || alquiler <= 0) return null
   if (moneda !== 'ARS' && moneda !== 'USD') return null
 
-  // Excepción admin=0: el total al ingresar se muestra sin el gasto
-  // administrativo (c.admin sale del total en la moneda del contrato).
-  const totalMonedaContrato = sinAdmin
-    ? c.totalSubMonedaContrato - c.admin
-    : c.totalSubMonedaContrato
-
   // Link a calculadora completa con prefill. Si comercio, usa la elección
-  // del usuario; si vivienda, getMesesDefault() devuelve 24.
+  // del usuario; si vivienda, getMesesDefault() devuelve 24. El flag
+  // sinAdmin viaja para que la calculadora y la planilla repliquen la
+  // excepción de gasto administrativo de esta propiedad.
   const mesesParaLink = isComercio ? meses : getMesesDefault(tipoFiscal)
   const calculadoraHref =
     `/recursos/calculadora-alquiler` +
     `?alquiler=${alquiler}` +
     `&meses=${mesesParaLink}` +
     `&moneda=${moneda}` +
-    `&tipo=${tipoFiscal}`
+    `&tipo=${tipoFiscal}` +
+    (sinAdmin ? `&sinAdmin=1` : '')
 
   const eyebrowStyle: React.CSSProperties = {
     fontSize: 11,
@@ -180,7 +178,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
                 className="font-poppins tabular-nums"
                 style={{ fontSize: 22, fontWeight: 700, color: 'var(--tinta)', lineHeight: 1.1, marginTop: 6 }}
               >
-                {fmtUsd(totalMonedaContrato)}
+                {fmtUsd(c.totalSubMonedaContrato)}
               </div>
               <div
                 className="font-poppins tabular-nums"
@@ -194,7 +192,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
               className="font-poppins tabular-nums"
               style={{ fontSize: 24, fontWeight: 700, color: 'var(--tinta)', lineHeight: 1.1, marginTop: 6 }}
             >
-              {fmtArs(totalMonedaContrato)}
+              {fmtArs(c.totalSubMonedaContrato)}
             </div>
           )}
           <div

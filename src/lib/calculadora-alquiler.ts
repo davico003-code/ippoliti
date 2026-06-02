@@ -69,6 +69,9 @@ export interface CalcularInput {
   moneda: Moneda
   tipo: TipoFiscal
   cotizacion: number
+  // Excepción puntual: propiedades sin gasto administrativo mensual.
+  // Cuando es true, admin = 0 y queda fuera del total y del cronograma.
+  sinAdmin?: boolean
 }
 
 export interface CalcularOutput {
@@ -88,11 +91,12 @@ export function calcularCostosIngreso({
   moneda,
   tipo,
   cotizacion,
+  sinAdmin = false,
 }: CalcularInput): CalcularOutput {
   const honoBase = alquiler * meses * HONORARIOS_PCT
   const honoTotal = honoBase * (1 + IVA)
   const honoCuota = honoTotal / 3
-  const admin = alquiler * ADMIN_PCT * (1 + IVA)
+  const admin = sinAdmin ? 0 : alquiler * ADMIN_PCT * (1 + IVA)
 
   // Sellado se calcula sobre el total del contrato convertido a pesos
   const totalContrato = alquiler * meses

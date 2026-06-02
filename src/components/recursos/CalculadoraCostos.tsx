@@ -210,6 +210,9 @@ export default function CalculadoraCostos() {
   const [mesesPreset, setMesesPreset] = useState<MesesPreset>(null)
   const [mesesCustom, setMesesCustom] = useState<number>(0)
   const [cotizacion, setCotizacion] = useState<number>(1430)
+  // Excepción puntual (propiedades sin gasto administrativo). Llega por el
+  // query param sinAdmin=1 desde el link de la ficha. No es manipulable en UI.
+  const [sinAdmin, setSinAdmin] = useState<boolean>(false)
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
   // Toast inline para feedback de "Compartir cálculo".
   const [toast, setToast] = useState<string | null>(null)
@@ -259,6 +262,7 @@ export default function CalculadoraCostos() {
     }
     if (qFrecuencia === 'trimestral' || qFrecuencia === 'cuatrimestral') setFrecuencia(qFrecuencia)
     if (qIndice === 'ICL' || qIndice === 'IPC') setIndice(qIndice)
+    if (searchParams?.get('sinAdmin') === '1') setSinAdmin(true)
     // Prefill intencionalmente solo-mount; no sobrescribir cambios manuales.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -297,8 +301,8 @@ export default function CalculadoraCostos() {
 
   // ── Cálculo principal ──────────────────────────────────────────────────
   const c = useMemo(
-    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion }),
-    [alquiler, meses, moneda, tipo, cotizacion],
+    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, sinAdmin }),
+    [alquiler, meses, moneda, tipo, cotizacion, sinAdmin],
   )
 
   // Total al ingresar — separado por moneda
@@ -330,6 +334,7 @@ export default function CalculadoraCostos() {
       indice,
       cotizacion: String(cotizacion),
     })
+    if (sinAdmin) params.set('sinAdmin', '1')
     window.open(
       `/recursos/calculadora-alquiler/planilla?${params.toString()}`,
       '_blank',
@@ -351,6 +356,7 @@ export default function CalculadoraCostos() {
       frecuencia,
       indice,
     })
+    if (sinAdmin) params.set('sinAdmin', '1')
     const url = `${window.location.origin}/recursos/calculadora-alquiler?${params.toString()}`
 
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
@@ -380,6 +386,8 @@ export default function CalculadoraCostos() {
   // ── Helpers de render ──────────────────────────────────────────────────
   const monedaLabel = moneda === 'USD' ? 'en dólares' : 'en pesos'
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
+  // Sufijo de admin en el detalle del cronograma — vacío en propiedades sin admin.
+  const adminLabel = sinAdmin ? '' : ' + admin'
   const ajusteSubtitulo =
     moneda === 'USD'
       ? 'Consultar ajuste anual. Los contratos en dólares tienen un solo ajuste al año.'
@@ -737,7 +745,12 @@ export default function CalculadoraCostos() {
             >
               Costos al ingresar — desglose
             </h2>
-            <div className="grid grid-cols-2 gap-3 min-[720px]:grid-cols-5">
+            {sinAdmin && (
+              <p className="text-[12px] italic mb-3" style={{ color: 'var(--tinta-mute)' }}>
+                Esta propiedad no incluye gasto administrativo mensual.
+              </p>
+            )}
+            <div className={`grid grid-cols-2 gap-3 ${sinAdmin ? 'min-[720px]:grid-cols-4' : 'min-[720px]:grid-cols-5'}`}>
               <Cell
                 label="Primer mes"
                 small="alquiler"
@@ -762,13 +775,15 @@ export default function CalculadoraCostos() {
                 value={fmtArs(c.verificacion)}
                 flashKey={`g-${c.verificacion}`}
               />
-              <Cell
-                label="Administrativo"
-                small="por mes"
-                value={fmt(c.admin, moneda)}
-                flashKey={`ad-${moneda}-${c.admin.toFixed(2)}`}
-                fullOnMobile
-              />
+              {!sinAdmin && (
+                <Cell
+                  label="Administrativo"
+                  small="por mes"
+                  value={fmt(c.admin, moneda)}
+                  flashKey={`ad-${moneda}-${c.admin.toFixed(2)}`}
+                  fullOnMobile
+                />
+              )}
             </div>
           </section>
 
@@ -819,20 +834,20 @@ export default function CalculadoraCostos() {
 
             <TimelineRow
               title="Mes 1 — al ingresar"
-              detail="alquiler + 1ª cuota honorarios + sellado + verificación + admin"
+              detail={`alquiler + 1ª cuota honorarios + sellado + verificación${adminLabel}`}
             >
               <MesValor usd={mes1Usd} ars={mes1Ars} />
             </TimelineRow>
 
-            <TimelineRow title="Mes 2" detail="alquiler + 2ª cuota honorarios + admin">
+            <TimelineRow title="Mes 2" detail={`alquiler + 2ª cuota honorarios${adminLabel}`}>
               <MesValor usd={mes23Usd} ars={mes23Ars} />
             </TimelineRow>
 
-            <TimelineRow title="Mes 3" detail="alquiler + 3ª cuota honorarios + admin">
+            <TimelineRow title="Mes 3" detail={`alquiler + 3ª cuota honorarios${adminLabel}`}>
               <MesValor usd={mes23Usd} ars={mes23Ars} />
             </TimelineRow>
 
-            <TimelineRow title="Mes 4 en adelante" detail={`alquiler + admin · ${ajusteSubtitulo}`} last>
+            <TimelineRow title="Mes 4 en adelante" detail={`alquiler${adminLabel} · ${ajusteSubtitulo}`} last>
               <MesValor usd={mes4Usd} ars={mes4Ars} />
             </TimelineRow>
           </section>
