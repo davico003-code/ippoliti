@@ -7,8 +7,8 @@ const MapaDistritoRoldanClient = dynamic(() => import('./MapaDistritoRoldanClien
   ssr: false,
   loading: () => (
     <div>
-      {/* Placeholder del mapa: mismo aspect-ratio para evitar layout shift. */}
-      <div className="aspect-[16/9] w-full rounded-3xl border-[0.5px] border-[#e8e3da] bg-[#e8e3da]" />
+      {/* Placeholder del mapa: misma altura que el real para evitar layout shift. */}
+      <div className="h-[380px] md:h-[520px] w-full rounded-3xl border-[0.5px] border-[#e8e3da] bg-[#e8e3da]" />
     </div>
   ),
 })

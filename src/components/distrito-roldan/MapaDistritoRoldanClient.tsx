@@ -288,9 +288,12 @@ export default function MapaDistritoRoldanClient() {
 
   return (
     <div>
-      {/* Mapa */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl border-[0.5px] border-[#e8e3da] bg-[#e8e3da] shadow-[0_8px_32px_rgba(15,63,38,0.08)]">
-        <div ref={containerRef} className="absolute inset-0" />
+      {/* Mapa — altura fija en px (no aspect-ratio): el contenedor de Leaflet
+          recibe `position:relative !important` desde globals.css, que pisaría un
+          `absolute inset-0` y colapsaría el alto a 0. Con alto definido + hijo
+          h-full, `height:100%` resuelve y los tiles se miden bien. */}
+      <div className="h-[380px] md:h-[520px] w-full overflow-hidden rounded-3xl border-[0.5px] border-[#e8e3da] bg-[#e8e3da] shadow-[0_8px_32px_rgba(15,63,38,0.08)]">
+        <div ref={containerRef} className="h-full w-full" />
       </div>
 
       {/* Botones */}
