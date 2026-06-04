@@ -434,6 +434,41 @@ export function translatePropertyType(name: string | undefined | null): string {
   return TYPE_ES[name] ?? name
 }
 
+// ─── Tipología por ID (única fuente de verdad) ───────────────────────────────
+// Mapa explícito de Tokko PROPERTY_TYPE_CHOICES → label en español. El filtrado
+// y el label de las cards se hacen por `type.id` exacto contra este mapa, NUNCA
+// por substring de nombre (p.ej. "warehouse" contiene "house" → un filtro por
+// nombre arrastraba galpones bajo "Casa"). Un id desconocido cae a 'Otros',
+// jamás a 'Casa'.
+export const PROPERTY_TYPE_LABELS: Record<number, string> = {
+  1: 'Terreno', 2: 'Departamento', 3: 'Casa', 4: 'Casa quinta', 5: 'Oficina',
+  7: 'Local comercial', 9: 'Campo', 10: 'Cochera', 12: 'Galpón', 13: 'PH',
+  14: 'Depósito', 24: 'Galpón',
+}
+
+export function propertyTypeLabelById(id: number | undefined | null): string {
+  if (id == null) return 'Otros'
+  return PROPERTY_TYPE_LABELS[id] ?? 'Otros'
+}
+
+// Grupos del filtro de tipología: cada opción lleva su(s) id(s) de Tokko.
+// 12 y 24 (Galpón / Warehouse) se agrupan bajo la misma opción "Galpón".
+// El dropdown surface solo los grupos con al menos un id presente en el
+// inventario cargado (ver PropiedadesView).
+export const TYPE_FILTER_GROUPS: { value: string; label: string; ids: number[] }[] = [
+  { value: 'terreno',     label: 'Terreno',         ids: [1] },
+  { value: 'departamento', label: 'Departamento',   ids: [2] },
+  { value: 'casa',        label: 'Casa',            ids: [3] },
+  { value: 'casa-quinta', label: 'Casa quinta',     ids: [4] },
+  { value: 'oficina',     label: 'Oficina',         ids: [5] },
+  { value: 'local',       label: 'Local comercial', ids: [7] },
+  { value: 'campo',       label: 'Campo',           ids: [9] },
+  { value: 'cochera',     label: 'Cochera',         ids: [10] },
+  { value: 'galpon',      label: 'Galpón',          ids: [12, 24] },
+  { value: 'ph',          label: 'PH',              ids: [13] },
+  { value: 'deposito',    label: 'Depósito',        ids: [14] },
+]
+
 const CONDITION_ES: Record<string, string> = {
   'Excellent': 'Excelente',
   'Very good': 'Muy bueno',
