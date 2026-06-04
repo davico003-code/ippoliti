@@ -10,7 +10,7 @@ import {
   type TokkoProperty,
   getMainPhoto,
   formatPrice,
-  translatePropertyType,
+  propertyTypeLabelById,
   getTotalSurface,
   generatePropertySlug,
 } from '@/lib/tokko'
@@ -609,7 +609,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           const priceLabel = shortPrice(property)
           const photo = getMainPhoto(property)
           const fullPrice = formatPrice(property)
-          const typeName = translatePropertyType(property.type?.name)
+          const typeName = propertyTypeLabelById(property.type?.id)
           const area = getTotalSurface(property)
 
           return (

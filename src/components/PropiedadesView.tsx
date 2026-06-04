@@ -39,7 +39,7 @@ import {
   getRoofedArea,
   getLotSurface,
   isLand,
-  translatePropertyType,
+  propertyTypeLabelById,
   generatePropertySlug,
   TYPE_FILTER_GROUPS,
 } from '@/lib/tokko'
@@ -125,33 +125,117 @@ const compactPrice = (s: string) => {
 
 // ─── FilterSelect ────────────────────────────────────────────────────────────
 
+// Dropdown custom (NO <select> nativo): en macOS el menú nativo se abre encima
+// del trigger. Acá el panel se ancla SIEMPRE debajo del botón (top = rect.bottom)
+// y se renderiza vía portal a document.body porque la filter bar tiene
+// `overflow-x-auto` (→ overflow-y auto) que recortaría un panel absolute. Misma
+// estrategia de posicionamiento que PriceFilterDropdown.
 function FilterSelect<T extends string>({
   options, value, onChange,
 }: {
   options: { value: T; label: string }[]; value: T; onChange: (v: T) => void
 }) {
   const active = value !== options[0].value
+  const current = options.find(o => o.value === value) ?? options[0]
+  const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  const updatePosition = useCallback(() => {
+    if (!buttonRef.current) return
+    const rect = buttonRef.current.getBoundingClientRect()
+    const panelWidth = Math.max(rect.width, 176)
+    const vw = window.innerWidth
+    // No invadir la columna del mapa (desde el 48% en desktop): flip a la derecha.
+    const availableRight = vw >= 768 ? vw * 0.48 - 8 : vw - 16
+    let left = rect.left
+    if (left + panelWidth > availableRight) left = Math.max(16, rect.right - panelWidth)
+    setPos({ top: rect.bottom + 6, left, width: panelWidth })
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [open, updatePosition])
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      const t = e.target as Node
+      if (buttonRef.current?.contains(t) || panelRef.current?.contains(t)) return
+      setOpen(false)
+    }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
   return (
     <div className="relative flex-shrink-0">
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value as T)}
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         aria-label={options[0].label}
-        className="appearance-none h-10 rounded-xl pl-3.5 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all"
+        className="appearance-none h-10 rounded-xl pl-3.5 pr-8 cursor-pointer flex items-center whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all relative"
         style={{
-          border: active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
+          border: active || open ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
           background: '#fff',
           color: active ? '#1A5C38' : '#0a0a0a',
           fontFamily: "'Raleway', system-ui, sans-serif",
           fontWeight: active ? 600 : 500,
           fontSize: 14,
         }}
-        onMouseEnter={e => { if (!active) e.currentTarget.style.borderColor = '#0a0a0a' }}
-        onMouseLeave={e => { if (!active) e.currentTarget.style.borderColor = '#d1d5db' }}
       >
-        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-      <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${active ? 'text-[#1A5C38]' : 'text-gray-400'}`} />
+        {current.label}
+        <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none transition-transform ${open ? 'rotate-180' : ''} ${active ? 'text-[#1A5C38]' : 'text-gray-400'}`} />
+      </button>
+
+      {open && pos && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={panelRef}
+          role="listbox"
+          className="fixed z-[9999] max-h-[60vh] overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+          style={{ top: pos.top, left: pos.left, minWidth: pos.width }}
+        >
+          {options.map(o => {
+            const sel = o.value === value
+            return (
+              <button
+                key={o.value}
+                type="button"
+                role="option"
+                aria-selected={sel}
+                onClick={() => { onChange(o.value); setOpen(false) }}
+                className="flex w-full items-center justify-between gap-4 px-3.5 py-2 text-left whitespace-nowrap transition-colors hover:bg-gray-50"
+                style={{
+                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontSize: 14,
+                  fontWeight: sel ? 600 : 500,
+                  color: sel ? '#1A5C38' : '#0a0a0a',
+                }}
+              >
+                {o.label}
+                {sel && <Check className="w-4 h-4 flex-shrink-0 text-[#1A5C38]" />}
+              </button>
+            )
+          })}
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
@@ -1714,7 +1798,7 @@ export default function PropiedadesView({
                 })()}
               </p>
               <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: '#0a0a0a', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {translatePropertyType(selectedProperty.type?.name)}{selectedProperty.type?.name && (selectedProperty.fake_address || selectedProperty.address) ? ' · ' : ''}{selectedProperty.fake_address || selectedProperty.address}
+                {propertyTypeLabelById(selectedProperty.type?.id)}{selectedProperty.type?.name && (selectedProperty.fake_address || selectedProperty.address) ? ' · ' : ''}{selectedProperty.fake_address || selectedProperty.address}
               </p>
               <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, color: '#6b7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {selectedProperty.location?.short_location || selectedProperty.location?.name || ''}
