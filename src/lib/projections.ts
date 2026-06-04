@@ -19,7 +19,10 @@ export interface PropertyCardProjection {
   fake_address: string | null
   reference_code: string
 
-  type: { name: string }
+  // `id` es imprescindible: el filtro de tipología y el label de las cards
+  // mapean por `type.id` contra PROPERTY_TYPE_LABELS. Si se omite, todo cae en
+  // 'Otros' y el dropdown queda sin opciones.
+  type: { id: number | null; name: string }
   location: { name: string; short_location: string } | null
 
   operations: Array<{
@@ -96,7 +99,7 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
     address: p.address,
     fake_address: p.fake_address,
     reference_code: p.reference_code,
-    type: { name: p.type?.name ?? '' },
+    type: { id: p.type?.id ?? null, name: p.type?.name ?? '' },
     location: p.location
       ? { name: p.location.name, short_location: p.location.short_location }
       : null,
