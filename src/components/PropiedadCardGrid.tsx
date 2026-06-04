@@ -15,7 +15,7 @@ import {
   getRoofedArea,
   getLotSurface,
   isLand,
-  translatePropertyType,
+  propertyTypeLabelById,
   generatePropertySlug,
 } from '@/lib/tokko'
 import { formatDistanceAR } from '@/lib/geo'
@@ -45,7 +45,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const roofed = getRoofedArea(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
-  const typeName = translatePropertyType(property.type?.name)
+  const typeName = propertyTypeLabelById(property.type?.id)
   const slug = generatePropertySlug(property)
   const beds = property.suite_amount || property.room_amount
   const baths = property.bathroom_amount

@@ -41,6 +41,7 @@ import {
   isLand,
   translatePropertyType,
   generatePropertySlug,
+  TYPE_FILTER_GROUPS,
 } from '@/lib/tokko'
 import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } from '@/lib/geo'
 import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget } from '@/components/PropiedadesMap'
@@ -70,7 +71,10 @@ const PropiedadesViewDesktopGrid = dynamic(
 // ─── Filter types ────────────────────────────────────────────────────────────
 
 type Operation = 'todos' | 'venta' | 'alquiler'
-type PropType  = 'todos' | 'casa' | 'departamento' | 'terreno' | 'local'
+// 'todos' o cualquier `value` de TYPE_FILTER_GROUPS (poblado dinámicamente
+// según el inventario presente). String abierto porque las opciones se derivan
+// del mapa de tipos por id en tokko.ts.
+type PropType  = string
 type Beds      = 'todos' | '1' | '2' | '3' | '4+'
 type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
@@ -708,6 +712,22 @@ export default function PropiedadesView({
   const hasActive = (Object.keys(DEFAULTS) as (keyof Filters)[])
     .some(k => filters[k] !== DEFAULTS[k])
 
+  // Opciones de tipología: solo los grupos con al menos un id presente en el
+  // inventario cargado, con sus labels en español (mismo mapa por id que el
+  // filtrado y el de las cards). Evita ofrecer tipos que SI no tiene.
+  const typeOptions = useMemo(() => {
+    const present = new Set<number>()
+    for (const p of properties) {
+      if (p.type?.id != null) present.add(p.type.id)
+    }
+    return [
+      { value: 'todos', label: 'Tipología' },
+      ...TYPE_FILTER_GROUPS
+        .filter(g => g.ids.some(id => present.has(id)))
+        .map(g => ({ value: g.value, label: g.label })),
+    ]
+  }, [properties])
+
   // ─── Client-side filtering ──────────────────────────────────────────────────
   // Normaliza texto: lowercase + NFD sin tildes (para que "roldan" matchee "Roldán")
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -752,11 +772,10 @@ export default function PropiedadesView({
       if (filters.operation === 'alquiler' && op !== 'Rent') return false
     }
     if (filters.type !== 'todos') {
-      const t = p.type?.name?.toLowerCase() ?? ''
-      if (filters.type === 'casa' && !t.includes('casa') && !t.includes('house')) return false
-      if (filters.type === 'departamento' && !t.includes('departamento') && !t.includes('apartment') && !t.includes('condo')) return false
-      if (filters.type === 'terreno' && !t.includes('terreno') && !t.includes('land') && !t.includes('countryside')) return false
-      if (filters.type === 'local' && !t.includes('local') && !t.includes('comercial') && !t.includes('bussiness') && !t.includes('warehouse')) return false
+      // Match por id exacto contra el grupo del filtro (sin substring de nombre:
+      // "warehouse" contiene "house" y arrastraba galpones bajo "Casa").
+      const grp = TYPE_FILTER_GROUPS.find(g => g.value === filters.type)
+      if (!grp || !grp.ids.includes(p.type?.id ?? -1)) return false
     }
     if (filters.beds !== 'todos') {
       const rooms = p.suite_amount || p.room_amount || 0
@@ -1308,7 +1327,7 @@ export default function PropiedadesView({
         <FilterSelect value={filters.operation} onChange={updateOperation}
           options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'}]} />
         <FilterSelect value={filters.type} onChange={v => set('type', v)}
-          options={[{value:'todos',label:'Tipología'},{value:'casa',label:'Casa'},{value:'departamento',label:'Depto.'},{value:'terreno',label:'Terreno'},{value:'local',label:'Local'}]} />
+          options={typeOptions} />
         <FilterSelect value={filters.beds} onChange={v => set('beds', v)}
           options={[{value:'todos',label:'Dormitorios'},{value:'1',label:'1 dorm.'},{value:'2',label:'2 dorm.'},{value:'3',label:'3 dorm.'},{value:'4+',label:'4+ dorm.'}]} />
         <PriceFilterDropdown
