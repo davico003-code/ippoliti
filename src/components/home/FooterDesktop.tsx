@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Mail } from 'lucide-react'
+import { FranjaFooterMundial, LineaMundial } from '@/components/mundial/FooterMundial'
 
 const GOLD = '#C9A84C'
 
@@ -43,7 +44,9 @@ function SocialIcon({ type }: { type: string }) {
 
 export default function FooterDesktop() {
   return (
-    <footer className="bg-neutral-950 text-white">
+    <footer className="relative bg-neutral-950 text-white">
+      {/* Edición Mundial 2026 — franja-bandera pegada al borde superior. */}
+      <FranjaFooterMundial />
       <div className="max-w-7xl mx-auto px-8 pt-16 pb-10">
         {/* 4 columnas */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 lg:gap-8 pb-12 border-b border-white/15">
@@ -115,6 +118,7 @@ export default function FooterDesktop() {
           <div className="space-y-1">
             <p className="font-poppins text-white/65 text-[12px]">Mat. N° 0621 — David Flores</p>
             <p className="font-poppins text-white/65 text-[12px]">SI Inmobiliaria © 2026 · Todos los derechos reservados</p>
+            <LineaMundial />
           </div>
           <p className="font-poppins text-white/55 text-[11px] italic">Una empresa familiar desde 1983</p>
         </div>

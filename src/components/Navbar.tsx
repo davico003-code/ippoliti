@@ -74,7 +74,7 @@ function NavLink({ href, label, transparent }: { href: string; label: string; tr
   return (
     <Link
       href={href}
-      className="hover:text-[#1A5C38] transition-colors duration-200 whitespace-nowrap text-[14px] xl:text-[17px]"
+      className="hover:text-[var(--mundial-accent)] transition-colors duration-200 whitespace-nowrap text-[14px] xl:text-[17px]"
       style={{
         fontFamily: R,
         fontWeight: 500,

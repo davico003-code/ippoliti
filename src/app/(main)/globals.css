@@ -23,6 +23,26 @@
   --line: #E5DFD2;
   --usd: #0E4A7B;
   --usd-dark: #073357;
+
+  /* ── Edición Mundial 2026 — token de acento ──────────────────────────────
+     Por defecto = verde de marca. La clase html.mundial (la pone el layout
+     server-side cuando esEdicionMundial()) lo vira a celeste. Un solo switch:
+     sin la clase, TODO vuelve a verde. */
+  --mundial-accent: #1A5C38;
+  --mundial-accent-hover: #144a2c;
+  --mundial-accent-ink: #ffffff; /* texto sobre el acento */
+}
+
+html.mundial {
+  --mundial-accent: #75AADB;
+  --mundial-accent-hover: #5f97cc;
+  --mundial-accent-ink: #0d3a5c; /* celeste oscuro sobre celeste */
+}
+
+/* ::selection celeste solo durante el Mundial; fuera, el default del browser. */
+html.mundial ::selection {
+  background: #75AADB;
+  color: #0d3a5c;
 }
 
 * {

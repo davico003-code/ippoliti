@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { FranjaFooterMundial, LineaMundial } from '@/components/mundial/FooterMundial'
 
 const GOLD = '#C9A84C'
 
@@ -36,7 +37,9 @@ function SocialIcon({ type }: { type: string }) {
 
 export default function FooterMobile() {
   return (
-    <footer className="bg-neutral-950 text-white">
+    <footer className="relative bg-neutral-950 text-white">
+      {/* Edición Mundial 2026 — franja-bandera pegada al borde superior. */}
+      <FranjaFooterMundial />
       {/* 1. Logo + tagline + email */}
       <div className="px-5 pt-10 pb-8 border-b border-white/10">
         <Image
@@ -159,6 +162,7 @@ export default function FooterMobile() {
         <p className="font-poppins text-white/65 text-[11px] pt-4 border-t border-white/15" style={{ fontVariantNumeric: 'tabular-nums' }}>
           © 1983–2026 SI Inmobiliaria · Todos los derechos reservados
         </p>
+        <div className="mt-3"><LineaMundial /></div>
       </div>
     </footer>
   )

@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { FranjaFooterMundial, LineaMundial } from '@/components/mundial/FooterMundial'
 
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
 const GOLD = '#C9A84C'
@@ -36,7 +37,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export default function Footer() {
   return (
-    <footer style={{ background: '#0A0A0A', padding: '48px 48px 32px', color: '#fff' }}>
+    <footer style={{ position: 'relative', background: '#0A0A0A', padding: '48px 48px 32px', color: '#fff' }}>
+      {/* Edición Mundial 2026 — franja-bandera pegada al borde superior. */}
+      <FranjaFooterMundial />
       <style>{`
         .footer-top { display: flex; gap: 56px; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; }
         .footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; flex: 1; }
@@ -125,6 +128,7 @@ export default function Footer() {
           >
             © 2026 SI Inmobiliaria · David Flores Mat. N° 0621
           </p>
+          <LineaMundial />
           <div
             style={{
               fontFamily: POPPINS,

@@ -16,6 +16,7 @@ const poppins = Poppins({
   display: "swap",
 });
 
+import { esEdicionMundial } from "@/lib/mundial";
 import ConditionalChrome from "@/components/ConditionalChrome";
 import FooterWrapper from "@/components/FooterWrapper";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
@@ -182,10 +183,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Edición Mundial 2026: la clase `mundial` (server-side, sin flash ni mismatch)
+  // activa el token de acento celeste y el ::selection. Fuera del rango, sin clase
+  // → todo verde como siempre.
+  const mundial = esEdicionMundial()
   return (
-    <html lang="es" className={`${raleway.variable} ${poppins.variable}`}>
+    <html lang="es" className={`${raleway.variable} ${poppins.variable}${mundial ? ' mundial' : ''}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        {/* Favicon Edición Mundial (placeholder /favicon-mundial.png — reemplazar). */}
+        {mundial && <link rel="icon" type="image/png" href="/favicon-mundial.png" />}
         {/* Preconnect a CDNs externos para que el handshake DNS+TLS ya esté
             hecho cuando el navegador pida las imágenes optimizadas por
             next/image. crossOrigin="anonymous" es lo correcto para imágenes
