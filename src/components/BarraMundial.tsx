@@ -8,11 +8,11 @@
 // altura y fondo, sin texto de tiempo). Recién tras montar arranca el conteo por
 // segundo. Esto evita el mismatch por diferencia de reloj server/cliente.
 //
-// La barra es sticky (queda pinneada arriba) y publica su altura real en la CSS
-// var --mundial-bar-h, que Navbar usa para correr los headers hacia abajo. Al
-// desmontar/desaparecer la resetea a 0px → el header vuelve a top:0.
+// Va en FLUJO NORMAL (position:relative, sin sticky/fixed): se va sola al
+// scrollear y no reserva espacio ni empuja al header. El <Navbar> es sticky
+// top:0 y se pinea solo al borde superior cuando la barra sale de vista.
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { esEdicionMundial, proximoPartido, estaEnVivo, tiempoHasta } from '@/lib/mundial'
 
 const BG = '#f4f1ea'
@@ -46,14 +46,15 @@ function BanderaAR() {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-// Cáscara común: mismo fondo / altura / sticky en placeholder y contenido real.
-function Shell({ children, innerRef }: { children?: React.ReactNode; innerRef: React.Ref<HTMLDivElement> }) {
+// Cáscara común: mismo fondo / altura en placeholder y contenido real.
+// En FLUJO NORMAL (relative, no sticky/fixed): se va sola al scrollear y no
+// reserva espacio ni empuja al header. El header pinea solo a top:0.
+function Shell({ children }: { children?: React.ReactNode }) {
   return (
     <div
-      ref={innerRef}
       role="status"
       aria-live="off"
-      className="sticky top-0 z-[60] flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 px-4 text-center"
+      className="relative z-[60] flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 px-4 text-center"
       style={{
         minHeight: 48,
         background: BG,
@@ -72,7 +73,6 @@ function Shell({ children, innerRef }: { children?: React.ReactNode; innerRef: R
 export default function BarraMundial() {
   const [mounted, setMounted] = useState(false)
   const [now, setNow] = useState<Date | null>(null)
-  const barRef = useRef<HTMLDivElement | null>(null)
 
   // Arranca el conteo recién tras montar (evita mismatch de hydration).
   useEffect(() => {
@@ -84,37 +84,13 @@ export default function BarraMundial() {
 
   const active = esEdicionMundial()
   const partido = mounted && now ? proximoPartido(now) : null
-  const showPlaceholder = active && !mounted
-  const showReal = active && mounted && !!partido && !!now
-  const visible = showPlaceholder || showReal
-
-  // Publica la altura real de la barra en --mundial-bar-h para que los headers
-  // (fixed/sticky) se corran abajo. Re-mide ante wrap/resize. Limpia a 0px.
-  useEffect(() => {
-    const root = document.documentElement
-    const el = barRef.current
-    if (!visible || !el) {
-      root.style.setProperty('--mundial-bar-h', '0px')
-      return
-    }
-    const sync = () => root.style.setProperty('--mundial-bar-h', `${el.offsetHeight}px`)
-    sync()
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(sync) : null
-    ro?.observe(el)
-    window.addEventListener('resize', sync)
-    return () => {
-      ro?.disconnect()
-      window.removeEventListener('resize', sync)
-      root.style.setProperty('--mundial-bar-h', '0px')
-    }
-  }, [visible])
 
   if (!active) return null
 
   // Placeholder estable (SSR / pre-mount): misma altura y fondo, sin tiempo.
   if (!mounted) {
     return (
-      <Shell innerRef={barRef}>
+      <Shell>
         <BanderaAR />
       </Shell>
     )
@@ -127,7 +103,7 @@ export default function BarraMundial() {
   const t = tiempoHasta(partido.kickoff, now)
 
   return (
-    <Shell innerRef={barRef}>
+    <Shell>
       <BanderaAR />
       {live ? (
         <span>

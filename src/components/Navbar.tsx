@@ -123,13 +123,11 @@ export default function Navbar() {
   const hideOnMobile = isPropiedades
 
   return (
-    <div className={hideOnMobile ? 'hidden lg:block' : ''}>
+    <div className={hideOnMobile ? 'hidden lg:block' : 'contents'}>
       {/* ── Desktop nav (lg+) ── */}
       <nav
-        className="hidden md:block fixed left-0 right-0 z-50 transition-all duration-300"
+        className="hidden md:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          // top corrido por la barra del Mundial si está activa (si no, 0px).
-          top: 'var(--mundial-bar-h, 0px)',
           background: transparent ? 'transparent' : '#fff',
           borderBottom: transparent ? '1px solid transparent' : '1px solid #eee',
           boxShadow: transparent ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
@@ -191,8 +189,8 @@ export default function Navbar() {
 
       {/* ── Mobile nav (<lg) ── */}
       <nav
-        className="md:hidden sticky left-0 right-0 z-50 bg-white border-b border-gray-100"
-        style={{ top: 'var(--mundial-bar-h, 0px)', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className="md:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="relative flex items-center justify-between px-4 py-2.5">
           {/* Left — hamburger */}

@@ -17,10 +17,12 @@ export default function ConditionalChrome({ children }: { children: React.ReactN
 
   return (
     <>
-      {/* Edición Mundial 2026 — barra sticky arriba del header (auto on/off por fecha). */}
+      {/* Edición Mundial 2026 — barra en flujo normal arriba del header (se va al
+          scrollear). El header es sticky top:0 y ocupa su propio espacio de flujo,
+          por eso main ya no lleva el spacer pt-[73px] del nav fijo anterior. */}
       {!hide && <BarraMundial />}
       {!hide && <Navbar />}
-      <main className={hide ? '' : 'md:pt-[73px]'}>{children}</main>
+      <main>{children}</main>
     </>
   )
 }
