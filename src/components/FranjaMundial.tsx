@@ -15,16 +15,22 @@ export default function FranjaMundial({ scrolled }: { scrolled: boolean }) {
     <span
       aria-hidden="true"
       style={{
+        // Absoluta: cuelga bajo el logo SIN sumar altura al header (el contenedor
+        // de la marca ya es contexto posicionado por su transform de centrado).
+        position: 'absolute',
+        top: '100%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        marginTop: 4,
         display: 'flex',
         width: 92,
         height: 4,
-        marginTop: 5,
         borderRadius: 3,
         overflow: 'hidden',
         // Borde solo sobre fondo blanco (scrolled); transparente sobre el hero.
         border: `1px solid ${scrolled ? 'rgba(0,0,0,0.10)' : 'transparent'}`,
         boxSizing: 'content-box',
-        flexShrink: 0,
+        pointerEvents: 'none',
       }}
     >
       <span style={{ flex: 1, background: CELESTE }} />
