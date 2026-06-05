@@ -7,6 +7,8 @@ import EmprendimientosHome from '@/components/EmprendimientosHome'
 import HorizontalCarousel from '@/components/HorizontalCarousel'
 import HeroMobile from '@/components/home/HeroMobile'
 import SeleccionCarousel from '@/components/home/SeleccionCarousel'
+import { KickerMundial, SeparadorMundial } from '@/components/mundial/MundialSeccion'
+import { esDiaDePartido } from '@/lib/mundial'
 import ProyectosCarousel from '@/components/home/ProyectosCarousel'
 import GuiaSection from '@/components/home/GuiaSection'
 import ConfianzaSection from '@/components/home/ConfianzaSection'
@@ -38,7 +40,9 @@ async function FeaturedPropertiesSection() {
     // Tokko API no disponible — seguimos rendering la sección con el CTA.
   }
 
-  const renderCard = (property: TokkoProperty) => {
+  // Día de partido: la primera card se destaca (borde celeste + glow + chapa).
+  const matchday = esDiaDePartido()
+  const renderCard = (property: TokkoProperty, destacada = false) => {
     const slug = generatePropertySlug(property)
     const photo = getMainPhoto(property)
     const price = formatPrice(property)
@@ -62,9 +66,13 @@ async function FeaturedPropertiesSection() {
         className="prop-card block overflow-hidden flex-shrink-0 snap-start rounded-xl bg-white border-0"
         style={{
           textDecoration: 'none',
+          position: 'relative',
           width: 'clamp(300px, 88vw, 380px)',
           minWidth: 300,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
+          border: destacada ? '2px solid #75AADB' : undefined,
+          boxShadow: destacada
+            ? '0 0 0 4px rgba(117,170,219,0.22), 0 10px 28px rgba(117,170,219,0.35)'
+            : '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
           transition: 'box-shadow 200ms',
         }}
       >
@@ -83,6 +91,17 @@ async function FeaturedPropertiesSection() {
               textTransform: 'uppercase', padding: '3px 10px', borderRadius: 6,
             }}>
               {operation}
+            </span>
+          )}
+          {destacada && (
+            <span style={{
+              position: 'absolute', top: 10, right: 10,
+              background: '#75AADB', color: '#0d3a5c',
+              fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
+              padding: '3px 10px', borderRadius: 6,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.18)', whiteSpace: 'nowrap',
+            }}>
+              ★ La jugada del partido
             </span>
           )}
         </div>
@@ -113,11 +132,13 @@ async function FeaturedPropertiesSection() {
     <section className="home-section bg-white" style={{ padding: 0 }}>
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-4 md:pt-6 md:pb-6">
         {/* Header row */}
+        <KickerMundial />
         <div className="flex items-end justify-between">
           <h2 className="text-2xl md:text-3xl tracking-tight" style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111827', lineHeight: 1.2, margin: 0 }}>
             Nuestra selección
           </h2>
         </div>
+        <SeparadorMundial />
         <p className="text-sm text-gray-500 mb-4 mt-1" style={{ fontFamily: RALEWAY }}>
           Elegidas con criterio, no por algoritmo.
         </p>
@@ -125,7 +146,7 @@ async function FeaturedPropertiesSection() {
         {/* Carousel — fallback al CTA si no hay properties */}
         {properties.length > 0 ? (
           <HorizontalCarousel>
-            {properties.map(p => renderCard(p))}
+            {properties.map((p, i) => renderCard(p, matchday && i === 0))}
             <Link
               href="/propiedades"
               className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"

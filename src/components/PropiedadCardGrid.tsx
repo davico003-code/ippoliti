@@ -93,7 +93,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       onMouseEnter={e => {
         if (!isSelected) {
           e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)'
-          e.currentTarget.style.borderColor = '#1A5C38'
+          e.currentTarget.style.borderColor = 'var(--mundial-accent)'
         }
       }}
       onMouseLeave={e => {

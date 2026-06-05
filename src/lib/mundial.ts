@@ -49,6 +49,20 @@ export function estaEnVivo(p: PartidoMundial, now: Date = new Date()): boolean {
   return t >= p.kickoff.getTime() && t < p.kickoff.getTime() + DURACION_PARTIDO_MIN * 60_000
 }
 
+// ¿Es día de partido? (previa del mismo día calendario, o partido en vivo).
+// Usado para destacar una property card solo en la jornada del partido.
+export function esDiaDePartido(now: Date = new Date()): boolean {
+  const p = proximoPartido(now)
+  if (!p) return false
+  if (estaEnVivo(p, now)) return true
+  const k = p.kickoff
+  return (
+    k.getFullYear() === now.getFullYear() &&
+    k.getMonth() === now.getMonth() &&
+    k.getDate() === now.getDate()
+  )
+}
+
 // Desglose de la cuenta regresiva hasta el kickoff (clamp a 0).
 export function tiempoHasta(kickoff: Date, now: Date = new Date()) {
   const ms = Math.max(0, kickoff.getTime() - now.getTime())

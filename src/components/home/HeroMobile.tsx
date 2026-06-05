@@ -98,9 +98,11 @@ export default function HeroMobile() {
             />
             <button
               type="submit"
-              className="shrink-0 text-white border-none cursor-pointer"
+              className="shrink-0 border-none cursor-pointer"
               style={{
-                background: '#1A5C38',
+                // Acento: verde de marca, o celeste durante el Mundial (texto #0d3a5c).
+                background: 'var(--mundial-accent)',
+                color: 'var(--mundial-accent-ink)',
                 fontFamily: 'Raleway, sans-serif',
                 fontSize: 14,
                 fontWeight: 500,
