@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, User, X } from 'lucide-react'
+import FranjaMundial from './FranjaMundial'
 
 const R = "'Raleway', system-ui, sans-serif"
 
@@ -125,8 +126,10 @@ export default function Navbar() {
     <div className={hideOnMobile ? 'hidden lg:block' : ''}>
       {/* ── Desktop nav (lg+) ── */}
       <nav
-        className="hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        className="hidden md:block fixed left-0 right-0 z-50 transition-all duration-300"
         style={{
+          // top corrido por la barra del Mundial si está activa (si no, 0px).
+          top: 'var(--mundial-bar-h, 0px)',
           background: transparent ? 'transparent' : '#fff',
           borderBottom: transparent ? '1px solid transparent' : '1px solid #eee',
           boxShadow: transparent ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
@@ -143,7 +146,7 @@ export default function Navbar() {
               opaco (scrolleado) → logo verde horizontal. */}
           <Link
             href="/"
-            className="absolute left-1/2 top-1/2"
+            className="absolute left-1/2 top-1/2 flex flex-col items-center"
             style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}
           >
             {transparent ? (
@@ -174,6 +177,8 @@ export default function Navbar() {
                 quality={90}
               />
             )}
+            {/* PIEZA 2 — franja bandera bajo el logo (gateada por esEdicionMundial) */}
+            <FranjaMundial scrolled={!transparent} />
           </Link>
 
           {/* Right menu + CTA */}
@@ -186,8 +191,8 @@ export default function Navbar() {
 
       {/* ── Mobile nav (<lg) ── */}
       <nav
-        className="md:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className="md:hidden sticky left-0 right-0 z-50 bg-white border-b border-gray-100"
+        style={{ top: 'var(--mundial-bar-h, 0px)', paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="relative flex items-center justify-between px-4 py-2.5">
           {/* Left — hamburger */}
@@ -201,7 +206,7 @@ export default function Navbar() {
           </button>
 
           {/* Center — logo */}
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2" style={{ textDecoration: 'none' }}>
+          <Link href="/" className="absolute left-1/2 top-1/2 flex flex-col items-center" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
             <Image
               src="/LOGO_HORIZONTAL.png"
               alt="SI Inmobiliaria"
@@ -212,6 +217,8 @@ export default function Navbar() {
               priority
               quality={90}
             />
+            {/* PIEZA 2 — franja bandera (mobile siempre fondo blanco → scrolled) */}
+            <FranjaMundial scrolled={true} />
           </Link>
 
           {/* Right — Ingresar (círculo con halo) */}
