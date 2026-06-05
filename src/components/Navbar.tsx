@@ -146,7 +146,7 @@ export default function Navbar() {
               opaco (scrolleado) → logo verde horizontal. */}
           <Link
             href="/"
-            className="absolute left-1/2 top-1/2 flex flex-col items-center"
+            className="absolute left-1/2 top-1/2"
             style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}
           >
             {transparent ? (
@@ -206,7 +206,7 @@ export default function Navbar() {
           </button>
 
           {/* Center — logo */}
-          <Link href="/" className="absolute left-1/2 top-1/2 flex flex-col items-center" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
+          <Link href="/" className="absolute left-1/2 top-1/2" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
             <Image
               src="/LOGO_HORIZONTAL.png"
               alt="SI Inmobiliaria"
