@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Navbar from './Navbar'
+import BarraMundial from './BarraMundial'
 
 const HIDE_CHROME_PREFIXES = ['/emprendimientos/67178']
 
@@ -16,6 +17,8 @@ export default function ConditionalChrome({ children }: { children: React.ReactN
 
   return (
     <>
+      {/* Edición Mundial 2026 — barra sticky arriba del header (auto on/off por fecha). */}
+      {!hide && <BarraMundial />}
       {!hide && <Navbar />}
       <main className={hide ? '' : 'md:pt-[73px]'}>{children}</main>
     </>
