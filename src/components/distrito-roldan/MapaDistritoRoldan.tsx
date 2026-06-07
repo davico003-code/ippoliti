@@ -1,5 +1,9 @@
-// Wrapper server que dynamic-importa el cliente Leaflet (no funciona en SSR).
-// Réplica del patrón de /barrios-privados (MapaBarrios.tsx).
+'use client'
+
+// Wrapper client que dynamic-importa el mapa Leaflet (no funciona en SSR).
+// Debe ser Client Component: en Next 14, dynamic(..., { ssr: false }) llamado
+// desde un Server Component NO code-splittea — leaflet terminaba en el First
+// Load JS de /emprendimientos/[slug]. Réplica del patrón de /barrios-privados.
 
 import dynamic from 'next/dynamic'
 

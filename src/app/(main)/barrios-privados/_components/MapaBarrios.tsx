@@ -1,27 +1,9 @@
-// Server wrapper que dynamic-importa el cliente Leaflet (no funciona en SSR).
+// Server Component de la sección del mapa. El dynamic import del cliente
+// Leaflet vive en MapaBarriosLazy ("use client"): en Next 14, dynamic
+// ssr:false llamado desde un Server Component no code-splittea y leaflet
+// terminaba en el First Load JS de /barrios-privados.
 
-import dynamic from "next/dynamic";
-
-const MapaBarriosClient = dynamic(() => import("./MapaBarriosClient"), {
-  ssr: false,
-  loading: () => (
-    <div
-      style={{
-        height: "100%",
-        width: "100%",
-        background: "#f0ece2",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#777",
-        fontSize: 13,
-        fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
-      }}
-    >
-      Cargando mapa…
-    </div>
-  ),
-});
+import MapaBarriosLazy from "./MapaBarriosLazy";
 
 export default function MapaBarrios() {
   return (
@@ -78,7 +60,7 @@ export default function MapaBarrios() {
             border: "1px solid #e8e2d5",
           }}
         >
-          <MapaBarriosClient />
+          <MapaBarriosLazy />
         </div>
       </div>
 
