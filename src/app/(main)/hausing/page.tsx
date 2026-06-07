@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     title: 'Hausing — Casas de Diseño en Funes',
     description: 'Casas premium en los barrios más exclusivos de Funes. Desde SI Inmobiliaria.',
     url: 'https://siinmobiliaria.com/hausing',
-    images: ['/og-image.jpg'],
+    images: ['/logo-si-horizontal.png'],
   },
 }
 

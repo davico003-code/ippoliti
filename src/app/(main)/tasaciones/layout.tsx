@@ -8,7 +8,8 @@ export const metadata: Metadata = {
     title: 'Tasaciones profesionales | SI Inmobiliaria',
     description: 'Tasación de tu propiedad en Funes, Roldán y Rosario. Informe en 24 horas.',
     url: 'https://siinmobiliaria.com/tasaciones',
-    images: ['/og-image.jpg'],
+    // /og-image.jpg no existe (404); usar el logo real como el resto del sitio.
+    images: ['/logo-si-horizontal.png'],
   },
 }
 
