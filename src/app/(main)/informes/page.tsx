@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
-import InformesDashboard from './InformesDashboard'
+// InformesDashboard (recharts) se carga vía InformesDashboardLazy ("use client"):
+// un import estático acá metía recharts entero en el First Load JS de la ruta.
+import InformesDashboardLazy from './InformesDashboardLazy'
 
 export const metadata: Metadata = {
   title: 'Informes de Mercado Inmobiliario | SI Inmobiliaria',
@@ -8,5 +10,5 @@ export const metadata: Metadata = {
 }
 
 export default function InformesPage() {
-  return <InformesDashboard />
+  return <InformesDashboardLazy />
 }
