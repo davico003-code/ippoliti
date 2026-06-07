@@ -63,6 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: `${dev.name} | Emprendimientos SI Inmobiliaria`,
       description: desc,
+      alternates: { canonical: `https://siinmobiliaria.com/emprendimientos/${params.slug}` },
       openGraph: {
         title: `${dev.name} | SI Inmobiliaria`,
         description: desc,
@@ -78,6 +79,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         return {
           title: `${cliente.name} | SI Inmobiliaria`,
           description: cliente.description || `Propiedades de ${cliente.name} en SI Inmobiliaria`,
+          alternates: { canonical: `https://siinmobiliaria.com/emprendimientos/${params.slug}` },
         }
       }
     } catch {}

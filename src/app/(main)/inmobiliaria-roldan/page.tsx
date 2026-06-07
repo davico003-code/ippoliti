@@ -8,7 +8,7 @@ export const revalidate = 21600
 
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'RealEstateAgent',
-  name: 'SI Inmobiliaria Roldán', image: 'https://siinmobiliaria.com/logo.png',
+  name: 'SI Inmobiliaria Roldán', image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   url: 'https://siinmobiliaria.com/inmobiliaria-roldan', telephone: '+5493412101694',
   address: { '@type': 'PostalAddress', streetAddress: '1ro de Mayo 258', addressLocality: 'Roldán', addressRegion: 'Santa Fe', addressCountry: 'AR' },
   geo: { '@type': 'GeoCoordinates', latitude: -32.8967, longitude: -60.9083 },
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   title: 'Inmobiliaria en Roldán | Casas, Terrenos y Lotes | SI Inmobiliaria',
   description: 'Inmobiliaria en Roldán con 2 oficinas. Casas, terrenos y lotes en Los Aromos, El Molino, Tierra de Sueños, Don Mateo. +40 años. Tasaciones en 24hs.',
   keywords: 'inmobiliaria roldan, casas en roldan, terrenos en roldan, propiedades roldan, lotes roldan',
-  openGraph: { title: 'Inmobiliaria en Roldán | SI Inmobiliaria', description: 'Tu inmobiliaria de confianza en Roldán. 2 oficinas, +40 años.', url: 'https://siinmobiliaria.com/inmobiliaria-roldan', images: ['/og-image.jpg'] },
+  openGraph: { title: 'Inmobiliaria en Roldán | SI Inmobiliaria', description: 'Tu inmobiliaria de confianza en Roldán. 2 oficinas, +40 años.', url: 'https://siinmobiliaria.com/inmobiliaria-roldan', images: ['/logo-si-horizontal.png'] },
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-roldan' },
 }
 

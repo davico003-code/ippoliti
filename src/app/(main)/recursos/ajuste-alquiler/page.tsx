@@ -23,7 +23,7 @@ export const metadata: Metadata = {
       'Verificá el ajuste con la calculadora oficial. ICL, IPC, CasaPropia y todos los índices explicados.',
     url: 'https://siinmobiliaria.com/recursos/ajuste-alquiler',
     siteName: 'SI Inmobiliaria',
-    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    images: [{ url: '/logo-si-horizontal.png', width: 1281, height: 212, alt: 'SI Inmobiliaria' }],
     locale: 'es_AR',
     type: 'website',
   },
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '¿Está bien calculado tu aumento de alquiler?',
     description: 'Verificá el ajuste con la calculadora oficial.',
-    images: ['/logo.png'],
+    images: ['/logo-si-horizontal.png'],
   },
 }
 

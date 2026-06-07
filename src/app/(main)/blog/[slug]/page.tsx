@@ -132,12 +132,19 @@ export default async function BlogPostPage({ params }: Props) {
   const authorName = post.author || 'SI Inmobiliaria'
   const heroImage = resolveImage(post.slug, post.image)
 
+  // BlogPosting completo para rich results. Solo campos con datos reales del
+  // post (sin dateModified: BlogPost no trackea fecha de edición). El publisher
+  // referencia por @id a la entidad #organization del layout raíz.
+  const postUrl = `https://siinmobiliaria.com/blog/${post.slug}`
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'BlogPosting',
     headline: post.title,
     description: post.summary,
     datePublished: post.date,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': postUrl },
+    url: postUrl,
+    inLanguage: 'es-AR',
     ...(heroImage ? { image: [heroImage] } : {}),
     author: {
       '@type': post.author ? 'Person' : 'Organization',
@@ -146,8 +153,12 @@ export default async function BlogPostPage({ params }: Props) {
     },
     publisher: {
       '@type': 'Organization',
+      '@id': 'https://siinmobiliaria.com/#organization',
       name: 'SI Inmobiliaria',
-      logo: { '@type': 'ImageObject', url: 'https://siinmobiliaria.com/logo.png' },
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://siinmobiliaria.com/logo-si-horizontal.png',
+      },
     },
   }
 

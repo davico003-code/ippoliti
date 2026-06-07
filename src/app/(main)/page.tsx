@@ -196,7 +196,7 @@ export const metadata = {
     description:
       'Inmobiliaria familiar desde 1983. Casas, departamentos y terrenos en Funes, Roldán y Rosario.',
     url: 'https://siinmobiliaria.com',
-    images: ['/og-image.jpg'],
+    images: ['/logo-si-horizontal.png'],
   },
 }
 
@@ -204,9 +204,9 @@ const homeJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'RealEstateAgent',
   name: 'SI Inmobiliaria',
-  image: 'https://siinmobiliaria.com/logo.png',
+  image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   url: 'https://siinmobiliaria.com',
-  logo: 'https://siinmobiliaria.com/logo.png',
+  logo: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   telephone: '+5493412101694',
   foundingDate: '1983',
   founder: 'Susana Ippoliti',

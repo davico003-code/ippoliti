@@ -52,7 +52,8 @@ export const metadata: Metadata = {
     description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.',
     url: 'https://siinmobiliaria.com',
     siteName: 'SI Inmobiliaria',
-    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    // /logo.png no existe (404); el horizontal es el asset real (1281×212).
+    images: [{ url: '/logo-si-horizontal.png', width: 1281, height: 212, alt: 'SI Inmobiliaria' }],
     locale: 'es_AR',
     type: 'website',
   },
@@ -60,7 +61,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario',
     description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario.',
-    images: ['/logo.png'],
+    images: ['/logo-si-horizontal.png'],
   },
 };
 
@@ -78,7 +79,7 @@ const OFFICES = [
     "@type": "LocalBusiness",
     "@id": "https://siinmobiliaria.com/#oficina-roldan-historica",
     name: "SI Inmobiliaria — Oficina Histórica Roldán",
-    image: "https://siinmobiliaria.com/logo.png",
+    image: "https://siinmobiliaria.com/logo-si-horizontal.png",
     telephone: "+54-341-210-1694",
     address: {
       "@type": "PostalAddress",
@@ -97,7 +98,7 @@ const OFFICES = [
     "@type": "LocalBusiness",
     "@id": "https://siinmobiliaria.com/#oficina-roldan-catamarca",
     name: "SI Inmobiliaria — Oficina Ventas Roldán",
-    image: "https://siinmobiliaria.com/logo.png",
+    image: "https://siinmobiliaria.com/logo-si-horizontal.png",
     telephone: "+54-341-210-1694",
     address: {
       "@type": "PostalAddress",
@@ -116,7 +117,7 @@ const OFFICES = [
     "@type": "LocalBusiness",
     "@id": "https://siinmobiliaria.com/#oficina-funes",
     name: "SI Inmobiliaria — Oficina Funes",
-    image: "https://siinmobiliaria.com/logo.png",
+    image: "https://siinmobiliaria.com/logo-si-horizontal.png",
     telephone: "+54-341-210-1694",
     address: {
       "@type": "PostalAddress",
@@ -134,6 +135,25 @@ const OFFICES = [
 ]
 
 const jsonLd = [
+  // WebSite + SearchAction: habilita la sitelinks searchbox de Google.
+  // El buscador real del sitio es /propiedades?q=<término> (HeroSearch/HeroMobile).
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://siinmobiliaria.com/#website",
+    url: "https://siinmobiliaria.com",
+    name: "SI Inmobiliaria",
+    inLanguage: "es-AR",
+    publisher: { "@id": "https://siinmobiliaria.com/#organization" },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: "https://siinmobiliaria.com/propiedades?q={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
+    },
+  },
   {
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
@@ -141,7 +161,7 @@ const jsonLd = [
     name: "SI Inmobiliaria",
     alternateName: "Inmobiliaria Ippoliti",
     url: "https://siinmobiliaria.com",
-    logo: "https://siinmobiliaria.com/logo.png",
+    logo: "https://siinmobiliaria.com/logo-si-horizontal.png",
     foundingDate: "1983",
     telephone: "+54-341-210-1694",
     email: "contacto@siinmobiliaria.com",

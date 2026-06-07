@@ -24,7 +24,7 @@ export const metadata: Metadata = {
       'Calculá cuánto necesitás para alquilar: primer mes, honorarios, sellado, depósito en dólares, costos administrativos.',
     url: 'https://siinmobiliaria.com/recursos/calculadora-alquiler',
     siteName: 'SI Inmobiliaria',
-    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    images: [{ url: '/logo-si-horizontal.png', width: 1281, height: 212, alt: 'SI Inmobiliaria' }],
     locale: 'es_AR',
     type: 'website',
   },
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Calculadora de alquiler — costos iniciales',
     description: 'Calculá cuánto necesitás para alquilar. Gratis y al instante.',
-    images: ['/logo.png'],
+    images: ['/logo-si-horizontal.png'],
   },
 }
 

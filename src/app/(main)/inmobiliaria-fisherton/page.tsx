@@ -8,7 +8,7 @@ export const revalidate = 21600
 
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'RealEstateAgent',
-  name: 'SI Inmobiliaria Fisherton', image: 'https://siinmobiliaria.com/logo.png',
+  name: 'SI Inmobiliaria Fisherton', image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', telephone: '+5493412101694',
   address: { '@type': 'PostalAddress', addressLocality: 'Fisherton, Rosario', addressRegion: 'Santa Fe', addressCountry: 'AR' },
   geo: { '@type': 'GeoCoordinates', latitude: -32.9320, longitude: -60.7080 },
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   description: 'Inmobiliaria en Fisherton, Rosario. Casas, departamentos y terrenos en la zona residencial premium de Rosario. Green Village, Palos Verdes, Aldea. +40 años.',
   keywords: 'inmobiliaria fisherton, casas en fisherton, propiedades fisherton, fisherton rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-fisherton' },
-  openGraph: { title: 'Inmobiliaria en Fisherton | SI Inmobiliaria', description: 'Propiedades en la zona residencial premium de Rosario.', url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', images: ['/og-image.jpg'] },
+  openGraph: { title: 'Inmobiliaria en Fisherton | SI Inmobiliaria', description: 'Propiedades en la zona residencial premium de Rosario.', url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', images: ['/logo-si-horizontal.png'] },
 }
 
 const BARRIOS = [

@@ -10,7 +10,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'RealEstateAgent',
   name: 'SI Inmobiliaria Funes',
-  image: 'https://siinmobiliaria.com/logo.png',
+  image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   url: 'https://siinmobiliaria.com/inmobiliaria-funes',
   telephone: '+5493412101694',
   address: {
