@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
 import PropertyGrid from '@/components/PropertyGrid'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
@@ -38,6 +39,10 @@ export default async function PropiedadesRoldanPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <BreadcrumbJsonLd items={[
+        { name: 'Inicio', url: 'https://siinmobiliaria.com' },
+        { name: 'Propiedades en Roldán', url: 'https://siinmobiliaria.com/propiedades-roldan' },
+      ]} />
       {/* Hero */}
       <section className="bg-brand-600 text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">

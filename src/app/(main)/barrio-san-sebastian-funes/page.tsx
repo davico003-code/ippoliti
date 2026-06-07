@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Propiedades en San Sebastián, Funes — SI Inmobiliaria',
@@ -17,6 +18,10 @@ export const metadata: Metadata = {
 export default function BarrioSanSebastianPage() {
   return (
     <div className="min-h-screen">
+      <BreadcrumbJsonLd items={[
+        { name: 'Inicio', url: 'https://siinmobiliaria.com' },
+        { name: 'Barrio San Sebastián, Funes', url: 'https://siinmobiliaria.com/barrio-san-sebastian-funes' },
+      ]} />
       {/* Hero */}
       <section className="bg-[#1A5C38] py-20 px-4 text-center">
         <p className="text-white/60 text-xs uppercase tracking-widest font-semibold mb-3">BARRIO CERRADO · FUNES</p>

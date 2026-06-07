@@ -40,7 +40,7 @@ export default async function CompararPage({ searchParams }: Props) {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-4">
             <Link href="/">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="SI Inmobiliaria" className="h-10 w-auto brightness-0 invert" />
+              <img src="/logo-blanco.webp" alt="SI Inmobiliaria" className="h-10 w-auto" />
             </Link>
           </div>
         </header>
@@ -70,7 +70,7 @@ export default async function CompararPage({ searchParams }: Props) {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-4">
             <Link href="/">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="SI Inmobiliaria" className="h-10 w-auto brightness-0 invert" />
+              <img src="/logo-blanco.webp" alt="SI Inmobiliaria" className="h-10 w-auto" />
             </Link>
           </div>
         </header>
@@ -103,7 +103,7 @@ export default async function CompararPage({ searchParams }: Props) {
           <div className="flex items-center justify-between mb-6">
             <Link href="/" className="flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="SI Inmobiliaria" className="h-10 md:h-12 w-auto brightness-0 invert" />
+              <img src="/logo-blanco.webp" alt="SI Inmobiliaria" className="h-10 md:h-12 w-auto" />
             </Link>
             <Link
               href="/propiedades"

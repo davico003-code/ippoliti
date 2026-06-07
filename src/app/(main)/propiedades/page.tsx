@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     title: 'Propiedades en venta y alquiler | SI Inmobiliaria',
     description: 'Casas, departamentos, terrenos y emprendimientos en Funes, Roldán y Rosario.',
     url: 'https://siinmobiliaria.com/propiedades',
-    images: ['/logo-si-horizontal.png'],
+    images: ['/og-image.jpg'],
   },
 }
 

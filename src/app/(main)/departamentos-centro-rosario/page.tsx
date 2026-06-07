@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getRoofedArea } from '@/lib/tokko'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
@@ -35,6 +36,10 @@ export default async function Page() {
 
   return (
     <div className="min-h-screen bg-white">
+      <BreadcrumbJsonLd items={[
+        { name: 'Inicio', url: 'https://siinmobiliaria.com' },
+        { name: 'Departamentos en el centro de Rosario', url: 'https://siinmobiliaria.com/departamentos-centro-rosario' },
+      ]} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <section className="bg-gradient-to-br from-[#1A5C38] to-[#0F3A23] text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">

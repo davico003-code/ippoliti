@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Phone, TreePine, School, Shield, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug } from '@/lib/tokko'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
@@ -116,6 +117,10 @@ export default async function InmobiliariaFunesPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <BreadcrumbJsonLd items={[
+        { name: 'Inicio', url: 'https://siinmobiliaria.com' },
+        { name: 'Inmobiliaria en Funes', url: 'https://siinmobiliaria.com/inmobiliaria-funes' },
+      ]} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
