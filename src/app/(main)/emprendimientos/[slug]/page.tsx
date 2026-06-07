@@ -32,8 +32,11 @@ import SeccionServicios from '@/components/distrito-roldan/SeccionServicios'
 import SeccionCtaFinanciacion from '@/components/distrito-roldan/SeccionCtaFinanciacion'
 import { getClienteFormatted } from '@/lib/clientes'
 import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug, getMainPhoto, translatePropertyType, getTotalSurface } from '@/lib/tokko'
+// PropertyMap (leaflet) se carga vía PropertyMapLazy ("use client"): dynamic
+// ssr:false desde un Server Component no code-splittea en Next 14 y leaflet
+// terminaba en el First Load JS de esta ruta.
+import PropertyMapLazy from '@/components/PropertyMapLazy'
 
-const PropertyMap = dynamic(() => import('@/components/PropertyMap'), { ssr: false })
 const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false })
 const NearbyPlaces = dynamic(() => import('@/components/NearbyPlaces'), { ssr: false })
 
@@ -315,7 +318,7 @@ export default async function DevelopmentPage({ params }: Props) {
             {!isDistrito && dev.geo_lat && dev.geo_long && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Ubicación</h2>
-                <PropertyMap
+                <PropertyMapLazy
                   lat={dev.geo_lat}
                   lng={dev.geo_long}
                   address={dev.fake_address || dev.address}

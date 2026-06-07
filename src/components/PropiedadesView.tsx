@@ -44,7 +44,10 @@ import {
   TYPE_FILTER_GROUPS,
 } from '@/lib/tokko'
 import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } from '@/lib/geo'
-import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget } from '@/components/PropiedadesMap'
+// Constantes del mapa desde @/lib/map-config (módulo sin leaflet): un import
+// estático de PropiedadesMap acá anularía el dynamic() de abajo y metería
+// leaflet en el First Load JS de /propiedades.
+import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
 import { isSpecificSearch } from '@/lib/search'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {

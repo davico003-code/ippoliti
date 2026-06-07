@@ -15,6 +15,7 @@ import {
   generatePropertySlug,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
+import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
@@ -201,14 +202,10 @@ function createClusterIcon(cluster: L.MarkerCluster) {
 
 // ─── Encuadre inicial fijo ───────────────────────────────────────────────────
 //
-// Centroide entre Funes, Roldán y Fisherton para que arranquen los 3 polos
-// del corredor oeste visibles. NO depende de los resultados del listado —
-// la posición es estable a través de recargas y filtros que no aplican zona.
+// DEFAULT_CENTER/DEFAULT_ZOOM viven en @/lib/map-config (módulo sin leaflet)
+// para que PropiedadesView pueda importarlos sin romper el code-splitting.
 // Cuando el usuario filtra por Ubicación, ZonaFlyTo lo lleva a la zona;
 // cuando limpia el filtro, este componente no re-dispara (solo corre al montar).
-
-export const DEFAULT_CENTER: [number, number] = [-32.9145, -60.8200]
-export const DEFAULT_ZOOM = 12
 
 function InitialView() {
   const map = useMap()
@@ -227,11 +224,7 @@ function InitialView() {
 
 // ─── Map fly-to controller ────────────────────────────────────────────────────
 //
-// El tercer slot del tuple es el zoom destino. Sin él, asume 16 (zoom in a
-// una propiedad seleccionada). Pasarlo explícito sirve para reset al
-// encuadre inicial: [DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM].
-
-export type FlyToTarget = [number, number] | [number, number, number]
+// FlyToTarget vive en @/lib/map-config (ver nota arriba).
 
 function MapFlyTo({ center }: { center: FlyToTarget | null }) {
   const map = useMap()
