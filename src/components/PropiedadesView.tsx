@@ -109,6 +109,15 @@ const DEFAULTS: Filters = {
 // Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
 const digitsOnly = (s: string) => s.replace(/\D/g, '')
 
+// Lectura defensiva de sessionStorage. En Safari con "Bloquear todas las
+// cookies", modo Lockdown o webviews in-app (Instagram/WhatsApp) con storage
+// deshabilitado, CUALQUIER acceso a window.sessionStorage tira SecurityError.
+// Sin esta guarda, el throw en pleno render (useState initializer) tumbaba
+// toda /propiedades al error boundary ("Algo salió mal") en esos browsers.
+const safeSessionGet = (key: string): string | null => {
+  try { return sessionStorage.getItem(key) } catch { return null }
+}
+
 // Formato es-AR con separador de miles (120000 → "120.000"). Para vacío devuelve ''.
 const formatThousands = (s: string) => {
   const d = digitsOnly(s)
@@ -621,7 +630,7 @@ export default function PropiedadesView({
   // de búsquedas específicas.
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
     if (typeof window === 'undefined') return 'map'
-    const pref = sessionStorage.getItem('si_view_preference')
+    const pref = safeSessionGet('si_view_preference')
     return pref === 'list' || pref === 'map' ? pref : 'map'
   })
   const [showBottomSheet, setShowBottomSheet] = useState(false)
@@ -955,7 +964,7 @@ export default function PropiedadesView({
   // (sessionStorage 'si_view_preference' ausente).
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const pref = sessionStorage.getItem('si_view_preference')
+    const pref = safeSessionGet('si_view_preference')
     if (pref === 'list' || pref === 'map') return
     const auto: 'list' | 'map' = isSpecificSearch(filters.search, visibleProperties.length) ? 'list' : 'map'
     setMobileView(prev => (prev === auto ? prev : auto))

@@ -45,7 +45,10 @@ function fmtTime(seconds: number): string {
 
 function readStoredSpeed(): Speed {
   if (typeof window === 'undefined') return 1
-  const raw = window.localStorage.getItem(SPEED_STORAGE_KEY)
+  // try/catch: con storage bloqueado (Safari "Bloquear todas las cookies",
+  // Lockdown, webviews in-app) el acceso a localStorage tira SecurityError.
+  let raw: string | null = null
+  try { raw = window.localStorage.getItem(SPEED_STORAGE_KEY) } catch { /* ignore */ }
   const parsed = Number(raw)
   return (SPEED_OPTIONS as readonly number[]).includes(parsed) ? (parsed as Speed) : 1
 }
@@ -232,7 +235,7 @@ export default function AudioPlayer({
     audio.playbackRate = s
     setSpeed(s)
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(SPEED_STORAGE_KEY, String(s))
+      try { window.localStorage.setItem(SPEED_STORAGE_KEY, String(s)) } catch { /* ignore */ }
     }
     track('audio_speed_change', String(s), propertyId)
   }
