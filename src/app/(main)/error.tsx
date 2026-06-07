@@ -11,7 +11,10 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error(error)
+    // Log detallado en dev para no quedar ciegos ante crashes data-dependent.
+    console.error('[error-boundary] message:', error.message)
+    console.error('[error-boundary] digest:', error.digest)
+    console.error('[error-boundary] stack:', error.stack)
   }, [error])
 
   return (
