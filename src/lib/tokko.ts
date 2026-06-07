@@ -727,7 +727,19 @@ export async function getProperties(params?: {
     for (const result of results) {
       firstPage.objects.push(...result.objects);
     }
-    
+    // Dedup por id tras el merge de páginas. Cada página es un request HTTP
+    // independiente (y en paralelo): si el orden upstream de Tokko cambia
+    // entre requests (alta/baja/edición en el medio), un registro del borde
+    // puede venir repetido en dos páginas. Ese dupe transitorio duplicaba la
+    // ficha en el listado y el marker en el mapa (React: "two children with
+    // the same key"). Nos quedamos con la primera aparición, preservando orden.
+    const seenIds = new Set<number>();
+    firstPage.objects = firstPage.objects.filter(o => {
+      if (seenIds.has(o.id)) return false;
+      seenIds.add(o.id);
+      return true;
+    });
+
     firstPage.meta.limit = totalCount;
   }
 
