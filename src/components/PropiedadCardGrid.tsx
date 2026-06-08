@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -68,6 +68,51 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
     e.preventDefault(); e.stopPropagation()
     setImgIdx(i => (i + 1) % images.length)
   }
+  const goTo = (e: React.MouseEvent, i: number) => {
+    e.preventDefault(); e.stopPropagation()
+    setImgIdx(i)
+  }
+
+  // Dots: máximo 5 y discretos. Si hay más de 5 fotos, los 5 dots actúan como
+  // indicador de progreso — el dot activo se mapea proporcionalmente al índice
+  // real, y al clickear un dot se salta a la foto representativa de ese tramo.
+  const DOT_MAX = 5
+  const dotCount = Math.min(images.length, DOT_MAX)
+  const activeDot = images.length <= DOT_MAX
+    ? imgIdx
+    : Math.round((imgIdx / (images.length - 1)) * (dotCount - 1))
+  const dotToIndex = (d: number) => images.length <= DOT_MAX
+    ? d
+    : Math.round((d / (dotCount - 1)) * (images.length - 1))
+
+  // Swipe en mobile: en pantallas chicas no hay flechas, así que el gesto
+  // horizontal es la forma de pasar fotos (navegación circular). Si el
+  // desplazamiento supera el umbral lo tratamos como swipe y bloqueamos el
+  // click sintético para que no abra la ficha.
+  const touchStartX = useRef<number | null>(null)
+  const swipedRef = useRef(false)
+  const SWIPE_THRESHOLD = 40
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    swipedRef.current = false
+  }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || images.length <= 1) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > SWIPE_THRESHOLD) {
+      swipedRef.current = true
+      setImgIdx(i => dx < 0
+        ? (i + 1) % images.length
+        : (i - 1 + images.length) % images.length)
+    }
+    touchStartX.current = null
+  }
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (swipedRef.current) {
+      e.preventDefault(); e.stopPropagation()
+      swipedRef.current = false
+    }
+  }
 
   // Render como <Link> para que Next prefetchee la ficha en hover (desktop)
   // y al entrar al viewport (mobile). El onClick del padre puede llamar
@@ -103,8 +148,15 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         }
       }}
     >
-      {/* Image */}
-      <div className="relative w-full bg-gray-100 overflow-hidden aspect-[2/1]">
+      {/* Image — `group/media` acota el hover a la imagen (no a toda la card),
+          así flechas y dots aparecen solo al pasar el mouse sobre la foto.
+          Los handlers touch dan swipe horizontal en mobile. */}
+      <div
+        className="group/media relative w-full bg-gray-100 overflow-hidden aspect-[2/1]"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onClickCapture={onClickCapture}
+      >
         {images.length > 0 ? (
           <Image
             src={images[imgIdx]}
@@ -119,26 +171,41 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           </div>
         )}
 
-        {/* Carousel arrows — hover only */}
+        {/* Carrusel — patrón Vanzini: en desktop, flechas + dots aparecen solo
+            en hover sobre la imagen (group/media). En mobile no hay flechas y
+            los dots quedan siempre visibles pero discretos. */}
         {images.length > 1 && (
           <>
-            <button onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            {/* Flechas: solo desktop (hidden md:flex), visibles en hover o foco */}
+            <button
+              type="button"
+              onClick={prev}
+              aria-label="Foto anterior"
+              className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 shadow-sm items-center justify-center text-gray-700 hover:bg-white opacity-0 group-hover/media:opacity-100 focus-visible:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-opacity duration-200"
             >
-              <ChevronLeft className="w-4 h-4 text-gray-700" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
-            <button onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            <button
+              type="button"
+              onClick={next}
+              aria-label="Foto siguiente"
+              className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 shadow-sm items-center justify-center text-gray-700 hover:bg-white opacity-0 group-hover/media:opacity-100 focus-visible:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-opacity duration-200"
             >
-              <ChevronRight className="w-4 h-4 text-gray-700" />
+              <ChevronRight className="w-4 h-4" />
             </button>
-            {/* Dots */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-              {images.slice(0, 5).map((_, i) => (
-                <div key={i} className="rounded-full"
+            {/* Dots: máx 5, discretos. Mobile siempre visibles (opacity-100),
+                desktop solo en hover. Solo indican avance en la galería. */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 opacity-100 md:opacity-0 md:group-hover/media:opacity-100 transition-opacity duration-200">
+              {Array.from({ length: dotCount }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => goTo(e, dotToIndex(i))}
+                  aria-label={`Ir a foto ${dotToIndex(i) + 1}`}
+                  className="w-1.5 h-1.5 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                   style={{
-                    width: 4, height: 4,
-                    background: i === imgIdx ? 'white' : 'rgba(255,255,255,0.5)',
+                    background: i === activeDot ? 'white' : 'rgba(255,255,255,0.45)',
+                    boxShadow: i === activeDot ? '0 0 2px rgba(0,0,0,0.4)' : 'none',
                   }}
                 />
               ))}
