@@ -43,8 +43,8 @@ export interface PropertyCardProjection {
   total_surface: string
   surface: string
 
-  // Solo la cover (1 entry). Mantiene shape TokkoPhoto-compat para que
-  // getMainPhoto/getAllPhotos sigan funcionando sin cambios en el lib.
+  // Hasta 5 fotos (cover primero). Mantiene shape TokkoPhoto-compat para que
+  // getMainPhoto/getAllPhotos y el carrusel de la card funcionen sin cambios.
   photos: Array<{
     image: string
     thumb: string
@@ -74,25 +74,33 @@ export interface NearbyProperty {
   slug: string
 }
 
-// Devuelve la cover photo (front_cover && !blueprint), o el primer
-// no-blueprint, o null si no hay fotos. Replica getMainPhoto pero
-// devolviendo el objeto entero (no solo URL).
-function pickCoverPhoto(p: TokkoProperty) {
-  if (!p.photos || p.photos.length === 0) return null
-  const cover = p.photos.find(ph => ph.is_front_cover && !ph.is_blueprint)
-  const first = p.photos.find(ph => !ph.is_blueprint)
-  const chosen = cover || first || p.photos[0]
-  return {
-    image: chosen.image,
-    thumb: chosen.thumb,
-    is_front_cover: true,        // forzamos el flag para el helper getMainPhoto
+// Cuántas fotos lleva cada card. La proyección antes mandaba solo la cover
+// (1 foto), lo que dejaba a PropiedadCardGrid sin carrusel (su guard es
+// images.length > 1). Llevamos hasta 5 — calza con el tope de 5 dots y suma
+// poco payload (5 URLs vs 1) comparado con mandar las ~30 fotos completas.
+const CARD_PHOTO_MAX = 5
+
+// Devuelve hasta CARD_PHOTO_MAX fotos no-blueprint, con la cover primero y el
+// resto en su orden original. `order` se reasigna a la posición final (0..n)
+// para que getAllPhotos (que ordena por `order`) preserve la cover al frente.
+function pickCardPhotos(p: TokkoProperty) {
+  if (!p.photos || p.photos.length === 0) return []
+  const nonBlueprint = p.photos.filter(ph => !ph.is_blueprint)
+  const pool = nonBlueprint.length > 0 ? nonBlueprint : p.photos
+  const cover = pool.find(ph => ph.is_front_cover) ?? pool[0]
+  const rest = pool
+    .filter(ph => ph !== cover)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  return [cover, ...rest].slice(0, CARD_PHOTO_MAX).map((ph, i) => ({
+    image: ph.image,
+    thumb: ph.thumb,
+    is_front_cover: i === 0,     // la primera es la cover para getMainPhoto
     is_blueprint: false,
-    order: chosen.order ?? 0,
-  }
+    order: i,
+  }))
 }
 
 export function projectToCard(p: TokkoProperty): PropertyCardProjection {
-  const cover = pickCoverPhoto(p)
   return {
     id: p.id,
     publication_title: p.publication_title,
@@ -118,7 +126,7 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
     roofed_surface: p.roofed_surface,
     total_surface: p.total_surface,
     surface: p.surface,
-    photos: cover ? [cover] : [],
+    photos: pickCardPhotos(p),
     is_starred_on_web: p.is_starred_on_web,
     development: p.development
       ? { id: p.development.id, name: p.development.name }
