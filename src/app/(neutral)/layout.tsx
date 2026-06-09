@@ -30,14 +30,13 @@ export const metadata: Metadata = {
   // Sin openGraph default acá: cada page.tsx define el suyo. Si dejara uno
   // genérico, Next.js lo mergearía con el del page y filtraría datos del shell.
   //
-  // FAVICON NEUTRO — verficha.casa NO tiene branding SI ni propio. data:, es
-  // un data URI vacío estándar que evita el fallback automático del browser
-  // a /favicon.ico (que sí es SI Inmobiliaria, servido desde public/ para
-  // el dominio siinmobiliaria.com).
+  // FAVICON NEUTRO — verficha.casa NO tiene branding SI ni propio. Apunta a un
+  // icono gris minimalista. El well-known /favicon.ico (que sí es SI, servido
+  // desde public/) lo neutraliza el middleware reescribiéndolo a este mismo SVG.
   icons: {
-    icon: [{ url: 'data:,' }],
-    shortcut: [{ url: 'data:,' }],
-    apple: [{ url: 'data:,' }],
+    icon: [{ url: '/verficha-icon.svg', type: 'image/svg+xml' }],
+    shortcut: [{ url: '/verficha-icon.svg' }],
+    apple: [{ url: '/verficha-icon.svg' }],
   },
 }
 
