@@ -38,12 +38,23 @@ const NEUTRAL_HOSTS = new Set(['verficha.casa', 'www.verficha.casa'])
 // Slug = 8 chars del alfabeto sin ambiguos. NO incluye '/'.
 const SLUG_RE = /^\/[A-Za-z0-9]{8}$/
 
+// Paths well-known de icono a neutralizar en hosts white-label. /favicon.ico
+// (.svg, -96x96.png) se sirve estático desde public/ = logo SI; WhatsApp hace
+// fallback a ese path ignorando el <link> de la página. Reescribimos al icono neutro.
+const NEUTRAL_ICON_RE = /^\/(favicon\.ico|favicon\.svg|favicon-96x96\.png|apple-touch-icon\.png|icon\.png)$/
+
 export async function middleware(request: NextRequest) {
   const host = (request.headers.get('host') || '').toLowerCase().split(':')[0]
   const { pathname } = request.nextUrl
 
   // ── verficha.casa: solo /{slug} es válido ──────────────────────────────
   if (NEUTRAL_HOSTS.has(host)) {
+    // Favicon neutro: nunca servir branding SI ni en el well-known path.
+    if (NEUTRAL_ICON_RE.test(pathname)) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/verficha-icon.svg'
+      return NextResponse.rewrite(url)
+    }
     if (SLUG_RE.test(pathname)) {
       const slug = pathname.slice(1)
       const url = request.nextUrl.clone()
@@ -101,5 +112,9 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|.*\\.(?:png|jpg|jpeg|svg|gif|ico|webp|avif|woff2?|map|txt|xml)$).*)',
+    '/favicon.ico',
+    '/favicon.svg',
+    '/favicon-96x96.png',
+    '/apple-touch-icon.png',
   ],
 }
