@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import { getAllPosts } from '@/lib/blog'
 import BlogClient from './BlogClient'
 
+// Además del revalidate on-demand del publicador, regenerar cada hora para
+// que las notas programadas aparezcan solas al llegar su fecha.
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'Blog inmobiliario — Funes, Roldán y región | SI Inmobiliaria',
   description:

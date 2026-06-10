@@ -6,6 +6,10 @@ import { BARRIOS } from '@/lib/barrios'
 
 const BASE = 'https://siinmobiliaria.com'
 
+// Regenerar cada hora para que las notas programadas entren solas al sitemap
+// al llegar su fecha (getAllPosts las filtra hasta entonces).
+export const revalidate = 3600
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },

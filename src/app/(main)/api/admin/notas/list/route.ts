@@ -20,6 +20,7 @@ export interface NotaAdminItem {
   image: string
   tipo: 'estatica' | 'dinamica'
   eliminada: boolean
+  programada: boolean
   destino: string | null
   dupGroup: number | null
 }
@@ -75,6 +76,9 @@ export async function GET(req: Request) {
       image: overrides[b.p.slug] ?? b.p.image,
       tipo: b.tipo,
       eliminada: Boolean(redirects[b.p.slug]),
+      programada: Boolean(
+        b.p.publishAt && new Date(b.p.publishAt).getTime() > Date.now()
+      ),
       destino: redirects[b.p.slug] ?? null,
       dupGroup: dupOf[i],
     }))

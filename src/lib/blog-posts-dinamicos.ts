@@ -109,6 +109,7 @@ function blobToBlogPost(nota: NotaPublicadaBlob): BlogPost {
     author: 'David Flores',
     imagen_photographer: nota.imagen_photographer,
     imagen_photographer_url: nota.imagen_photographer_url,
+    publishAt: nota.fecha_publicacion,
   };
 }
 
