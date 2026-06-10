@@ -16,6 +16,7 @@ import {
   getPropertyById,
   getIdFromSlug,
   formatPrice,
+  mostrarPrecio,
   formatLocation,
   getTotalSurface,
   getMainPhoto,
@@ -113,6 +114,9 @@ export default async function PropertyPage({ params }: Props) {
   const propPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0;
   const propCurrency = property.operations?.[0]?.prices?.[0]?.currency ?? 'USD';
   const propUrl = `https://siinmobiliaria.com/propiedades/${params.slug}`;
+  // "Sin Precio" en Tokko (web_price: false): el Offer se omite del JSON-LD
+  // para no filtrar el monto que la API igual manda.
+  const tienePrecio = mostrarPrecio(property) !== null;
   const jsonLd = [
     {
       '@context': 'https://schema.org',
@@ -121,12 +125,14 @@ export default async function PropertyPage({ params }: Props) {
       description,
       url: propUrl,
       image: mainPhotoUrl ? [mainPhotoUrl] : [],
-      offers: {
-        '@type': 'Offer',
-        price: propPrice.toString(),
-        priceCurrency: propCurrency,
-        availability: 'https://schema.org/InStock',
-      },
+      ...(tienePrecio ? {
+        offers: {
+          '@type': 'Offer',
+          price: propPrice.toString(),
+          priceCurrency: propCurrency,
+          availability: 'https://schema.org/InStock',
+        },
+      } : {}),
       address: {
         '@type': 'PostalAddress',
         streetAddress: property.real_address || property.fake_address || property.address,

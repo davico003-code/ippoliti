@@ -284,6 +284,19 @@ export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string):
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 }
 
+// Variante para propiedades sin precio publicado (web_price: false): mismo
+// número (productor real con fallback al general) y misma estructura de
+// mensaje que buildPropertyWhatsappUrl, pero pidiendo el precio.
+export function buildPriceConsultWhatsappUrl(property: TokkoProperty, slug: string): string {
+  const number = getProducerWhatsappNumber(property)
+  const name = getProducerName(property)
+  const address = property.fake_address || property.address || ''
+  const code = property.reference_code ? ` (cod ${property.reference_code})` : ''
+  const url = `https://siinmobiliaria.com/propiedades/${slug}`
+  const text = `Hola ${name}! Quiero consultar el precio de la propiedad ${address}${code}.\n\n${url}`
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+}
+
 export function generatePropertySlug(property: TokkoProperty): string {
   const base =
     property.publication_title ||
@@ -358,15 +371,28 @@ export function parseStreetOnly(address: string | null | undefined): string {
   return words.join(' ')
 }
 
-export function formatPrice(property: TokkoProperty): string {
-  if (!property.operations || property.operations.length === 0) return 'Consultar';
+// Único lugar de verdad sobre si una propiedad publica precio. Devuelve el
+// precio formateado, o null cuando corresponde "Consultar precio": la
+// propiedad está tildada "Sin Precio" en Tokko (web_price: false — la API
+// igual manda el monto en operations, NO exponerlo) o no tiene precio cargado.
+export function mostrarPrecio(
+  property: Pick<TokkoProperty, 'operations' | 'web_price'>,
+): string | null {
+  if (property.web_price === false) return null;
+  if (!property.operations || property.operations.length === 0) return null;
   const op = property.operations[0];
-  if (!op.prices || op.prices.length === 0) return 'Consultar';
+  if (!op.prices || op.prices.length === 0) return null;
   const p = op.prices[0];
-  if (!p.price || p.price === 0) return 'Consultar';
+  if (!p.price || p.price === 0) return null;
   const formatted = p.price.toLocaleString('es-AR');
   const suffix = op.operation_type === 'Rent' ? '/mes' : '';
   return `${p.currency} ${formatted}${suffix ? ' ' + suffix : ''}`;
+}
+
+export function formatPrice(
+  property: Pick<TokkoProperty, 'operations' | 'web_price'>,
+): string {
+  return mostrarPrecio(property) ?? 'Consultar precio';
 }
 
 // Superficie cubierta principal (en m²), parseando el string de la API
