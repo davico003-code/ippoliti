@@ -50,8 +50,9 @@ function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoPro
     const first = units.find(u => u.geo_lat && u.geo_long && !isNaN(parseFloat(u.geo_lat!)))
     if (!first) { standalone.push(...units); return }
 
-    // Min price
+    // Min price (las unidades "Sin Precio" en Tokko no aportan su monto)
     const prices = units
+      .filter(u => u.web_price !== false)
       .map(u => u.operations?.[0]?.prices?.[0]?.price)
       .filter((p): p is number => !!p && p > 0)
       .sort((a, b) => a - b)
@@ -105,6 +106,8 @@ function createCraneIcon() {
 // ─── Short price label for map bubbles ────────────────────────────────────────
 
 function shortPrice(property: TokkoProperty): string {
+  // "Sin Precio" en Tokko: la burbuja no muestra el monto
+  if (property.web_price === false) return 'Consultar'
   const op = property.operations?.[0]
   if (!op?.prices?.[0]) return 'Consultar'
   const p = op.prices[0]

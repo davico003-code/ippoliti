@@ -33,6 +33,11 @@ export interface PropertyCardProjection {
     }>
   }>
 
+  // "Sin Precio" en Tokko: si es false, formatPrice/mostrarPrecio muestran
+  // "Consultar precio" en vez del monto. Sin este campo, las cards perderían
+  // el flag al proyectarse y filtrarían el precio igual.
+  web_price: boolean
+
   geo_lat: string | null
   geo_long: string | null
 
@@ -118,6 +123,7 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
         currency: pr.currency,
       })),
     })),
+    web_price: p.web_price,
     geo_lat: p.geo_lat,
     geo_long: p.geo_long,
     suite_amount: p.suite_amount,
