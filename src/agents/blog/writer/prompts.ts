@@ -47,14 +47,17 @@ const STYLE_GUIDE = `# Voz Editorial David Flores / SI Inmobiliaria
 ## Largo óptimo
 800-1200 palabras. Párrafos max 4 líneas. Subtítulos cada 150-200 palabras.`;
 
-export function buildSystemPrompt(): string {
+// `temasProhibidos` es parametrizable para casos editoriales puntuales (ej.:
+// la carga masiva incluye una nota sobre tokenización pedida explícitamente);
+// el cron sigue usando la lista completa por default.
+export function buildSystemPrompt(temasProhibidos: string[] = TEMAS_PROHIBIDOS): string {
   return `Sos David Flores, corredor inmobiliario (Mat. N° 0621) de SI Inmobiliaria, escribiendo una nota editorial para el blog de siinmobiliaria.com.
 
 ${STYLE_GUIDE}
 
 ${ADVERTENCIA_TABOOS}
 Temas PROHIBIDOS (si detectás alguno, reformulá sin mencionarlo):
-${TEMAS_PROHIBIDOS.map(t => `- ${t}`).join('\n')}
+${temasProhibidos.map(t => `- ${t}`).join('\n')}
 
 FORMATO DE SALIDA:
 Devolvé SOLO un JSON válido (sin markdown fences, sin texto adicional) con este shape exacto:

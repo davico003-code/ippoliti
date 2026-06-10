@@ -12,8 +12,13 @@ function getRedis(): Redis {
   });
 }
 
-export async function publicarNota(nota: NotaDraft): Promise<NotaPublicada> {
-  const fechaPublicacion = new Date().toISOString();
+// `fechaProgramada` (ISO) permite cargar notas con fecha futura (carga masiva);
+// sin el parámetro se comporta igual que siempre: publica con el timestamp actual.
+export async function publicarNota(
+  nota: NotaDraft,
+  fechaProgramada?: string,
+): Promise<NotaPublicada> {
+  const fechaPublicacion = fechaProgramada || new Date().toISOString();
   const urlCompleta = `${BASE_URL}/blog/${nota.slug}`;
 
   // La imagen NO se busca acá. Unsplash era una dependencia externa frágil (la
