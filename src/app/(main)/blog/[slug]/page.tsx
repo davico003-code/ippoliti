@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User } from 'lucide-react'
+import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug } from '@/lib/blog'
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
@@ -116,16 +117,10 @@ function resolveImage(slug: string, originalImage: string): string | null {
 export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(params.slug)
 
-  if (!post) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
-        <h1 className="text-3xl font-black text-gray-900 mb-4">Artículo no encontrado</h1>
-        <Link href="/blog" className="text-[#1A5C38] font-semibold hover:underline">
-          &larr; Volver al blog
-        </Link>
-      </div>
-    )
-  }
+  // 404 real (antes: pantalla "Artículo no encontrado" con HTTP 200 — soft-404
+  // que Google podía indexar). Cubre slugs inexistentes y notas programadas
+  // antes de su fecha. Renderiza el not-found brandeado de (main).
+  if (!post) notFound()
 
   const allPosts = await getAllPosts()
   const related = allPosts
