@@ -2,7 +2,7 @@
 
 Imágenes para notas sobre tasas, dólar, rentabilidad, inversiones inmobiliarias.
 
-**Falta llenar esta carpeta.** Sugerencias de fotos para subir:
+Primeras fotos cargadas (Unsplash, 10-jun-2026). Sugerencias para seguir sumando:
 - Oficinas / interiores corporativos
 - Escritorios con planos / contratos
 - Llaves / firma de escritura
