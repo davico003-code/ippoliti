@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generado": "2026-05-05",
-  "nota": "Imágenes locales del blog. El agente debe leer este manifest para elegir la imagen más afín al título de cada nota. Las imágenes con uso_especial='no_portada_blog' NO deben elegirse como portada.",
+  "generado": "2026-06-10",
+  "nota": "Imágenes locales del blog. El agente debe leer este manifest para elegir la imagen más afín al título de cada nota. Las imágenes con uso_especial='no_portada_blog' NO deben elegirse como portada. Las fotos con 'fuente' vienen de Unsplash (licencia Unsplash, uso comercial permitido).",
   "imagenes": [
     {
       "ruta": "/images/blog/funes-y-roldan/barrio-cerrado-laguna-aerea.jpg",
@@ -205,6 +205,152 @@
         "autor"
       ],
       "uso_especial": "no_portada_blog"
+    },
+    {
+      "ruta": "/images/blog/construccion/obrero-estructura-madera.jpg",
+      "categoria": "construccion",
+      "descripcion": "Obrero con casco trabajando sobre estructura de madera en obra, cielo azul. Ideal para steel framing, construcción en seco, obra nueva.",
+      "tags": [
+        "obra",
+        "construcción",
+        "steel framing",
+        "estructura",
+        "obrero",
+        "casco"
+      ],
+      "fuente": "Josh Olalde / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/construccion/albanil-bloques-pared.jpg",
+      "categoria": "construccion",
+      "descripcion": "Manos de albañil asentando bloques de cemento con llana. Ideal para materiales, obra húmeda, construir económico, aislación.",
+      "tags": [
+        "albañil",
+        "bloques",
+        "cemento",
+        "materiales",
+        "obra",
+        "pared"
+      ],
+      "fuente": "Solømen / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/inversion/llaves-casa-mano.jpg",
+      "categoria": "inversion",
+      "descripcion": "Mano entregando llaves con llavero de casita, interior luminoso de fondo. Ideal para compra, entrega, confianza, corredor.",
+      "tags": [
+        "llaves",
+        "entrega",
+        "compra",
+        "casa propia",
+        "confianza"
+      ],
+      "fuente": "Jakub Żerdzicki / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/inversion/firma-contrato-escritorio.jpg",
+      "categoria": "inversion",
+      "descripcion": "Pareja firmando documento en escritorio con asesor. Ideal para negociación, boleto, escritura, crédito.",
+      "tags": [
+        "firma",
+        "contrato",
+        "negociación",
+        "boleto",
+        "pareja",
+        "asesor"
+      ],
+      "fuente": "Annika Wischnewsky / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/mercado-rosario/firma-living-pareja-agente.jpg",
+      "categoria": "mercado-rosario",
+      "descripcion": "Pareja joven firmando papeles con agente en un living, clima distendido. Ideal para tasación, ACM, asesoramiento.",
+      "tags": [
+        "firma",
+        "pareja",
+        "agente",
+        "asesoramiento",
+        "living"
+      ],
+      "fuente": "Vitaly Gariev / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/mercado-rosario/agente-mostrando-casa-pareja.jpg",
+      "categoria": "mercado-rosario",
+      "descripcion": "Agente inmobiliaria mostrando una casa a una pareja joven, con carpeta en mano. Ideal para corredor confiable, visitas, recorridas.",
+      "tags": [
+        "agente",
+        "visita",
+        "recorrida",
+        "pareja",
+        "corredor"
+      ],
+      "fuente": "Vitaly Gariev / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/mercado-rosario/pareja-mudanza-cajas.jpg",
+      "categoria": "mercado-rosario",
+      "descripcion": "Pareja sentada en el piso de su casa nueva rodeada de cajas de mudanza, sonriendo. Ideal para home staging, mudanza, casa nueva.",
+      "tags": [
+        "mudanza",
+        "cajas",
+        "pareja",
+        "casa nueva",
+        "staging"
+      ],
+      "fuente": "Vitaly Gariev / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/generales/tecnico-instalacion-domiciliaria.jpg",
+      "categoria": "generales",
+      "descripcion": "Técnico revisando una instalación domiciliaria (cañerías bajo mesada). Ideal para mantenimiento, gasista/plomero matriculado, seguridad del hogar.",
+      "tags": [
+        "técnico",
+        "instalación",
+        "mantenimiento",
+        "matriculado",
+        "seguridad"
+      ],
+      "fuente": "Timur Shakerzianov / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/asado-parrillero.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Parrillero con delantal cocinando al aire libre con fuego vivo, fondo verde. Ideal para quincho, hogar a leña, vida de la zona.",
+      "tags": [
+        "asado",
+        "parrilla",
+        "quincho",
+        "fuego",
+        "vida al aire libre"
+      ],
+      "fuente": "Vincent Keiman / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/parrilla-brasas.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Costillas a la parrilla sobre brasas, primer plano cálido. Ideal para quincho, asado, invierno, estilo de vida.",
+      "tags": [
+        "asado",
+        "parrilla",
+        "brasas",
+        "quincho",
+        "invierno"
+      ],
+      "fuente": "Emerson Vieira / Unsplash"
+    },
+    {
+      "ruta": "/images/blog/funes-y-roldan/jardin-trabajo-casa.jpg",
+      "categoria": "funes-y-roldan",
+      "descripcion": "Persona trabajando en un jardín frondoso con casa de fondo. Ideal para jardín, plantas, heladas, parque de la casa.",
+      "tags": [
+        "jardín",
+        "plantas",
+        "parque",
+        "casa",
+        "trabajo de jardín"
+      ],
+      "fuente": "Lara John / Unsplash"
     }
   ]
 }
