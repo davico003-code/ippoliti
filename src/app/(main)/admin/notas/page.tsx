@@ -14,6 +14,7 @@ interface NotaAdminItem {
   image: string
   tipo: 'estatica' | 'dinamica'
   eliminada: boolean
+  programada: boolean
   destino: string | null
   dupGroup: number | null
 }
@@ -254,6 +255,11 @@ export default function AdminNotasPage() {
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 uppercase">
                     {n.tipo}
                   </span>
+                  {n.programada && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
+                      Programada
+                    </span>
+                  )}
                   {n.categoria && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: '#eef5f0', color: VERDE }}>
                       {n.categoria}

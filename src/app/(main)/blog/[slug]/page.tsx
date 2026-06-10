@@ -4,6 +4,10 @@ import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User } from 'lucide-react'
 import { getAllPosts, getPostBySlug } from '@/lib/blog'
 
+// Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
+// su fecha, sin depender del revalidate on-demand.
+export const revalidate = 3600
+
 interface Props {
   params: { slug: string }
 }

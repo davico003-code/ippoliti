@@ -13,6 +13,7 @@ export interface BlogPost {
   author?: string
   imagen_photographer?: string
   imagen_photographer_url?: string
+  publishAt?: string    // ISO completo; si es futuro, la nota está programada
 }
 
 export const posts: BlogPost[] = [
@@ -232,6 +233,13 @@ Si estás pensando en vender antes de comprar, podés solicitar una tasación si
   },
 ]
 
+// Programadas: una nota con fecha de publicación futura no existe para el
+// público (listado, detalle, sitemap) hasta que llegue su fecha. Comparación
+// en UTC (getTime). Las estáticas no tienen publishAt → siempre visibles.
+function yaPublicada(p: BlogPost): boolean {
+  return !p.publishAt || new Date(p.publishAt).getTime() <= Date.now()
+}
+
 export async function getPostBySlug(slug: string): Promise<BlogPost | undefined> {
   const { getPostsDinamicos, getBlogRedirects, getImageOverrides } =
     await import('./blog-posts-dinamicos');
@@ -241,7 +249,8 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | undefined>
   const local =
     posts.find(p => p.slug === slug) ??
     (await getPostsDinamicos()).find(p => p.slug === slug);
-  if (!local) return undefined;
+  // Programada con fecha futura: tratarla como inexistente (igual que borrada)
+  if (!local || !yaPublicada(local)) return undefined;
   const overrides = await getImageOverrides();
   return overrides[slug] ? { ...local, image: overrides[slug] } : local;
 }
@@ -256,6 +265,7 @@ export async function getAllPosts(): Promise<BlogPost[]> {
   ]);
   return [...posts, ...dinamicos]
     .filter(p => !redirects[p.slug])                                  // tombstone: oculta borradas (estáticas y dinámicas)
+    .filter(yaPublicada)                                              // programadas: ocultas hasta su fecha
     .map(p => (overrides[p.slug] ? { ...p, image: overrides[p.slug] } : p))
     .sort((a, b) => b.date.localeCompare(a.date));
 }
