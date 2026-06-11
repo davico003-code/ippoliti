@@ -972,6 +972,84 @@ export const BARRIOS: Barrio[] = [
       ],
     },
   },
+
+  // -------------------------------------------------------
+  // Datos: masterplan oficial del barrio (public/barrios/aguadas/plano.pdf)
+  // + relevamiento web jun-2026 (servicios y amenities publicados del barrio).
+  {
+    slug: "aguadas",
+    nombre: "Aguadas",
+    nombreCompleto: "Aguadas Barrio Cerrado",
+    desarrollador: "Aguadas Barrio Cerrado",
+    tier: "Consolidado",
+    estado: "consolidado",
+    zona: "funes",
+    subtitulo: "El consolidado de la zona sur de Funes",
+    ubicacion: {
+      direccionIngreso: "H. Yrigoyen, Funes",
+      referencia:
+        "Zona sur de Funes, sobre la colectora de la autopista Rosario–Córdoba, vecino de San Sebastián",
+      coordenadas: { lat: -32.9394, lng: -60.8117 },
+      distanciaCentroRosarioMin: 25,
+      accesos: ["Autopista Rosario–Córdoba (colectora)", "Calle Mendoza"],
+    },
+    datosDuros: {
+      cantidadLotes: 234,
+      medidaLoteDesde: 800,
+      medidaLoteHasta: 1176,
+      distintivos: [
+        "Masterplan de 234 lotes con Club House y putting green",
+        "Doble ingreso: H. Yrigoyen y colectora de autopista",
+        "Piscina climatizada y kínder dentro del barrio",
+        "CCTV digital con acceso web (cámaras internas y perimetrales)",
+        "Lote estándar 800 m² (20 × 40 m)",
+      ],
+    },
+    amenities: [
+      { id: "clubhouse", label: "Club House", icon: ICON.clubhouse },
+      { id: "pileta-climatizada", label: "Piscina climatizada", icon: ICON.pileta },
+      { id: "putting-green", label: "Putting green", icon: ICON.golf },
+      { id: "tenis", label: "Canchas de tenis", icon: ICON.tenis },
+      { id: "gym", label: "Gimnasio", icon: ICON.gym },
+      { id: "seguridad-24", label: "Seguridad 24hs", icon: ICON.seguridad },
+      { id: "futbol", label: "Cancha de fútbol", icon: ICON.futbol },
+      { id: "juegos", label: "Juegos infantiles y kínder", icon: ICON.juegos },
+      { id: "bar", label: "Bar y restaurant", icon: ICON.bar },
+    ],
+    infraestructura: [
+      "Agua corriente, gas natural y desagüe cloacal",
+      "Tendido eléctrico subterráneo",
+      "Internet y circuito cerrado de TV digital con acceso web",
+    ],
+    seguridad: [
+      "Vigilancia 24hs",
+      "Cámaras internas y perimetrales con monitoreo digital",
+    ],
+    miradaBroker: {
+      titular: "El consolidado discreto de la zona sur — y vecino del futuro Aguadas Lakes.",
+      parrafo:
+        "Aguadas es de esos barrios que no hacen ruido pero acumulan valor. Masterplan prolijo de 234 lotes con Club House, putting green y piscina climatizada, servicios completos con cableado subterráneo, y doble acceso que te pone en la autopista en un minuto. El dato que miro como broker: al lado se desarrolla Aguadas Lakes, y cuando un sector recibe un proyecto de esa escala, los barrios consolidados linderos son los primeros en capitalizarlo.",
+    },
+    perfilComprador: [
+      "Familias que buscan un consolidado con amenities completos sin ticket premium",
+      "Compradores que priorizan el acceso rápido a la autopista",
+      "Inversores atentos a la revalorización de la zona sur por Aguadas Lakes",
+    ],
+    tags: ["consolidado", "tenis", "futbol", "pileta"],
+    tokko: { matchByTitle: ["aguadas"] },
+    imagenes: { hero: "/barrios/aguadas/01.webp" },
+    seo: {
+      metaTitle: "Aguadas Barrio Cerrado, Funes — Lotes y casas en venta | SI Inmobiliaria",
+      metaDescription:
+        "Aguadas: barrio cerrado consolidado en la zona sur de Funes, sobre la colectora de la autopista. 234 lotes desde 800 m², Club House, piscina climatizada y seguridad 24hs. SI Inmobiliaria.",
+      keywordsLongTail: [
+        "aguadas barrio cerrado funes",
+        "lote en aguadas funes precio",
+        "barrio cerrado zona sur funes",
+        "aguadas funes casas en venta",
+      ],
+    },
+  },
 ];
 
 // Merge editorial SEO data al BARRIOS al cargar el módulo.
@@ -1022,8 +1100,8 @@ export const TAG_LABELS: Record<string, string> = {
 // Places, ruta a la foto principal en /public/barrios/{slug}/.
 //
 // NO toca el array BARRIOS de arriba (para no romper fichas individuales).
-// Los 4 "Próximamente" (aguadas, la-finca-1, la-finca-2, haras-de-funes) no
-// tienen entry en BARRIOS porque aún no hay ficha — solo viven en el HUB.
+// Los 3 "Próximamente" (la-finca-1, la-finca-2, haras-de-funes) no tienen
+// entry en BARRIOS porque aún no hay ficha — solo viven en el HUB.
 
 export type AmenityHubId = "golf" | "laguna" | "grupo-electrogeno" | "acceso-peatonal";
 export type HubTierId = "premium" | "consolidado" | "desarrollo" | "proximamente";
@@ -1134,13 +1212,18 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     lat: -32.9377, lng: -60.8024,
     imagenHero: "/barrios/funes-lakes/IMG_8508.JPG",
   },
+  "aguadas": {
+    sigla: "AG",
+    descripcion: "El consolidado discreto de la zona sur, vecino del futuro Aguadas Lakes.",
+    datos: ["234 lotes", "800 m² típico", "Club House"],
+    amenities: [],
+    lat: -32.9394, lng: -60.8117,
+    imagenHero: "/barrios/aguadas/01.webp",
+  },
 };
 
 // Próximamente — entries solo para el HUB (no hay Barrio completo aún).
 const PROXIMAMENTE_HUB: HubBarrio[] = [
-  { slug: "aguadas", sigla: "AG", nombre: "Aguadas", tier: "proximamente",
-    descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
-    datos: [], amenities: [], lat: -32.9394, lng: -60.8117, imagenHero: "" },
   { slug: "la-finca-1", sigla: "LF", nombre: "La Finca 1", tier: "proximamente",
     descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
     datos: [], amenities: [], lat: -32.9277, lng: -60.7732, imagenHero: "" },
