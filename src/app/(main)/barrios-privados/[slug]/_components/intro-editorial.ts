@@ -90,6 +90,14 @@ export const INTRO_EDITORIAL: Record<string, IntroEditorial> = {
       'De los barrios mejor balanceados del corredor: consolidación, medida de lote y precio en un equilibrio que explica por qué la reventa acá nunca se queda quieta.',
     ],
   },
+  aguadas: {
+    titulo: 'El consolidado discreto de la zona sur',
+    parrafos: [
+      'Aguadas es de esos barrios que no hacen ruido pero acumulan valor. Un masterplan prolijo de 234 lotes —el estándar de 800 m² en formato 20 × 40— sobre la colectora de la autopista Rosario–Córdoba, con doble ingreso por H. Yrigoyen y servicios completos: agua, gas, cloacas y tendido eléctrico subterráneo, algo que no todos los consolidados de Funes pueden decir.',
+      'Puertas adentro, el set de amenities es de los más completos de su categoría: Club House con bar y restaurant, piscina climatizada, gimnasio, canchas de tenis y de fútbol, putting green, juegos infantiles y hasta kínder. La seguridad combina vigilancia 24 horas con circuito cerrado digital de cámaras internas y perimetrales, con acceso web.',
+      'El dato de mercado que pocos miran: al lado se desarrolla Aguadas Lakes, el proyecto de islas artificiales que va a transformar el sector entre Aguadas y San Sebastián. Cuando un polo recibe una inversión de esa escala, los barrios consolidados linderos son los primeros en capitalizar la revalorización — y Aguadas es exactamente eso.',
+    ],
+  },
   'funes-hills-miraflores': {
     titulo: 'El barrio más práctico del corredor',
     parrafos: [
