@@ -5,7 +5,7 @@
 // 3. Galería con lightbox (02.webp en adelante, máx. 6 — oculta si hay 1 sola foto)
 // 4. Plano descargable (preview grande + PDF + WhatsApp)
 // 5. Mapa Leaflet con POIs de Funes + cercanías con distancias haversine
-// 6. Propiedades disponibles (Tokko lotes + casas) + newsletter + CTA final
+// 6. Propiedades disponibles (Tokko lotes + casas) + CTA final
 //
 // Mantiene: metadata, JSON-LD (Place + Breadcrumb + FAQPage), LandingTracker.
 // Los assets viven en /public/barrios/{slug}/ (NN.webp + plano.pdf + preview),
@@ -19,7 +19,6 @@ import { getPlanoUrl } from "@/lib/barrios/planos";
 import { getBarrioFotos, getPlanoPreviewUrl } from "@/lib/barrios/fotos";
 
 import BarrioStockTokko from "@/components/barrios/BarrioStockTokko";
-import BarrioNewsletter from "@/components/barrios/BarrioNewsletter";
 import BarrioCTAFinal from "@/components/barrios/BarrioCTAFinal";
 import LandingTracker from "./LandingTracker";
 
@@ -202,14 +201,6 @@ export default function BarrioPage({ params }: Props) {
           <BarrioStockTokko slug={barrio.slug} nombre={barrio.nombre} tipo="Casa" />
         </section>
 
-        <section id="contacto" className="scroll-mt-24">
-          <BarrioNewsletter
-            defaultBarrioSlug={barrio.slug}
-            origen={`barrio-${barrio.slug}-interesado`}
-            title={`Avísenme cuando entre un lote en ${barrio.nombre}`}
-            subtitle="Dejanos tu contacto. Cuando entre un lote nuevo en este barrio, te avisamos primero por WhatsApp."
-          />
-        </section>
       </div>
 
       <BarrioCTAFinal
