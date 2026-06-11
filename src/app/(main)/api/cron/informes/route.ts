@@ -84,7 +84,16 @@ export async function GET(req: Request) {
     console.error('ICL API error:', e)
   }
 
-  // 4. CAC — COSTO DE CONSTRUCCIÓN: sin fuente pública automatizable hoy.
+  // 4. DÓLAR OFICIAL HISTÓRICO — serie 4 BCRA (minorista promedio vendedor),
+  //    mensualizado a 13 puntos para el gráfico comparativo IPC vs ICL vs dólar.
+  try {
+    const diarios = await fetchSerieBCRA(4, 14)
+    results.dolarHistorico = { datos: mensualizar(diarios).slice(-13), fetchedAt: timestamp }
+  } catch (e) {
+    console.error('Dolar histórico API error:', e)
+  }
+
+  // 5. CAC — COSTO DE CONSTRUCCIÓN: sin fuente pública automatizable hoy.
   // El BCRA nunca publicó el índice CAC (la búsqueda anterior por descripción
   // no matcheaba nada), y el ICC de INDEC en datos.gob.ar está discontinuado
   // (último dato 2015). Hasta definir fuente (carga manual vía admin o
