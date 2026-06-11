@@ -1050,6 +1050,221 @@ export const BARRIOS: Barrio[] = [
       ],
     },
   },
+
+  // -------------------------------------------------------
+  // Datos: sitio oficial grupolafinca.com.ar (jun-2026) + prensa El Occidental.
+  {
+    slug: "la-finca-1",
+    nombre: "La Finca 1",
+    nombreCompleto: "La Finca Country",
+    desarrollador: "Grupo La Finca",
+    tier: "Consolidado",
+    estado: "consolidado",
+    zona: "funes",
+    subtitulo: "El country del límite con Rosario, sobre el Arroyo Ludueña",
+    ubicacion: {
+      direccionIngreso: "Av. Arturo Illia, Funes",
+      referencia:
+        "Límite Funes–Rosario, lindero al Arroyo Ludueña: a 15 minutos del centro de Rosario, 4 de Funes y 7 de Fisherton",
+      coordenadas: { lat: -32.9277, lng: -60.7732 },
+      distanciaCentroRosarioMin: 15,
+      accesos: ["Av. Arturo Illia", "Autopista Rosario–Córdoba"],
+    },
+    datosDuros: {
+      cantidadLotes: 444,
+      medidaLoteDesde: 800,
+      medidaLoteHasta: 800,
+      hectareasTotales: 68,
+      distintivos: [
+        "Lago con circuito de running",
+        "5 canchas de tenis, fútbol 9 sintético iluminado y pádel de nueva generación",
+        "Restaurant y Club de Vinos propios",
+        "Calles pavimentadas sin cordón (la naturaleza como protagonista)",
+        "Paseo comercial proyectado en el ingreso",
+      ],
+    },
+    amenities: [
+      { id: "clubhouse", label: "Club House", icon: ICON.clubhouse },
+      { id: "lago-running", label: "Lago con circuito de running", icon: ICON.laguna },
+      { id: "bar", label: "Restaurant y Club de Vinos", icon: ICON.bar },
+      { id: "pileta", label: "Pileta", icon: ICON.pileta },
+      { id: "tenis", label: "5 canchas de tenis", icon: ICON.tenis },
+      { id: "futbol", label: "Fútbol 9 sintético iluminado", icon: ICON.futbol },
+      { id: "paddle", label: "Pádel", icon: ICON.paddle },
+      { id: "gym", label: "Gimnasio", icon: ICON.gym },
+      { id: "quincho", label: "Quincho abierto", icon: ICON.quincho },
+    ],
+    infraestructura: [
+      "Calles pavimentadas sin cordón",
+      "Servicios de barrio privado residencial",
+    ],
+    seguridad: ["Acceso controlado (barrio privado)"],
+    miradaBroker: {
+      titular: "Rosario a 15 minutos, country de verdad.",
+      parrafo:
+        "La Finca es la respuesta para quien trabaja en Rosario y no quiere resignar el formato country: estás en el límite mismo entre las dos ciudades, lindero al Arroyo Ludueña, con 68 hectáreas y 444 lotes uniformes de 800 m². El set deportivo es de los más completos del corredor —cinco canchas de tenis, fútbol sintético iluminado, pádel— y el restaurant con club de vinos le da una vida social propia que pocos barrios tienen.",
+    },
+    perfilComprador: [
+      "Profesionales que van a Rosario todos los días y priorizan el tiempo de viaje",
+      "Familias que buscan country consolidado con vida social propia",
+      "Deportistas: el set tenis + fútbol + pádel es diferencial",
+    ],
+    tags: ["consolidado", "tenis", "paddle", "futbol", "pileta"],
+    tokko: { matchByTitle: ["la finca 1", "la finca i", "la finca country"] },
+    imagenes: { hero: "/barrios/la-finca-1/01.webp" },
+    seo: {
+      metaTitle: "La Finca Country, Funes — Lotes y casas en venta | SI Inmobiliaria",
+      metaDescription:
+        "La Finca Country: 68 hectáreas y 444 lotes de 800 m² en el límite Funes–Rosario, lindero al Arroyo Ludueña. Lago, restaurant, club de vinos y set deportivo completo. SI Inmobiliaria.",
+      keywordsLongTail: [
+        "la finca country funes",
+        "lote en la finca funes precio",
+        "country limite funes rosario",
+        "la finca funes casas en venta",
+      ],
+    },
+  },
+
+  // -------------------------------------------------------
+  // Datos: sitio oficial grupolafinca.com.ar/web/la-finca-2 (jun-2026) +
+  // prensa El Occidental (dic-2023). En etapa final de obra según David.
+  {
+    slug: "la-finca-2",
+    nombre: "La Finca 2",
+    nombreCompleto: "La Finca II",
+    desarrollador: "Grupo La Finca",
+    tier: "En desarrollo",
+    estado: "en-desarrollo",
+    zona: "funes",
+    subtitulo: "La segunda etapa del Grupo La Finca, en etapa final de obra",
+    ubicacion: {
+      direccionIngreso: "Av. Gral. López 900, Funes",
+      referencia: "Zona norte de Funes, entre Miguel Galindo y Vélez Sarsfield",
+      coordenadas: { lat: -32.9097, lng: -60.8187 },
+      accesos: ["Av. Gral. López"],
+    },
+    datosDuros: {
+      cantidadLotes: 420,
+      medidaLoteDesde: 608,
+      hectareasTotales: 60,
+      distintivos: [
+        "Club House con restaurante, SUM y CoWorking",
+        "Lago propio y sector de deportes: 3 canchas de tenis, fútbol sintético y pádel",
+        "Identidad de club de vinos heredada de La Finca Country",
+        "Etapa final de obra, con la mayor parte del barrio ya comercializada",
+      ],
+    },
+    amenities: [
+      { id: "clubhouse", label: "Club House", icon: ICON.clubhouse },
+      { id: "coworking", label: "CoWorking", icon: ICON.coworking },
+      { id: "bar", label: "Restaurante", icon: ICON.bar },
+      { id: "lago", label: "Lago", icon: ICON.laguna },
+      { id: "pileta", label: "Pileta", icon: ICON.pileta },
+      { id: "tenis", label: "3 canchas de tenis", icon: ICON.tenis },
+      { id: "futbol", label: "Fútbol sintético", icon: ICON.futbol },
+      { id: "paddle", label: "Pádel", icon: ICON.paddle },
+      { id: "gym", label: "Gimnasio", icon: ICON.gym },
+    ],
+    infraestructura: ["Infraestructura de barrio privado en etapa final de obra"],
+    seguridad: ["Acceso controlado (barrio privado)"],
+    miradaBroker: {
+      titular: "La etapa que llega justo: obra terminándose y precio de pre-consolidación.",
+      parrafo:
+        "La Finca 2 toma todo lo que funcionó en el country original —club house con restaurante, lago, set deportivo completo— y le suma lo que pide el comprador de hoy: coworking dentro del barrio y lotes desde 608 m² que bajan el ticket de entrada. El momento es el interesante: la obra está en etapa final, y entrar antes de la consolidación es donde históricamente estuvo la mejor ecuación del corredor.",
+    },
+    perfilComprador: [
+      "Compradores que quieren el formato La Finca con ticket de entrada más bajo",
+      "Quienes trabajan remoto: coworking dentro del barrio",
+      "Inversores que buscan entrar antes de la consolidación final",
+    ],
+    tags: ["tenis", "paddle", "futbol", "pileta", "accesible"],
+    tokko: { matchByTitle: ["la finca 2", "la finca ii", "las fincas ii"] },
+    imagenes: { hero: "/barrios/la-finca-2/01.webp" },
+    seo: {
+      metaTitle: "La Finca II, Funes — Lotes en venta en etapa final | SI Inmobiliaria",
+      metaDescription:
+        "La Finca II: 60 hectáreas y 420 lotes desde 608 m² en la zona norte de Funes. Club House con restaurante, coworking, lago y deportes. Etapa final de obra. SI Inmobiliaria.",
+      keywordsLongTail: [
+        "la finca 2 funes",
+        "la finca ii lotes precio",
+        "barrio privado en desarrollo funes",
+        "lotes desde 600 m2 funes",
+      ],
+    },
+  },
+
+  // -------------------------------------------------------
+  // Datos: sitio oficial harasdefunes.com (jun-2026) + listings del barrio.
+  {
+    slug: "haras-de-funes",
+    nombre: "Haras de Funes",
+    nombreCompleto: "Haras de Funes Club de Campo",
+    desarrollador: "Haras de Funes",
+    tier: "Consolidado",
+    estado: "consolidado",
+    zona: "funes",
+    subtitulo: "Club de campo de lotes grandes, contiguo a Kentucky",
+    ubicacion: {
+      direccionIngreso: "Ara San Juan 4012, Funes",
+      referencia:
+        "Contiguo a Kentucky hacia el sur: 900 m de ingreso asfaltado desde la autopista, por el puente de entrada a Funes",
+      coordenadas: { lat: -32.953, lng: -60.8371 },
+      accesos: ["Autopista Rosario–Córdoba (puente de ingreso a Funes, hacia el sur)"],
+    },
+    datosDuros: {
+      cantidadLotes: 170,
+      medidaLoteDesde: 1005,
+      medidaLoteHasta: 1054,
+      hectareasTotales: 37,
+      distintivos: [
+        "Todos los lotes superan los 1.000 m²",
+        "Laguna natural de 2,5 hectáreas con fauna propia",
+        "Lotes escriturados y listos para construir",
+        "Gas natural con obra finalizada al 100%",
+        "Vecino directo de Kentucky (la zona de countries del sur de Funes)",
+      ],
+    },
+    amenities: [
+      { id: "clubhouse", label: "Club House con SUM", icon: ICON.clubhouse },
+      { id: "laguna-natural", label: "Laguna natural 2,5 ha", icon: ICON.laguna },
+      { id: "pileta", label: "Piscina con vestuarios", icon: ICON.pileta },
+      { id: "tenis", label: "Canchas de tenis", icon: ICON.tenis },
+      { id: "futbol", label: "Cancha de fútbol", icon: ICON.futbol },
+      { id: "juegos", label: "Juegos infantiles", icon: ICON.juegos },
+      { id: "seguridad-24", label: "Seguridad 24hs (2 porterías)", icon: ICON.seguridad },
+    ],
+    infraestructura: [
+      "Gas natural (obra finalizada al 100%)",
+      "Electricidad EPE en etapa final de conexión",
+      "Infraestructura para internet y fibra",
+      "Predio aprobado por Hidráulica y de impacto ambiental",
+    ],
+    seguridad: ["Vigilancia 24hs", "Dos porterías de acceso"],
+    miradaBroker: {
+      titular: "Lotes de más de 1.000 m² escriturados, al lado de Kentucky.",
+      parrafo:
+        "Haras de Funes juega en la categoría de los lotes grandes: las 170 unidades superan los 1.000 m², algo que en el corredor solo se consigue en barrios de ticket bastante más alto. Dos datos que valoro como broker: los lotes están escriturados y listos para construir —sin esperas ni boletos eternos—, y el barrio es vecino directo de Kentucky, o sea que comprás metros en la zona de countries consolidada del sur de Funes. La laguna natural de 2,5 hectáreas con fauna propia hace el resto.",
+    },
+    perfilComprador: [
+      "Familias que quieren lote grande (+1.000 m²) sin el ticket de Kentucky",
+      "Compradores que valoran escritura inmediata para construir ya",
+      "Amantes de la naturaleza: laguna natural con fauna propia",
+    ],
+    tags: ["consolidado", "lotes-grandes", "laguna", "tenis", "futbol"],
+    tokko: { matchByTitle: ["haras"] },
+    imagenes: { hero: "/barrios/haras-de-funes/01.webp" },
+    seo: {
+      metaTitle: "Haras de Funes Club de Campo — Lotes de +1.000 m² | SI Inmobiliaria",
+      metaDescription:
+        "Haras de Funes: club de campo contiguo a Kentucky con 170 lotes escriturados de más de 1.000 m², laguna natural de 2,5 ha, club house y seguridad 24hs. SI Inmobiliaria.",
+      keywordsLongTail: [
+        "haras de funes lotes",
+        "club de campo funes lotes grandes",
+        "lote escriturado funes",
+        "barrio al lado de kentucky funes",
+      ],
+    },
+  },
 ];
 
 // Merge editorial SEO data al BARRIOS al cargar el módulo.
@@ -1100,8 +1315,7 @@ export const TAG_LABELS: Record<string, string> = {
 // Places, ruta a la foto principal en /public/barrios/{slug}/.
 //
 // NO toca el array BARRIOS de arriba (para no romper fichas individuales).
-// Los 3 "Próximamente" (la-finca-1, la-finca-2, haras-de-funes) no tienen
-// entry en BARRIOS porque aún no hay ficha — solo viven en el HUB.
+// Todos los barrios del HUB tienen hoy su Barrio completo en BARRIOS.
 
 export type AmenityHubId = "golf" | "laguna" | "grupo-electrogeno" | "acceso-peatonal";
 export type HubTierId = "premium" | "consolidado" | "desarrollo" | "proximamente";
@@ -1220,20 +1434,36 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     lat: -32.9394, lng: -60.8117,
     imagenHero: "/barrios/aguadas/01.webp",
   },
+  "la-finca-1": {
+    sigla: "LF",
+    descripcion: "Country en el límite con Rosario, lindero al Arroyo Ludueña. Vida social propia.",
+    datos: ["444 lotes", "68 ha", "800 m² uniforme"],
+    amenities: [],
+    lat: -32.9277, lng: -60.7732,
+    imagenHero: "/barrios/la-finca-1/01.webp",
+  },
+  "la-finca-2": {
+    sigla: "LF",
+    descripcion: "La segunda etapa del Grupo La Finca, con coworking y lago. Etapa final de obra.",
+    datos: ["420 lotes", "60 ha", "Desde 608 m²"],
+    amenities: [],
+    lat: -32.9097, lng: -60.8187,
+    imagenHero: "/barrios/la-finca-2/01.webp",
+  },
+  "haras-de-funes": {
+    sigla: "HD",
+    descripcion: "Club de campo de lotes +1.000 m² escriturados, contiguo a Kentucky.",
+    datos: ["170 lotes", "+1.000 m²", "Laguna natural"],
+    amenities: [],
+    lat: -32.9530, lng: -60.8371,
+    imagenHero: "/barrios/haras-de-funes/01.webp",
+  },
 };
 
 // Próximamente — entries solo para el HUB (no hay Barrio completo aún).
-const PROXIMAMENTE_HUB: HubBarrio[] = [
-  { slug: "la-finca-1", sigla: "LF", nombre: "La Finca 1", tier: "proximamente",
-    descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
-    datos: [], amenities: [], lat: -32.9277, lng: -60.7732, imagenHero: "" },
-  { slug: "la-finca-2", sigla: "LF", nombre: "La Finca 2", tier: "proximamente",
-    descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
-    datos: [], amenities: [], lat: -32.9097, lng: -60.8187, imagenHero: "" },
-  { slug: "haras-de-funes", sigla: "HD", nombre: "Haras de Funes", tier: "proximamente",
-    descripcion: "Próximo lanzamiento en el corredor. Más información se actualiza pronto.",
-    datos: [], amenities: [], lat: -32.9530, lng: -60.8371, imagenHero: "" },
-];
+// Hoy todos los barrios del HUB tienen ficha completa. Si aparece un
+// lanzamiento nuevo sin data, agregarlo acá con tier "proximamente".
+const PROXIMAMENTE_HUB: HubBarrio[] = [];
 
 // Mapeo del tier rico (modelo Barrio) al tier simplificado del HUB (4 buckets).
 export function mapTierToHubTier(t: BarrioTier): HubTierId {

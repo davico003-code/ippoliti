@@ -98,6 +98,30 @@ export const INTRO_EDITORIAL: Record<string, IntroEditorial> = {
       'El dato de mercado que pocos miran: al lado se desarrolla Aguadas Lakes, el proyecto de islas artificiales que va a transformar el sector entre Aguadas y San Sebastián. Cuando un polo recibe una inversión de esa escala, los barrios consolidados linderos son los primeros en capitalizar la revalorización — y Aguadas es exactamente eso.',
     ],
   },
+  'la-finca-1': {
+    titulo: 'Country de verdad, con Rosario a 15 minutos',
+    parrafos: [
+      'La Finca resuelve la ecuación que más escuchamos: "quiero country, pero trabajo en Rosario". Está en el límite mismo entre las dos ciudades, lindero al Arroyo Ludueña, a 15 minutos del centro, 4 de Funes y 7 de Fisherton. Son 68 hectáreas con 444 lotes uniformes de 800 m² y calles pavimentadas sin cordón, donde la naturaleza es la protagonista del paisaje.',
+      'La vida social es el otro diferencial: restaurant propio, Club de Vinos, pileta, gimnasio y un lago con circuito de running. El set deportivo está entre los más completos del corredor — cinco canchas de tenis, fútbol 9 sintético iluminado y pádel de nueva generación — y el ingreso proyecta un paseo comercial.',
+      'Para el profesional que va y vuelve a Rosario todos los días, es difícil encontrar otro barrio que combine esta cercanía con formato country pleno.',
+    ],
+  },
+  'la-finca-2': {
+    titulo: 'La segunda etapa, en el momento justo',
+    parrafos: [
+      'La Finca 2 toma la fórmula probada del country original y la actualiza: 60 hectáreas en la zona norte de Funes con 420 lotes desde 608 m², un ticket de entrada más accesible que el de su hermano mayor, y un Club House que suma lo que pide el comprador de hoy — restaurante, SUM y coworking dentro del barrio, para los que trabajan remoto sin resignar verde.',
+      'El sector deportivo mantiene la vara del grupo: tres canchas de tenis, fútbol de césped sintético, pádel y gimnasio, más un lago propio que organiza el paisaje. La identidad de club de vinos heredada de La Finca Country le da un sello distinto al resto del corredor.',
+      'El momento de compra es el interesante: la obra está en etapa final y la mayor parte del barrio ya se comercializó. Entrar antes de la consolidación definitiva es, históricamente, donde estuvo la mejor ecuación de precio del corredor.',
+    ],
+  },
+  'haras-de-funes': {
+    titulo: 'Lotes grandes y escriturados, al lado de Kentucky',
+    parrafos: [
+      'Haras de Funes juega en una categoría que escasea en el corredor: la de los lotes grandes. Las 170 unidades superan los 1.000 m², en un club de campo de 37 hectáreas contiguo a Kentucky — es decir, en plena zona de countries consolidada del sur de Funes, a 900 metros de la autopista por un ingreso totalmente asfaltado.',
+      'El corazón del barrio es la laguna natural de 2,5 hectáreas con fauna propia, rodeada por el Club House con SUM, piscina con vestuarios, canchas de tenis y fútbol y juegos infantiles. La seguridad opera 24 horas con dos porterías.',
+      'Para el comprador, el dato decisivo es jurídico: los lotes están escriturados y listos para construir, con gas natural terminado al 100%. Sin boletos eternos ni esperas — escritura en mano y a proyectar la casa.',
+    ],
+  },
   'funes-hills-miraflores': {
     titulo: 'El barrio más práctico del corredor',
     parrafos: [
