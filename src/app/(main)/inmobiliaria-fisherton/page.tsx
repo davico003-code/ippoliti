@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Phone, CheckCircle, ArrowRight } from 'lucide-react'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug } from '@/lib/tokko'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   description: 'Inmobiliaria en Fisherton, Rosario. Casas, departamentos y terrenos en la zona residencial premium de Rosario. Green Village, Palos Verdes, Aldea. +40 años.',
   keywords: 'inmobiliaria fisherton, casas en fisherton, propiedades fisherton, fisherton rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-fisherton' },
-  openGraph: { title: 'Inmobiliaria en Fisherton | SI Inmobiliaria', description: 'Propiedades en la zona residencial premium de Rosario.', url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', images: ['/logo-si-horizontal.png'] },
+  openGraph: { title: 'Inmobiliaria en Fisherton | SI Inmobiliaria', description: 'Propiedades en la zona residencial premium de Rosario.', url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', images: ['/og-image.jpg'] },
 }
 
 const BARRIOS = [
@@ -56,6 +57,10 @@ export default async function Page() {
 
   return (
     <div className="min-h-screen bg-white">
+      <BreadcrumbJsonLd items={[
+        { name: 'Inicio', url: 'https://siinmobiliaria.com' },
+        { name: 'Inmobiliaria en Fisherton', url: 'https://siinmobiliaria.com/inmobiliaria-fisherton' },
+      ]} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 

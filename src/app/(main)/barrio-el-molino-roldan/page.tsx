@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Propiedades en El Molino, Roldán — SI Inmobiliaria',
@@ -17,6 +18,10 @@ export const metadata: Metadata = {
 export default function BarrioElMolinoPage() {
   return (
     <div className="min-h-screen">
+      <BreadcrumbJsonLd items={[
+        { name: 'Inicio', url: 'https://siinmobiliaria.com' },
+        { name: 'Barrio El Molino, Roldán', url: 'https://siinmobiliaria.com/barrio-el-molino-roldan' },
+      ]} />
       <section className="bg-[#1A5C38] py-20 px-4 text-center">
         <p className="text-white/60 text-xs uppercase tracking-widest font-semibold mb-3">BARRIO CERRADO · ROLDÁN</p>
         <h1 className="text-4xl md:text-5xl font-black text-white max-w-3xl mx-auto leading-tight">

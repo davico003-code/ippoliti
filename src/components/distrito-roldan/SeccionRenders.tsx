@@ -11,6 +11,8 @@ interface Bloque {
   img: string
   alt: string
   imagenDerecha: boolean
+  /** Fotos secundarias del bloque, en tira de 2 columnas bajo la imagen principal. */
+  galeria?: { img: string; alt: string }[]
 }
 
 const BLOQUES: Bloque[] = [
@@ -33,6 +35,10 @@ const BLOQUES: Bloque[] = [
     img: '/images/distrito-roldan/render-comercial.webp',
     alt: 'Render del área comercial de Distrito Roldán',
     imagenDerecha: true,
+    galeria: [
+      { img: '/images/distrito-roldan/galeria-comercial-01.webp', alt: 'Vista de los locales comerciales sobre Ruta 9 en Distrito Roldán' },
+      { img: '/images/distrito-roldan/galeria-comercial-02.webp', alt: 'Dársenas de estacionamiento del área comercial de Distrito Roldán' },
+    ],
   },
 ]
 
@@ -45,9 +51,20 @@ export default function SeccionRenders() {
             key={b.titulo}
             className={`grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-16 ${i < BLOQUES.length - 1 ? 'mb-16 lg:mb-[100px]' : ''}`}
           >
-            {/* Imagen */}
-            <div className={`relative aspect-[4/3] overflow-hidden rounded-2xl shadow-lg ${b.imagenDerecha ? 'order-1 lg:order-2' : 'order-1'}`}>
-              <Image src={b.img} alt={b.alt} fill sizes="(max-width: 1024px) 100vw, 590px" className="object-cover" />
+            {/* Imagen (+ galería secundaria opcional) */}
+            <div className={b.imagenDerecha ? 'order-1 lg:order-2' : 'order-1'}>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-lg">
+                <Image src={b.img} alt={b.alt} fill sizes="(max-width: 1024px) 100vw, 590px" className="object-cover" />
+              </div>
+              {b.galeria && (
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  {b.galeria.map(g => (
+                    <div key={g.img} className="relative aspect-[4/3] overflow-hidden rounded-xl shadow-md">
+                      <Image src={g.img} alt={g.alt} fill sizes="(max-width: 1024px) 50vw, 287px" className="object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Texto */}

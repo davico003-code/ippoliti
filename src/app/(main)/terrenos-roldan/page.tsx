@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getLotSurface } from '@/lib/tokko'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
@@ -30,6 +31,10 @@ export default async function Page() {
 
   return (
     <div className="min-h-screen bg-white">
+      <BreadcrumbJsonLd items={[
+        { name: 'Inicio', url: 'https://siinmobiliaria.com' },
+        { name: 'Terrenos en Roldán', url: 'https://siinmobiliaria.com/terrenos-roldan' },
+      ]} />
       <section className="bg-gradient-to-br from-[#1A5C38] to-[#0F3A23] text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight" style={{ fontFamily: 'var(--font-raleway)' }}>Terrenos en Roldán</h1>

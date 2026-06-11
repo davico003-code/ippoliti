@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Building2, Banknote, ArrowLeft, CheckCircle2, Phone, MessageCircle, Calendar } from 'lucide-react'
@@ -36,9 +35,12 @@ import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug,
 // ssr:false desde un Server Component no code-splittea en Next 14 y leaflet
 // terminaba en el First Load JS de esta ruta.
 import PropertyMapLazy from '@/components/PropertyMapLazy'
+import PhotoGalleryLazy from '@/components/PhotoGalleryLazy'
+import NearbyPlacesLazy from '@/components/NearbyPlacesLazy'
 
-const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), { ssr: false })
-const NearbyPlaces = dynamic(() => import('@/components/NearbyPlaces'), { ssr: false })
+// PhotoGallery y NearbyPlaces se cargan vía wrappers Lazy ("use client"):
+// dynamic ssr:false desde un Server Component no code-splittea en Next 14.
+
 
 export const revalidate = 21600
 
@@ -292,7 +294,7 @@ export default async function DevelopmentPage({ params }: Props) {
                   Galería
                   <span className="text-gray-400 text-sm font-normal ml-2 font-numeric">{photos.length} fotos</span>
                 </h2>
-                <PhotoGallery photos={photos} alt={dev.name} variant={isDistrito ? 'distrito' : 'default'} />
+                <PhotoGalleryLazy photos={photos} alt={dev.name} variant={isDistrito ? 'distrito' : 'default'} />
               </div>
             )}
 
@@ -313,7 +315,7 @@ export default async function DevelopmentPage({ params }: Props) {
 
             {/* Lugares cercanos — oculto en 67178 (lo reemplaza SeccionUbicacion) */}
             {!isDistrito && dev.geo_lat && dev.geo_long && (
-              <NearbyPlaces lat={dev.geo_lat} lng={dev.geo_long} />
+              <NearbyPlacesLazy lat={dev.geo_lat} lng={dev.geo_long} />
             )}
 
             {/* Location map — oculto en 67178 (lo reemplaza SeccionUbicacion) */}
