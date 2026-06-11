@@ -1,31 +1,34 @@
-// Ficha individual /barrios-privados/[slug] — rediseño compacto 2026-05.
+// Ficha individual /barrios-privados/[slug] — rediseño 6 secciones 2026-06.
 //
-// Composición orientada a INFO ÚTIL, no a storytelling editorial. Cada sección
-// solo se renderea si el barrio tiene la data correspondiente (no inventar).
-// Slot de Expensas con placeholder "Consultar" hasta que David popule el campo
-// barrio.expensas en lib/barrios.ts.
+// 1. Hero a pantalla casi completa (portada 01.webp + stats con separadores dorados)
+// 2. Intro editorial (storytelling de broker) + chips de amenities destacados
+// 3. Galería con lightbox (02.webp en adelante, máx. 6 — oculta si hay 1 sola foto)
+// 4. Plano descargable (preview grande + PDF + WhatsApp)
+// 5. Mapa Leaflet con POIs de Funes + cercanías con distancias haversine
+// 6. Propiedades disponibles (Tokko lotes + casas) + CTA final
 //
-// Mantiene: metadata, JSON-LD (Place + Breadcrumb + FAQPage), LandingTracker,
-// stock vivo de Tokko (lotes + casas), form de captura (BarrioNewsletter),
-// CTA final con WhatsApp + visita guiada.
+// Mantiene: metadata, JSON-LD (Place + Breadcrumb + FAQPage), LandingTracker.
+// Los assets viven en /public/barrios/{slug}/ (NN.webp + plano.pdf + preview),
+// descubiertos al build con fs (getBarrioFotos / getPlanoUrl).
 
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { BARRIOS, getBarrioBySlug } from "@/lib/barrios";
+import { BARRIOS, getBarrioBySlug, getBarriosHub } from "@/lib/barrios";
 import { buildBarrioFaqs } from "@/lib/barrios/faq";
 import { getPlanoUrl } from "@/lib/barrios/planos";
+import { getBarrioFotos, getPlanoPreviewUrl } from "@/lib/barrios/fotos";
 
 import BarrioStockTokko from "@/components/barrios/BarrioStockTokko";
-import BarrioNewsletter from "@/components/barrios/BarrioNewsletter";
 import BarrioCTAFinal from "@/components/barrios/BarrioCTAFinal";
 import LandingTracker from "./LandingTracker";
 
-import FichaHero from "./_components/FichaHero";
-import FichaDatosDuros from "./_components/FichaDatosDuros";
-import FichaExpensasSlot from "./_components/FichaExpensasSlot";
-import FichaCaracteristicas from "./_components/FichaCaracteristicas";
-import FichaUbicacion from "./_components/FichaUbicacion";
-import FichaPlano from "./_components/FichaPlano";
+import DetalleHero from "./_components/DetalleHero";
+import DetalleIntro from "./_components/DetalleIntro";
+import DetalleGaleria from "./_components/DetalleGaleria";
+import DetallePlano from "./_components/DetallePlano";
+import DetalleMapaCercanias from "./_components/DetalleMapaCercanias";
+
+const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif";
 
 interface Props {
   params: { slug: string };
@@ -48,6 +51,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : barrio.seo.metaDescription;
   const keywords = barrio.keywords ?? barrio.seo.keywordsLongTail.join(", ");
 
+  // og:image: portada procesada 01.webp; fallback al hero legacy / default
+  const [portada] = getBarrioFotos(barrio.slug);
+  const ogImage = portada ?? barrio.imagenes.hero ?? "/og-default.jpg";
+
   return {
     title,
     description,
@@ -57,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: canonical,
-      images: [barrio.imagenes.hero ?? "/og-default.jpg"],
+      images: [ogImage],
       type: "website",
       siteName: "SI INMOBILIARIA",
     },
@@ -65,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title,
       description,
-      images: [barrio.imagenes.hero ?? "/og-default.jpg"],
+      images: [ogImage],
     },
   };
 }
@@ -74,7 +81,19 @@ export default function BarrioPage({ params }: Props) {
   const barrio = getBarrioBySlug(params.slug);
   if (!barrio) notFound();
 
-  // JSON-LD (sin cambios respecto a la versión anterior)
+  // Assets procesados (build-time, fs)
+  const fotos = getBarrioFotos(barrio.slug);
+  const portada = fotos[0] ?? null;
+  const galeria = fotos.slice(1);
+  const planoUrl = getPlanoUrl(barrio.slug);
+  const planoPreview = getPlanoPreviewUrl(barrio.slug);
+
+  // Coordenadas verificadas Google Places (HUB_DATA); fallback a la ficha.
+  const hub = getBarriosHub().find((h) => h.slug === barrio.slug);
+  const lat = hub?.lat ?? barrio.ubicacion.coordenadas?.lat ?? null;
+  const lng = hub?.lng ?? barrio.ubicacion.coordenadas?.lng ?? null;
+
+  // JSON-LD (Place + Breadcrumb + FAQ)
   const faqsParaJsonLd = barrio.faqExtendida?.length
     ? barrio.faqExtendida
     : buildBarrioFaqs(barrio);
@@ -83,6 +102,7 @@ export default function BarrioPage({ params }: Props) {
   const description = barrio.contenidoSEO?.intro
     ? barrio.contenidoSEO.intro.slice(0, 300).trim()
     : barrio.seo.metaDescription;
+  const jsonLdImage = portada ?? barrio.imagenes.hero;
 
   const placeJsonLd = {
     "@type": "Place",
@@ -97,14 +117,11 @@ export default function BarrioPage({ params }: Props) {
       addressCountry: "AR",
       streetAddress: barrio.ubicacion.direccionIngreso,
     },
-    geo: barrio.ubicacion.coordenadas
-      ? {
-          "@type": "GeoCoordinates",
-          latitude: barrio.ubicacion.coordenadas.lat,
-          longitude: barrio.ubicacion.coordenadas.lng,
-        }
-      : undefined,
-    image: barrio.imagenes.hero ? `https://siinmobiliaria.com${barrio.imagenes.hero}` : undefined,
+    geo:
+      lat != null && lng != null
+        ? { "@type": "GeoCoordinates", latitude: lat, longitude: lng }
+        : undefined,
+    image: jsonLdImage ? `https://siinmobiliaria.com${jsonLdImage}` : undefined,
   };
 
   const breadcrumbJsonLd = {
@@ -140,36 +157,34 @@ export default function BarrioPage({ params }: Props) {
       />
       <LandingTracker slug={barrio.slug} nombre={barrio.nombre} />
 
-      {/* 1. Hero compacto (320px alto / 240px mobile) — foto + breadcrumb + tier + nombre */}
-      <FichaHero barrio={barrio} />
+      {/* 1. HERO — portada + stats */}
+      <DetalleHero barrio={barrio} portada={portada} />
 
-      {/* 2. Datos duros — grid de números (lotes, ha, m² lote, espacios verdes) */}
-      <FichaDatosDuros barrio={barrio} />
+      {/* 2. INTRO EDITORIAL + chips destacados */}
+      <DetalleIntro barrio={barrio} />
 
-      {/* 3. Expensas — slot con placeholder hasta que tengamos el dato real */}
-      <FichaExpensasSlot barrio={barrio} />
+      {/* 3. GALERÍA con lightbox (oculta si el barrio tiene 0-1 fotos) */}
+      <DetalleGaleria fotos={galeria} nombre={barrio.nombre} />
 
-      {/* 4. Características — amenities + infraestructura + seguridad */}
-      <FichaCaracteristicas barrio={barrio} />
+      {/* 4. PLANO descargable */}
+      <DetallePlano
+        slug={barrio.slug}
+        nombre={barrio.nombre}
+        planoUrl={planoUrl}
+        previewUrl={planoPreview}
+      />
 
-      {/* 5. Ubicación — dirección + accesos + distancia centro Rosario */}
-      <FichaUbicacion barrio={barrio} />
+      {/* 5. MAPA Y CERCANÍAS */}
+      {lat != null && lng != null && (
+        <DetalleMapaCercanias barrio={barrio} lat={lat} lng={lng} />
+      )}
 
-      {/* 6. Plano descargable */}
-      <FichaPlano slug={barrio.slug} nombre={barrio.nombre} planoUrl={getPlanoUrl(barrio.slug)} />
-
-      {/* 7. Stock disponible — lotes + casas (live Tokko) */}
-      <div className="mx-auto max-w-[1280px] space-y-12 px-6 py-12 md:px-10">
+      {/* 6. PROPIEDADES DISPONIBLES — stock vivo Tokko (sin cambios de lógica) */}
+      <div className="mx-auto max-w-[1280px] space-y-12 px-6 py-14 md:px-10 md:py-20">
         <section id="lotes" className="scroll-mt-24">
           <h2
-            style={{
-              fontFamily: "var(--font-raleway), 'Raleway', system-ui, sans-serif",
-              fontWeight: 700,
-              fontSize: 20,
-              color: "#0a0a0a",
-              margin: "0 0 18px",
-              letterSpacing: "-0.01em",
-            }}
+            className="mb-5 text-2xl text-[#0a0a0a] md:text-[28px]"
+            style={{ fontFamily: R, fontWeight: 700, letterSpacing: "-0.015em" }}
           >
             Lotes disponibles en {barrio.nombre}
           </h2>
@@ -178,32 +193,16 @@ export default function BarrioPage({ params }: Props) {
 
         <section>
           <h2
-            style={{
-              fontFamily: "var(--font-raleway), 'Raleway', system-ui, sans-serif",
-              fontWeight: 700,
-              fontSize: 20,
-              color: "#0a0a0a",
-              margin: "0 0 18px",
-              letterSpacing: "-0.01em",
-            }}
+            className="mb-5 text-2xl text-[#0a0a0a] md:text-[28px]"
+            style={{ fontFamily: R, fontWeight: 700, letterSpacing: "-0.015em" }}
           >
             Casas en venta en {barrio.nombre}
           </h2>
           <BarrioStockTokko slug={barrio.slug} nombre={barrio.nombre} tipo="Casa" />
         </section>
 
-        {/* 8. Newsletter — form compacto para captura lead */}
-        <section id="contacto" className="scroll-mt-24">
-          <BarrioNewsletter
-            defaultBarrioSlug={barrio.slug}
-            origen={`barrio-${barrio.slug}-interesado`}
-            title={`Avísenme cuando entre un lote en ${barrio.nombre}`}
-            subtitle="Dejanos tu contacto. Cuando entre un lote nuevo en este barrio, te avisamos primero por WhatsApp."
-          />
-        </section>
       </div>
 
-      {/* 9. CTA final — visita guiada + WhatsApp */}
       <BarrioCTAFinal
         slug={barrio.slug}
         ubicacion={`cta-final-${barrio.slug}`}
