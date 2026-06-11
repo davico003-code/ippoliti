@@ -196,7 +196,7 @@ export const metadata = {
     description:
       'Inmobiliaria familiar desde 1983. Casas, departamentos y terrenos en Funes, Roldán y Rosario.',
     url: 'https://siinmobiliaria.com',
-    images: ['/logo-si-horizontal.png'],
+    images: ['/og-image.jpg'],
   },
 }
 

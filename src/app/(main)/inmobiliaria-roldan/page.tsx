@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Phone, CheckCircle, ArrowRight } from 'lucide-react'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug } from '@/lib/tokko'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
   title: 'Inmobiliaria en Roldán | Casas, Terrenos y Lotes | SI Inmobiliaria',
   description: 'Inmobiliaria en Roldán con 2 oficinas. Casas, terrenos y lotes en Los Aromos, El Molino, Tierra de Sueños, Don Mateo. +40 años. Tasaciones en 24hs.',
   keywords: 'inmobiliaria roldan, casas en roldan, terrenos en roldan, propiedades roldan, lotes roldan',
-  openGraph: { title: 'Inmobiliaria en Roldán | SI Inmobiliaria', description: 'Tu inmobiliaria de confianza en Roldán. 2 oficinas, +40 años.', url: 'https://siinmobiliaria.com/inmobiliaria-roldan', images: ['/logo-si-horizontal.png'] },
+  openGraph: { title: 'Inmobiliaria en Roldán | SI Inmobiliaria', description: 'Tu inmobiliaria de confianza en Roldán. 2 oficinas, +40 años.', url: 'https://siinmobiliaria.com/inmobiliaria-roldan', images: ['/og-image.jpg'] },
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-roldan' },
 }
 
@@ -56,6 +57,10 @@ export default async function Page() {
 
   return (
     <div className="min-h-screen bg-white">
+      <BreadcrumbJsonLd items={[
+        { name: 'Inicio', url: 'https://siinmobiliaria.com' },
+        { name: 'Inmobiliaria en Roldán', url: 'https://siinmobiliaria.com/inmobiliaria-roldan' },
+      ]} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 

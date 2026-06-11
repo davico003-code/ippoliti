@@ -52,8 +52,8 @@ export const metadata: Metadata = {
     description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.',
     url: 'https://siinmobiliaria.com',
     siteName: 'SI Inmobiliaria',
-    // /logo.png no existe (404); el horizontal es el asset real (1281×212).
-    images: [{ url: '/logo-si-horizontal.png', width: 1281, height: 212, alt: 'SI Inmobiliaria' }],
+    // og-image.jpg: asset OG real 1200×630 (logo sobre fondo blanco).
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
     locale: 'es_AR',
     type: 'website',
   },
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario',
     description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario.',
-    images: ['/logo-si-horizontal.png'],
+    images: ['/og-image.jpg'],
   },
 };
 

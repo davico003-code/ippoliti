@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     description:
       'Mercado, consejos y análisis para comprar, vender e invertir en Funes y Roldán.',
     url: 'https://siinmobiliaria.com/blog',
-    images: ['/logo-si-horizontal.png'],
+    images: ['/og-image.jpg'],
   },
 }
 
