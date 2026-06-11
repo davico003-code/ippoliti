@@ -9,8 +9,11 @@ interface DatoSerie { fecha: string; valor: number }
 interface DolarEntry { compra: number; venta: number; nombre: string; fechaActualizacion: string }
 interface InformesData {
   dolar?: { oficial?: DolarEntry; blue?: DolarEntry; mep?: DolarEntry; fetchedAt: string }
-  ipc?: { datos: DatoSerie[]; fetchedAt: string }
-  icl?: { datos: DatoSerie[]; fetchedAt: string }
+  // ipc.datos: serie 27 BCRA — cada valor YA es la variación mensual en %.
+  // ipc.interanual: serie 28 BCRA — variación interanual oficial en %.
+  ipc?: { datos: DatoSerie[]; interanual?: DatoSerie | null; fetchedAt: string }
+  // icl.datos: serie 40 BCRA mensualizada (último valor de cada mes).
+  icl?: { datos: DatoSerie[]; ultimo?: DatoSerie | null; fetchedAt: string }
   cac?: { datos: DatoSerie[]; fetchedAt: string }
 }
 
@@ -64,16 +67,17 @@ export default function InformesDashboard() {
       .finally(() => setLoading(false))
   }, [])
 
-  // IPC calculations
+  // IPC calculations — la serie 27 del BCRA ya ES la variación mensual en %,
+  // así que se usa directo (antes se recalculaba % sobre %, dando cualquier
+  // cosa). La interanual viene oficial de la serie 28.
   const ipcDatos = data?.ipc?.datos || []
   const ipcLast = ipcDatos.at(-1)
-  const ipcPrev = ipcDatos.at(-2)
-  const ipcMonthly = ipcLast && ipcPrev ? pct(ipcLast.valor, ipcPrev.valor) : null
-  const ipc12 = ipcDatos.length >= 13 ? pct(ipcDatos.at(-1)!.valor, ipcDatos.at(-13)!.valor) : null
-  const ipcChart = ipcDatos.slice(-12).map((d, i, arr) => ({
+  const ipcMonthly = ipcLast ? ipcLast.valor : null
+  const ipc12 = data?.ipc?.interanual?.valor ?? null
+  const ipcChart = ipcDatos.slice(-12).map(d => ({
     label: fmtMonth(d.fecha),
-    value: i === 0 ? 0 : Math.round(pct(d.valor, arr[i - 1].valor) * 10) / 10,
-  })).slice(1)
+    value: d.valor,
+  }))
 
   // ICL calculations
   const iclDatos = data?.icl?.datos || []
@@ -174,7 +178,7 @@ export default function InformesDashboard() {
               </ResponsiveContainer>
             ) : <p className="text-sm text-gray-300">Sin datos</p>}
             {ipc12 !== null && (
-              <p className="text-sm text-gray-500 mt-3">Acumulada 12 meses: <span className="font-bold text-orange-500 font-numeric">{ipc12.toFixed(1)}%</span></p>
+              <p className="text-sm text-gray-500 mt-3">Interanual: <span className="font-bold text-orange-500 font-numeric">{ipc12.toFixed(1)}%</span></p>
             )}
           </div>
 
