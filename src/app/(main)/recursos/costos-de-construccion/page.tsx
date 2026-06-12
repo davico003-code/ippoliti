@@ -1,6 +1,18 @@
 import type { Metadata } from 'next'
 import TrackPageView from '@/components/recursos/TrackPageView'
 import CalculadoraCostos from './CalculadoraCostos'
+import {
+  MATRIZ_RESIDENCIAL_BASE,
+  MATRIZ_COMERCIAL_BASE,
+  getAjusteIPC,
+  ajustar,
+  fmtUSD,
+  formatMesAnio,
+} from '@/lib/costos-construccion'
+
+// Los valores por m² se ajustan por IPC (cron mensual día 22 → Redis):
+// regenerar a diario alcanza de sobra y mantiene la página estática.
+export const revalidate = 86400
 
 // Índice de Costos de Construcción — integración del HTML de referencia
 // aprobado (indice-costos-construccion.html). Contenido y valores textuales;
@@ -58,8 +70,14 @@ const jsonLd = [
   },
 ]
 
+const CANONICAL = 'https://siinmobiliaria.com/recursos/costos-de-construccion'
+
 const WHATSAPP_CAFE = `https://wa.me/5493412101694?text=${encodeURIComponent(
   'Hola! Vi la guía de costos de construcción y quiero coordinar una reunión.',
+)}`
+
+const WHATSAPP_COMPARTIR = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+  `Mirá esta guía de cuánto cuesta construir hoy: valores reales por m², casos concretos y calculadora 👉 ${CANONICAL}`,
 )}`
 
 // CSS scoped con prefijo `costos-` (mismo patrón que el índice de recursos).
@@ -97,6 +115,13 @@ const STYLES = `
 
   /* Encabezado */
   .costos-header { text-align: center; margin: 0 auto 64px; max-width: 820px; }
+  .costos-badge-mes {
+    display: inline-block; margin-top: 18px;
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+    font-size: 12px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--c-verde); background: var(--c-menta);
+    padding: 8px 18px; border-radius: 100px;
+  }
   .costos-header h1 {
     color: var(--c-verde-profundo);
     font-size: clamp(26px, 6vw, 46px); font-weight: 900; line-height: 1.12;
@@ -435,6 +460,16 @@ const STYLES = `
   }
   .costos-btn-cafe:hover { background: var(--c-verde-vivo); transform: translateY(-3px); box-shadow: var(--c-shadow-md); }
   .costos-btn-cafe:focus-visible { outline: 3px solid var(--c-verde-vivo); outline-offset: 3px; }
+  .costos-cta-botones { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .costos-btn-compartir {
+    display: inline-block; background: transparent; color: var(--c-verde); text-decoration: none;
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+    padding: 18px 38px; border-radius: 100px; border: 2px solid var(--c-verde);
+    font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;
+    transition: background-color 0.25s, color 0.25s, transform 0.25s;
+  }
+  .costos-btn-compartir:hover { background: var(--c-menta); transform: translateY(-3px); }
+  .costos-btn-compartir:focus-visible { outline: 3px solid var(--c-verde-vivo); outline-offset: 3px; }
 
   @media (prefers-reduced-motion: reduce) {
     .costos-page * { transition: none !important; }
@@ -499,54 +534,10 @@ const STYLES = `
     .costos-cta-footer { margin-top: 10px; }
     .costos-cta-footer h4 { font-size: 16px; margin-bottom: 16px; }
     .costos-btn-cafe { width: 100%; display: block; padding: 15px 24px; font-size: 13px; letter-spacing: 1px; }
+    .costos-btn-compartir { width: 100%; display: block; padding: 14px 24px; font-size: 12px; letter-spacing: 1px; }
+    .costos-badge-mes { font-size: 10px; padding: 6px 14px; margin-top: 12px; }
   }
 `
-
-const MATRIZ_RESIDENCIAL = [
-  {
-    calidad: 'Línea Estándar',
-    superficie: '50 a 120 m²',
-    desc: 'Fundaciones zapata corrida, mampostería ladrillo hueco 18, revoque exterior proyectado, techo chapa con aislación poliuretano, pisos cerámicos 1ra, aberturas de aluminio línea Herrero/Módena básica, sanitarios línea Andina.',
-    cuentaPropia: 'USD 690',
-    llaveEnMano: 'USD 780',
-  },
-  {
-    calidad: 'Línea Media',
-    superficie: '100 a 250 m²',
-    desc: 'Platea de fundación, estructura tradicional con cámara de aire/EPS, techo losa de viguetas, porcelanato 60x60 comercial, aberturas aluminio Módena con DVH, sanitarios línea Mónaco, muebles MDF 18mm.',
-    cuentaPropia: 'USD 1.000',
-    llaveEnMano: 'USD 1.131',
-  },
-  {
-    calidad: 'Línea Alta',
-    superficie: '200 a 400 m²',
-    desc: 'Estructura HºAº independiente, mampostería Retak o doble muro, losa radiante (caldera dual), porcelanato símil madera o gran formato (90x90), aberturas A30 New DVH, sanitarios alta gama (Gap/Marina).',
-    cuentaPropia: 'USD 1.242',
-    llaveEnMano: 'USD 1.404',
-  },
-  {
-    calidad: 'Premium Country',
-    superficie: '+300 m²',
-    desc: 'Estructura H°A° visto, climatización central VRV/VRF, aberturas PVC foliado (Rehau/Schüco) con vidrios seguridad DVH, mármol o porcelanato importado +120x120, domótica integral, piscina revestida borde infinito.',
-    cuentaPropia: 'USD 1.725',
-    llaveEnMano: 'USD 1.950',
-  },
-]
-
-const MATRIZ_COMERCIAL = [
-  {
-    tipologia: 'Galpón Tinglado',
-    desc: 'Bases aisladas H°A°, pórticos de alma llena, cubierta chapa U-45 cincalum, aislación térmica lana de vidrio 80mm con foil, piso H°A° llaneado apto tránsito pesado, portón industrial 5x5m.',
-    cuentaPropia: 'USD 435',
-    llaveEnMano: 'USD 491',
-  },
-  {
-    tipologia: 'Local Vidriado',
-    desc: 'Estructura metálica pesada o H°A°, frente integral con piel de vidrio templado 10mm o DVH estructural, pisos de alto tránsito (porcelanato técnico), cielorraso desmontable, cortina motorizada.',
-    cuentaPropia: 'USD 760',
-    llaveEnMano: 'USD 860',
-  },
-]
 
 const CASOS_REALES = [
   {
@@ -623,7 +614,23 @@ const DONUT_LEYENDA = [
   { color: '#E3EFE7', label: 'Permisos', pct: '5%' },
 ]
 
-export default function CostosConstruccionPage() {
+export default async function CostosConstruccionPage() {
+  const { factor, mes } = await getAjusteIPC()
+  const residencial = MATRIZ_RESIDENCIAL_BASE.map((f) => ({
+    ...f,
+    cuentaPropia: fmtUSD(ajustar(f.cuentaPropiaBase, factor)),
+    llaveEnMano: fmtUSD(ajustar(f.llaveBase, factor)),
+  }))
+  const comercial = MATRIZ_COMERCIAL_BASE.map((f) => ({
+    ...f,
+    cuentaPropia: fmtUSD(ajustar(f.cuentaPropiaBase, factor)),
+    llaveEnMano: fmtUSD(ajustar(f.llaveBase, factor)),
+  }))
+  const calidades = MATRIZ_RESIDENCIAL_BASE.map((f) => {
+    const valor = ajustar(f.llaveBase, factor)
+    return { value: valor, label: `Residencial: ${f.calidad} (${fmtUSD(valor)}/m² Llave en Mano)` }
+  })
+
   return (
     <>
       <script
@@ -642,6 +649,7 @@ export default function CostosConstruccionPage() {
               Valores reales por m², casos concretos y una calculadora para proyectar tu
               inversión sin sorpresas.
             </p>
+            <span className="costos-badge-mes">Valores actualizados · {formatMesAnio(mes)}</span>
           </header>
 
           {/* b. Qué incluye cada valor */}
@@ -680,7 +688,7 @@ export default function CostosConstruccionPage() {
                 </tr>
               </thead>
               <tbody>
-                {MATRIZ_RESIDENCIAL.map((fila) => (
+                {residencial.map((fila) => (
                   <tr key={fila.calidad}>
                     <td className="costos-td-title">{fila.calidad}</td>
                     <td className="costos-td-surface">{fila.superficie}</td>
@@ -706,7 +714,7 @@ export default function CostosConstruccionPage() {
                 </tr>
               </thead>
               <tbody>
-                {MATRIZ_COMERCIAL.map((fila) => (
+                {comercial.map((fila) => (
                   <tr key={fila.tipologia}>
                     <td className="costos-td-title">{fila.tipologia}</td>
                     <td className="costos-td-desc">{fila.desc}</td>
@@ -809,7 +817,7 @@ export default function CostosConstruccionPage() {
           </div>
 
           {/* h. Calculadora */}
-          <CalculadoraCostos />
+          <CalculadoraCostos calidades={calidades} />
 
           {/* i. Árbol de decisión */}
           <div className="costos-flow">
@@ -873,14 +881,24 @@ export default function CostosConstruccionPage() {
 
             <div className="costos-cta-footer">
               <h4>Tomemos un café y definamos juntos qué se adapta más a vos.</h4>
-              <a
-                href={WHATSAPP_CAFE}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="costos-btn-cafe"
-              >
-                Coordinar un café con David
-              </a>
+              <div className="costos-cta-botones">
+                <a
+                  href={WHATSAPP_CAFE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="costos-btn-cafe"
+                >
+                  Coordinar un café con David
+                </a>
+                <a
+                  href={WHATSAPP_COMPARTIR}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="costos-btn-compartir"
+                >
+                  Compartísela a ese amigo que no se decide
+                </a>
+              </div>
             </div>
           </div>
         </div>

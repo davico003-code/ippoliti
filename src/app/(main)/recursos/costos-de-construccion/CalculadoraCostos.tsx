@@ -10,13 +10,6 @@ import { trackEvent } from '@/lib/analytics'
 //   valorMercado      = inversionTotal * 1.05165
 // Inputs con formato es-AR mientras se tipea (solo dígitos).
 
-const CALIDADES = [
-  { value: 780, label: 'Residencial: Línea Estándar (USD 780/m² Llave en Mano)' },
-  { value: 1131, label: 'Residencial: Línea Media (USD 1.131/m² Llave en Mano)' },
-  { value: 1404, label: 'Residencial: Línea Alta (USD 1.404/m² Llave en Mano)' },
-  { value: 1950, label: 'Residencial: Premium Country (USD 1.950/m² Llave en Mano)' },
-]
-
 const fmtUSD = (n: number) =>
   'USD ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(n)
 
@@ -24,6 +17,11 @@ interface Resultados {
   construccion: number
   total: number
   mercado: number
+}
+
+export interface CalidadOption {
+  value: number
+  label: string
 }
 
 function CampoNumerico({
@@ -70,12 +68,15 @@ function CampoNumerico({
   )
 }
 
-export default function CalculadoraCostos() {
+// `calidades`: valores Llave en Mano VIGENTES (base junio 2026 ajustada por
+// IPC), calculados server-side en page.tsx desde lib/costos-construccion.
+// El default es la tercera opción (Línea Alta), como el HTML de referencia.
+export default function CalculadoraCostos({ calidades }: { calidades: CalidadOption[] }) {
   const [lote, setLote] = useState({ raw: 0, display: '' })
   const [cub, setCub] = useState({ raw: 0, display: '' })
   const [semi, setSemi] = useState({ raw: 0, display: '' })
   const [piscina, setPiscina] = useState({ raw: 0, display: '' })
-  const [calidad, setCalidad] = useState(1404)
+  const [calidad, setCalidad] = useState(calidades[2]?.value ?? calidades[0]?.value ?? 0)
   const [resultados, setResultados] = useState<Resultados | null>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
 
@@ -142,7 +143,7 @@ export default function CalculadoraCostos() {
               value={calidad}
               onChange={(e) => setCalidad(Number(e.target.value))}
             >
-              {CALIDADES.map((c) => (
+              {calidades.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
                 </option>
