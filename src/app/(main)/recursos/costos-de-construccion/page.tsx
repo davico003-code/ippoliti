@@ -9,12 +9,12 @@ import CalculadoraCostos from './CalculadoraCostos'
 // Raleway títulos / Poppins datos vía next/font.
 
 export const metadata: Metadata = {
-  title: 'Índice de Costos de Construcción en Funes y Roldán | SI Inmobiliaria',
+  title: '¿Cuánto cuesta construir en Funes y Roldán? Índice de Costos | SI Inmobiliaria',
   description:
     '¿Cuánto cuesta construir en Funes? Valores por m² llave en mano y por cuenta propia, casos reales de inversión y calculadora para proyectar tu obra.',
   alternates: { canonical: 'https://siinmobiliaria.com/recursos/costos-de-construccion' },
   openGraph: {
-    title: 'Índice de Costos de Construcción en Funes y Roldán',
+    title: '¿Cuánto cuesta construir en Funes y Roldán?',
     description:
       'Valores por m² llave en mano y por cuenta propia, casos reales y calculadora para proyectar tu obra en Funes y Roldán.',
     url: 'https://siinmobiliaria.com/recursos/costos-de-construccion',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Índice de Costos de Construcción en Funes y Roldán',
+    title: '¿Cuánto cuesta construir en Funes y Roldán?',
     description:
       'Valores por m² llave en mano y por cuenta propia, casos reales y calculadora de obra.',
     images: ['/og-image.jpg'],
@@ -59,7 +59,7 @@ const jsonLd = [
 ]
 
 const WHATSAPP_CAFE = `https://wa.me/5493412101694?text=${encodeURIComponent(
-  'Hola! Vi el Índice de Costos de Construcción y quiero coordinar una reunión.',
+  'Hola! Vi la guía de costos de construcción y quiero coordinar una reunión.',
 )}`
 
 // CSS scoped con prefijo `costos-` (mismo patrón que el índice de recursos).
@@ -67,24 +67,26 @@ const WHATSAPP_CAFE = `https://wa.me/5493412101694?text=${encodeURIComponent(
 const STYLES = `
   .costos-page {
     --c-verde: #1A5C38;
-    --c-verde-profundo: #0F3F26;
+    --c-verde-profundo: #0E3A23;
     --c-verde-medio: #2E7D4F;
     --c-verde-vivo: #34A065;
-    --c-menta: #E9F3EC;
-    --c-menta-suave: #F3F8F4;
+    --c-carbon: #24292B;
+    --c-carbon-claro: #353B3D;
+    --c-menta: #EFF1F0;
+    --c-menta-suave: #F6F7F7;
     --c-surface: #ffffff;
-    --c-text-dark: #182420;
-    --c-text-muted: #5C6B63;
-    --c-border: #E3EAE5;
+    --c-text-dark: #1F2624;
+    --c-text-muted: #626B67;
+    --c-border: #E4E7E6;
     --c-ganancia: #15803d;
     --c-ganancia-bg: #F0FAF3;
-    --c-shadow-sm: 0 2px 8px rgba(15, 63, 38, 0.06);
-    --c-shadow-md: 0 12px 32px -8px rgba(15, 63, 38, 0.14);
-    --c-shadow-lg: 0 24px 48px -12px rgba(15, 63, 38, 0.22);
+    --c-shadow-sm: 0 2px 8px rgba(30, 38, 35, 0.06);
+    --c-shadow-md: 0 12px 32px -8px rgba(30, 38, 35, 0.14);
+    --c-shadow-lg: 0 24px 48px -12px rgba(30, 38, 35, 0.22);
     --c-radius: 16px;
     --c-radius-sm: 10px;
     font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
-    background: #FAFBFA;
+    background: #F8F9F9;
     color: var(--c-text-dark);
     line-height: 1.65;
   }
@@ -97,8 +99,8 @@ const STYLES = `
   .costos-header { text-align: center; margin: 0 auto 64px; max-width: 820px; }
   .costos-header h1 {
     color: var(--c-verde-profundo);
-    font-size: clamp(32px, 5vw, 46px); font-weight: 900; line-height: 1.12;
-    margin: 0 0 16px; letter-spacing: -1.2px;
+    font-size: clamp(26px, 6vw, 46px); font-weight: 900; line-height: 1.12;
+    margin: 0 0 14px; letter-spacing: -1px;
   }
   .costos-header p { color: var(--c-text-muted); font-size: 17px; margin: 0; }
 
@@ -134,7 +136,7 @@ const STYLES = `
     letter-spacing: -0.2px; margin: 0 0 8px;
   }
   .costos-def-card p { font-size: 13.5px; color: var(--c-text-muted); line-height: 1.7; margin: 0; }
-  .costos-def-featured { background: var(--c-verde-profundo); border-color: var(--c-verde-profundo); }
+  .costos-def-featured { background: var(--c-carbon); border-color: var(--c-carbon); }
   .costos-def-featured .costos-def-tag { background: rgba(255,255,255,0.14); color: #A7E3C0; }
   .costos-def-featured h4 { color: #fff; }
   .costos-def-featured p { color: rgba(255,255,255,0.78); }
@@ -147,7 +149,7 @@ const STYLES = `
   }
   .costos-table { width: 100%; border-collapse: collapse; text-align: left; }
   .costos-table th {
-    background: var(--c-verde-profundo); color: rgba(255,255,255,0.92);
+    background: var(--c-carbon); color: rgba(255,255,255,0.92);
     padding: 18px 20px;
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
     font-size: 12px; text-transform: uppercase; letter-spacing: 1.4px;
@@ -169,7 +171,7 @@ const STYLES = `
     font-weight: 700; color: var(--c-verde); background: var(--c-menta-suave);
     font-size: 16px; white-space: nowrap; font-variant-numeric: tabular-nums;
   }
-  .costos-examples-table th { background: var(--c-verde); }
+  .costos-examples-table th { background: var(--c-carbon-claro); }
   .costos-badge-barrio {
     display: inline-block; background: var(--c-menta);
     padding: 4px 12px; border-radius: 100px;
@@ -248,7 +250,7 @@ const STYLES = `
 
   /* Estimador (calculadora) */
   .costos-estimator {
-    background: linear-gradient(150deg, var(--c-verde-profundo) 0%, var(--c-verde) 85%);
+    background: linear-gradient(150deg, #1F2624 0%, #2E3733 85%);
     border-radius: var(--c-radius); padding: 56px 50px; color: #fff;
     box-shadow: var(--c-shadow-lg); margin-bottom: 72px; position: relative; overflow: hidden;
   }
@@ -355,17 +357,17 @@ const STYLES = `
   .costos-tree li.costos-wide { flex: 1.8; }
   .costos-tree li::before, .costos-tree li::after {
     content: ''; position: absolute; top: 0; right: 50%;
-    border-top: 2px solid #C9DACE; width: 50%; height: 32px;
+    border-top: 2px solid #D3D8D6; width: 50%; height: 32px;
   }
-  .costos-tree li::after { right: auto; left: 50%; border-left: 2px solid #C9DACE; }
+  .costos-tree li::after { right: auto; left: 50%; border-left: 2px solid #D3D8D6; }
   .costos-tree li:only-child::before, .costos-tree li:only-child::after { display: none; }
   .costos-tree li:only-child { padding-top: 0; }
   .costos-tree li:first-child::before, .costos-tree li:last-child::after { border: 0 none; }
-  .costos-tree li:last-child::before { border-right: 2px solid #C9DACE; border-radius: 0 12px 0 0; }
+  .costos-tree li:last-child::before { border-right: 2px solid #D3D8D6; border-radius: 0 12px 0 0; }
   .costos-tree li:first-child::after { border-radius: 12px 0 0 0; }
   .costos-tree ul ul::before {
     content: ''; position: absolute; top: 0; left: 50%;
-    border-left: 2px solid #C9DACE; width: 0; height: 32px;
+    border-left: 2px solid #D3D8D6; width: 0; height: 32px;
   }
   .costos-flow-q {
     background: var(--c-surface); border: 2px solid var(--c-verde);
@@ -376,7 +378,7 @@ const STYLES = `
     position: relative; z-index: 1; max-width: 280px;
   }
   .costos-flow-start {
-    background: var(--c-verde-profundo); border-color: var(--c-verde-profundo);
+    background: var(--c-carbon); border-color: var(--c-carbon);
     color: #fff; font-size: 15px; letter-spacing: 0.3px;
   }
   .costos-flow-leaf {
@@ -405,7 +407,7 @@ const STYLES = `
     padding: 3px 13px; border-radius: 100px;
   }
   .costos-branch-si { background: var(--c-verde); color: #fff; }
-  .costos-branch-no { background: var(--c-surface); color: var(--c-verde-profundo); border: 2px solid #C9DACE; }
+  .costos-branch-no { background: var(--c-surface); color: var(--c-verde-profundo); border: 2px solid #D3D8D6; }
 
   /* CTA */
   .costos-cta {
@@ -418,36 +420,6 @@ const STYLES = `
     margin: 0 0 16px; font-weight: 900; letter-spacing: -0.8px;
   }
   .costos-cta-intro p { font-size: 17px; color: var(--c-text-muted); margin: 0; }
-  .costos-cta-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-    gap: 24px; margin-bottom: 52px;
-  }
-  .costos-cta-card {
-    padding: 38px 30px; border: 1px solid var(--c-border); border-radius: var(--c-radius);
-    background: var(--c-menta-suave);
-    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
-    text-align: left; display: flex; flex-direction: column;
-  }
-  .costos-cta-card:hover {
-    border-color: var(--c-verde-vivo); background: #fff;
-    box-shadow: var(--c-shadow-md); transform: translateY(-4px);
-  }
-  .costos-cta-num {
-    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
-    width: 46px; height: 46px; border-radius: 14px;
-    background: var(--c-verde); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 19px; font-weight: 800; margin-bottom: 22px;
-  }
-  .costos-cta-card h4 {
-    color: var(--c-verde-profundo); font-size: 17.5px; margin: 0 0 12px;
-    font-weight: 800; line-height: 1.35; letter-spacing: -0.2px;
-  }
-  .costos-cta-card p { font-size: 14.5px; color: var(--c-text-muted); margin: 0 0 24px; flex-grow: 1; }
-  .costos-ref-box {
-    background: var(--c-menta); padding: 13px 16px; border-radius: var(--c-radius-sm);
-    color: var(--c-verde); font-weight: 600; font-size: 13px;
-  }
   .costos-cta-footer { text-align: center; margin-top: 44px; }
   .costos-cta-footer h4 {
     font-size: 21px; color: var(--c-verde-profundo);
@@ -472,15 +444,61 @@ const STYLES = `
     .costos-donut-wrapper { order: -1; }
   }
   @media (max-width: 768px) {
-    .costos-container { padding: 48px 16px; }
-    .costos-table th, .costos-table td { padding: 15px 12px; font-size: 12.5px; }
-    .costos-td-desc { min-width: 220px; }
-    .costos-estimator { padding: 40px 24px; }
-    .costos-cta { padding: 44px 22px; }
-    .costos-btn-cafe { width: 100%; display: block; }
-    .costos-donut { width: 240px; height: 240px; }
-    .costos-donut-hole { width: 134px; height: 134px; }
-    .costos-hole-value { font-size: 24px; }
+    .costos-page { font-size: 14px; }
+    .costos-container { padding: 36px 14px; }
+    .costos-header { margin-bottom: 36px; }
+    .costos-header p { font-size: 14px; }
+    .costos-block-title { font-size: 17px; margin-bottom: 16px; }
+    .costos-block-title::before { width: 18px; height: 3px; }
+    .costos-def-grid { gap: 12px; margin-bottom: 36px; }
+    .costos-def-card { padding: 18px 16px; }
+    .costos-def-tag { font-size: 9px; padding: 4px 10px; margin-bottom: 10px; }
+    .costos-def-card h4 { font-size: 15px; margin-bottom: 5px; }
+    .costos-def-card p { font-size: 12.5px; line-height: 1.6; }
+    .costos-table th { padding: 12px 10px; font-size: 10px; letter-spacing: 0.8px; }
+    .costos-table td { padding: 13px 10px; }
+    .costos-td-title { font-size: 13.5px; }
+    .costos-td-surface { font-size: 11px; }
+    .costos-td-desc { font-size: 11.5px; min-width: 190px; line-height: 1.55; }
+    .costos-td-price { font-size: 12.5px; }
+    .costos-td-highlight, .costos-td-success { font-size: 13.5px; }
+    .costos-badge-barrio { font-size: 10.5px; padding: 3px 9px; }
+    .costos-examples-intro { font-size: 13px; margin-bottom: 16px; }
+    .costos-disclaimer { padding: 16px 14px; margin-bottom: 48px; font-size: 12px; line-height: 1.65; }
+    .costos-chart { padding: 28px 18px; gap: 24px; margin-bottom: 48px; }
+    .costos-chart-info h3 { font-size: 17px; }
+    .costos-chart-info > p { font-size: 13px; margin-bottom: 18px; }
+    .costos-legend-item { font-size: 13px; padding: 9px 2px; gap: 10px; }
+    .costos-legend-dot { width: 11px; height: 11px; }
+    .costos-donut { width: 190px; height: 190px; }
+    .costos-donut-hole { width: 108px; height: 108px; }
+    .costos-hole-label { font-size: 9px; letter-spacing: 1.5px; }
+    .costos-hole-value { font-size: 19px; }
+    .costos-estimator { padding: 28px 16px; margin-bottom: 48px; }
+    .costos-estimator-sub { font-size: 13px; margin-bottom: 14px; }
+    .costos-form-grid { gap: 14px; margin-top: 18px; }
+    .costos-input-group label { font-size: 10.5px; margin-bottom: 6px; }
+    .costos-input-group input, .costos-input-group select { padding: 12px 13px; font-size: 14px; }
+    input.costos-has-prefix { padding-left: 50px; }
+    .costos-input-prefix { font-size: 12px; left: 13px; }
+    .costos-help-text { font-size: 11px; margin-top: 5px; }
+    .costos-btn-calc { padding: 15px 24px; font-size: 13px; margin-top: 22px; }
+    .costos-results { padding: 18px 14px; margin-top: 26px; }
+    .costos-res-line { font-size: 13px; padding: 11px 0; }
+    .costos-res-line strong { font-size: 15px; }
+    .costos-res-total { margin-top: 14px; padding-top: 14px; }
+    .costos-res-total span { font-size: 14px; }
+    .costos-res-total strong { font-size: 22px; }
+    .costos-res-disclaimer { font-size: 11.5px; padding: 12px 13px; margin-top: 14px; }
+    .costos-flow { margin-bottom: 48px; }
+    .costos-flow-intro { font-size: 13px; margin-bottom: 6px; }
+    .costos-cta { padding: 32px 14px; }
+    .costos-cta-intro { margin-bottom: 20px; }
+    .costos-cta-intro h3 { font-size: 21px; margin-bottom: 8px; }
+    .costos-cta-intro p { font-size: 13.5px; }
+    .costos-cta-footer { margin-top: 10px; }
+    .costos-cta-footer h4 { font-size: 16px; margin-bottom: 16px; }
+    .costos-btn-cafe { width: 100%; display: block; padding: 15px 24px; font-size: 13px; letter-spacing: 1px; }
   }
 `
 
@@ -714,8 +732,7 @@ export default function CostosConstruccionPage() {
               contacto permanente con constructores y desarrolladores. Pueden variar
               significativamente según la empresa que te construya, el arquitecto que esté
               detrás de la obra, la eficiencia a la hora de comprar materiales y la mano de
-              obra especializada que trabaje en tu proyecto.{' '}
-              <strong>La experiencia se paga y se ahorra en errores...</strong>
+              obra especializada que trabaje en tu proyecto.
             </p>
           </div>
 
@@ -852,35 +869,6 @@ export default function CostosConstruccionPage() {
                 No dudes en llamarnos para asesorarte y ver qué te conviene a vos. Tenemos
                 todas las opciones sobre la mesa, adaptadas a tu capital y a tu tiempo real.
               </p>
-            </div>
-
-            <div className="costos-cta-grid">
-              <div className="costos-cta-card">
-                <div className="costos-cta-num">A</div>
-                <h4>Querés todo YA</h4>
-                <p>
-                  No querés esperar ni un día de obra. Pagás el precio justo por una
-                  propiedad terminada y te mudás.
-                </p>
-                <div className="costos-ref-box">Referencia: Valor de Mercado</div>
-              </div>
-              <div className="costos-cta-card">
-                <div className="costos-cta-num">B</div>
-                <h4>Estás para comprar tu lote y tenés tiempo para construirte</h4>
-                <p>Vas a tu ritmo, gestionás tus tiempos y no querés apuros.</p>
-                <div className="costos-ref-box">
-                  Referencia: Valor de Lote + Obra por Cuenta Propia
-                </div>
-              </div>
-              <div className="costos-cta-card">
-                <div className="costos-cta-num">C</div>
-                <h4>No querés dolores de cabeza y tenés tiempo</h4>
-                <p>
-                  Comprás el lote, ponés la plata y nosotros nos ocupamos de todo. Solo
-                  elegís los muebles.
-                </p>
-                <div className="costos-ref-box">Referencia: Valor de Lote + Llave en Mano</div>
-              </div>
             </div>
 
             <div className="costos-cta-footer">
