@@ -71,6 +71,11 @@ const collectionJsonLd = {
       operatingSystem: 'Web',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
+    {
+      '@type': 'WebPage',
+      name: 'Índices y mercado en vivo',
+      url: 'https://siinmobiliaria.com/informes',
+    },
   ],
 }
 
@@ -425,6 +430,22 @@ function IconChart() {
   )
 }
 
+function IconPulse() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 12h4l3-9 4 18 3-9h4" />
+    </svg>
+  )
+}
+
 function IconObra() {
   return (
     <svg
@@ -511,6 +532,15 @@ const CARDS: CardData[] = [
       'Índice de costos por m² llave en mano y por cuenta propia, casos reales en la zona y calculadora para proyectar tu obra.',
     cta: 'Ver el índice',
     icon: <IconObra />,
+  },
+  {
+    href: '/informes',
+    eyebrow: 'Mercado al día',
+    title: 'Índices y mercado en vivo',
+    description:
+      'Dólar, inflación (IPC), ICL de alquileres y la comparativa de 12 meses, con datos oficiales del BCRA actualizados cada semana.',
+    cta: 'Ver los índices',
+    icon: <IconPulse />,
   },
 ]
 
