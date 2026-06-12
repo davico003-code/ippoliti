@@ -1,8 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { PlacaEditorial as PlacaData } from "../data/placas-editoriales";
 
-// Placa editorial del hero: card 3:4 con imagen de fondo + overlay + texto blanco.
-// Si la imagen no carga / no existe, el background queda con el fallbackGradient.
+// Placa editorial del hero: card 3:4 con la portada del barrio (next/image
+// fill) + overlay verde oscuro de abajo hacia arriba para legibilidad.
+// El fallbackGradient queda como fondo detrás de la imagen por si falta.
 
 export default function PlacaEditorial({ placa }: { placa: PlacaData }) {
   const badgeStyles =
@@ -17,19 +19,27 @@ export default function PlacaEditorial({ placa }: { placa: PlacaData }) {
       style={{
         aspectRatio: "3 / 4",
         borderRadius: 18,
-        backgroundImage: `${placa.fallbackGradient}, url('${placa.imagen}')`,
-        backgroundSize: "cover, cover",
-        backgroundPosition: "center, center",
+        background: placa.fallbackGradient,
         textDecoration: "none",
       }}
     >
-      {/* Overlay inferior para legibilidad */}
+      {/* Portada del barrio (above the fold → priority) */}
+      <Image
+        src={placa.imagen}
+        alt=""
+        fill
+        priority
+        sizes="(max-width: 768px) 50vw, 25vw"
+        className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+      />
+
+      {/* Overlay verde oscuro de abajo hacia arriba para legibilidad */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 70%)",
+            "linear-gradient(to top, rgba(15,63,38,0.78) 0%, rgba(15,63,38,0.45) 45%, rgba(15,63,38,0.25) 100%)",
         }}
       />
 

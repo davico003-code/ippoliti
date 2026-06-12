@@ -5,13 +5,17 @@ import HeroSearchBar from "./HeroSearchBar";
 import PlacaEditorial from "./PlacaEditorial";
 import { PLACAS_EDITORIALES } from "../data/placas-editoriales";
 
+// Tipografía estilo Apple para el hero (SF Pro en dispositivos Apple,
+// fallback al system font en el resto) — pedido de David jun-2026.
+const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif";
+
 export default function HeroBarrios() {
   return (
     <section
       className="bp-hero"
       style={{
-        background: "#FAF7F2",
-        borderBottom: "1px solid #e8e2d5",
+        background: "#ffffff",
+        borderBottom: "1px solid #ececec",
         padding: "64px 0 56px",
       }}
     >
@@ -27,68 +31,49 @@ export default function HeroBarrios() {
           alignItems: "center",
         }}
       >
-        {/* Columna izquierda */}
+        {/* Columna izquierda — minimal, tipografía system Apple */}
         <div>
-          <div
+          <p
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              marginBottom: 22,
+              margin: "0 0 14px",
+              fontFamily: SF,
+              fontWeight: 500,
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "#86868b",
             }}
           >
-            <span
-              aria-hidden
-              style={{
-                display: "inline-block",
-                width: 24,
-                height: 1,
-                background: "#B8935A",
-              }}
-            />
-            <p
-              style={{
-                margin: 0,
-                fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
-                fontWeight: 600,
-                fontSize: 11,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "#B8935A",
-              }}
-            >
-              Funes · Santa Fe
-            </p>
-          </div>
+            Funes · Santa Fe
+          </p>
 
           <h1
             style={{
-              fontFamily: "var(--font-raleway), 'Raleway', system-ui, sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(40px, 5.2vw, 64px)",
-              lineHeight: 1.02,
-              letterSpacing: "-0.025em",
-              color: "#0a0a0a",
-              margin: "0 0 22px",
+              fontFamily: SF,
+              fontWeight: 600,
+              fontSize: "clamp(34px, 4.4vw, 54px)",
+              lineHeight: 1.06,
+              letterSpacing: "-0.018em",
+              color: "#1d1d1f",
+              margin: "0 0 16px",
             }}
           >
-            Los 15 barrios cerrados de Funes.
+            Barrios cerrados de Funes.
           </h1>
 
           <p
             style={{
-              fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
+              fontFamily: SF,
               fontWeight: 400,
               fontSize: 17,
-              lineHeight: 1.55,
-              color: "#444",
+              lineHeight: 1.5,
+              color: "#6e6e73",
               margin: "0 0 30px",
-              maxWidth: 480,
+              maxWidth: 440,
             }}
           >
-            Información útil sobre amenities, escala y para qué tipo de comprador
-            funciona cada uno. Sin filtros, escrito por brokers que viven y trabajan
-            en la zona.
+            Los 15 barrios del corredor, explicados por brokers que viven y
+            trabajan en la zona.
           </p>
 
           <HeroSearchBar />
