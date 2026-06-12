@@ -493,31 +493,31 @@ const STYLES = `
 
 const MATRIZ_RESIDENCIAL = [
   {
-    calidad: 'Estándar',
+    calidad: 'Línea Estándar',
     superficie: '50 a 120 m²',
     desc: 'Fundaciones zapata corrida, mampostería ladrillo hueco 18, revoque exterior proyectado, techo chapa con aislación poliuretano, pisos cerámicos 1ra, aberturas de aluminio línea Herrero/Módena básica, sanitarios línea Andina.',
-    cuentaPropia: 'USD 600',
+    cuentaPropia: 'USD 690',
     llaveEnMano: 'USD 780',
   },
   {
-    calidad: 'Media',
+    calidad: 'Línea Media',
     superficie: '100 a 250 m²',
     desc: 'Platea de fundación, estructura tradicional con cámara de aire/EPS, techo losa de viguetas, porcelanato 60x60 comercial, aberturas aluminio Módena con DVH, sanitarios línea Mónaco, muebles MDF 18mm.',
-    cuentaPropia: 'USD 870',
+    cuentaPropia: 'USD 1.000',
     llaveEnMano: 'USD 1.131',
   },
   {
-    calidad: 'Buena Country',
+    calidad: 'Línea Alta',
     superficie: '200 a 400 m²',
     desc: 'Estructura HºAº independiente, mampostería Retak o doble muro, losa radiante (caldera dual), porcelanato símil madera o gran formato (90x90), aberturas A30 New DVH, sanitarios alta gama (Gap/Marina).',
-    cuentaPropia: 'USD 1.080',
+    cuentaPropia: 'USD 1.242',
     llaveEnMano: 'USD 1.404',
   },
   {
     calidad: 'Premium Country',
     superficie: '+300 m²',
     desc: 'Estructura H°A° visto, climatización central VRV/VRF, aberturas PVC foliado (Rehau/Schüco) con vidrios seguridad DVH, mármol o porcelanato importado +120x120, domótica integral, piscina revestida borde infinito.',
-    cuentaPropia: 'USD 1.500',
+    cuentaPropia: 'USD 1.725',
     llaveEnMano: 'USD 1.950',
   },
 ]
@@ -526,20 +526,20 @@ const MATRIZ_COMERCIAL = [
   {
     tipologia: 'Galpón Tinglado',
     desc: 'Bases aisladas H°A°, pórticos de alma llena, cubierta chapa U-45 cincalum, aislación térmica lana de vidrio 80mm con foil, piso H°A° llaneado apto tránsito pesado, portón industrial 5x5m.',
-    cuentaPropia: 'USD 360',
-    llaveEnMano: 'USD 468',
+    cuentaPropia: 'USD 435',
+    llaveEnMano: 'USD 491',
   },
   {
     tipologia: 'Local Vidriado',
     desc: 'Estructura metálica pesada o H°A°, frente integral con piel de vidrio templado 10mm o DVH estructural, pisos de alto tránsito (porcelanato técnico), cielorraso desmontable, cortina motorizada.',
-    cuentaPropia: 'USD 630',
-    llaveEnMano: 'USD 819',
+    cuentaPropia: 'USD 760',
+    llaveEnMano: 'USD 860',
   },
 ]
 
 const CASOS_REALES = [
   {
-    calidad: 'Estándar',
+    calidad: 'Línea Estándar',
     barrio: 'Tierra de Sueños 3',
     detalle: ['Lote: USD 20.000 (360 m²)', 'Construcción: 70 m² cubiertos + 20 m² semi'],
     obra: 'Costo Obra: USD 62.400',
@@ -547,7 +547,7 @@ const CASOS_REALES = [
     mercado: 'USD 86.700',
   },
   {
-    calidad: 'Media',
+    calidad: 'Línea Media',
     barrio: 'Funes City',
     detalle: ['Lote: USD 45.000 (500 m²)', 'Construcción: 120 m² cubiertos + 30 m² semi'],
     obra: 'Costo Obra: USD 152.685',
@@ -555,7 +555,7 @@ const CASOS_REALES = [
     mercado: 'USD 207.900',
   },
   {
-    calidad: 'Media (Country)',
+    calidad: 'Línea Media (Country)',
     barrio: 'Vida Lagoon / Funes Lakes',
     detalle: ['Lote: USD 80.000', 'Construcción: 130 m² cubiertos + 40 m² semi'],
     obra: 'Costo Obra: USD 169.650',
@@ -563,7 +563,7 @@ const CASOS_REALES = [
     mercado: 'USD 262.500',
   },
   {
-    calidad: 'Buena Country',
+    calidad: 'Línea Alta',
     barrio: 'Funes Lakes / Vida Lagoon',
     detalle: ['Lote: USD 75.000', 'Construcción: 160 m² cubiertos + 80 m² semi'],
     obra: 'Costo Obra: USD 280.800',
@@ -571,7 +571,7 @@ const CASOS_REALES = [
     mercado: 'USD 374.200',
   },
   {
-    calidad: 'Buena Country (Grande)',
+    calidad: 'Línea Alta (Grande)',
     barrio: 'Barrio Vida',
     detalle: ['Lote: USD 180.000', 'Construcción: 180 m² cubiertos + 60 m² semi (240 m² tot.)'],
     obra: 'Costo Obra: USD 294.840',
@@ -579,7 +579,7 @@ const CASOS_REALES = [
     mercado: 'USD 499.400',
   },
   {
-    calidad: 'Buena Country (2 Plantas)',
+    calidad: 'Línea Alta (2 Plantas)',
     barrio: 'San Sebastián',
     detalle: ['Lote: USD 200.000 (800 m²)', 'Construcción: 270 m² cub. + 80 m² semi (350 m² tot.)'],
     obra: 'Costo Obra: USD 435.240',
@@ -587,7 +587,7 @@ const CASOS_REALES = [
     mercado: 'USD 668.100',
   },
   {
-    calidad: 'Buena Country',
+    calidad: 'Línea Alta',
     barrio: 'Vida Club de Campo',
     detalle: ['Lote: USD 150.000', 'Construcción: 350 m² cub. + 100 m² semi (450 m² tot.)'],
     obra: 'Costo Obra: USD 561.600',

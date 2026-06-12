@@ -11,9 +11,9 @@ import { trackEvent } from '@/lib/analytics'
 // Inputs con formato es-AR mientras se tipea (solo dígitos).
 
 const CALIDADES = [
-  { value: 780, label: 'Residencial: Estándar (USD 780/m² Llave en Mano)' },
-  { value: 1131, label: 'Residencial: Media (USD 1.131/m² Llave en Mano)' },
-  { value: 1404, label: 'Residencial: Buena Country (USD 1.404/m² Llave en Mano)' },
+  { value: 780, label: 'Residencial: Línea Estándar (USD 780/m² Llave en Mano)' },
+  { value: 1131, label: 'Residencial: Línea Media (USD 1.131/m² Llave en Mano)' },
+  { value: 1404, label: 'Residencial: Línea Alta (USD 1.404/m² Llave en Mano)' },
   { value: 1950, label: 'Residencial: Premium Country (USD 1.950/m² Llave en Mano)' },
 ]
 
