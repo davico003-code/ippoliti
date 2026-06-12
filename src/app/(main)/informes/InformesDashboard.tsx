@@ -15,6 +15,8 @@ interface InformesData {
   // icl.datos: serie 40 BCRA mensualizada (último valor de cada mes).
   icl?: { datos: DatoSerie[]; ultimo?: DatoSerie | null; fetchedAt: string }
   cac?: { datos: DatoSerie[]; fetchedAt: string }
+  // dolarHistorico.datos: serie 4 BCRA (oficial minorista) mensualizada.
+  dolarHistorico?: { datos: DatoSerie[]; fetchedAt: string }
 }
 
 function fmtMonth(fecha: string) {
@@ -90,6 +92,42 @@ export default function InformesDashboard() {
     valor: d.valor,
     var: i === 0 ? null : pct(d.valor, arr[i - 1].valor),
   }))
+
+  // Comparativa 12 meses — IPC vs ICL vs dólar oficial, todo en base 100
+  // (el mes más viejo = 100). El IPC viene como variación mensual %, así que
+  // su índice se reconstruye componiendo: 100 · Π(1 + vᵢ/100). ICL y dólar
+  // son índices/niveles: se normalizan dividiendo por el primer valor.
+  const dolarHist = data?.dolarHistorico?.datos || []
+  const mesKey = (fecha: string) => fecha.slice(0, 7)
+  const comparativa = (() => {
+    if (ipcDatos.length < 2 || iclDatos.length < 2 || dolarHist.length < 2) return []
+    const iclPorMes = new Map(iclDatos.map(d => [mesKey(d.fecha), d.valor]))
+    const dolarPorMes = new Map(dolarHist.map(d => [mesKey(d.fecha), d.valor]))
+    let ipcIdx = 100
+    const filas: { label: string; IPC: number; ICL: number; ['Dólar oficial']: number }[] = []
+    let iclBase: number | null = null
+    let dolarBase: number | null = null
+    for (const d of ipcDatos.slice(-13)) {
+      const k = mesKey(d.fecha)
+      const icl = iclPorMes.get(k)
+      const dolar = dolarPorMes.get(k)
+      if (icl == null || dolar == null) continue
+      if (iclBase == null) {
+        // primer mes común: todo arranca en 100 (el IPC compone desde acá)
+        iclBase = icl
+        dolarBase = dolar
+      } else {
+        ipcIdx = ipcIdx * (1 + d.valor / 100)
+      }
+      filas.push({
+        label: fmtMonth(d.fecha),
+        IPC: Math.round(ipcIdx * 10) / 10,
+        ICL: Math.round((icl / iclBase) * 1000) / 10,
+        ['Dólar oficial']: Math.round((dolar / dolarBase!) * 1000) / 10,
+      })
+    }
+    return filas
+  })()
 
   // CAC calculations
   const cacDatos = data?.cac?.datos || []
@@ -226,6 +264,33 @@ export default function InformesDashboard() {
             )}
           </div>
         </div>
+
+        {/* ── COMPARATIVA 12 MESES ── */}
+        {comparativa.length > 1 && (
+          <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm">
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Comparativa 12 meses</p>
+              <p className="text-[10px] text-gray-300 mt-0.5">Inflación vs alquileres vs dólar oficial · base 100 = {comparativa[0]?.label}</p>
+            </div>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={comparativa}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#999' }} />
+                <YAxis domain={['dataMin - 2', 'dataMax + 2']} tick={{ fontSize: 11, fill: '#999' }} tickFormatter={(v) => Number(v).toLocaleString('es-AR')} />
+                <Tooltip formatter={(v, name) => [Number(v).toLocaleString('es-AR', { maximumFractionDigits: 1 }), name]} labelStyle={{ fontWeight: 600 }} />
+                <Line type="monotone" dataKey="IPC" stroke="#1C1C1E" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="ICL" stroke="#1A5C38" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="Dólar oficial" stroke="#8B7355" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap gap-4 mt-3">
+              <span className="flex items-center gap-1.5 text-[11px] text-gray-500"><span className="inline-block w-3 h-[3px] rounded" style={{ background: '#1C1C1E' }} /> IPC (inflación)</span>
+              <span className="flex items-center gap-1.5 text-[11px] text-gray-500"><span className="inline-block w-3 h-[3px] rounded" style={{ background: '#1A5C38' }} /> ICL (alquileres)</span>
+              <span className="flex items-center gap-1.5 text-[11px] text-gray-500"><span className="inline-block w-3 h-[3px] rounded" style={{ background: '#8B7355' }} /> Dólar oficial</span>
+            </div>
+            <p className="text-[10px] text-gray-300 mt-3">Si la línea verde corre por encima de la marrón, los alquileres le ganaron al dólar en ese período (y viceversa). Fuente: BCRA.</p>
+          </div>
+        )}
 
         {/* ── CAC ── */}
         <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm">
