@@ -496,28 +496,28 @@ const MATRIZ_RESIDENCIAL = [
     calidad: 'Estándar',
     superficie: '50 a 120 m²',
     desc: 'Fundaciones zapata corrida, mampostería ladrillo hueco 18, revoque exterior proyectado, techo chapa con aislación poliuretano, pisos cerámicos 1ra, aberturas de aluminio línea Herrero/Módena básica, sanitarios línea Andina.',
-    cuentaPropia: 'USD 600',
+    cuentaPropia: 'USD 690',
     llaveEnMano: 'USD 780',
   },
   {
     calidad: 'Media',
     superficie: '100 a 250 m²',
     desc: 'Platea de fundación, estructura tradicional con cámara de aire/EPS, techo losa de viguetas, porcelanato 60x60 comercial, aberturas aluminio Módena con DVH, sanitarios línea Mónaco, muebles MDF 18mm.',
-    cuentaPropia: 'USD 870',
+    cuentaPropia: 'USD 1.000',
     llaveEnMano: 'USD 1.131',
   },
   {
     calidad: 'Buena Country',
     superficie: '200 a 400 m²',
     desc: 'Estructura HºAº independiente, mampostería Retak o doble muro, losa radiante (caldera dual), porcelanato símil madera o gran formato (90x90), aberturas A30 New DVH, sanitarios alta gama (Gap/Marina).',
-    cuentaPropia: 'USD 1.080',
+    cuentaPropia: 'USD 1.242',
     llaveEnMano: 'USD 1.404',
   },
   {
     calidad: 'Premium Country',
     superficie: '+300 m²',
     desc: 'Estructura H°A° visto, climatización central VRV/VRF, aberturas PVC foliado (Rehau/Schüco) con vidrios seguridad DVH, mármol o porcelanato importado +120x120, domótica integral, piscina revestida borde infinito.',
-    cuentaPropia: 'USD 1.500',
+    cuentaPropia: 'USD 1.725',
     llaveEnMano: 'USD 1.950',
   },
 ]
@@ -526,13 +526,13 @@ const MATRIZ_COMERCIAL = [
   {
     tipologia: 'Galpón Tinglado',
     desc: 'Bases aisladas H°A°, pórticos de alma llena, cubierta chapa U-45 cincalum, aislación térmica lana de vidrio 80mm con foil, piso H°A° llaneado apto tránsito pesado, portón industrial 5x5m.',
-    cuentaPropia: 'USD 360',
+    cuentaPropia: 'USD 414',
     llaveEnMano: 'USD 468',
   },
   {
     tipologia: 'Local Vidriado',
     desc: 'Estructura metálica pesada o H°A°, frente integral con piel de vidrio templado 10mm o DVH estructural, pisos de alto tránsito (porcelanato técnico), cielorraso desmontable, cortina motorizada.',
-    cuentaPropia: 'USD 630',
+    cuentaPropia: 'USD 724',
     llaveEnMano: 'USD 819',
   },
 ]
