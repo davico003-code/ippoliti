@@ -95,13 +95,6 @@ const STYLES = `
 
   /* Encabezado */
   .costos-header { text-align: center; margin: 0 auto 64px; max-width: 820px; }
-  .costos-eyebrow {
-    display: inline-block;
-    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
-    font-size: 12px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--c-verde); background: var(--c-menta);
-    padding: 8px 18px; border-radius: 100px; margin-bottom: 22px;
-  }
   .costos-header h1 {
     color: var(--c-verde-profundo);
     font-size: clamp(32px, 5vw, 46px); font-weight: 900; line-height: 1.12;
@@ -626,11 +619,10 @@ export default function CostosConstruccionPage() {
         <div className="costos-container">
           {/* a. Header */}
           <header className="costos-header">
-            <span className="costos-eyebrow">SI Inmobiliaria · Funes – Roldán – Rosario</span>
-            <h1>Índice de Costos de Construcción</h1>
+            <h1>¿Cuánto cuesta construir hoy?</h1>
             <p>
-              Conocé la diferencia entre costo de obra y valor de mercado. Transparencia
-              absoluta para proyectar tu inversión.
+              Valores reales por m², casos concretos y una calculadora para proyectar tu
+              inversión sin sorpresas.
             </p>
           </header>
 
