@@ -68,6 +68,8 @@ export const events = {
 
   recursosIndexView: () => trackEvent('recursos_index_view'),
 
+  recursosCostosConstruccionView: () => trackEvent('recursos_costos_construccion_view'),
+
   calculadoraCostosView: () => trackEvent('calculadora_costos_view'),
   calculadoraCostosDescargar: () => trackEvent('calculadora_costos_descargar'),
   calculadoraCostosWhatsapp: () => {

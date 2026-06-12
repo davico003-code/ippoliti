@@ -63,6 +63,14 @@ const collectionJsonLd = {
       name: 'Guía del comprador',
       url: 'https://siinmobiliaria.com/guia',
     },
+    {
+      '@type': 'WebApplication',
+      name: 'Índice de Costos de Construcción',
+      url: 'https://siinmobiliaria.com/recursos/costos-de-construccion',
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'Web',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
   ],
 }
 
@@ -417,6 +425,28 @@ function IconChart() {
   )
 }
 
+function IconObra() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="2" y="6" width="20" height="8" rx="1" />
+      <path d="M17 14v7" />
+      <path d="M7 14v7" />
+      <path d="M17 3v3" />
+      <path d="M7 3v3" />
+      <path d="m6 6 12 8" />
+      <path d="m6 14 12-8" />
+    </svg>
+  )
+}
+
 function IconBook() {
   return (
     <svg
@@ -472,6 +502,15 @@ const CARDS: CardData[] = [
       'Todo lo que tenés que saber antes de comprar tu propiedad: pasos, documentación, escritura, gastos.',
     cta: 'Leer la guía',
     icon: <IconBook />,
+  },
+  {
+    href: '/recursos/costos-de-construccion',
+    eyebrow: 'Para construir',
+    title: '¿Cuánto cuesta construir?',
+    description:
+      'Índice de costos por m² llave en mano y por cuenta propia, casos reales en la zona y calculadora para proyectar tu obra.',
+    cta: 'Ver el índice',
+    icon: <IconObra />,
   },
 ]
 
