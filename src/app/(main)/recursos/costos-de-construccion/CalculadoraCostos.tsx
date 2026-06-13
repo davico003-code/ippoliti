@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import { trackEvent } from '@/lib/analytics'
 
 // Calculadora "Calculá el costo real de tu propiedad" — lógica exacta del
@@ -11,13 +10,14 @@ import { trackEvent } from '@/lib/analytics'
 //   valorMercado      = inversionTotal * 1.05165
 // Inputs con formato es-AR mientras se tipea (solo dígitos).
 //
-// Compartir: el botón arma un link con el cálculo en la query
-// (?lote=&cub=&semi=&pis=&cal=). Al abrir un link compartido, la calculadora
-// se pre-carga, calcula sola y muestra el resultado con el CTA de SI
-// (logo + teléfono + WhatsApp de David).
+// Compartir: el botón genera un link a la página de resultado
+// /recursos/costos-de-construccion/calculo?lote=&cub=&semi=&pileta=&calidad=
+// y lo comparte con navigator.share (mobile) o lo copia al portapapeles con
+// el patrón ClipboardItem+Promise dentro del tap (mismo fix de Safari iOS
+// que share-ficha). La página principal sigue aceptando los params viejos
+// (?cub=...) por compatibilidad con links ya enviados.
 
 const CANONICAL = 'https://siinmobiliaria.com/recursos/costos-de-construccion'
-const TELEFONO_DISPLAY = '(341) 210-1694'
 
 const fmtUSD = (n: number) =>
   'USD ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(n)
@@ -33,6 +33,7 @@ interface Resultados {
 export interface CalidadOption {
   value: number
   label: string
+  slug: string
 }
 
 interface Campo {
@@ -96,6 +97,7 @@ export default function CalculadoraCostos({ calidades }: { calidades: CalidadOpt
   const [piscina, setPiscina] = useState<Campo>({ raw: 0, display: '' })
   const [calidad, setCalidad] = useState(calidades[2]?.value ?? calidades[0]?.value ?? 0)
   const [resultados, setResultados] = useState<Resultados | null>(null)
+  const [feedbackCompartir, setFeedbackCompartir] = useState<string | null>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
 
   const computar = (l: number, c: number, s: number, p: number, costoM2: number): Resultados => {
@@ -141,20 +143,61 @@ export default function CalculadoraCostos({ calidades }: { calidades: CalidadOpt
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Links del CTA de resultados
-  const urlCompartida = resultados
-    ? `${CANONICAL}?lote=${lote.raw}&cub=${cub.raw}&semi=${semi.raw}&pis=${piscina.raw}&cal=${calidad}`
-    : CANONICAL
-  const waDavid = resultados
-    ? `https://wa.me/5493412101694?text=${encodeURIComponent(
-        `Hola David! Hice el cálculo en la guía de costos: inversión total ${fmtUSD(resultados.total)} y valor de mercado ${fmtUSD(resultados.mercado)}. Quiero asesorarme.\n\n${urlCompartida}`,
-      )}`
-    : ''
-  const waCompartir = resultados
-    ? `https://api.whatsapp.com/send?text=${encodeURIComponent(
-        `Calculé cuánto cuesta construir en Funes y Roldán 🏠\nObra: ${fmtUSD(resultados.construccion)}\nInversión total: ${fmtUSD(resultados.total)}\nValor de mercado: ${fmtUSD(resultados.mercado)}\n\nMirá el cálculo completo acá 👉 ${urlCompartida}`,
-      )}`
-    : ''
+  // Link a la página de resultado (slug legible de la calidad)
+  const slugCalidad = calidades.find((c) => c.value === calidad)?.slug ?? ''
+  const urlCalculo = `${CANONICAL}/calculo?lote=${lote.raw}&cub=${cub.raw}&semi=${semi.raw}&pileta=${piscina.raw}&calidad=${slugCalidad}`
+
+  // Copia con ClipboardItem+Promise DENTRO del tap (fix Safari iOS, mismo
+  // patrón de lib/share-ficha) + fallback writeText/execCommand.
+  const copiarLink = async (url: string): Promise<boolean> => {
+    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'text/plain': Promise.resolve(new Blob([url], { type: 'text/plain' })) }),
+        ])
+        return true
+      } catch {
+        /* sigue al fallback */
+      }
+    }
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+        return true
+      }
+    } catch {
+      /* sigue al fallback */
+    }
+    try {
+      const ta = document.createElement('textarea')
+      ta.value = url
+      ta.setAttribute('readonly', '')
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      const ok = document.execCommand('copy')
+      document.body.removeChild(ta)
+      return ok
+    } catch {
+      return false
+    }
+  }
+
+  const compartir = async () => {
+    trackEvent('recursos_costos_compartir_calculo', {})
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: 'Mi proyección de costo de construcción', url: urlCalculo })
+        return
+      } catch {
+        // usuario canceló o el share falló → intentamos copiar
+      }
+    }
+    const ok = await copiarLink(urlCalculo)
+    setFeedbackCompartir(ok ? '¡Link copiado!' : 'No se pudo copiar')
+    setTimeout(() => setFeedbackCompartir(null), 2500)
+  }
 
   return (
     <div className="costos-estimator">
@@ -243,38 +286,12 @@ export default function CalculadoraCostos({ calidades }: { calidades: CalidadOpt
             considerando estos valores.
           </div>
 
-          {/* CTA SI: logo + teléfono + compartir */}
+          {/* Compartir el cálculo como link a /calculo */}
           <div className="costos-res-cta">
-            <Image
-              src="/logo-blanco.webp"
-              alt="SI INMOBILIARIA"
-              width={172}
-              height={30}
-              className="costos-res-logo"
-            />
-            <p>
-              ¿Querés validar estos números con quien construye y vende en la zona todos
-              los días? Escribinos al {TELEFONO_DISPLAY}.
-            </p>
             <div className="costos-res-cta-botones">
-              <a
-                href={waDavid}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="costos-res-btn-david"
-                onClick={() => trackEvent('recursos_costos_whatsapp_david', {})}
-              >
-                Hablar con David · {TELEFONO_DISPLAY}
-              </a>
-              <a
-                href={waCompartir}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="costos-res-btn-compartir"
-                onClick={() => trackEvent('recursos_costos_compartir_calculo', {})}
-              >
-                Compartir este cálculo
-              </a>
+              <button type="button" className="costos-res-btn-david" onClick={compartir}>
+                {feedbackCompartir ?? 'Compartir este cálculo'}
+              </button>
             </div>
           </div>
         </div>

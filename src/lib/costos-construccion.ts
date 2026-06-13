@@ -11,6 +11,7 @@ export const MES_BASE = '2026-06'
 
 export interface FilaResidencialBase {
   calidad: string
+  slug: string
   superficie: string
   desc: string
   cuentaPropiaBase: number
@@ -29,6 +30,7 @@ export interface FilaComercialBase {
 export const MATRIZ_RESIDENCIAL_BASE: FilaResidencialBase[] = [
   {
     calidad: 'Línea Estándar',
+    slug: 'linea-estandar',
     superficie: '50 a 120 m²',
     desc: 'Fundaciones zapata corrida, mampostería ladrillo hueco 18, revoque exterior proyectado, techo chapa con aislación poliuretano, pisos cerámicos 1ra, aberturas de aluminio línea Herrero/Módena básica, sanitarios línea Andina.',
     cuentaPropiaBase: 690,
@@ -36,6 +38,7 @@ export const MATRIZ_RESIDENCIAL_BASE: FilaResidencialBase[] = [
   },
   {
     calidad: 'Línea Media',
+    slug: 'linea-media',
     superficie: '100 a 250 m²',
     desc: 'Platea de fundación, estructura tradicional con cámara de aire/EPS, techo losa de viguetas, porcelanato 60x60 comercial, aberturas aluminio Módena con DVH, sanitarios línea Mónaco, muebles MDF 18mm.',
     cuentaPropiaBase: 1000,
@@ -43,6 +46,7 @@ export const MATRIZ_RESIDENCIAL_BASE: FilaResidencialBase[] = [
   },
   {
     calidad: 'Línea Alta',
+    slug: 'linea-alta',
     superficie: '200 a 400 m²',
     desc: 'Estructura HºAº independiente, mampostería Retak o doble muro, losa radiante (caldera dual), porcelanato símil madera o gran formato (90x90), aberturas A30 New DVH, sanitarios alta gama (Gap/Marina).',
     cuentaPropiaBase: 1242,
@@ -50,6 +54,7 @@ export const MATRIZ_RESIDENCIAL_BASE: FilaResidencialBase[] = [
   },
   {
     calidad: 'Premium Country',
+    slug: 'premium-country',
     superficie: '+300 m²',
     desc: 'Estructura H°A° visto, climatización central VRV/VRF, aberturas PVC foliado (Rehau/Schüco) con vidrios seguridad DVH, mármol o porcelanato importado +120x120, domótica integral, piscina revestida borde infinito.',
     cuentaPropiaBase: 1725,
@@ -61,14 +66,14 @@ export const MATRIZ_COMERCIAL_BASE: FilaComercialBase[] = [
   {
     tipologia: 'Galpón Tinglado',
     desc: 'Bases aisladas H°A°, pórticos de alma llena, cubierta chapa U-45 cincalum, aislación térmica lana de vidrio 80mm con foil, piso H°A° llaneado apto tránsito pesado, portón industrial 5x5m.',
-    cuentaPropiaBase: 414,
-    llaveBase: 468,
+    cuentaPropiaBase: 435,
+    llaveBase: 491,
   },
   {
     tipologia: 'Local Vidriado',
     desc: 'Estructura metálica pesada o H°A°, frente integral con piel de vidrio templado 10mm o DVH estructural, pisos de alto tránsito (porcelanato técnico), cielorraso desmontable, cortina motorizada.',
-    cuentaPropiaBase: 724,
-    llaveBase: 819,
+    cuentaPropiaBase: 760,
+    llaveBase: 860,
   },
 ]
 
@@ -104,6 +109,9 @@ export async function getAjusteIPC(): Promise<AjusteIPC> {
     return { factor: 1, mes: MES_BASE }
   }
 }
+
+export const getCalidadBySlug = (slug: string) =>
+  MATRIZ_RESIDENCIAL_BASE.find((f) => f.slug === slug)
 
 export const ajustar = (base: number, factor: number) => Math.round(base * factor)
 
