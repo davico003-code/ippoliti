@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Mail,
   MessageSquare,
+  Newspaper,
   Users,
 } from 'lucide-react'
 
@@ -535,6 +536,16 @@ function AdminSection({
           title="Suscriptores Newsletter"
           description="Personas que dejaron sus datos en el popup “¿Encontraste lo que buscabas?”. Exportá la lista o contactalos por WhatsApp."
           statLabel={newsletterStat}
+          statColor={GREEN}
+        />
+        <PlacaCard
+          href="/admin/notas"
+          icon={<Newspaper size={22} strokeWidth={1.8} />}
+          iconColor={GREEN}
+          iconBg={GREEN_TINT}
+          title="Notas del Blog"
+          description="Editá el texto, subí portada o borrá notas del blog. El radar publica solo martes y viernes; acá ves la actividad. Pide el código del equipo."
+          statLabel="Editar · portada · borrar"
           statColor={GREEN}
         />
       </div>
