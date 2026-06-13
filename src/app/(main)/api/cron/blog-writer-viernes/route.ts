@@ -17,13 +17,13 @@ export async function GET(req: Request) {
     console.error('[blog-writer-viernes] Error:', err);
     const errMsg = err instanceof Error ? err.message : 'Unknown error';
     try {
-      const { notificarConAlerta } = await import('@/agents/blog/lib/alert');
-      await notificarConAlerta(
-        `❌ writer-viernes: error fatal no capturado\n\n${errMsg}`,
-        'writer-viernes: error-fatal',
-      );
+      const { registrarActividad } = await import('@/agents/blog/lib/actividad');
+      await registrarActividad({
+        tipo: 'error',
+        mensaje: `writer-viernes: error fatal no capturado. ${errMsg}`,
+      });
     } catch (alertErr) {
-      console.error('[blog-writer-viernes] alerta también falló:', alertErr);
+      console.error('[blog-writer-viernes] feed de actividad también falló:', alertErr);
     }
     return Response.json({ error: errMsg }, { status: 500 });
   }

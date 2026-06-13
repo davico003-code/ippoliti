@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Lock, Trash2, RotateCcw, ImageUp, RefreshCw, AlertTriangle, X } from 'lucide-react'
+import { Lock, Trash2, RotateCcw, ImageUp, RefreshCw, AlertTriangle, X, Activity } from 'lucide-react'
 
 const VERDE = '#1f6b3f'
 const TEAM_KEY = 'si_team_access'
@@ -19,6 +19,22 @@ interface NotaAdminItem {
   dupGroup: number | null
 }
 
+type TipoActividad = 'publicada' | 'evergreen' | 'error' | 'info'
+interface EntradaActividad {
+  tipo: TipoActividad
+  mensaje: string
+  titulo?: string
+  url?: string
+  ts: string
+}
+
+const ACTIVIDAD_ESTILO: Record<TipoActividad, { bg: string; dot: string; label: string }> = {
+  publicada: { bg: '#f0faf3', dot: '#15803d', label: 'Publicada' },
+  evergreen: { bg: '#fff7ed', dot: '#c2740a', label: 'Evergreen' },
+  error: { bg: '#fef2f2', dot: '#dc2626', label: 'Error' },
+  info: { bg: '#f5f7fa', dot: '#64748b', label: 'Info' },
+}
+
 // Limpieza sugerida — destinos confirmados por David (02-jun-2026).
 const LIMPIEZA_SUGERIDA: { slug: string; destino: string }[] = [
   { slug: 'usados-vs-nuevos-rosario-precios-desalineados-zona-oeste', destino: '/blog/usados-vs-nuevos-brecha-precios-zona-oeste' },
@@ -34,6 +50,7 @@ export default function AdminNotasPage() {
   const [code, setCode] = useState('')
   const [auth, setAuth] = useState(false)
   const [items, setItems] = useState<NotaAdminItem[]>([])
+  const [actividad, setActividad] = useState<EntradaActividad[]>([])
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
@@ -70,6 +87,16 @@ export default function AdminNotasPage() {
       }
       const d = await res.json()
       setItems(d.items ?? [])
+      // Feed de actividad (best-effort: si falla, no rompe la lista)
+      try {
+        const ra = await fetch('/api/admin/notas/actividad', { headers: authHeaders() })
+        if (ra.ok) {
+          const da = await ra.json()
+          setActividad(da.items ?? [])
+        }
+      } catch {
+        /* feed opcional */
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'error de red')
     } finally {
@@ -229,6 +256,54 @@ export default function AdminNotasPage() {
           >
             <Trash2 className="w-4 h-4" /> Aplicar limpieza sugerida
           </button>
+        </div>
+
+        {/* Feed de actividad del pipeline autónomo */}
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5">
+          <div className="flex items-center gap-2 mb-3 text-gray-700">
+            <Activity className="w-4 h-4" style={{ color: VERDE }} />
+            <h2 className="font-bold text-sm uppercase tracking-wide">Actividad del pipeline</h2>
+          </div>
+          {actividad.length === 0 ? (
+            <p className="text-sm text-gray-400">
+              Sin actividad registrada todavía. El radar publica solo los martes y viernes; acá vas a ver cada publicación automática.
+            </p>
+          ) : (
+            <ul className="space-y-1.5">
+              {actividad.map((a, i) => {
+                const st = ACTIVIDAD_ESTILO[a.tipo] ?? ACTIVIDAD_ESTILO.info
+                const fecha = new Date(a.ts).toLocaleString('es-AR', {
+                  day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+                })
+                return (
+                  <li
+                    key={`${a.ts}-${i}`}
+                    className="flex items-start gap-3 rounded-lg px-3 py-2 text-sm"
+                    style={{ background: st.bg }}
+                  >
+                    <span
+                      className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ background: st.dot }}
+                      aria-hidden
+                    />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-gray-800">
+                        {a.titulo ? <span className="font-semibold">{a.titulo}</span> : null}
+                        {a.titulo ? ' — ' : ''}
+                        {a.mensaje}
+                      </span>
+                      {a.url && (
+                        <a href={a.url} target="_blank" rel="noopener noreferrer" className="ml-2 underline" style={{ color: VERDE }}>
+                          ver
+                        </a>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-400 font-poppins tabular-nums flex-shrink-0">{fecha}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
 
         {/* Lista */}
