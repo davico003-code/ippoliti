@@ -275,7 +275,7 @@ const STYLES = `
 
   /* Estimador (calculadora) */
   .costos-estimator {
-    background: linear-gradient(150deg, #1F2624 0%, #2E3733 85%);
+    background: linear-gradient(150deg, var(--c-verde-profundo) 0%, var(--c-verde) 85%);
     border-radius: var(--c-radius); padding: 56px 50px; color: #fff;
     box-shadow: var(--c-shadow-lg); margin-bottom: 72px; position: relative; overflow: hidden;
   }
@@ -365,6 +365,33 @@ const STYLES = `
     border-radius: 8px; border-left: 3px solid var(--c-verde-vivo);
   }
   .costos-res-disclaimer strong { color: rgba(255,255,255,0.9); font-weight: 600; }
+  .costos-res-cta {
+    margin-top: 26px; padding-top: 26px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    text-align: center;
+  }
+  .costos-res-logo { height: 30px; width: auto; margin: 0 auto 12px; display: block; }
+  .costos-res-cta p {
+    font-size: 14px; color: rgba(255,255,255,0.8);
+    margin: 0 0 18px; max-width: 480px; margin-left: auto; margin-right: auto;
+  }
+  .costos-res-cta-botones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .costos-res-btn-david {
+    display: inline-block; background: #fff; color: var(--c-verde-profundo); text-decoration: none;
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+    padding: 14px 28px; border-radius: 100px;
+    font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+  .costos-res-btn-david:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+  .costos-res-btn-compartir {
+    display: inline-block; background: transparent; color: #fff; text-decoration: none;
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+    padding: 14px 28px; border-radius: 100px; border: 1.5px solid rgba(255,255,255,0.5);
+    font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    transition: background-color 0.25s, border-color 0.25s;
+  }
+  .costos-res-btn-compartir:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
 
   /* Árbol de decisión */
   .costos-flow { margin-bottom: 72px; }
@@ -525,6 +552,10 @@ const STYLES = `
     .costos-res-total span { font-size: 14px; }
     .costos-res-total strong { font-size: 22px; }
     .costos-res-disclaimer { font-size: 11.5px; padding: 12px 13px; margin-top: 14px; }
+    .costos-res-cta { margin-top: 18px; padding-top: 18px; }
+    .costos-res-logo { height: 24px; }
+    .costos-res-cta p { font-size: 12.5px; }
+    .costos-res-btn-david, .costos-res-btn-compartir { width: 100%; padding: 13px 20px; font-size: 12px; }
     .costos-flow { margin-bottom: 48px; }
     .costos-flow-intro { font-size: 13px; margin-bottom: 6px; }
     .costos-cta { padding: 32px 14px; }
