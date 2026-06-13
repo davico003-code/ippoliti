@@ -2,10 +2,11 @@ import { Redis } from '@upstash/redis';
 import { BLOG_REDIS_KEYS } from '../lib/redis-keys';
 import { seleccionarCTA } from '../config/ctas';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
-import { notificarConAlerta } from '../lib/alert';
+import { registrarActividad } from '../lib/actividad';
 import { generarNotaConRetries } from './generar-nota';
 import { publicarNota } from './publicador';
 import { filtrarTemasUsados } from '../lib/dedupe';
+import { TEMAS_EVERGREEN } from '../radar/temas-evergreen';
 import { getAllPosts } from '@/lib/blog';
 import type { TemaPropuesto } from '../types';
 
@@ -33,41 +34,45 @@ interface WriterResult {
   error?: string;
 }
 
+// Auto-selección 100% autónoma (sin aprobación humana, jun-2026):
+// 1. Lee la cola del radar (blog:temas_semana, que el cron del lunes llena).
+// 2. Dedup jaccard contra TODO lo publicado (getAllPosts) + temasUsados.
+// 3. Devuelve el PRIMER tema fresco de la cola; si la cola está vacía o todos
+//    sus temas ya se cubrieron, cae al pool evergreen (también dedupeado).
+//    Garantía: el blog SIEMPRE tiene un tema fresco para publicar martes y
+//    viernes — solo devuelve null en el caso extremo de que hasta el evergreen
+//    completo esté agotado (10 temas vs 2/semana: improbable).
+function autoSeleccionarTema(
+  cola: TemaPropuesto[],
+  corpusUsado: string[],
+): { tema: TemaPropuesto; origen: 'radar' | 'evergreen' } | null {
+  const [fresco] = filtrarTemasUsados(cola, corpusUsado);
+  if (fresco) return { tema: fresco, origen: 'radar' };
+
+  const [evergreen] = filtrarTemasUsados(TEMAS_EVERGREEN, corpusUsado);
+  if (evergreen) return { tema: evergreen, origen: 'evergreen' };
+
+  return null;
+}
+
 export async function ejecutarWriterDia(
   dia: 'martes' | 'viernes',
 ): Promise<WriterResult> {
   const redis = getRedis();
 
-  // 1. Leer temas aprobados
-  const raw = await redis.get<string>(BLOG_REDIS_KEYS.temasAprobados);
-
-  let aprobados: TemaPropuesto[];
+  // 1. Leer la cola de temas del radar (ya no hay estado "aprobado": el radar
+  //    del lunes llena blog:temas_semana y el writer auto-selecciona).
+  const raw = await redis.get<string>(BLOG_REDIS_KEYS.temasSemana);
+  let cola: TemaPropuesto[];
   try {
-    aprobados = raw
+    cola = raw
       ? (typeof raw === 'string' ? JSON.parse(raw) : raw) as TemaPropuesto[]
       : [];
   } catch {
-    aprobados = [];
+    cola = [];
   }
 
-  // Cola FIFO: cada corrida consume el primero. Si quedó vacía (porque ya se
-  // consumieron los temas de la semana), NO se republica nada ni se publica
-  // vacío: se saltea el ciclo con aviso.
-  if (aprobados.length < 1) {
-    await notificarConAlerta(
-      `⚠️ No hay temas aprobados para ${dia}. No se publica nada. Aprobá temas nuevos respondiendo al radar del lunes (2 números).`,
-      `writer-${dia}: sin-temas`,
-    );
-    return { ok: false, error: 'sin-temas' };
-  }
-
-  // 2. Tomar el primero de la cola
-  const tema = aprobados[0];
-
-  // 2b. Dedup ANTES de generar — contra TODO lo publicado real (estáticas +
-  //     dinámicas vía getAllPosts) y contra temasUsados. Cierra el agujero
-  //     original (que solo chequeaba temasUsados). Si el tema ya existe, se
-  //     consume (sale de la cola) y se saltea el ciclo con aviso.
+  // 2. Corpus de dedup: títulos publicados (estáticas + dinámicas) + usados.
   const usadosRaw = await redis.get<string[]>(BLOG_REDIS_KEYS.temasUsados);
   const usados = usadosRaw ?? [];
   let titulosPublicados: string[] = [];
@@ -76,57 +81,79 @@ export async function ejecutarWriterDia(
   } catch (e) {
     console.warn('[orquestador] no se pudo leer publicados para dedup:', e);
   }
-  const noDuplicado = filtrarTemasUsados([tema], [...titulosPublicados, ...usados]);
-  if (noDuplicado.length === 0) {
-    await redis.set(BLOG_REDIS_KEYS.temasAprobados, JSON.stringify(aprobados.slice(1)));
-    await notificarConAlerta(
-      `⚠️ "${tema.titulo}" (${dia}) ya estaba publicado o usado. Lo salteo y lo saco de la cola. Aprobá un tema nuevo.`,
-      `writer-${dia}: tema-duplicado`,
-    );
-    return { ok: false, error: 'tema-duplicado' };
+  const corpusUsado = [...titulosPublicados, ...usados];
+
+  // 3. Auto-seleccionar (radar fresco → evergreen de respaldo). NUNCA repite
+  //    un tema ya publicado/usado por el dedup jaccard.
+  const seleccion = autoSeleccionarTema(cola, corpusUsado);
+  if (!seleccion) {
+    await registrarActividad({
+      tipo: 'error',
+      mensaje: `${dia}: ni el radar ni el pool evergreen tienen un tema fresco (todo ya publicado). No se publicó.`,
+    });
+    return { ok: false, error: 'sin-temas-frescos' };
+  }
+  const { tema, origen } = seleccion;
+  if (origen === 'evergreen') {
+    await registrarActividad({
+      tipo: 'evergreen',
+      mensaje: `${dia}: la cola del radar estaba vacía o sin temas frescos. Caigo al pool evergreen.`,
+      titulo: tema.titulo,
+    });
   }
 
-  // 3. Elegir CTA (rotar)
+  // 4. Elegir CTA (rotar)
   const ultimosCTAsRaw = await redis.get<string[]>(BLOG_REDIS_KEYS.ultimosCTAs);
   const ultimosCTAs = ultimosCTAsRaw ?? [];
   const cta = seleccionarCTA(ultimosCTAs);
 
-  // 4. Contexto económico
+  // 5. Contexto económico
   await obtenerContextoEconomico(); // para log; el writer lo obtiene internamente también
 
-  // 5. Generar nota con retries
+  // 6. Generar nota con retries
   console.log(`[orquestador] ${dia}: generando nota para "${tema.titulo}" con CTA "${cta.id}"`);
   const resultado = await generarNotaConRetries(tema, cta);
 
   if (!resultado.ok) {
-    const razonesTxt = resultado.razones.map((r, i) => `${i + 1}. ${r}`).join('\n');
+    const razonesTxt = resultado.razones.map((r, i) => `${i + 1}. ${r}`).join('; ');
     const tituloFallido = resultado.ultimoDraft?.titulo ?? tema.titulo;
-
-    await notificarConAlerta(
-      `❌ El writer falló para "${tituloFallido}" (${dia}).\n\nRazones:\n${razonesTxt}\n\nEditá manualmente y publicá vos.`,
-      `writer-${dia}: draft-invalido`,
-    );
+    await registrarActividad({
+      tipo: 'error',
+      mensaje: `${dia}: el writer no pudo generar una nota válida. Razones: ${razonesTxt}`,
+      titulo: tituloFallido,
+    });
     return { ok: false, error: 'draft-invalido' };
   }
 
-  // 6. Publicar
+  // 7. Publicar
   console.log(`[orquestador] Publicando "${resultado.nota.titulo}"`);
   const publicada = await publicarNota(resultado.nota);
 
-  // 6b. Consumir el tema de la cola SOLO tras publicar OK (si la generación
-  //     falla, queda en la cola para reintentar el próximo ciclo, no se pierde).
-  await redis.set(BLOG_REDIS_KEYS.temasAprobados, JSON.stringify(aprobados.slice(1)));
+  // 8. Dedup permanente: sumar el título publicado a temasUsados (últimos 30).
+  //    Esto reemplaza lo que antes hacía el webhook de aprobación y garantiza
+  //    que el radar y los writers futuros no repitan este tema.
+  usados.push(tema.titulo);
+  await redis.set(BLOG_REDIS_KEYS.temasUsados, usados.slice(-30));
 
-  // 7. Actualizar últimos CTAs
+  // 8b. Si el tema salió de la cola del radar, consumirlo de blog:temas_semana
+  //     (los evergreen no están en la cola, no hay nada que sacar).
+  if (origen === 'radar') {
+    const colaRestante = cola.filter((t) => t.titulo !== tema.titulo);
+    await redis.set(BLOG_REDIS_KEYS.temasSemana, JSON.stringify(colaRestante));
+  }
+
+  // 9. Actualizar últimos CTAs
   ultimosCTAs.push(resultado.nota.cta_usado);
   await redis.set(BLOG_REDIS_KEYS.ultimosCTAs, ultimosCTAs.slice(-4));
 
-  // 8. Notificar por WhatsApp
+  // 10. Registrar la publicación en el feed del panel admin (sin WhatsApp).
   const palabras = contarPalabras(resultado.nota.contenido_markdown);
-  await notificarConAlerta(
-    `✅ Publicada: ${publicada.titulo}\nLink: ${publicada.url_completa}\nCTA: ${publicada.cta_usado}\nPalabras: ${palabras}`,
-    `writer-${dia}: publicada`,
-  );
+  await registrarActividad({
+    tipo: 'publicada',
+    mensaje: `Publicada automáticamente (${dia}, ${origen === 'evergreen' ? 'evergreen' : 'radar'}) · ${palabras} palabras · CTA ${publicada.cta_usado}`,
+    titulo: publicada.titulo,
+    url: publicada.url_completa,
+  });
 
   return { ok: true, notaUrl: publicada.url_completa };
 }

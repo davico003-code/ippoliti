@@ -7,7 +7,7 @@ import { puntuarTitular } from '../lib/scoring';
 import { filtrarTemasUsados } from '../lib/dedupe';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
 import { llamarClaude } from '../lib/claude-client';
-import { notificarConAlerta } from '../lib/alert';
+import { registrarActividad } from '../lib/actividad';
 import { BLOG_REDIS_KEYS, TTL } from '../lib/redis-keys';
 import { TEMAS_EVERGREEN } from './temas-evergreen';
 import { getAllPosts } from '@/lib/blog';
@@ -158,13 +158,13 @@ Sin markdown, sin explicaciones, solo el JSON.`;
 
   filtradas = filtradas.slice(0, TOTAL_PROPUESTAS);
 
-  // Si no se llega a 5 temas frescos, NO se rellena con repetidos: se proponen
-  // menos (3-4) y se avisa. Mejor pocas frescas que 5 con temas ya cubiertos.
+  // Si no se llega a 5 temas frescos, NO se rellena con repetidos: se cargan
+  // menos. El writer igual publica (cae al pool evergreen si hace falta).
   if (filtradas.length < TOTAL_PROPUESTAS) {
-    await notificarConAlerta(
-      `📋 Radar: solo ${filtradas.length} tema(s) fresco(s) esta semana (no se rellenó con repetidos). Revisá las propuestas antes de aprobar.`,
-      'radar: pocas-propuestas',
-    );
+    await registrarActividad({
+      tipo: 'info',
+      mensaje: `Radar: solo ${filtradas.length} tema(s) fresco(s) esta semana (no se rellenó con repetidos). El writer completa con evergreen si falta.`,
+    });
   }
 
   // 9. Guardar en Redis

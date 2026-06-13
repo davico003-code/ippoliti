@@ -1,6 +1,11 @@
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120; // scraping + Claude call can take time
 
+// Radar autónomo (jun-2026): el cron del lunes solo LLENA la cola de temas
+// (blog:temas_semana). Ya no hay aprobación humana ni WhatsApp: el writer de
+// martes/viernes auto-selecciona de esa cola. El resultado queda en el feed
+// de actividad del panel admin, no por WhatsApp.
+
 export async function GET(req: Request) {
   const auth = req.headers.get('authorization');
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -11,17 +16,14 @@ export async function GET(req: Request) {
     const { generarPropuestasSemanales } = await import(
       '@/agents/blog/radar/proponer-temas'
     );
-    const { formatearPropuestasParaWhatsApp } = await import(
-      '@/agents/blog/radar/formatear-whatsapp'
-    );
-    const { notificarConAlerta } = await import(
-      '@/agents/blog/lib/alert'
-    );
+    const { registrarActividad } = await import('@/agents/blog/lib/actividad');
 
     const propuestas = await generarPropuestasSemanales();
-    const mensaje = formatearPropuestasParaWhatsApp(propuestas);
 
-    await notificarConAlerta(mensaje, 'blog-radar: propuestas semanales');
+    await registrarActividad({
+      tipo: 'info',
+      mensaje: `Radar del lunes: ${propuestas.length} tema(s) frescos cargados en la cola. El writer publica martes y viernes.`,
+    });
 
     return Response.json({
       success: true,
@@ -30,6 +32,15 @@ export async function GET(req: Request) {
     });
   } catch (err) {
     console.error('[blog-radar] Error:', err);
+    try {
+      const { registrarActividad } = await import('@/agents/blog/lib/actividad');
+      await registrarActividad({
+        tipo: 'error',
+        mensaje: `Radar del lunes: error al generar propuestas. ${err instanceof Error ? err.message : 'Unknown error'}`,
+      });
+    } catch {
+      /* el feed es best-effort */
+    }
     return Response.json(
       { error: err instanceof Error ? err.message : 'Unknown error' },
       { status: 500 },
