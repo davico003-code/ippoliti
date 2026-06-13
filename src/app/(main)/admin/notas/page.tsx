@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Lock, Trash2, RotateCcw, ImageUp, RefreshCw, AlertTriangle, X, Activity } from 'lucide-react'
+import { Lock, Trash2, RotateCcw, ImageUp, RefreshCw, AlertTriangle, X, Activity, Pencil } from 'lucide-react'
 
 const VERDE = '#1f6b3f'
 const TEAM_KEY = 'si_team_access'
@@ -55,8 +55,10 @@ export default function AdminNotasPage() {
   const [err, setErr] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
-  const [delTarget, setDelTarget] = useState<NotaAdminItem | null>(null)
-  const [delDestino, setDelDestino] = useState('')
+  const [editSlug, setEditSlug] = useState<string | null>(null)
+  const [editContenido, setEditContenido] = useState('')
+  const [editTitulo, setEditTitulo] = useState('')
+  const [editLoading, setEditLoading] = useState(false)
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({})
 
   useEffect(() => {
@@ -122,21 +124,77 @@ export default function AdminNotasPage() {
       body: JSON.stringify({ slug, destino, accion: 'eliminar' }),
     })
 
-  const confirmarBorrado = async () => {
-    if (!delTarget) return
+  // Borrado directo, sin diálogo (pedido de David). Usa el soft-delete
+  // existente con destino al índice del blog: la nota sale del público al
+  // instante pero queda recuperable desde "Restaurar".
+  const borrarDirecto = async (slug: string) => {
     setWorking(true)
     setErr(null)
     setMsg(null)
     try {
-      const res = await eliminar(delTarget.slug, delDestino.trim())
+      const res = await eliminar(slug, '/blog')
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
         setErr(d.error ?? 'no se pudo borrar')
         return
       }
-      setMsg(`Eliminada: ${delTarget.slug} → ${delDestino.trim()}`)
-      setDelTarget(null)
-      setDelDestino('')
+      setMsg(`Eliminada: ${slug} (recuperable desde Restaurar)`)
+      await cargar()
+    } finally {
+      setWorking(false)
+    }
+  }
+
+  // ── Edición de texto (markdown plano) ──
+  const abrirEditor = async (slug: string) => {
+    setEditSlug(slug)
+    setEditLoading(true)
+    setEditContenido('')
+    setEditTitulo('')
+    setErr(null)
+    try {
+      const res = await fetch(`/api/admin/notas/editar?slug=${encodeURIComponent(slug)}`, {
+        headers: authHeaders(),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setErr(d.error ?? 'no se pudo abrir la nota')
+        setEditSlug(null)
+        return
+      }
+      const d = await res.json()
+      setEditContenido(d.contenido_markdown ?? '')
+      setEditTitulo(d.titulo ?? '')
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'error de red')
+      setEditSlug(null)
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  const guardarEdicion = async () => {
+    if (!editSlug) return
+    setWorking(true)
+    setErr(null)
+    setMsg(null)
+    try {
+      const res = await fetch('/api/admin/notas/editar', {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: editSlug,
+          contenido_markdown: editContenido,
+          titulo: editTitulo.trim() || undefined,
+        }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setErr(d.error ?? 'no se pudo guardar')
+        return
+      }
+      setMsg(`Nota actualizada: ${editSlug}`)
+      setEditSlug(null)
       await cargar()
     } finally {
       setWorking(false)
@@ -225,6 +283,9 @@ export default function AdminNotasPage() {
             <h1 className="font-black text-2xl tracking-tight">Notas del blog</h1>
             <p className="text-sm text-gray-500 font-poppins tabular-nums">
               {items.length} notas · {items.filter(i => i.eliminada).length} eliminadas
+            </p>
+            <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+              <ImageUp className="w-3.5 h-3.5" /> Portada recomendada: 1200×630 px, JPG o PNG. Se recorta y optimiza automáticamente.
             </p>
           </div>
           <button
@@ -354,7 +415,7 @@ export default function AdminNotasPage() {
                         fileInputs.current[n.slug] = el
                       }}
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png"
                       className="hidden"
                       onChange={e => {
                         const f = e.target.files?.[0]
@@ -362,8 +423,18 @@ export default function AdminNotasPage() {
                         e.target.value = ''
                       }}
                     />
+                    {n.tipo === 'dinamica' && (
+                      <button
+                        title="Editar texto"
+                        onClick={() => abrirEditor(n.slug)}
+                        disabled={working}
+                        className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50"
+                      >
+                        <Pencil className="w-4 h-4 text-gray-600" />
+                      </button>
+                    )}
                     <button
-                      title="Cambiar imagen"
+                      title="Subir portada (1200×630, JPG o PNG)"
                       onClick={() => fileInputs.current[n.slug]?.click()}
                       disabled={working}
                       className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50"
@@ -371,11 +442,8 @@ export default function AdminNotasPage() {
                       <ImageUp className="w-4 h-4 text-gray-600" />
                     </button>
                     <button
-                      title="Eliminar"
-                      onClick={() => {
-                        setDelTarget(n)
-                        setDelDestino('/blog/')
-                      }}
+                      title="Borrar (reversible)"
+                      onClick={() => borrarDirecto(n.slug)}
                       disabled={working}
                       className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
                     >
@@ -398,46 +466,61 @@ export default function AdminNotasPage() {
         </div>
       </div>
 
-      {/* Modal de borrado */}
-      {delTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setDelTarget(null)}>
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+      {/* Editor de texto (markdown plano) */}
+      {editSlug && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setEditSlug(null)}>
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-lg">Eliminar nota</h3>
-              <button onClick={() => setDelTarget(null)}>
+              <h3 className="font-bold text-lg">Editar nota</h3>
+              <button onClick={() => setEditSlug(null)} title="Cerrar">
                 <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
-            <p className="text-sm text-gray-600 mb-1">{delTarget.titulo}</p>
-            <p className="text-xs text-gray-400 mb-4 font-poppins">/{delTarget.slug}</p>
-            <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-              URL destino del 301
-            </label>
-            <input
-              value={delDestino}
-              onChange={e => setDelDestino(e.target.value)}
-              placeholder="/blog/slug-canonico"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#1f6b3f] font-poppins"
-            />
-            <p className="text-xs text-gray-400 mt-2">
-              Soft-delete reversible: no se borra el contenido, solo se oculta y redirige (301).
-            </p>
-            <div className="mt-5 flex gap-2 justify-end">
-              <button
-                onClick={() => setDelTarget(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmarBorrado}
-                disabled={working || !delDestino.trim()}
-                className="rounded-lg px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
-                style={{ background: '#dc2626' }}
-              >
-                Eliminar y redirigir
-              </button>
-            </div>
+            <p className="text-xs text-gray-400 mb-4 font-poppins">/{editSlug}</p>
+
+            {editLoading ? (
+              <p className="text-sm text-gray-500 py-8 text-center">Cargando…</p>
+            ) : (
+              <>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                  Título
+                </label>
+                <input
+                  value={editTitulo}
+                  onChange={e => setEditTitulo(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#1f6b3f] mb-4"
+                />
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                  Contenido (markdown)
+                </label>
+                <textarea
+                  value={editContenido}
+                  onChange={e => setEditContenido(e.target.value)}
+                  rows={16}
+                  spellCheck
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#1f6b3f] font-mono leading-relaxed resize-y"
+                />
+                <p className="text-xs text-gray-400 mt-2">
+                  Texto plano con formato markdown. Al guardar se actualiza la nota pública (respeta el revalidate del blog).
+                </p>
+                <div className="mt-5 flex gap-2 justify-end">
+                  <button
+                    onClick={() => setEditSlug(null)}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={guardarEdicion}
+                    disabled={working || editContenido.trim().length < 50}
+                    className="rounded-lg px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+                    style={{ background: VERDE }}
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
