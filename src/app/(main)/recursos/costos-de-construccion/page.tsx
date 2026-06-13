@@ -161,7 +161,7 @@ const STYLES = `
     letter-spacing: -0.2px; margin: 0 0 8px;
   }
   .costos-def-card p { font-size: 13.5px; color: var(--c-text-muted); line-height: 1.7; margin: 0; }
-  .costos-def-featured { background: var(--c-carbon); border-color: var(--c-carbon); }
+  .costos-def-featured { background: var(--c-verde-profundo); border-color: var(--c-verde-profundo); }
   .costos-def-featured .costos-def-tag { background: rgba(255,255,255,0.14); color: #A7E3C0; }
   .costos-def-featured h4 { color: #fff; }
   .costos-def-featured p { color: rgba(255,255,255,0.78); }

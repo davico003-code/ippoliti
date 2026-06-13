@@ -194,7 +194,7 @@ export default function CalculadoraCostos({ calidades }: { calidades: CalidadOpt
           id="costos-piscina"
           label="Tamaño Piscina (m²)"
           placeholder="0"
-          help="Se calcula como semicubierta."
+          help="Ej: si tu piscina es de 10x5, colocá 50 m². Se calcula como semicubierta."
           value={piscina.display}
           onChange={(raw, display) => setPiscina({ raw, display })}
         />
