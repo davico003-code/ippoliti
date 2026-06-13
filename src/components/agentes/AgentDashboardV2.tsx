@@ -67,6 +67,8 @@ interface Props {
   newsletterTotal?: number
   /** Suscriptos newsletter este mes (solo se popula si admin). */
   newsletterEsteMes?: number
+  /** Feedback de caritas de la calculadora de costos (visible para todos). */
+  feedbackCostos?: { up: number; mid: number; down: number }
 }
 
 export default function AgentDashboardV2({
@@ -76,6 +78,7 @@ export default function AgentDashboardV2({
   autorizacionesEsteMes,
   newsletterTotal = 0,
   newsletterEsteMes = 0,
+  feedbackCostos = { up: 0, mid: 0, down: 0 },
 }: Props) {
   const firstName = agentName.split(' ')[0]
   const initials = getInitials(agentName)
@@ -208,6 +211,8 @@ export default function AgentDashboardV2({
             statLabel="En desarrollo"
           />
         </div>
+
+        <FeedbackCostosSection data={feedbackCostos} />
 
         {isAdmin && (
           <AdminSection
@@ -348,6 +353,87 @@ interface PlacaProps {
   statColor?: string
   footerNode?: React.ReactNode
   accent?: 'gold'
+}
+
+// ── Feedback · Calculadora de Construcción ────────────────────────────
+// Contadores de las caritas (Redis feedback:costos:*), visibles para todos
+// los usuarios del panel. Mismo lenguaje visual que los stats de admin.
+function FeedbackCostosSection({ data }: { data: { up: number; mid: number; down: number } }) {
+  const total = data.up + data.mid + data.down
+  const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0)
+  const filas = [
+    { emoji: '😄', label: 'Me sirvió', valor: data.up, color: GREEN },
+    { emoji: '😐', label: 'Más o menos', valor: data.mid, color: '#A1A1AA' },
+    { emoji: '😞', label: 'No me sirvió', valor: data.down, color: '#E08585' },
+  ]
+
+  return (
+    <section aria-label="Feedback de la calculadora de construcción" style={{ marginTop: 40 }}>
+      <SectionTitle>Feedback · Calculadora de Construcción</SectionTitle>
+      <div
+        style={{
+          background: '#fff',
+          border: `1px solid ${LINE}`,
+          borderRadius: 18,
+          padding: 'clamp(20px, 3vw, 28px)',
+        }}
+      >
+        {total === 0 ? (
+          <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 14, color: TEXT_SOFT, margin: 0 }}>
+            Sin respuestas todavía
+          </p>
+        ) : (
+          <>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                gap: 14,
+                marginBottom: 20,
+              }}
+            >
+              <div style={{ background: PAPER, border: `1px solid ${LINE}`, borderRadius: 12, padding: '16px 18px' }}>
+                <div style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 26, color: TEXT, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
+                  {total}
+                </div>
+                <div style={{ marginTop: 6, fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT }}>
+                  Respuestas totales
+                </div>
+              </div>
+              {filas.map((f) => (
+                <div key={f.label} style={{ background: PAPER, border: `1px solid ${LINE}`, borderRadius: 12, padding: '16px 18px' }}>
+                  <div style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 26, color: TEXT, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
+                    {f.emoji} {f.valor}
+                    <span style={{ fontSize: 14, fontWeight: 500, color: f.color, marginLeft: 8 }}>{pct(f.valor)}%</span>
+                  </div>
+                  <div style={{ marginTop: 6, fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT }}>
+                    {f.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Barra de proporción verde / gris / rojo suave */}
+            <div
+              role="img"
+              aria-label={`Proporción de votos: ${pct(data.up)}% positivos, ${pct(data.mid)}% neutros, ${pct(data.down)}% negativos`}
+              style={{ display: 'flex', height: 10, borderRadius: 99, overflow: 'hidden', background: LINE }}
+            >
+              {filas.map(
+                (f) =>
+                  f.valor > 0 && (
+                    <div
+                      key={f.label}
+                      style={{ width: `${(f.valor / total) * 100}%`, background: f.color }}
+                    />
+                  ),
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  )
 }
 
 function PlacaCard({

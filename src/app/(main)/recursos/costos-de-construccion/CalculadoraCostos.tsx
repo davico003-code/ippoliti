@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { trackEvent } from '@/lib/analytics'
+import FeedbackCaritas from './FeedbackCaritas'
 
 // Calculadora "Calculá el costo real de tu propiedad" — lógica exacta del
 // HTML de referencia aprobado:
@@ -294,6 +295,9 @@ export default function CalculadoraCostos({ calidades }: { calidades: CalidadOpt
               </button>
             </div>
           </div>
+
+          {/* Feedback de caritas */}
+          <FeedbackCaritas />
         </div>
       )}
     </div>
