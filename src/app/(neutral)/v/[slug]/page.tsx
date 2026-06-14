@@ -26,6 +26,7 @@ import LocationMap from '@/components/v/LocationMap'
 import NearbyPlacesNeutral from '@/components/v/NearbyPlacesNeutral'
 import ShareCTA from '@/components/v/ShareCTA'
 import FloatingShareButton from '@/components/v/FloatingShareButton'
+import FeedbackColega from '@/components/neutral/FeedbackColega'
 
 const NEUTRAL_DOMAIN = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
 
@@ -243,6 +244,9 @@ export default async function NeutralFichaPage({ params }: Props) {
         {hasCoords && (
           <NearbyPlacesNeutral lat={s.lat as number} lng={s.lng as number} />
         )}
+
+        {/* Sección 7c: feedback anónimo de colegas (final del scroll, antes del CTA) */}
+        <FeedbackColega slug={params.slug} />
 
         {/* Sección 8: CTA compartir */}
         <ShareCTA url={url} />
