@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: 'Terrenos y lotes en venta en Roldán. Desde USD 25.000 con financiación. Valorización 15-20% anual. Los Aromos, El Molino, Tierra de Sueños. SI Inmobiliaria.',
   keywords: 'terrenos roldan, lotes roldan, terrenos en venta roldan, lotes en venta roldan santa fe',
   alternates: { canonical: 'https://siinmobiliaria.com/terrenos-roldan' },
-  openGraph: { title: 'Terrenos en Roldán', description: 'Lotes desde USD 25.000 con valorización 15-20% anual.', url: 'https://siinmobiliaria.com/terrenos-roldan' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Terrenos en Roldán', description: 'Lotes desde USD 25.000 con valorización 15-20% anual.', url: 'https://siinmobiliaria.com/terrenos-roldan' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {

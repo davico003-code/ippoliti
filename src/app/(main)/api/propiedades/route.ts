@@ -24,5 +24,10 @@ export async function GET(request: NextRequest) {
   }
 
   const data = await res.json()
-  return NextResponse.json(data)
+  return NextResponse.json(data, {
+    headers: {
+      // Cacheo en el edge de Vercel, consistente con list-cards/similar/nearby.
+      'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=86400',
+    },
+  })
 }

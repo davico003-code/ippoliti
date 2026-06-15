@@ -28,7 +28,8 @@ export const metadata: Metadata = {
   description: `Departamentos en ${ZONE}, Rosario. Torres premium con vista al río Paraná, pileta, gym, seguridad 24hs. Ciudad Ribera, Forum, Dolfines. Desde USD 120.000.`,
   keywords: `departamentos ${ZONE_LOWER}, departamentos venta ${ZONE_LOWER}, ${ZONE_LOWER} rosario`,
   alternates: { canonical: `https://siinmobiliaria.com/departamentos-${ZONE_SLUG}` },
-  openGraph: { title: `Departamentos en ${ZONE}`, description: `Torres premium con vista al Paraná.`, url: `https://siinmobiliaria.com/departamentos-${ZONE_SLUG}` },
+  openGraph: {
+    images: ['/og-image.jpg'], title: `Departamentos en ${ZONE}`, description: `Torres premium con vista al Paraná.`, url: `https://siinmobiliaria.com/departamentos-${ZONE_SLUG}` },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {

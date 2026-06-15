@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: 'Casas en venta en Funes, Santa Fe. Funes Hills, Kentucky, Portal de Funes y más. Precios desde USD 150.000. Fotos, m², dormitorios. SI Inmobiliaria desde 1983.',
   keywords: 'casas en venta funes, casas funes, venta casas funes santa fe, casas en funes precios',
   alternates: { canonical: 'https://siinmobiliaria.com/casas-en-venta-funes' },
-  openGraph: { title: 'Casas en venta en Funes', description: 'Encontrá tu casa en Funes. Precios, fotos y asesoramiento profesional.', url: 'https://siinmobiliaria.com/casas-en-venta-funes' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Casas en venta en Funes', description: 'Encontrá tu casa en Funes. Precios, fotos y asesoramiento profesional.', url: 'https://siinmobiliaria.com/casas-en-venta-funes' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {

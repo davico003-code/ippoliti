@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   description: 'Departamentos en venta en el centro de Rosario. Peatonal Córdoba, Plaza Pringles. Desde USD 45.000. Ideal inversores. SI Inmobiliaria.',
   keywords: 'departamentos centro rosario, departamentos venta centro rosario, departamentos rosario centro',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-centro-rosario' },
-  openGraph: { title: 'Departamentos en Centro Rosario', url: 'https://siinmobiliaria.com/departamentos-centro-rosario' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Departamentos en Centro Rosario', url: 'https://siinmobiliaria.com/departamentos-centro-rosario' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {
