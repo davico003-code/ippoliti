@@ -5,6 +5,7 @@ import AgentDashboardV2 from '@/components/agentes/AgentDashboardV2'
 import { getAllClientes } from '@/lib/clientes'
 import { listAutorizaciones } from '@/lib/autorizaciones'
 import { countNewsletterLeads } from '@/lib/leads'
+import { redis } from '@/lib/redis'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,10 +22,22 @@ export default async function AgentesPage() {
   const isAdmin = agent.role === 'admin'
 
   // Stats globales (Fase 1 sin scope por agente; TODO Fase 2: filtrar por agentId).
-  const [clientes, autorizaciones, newsletter] = await Promise.all([
+  const [clientes, autorizaciones, newsletter, feedbackCostos] = await Promise.all([
     getAllClientes().catch(() => []),
     listAutorizaciones({ status: 'all', limit: 200 }).catch(() => ({ items: [], hasMore: false })),
     isAdmin ? countNewsletterLeads() : Promise.resolve({ total: 0, esteMes: 0 }),
+    // Feedback de caritas de la calculadora de costos (visible para todos)
+    Promise.all([
+      redis.get<number>('feedback:costos:up'),
+      redis.get<number>('feedback:costos:mid'),
+      redis.get<number>('feedback:costos:down'),
+    ])
+      .then(([up, mid, down]) => ({
+        up: Number(up) || 0,
+        mid: Number(mid) || 0,
+        down: Number(down) || 0,
+      }))
+      .catch(() => ({ up: 0, mid: 0, down: 0 })),
   ])
 
   // Autorizaciones creadas este mes.
@@ -43,6 +56,7 @@ export default async function AgentesPage() {
       autorizacionesEsteMes={autorizacionesEsteMes}
       newsletterTotal={newsletter.total}
       newsletterEsteMes={newsletter.esteMes}
+      feedbackCostos={feedbackCostos}
     />
   )
 }

@@ -545,4 +545,42 @@ export const COSTOS_STYLES = `
     .costos-calc-cta { padding: 28px 16px; }
     .costos-calc-cta h3 { font-size: 18px; }
   }
+
+  /* ─── Feedback de caritas (resultado de la calculadora) ─── */
+  .costos-feedback {
+    margin-top: 26px; padding-top: 26px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    text-align: center;
+  }
+  .costos-feedback-q {
+    font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+    font-weight: 700; font-size: 13px; color: rgba(255,255,255,0.75);
+    margin: 0 0 14px;
+  }
+  .costos-feedback-botones { display: flex; gap: 14px; justify-content: center; }
+  .costos-feedback-btn {
+    width: 54px; height: 54px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    font-size: 26px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, opacity 0.25s, border-color 0.25s, background-color 0.25s, box-shadow 0.25s;
+  }
+  .costos-feedback-btn:hover { transform: scale(1.12); }
+  .costos-feedback-btn:focus-visible { outline: 3px solid #34A065; outline-offset: 3px; }
+  .costos-feedback-votado {
+    border-color: #34A065;
+    background: rgba(52, 160, 101, 0.25);
+    box-shadow: 0 0 0 3px rgba(52, 160, 101, 0.4);
+  }
+  .costos-feedback-atenuada { opacity: 0.35; }
+  .costos-feedback-gracias {
+    margin: 14px 0 0;
+    font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
+    font-size: 13px; font-weight: 600; color: #7FE0A8;
+  }
+  @media (max-width: 768px) {
+    .costos-feedback { margin-top: 18px; padding-top: 18px; }
+    .costos-feedback-btn { width: 48px; height: 48px; font-size: 23px; }
+  }
 `
