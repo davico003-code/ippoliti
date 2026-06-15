@@ -125,18 +125,13 @@ export default async function DevelopmentPage({ params }: Props) {
   const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${dev.name}`)
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
 
-  // Fetch units for this development
-  let units: DevUnit[] = []
-  try {
-    units = await getDevUnits(dev.id)
-  } catch {}
-
-  // Fetch other developments
-  let otherDevs: Development[] = []
-  try {
-    const allDevs = await getDevelopments()
-    otherDevs = allDevs.filter(d => d.id !== dev!.id).slice(0, 3)
-  } catch {}
+  // Units y otros emprendimientos son independientes → en paralelo (antes en serie).
+  const [units, otherDevs] = await Promise.all([
+    getDevUnits(dev.id).catch(() => [] as DevUnit[]),
+    getDevelopments()
+      .then(all => all.filter(d => d.id !== dev!.id).slice(0, 3))
+      .catch(() => [] as Development[]),
+  ])
 
   const mainPhotoUrl = getDevMainPhoto(dev)
   const jsonLd = {

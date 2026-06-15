@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Mail,
   MessageSquare,
+  Newspaper,
   Users,
 } from 'lucide-react'
 
@@ -17,7 +18,6 @@ import { getProgress } from '@/lib/si-school/progress'
 // ── Design tokens ──────────────────────────────────────────────────────
 const GREEN = '#1A5C38'
 const GREEN_DARK = '#143E27'
-const GREEN_TINT = '#E8F1ED'
 const GOLD = '#B8935A'
 const GOLD_TINT = '#F5EFE3'
 const PAPER = '#FAF7F2'
@@ -132,32 +132,21 @@ export default function AgentDashboardV2({
 
         {/* En uso */}
         <SectionTitle>En uso</SectionTitle>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 18,
-            marginBottom: 40,
-          }}
-        >
+        <div className="agent-tool-grid" style={{ marginBottom: 40 }}>
           <PlacaCard
             href="/agentes/seleccion"
             icon={<Users size={22} strokeWidth={1.8} />}
-            iconColor={GREEN}
-            iconBg={GREEN_TINT}
+            pastel="#C8D9D2"
             title="Seguimiento de Clientes"
-            description="Tu cartera activa de compradores y vendedores. Conversaciones, visitas y notas en un solo lugar."
+            description="Cartera, conversaciones, visitas y notas."
             statLabel={`${clientesEnCartera} en tu cartera`}
-            statColor={GREEN}
           />
           <PlacaCard
             href="/recursos/si-school"
             icon={<GraduationCap size={22} strokeWidth={1.8} />}
-            iconColor={GOLD}
-            iconBg={GOLD_TINT}
+            pastel="#EEDDBD"
             title="SI School"
-            description="El programa de onboarding del agente SI. 6 capacidades para construir oficio desde el día uno."
-            accent="gold"
+            description="Onboarding del agente SI."
             footerNode={
               <ProgressBar
                 done={capsCompletas}
@@ -169,45 +158,28 @@ export default function AgentDashboardV2({
           <PlacaCard
             href="/recursos/autorizaciones"
             icon={<FileText size={22} strokeWidth={1.8} />}
-            iconColor={GREEN}
-            iconBg={GREEN_TINT}
+            pastel="#F4D2C7"
             title="Autorización de Venta Digital"
-            description="Generá Acuerdos de Comercialización para firmar a distancia. Plazo, condiciones y firma del propietario en un minuto."
+            description="Acuerdos para firmar a distancia."
             statLabel={`${autorizacionesEsteMes} acuerdos generados este mes`}
-            statColor={GREEN}
           />
         </div>
 
         {/* Próximamente */}
         <SectionTitle>Próximamente</SectionTitle>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 18,
-            marginBottom: isAdmin ? 56 : 0,
-          }}
-        >
+        <div className="agent-tool-grid" style={{ marginBottom: isAdmin ? 56 : 0 }}>
           <PlacaCard
             comingSoon
             icon={<MessageSquare size={22} strokeWidth={1.8} />}
-            iconColor={GREEN}
-            iconBg={GREEN_TINT}
             title="Modelos de Contratos"
-            description="Biblioteca de modelos: oferta digital, reserva, boleto de compraventa. Todos editables y firmables online."
+            description="Modelos editables y firmables online."
             statLabel="En desarrollo"
           />
           <PlacaCard
             comingSoon
             icon={<BarChart3 size={22} strokeWidth={1.8} />}
-            iconColor={GREEN}
-            iconBg={GREEN_TINT}
             title="Métricas y KPI"
-            description={
-              isAdmin
-                ? 'Tus operaciones y las del equipo. Visualización mes a mes y año a año.'
-                : 'Tus operaciones cerradas, origen de leads, tasa de cierre. Visualización mes a mes y año a año.'
-            }
+            description="Operaciones tuyas y del equipo."
             statLabel="En desarrollo"
           />
         </div>
@@ -312,9 +284,16 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
 
       <style>{`
         .agent-placa-card:hover {
-          border-color: ${GREEN} !important;
-          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
           transform: translateY(-2px);
+        }
+        .agent-tool-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+        @media (min-width: 768px) {
+          .agent-tool-grid { grid-template-columns: repeat(3, 1fr); }
         }
       `}</style>
     </header>
@@ -345,14 +324,11 @@ interface PlacaProps {
   href?: string
   comingSoon?: boolean
   icon: React.ReactNode
-  iconColor: string
-  iconBg: string
+  pastel?: string
   title: string
   description: string
   statLabel?: string
-  statColor?: string
   footerNode?: React.ReactNode
-  accent?: 'gold'
 }
 
 // ── Feedback · Calculadora de Construcción ────────────────────────────
@@ -440,31 +416,27 @@ function PlacaCard({
   href,
   comingSoon,
   icon,
-  iconColor,
-  iconBg,
+  pastel,
   title,
   description,
   statLabel,
-  statColor,
   footerNode,
-  accent,
 }: PlacaProps) {
   const baseStyle: React.CSSProperties = {
-    background: comingSoon ? PAPER : '#fff',
-    border: comingSoon
-      ? `1.5px dashed ${LINE}`
-      : `1px solid ${accent === 'gold' ? 'rgba(184, 147, 90, 0.4)' : LINE}`,
+    background: comingSoon ? PAPER : pastel ?? '#fff',
+    border: comingSoon ? '1.5px dashed #d8d2c6' : 'none',
     borderRadius: 16,
-    padding: 28,
+    padding: 15,
+    paddingRight: comingSoon ? 64 : 15,
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: 12,
     position: 'relative',
-    transition: 'border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease',
+    transition: 'box-shadow 0.18s ease, transform 0.18s ease',
     color: TEXT,
     textDecoration: 'none',
     cursor: comingSoon ? 'default' : 'pointer',
-    minHeight: 220,
   }
 
   const content = (
@@ -473,8 +445,8 @@ function PlacaCard({
         <span
           style={{
             position: 'absolute',
-            top: 14,
-            right: 14,
+            top: 12,
+            right: 12,
             background: GOLD_TINT,
             color: '#6B5230',
             fontFamily: POPPINS,
@@ -489,43 +461,52 @@ function PlacaCard({
           Próximamente
         </span>
       )}
-      <div
+      <span
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 12,
-          background: iconBg,
-          color: iconColor,
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          color: comingSoon ? '#9a958a' : '#2b2b2b',
           flexShrink: 0,
+          display: 'inline-flex',
+          marginTop: 1,
         }}
       >
         {icon}
-      </div>
-      <h3 style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 18, margin: '4px 0 0', color: TEXT, lineHeight: 1.25 }}>
-        {title}
-      </h3>
-      <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 13.5, lineHeight: 1.55, color: TEXT_MUTED, margin: 0, flex: 1 }}>
-        {description}
-      </p>
-      {footerNode ? (
-        <div style={{ marginTop: 4 }}>{footerNode}</div>
-      ) : statLabel ? (
-        <div
+      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: 1 }}>
+        <h3 style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 16, margin: 0, color: comingSoon ? '#9a958a' : '#222', lineHeight: 1.25 }}>
+          {title}
+        </h3>
+        <p
           style={{
-            marginTop: 4,
             fontFamily: POPPINS,
-            fontWeight: 500,
+            fontWeight: 300,
             fontSize: 12.5,
-            color: statColor ?? (comingSoon ? TEXT_SOFT : TEXT_MUTED),
-            letterSpacing: '0.02em',
+            lineHeight: 1.4,
+            color: comingSoon ? '#9a958a' : '#54584f',
+            margin: 0,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
-          {statLabel}
-        </div>
-      ) : null}
+          {description}
+        </p>
+        {footerNode ? (
+          <div style={{ marginTop: 4 }}>{footerNode}</div>
+        ) : statLabel ? (
+          <div
+            style={{
+              marginTop: 4,
+              fontFamily: POPPINS,
+              fontWeight: 500,
+              fontSize: 12,
+              color: comingSoon ? '#9a958a' : '#3a3a3a',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {statLabel}
+          </div>
+        ) : null}
+      </div>
     </>
   )
 
@@ -550,8 +531,8 @@ function ProgressBar({ done, total, label }: { done: number; total: number; labe
     <div style={{ marginTop: 4 }}>
       <div
         style={{
-          height: 6,
-          background: '#F4F4F5',
+          height: 5,
+          background: 'rgba(0,0,0,0.08)',
           borderRadius: 3,
           overflow: 'hidden',
           marginBottom: 6,
@@ -561,12 +542,12 @@ function ProgressBar({ done, total, label }: { done: number; total: number; labe
           style={{
             height: '100%',
             width: `${Math.round(pct * 100)}%`,
-            background: GOLD,
+            background: 'linear-gradient(90deg, #B8935A, #caa468)',
             transition: 'width 0.3s ease',
           }}
         />
       </div>
-      <div style={{ fontFamily: POPPINS, fontWeight: 500, fontSize: 12.5, color: GOLD }}>{label}</div>
+      <div style={{ fontFamily: POPPINS, fontWeight: 500, fontSize: 12, color: '#3a3a3a' }}>{label}</div>
     </div>
   )
 }
@@ -605,23 +586,22 @@ function AdminSection({
     <section aria-label="Vista de administrador" style={{ marginTop: 16 }}>
       <SectionTitle>Administrador</SectionTitle>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 18,
-          marginBottom: 28,
-        }}
-      >
+      <div className="agent-tool-grid" style={{ marginBottom: 28 }}>
         <PlacaCard
           href="/agentes/newsletter"
           icon={<Mail size={22} strokeWidth={1.8} />}
-          iconColor={GREEN}
-          iconBg={GREEN_TINT}
+          pastel="#D8D5F2"
           title="Suscriptores Newsletter"
-          description="Personas que dejaron sus datos en el popup “¿Encontraste lo que buscabas?”. Exportá la lista o contactalos por WhatsApp."
+          description="Leads del popup de la web."
           statLabel={newsletterStat}
-          statColor={GREEN}
+        />
+        <PlacaCard
+          href="/admin/notas"
+          icon={<Newspaper size={22} strokeWidth={1.8} />}
+          pastel="#CBE2DC"
+          title="Notas del Blog"
+          description="Editá, subí portada o borrá notas."
+          statLabel="Editar · portada · borrar"
         />
       </div>
 

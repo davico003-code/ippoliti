@@ -42,7 +42,7 @@ export default function OpenHousePopup() {
           maxWidth: 420,
           height: 640,
           borderRadius: 24,
-          backgroundImage: "url('/casa-cadaques-openhouse.png')",
+          backgroundImage: "url('/casa-cadaques-openhouse.webp')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

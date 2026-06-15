@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   description: 'Departamentos en venta en Pichincha, Rosario. Barrio de moda, polo gastronómico. Desde USD 60.000. Ideal inversores. SI Inmobiliaria.',
   keywords: 'departamentos pichincha, pichincha rosario, departamentos venta pichincha',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-pichincha' },
-  openGraph: { title: 'Departamentos en Pichincha', url: 'https://siinmobiliaria.com/departamentos-pichincha' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Departamentos en Pichincha', url: 'https://siinmobiliaria.com/departamentos-pichincha' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {
