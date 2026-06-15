@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: 'Terrenos y lotes en venta en Funes, Santa Fe. Funes Hills, Kentucky, Portal de Funes. Desde USD 40.000. Fotos, medidas y financiación. SI Inmobiliaria.',
   keywords: 'terrenos funes, lotes funes, terrenos en venta funes, lotes en venta funes santa fe',
   alternates: { canonical: 'https://siinmobiliaria.com/terrenos-funes' },
-  openGraph: { title: 'Terrenos en Funes', description: 'Lotes en venta en los mejores barrios de Funes. Desde USD 40.000.', url: 'https://siinmobiliaria.com/terrenos-funes' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Terrenos en Funes', description: 'Lotes en venta en los mejores barrios de Funes. Desde USD 40.000.', url: 'https://siinmobiliaria.com/terrenos-funes' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {

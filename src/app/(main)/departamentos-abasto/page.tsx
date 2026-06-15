@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   description: 'Departamentos en venta en Abasto, Rosario. Zona en crecimiento, gastronomía, construcción nueva. Desde USD 55.000. SI Inmobiliaria.',
   keywords: 'departamentos abasto, abasto rosario, departamentos venta abasto rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-abasto' },
-  openGraph: { title: 'Departamentos en Abasto', url: 'https://siinmobiliaria.com/departamentos-abasto' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Departamentos en Abasto', url: 'https://siinmobiliaria.com/departamentos-abasto' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {

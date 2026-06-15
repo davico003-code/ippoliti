@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: 'Casas en venta en Fisherton, Rosario. Green Village, Palos Verdes, Aldea. Zona residencial premium. Precios, fotos, m² y dormitorios. SI Inmobiliaria.',
   keywords: 'casas en venta fisherton, casas fisherton, fisherton rosario casas, propiedades fisherton',
   alternates: { canonical: 'https://siinmobiliaria.com/casas-en-venta-fisherton' },
-  openGraph: { title: 'Casas en venta en Fisherton', description: 'Casas en la zona premium de Rosario.', url: 'https://siinmobiliaria.com/casas-en-venta-fisherton' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Casas en venta en Fisherton', description: 'Casas en la zona premium de Rosario.', url: 'https://siinmobiliaria.com/casas-en-venta-fisherton' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {

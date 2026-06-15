@@ -16,7 +16,8 @@ export const metadata: Metadata = {
   description: 'Departamentos en venta en Echesortu, Rosario. Vida barrial, Av. Pellegrini, buena conectividad. Desde USD 50.000. SI Inmobiliaria.',
   keywords: 'departamentos echesortu, echesortu rosario, departamentos venta echesortu',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-echesortu' },
-  openGraph: { title: 'Departamentos en Echesortu', url: 'https://siinmobiliaria.com/departamentos-echesortu' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Departamentos en Echesortu', url: 'https://siinmobiliaria.com/departamentos-echesortu' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {

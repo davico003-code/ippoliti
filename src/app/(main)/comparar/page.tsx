@@ -55,13 +55,13 @@ export default async function CompararPage({ searchParams }: Props) {
     );
   }
 
-  const properties: TokkoProperty[] = [];
-  for (const id of ids.slice(0, 10)) {
-    try {
-      const p = await getPropertyById(id);
-      if (p) properties.push(p);
-    } catch {}
-  }
+  // Fetch en paralelo preservando el orden de `ids` (antes era secuencial: ~N×latencia).
+  const results = await Promise.all(
+    ids.slice(0, 10).map((id) => getPropertyById(id).catch(() => null))
+  );
+  const properties: TokkoProperty[] = results.filter(
+    (p): p is TokkoProperty => p != null
+  );
 
   if (properties.length === 0) {
     return (

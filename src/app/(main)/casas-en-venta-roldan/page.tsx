@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: 'Casas en venta en Roldán, Santa Fe. Los Aromos, El Molino, Tierra de Sueños, Don Mateo. Precios desde USD 80.000. SI Inmobiliaria con 2 oficinas en Roldán.',
   keywords: 'casas en venta roldan, casas roldan, venta casas roldan santa fe',
   alternates: { canonical: 'https://siinmobiliaria.com/casas-en-venta-roldan' },
-  openGraph: { title: 'Casas en venta en Roldán', description: 'Casas en los mejores barrios de Roldán. Precios desde USD 80.000.', url: 'https://siinmobiliaria.com/casas-en-venta-roldan' },
+  openGraph: {
+    images: ['/og-image.jpg'], title: 'Casas en venta en Roldán', description: 'Casas en los mejores barrios de Roldán. Precios desde USD 80.000.', url: 'https://siinmobiliaria.com/casas-en-venta-roldan' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {
