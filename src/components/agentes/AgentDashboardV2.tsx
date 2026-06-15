@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import {
   BarChart3,
+  Check,
   FileText,
   GraduationCap,
   Mail,
   MessageSquare,
   Newspaper,
+  RefreshCw,
   Users,
 } from 'lucide-react'
 
@@ -208,6 +210,21 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
     router.refresh()
   }
 
+  // Actualizar manualmente el cache de Tokko (botón del header). Estados:
+  // idle → cargando → ok/error, y vuelve a idle a los ~3.5s.
+  const [tokkoEstado, setTokkoEstado] = useState<'idle' | 'cargando' | 'ok' | 'error'>('idle')
+  const actualizarTokko = async () => {
+    if (tokkoEstado === 'cargando') return
+    setTokkoEstado('cargando')
+    try {
+      const res = await fetch('/api/agentes/revalidate-tokko', { method: 'POST' })
+      setTokkoEstado(res.ok ? 'ok' : 'error')
+    } catch {
+      setTokkoEstado('error')
+    }
+    setTimeout(() => setTokkoEstado('idle'), 3500)
+  }
+
   return (
     <header
       style={{
@@ -229,9 +246,54 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
           flexWrap: 'wrap',
         }}
       >
-        <div
+        <button
+          type="button"
+          onClick={actualizarTokko}
+          disabled={tokkoEstado === 'cargando'}
+          title="Traé a la web los últimos cambios cargados en Tokko"
           style={{
             marginLeft: 'auto',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            background: tokkoEstado === 'ok' ? GREEN : '#fff',
+            border: `1px solid ${tokkoEstado === 'ok' ? GREEN : LINE}`,
+            borderRadius: 999,
+            padding: '7px 14px',
+            cursor: tokkoEstado === 'cargando' ? 'default' : 'pointer',
+            fontFamily: POPPINS,
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: tokkoEstado === 'ok' ? '#fff' : TEXT_MUTED,
+            transition: 'background 0.2s, color 0.2s, border-color 0.2s',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {tokkoEstado === 'ok' ? (
+            <>
+              <Check size={15} strokeWidth={2.4} />
+              Actualizado
+            </>
+          ) : tokkoEstado === 'error' ? (
+            <>
+              <RefreshCw size={15} strokeWidth={2} />
+              Reintentar
+            </>
+          ) : (
+            <>
+              <RefreshCw
+                size={15}
+                strokeWidth={2}
+                style={tokkoEstado === 'cargando' ? { animation: 'si-spin 0.8s linear infinite' } : undefined}
+              />
+              {tokkoEstado === 'cargando' ? 'Actualizando…' : 'Actualizar Tokko'}
+            </>
+          )}
+        </button>
+        <style>{`@keyframes si-spin { to { transform: rotate(360deg) } }`}</style>
+
+        <div
+          style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 10,
