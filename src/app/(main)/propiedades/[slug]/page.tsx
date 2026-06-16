@@ -15,6 +15,7 @@ import PropertyDetailSimilars from '@/components/property-detail/PropertyDetailS
 import {
   getPropertyById,
   getIdFromSlug,
+  generatePropertySlug,
   formatPrice,
   mostrarPrecio,
   formatLocation,
@@ -47,19 +48,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const property = await getPropertyById(id);
     const rawTitle = property.publication_title || property.address;
     const title = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
-    const desc = (property.description || property.description_only || '').replace(/<[^>]*>/g, '').slice(0, 160);
+    // #1: el texto de Tokko trae whitespace/newlines al inicio; los tags se
+    // reemplazan por espacio (no pegar palabras), se colapsan los espacios y se
+    // trimea ANTES de cortar a 160, para no desperdiciar el límite con basura.
+    const desc = (property.description || property.description_only || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 160);
     const photo = getMainPhoto(property);
     const price = formatPrice(property);
     const loc = formatLocation(property);
     const ogDesc = `${price} - ${loc || property.address}. ${desc}`.slice(0, 200);
+    // #3: canonical SIEMPRE al slug canónico del ID (no al slug pedido), para
+    // consolidar los duplicados que sirve cualquier sufijo con el ID correcto.
+    const canonicalUrl = `https://siinmobiliaria.com/propiedades/${generatePropertySlug(property)}`;
     return {
       title: `${title} | SI Inmobiliaria`,
       description: desc,
-      alternates: { canonical: `https://siinmobiliaria.com/propiedades/${params.slug}` },
+      alternates: { canonical: canonicalUrl },
       openGraph: {
         title,
         description: ogDesc,
-        url: `https://siinmobiliaria.com/propiedades/${params.slug}`,
+        url: canonicalUrl,
         type: 'article',
         ...(photo ? { images: [{ url: photo, width: 800, height: 600, alt: title }] } : {}),
       },
@@ -86,10 +97,22 @@ export default async function PropertyPage({ params }: Props) {
     property = sanitizeProperty(await getPropertyById(id));
   } catch (e) {
     if (e instanceof Error && e.message.includes('not found')) {
+      // LIMITACIÓN CONOCIDA (#2 soft-404): en esta ruta el notFound() resuelve
+      // HTTP 200 (no 404) porque la respuesta hace streaming y commitea 200
+      // antes de ejecutarse. Se investigó a fondo: no hay fix de bajo riesgo en
+      // Next 14.2.35 sin romper el ISR (force-dynamic) ni meter un denylist en
+      // middleware (riesgo de 410 a un listing nuevo). Como la auditoría dio 0
+      // fichas con problemas reales de indexación, se deja documentado y NO se
+      // toca. No es la causa el <head> manual del layout (una copia de esta
+      // página en otra ruta, bajo el mismo layout, sí devuelve 404).
       notFound();
     }
     throw e;
   }
+
+  // #3: slug canónico derivado del ID/título, para que el JSON-LD (url +
+  // breadcrumb) apunte siempre a la forma canónica y no al slug pedido.
+  const canonicalSlug = generatePropertySlug(property);
 
   const price = formatPrice(property);
   const area = getTotalSurface(property);
@@ -113,7 +136,7 @@ export default async function PropertyPage({ params }: Props) {
   const mainPhotoUrl = getMainPhoto(property);
   const propPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0;
   const propCurrency = property.operations?.[0]?.prices?.[0]?.currency ?? 'USD';
-  const propUrl = `https://siinmobiliaria.com/propiedades/${params.slug}`;
+  const propUrl = `https://siinmobiliaria.com/propiedades/${canonicalSlug}`;
   // "Sin Precio" en Tokko (web_price: false): el Offer se omite del JSON-LD
   // para no filtrar el monto que la API igual manda.
   const tienePrecio = mostrarPrecio(property) !== null;
@@ -268,7 +291,7 @@ export default async function PropertyPage({ params }: Props) {
       {/* Mobile sticky bar */}
       <MobileStickyBar
         whatsappUrl={whatsappUrl}
-        slug={params.slug}
+        slug={canonicalSlug}
         title={property.publication_title || property.address}
         propertyId={property.id}
         propertyTitle={property.publication_title || property.address}
