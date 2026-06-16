@@ -213,6 +213,8 @@ export default function CalculadoraCostos() {
   // Excepción puntual (propiedades sin gasto administrativo). Llega por el
   // query param sinAdmin=1 desde el link de la ficha. No es manipulable en UI.
   const [sinAdmin, setSinAdmin] = useState<boolean>(false)
+  // Honorarios: 3 cuotas (default histórico) o pago único al ingreso.
+  const [honoCuotas, setHonoCuotas] = useState<'3' | '1'>('3')
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
   // Toast inline para feedback de "Compartir cálculo".
   const [toast, setToast] = useState<string | null>(null)
@@ -224,6 +226,9 @@ export default function CalculadoraCostos() {
     mesesPreset === 'custom'
       ? (mesesCustom > 0 ? Math.round(mesesCustom) : 24)
       : (mesesPreset ?? 24)
+
+  // Cuotas de honorarios como número para el cálculo (el toggle usa strings).
+  const honorariosCuotas: 1 | 3 = honoCuotas === '1' ? 1 : 3
 
   // Prefill desde query params (ej. cuando alguien comparte el link de la
   // calculadora ya cargada). Solo se aplica al mount; cambios posteriores del
@@ -263,6 +268,7 @@ export default function CalculadoraCostos() {
     if (qFrecuencia === 'trimestral' || qFrecuencia === 'cuatrimestral') setFrecuencia(qFrecuencia)
     if (qIndice === 'ICL' || qIndice === 'IPC') setIndice(qIndice)
     if (searchParams?.get('sinAdmin') === '1') setSinAdmin(true)
+    if (searchParams?.get('honoCuotas') === '1') setHonoCuotas('1')
     // Prefill intencionalmente solo-mount; no sobrescribir cambios manuales.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -301,8 +307,8 @@ export default function CalculadoraCostos() {
 
   // ── Cálculo principal ──────────────────────────────────────────────────
   const c = useMemo(
-    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, sinAdmin }),
-    [alquiler, meses, moneda, tipo, cotizacion, sinAdmin],
+    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, sinAdmin, honorariosCuotas }),
+    [alquiler, meses, moneda, tipo, cotizacion, sinAdmin, honorariosCuotas],
   )
 
   // Total al ingresar — separado por moneda
@@ -314,8 +320,11 @@ export default function CalculadoraCostos() {
   // Timeline — Mes 1 = ingreso completo. Mes 2 y 3 = alquiler + honoCuota + admin. Mes 4+ = alquiler + admin.
   const mes1Usd = totalUsd
   const mes1Ars = totalArs
-  const mes23Usd = moneda === 'USD' ? alquiler + c.honoCuota + c.admin : 0
-  const mes23Ars = moneda === 'USD' ? 0 : alquiler + c.honoCuota + c.admin
+  // Con pago único, los honorarios van completos en el Mes 1: los meses 2 y 3 ya
+  // no suman cuota (quedan como el Mes 4: solo alquiler + admin).
+  const honoMes23 = honorariosCuotas === 3 ? c.honoCuota : 0
+  const mes23Usd = moneda === 'USD' ? alquiler + honoMes23 + c.admin : 0
+  const mes23Ars = moneda === 'USD' ? 0 : alquiler + honoMes23 + c.admin
   const mes4Usd = moneda === 'USD' ? alquiler + c.admin : 0
   const mes4Ars = moneda === 'USD' ? 0 : alquiler + c.admin
 
@@ -335,6 +344,7 @@ export default function CalculadoraCostos() {
       cotizacion: String(cotizacion),
     })
     if (sinAdmin) params.set('sinAdmin', '1')
+    if (honorariosCuotas === 1) params.set('honoCuotas', '1')
     window.open(
       `/recursos/calculadora-alquiler/planilla?${params.toString()}`,
       '_blank',
@@ -357,6 +367,7 @@ export default function CalculadoraCostos() {
       indice,
     })
     if (sinAdmin) params.set('sinAdmin', '1')
+    if (honorariosCuotas === 1) params.set('honoCuotas', '1')
     const url = `${window.location.origin}/recursos/calculadora-alquiler?${params.toString()}`
 
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
@@ -394,6 +405,11 @@ export default function CalculadoraCostos() {
       : `Ajuste ${frecuencia} por ${indice}`
   const selladoSmall =
     tipo === 'vivienda' ? 'exento (vivienda · Santa Fe)' : '1,2% del total contrato'
+  // Labels de honorarios según forma de pago elegida.
+  const honoSmall = honorariosCuotas === 3 ? '1ª cuota de 3' : 'pago único'
+  const honoTotalLabel =
+    honorariosCuotas === 3 ? 'Pagando honorarios en 3 cuotas' : 'Honorarios al contado (1 cuota)'
+  const honoMes1Label = honorariosCuotas === 3 ? '1ª cuota honorarios' : 'honorarios'
 
   // Total compuesto component
   function TotalAmount() {
@@ -650,6 +666,25 @@ export default function CalculadoraCostos() {
             )}
           </div>
 
+          {/* Honorarios — forma de pago */}
+          <div className="mt-4">
+            <Label>Honorarios</Label>
+            <Toggle<'3' | '1'>
+              cols={2}
+              value={honoCuotas}
+              onChange={setHonoCuotas}
+              options={[
+                { value: '3', label: 'En 3 cuotas' },
+                { value: '1', label: 'En 1 cuota' },
+              ]}
+            />
+            <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
+              {honorariosCuotas === 3
+                ? '3 cuotas iguales junto a los primeros 3 meses (mínimo de ingreso).'
+                : 'Los honorarios completos se abonan al ingresar.'}
+            </p>
+          </div>
+
           {/* Avanzados */}
           <details
             open={advancedOpen}
@@ -759,7 +794,7 @@ export default function CalculadoraCostos() {
               />
               <Cell
                 label="Honorarios"
-                small="1ª cuota de 3"
+                small={honoSmall}
                 value={fmt(c.honoCuota, moneda)}
                 flashKey={`h-${moneda}-${c.honoCuota.toFixed(2)}`}
               />
@@ -814,8 +849,8 @@ export default function CalculadoraCostos() {
                 style={{ color: 'rgba(255,255,255,0.78)' }}
               >
                 {moneda === 'USD'
-                  ? `Sellado y verificación se abonan en pesos · ${tipoLabel}`
-                  : `Pagando honorarios en 3 cuotas · ${tipoLabel} ${monedaLabel}`}
+                  ? `${honoTotalLabel} · sellado y verificación en pesos · ${tipoLabel}`
+                  : `${honoTotalLabel} · ${tipoLabel} ${monedaLabel}`}
               </div>
             </div>
           </section>
@@ -834,16 +869,22 @@ export default function CalculadoraCostos() {
 
             <TimelineRow
               title="Mes 1 — al ingresar"
-              detail={`alquiler + 1ª cuota honorarios + sellado + verificación${adminLabel}`}
+              detail={`alquiler + ${honoMes1Label} + sellado + verificación${adminLabel}`}
             >
               <MesValor usd={mes1Usd} ars={mes1Ars} />
             </TimelineRow>
 
-            <TimelineRow title="Mes 2" detail={`alquiler + 2ª cuota honorarios${adminLabel}`}>
+            <TimelineRow
+              title="Mes 2"
+              detail={honorariosCuotas === 3 ? `alquiler + 2ª cuota honorarios${adminLabel}` : `alquiler${adminLabel}`}
+            >
               <MesValor usd={mes23Usd} ars={mes23Ars} />
             </TimelineRow>
 
-            <TimelineRow title="Mes 3" detail={`alquiler + 3ª cuota honorarios${adminLabel}`}>
+            <TimelineRow
+              title="Mes 3"
+              detail={honorariosCuotas === 3 ? `alquiler + 3ª cuota honorarios${adminLabel}` : `alquiler${adminLabel}`}
+            >
               <MesValor usd={mes23Usd} ars={mes23Ars} />
             </TimelineRow>
 
