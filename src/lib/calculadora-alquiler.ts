@@ -72,6 +72,9 @@ export interface CalcularInput {
   // Excepción puntual: propiedades sin gasto administrativo mensual.
   // Cuando es true, admin = 0 y queda fuera del total y del cronograma.
   sinAdmin?: boolean
+  // Cuántas cuotas para los honorarios (default 3, comportamiento histórico).
+  // 1 = pago único: honoCuota pasa a ser el total y se abona todo al ingreso.
+  honorariosCuotas?: 1 | 3
 }
 
 export interface CalcularOutput {
@@ -92,10 +95,11 @@ export function calcularCostosIngreso({
   tipo,
   cotizacion,
   sinAdmin = false,
+  honorariosCuotas = 3,
 }: CalcularInput): CalcularOutput {
   const honoBase = alquiler * meses * HONORARIOS_PCT
   const honoTotal = honoBase * (1 + IVA)
-  const honoCuota = honoTotal / 3
+  const honoCuota = honoTotal / honorariosCuotas
   const admin = sinAdmin ? 0 : alquiler * ADMIN_PCT * (1 + IVA)
 
   // Sellado se calcula sobre el total del contrato convertido a pesos

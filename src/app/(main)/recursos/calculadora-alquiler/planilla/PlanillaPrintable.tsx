@@ -466,6 +466,7 @@ interface ParsedInput {
   indice: Indice
   cotizacion: number
   sinAdmin: boolean
+  honorariosCuotas: 1 | 3
 }
 
 interface ParsedError {
@@ -483,6 +484,7 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
   const frecuenciaRaw = sp.get('frecuencia')
   const indiceRaw = sp.get('indice')
   const sinAdmin = sp.get('sinAdmin') === '1'
+  const honorariosCuotas: 1 | 3 = sp.get('honoCuotas') === '1' ? 1 : 3
 
   if (!Number.isFinite(alquiler) || alquiler <= 0)
     return { ok: false, reason: 'El monto del alquiler es inválido.' }
@@ -504,6 +506,7 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
     indice,
     cotizacion,
     sinAdmin,
+    honorariosCuotas,
   }
 }
 
@@ -553,9 +556,9 @@ export default function PlanillaPrintable() {
     )
   }
 
-  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, sinAdmin } =
+  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, sinAdmin, honorariosCuotas } =
     parsed
-  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, sinAdmin })
+  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, sinAdmin, honorariosCuotas })
   const adminLabel = sinAdmin ? '' : ' + admin'
 
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
@@ -585,7 +588,8 @@ export default function PlanillaPrintable() {
       ? 'ajuste anual hasta el final del contrato'
       : `ajuste ${frecuencia} por ${indice} hasta el final del contrato`
 
-  const mes23 = alquiler + c.honoCuota + c.admin
+  const honoMes23 = honorariosCuotas === 3 ? c.honoCuota : 0
+  const mes23 = alquiler + honoMes23 + c.admin
   const mes4 = alquiler + c.admin
 
   const fechaStr = new Date().toLocaleDateString('es-AR', {
@@ -681,7 +685,9 @@ export default function PlanillaPrintable() {
               </tr>
               <tr>
                 <td>
-                  <div className="label">Honorarios · 1ª cuota de 3</div>
+                  <div className="label">
+                    {honorariosCuotas === 3 ? 'Honorarios · 1ª cuota de 3' : 'Honorarios · pago único'}
+                  </div>
                   <div className="label-sub">
                     Total honorarios {fmt(c.honoTotal, moneda)} · alquiler ×
                     meses × 5% × IVA
@@ -750,7 +756,7 @@ export default function PlanillaPrintable() {
                 <td>
                   <div className="label">Mes 1 · día que ingresás</div>
                   <div className="label-sub">
-                    Alquiler + 1ª cuota honorarios + sellado + garantes{adminLabel}
+                    Alquiler + {honorariosCuotas === 3 ? '1ª cuota honorarios' : 'honorarios'} + sellado + garantes{adminLabel}
                   </div>
                 </td>
                 <td className="value">
@@ -761,7 +767,7 @@ export default function PlanillaPrintable() {
                 <td>
                   <div className="label">Mes 2 y 3</div>
                   <div className="label-sub">
-                    Alquiler + 2ª/3ª cuota honorarios{adminLabel}
+                    {honorariosCuotas === 3 ? `Alquiler + 2ª/3ª cuota honorarios${adminLabel}` : `Alquiler${adminLabel}`}
                   </div>
                 </td>
                 <td className="value">{fmt(mes23, moneda)}</td>
