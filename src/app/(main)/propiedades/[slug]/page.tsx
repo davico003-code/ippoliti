@@ -12,8 +12,8 @@ import PropertyGalleryHero from '@/components/property-detail/PropertyGalleryHer
 import PropertyStickyNav from '@/components/property-detail/PropertyStickyNav';
 import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody';
 import PropertyDetailSimilars from '@/components/property-detail/PropertyDetailSimilars';
+import { getPropertyByIdResilient } from '@/lib/propiedad-ficha-cache';
 import {
-  getPropertyById,
   getIdFromSlug,
   formatPrice,
   mostrarPrecio,
@@ -44,7 +44,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const id = getIdFromSlug(params.slug);
-    const property = await getPropertyById(id);
+    const property = await getPropertyByIdResilient(id);
     const rawTitle = property.publication_title || property.address;
     const title = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
     const desc = (property.description || property.description_only || '').replace(/<[^>]*>/g, '').slice(0, 160);
@@ -83,7 +83,7 @@ export default async function PropertyPage({ params }: Props) {
 
   let property: TokkoProperty;
   try {
-    property = sanitizeProperty(await getPropertyById(id));
+    property = sanitizeProperty(await getPropertyByIdResilient(id));
   } catch (e) {
     if (e instanceof Error && e.message.includes('not found')) {
       notFound();
