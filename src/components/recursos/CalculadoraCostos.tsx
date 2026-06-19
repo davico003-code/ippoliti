@@ -9,6 +9,7 @@ import {
   VERIFICACION_ARS,
   type Moneda,
   type TipoFiscal as Tipo,
+  type FormaPagoHonorarios,
 } from '@/lib/calculadora-alquiler'
 import DepositoCard from './shared/DepositoCard'
 import DisclaimerInfo from './shared/DisclaimerInfo'
@@ -210,11 +211,11 @@ export default function CalculadoraCostos() {
   const [mesesPreset, setMesesPreset] = useState<MesesPreset>(null)
   const [mesesCustom, setMesesCustom] = useState<number>(0)
   const [cotizacion, setCotizacion] = useState<number>(1430)
-  // Excepción puntual (propiedades sin gasto administrativo). Llega por el
-  // query param sinAdmin=1 desde el link de la ficha. No es manipulable en UI.
-  const [sinAdmin, setSinAdmin] = useState<boolean>(false)
-  // Honorarios: 3 cuotas (default histórico) o pago único al ingreso.
-  const [honoCuotas, setHonoCuotas] = useState<'3' | '1'>('3')
+  // Gasto administrativo: por defecto se incluye. Se puede excluir desde el
+  // toggle en "Ajustar valores avanzados" o por query (?admin=no).
+  const [incluirAdmin, setIncluirAdmin] = useState<boolean>(true)
+  // Forma de pago de honorarios: 3 cuotas (default) o 1 pago al ingreso.
+  const [formaPago, setFormaPago] = useState<FormaPagoHonorarios>('3cuotas')
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
   // Toast inline para feedback de "Compartir cálculo".
   const [toast, setToast] = useState<string | null>(null)
@@ -226,9 +227,6 @@ export default function CalculadoraCostos() {
     mesesPreset === 'custom'
       ? (mesesCustom > 0 ? Math.round(mesesCustom) : 24)
       : (mesesPreset ?? 24)
-
-  // Cuotas de honorarios como número para el cálculo (el toggle usa strings).
-  const honorariosCuotas: 1 | 3 = honoCuotas === '1' ? 1 : 3
 
   // Prefill desde query params (ej. cuando alguien comparte el link de la
   // calculadora ya cargada). Solo se aplica al mount; cambios posteriores del
@@ -267,8 +265,10 @@ export default function CalculadoraCostos() {
     }
     if (qFrecuencia === 'trimestral' || qFrecuencia === 'cuatrimestral') setFrecuencia(qFrecuencia)
     if (qIndice === 'ICL' || qIndice === 'IPC') setIndice(qIndice)
-    if (searchParams?.get('sinAdmin') === '1') setSinAdmin(true)
-    if (searchParams?.get('honoCuotas') === '1') setHonoCuotas('1')
+    // Gasto administrativo: ?admin=no lo excluye (default incluir). Legacy: ?sinAdmin=1.
+    if (searchParams?.get('admin') === 'no' || searchParams?.get('sinAdmin') === '1') setIncluirAdmin(false)
+    // Forma de pago de honorarios: ?pago=1pago. Legacy: ?honoCuotas=1.
+    if (searchParams?.get('pago') === '1pago' || searchParams?.get('honoCuotas') === '1') setFormaPago('1pago')
     // Prefill intencionalmente solo-mount; no sobrescribir cambios manuales.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -307,8 +307,8 @@ export default function CalculadoraCostos() {
 
   // ── Cálculo principal ──────────────────────────────────────────────────
   const c = useMemo(
-    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, sinAdmin, honorariosCuotas }),
-    [alquiler, meses, moneda, tipo, cotizacion, sinAdmin, honorariosCuotas],
+    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago }),
+    [alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPago],
   )
 
   // Total al ingresar — separado por moneda
@@ -322,7 +322,7 @@ export default function CalculadoraCostos() {
   const mes1Ars = totalArs
   // Con pago único, los honorarios van completos en el Mes 1: los meses 2 y 3 ya
   // no suman cuota (quedan como el Mes 4: solo alquiler + admin).
-  const honoMes23 = honorariosCuotas === 3 ? c.honoCuota : 0
+  const honoMes23 = c.honoEnMes23
   const mes23Usd = moneda === 'USD' ? alquiler + honoMes23 + c.admin : 0
   const mes23Ars = moneda === 'USD' ? 0 : alquiler + honoMes23 + c.admin
   const mes4Usd = moneda === 'USD' ? alquiler + c.admin : 0
@@ -342,9 +342,9 @@ export default function CalculadoraCostos() {
       frecuencia,
       indice,
       cotizacion: String(cotizacion),
+      pago: formaPago,
+      admin: incluirAdmin ? 'incluir' : 'no',
     })
-    if (sinAdmin) params.set('sinAdmin', '1')
-    if (honorariosCuotas === 1) params.set('honoCuotas', '1')
     window.open(
       `/recursos/calculadora-alquiler/planilla?${params.toString()}`,
       '_blank',
@@ -365,9 +365,9 @@ export default function CalculadoraCostos() {
       expensas: String(expensas),
       frecuencia,
       indice,
+      pago: formaPago,
+      admin: incluirAdmin ? 'incluir' : 'no',
     })
-    if (sinAdmin) params.set('sinAdmin', '1')
-    if (honorariosCuotas === 1) params.set('honoCuotas', '1')
     const url = `${window.location.origin}/recursos/calculadora-alquiler?${params.toString()}`
 
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
@@ -397,19 +397,17 @@ export default function CalculadoraCostos() {
   // ── Helpers de render ──────────────────────────────────────────────────
   const monedaLabel = moneda === 'USD' ? 'en dólares' : 'en pesos'
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
-  // Sufijo de admin en el detalle del cronograma — vacío en propiedades sin admin.
-  const adminLabel = sinAdmin ? '' : ' + admin'
+  // Sufijo de admin en el detalle del cronograma — vacío si no se incluye admin.
+  const adminLabel = incluirAdmin ? ' + admin' : ''
   const ajusteSubtitulo =
     moneda === 'USD'
       ? 'Consultar ajuste anual. Los contratos en dólares tienen un solo ajuste al año.'
       : `Ajuste ${frecuencia} por ${indice}`
-  const selladoSmall =
-    tipo === 'vivienda' ? 'exento (vivienda · Santa Fe)' : '1,2% del total contrato'
   // Labels de honorarios según forma de pago elegida.
-  const honoSmall = honorariosCuotas === 3 ? '1ª cuota de 3' : 'pago único'
+  const es3Cuotas = formaPago === '3cuotas'
   const honoTotalLabel =
-    honorariosCuotas === 3 ? 'Pagando honorarios en 3 cuotas' : 'Honorarios al contado (1 cuota)'
-  const honoMes1Label = honorariosCuotas === 3 ? '1ª cuota honorarios' : 'honorarios'
+    es3Cuotas ? 'Pagando honorarios en 3 cuotas' : 'Honorarios al contado (1 pago)'
+  const honoMes1Label = es3Cuotas ? '1ª cuota honorarios' : 'honorarios'
 
   // Total compuesto component
   function TotalAmount() {
@@ -666,25 +664,6 @@ export default function CalculadoraCostos() {
             )}
           </div>
 
-          {/* Honorarios — forma de pago */}
-          <div className="mt-4">
-            <Label>Honorarios</Label>
-            <Toggle<'3' | '1'>
-              cols={2}
-              value={honoCuotas}
-              onChange={setHonoCuotas}
-              options={[
-                { value: '3', label: 'En 3 cuotas' },
-                { value: '1', label: 'En 1 cuota' },
-              ]}
-            />
-            <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
-              {honorariosCuotas === 3
-                ? '3 cuotas iguales junto a los primeros 3 meses (mínimo de ingreso).'
-                : 'Los honorarios completos se abonan al ingresar.'}
-            </p>
-          </div>
-
           {/* Avanzados */}
           <details
             open={advancedOpen}
@@ -701,6 +680,44 @@ export default function CalculadoraCostos() {
                 {advancedOpen ? '−' : '+'}
               </span>
             </summary>
+
+            {/* Forma de pago de honorarios */}
+            <div className="mt-4">
+              <Label>Forma de pago de honorarios</Label>
+              <Toggle<FormaPagoHonorarios>
+                cols={2}
+                value={formaPago}
+                onChange={setFormaPago}
+                options={[
+                  { value: '3cuotas', label: '3 cuotas' },
+                  { value: '1pago', label: '1 pago' },
+                ]}
+              />
+              <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
+                {formaPago === '3cuotas'
+                  ? '3 cuotas iguales junto a los primeros 3 meses (mínimo de ingreso).'
+                  : 'Los honorarios completos se abonan al ingresar.'}
+              </p>
+            </div>
+
+            {/* Gasto administrativo */}
+            <div className="mt-4">
+              <Label>Gasto administrativo</Label>
+              <Toggle<'incluir' | 'no'>
+                cols={2}
+                value={incluirAdmin ? 'incluir' : 'no'}
+                onChange={(v) => setIncluirAdmin(v === 'incluir')}
+                options={[
+                  { value: 'incluir', label: 'Incluir' },
+                  { value: 'no', label: 'No incluir' },
+                ]}
+              />
+              <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
+                Marcá &quot;No incluir&quot; si SI solo confecciona el contrato sin administrar el alquiler.
+              </p>
+            </div>
+
+            {/* Cotización */}
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
                 <Label htmlFor="cotizacion">Cotización dólar oficial</Label>
@@ -769,60 +786,7 @@ export default function CalculadoraCostos() {
         {alquiler > 0 && (
           <div className="recursos-fadein">
 
-        {/* Tabla horizontal — 5 columnas / 2 cols mobile */}
-          <section
-            className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
-          >
-            <h2
-              className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-3.5 pb-2.5"
-              style={{ color: 'var(--si-green)', borderBottom: '1px solid var(--line)' }}
-            >
-              Costos al ingresar — desglose
-            </h2>
-            {sinAdmin && (
-              <p className="text-[12px] italic mb-3" style={{ color: 'var(--tinta-mute)' }}>
-                Esta propiedad no incluye gasto administrativo mensual.
-              </p>
-            )}
-            <div className={`grid grid-cols-2 gap-3 ${sinAdmin ? 'min-[720px]:grid-cols-4' : 'min-[720px]:grid-cols-5'}`}>
-              <Cell
-                label="Primer mes"
-                small="alquiler"
-                value={fmt(alquiler, moneda)}
-                flashKey={`pm-${moneda}-${alquiler}`}
-              />
-              <Cell
-                label="Honorarios"
-                small={honoSmall}
-                value={fmt(c.honoCuota, moneda)}
-                flashKey={`h-${moneda}-${c.honoCuota.toFixed(2)}`}
-              />
-              <Cell
-                label="Sellado"
-                small={selladoSmall}
-                value={fmtArs(c.sellado)}
-                flashKey={`s-${tipo}-${Math.round(c.sellado)}`}
-              />
-              <Cell
-                label="Garantes"
-                small="verificación"
-                value={fmtArs(c.verificacion)}
-                flashKey={`g-${c.verificacion}`}
-              />
-              {!sinAdmin && (
-                <Cell
-                  label="Administrativo"
-                  small="por mes"
-                  value={fmt(c.admin, moneda)}
-                  flashKey={`ad-${moneda}-${c.admin.toFixed(2)}`}
-                  fullOnMobile
-                />
-              )}
-            </div>
-          </section>
-
-          {/* TOTAL */}
+        {/* TOTAL — banda verde protagonista (arriba). Componente intacto. */}
           <section
             className="rounded-2xl p-7 mb-4 text-white shadow-md relative overflow-hidden"
             style={{
@@ -855,6 +819,79 @@ export default function CalculadoraCostos() {
             </div>
           </section>
 
+          {/* DESGLOSE — card unificada: filas + línea separadora + total al final */}
+          <section
+            className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
+            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+          >
+            <h2
+              className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-2 pb-2.5"
+              style={{ color: 'var(--si-green)', borderBottom: '1px solid var(--line)' }}
+            >
+              Costos al ingresar — desglose
+            </h2>
+            <div>
+              <DesgloseRow label="PRIMER MES" value={fmt(alquiler, moneda)} />
+              <DesgloseRow
+                label={`HONORARIOS ${c.honoMes1Label}`}
+                value={fmt(c.honoEnMes1, moneda)}
+              />
+              <DesgloseRow label="SELLADO" value={fmtArs(c.sellado)} />
+              <DesgloseRow label="GARANTES" value={fmtArs(c.verificacion)} />
+              {c.mostrarAdmin && (
+                <DesgloseRow label="ADMINISTRATIVO" value={fmt(c.admin, moneda)} />
+              )}
+              {/* Total al final con línea separadora arriba */}
+              <div
+                className="flex items-baseline justify-between gap-4 pt-3 mt-1"
+                style={{ borderTop: '1.5px solid var(--line)' }}
+              >
+                <span
+                  className="text-[12.5px] font-bold uppercase tracking-[0.8px]"
+                  style={{ color: 'var(--tinta)' }}
+                >
+                  Total
+                </span>
+                <div className="text-right">
+                  {moneda === 'USD' ? (
+                    <>
+                      <Flash value={`tot-u-${totalUsd.toFixed(2)}`}>
+                        <div
+                          className="font-poppins font-bold text-[19px] tabular-nums leading-tight"
+                          style={{ color: 'var(--tinta)' }}
+                        >
+                          {fmtUsd(totalUsd)}
+                        </div>
+                      </Flash>
+                      <Flash value={`tot-a-${Math.round(totalArs)}`}>
+                        <div
+                          className="font-poppins font-semibold text-[13px] tabular-nums"
+                          style={{ color: 'var(--tinta-mute)' }}
+                        >
+                          + {fmtArs(totalArs)} en pesos
+                        </div>
+                      </Flash>
+                    </>
+                  ) : (
+                    <Flash value={`tot-a-${Math.round(totalArs)}`}>
+                      <div
+                        className="font-poppins font-bold text-[19px] tabular-nums leading-tight"
+                        style={{ color: 'var(--tinta)' }}
+                      >
+                        {fmtArs(totalArs)}
+                      </div>
+                    </Flash>
+                  )}
+                </div>
+              </div>
+            </div>
+            {!incluirAdmin && (
+              <p className="text-[12px] italic mt-3" style={{ color: 'var(--tinta-mute)' }}>
+                Sin gasto administrativo: SI solo confecciona el contrato.
+              </p>
+            )}
+          </section>
+
           {/* TIMELINE */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
@@ -874,23 +911,25 @@ export default function CalculadoraCostos() {
               <MesValor usd={mes1Usd} ars={mes1Ars} />
             </TimelineRow>
 
-            <TimelineRow
-              title="Mes 2"
-              detail={honorariosCuotas === 3 ? `alquiler + 2ª cuota honorarios${adminLabel}` : `alquiler${adminLabel}`}
-            >
-              <MesValor usd={mes23Usd} ars={mes23Ars} />
-            </TimelineRow>
+            {c.mostrarMeses23 ? (
+              <>
+                <TimelineRow title="Mes 2" detail={`alquiler + 2ª cuota honorarios${adminLabel}`}>
+                  <MesValor usd={mes23Usd} ars={mes23Ars} />
+                </TimelineRow>
 
-            <TimelineRow
-              title="Mes 3"
-              detail={honorariosCuotas === 3 ? `alquiler + 3ª cuota honorarios${adminLabel}` : `alquiler${adminLabel}`}
-            >
-              <MesValor usd={mes23Usd} ars={mes23Ars} />
-            </TimelineRow>
+                <TimelineRow title="Mes 3" detail={`alquiler + 3ª cuota honorarios${adminLabel}`}>
+                  <MesValor usd={mes23Usd} ars={mes23Ars} />
+                </TimelineRow>
 
-            <TimelineRow title="Mes 4 en adelante" detail={`alquiler${adminLabel} · ${ajusteSubtitulo}`} last>
-              <MesValor usd={mes4Usd} ars={mes4Ars} />
-            </TimelineRow>
+                <TimelineRow title="Mes 4 en adelante" detail={`alquiler${adminLabel} · ${ajusteSubtitulo}`} last>
+                  <MesValor usd={mes4Usd} ars={mes4Ars} />
+                </TimelineRow>
+              </>
+            ) : (
+              <TimelineRow title="Mes 2 en adelante" detail={`alquiler${adminLabel} · ${ajusteSubtitulo}`} last>
+                <MesValor usd={mes4Usd} ars={mes4Ars} />
+              </TimelineRow>
+            )}
           </section>
 
           {/* DEPÓSITO */}
@@ -1183,40 +1222,27 @@ export default function CalculadoraCostos() {
   )
 }
 
-// ── Cell de la tabla horizontal ──────────────────────────────────────────
-function Cell({
-  label,
-  small,
-  value,
-  flashKey,
-  fullOnMobile = false,
-}: {
-  label: string
-  small?: string
-  value: string
-  flashKey: string
-  fullOnMobile?: boolean
-}) {
+// ── Fila del desglose unificado (label izq · valor der) ───────────────────
+function DesgloseRow({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className={`rounded-xl p-3.5 ${fullOnMobile ? 'col-span-2 min-[720px]:col-span-1' : ''}`}
-      style={{ background: '#FAFAF7', border: '1px solid var(--line)' }}
+      className="flex items-baseline justify-between gap-4 py-2.5"
+      style={{ borderBottom: '1px solid var(--line)' }}
     >
-      <div className="text-[10.5px] font-bold uppercase tracking-[0.8px] mb-1"
-           style={{ color: 'var(--tinta-mute)' }}>
+      <span
+        className="text-[12px] font-bold uppercase tracking-[0.8px]"
+        style={{ color: 'var(--tinta-mute)' }}
+      >
         {label}
-      </div>
-      <Flash value={flashKey}>
-        <div className="font-poppins font-semibold text-[16px] tabular-nums leading-tight"
-             style={{ color: 'var(--tinta)' }}>
+      </span>
+      <Flash value={value}>
+        <span
+          className="font-poppins font-semibold text-[15px] tabular-nums whitespace-nowrap"
+          style={{ color: 'var(--tinta)' }}
+        >
           {value}
-        </div>
+        </span>
       </Flash>
-      {small && (
-        <div className="text-[11.5px] mt-0.5" style={{ color: 'var(--tinta-mute)' }}>
-          {small}
-        </div>
-      )}
     </div>
   )
 }

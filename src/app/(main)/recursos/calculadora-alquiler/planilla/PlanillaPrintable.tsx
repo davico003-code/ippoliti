@@ -6,6 +6,7 @@ import {
   calcularCostosIngreso,
   type Moneda,
   type TipoFiscal,
+  type FormaPagoHonorarios,
 } from '@/lib/calculadora-alquiler'
 
 type Frecuencia = 'trimestral' | 'cuatrimestral'
@@ -465,8 +466,8 @@ interface ParsedInput {
   frecuencia: Frecuencia
   indice: Indice
   cotizacion: number
-  sinAdmin: boolean
-  honorariosCuotas: 1 | 3
+  incluirAdmin: boolean
+  formaPago: FormaPagoHonorarios
 }
 
 interface ParsedError {
@@ -483,8 +484,11 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
   const tipoRaw = sp.get('tipo')
   const frecuenciaRaw = sp.get('frecuencia')
   const indiceRaw = sp.get('indice')
-  const sinAdmin = sp.get('sinAdmin') === '1'
-  const honorariosCuotas: 1 | 3 = sp.get('honoCuotas') === '1' ? 1 : 3
+  // Gasto admin: ?admin=no lo excluye (default incluir). Legacy: ?sinAdmin=1.
+  const incluirAdmin = sp.get('admin') !== 'no' && sp.get('sinAdmin') !== '1'
+  // Forma de pago honorarios: ?pago=1pago. Legacy: ?honoCuotas=1.
+  const formaPago: FormaPagoHonorarios =
+    sp.get('pago') === '1pago' || sp.get('honoCuotas') === '1' ? '1pago' : '3cuotas'
 
   if (!Number.isFinite(alquiler) || alquiler <= 0)
     return { ok: false, reason: 'El monto del alquiler es inválido.' }
@@ -505,8 +509,8 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
     frecuencia,
     indice,
     cotizacion,
-    sinAdmin,
-    honorariosCuotas,
+    incluirAdmin,
+    formaPago,
   }
 }
 
@@ -556,10 +560,10 @@ export default function PlanillaPrintable() {
     )
   }
 
-  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, sinAdmin, honorariosCuotas } =
+  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, incluirAdmin, formaPago } =
     parsed
-  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, sinAdmin, honorariosCuotas })
-  const adminLabel = sinAdmin ? '' : ' + admin'
+  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago })
+  const adminLabel = c.mostrarAdmin ? ' + admin' : ''
 
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
   const monedaLabel = moneda === 'USD' ? 'en dólares' : 'en pesos'
@@ -588,8 +592,7 @@ export default function PlanillaPrintable() {
       ? 'ajuste anual hasta el final del contrato'
       : `ajuste ${frecuencia} por ${indice} hasta el final del contrato`
 
-  const honoMes23 = honorariosCuotas === 3 ? c.honoCuota : 0
-  const mes23 = alquiler + honoMes23 + c.admin
+  const mes23 = alquiler + c.honoEnMes23 + c.admin
   const mes4 = alquiler + c.admin
 
   const fechaStr = new Date().toLocaleDateString('es-AR', {
@@ -667,9 +670,9 @@ export default function PlanillaPrintable() {
           <div className="section-head">
             <div className="section-title">Desglose del monto al ingresar</div>
           </div>
-          {sinAdmin && (
+          {!incluirAdmin && (
             <div className="label-sub" style={{ fontStyle: 'italic', marginBottom: 4 }}>
-              Esta propiedad no incluye gasto administrativo mensual.
+              Sin gasto administrativo: SI solo confecciona el contrato.
             </div>
           )}
           <table className="tabla">
@@ -686,14 +689,14 @@ export default function PlanillaPrintable() {
               <tr>
                 <td>
                   <div className="label">
-                    {honorariosCuotas === 3 ? 'Honorarios · 1ª cuota de 3' : 'Honorarios · pago único'}
+                    {c.mostrarMeses23 ? 'Honorarios · 1ª cuota de 3' : 'Honorarios · totales + IVA'}
                   </div>
                   <div className="label-sub">
                     Total honorarios {fmt(c.honoTotal, moneda)} · alquiler ×
                     meses × 5% × IVA
                   </div>
                 </td>
-                <td className="value">{fmt(c.honoCuota, moneda)}</td>
+                <td className="value">{fmt(c.honoEnMes1, moneda)}</td>
               </tr>
               <tr>
                 <td>
@@ -711,7 +714,7 @@ export default function PlanillaPrintable() {
                 </td>
                 <td className="value">{fmtArs(c.verificacion)}</td>
               </tr>
-              {!sinAdmin && (
+              {c.mostrarAdmin && (
                 <tr>
                   <td>
                     <div className="label">Gasto administrativo</div>
@@ -756,31 +759,45 @@ export default function PlanillaPrintable() {
                 <td>
                   <div className="label">Mes 1 · día que ingresás</div>
                   <div className="label-sub">
-                    Alquiler + {honorariosCuotas === 3 ? '1ª cuota honorarios' : 'honorarios'} + sellado + garantes{adminLabel}
+                    Alquiler + {c.mostrarMeses23 ? '1ª cuota honorarios' : 'honorarios'} + sellado + garantes{adminLabel}
                   </div>
                 </td>
                 <td className="value">
                   {moneda === 'USD' ? fmtUsd(totalUsd) : fmtArs(totalArs)}
                 </td>
               </tr>
-              <tr>
-                <td>
-                  <div className="label">Mes 2 y 3</div>
-                  <div className="label-sub">
-                    {honorariosCuotas === 3 ? `Alquiler + 2ª/3ª cuota honorarios${adminLabel}` : `Alquiler${adminLabel}`}
-                  </div>
-                </td>
-                <td className="value">{fmt(mes23, moneda)}</td>
-              </tr>
-              <tr>
-                <td>
-                  <div className="label">Mes 4 en adelante</div>
-                  <div className="label-sub">
-                    Alquiler{adminLabel} · {ajusteFinalContrato}
-                  </div>
-                </td>
-                <td className="value">{fmt(mes4, moneda)}</td>
-              </tr>
+              {c.mostrarMeses23 ? (
+                <>
+                  <tr>
+                    <td>
+                      <div className="label">Mes 2 y 3</div>
+                      <div className="label-sub">
+                        Alquiler + 2ª/3ª cuota honorarios{adminLabel}
+                      </div>
+                    </td>
+                    <td className="value">{fmt(mes23, moneda)}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div className="label">Mes 4 en adelante</div>
+                      <div className="label-sub">
+                        Alquiler{adminLabel} · {ajusteFinalContrato}
+                      </div>
+                    </td>
+                    <td className="value">{fmt(mes4, moneda)}</td>
+                  </tr>
+                </>
+              ) : (
+                <tr>
+                  <td>
+                    <div className="label">Mes 2 en adelante</div>
+                    <div className="label-sub">
+                      Alquiler{adminLabel} · {ajusteFinalContrato}
+                    </div>
+                  </td>
+                  <td className="value">{fmt(mes4, moneda)}</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

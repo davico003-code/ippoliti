@@ -60,7 +60,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
         moneda: moneda as Moneda,
         tipo: tipoFiscal,
         cotizacion,
-        sinAdmin,
+        incluirAdmin: !sinAdmin,
       }),
     [alquiler, meses, moneda, tipoFiscal, cotizacion, sinAdmin],
   )
@@ -80,7 +80,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
     `&meses=${mesesParaLink}` +
     `&moneda=${moneda}` +
     `&tipo=${tipoFiscal}` +
-    (sinAdmin ? `&sinAdmin=1` : '')
+    (sinAdmin ? `&admin=no` : '')
 
   const eyebrowStyle: React.CSSProperties = {
     fontSize: 11,

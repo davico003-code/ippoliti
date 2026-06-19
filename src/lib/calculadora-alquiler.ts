@@ -9,6 +9,7 @@ export const VERIFICACION_ARS = 60_000
 
 export type Moneda = 'ARS' | 'USD'
 export type TipoFiscal = 'vivienda' | 'comercio'
+export type FormaPagoHonorarios = '3cuotas' | '1pago'
 
 export const SELLADO_PCT: Record<TipoFiscal, number> = {
   vivienda: 0,
@@ -69,21 +70,27 @@ export interface CalcularInput {
   moneda: Moneda
   tipo: TipoFiscal
   cotizacion: number
-  // Excepción puntual: propiedades sin gasto administrativo mensual.
-  // Cuando es true, admin = 0 y queda fuera del total y del cronograma.
-  sinAdmin?: boolean
-  // Cuántas cuotas para los honorarios (default 3, comportamiento histórico).
-  // 1 = pago único: honoCuota pasa a ser el total y se abona todo al ingreso.
-  honorariosCuotas?: 1 | 3
+  // Si false, admin = 0 y queda fuera del total y del cronograma (la
+  // inmobiliaria solo confecciona el contrato, no administra el alquiler).
+  incluirAdmin?: boolean
+  // Forma de pago de los honorarios:
+  //  - '3cuotas' (default): 1ª cuota al ingresar, 2ª y 3ª en los meses 2 y 3.
+  //  - '1pago': honorarios completos (con IVA) al ingresar.
+  formaPagoHonorarios?: FormaPagoHonorarios
 }
 
 export interface CalcularOutput {
   primerMes: number
-  honoCuota: number
-  honoTotal: number
+  honoTotal: number        // total honorarios CON IVA
+  honoCuota: number        // honoTotal / 3 (1ª de 3 cuotas)
+  honoEnMes1: number       // lo que entra al ingreso: cuota (3cuotas) o total (1pago)
+  honoEnMes23: number      // lo que se paga en los meses 2 y 3: cuota (3cuotas) o 0 (1pago)
+  honoMes1Label: string    // sufijo del label en el desglose: '(1ª de 3 cuotas)' | 'totales + IVA'
+  mostrarMeses23: boolean  // true en 3cuotas (hay meses 2 y 3 con cuota); false en 1pago
   sellado: number          // siempre en pesos
   verificacion: number     // siempre en pesos (60_000)
-  admin: number            // misma moneda del contrato
+  admin: number            // misma moneda del contrato (0 si no se incluye)
+  mostrarAdmin: boolean    // incluirAdmin — controla si la fila admin se muestra
   totalSubMonedaContrato: number  // monto en la moneda del contrato (USD si USD, ARS si ARS)
   totalSubARS: number      // monto adicional en pesos (sellado + verificación cuando contrato USD; 0 cuando contrato ARS)
 }
@@ -94,36 +101,46 @@ export function calcularCostosIngreso({
   moneda,
   tipo,
   cotizacion,
-  sinAdmin = false,
-  honorariosCuotas = 3,
+  incluirAdmin = true,
+  formaPagoHonorarios = '3cuotas',
 }: CalcularInput): CalcularOutput {
-  const honoBase = alquiler * meses * HONORARIOS_PCT
-  const honoTotal = honoBase * (1 + IVA)
-  const honoCuota = honoTotal / honorariosCuotas
-  const admin = sinAdmin ? 0 : alquiler * ADMIN_PCT * (1 + IVA)
+  // Honorarios SIEMPRE con IVA en el monto final (no se descompone en pantalla).
+  const honoTotal = alquiler * meses * HONORARIOS_PCT * (1 + IVA)
+  const honoCuota = honoTotal / 3
+  const admin = incluirAdmin ? alquiler * ADMIN_PCT * (1 + IVA) : 0
 
-  // Sellado se calcula sobre el total del contrato convertido a pesos
+  // Sellado se calcula sobre el total del contrato convertido a pesos.
   const totalContrato = alquiler * meses
   const totalContratoArs = moneda === 'USD' ? totalContrato * cotizacion : totalContrato
   const sellado = totalContratoArs * SELLADO_PCT[tipo]
   const verificacion = VERIFICACION_ARS
 
+  const es3 = formaPagoHonorarios === '3cuotas'
+  const honoEnMes1 = es3 ? honoCuota : honoTotal
+  const honoEnMes23 = es3 ? honoCuota : 0
+  const honoMes1Label = es3 ? '(1ª de 3 cuotas)' : 'totales + IVA'
+
   // Total al ingresar — separado por moneda
-  // USD: alquiler + honoCuota + admin (USD)  ·  sellado + verificacion (ARS extra)
-  // ARS: alquiler + honoCuota + sellado + verificacion + admin (todo ARS)
+  // USD: alquiler + honoEnMes1 + admin (USD)  ·  sellado + verificacion (ARS extra)
+  // ARS: alquiler + honoEnMes1 + sellado + verificacion + admin (todo ARS)
   const totalSubMonedaContrato =
     moneda === 'USD'
-      ? alquiler + honoCuota + admin
-      : alquiler + honoCuota + sellado + verificacion + admin
+      ? alquiler + honoEnMes1 + admin
+      : alquiler + honoEnMes1 + sellado + verificacion + admin
   const totalSubARS = moneda === 'USD' ? sellado + verificacion : 0
 
   return {
     primerMes: alquiler,
-    honoCuota,
     honoTotal,
+    honoCuota,
+    honoEnMes1,
+    honoEnMes23,
+    honoMes1Label,
+    mostrarMeses23: es3,
     sellado,
     verificacion,
     admin,
+    mostrarAdmin: incluirAdmin,
     totalSubMonedaContrato,
     totalSubARS,
   }
