@@ -5,8 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'
-import { PlayAudioButton } from '@/components/audio/AudioPlayerProvider'
-import LikeHeart from '@/components/feedback/LikeHeart'
+import CardMediaButtons from '@/components/CardMediaButtons'
 import {
   type TokkoProperty,
   getAllPhotos,
@@ -233,18 +232,14 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           )}
         </div>
 
-        {/* Audio narrado — feedback v4: va a la esquina OPUESTA al like
-            (bottom-left), solo si la propiedad tiene audio generado. */}
-        {property.audioUrl && (
-          <PlayAudioButton
-            propertyId={property.id}
-            audioUrl={property.audioUrl}
-            positionClassName="bottom-2.5 left-2.5"
-          />
-        )}
-
-        {/* Like discreto top-right, sin número (diseño v4) */}
-        <LikeHeart propertyId={property.id} size={34} className="absolute top-2.5 right-2.5" />
+        {/* Play + like juntos, arriba-derecha. audioUrl ya viene enriquecido en
+            el listado (string = hay audio, null = no hay). */}
+        <CardMediaButtons
+          propertyId={property.id}
+          audioUrl={property.audioUrl ?? null}
+          size={32}
+          className="absolute top-2.5 right-2.5"
+        />
       </div>
 
       {/* Body */}
