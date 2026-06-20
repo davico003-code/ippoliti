@@ -8,7 +8,7 @@
 // the two layouts are structurally different enough (mobile: single item,
 // desktop: 5-col grid with row-span) that unifying forced a tall 2×2 thumb
 // strip on mobile that filled the viewport.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
@@ -23,6 +23,55 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
   const operation = getOperationType(property)
   const propType = translatePropertyType(property.type?.name)
   const address = property.fake_address || property.address
+
+  // Bloqueo de scroll del body mientras el lightbox está abierto. Sin esto, al
+  // llegar al final de las fotos el scroll se "cae" a la página de atrás
+  // (scroll chaining) y el usuario vuelve a la ficha. Usamos position:fixed
+  // (lock real, necesario en iOS Safari donde overscroll-behavior solo no
+  // alcanza) + compensación del ancho de la scrollbar para evitar layout shift,
+  // y restauramos la posición previa al cerrar/desmontar.
+  useEffect(() => {
+    if (!showAll) return
+    const scrollY = window.scrollY
+    const body = document.body
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      paddingRight: body.style.paddingRight,
+    }
+    const scrollbarW = window.innerWidth - document.documentElement.clientWidth
+    body.style.position = 'fixed'
+    body.style.top = `-${scrollY}px`
+    body.style.left = '0'
+    body.style.right = '0'
+    body.style.width = '100%'
+    body.style.overflow = 'hidden'
+    if (scrollbarW > 0) body.style.paddingRight = `${scrollbarW}px`
+    return () => {
+      body.style.position = prev.position
+      body.style.top = prev.top
+      body.style.left = prev.left
+      body.style.right = prev.right
+      body.style.width = prev.width
+      body.style.overflow = prev.overflow
+      body.style.paddingRight = prev.paddingRight
+      window.scrollTo(0, scrollY)
+    }
+  }, [showAll])
+
+  // ESC cierra el lightbox (antes no había handler; la ✕ ya cerraba).
+  useEffect(() => {
+    if (!showAll) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAll(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showAll])
 
   if (photos.length === 0) return null
 
@@ -159,7 +208,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
           >
             &times;
           </button>
-          <div className="h-full overflow-y-auto p-4 pt-16">
+          <div className="h-full overflow-y-auto overscroll-y-contain p-4 pt-16">
             <div className="max-w-4xl mx-auto space-y-2">
               {photos.map((p, i) => (
                 <Image
