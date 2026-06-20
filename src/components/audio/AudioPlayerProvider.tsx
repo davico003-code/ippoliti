@@ -159,9 +159,14 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 export function PlayAudioButton({
   propertyId,
   audioUrl,
+  // Posición sobre la foto. Default top-right (histórico). En la card del
+  // feedback v4 el like ocupa top-right, así que el play va a la esquina
+  // opuesta (bottom-left). Solo cambia la ubicación; lógica/AudioPlayer intactos.
+  positionClassName = 'top-2.5 right-2.5',
 }: {
   propertyId: number
   audioUrl: string
+  positionClassName?: string
 }) {
   const { currentId, status, toggle } = useAudioPlayer()
   const isThis = currentId === propertyId
@@ -181,7 +186,7 @@ export function PlayAudioButton({
         e.stopPropagation()
         toggle(propertyId, audioUrl)
       }}
-      className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/95 backdrop-blur flex items-center justify-center hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38]"
+      className={`absolute ${positionClassName} w-9 h-9 rounded-full bg-white/95 backdrop-blur flex items-center justify-center hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38]`}
     >
       <Icon
         className={`w-[18px] h-[18px] text-gray-700${isLoading ? ' animate-spin' : ''}`}

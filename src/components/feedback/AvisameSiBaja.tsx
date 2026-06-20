@@ -1,15 +1,23 @@
 'use client'
 
-// "Avisame si baja": card comprimida verde con input (WhatsApp o email) y un
-// botón BLANCO (no dorado). Sin login. Captura un lead anónimo. El canal se
-// detecta solo: si tiene "@" es email, si no se trata como WhatsApp.
+// D — "Avisame si baja" (diseño v4 FINAL). Card gradiente verde con ícono 🔔
+// + fila de input (WhatsApp o email) y botón BLANCO. Sin login. Captura un lead
+// anónimo. El canal se detecta solo: si tiene "@" es email, si no WhatsApp.
+//
+// Specs (_referencias/feedback/…, sección D):
+//   alert-card gradiente 135deg verde→verde-oscuro · ico 38px · h3 Raleway 13.5
+//   "¿Te frena el precio?" + p "Te avisamos si baja o si entra algo parecido."
+//   alert-row: input "Tu WhatsApp o email" + botón blanco "Avisame"
+//   note italic "Sin spam · sin crear cuenta · cancelás cuando quieras."
 
 import { useState } from 'react'
 
 const POPPINS = "'Poppins', system-ui, sans-serif"
 const RALEWAY = "'Raleway', system-ui, sans-serif"
-const GREEN = '#1A5C38'
-const GREEN_DARK = '#0F3F26'
+const VERDE = '#1A5C38'
+const VERDE_OSCURO = '#0F3F26'
+const GRIS = '#7C8488'
+const CARBON = '#24292B'
 
 function detectCanal(v: string): 'whatsapp' | 'email' {
   return v.includes('@') ? 'email' : 'whatsapp'
@@ -29,7 +37,11 @@ export default function AvisameSiBaja({
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     const v = contacto.trim()
-    if (!v || status === 'sending') return
+    if (!v) {
+      setStatus('error')
+      return
+    }
+    if (status === 'sending') return
     setStatus('sending')
     fetch('/api/feedback/alert', {
       method: 'POST',
@@ -39,58 +51,89 @@ export default function AvisameSiBaja({
     })
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status))
+        setContacto('')
         setStatus('done')
       })
       .catch(() => setStatus('error'))
   }
 
   return (
-    <div className="rounded-2xl p-5" style={{ background: GREEN }}>
-      <p style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 17, color: '#fff', margin: '0 0 2px' }}>
-        ¿Te interesa pero el precio te frena?
-      </p>
-      <p style={{ fontFamily: RALEWAY, fontSize: 13, color: 'rgba(255,255,255,0.85)', margin: '0 0 14px' }}>
-        Dejanos tu WhatsApp o email y te avisamos si baja.
-      </p>
-
-      {status === 'done' ? (
+    <div>
+      {/* Card gradiente con ícono + texto */}
+      <div
+        className="flex items-center"
+        style={{
+          background: `linear-gradient(135deg, ${VERDE}, ${VERDE_OSCURO})`,
+          color: '#fff',
+          borderRadius: 14,
+          padding: '15px 16px',
+          gap: 13,
+        }}
+      >
         <div
-          className="rounded-xl px-4 py-3 text-center"
-          style={{ background: GREEN_DARK, fontFamily: POPPINS, fontSize: 14, fontWeight: 600, color: '#fff' }}
+          className="grid place-items-center flex-none"
+          style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.15)', fontSize: 18 }}
         >
-          ¡Listo! Te avisamos si baja. ✅
+          🔔
         </div>
-      ) : (
-        <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2">
-          <input
-            type="text"
-            inputMode="text"
-            value={contacto}
-            onChange={(e) => {
-              setContacto(e.target.value)
-              if (status === 'error') setStatus('idle')
-            }}
-            placeholder="WhatsApp o email"
-            aria-label="WhatsApp o email"
-            className="flex-1 rounded-xl px-4 py-3 outline-none"
-            style={{ fontFamily: POPPINS, fontSize: 14, border: 'none' }}
-          />
-          <button
-            type="submit"
-            disabled={status === 'sending' || !contacto.trim()}
-            className="rounded-xl px-5 py-3 font-bold transition-opacity disabled:opacity-60"
-            style={{ fontFamily: POPPINS, fontSize: 14, background: '#fff', color: GREEN }}
-          >
-            {status === 'sending' ? 'Enviando…' : 'Avisame'}
-          </button>
-        </form>
-      )}
+        <div>
+          <h3 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 13.5, color: '#fff', lineHeight: 1.25 }}>
+            ¿Te frena el precio?
+          </h3>
+          <p style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>
+            Te avisamos si baja o si entra algo parecido.
+          </p>
+        </div>
+      </div>
 
-      {status === 'error' && (
-        <p style={{ fontFamily: RALEWAY, fontSize: 12, color: '#FAF7F2', margin: '8px 0 0' }}>
-          Revisá el dato e intentá de nuevo.
-        </p>
-      )}
+      {/* Fila input + botón */}
+      <form onSubmit={submit} className="flex" style={{ gap: 7, marginTop: 11 }}>
+        <input
+          type="text"
+          value={contacto}
+          onChange={(e) => {
+            setContacto(e.target.value)
+            if (status === 'error' || status === 'done') setStatus('idle')
+          }}
+          placeholder={status === 'done' ? '✓ Listo, te avisamos' : 'Tu WhatsApp o email'}
+          aria-label="Tu WhatsApp o email"
+          className="flex-1 border-0"
+          style={{ borderRadius: 9, padding: '10px 12px', fontFamily: POPPINS, fontSize: 12.5, color: CARBON }}
+        />
+        <button
+          type="submit"
+          disabled={status === 'sending'}
+          className="cursor-pointer border-0"
+          style={{
+            background: '#fff',
+            color: VERDE,
+            borderRadius: 9,
+            padding: '0 16px',
+            fontFamily: RALEWAY,
+            fontWeight: 700,
+            fontSize: 12.5,
+          }}
+        >
+          {status === 'sending' ? '…' : 'Avisame'}
+        </button>
+      </form>
+
+      <p
+        style={{
+          fontSize: 11,
+          color: status === 'done' ? VERDE : GRIS,
+          textAlign: 'center',
+          marginTop: 9,
+          fontStyle: 'italic',
+          lineHeight: 1.5,
+        }}
+      >
+        {status === 'done'
+          ? '✓ Te vamos a escribir. ¡Gracias!'
+          : status === 'error'
+            ? 'Escribí tu WhatsApp o email para activarlo.'
+            : 'Sin spam · sin crear cuenta · cancelás cuando quieras.'}
+      </p>
     </div>
   )
 }
