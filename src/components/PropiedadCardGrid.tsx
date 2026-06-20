@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import { PlayAudioButton } from '@/components/audio/AudioPlayerProvider'
+import LikeHeart from '@/components/feedback/LikeHeart'
 import {
   type TokkoProperty,
   getAllPhotos,
@@ -236,6 +237,14 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         {property.audioUrl && (
           <PlayAudioButton propertyId={property.id} audioUrl={property.audioUrl} />
         )}
+
+        {/* Like discreto — convive con el play: si hay audio, se apila debajo;
+            si no, ocupa la esquina top-right. La izquierda queda para el badge. */}
+        <LikeHeart
+          propertyId={property.id}
+          size={36}
+          className={`absolute right-2.5 ${property.audioUrl ? 'top-[52px]' : 'top-2.5'}`}
+        />
       </div>
 
       {/* Body */}
