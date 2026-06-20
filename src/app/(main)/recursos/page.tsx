@@ -72,6 +72,14 @@ const collectionJsonLd = {
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
     {
+      '@type': 'WebApplication',
+      name: 'Mapa de zonificación de Funes',
+      url: 'https://siinmobiliaria.com/recursos/mapa-funes',
+      applicationCategory: 'ReferenceApplication',
+      operatingSystem: 'Web',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'ARS' },
+    },
+    {
       '@type': 'WebPage',
       name: 'Índices y mercado en vivo',
       url: 'https://siinmobiliaria.com/informes',
@@ -487,6 +495,24 @@ function IconBook() {
   )
 }
 
+function IconMap() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+      <line x1="9" y1="3" x2="9" y2="18" />
+      <line x1="15" y1="6" x2="15" y2="21" />
+    </svg>
+  )
+}
+
 interface CardData {
   href: string
   eyebrow: string
@@ -532,6 +558,15 @@ const CARDS: CardData[] = [
       'Índice de costos por m² llave en mano y por cuenta propia, casos reales en la zona y calculadora para proyectar tu obra.',
     cta: 'Ver el índice',
     icon: <IconObra />,
+  },
+  {
+    href: '/recursos/mapa-funes',
+    eyebrow: 'Para tu lote',
+    title: '¿Qué podés construir en tu lote?',
+    description:
+      'Mapa interactivo de Funes: pasá por tu zona y mirá FOS, FOT, altura y cuánto podés construir, con calculadora según las medidas del lote.',
+    cta: 'Abrir el mapa',
+    icon: <IconMap />,
   },
   {
     href: '/informes',
