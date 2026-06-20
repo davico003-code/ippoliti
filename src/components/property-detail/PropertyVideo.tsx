@@ -1,13 +1,13 @@
 'use client'
 
-// Lazy-loaded video embed. Renders a poster with a play button and mounts
-// the real iframe/video element only after the user clicks (or the section
-// enters the viewport, whichever comes first). Supports YouTube, Vimeo, MP4.
+// Facade de video. Muestra de entrada SOLO un poster liviano + el botón play;
+// el <iframe>/<video> real se monta recién cuando el usuario hace click.
+// Soporta YouTube, Vimeo y MP4.
 //
 // On play we attempt to enter fullscreen automatically. If the browser
 // rejects the request (e.g. Safari iOS without user-gesture chain), we
 // silently fall back to inline playback inside the 16:9 container.
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Play } from 'lucide-react'
 import type { TokkoVideo } from '@/lib/tokko'
 
@@ -36,8 +36,10 @@ function parseVideo(v: TokkoVideo, fallbackPoster: string | null): EmbedInfo {
     return {
       kind: 'youtube',
       src: `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&fs=1`,
+      // hqdefault.jpg SIEMPRE existe y es liviano. Evitamos maxresdefault, que
+      // a menudo da 404 (no todos los videos lo tienen) y suma latencia. La
+      // primera foto de la propiedad queda como fallback (ya cacheada del hero).
       thumbs: [
-        `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg`,
         `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`,
         ...(fallbackPoster ? [fallbackPoster] : []),
       ],
@@ -122,7 +124,6 @@ function VideoEmbed({ video, fallbackPoster }: { video: TokkoVideo; fallbackPost
             <img
               src={currentThumb}
               alt={title}
-              loading="lazy"
               className="absolute inset-0 w-full h-full object-cover"
               onError={() => setThumbIdx(i => (i + 1 < info.thumbs.length ? i + 1 : i))}
             />
@@ -149,6 +150,7 @@ function VideoEmbed({ video, fallbackPoster }: { video: TokkoVideo; fallbackPost
           controls
           autoPlay
           playsInline
+          preload="none"
           className="absolute inset-0 w-full h-full"
           poster={currentThumb}
         />
@@ -173,31 +175,15 @@ export default function PropertyVideo({
   videos: TokkoVideo[] | undefined | null
   fallbackPoster?: string | null
 }) {
-  const rootRef = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
   const list = (videos ?? []).filter(v => !!(v.player_url || v.url))
-
-  useEffect(() => {
-    if (visible) return
-    const el = rootRef.current
-    if (!el) return
-    const io = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting) { setVisible(true); io.disconnect() }
-    }, { rootMargin: '300px' })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [visible])
-
   if (list.length === 0) return null
 
+  // La facade es barata (un poster + botón, sin iframe), así que la mostramos
+  // de entrada: el poster real aparece al toque y no hay skeleton gris. El
+  // <iframe>/<video> sigue montándose recién al click (ver VideoEmbed).
   return (
-    <div ref={rootRef} className="space-y-3">
-      {visible ? (
-        list.map(v => <VideoEmbed key={v.id} video={v} fallbackPoster={fallbackPoster} />)
-      ) : (
-        // Skeleton with aspect-video para no causar CLS
-        <div className="w-full aspect-video rounded-xl bg-gray-100 animate-pulse" />
-      )}
+    <div className="space-y-3">
+      {list.map(v => <VideoEmbed key={v.id} video={v} fallbackPoster={fallbackPoster} />)}
     </div>
   )
 }
