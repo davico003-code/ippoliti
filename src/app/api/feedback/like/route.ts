@@ -15,6 +15,7 @@ import {
   parsePropertyId,
   getIp,
   rateLimit,
+  indexProperty,
   FB_TTL,
 } from '@/lib/feedback'
 
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
       await redis.expire(key, FB_TTL)
       liked = true
     }
+    await indexProperty(propertyId)
   } catch {
     /* fire-and-forget: si Redis falla, no rompemos la UX */
   }

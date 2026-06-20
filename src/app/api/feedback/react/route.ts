@@ -15,6 +15,7 @@ import {
   parsePropertyId,
   getIp,
   rateLimit,
+  indexProperty,
   REACT_CHOICES,
   FB_TTL,
   type ReactChoice,
@@ -59,6 +60,7 @@ export async function POST(req: Request) {
         if (dec < 0) await redis.set(`${base}:react:${prev}`, 0)
       }
     }
+    await indexProperty(propertyId)
   } catch {
     /* fire-and-forget */
   }

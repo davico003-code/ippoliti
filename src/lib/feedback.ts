@@ -33,6 +33,19 @@ export function fbKey(id: string | number): string {
   return `feedback:property:${id}`
 }
 
+/** Índice (SET) de todas las propiedades que recibieron feedback alguna vez.
+ *  Permite enumerarlas en el panel sin SCAN. */
+export const FB_INDEX_KEY = 'feedback:properties'
+
+/** Marca una propiedad en el índice. Fire-and-forget; no rompe el flujo. */
+export async function indexProperty(id: string | number): Promise<void> {
+  try {
+    await redis.sadd(FB_INDEX_KEY, String(id))
+  } catch {
+    /* el índice es best-effort */
+  }
+}
+
 export function getIp(req: Request): string {
   return (
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||

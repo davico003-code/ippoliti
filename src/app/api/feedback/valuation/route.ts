@@ -17,6 +17,7 @@ import {
   parsePropertyId,
   getIp,
   rateLimit,
+  indexProperty,
   OBJECTION_CHOICES,
   FB_TTL,
   type ObjectionChoice,
@@ -87,6 +88,7 @@ export async function POST(req: Request) {
       await redis.hset(vidObjKey, { [vid]: JSON.stringify(objeciones) })
       await redis.expire(vidObjKey, FB_TTL)
     }
+    await indexProperty(propertyId)
   } catch {
     /* fire-and-forget */
   }

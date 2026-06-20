@@ -16,6 +16,7 @@ import {
   parsePropertyId,
   getIp,
   rateLimit,
+  indexProperty,
   ALERT_CANALES,
   FB_TTL,
   type AlertCanal,
@@ -73,6 +74,7 @@ export async function POST(req: Request) {
     await redis.lpush(key, JSON.stringify({ contacto, canal, valuacion, vid, ts: Date.now() }))
     await redis.ltrim(key, 0, ALERTS_CAP - 1)
     await redis.expire(key, FB_TTL)
+    await indexProperty(propertyId)
   } catch {
     /* fire-and-forget */
   }
