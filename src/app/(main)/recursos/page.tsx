@@ -80,6 +80,14 @@ const collectionJsonLd = {
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'ARS' },
     },
     {
+      '@type': 'WebApplication',
+      name: 'Asistente de obras particulares de Funes',
+      url: 'https://siinmobiliaria.com/recursos/asistente-obras',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'ARS' },
+    },
+    {
       '@type': 'WebPage',
       name: 'Índices y mercado en vivo',
       url: 'https://siinmobiliaria.com/informes',
@@ -567,6 +575,15 @@ const CARDS: CardData[] = [
       'Mapa interactivo de Funes: pasá por tu zona y mirá FOS, FOT, altura y cuánto podés construir, con calculadora según las medidas del lote.',
     cta: 'Abrir el mapa',
     icon: <IconMap />,
+  },
+  {
+    href: '/recursos/asistente-obras',
+    eyebrow: 'Para construir',
+    title: '¿Cuánto vas a pagar por tu obra?',
+    description:
+      'Asistente de obras particulares de Funes: cuánto podés construir, plusvalía por mayor aprovechamiento, tasa de edificación y qué papeles necesitás para cada trámite.',
+    cta: 'Abrir el asistente',
+    icon: <IconObra />,
   },
   {
     href: '/informes',
