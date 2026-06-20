@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 
 import { getProgress } from '@/lib/si-school/progress'
+import FeedbackPropiedadesTable from './FeedbackPropiedadesTable'
+import type { PanelRow } from '@/lib/feedback-admin'
 
 // ── Design tokens ──────────────────────────────────────────────────────
 const GREEN = '#1A5C38'
@@ -71,6 +73,8 @@ interface Props {
   newsletterEsteMes?: number
   /** Feedback de caritas de la calculadora de costos (visible para todos). */
   feedbackCostos?: { up: number; mid: number; down: number }
+  /** Feedback por propiedad (solo admin; incluye PII de leads). */
+  feedbackPropiedades?: PanelRow[]
 }
 
 export default function AgentDashboardV2({
@@ -81,6 +85,7 @@ export default function AgentDashboardV2({
   newsletterTotal = 0,
   newsletterEsteMes = 0,
   feedbackCostos = { up: 0, mid: 0, down: 0 },
+  feedbackPropiedades = [],
 }: Props) {
   const firstName = agentName.split(' ')[0]
   const initials = getInitials(agentName)
@@ -187,6 +192,8 @@ export default function AgentDashboardV2({
         </div>
 
         <FeedbackCostosSection data={feedbackCostos} />
+
+        {isAdmin && <FeedbackPropiedadesTable rows={feedbackPropiedades} />}
 
         {isAdmin && (
           <AdminSection

@@ -6,6 +6,7 @@ import { getAllClientes } from '@/lib/clientes'
 import { listAutorizaciones } from '@/lib/autorizaciones'
 import { countNewsletterLeads } from '@/lib/leads'
 import { redis } from '@/lib/redis'
+import { getFeedbackPanelRows } from '@/lib/feedback-admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,7 @@ export default async function AgentesPage() {
   const isAdmin = agent.role === 'admin'
 
   // Stats globales (Fase 1 sin scope por agente; TODO Fase 2: filtrar por agentId).
-  const [clientes, autorizaciones, newsletter, feedbackCostos] = await Promise.all([
+  const [clientes, autorizaciones, newsletter, feedbackCostos, feedbackPropiedades] = await Promise.all([
     getAllClientes().catch(() => []),
     listAutorizaciones({ status: 'all', limit: 200 }).catch(() => ({ items: [], hasMore: false })),
     isAdmin ? countNewsletterLeads() : Promise.resolve({ total: 0, esteMes: 0 }),
@@ -38,6 +39,8 @@ export default async function AgentesPage() {
         down: Number(down) || 0,
       }))
       .catch(() => ({ up: 0, mid: 0, down: 0 })),
+    // Feedback por propiedad (solo admin; trae PII de leads)
+    isAdmin ? getFeedbackPanelRows().catch(() => []) : Promise.resolve([]),
   ])
 
   // Autorizaciones creadas este mes.
@@ -57,6 +60,7 @@ export default async function AgentesPage() {
       newsletterTotal={newsletter.total}
       newsletterEsteMes={newsletter.esteMes}
       feedbackCostos={feedbackCostos}
+      feedbackPropiedades={feedbackPropiedades}
     />
   )
 }
