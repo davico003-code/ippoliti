@@ -1,12 +1,14 @@
 'use client'
 
-// Tabla de feedback por propiedad para el panel de /agentes (solo admin).
-// Una fila por propiedad: miniatura · dirección · resultados del feedback en
-// columnas (likes, caritas, valuación, objeciones, leads). Clic en la fila →
-// desglose + lista de leads (PII). Botón "Archivar a Neon" (snapshot).
+// Feedback por propiedad para el panel de /agentes (solo admin).
+// Responsive: en desktop (md+) una tabla; en móvil (<md) cards apiladas que
+// ajustan al ancho de la pantalla (sin scroll horizontal). Una "ficha" por
+// propiedad: miniatura · dirección · likes · caritas · valuación · objeciones ·
+// leads. Tap → desglose + lista de leads (PII). Botón "Archivar a Neon".
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { ChevronDown } from 'lucide-react'
 import type { PanelRow } from '@/lib/feedback-admin'
 
 const POPPINS = "'Poppins', system-ui, sans-serif"
@@ -39,6 +41,11 @@ function pctColor(pct: number | null): string {
   return pct < 0 ? '#C0563E' : VERDE
 }
 
+function pctLabel(pct: number | null): string {
+  if (pct == null) return '—'
+  return `${pct > 0 ? '+' : ''}${pct}%`
+}
+
 function topObjeciones(obj: Record<string, number>): string {
   const items = Object.entries(obj)
     .filter(([, v]) => v > 0)
@@ -48,10 +55,16 @@ function topObjeciones(obj: Record<string, number>): string {
   return items.length ? items.join(' · ') : '—'
 }
 
+function reactInline(r: PanelRow): string {
+  return REACT_META.map((m) => `${m.emoji} ${num(r.react[m.key])}`).join('  ')
+}
+
 export default function FeedbackPropiedadesTable({ rows }: { rows: PanelRow[] }) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [archStatus, setArchStatus] = useState<'idle' | 'archivando' | 'ok' | 'error'>('idle')
   const [archMsg, setArchMsg] = useState('')
+
+  const toggle = (id: string) => setExpanded((cur) => (cur === id ? null : id))
 
   const archivarTodo = () => {
     if (archStatus === 'archivando') return
@@ -73,34 +86,13 @@ export default function FeedbackPropiedadesTable({ rows }: { rows: PanelRow[] })
       })
   }
 
-  const th: React.CSSProperties = {
-    fontFamily: RALEWAY,
-    fontWeight: 700,
-    fontSize: 11,
-    color: GRIS,
-    textTransform: 'uppercase',
-    letterSpacing: '.4px',
-    textAlign: 'left',
-    padding: '10px 12px',
-    whiteSpace: 'nowrap',
-  }
-  const td: React.CSSProperties = {
-    fontFamily: POPPINS,
-    fontSize: 13,
-    color: CARBON,
-    padding: '10px 12px',
-    borderTop: `1px solid ${LINEA}`,
-    verticalAlign: 'middle',
-  }
-  const tnum: React.CSSProperties = { ...td, fontVariantNumeric: 'tabular-nums' }
-
   return (
     <section aria-label="Feedback por propiedad" style={{ marginTop: 40 }}>
       <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 14 }}>
         <h2 style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 20, color: VERDE_OSCURO, margin: 0 }}>
           Feedback por propiedad
         </h2>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {archMsg && (
             <span style={{ fontFamily: POPPINS, fontSize: 12, color: archStatus === 'error' ? '#C0563E' : VERDE }}>
               {archMsg}
@@ -132,36 +124,37 @@ export default function FeedbackPropiedadesTable({ rows }: { rows: PanelRow[] })
           Todavía no hay feedback registrado en ninguna propiedad.
         </p>
       ) : (
-        <div style={{ overflowX: 'auto', border: `1px solid ${LINEA}`, borderRadius: 14, background: '#fff' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
-            <thead>
-              <tr style={{ background: '#FAF7F2' }}>
-                <th style={th}>Propiedad</th>
-                <th style={{ ...th, textAlign: 'center' }}>❤️</th>
-                <th style={{ ...th, textAlign: 'center' }}>Caritas</th>
-                <th style={th}>Valuación</th>
-                <th style={th}>Objeciones</th>
-                <th style={{ ...th, textAlign: 'center' }}>🔔</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => {
-                const isOpen = expanded === r.propertyId
-                return (
-                  <FragmentRow
-                    key={r.propertyId}
-                    r={r}
-                    isOpen={isOpen}
-                    onToggle={() => setExpanded(isOpen ? null : r.propertyId)}
-                    td={td}
-                    tnum={tnum}
-                  />
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* ── Móvil: cards apiladas ── */}
+          <div className="md:hidden flex flex-col gap-3">
+            {rows.map((r) => (
+              <MobileCard key={r.propertyId} r={r} isOpen={expanded === r.propertyId} onToggle={() => toggle(r.propertyId)} />
+            ))}
+          </div>
+
+          {/* ── Desktop: tabla ── */}
+          <div className="hidden md:block" style={{ overflowX: 'auto', border: `1px solid ${LINEA}`, borderRadius: 14, background: '#fff' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
+              <thead>
+                <tr style={{ background: '#FAF7F2' }}>
+                  <th style={TH}>Propiedad</th>
+                  <th style={{ ...TH, textAlign: 'center' }}>❤️</th>
+                  <th style={{ ...TH, textAlign: 'center' }}>Caritas</th>
+                  <th style={TH}>Valuación</th>
+                  <th style={TH}>Objeciones</th>
+                  <th style={{ ...TH, textAlign: 'center' }}>🔔</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <DesktopRow key={r.propertyId} r={r} isOpen={expanded === r.propertyId} onToggle={() => toggle(r.propertyId)} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
+
       <p style={{ fontFamily: POPPINS, fontSize: 11, color: GRIS, marginTop: 8, fontStyle: 'italic' }}>
         Data privada · los leads de “avisame” son PII. “Archivar a Neon” guarda un snapshot por propiedad.
       </p>
@@ -169,28 +162,100 @@ export default function FeedbackPropiedadesTable({ rows }: { rows: PanelRow[] })
   )
 }
 
-function FragmentRow({
-  r,
-  isOpen,
-  onToggle,
-  td,
-  tnum,
-}: {
-  r: PanelRow
-  isOpen: boolean
-  onToggle: () => void
-  td: React.CSSProperties
-  tnum: React.CSSProperties
-}) {
+// ── Card móvil ──────────────────────────────────────────────────────────────
+function MobileCard({ r, isOpen, onToggle }: { r: PanelRow; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <div style={{ border: `1px solid ${LINEA}`, borderRadius: 14, background: '#fff', overflow: 'hidden' }}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onToggle()
+          }
+        }}
+        className="cursor-pointer"
+        style={{ padding: 14, background: isOpen ? '#FAF7F2' : '#fff' }}
+      >
+        {/* Cabecera: miniatura + dirección + precio */}
+        <div className="flex items-center gap-3">
+          <div style={{ position: 'relative', width: 56, height: 42, borderRadius: 8, overflow: 'hidden', background: '#eee', flex: 'none' }}>
+            {r.photo ? <Image src={r.photo} alt="" fill className="object-cover" sizes="56px" /> : null}
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontFamily: RALEWAY, fontWeight: 600, color: CARBON, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {r.address}
+            </div>
+            <div style={{ fontSize: 12, color: GRIS, fontVariantNumeric: 'tabular-nums' }}>{r.priceLabel}</div>
+          </div>
+          <ChevronDown
+            className="flex-none"
+            style={{ width: 18, height: 18, color: GRIS, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}
+          />
+        </div>
+
+        {/* Métricas: flex-wrap, ajusta al ancho */}
+        <div className="flex flex-wrap items-center" style={{ gap: '8px 16px', marginTop: 12, fontFamily: POPPINS, fontSize: 13, color: CARBON, fontVariantNumeric: 'tabular-nums' }}>
+          <span><b>❤️ {num(r.likes)}</b></span>
+          <span style={{ whiteSpace: 'nowrap' }}>{reactInline(r)}</span>
+          <span style={{ whiteSpace: 'nowrap' }}>🔔 <b>{num(r.alerts.length)}</b></span>
+        </div>
+        <div className="flex flex-wrap" style={{ gap: '4px 16px', marginTop: 8, fontFamily: POPPINS, fontSize: 12, color: GRIS }}>
+          <span>
+            Valuación:{' '}
+            {r.valuation.count > 0 ? (
+              <>
+                {num(r.valuation.count)} resp · <b style={{ color: pctColor(r.avgPct) }}>{pctLabel(r.avgPct)}</b>
+              </>
+            ) : (
+              '—'
+            )}
+          </span>
+          <span>Objeciones: {topObjeciones(r.objection)}</span>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div style={{ padding: '0 14px 12px' }}>
+          <FeedbackDetalleExpand r={r} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Fila desktop ─────────────────────────────────────────────────────────────
+const TH: React.CSSProperties = {
+  fontFamily: RALEWAY,
+  fontWeight: 700,
+  fontSize: 11,
+  color: GRIS,
+  textTransform: 'uppercase',
+  letterSpacing: '.4px',
+  textAlign: 'left',
+  padding: '10px 12px',
+  whiteSpace: 'nowrap',
+}
+const TD: React.CSSProperties = {
+  fontFamily: POPPINS,
+  fontSize: 13,
+  color: CARBON,
+  padding: '10px 12px',
+  borderTop: `1px solid ${LINEA}`,
+  verticalAlign: 'middle',
+}
+const TNUM: React.CSSProperties = { ...TD, fontVariantNumeric: 'tabular-nums' }
+
+function DesktopRow({ r, isOpen, onToggle }: { r: PanelRow; isOpen: boolean; onToggle: () => void }) {
   return (
     <>
       <tr onClick={onToggle} style={{ cursor: 'pointer', background: isOpen ? '#FAF7F2' : '#fff' }}>
-        <td style={td}>
+        <td style={TD}>
           <div className="flex items-center gap-3">
             <div style={{ position: 'relative', width: 56, height: 40, borderRadius: 8, overflow: 'hidden', background: '#eee', flex: 'none' }}>
-              {r.photo ? (
-                <Image src={r.photo} alt="" fill className="object-cover" sizes="56px" />
-              ) : null}
+              {r.photo ? <Image src={r.photo} alt="" fill className="object-cover" sizes="56px" /> : null}
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: RALEWAY, fontWeight: 600, color: CARBON, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
@@ -200,33 +265,30 @@ function FragmentRow({
             </div>
           </div>
         </td>
-        <td style={{ ...tnum, textAlign: 'center', fontWeight: 700 }}>{num(r.likes)}</td>
-        <td style={{ ...tnum, textAlign: 'center', whiteSpace: 'nowrap' }}>
+        <td style={{ ...TNUM, textAlign: 'center', fontWeight: 700 }}>{num(r.likes)}</td>
+        <td style={{ ...TNUM, textAlign: 'center', whiteSpace: 'nowrap' }}>
           {REACT_META.map((m, i) => (
             <span key={m.key} style={{ marginLeft: i ? 8 : 0 }}>
               {m.emoji} {num(r.react[m.key])}
             </span>
           ))}
         </td>
-        <td style={tnum}>
+        <td style={TNUM}>
           {r.valuation.count > 0 ? (
             <span>
               {num(r.valuation.count)} resp ·{' '}
-              <b style={{ color: pctColor(r.avgPct) }}>
-                {r.avgPct == null ? '—' : `${r.avgPct > 0 ? '+' : ''}${r.avgPct}%`}
-              </b>
+              <b style={{ color: pctColor(r.avgPct) }}>{pctLabel(r.avgPct)}</b>
             </span>
           ) : (
             '—'
           )}
         </td>
-        <td style={{ ...td, fontSize: 12, color: GRIS }}>{topObjeciones(r.objection)}</td>
-        <td style={{ ...tnum, textAlign: 'center', fontWeight: 700 }}>{num(r.alerts.length)}</td>
+        <td style={{ ...TD, fontSize: 12, color: GRIS }}>{topObjeciones(r.objection)}</td>
+        <td style={{ ...TNUM, textAlign: 'center', fontWeight: 700 }}>{num(r.alerts.length)}</td>
       </tr>
-
       {isOpen && (
         <tr>
-          <td colSpan={6} style={{ ...td, background: '#FAF7F2', paddingTop: 4 }}>
+          <td colSpan={6} style={{ ...TD, background: '#FAF7F2', paddingTop: 4 }}>
             <FeedbackDetalleExpand r={r} />
           </td>
         </tr>
@@ -235,11 +297,12 @@ function FragmentRow({
   )
 }
 
+// ── Desglose (compartido móvil/desktop) ──────────────────────────────────────
 function FeedbackDetalleExpand({ r }: { r: PanelRow }) {
   const { valuation } = r
   return (
-    <div className="flex flex-col md:flex-row gap-6" style={{ padding: '6px 4px 10px' }}>
-      <div style={{ minWidth: 200 }}>
+    <div className="flex flex-col md:flex-row gap-6" style={{ padding: '6px 0 10px' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <Label>Valuación percibida</Label>
         {valuation.count > 0 ? (
           <div style={{ fontFamily: POPPINS, fontSize: 13, color: CARBON, fontVariantNumeric: 'tabular-nums' }}>
@@ -251,7 +314,7 @@ function FeedbackDetalleExpand({ r }: { r: PanelRow }) {
           <Empty />
         )}
         <Label>Objeciones</Label>
-        <div style={{ fontFamily: POPPINS, fontSize: 13, color: CARBON }}>
+        <div className="flex flex-wrap" style={{ gap: '4px 10px', fontFamily: POPPINS, fontSize: 13, color: CARBON }}>
           {Object.entries(r.objection).filter(([, v]) => v > 0).length === 0 ? (
             <Empty />
           ) : (
@@ -259,7 +322,7 @@ function FeedbackDetalleExpand({ r }: { r: PanelRow }) {
               .filter(([, v]) => v > 0)
               .sort((a, b) => b[1] - a[1])
               .map(([k, v]) => (
-                <span key={k} style={{ marginRight: 10 }}>
+                <span key={k}>
                   {OBJ_LABEL[k] ?? k} <b style={{ fontVariantNumeric: 'tabular-nums' }}>{v}</b>
                 </span>
               ))
@@ -267,7 +330,7 @@ function FeedbackDetalleExpand({ r }: { r: PanelRow }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, minWidth: 240 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <Label>Leads “avisame si baja” ({r.alerts.length})</Label>
         {r.alerts.length === 0 ? (
           <Empty />
@@ -279,10 +342,8 @@ function FeedbackDetalleExpand({ r }: { r: PanelRow }) {
                 className="flex items-center gap-2 flex-wrap"
                 style={{ fontFamily: POPPINS, fontSize: 13, color: CARBON, fontVariantNumeric: 'tabular-nums' }}
               >
-                <span style={{ fontWeight: 600 }}>{a.contacto}</span>
-                <span style={{ fontSize: 11, color: '#fff', background: VERDE, borderRadius: 6, padding: '1px 7px' }}>
-                  {a.canal}
-                </span>
+                <span style={{ fontWeight: 600, wordBreak: 'break-all' }}>{a.contacto}</span>
+                <span style={{ fontSize: 11, color: '#fff', background: VERDE, borderRadius: 6, padding: '1px 7px' }}>{a.canal}</span>
                 {a.valuacion != null && <span style={{ color: GRIS }}>valuó {num(a.valuacion)}</span>}
                 <span style={{ color: GRIS, fontSize: 11 }}>{new Date(a.ts).toLocaleDateString('es-AR')}</span>
               </div>
