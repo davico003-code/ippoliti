@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import CardMediaButtons from '@/components/CardMediaButtons'
 import { KickerMundial, SeparadorMundial } from '@/components/mundial/MundialSeccion'
 import {
   getFeaturedProperties,
@@ -106,6 +107,10 @@ export default async function SeleccionCarousel() {
                     {badge.label}
                   </span>
                 )}
+                {/* Play + like juntos, arriba-derecha. audioUrl no viene
+                    enriquecido acá (home ISR) → CardMediaButtons lo resuelve
+                    client-side por lote. */}
+                <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3" />
               </div>
               <div className="p-3.5">
                 <p className="font-poppins font-black text-[22px] text-gray-900 tracking-tight leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>

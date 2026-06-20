@@ -159,14 +159,16 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 export function PlayAudioButton({
   propertyId,
   audioUrl,
-  // Posición sobre la foto. Default top-right (histórico). En la card del
-  // feedback v4 el like ocupa top-right, así que el play va a la esquina
-  // opuesta (bottom-left). Solo cambia la ubicación; lógica/AudioPlayer intactos.
-  positionClassName = 'top-2.5 right-2.5',
+  // `size` en px (default 36, histórico). `className` controla layout/posición
+  // (default absolute top-right); para el cluster play+like se pasa un className
+  // sin `absolute` y queda como item de un flex. Lógica/AudioPlayer intactos.
+  size = 36,
+  className = 'absolute top-2.5 right-2.5',
 }: {
   propertyId: number
   audioUrl: string
-  positionClassName?: string
+  size?: number
+  className?: string
 }) {
   const { currentId, status, toggle } = useAudioPlayer()
   const isThis = currentId === propertyId
@@ -175,6 +177,7 @@ export function PlayAudioButton({
 
   const label = isPlaying ? 'Pausar' : isLoading ? 'Cargando audio' : 'Escuchar descripción'
   const Icon = isPlaying ? Pause : isLoading ? Loader2 : Play
+  const icon = Math.round(size * 0.5)
 
   return (
     <button
@@ -186,12 +189,13 @@ export function PlayAudioButton({
         e.stopPropagation()
         toggle(propertyId, audioUrl)
       }}
-      className={`absolute ${positionClassName} w-9 h-9 rounded-full bg-white/95 backdrop-blur flex items-center justify-center hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38]`}
+      className={`${className} rounded-full bg-white/95 backdrop-blur flex items-center justify-center hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38]`}
+      style={{ width: size, height: size }}
     >
       <Icon
-        className={`w-[18px] h-[18px] text-gray-700${isLoading ? ' animate-spin' : ''}`}
+        className={`text-gray-700${isLoading ? ' animate-spin' : ''}`}
         // Play tiene una asimetría visual; un pelín de offset lo centra ópticamente.
-        style={!isPlaying && !isLoading ? { marginLeft: 2 } : undefined}
+        style={{ width: icon, height: icon, ...(!isPlaying && !isLoading ? { marginLeft: 2 } : {}) }}
       />
     </button>
   )
