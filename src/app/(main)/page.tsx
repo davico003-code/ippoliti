@@ -7,6 +7,7 @@ import EmprendimientosHome from '@/components/EmprendimientosHome'
 import HorizontalCarousel from '@/components/HorizontalCarousel'
 import HeroMobile from '@/components/home/HeroMobile'
 import SeleccionCarousel from '@/components/home/SeleccionCarousel'
+import CardMediaButtons from '@/components/CardMediaButtons'
 import { KickerMundial, SeparadorMundial } from '@/components/mundial/MundialSeccion'
 import { esDiaDePartido } from '@/lib/mundial'
 import ProyectosCarousel from '@/components/home/ProyectosCarousel'
@@ -103,6 +104,11 @@ async function FeaturedPropertiesSection() {
             }}>
               ★ La jugada del partido
             </span>
+          )}
+          {/* Play + like juntos, arriba-derecha (oculto en la card "destacada"
+              de día de partido, que ya usa ese rincón para la chapa). */}
+          {!destacada && (
+            <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5" />
           )}
         </div>
         <div style={{ padding: '10px 14px' }}>
