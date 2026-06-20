@@ -1,9 +1,13 @@
 'use client'
 
-// Like discreto estilo Zillow: pill translúcido con corazón outline que se
-// llena rojo (#E2574C) al tocar. SIN número visible. Se usa sobre la foto
-// (card del listado y portada del detalle). Convive con el play discreto en
-// la esquina opuesta. Todo detrás de NEXT_PUBLIC_FEEDBACK_ENABLED.
+// Like discreto estilo Zillow (diseño v4 FINAL): pill translúcido con corazón
+// outline que se llena rojo (#E2574C) al tocar. SIN número visible. Se usa
+// sobre la foto (card del listado y portada del detalle). En la card convive
+// con el play discreto en la esquina opuesta. Todo detrás del flag.
+//
+// Specs (_referencias/feedback/feedback-SI-v4-final.html, .like-btn):
+//   34px · bg rgba(255,255,255,.85) · blur(2px) · shadow 0 1px 5px rgba(0,0,0,.18)
+//   svg 18px · stroke #24292B (carbón) · on → fill+stroke #E2574C · active scale(.9)
 
 import { useEffect, useRef, useState } from 'react'
 import { Heart } from 'lucide-react'
@@ -11,11 +15,12 @@ import { FEEDBACK_ENABLED } from './flag'
 import { fetchLiked, setLikedCache } from './likesStore'
 
 const LIKE_RED = '#E2574C'
+const CARBON = '#24292B'
 
 export default function LikeHeart({
   propertyId,
   className = 'absolute top-2.5 right-2.5',
-  size = 36,
+  size = 34,
 }: {
   propertyId: number | string
   /** Posicionamiento (absolute …) controlado por el contenedor. */
@@ -24,6 +29,7 @@ export default function LikeHeart({
 }) {
   const id = String(propertyId)
   const [liked, setLiked] = useState(false)
+  const [bump, setBump] = useState(false)
   const pending = useRef(false)
 
   useEffect(() => {
@@ -47,6 +53,8 @@ export default function LikeHeart({
     const optimistic = !liked
     setLiked(optimistic)
     setLikedCache(id, optimistic)
+    setBump(true)
+    setTimeout(() => setBump(false), 180)
 
     fetch('/api/feedback/like', {
       method: 'POST',
@@ -70,22 +78,33 @@ export default function LikeHeart({
       })
   }
 
+  const icon = Math.round(size * 0.53)
+
   return (
     <button
       type="button"
       aria-label={liked ? 'Quitar me gusta' : 'Me gusta'}
       aria-pressed={liked}
       onClick={toggle}
-      className={`${className} flex items-center justify-center rounded-full bg-white/95 backdrop-blur shadow-sm hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38]`}
-      style={{ width: size, height: size }}
+      className={`${className} grid place-items-center rounded-full border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38]`}
+      style={{
+        width: size,
+        height: size,
+        background: 'rgba(255,255,255,0.85)',
+        backdropFilter: 'blur(2px)',
+        WebkitBackdropFilter: 'blur(2px)',
+        boxShadow: '0 1px 5px rgba(0,0,0,0.18)',
+        transform: bump ? 'scale(0.9)' : 'scale(1)',
+        transition: 'transform 0.18s',
+      }}
     >
       <Heart
-        className="transition-colors"
         style={{
-          width: Math.round(size * 0.5),
-          height: Math.round(size * 0.5),
-          color: liked ? LIKE_RED : '#374151',
+          width: icon,
+          height: icon,
+          color: liked ? LIKE_RED : CARBON,
           fill: liked ? LIKE_RED : 'transparent',
+          transition: 'fill 0.2s, color 0.2s',
         }}
         strokeWidth={2}
       />

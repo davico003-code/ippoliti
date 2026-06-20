@@ -68,7 +68,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
             </span>
           )}
           {/* Like discreto sobre la portada (esquina top-right libre) */}
-          <LikeHeart propertyId={property.id} size={38} className="absolute top-3 right-3" />
+          <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />
         </div>
       </div>
 
@@ -104,7 +104,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
               </span>
             )}
             {/* Like discreto sobre la portada (esquina top-right libre) */}
-            <LikeHeart propertyId={property.id} size={40} className="absolute top-3 right-3" />
+            <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />
           </div>
 
           {Array.from({ length: 4 }).map((_, i) => {

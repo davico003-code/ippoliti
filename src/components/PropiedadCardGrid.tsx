@@ -233,18 +233,18 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           )}
         </div>
 
-        {/* Audio narrado top-right (solo si la propiedad tiene audio generado) */}
+        {/* Audio narrado — feedback v4: va a la esquina OPUESTA al like
+            (bottom-left), solo si la propiedad tiene audio generado. */}
         {property.audioUrl && (
-          <PlayAudioButton propertyId={property.id} audioUrl={property.audioUrl} />
+          <PlayAudioButton
+            propertyId={property.id}
+            audioUrl={property.audioUrl}
+            positionClassName="bottom-2.5 left-2.5"
+          />
         )}
 
-        {/* Like discreto — convive con el play: si hay audio, se apila debajo;
-            si no, ocupa la esquina top-right. La izquierda queda para el badge. */}
-        <LikeHeart
-          propertyId={property.id}
-          size={36}
-          className={`absolute right-2.5 ${property.audioUrl ? 'top-[52px]' : 'top-2.5'}`}
-        />
+        {/* Like discreto top-right, sin número (diseño v4) */}
+        <LikeHeart propertyId={property.id} size={34} className="absolute top-2.5 right-2.5" />
       </div>
 
       {/* Body */}

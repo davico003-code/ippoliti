@@ -1,17 +1,16 @@
 'use client'
 
-// Wrapper del feedback de la ficha de detalle: agrupa caritas + slider de
-// valuación + "avisame si baja". Una sola inyección en PropertyDetailBody
-// (compartido por mobile y desktop). Hace UN fetch de estado inicial para
-// restaurar lo que el visitante ya respondió. Todo detrás del flag.
+// Wrapper del feedback de la ficha de detalle: apila los 3 paneles del diseño
+// v4 FINAL (B caritas · C slider de valuación · D avisame si baja), sin título
+// envolvente. Una sola inyección en PropertyDetailBody (compartido mobile +
+// desktop). Hace UN fetch de estado inicial para restaurar lo respondido. Todo
+// detrás del flag.
 
 import { useEffect, useState } from 'react'
 import { FEEDBACK_ENABLED } from './flag'
 import ReactFaces from './ReactFaces'
 import ValuationSlider from './ValuationSlider'
 import AvisameSiBaja from './AvisameSiBaja'
-
-const RALEWAY = "'Raleway', system-ui, sans-serif"
 
 interface EstadoInicial {
   react: string | null
@@ -61,34 +60,21 @@ export default function FeedbackDetalle({
   const currentValuacion = valuacionActual ?? estado.valuation
 
   return (
-    <section
-      className="rounded-2xl p-6 shadow-sm border border-gray-100"
-      style={{ background: '#FAF7F2' }}
-      aria-label="Tu opinión sobre esta propiedad"
-    >
-      <h2 style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 18, color: '#24292B', margin: '0 0 4px' }}>
-        Tu opinión nos sirve
-      </h2>
-      <p style={{ fontFamily: RALEWAY, fontSize: 13, color: '#6b7280', margin: '0 0 18px' }}>
-        Anónimo y en segundos. Nos ayuda a ajustar la propuesta.
-      </p>
+    <div className="space-y-4">
+      <ReactFaces propertyId={propertyId} initialChoice={estado.react} />
 
-      <div className="space-y-6">
-        <ReactFaces propertyId={propertyId} initialChoice={estado.react} />
+      {hasPrice && (
+        <ValuationSlider
+          propertyId={propertyId}
+          publishedPrice={publishedPrice}
+          currency={currency}
+          initialValor={estado.valuation}
+          initialObjeciones={estado.objeciones}
+          onValuationChange={setValuacionActual}
+        />
+      )}
 
-        {hasPrice && (
-          <ValuationSlider
-            propertyId={propertyId}
-            publishedPrice={publishedPrice}
-            currency={currency}
-            initialValor={estado.valuation}
-            initialObjeciones={estado.objeciones}
-            onValuationChange={setValuacionActual}
-          />
-        )}
-
-        <AvisameSiBaja propertyId={propertyId} valuacion={currentValuacion} />
-      </div>
-    </section>
+      <AvisameSiBaja propertyId={propertyId} valuacion={currentValuacion} />
+    </div>
   )
 }
