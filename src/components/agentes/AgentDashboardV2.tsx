@@ -358,8 +358,11 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
         }
         .agent-tool-grid {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: 1fr;
           gap: 12px;
+        }
+        @media (min-width: 640px) {
+          .agent-tool-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (min-width: 768px) {
           .agent-tool-grid { grid-template-columns: repeat(3, 1fr); }
