@@ -29,6 +29,7 @@ import SectionBoundary from './SectionBoundary'
 import PropertyVideo from './PropertyVideo'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
+import FeedbackDetalle from '../feedback/FeedbackDetalle'
 
 // Skeletons mientras se carga el chunk JS — evitan que la sección quede en
 // blanco hasta que llega el bundle de Leaflet (mapa) o la galería de planos.
@@ -391,6 +392,20 @@ export default function PropertyDetailBody({
           />
         </SectionBoundary>
       )}
+
+      {/* FEEDBACK ANÓNIMO — caritas + valuación + "avisame si baja".
+          Aditivo y detrás de NEXT_PUBLIC_FEEDBACK_ENABLED (se auto-oculta si
+          el flag está off). publishedPrice=0 cuando no hay precio visible
+          (oculta el slider, deja caritas + alerta). */}
+      <FeedbackDetalle
+        propertyId={property.id}
+        publishedPrice={
+          property.web_price !== false && typeof price0?.price === 'number' && price0.price > 0
+            ? price0.price
+            : 0
+        }
+        currency={price0?.currency ?? 'USD'}
+      />
 
       {/* "Otras opciones para vos" ya no va acá — el parent lo renderiza full-width
           via <PropertyDetailSimilars /> debajo del grid de 2 columnas. */}
