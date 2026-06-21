@@ -71,6 +71,9 @@ function Shell({ children }: { children?: React.ReactNode }) {
         lineHeight: 1,
       }}
     >
+      {/* Rayas diagonales celestes en los bordes (estilo Argentina). */}
+      <span className="barra-mundial-stripes left" aria-hidden="true" />
+      <span className="barra-mundial-stripes right" aria-hidden="true" />
       {children}
     </div>
   )

@@ -73,20 +73,19 @@ export default function HeroSearch() {
         />
         <button
           type="submit"
-          className="flex-shrink-0 border-none cursor-pointer"
+          className="hero-buscar-btn flex-shrink-0 border-none cursor-pointer"
           style={{
-            // Acento: verde de marca, o celeste durante el Mundial (texto #0d3a5c).
-            background: 'var(--mundial-accent)',
+            // Acento: verde de marca, o degradé celeste + glow durante el Mundial
+            // (estilos en globals.css, gateados por html.mundial). Texto #0d3a5c
+            // sobre celeste, blanco sobre verde.
             color: 'var(--mundial-accent-ink)',
             fontFamily: 'Raleway, sans-serif',
             fontSize: 14,
-            fontWeight: 500,
+            fontWeight: 600,
             padding: '12px 28px',
             borderRadius: 9999,
-            transition: 'background 180ms',
+            transition: 'background 180ms, box-shadow 180ms',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--mundial-accent-hover)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'var(--mundial-accent)' }}
         >
           Buscar
         </button>

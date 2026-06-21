@@ -45,6 +45,52 @@ html.mundial ::selection {
   color: #0d3a5c;
 }
 
+/* ── Edición Mundial — hero celeste "tipo Argentina" ─────────────────────────
+   Todo gateado por html.mundial: fuera del Mundial el hero vuelve al verde. */
+
+/* Botón "Buscar": degradé celeste + glow. Hover por CSS (sin inline). */
+.hero-buscar-btn { background: var(--mundial-accent); }
+.hero-buscar-btn:hover { background: var(--mundial-accent-hover); }
+html.mundial .hero-buscar-btn {
+  background: linear-gradient(135deg, #8ec0e8 0%, #5f97cc 100%);
+  box-shadow: 0 8px 22px rgba(117, 170, 219, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+html.mundial .hero-buscar-btn:hover {
+  background: linear-gradient(135deg, #82b7e4 0%, #4f86bd 100%);
+  box-shadow: 0 10px 26px rgba(117, 170, 219, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* Sombra/glow celeste bajo el hero (video) de la home. */
+html.mundial .hero-video-section {
+  box-shadow: 0 20px 55px -14px rgba(117, 170, 219, 0.55);
+}
+
+/* Barra superior Argentina: rayas diagonales celestes en los bordes. */
+.barra-mundial-stripes {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30%;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    115deg,
+    rgba(117, 170, 219, 0.55) 0px,
+    rgba(117, 170, 219, 0.55) 7px,
+    transparent 7px,
+    transparent 18px
+  );
+}
+.barra-mundial-stripes.left {
+  left: 0;
+  -webkit-mask-image: linear-gradient(to right, #000, transparent);
+  mask-image: linear-gradient(to right, #000, transparent);
+}
+.barra-mundial-stripes.right {
+  right: 0;
+  -webkit-mask-image: linear-gradient(to left, #000, transparent);
+  mask-image: linear-gradient(to left, #000, transparent);
+}
+
 * {
   box-sizing: border-box;
 }
