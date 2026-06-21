@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation'
 import Footer from './Footer'
-import FooterDesktop from './home/FooterDesktop'
 
 export default function FooterWrapper() {
   const pathname = usePathname()
@@ -10,15 +9,8 @@ export default function FooterWrapper() {
   // Panel /fichas: layout propio sin footer.
   if (pathname === '/fichas' || pathname?.startsWith('/fichas/')) return null
 
-  if (pathname === '/') {
-    // Home mobile: FooterMobile ya está dentro de page.tsx
-    // Home desktop: FooterDesktop nuevo
-    return (
-      <div className="hidden md:block">
-        <FooterDesktop />
-      </div>
-    )
-  }
+  // Home: usa el mismo footer blanco global (responsive) que el resto del sitio.
+  // El FooterMobile propio se removió de page.tsx para no duplicar.
 
   // /propiedades y /propiedades/[slug]: vista tipo app (desktop) — el footer
   // se renderiza dentro del panel de la ficha cuando está abierta, no en el

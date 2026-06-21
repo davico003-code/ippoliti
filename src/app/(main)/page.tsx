@@ -13,7 +13,6 @@ import { esDiaDePartido } from '@/lib/mundial'
 import ProyectosCarousel from '@/components/home/ProyectosCarousel'
 import GuiaSection from '@/components/home/GuiaSection'
 import ConfianzaSection from '@/components/home/ConfianzaSection'
-import FooterMobile from '@/components/home/FooterMobile'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import {
@@ -240,7 +239,7 @@ export default async function Home() {
         <ProyectosCarousel />
         <GuiaSection />
         <ConfianzaSection />
-        <FooterMobile />
+        {/* Footer: lo provee FooterWrapper (footer blanco global, responsive). */}
       </div>
 
       {/* ═══ DESKTOP (md+) — Layout existente ═══ */}
