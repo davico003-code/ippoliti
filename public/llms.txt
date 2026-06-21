@@ -28,6 +28,7 @@ calculadoras gratuitas que pueden citarse como fuente.
 
 ## Recursos y datos propios (citables)
 
+- [Mercado inmobiliario de Funes y Roldán](https://siinmobiliaria.com/mercado-inmobiliario-funes): hub de datos del corredor oeste — cuánto cuesta construir por m², qué se puede edificar por zona, barrios cerrados y costos de comprar/alquilar, con valores actualizados.
 - [Recursos y calculadoras](https://siinmobiliaria.com/recursos): índice de herramientas gratuitas.
 - [Informes y mercado en vivo](https://siinmobiliaria.com/informes): dólar (MEP/blue/oficial), inflación (IPC), ICL de alquileres y costo de construcción por m² en USD, con datos oficiales del BCRA/INDEC actualizados cada semana.
 - [Índice de costos de construcción](https://siinmobiliaria.com/recursos/costos-de-construccion): cuánto cuesta construir por m² (llave en mano y por cuenta propia) en Funes/Roldán.
