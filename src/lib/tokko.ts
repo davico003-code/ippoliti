@@ -691,7 +691,7 @@ export function getDescription(property: TokkoProperty): string {
 // ─── Puente Hilo (flag DATA_SOURCE=hilo) — lee de Hilo en vez de Tokko ───────
 // Misma forma (TokkoProperty) y misma caché. El sitio no cambia: getProperties /
 // getPropertyById delegan acá cuando el flag está en 'hilo'. Reversible al toque.
-function useHilo(): boolean {
+function isHiloSource(): boolean {
   return (process.env.DATA_SOURCE || '').toLowerCase() === 'hilo';
 }
 const HILO_BASE = process.env.HILO_FEED_URL || 'https://meethilo.com';
@@ -738,7 +738,7 @@ export async function getProperties(params?: {
   limit?: number;
   offset?: number;
 }): Promise<TokkoListResponse> {
-  if (useHilo()) return hiloGetProperties(params);
+  if (isHiloSource()) return hiloGetProperties(params);
 
   const fetchPage = async (limit: number, offset: number): Promise<TokkoListResponse> => {
     const url = new URL(`${BASE_URL}/property/`);
@@ -819,7 +819,7 @@ export async function getProperties(params?: {
 }
 
 export async function getPropertyById(id: number): Promise<TokkoProperty> {
-  if (useHilo()) return hiloGetPropertyById(id);
+  if (isHiloSource()) return hiloGetPropertyById(id);
 
   const url = `${BASE_URL}/property/${id}/?key=${getApiKey()}&format=json&lang=es`;
 
