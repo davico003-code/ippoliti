@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import CalculadoraAjuste from '@/components/recursos/CalculadoraAjuste'
-import Breadcrumbs from '@/components/recursos/Breadcrumbs'
+import RecursoHero from '@/components/recursos/RecursoHero'
+import RecursosCTA from '@/components/recursos/RecursosCTA'
 
 export const metadata: Metadata = {
   title: '¿Está bien calculado tu aumento de alquiler? | SI Inmobiliaria',
@@ -72,19 +73,17 @@ export default function AjusteAlquilerPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([breadcrumbJsonLd, appJsonLd]) }}
       />
 
-      <div style={{ background: 'var(--cream)' }}>
-        <div className="max-w-[880px] mx-auto px-5 pt-6">
-          <Breadcrumbs
-            items={[
-              { label: 'Inicio', href: '/' },
-              { label: 'Recursos', href: '/recursos' },
-              { label: 'Verificar ajuste de alquiler' },
-            ]}
-          />
-        </div>
-      </div>
+      <RecursoHero
+        theme="green"
+        eyebrow="Durante tu contrato"
+        title="¿Está bien calculado tu ajuste?"
+        subtitle="Verificá el ajuste de tu alquiler con la calculadora oficial. ICL, IPC, CasaPropia y todos los índices, siempre actualizados."
+        breadcrumbLabel="Verificar ajuste de alquiler"
+      />
 
       <CalculadoraAjuste />
+
+      <RecursosCTA />
     </>
   )
 }

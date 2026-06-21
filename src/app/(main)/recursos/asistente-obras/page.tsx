@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import AsistenteObrasFunes from '@/components/recursos/AsistenteObrasFunes'
-import Breadcrumbs from '@/components/recursos/Breadcrumbs'
+import RecursoHero from '@/components/recursos/RecursoHero'
+import RecursosCTA from '@/components/recursos/RecursosCTA'
 
 export const metadata: Metadata = {
   title: 'Asistente de obras particulares de Funes | SI Inmobiliaria',
@@ -73,19 +74,17 @@ export default function AsistenteObrasPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([breadcrumbJsonLd, appJsonLd]) }}
       />
 
-      <div style={{ background: '#f6f8f5' }}>
-        <div className="max-w-[1180px] mx-auto px-5 pt-6">
-          <Breadcrumbs
-            items={[
-              { label: 'Inicio', href: '/' },
-              { label: 'Recursos', href: '/recursos' },
-              { label: 'Asistente de obras particulares de Funes' },
-            ]}
-          />
-        </div>
-      </div>
+      <RecursoHero
+        theme="sand"
+        eyebrow="Para construir"
+        title="Asistente de obras particulares de Funes"
+        subtitle="Cuánto podés construir (FOS, FOT, altura), plusvalía por mayor aprovechamiento, tasa de edificación y qué papeles necesitás para tu trámite."
+        breadcrumbLabel="Asistente de obras particulares de Funes"
+      />
 
       <AsistenteObrasFunes />
+
+      <RecursosCTA />
     </>
   )
 }
