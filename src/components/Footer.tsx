@@ -36,7 +36,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: 'CONTACTO',
     links: [
       { label: '(341) 210-1694', href: 'https://wa.me/5493412101694' },
-      { label: 'ventas@inmobiliariaippoliti.com', href: 'mailto:ventas@inmobiliariaippoliti.com' },
+      { label: 'contacto@siinmobiliaria.com', href: 'mailto:contacto@siinmobiliaria.com' },
       { label: '@inmobiliaria.si', href: 'https://www.instagram.com/inmobiliaria.si' },
       { label: '@si.inmobiliaria', href: 'https://www.tiktok.com/@si.inmobiliaria' },
     ],
