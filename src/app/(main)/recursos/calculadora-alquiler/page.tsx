@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import CalculadoraCostos from '@/components/recursos/CalculadoraCostos'
-import Breadcrumbs from '@/components/recursos/Breadcrumbs'
+import RecursoHero from '@/components/recursos/RecursoHero'
+import RecursosCTA from '@/components/recursos/RecursosCTA'
 
 export const metadata: Metadata = {
   title: 'Calculadora de alquiler — costos iniciales | SI Inmobiliaria',
@@ -73,23 +74,21 @@ export default function CalculadoraAlquilerPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([breadcrumbJsonLd, appJsonLd]) }}
       />
 
-      <div style={{ background: '#FAFAF7' }}>
-        <div className="max-w-[860px] mx-auto px-5 pt-6">
-          <Breadcrumbs
-            items={[
-              { label: 'Inicio', href: '/' },
-              { label: 'Recursos', href: '/recursos' },
-              { label: 'Calculadora de costos para alquilar' },
-            ]}
-          />
-        </div>
-      </div>
+      <RecursoHero
+        theme="green"
+        eyebrow="Antes de mudarte"
+        title="¿Cuánto necesito para alquilar?"
+        subtitle="Primer mes, honorarios, sellado y depósito en dólares. Calculá los costos iniciales al instante."
+        breadcrumbLabel="Calculadora de costos para alquilar"
+      />
 
       {/* Suspense necesario porque CalculadoraCostos usa useSearchParams() para
           prefill desde la card de la ficha de propiedad. */}
       <Suspense fallback={null}>
         <CalculadoraCostos />
       </Suspense>
+
+      <RecursosCTA />
     </>
   )
 }

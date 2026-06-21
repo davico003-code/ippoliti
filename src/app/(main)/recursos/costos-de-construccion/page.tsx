@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import TrackPageView from '@/components/recursos/TrackPageView'
+import RecursoHero from '@/components/recursos/RecursoHero'
 import CalculadoraCostos from './CalculadoraCostos'
 import { COSTOS_STYLES } from './styles'
 import {
@@ -189,18 +190,16 @@ export default async function CostosConstruccionPage() {
       <TrackPageView event="recursos_costos_construccion_view" />
       <style dangerouslySetInnerHTML={{ __html: COSTOS_STYLES }} />
 
+      <RecursoHero
+        theme="sand"
+        eyebrow="Para construir"
+        title="¿Cuánto cuesta construir hoy?"
+        subtitle={`Valores reales por m², casos concretos y una calculadora para proyectar tu inversión sin sorpresas. Valores actualizados · ${formatMesAnio(mes)}.`}
+        breadcrumbLabel="¿Cuánto cuesta construir?"
+      />
+
       <div className="costos-page">
         <div className="costos-container">
-          {/* a. Header */}
-          <header className="costos-header">
-            <h1>¿Cuánto cuesta construir hoy?</h1>
-            <p>
-              Valores reales por m², casos concretos y una calculadora para proyectar tu
-              inversión sin sorpresas.
-            </p>
-            <span className="costos-badge-mes">Valores actualizados · {formatMesAnio(mes)}</span>
-          </header>
-
           {/* b. Qué incluye cada valor */}
           <h2 className="costos-block-title">¿Qué incluye cada valor?</h2>
           <div className="costos-def-grid">
