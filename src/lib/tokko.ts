@@ -688,12 +688,58 @@ export function getDescription(property: TokkoProperty): string {
 
 // --- API calls ---
 
+// ─── Puente Hilo (flag DATA_SOURCE=hilo) — lee de Hilo en vez de Tokko ───────
+// Misma forma (TokkoProperty) y misma caché. El sitio no cambia: getProperties /
+// getPropertyById delegan acá cuando el flag está en 'hilo'. Reversible al toque.
+function useHilo(): boolean {
+  return (process.env.DATA_SOURCE || '').toLowerCase() === 'hilo';
+}
+const HILO_BASE = process.env.HILO_FEED_URL || 'https://meethilo.com';
+
+async function hiloGetPropertyById(id: number): Promise<TokkoProperty> {
+  const res = await fetch(`${HILO_BASE}/api/public/propiedades/${id}`, {
+    next: { revalidate: 21600, tags: ['tokko-properties', `tokko-property-${id}`] },
+  });
+  if (res.status === 404) throw new Error(`Property ${id} not found`);
+  if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
+  return (await res.json()) as TokkoProperty;
+}
+
+async function hiloGetProperties(params?: {
+  operation?: 'Sale' | 'Rent';
+  typeId?: number;
+  limit?: number;
+  offset?: number;
+}): Promise<TokkoListResponse> {
+  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=1000`, {
+    next: { revalidate: 3600, tags: ['tokko-properties'] },
+  });
+  if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
+  const data = (await res.json()) as TokkoListResponse;
+  let objects = data.objects ?? [];
+  // El filtrado por operación/tipo lo hacemos acá (tenemos los ids de Tokko en type.id).
+  if (params?.operation) {
+    objects = objects.filter((o) => (o.operations || []).some((op) => op.operation_type === params.operation));
+  }
+  if (params?.typeId) {
+    objects = objects.filter((o) => o.type?.id === params.typeId);
+  }
+  const offset = params?.offset ?? 0;
+  const limit = params?.limit ?? objects.length;
+  return {
+    meta: { limit, offset, total_count: objects.length, next: null, previous: null },
+    objects: objects.slice(offset, offset + limit),
+  };
+}
+
 export async function getProperties(params?: {
   operation?: 'Sale' | 'Rent';
   typeId?: number;
   limit?: number;
   offset?: number;
 }): Promise<TokkoListResponse> {
+  if (useHilo()) return hiloGetProperties(params);
+
   const fetchPage = async (limit: number, offset: number): Promise<TokkoListResponse> => {
     const url = new URL(`${BASE_URL}/property/`);
     url.searchParams.set('key', getApiKey());
@@ -773,6 +819,8 @@ export async function getProperties(params?: {
 }
 
 export async function getPropertyById(id: number): Promise<TokkoProperty> {
+  if (useHilo()) return hiloGetPropertyById(id);
+
   const url = `${BASE_URL}/property/${id}/?key=${getApiKey()}&format=json&lang=es`;
 
   for (let attempt = 0; attempt < 3; attempt++) {

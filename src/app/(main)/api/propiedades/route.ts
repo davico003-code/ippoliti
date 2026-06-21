@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
+
+  // Puente Hilo (flag DATA_SOURCE=hilo): proxyeamos el feed de Hilo con la misma forma.
+  if ((process.env.DATA_SOURCE || '').toLowerCase() === 'hilo') {
+    const base = process.env.HILO_FEED_URL || 'https://meethilo.com'
+    const p = new URLSearchParams()
+    p.set('limit', searchParams.get('limit') || '20')
+    if (searchParams.get('offset')) p.set('offset', searchParams.get('offset')!)
+    if (searchParams.get('search')) p.set('search', searchParams.get('search')!)
+    const r = await fetch(`${base}/api/public/propiedades?${p.toString()}`, {
+      next: { revalidate: 900, tags: ['tokko-properties'] },
+    })
+    if (!r.ok) return NextResponse.json({ error: `Hilo feed error: ${r.status}` }, { status: r.status })
+    const j = await r.json()
+    return NextResponse.json(j, {
+      headers: { 'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=86400' },
+    })
+  }
+
   const apiKey = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
