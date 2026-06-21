@@ -25,6 +25,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: 'INFORMACIÓN',
     links: [
+      { label: 'Mercado inmobiliario de Funes', href: '/mercado-inmobiliario-funes' },
       { label: 'Recursos y calculadoras', href: '/recursos' },
       { label: 'Informes de mercado', href: '/informes' },
       { label: 'Guía del Comprador', href: '/guia' },
