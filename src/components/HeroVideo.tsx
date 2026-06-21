@@ -6,7 +6,7 @@ import HeroVideoDesktop from './home/HeroVideoDesktop'
 export default function HeroVideo() {
   return (
     <section
-      className="relative w-full bg-cover bg-center h-[547px] md:-mt-[73px] md:pt-[73px]"
+      className="hero-video-section relative w-full bg-cover bg-center h-[547px] md:-mt-[73px] md:pt-[73px]"
       style={{ backgroundImage: "url('/hero-home.jpg')" }}
     >
       <HeroVideoDesktop />
