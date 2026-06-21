@@ -22,10 +22,6 @@ const nextConfig = {
         source: '/guia',
         destination: '/guia/index.html',
       },
-      {
-        source: '/recursos/mapa-funes',
-        destination: '/mapa-funes/index.html',
-      },
     ]
   },
   async redirects() {
