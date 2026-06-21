@@ -4,6 +4,16 @@ export async function GET(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
+  // Puente Hilo (flag DATA_SOURCE=hilo): una propiedad desde el feed de Hilo.
+  if ((process.env.DATA_SOURCE || '').toLowerCase() === 'hilo') {
+    const base = process.env.HILO_FEED_URL || 'https://meethilo.com'
+    const r = await fetch(`${base}/api/public/propiedades/${params.id}`, {
+      next: { revalidate: 21600, tags: ['tokko-properties', `tokko-property-${params.id}`] },
+    })
+    if (!r.ok) return NextResponse.json({ error: 'Not found' }, { status: r.status === 404 ? 404 : 500 })
+    return NextResponse.json(await r.json())
+  }
+
   const apiKey = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
