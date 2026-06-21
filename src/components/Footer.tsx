@@ -2,8 +2,15 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FranjaFooterMundial, LineaMundial } from '@/components/mundial/FooterMundial'
 
-const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
-const GOLD = '#C9A84C'
+// Footer blanco (rediseño "Dirección B"). Reemplaza al footer negro en todo el
+// sitio. Conserva los links/columnas reales y los datos legales.
+const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
+
+const GREEN = '#15543a'
+const INK = '#15201b'
+const MUTED = '#5e6a63'
+const LINE = '#e6eae7'
+const LINE_SOFT = '#eef1ef'
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -18,6 +25,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: 'INFORMACIÓN',
     links: [
+      { label: 'Recursos y calculadoras', href: '/recursos' },
       { label: 'Informes de mercado', href: '/informes' },
       { label: 'Guía del Comprador', href: '/guia' },
       { label: 'Blog', href: '/blog' },
@@ -37,79 +45,87 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export default function Footer() {
   return (
-    <footer style={{ position: 'relative', background: '#0A0A0A', padding: '48px 48px 32px', color: '#fff' }}>
+    <footer style={{ position: 'relative', background: '#fff', borderTop: `1px solid ${LINE}`, padding: '64px 40px 36px', color: INK }}>
       {/* Edición Mundial 2026 — franja-bandera pegada al borde superior. */}
       <FranjaFooterMundial />
       <style>{`
-        .footer-top { display: flex; gap: 56px; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; }
-        .footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; flex: 1; }
-        .footer-link:hover { color: #fff !important; }
+        .footerb-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 44px; }
+        .footerb-link:hover { color: ${GREEN} !important; }
         @media (max-width: 768px) {
-          footer { padding: 40px 24px 24px !important; }
-          .footer-top { flex-direction: column; gap: 32px; }
-          .footer-cols { grid-template-columns: 1fr 1fr; gap: 32px; }
+          footer { padding: 48px 22px 28px !important; }
+          .footerb-grid { grid-template-columns: 1fr 1fr; gap: 34px; }
+          .footerb-brand { grid-column: 1 / -1; }
         }
         @media (max-width: 480px) {
-          .footer-cols { grid-template-columns: 1fr; }
+          .footerb-grid { grid-template-columns: 1fr; }
+        }
+        .footerb-bottom { flex-direction: row; }
+        @media (max-width: 768px) {
+          .footerb-bottom { flex-direction: column; align-items: flex-start !important; gap: 14px; }
         }
       `}</style>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div className="footer-top">
-          {/* Logo */}
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
-            <Image
-              src="/logo-blanco.png"
-              alt="SI Inmobiliaria"
-              width={164}
-              height={24}
-              style={{ height: 32, width: 'auto', objectFit: 'contain' }}
-            />
-          </Link>
+      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        <div className="footerb-grid">
+          {/* Brand */}
+          <div className="footerb-brand">
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
+              <Image
+                src="/LOGO_HORIZONTAL.png"
+                alt="SI Inmobiliaria"
+                width={164}
+                height={32}
+                style={{ height: 30, width: 'auto', objectFit: 'contain' }}
+              />
+            </Link>
+            <p style={{ fontFamily: RALEWAY, fontSize: 15, color: MUTED, maxWidth: '34ch', margin: '18px 0 0', lineHeight: 1.5, fontWeight: 500 }}>
+              Acompañamos cada decisión inmobiliaria con información clara y agentes que conocen el mercado.
+            </p>
+          </div>
 
           {/* Columns */}
-          <div className="footer-cols">
-            {COLUMNS.map(col => (
-              <div key={col.title}>
-                <div
+          {COLUMNS.map(col => (
+            <div key={col.title}>
+              <h4
+                style={{
+                  fontFamily: RALEWAY,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: '1.5px',
+                  textTransform: 'uppercase',
+                  color: INK,
+                  margin: '0 0 18px',
+                }}
+              >
+                {col.title}
+              </h4>
+              {col.links.map(l => (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className="footerb-link"
                   style={{
-                    fontFamily: POPPINS,
-                    fontSize: 9,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1.5px',
-                    color: GOLD,
-                    marginBottom: 16,
+                    display: 'block',
+                    fontFamily: RALEWAY,
+                    fontSize: 15,
+                    color: MUTED,
+                    textDecoration: 'none',
+                    marginBottom: 12,
+                    transition: 'color 0.15s ease',
                   }}
                 >
-                  {col.title}
-                </div>
-                {col.links.map(l => (
-                  <a
-                    key={l.label}
-                    href={l.href}
-                    className="footer-link"
-                    style={{
-                      display: 'block',
-                      fontFamily: POPPINS,
-                      fontSize: 12,
-                      color: 'rgba(255,255,255,0.85)',
-                      textDecoration: 'none',
-                      marginBottom: 8,
-                      transition: 'color 0.2s ease',
-                    }}
-                  >
-                    {l.label}
-                  </a>
-                ))}
-              </div>
-            ))}
-          </div>
+                  {l.label}
+                </a>
+              ))}
+            </div>
+          ))}
         </div>
 
         <div
+          className="footerb-bottom"
           style={{
-            borderTop: '0.5px solid rgba(255,255,255,0.2)',
-            paddingTop: 24,
+            borderTop: `1px solid ${LINE_SOFT}`,
+            paddingTop: 26,
+            marginTop: 56,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -117,34 +133,12 @@ export default function Footer() {
             flexWrap: 'wrap',
           }}
         >
-          <p
-            style={{
-              fontFamily: POPPINS,
-              fontSize: 11,
-              color: 'rgba(255,255,255,0.7)',
-              margin: 0,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
+          <p style={{ fontFamily: RALEWAY, fontSize: 14, color: MUTED, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
             © 2026 SI Inmobiliaria · David Flores Mat. N° 0621
           </p>
           <LineaMundial />
-          <div
-            style={{
-              fontFamily: POPPINS,
-              fontSize: 11,
-              color: 'rgba(255,255,255,0.7)',
-              display: 'flex',
-              gap: 12,
-            }}
-          >
-            <a href="#" className="footer-link" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s ease' }}>
-              Política de Privacidad
-            </a>
-            <span>·</span>
-            <a href="#" className="footer-link" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s ease' }}>
-              Términos y Condiciones
-            </a>
+          <div style={{ fontFamily: RALEWAY, fontSize: 14, color: MUTED, display: 'flex', gap: 12 }}>
+            <span>Funes · Rosario · Santa Fe</span>
           </div>
         </div>
       </div>

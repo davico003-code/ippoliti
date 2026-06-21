@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import TrackPageView from '@/components/recursos/TrackPageView'
+import RecursosCTA from '@/components/recursos/RecursosCTA'
 
 export const metadata: Metadata = {
   title: 'Recursos | SI Inmobiliaria',
@@ -95,317 +96,60 @@ const collectionJsonLd = {
   ],
 }
 
-const WHATSAPP_AGENTE = `https://wa.me/5493412101694?text=${encodeURIComponent(
-  'Hola, vengo desde /recursos y quiero hablar con un agente.',
-)}`
 
 // CSS scoped con prefijo `recursos-` para no contaminar el resto del sitio.
 // Verde local #0F4128 — más oscuro que el global #1A5C38. Override solo acá.
 const STYLES = `
-  .recursos-page {
-    --r-verde: #0F4128;
-    --r-verde-deep: #0A2E1C;
-    --r-gold: #B8935A;
-    --r-gold-deep: #9A7A48;
-    --r-paper-tenue: #F7F4EE;
-    --r-paper-icon: #EFEBE2;
-    --r-text-strong: #1A1A1A;
-    --r-text-readable: #3A3A3A;
-    --r-border: rgba(0, 0, 0, 0.08);
-    --r-border-strong: rgba(0, 0, 0, 0.14);
-    background: #fff;
-    color: var(--r-text-strong);
-    font-family: 'Poppins', system-ui, sans-serif;
-  }
+  .rb-page { background: #fff; color: #15201b; }
+  .rb-wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+  .rb-split { display: grid; grid-template-columns: 380px 1fr; gap: 64px; padding: 80px 0 40px; align-items: start; }
+  .rb-intro { position: sticky; top: 110px; }
+  .rb-eyebrow { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #9a7b3c; }
+  .rb-eyebrow::before { content: ""; width: 32px; height: 2px; background: #9a7b3c; }
+  .rb-h1 { font-size: clamp(38px, 4vw, 54px); line-height: 1.05; font-weight: 800; letter-spacing: -0.025em; margin: 22px 0 0; }
+  .rb-h1 .accent { color: #15543a; }
+  .rb-sub { color: #5e6a63; font-size: 17px; margin-top: 22px; font-weight: 500; max-width: 38ch; line-height: 1.5; }
+  .rb-stats { display: flex; gap: 30px; margin-top: 34px; padding-top: 30px; border-top: 1px solid #e6eae7; }
+  .rb-stat .n { font-size: 28px; font-weight: 800; color: #15543a; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .rb-stat .l { font-size: 13px; color: #5e6a63; font-weight: 600; margin-top: 2px; }
 
-  /* HERO */
-  .recursos-hero { background: #fff; padding: 72px 0 56px; }
-  .recursos-hero-inner { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
-  .recursos-hero-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-    font-family: 'Raleway', system-ui, sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--r-verde);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-  }
-  .recursos-hero-eyebrow::before {
-    content: '';
-    width: 36px;
-    height: 2px;
-    background: var(--r-gold);
-  }
-  .recursos-hero-title {
-    font-family: 'Raleway', system-ui, sans-serif;
-    font-size: clamp(40px, 5.2vw, 64px);
-    font-weight: 800;
-    line-height: 1.08;
-    letter-spacing: -0.025em;
-    color: var(--r-text-strong);
-    max-width: 920px;
-    margin: 0 0 22px;
-  }
-  .recursos-hero-title-accent { color: var(--r-verde); }
-  .recursos-hero-subtitle {
-    font-family: 'Poppins', system-ui, sans-serif;
-    font-size: 17px;
-    font-weight: 400;
-    color: var(--r-text-readable);
-    max-width: 600px;
-    line-height: 1.6;
-    margin: 0;
-  }
+  .rb-bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; }
+  .rb-tile { position: relative; display: flex; flex-direction: column; border-radius: 18px; padding: 22px; background: #f3f5f3; border: 1px solid transparent; transition: transform .22s ease, box-shadow .22s ease; overflow: hidden; min-height: 180px; text-decoration: none; color: inherit; }
+  .rb-tile:hover { transform: translateY(-4px); box-shadow: 0 26px 50px -30px rgba(20,60,40,0.5); }
+  .rb-tile.green { background: #eef4ef; }
+  .rb-tile.sand { background: #f6f2e9; }
+  .rb-tile.feature { grid-column: span 2; background: #15543a; color: #fff; min-height: 0; }
+  .rb-top { display: flex; align-items: center; justify-content: space-between; }
+  .rb-icon { width: 42px; height: 42px; border-radius: 11px; background: #fff; display: grid; place-items: center; color: #15543a; flex: none; }
+  .rb-icon svg { width: 22px; height: 22px; }
+  .rb-tile.feature .rb-icon { background: rgba(255,255,255,0.14); color: #fff; }
+  .rb-tag { font-size: 11px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: #9a7b3c; }
+  .rb-tile.feature .rb-tag { color: #cfe6d8; }
+  .rb-tile h3 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin-top: 15px; line-height: 1.18; }
+  .rb-tile.feature h3 { font-size: clamp(22px, 2.2vw, 28px); max-width: 18ch; }
+  .rb-tile p { font-size: 14px; color: #5e6a63; margin-top: 7px; line-height: 1.45; }
+  .rb-tile.feature p { color: rgba(255,255,255,0.8); font-size: 15px; max-width: 46ch; margin-top: 10px; }
+  .rb-link { margin-top: auto; padding-top: 16px; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #15543a; }
+  .rb-tile.feature .rb-link { color: #fff; }
+  .rb-link svg { width: 16px; height: 16px; transition: transform .2s; }
+  .rb-tile:hover .rb-link svg { transform: translateX(5px); }
+  .rb-feat-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-top: 16px; }
+  .rb-feat-cta { flex-shrink: 0; display: inline-flex; align-items: center; gap: 9px; background: #fff; color: #15543a; font-weight: 700; font-size: 14px; padding: 12px 22px; border-radius: 100px; }
 
-  /* CARDS */
-  .recursos-cards-section { background: #fff; padding: 0 0 88px; }
-  .recursos-cards-grid {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 40px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+  @media (max-width: 980px) {
+    .rb-split { grid-template-columns: 1fr; gap: 40px; padding: 56px 0 30px; }
+    .rb-intro { position: static; }
+    .rb-sub { max-width: none; }
   }
-  .recursos-card {
-    background: var(--r-paper-tenue);
-    border: 1px solid var(--r-border);
-    border-radius: 16px;
-    padding: 36px 32px;
-    cursor: pointer;
-    transition: background 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex;
-    flex-direction: column;
-    min-height: 320px;
-    position: relative;
-    text-decoration: none;
-    color: inherit;
-    overflow: hidden;
-  }
-  .recursos-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: var(--r-verde);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .recursos-card:hover {
-    background: #fff;
-    border-color: var(--r-border-strong);
-    transform: translateY(-4px);
-    box-shadow: 0 20px 50px -15px rgba(15, 65, 40, 0.18);
-  }
-  .recursos-card:hover::before { transform: scaleX(1); }
-  .recursos-card:focus-visible {
-    outline: 2px solid var(--r-verde);
-    outline-offset: 3px;
-  }
-  .recursos-card-icon {
-    width: 52px;
-    height: 52px;
-    background: var(--r-paper-icon);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 24px;
-    transition: background 0.3s, color 0.3s;
-    color: var(--r-verde);
-  }
-  .recursos-card:hover .recursos-card-icon {
-    background: var(--r-verde);
-    color: #fff;
-  }
-  .recursos-card-icon svg { width: 24px; height: 24px; }
-  .recursos-card-eyebrow {
-    font-family: 'Raleway', system-ui, sans-serif;
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--r-gold);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-  }
-  .recursos-card-title {
-    font-family: 'Raleway', system-ui, sans-serif;
-    font-size: 25px;
-    font-weight: 800;
-    line-height: 1.18;
-    letter-spacing: -0.015em;
-    color: var(--r-text-strong);
-    margin: 0 0 14px;
-  }
-  .recursos-card-desc {
-    font-family: 'Poppins', system-ui, sans-serif;
-    font-size: 15px;
-    font-weight: 400;
-    color: var(--r-text-readable);
-    line-height: 1.6;
-    margin: 0 0 24px;
-    flex-grow: 1;
-  }
-  .recursos-card-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--r-verde);
-    font-weight: 700;
-    font-size: 14px;
-    font-family: 'Poppins', system-ui, sans-serif;
-    transition: gap 0.25s ease, color 0.25s ease;
-  }
-  .recursos-card:hover .recursos-card-cta {
-    gap: 14px;
-    color: var(--r-verde-deep);
-  }
-  .recursos-card-cta svg { transition: transform 0.25s ease; }
-  .recursos-card:hover .recursos-card-cta svg { transform: translateX(2px); }
-
-  /* INVITATION */
-  .recursos-invitation {
-    background: var(--r-verde);
-    color: #fff;
-    padding: 72px 0;
-    position: relative;
-    overflow: hidden;
-  }
-  .recursos-invitation::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 50%;
-    height: 100%;
-    background: radial-gradient(ellipse at top right, rgba(184, 147, 90, 0.18) 0%, transparent 60%);
-    pointer-events: none;
-  }
-  .recursos-invitation-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 56px;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 1;
-  }
-  .recursos-invitation-left { max-width: 620px; }
-  .recursos-invitation-eyebrow {
-    font-family: 'Raleway', system-ui, sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--r-gold);
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-  .recursos-invitation-title {
-    font-family: 'Raleway', system-ui, sans-serif;
-    font-size: 34px;
-    font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    margin: 0 0 16px;
-    color: #fff;
-  }
-  .recursos-invitation-text {
-    font-family: 'Poppins', system-ui, sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    color: rgba(255, 255, 255, 0.82);
-    line-height: 1.6;
-    margin: 0;
-  }
-  .recursos-invitation-actions {
-    display: flex;
-    gap: 12px;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-  }
-  .recursos-btn-primary {
-    background: var(--r-gold);
-    color: #fff;
-    padding: 14px 28px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 700;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    transition: background 0.2s ease;
-    font-family: 'Poppins', system-ui, sans-serif;
-  }
-  .recursos-btn-primary:hover { background: var(--r-gold-deep); }
-  .recursos-btn-secondary {
-    background: transparent;
-    color: #fff;
-    padding: 14px 28px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    transition: background 0.2s ease, border-color 0.2s ease;
-    font-family: 'Poppins', system-ui, sans-serif;
-  }
-  .recursos-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.5);
-  }
-
-  /* RESPONSIVE */
-  @media (max-width: 968px) {
-    .recursos-cards-grid { grid-template-columns: 1fr; }
-    .recursos-invitation-inner { flex-direction: column; align-items: flex-start; gap: 28px; }
-    .recursos-hero { padding: 52px 0 36px; }
-    .recursos-hero-title { font-weight: 900; }
-    .recursos-cards-section { padding: 0 0 56px; }
-    .recursos-invitation { padding: 56px 0; }
-    .recursos-invitation-title { font-size: 28px; }
-    .recursos-card-title { font-size: 23px; }
-    .recursos-hero-inner,
-    .recursos-cards-grid,
-    .recursos-invitation-inner {
-      padding-left: 24px;
-      padding-right: 24px;
-    }
+  @media (max-width: 860px) {
+    .rb-wrap { padding: 0 22px; }
+    .rb-bento { grid-template-columns: 1fr; gap: 14px; }
+    .rb-tile, .rb-tile.feature { grid-column: auto; min-height: 0; }
+    .rb-tile { padding: 26px; }
+    .rb-feat-row { flex-direction: column; align-items: flex-start; }
+    .rb-feat-cta { width: 100%; justify-content: center; }
   }
 `
-
-function IconArrowRight() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
-    </svg>
-  )
-}
 
 function IconCalc() {
   return (
@@ -596,7 +340,25 @@ const CARDS: CardData[] = [
   },
 ]
 
+const ARROW = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+)
+
+// Tematización por tile en el bento. La guía del comprador es el destacado.
+const FEATURE_HREF = '/guia'
+const TILE_THEME: Record<string, string> = {
+  '/recursos/calculadora-alquiler': 'green',
+  '/recursos/ajuste-alquiler': 'sand',
+  '/informes': 'green',
+}
+
 export default function RecursosIndexPage() {
+  const feature = CARDS.find((c) => c.href === FEATURE_HREF)
+  const rest = CARDS.filter((c) => c.href !== FEATURE_HREF)
+
   return (
     <>
       <script
@@ -606,66 +368,57 @@ export default function RecursosIndexPage() {
       <TrackPageView event="recursos_index_view" />
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
-      <div className="recursos-page">
-        <section className="recursos-hero">
-          <div className="recursos-hero-inner">
-            <div className="recursos-hero-eyebrow">Recursos</div>
-            <h1 className="recursos-hero-title">
-              Información clara<br />
-              <span className="recursos-hero-title-accent">para decidir mejor.</span>
-            </h1>
-            <p className="recursos-hero-subtitle">
-              Calculadoras precisas, guías honestas y la información que necesitás antes de firmar.
-              Hechas por agentes que conocen el mercado.
-            </p>
-          </div>
-        </section>
-
-        <section className="recursos-cards-section">
-          <div className="recursos-cards-grid">
-            {CARDS.map((card) => (
-              <Link key={card.href} href={card.href} className="recursos-card">
-                <div className="recursos-card-icon">{card.icon}</div>
-                <div className="recursos-card-eyebrow">{card.eyebrow}</div>
-                <h3 className="recursos-card-title">{card.title}</h3>
-                <p className="recursos-card-desc">{card.description}</p>
-                <span className="recursos-card-cta">
-                  {card.cta}
-                  <IconArrowRight />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="recursos-invitation">
-          <div className="recursos-invitation-inner">
-            <div className="recursos-invitation-left">
-              <div className="recursos-invitation-eyebrow">¿Necesitás más?</div>
-              <h2 className="recursos-invitation-title">
-                Algunas decisiones se toman mejor con alguien al lado.
-              </h2>
-              <p className="recursos-invitation-text">
-                Las herramientas resuelven lo que se puede resolver con números. Para lo demás,
-                estamos nosotros.
+      <div className="rb-page">
+        <div className="rb-wrap">
+          <section className="rb-split">
+            <div className="rb-intro">
+              <span className="rb-eyebrow">Recursos</span>
+              <h1 className="rb-h1">
+                Información clara <span className="accent">para decidir mejor.</span>
+              </h1>
+              <p className="rb-sub">
+                Calculadoras precisas y guías honestas, hechas por agentes que conocen el mercado.
               </p>
+              <div className="rb-stats">
+                <div className="rb-stat"><div className="n">{CARDS.length}</div><div className="l">herramientas</div></div>
+                <div className="rb-stat"><div className="n">100%</div><div className="l">gratis</div></div>
+                <div className="rb-stat"><div className="n">Oficial</div><div className="l">índices al día</div></div>
+              </div>
             </div>
-            <div className="recursos-invitation-actions">
-              <a
-                href={WHATSAPP_AGENTE}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="recursos-btn-primary"
-              >
-                Hablar con un agente
-                <IconArrowRight />
-              </a>
-              <Link href="/propiedades" className="recursos-btn-secondary">
-                Ver propiedades
-              </Link>
+
+            <div className="rb-bento">
+              {feature && (
+                <Link href={feature.href} className="rb-tile feature">
+                  <div className="rb-top">
+                    <span className="rb-icon">{feature.icon}</span>
+                    <span className="rb-tag">{feature.eyebrow}</span>
+                  </div>
+                  <div className="rb-feat-row">
+                    <div>
+                      <h3>{feature.title}</h3>
+                      <p>{feature.description}</p>
+                    </div>
+                    <span className="rb-feat-cta">{feature.cta} {ARROW}</span>
+                  </div>
+                </Link>
+              )}
+
+              {rest.map((card) => (
+                <Link key={card.href} href={card.href} className={`rb-tile ${TILE_THEME[card.href] ?? ''}`}>
+                  <div className="rb-top">
+                    <span className="rb-icon">{card.icon}</span>
+                    <span className="rb-tag">{card.eyebrow}</span>
+                  </div>
+                  <h3>{card.title}</h3>
+                  <p>{card.description}</p>
+                  <span className="rb-link">{card.cta} {ARROW}</span>
+                </Link>
+              ))}
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
+
+        <RecursosCTA />
       </div>
     </>
   )
