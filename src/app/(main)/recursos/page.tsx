@@ -97,57 +97,73 @@ const collectionJsonLd = {
 }
 
 
-// CSS scoped con prefijo `recursos-` para no contaminar el resto del sitio.
-// Verde local #0F4128 — más oscuro que el global #1A5C38. Override solo acá.
+// Rediseño premium (dirección Apple / Stripe / Linear). CSS scoped con prefijo
+// `rb-`. Tipografía SF Pro / system stack solo en esta sección. Paleta del brief.
 const STYLES = `
-  .rb-page { background: #fff; color: #15201b; }
-  .rb-wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
-  .rb-split { display: grid; grid-template-columns: 380px 1fr; gap: 64px; padding: 80px 0 40px; align-items: start; }
-  .rb-intro { position: sticky; top: 110px; }
-  .rb-eyebrow { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #9a7b3c; }
-  .rb-eyebrow::before { content: ""; width: 32px; height: 2px; background: #9a7b3c; }
-  .rb-h1 { font-size: clamp(38px, 4vw, 54px); line-height: 1.05; font-weight: 800; letter-spacing: -0.025em; margin: 22px 0 0; }
-  .rb-h1 .accent { color: #15543a; }
-  .rb-sub { color: #5e6a63; font-size: 17px; margin-top: 22px; font-weight: 500; max-width: 38ch; line-height: 1.5; }
-  .rb-stats { display: flex; gap: 30px; margin-top: 34px; padding-top: 30px; border-top: 1px solid #e6eae7; }
-  .rb-stat .n { font-size: 28px; font-weight: 800; color: #15543a; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-  .rb-stat .l { font-size: 13px; color: #5e6a63; font-weight: 600; margin-top: 2px; }
-
-  .rb-bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; }
-  .rb-tile { position: relative; display: flex; flex-direction: column; border-radius: 18px; padding: 22px; background: #f3f5f3; border: 1px solid transparent; transition: transform .22s ease, box-shadow .22s ease; overflow: hidden; min-height: 180px; text-decoration: none; color: inherit; }
-  .rb-tile:hover { transform: translateY(-4px); box-shadow: 0 26px 50px -30px rgba(20,60,40,0.5); }
-  .rb-tile.green { background: #eef4ef; }
-  .rb-tile.sand { background: #f6f2e9; }
-  .rb-tile.feature { grid-column: span 2; background: #15543a; color: #fff; min-height: 0; }
-  .rb-top { display: flex; align-items: center; justify-content: space-between; }
-  .rb-icon { width: 42px; height: 42px; border-radius: 11px; background: #fff; display: grid; place-items: center; color: #15543a; flex: none; }
-  .rb-icon svg { width: 22px; height: 22px; }
-  .rb-tile.feature .rb-icon { background: rgba(255,255,255,0.14); color: #fff; }
-  .rb-tag { font-size: 11px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: #9a7b3c; }
-  .rb-tile.feature .rb-tag { color: #cfe6d8; }
-  .rb-tile h3 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin-top: 15px; line-height: 1.18; }
-  .rb-tile.feature h3 { font-size: clamp(22px, 2.2vw, 28px); max-width: 18ch; }
-  .rb-tile p { font-size: 14px; color: #5e6a63; margin-top: 7px; line-height: 1.45; }
-  .rb-tile.feature p { color: rgba(255,255,255,0.8); font-size: 15px; max-width: 46ch; margin-top: 10px; }
-  .rb-link { margin-top: auto; padding-top: 16px; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #15543a; }
-  .rb-tile.feature .rb-link { color: #fff; }
-  .rb-link svg { width: 16px; height: 16px; transition: transform .2s; }
-  .rb-tile:hover .rb-link svg { transform: translateX(5px); }
-  .rb-feat-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-top: 16px; }
-  .rb-feat-cta { flex-shrink: 0; display: inline-flex; align-items: center; gap: 9px; background: #fff; color: #15543a; font-weight: 700; font-size: 14px; padding: 12px 22px; border-radius: 100px; }
-
-  @media (max-width: 980px) {
-    .rb-split { grid-template-columns: 1fr; gap: 40px; padding: 56px 0 30px; }
-    .rb-intro { position: static; }
-    .rb-sub { max-width: none; }
+  .rb-page {
+    --rb-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', sans-serif;
+    --rb-green: #0F5A3D; --rb-green-deep: #0B3F2D; --rb-green-soft: #DDE7E1;
+    --rb-ivory: #F6F4EE; --rb-card: #FCFBF7; --rb-line: rgba(0,0,0,0.06);
+    --rb-ink: #111111; --rb-ink-2: #666666; --rb-ink-3: #8A8A8A;
+    background: var(--rb-ivory); color: var(--rb-ink);
+    font-family: var(--rb-font); -webkit-font-smoothing: antialiased;
   }
-  @media (max-width: 860px) {
-    .rb-wrap { padding: 0 22px; }
-    .rb-bento { grid-template-columns: 1fr; gap: 14px; }
+  .rb-wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(22px, 5vw, 48px); }
+
+  .rb-hero { padding: clamp(72px, 11vw, 132px) 0 clamp(40px, 6vw, 72px); max-width: 18ch; }
+  .rb-eyebrow { font-size: 13px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rb-green); }
+  .rb-h1 { font-size: clamp(44px, 7vw, 80px); line-height: 1.02; font-weight: 600; letter-spacing: -0.03em; margin: 20px 0 0; }
+  .rb-h1 .accent { color: var(--rb-green); }
+  .rb-sub { color: var(--rb-ink-2); font-size: clamp(18px, 1.6vw, 20px); margin: 26px 0 0; font-weight: 400; max-width: 30ch; line-height: 1.55; }
+  .rb-trust { margin-top: 28px; font-size: 14px; color: var(--rb-ink-3); display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .rb-trust .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--rb-ink-3); opacity: .55; }
+
+  .rb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 1.6vw, 22px); padding-bottom: clamp(56px, 8vw, 96px); }
+
+  .rb-tile {
+    position: relative; display: flex; flex-direction: column;
+    background: var(--rb-card); border: 1px solid var(--rb-line); border-radius: 26px;
+    padding: clamp(24px, 2.2vw, 32px); min-height: 232px; text-decoration: none; color: inherit;
+    box-shadow: 0 1px 2px rgba(17,17,17,0.03);
+    transition: transform .22s cubic-bezier(.2,.7,.2,1), box-shadow .22s ease, border-color .22s ease;
+  }
+  .rb-tile:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 24px 48px -28px rgba(15,90,61,0.28); border-color: rgba(0,0,0,0.09); }
+
+  .rb-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--rb-green-soft); display: grid; place-items: center; color: var(--rb-green); flex: none; }
+  .rb-icon svg { width: 22px; height: 22px; }
+  .rb-tag { font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--rb-ink-3); margin-top: 20px; }
+  .rb-tile h3 { font-size: clamp(20px, 1.7vw, 23px); font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; line-height: 1.2; color: var(--rb-ink); }
+  .rb-tile p { font-size: 15px; color: var(--rb-ink-2); margin-top: 9px; line-height: 1.5; }
+  .rb-link { margin-top: auto; padding-top: 18px; display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500; color: var(--rb-green); }
+  .rb-link svg { width: 16px; height: 16px; transition: transform .2s cubic-bezier(.2,.7,.2,1); }
+  .rb-tile:hover .rb-link svg { transform: translateX(5px); }
+
+  .rb-tile.feature {
+    grid-column: span 3; flex-direction: row; align-items: center; justify-content: space-between;
+    gap: clamp(28px, 4vw, 56px); background: var(--rb-green-deep); border-color: transparent; color: var(--rb-ivory);
+    min-height: 0; padding: clamp(32px, 3.4vw, 52px) clamp(32px, 3.6vw, 56px);
+  }
+  .rb-tile.feature:hover { box-shadow: 0 30px 60px -32px rgba(11,63,45,0.55); }
+  .rb-feat-main { display: flex; flex-direction: column; }
+  .rb-tile.feature .rb-icon { background: rgba(246,244,238,0.12); color: var(--rb-ivory); }
+  .rb-tile.feature .rb-tag { color: rgba(246,244,238,0.62); }
+  .rb-tile.feature h3 { color: var(--rb-ivory); font-size: clamp(28px, 3.2vw, 40px); margin-top: 18px; max-width: 16ch; line-height: 1.08; }
+  .rb-tile.feature p { color: rgba(246,244,238,0.72); font-size: clamp(16px, 1.4vw, 18px); margin-top: 12px; max-width: 42ch; }
+  .rb-feat-cta { flex: none; display: inline-flex; align-items: center; gap: 9px; height: 52px; padding: 0 28px; background: var(--rb-ivory); color: var(--rb-green-deep); font-weight: 500; font-size: 16px; border-radius: 999px; transition: transform .2s cubic-bezier(.2,.7,.2,1); }
+  .rb-tile.feature:hover .rb-feat-cta { transform: scale(1.03); }
+  .rb-feat-cta svg { width: 17px; height: 17px; transition: transform .2s; }
+  .rb-tile.feature:hover .rb-feat-cta svg { transform: translateX(4px); }
+
+  @media (max-width: 920px) {
+    .rb-grid { grid-template-columns: repeat(2, 1fr); }
+    .rb-tile.feature { grid-column: span 2; }
+  }
+  @media (max-width: 620px) {
+    .rb-grid { grid-template-columns: 1fr; }
     .rb-tile, .rb-tile.feature { grid-column: auto; min-height: 0; }
-    .rb-tile { padding: 26px; }
-    .rb-feat-row { flex-direction: column; align-items: flex-start; }
+    .rb-tile.feature { flex-direction: column; align-items: flex-start; }
     .rb-feat-cta { width: 100%; justify-content: center; }
+    .rb-hero { max-width: none; }
   }
 `
 
@@ -347,13 +363,8 @@ const ARROW = (
   </svg>
 )
 
-// Tematización por tile en el bento. La guía del comprador es el destacado.
+// La guía del comprador es la tarjeta protagonista (destacada, full-width).
 const FEATURE_HREF = '/guia'
-const TILE_THEME: Record<string, string> = {
-  '/recursos/calculadora-alquiler': 'green',
-  '/recursos/ajuste-alquiler': 'sand',
-  '/informes': 'green',
-}
 
 export default function RecursosIndexPage() {
   const feature = CARDS.find((c) => c.href === FEATURE_HREF)
@@ -370,51 +381,45 @@ export default function RecursosIndexPage() {
 
       <div className="rb-page">
         <div className="rb-wrap">
-          <section className="rb-split">
-            <div className="rb-intro">
-              <span className="rb-eyebrow">Recursos</span>
-              <h1 className="rb-h1">
-                Información clara <span className="accent">para decidir mejor.</span>
-              </h1>
-              <p className="rb-sub">
-                Calculadoras precisas y guías honestas, hechas por agentes que conocen el mercado.
-              </p>
-              <div className="rb-stats">
-                <div className="rb-stat"><div className="n">{CARDS.length}</div><div className="l">herramientas</div></div>
-                <div className="rb-stat"><div className="n">100%</div><div className="l">gratis</div></div>
-                <div className="rb-stat"><div className="n">Oficial</div><div className="l">índices al día</div></div>
-              </div>
+          <header className="rb-hero">
+            <span className="rb-eyebrow">Recursos</span>
+            <h1 className="rb-h1">
+              Información clara <span className="accent">para decidir mejor.</span>
+            </h1>
+            <p className="rb-sub">
+              Calculadoras precisas y guías honestas, hechas por agentes que conocen el mercado.
+            </p>
+            <div className="rb-trust">
+              <span>{CARDS.length} herramientas</span>
+              <span className="dot" aria-hidden />
+              <span>Gratis, sin registro</span>
+              <span className="dot" aria-hidden />
+              <span>Índices oficiales al día</span>
             </div>
+          </header>
 
-            <div className="rb-bento">
-              {feature && (
-                <Link href={feature.href} className="rb-tile feature">
-                  <div className="rb-top">
-                    <span className="rb-icon">{feature.icon}</span>
-                    <span className="rb-tag">{feature.eyebrow}</span>
-                  </div>
-                  <div className="rb-feat-row">
-                    <div>
-                      <h3>{feature.title}</h3>
-                      <p>{feature.description}</p>
-                    </div>
-                    <span className="rb-feat-cta">{feature.cta} {ARROW}</span>
-                  </div>
-                </Link>
-              )}
+          <section className="rb-grid" aria-label="Herramientas y guías">
+            {feature && (
+              <Link href={feature.href} className="rb-tile feature">
+                <div className="rb-feat-main">
+                  <span className="rb-icon">{feature.icon}</span>
+                  <span className="rb-tag">{feature.eyebrow}</span>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.description}</p>
+                </div>
+                <span className="rb-feat-cta">{feature.cta} {ARROW}</span>
+              </Link>
+            )}
 
-              {rest.map((card) => (
-                <Link key={card.href} href={card.href} className={`rb-tile ${TILE_THEME[card.href] ?? ''}`}>
-                  <div className="rb-top">
-                    <span className="rb-icon">{card.icon}</span>
-                    <span className="rb-tag">{card.eyebrow}</span>
-                  </div>
-                  <h3>{card.title}</h3>
-                  <p>{card.description}</p>
-                  <span className="rb-link">{card.cta} {ARROW}</span>
-                </Link>
-              ))}
-            </div>
+            {rest.map((card) => (
+              <Link key={card.href} href={card.href} className="rb-tile">
+                <span className="rb-icon">{card.icon}</span>
+                <span className="rb-tag">{card.eyebrow}</span>
+                <h3>{card.title}</h3>
+                <p>{card.description}</p>
+                <span className="rb-link">{card.cta} {ARROW}</span>
+              </Link>
+            ))}
           </section>
         </div>
 
