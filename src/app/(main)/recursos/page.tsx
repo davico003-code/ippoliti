@@ -277,7 +277,7 @@ interface CardData {
 const CARDS: CardData[] = [
   {
     href: '/recursos/calculadora-alquiler',
-    eyebrow: 'Antes de mudarte',
+    eyebrow: 'Costos para alquilar',
     title: '¿Cuánto necesito para alquilar?',
     description:
       'Primer mes, honorarios, sellado y depósito, todo sumado.',
@@ -286,7 +286,7 @@ const CARDS: CardData[] = [
   },
   {
     href: '/recursos/ajuste-alquiler',
-    eyebrow: 'Durante tu contrato',
+    eyebrow: 'Ajuste de alquiler',
     title: '¿Está bien calculado tu ajuste?',
     description:
       'Verificalo con la calculadora oficial: ICL, IPC y CasaPropia.',
@@ -295,7 +295,7 @@ const CARDS: CardData[] = [
   },
   {
     href: '/guia',
-    eyebrow: 'Para comprar',
+    eyebrow: 'Guía de compra',
     title: 'Guía del comprador',
     description:
       'Pasos, documentación, escritura y gastos, explicados simple.',
@@ -304,7 +304,7 @@ const CARDS: CardData[] = [
   },
   {
     href: '/recursos/costos-de-construccion',
-    eyebrow: 'Para construir',
+    eyebrow: 'Costos de construcción',
     title: '¿Cuánto cuesta construir?',
     description:
       'Costo por m² llave en mano o por cuenta propia, con casos reales.',
@@ -313,7 +313,7 @@ const CARDS: CardData[] = [
   },
   {
     href: '/recursos/mapa-funes',
-    eyebrow: 'Para tu lote',
+    eyebrow: 'Zonificación de Funes',
     title: '¿Qué podés construir en tu lote?',
     description:
       'FOS, FOT, altura y metros, zona por zona en el mapa.',
@@ -322,7 +322,7 @@ const CARDS: CardData[] = [
   },
   {
     href: '/recursos/asistente-obras',
-    eyebrow: 'Para construir',
+    eyebrow: 'Trámites de obra',
     title: '¿Cuánto vas a pagar por tu obra?',
     description:
       'Plusvalía, tasa de edificación y los papeles de cada trámite.',
@@ -331,7 +331,7 @@ const CARDS: CardData[] = [
   },
   {
     href: '/informes',
-    eyebrow: 'Mercado al día',
+    eyebrow: 'Índices del mercado',
     title: 'Índices y mercado en vivo',
     description:
       'Dólar, IPC e ICL oficiales, actualizados cada semana.',
