@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server'
 import { enviarWhatsAppAdmin } from '@/agents/blog/lib/whatsapp'
 import { crearVisita, type VisitaSource, type VisitaTipo } from '@/lib/visitas'
+import { pushLeadToHilo } from '@/lib/hilo-leads'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,6 +80,19 @@ export async function POST(request: Request) {
     console.error('[agendar-visita] Error persistiendo en Redis:', e)
     return NextResponse.json({ error: 'No se pudo guardar el lead' }, { status: 500 })
   }
+
+  // Empujar al inbox de Hilo (best-effort): lead caliente con propiedad + fecha.
+  // tokkoPropertyId → Hilo resuelve la ficha y lo asigna al captador.
+  await pushLeadToHilo({
+    name: nombre,
+    phone: telefono,
+    email: email || null,
+    origen: `visita-${source}`,
+    tokkoPropertyId: propiedad_id,
+    message: `Agendó visita a "${propiedad_titulo}" para ${fecha_preferida} ${horario}.${
+      propiedad_url ? ` ${propiedad_url}` : ''
+    }`,
+  })
 
   // Notificar al admin por WhatsApp (best-effort, no bloquea respuesta)
   const mensaje = [
