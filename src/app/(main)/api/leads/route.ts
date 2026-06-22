@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
+import { pushLeadToHilo } from '@/lib/hilo-leads'
 
 function getRedis(): Redis {
   return new Redis({
@@ -37,6 +38,19 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error('[leads] Redis error:', err)
   }
+
+  // Empujar el lead al inbox de Hilo (best-effort; en paralelo a Tokko durante
+  // la transición). Cuando esté validado, este push reemplaza a Tokko.
+  const isGuiaLead = origen === 'guia-comprador'
+  await pushLeadToHilo({
+    name: nombre,
+    email,
+    phone: whatsapp,
+    origen,
+    message: isGuiaLead
+      ? 'Lead desde Guía del Comprador 2026 — siinmobiliaria.com'
+      : `Operación: ${body.operation || 'Venta'} | Tipo: ${body.propertyType || 'Casa'} | Presupuesto: ${body.budget || 'Sin límite'}`,
+  })
 
   // Crear contacto en Tokko CRM (best-effort)
   if (apiKey) {

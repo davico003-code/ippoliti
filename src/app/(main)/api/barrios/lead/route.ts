@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { getBarrioBySlug } from '@/lib/barrios'
+import { pushLeadToHilo } from '@/lib/hilo-leads'
 
 function getRedis(): Redis | null {
   if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return null
@@ -71,6 +72,18 @@ export async function POST(request: NextRequest) {
       console.error('[api/barrios/lead] Redis error:', err)
     }
   }
+
+  // Empujar al inbox de Hilo (best-effort; en paralelo a Tokko en la transición).
+  const barriosTxt = barriosValidos.length
+    ? `Interesado en: ${barriosValidos.map((b) => b.nombre).join(', ')}`
+    : 'Barrios privados'
+  await pushLeadToHilo({
+    name: nombre,
+    email,
+    phone: whatsapp,
+    origen,
+    message: `${barriosTxt}. Presupuesto: ${presupuesto || 'sin definir'}. ${mensaje}`.trim(),
+  })
 
   const apiKey = process.env.TOKKO_API_KEY
   if (apiKey) {
