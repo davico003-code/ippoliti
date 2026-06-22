@@ -513,11 +513,7 @@ export default function CalculadoraCostos() {
             />
             Calculadora · Alquiler permanente
           </div>
-          <h1 className="font-black text-[clamp(28px,6vw,40px)] leading-[1.05] tracking-tight m-0 mb-2"
-              style={{ color: 'var(--tinta)' }}>
-            ¿Cuánto necesito para alquilar?
-          </h1>
-          <p className="text-[15px] max-w-[580px] m-0" style={{ color: 'var(--tinta-soft)' }}>
+          <p className="text-[15px] max-w-[580px] m-0 mt-1" style={{ color: 'var(--tinta-soft)' }}>
             Calculá en segundos cuánto necesitás para ingresar a una propiedad.
             Ajustá moneda, tipo de inmueble y monto del alquiler.
           </p>

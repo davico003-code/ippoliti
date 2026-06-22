@@ -1,21 +1,21 @@
-// Header de sección temático para las páginas de recursos (rediseño "Dirección
-// B"). Va debajo del Navbar del sitio: eyebrow + título + bajada, con el tinte
-// del tema de cada sección. Reemplaza los headers propios de cada placa para
-// dar consistencia.
+// Header de sección para las páginas de recursos. Estilo nuevo (dirección Apple/
+// Stripe/Linear, igual que el index de /recursos): tipografía SF Pro, eyebrow
+// verde, título 800, sin dorado ni beige. Va debajo del Navbar: eyebrow + título
+// + bajada con un tinte suave por tema. Reemplaza los headers propios de cada placa.
 import Breadcrumbs from '@/components/recursos/Breadcrumbs'
 
-const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
-const GREEN = '#15543a'
-const GOLD = '#9a7b3c'
-const INK = '#15201b'
-const MUTED = '#5e6a63'
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', sans-serif"
+const ACCENT = '#1A8C4D'
+const INK = '#111111'
+const MUTED = '#666666'
 
 type Theme = 'green' | 'sand' | 'plain'
 
+// Tintes suaves por tema (sin beige). El verde tira a menta muy clara; el resto, gris.
 const TINT: Record<Theme, string> = {
-  green: '#eef4ef',
-  sand: '#f6f2e9',
-  plain: '#f3f5f3',
+  green: '#EEF4EF',
+  sand: '#F2F2EF',
+  plain: '#F7F7F5',
 }
 
 export default function RecursoHero({
@@ -33,11 +33,11 @@ export default function RecursoHero({
   breadcrumbLabel?: string
 }) {
   return (
-    <section style={{ background: TINT[theme], borderBottom: '1px solid #e6eae7' }}>
-      <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 40px' }}>
+    <section style={{ background: TINT[theme], borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 clamp(22px, 5vw, 48px)' }}>
         <style>{`
-          .recurso-hero { padding: 28px 0 40px; }
-          @media (max-width: 860px) { .recurso-hero { padding: 18px 0 30px; } }
+          .recurso-hero { padding: 30px 0 44px; -webkit-font-smoothing: antialiased; }
+          @media (max-width: 860px) { .recurso-hero { padding: 20px 0 32px; } }
         `}</style>
         <div className="recurso-hero">
           {breadcrumbLabel && (
@@ -56,37 +56,36 @@ export default function RecursoHero({
               display: 'inline-flex',
               alignItems: 'center',
               gap: 12,
-              fontFamily: RALEWAY,
+              fontFamily: FONT,
               fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: '3px',
+              fontWeight: 600,
+              letterSpacing: '0.16em',
               textTransform: 'uppercase',
-              color: GOLD,
+              color: ACCENT,
             }}
           >
-            <span style={{ width: 32, height: 2, background: GOLD }} />
+            <span style={{ width: 28, height: 2, background: ACCENT, borderRadius: 2 }} />
             {eyebrow}
           </span>
           <h1
             style={{
-              fontFamily: RALEWAY,
-              fontSize: 'clamp(30px, 3.6vw, 46px)',
-              lineHeight: 1.06,
+              fontFamily: FONT,
+              fontSize: 'clamp(34px, 4vw, 54px)',
+              lineHeight: 1.03,
               fontWeight: 800,
-              letterSpacing: '-0.025em',
+              letterSpacing: '-0.035em',
               color: INK,
-              margin: '16px 0 0',
+              margin: '18px 0 0',
               maxWidth: '20ch',
             }}
           >
             {title}
           </h1>
           {subtitle && (
-            <p style={{ fontFamily: RALEWAY, fontSize: 17, color: MUTED, margin: '16px 0 0', maxWidth: '52ch', lineHeight: 1.5, fontWeight: 500 }}>
+            <p style={{ fontFamily: FONT, fontSize: 18, color: MUTED, margin: '18px 0 0', maxWidth: '52ch', lineHeight: 1.5, fontWeight: 400 }}>
               {subtitle}
             </p>
           )}
-          <div style={{ width: 46, height: 3, background: GREEN, borderRadius: 2, marginTop: 22 }} />
         </div>
       </div>
     </section>
