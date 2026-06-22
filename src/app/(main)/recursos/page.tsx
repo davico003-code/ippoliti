@@ -280,7 +280,7 @@ const CARDS: CardData[] = [
     eyebrow: 'Antes de mudarte',
     title: '¿Cuánto necesito para alquilar?',
     description:
-      'Calculá los costos iniciales: primer mes, honorarios, sellado, depósito en dólares y administrativo.',
+      'Primer mes, honorarios, sellado y depósito, todo sumado.',
     cta: 'Calcular costos',
     icon: <IconCalc />,
   },
@@ -289,7 +289,7 @@ const CARDS: CardData[] = [
     eyebrow: 'Durante tu contrato',
     title: '¿Está bien calculado tu ajuste?',
     description:
-      'Verificá el ajuste de tu alquiler con la calculadora oficial. ICL, IPC, CasaPropia y todos los índices.',
+      'Verificalo con la calculadora oficial: ICL, IPC y CasaPropia.',
     cta: 'Verificar ajuste',
     icon: <IconChart />,
   },
@@ -298,7 +298,7 @@ const CARDS: CardData[] = [
     eyebrow: 'Para comprar',
     title: 'Guía del comprador',
     description:
-      'Todo lo que tenés que saber antes de comprar tu propiedad: pasos, documentación, escritura, gastos.',
+      'Pasos, documentación, escritura y gastos, explicados simple.',
     cta: 'Leer la guía',
     icon: <IconBook />,
   },
@@ -307,7 +307,7 @@ const CARDS: CardData[] = [
     eyebrow: 'Para construir',
     title: '¿Cuánto cuesta construir?',
     description:
-      'Índice de costos por m² llave en mano y por cuenta propia, casos reales en la zona y calculadora para proyectar tu obra.',
+      'Costo por m² llave en mano o por cuenta propia, con casos reales.',
     cta: 'Ver el índice',
     icon: <IconObra />,
   },
@@ -316,7 +316,7 @@ const CARDS: CardData[] = [
     eyebrow: 'Para tu lote',
     title: '¿Qué podés construir en tu lote?',
     description:
-      'Mapa interactivo de Funes: pasá por tu zona y mirá FOS, FOT, altura y cuánto podés construir, con calculadora según las medidas del lote.',
+      'FOS, FOT, altura y metros, zona por zona en el mapa.',
     cta: 'Abrir el mapa',
     icon: <IconMap />,
   },
@@ -325,7 +325,7 @@ const CARDS: CardData[] = [
     eyebrow: 'Para construir',
     title: '¿Cuánto vas a pagar por tu obra?',
     description:
-      'Asistente de obras particulares de Funes: cuánto podés construir, plusvalía por mayor aprovechamiento, tasa de edificación y qué papeles necesitás para cada trámite.',
+      'Plusvalía, tasa de edificación y los papeles de cada trámite.',
     cta: 'Abrir el asistente',
     icon: <IconObra />,
   },
@@ -334,7 +334,7 @@ const CARDS: CardData[] = [
     eyebrow: 'Mercado al día',
     title: 'Índices y mercado en vivo',
     description:
-      'Dólar, inflación (IPC), ICL de alquileres y la comparativa de 12 meses, con datos oficiales del BCRA actualizados cada semana.',
+      'Dólar, IPC e ICL oficiales, actualizados cada semana.',
     cta: 'Ver los índices',
     icon: <IconPulse />,
   },
