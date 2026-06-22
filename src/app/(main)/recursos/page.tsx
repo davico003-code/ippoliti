@@ -97,73 +97,91 @@ const collectionJsonLd = {
 }
 
 
-// Rediseño premium (dirección Apple / Stripe / Linear). CSS scoped con prefijo
-// `rb-`. Tipografía SF Pro / system stack solo en esta sección. Paleta del brief.
+// Rediseño v2 (dirección Apple / Stripe / Linear). Hero centrado, stats grandes,
+// grilla de 2 columnas con tarjetas centradas y temas de color variados (gris,
+// verde profundo, blanco, casi-negro). Sin beige/marfil. CSS scoped `rb-`.
 const STYLES = `
   .rb-page {
     --rb-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', sans-serif;
-    --rb-green: #0F5A3D; --rb-green-deep: #0B3F2D; --rb-green-soft: #DDE7E1;
-    --rb-ivory: #F6F4EE; --rb-card: #FCFBF7; --rb-line: rgba(0,0,0,0.06);
+    --rb-accent: #1A8C4D; --rb-green-deep: #0B3F2D; --rb-soft: #DCEBE0;
+    --rb-bg: #FBFBFA; --rb-gray: #F1F1EE; --rb-line: rgba(0,0,0,0.06);
     --rb-ink: #111111; --rb-ink-2: #666666; --rb-ink-3: #8A8A8A;
-    background: var(--rb-ivory); color: var(--rb-ink);
+    --rb-on-dark: rgba(255,255,255,0.72); --rb-green-light: #6FC994;
+    background: var(--rb-bg); color: var(--rb-ink);
     font-family: var(--rb-font); -webkit-font-smoothing: antialiased;
   }
   .rb-wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(22px, 5vw, 48px); }
 
-  .rb-hero { padding: clamp(72px, 11vw, 132px) 0 clamp(40px, 6vw, 72px); max-width: 18ch; }
-  .rb-eyebrow { font-size: 13px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rb-green); }
-  .rb-h1 { font-size: clamp(44px, 7vw, 80px); line-height: 1.02; font-weight: 600; letter-spacing: -0.03em; margin: 20px 0 0; }
-  .rb-h1 .accent { color: var(--rb-green); }
-  .rb-sub { color: var(--rb-ink-2); font-size: clamp(18px, 1.6vw, 20px); margin: 26px 0 0; font-weight: 400; max-width: 30ch; line-height: 1.55; }
-  .rb-trust { margin-top: 28px; font-size: 14px; color: var(--rb-ink-3); display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
-  .rb-trust .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--rb-ink-3); opacity: .55; }
+  .rb-hero { text-align: center; max-width: 780px; margin: 0 auto; padding: clamp(72px, 11vw, 130px) 0 clamp(48px, 7vw, 88px); }
+  .rb-eyebrow { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--rb-accent); }
+  .rb-h1 { font-size: clamp(46px, 7.4vw, 84px); line-height: 1.0; font-weight: 800; letter-spacing: -0.035em; margin: 18px 0 0; }
+  .rb-h1 .accent { color: var(--rb-accent); }
+  .rb-sub { color: var(--rb-ink-2); font-size: clamp(18px, 1.7vw, 21px); margin: 24px auto 0; font-weight: 400; max-width: 30ch; line-height: 1.5; }
+  .rb-stats { display: flex; justify-content: center; margin-top: 46px; }
+  .rb-stat { padding: 0 clamp(28px, 4vw, 54px); border-left: 1px solid var(--rb-line); }
+  .rb-stat:first-child { border-left: none; }
+  .rb-stat .n { font-size: clamp(30px, 3vw, 40px); font-weight: 800; letter-spacing: -0.02em; color: var(--rb-ink); font-variant-numeric: tabular-nums; line-height: 1; }
+  .rb-stat .l { font-size: 14px; color: var(--rb-ink-3); margin-top: 8px; }
 
-  .rb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 1.6vw, 22px); padding-bottom: clamp(56px, 8vw, 96px); }
+  .rb-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(18px, 2vw, 26px); padding-bottom: clamp(64px, 9vw, 112px); }
 
   .rb-tile {
-    position: relative; display: flex; flex-direction: column;
-    background: var(--rb-card); border: 1px solid var(--rb-line); border-radius: 26px;
-    padding: clamp(24px, 2.2vw, 32px); min-height: 232px; text-decoration: none; color: inherit;
-    box-shadow: 0 1px 2px rgba(17,17,17,0.03);
-    transition: transform .22s cubic-bezier(.2,.7,.2,1), box-shadow .22s ease, border-color .22s ease;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    border-radius: 32px; padding: clamp(34px, 3vw, 48px) clamp(24px, 2.6vw, 40px);
+    min-height: 308px; text-decoration: none; color: inherit;
+    transition: transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s ease;
   }
-  .rb-tile:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 24px 48px -28px rgba(15,90,61,0.28); border-color: rgba(0,0,0,0.09); }
+  .rb-tile:hover { transform: translateY(-4px) scale(1.012); }
 
-  .rb-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--rb-green-soft); display: grid; place-items: center; color: var(--rb-green); flex: none; }
-  .rb-icon svg { width: 22px; height: 22px; }
-  .rb-tag { font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--rb-ink-3); margin-top: 20px; }
-  .rb-tile h3 { font-size: clamp(20px, 1.7vw, 23px); font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; line-height: 1.2; color: var(--rb-ink); }
-  .rb-tile p { font-size: 15px; color: var(--rb-ink-2); margin-top: 9px; line-height: 1.5; }
-  .rb-link { margin-top: auto; padding-top: 18px; display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500; color: var(--rb-green); }
-  .rb-link svg { width: 16px; height: 16px; transition: transform .2s cubic-bezier(.2,.7,.2,1); }
-  .rb-tile:hover .rb-link svg { transform: translateX(5px); }
+  .rb-icon { width: 64px; height: 64px; border-radius: 19px; background: var(--rb-soft); display: grid; place-items: center; color: var(--rb-accent); flex: none; }
+  .rb-icon svg { width: 28px; height: 28px; }
+  .rb-tag { font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rb-accent); margin-top: 26px; }
+  .rb-tile h3 { font-size: clamp(23px, 2vw, 28px); font-weight: 700; letter-spacing: -0.02em; margin-top: 12px; line-height: 1.15; color: var(--rb-ink); }
+  .rb-tile p { font-size: 16px; color: var(--rb-ink-2); margin-top: 12px; line-height: 1.5; max-width: 34ch; }
+  .rb-link { margin-top: auto; padding-top: 22px; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; color: var(--rb-accent); }
+  .rb-link svg { width: 13px; height: 13px; transition: transform .2s cubic-bezier(.2,.7,.2,1); }
+  .rb-tile:hover .rb-link svg { transform: translateX(4px); }
+
+  .rb-tile.t-gray { background: var(--rb-gray); }
+  .rb-tile.t-white { background: #FFFFFF; border: 1px solid var(--rb-line); }
+  .rb-tile.t-green { background: linear-gradient(155deg, #0F4A33, #0A3525); color: #fff; }
+  .rb-tile.t-black { background: linear-gradient(155deg, #242424, #151515); color: #fff; }
+  .rb-tile.t-gray:hover, .rb-tile.t-white:hover { box-shadow: 0 24px 50px -30px rgba(0,0,0,0.22); }
+  .rb-tile.t-green:hover, .rb-tile.t-black:hover { box-shadow: 0 28px 56px -30px rgba(0,0,0,0.5); }
+  .rb-tile.t-green .rb-icon, .rb-tile.t-black .rb-icon { background: rgba(255,255,255,0.1); color: #fff; }
+  .rb-tile.t-green h3, .rb-tile.t-black h3 { color: #fff; }
+  .rb-tile.t-green p, .rb-tile.t-black p { color: var(--rb-on-dark); }
+  .rb-tile.t-green .rb-tag, .rb-tile.t-green .rb-link { color: var(--rb-green-light); }
+  .rb-tile.t-black .rb-tag, .rb-tile.t-black .rb-link { color: #5FC88A; }
 
   .rb-tile.feature {
-    grid-column: span 3; flex-direction: row; align-items: center; justify-content: space-between;
-    gap: clamp(28px, 4vw, 56px); background: var(--rb-green-deep); border-color: transparent; color: var(--rb-ivory);
-    min-height: 0; padding: clamp(32px, 3.4vw, 52px) clamp(32px, 3.6vw, 56px);
+    grid-column: span 2; flex-direction: row; align-items: center; justify-content: space-between; text-align: left;
+    gap: clamp(28px, 4vw, 56px); background: linear-gradient(150deg, #0F4A33, #0A3525); color: #fff;
+    min-height: 0; padding: clamp(34px, 3.4vw, 52px) clamp(34px, 3.6vw, 56px); border-radius: 32px;
   }
-  .rb-tile.feature:hover { box-shadow: 0 30px 60px -32px rgba(11,63,45,0.55); }
-  .rb-feat-main { display: flex; flex-direction: column; }
-  .rb-tile.feature .rb-icon { background: rgba(246,244,238,0.12); color: var(--rb-ivory); }
-  .rb-tile.feature .rb-tag { color: rgba(246,244,238,0.62); }
-  .rb-tile.feature h3 { color: var(--rb-ivory); font-size: clamp(28px, 3.2vw, 40px); margin-top: 18px; max-width: 16ch; line-height: 1.08; }
-  .rb-tile.feature p { color: rgba(246,244,238,0.72); font-size: clamp(16px, 1.4vw, 18px); margin-top: 12px; max-width: 42ch; }
-  .rb-feat-cta { flex: none; display: inline-flex; align-items: center; gap: 9px; height: 52px; padding: 0 28px; background: var(--rb-ivory); color: var(--rb-green-deep); font-weight: 500; font-size: 16px; border-radius: 999px; transition: transform .2s cubic-bezier(.2,.7,.2,1); }
-  .rb-tile.feature:hover .rb-feat-cta { transform: scale(1.03); }
-  .rb-feat-cta svg { width: 17px; height: 17px; transition: transform .2s; }
+  .rb-tile.feature:hover { transform: translateY(-4px) scale(1.008); box-shadow: 0 30px 60px -32px rgba(11,63,45,0.55); }
+  .rb-feat-main { display: flex; flex-direction: column; align-items: flex-start; }
+  .rb-tile.feature .rb-icon { background: rgba(255,255,255,0.1); color: #fff; }
+  .rb-tile.feature .rb-tag { color: var(--rb-green-light); margin-top: 22px; }
+  .rb-tile.feature h3 { color: #fff; font-size: clamp(28px, 3.2vw, 40px); margin-top: 14px; max-width: 16ch; line-height: 1.08; }
+  .rb-tile.feature p { color: var(--rb-on-dark); font-size: clamp(16px, 1.4vw, 18px); margin-top: 12px; max-width: 44ch; }
+  .rb-feat-cta { flex: none; display: inline-flex; align-items: center; gap: 9px; height: 54px; padding: 0 30px; background: #fff; color: #0B3F2D; font-weight: 600; font-size: 16px; border-radius: 999px; transition: transform .2s cubic-bezier(.2,.7,.2,1); }
+  .rb-tile.feature:hover .rb-feat-cta { transform: scale(1.04); }
+  .rb-feat-cta svg { width: 14px; height: 14px; transition: transform .2s; }
   .rb-tile.feature:hover .rb-feat-cta svg { transform: translateX(4px); }
 
-  @media (max-width: 920px) {
-    .rb-grid { grid-template-columns: repeat(2, 1fr); }
-    .rb-tile.feature { grid-column: span 2; }
-  }
-  @media (max-width: 620px) {
+  @media (max-width: 860px) {
     .rb-grid { grid-template-columns: 1fr; }
     .rb-tile, .rb-tile.feature { grid-column: auto; min-height: 0; }
+    .rb-tile { min-height: 0; }
     .rb-tile.feature { flex-direction: column; align-items: flex-start; }
     .rb-feat-cta { width: 100%; justify-content: center; }
-    .rb-hero { max-width: none; }
+    .rb-stat { padding: 0 clamp(16px, 5vw, 30px); }
+  }
+  @media (max-width: 420px) {
+    .rb-stat { padding: 0 13px; }
+    .rb-stat .n { font-size: 25px; }
+    .rb-stat .l { font-size: 12.5px; }
   }
 `
 
@@ -356,15 +374,25 @@ const CARDS: CardData[] = [
   },
 ]
 
-const ARROW = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
+const CHEV = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <polyline points="9 6 15 12 9 18" />
   </svg>
 )
 
 // La guía del comprador es la tarjeta protagonista (destacada, full-width).
 const FEATURE_HREF = '/guia'
+
+// Tema de color por tarjeta — patrón en damero (gris / verde / blanco / negro),
+// como en la referencia de diseño.
+const TILE_THEME: Record<string, string> = {
+  '/recursos/calculadora-alquiler': 't-gray',
+  '/recursos/ajuste-alquiler': 't-green',
+  '/recursos/costos-de-construccion': 't-white',
+  '/recursos/mapa-funes': 't-black',
+  '/recursos/asistente-obras': 't-gray',
+  '/informes': 't-green',
+}
 
 export default function RecursosIndexPage() {
   const feature = CARDS.find((c) => c.href === FEATURE_HREF)
@@ -389,12 +417,10 @@ export default function RecursosIndexPage() {
             <p className="rb-sub">
               Calculadoras precisas y guías honestas, hechas por agentes que conocen el mercado.
             </p>
-            <div className="rb-trust">
-              <span>{CARDS.length} herramientas</span>
-              <span className="dot" aria-hidden />
-              <span>Gratis, sin registro</span>
-              <span className="dot" aria-hidden />
-              <span>Índices oficiales al día</span>
+            <div className="rb-stats">
+              <div className="rb-stat"><div className="n">{CARDS.length}</div><div className="l">herramientas</div></div>
+              <div className="rb-stat"><div className="n">100%</div><div className="l">gratis</div></div>
+              <div className="rb-stat"><div className="n">Oficial</div><div className="l">índices al día</div></div>
             </div>
           </header>
 
@@ -407,17 +433,17 @@ export default function RecursosIndexPage() {
                   <h3>{feature.title}</h3>
                   <p>{feature.description}</p>
                 </div>
-                <span className="rb-feat-cta">{feature.cta} {ARROW}</span>
+                <span className="rb-feat-cta">{feature.cta} {CHEV}</span>
               </Link>
             )}
 
             {rest.map((card) => (
-              <Link key={card.href} href={card.href} className="rb-tile">
+              <Link key={card.href} href={card.href} className={`rb-tile ${TILE_THEME[card.href] ?? 't-gray'}`}>
                 <span className="rb-icon">{card.icon}</span>
                 <span className="rb-tag">{card.eyebrow}</span>
                 <h3>{card.title}</h3>
                 <p>{card.description}</p>
-                <span className="rb-link">{card.cta} {ARROW}</span>
+                <span className="rb-link">{card.cta} {CHEV}</span>
               </Link>
             ))}
           </section>
