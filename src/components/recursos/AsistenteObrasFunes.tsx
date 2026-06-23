@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 
 /* =========================================================================
@@ -76,6 +76,21 @@ const ZONAS = [
     tipologia:"—", centroManzana:"No",
     notas:["⚠ En el instructivo figura FOT 0,40 y FOS 0,80 (un FOS mayor al FOT es atípico). Verificar con Planeamiento."] },
 ];
+
+// ---- MAPEO familia del mapa interactivo → zona del asistente ---------------
+// El mapa de zonificación (/recursos/mapa-funes) manda ?zona=<familia> al hacer
+// clic en "Calculá tu plusvalía". Acá traducimos esa familia a un id de ZONAS.
+const FAM_TO_ZONA: Record<string, string> = {
+  "AR3": "residencial-3",
+  "ALR3": "residencial-3",
+  "AR4": "residencial-4",
+  "ALR4": "residencial-4",
+  "AC": "central",
+  "EJES AC": "eje-central",
+  "AN1-1": "norte-2122",
+  "AN2-1": "norte-2122",
+  "AN2-3": "funes-norte",
+};
 
 // ---- TASA DE EDIFICACIÓN — OBRA NUEVA (Ord. 1536/22) ------------------------
 function alicuotaObraNueva(m2: number){
@@ -172,6 +187,13 @@ export default function AsistenteObrasFunes(){
   const [incPH,setIncPH]           = useState(false);
   const [incUso,setIncUso]         = useState(false);
   const [tramite,setTramite]       = useState<keyof typeof TRAMITES>("obra-nueva");
+
+  // Si venís del mapa interactivo con ?zona=<familia>, preseleccionamos la zona.
+  useEffect(()=>{
+    const fam = new URLSearchParams(window.location.search).get("zona");
+    const id = fam ? FAM_TO_ZONA[fam] : undefined;
+    if(id) setZonaId(id);
+  },[]);
 
   const zona = useMemo(()=>ZONAS.find(z=>z.id===zonaId) ?? ZONAS[0],[zonaId]);
 
