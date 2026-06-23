@@ -5,7 +5,7 @@
 import Breadcrumbs from '@/components/recursos/Breadcrumbs'
 
 const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', sans-serif"
-const ACCENT = '#1A8C4D'
+const ACCENT = '#00754A'
 const INK = '#111111'
 const MUTED = '#666666'
 

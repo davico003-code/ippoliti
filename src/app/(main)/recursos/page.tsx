@@ -103,10 +103,11 @@ const collectionJsonLd = {
 const STYLES = `
   .rb-page {
     --rb-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', sans-serif;
-    --rb-accent: #1A8C4D; --rb-green-deep: #0B3F2D; --rb-soft: #DCEBE0;
-    --rb-bg: #FBFBFA; --rb-gray: #F1F1EE; --rb-line: rgba(0,0,0,0.06);
-    --rb-ink: #111111; --rb-ink-2: #666666; --rb-ink-3: #8A8A8A;
-    --rb-on-dark: rgba(255,255,255,0.72); --rb-green-light: #6FC994;
+    --rb-accent: #00754A; --rb-green-deep: #1A5C38; --rb-soft: #DDEDE4;
+    --rb-bg: #FFFFFF; --rb-gray: #F6F6F4; --rb-line: rgba(0,0,0,0.08);
+    --rb-ink: #111111; --rb-ink-2: #5A5A5A; --rb-ink-3: #8A8A8A;
+    --rb-on-dark: rgba(255,255,255,0.74); --rb-green-light: #7CCBA1;
+    --rb-red: #F40009; --rb-yellow: #fbce07;
     background: var(--rb-bg); color: var(--rb-ink);
     font-family: var(--rb-font); -webkit-font-smoothing: antialiased;
   }
@@ -147,19 +148,23 @@ const STYLES = `
 
   .rb-tile.t-gray { background: var(--rb-gray); }
   .rb-tile.t-white { background: #FFFFFF; border: 1px solid var(--rb-line); }
-  .rb-tile.t-green { background: linear-gradient(155deg, #0F4A33, #0A3525); color: #fff; }
-  .rb-tile.t-black { background: linear-gradient(155deg, #242424, #151515); color: #fff; }
-  .rb-tile.t-gray:hover, .rb-tile.t-white:hover { box-shadow: 0 24px 50px -30px rgba(0,0,0,0.22); }
-  .rb-tile.t-green:hover, .rb-tile.t-black:hover { box-shadow: 0 28px 56px -30px rgba(0,0,0,0.5); }
-  .rb-tile.t-green .rb-icon, .rb-tile.t-black .rb-icon { background: rgba(255,255,255,0.1); color: #fff; }
-  .rb-tile.t-green h3, .rb-tile.t-black h3 { color: #fff; }
-  .rb-tile.t-green p, .rb-tile.t-black p { color: var(--rb-on-dark); }
+  .rb-tile.t-green { background: linear-gradient(155deg, #1A5C38, #123F27); color: #fff; }
+  .rb-tile.t-gray:hover, .rb-tile.t-white:hover { box-shadow: 0 24px 50px -30px rgba(0,0,0,0.20); }
+  .rb-tile.t-green:hover { box-shadow: 0 28px 56px -30px rgba(0,0,0,0.45); }
+  .rb-tile.t-green .rb-icon { background: rgba(255,255,255,0.12); color: #fff; }
+  .rb-tile.t-green h3 { color: #fff; }
+  .rb-tile.t-green p { color: var(--rb-on-dark); }
   .rb-tile.t-green .rb-tag { color: var(--rb-green-light); }
-  .rb-tile.t-black .rb-tag { color: #5FC88A; }
+
+  .rb-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; flex: none; }
+  .rb-dot.y { background: var(--rb-yellow); margin-right: 6px; vertical-align: middle; }
+  .rb-dot.r { background: var(--rb-red); animation: rbpulse 1.6s ease-in-out infinite; }
+  .rb-tag.live { display: inline-flex; align-items: center; gap: 8px; }
+  @keyframes rbpulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.8); } }
 
   .rb-tile.feature {
     flex-direction: row; align-items: center; justify-content: space-between; gap: clamp(28px, 4vw, 56px);
-    background: linear-gradient(150deg, #0F4A33, #0A3525); color: #fff;
+    background: linear-gradient(150deg, #1A5C38, #123F27); color: #fff;
     min-height: 0; padding: clamp(32px, 3vw, 48px); border-radius: 28px;
   }
   .rb-tile.feature:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -32px rgba(11,63,45,0.55); }
@@ -413,9 +418,9 @@ const TILE_THEME: Record<string, string> = {
   '/recursos/calculadora-alquiler': 't-gray',
   '/recursos/ajuste-alquiler': 't-green',
   '/recursos/costos-de-construccion': 't-white',
-  '/recursos/mapa-funes': 't-black',
+  '/recursos/mapa-funes': 't-green',
   '/recursos/asistente-obras': 't-gray',
-  '/informes': 't-green',
+  '/informes': 't-white',
 }
 
 export default function RecursosIndexPage() {
@@ -444,7 +449,7 @@ export default function RecursosIndexPage() {
               </p>
               <div className="rb-stats">
                 <div className="rb-stat"><span className="si">{STAT_ICONS[0]}</span><div className="n">{CARDS.length}</div><div className="l">herramientas</div></div>
-                <div className="rb-stat"><span className="si">{STAT_ICONS[1]}</span><div className="n">100%</div><div className="l">gratis</div></div>
+                <div className="rb-stat"><span className="si">{STAT_ICONS[1]}</span><div className="n">100%</div><div className="l"><span className="rb-dot y" aria-hidden />gratis</div></div>
                 <div className="rb-stat"><span className="si">{STAT_ICONS[2]}</span><div className="n">Oficial</div><div className="l">índices al día</div></div>
               </div>
             </div>
@@ -466,7 +471,10 @@ export default function RecursosIndexPage() {
                 {rest.map((card) => (
                   <Link key={card.href} href={card.href} className={`rb-tile ${TILE_THEME[card.href] ?? 't-gray'}`}>
                     <span className="rb-icon">{card.icon}</span>
-                    <span className="rb-tag">{card.eyebrow}</span>
+                    <span className={`rb-tag${card.href === '/informes' ? ' live' : ''}`}>
+                      {card.href === '/informes' && <span className="rb-dot r" aria-hidden />}
+                      {card.eyebrow}
+                    </span>
                     <h3>{card.title}</h3>
                     <p>{card.description}</p>
                     <div className="rb-arrow" aria-hidden><span>{ARROW}</span></div>
