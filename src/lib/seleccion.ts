@@ -17,16 +17,24 @@ export function getTimeLeft(expiresAt: string): { days: number; expired: boolean
 }
 
 export function buildWhatsAppMessage(
-  session: { agentName?: string; agent?: string; properties: { id: string; url: string }[] },
+  session: {
+    agentName?: string
+    agent?: string
+    properties: { id: string; url: string; snapshot?: { title?: string } }[]
+  },
   reactions: Record<string, { liked?: boolean | null; wantVisit?: boolean }>
 ): string {
   const name = session.agentName || session.agent || 'SI Inmobiliaria'
+  // Para propiedades externas cargadas a mano preferimos el título del snapshot;
+  // el slug de una URL de Zonaprop es ilegible.
+  const label = (p: { url: string; snapshot?: { title?: string } }) =>
+    p.snapshot?.title?.trim() || parsePropertyLabel(p.url)
   const liked = session.properties
     .filter(p => reactions[p.id]?.liked === true)
-    .map(p => parsePropertyLabel(p.url))
+    .map(label)
   const wantVisit = session.properties
     .filter(p => reactions[p.id]?.wantVisit)
-    .map(p => parsePropertyLabel(p.url))
+    .map(label)
 
   let msg = `Hola ${name}! Ya revisé las propiedades.`
   msg += `\nMe gustaron: ${liked.length ? liked.join(', ') : 'ninguna aún'}.`
