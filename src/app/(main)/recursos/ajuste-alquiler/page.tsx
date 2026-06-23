@@ -75,7 +75,7 @@ export default function AjusteAlquilerPage() {
 
       <RecursoHero
         theme="green"
-        eyebrow="Durante tu contrato"
+        eyebrow="Ajuste de alquiler"
         title="¿Está bien calculado tu ajuste?"
         subtitle="Verificá el ajuste de tu alquiler con la calculadora oficial. ICL, IPC, CasaPropia y todos los índices, siempre actualizados."
         breadcrumbLabel="Verificar ajuste de alquiler"
@@ -83,7 +83,10 @@ export default function AjusteAlquilerPage() {
 
       <CalculadoraAjuste />
 
-      <RecursosCTA />
+      <RecursosCTA
+        title="¿El ajuste no te cierra?"
+        text="Un agente revisa tu contrato y verifica con vos el índice que corresponde."
+      />
     </>
   )
 }

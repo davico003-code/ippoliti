@@ -76,7 +76,7 @@ export default function CalculadoraAlquilerPage() {
 
       <RecursoHero
         theme="green"
-        eyebrow="Antes de mudarte"
+        eyebrow="Costos para alquilar"
         title="¿Cuánto necesito para alquilar?"
         subtitle="Primer mes, honorarios, sellado y depósito en dólares. Calculá los costos iniciales al instante."
         breadcrumbLabel="Calculadora de costos para alquilar"
@@ -88,7 +88,10 @@ export default function CalculadoraAlquilerPage() {
         <CalculadoraCostos />
       </Suspense>
 
-      <RecursosCTA />
+      <RecursosCTA
+        title="¿Encontraste la propiedad?"
+        text="Un agente te acompaña con la reserva, los costos iniciales y el contrato."
+      />
     </>
   )
 }

@@ -54,7 +54,7 @@ export default function MapaFunesPage() {
 
       <RecursoHero
         theme="green"
-        eyebrow="Para tu lote"
+        eyebrow="Zonificación de Funes"
         title="¿Qué podés construir en tu lote?"
         subtitle="Mapa interactivo de Funes: pasá por tu zona y mirá FOS, FOT, altura y cuánto podés construir, con calculadora según las medidas del lote."
         breadcrumbLabel="Mapa de zonificación de Funes"
@@ -64,7 +64,10 @@ export default function MapaFunesPage() {
         <MapaFunesInteractivo />
       </div>
 
-      <RecursosCTA />
+      <RecursosCTA
+        title="¿Buscás un lote en Funes?"
+        text="Un agente te asesora sobre zonificación, factibilidad y oportunidades de compra."
+      />
     </>
   )
 }

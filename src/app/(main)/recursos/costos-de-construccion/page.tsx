@@ -191,8 +191,8 @@ export default async function CostosConstruccionPage() {
       <style dangerouslySetInnerHTML={{ __html: COSTOS_STYLES }} />
 
       <RecursoHero
-        theme="sand"
-        eyebrow="Para construir"
+        theme="green"
+        eyebrow="Costos de construcción"
         title="¿Cuánto cuesta construir hoy?"
         subtitle={`Valores reales por m², casos concretos y una calculadora para proyectar tu inversión sin sorpresas. Valores actualizados · ${formatMesAnio(mes)}.`}
         breadcrumbLabel="¿Cuánto cuesta construir?"
