@@ -652,15 +652,13 @@ export default function PropiedadesView({
   // Default: 'map'. Si el usuario togglea manualmente, su preferencia queda
   // en sessionStorage `si_view_preference` y gana sobre el default automático
   // de búsquedas específicas.
+  // IMPORTANTE: el valor inicial debe ser server-estable ('map' en SSR) para no
+  // generar hydration mismatch. La vista "lista" para búsquedas específicas /
+  // links compartidos la aplica el effect post-montaje (más abajo), ya hidratado.
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
     if (typeof window === 'undefined') return 'map'
     const pref = safeSessionGet('si_view_preference')
-    if (pref === 'list' || pref === 'map') return pref
-    // Link compartido con búsqueda específica → abrir directo en lista (sin flash).
-    const sp = new URLSearchParams(window.location.search)
-    const specific = !!(sp.get('q') || sp.get('tipo') || sp.get('ubicacion') ||
-      sp.get('dormitorios') || sp.get('precio_min') || sp.get('precio_max'))
-    return specific ? 'list' : 'map'
+    return pref === 'list' || pref === 'map' ? pref : 'map'
   })
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
