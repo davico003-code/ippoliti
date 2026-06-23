@@ -3,7 +3,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { parsePropertyLabel, getTimeLeft, buildWhatsAppMessage } from '@/lib/seleccion'
 
-interface Property { id: string; url: string; note: string }
+interface ExternaSnapshot {
+  title: string; image: string | null; location: string
+  price: string | null; rooms: number; baths: number; area: number
+}
+interface Property { id: string; url: string; note: string; source?: 'externa'; snapshot?: ExternaSnapshot }
 interface Reaction { liked?: boolean | null; wantVisit?: boolean; comment?: string }
 interface Session {
   clientName: string; agent: string; agentName?: string; note: string; expiresAt: string
@@ -62,17 +66,23 @@ export default function ClientShortlist({
   const { days } = getTimeLeft(session.expiresAt)
   const agentName = session.agentName || session.agent
 
-  // Fetch property data — Tokko for SI props, Microlink for external
+  // Fetch property data — Tokko for SI props, Microlink for external.
+  // Las externas cargadas a mano traen snapshot embebido: se renderizan directo,
+  // sin fetch.
   useEffect(() => {
     const initial: Record<string, { loading: boolean; info: PropInfo | null }> = {}
-    for (const p of session.properties) initial[p.id] = { loading: true, info: null }
+    for (const p of session.properties) {
+      initial[p.id] = p.snapshot
+        ? { loading: false, info: { ...p.snapshot, isColega: true } }
+        : { loading: true, info: null }
+    }
     setPropInfo(initial)
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 5000)
 
     Promise.allSettled(
-      session.properties.map(async (p): Promise<{ id: string; info: PropInfo }> => {
+      session.properties.filter(p => !p.snapshot).map(async (p): Promise<{ id: string; info: PropInfo }> => {
         const tokkoId = extractTokkoId(p.url)
 
         if (tokkoId) {

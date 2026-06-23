@@ -8,6 +8,27 @@ export const redis = new Redis({
 
 /* ── Selecciones ── */
 
+// Snapshot inmutable para propiedades externas (Zonaprop, colega, etc.) cargadas
+// a mano. Viaja embebido dentro de seleccion:{token}; el ClientShortlist lo
+// renderiza directo sin fetchear Tokko ni Microlink.
+export interface PropiedadExternaSnapshot {
+  title: string
+  image: string | null
+  location: string
+  price: string | null
+  rooms: number
+  baths: number
+  area: number
+}
+
+interface SeleccionProperty {
+  id: string
+  url: string
+  note: string
+  source?: 'externa'
+  snapshot?: PropiedadExternaSnapshot
+}
+
 interface SeleccionInput {
   clientName: string
   clientPhone: string
@@ -16,7 +37,7 @@ interface SeleccionInput {
   agentName: string
   days: number
   note: string
-  properties: { id: string; url: string; note: string }[]
+  properties: SeleccionProperty[]
 }
 
 export async function crearSeleccion(data: SeleccionInput): Promise<string> {

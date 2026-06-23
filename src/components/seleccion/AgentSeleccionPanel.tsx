@@ -3,11 +3,43 @@
 import { useState, useEffect } from 'react'
 import { getTimeLeft } from '@/lib/seleccion'
 
+interface ExternaSnapshot {
+  title: string; image: string | null; location: string
+  price: string | null; rooms: number; baths: number; area: number
+}
 interface Session {
   token: string; clientName: string; clientPhone: string; agent: string
-  properties: { id: string; url: string; note: string }[]
+  properties: { id: string; url: string; note: string; source?: 'externa'; snapshot?: ExternaSnapshot }[]
   createdAt: string; expiresAt: string; note: string
   resumen: { liked: number; disliked: number; wantVisit: number; hasComments: boolean }
+}
+
+// Fila de propiedad en el form. Los campos manuales (title..image) solo se usan
+// cuando la URL es externa (Zonaprop / colega); en propiedades SI quedan vacíos.
+type FormProperty = {
+  id: string; url: string; note: string
+  title: string; price: string; rooms: string; baths: string; area: string; location: string; image: string
+}
+const emptyProp = (): FormProperty => ({
+  id: '', url: '', note: '', title: '', price: '', rooms: '', baths: '', area: '', location: '', image: '',
+})
+
+// Externa = URL válida cuyo host no es siinmobiliaria.com.
+function isExternalUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname
+    return !!host && !host.includes('siinmobiliaria.com')
+  } catch {
+    return false
+  }
+}
+const toNum = (v: string): number => {
+  const n = parseInt(v, 10)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+const sanitizeImg = (v: string): string | null => {
+  const t = v.trim()
+  return t.startsWith('https://') ? t : null
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -16,7 +48,7 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', agent: 'David Flores', days: 90, note: '',
-    properties: [{ id: '', url: '', note: '' }],
+    properties: [emptyProp()] as FormProperty[],
   })
   const [createdUrl, setCreatedUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -37,7 +69,7 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
   const vencenPronto = activas.filter(s => getTimeLeft(s.expiresAt).days <= 2).length
 
   function addProperty() {
-    setFormData(d => ({ ...d, properties: [...d.properties, { id: '', url: '', note: '' }] }))
+    setFormData(d => ({ ...d, properties: [...d.properties, emptyProp()] }))
   }
 
   function updateProperty(i: number, field: string, val: string) {
@@ -63,16 +95,33 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
     setSubmitting(true)
 
     try {
+      const { clientName, clientPhone, agent, days, note } = formData
+      const properties = formData.properties.filter(p => p.url.trim()).map((p, i) => {
+        const base = { id: p.id || `prop-${i}`, url: p.url.trim(), note: p.note.trim() }
+        // Solo adjuntamos snapshot si es externa Y el agente cargó al menos el título.
+        // Si no, la externa cae al preview de Microlink como hasta ahora.
+        if (isExternalUrl(p.url) && p.title.trim()) {
+          return {
+            ...base,
+            source: 'externa' as const,
+            snapshot: {
+              title: p.title.trim(),
+              image: sanitizeImg(p.image),
+              location: p.location.trim(),
+              price: p.price.trim() || null,
+              rooms: toNum(p.rooms),
+              baths: toNum(p.baths),
+              area: toNum(p.area),
+            },
+          }
+        }
+        return base
+      })
+
       const res = await fetch('/api/seleccion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          properties: formData.properties.filter(p => p.url.trim()).map((p, i) => ({
-            ...p,
-            id: p.id || `prop-${i}`,
-          })),
-        }),
+        body: JSON.stringify({ clientName, clientPhone, agent, days, note, properties }),
       })
       const data = await res.json()
       setCreatedUrl(`${window.location.origin}/seleccion/${data.token}`)
@@ -117,7 +166,7 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
             )}
 
             <button
-              onClick={() => { setShowForm(false); setCreatedUrl(''); setFormData({ clientName: '', clientPhone: '', agent: 'David Flores', days: 90, note: '', properties: [{ id: '', url: '', note: '' }] }) }}
+              onClick={() => { setShowForm(false); setCreatedUrl(''); setFormData({ clientName: '', clientPhone: '', agent: 'David Flores', days: 90, note: '', properties: [emptyProp()] }) }}
               className="text-sm text-gray-400 hover:text-gray-600"
             >
               &larr; Volver al panel
@@ -174,17 +223,47 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
 
           <div className="space-y-3">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Propiedades</p>
-            {formData.properties.map((p, i) => (
-              <div key={i} className="flex gap-2">
-                <input placeholder="URL de la propiedad *" value={p.url} onChange={e => updateProperty(i, 'url', e.target.value)}
-                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]" />
-                <input placeholder="Nota" value={p.note} onChange={e => updateProperty(i, 'note', e.target.value)}
-                  className="w-32 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]" />
-                {formData.properties.length > 1 && (
-                  <button type="button" onClick={() => removeProperty(i)} className="px-2 text-red-400 hover:text-red-600 text-lg">&times;</button>
-                )}
-              </div>
-            ))}
+            {formData.properties.map((p, i) => {
+              const externa = isExternalUrl(p.url)
+              return (
+                <div key={i} className="space-y-2">
+                  <div className="flex gap-2">
+                    <input placeholder="URL de la propiedad *" value={p.url} onChange={e => updateProperty(i, 'url', e.target.value)}
+                      className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]" />
+                    <input placeholder="Nota" value={p.note} onChange={e => updateProperty(i, 'note', e.target.value)}
+                      className="w-32 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#1A5C38]" />
+                    {formData.properties.length > 1 && (
+                      <button type="button" onClick={() => removeProperty(i)} className="px-2 text-red-400 hover:text-red-600 text-lg">&times;</button>
+                    )}
+                  </div>
+
+                  {externa && (
+                    <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(26,92,56,0.04)', border: '1px dashed rgba(26,92,56,0.3)' }}>
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-[#1A5C38]">
+                        Propiedad externa — cargá los datos a mano
+                      </p>
+                      <input placeholder="Título (ej: Casa 3 dorm en Funes)" value={p.title} onChange={e => updateProperty(i, 'title', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <input placeholder="Precio" value={p.price} onChange={e => updateProperty(i, 'price', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                        <input placeholder="Dorm." inputMode="numeric" value={p.rooms} onChange={e => updateProperty(i, 'rooms', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                        <input placeholder="Baños" inputMode="numeric" value={p.baths} onChange={e => updateProperty(i, 'baths', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                        <input placeholder="m²" inputMode="numeric" value={p.area} onChange={e => updateProperty(i, 'area', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                      </div>
+                      <input placeholder="Ubicación (ej: Funes)" value={p.location} onChange={e => updateProperty(i, 'location', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                      <input placeholder="URL de una foto (https://...)" value={p.image} onChange={e => updateProperty(i, 'image', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                      <p className="text-[11px] text-gray-400">Sin título se comparte igual, pero la tarjeta queda con menos datos.</p>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
             <button type="button" onClick={addProperty} className="text-sm text-[#1A5C38] font-semibold hover:underline">
               + Agregar propiedad
             </button>
