@@ -91,6 +91,8 @@ export interface Ficha {
   slug: string
   propertyId: number
   notas: string                // notas internas, NUNCA renderizadas en /v
+  origen?: 'tokko' | 'externa' // default tokko; 'externa' = importada a mano
+  sourceUrl?: string           // URL original (Zonaprop), interna, NUNCA renderizada
   createdAt: string            // ISO
   expiresAt: string            // ISO (createdAt + 60d)
   revokedAt: string | null     // ISO si fue revocada manualmente
@@ -325,6 +327,125 @@ export async function crearFicha(input: {
     expiresAt: ficha.expiresAt,
     ficha,
   }
+}
+
+// ── Ficha externa (importada a mano desde Zonaprop / colega) ────────────────
+//
+// Genera una ficha verficha.casa PROPIA a partir de datos cargados a mano. El
+// snapshot resultante es indistinguible de uno de Tokko para el renderer de
+// /v/[slug]: misma forma, marca SI-neutra, sin rastro del portal de origen.
+// Las fotos ya vienen re-hosteadas en Vercel Blob (el caller las sube), así la
+// ficha no depende del CDN del competidor.
+
+export interface FichaExternaInput {
+  titulo: string
+  descripcion: string
+  fotos: string[]              // URLs https (idealmente ya en Vercel Blob)
+  operacion: string           // 'Venta' | 'Alquiler'
+  tipo: string                // 'Casa' | 'Departamento' | ...
+  precioRaw: number
+  moneda: string              // 'USD' | 'ARS'
+  zona: string
+  m2cubiertos: number | null
+  m2terreno: number | null
+  ambientes: number | null
+  dormitorios: number | null
+  banos: number | null
+}
+
+// Saca el nombre del portal del título/descripción para que la ficha se vea
+// 100% propia ("Casa Venta 3 Dorm. en Funes - Zonaprop" → sin "- Zonaprop").
+const PORTAL_TERMS = /\s*[-|·]?\s*\b(zonaprop|argenprop|mercado\s?libre|properati|inmoup|navent)\b/gi
+export function stripPortal(s: string): string {
+  return (s || '').replace(PORTAL_TERMS, '').replace(/\s{2,}/g, ' ').trim()
+}
+
+function formatPrecioManual(precioRaw: number, moneda: string): string {
+  if (!precioRaw || precioRaw <= 0) return 'Consultar'
+  return `${moneda || 'USD'} ${precioRaw.toLocaleString('es-AR')}`
+}
+
+export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
+  const tipo = input.tipo?.trim() || 'Propiedad'
+  const ambientes = input.ambientes ?? null
+  const zonaAprox = (input.zona || '').trim()
+  const titulo =
+    stripPortal(input.titulo) || deriveTituloGenerico(tipo, ambientes, zonaAprox)
+  const fotos = (input.fotos || []).filter(u => typeof u === 'string' && u.startsWith('https://'))
+
+  return {
+    fotos,
+    blueprints: [],
+    ogImage: fotos[0] || null,
+    precio: formatPrecioManual(input.precioRaw, input.moneda),
+    precioRaw: input.precioRaw > 0 ? input.precioRaw : 0,
+    moneda: input.moneda || '',
+    operacion: input.operacion?.trim() || 'Venta',
+    tipo,
+    tituloGenerico: titulo,
+    zonaAprox,
+    zonaCompleta: zonaAprox,
+    direccionCalle: '',
+    m2cubiertos: input.m2cubiertos,
+    m2totales: null,
+    m2terreno: input.m2terreno,
+    m2semicubiertos: null,
+    m2descubiertos: null,
+    ambientes,
+    dormitorios: input.dormitorios,
+    banos: input.banos,
+    cocheras: null,
+    antiguedad: null,
+    descripcion: stripPortal(input.descripcion),
+    caracteristicas: [],
+    lat: null,
+    lng: null,
+  }
+}
+
+export async function crearFichaExterna(input: {
+  manual: FichaExternaInput
+  sourceUrl: string
+  ip: string
+  userAgent: string
+}): Promise<{ slug: string; url: string; expiresAt: string; snapshot: FichaSnapshot }> {
+  const snapshot = buildSnapshotManual(input.manual)
+
+  let slug = generarSlug()
+  for (let i = 0; i < 5; i++) {
+    const exists = await redis.exists(KEY(slug))
+    if (!exists) break
+    slug = generarSlug()
+  }
+
+  const now = new Date()
+  const expiresAt = new Date(now.getTime() + TTL_SECONDS * 1000)
+
+  const ficha: Ficha = {
+    slug,
+    propertyId: 0,                       // sin id de Tokko: no precachea audio
+    notas: '',
+    origen: 'externa',
+    sourceUrl: (input.sourceUrl || '').trim(),
+    createdAt: now.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    revokedAt: null,
+    generadoDesde: {
+      ip: input.ip || 'unknown',
+      userAgent: input.userAgent || 'unknown',
+      createdAt: now.toISOString(),
+    },
+    snapshot,
+  }
+
+  const initialStats: FichaStats = { views: 0, lastViewAt: null, ips: [] }
+
+  await redis.set(KEY(slug), JSON.stringify(ficha), { ex: TTL_SECONDS })
+  await redis.set(STATS_KEY(slug), JSON.stringify(initialStats), { ex: TTL_SECONDS })
+  await redis.sadd(SET_KEY, slug)
+
+  const domain = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
+  return { slug, url: `https://${domain}/${slug}`, expiresAt: ficha.expiresAt, snapshot }
 }
 
 export async function getFicha(slug: string): Promise<Ficha | null> {

@@ -14,15 +14,21 @@ interface Session {
   resumen: { liked: number; disliked: number; wantVisit: number; hasComments: boolean }
 }
 
-// Fila de propiedad en el form. Los campos manuales (title..image) solo se usan
-// cuando la URL es externa (Zonaprop / colega); en propiedades SI quedan vacíos.
+// Fila de propiedad en el form. Los campos manuales solo se usan cuando la URL
+// es externa (Zonaprop / colega): con ellos se mintea una ficha propia en
+// verficha.casa. En propiedades SI quedan vacíos.
 type FormProperty = {
   id: string; url: string; note: string
-  title: string; price: string; rooms: string; baths: string; area: string; location: string; image: string
+  title: string; descripcion: string; operacion: string; tipo: string; moneda: string
+  price: string; rooms: string; baths: string; ambientes: string; area: string; terreno: string
+  location: string; image: string; fotosExtra: string
 }
 const emptyProp = (): FormProperty => ({
-  id: '', url: '', note: '', title: '', price: '', rooms: '', baths: '', area: '', location: '', image: '',
+  id: '', url: '', note: '', title: '', descripcion: '', operacion: 'Venta', tipo: 'Casa', moneda: 'USD',
+  price: '', rooms: '', baths: '', ambientes: '', area: '', terreno: '', location: '', image: '', fotosExtra: '',
 })
+
+const TIPOS = ['Casa', 'Departamento', 'PH', 'Lote', 'Local', 'Oficina', 'Quinta', 'Galpón', 'Campo']
 
 // Externa = URL válida cuyo host no es siinmobiliaria.com.
 function isExternalUrl(url: string): boolean {
@@ -33,14 +39,20 @@ function isExternalUrl(url: string): boolean {
     return false
   }
 }
+// Parse numérico tolerante: "USD 180.000" → 180000, "1053 m2" → 1053, "" → 0.
 const toNum = (v: string): number => {
-  const n = parseInt(v, 10)
+  const n = parseInt(String(v).replace(/[^\d]/g, ''), 10)
   return Number.isFinite(n) && n > 0 ? n : 0
 }
-const sanitizeImg = (v: string): string | null => {
-  const t = v.trim()
+const httpsOnly = (v: string): string | null => {
+  const t = (v || '').trim()
   return t.startsWith('https://') ? t : null
 }
+// Saca el nombre del portal del título prellenado por Microlink (lo limpio
+// también en server, pero así el agente ya lo ve limpio para editar).
+const stripPortalClient = (s: string): string =>
+  (s || '').replace(/\s*[-|·]?\s*\b(zonaprop|argenprop|mercado\s?libre|properati|navent)\b/gi, '')
+    .replace(/\s*[-,]\s*Santa Fe\b/gi, '').replace(/\s{2,}/g, ' ').trim()
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function AgentSeleccionPanel({ initialSessions, agentId }: { initialSessions: Session[]; agentId: string }) {
@@ -52,6 +64,35 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
   })
   const [createdUrl, setCreatedUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [prefetching, setPrefetching] = useState<Record<number, boolean>>({})
+  const [formError, setFormError] = useState('')
+
+  // "Traer datos" — prellena título / foto / descripción desde Microlink (que sí
+  // pasa el Cloudflare de Zonaprop). El agente completa precio, m², etc.
+  async function prefetchExterna(i: number) {
+    const url = formData.properties[i]?.url.trim()
+    if (!url || !isExternalUrl(url)) return
+    setPrefetching(s => ({ ...s, [i]: true }))
+    try {
+      const res = await fetch(`/api/seleccion/preview?url=${encodeURIComponent(url)}`)
+      const d = res.ok ? await res.json() : {}
+      setFormData(fd => {
+        const props = [...fd.properties]
+        const p = props[i]
+        if (!p) return fd
+        props[i] = {
+          ...p,
+          title: p.title || stripPortalClient(d.title || ''),
+          image: p.image || (httpsOnly(d.image || '') || ''),
+          descripcion: p.descripcion || stripPortalClient(d.description || ''),
+        }
+        return { ...fd, properties: props }
+      })
+    } catch {
+      /* sin prefill: el agente carga a mano */
+    }
+    setPrefetching(s => ({ ...s, [i]: false }))
+  }
 
   // Auto-refresh
   useEffect(() => {
@@ -91,32 +132,57 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setFormError('')
     if (!formData.clientName.trim() || !formData.properties.some(p => p.url.trim())) return
-    setSubmitting(true)
 
+    const rows = formData.properties.filter(p => p.url.trim())
+    // Toda propiedad externa necesita al menos título para mintear su ficha propia.
+    const sinDatos = rows.find(p => isExternalUrl(p.url) && !p.title.trim())
+    if (sinDatos) {
+      setFormError('Completá los datos de la propiedad externa (mínimo el título) o usá "Traer datos".')
+      return
+    }
+
+    setSubmitting(true)
     try {
       const { clientName, clientPhone, agent, days, note } = formData
-      const properties = formData.properties.filter(p => p.url.trim()).map((p, i) => {
+      const properties: Array<Record<string, unknown>> = []
+
+      for (let i = 0; i < rows.length; i++) {
+        const p = rows[i]
         const base = { id: p.id || `prop-${i}`, url: p.url.trim(), note: p.note.trim() }
-        // Solo adjuntamos snapshot si es externa Y el agente cargó al menos el título.
-        // Si no, la externa cae al preview de Microlink como hasta ahora.
+
         if (isExternalUrl(p.url) && p.title.trim()) {
-          return {
-            ...base,
-            source: 'externa' as const,
-            snapshot: {
-              title: p.title.trim(),
-              image: sanitizeImg(p.image),
-              location: p.location.trim(),
-              price: p.price.trim() || null,
-              rooms: toNum(p.rooms),
-              baths: toNum(p.baths),
-              area: toNum(p.area),
-            },
-          }
+          // Externa → minteamos una ficha PROPIA en verficha.casa y linkeamos a ESA.
+          const fotos = [httpsOnly(p.image), ...p.fotosExtra.split('\n').map(s => httpsOnly(s))]
+            .filter((u): u is string => !!u)
+          const r = await fetch('/api/fichas/importar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sourceUrl: p.url.trim(),
+              titulo: p.title.trim(),
+              descripcion: p.descripcion.trim(),
+              fotos,
+              operacion: p.operacion,
+              tipo: p.tipo,
+              moneda: p.moneda,
+              precioRaw: toNum(p.price),
+              zona: p.location.trim(),
+              m2cubiertos: toNum(p.area),
+              m2terreno: toNum(p.terreno),
+              ambientes: toNum(p.ambientes),
+              dormitorios: toNum(p.rooms),
+              banos: toNum(p.baths),
+            }),
+          })
+          if (!r.ok) throw new Error('No se pudo crear la ficha de una propiedad externa. Revisá los datos y reintentá.')
+          const data = await r.json()
+          properties.push({ ...base, url: data.url, source: 'externa', snapshot: data.snapshot })
+        } else {
+          properties.push(base)
         }
-        return base
-      })
+      }
 
       const res = await fetch('/api/seleccion', {
         method: 'POST',
@@ -129,7 +195,9 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
       // Refresh list
       const listRes = await fetch('/api/seleccion?agent=all')
       if (listRes.ok) setSessions(await listRes.json())
-    } catch {}
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Algo salió mal. Reintentá.')
+    }
     setSubmitting(false)
   }
 
@@ -239,26 +307,57 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
 
                   {externa && (
                     <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(26,92,56,0.04)', border: '1px dashed rgba(26,92,56,0.3)' }}>
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-[#1A5C38]">
-                        Propiedad externa — cargá los datos a mano
-                      </p>
-                      <input placeholder="Título (ej: Casa 3 dorm en Funes)" value={p.title} onChange={e => updateProperty(i, 'title', e.target.value)}
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#1A5C38]">
+                          Propiedad externa → ficha propia
+                        </p>
+                        <button type="button" onClick={() => prefetchExterna(i)} disabled={prefetching[i]}
+                          className="text-[11px] font-bold px-2.5 py-1 rounded-lg disabled:opacity-50"
+                          style={{ background: '#1A5C38', color: 'white' }}>
+                          {prefetching[i] ? 'Trayendo…' : 'Traer datos'}
+                        </button>
+                      </div>
+                      <input placeholder="Título (ej: Casa 3 dorm en Funes) *" value={p.title} onChange={e => updateProperty(i, 'title', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <input placeholder="Precio" value={p.price} onChange={e => updateProperty(i, 'price', e.target.value)}
+                      <div className="grid grid-cols-2 gap-2">
+                        <select value={p.operacion} onChange={e => updateProperty(i, 'operacion', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38] bg-white">
+                          <option>Venta</option><option>Alquiler</option><option>Alquiler temporario</option>
+                        </select>
+                        <select value={p.tipo} onChange={e => updateProperty(i, 'tipo', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38] bg-white">
+                          {TIPOS.map(t => <option key={t}>{t}</option>)}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <select value={p.moneda} onChange={e => updateProperty(i, 'moneda', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38] bg-white">
+                          <option>USD</option><option>ARS</option>
+                        </select>
+                        <input placeholder="Precio" inputMode="numeric" value={p.price} onChange={e => updateProperty(i, 'price', e.target.value)}
+                          className="col-span-2 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        <input placeholder="Amb." inputMode="numeric" value={p.ambientes} onChange={e => updateProperty(i, 'ambientes', e.target.value)}
                           className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
                         <input placeholder="Dorm." inputMode="numeric" value={p.rooms} onChange={e => updateProperty(i, 'rooms', e.target.value)}
                           className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
                         <input placeholder="Baños" inputMode="numeric" value={p.baths} onChange={e => updateProperty(i, 'baths', e.target.value)}
                           className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
-                        <input placeholder="m²" inputMode="numeric" value={p.area} onChange={e => updateProperty(i, 'area', e.target.value)}
+                        <input placeholder="m² cub." inputMode="numeric" value={p.area} onChange={e => updateProperty(i, 'area', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
+                        <input placeholder="m² terr." inputMode="numeric" value={p.terreno} onChange={e => updateProperty(i, 'terreno', e.target.value)}
                           className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
                       </div>
                       <input placeholder="Ubicación (ej: Funes)" value={p.location} onChange={e => updateProperty(i, 'location', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
-                      <input placeholder="URL de una foto (https://...)" value={p.image} onChange={e => updateProperty(i, 'image', e.target.value)}
+                      <textarea placeholder="Descripción (revisá que no tenga datos del colega)" value={p.descripcion} onChange={e => updateProperty(i, 'descripcion', e.target.value)}
+                        rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38] resize-none" />
+                      <input placeholder="Foto principal (https://...)" value={p.image} onChange={e => updateProperty(i, 'image', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38]" />
-                      <p className="text-[11px] text-gray-400">Sin título se comparte igual, pero la tarjeta queda con menos datos.</p>
+                      <textarea placeholder="Fotos adicionales — una URL https por línea (opcional)" value={p.fotosExtra} onChange={e => updateProperty(i, 'fotosExtra', e.target.value)}
+                        rows={2} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1A5C38] resize-none" />
+                      <p className="text-[11px] text-gray-400">Se genera una ficha propia en verficha.casa. El cliente nunca ve el portal de origen.</p>
                     </div>
                   )}
                 </div>
@@ -269,8 +368,12 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
             </button>
           </div>
 
+          {formError && (
+            <p className="text-[13px] text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{formError}</p>
+          )}
+
           <button type="submit" disabled={submitting} className="w-full py-3 bg-[#1A5C38] text-white font-bold rounded-xl text-sm disabled:opacity-50">
-            {submitting ? 'Creando...' : 'Crear selección'}
+            {submitting ? 'Creando ficha y selección…' : 'Crear selección'}
           </button>
         </form>
       </div>
