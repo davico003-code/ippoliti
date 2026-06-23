@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import CalculadoraCostos from '@/components/recursos/CalculadoraCostos'
 import RecursoHero from '@/components/recursos/RecursoHero'
-import RecursosCTA from '@/components/recursos/RecursosCTA'
 
 export const metadata: Metadata = {
   title: 'Calculadora de alquiler — costos iniciales | SI Inmobiliaria',
@@ -87,11 +86,6 @@ export default function CalculadoraAlquilerPage() {
       <Suspense fallback={null}>
         <CalculadoraCostos />
       </Suspense>
-
-      <RecursosCTA
-        title="¿Encontraste la propiedad?"
-        text="Un agente te acompaña con la reserva, los costos iniciales y el contrato."
-      />
     </>
   )
 }

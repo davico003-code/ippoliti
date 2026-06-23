@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import CalculadoraAjuste from '@/components/recursos/CalculadoraAjuste'
 import RecursoHero from '@/components/recursos/RecursoHero'
-import RecursosCTA from '@/components/recursos/RecursosCTA'
 
 export const metadata: Metadata = {
   title: '¿Está bien calculado tu aumento de alquiler? | SI Inmobiliaria',
@@ -82,11 +81,6 @@ export default function AjusteAlquilerPage() {
       />
 
       <CalculadoraAjuste />
-
-      <RecursosCTA
-        title="¿El ajuste no te cierra?"
-        text="Un agente revisa tu contrato y verifica con vos el índice que corresponde."
-      />
     </>
   )
 }
