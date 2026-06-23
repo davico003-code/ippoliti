@@ -58,7 +58,7 @@ export async function fetchZonaprop(url: string): Promise<ZonapropParsed | null>
     `${MICROLINK}?url=${encodeURIComponent(url)}` +
     `&meta=true&data.body.selector=body&data.body.type=text`
 
-  let json: { status?: string; data?: { body?: string; title?: string } }
+  let json: { status?: string; data?: { body?: string; title?: string; description?: string } }
   try {
     const res = await fetch(api, { signal: AbortSignal.timeout(45000) })
     if (!res.ok) return null
@@ -81,16 +81,36 @@ export async function fetchZonaprop(url: string): Promise<ZonapropParsed | null>
       ? 'Alquiler'
       : 'Venta'
 
-  // ── Specs desde la línea resumen "Casa · 128m² · 4 ambientes · 2 cocheras" ──
-  const spec = /([A-Za-zÁ-úñ]+)\s·\s(\d+)\s?m²\s·\s(\d+)\s*ambientes(?:\s·\s(\d+)\s*cocheras)?/i.exec(body)
-  const tipo = spec?.[1]?.trim() || (rawTitle.split(/\s+/)[0] || 'Propiedad')
-  const m2cubiertos = num(spec?.[2])
-  const ambientes = num(spec?.[3])
-  const cocheras = num(spec?.[4])
+  // ── Tipo: detectado por palabra clave (NO la primera palabra del título, que
+  // suele ser la operación). Sirve para casa, depto, terreno, lote, etc. ──
+  const TIPO_RE = /\b(casas?|departamentos?|ph|lotes?|terrenos?|locales?|local|oficinas?|quintas?|galp[oó]n|campos?|cocheras?|dep[oó]sitos?|chalets?|d[uú]plex|tríplex|cabañas?|fondo de comercio)\b/i
+  const tm = TIPO_RE.exec(rawTitle) || TIPO_RE.exec(body)
+  let tipo = 'Propiedad'
+  if (tm) {
+    const raw = tm[1].toLowerCase()
+    tipo = /galp/.test(raw) ? 'Galpón'
+      : /dep[oó]sito/.test(raw) ? 'Depósito'
+      : /d[uú]plex/.test(raw) ? 'Dúplex'
+      : /terreno|lote/.test(raw) ? 'Terreno'
+      : /departamento/.test(raw) ? 'Departamento'
+      : raw.replace(/s$/, '').replace(/^\w/, c => c.toUpperCase())
+  }
 
-  // zona: lo que sigue a " en " en el título, hasta el primer "-" o ","
-  const zonaM = /\ben\s+([^-,–]+)/i.exec(titulo)
-  const zona = (zonaM?.[1] || '').trim()
+  // ── Specs (línea resumen "… · 128m² · 4 ambientes · 2 cocheras" + fallbacks) ──
+  const spec = /·\s*(\d+)\s?m²\s*·\s*(\d+)\s*ambientes(?:\s*·\s*(\d+)\s*cocheras)?/i.exec(body)
+  const m2cubiertos =
+    num(spec?.[1]) ?? num(/(\d+)\s*m²?\s*cubiert/i.exec(body)?.[1])
+  const ambientes = num(spec?.[2]) ?? num(/(\d+)\s*ambiente/i.exec(body)?.[1])
+  const cocheras = num(spec?.[3]) ?? num(/(\d+)\s*cochera/i.exec(body)?.[1])
+
+  // zona: el ÚLTIMO "… en X" del título (evita "en Alquiler/Venta"), recortado
+  // al primer separador. Si no hay "en", la palabra que sigue al tipo.
+  const enParts = titulo.split(/\s+en\s+/i)
+  let zona = enParts.length > 1 ? enParts[enParts.length - 1].split(/[-,–|]/)[0].trim() : ''
+  if (!zona && tm) {
+    const after = titulo.slice(titulo.toLowerCase().indexOf(tm[1].toLowerCase()) + tm[1].length).trim()
+    zona = (after.match(/^[A-Za-zÁ-úñ]+/)?.[0] || '').trim()
+  }
 
   // ── Precio (JSON embebido confiable) ──
   let precioRaw = 0
@@ -115,9 +135,12 @@ export async function fetchZonaprop(url: string): Promise<ZonapropParsed | null>
   // ── Terreno (de la descripción) ──
   const terr = /terreno de\s*([\d.]+)\s*m/i.exec(body) || /([\d.]+)\s*m²?\s*de\s*terreno/i.exec(body)
 
-  // ── Descripción (contenedor section-description) ──
+  // ── Descripción (contenedor section-description; fallback al meta de Microlink) ──
   const descM = /class="section-description">([\s\S]*?)<\/section>/i.exec(body)
-  const descripcion = descM ? stripHtml(descM[1]) : ''
+  let descripcion = descM ? stripHtml(descM[1]) : ''
+  if (descripcion.length < 40) {
+    descripcion = stripHtml((json.data?.description || '').replace(/\.{2,}\s*Zona\s*\d+\s*$/i, ''))
+  }
 
   // ── Fotos (todas, 1200×1200, dedup, en orden) ──
   const fotos: string[] = []

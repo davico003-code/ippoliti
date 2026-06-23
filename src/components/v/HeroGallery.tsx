@@ -15,6 +15,11 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Camera, Images, X } from 'lucide-react'
 
+// Fotos de avisos externos (Zonaprop/Navent) se sirven directo de su CDN: las
+// renderizamos sin el optimizador de Vercel para que se vean siempre, sin
+// depender de que el optimizador pueda fetchear ese host.
+const isExternalCdn = (src: string): boolean => /zonapropcdn|naventcdn/.test(src)
+
 export default function HeroGallery({ photos }: { photos: string[] }) {
   const [showAll, setShowAll] = useState(false)
 
@@ -70,6 +75,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
             fill
             sizes="100vw"
             priority
+            unoptimized={isExternalCdn(photos[0])}
             style={{ objectFit: 'cover' }}
           />
           {photos.length > 1 && (
@@ -129,6 +135,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
               fill
               sizes="(min-width: 1024px) 60vw, 100vw"
               priority
+              unoptimized={isExternalCdn(photos[0])}
               style={{ objectFit: 'cover', transition: 'transform 300ms' }}
             />
           </div>
@@ -157,6 +164,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
                   alt=""
                   fill
                   sizes="20vw"
+                  unoptimized={isExternalCdn(photo)}
                   style={{ objectFit: 'cover', transition: 'transform 300ms' }}
                 />
                 {isLast && hasOverlaySlot && (
@@ -271,6 +279,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
                   width={1200}
                   height={800}
                   sizes="(max-width: 1000px) 100vw, 1000px"
+                  unoptimized={isExternalCdn(p)}
                   style={{ width: '100%', height: 'auto', borderRadius: 8 }}
                 />
               ))}
