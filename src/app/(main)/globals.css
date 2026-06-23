@@ -15,8 +15,9 @@
   --si-green-dark: #0F3D24;
   --si-green-soft: #2A8B5A;
   --si-green-tint: #E8F1ED;
-  --cream: #F5F1EA;
-  --cream-deep: #EDE7DB;
+  /* Antes beige (#F5F1EA / #EDE7DB) — repunteados a gris neutro (paleta oficial sin beige) */
+  --cream: #F6F6F4;
+  --cream-deep: #E6E6E2;
   --tinta: #1C1C1E;
   --tinta-soft: #4A4845;
   --tinta-mute: #8B847A;
