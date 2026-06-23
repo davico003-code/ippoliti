@@ -75,8 +75,8 @@ export default function AsistenteObrasPage() {
       />
 
       <RecursoHero
-        theme="sand"
-        eyebrow="Para construir"
+        theme="green"
+        eyebrow="Trámites de obra"
         title="Asistente de obras particulares de Funes"
         subtitle="Cuánto podés construir (FOS, FOT, altura), plusvalía por mayor aprovechamiento, tasa de edificación y qué papeles necesitás para tu trámite."
         breadcrumbLabel="Asistente de obras particulares de Funes"
@@ -84,7 +84,10 @@ export default function AsistenteObrasPage() {
 
       <AsistenteObrasFunes />
 
-      <RecursosCTA />
+      <RecursosCTA
+        title="¿Vas a construir en Funes?"
+        text="Un agente te guía con la factibilidad, la plusvalía y los trámites de tu obra."
+      />
     </>
   )
 }

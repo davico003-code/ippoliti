@@ -131,19 +131,7 @@ export default function CalculadoraAjuste() {
             />
             Calculadora · Ajuste de alquiler
           </div>
-          <h1
-            className="font-black text-[clamp(32px,7vw,46px)] leading-[1.02] tracking-[-0.025em] m-0 mb-3.5"
-            style={{ color: 'var(--tinta)' }}
-          >
-            ¿Está bien calculado{' '}
-            <em
-              className="not-italic font-normal italic"
-              style={{ color: 'var(--si-green)' }}
-            >
-              tu nuevo alquiler?
-            </em>
-          </h1>
-          <p className="text-[16px] max-w-[580px] m-0 leading-relaxed" style={{ color: 'var(--tinta-soft)' }}>
+          <p className="text-[16px] max-w-[580px] m-0 mt-3 leading-relaxed" style={{ color: 'var(--tinta-soft)' }}>
             Verificá si el ajuste que te pasaron coincide con el índice que figura en tu contrato.
             Acá tenés la calculadora oficial junto con la info que necesitás para entenderla.
           </p>
