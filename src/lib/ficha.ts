@@ -351,6 +351,7 @@ export interface FichaExternaInput {
   ambientes: number | null
   dormitorios: number | null
   banos: number | null
+  cocheras?: number | null
 }
 
 // Saca el nombre del portal del título/descripción para que la ficha se vea
@@ -394,7 +395,7 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
     ambientes,
     dormitorios: input.dormitorios,
     banos: input.banos,
-    cocheras: null,
+    cocheras: input.cocheras ?? null,
     antiguedad: null,
     descripcion: stripPortal(input.descripcion),
     caracteristicas: [],
