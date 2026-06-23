@@ -569,16 +569,28 @@ export default function PropiedadesView({
   const router = useRouter()
   const pathname = usePathname()
   const initialSearch = searchParams.get('q') ?? ''
-  // Leer operación desde la URL. Aceptamos `?operacion=venta|alquiler` (canónico, compartible)
-  // y `?op=venta|alquiler` (legacy del Navbar). Cualquier cambio interno escribe `operacion`.
-  const opParam = (searchParams.get('operacion') ?? searchParams.get('op') ?? '').toLowerCase()
-  const initialOperation: Operation =
-    opParam === 'venta' || opParam === 'alquiler' ? opParam : 'todos'
-  // Filtro de precio desde URL: ?precio_min=, ?precio_max=, ?moneda=USD|ARS
-  const initialPriceMin = digitsOnly(searchParams.get('precio_min') ?? '')
-  const initialPriceMax = digitsOnly(searchParams.get('precio_max') ?? '')
-  const monedaParam = (searchParams.get('moneda') ?? '').toUpperCase()
-  const initialCurrency: Currency = monedaParam === 'ARS' ? 'ARS' : 'USD'
+
+  // Construye el set COMPLETO de filtros desde la URL. Única fuente de verdad
+  // para el estado inicial y para re-sincronizar ante navegación externa
+  // (Navbar, back/forward) o apertura de un link compartido. Todos los filtros
+  // viajan en la query → la búsqueda es 100% compartible.
+  const parseFilters = useCallback((): Filters => {
+    const op = (searchParams.get('operacion') ?? searchParams.get('op') ?? '').toLowerCase()
+    const beds = searchParams.get('dormitorios') ?? ''
+    const loc = (searchParams.get('ubicacion') ?? '').toLowerCase()
+    const moneda = (searchParams.get('moneda') ?? '').toUpperCase()
+    return {
+      ...DEFAULTS,
+      search: searchParams.get('q') ?? '',
+      operation: op === 'venta' || op === 'alquiler' ? (op as Operation) : 'todos',
+      type: searchParams.get('tipo') || 'todos',
+      beds: (['1', '2', '3', '4+'].includes(beds) ? beds : 'todos') as Beds,
+      location: (['roldan', 'rosario', 'funes'].includes(loc) ? loc : 'todos') as Location,
+      priceMin: digitsOnly(searchParams.get('precio_min') ?? ''),
+      priceMax: digitsOnly(searchParams.get('precio_max') ?? ''),
+      currency: moneda === 'ARS' ? 'ARS' : 'USD',
+    }
+  }, [searchParams])
 
   // Resolve zona from q param
   const resolvedZona = useMemo<Zona | null>(() => {
@@ -593,33 +605,45 @@ export default function PropiedadesView({
 
   const activeZona = resolvedZona
 
-  const [filters, setFilters]           = useState<Filters>({
-    ...DEFAULTS,
-    search: initialSearch,
-    operation: initialOperation,
-    priceMin: initialPriceMin,
-    priceMax: initialPriceMax,
-    currency: initialCurrency,
-  })
-  // True cuando el cambio de URL fue iniciado por la UI (updateOperation).
-  // Sirve para que el effect de sincronización URL→estado distinga ese caso
-  // del caso "el Navbar cambió la URL externamente" (donde sí queremos
-  // resetear los filtros heredados).
+  const [filters, setFilters]           = useState<Filters>(parseFilters)
+  // True cuando el cambio de URL fue iniciado por esta UI (sync estado→URL).
+  // Sirve para que el effect URL→estado no resetee en el viaje de vuelta.
   const internalUrlSyncRef = useRef(false)
 
-  // Reaccionar a cambios de URL sin remontaje. Cuando el usuario clickea
-  // "Comprar" o "Alquilar" en el Navbar estando ya en /propiedades, Next.js
-  // hace navegación client-side y solo cambia searchParams; sin este efecto
-  // el filtro de operación quedaría con el valor viejo. Al cambiar la URL
-  // por navegación externa también limpiamos los demás filtros (beds, precio,
-  // location, type) para evitar combinaciones inválidas heredadas de la sesión.
+  // URL → estado: ante cualquier cambio de URL NO originado por esta UI
+  // (Navbar "Comprar"/"Alquilar", back/forward, o un link compartido), se
+  // re-derivan TODOS los filtros desde la query. Como la URL lleva todo, abrir
+  // un link compartido reconstruye exactamente la misma búsqueda.
   useEffect(() => {
     if (internalUrlSyncRef.current) {
       internalUrlSyncRef.current = false
       return
     }
-    setFilters({ ...DEFAULTS, search: initialSearch, operation: initialOperation })
-  }, [initialSearch, initialOperation])
+    setFilters(parseFilters())
+  }, [searchParams, parseFilters])
+
+  // Estado → URL: refleja TODOS los filtros activos en la query (compartible).
+  // Debounced para no spamear el historial mientras se tipea en el buscador.
+  useEffect(() => {
+    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    params.delete('op')
+    const put = (k: string, v: string) => { if (v) params.set(k, v); else params.delete(k) }
+    put('q', filters.search.trim())
+    put('operacion', filters.operation !== 'todos' ? filters.operation : '')
+    put('tipo', filters.type && filters.type !== 'todos' ? filters.type : '')
+    put('dormitorios', filters.beds !== 'todos' ? filters.beds : '')
+    put('ubicacion', filters.location !== 'todos' ? filters.location : '')
+    put('precio_min', filters.priceMin)
+    put('precio_max', filters.priceMax)
+    put('moneda', (filters.priceMin || filters.priceMax) ? filters.currency : '')
+    const qs = params.toString()
+    if (qs === searchParams.toString()) return
+    const t = setTimeout(() => {
+      internalUrlSyncRef.current = true
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }, 250)
+    return () => clearTimeout(t)
+  }, [filters, pathname, router, searchParams])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [hoveredId, setHoveredId]       = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<FlyToTarget | null>(null)
@@ -631,7 +655,12 @@ export default function PropiedadesView({
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
     if (typeof window === 'undefined') return 'map'
     const pref = safeSessionGet('si_view_preference')
-    return pref === 'list' || pref === 'map' ? pref : 'map'
+    if (pref === 'list' || pref === 'map') return pref
+    // Link compartido con búsqueda específica → abrir directo en lista (sin flash).
+    const sp = new URLSearchParams(window.location.search)
+    const specific = !!(sp.get('q') || sp.get('tipo') || sp.get('ubicacion') ||
+      sp.get('dormitorios') || sp.get('precio_min') || sp.get('precio_max'))
+    return specific ? 'list' : 'map'
   })
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
@@ -721,16 +750,8 @@ export default function PropiedadesView({
   const reset = useCallback(() => {
     setFilters(DEFAULTS)
     setNearbyOrigin(null)
-    // Limpiar también la URL para que un reload no re-aplique los filtros.
-    const filterKeys = ['operacion', 'op', 'precio_min', 'precio_max', 'moneda']
-    if (filterKeys.some(k => searchParams.has(k))) {
-      internalUrlSyncRef.current = true
-      const params = new URLSearchParams(Array.from(searchParams.entries()))
-      for (const k of filterKeys) params.delete(k)
-      const qs = params.toString()
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-    }
-  }, [pathname, router, searchParams])
+    // La URL se limpia sola vía el effect estado→URL (DEFAULTS = sin params).
+  }, [])
 
   // Cambia el filtro de operación y refleja el cambio en la URL para que sea
   // compartible (`?operacion=venta|alquiler`). Preserva el resto de los query
@@ -739,33 +760,16 @@ export default function PropiedadesView({
   // beds/type/location/precios cuando el cambio salió de esta UI.
   const updateOperation = useCallback((v: Operation) => {
     setFilters(prev => ({ ...prev, operation: v }))
-    internalUrlSyncRef.current = true
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
-    params.delete('op')
-    if (v === 'todos') {
-      params.delete('operacion')
-    } else {
-      params.set('operacion', v)
-    }
-    const qs = params.toString()
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-  }, [pathname, router, searchParams])
+    // La URL refleja el cambio vía el effect estado→URL.
+  }, [])
 
   // Aplica un rango de precio + moneda al estado y URL en una sola operación.
   // `min`/`max` ya vienen sanitizados (solo dígitos). Vacío = sin tope ese extremo.
   // Si min > max, NO commitea (la UI marca el error con el flag `priceError`).
   const updatePrice = useCallback((min: string, max: string, currency: Currency) => {
     setFilters(prev => ({ ...prev, priceMin: min, priceMax: max, currency }))
-    internalUrlSyncRef.current = true
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
-    if (min) params.set('precio_min', min); else params.delete('precio_min')
-    if (max) params.set('precio_max', max); else params.delete('precio_max')
-    // Solo persiste moneda en URL si hay algún tope activo (sin filtro de precio,
-    // la moneda es irrelevante a la búsqueda y mejor no ensuciar la URL).
-    if (min || max) params.set('moneda', currency); else params.delete('moneda')
-    const qs = params.toString()
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-  }, [pathname, router, searchParams])
+    // La URL (precio_min/precio_max/moneda) se refleja vía el effect estado→URL.
+  }, [])
 
   // "Mi ubicación actual": activa el modo cercanía (filtro 1 km) y centra el
   // mapa. NO hace reverse geocoding ni escribe el nombre del barrio en el
@@ -966,9 +970,19 @@ export default function PropiedadesView({
     if (typeof window === 'undefined') return
     const pref = safeSessionGet('si_view_preference')
     if (pref === 'list' || pref === 'map') return
-    const auto: 'list' | 'map' = isSpecificSearch(filters.search, visibleProperties.length) ? 'list' : 'map'
+    // Cualquier búsqueda específica → lista en mobile. "Específica" = hay texto,
+    // tipo, ubicación, dormitorios o precio (no solo la operación, que es amplia).
+    const specific =
+      !!filters.search.trim() ||
+      (!!filters.type && filters.type !== 'todos') ||
+      filters.location !== 'todos' ||
+      filters.beds !== 'todos' ||
+      !!filters.priceMin ||
+      !!filters.priceMax ||
+      isSpecificSearch(filters.search, visibleProperties.length)
+    const auto: 'list' | 'map' = specific ? 'list' : 'map'
     setMobileView(prev => (prev === auto ? prev : auto))
-  }, [filters.search, visibleProperties.length])
+  }, [filters.search, filters.type, filters.location, filters.beds, filters.priceMin, filters.priceMax, visibleProperties.length])
 
   // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
   // que el filtro de radio sea el único activo (sino se acumulan).
