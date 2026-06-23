@@ -1,16 +1,18 @@
 // Importa una propiedad externa (Zonaprop) y la convierte en una ficha PROPIA de
 // verficha.casa. Flujo automático: el agente pega la URL → acá scrapeamos vía
-// Microlink (que pasa el Cloudflare de Zonaprop), re-hosteamos las fotos en
-// Vercel Blob y minteamos la ficha. Devuelve el link verficha listo.
+// Microlink (que pasa el Cloudflare de Zonaprop) y minteamos la ficha. Devuelve
+// el link verficha listo.
+//
+// Las fotos se usan DIRECTO del CDN de Zonaprop (imgar.zonapropcdn.com) — su CDN
+// no restringe hotlink y así evitamos el re-host (más rápido y se ven siempre).
+// HeroGallery las renderiza unoptimized (ver isExternalCdn).
 //
 // Acepta overrides manuales opcionales (titulo, precioRaw, etc.) para corregir o
 // para el fallback cuando el scraping no alcanza.
 //
-// Seguridad: SOLO agentes autenticados (cookie si_agent_token). Las fotos se
-// validan (content-type image/*, tamaño máximo) antes de subirlas.
+// Seguridad: SOLO agentes autenticados (cookie si_agent_token).
 
 import { NextRequest, NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { verifyAgentToken } from '@/lib/auth'
 import { crearFichaExterna, type FichaExternaInput } from '@/lib/ficha'
 import { fetchZonaprop, isZonapropUrl } from '@/lib/zonaprop'
@@ -18,35 +20,11 @@ import { fetchZonaprop, isZonapropUrl } from '@/lib/zonaprop'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // el scraping vía Microlink puede tardar ~30s
 
-const MAX_FOTOS = 16
-const MAX_BYTES = 6 * 1024 * 1024 // 6MB por foto
+const MAX_FOTOS = 20
 
 function toNum(v: unknown): number | null {
   const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(/[^\d.]/g, ''))
   return Number.isFinite(n) && n > 0 ? n : null
-}
-
-async function rehostFoto(url: string, idx: number): Promise<string | null> {
-  if (!/^https?:\/\//i.test(url)) return null
-  try {
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(12000),
-      headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'image/*' },
-    })
-    if (!res.ok) return null
-    const ct = res.headers.get('content-type') || ''
-    if (!ct.startsWith('image/')) return null
-    const buf = Buffer.from(await res.arrayBuffer())
-    if (buf.byteLength === 0 || buf.byteLength > MAX_BYTES) return null
-    const ext = (ct.split('/')[1] || 'jpg').split(';')[0].replace(/[^a-z0-9]/gi, '') || 'jpg'
-    const blob = await put(`fichas-externas/${Date.now()}-${idx}.${ext}`, buf, {
-      access: 'public',
-      contentType: ct,
-    })
-    return blob.url
-  } catch {
-    return null
-  }
 }
 
 export async function POST(req: NextRequest) {
@@ -89,19 +67,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'El aviso no tiene título legible; cargalo a mano.' }, { status: 422 })
   }
 
-  // Fotos: del scraping + adicionales manuales. Cap + re-host a Blob.
+  // Fotos: del scraping + adicionales manuales. Se usan directo (sin re-host).
   const fotosManual = Array.isArray(ov.fotos) ? (ov.fotos as unknown[]).map(String) : []
-  const candidatas = [...(scraped?.fotos ?? []), ...fotosManual]
-    .filter(u => /^https?:\/\//i.test(u))
+  const fotos = [...(scraped?.fotos ?? []), ...fotosManual]
+    .filter(u => /^https:\/\//i.test(u))
     .slice(0, MAX_FOTOS)
-  const rehosted = (await Promise.all(candidatas.map((u, i) => rehostFoto(u, i)))).filter(
-    (u): u is string => !!u,
-  )
 
   const manual: FichaExternaInput = {
     titulo,
     descripcion: pick('descripcion', '').slice(0, 5000),
-    fotos: rehosted,
+    fotos,
     operacion: pick('operacion', 'Venta').slice(0, 40),
     tipo: pick('tipo', 'Propiedad').slice(0, 60),
     precioRaw: pickNum('precioRaw') ?? 0,
