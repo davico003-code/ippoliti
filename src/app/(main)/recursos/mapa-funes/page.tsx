@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import RecursoHero from '@/components/recursos/RecursoHero'
-import RecursosCTA from '@/components/recursos/RecursosCTA'
 import MapaFunesInteractivo from '@/components/recursos/MapaFunesInteractivo'
 
 export const metadata: Metadata = {
@@ -63,11 +62,6 @@ export default function MapaFunesPage() {
       <div style={{ maxWidth: 1640, margin: '0 auto', padding: '20px clamp(10px, 2.2vw, 26px) 0' }}>
         <MapaFunesInteractivo />
       </div>
-
-      <RecursosCTA
-        title="¿Buscás un lote en Funes?"
-        text="Un agente te asesora sobre zonificación, factibilidad y oportunidades de compra."
-      />
     </>
   )
 }
