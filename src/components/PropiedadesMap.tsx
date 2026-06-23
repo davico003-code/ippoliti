@@ -229,12 +229,28 @@ function InitialView() {
 //
 // FlyToTarget vive en @/lib/map-config (ver nota arriba).
 
+// Ejecuta `fly` solo si el mapa tiene tamaño real. Si está oculto (vista lista
+// en mobile → contenedor 0×0), Leaflet proyecta a NaN y tira excepción; en ese
+// caso esperamos al evento `resize` (que dispara al pasar a vista mapa).
+function whenMapSized(map: ReturnType<typeof useMap>, fly: () => void): (() => void) | undefined {
+  const size = map.getSize()
+  if (size.x > 0 && size.y > 0) { fly(); return undefined }
+  const onResize = () => {
+    const s = map.getSize()
+    if (s.x > 0 && s.y > 0) { map.off('resize', onResize); fly() }
+  }
+  map.on('resize', onResize)
+  return () => map.off('resize', onResize)
+}
+
 function MapFlyTo({ center }: { center: FlyToTarget | null }) {
   const map = useMap()
   useEffect(() => {
     if (!center) return
+    const [lat, lng] = center
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
     const zoom = center[2] ?? 16
-    map.flyTo([center[0], center[1]], zoom, { duration: 0.7, easeLinearity: 0.4 })
+    return whenMapSized(map, () => map.flyTo([lat, lng], zoom, { duration: 0.7, easeLinearity: 0.4 }))
   }, [center, map])
   return null
 }
@@ -482,22 +498,28 @@ function ZonaFlyTo({ zona, properties }: { zona: Zona; properties: TokkoProperty
     const coords = properties
       .filter(p => p.geo_lat && p.geo_long)
       .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
-      .filter(([lat, lng]) => !Number.isNaN(lat) && !Number.isNaN(lng))
+      .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng))
 
-    if (coords.length === 0) {
-      const zoom = zona.tipo === 'barrio_cerrado' ? 16 : zona.tipo === 'barrio' ? 14 : 13
-      map.flyTo([zona.centro.lat, zona.centro.lng], zoom, { duration: 1.2 })
-      return
+    const doFly = () => {
+      if (coords.length === 0) {
+        const c = zona.centro
+        if (!c || !Number.isFinite(c.lat) || !Number.isFinite(c.lng)) return
+        const zoom = zona.tipo === 'barrio_cerrado' ? 16 : zona.tipo === 'barrio' ? 14 : 13
+        map.flyTo([c.lat, c.lng], zoom, { duration: 1.2 })
+        return
+      }
+      if (coords.length === 1) {
+        map.flyTo(coords[0]!, 15, { duration: 1.2 })
+        return
+      }
+      map.flyToBounds(L.latLngBounds(coords), {
+        padding: [60, 60],
+        maxZoom: 15,
+        duration: 1.2,
+      })
     }
-    if (coords.length === 1) {
-      map.flyTo(coords[0]!, 15, { duration: 1.2 })
-      return
-    }
-    map.flyToBounds(L.latLngBounds(coords), {
-      padding: [60, 60],
-      maxZoom: 15,
-      duration: 1.2,
-    })
+    // Guarda anti-NaN: no volar si el mapa está oculto (tamaño 0); esperar resize.
+    return whenMapSized(map, doFly)
   }, [map, zona, properties])
   return null
 }
