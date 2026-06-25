@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Lock, RefreshCw, Check, Download, ExternalLink } from 'lucide-react'
 import type { CarruselPublicado } from '@/agents/placas/types'
 
-const PASSWORD = 'siadmin2024'
-
+// El password ya no vive en el bundle: se tipea, se manda a la API y el
+// server valida contra el env. `pw` (state) es la credencial en todas las
+// requests; el gate real es server-side.
 export default function PlacasAdminPage({
   params,
 }: {
@@ -29,7 +30,7 @@ export default function PlacasAdminPage({
     setErr(null)
     try {
       const res = await fetch(`/api/admin/placas/${slug}`, {
-        headers: { 'x-admin-password': PASSWORD },
+        headers: { 'x-admin-password': pw },
       })
       if (res.status === 404) {
         setErr('Todavía no hay placas generadas para esta nota.')
@@ -46,19 +47,28 @@ export default function PlacasAdminPage({
     } finally {
       setLoading(false)
     }
-  }, [slug])
+  }, [slug, pw])
 
   useEffect(() => {
     if (!auth) return
     cargar()
   }, [auth, cargar])
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (pw === PASSWORD) {
+    setPwError(false)
+    try {
+      // Validamos contra la API (401 = credencial incorrecta). 200 y 404
+      // (todavía no hay placas) significan que el password es válido.
+      const res = await fetch(`/api/admin/placas/${slug}`, {
+        headers: { 'x-admin-password': pw },
+      })
+      if (res.status === 401) {
+        setPwError(true)
+        return
+      }
       setAuth(true)
-      setPwError(false)
-    } else {
+    } catch {
       setPwError(true)
     }
   }
@@ -71,7 +81,7 @@ export default function PlacasAdminPage({
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'x-admin-password': PASSWORD,
+          'x-admin-password': pw,
         },
         body: JSON.stringify({ action: 'approve' }),
       })
@@ -95,7 +105,7 @@ export default function PlacasAdminPage({
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'x-admin-password': PASSWORD,
+          'x-admin-password': pw,
         },
         body: JSON.stringify({ action: 'regenerate' }),
       })
@@ -188,7 +198,7 @@ export default function PlacasAdminPage({
               {regenerando ? 'Regenerando…' : 'Regenerar carrusel'}
             </button>
             <a
-              href={`/api/placas/download/${slug}?token=${PASSWORD}`}
+              href={`/api/placas/download/${slug}?token=${encodeURIComponent(pw)}`}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm"
             >
               <Download size={14} />

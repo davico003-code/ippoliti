@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { crearSeleccion, listarSelecciones, listarSeleccionesPorAgente, listarTodasSelecciones, redis } from '@/lib/redis'
 import { verifyAgentToken } from '@/lib/auth'
 
+// Clave admin del flujo legacy, validada contra el env. Sin literal en el repo.
+const ADMIN_KEY = process.env.ADMIN_PASSWORD || process.env.SI_TEAM_CODE || ''
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
 
-    // Legacy format support
+    // Legacy format support. ANTES: solo chequeaba que el header existiera
+    // (cualquier valor autenticaba). Ahora compara contra el env.
     const adminKey = req.headers.get('x-admin-key')
     if (adminKey && body.title && body.propertyIds) {
+      if (!ADMIN_KEY || adminKey !== ADMIN_KEY) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
       const id = Math.random().toString(36).slice(2, 10)
       const data = { title: body.title, propertyIds: body.propertyIds, createdAt: Date.now() }
       await redis.set(`seleccion:${id}`, JSON.stringify(data), { ex: 2592000 })
@@ -48,6 +55,16 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    // Validación de login del panel legacy: si viene x-admin-key, lo
+    // comparamos contra el env y devolvemos {ok} o 401 (no lista nada).
+    const adminKey = req.headers.get('x-admin-key')
+    if (adminKey !== null) {
+      if (!ADMIN_KEY || adminKey !== ADMIN_KEY) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      return NextResponse.json({ ok: true })
+    }
+
     // Read agent from JWT cookie
     const jwtToken = req.cookies.get('si_agent_token')?.value
     if (jwtToken) {

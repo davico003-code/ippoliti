@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 import { Redis } from '@upstash/redis'
 
-const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET ?? 'si-secret-2026')
+const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET || '')
 const COOKIE_NAME = 'si_agent_token'
 
 // Cliente Upstash directo: mismo SDK y env vars que @/lib/redis, pero sin

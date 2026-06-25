@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-const PASSWORD = 'siadmin2024'
+// Validación server-side contra env (nunca viaja al bundle). El acceso de admin
+// usa SI_TEAM_CODE (o ADMIN_PASSWORD si se define). Sin literales en el código.
+const PASSWORD = process.env.ADMIN_PASSWORD || process.env.SI_TEAM_CODE || ''
 
 function getRedis(): Redis {
   return new Redis({
@@ -14,7 +16,7 @@ function getRedis(): Redis {
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('x-admin-password')
-  if (auth !== PASSWORD) {
+  if (!PASSWORD || auth !== PASSWORD) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

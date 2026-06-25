@@ -39,7 +39,7 @@ export async function GET() {
     // continue without cache
   }
 
-  const key = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
+  const key = process.env.TOKKO_API_KEY
   if (!key) {
     return NextResponse.json({ error: 'TOKKO_API_KEY missing' }, { status: 500 })
   }

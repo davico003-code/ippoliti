@@ -8,7 +8,7 @@
 //
 // Ejemplo de uso:
 //   curl -X POST 'https://siinmobiliaria.com/api/admin/revalidate-propiedades' \
-//     -H 'x-team-code: inmobiliaria123'
+//     -H 'x-team-code: <SI_TEAM_CODE>'
 //
 // Devuelve { ok, redisKeysDeleted, tagsRevalidated, pathsRevalidated, errors, timestamp }.
 

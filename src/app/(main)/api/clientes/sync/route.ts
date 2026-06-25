@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST() {
   try {
-    const apiKey = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
+    const apiKey = process.env.TOKKO_API_KEY
     if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
     const all: { id: number; direccion: string; barrio: string; ciudad: string; tipo: string; precio: number | null; moneda: string; foto: string | null }[] = []
