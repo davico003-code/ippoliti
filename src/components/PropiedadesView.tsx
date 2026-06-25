@@ -109,6 +109,25 @@ const DEFAULTS: Filters = {
 // Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
 const digitsOnly = (s: string) => s.replace(/\D/g, '')
 
+// Decodifica el término `q` de la URL de forma tolerante. `searchParams.get()`
+// ya decodifica una vez; pero si el link se compartió DOBLE-codificado (algunos
+// clientes de WhatsApp / copiar-pegar re-encodean la URL → "San%2520Andrés"),
+// tras ese decode todavía quedan secuencias %XX. Decodificamos hasta 2 veces
+// más mientras siga pareciendo codificado, para que el link igual funcione.
+function safeDecodeQuery(s: string): string {
+  let v = s
+  for (let i = 0; i < 2 && /%[0-9A-Fa-f]{2}/.test(v); i++) {
+    try {
+      const next = decodeURIComponent(v)
+      if (next === v) break
+      v = next
+    } catch {
+      break
+    }
+  }
+  return v
+}
+
 // Lectura defensiva de sessionStorage. En Safari con "Bloquear todas las
 // cookies", modo Lockdown o webviews in-app (Instagram/WhatsApp) con storage
 // deshabilitado, CUALQUIER acceso a window.sessionStorage tira SecurityError.
@@ -568,7 +587,7 @@ export default function PropiedadesView({
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
-  const initialSearch = searchParams.get('q') ?? ''
+  const initialSearch = safeDecodeQuery(searchParams.get('q') ?? '')
 
   // Construye el set COMPLETO de filtros desde la URL. Única fuente de verdad
   // para el estado inicial y para re-sincronizar ante navegación externa
@@ -581,7 +600,7 @@ export default function PropiedadesView({
     const moneda = (searchParams.get('moneda') ?? '').toUpperCase()
     return {
       ...DEFAULTS,
-      search: searchParams.get('q') ?? '',
+      search: safeDecodeQuery(searchParams.get('q') ?? ''),
       operation: op === 'venta' || op === 'alquiler' ? (op as Operation) : 'todos',
       type: searchParams.get('tipo') || 'todos',
       beds: (['1', '2', '3', '4+'].includes(beds) ? beds : 'todos') as Beds,
