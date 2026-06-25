@@ -94,7 +94,7 @@ export default function FooterDesktop() {
             <p className="font-poppins text-[11px] font-bold tracking-[0.2em] uppercase mb-5" style={{ color: GOLD }}>Navegación</p>
             <div className="flex flex-col gap-3">
               {NAV_LINKS.map(l => (
-                <Link key={l.href} href={l.href} className="font-poppins text-white/85 hover:text-white transition text-[14px]">{l.label}</Link>
+                <Link key={l.href} href={l.href} prefetch={l.href === '/guia' ? false : undefined} className="font-poppins text-white/85 hover:text-white transition text-[14px]">{l.label}</Link>
               ))}
             </div>
           </div>
