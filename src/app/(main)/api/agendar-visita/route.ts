@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server'
 import { enviarWhatsAppAdmin } from '@/agents/blog/lib/whatsapp'
 import { crearVisita, type VisitaSource, type VisitaTipo } from '@/lib/visitas'
 import { pushLeadToHilo } from '@/lib/hilo-leads'
+import { rateLimit } from '@/lib/feedback'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,13 @@ export async function POST(request: Request) {
     body = (await request.json()) as Record<string, unknown>
   } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
+  }
+
+  // Rate-limit anti-flood por IP (fail-open). Este endpoint además dispara un
+  // WhatsApp al admin por request, así que es clave evitar abuso.
+  const rlIp = getClientIp(request) || 'unknown'
+  if (!(await rateLimit(rlIp, 'visita', 6, 60))) {
+    return NextResponse.json({ error: 'Demasiados envíos seguidos. Esperá un momento y reintentá.' }, { status: 429 })
   }
 
   const nombre = typeof body.nombre === 'string' ? body.nombre.trim() : ''

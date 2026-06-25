@@ -88,7 +88,7 @@ export default function ExitPopup() {
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in zoom-in-95">
-        <button onClick={() => setShow(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <button onClick={() => setShow(false)} aria-label="Cerrar" className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
           <X className="w-5 h-5" />
         </button>
 
@@ -110,22 +110,23 @@ export default function ExitPopup() {
             </p>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input
-                type="text" placeholder="Tu nombre"
+                type="text" placeholder="Tu nombre" aria-label="Tu nombre"
                 value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
                 className={inputClass}
               />
               <input
-                type="email" placeholder="Tu email" required
+                type="email" placeholder="Tu email" required aria-label="Tu email"
                 value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
                 className={inputClass}
               />
               <input
-                type="tel" placeholder="Teléfono (opcional)"
+                type="tel" placeholder="Teléfono (opcional)" aria-label="Teléfono"
                 value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })}
                 className={inputClass}
               />
               <select
                 value={form.tipo} onChange={e => setForm({ ...form, tipo: e.target.value })}
+                aria-label="Tipo de propiedad"
                 className={`${inputClass} bg-white`}
               >
                 <option>Casa</option>
@@ -154,6 +155,7 @@ export default function ExitPopup() {
               {form.operacion === 'Venta' && (
                 <select
                   value={form.presupuesto} onChange={e => setForm({ ...form, presupuesto: e.target.value })}
+                  aria-label="Presupuesto"
                   className={`${inputClass} bg-white`}
                 >
                   <option>Sin límite</option>
