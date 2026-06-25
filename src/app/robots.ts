@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 // Zonas privadas que ningún bot debe indexar.
-const DISALLOW = ['/api/', '/admin/', '/agentes/', '/recursos/si-school/']
+const DISALLOW = ['/api/', '/admin/', '/agentes/', '/recursos/si-school/', '/school', '/propiedades-hilo/']
 
 // Bots de asistentes de IA (ChatGPT, Claude, Gemini, Perplexity, etc.).
 // Los habilitamos EXPLÍCITAMENTE para que nos puedan leer y citar en sus

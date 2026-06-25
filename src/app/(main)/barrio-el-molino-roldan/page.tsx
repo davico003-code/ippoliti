@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     url: 'https://siinmobiliaria.com/barrio-el-molino-roldan',
     type: 'website',
     siteName: 'SI Inmobiliaria',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
   },
 }
 

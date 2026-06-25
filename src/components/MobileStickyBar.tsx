@@ -94,6 +94,7 @@ export default function MobileStickyBar({
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Contactar por WhatsApp"
             onClick={() => events.clickWhatsapp(undefined, title)}
             className="flex items-center justify-center"
             style={{
@@ -131,6 +132,9 @@ export default function MobileStickyBar({
         <div className="flex flex-col items-center relative" style={{ gap: 2 }} ref={shareRef}>
           <button
             onClick={() => setShareOpen(o => !o)}
+            aria-label="Compartir"
+            aria-haspopup="menu"
+            aria-expanded={shareOpen}
             className="flex items-center justify-center"
             style={{
               width: 46, height: 46,
@@ -263,7 +267,8 @@ export default function MobileStickyBar({
               <div className="w-10 h-1 rounded-full bg-white/30 mx-auto mb-4" />
               <button
                 onClick={() => setVisitOpen(false)}
-                className="absolute top-5 right-5 text-white/50 hover:text-white text-xl leading-none"
+                aria-label="Cerrar"
+                className="absolute top-5 right-5 text-white/80 hover:text-white text-xl leading-none"
               >
                 &times;
               </button>

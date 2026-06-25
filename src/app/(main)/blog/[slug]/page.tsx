@@ -22,7 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: 'Artículo no encontrado | SI Inmobiliaria' }
 
   const url = `https://siinmobiliaria.com/blog/${params.slug}`
-  const hasExternalImage = post.image.startsWith('http')
+  // Imagen OG SIEMPRE absoluta: las notas usan rutas locales (/blog/images/...),
+  // que no sirven como OG. Fallback al og-image del sitio si no hay imagen.
+  const ogImage = post.image
+    ? (post.image.startsWith('http') ? post.image : `https://siinmobiliaria.com${post.image}`)
+    : 'https://siinmobiliaria.com/og-image.jpg'
 
   return {
     title: `${post.title} | Blog SI Inmobiliaria`,
@@ -35,13 +39,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.date,
       siteName: 'SI Inmobiliaria',
       url,
-      ...(hasExternalImage ? { images: [{ url: post.image, width: 800, height: 450 }] } : {}),
+      images: [{ url: ogImage, width: 1200, height: 630, alt: post.title }],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.summary,
-      ...(hasExternalImage ? { images: [post.image] } : {}),
+      images: [ogImage],
     },
   }
 }

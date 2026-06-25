@@ -161,7 +161,7 @@ export default function ClientShortlist({
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ propertyId, ...updated[propertyId] }),
-        })
+        }).catch(() => { /* red intermitente: evitar unhandled rejection */ })
       }, 800)
       return updated
     })
