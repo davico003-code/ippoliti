@@ -84,11 +84,11 @@ export default function PriceHero({ snapshot }: { snapshot: FichaSnapshot }) {
         </div>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 768px) {
           .price-hero-amount { font-size: 48px !important; }
         }
-      `}</style>
+      ` }} />
     </section>
   )
 }

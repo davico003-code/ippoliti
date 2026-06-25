@@ -277,7 +277,7 @@ export default function MobileStickyBar({
           </div>
         </div>
       )}
-      <style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }` }} />
     </div>
   )
 }

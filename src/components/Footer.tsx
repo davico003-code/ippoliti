@@ -49,7 +49,7 @@ export default function Footer() {
     <footer style={{ position: 'relative', background: '#fff', borderTop: `1px solid ${LINE}`, padding: '64px 40px 36px', color: INK }}>
       {/* Edición Mundial 2026 — franja-bandera pegada al borde superior. */}
       <FranjaFooterMundial />
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .footerb-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 44px; }
         .footerb-link:hover { color: ${GREEN} !important; }
         @media (max-width: 768px) {
@@ -64,7 +64,7 @@ export default function Footer() {
         @media (max-width: 768px) {
           .footerb-bottom { flex-direction: column; align-items: flex-start !important; gap: 14px; }
         }
-      `}</style>
+      ` }} />
       <div style={{ maxWidth: 1240, margin: '0 auto' }}>
         <div className="footerb-grid">
           {/* Brand */}

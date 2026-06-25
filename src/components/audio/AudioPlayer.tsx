@@ -460,7 +460,7 @@ export default function AudioPlayer({
         </div>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes ap-spin { to { transform: rotate(360deg); } }
         .ap-spin { animation: ap-spin 1s linear infinite; }
 
@@ -479,7 +479,7 @@ export default function AudioPlayer({
           .ap-track:hover .ap-thumb,
           .ap-track:focus-visible .ap-thumb { opacity: 1; }
         }
-      `}</style>
+      ` }} />
     </div>
   )
 }

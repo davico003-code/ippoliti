@@ -130,11 +130,11 @@ export default function AmenityChips({
         ))}
       </ul>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 768px) {
           .amenity-grid { grid-template-columns: repeat(4, 1fr) !important; }
         }
-      `}</style>
+      ` }} />
     </section>
   )
 }

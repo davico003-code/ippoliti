@@ -288,9 +288,9 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
         </div>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .hero-tile:hover img { transform: scale(1.02); }
-      `}</style>
+      ` }} />
     </>
   )
 }

@@ -117,7 +117,7 @@ export default function AgentShell({ agentName, agentRole, children }: Props) {
             })}
           </nav>
 
-          <style>{`aside::-webkit-scrollbar { width: 0; }`}</style>
+          <style dangerouslySetInnerHTML={{ __html: `aside::-webkit-scrollbar { width: 0; }` }} />
         </aside>
 
         {/* Mobile overlay */}

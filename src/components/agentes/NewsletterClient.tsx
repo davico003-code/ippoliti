@@ -349,10 +349,10 @@ export default function NewsletterClient({ initialItems }: Props) {
           Lista deduplicada por email. Si un suscriptor vuelve a completar el popup, gana el registro más reciente.
         </p>
 
-        <style>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           @keyframes nl-spin { to { transform: rotate(360deg); } }
           .nl-spin { animation: nl-spin 1s linear infinite; }
-        `}</style>
+        ` }} />
       </main>
     </div>
   )

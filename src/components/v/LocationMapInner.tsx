@@ -91,11 +91,11 @@ export default function LocationMapInner({ lat, lng }: { lat: number; lng: numbe
         <ToggleBtn active={view === 'satellite'} onClick={() => setView('satellite')} label="Satélite" />
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 768px) {
           .locmap-wrap { height: 450px !important; }
         }
-      `}</style>
+      ` }} />
     </div>
   )
 }

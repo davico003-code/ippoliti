@@ -475,7 +475,7 @@ export default function CalculadoraCostos() {
       className="min-h-screen"
       style={{ background: '#FAFAF7' }}
     >
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes recursosFlash {
           0% { color: var(--si-green-soft); }
           100% { color: inherit; }
@@ -498,7 +498,7 @@ export default function CalculadoraCostos() {
           100% { opacity: 0; transform: translateY(-4px) translateX(-50%); }
         }
         .recursos-toast { animation: recursosToast 2s ease-out forwards; }
-      `}</style>
+      ` }} />
 
       <div className="max-w-[860px] mx-auto px-5 pt-8 pb-20 font-raleway" style={{ color: 'var(--tinta)' }}>
 

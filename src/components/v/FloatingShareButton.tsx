@@ -102,11 +102,11 @@ export default function FloatingShareButton({ url }: { url: string }) {
         <Share2 size={22} />
       </button>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 768px) {
           .fab-share { display: none !important; }
         }
-      `}</style>
+      ` }} />
     </div>
   )
 }

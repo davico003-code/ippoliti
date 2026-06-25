@@ -159,12 +159,12 @@ export default function StructuredDescription({ text }: { text: string | null | 
         </button>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 768px) {
           .desc-para { font-size: 18px !important; }
           .desc-data > div { font-size: 17px !important; }
         }
-      `}</style>
+      ` }} />
     </section>
   )
 }

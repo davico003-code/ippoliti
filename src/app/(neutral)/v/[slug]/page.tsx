@@ -270,11 +270,11 @@ export default async function NeutralFichaPage({ params }: Props) {
       {/* FAB — mobile only (CSS media query oculta en ≥768px) */}
       <FloatingShareButton url={url} />
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 768px) {
           .ficha-main { padding: 0 32px 60px !important; }
         }
-      `}</style>
+      ` }} />
     </>
   )
 }

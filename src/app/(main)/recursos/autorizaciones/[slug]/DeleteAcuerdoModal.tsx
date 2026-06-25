@@ -307,10 +307,10 @@ export default function DeleteAcuerdoModal({ auth, teamCode, onClose, onDeleted 
         </div>
       </form>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin { animation: spin 1s linear infinite; }
-      `}</style>
+      ` }} />
     </div>
   )
 }

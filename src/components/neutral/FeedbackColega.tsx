@@ -161,7 +161,7 @@ export default function FeedbackColega({ slug }: Props) {
         </p>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .fbcol-row { display: flex; flex-direction: column; gap: 8px; }
         .fbcol-btn { width: 100%; }
         .fbcol-btn:not(:disabled):hover {
@@ -172,7 +172,7 @@ export default function FeedbackColega({ slug }: Props) {
           .fbcol-row { flex-direction: row; gap: 12px; }
           .fbcol-btn { flex: 1; width: auto; }
         }
-      `}</style>
+      ` }} />
     </section>
   )
 }

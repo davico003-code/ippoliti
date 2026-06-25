@@ -27,7 +27,7 @@ export default function BackLink({ href, label }: Props) {
       className="back-link"
     >
       <ArrowLeft size={14} /> {label}
-      <style>{`.back-link:hover { color: #0F3C24; text-decoration: underline; }`}</style>
+      <style dangerouslySetInnerHTML={{ __html: `.back-link:hover { color: #0F3C24; text-decoration: underline; }` }} />
     </Link>
   )
 }

@@ -364,7 +364,7 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
         siinmobiliaria.com
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin { animation: spin 1s linear infinite; }
 
@@ -416,7 +416,7 @@ export default function AutorizacionPublicaClient({ auth }: Props) {
           .doc-title { font-size: 22px; }
           .doc-paragraph { font-size: 17px; }
         }
-      `}</style>
+      ` }} />
     </div>
   )
 }

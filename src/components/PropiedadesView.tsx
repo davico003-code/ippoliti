@@ -596,13 +596,15 @@ export default function PropiedadesView({
   const parseFilters = useCallback((): Filters => {
     const op = (searchParams.get('operacion') ?? searchParams.get('op') ?? '').toLowerCase()
     const beds = searchParams.get('dormitorios') ?? ''
-    const loc = (searchParams.get('ubicacion') ?? '').toLowerCase()
+    // Alias legacy de links internos (footer/landings): location→ubicacion,
+    // type→tipo, search→q. El effect estado→URL luego reescribe al canónico.
+    const loc = (searchParams.get('ubicacion') ?? searchParams.get('location') ?? '').toLowerCase()
     const moneda = (searchParams.get('moneda') ?? '').toUpperCase()
     return {
       ...DEFAULTS,
-      search: safeDecodeQuery(searchParams.get('q') ?? ''),
+      search: safeDecodeQuery(searchParams.get('q') ?? searchParams.get('search') ?? ''),
       operation: op === 'venta' || op === 'alquiler' ? (op as Operation) : 'todos',
-      type: searchParams.get('tipo') || 'todos',
+      type: searchParams.get('tipo') || searchParams.get('type') || 'todos',
       beds: (['1', '2', '3', '4+'].includes(beds) ? beds : 'todos') as Beds,
       location: (['roldan', 'rosario', 'funes'].includes(loc) ? loc : 'todos') as Location,
       priceMin: digitsOnly(searchParams.get('precio_min') ?? ''),
@@ -646,6 +648,8 @@ export default function PropiedadesView({
   useEffect(() => {
     const params = new URLSearchParams(Array.from(searchParams.entries()))
     params.delete('op')
+    // Migrar alias legacy al canónico: limpiarlos para no duplicar en la URL.
+    params.delete('type'); params.delete('location'); params.delete('search')
     const put = (k: string, v: string) => { if (v) params.set(k, v); else params.delete(k) }
     put('q', filters.search.trim())
     put('operacion', filters.operation !== 'todos' ? filters.operation : '')

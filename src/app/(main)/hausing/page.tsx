@@ -30,7 +30,7 @@ export default async function HausingPage() {
   return (
     <div style={{background:"#000",minHeight:"100vh",color:"#fff",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif",overflowX:"hidden"}}>
       <HausingAnimations />
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .prop-card:hover .prop-img { transform: scale(1.05); }
         .prop-card:hover .prop-arrow { transform: translateX(6px); }
         .prop-img { transition: transform 0.7s cubic-bezier(0.16,1,0.3,1); }
@@ -47,7 +47,7 @@ export default async function HausingPage() {
           .cta-btns { flex-direction: column !important; align-items: stretch !important; }
           .hero-btns { flex-direction: column !important; align-items: center !important; }
         }
-      `}</style>
+      ` }} />
 
       {/* NAV */}
       <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,padding:"20px 40px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)",backdropFilter:"blur(20px)"}}>
