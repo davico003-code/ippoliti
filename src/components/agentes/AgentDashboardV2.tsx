@@ -297,7 +297,7 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
             </>
           )}
         </button>
-        <style>{`@keyframes si-spin { to { transform: rotate(360deg) } }`}</style>
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes si-spin { to { transform: rotate(360deg) } }` }} />
 
         <div
           style={{
@@ -351,7 +351,7 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
         </button>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .agent-placa-card:hover {
           box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
           transform: translateY(-2px);
@@ -367,7 +367,7 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
         @media (min-width: 768px) {
           .agent-tool-grid { grid-template-columns: repeat(3, 1fr); }
         }
-      `}</style>
+      ` }} />
     </header>
   )
 }

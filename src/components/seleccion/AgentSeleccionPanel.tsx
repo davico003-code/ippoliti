@@ -147,6 +147,10 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
         body: JSON.stringify({ clientName, clientPhone, agent, days, note, properties }),
       })
       const data = await res.json()
+      if (!res.ok || !data?.token) {
+        setFormError(data?.error || 'No se pudo crear la selección. Reintentá.')
+        return
+      }
       setCreatedUrl(`${window.location.origin}/seleccion/${data.token}`)
 
       // Refresh list

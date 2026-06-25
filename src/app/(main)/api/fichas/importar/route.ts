@@ -44,6 +44,21 @@ export async function POST(req: NextRequest) {
   if (!/^https?:\/\//i.test(sourceUrl)) {
     return NextResponse.json({ error: 'Pegá una URL válida' }, { status: 400 })
   }
+  // Anti-SSRF: rechazar hosts internos/privados (no restringimos a un portal
+  // específico para no romper imports de avisos de colegas).
+  try {
+    const host = new URL(sourceUrl).hostname.toLowerCase()
+    const isPrivate =
+      host === 'localhost' || host === '0.0.0.0' || host === '[::1]' ||
+      host.endsWith('.local') || host.endsWith('.internal') ||
+      /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(host) || /^169\.254\./.test(host)
+    if (isPrivate) {
+      return NextResponse.json({ error: 'URL no permitida' }, { status: 400 })
+    }
+  } catch {
+    return NextResponse.json({ error: 'URL inválida' }, { status: 400 })
+  }
 
   // ── Scraping automático (Zonaprop) ──
   const scraped = isZonapropUrl(sourceUrl) ? await fetchZonaprop(sourceUrl) : null

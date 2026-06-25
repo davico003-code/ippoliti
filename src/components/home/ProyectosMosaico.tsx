@@ -51,7 +51,7 @@ export default function ProyectosMosaico() {
 
       <Link href="/emprendimientos" className="seehint">Ver todos los emprendimientos →</Link>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .proj-bento{ --green:#1A5C38; }
         .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:198px; gap:14px; margin-top:20px; }
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
@@ -87,7 +87,7 @@ export default function ProyectosMosaico() {
           .proj-bento .bg{ transition:none; }
           .proj-bento .tile:hover .bg{ transform:none; }
         }
-      `}</style>
+      ` }} />
     </div>
   )
 }

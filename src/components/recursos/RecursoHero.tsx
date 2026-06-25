@@ -27,10 +27,10 @@ export default function RecursoHero({
   return (
     <section style={{ background: '#FFFFFF', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
       <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 clamp(22px, 5vw, 48px)' }}>
-        <style>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           .recurso-hero { padding: 30px 0 50px; text-align: center; -webkit-font-smoothing: antialiased; }
           @media (max-width: 860px) { .recurso-hero { padding: 20px 0 38px; } }
-        `}</style>
+        ` }} />
         <div className="recurso-hero">
           {breadcrumbLabel && (
             <div style={{ marginBottom: 22, display: 'flex', justifyContent: 'center' }}>

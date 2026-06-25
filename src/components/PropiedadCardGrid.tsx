@@ -120,7 +120,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   return (
     <Link
       href={`/propiedades/${slug}`}
-      prefetch
+      prefetch={false}
       onClick={onClick}
       className="group cursor-pointer block"
       style={{

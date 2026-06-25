@@ -104,7 +104,7 @@ export default function CalculadoraAjuste() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--cream)' }}>
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .ajuste-faq summary::-webkit-details-marker { display: none; }
         .ajuste-faq summary { list-style: none; cursor: pointer; }
         .ajuste-faq-row { border-bottom: 1px solid var(--cream-deep); }
@@ -112,7 +112,7 @@ export default function CalculadoraAjuste() {
         .ajuste-faq-row:first-child { padding-top: 0; }
         .faq-body p { margin: 0 0 8px; }
         .faq-body p:last-child { margin-bottom: 0; }
-      `}</style>
+      ` }} />
 
       <div
         className="max-w-[880px] mx-auto px-5 pt-9 pb-20 font-raleway"

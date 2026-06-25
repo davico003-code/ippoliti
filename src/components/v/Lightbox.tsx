@@ -187,9 +187,9 @@ export default function Lightbox({ images, startIndex = 0, zoomable = false, onC
         </>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .lightbox-scroll::-webkit-scrollbar { display: none; }
-      `}</style>
+      ` }} />
     </div>
   )
 }

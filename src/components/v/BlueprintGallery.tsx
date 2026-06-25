@@ -104,9 +104,9 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
         />
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .blueprint-scroll::-webkit-scrollbar { display: none; }
-      `}</style>
+      ` }} />
     </>
   )
 }

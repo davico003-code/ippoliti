@@ -456,7 +456,7 @@ export default function RecursosIndexPage() {
 
             <div className="rb-bento" aria-label="Herramientas y guías">
               {feature && (
-                <Link href={feature.href} className="rb-tile feature">
+                <Link href={feature.href} prefetch={false} className="rb-tile feature">
                   <div className="rb-feat-main">
                     <span className="rb-icon">{feature.icon}</span>
                     <span className="rb-tag">{feature.eyebrow}</span>

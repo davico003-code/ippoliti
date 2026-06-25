@@ -82,10 +82,10 @@ export default function ModuloPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes up { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
         .anim-up { animation: up 0.5s ease both; }
-      `}</style>
+      ` }} />
 
       {/* Back */}
       <Link

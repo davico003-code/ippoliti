@@ -32,7 +32,7 @@ export default function RecursosCalculadoras() {
         </p>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .r4{ --green:#1A5C38; --green-dark:#0F3F26; --paper:#FAF7F2; --ink:#1a1a1a; --appmuted:#6b7280;
              background:var(--paper); padding:60px 0 50px; }
         .r4 .r4wrap{ max-width:1200px; margin:0 auto; padding:0 24px; }
@@ -92,7 +92,7 @@ export default function RecursosCalculadoras() {
         .r4 .s4foot svg{ color:var(--green); }
 
         @media(max-width:900px){ .r4 .trio{ grid-template-columns:1fr; } }
-      `}</style>
+      ` }} />
     </section>
   )
 }

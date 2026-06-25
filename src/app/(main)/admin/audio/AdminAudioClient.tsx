@@ -512,10 +512,10 @@ function GenerateSection({
         </div>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes ap-spin { to { transform: rotate(360deg); } }
         .ap-spin { animation: ap-spin 1s linear infinite; }
-      `}</style>
+      ` }} />
     </section>
   )
 }

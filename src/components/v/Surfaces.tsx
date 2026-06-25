@@ -80,11 +80,11 @@ export default function Surfaces({ snapshot }: { snapshot: FichaSnapshot }) {
         ))}
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 768px) {
           .surfaces-grid { grid-template-columns: repeat(4, 1fr) !important; }
         }
-      `}</style>
+      ` }} />
     </section>
   )
 }

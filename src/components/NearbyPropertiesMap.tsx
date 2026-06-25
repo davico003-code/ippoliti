@@ -78,7 +78,7 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
       <p className="text-gray-500 text-[13px] mb-4 font-poppins">Explorá propiedades cercanas en el mapa · {nearbyProperties.length} propiedad{nearbyProperties.length !== 1 ? 'es' : ''}</p>
 
       <div className="w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden">
-        <style>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           .nearby-map .leaflet-marker-icon:hover { z-index: 9999 !important; }
           .nearby-map .leaflet-marker-icon:hover > div > div:first-child {
             background: #2D7A4F !important;
@@ -99,7 +99,7 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
               margin: 0 auto;
             }
           }
-        `}</style>
+        ` }} />
         <MapContainer
           center={[lat, lng]}
           zoom={13}

@@ -161,7 +161,7 @@ export default function ClientShortlist({
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ propertyId, ...updated[propertyId] }),
-        })
+        }).catch(() => { /* red intermitente: evitar unhandled rejection */ })
       }, 800)
       return updated
     })
@@ -457,7 +457,7 @@ export default function ClientShortlist({
         </div>
       </div>
 
-      <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}`}</style>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}` }} />
     </div>
   )
 }

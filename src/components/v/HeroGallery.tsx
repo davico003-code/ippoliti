@@ -279,6 +279,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
                   width={1200}
                   height={800}
                   sizes="(max-width: 1000px) 100vw, 1000px"
+                  loading={i < 2 ? 'eager' : 'lazy'}
                   unoptimized={isExternalCdn(p)}
                   style={{ width: '100%', height: 'auto', borderRadius: 8 }}
                 />
@@ -288,9 +289,9 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
         </div>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .hero-tile:hover img { transform: scale(1.02); }
-      `}</style>
+      ` }} />
     </>
   )
 }

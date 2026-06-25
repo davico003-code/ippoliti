@@ -133,7 +133,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
             </div>
           )}
         </div>
-        <style>{`@keyframes ppSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes ppSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }` }} />
       </div>
     )
   }
@@ -227,10 +227,10 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
         <Footer />
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes ppFadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes ppSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-      `}</style>
+      ` }} />
     </div>
   )
 }

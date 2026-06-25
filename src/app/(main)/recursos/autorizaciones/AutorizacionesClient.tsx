@@ -504,7 +504,7 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
         <ListadoTable items={list} loading={listLoading} error={listError} onRefresh={() => void fetchList()} />
       </main>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .grid-2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
         .grid-3 { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -517,7 +517,7 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
         @media (min-width: 560px) { .botonera { grid-template-columns: 1fr 1fr; } }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      ` }} />
     </div>
   )
 }

@@ -17,7 +17,7 @@ export default function RecursosCTA({
   return (
     <section style={{ background: '#fff' }}>
       <div style={{ maxWidth: 1240, margin: '0 auto', padding: 'clamp(40px, 6vw, 72px) clamp(22px, 5vw, 40px)' }}>
-        <style>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           .recursos-cta {
             display: flex; align-items: center; justify-content: space-between; gap: clamp(24px, 4vw, 48px);
             background: linear-gradient(150deg, #1A5C38, #123F27);
@@ -32,7 +32,7 @@ export default function RecursosCTA({
             .recursos-cta { flex-direction: column; align-items: flex-start; }
             .recursos-cta .recursos-cta-btn { width: 100%; justify-content: center; }
           }
-        `}</style>
+        ` }} />
         <div className="recursos-cta">
           <div>
             <h2 style={{ fontFamily: FONT, fontSize: 'clamp(24px, 2.6vw, 34px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', margin: 0, lineHeight: 1.1 }}>

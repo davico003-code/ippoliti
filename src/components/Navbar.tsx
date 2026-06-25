@@ -273,7 +273,7 @@ export default function Navbar() {
         </div>
       )}
 
-      <style>{`@keyframes slideRight { from { transform: translateX(-100%); } to { transform: translateX(0); } }`}</style>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes slideRight { from { transform: translateX(-100%); } to { transform: translateX(0); } }` }} />
     </div>
   )
 }

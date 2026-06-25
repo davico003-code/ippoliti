@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ leads })
   } catch (err) {
-    return NextResponse.json({ error: 'Redis error', detail: String(err) }, { status: 500 })
+    console.error('[api/admin/leads]', err)
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

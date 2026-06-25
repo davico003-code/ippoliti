@@ -365,7 +365,7 @@ export default function SaludAcuerdoSection({ slug, saludInicial, teamCode, onSa
         </p>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse-dot {
           0%, 100% { opacity: 0.55; transform: scale(1); }
@@ -377,7 +377,7 @@ export default function SaludAcuerdoSection({ slug, saludInicial, teamCode, onSa
         @media (max-width: 560px) {
           .salud-section { padding: 18px 16px !important; }
         }
-      `}</style>
+      ` }} />
     </section>
   )
 }

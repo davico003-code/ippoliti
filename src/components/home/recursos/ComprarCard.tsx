@@ -32,7 +32,7 @@ export default function ComprarCard() {
 
       <div className="cmore">+ 9 temas más · 13 capítulos · 62 páginas</div>
 
-      <Link href="/guia" className="ctaR">
+      <Link href="/guia" prefetch={false} className="ctaR">
         <span className="link">
           Leer la guía gratuita
           <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M1 1l5 5-5 5" /></svg>

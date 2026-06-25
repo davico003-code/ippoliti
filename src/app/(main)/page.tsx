@@ -244,7 +244,7 @@ export default async function Home() {
 
       {/* ═══ DESKTOP (md+) — Layout existente ═══ */}
       <div className="hidden md:block">
-        <style>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           @media (hover: hover) {
             .prop-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.08) !important; }
             .prop-card:hover .prop-card-img { transform: scale(1.05); }
@@ -257,7 +257,7 @@ export default async function Home() {
             .home-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
             .nosotros-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
           }
-        `}</style>
+        ` }} />
 
         <HeroVideo />
         <FeaturedPropertiesSection />

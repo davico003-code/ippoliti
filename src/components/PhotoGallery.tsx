@@ -182,7 +182,7 @@ function MobilePhotoViewer({
         <span className="text-white/90 text-[15px] font-semibold font-numeric" style={{ fontFamily: 'Poppins, sans-serif' }}>
           {currentIndex + 1} / {photos.length}
         </span>
-        <button onClick={onClose} className="w-12 h-12 flex items-center justify-center -mr-2">
+        <button onClick={onClose} aria-label="Cerrar galería" className="w-12 h-12 flex items-center justify-center -mr-2">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>

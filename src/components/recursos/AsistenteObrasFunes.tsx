@@ -223,7 +223,7 @@ export default function AsistenteObrasFunes(){
 
     return (
     <div className="aof-root">
-      <style>{CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <main className="aof-wizard">
         <div className="aof-steps">

@@ -153,7 +153,7 @@ export default function MentorWelcomeCard() {
       </div>
 
       {/* Override del bloque arriba a mobile: foto centrada arriba, texto debajo */}
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 767px) {
           section[aria-label='Bienvenida del Mentor David'] {
             flex-direction: column;
@@ -164,7 +164,7 @@ export default function MentorWelcomeCard() {
             margin-bottom: 4px;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   )
 }

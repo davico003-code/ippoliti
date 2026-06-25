@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { pushLeadToHilo } from '@/lib/hilo-leads'
+import { rateLimit } from '@/lib/feedback'
 
 function getRedis(): Redis {
   return new Redis({
@@ -10,6 +11,12 @@ function getRedis(): Redis {
 }
 
 export async function POST(request: NextRequest) {
+  // Rate-limit anti-flood por IP (fail-open: si Redis falla, NO bloquea leads reales).
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  if (!(await rateLimit(ip, 'leads', 6, 60))) {
+    return NextResponse.json({ error: 'Demasiados envíos seguidos. Esperá un momento y reintentá.' }, { status: 429 })
+  }
+
   const body = await request.json()
   const apiKey = process.env.TOKKO_API_KEY
 

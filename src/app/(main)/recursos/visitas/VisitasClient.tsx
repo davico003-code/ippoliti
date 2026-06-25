@@ -168,10 +168,10 @@ function Panel({ teamCode, onUnauth, onLogout }: { teamCode: string; onUnauth: (
         />
       </main>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin { animation: spin 1s linear infinite; }
-      `}</style>
+      ` }} />
     </div>
   )
 }

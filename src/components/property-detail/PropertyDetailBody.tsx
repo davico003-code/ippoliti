@@ -168,7 +168,7 @@ export default function PropertyDetailBody({
           </span>
         </div>
         <div>
-          <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
+          <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
           {tienePrecio ? (
             <span style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
               {price}
@@ -240,7 +240,7 @@ export default function PropertyDetailBody({
                   >
                     {name}
                   </span>
-                  <span className="text-xs text-gray-400 block truncate">Asesor inmobiliario</span>
+                  <span className="text-xs text-gray-500 block truncate">Asesor inmobiliario</span>
                 </div>
                 <span
                   className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
