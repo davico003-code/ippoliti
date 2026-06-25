@@ -1,3 +1,23 @@
+// CSP en modo Report-Only: NO bloquea nada (solo registra violaciones en consola),
+// para endurecer sin riesgo de romper GA4 / Meta Pixel / Clarity / Leaflet / YouTube.
+// Cuando se valide sin violaciones reales, pasar el key a 'Content-Security-Policy'
+// (enforce). Allowlist según los terceros que el sitio realmente usa.
+const cspReportOnly = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.clarity.ms https://*.clarity.ms",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org",
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+  "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.supabase.co",
+  "worker-src 'self' blob:",
+].join('; ')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
@@ -12,6 +32,7 @@ const nextConfig = {
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'Content-Security-Policy-Report-Only', value: cspReportOnly },
         ],
       },
     ]
