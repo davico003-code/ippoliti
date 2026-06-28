@@ -75,10 +75,9 @@ export default function HeroSearch() {
           type="submit"
           className="hero-buscar-btn flex-shrink-0 border-none cursor-pointer"
           style={{
-            // Acento: verde de marca, o degradé celeste + glow durante el Mundial
-            // (estilos en globals.css, gateados por html.mundial). Texto #0d3a5c
-            // sobre celeste, blanco sobre verde.
-            color: 'var(--mundial-accent-ink)',
+            // Acento fijo: verde de marca sólido (estilos en globals.css).
+            // Texto blanco sobre verde.
+            color: '#fff',
             fontFamily: 'Raleway, sans-serif',
             fontSize: 14,
             fontWeight: 600,
