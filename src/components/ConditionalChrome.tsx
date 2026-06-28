@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation'
 import Navbar from './Navbar'
-import BarraMundial from './BarraMundial'
 
 const HIDE_CHROME_PREFIXES = ['/emprendimientos/67178']
 
@@ -17,10 +16,8 @@ export default function ConditionalChrome({ children }: { children: React.ReactN
 
   return (
     <>
-      {/* Edición Mundial 2026 — barra en flujo normal arriba del header (se va al
-          scrollear). El header es sticky top:0 y ocupa su propio espacio de flujo,
-          por eso main ya no lleva el spacer pt-[73px] del nav fijo anterior. */}
-      {!hide && <BarraMundial />}
+      {/* El header es sticky top:0 y ocupa su propio espacio de flujo, por eso
+          main no lleva spacer. (La barra Mundial 2026 se removió post-torneo.) */}
       {!hide && <Navbar />}
       <main>{children}</main>
     </>
