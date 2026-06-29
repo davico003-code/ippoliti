@@ -4,14 +4,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import {
-  BarChart3,
+  ArrowRight,
   Calculator,
   Check,
+  ChevronDown,
   FileText,
   GraduationCap,
   Mail,
-  MessageSquare,
   Newspaper,
+  PieChart,
   RefreshCw,
   Users,
 } from 'lucide-react'
@@ -138,13 +139,14 @@ export default function AgentDashboardV2({
           </p>
         </header>
 
-        {/* En uso */}
-        <SectionTitle>En uso</SectionTitle>
-        <div className="agent-tool-grid" style={{ marginBottom: 40 }}>
+        {/* Herramientas */}
+        <SectionTitle sub="Lo que usás cada día">Tus herramientas</SectionTitle>
+        <div className="agent-tool-grid agent-tool-grid-4" style={{ marginBottom: 16 }}>
           <PlacaCard
             href="/agentes/seleccion"
             icon={<Users size={22} strokeWidth={1.8} />}
             pastel="#C8D9D2"
+            iconColor={GREEN}
             title="Seguimiento de Clientes"
             description="Cartera, conversaciones, visitas y notas."
             statLabel={`${clientesEnCartera} en tu cartera`}
@@ -153,6 +155,7 @@ export default function AgentDashboardV2({
             href="/recursos/si-school"
             icon={<GraduationCap size={22} strokeWidth={1.8} />}
             pastel="#EEDDBD"
+            iconColor="#9A7B16"
             title="SI School"
             description="Onboarding del agente SI."
             footerNode={
@@ -167,42 +170,52 @@ export default function AgentDashboardV2({
             href="/recursos/autorizaciones"
             icon={<FileText size={22} strokeWidth={1.8} />}
             pastel="#F4D2C7"
+            iconColor="#B5562F"
             title="Autorización de Venta Digital"
             description="Acuerdos para firmar a distancia."
-            statLabel={`${autorizacionesEsteMes} acuerdos generados este mes`}
+            statLabel={`${autorizacionesEsteMes} acuerdos este mes`}
           />
           <PlacaCard
             href="/agentes/comisiones"
             icon={<Calculator size={22} strokeWidth={1.8} />}
             pastel="#C7D8F4"
+            iconColor="#2B5C9B"
             title="Calculadora de comisiones"
             description="Ventas, alquileres y tus objetivos."
             statLabel="Simulá cuánto cobrás"
           />
         </div>
 
-        {/* Próximamente */}
-        <SectionTitle>Próximamente</SectionTitle>
-        <div className="agent-tool-grid" style={{ marginBottom: isAdmin ? 56 : 0 }}>
-          <PlacaCard
-            comingSoon
-            icon={<MessageSquare size={22} strokeWidth={1.8} />}
-            title="Modelos de Contratos"
-            description="Modelos editables y firmables online."
-            statLabel="En desarrollo"
-          />
-          <PlacaCard
-            comingSoon
-            icon={<BarChart3 size={22} strokeWidth={1.8} />}
-            title="Métricas y KPI"
-            description="Operaciones tuyas y del equipo."
-            statLabel="En desarrollo"
-          />
-        </div>
-
-        <FeedbackCostosSection data={feedbackCostos} />
-
-        {isAdmin && <FeedbackPropiedadesTable rows={feedbackPropiedades} />}
+        {/* Análisis de cartera — card ancha */}
+        <WideCard
+          icon={<PieChart size={22} strokeWidth={1.8} />}
+          pastel="#C8D9D2"
+          iconColor={GREEN}
+          title="Análisis de cartera"
+          description="Rendimiento y evolución de tu cartera de clientes y propiedades."
+          action={
+            <Link
+              href="/agentes/cartera"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                background: GREEN,
+                color: '#fff',
+                fontFamily: POPPINS,
+                fontWeight: 600,
+                fontSize: 13,
+                padding: '10px 18px',
+                borderRadius: 10,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Ver análisis <ArrowRight size={15} strokeWidth={2.2} />
+            </Link>
+          }
+        />
+        <div style={{ marginBottom: isAdmin ? 44 : 0 }} />
 
         {isAdmin && (
           <AdminSection
@@ -212,6 +225,12 @@ export default function AgentDashboardV2({
             newsletterEsteMes={newsletterEsteMes}
           />
         )}
+
+        <FeedbackCostosSection data={feedbackCostos} />
+
+        {isAdmin && <FeedbackPropiedadesTable rows={feedbackPropiedades} />}
+
+        {isAdmin && <EquipoSection />}
       </main>
     </div>
   )
@@ -376,27 +395,35 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
         @media (min-width: 768px) {
           .agent-tool-grid { grid-template-columns: repeat(3, 1fr); }
         }
+        @media (min-width: 1024px) {
+          .agent-tool-grid-4 { grid-template-columns: repeat(4, 1fr); }
+        }
       ` }} />
     </header>
   )
 }
 
 // ── Section title ───────────────────────────────────────────────────────
-function SectionTitle({ children }: { children: React.ReactNode }) {
+// Título de sección con sub-label opcional, chip opcional y línea divisoria
+// que ocupa el ancho restante (look del mockup).
+function SectionTitle({ children, sub, chip }: { children: React.ReactNode; sub?: string; chip?: string }) {
   return (
-    <h2
-      style={{
-        fontFamily: POPPINS,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: '0.18em',
-        textTransform: 'uppercase',
-        color: TEXT_SOFT,
-        margin: '0 0 14px',
-      }}
-    >
-      {children}
-    </h2>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '0 0 16px' }}>
+      <h2 style={{ fontFamily: RALEWAY, fontSize: 17, fontWeight: 700, color: TEXT, margin: 0, whiteSpace: 'nowrap' }}>
+        {children}
+      </h2>
+      {sub && (
+        <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 12.5, color: TEXT_SOFT, whiteSpace: 'nowrap' }}>
+          {sub}
+        </span>
+      )}
+      {chip && (
+        <span style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: GREEN, background: 'rgba(26,92,56,0.08)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>
+          {chip}
+        </span>
+      )}
+      <span style={{ flex: 1, height: 1, background: LINE }} />
+    </div>
   )
 }
 
@@ -405,7 +432,10 @@ interface PlacaProps {
   href?: string
   comingSoon?: boolean
   icon: React.ReactNode
+  /** Color del badge del ícono (pastel). */
   pastel?: string
+  /** Color del ícono dentro del badge (tono oscuro del pastel). */
+  iconColor?: string
   title: string
   description: string
   statLabel?: string
@@ -479,26 +509,27 @@ function PlacaCard({
   comingSoon,
   icon,
   pastel,
+  iconColor,
   title,
   description,
   statLabel,
   footerNode,
 }: PlacaProps) {
+  const isLink = !comingSoon && !!href
   const baseStyle: React.CSSProperties = {
-    background: comingSoon ? PAPER : pastel ?? '#fff',
-    border: comingSoon ? '1.5px dashed #d8d2c6' : 'none',
+    background: '#fff',
+    border: comingSoon ? `1.5px dashed #d8d2c6` : `1px solid ${LINE}`,
     borderRadius: 16,
-    padding: 15,
-    paddingRight: comingSoon ? 64 : 15,
+    padding: 18,
     display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: 'column',
     gap: 12,
     position: 'relative',
     transition: 'box-shadow 0.18s ease, transform 0.18s ease',
     color: TEXT,
     textDecoration: 'none',
     cursor: comingSoon ? 'default' : 'pointer',
+    height: '100%',
   }
 
   const content = (
@@ -507,8 +538,8 @@ function PlacaCard({
         <span
           style={{
             position: 'absolute',
-            top: 12,
-            right: 12,
+            top: 14,
+            right: 14,
             background: GOLD_TINT,
             color: '#6B5230',
             fontFamily: POPPINS,
@@ -523,18 +554,25 @@ function PlacaCard({
           Próximamente
         </span>
       )}
+      {/* Badge del ícono */}
       <span
         style={{
-          color: comingSoon ? '#9a958a' : '#2b2b2b',
+          width: 42,
+          height: 42,
+          borderRadius: 12,
+          background: comingSoon ? '#EEEAE2' : pastel ?? '#EEF2F0',
+          color: comingSoon ? '#9a958a' : iconColor ?? GREEN,
           flexShrink: 0,
           display: 'inline-flex',
-          marginTop: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         {icon}
       </span>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: 1 }}>
-        <h3 style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 16, margin: 0, color: comingSoon ? '#9a958a' : '#222', lineHeight: 1.25 }}>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
+        <h3 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, margin: 0, color: comingSoon ? '#9a958a' : '#1c1c1e', lineHeight: 1.25 }}>
           {title}
         </h3>
         <p
@@ -542,22 +580,21 @@ function PlacaCard({
             fontFamily: POPPINS,
             fontWeight: 300,
             fontSize: 12.5,
-            lineHeight: 1.4,
-            color: comingSoon ? '#9a958a' : '#54584f',
+            lineHeight: 1.45,
+            color: comingSoon ? '#9a958a' : TEXT_MUTED,
             margin: 0,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
           }}
         >
           {description}
         </p>
-        {footerNode ? (
-          <div style={{ marginTop: 4 }}>{footerNode}</div>
-        ) : statLabel ? (
-          <div
+      </div>
+
+      {footerNode ? (
+        <div>{footerNode}</div>
+      ) : statLabel ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span
             style={{
-              marginTop: 4,
               fontFamily: POPPINS,
               fontWeight: 500,
               fontSize: 12,
@@ -566,9 +603,10 @@ function PlacaCard({
             }}
           >
             {statLabel}
-          </div>
-        ) : null}
-      </div>
+          </span>
+          {isLink && <ArrowRight size={16} strokeWidth={2} color={TEXT_SOFT} style={{ flexShrink: 0 }} />}
+        </div>
+      ) : null}
     </>
   )
 
@@ -583,6 +621,63 @@ function PlacaCard({
     <Link href={href} style={baseStyle} className="agent-placa-card">
       {content}
     </Link>
+  )
+}
+
+// ── Wide card (ancha: badge + texto + acción a la derecha) ────────────────
+function WideCard({
+  icon,
+  pastel,
+  iconColor,
+  title,
+  description,
+  action,
+}: {
+  icon: React.ReactNode
+  pastel: string
+  iconColor: string
+  title: string
+  description: string
+  action: React.ReactNode
+}) {
+  return (
+    <div
+      style={{
+        background: '#fff',
+        border: `1px solid ${LINE}`,
+        borderRadius: 16,
+        padding: 18,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        flexWrap: 'wrap',
+      }}
+    >
+      <span
+        style={{
+          width: 42,
+          height: 42,
+          borderRadius: 12,
+          background: pastel,
+          color: iconColor,
+          flexShrink: 0,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {icon}
+      </span>
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <h3 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, margin: '0 0 2px', color: '#1c1c1e' }}>
+          {title}
+        </h3>
+        <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 12.5, lineHeight: 1.45, color: TEXT_MUTED, margin: 0 }}>
+          {description}
+        </p>
+      </div>
+      <div style={{ flexShrink: 0 }}>{action}</div>
+    </div>
   )
 }
 
@@ -645,14 +740,40 @@ function AdminSection({
     : `${newsletterTotal} suscriptos`
 
   return (
-    <section aria-label="Vista de administrador" style={{ marginTop: 16 }}>
-      <SectionTitle>Administrador</SectionTitle>
+    <section aria-label="Administración" style={{ marginTop: 40 }}>
+      <SectionTitle chip="Solo administrador">Administración</SectionTitle>
 
-      <div className="agent-tool-grid" style={{ marginBottom: 28 }}>
+      {/* Stats sueltas */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        {stats.map((s) => (
+          <div
+            key={s.label}
+            style={{ background: '#fff', border: `1px solid ${LINE}`, borderRadius: 14, padding: '16px 18px' }}
+          >
+            <div style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 28, color: TEXT, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
+              {s.value}
+            </div>
+            <div style={{ marginTop: 6, fontFamily: POPPINS, fontWeight: 300, fontSize: 12, color: TEXT_SOFT }}>
+              {s.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Newsletter + Notas */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 }}>
         <PlacaCard
           href="/agentes/newsletter"
           icon={<Mail size={22} strokeWidth={1.8} />}
           pastel="#D8D5F2"
+          iconColor="#5B46A8"
           title="Suscriptores Newsletter"
           description="Leads del popup de la web."
           statLabel={newsletterStat}
@@ -661,172 +782,93 @@ function AdminSection({
           href="/admin/notas"
           icon={<Newspaper size={22} strokeWidth={1.8} />}
           pastel="#CBE2DC"
+          iconColor={GREEN}
           title="Notas del Blog"
           description="Editá, subí portada o borrá notas."
           statLabel="Editar · portada · borrar"
         />
       </div>
+    </section>
+  )
+}
 
-      <SectionTitle>Vista de Administrador</SectionTitle>
+// ── Equipo · Progreso en SI School (desplegable, solo admin) ──────────────
+function EquipoSection() {
+  const [open, setOpen] = useState(false)
+  const agents = ADMIN_MOCK_AGENTS
 
-      <div
-        style={{
-          background: '#fff',
-          border: `1px solid ${LINE}`,
-          borderRadius: 18,
-          padding: 'clamp(20px, 3vw, 32px)',
-        }}
-      >
-        {/* Stats agregados */}
-        <div
+  return (
+    <section aria-label="Equipo" style={{ marginTop: 40 }}>
+      <div style={{ background: '#fff', border: `1px solid ${LINE}`, borderRadius: 16, padding: '4px 6px' }}>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="w-full"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: 14,
-            marginBottom: 28,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '12px 12px',
+            textAlign: 'left',
           }}
         >
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              style={{
-                background: PAPER,
-                border: `1px solid ${LINE}`,
-                borderRadius: 12,
-                padding: '16px 18px',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: POPPINS,
-                  fontWeight: 600,
-                  fontSize: 26,
-                  color: TEXT,
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1.05,
-                }}
-              >
-                {s.value}
-              </div>
-              <div
-                style={{
-                  marginTop: 6,
-                  fontFamily: POPPINS,
-                  fontWeight: 300,
-                  fontSize: 11.5,
-                  color: TEXT_SOFT,
-                  letterSpacing: '0.06em',
-                }}
-              >
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
+          <span style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, color: TEXT }}>Equipo</span>
+          <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 12.5, color: TEXT_SOFT }}>Progreso en SI School</span>
+          <span style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: GREEN, background: 'rgba(26,92,56,0.08)', borderRadius: 999, padding: '3px 9px' }}>
+            Solo administrador
+          </span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontFamily: POPPINS, fontSize: 12.5, color: TEXT_SOFT }}>{agents.length} agentes</span>
+          <ChevronDown size={18} color={TEXT_SOFT} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+        </button>
 
-        {/* Progreso por agente */}
-        <h3
-          style={{
-            fontFamily: RALEWAY,
-            fontWeight: 600,
-            fontSize: 15,
-            color: TEXT,
-            margin: '0 0 14px',
-          }}
-        >
-          Progreso del equipo en SI School
-        </h3>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {ADMIN_MOCK_AGENTS.map((ag) => {
-            const pct = ag.capacidadesDone / TOTAL_CAPACIDADES
-            const completed = ag.capacidadesDone >= TOTAL_CAPACIDADES
-            return (
-              <div
-                key={ag.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 14,
-                  padding: '10px 6px',
-                  borderBottom: `1px solid ${LINE}`,
-                }}
-              >
-                <span
-                  aria-hidden
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DARK} 100%)`,
-                    color: '#fff',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: POPPINS,
-                    fontWeight: 600,
-                    fontSize: 12,
-                    flexShrink: 0,
-                  }}
-                >
-                  {getInitials(ag.name)}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 14, color: TEXT }}>{ag.name}</div>
-                  <div style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT }}>
-                    Matrícula {ag.matricula} · {ag.clientes} clientes activos
-                  </div>
-                </div>
-                <div style={{ width: 'clamp(140px, 20vw, 200px)', flexShrink: 0 }}>
-                  <div
-                    style={{
-                      height: 4,
-                      background: '#F4F4F5',
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      marginBottom: 4,
-                    }}
-                  >
-                    <div
+        {open && (
+          <div style={{ padding: '0 12px 12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {agents.map((ag) => {
+                const pct = ag.capacidadesDone / TOTAL_CAPACIDADES
+                const completed = ag.capacidadesDone >= TOTAL_CAPACIDADES
+                return (
+                  <div key={ag.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 4px', borderTop: `1px solid ${LINE}` }}>
+                    <span
+                      aria-hidden
                       style={{
-                        height: '100%',
-                        width: `${Math.round(pct * 100)}%`,
-                        background: completed ? '#2A8B5A' : GOLD,
-                        transition: 'width 0.3s ease',
+                        width: 36, height: 36, borderRadius: '50%',
+                        background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DARK} 100%)`,
+                        color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        fontFamily: POPPINS, fontWeight: 600, fontSize: 12, flexShrink: 0,
                       }}
-                    />
+                    >
+                      {getInitials(ag.name)}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 14, color: TEXT }}>{ag.name}</div>
+                      <div style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT }}>
+                        Matrícula {ag.matricula} · {ag.clientes} clientes activos
+                      </div>
+                    </div>
+                    <div style={{ width: 'clamp(140px, 20vw, 200px)', flexShrink: 0 }}>
+                      <div style={{ height: 4, background: '#F4F4F5', borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
+                        <div style={{ height: '100%', width: `${Math.round(pct * 100)}%`, background: completed ? '#2A8B5A' : GOLD, transition: 'width 0.3s ease' }} />
+                      </div>
+                      <div style={{ fontFamily: POPPINS, fontWeight: 500, fontSize: 11.5, color: completed ? '#2A8B5A' : TEXT_MUTED, textAlign: 'right' }}>
+                        {ag.capacidadesDone}/{TOTAL_CAPACIDADES}
+                      </div>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontFamily: POPPINS,
-                      fontWeight: 500,
-                      fontSize: 11.5,
-                      color: completed ? '#2A8B5A' : TEXT_MUTED,
-                      textAlign: 'right',
-                    }}
-                  >
-                    {ag.capacidadesDone}/{TOTAL_CAPACIDADES}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <p
-          style={{
-            marginTop: 18,
-            fontFamily: POPPINS,
-            fontWeight: 300,
-            fontSize: 11.5,
-            color: TEXT_SOFT,
-            fontStyle: 'italic',
-          }}
-        >
-          {/* TODO Fase 2: datos reales de progreso por agente (Redis-scoped por
-              agentId), clientes y autorizaciones filtradas por agente. */}
-          Datos de demostración — la sincronización por agente llega en Fase 2.
-        </p>
+                )
+              })}
+            </div>
+            <p style={{ marginTop: 14, fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT, fontStyle: 'italic' }}>
+              Datos de demostración — la sincronización por agente llega en Fase 2.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   )

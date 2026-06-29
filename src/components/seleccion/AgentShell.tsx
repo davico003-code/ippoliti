@@ -54,6 +54,8 @@ export default function AgentShell({ agentName, agentRole, children }: Props) {
   // Selecciones también trae su propio header ("← Panel"); va full-width,
   // sin la barra lateral ni el top bar del shell.
   if (pathname === '/agentes/seleccion') return <>{children}</>
+  // Análisis de cartera: layout propio full-width.
+  if (pathname === '/agentes/cartera') return <>{children}</>
 
   const isActive = (href: string) => {
     if (href === '/agentes') return pathname === '/agentes'
