@@ -15,7 +15,7 @@ export const VENTAS_HTML = `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{--verde:#0e5a3c;--verde2:#157a51;--azul:#3C72D4;--coral:#DD7349;--violeta:#7460D4;
+  :root{--verde:#1A5C38;--verde2:#00754A;--azul:#3C72D4;--coral:#DD7349;--violeta:#7460D4;
     --gris:#9a9488;--tinta:#1c1c1e;--line:#ececec;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Raleway',-apple-system,sans-serif;color:var(--tinta);background:#ffffff;padding:26px 14px;line-height:1.4;-webkit-font-smoothing:antialiased;}
@@ -284,7 +284,7 @@ export const ALQUILERES_HTML = `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{--verde:#0e5a3c;--verde2:#157a51;--azul:#3C72D4;--coral:#DD7349;--violeta:#7460D4;
+  :root{--verde:#1A5C38;--verde2:#00754A;--azul:#3C72D4;--coral:#DD7349;--violeta:#7460D4;
     --gris:#9a9488;--tinta:#1c1c1e;--line:#ececec;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Raleway',-apple-system,sans-serif;color:var(--tinta);background:#ffffff;padding:26px 14px;line-height:1.4;-webkit-font-smoothing:antialiased;}
@@ -441,6 +441,178 @@ document.querySelectorAll("#meses button").forEach(function(b){
 document.querySelectorAll("#tipo button").forEach(function(b){
   b.onclick=function(){document.querySelectorAll("#tipo button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");S.nueva=(b.dataset.t==="nueva");render();};
 });
+render();
+</script>
+</body>
+</html>`
+
+export const OBJETIVOS_HTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis objetivos — SI Inmobiliaria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--verde:#1A5C38;--verde2:#00754A;--azul:#3C72D4;--coral:#DD7349;--violeta:#7460D4;
+    --gris:#9a9488;--tinta:#1c1c1e;--line:#ececec;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Raleway',-apple-system,sans-serif;color:var(--tinta);background:#ffffff;padding:26px 14px;line-height:1.4;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:760px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.06);padding:28px 28px 26px;}
+  .num{font-family:'Poppins',sans-serif;font-variant-numeric:tabular-nums;}
+  .head{text-align:center;margin-bottom:20px;}
+  .head h1{font-family:'Poppins',sans-serif;font-size:24px;color:var(--verde);font-weight:800;line-height:1.1;}
+  .head p{font-size:12.5px;color:#6b6b6b;margin-top:5px;}
+
+  .price-line{display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:14px;}
+  .price-line .plab{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8a8478;font-weight:600;white-space:nowrap;}
+  .price-line .pcur{font-family:'Poppins',sans-serif;font-weight:600;color:#bbb;font-size:15px;}
+  .price-line input{flex:1;min-width:0;font-family:'Poppins',sans-serif;font-size:21px;font-weight:700;color:var(--tinta);border:none;outline:none;background:transparent;text-align:right;}
+
+  .qlabel{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8a8478;font-weight:700;margin:16px 0 8px;}
+  .seg{display:flex;gap:9px;}
+  .seg button{flex:1;border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px;cursor:pointer;font-family:'Raleway',sans-serif;transition:.15s;text-align:center;}
+  .seg button b{font-family:'Poppins',sans-serif;font-size:15px;display:block;color:var(--tinta);}
+  .seg button small{font-size:10px;color:#999;}
+  .seg button.on{border-color:var(--verde);background:#f3f9f5;box-shadow:0 2px 10px rgba(26,92,56,.10);}
+  .seg button.on b{color:var(--verde);}
+
+  .prog{position:relative;height:26px;border-radius:9999px;background:#eef0ee;overflow:hidden;margin:22px 0 4px;}
+  .prog i{display:block;height:100%;border-radius:9999px;background:var(--verde);width:0;transition:width .7s cubic-bezier(.22,1,.36,1);}
+
+  .arrow{text-align:center;font-size:20px;color:#d8d3ca;margin:2px 0;}
+  .pozo{background:var(--verde);color:#fff;border-radius:12px;padding:13px;text-align:center;margin-bottom:4px;}
+  .pozo .l{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;opacity:.9;}
+  .pozo .v{font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;}
+  .pozo .s{font-size:10.5px;opacity:.85;margin-top:1px;}
+
+  .qlabel2{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8a8478;font-weight:700;margin:18px 0 10px;text-align:center;}
+  .cascada{display:flex;flex-direction:column;gap:8px;}
+  .ben{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;border-left:5px solid var(--gris);animation:pop .35s ease;}
+  @keyframes pop{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .ben .ic{font-size:26px;width:34px;text-align:center;flex-shrink:0;}
+  .ben .info{flex:1;min-width:0;}
+  .ben .info b{font-family:'Poppins',sans-serif;font-size:13.5px;display:block;}
+  .ben .info span{font-size:10.5px;color:#8a8478;}
+  .ben .bar{height:7px;border-radius:4px;background:#f0f0f0;margin-top:6px;overflow:hidden;}
+  .ben .bar i{display:block;height:100%;border-radius:4px;width:0;transition:width .6s cubic-bezier(.22,1,.36,1);}
+  .ben .amt{font-family:'Poppins',sans-serif;font-weight:800;font-size:18px;text-align:right;flex-shrink:0;min-width:96px;}
+  .ben .amt small{display:block;font-size:10px;font-weight:600;color:#aaa;}
+
+  .narra{background:#f3f9f5;border:1px solid #d5e8dd;border-radius:12px;padding:14px 16px;margin-top:18px;font-size:13px;line-height:1.55;color:#2a4a3a;}
+  .narra b{color:var(--verde);}
+
+  .reglas{margin-top:14px;background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:11.5px;color:#666;line-height:1.6;}
+  .reglas b{color:var(--tinta);}
+  .reglas .ti{font-family:'Poppins',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--azul);font-weight:600;margin-bottom:6px;}
+  @media(max-width:560px){.wrap{padding:22px 16px;}.head h1{font-size:20px;}.price-line input{font-size:18px;}.ben .amt{font-size:15px;min-width:84px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Mis objetivos del mes</h1>
+    <p>Cargá tu meta de comisiones y mirá cuánto te falta</p>
+  </div>
+
+  <div class="qlabel">Moneda</div>
+  <div class="seg" id="moneda">
+    <button data-c="USD" class="on"><b>USD</b><small>dólares</small></button>
+    <button data-c="ARS"><b>ARS</b><small>pesos</small></button>
+  </div>
+
+  <div class="price-line"><span class="plab">Meta del mes</span><span class="pcur cur">USD</span><input type="text" id="metaInput" inputmode="numeric" value="5.000"></div>
+  <div class="price-line"><span class="plab">Ya cobrado</span><span class="pcur cur">USD</span><input type="text" id="cobInput" inputmode="numeric" value="2.000"></div>
+  <div class="price-line"><span class="plab">Comisión promedio por operación</span><span class="pcur cur">USD</span><input type="text" id="promInput" inputmode="numeric" value="1.500"></div>
+
+  <div class="prog"><i id="progfill"></i></div>
+  <div class="arrow">↓</div>
+  <div class="pozo"><div class="l" id="pozoL">Te falta para la meta</div><div class="v num" id="pozo">USD 3.000</div><div class="s" id="pozoS">40% de la meta</div></div>
+
+  <div class="qlabel2">el detalle</div>
+  <div class="cascada" id="cascada"></div>
+
+  <div class="narra" id="narra"></div>
+
+  <div class="reglas">
+    <div class="ti">Cómo se usa</div>
+    <b>1.</b> Cargás tu <b>meta de comisiones</b> del mes y cuánto <b>llevás cobrado</b>.<br>
+    <b>2.</b> La barra muestra tu avance. Si cargás la <b>comisión promedio por operación</b>, te dice cuántas operaciones más necesitás para llegar.<br>
+    <b>3.</b> Es una herramienta personal: los valores no se guardan ni se comparten.
+  </div>
+</div>
+
+<script>
+var S={moneda:"USD",meta:5000,cobrado:2000,prom:1500};
+var $=function(id){return document.getElementById(id);};
+function f(n){return S.moneda+" "+Math.round(n).toLocaleString("es-AR");}
+
+function calc(){
+  var meta=S.meta, cob=S.cobrado;
+  var falta=Math.max(0, meta-cob);
+  var pct = meta>0 ? cob/meta*100 : 0;
+  var cumplida = meta>0 && cob>=meta;
+  var ops = (S.prom>0 && falta>0) ? Math.ceil(falta/S.prom) : 0;
+  return {meta:meta,cob:cob,falta:falta,pct:pct,cumplida:cumplida,ops:ops,extra:Math.max(0,cob-meta)};
+}
+
+function render(){
+  var r=calc();
+  var pctCap=Math.min(100,r.pct);
+  $("pozoL").textContent = r.cumplida ? "¡Meta cumplida! 🎉" : "Te falta para la meta";
+  $("pozo").textContent = r.cumplida ? f(r.extra>0?r.extra:0) : f(r.falta);
+  $("pozoS").textContent = r.cumplida
+    ? (r.extra>0 ? "superaste la meta por "+f(r.extra) : "llegaste justo a la meta")
+    : Math.round(r.pct)+"% de la meta";
+  setTimeout(function(){$("progfill").style.width=pctCap+"%";$("progfill").style.background = r.cumplida ? "var(--verde2)" : "var(--verde)";},60);
+
+  var rows=[];
+  rows.push(["💰","Ya cobraste",Math.round(r.pct)+"% de la meta",f(r.cob),pctCap,"var(--verde)"]);
+  if(!r.cumplida) rows.push(["🎯","Te falta","para llegar a "+f(r.meta),f(r.falta),Math.min(100,r.meta>0?r.falta/r.meta*100:0),"var(--azul)"]);
+  if(r.ops>0) rows.push(["🧾","Operaciones que faltan","a "+f(S.prom)+" cada una",r.ops+(r.ops===1?" op":" ops"),null,"var(--violeta)"]);
+
+  var c=$("cascada");c.innerHTML="";
+  rows.forEach(function(x){
+    var d=document.createElement("div");d.className="ben";d.style.borderLeftColor=x[5];
+    var bar = x[4]===null ? "" : '<div class="bar"><i data-w="'+x[4]+'" style="background:'+x[5]+'"></i></div>';
+    d.innerHTML='<div class="ic">'+x[0]+'</div><div class="info"><b>'+x[1]+'</b><span>'+x[2]+'</span>'+bar+'</div><div class="amt num">'+x[3]+'</div>';
+    c.appendChild(d);
+  });
+  setTimeout(function(){c.querySelectorAll(".bar i").forEach(function(e){e.style.width=e.getAttribute("data-w")+"%";});},60);
+
+  var n;
+  if(r.cumplida){
+    n="¡Felicitaciones! Ya cobraste <b>"+f(r.cob)+"</b> y "+(r.extra>0?"superaste tu meta de <b>"+f(r.meta)+"</b> por <b>"+f(r.extra)+"</b>.":"llegaste a tu meta de <b>"+f(r.meta)+"</b>.");
+  } else {
+    n="Vas <b>"+f(r.cob)+"</b> de tu meta de <b>"+f(r.meta)+"</b> (<b>"+Math.round(r.pct)+"%</b>). Te falta <b>"+f(r.falta)+"</b>"+(r.ops>0?", unas <b>"+r.ops+(r.ops===1?" operación":" operaciones")+"</b> más a "+f(S.prom)+" cada una.":".");
+  }
+  $("narra").innerHTML=n;
+}
+
+function bindMoneda(){
+  document.querySelectorAll("#moneda button").forEach(function(b){
+    b.onclick=function(){
+      document.querySelectorAll("#moneda button").forEach(function(x){x.classList.remove("on");});
+      b.classList.add("on");S.moneda=b.dataset.c;
+      document.querySelectorAll(".cur").forEach(function(e){e.textContent=S.moneda;});
+      render();
+    };
+  });
+}
+function bindNum(id,key){
+  var el=$(id);
+  el.addEventListener("input",function(){
+    var dg=this.value.replace(/\\D/g,"");
+    if(dg===""){S[key]=0;render();return;}
+    var v=parseInt(dg,10); S[key]=v; this.value=v.toLocaleString("es-AR"); render();
+  });
+}
+bindMoneda();
+bindNum("metaInput","meta");
+bindNum("cobInput","cobrado");
+bindNum("promInput","prom");
 render();
 </script>
 </body>
