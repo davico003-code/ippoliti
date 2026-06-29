@@ -43,26 +43,38 @@ export default function CapacitacionesPanel() {
               onClick={() => setOpenId(c.id)}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: 4,
+                alignItems: 'center',
+                gap: 11,
                 textAlign: 'left',
                 background: '#fff',
                 border: '1px solid var(--line, #E4E4E7)',
                 borderRadius: 12,
-                padding: '11px 13px',
+                padding: 9,
                 cursor: 'pointer',
                 transition: 'border-color .15s, box-shadow .15s',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1A5C38'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(26,92,56,.08)' }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line, #E4E4E7)'; e.currentTarget.style.boxShadow = 'none' }}
             >
-              {c.etiqueta && (
-                <span style={{ fontFamily: POPPINS, fontSize: 9.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: '#1A5C38', background: 'rgba(26,92,56,.08)', borderRadius: 6, padding: '2px 7px', alignSelf: 'flex-start' }}>
-                  {c.etiqueta}
-                </span>
+              {c.imagen && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={c.imagen}
+                  alt=""
+                  width={52}
+                  height={52}
+                  style={{ width: 52, height: 52, borderRadius: 9, objectFit: 'cover', flexShrink: 0 }}
+                />
               )}
-              <span style={{ fontFamily: POPPINS, fontSize: 13, fontWeight: 600, color: '#27272A', lineHeight: 1.3 }}>
-                {c.titulo}
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+                {c.etiqueta && (
+                  <span style={{ fontFamily: POPPINS, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: '#1A5C38', background: 'rgba(26,92,56,.08)', borderRadius: 6, padding: '2px 7px', alignSelf: 'flex-start' }}>
+                    {c.etiqueta}
+                  </span>
+                )}
+                <span style={{ fontFamily: POPPINS, fontSize: 13, fontWeight: 600, color: '#27272A', lineHeight: 1.3 }}>
+                  {c.titulo}
+                </span>
               </span>
             </button>
           ))}
@@ -110,7 +122,7 @@ export default function CapacitacionesPanel() {
               </button>
             </div>
             <iframe
-              src={activa.src}
+              src={`/api/capacitaciones/${activa.id}`}
               title={activa.titulo}
               style={{ flex: 1, width: '100%', border: 'none', display: 'block' }}
             />

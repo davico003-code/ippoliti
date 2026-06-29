@@ -13,6 +13,8 @@ export interface Capacitacion {
   titulo: string
   /** etiqueta corta opcional (ej: "Nuevo", "Video", "5 min"). */
   etiqueta?: string
+  /** Miniatura para identificar la capacitación (imagen en public/). */
+  imagen?: string
   /** URL del HTML a embeber (archivo en public/). */
   src: string
 }
@@ -22,12 +24,14 @@ export const CAPACITACIONES: Capacitacion[] = [
     id: 'ia-inmobiliarias',
     titulo: 'IA para inmobiliarias',
     etiqueta: 'Nuevo',
+    imagen: '/si-school/capacitaciones/img/ia-para-inmobiliarias.jpg',
     src: '/si-school/capacitaciones/ia-para-inmobiliarias.html',
   },
   {
     id: 'seguimiento-propiedad',
     titulo: 'El trabajo detrás de cada propiedad',
     etiqueta: 'Nuevo',
+    imagen: '/si-school/capacitaciones/img/seguimiento-trabajo-propiedad.jpg',
     src: '/si-school/capacitaciones/seguimiento-trabajo-propiedad.html',
   },
 ]
