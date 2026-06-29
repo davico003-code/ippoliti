@@ -51,6 +51,9 @@ export default function AgentShell({ agentName, agentRole, children }: Props) {
   // La calculadora de comisiones trae su propio layout full-width (con
   // "Volver al panel"); no lleva la barra lateral del shell.
   if (pathname === '/agentes/comisiones') return <>{children}</>
+  // Selecciones también trae su propio header ("← Panel"); va full-width,
+  // sin la barra lateral ni el top bar del shell.
+  if (pathname === '/agentes/seleccion') return <>{children}</>
 
   const isActive = (href: string) => {
     if (href === '/agentes') return pathname === '/agentes'
