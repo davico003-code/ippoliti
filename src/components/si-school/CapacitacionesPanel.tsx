@@ -110,7 +110,7 @@ export default function CapacitacionesPanel() {
               </button>
             </div>
             <iframe
-              srcDoc={activa.html}
+              src={activa.src}
               title={activa.titulo}
               style={{ flex: 1, width: '100%', border: 'none', display: 'block' }}
             />
