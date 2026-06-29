@@ -14,6 +14,7 @@ interface Property {
 export default function SeleccionAdmin() {
   const [auth, setAuth] = useState(false)
   const [pass, setPass] = useState('')
+  const [authError, setAuthError] = useState(false)
   const [title, setTitle] = useState('')
   const [search, setSearch] = useState('')
   const [results, setResults] = useState<Property[]>([])
@@ -21,6 +22,19 @@ export default function SeleccionAdmin() {
   const [loading, setLoading] = useState(false)
   const [generatedUrl, setGeneratedUrl] = useState('')
   const [copied, setCopied] = useState(false)
+
+  // El password ya no vive en el bundle: se tipea y la API lo valida contra
+  // el env (401 = incorrecto). `pass` (state) es la credencial server-side.
+  const login = async () => {
+    setAuthError(false)
+    try {
+      const res = await fetch('/api/seleccion', { headers: { 'x-admin-key': pass } })
+      if (!res.ok) { setAuthError(true); return }
+      setAuth(true)
+    } catch {
+      setAuthError(true)
+    }
+  }
 
   if (!auth) {
     return (
@@ -30,13 +44,14 @@ export default function SeleccionAdmin() {
           <input
             type="password"
             value={pass}
-            onChange={e => setPass(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && pass === 'siadmin2024' && setAuth(true)}
+            onChange={e => { setPass(e.target.value); setAuthError(false) }}
+            onKeyDown={e => { if (e.key === 'Enter') login() }}
             placeholder="Contraseña"
             className="w-full px-4 py-3 border border-gray-200 rounded-xl mb-3"
           />
+          {authError && <p className="text-red-500 text-xs mb-3">Contraseña incorrecta</p>}
           <button
-            onClick={() => pass === 'siadmin2024' && setAuth(true)}
+            onClick={login}
             className="w-full py-3 bg-[#1A5C38] text-white rounded-xl font-semibold"
           >
             Ingresar
@@ -71,7 +86,7 @@ export default function SeleccionAdmin() {
     try {
       const res = await fetch('/api/seleccion', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'siadmin2024' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': pass },
         body: JSON.stringify({ title, propertyIds: selected.map(s => s.id) }),
       })
       const data = await res.json()

@@ -2,7 +2,10 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import { getAgentById, type Agent } from './agents'
 
-const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET ?? 'si-secret-2026')
+// El secret SIEMPRE viene del entorno; sin literal de fallback (era público en
+// el repo). Si falta la env, firmar/verificar falla (fail-closed) en vez de
+// degradar a un secreto conocido y forjable.
+const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET || '')
 const COOKIE_NAME = 'si_agent_token'
 
 export async function createAgentToken(agent: Agent): Promise<string> {

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET ?? 'si-secret-2026')
+const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET || '')
 const COOKIE_NAME = 'si_guia_token'
 
 export default async function GuiaLeerPage() {

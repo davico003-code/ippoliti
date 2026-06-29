@@ -2,8 +2,9 @@
 // y los empaqueta en un .zip para subir al storyplanner o enviarlos por
 // drive/whatsapp.
 //
-// Auth: ?token=siadmin2024 (links de descarga no pueden setear headers).
-// Alternativamente acepta x-admin-password (para curl).
+// Auth: ?token=<SI_TEAM_CODE> (links de descarga no pueden setear headers).
+// Alternativamente acepta x-admin-password (para curl). Validado server-side
+// contra env; sin literal en el código.
 
 import { NextResponse } from 'next/server'
 import JSZip from 'jszip'
@@ -13,7 +14,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-const ADMIN_PASSWORD = 'siadmin2024'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.SI_TEAM_CODE || ''
 
 export async function GET(
   req: Request,
@@ -22,7 +23,7 @@ export async function GET(
   const url = new URL(req.url)
   const token =
     url.searchParams.get('token') ?? req.headers.get('x-admin-password')
-  if (token !== ADMIN_PASSWORD) {
+  if (!ADMIN_PASSWORD || token !== ADMIN_PASSWORD) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

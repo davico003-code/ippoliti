@@ -3,7 +3,8 @@
 //   GET    → devuelve CarruselPublicado desde Redis
 //   POST   → dispatch de acciones: { action: 'approve' | 'regenerate' }
 //
-// Auth: header x-admin-password = siadmin2024 (mismo patrón que /admin/leads).
+// Auth: header x-admin-password validado contra el env (SI_TEAM_CODE /
+// ADMIN_PASSWORD). Mismo patrón que /admin/leads. Sin literal en el repo.
 
 import { NextResponse } from 'next/server'
 import {
@@ -16,11 +17,11 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 300
 
-const ADMIN_PASSWORD = 'siadmin2024'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.SI_TEAM_CODE || ''
 
 function unauthorized(req: Request): boolean {
   const pwd = req.headers.get('x-admin-password')
-  return pwd !== ADMIN_PASSWORD
+  return !ADMIN_PASSWORD || pwd !== ADMIN_PASSWORD
 }
 
 export async function GET(

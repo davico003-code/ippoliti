@@ -21,8 +21,10 @@ export const AGENTS: Agent[] = [
 ]
 
 export function findAgent(username: string, password: string): Agent | null {
-  const validPassword = process.env.AGENT_PASS ?? 'inmobiliaria2026'
-  if (password !== validPassword) return null
+  // El password viene del entorno; sin literal de fallback (era público en el
+  // repo). Si falta la env, no autentica a nadie (fail-closed).
+  const validPassword = process.env.AGENT_PASS
+  if (!validPassword || password !== validPassword) return null
   return AGENTS.find(a => a.username === username) ?? null
 }
 

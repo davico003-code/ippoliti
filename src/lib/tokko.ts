@@ -1,10 +1,9 @@
-// SECURITY NOTE: Never use NEXT_PUBLIC_TOKKO_API_KEY in client components.
-// Always use the API proxy route at /api/propiedades for client-side fetches.
-// Server components can use TOKKO_API_KEY directly (no NEXT_PUBLIC_ prefix).
+// SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
+// Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
+// del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
 
 function getApiKey(): string {
-  // Server-only: TOKKO_API_KEY preferred, NEXT_PUBLIC_ as fallback for Vercel compat
-  const key = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
+  const key = process.env.TOKKO_API_KEY
   if (!key) throw new Error('TOKKO_API_KEY is not configured')
   return key
 }

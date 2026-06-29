@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Lock, LogOut, FileText, Download, BookOpen, BarChart3, Users, GraduationCap, ChevronDown, Sparkles, Clock, FolderOpen } from 'lucide-react'
 
+// El password ya no vive en el bundle: lo valida la API contra el env.
+// El usuario es cosmético (no es secreto).
 const USERNAME = 'user'
-const PASSWORD = 'inmobiliaria123'
 const STORAGE_KEY = 'si-school-auth'
 
 interface Resource {
@@ -85,13 +86,22 @@ export default function SchoolPage() {
     setTimeout(() => setMounted(true), 100)
   }, [])
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (username === USERNAME && password === PASSWORD) {
-      localStorage.setItem(STORAGE_KEY, 'true')
-      setAuthenticated(true)
-      setError(false)
-    } else {
+    setError(false)
+    try {
+      const res = await fetch('/api/school/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (username === USERNAME && res.ok) {
+        localStorage.setItem(STORAGE_KEY, 'true')
+        setAuthenticated(true)
+      } else {
+        setError(true)
+      }
+    } catch {
       setError(true)
     }
   }

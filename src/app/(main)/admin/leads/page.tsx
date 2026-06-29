@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Lock, Download, MessageCircle, Filter } from 'lucide-react'
-
-const PASSWORD = 'siadmin2024'
 
 interface Lead {
   nombre: string
@@ -25,22 +23,22 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState<Tab>('todos')
 
-  useEffect(() => {
-    if (!auth) return
-    setLoading(true)
-    fetch('/api/admin/leads', { headers: { 'x-admin-password': PASSWORD } })
-      .then(r => r.json())
-      .then(data => {
-        if (data.leads) setLeads(data.leads)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [auth])
-
-  const handleLogin = (e: React.FormEvent) => {
+  // Validación 100% server-side: mandamos lo que el usuario tipeó; la API
+  // compara contra el env. El password ya no vive en el bundle del cliente.
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (pw === PASSWORD) { setAuth(true); setError(false) }
-    else setError(true)
+    setError(false)
+    setLoading(true)
+    try {
+      const r = await fetch('/api/admin/leads', { headers: { 'x-admin-password': pw } })
+      if (!r.ok) { setError(true); setLoading(false); return }
+      const data = await r.json()
+      setLeads(data.leads || [])
+      setAuth(true)
+    } catch {
+      setError(true)
+    }
+    setLoading(false)
   }
 
   const filtered = useMemo(() => {

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const apiKey = process.env.TOKKO_API_KEY || process.env.NEXT_PUBLIC_TOKKO_API_KEY
+  const apiKey = process.env.TOKKO_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
   const params = new URLSearchParams()

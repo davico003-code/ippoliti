@@ -4,7 +4,7 @@ import { Redis } from '@upstash/redis'
 
 export const dynamic = 'force-dynamic'
 
-const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET ?? 'si-secret-2026')
+const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET || '')
 const COOKIE_NAME = 'si_guia_token'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 365 días
 
