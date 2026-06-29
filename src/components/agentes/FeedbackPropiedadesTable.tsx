@@ -59,12 +59,33 @@ function reactInline(r: PanelRow): string {
   return REACT_META.map((m) => `${m.emoji} ${num(r.react[m.key])}`).join('  ')
 }
 
-export default function FeedbackPropiedadesTable({ rows }: { rows: PanelRow[] }) {
+export default function FeedbackPropiedadesTable({ rows: initialRows }: { rows: PanelRow[] }) {
+  const [rows, setRows] = useState(initialRows)
+  const [open, setOpen] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [archStatus, setArchStatus] = useState<'idle' | 'archivando' | 'ok' | 'error'>('idle')
   const [archMsg, setArchMsg] = useState('')
 
   const toggle = (id: string) => setExpanded((cur) => (cur === id ? null : id))
+
+  const handleDelete = async (id: string, address: string) => {
+    if (!window.confirm(`¿Eliminar todo el feedback de "${address}"? Esta acción no se puede deshacer.`)) return
+    setDeleting(id)
+    try {
+      const res = await fetch(`/api/feedback/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'same-origin' })
+      if (res.ok) {
+        setRows((prev) => prev.filter((r) => r.propertyId !== id))
+        setExpanded((cur) => (cur === id ? null : cur))
+      } else {
+        window.alert('No se pudo eliminar el feedback.')
+      }
+    } catch {
+      window.alert('Error de red al eliminar.')
+    } finally {
+      setDeleting(null)
+    }
+  }
 
   const archivarTodo = () => {
     if (archStatus === 'archivando') return
@@ -88,82 +109,87 @@ export default function FeedbackPropiedadesTable({ rows }: { rows: PanelRow[] })
 
   return (
     <section aria-label="Feedback por propiedad" style={{ marginTop: 40 }}>
-      <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 14 }}>
-        <h2 style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 20, color: VERDE_OSCURO, margin: 0 }}>
-          Feedback por propiedad
-        </h2>
-        <div className="flex items-center gap-3 flex-wrap">
-          {archMsg && (
-            <span style={{ fontFamily: POPPINS, fontSize: 12, color: archStatus === 'error' ? '#C0563E' : VERDE }}>
-              {archMsg}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={archivarTodo}
-            disabled={archStatus === 'archivando' || rows.length === 0}
-            className="cursor-pointer disabled:opacity-60"
-            style={{
-              fontFamily: RALEWAY,
-              fontWeight: 700,
-              fontSize: 13,
-              color: '#fff',
-              background: VERDE,
-              border: 'none',
-              borderRadius: 10,
-              padding: '9px 16px',
-            }}
-          >
-            {archStatus === 'archivando' ? 'Archivando…' : 'Archivar a Neon'}
-          </button>
-        </div>
-      </div>
+      {/* Cabecera desplegable */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between cursor-pointer"
+        style={{ background: '#fff', border: `1px solid ${LINEA}`, borderRadius: 12, padding: '12px 16px', textAlign: 'left' }}
+      >
+        <span style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 16, color: VERDE_OSCURO }}>
+          Feedback por propiedad <span style={{ color: GRIS, fontWeight: 600 }}>({rows.length})</span>
+        </span>
+        <ChevronDown style={{ width: 18, height: 18, color: GRIS, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+      </button>
 
-      {rows.length === 0 ? (
-        <p style={{ fontFamily: POPPINS, fontSize: 13, color: GRIS }}>
-          Todavía no hay feedback registrado en ninguna propiedad.
-        </p>
-      ) : (
-        <>
-          {/* ── Móvil: cards apiladas ── */}
-          <div className="md:hidden flex flex-col gap-3">
-            {rows.map((r) => (
-              <MobileCard key={r.propertyId} r={r} isOpen={expanded === r.propertyId} onToggle={() => toggle(r.propertyId)} />
-            ))}
+      {open && (
+        <div style={{ marginTop: 14 }}>
+          <div className="flex items-center justify-end flex-wrap gap-3" style={{ marginBottom: 14 }}>
+            {archMsg && (
+              <span style={{ fontFamily: POPPINS, fontSize: 12, color: archStatus === 'error' ? '#C0563E' : VERDE }}>
+                {archMsg}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={archivarTodo}
+              disabled={archStatus === 'archivando' || rows.length === 0}
+              className="cursor-pointer disabled:opacity-60"
+              style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 13, color: '#fff', background: VERDE, border: 'none', borderRadius: 10, padding: '9px 16px' }}
+            >
+              {archStatus === 'archivando' ? 'Archivando…' : 'Archivar a Neon'}
+            </button>
           </div>
 
-          {/* ── Desktop: tabla ── */}
-          <div className="hidden md:block" style={{ overflowX: 'auto', border: `1px solid ${LINEA}`, borderRadius: 14, background: '#fff' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
-              <thead>
-                <tr style={{ background: '#FAF7F2' }}>
-                  <th style={TH}>Propiedad</th>
-                  <th style={{ ...TH, textAlign: 'center' }}>❤️</th>
-                  <th style={{ ...TH, textAlign: 'center' }}>Caritas</th>
-                  <th style={TH}>Valuación</th>
-                  <th style={TH}>Objeciones</th>
-                  <th style={{ ...TH, textAlign: 'center' }}>🔔</th>
-                </tr>
-              </thead>
-              <tbody>
+          {rows.length === 0 ? (
+            <p style={{ fontFamily: POPPINS, fontSize: 13, color: GRIS }}>
+              Todavía no hay feedback registrado en ninguna propiedad.
+            </p>
+          ) : (
+            <>
+              {/* ── Móvil: cards apiladas ── */}
+              <div className="md:hidden flex flex-col gap-3">
                 {rows.map((r) => (
-                  <DesktopRow key={r.propertyId} r={r} isOpen={expanded === r.propertyId} onToggle={() => toggle(r.propertyId)} />
+                  <MobileCard key={r.propertyId} r={r} isOpen={expanded === r.propertyId} onToggle={() => toggle(r.propertyId)} onDelete={() => handleDelete(r.propertyId, r.address)} deleting={deleting === r.propertyId} />
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+              </div>
 
-      <p style={{ fontFamily: POPPINS, fontSize: 11, color: GRIS, marginTop: 8, fontStyle: 'italic' }}>
-        Data privada · los leads de “avisame” son PII. “Archivar a Neon” guarda un snapshot por propiedad.
-      </p>
+              {/* ── Desktop: tabla ── */}
+              <div className="hidden md:block" style={{ overflowX: 'auto', border: `1px solid ${LINEA}`, borderRadius: 14, background: '#fff' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
+                  <thead>
+                    <tr style={{ background: '#FAF7F2' }}>
+                      <th style={TH}>Propiedad</th>
+                      <th style={{ ...TH, textAlign: 'center' }}>❤️</th>
+                      <th style={{ ...TH, textAlign: 'center' }}>Caritas</th>
+                      <th style={TH}>Valuación</th>
+                      <th style={TH}>Objeciones</th>
+                      <th style={{ ...TH, textAlign: 'center' }}>🔔</th>
+                      <th style={{ ...TH, textAlign: 'center' }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <DesktopRow key={r.propertyId} r={r} isOpen={expanded === r.propertyId} onToggle={() => toggle(r.propertyId)} onDelete={() => handleDelete(r.propertyId, r.address)} deleting={deleting === r.propertyId} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          <p style={{ fontFamily: POPPINS, fontSize: 11, color: GRIS, marginTop: 8, fontStyle: 'italic' }}>
+            Data privada · los leads de “avisame” son PII. “Archivar a Neon” guarda un snapshot por propiedad.
+          </p>
+        </div>
+      )}
     </section>
   )
 }
 
 // ── Card móvil ──────────────────────────────────────────────────────────────
-function MobileCard({ r, isOpen, onToggle }: { r: PanelRow; isOpen: boolean; onToggle: () => void }) {
+function MobileCard({ r, isOpen, onToggle, onDelete, deleting }: { r: PanelRow; isOpen: boolean; onToggle: () => void; onDelete: () => void; deleting: boolean }) {
   return (
     <div style={{ border: `1px solid ${LINEA}`, borderRadius: 14, background: '#fff', overflow: 'hidden' }}>
       <div
@@ -194,6 +220,16 @@ function MobileCard({ r, isOpen, onToggle }: { r: PanelRow; isOpen: boolean; onT
             className="flex-none"
             style={{ width: 18, height: 18, color: GRIS, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}
           />
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDelete() }}
+            disabled={deleting}
+            title="Eliminar feedback"
+            className="flex-none text-gray-300 hover:text-red-500 transition-colors disabled:opacity-40"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
         </div>
 
         {/* Métricas: flex-wrap, ajusta al ancho */}
@@ -248,7 +284,7 @@ const TD: React.CSSProperties = {
 }
 const TNUM: React.CSSProperties = { ...TD, fontVariantNumeric: 'tabular-nums' }
 
-function DesktopRow({ r, isOpen, onToggle }: { r: PanelRow; isOpen: boolean; onToggle: () => void }) {
+function DesktopRow({ r, isOpen, onToggle, onDelete, deleting }: { r: PanelRow; isOpen: boolean; onToggle: () => void; onDelete: () => void; deleting: boolean }) {
   return (
     <>
       <tr onClick={onToggle} style={{ cursor: 'pointer', background: isOpen ? '#FAF7F2' : '#fff' }}>
@@ -285,10 +321,22 @@ function DesktopRow({ r, isOpen, onToggle }: { r: PanelRow; isOpen: boolean; onT
         </td>
         <td style={{ ...TD, fontSize: 12, color: GRIS }}>{topObjeciones(r.objection)}</td>
         <td style={{ ...TNUM, textAlign: 'center', fontWeight: 700 }}>{num(r.alerts.length)}</td>
+        <td style={{ ...TD, textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDelete() }}
+            disabled={deleting}
+            title="Eliminar feedback"
+            className="text-gray-300 hover:text-red-500 transition-colors disabled:opacity-40"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </td>
       </tr>
       {isOpen && (
         <tr>
-          <td colSpan={6} style={{ ...TD, background: '#FAF7F2', paddingTop: 4 }}>
+          <td colSpan={7} style={{ ...TD, background: '#FAF7F2', paddingTop: 4 }}>
             <FeedbackDetalleExpand r={r} />
           </td>
         </tr>

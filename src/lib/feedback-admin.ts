@@ -147,3 +147,18 @@ export async function getFeedbackPanelRows(limit = 100): Promise<PanelRow[]> {
     .sort((a, b) => b.total - a.total)
     .slice(0, limit)
 }
+
+/** Borra TODO el feedback de una propiedad (likes, caritas, valuación,
+ *  objeciones, alertas) y la saca del índice. Admin-only desde la API. */
+export async function deletePropertyFeedback(propertyId: string): Promise<void> {
+  const base = fbKey(propertyId)
+  const keys = [
+    `${base}:like`,
+    `${base}:valuation`,
+    `${base}:alert`,
+    ...REACT_CHOICES.map((c) => `${base}:react:${c}`),
+    ...OBJECTION_CHOICES.map((c) => `${base}:objection:${c}`),
+  ]
+  await redis.del(...keys)
+  await redis.srem(FB_INDEX_KEY, String(propertyId))
+}
