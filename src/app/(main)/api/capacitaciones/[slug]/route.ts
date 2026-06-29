@@ -16,6 +16,10 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const blobPath = (id: string) => `capacitaciones-edit/${id}.html`
+// El store por defecto (BLOB_READ_WRITE_TOKEN) es privado; usamos el store
+// público del blog (BLOG_READ_WRITE_TOKEN) para que el HTML editado se sirva
+// por URL pública en el iframe.
+const BLOB_TOKEN = process.env.BLOG_READ_WRITE_TOKEN
 
 async function isAdmin(): Promise<boolean> {
   const token = cookies().get('si_agent_token')?.value
@@ -37,7 +41,7 @@ async function canView(req: Request): Promise<boolean> {
 async function readEdited(id: string): Promise<string | null> {
   try {
     const path = blobPath(id)
-    const result = await list({ prefix: path })
+    const result = await list({ prefix: path, token: BLOB_TOKEN })
     const match = result.blobs.find((b) => b.pathname === path)
     if (!match) return null
     const res = await fetch(match.url, { cache: 'no-store' })
@@ -147,6 +151,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       addRandomSuffix: false,
       allowOverwrite: true,
       contentType: 'text/html; charset=utf-8',
+      token: BLOB_TOKEN,
     })
     return NextResponse.json({ ok: true })
   } catch {
