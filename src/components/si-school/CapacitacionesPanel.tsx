@@ -4,7 +4,7 @@
 // chicas de "Capacitaciones". Cada placa abre su HTML embebido en un modal
 // con <iframe srcDoc> aislado. El contenido vive en ./capacitaciones.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styles from './si-school.module.css'
 import { CAPACITACIONES } from './capacitaciones'
 
@@ -12,7 +12,17 @@ const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
 
 export default function CapacitacionesPanel() {
   const [openId, setOpenId] = useState<string | null>(null)
+  const [tc, setTc] = useState<string | null>(null)
   const activa = CAPACITACIONES.find((c) => c.id === openId) || null
+
+  // Clave de equipo con la que se entró a SI School (la usa el iframe para
+  // autorizarse en la API; los agentes logueados ya pasan por su cookie).
+  useEffect(() => {
+    setTc(typeof window !== 'undefined' ? window.localStorage.getItem('si_team_access') : null)
+  }, [])
+
+  const apiSrc = (id: string) => `/api/capacitaciones/${id}${tc ? `?tc=${encodeURIComponent(tc)}` : ''}`
+  const pageHref = (id: string) => `/recursos/si-school/capacitacion/${id}`
 
   return (
     <aside className={styles.mentor} aria-label="Capacitaciones">
@@ -37,11 +47,14 @@ export default function CapacitacionesPanel() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {CAPACITACIONES.map((c) => (
-            <button
+            <div
               key={c.id}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => setOpenId(c.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenId(c.id) } }}
               style={{
+                position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 11,
@@ -50,6 +63,7 @@ export default function CapacitacionesPanel() {
                 border: '1px solid var(--line, #E4E4E7)',
                 borderRadius: 12,
                 padding: 9,
+                paddingRight: 30,
                 cursor: 'pointer',
                 transition: 'border-color .15s, box-shadow .15s',
               }}
@@ -76,7 +90,18 @@ export default function CapacitacionesPanel() {
                   {c.titulo}
                 </span>
               </span>
-            </button>
+              <a
+                href={pageHref(c.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="Abrir en su propia página"
+                aria-label="Abrir en su propia página"
+                style={{ position: 'absolute', top: 8, right: 8, fontFamily: POPPINS, fontSize: 13, color: '#A1A1AA', textDecoration: 'none', lineHeight: 1, padding: 2 }}
+              >
+                ↗
+              </a>
+            </div>
           ))}
         </div>
       )}
@@ -108,21 +133,31 @@ export default function CapacitacionesPanel() {
               boxShadow: '0 20px 60px rgba(0,0,0,.3)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #ececec' }}>
-              <span style={{ fontFamily: POPPINS, fontSize: 14, fontWeight: 600, color: '#27272A' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid #ececec' }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 14, fontWeight: 600, color: '#27272A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {activa.titulo}
               </span>
-              <button
-                type="button"
-                onClick={() => setOpenId(null)}
-                aria-label="Cerrar"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1, color: '#71717A', padding: 4 }}
-              >
-                ✕
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+                <a
+                  href={pageHref(activa.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontFamily: POPPINS, fontSize: 12.5, fontWeight: 600, color: '#1A5C38', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  Abrir en página ↗
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setOpenId(null)}
+                  aria-label="Cerrar"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1, color: '#71717A', padding: 4 }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             <iframe
-              src={`/api/capacitaciones/${activa.id}`}
+              src={apiSrc(activa.id)}
               title={activa.titulo}
               style={{ flex: 1, width: '100%', border: 'none', display: 'block' }}
             />

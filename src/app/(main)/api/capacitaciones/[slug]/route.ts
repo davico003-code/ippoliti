@@ -24,6 +24,16 @@ async function isAdmin(): Promise<boolean> {
   return agent?.role === 'admin'
 }
 
+// Acceso de VISTA: agente logueado (cookie JWT) abre directo; un 3ro con el
+// link tiene que pasar la clave de equipo por ?tc= (igual al SI_TEAM_CODE).
+async function canView(req: Request): Promise<boolean> {
+  const token = cookies().get('si_agent_token')?.value
+  if (token && (await verifyAgentToken(token))) return true
+  const tc = new URL(req.url).searchParams.get('tc')
+  const expected = process.env.SI_TEAM_CODE
+  return !!expected && !!tc && tc === expected
+}
+
 async function readEdited(id: string): Promise<string | null> {
   try {
     const path = blobPath(id)
@@ -94,6 +104,10 @@ function editorHtml(id: string): string {
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   const cap = CAPACITACIONES.find((c) => c.id === params.slug)
   if (!cap) return NextResponse.json({ error: 'No encontrada' }, { status: 404 })
+
+  if (!(await canView(req))) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
   // Base: versión editada (Blob) o el estático de public/.
   let html = await readEdited(cap.id)
