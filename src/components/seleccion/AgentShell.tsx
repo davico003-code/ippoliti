@@ -48,6 +48,9 @@ export default function AgentShell({ agentName, agentRole, children }: Props) {
   // header. El AgentShell sigue activo para las subrutas (clientes,
   // seleccion, modulo, etc).
   if (pathname === '/agentes') return <>{children}</>
+  // La calculadora de comisiones trae su propio layout full-width (con
+  // "Volver al panel"); no lleva la barra lateral del shell.
+  if (pathname === '/agentes/comisiones') return <>{children}</>
 
   const isActive = (href: string) => {
     if (href === '/agentes') return pathname === '/agentes'
