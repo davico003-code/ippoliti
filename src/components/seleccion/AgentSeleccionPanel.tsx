@@ -358,52 +358,80 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
         <div className="space-y-3">
           {sessions.map(s => {
             const { days: d, expired } = getTimeLeft(s.expiresAt)
+            const initials = s.clientName.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('') || '?'
+            const r = s.resumen
+            const hasReactions = r.liked > 0 || r.disliked > 0 || r.wantVisit > 0 || r.hasComments
             return (
-              <div key={s.token} className={`bg-white rounded-2xl p-5 shadow-sm border-l-4 relative ${expired ? 'border-l-gray-200 opacity-60' : 'border-l-[#1A5C38]'}`}>
-                {/* Delete button */}
-                <button
-                  onClick={async () => {
-                    if (!window.confirm(`¿Eliminar la selección de ${s.clientName}? Esta acción no se puede deshacer.`)) return
-                    const res = await fetch(`/api/seleccion/${s.token}`, { method: 'DELETE' })
-                    if (res.ok) setSessions(prev => prev.filter(x => x.token !== s.token))
-                  }}
-                  className="absolute top-3 right-3 p-1 rounded-md transition-all"
-                  style={{ color: '#AEAEB2' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#FF3B30'; e.currentTarget.style.background = 'rgba(255,59,48,0.08)' }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#AEAEB2'; e.currentTarget.style.background = 'none' }}
-                  title="Eliminar selección"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                </button>
-                <div className="flex items-start justify-between mb-2 pr-6">
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">{s.clientName}</h4>
-                    <p className="text-xs text-gray-400">{s.agent} · {s.properties.length} propiedades</p>
+              <div
+                key={s.token}
+                className={`group bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow ${expired ? 'opacity-60' : ''}`}
+              >
+                {/* Encabezado: avatar + nombre + plazo + borrar */}
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
+                    style={{
+                      background: expired ? '#F2F2F7' : '#e8f5ee',
+                      color: expired ? '#AEAEB2' : '#1A5C38',
+                      fontFamily: 'Poppins, sans-serif',
+                    }}
+                  >
+                    {initials}
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${expired ? 'bg-gray-100 text-gray-400' : d <= 2 ? 'bg-amber-100 text-amber-600' : 'bg-[#e8f5ee] text-[#1A5C38]'}`}>
-                    {expired ? 'Expirada' : `${d}d`}
-                  </span>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-gray-900 text-[15px] truncate">{s.clientName}</h4>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${expired ? 'bg-gray-100 text-gray-400' : d <= 2 ? 'bg-amber-100 text-amber-600' : 'bg-[#e8f5ee] text-[#1A5C38]'}`}>
+                        {expired ? 'Expirada' : `${d} días`}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">
+                      {s.properties.length} {s.properties.length === 1 ? 'propiedad' : 'propiedades'} · {s.agent}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm(`¿Eliminar la selección de ${s.clientName}? Esta acción no se puede deshacer.`)) return
+                      const res = await fetch(`/api/seleccion/${s.token}`, { method: 'DELETE' })
+                      if (res.ok) setSessions(prev => prev.filter(x => x.token !== s.token))
+                    }}
+                    className="shrink-0 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    title="Eliminar selección"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </button>
                 </div>
 
-                {/* Reaction summary */}
-                <div className="flex gap-2 mb-3">
-                  {s.resumen.liked > 0 && <span className="text-[10px] bg-[#e8f5ee] text-[#1A5C38] px-2 py-0.5 rounded-full">❤️ {s.resumen.liked}</span>}
-                  {s.resumen.disliked > 0 && <span className="text-[10px] bg-red-50 text-red-500 px-2 py-0.5 rounded-full">👎 {s.resumen.disliked}</span>}
-                  {s.resumen.wantVisit > 0 && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">✅ {s.resumen.wantVisit}</span>}
-                  {s.resumen.hasComments && <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">✏️</span>}
-                </div>
+                {/* Reacciones del cliente */}
+                {hasReactions && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {r.liked > 0 && <span className="text-[11px] font-medium bg-[#e8f5ee] text-[#1A5C38] px-2.5 py-1 rounded-full">❤️ {r.liked} me gusta</span>}
+                    {r.wantVisit > 0 && <span className="text-[11px] font-medium bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full">✅ {r.wantVisit} {r.wantVisit === 1 ? 'visita' : 'visitas'}</span>}
+                    {r.disliked > 0 && <span className="text-[11px] font-medium bg-red-50 text-red-500 px-2.5 py-1 rounded-full">👎 {r.disliked}</span>}
+                    {r.hasComments && <span className="text-[11px] font-medium bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full">✏️ Comentó</span>}
+                  </div>
+                )}
 
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <a href={`/seleccion/${s.token}`} target="_blank" rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors">
-                    Ver &rarr;
+                {/* Acciones */}
+                <div className="flex gap-2 mt-3">
+                  <a
+                    href={`/seleccion/${s.token}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center px-4 py-2.5 bg-gray-50 text-gray-700 text-[13px] font-semibold rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
+                  >
+                    Ver selección &rarr;
                   </a>
                   <a
                     href={`https://wa.me/54${s.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${s.clientName}! ¿Pudiste ver la selección de propiedades que te preparamos? ${window?.location?.origin || 'https://siinmobiliaria.com'}/seleccion/${s.token}`)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-[#25D366] text-white text-xs font-semibold rounded-lg hover:bg-[#1ea952] transition-colors">
-                    WA
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#25D366] text-white text-[13px] font-semibold rounded-xl hover:bg-[#1ea952] transition-colors"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.01c-.24.68-1.42 1.31-1.95 1.36-.5.05-.96.24-3.23-.67-2.73-1.08-4.45-3.86-4.58-4.04-.13-.18-1.1-1.46-1.1-2.79 0-1.33.7-1.98.94-2.25.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.55.79 1.9.86 2.04.07.14.12.3.02.48-.09.18-.14.3-.27.46-.14.16-.29.36-.41.48-.14.14-.28.29-.12.56.16.27.71 1.17 1.53 1.9 1.05.93 1.94 1.22 2.21 1.36.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.2.51.31.07.11.07.64-.17 1.32z"/></svg>
+                    WhatsApp
                   </a>
                 </div>
               </div>
