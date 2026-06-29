@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import {
   BarChart3,
+  Calculator,
   Check,
   FileText,
   GraduationCap,
@@ -169,6 +170,14 @@ export default function AgentDashboardV2({
             title="Autorización de Venta Digital"
             description="Acuerdos para firmar a distancia."
             statLabel={`${autorizacionesEsteMes} acuerdos generados este mes`}
+          />
+          <PlacaCard
+            href="/agentes/comisiones"
+            icon={<Calculator size={22} strokeWidth={1.8} />}
+            pastel="#C7D8F4"
+            title="Calculadora de comisiones"
+            description="Ventas, alquileres y tus objetivos."
+            statLabel="Simulá cuánto cobrás"
           />
         </div>
 
