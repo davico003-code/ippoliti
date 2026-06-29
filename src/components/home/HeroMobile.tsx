@@ -100,9 +100,9 @@ export default function HeroMobile() {
               type="submit"
               className="shrink-0 border-none cursor-pointer"
               style={{
-                // Acento: verde de marca, o celeste durante el Mundial (texto #0d3a5c).
-                background: 'var(--mundial-accent)',
-                color: 'var(--mundial-accent-ink)',
+                // Acento fijo: verde de marca sólido (igual que el hero desktop).
+                background: '#1A5C38',
+                color: '#fff',
                 fontFamily: 'Raleway, sans-serif',
                 fontSize: 14,
                 fontWeight: 500,
