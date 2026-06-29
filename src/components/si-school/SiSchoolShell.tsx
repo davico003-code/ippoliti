@@ -7,19 +7,20 @@ import { getDiasActivo, getLevel, initProgress } from '@/lib/si-school/progress'
 import { CAPACIDADES_META } from '@/content/si-school/capacidades'
 import CapacidadSidebar from './CapacidadSidebar'
 import LevelCard from './LevelCard'
-import MentorChatMock from './MentorChatMock'
+import CapacitacionesPanel from './CapacitacionesPanel'
 import styles from './si-school.module.css'
 
 interface Props {
   children: ReactNode
   activeCapacidadSlug?: string
+  // Se mantiene por compatibilidad con las páginas que aún lo pasan; el chat
+  // mock de David se reemplazó por el panel de Capacitaciones.
   mentorThread?: { rol: 'mentor' | 'self'; texto: string }[]
 }
 
 export default function SiSchoolShell({
   children,
   activeCapacidadSlug,
-  mentorThread,
 }: Props) {
   const [levelNumber, setLevelNumber] = useState<number>(1)
   const [levelName, setLevelName] = useState<string>('Iniciado')
@@ -80,7 +81,7 @@ export default function SiSchoolShell({
           </div>
           {children}
         </main>
-        <MentorChatMock thread={mentorThread} />
+        <CapacitacionesPanel />
       </div>
 
       {/* Mobile triggers */}
@@ -97,9 +98,9 @@ export default function SiSchoolShell({
           type="button"
           className={`${styles.mobileBtn} ${styles.mobileBtnPrimary}`}
           onClick={() => setDrawer('mentor')}
-          aria-label="Abrir mentor David"
+          aria-label="Abrir capacitaciones"
         >
-          Mentor
+          Capacitaciones
         </button>
       </div>
 
@@ -121,7 +122,7 @@ export default function SiSchoolShell({
             {drawer === 'caps' ? (
               <CapacidadSidebar capacidades={capacidades} activeSlug={activeCapacidadSlug} />
             ) : (
-              <MentorChatMock thread={mentorThread} />
+              <CapacitacionesPanel />
             )}
           </div>
         </div>
