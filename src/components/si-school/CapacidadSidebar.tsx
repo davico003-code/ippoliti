@@ -27,6 +27,9 @@ const TOTAL_CAPSULAS_PER_CAP: Record<string, number> = {
   'capacidad-06': 6,
 }
 
+// Tinta pastel por capacidad (en sync con el overview).
+const PASTEL_INK = ['#1A5C38', '#2B5C9B', '#5B46A8', '#B5562F', '#917512', '#A83C66']
+
 function resolveEstados(metas: CapacidadMeta[]): ResolvedCap[] {
   if (typeof window === 'undefined') {
     return metas.map((m) => ({ meta: m, estado: m.estado, pct: 0 }))
@@ -71,7 +74,7 @@ export default function CapacidadSidebar({ capacidades, activeSlug }: Props) {
     <aside className={styles.sidebar} aria-label="Capacidades del programa">
       <div className={styles.sidebarLabel}>Programa</div>
       <nav>
-        {resolved.map(({ meta, estado, pct }) => {
+        {resolved.map(({ meta, estado, pct }, idx) => {
           const isActive = meta.slug === activeSlug
           const isBlocked = estado === 'bloqueada'
           const className = [
@@ -83,7 +86,7 @@ export default function CapacidadSidebar({ capacidades, activeSlug }: Props) {
             .join(' ')
           const content = (
             <>
-              <div className={styles.capRoman}>{meta.romano}</div>
+              <div className={styles.capRoman} style={{ color: PASTEL_INK[idx % PASTEL_INK.length] }}>{meta.romano}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className={styles.capTitle}>{meta.titulo}</div>
                 <div className={styles.capSub}>{meta.subtitulo}</div>
