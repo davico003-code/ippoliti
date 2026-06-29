@@ -12,7 +12,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Home, Building2, Target } from 'lucide-react'
-import { VENTAS_HTML, ALQUILERES_HTML, OBJETIVOS_HTML } from './comisionesCalcs'
+import { VENTAS_HTML, ALQUILERES_HTML } from './comisionesCalcs'
 
 const GREEN = '#1A5C38'
 const LINE = '#E4E4E7'
@@ -159,7 +159,25 @@ export default function ComisionesCalculadoras() {
         {/* Contenido de la solapa activa */}
         {tab === 'ventas' && <CalcFrame key="ventas" html={VENTAS_HTML} />}
         {tab === 'alquileres' && <CalcFrame key="alquileres" html={ALQUILERES_HTML} />}
-        {tab === 'objetivos' && <CalcFrame key="objetivos" html={OBJETIVOS_HTML} />}
+        {tab === 'objetivos' && (
+          <div
+            style={{
+              background: '#fff',
+              border: `1px solid ${LINE}`,
+              borderRadius: 16,
+              padding: '48px 28px',
+              textAlign: 'center',
+            }}
+          >
+            <Target size={32} strokeWidth={1.6} color={GREEN} />
+            <h2 style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 18, margin: '14px 0 6px' }}>
+              Objetivos propios
+            </h2>
+            <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 13.5, color: TEXT_MUTED, maxWidth: 380, margin: '0 auto' }}>
+              Próximamente.
+            </p>
+          </div>
+        )}
       </main>
     </div>
   )
