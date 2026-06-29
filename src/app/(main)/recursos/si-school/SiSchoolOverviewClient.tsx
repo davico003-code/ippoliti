@@ -21,6 +21,16 @@ const TOTAL_CAPSULAS: Record<string, number> = {
   'capacidad-06': 6,
 }
 
+// Un pastel por capacidad: fondo suave + tinta legible para el número.
+const PASTELES: { bg: string; ink: string }[] = [
+  { bg: '#E8F4EC', ink: '#1A5C38' }, // verde
+  { bg: '#E7F0FB', ink: '#2B5C9B' }, // azul
+  { bg: '#F0EAFB', ink: '#5B46A8' }, // lavanda
+  { bg: '#FCEBE3', ink: '#B5562F' }, // durazno
+  { bg: '#FBF4D9', ink: '#917512' }, // mantequilla
+  { bg: '#FBE9F0', ink: '#A83C66' }, // rosa
+]
+
 interface Props {
   capacidades: CapacidadMeta[]
 }
@@ -98,9 +108,11 @@ function Overview({ capacidades }: { capacidades: CapacidadMeta[] }) {
               ? styles.statusBlocked
               : styles.statusActive
 
+          const pastel = PASTELES[idx % PASTELES.length]
+
           const card = (
             <div className={shell.capItem} style={{ display: 'block', padding: 0, margin: 0 }}>
-              <div className={styles.capRomanLarge}>{cap.romano}</div>
+              <div className={styles.capRomanLarge} style={{ color: pastel.ink, opacity: 1 }}>{cap.romano}</div>
               <div className={styles.capCardTitle}>{cap.titulo}</div>
               <div className={styles.capCardSub}>{cap.subtitulo}</div>
               <div className={styles.capCardDesc}>{cap.descripcion}</div>
@@ -113,6 +125,7 @@ function Overview({ capacidades }: { capacidades: CapacidadMeta[] }) {
               <div
                 key={cap.slug}
                 className={`${styles.capCard} ${styles.capCardBlocked}`}
+                style={{ background: pastel.bg }}
                 aria-disabled="true"
               >
                 {card}
@@ -120,7 +133,7 @@ function Overview({ capacidades }: { capacidades: CapacidadMeta[] }) {
             )
           }
           return (
-            <Link key={cap.slug} href={`/recursos/si-school/capacidad/${cap.slug}`} className={styles.capCard}>
+            <Link key={cap.slug} href={`/recursos/si-school/capacidad/${cap.slug}`} className={styles.capCard} style={{ background: pastel.bg }}>
               {card}
             </Link>
           )
@@ -131,7 +144,7 @@ function Overview({ capacidades }: { capacidades: CapacidadMeta[] }) {
         <div className={styles.ctaText}>
           <h3 className={styles.ctaTitle}>
             {completedMap[currentSlug] === undefined || completedMap[currentSlug] === 0
-              ? 'Empezá por Capacidad I — Pensar como SI'
+              ? 'Empezá por Capacidad 1 — Pensar como SI'
               : 'Continuá donde te quedaste'}
           </h3>
           <p className={styles.ctaSub}>
@@ -139,7 +152,7 @@ function Overview({ capacidades }: { capacidades: CapacidadMeta[] }) {
           </p>
         </div>
         <Link href={`/recursos/si-school/capacidad/${currentSlug}`} className={styles.ctaBtn}>
-          {completedMap[currentSlug] && completedMap[currentSlug] > 0 ? 'Continuar' : 'Empezar Capacidad I'} →
+          {completedMap[currentSlug] && completedMap[currentSlug] > 0 ? 'Continuar' : 'Empezar Capacidad 1'} →
         </Link>
       </aside>
 
