@@ -431,58 +431,39 @@ function FeedbackCostosSection({ data }: { data: { up: number; mid: number; down
         style={{
           background: '#fff',
           border: `1px solid ${LINE}`,
-          borderRadius: 18,
-          padding: 'clamp(20px, 3vw, 28px)',
+          borderRadius: 12,
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          flexWrap: 'wrap',
+          fontFamily: POPPINS,
         }}
       >
         {total === 0 ? (
-          <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 14, color: TEXT_SOFT, margin: 0 }}>
+          <p style={{ fontWeight: 300, fontSize: 13, color: TEXT_SOFT, margin: 0 }}>
             Sin respuestas todavía
           </p>
         ) : (
           <>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                gap: 14,
-                marginBottom: 20,
-              }}
-            >
-              <div style={{ background: PAPER, border: `1px solid ${LINE}`, borderRadius: 12, padding: '16px 18px' }}>
-                <div style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 26, color: TEXT, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
-                  {total}
-                </div>
-                <div style={{ marginTop: 6, fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT }}>
-                  Respuestas totales
-                </div>
-              </div>
-              {filas.map((f) => (
-                <div key={f.label} style={{ background: PAPER, border: `1px solid ${LINE}`, borderRadius: 12, padding: '16px 18px' }}>
-                  <div style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 26, color: TEXT, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
-                    {f.emoji} {f.valor}
-                    <span style={{ fontSize: 14, fontWeight: 500, color: f.color, marginLeft: 8 }}>{pct(f.valor)}%</span>
-                  </div>
-                  <div style={{ marginTop: 6, fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT }}>
-                    {f.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Barra de proporción verde / gris / rojo suave */}
+            <span style={{ fontWeight: 600, fontSize: 14, color: TEXT, whiteSpace: 'nowrap' }}>
+              {total} <span style={{ fontWeight: 300, fontSize: 12, color: TEXT_SOFT }}>respuestas</span>
+            </span>
+            {filas.map((f) => (
+              <span key={f.label} title={f.label} style={{ fontWeight: 500, fontSize: 13.5, color: TEXT, whiteSpace: 'nowrap' }}>
+                {f.emoji} {f.valor}
+                <span style={{ fontSize: 12, color: f.color, marginLeft: 5 }}>{pct(f.valor)}%</span>
+              </span>
+            ))}
             <div
               role="img"
-              aria-label={`Proporción de votos: ${pct(data.up)}% positivos, ${pct(data.mid)}% neutros, ${pct(data.down)}% negativos`}
-              style={{ display: 'flex', height: 10, borderRadius: 99, overflow: 'hidden', background: LINE }}
+              aria-label={`Proporción: ${pct(data.up)}% positivos, ${pct(data.mid)}% neutros, ${pct(data.down)}% negativos`}
+              style={{ display: 'flex', height: 6, borderRadius: 99, overflow: 'hidden', background: LINE, flex: 1, minWidth: 120 }}
             >
               {filas.map(
                 (f) =>
                   f.valor > 0 && (
-                    <div
-                      key={f.label}
-                      style={{ width: `${(f.valor / total) * 100}%`, background: f.color }}
-                    />
+                    <div key={f.label} style={{ width: `${(f.valor / total) * 100}%`, background: f.color }} />
                   ),
               )}
             </div>
