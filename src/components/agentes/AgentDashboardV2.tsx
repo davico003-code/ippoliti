@@ -213,8 +213,6 @@ export default function AgentDashboardV2({
             </Link>
           }
         />
-        <div style={{ marginBottom: isAdmin ? 44 : 0 }} />
-
         {isAdmin && (
           <AdminSection
             clientesGlobal={clientesEnCartera}
@@ -632,7 +630,7 @@ function WideCard({
       >
         {icon}
       </span>
-      <div style={{ flex: 1, minWidth: 200 }}>
+      <div style={{ flex: '1 1 220px', minWidth: 0 }}>
         <h3 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, margin: '0 0 2px', color: '#1c1c1e' }}>
           {title}
         </h3>
@@ -689,12 +687,15 @@ function AdminSection({
   const agentesActivos = ADMIN_MOCK_AGENTS.length
   const completos = ADMIN_MOCK_AGENTS.filter((a) => a.capacidadesDone >= TOTAL_CAPACIDADES).length
 
+  // Un color de acento por stat, en sync con las tarjetas de "Tus herramientas"
+  // (Autorizaciones ↔ coral de Autorización de Venta Digital, Con SI School
+  // completo ↔ dorado de SI School) para que el panel se lea como un sistema.
   const stats = useMemo(
     () => [
-      { label: 'Agentes activos', value: String(agentesActivos) },
-      { label: 'Clientes en cartera', value: String(clientesGlobal) },
-      { label: 'Autorizaciones este mes', value: String(autorizacionesMes) },
-      { label: 'Con SI School completo', value: `${completos}/${agentesActivos}` },
+      { label: 'Agentes activos', value: String(agentesActivos), color: GREEN },
+      { label: 'Clientes en cartera', value: String(clientesGlobal), color: '#2B5C9B' },
+      { label: 'Autorizaciones este mes', value: String(autorizacionesMes), color: '#B5562F' },
+      { label: 'Con SI School completo', value: `${completos}/${agentesActivos}`, color: GOLD },
     ],
     [agentesActivos, clientesGlobal, autorizacionesMes, completos],
   )
@@ -719,7 +720,13 @@ function AdminSection({
         {stats.map((s) => (
           <div
             key={s.label}
-            style={{ background: '#fff', border: `1px solid ${LINE}`, borderRadius: 14, padding: '16px 18px' }}
+            style={{
+              background: '#fff',
+              border: `1px solid ${LINE}`,
+              borderLeft: `3px solid ${s.color}`,
+              borderRadius: 14,
+              padding: '16px 18px 16px 15px',
+            }}
           >
             <div style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 28, color: TEXT, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
               {s.value}
@@ -768,12 +775,13 @@ function EquipoSection() {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="w-full"
           style={{
             width: '100%',
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '8px 12px',
             background: 'none',
             border: 'none',
             cursor: 'pointer',
@@ -781,14 +789,17 @@ function EquipoSection() {
             textAlign: 'left',
           }}
         >
-          <span style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, color: TEXT }}>Equipo</span>
-          <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 12.5, color: TEXT_SOFT }}>Progreso en SI School</span>
-          <span style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: GREEN, background: 'rgba(26,92,56,0.08)', borderRadius: 999, padding: '3px 9px' }}>
-            Solo administrador
+          <span style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, color: TEXT }}>Equipo</span>
+            <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 12.5, color: TEXT_SOFT }}>Progreso en SI School</span>
+            <span style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: GREEN, background: 'rgba(26,92,56,0.08)', borderRadius: 999, padding: '3px 9px' }}>
+              Solo administrador
+            </span>
           </span>
-          <span style={{ flex: 1 }} />
-          <span style={{ fontFamily: POPPINS, fontSize: 12.5, color: TEXT_SOFT }}>{agents.length} agentes</span>
-          <ChevronDown size={18} color={TEXT_SOFT} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+          <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+            <span style={{ fontFamily: POPPINS, fontSize: 12.5, color: TEXT_SOFT }}>{agents.length} agentes</span>
+            <ChevronDown size={18} color={TEXT_SOFT} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+          </span>
         </button>
 
         {open && (
@@ -798,7 +809,7 @@ function EquipoSection() {
                 const pct = ag.capacidadesDone / TOTAL_CAPACIDADES
                 const completed = ag.capacidadesDone >= TOTAL_CAPACIDADES
                 return (
-                  <div key={ag.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 4px', borderTop: `1px solid ${LINE}` }}>
+                  <div key={ag.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, padding: '10px 4px', borderTop: `1px solid ${LINE}` }}>
                     <span
                       aria-hidden
                       style={{
