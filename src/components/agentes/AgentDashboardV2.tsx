@@ -6,14 +6,13 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   Calculator,
-  Check,
   ChevronDown,
   FileText,
   GraduationCap,
+  LogOut,
   Mail,
   Newspaper,
   PieChart,
-  RefreshCw,
   Users,
 } from 'lucide-react'
 
@@ -26,7 +25,6 @@ const GREEN = '#1A5C38'
 const GREEN_DARK = '#143E27'
 const GOLD = '#B8935A'
 const GOLD_TINT = '#F5EFE3'
-const PAPER = '#FAF7F2'
 const BG = '#FAFAFA'
 const LINE = '#E4E4E7'
 const TEXT = '#09090B'
@@ -245,27 +243,12 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
     router.refresh()
   }
 
-  // Actualizar manualmente el cache de Tokko (botón del header). Estados:
-  // idle → cargando → ok/error, y vuelve a idle a los ~3.5s.
-  const [tokkoEstado, setTokkoEstado] = useState<'idle' | 'cargando' | 'ok' | 'error'>('idle')
-  const actualizarTokko = async () => {
-    if (tokkoEstado === 'cargando') return
-    setTokkoEstado('cargando')
-    try {
-      const res = await fetch('/api/agentes/revalidate-tokko', { method: 'POST' })
-      setTokkoEstado(res.ok ? 'ok' : 'error')
-    } catch {
-      setTokkoEstado('error')
-    }
-    setTimeout(() => setTokkoEstado('idle'), 3500)
-  }
-
   return (
     <header
       style={{
         background: '#fff',
         borderBottom: `1px solid ${LINE}`,
-        padding: '14px clamp(18px, 4vw, 32px)',
+        padding: '13px clamp(18px, 4vw, 32px)',
         position: 'sticky',
         top: 0,
         zIndex: 20,
@@ -277,109 +260,90 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
           margin: '0 auto',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           gap: 16,
-          flexWrap: 'wrap',
         }}
       >
-        <button
-          type="button"
-          onClick={actualizarTokko}
-          disabled={tokkoEstado === 'cargando'}
-          title="Traé a la web los últimos cambios cargados en Tokko"
+        <span
           style={{
-            marginLeft: 'auto',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 7,
-            background: tokkoEstado === 'ok' ? GREEN : '#fff',
-            border: `1px solid ${tokkoEstado === 'ok' ? GREEN : LINE}`,
-            borderRadius: 999,
-            padding: '7px 14px',
-            cursor: tokkoEstado === 'cargando' ? 'default' : 'pointer',
             fontFamily: POPPINS,
-            fontSize: 12.5,
-            fontWeight: 500,
-            color: tokkoEstado === 'ok' ? '#fff' : TEXT_MUTED,
-            transition: 'background 0.2s, color 0.2s, border-color 0.2s',
-            whiteSpace: 'nowrap',
+            fontWeight: 600,
+            fontSize: 11,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: TEXT_SOFT,
           }}
         >
-          {tokkoEstado === 'ok' ? (
-            <>
-              <Check size={15} strokeWidth={2.4} />
-              Actualizado
-            </>
-          ) : tokkoEstado === 'error' ? (
-            <>
-              <RefreshCw size={15} strokeWidth={2} />
-              Reintentar
-            </>
-          ) : (
-            <>
-              <RefreshCw
-                size={15}
-                strokeWidth={2}
-                style={tokkoEstado === 'cargando' ? { animation: 'si-spin 0.8s linear infinite' } : undefined}
-              />
-              {tokkoEstado === 'cargando' ? 'Actualizando…' : 'Actualizar Tokko'}
-            </>
-          )}
-        </button>
-        <style dangerouslySetInnerHTML={{ __html: `@keyframes si-spin { to { transform: rotate(360deg) } }` }} />
+          Panel de agentes
+        </span>
 
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 10,
-            background: PAPER,
-            border: `1px solid ${LINE}`,
-            borderRadius: 999,
-            padding: '6px 14px 6px 6px',
-          }}
-        >
-          <span
-            aria-hidden
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DARK} 100%)`,
-              color: '#fff',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '4px 6px',
+              borderRadius: 999,
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DARK} 100%)`,
+                color: '#fff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: POPPINS,
+                fontWeight: 600,
+                fontSize: 12,
+                flexShrink: 0,
+              }}
+            >
+              {initials}
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <span style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 13, color: TEXT, whiteSpace: 'nowrap' }}>{name}</span>
+              <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 11, color: TEXT_SOFT }}>{role}</span>
+            </div>
+          </div>
+
+          <span aria-hidden style={{ width: 1, height: 24, background: LINE, margin: '0 6px' }} />
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Cerrar sesión"
+            aria-label="Cerrar sesión"
+            className="agent-logout-btn"
+            style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontFamily: POPPINS,
-              fontWeight: 600,
-              fontSize: 12,
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: TEXT_SOFT,
+              transition: 'background 0.15s, color 0.15s',
             }}
           >
-            {initials}
-          </span>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <span style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 13, color: TEXT }}>{name}</span>
-            <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 11, color: TEXT_SOFT }}>{role}</span>
-          </div>
+            <LogOut size={16} strokeWidth={1.8} />
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={handleLogout}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: POPPINS,
-            fontSize: 12.5,
-            color: TEXT_SOFT,
-            padding: '6px 10px',
-          }}
-        >
-          Salir
-        </button>
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
+        .agent-logout-btn:hover {
+          background: rgba(224, 90, 90, 0.1);
+          color: #C0563E;
+        }
         .agent-placa-card:hover {
           box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
           transform: translateY(-2px);
