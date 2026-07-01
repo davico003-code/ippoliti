@@ -219,15 +219,15 @@ export default function PropertyDetailBody({
                   <img
                     src={producer.picture}
                     alt={name}
-                    width={44}
-                    height={44}
-                    className="w-11 h-11 rounded-full object-cover flex-shrink-0 bg-gray-100"
+                    width={56}
+                    height={56}
+                    className="w-14 h-14 rounded-full object-cover flex-shrink-0 bg-gray-100"
                     loading="lazy"
                     decoding="async"
                   />
                 ) : (
                   <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                    className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
                     style={{ background: '#1A5C38', fontFamily: "'Raleway', system-ui, sans-serif" }}
                   >
                     {initials}
