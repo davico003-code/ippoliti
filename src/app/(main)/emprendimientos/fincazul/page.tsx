@@ -17,6 +17,7 @@ import {
   TreePine,
 } from 'lucide-react'
 import PlanosGalleryLazy from '@/components/fincazul/PlanosGalleryLazy'
+import HeroBgVideo from '@/components/fincazul/HeroBgVideo'
 
 const GREEN = '#1A5C38'
 const WA_TEXT = encodeURIComponent(
@@ -124,16 +125,18 @@ export default function FincazulPage() {
   return (
     <div className="bg-white" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
       {/* ── Hero ── */}
-      <section className="relative min-h-[78vh] flex items-end">
+      <section className="relative min-h-[82vh] flex items-end overflow-hidden">
+        {/* Póster de base (LCP) + video de fondo que hace fade-in encima */}
         <Image
-          src={`${BASE}/portada.jpg`}
+          src={`${BASE}/hero-poster.jpg`}
           alt="Fincazul — casas en condominio en Funes"
           fill
           priority
           className="object-cover"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/30" />
+        <HeroBgVideo poster={`${BASE}/hero-poster.jpg`} mp4="/videos/fincazul-hero.mp4" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/35" />
         <div className="relative z-10 w-full max-w-6xl mx-auto px-5 pb-14 pt-40 text-white">
           <Link
             href="/emprendimientos"
