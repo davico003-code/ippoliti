@@ -16,6 +16,7 @@ import {
   Shield,
   TreePine,
 } from 'lucide-react'
+import PlanosGalleryLazy from '@/components/fincazul/PlanosGalleryLazy'
 
 const GREEN = '#1A5C38'
 const WA_TEXT = encodeURIComponent(
@@ -250,28 +251,9 @@ export default function FincazulPage() {
           <p className="text-xs font-bold tracking-[0.2em] uppercase mb-2" style={{ color: GREEN }}>
             Planos
           </p>
-          <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-6">Conocé la unidad y el conjunto</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {PLANOS.map((p) => (
-              <figure key={p.src} className="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm">
-                <div className="relative aspect-[2482/1755] bg-white">
-                  <Image
-                    src={`${BASE}/${p.src}`}
-                    alt={`Fincazul — ${p.label}`}
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-                <figcaption
-                  className="px-5 py-3 text-[13px] font-semibold text-gray-600 border-t border-gray-100"
-                  style={{ fontFamily: 'var(--font-poppins), Poppins, sans-serif' }}
-                >
-                  {p.label}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Conocé la unidad y el conjunto</h2>
+          <p className="text-gray-500 text-sm mb-6">Tocá un plano para ampliarlo y ver las medidas en detalle.</p>
+          <PlanosGalleryLazy base={BASE} planos={PLANOS} />
         </div>
       </section>
 
