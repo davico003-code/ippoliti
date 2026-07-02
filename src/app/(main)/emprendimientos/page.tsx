@@ -143,7 +143,7 @@ export default async function EmprendimientosPage() {
               >
                 <div className="relative h-64 bg-gray-100 overflow-hidden">
                   <Image
-                    src="/emprendimientos/fincazul/render-1.jpg"
+                    src="/emprendimientos/fincazul/render-3.jpg"
                     alt="Fincazul - Casas en condominio en Funes"
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
@@ -168,8 +168,8 @@ export default async function EmprendimientosPage() {
                     <span>Paseo del Norte, Funes</span>
                   </div>
                   <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
-                    Conjuntos privados de doce casas con portón de acceso. Casas de 2 dormitorios
-                    con jardín, piscina y parrillero propios. Desarrollado por MSR, muy cerca de Fisherton.
+                    Conjuntos privados de doce casas dúplex con portón de acceso. 2 dormitorios y
+                    2 baños, con jardín, piscina y parrillero propios. Desarrollado por MSR, muy cerca de Fisherton.
                   </p>
                   <div className="mt-auto pt-2">
                     <span className="inline-flex items-center gap-1.5 text-brand-600 font-bold text-sm group-hover:gap-2.5 transition-all">

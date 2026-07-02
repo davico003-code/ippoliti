@@ -35,7 +35,7 @@ export const metadata: Metadata = {
       'Conjuntos privados de 12 casas con portón de acceso. 2 dormitorios, jardín, piscina y parrillero propios. Paseo del Norte, Funes.',
     url: 'https://siinmobiliaria.com/emprendimientos/fincazul',
     siteName: 'SI Inmobiliaria',
-    images: [{ url: `${BASE}/render-1.jpg`, width: 1500, height: 843, alt: 'Fincazul · Funes' }],
+    images: [{ url: `${BASE}/render-3.jpg`, width: 1500, height: 843, alt: 'Fincazul · Funes' }],
     locale: 'es_AR',
     type: 'website',
   },
@@ -55,8 +55,24 @@ const PILARES = [
   {
     icon: Home,
     titulo: 'Tu confort',
-    texto: 'La dimensión precisa para tu vida: casas de 2 dormitorios con jardín, piscina y parrillero propios.',
+    texto: 'La dimensión precisa para tu vida: casas dúplex de 2 dormitorios y 2 baños, con jardín, piscina y parrillero propios.',
   },
+]
+
+const SPECS = [
+  '12 casas dúplex',
+  '2 dormitorios',
+  '2 baños',
+  'Estacionamiento',
+  'Pileta y parrillero propios',
+  'Portón de acceso y calle interna',
+]
+
+const PLANOS = [
+  { src: 'plano-unidad.jpg', label: 'Planta baja y alta · Unidad tipo' },
+  { src: 'plano-planta-baja.jpg', label: 'Planta baja · Conjunto' },
+  { src: 'plano-planta-alta.jpg', label: 'Planta alta · Conjunto' },
+  { src: 'plano-plantas-conjunto.jpg', label: 'Plantas · Conjunto completo' },
 ]
 
 const OBRA_ITEMS = [
@@ -88,7 +104,7 @@ export default function FincazulPage() {
       {/* ── Hero ── */}
       <section className="relative min-h-[78vh] flex items-end">
         <Image
-          src={`${BASE}/render-1.jpg`}
+          src={`${BASE}/render-3.jpg`}
           alt="Fincazul — casas en condominio en Funes"
           fill
           priority
@@ -145,6 +161,17 @@ export default function FincazulPage() {
             crecimiento de valor. Construidas por MSR Casa, con la experiencia y garantía
             de MSR: 250.000 m² construidos en 23 años de trayectoria.
           </p>
+          <div className="flex flex-wrap justify-center gap-2 mt-8">
+            {SPECS.map((s) => (
+              <span
+                key={s}
+                className="px-4 py-2 rounded-full text-[13px] font-semibold border"
+                style={{ color: GREEN, borderColor: '#D5E5DB', background: '#F3F9F5', fontFamily: 'var(--font-poppins), Poppins, sans-serif' }}
+              >
+                {s}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -191,6 +218,37 @@ export default function FincazulPage() {
                   sizes={i === 0 ? '(max-width: 768px) 100vw, 66vw' : '(max-width: 768px) 50vw, 33vw'}
                 />
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Planos ── */}
+      <section id="planos" className="pb-16 md:pb-20 px-5">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-xs font-bold tracking-[0.2em] uppercase mb-2" style={{ color: GREEN }}>
+            Planos
+          </p>
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-6">Conocé la unidad y el conjunto</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {PLANOS.map((p) => (
+              <figure key={p.src} className="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm">
+                <div className="relative aspect-[2482/1755] bg-white">
+                  <Image
+                    src={`${BASE}/${p.src}`}
+                    alt={`Fincazul — ${p.label}`}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+                <figcaption
+                  className="px-5 py-3 text-[13px] font-semibold text-gray-600 border-t border-gray-100"
+                  style={{ fontFamily: 'var(--font-poppins), Poppins, sans-serif' }}
+                >
+                  {p.label}
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
