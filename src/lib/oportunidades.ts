@@ -8,13 +8,14 @@
 
 import { redis } from '@/lib/redis'
 
-export const HOOKS = ['motivado', 'permuta', 'negociable'] as const
+export const HOOKS = ['motivado', 'permuta', 'negociable', 'bajo-precio'] as const
 export type Hook = (typeof HOOKS)[number]
 
 export const HOOK_META: Record<Hook, { badge: string; cta: string }> = {
   motivado: { badge: 'Vendedor motivado', cta: 'Pasá a conocerla' },
   permuta: { badge: 'Acepta permuta', cta: 'Pasá a conocerla' },
   negociable: { badge: 'Margen para negociar', cta: 'Hacé tu oferta' },
+  'bajo-precio': { badge: 'Bajó el precio', cta: 'Miralá ahora' },
 }
 
 export interface Oportunidad {
@@ -23,6 +24,9 @@ export interface Oportunidad {
   titulo: string
   foto: string | null
   precio: string
+  /** Solo para hook 'bajo-precio': precio anterior ya formateado y % de baja. */
+  precioAnterior?: string
+  pctBaja?: number
   /** URL relativa de la ficha (/propiedades/<slug>). */
   href: string
   createdAt: number

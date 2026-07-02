@@ -69,12 +69,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No se encontró esa propiedad' }, { status: 404 })
   }
 
+  // "Bajó el precio" necesita el precio anterior (numérico) para tacharlo y
+  // calcular el % de baja contra el precio publicado actual.
+  let precioAnterior: string | undefined
+  let pctBaja: number | undefined
+  if (hook === 'bajo-precio') {
+    const anterior = Number(body?.precioAnterior)
+    const actualOp = prop.operations?.[0]?.prices?.[0]
+    const actual = Number(actualOp?.price)
+    if (!Number.isFinite(anterior) || anterior <= 0) {
+      return NextResponse.json({ error: 'Ingresá el precio anterior (número) para "Bajó el precio"' }, { status: 400 })
+    }
+    if (!Number.isFinite(actual) || actual <= 0 || anterior <= actual) {
+      return NextResponse.json({ error: 'El precio anterior tiene que ser mayor al publicado actual' }, { status: 400 })
+    }
+    const currency = actualOp?.currency || 'USD'
+    precioAnterior = `${currency} ${anterior.toLocaleString('es-AR')}`
+    pctBaja = Math.round(((anterior - actual) / anterior) * 1000) / 10
+  }
+
   const nueva = {
     propertyId,
     hook,
     titulo: prop.publication_title || prop.fake_address || prop.address || `Propiedad ${propertyId}`,
     foto: getMainPhoto(prop),
     precio: formatPrice(prop),
+    ...(precioAnterior ? { precioAnterior, pctBaja } : {}),
     href: `/propiedades/${generatePropertySlug(prop)}`,
     createdAt: Date.now(),
   }

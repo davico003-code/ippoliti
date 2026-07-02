@@ -21,6 +21,7 @@ const HOOK_OPTIONS: { value: Hook; label: string; cta: string }[] = [
   { value: 'motivado', label: 'Vendedor motivado', cta: 'Pasá a conocerla' },
   { value: 'permuta', label: 'Acepta permuta', cta: 'Pasá a conocerla' },
   { value: 'negociable', label: 'Margen para negociar', cta: 'Hacé tu oferta' },
+  { value: 'bajo-precio', label: 'Bajó el precio', cta: 'Miralá ahora' },
 ]
 
 /** Acepta un ID pelado o una URL de ficha (/propiedades/1234567-slug). */
@@ -35,6 +36,7 @@ export default function OportunidadesManager({ initialItems }: { initialItems: O
   const [items, setItems] = useState<Oportunidad[]>(initialItems)
   const [input, setInput] = useState('')
   const [hook, setHook] = useState<Hook>('motivado')
+  const [precioAnterior, setPrecioAnterior] = useState('')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
@@ -44,13 +46,21 @@ export default function OportunidadesManager({ initialItems }: { initialItems: O
       setMsg({ ok: false, text: 'Pegá el link de la ficha o el ID numérico de la propiedad.' })
       return
     }
+    if (hook === 'bajo-precio' && !Number(precioAnterior.replace(/\D/g, ''))) {
+      setMsg({ ok: false, text: 'Ingresá el precio anterior para "Bajó el precio".' })
+      return
+    }
     setBusy(true)
     setMsg(null)
     try {
       const res = await fetch('/api/oportunidades', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ propertyId, hook }),
+        body: JSON.stringify({
+          propertyId,
+          hook,
+          ...(hook === 'bajo-precio' ? { precioAnterior: Number(precioAnterior.replace(/\D/g, '')) } : {}),
+        }),
       })
       const d = await res.json()
       if (!res.ok) {
@@ -58,6 +68,7 @@ export default function OportunidadesManager({ initialItems }: { initialItems: O
       } else {
         setItems((prev) => [...prev, d.item])
         setInput('')
+        setPrecioAnterior('')
         setMsg({ ok: true, text: 'Agregada — ya aparece en el popup del sitio.' })
       }
     } catch {
@@ -105,13 +116,22 @@ export default function OportunidadesManager({ initialItems }: { initialItems: O
             />
             <select
               value={hook}
-              onChange={(e) => setHook(e.target.value as Hook)}
+              onChange={(e) => { setHook(e.target.value as Hook); setMsg(null) }}
               style={{ padding: '11px 12px', border: `1px solid ${LINE}`, borderRadius: 10, fontSize: 13.5, fontFamily: POPPINS, background: '#fff', cursor: 'pointer' }}
             >
               {HOOK_OPTIONS.map((h) => (
                 <option key={h.value} value={h.value}>{h.label} · {h.cta}</option>
               ))}
             </select>
+            {hook === 'bajo-precio' && (
+              <input
+                value={precioAnterior}
+                onChange={(e) => { setPrecioAnterior(e.target.value); setMsg(null) }}
+                inputMode="numeric"
+                placeholder="Precio anterior (ej: 300000)"
+                style={{ flex: '0 1 200px', padding: '11px 14px', border: `1px solid ${LINE}`, borderRadius: 10, fontSize: 14, fontFamily: POPPINS, outline: 'none' }}
+              />
+            )}
             <button
               type="button"
               onClick={agregar}
@@ -150,7 +170,8 @@ export default function OportunidadesManager({ initialItems }: { initialItems: O
                       {it.titulo}
                     </div>
                     <div style={{ fontFamily: POPPINS, fontSize: 12, color: TEXT_MUTED, marginTop: 2 }}>
-                      {it.precio} · <span style={{ color: GREEN, fontWeight: 600 }}>{meta?.label}</span> · ID {it.propertyId}
+                      {it.precioAnterior ? <><s style={{ color: '#A1A1AA' }}>{it.precioAnterior}</s> {it.precio} (−{String(it.pctBaja).replace('.', ',')}%)</> : it.precio}
+                      {' · '}<span style={{ color: GREEN, fontWeight: 600 }}>{meta?.label}</span> · ID {it.propertyId}
                     </div>
                   </div>
                   <a href={it.href} target="_blank" rel="noopener noreferrer" style={{ fontFamily: POPPINS, fontSize: 12.5, fontWeight: 600, color: GREEN, textDecoration: 'none', flexShrink: 0 }}>
