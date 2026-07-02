@@ -168,7 +168,13 @@ export default async function DevelopmentPage({ params }: Props) {
       {/* Hero — tour 360° cargado directo si está configurado (67178);
           si no, la imagen original con título y badges. */}
       {isDistrito ? (
-        <HeroTour360 url={tourUrl} titulo="Tour 360° Distrito Roldán" />
+        <HeroTour360
+          url={tourUrl}
+          titulo="Tour 360° Distrito Roldán"
+          badge="Mapa interactivo de lotes"
+          cropTop={54}
+          cropTopMobile={64}
+        />
       ) : mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
           <Image src={mainPhoto} alt={dev.name} fill className="object-cover" sizes="100vw" priority />
