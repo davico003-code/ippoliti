@@ -11,6 +11,7 @@
 //   3. Link para colega (POST /api/ficha/crear → copia URL verficha.casa)
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Share2, MessageCircle, Link2, Check, Sparkles } from 'lucide-react'
 
 import { generarYCopiarFichaLink } from '@/lib/share-ficha'
@@ -50,19 +51,31 @@ export default function PropertyShareButton({
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [generandoFicha, setGenerandoFicha] = useState(false)
+  // Posición fija del popover (se calcula desde el botón al abrir). El menú
+  // se dibuja en un portal sobre <body>: las cards tienen overflow:hidden y
+  // adentro se recortaba.
+  const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; left: number } | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent | TouchEvent) => {
-      if (!wrapRef.current) return
-      if (!wrapRef.current.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (wrapRef.current?.contains(t) || menuRef.current?.contains(t)) return
+      setOpen(false)
     }
+    // Cerrar al scrollear/resize: la posición fija quedaría desactualizada.
+    const onMove = () => setOpen(false)
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('touchstart', onDoc)
+    window.addEventListener('scroll', onMove, true)
+    window.addEventListener('resize', onMove)
     return () => {
       document.removeEventListener('mousedown', onDoc)
       document.removeEventListener('touchstart', onDoc)
+      window.removeEventListener('scroll', onMove, true)
+      window.removeEventListener('resize', onMove)
     }
   }, [open])
 
@@ -76,8 +89,20 @@ export default function PropertyShareButton({
     e.stopPropagation()
   }
 
+  const MENU_W = 200
+
   const onToggle = (e: React.MouseEvent) => {
     stopAll(e)
+    if (!open) {
+      const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      // Alineado al borde derecho del botón, clampeado a los bordes del viewport.
+      const left = Math.min(Math.max(8, r.right - MENU_W), window.innerWidth - MENU_W - 8)
+      setMenuPos(
+        popoverDirection === 'up'
+          ? { bottom: window.innerHeight - r.top + 8, left }
+          : { top: r.bottom + 8, left },
+      )
+    }
     setOpen(o => !o)
   }
 
@@ -150,10 +175,6 @@ export default function PropertyShareButton({
         WebkitBackdropFilter: 'blur(4px)',
       }
 
-  const popoverPositionStyle: React.CSSProperties = popoverDirection === 'up'
-    ? { bottom: 'calc(100% + 8px)', right: 0 }
-    : { top: 'calc(100% + 8px)', right: 0 }
-
   return (
     <div
       ref={wrapRef}
@@ -170,19 +191,23 @@ export default function PropertyShareButton({
         <Share2 size={Math.round(size * 0.5)} style={{ color: buttonVariant === 'card' ? '#6b7280' : '#1f2937' }} />
       </button>
 
-      {open && (
+      {open && menuPos && createPortal(
         <div
+          ref={menuRef}
           role="menu"
           onClick={stopAll}
           style={{
-            position: 'absolute',
-            ...popoverPositionStyle,
-            width: 220,
+            position: 'fixed',
+            top: menuPos.top,
+            bottom: menuPos.bottom,
+            left: menuPos.left,
+            width: MENU_W,
             background: '#fff',
-            borderRadius: 14,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
-            padding: '6px 0',
-            zIndex: 100,
+            border: '1px solid #ECECEE',
+            borderRadius: 12,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.13)',
+            padding: '5px 0',
+            zIndex: 200,
             fontFamily: R,
           }}
         >
@@ -190,20 +215,20 @@ export default function PropertyShareButton({
             type="button"
             role="menuitem"
             onClick={onWhatsApp}
-            className="w-full flex items-center gap-3 text-left"
+            className="w-full flex items-center gap-2.5 text-left hover:bg-gray-50"
             style={{
-              padding: '12px 16px',
+              padding: '9px 13px',
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: 500,
               color: '#1a1a1a',
               fontFamily: R,
             }}
           >
-            <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#22c55e' }}>
-              <MessageCircle className="w-4 h-4 text-white" />
+            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 26, height: 26, borderRadius: '50%', background: '#22c55e' }}>
+              <MessageCircle className="w-3.5 h-3.5 text-white" />
             </div>
             Enviar por WhatsApp
           </button>
@@ -212,50 +237,51 @@ export default function PropertyShareButton({
             type="button"
             role="menuitem"
             onClick={onCopy}
-            className="w-full flex items-center gap-3 text-left"
+            className="w-full flex items-center gap-2.5 text-left hover:bg-gray-50"
             style={{
-              padding: '12px 16px',
+              padding: '9px 13px',
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: 500,
               color: '#1a1a1a',
               fontFamily: R,
             }}
           >
-            <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#eef1f2' }}>
-              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Link2 className="w-4 h-4 text-gray-600" />}
+            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 26, height: 26, borderRadius: '50%', background: '#eef1f2' }}>
+              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Link2 className="w-3.5 h-3.5 text-gray-600" />}
             </div>
             {copied ? 'Copiado!' : 'Copiar link'}
           </button>
 
-          <div style={{ height: 1, background: '#f0f3f5', margin: '4px 12px' }} />
+          <div style={{ height: 1, background: '#f0f3f5', margin: '3px 11px' }} />
 
           <button
             type="button"
             role="menuitem"
             onClick={onFicha}
             disabled={generandoFicha}
-            className="w-full flex items-center gap-3 text-left"
+            className="w-full flex items-center gap-2.5 text-left"
             style={{
-              padding: '12px 16px',
+              padding: '9px 13px',
               background: '#fafaf8',
               border: 'none',
               cursor: generandoFicha ? 'wait' : 'pointer',
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: 600,
               color: '#1A5C38',
               fontFamily: R,
               opacity: generandoFicha ? 0.7 : 1,
             }}
           >
-            <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#e7f2eb' }}>
-              <Sparkles className="w-4 h-4" style={{ color: '#1A5C38' }} />
+            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 26, height: 26, borderRadius: '50%', background: '#e7f2eb' }}>
+              <Sparkles className="w-3.5 h-3.5" style={{ color: '#1A5C38' }} />
             </div>
             {generandoFicha ? 'Generando…' : 'Link para colega'}
           </button>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
