@@ -11,6 +11,7 @@ import {
   GraduationCap,
   LogOut,
   Mail,
+  Megaphone,
   Newspaper,
   PieChart,
   Users,
@@ -757,6 +758,15 @@ function AdminSection({
           title="Notas del Blog"
           description="Editá, subí portada o borrá notas."
           statLabel="Editar · portada · borrar"
+        />
+        <PlacaCard
+          href="/agentes/oportunidades"
+          icon={<Megaphone size={22} strokeWidth={1.8} />}
+          pastel="#FCEBE3"
+          iconColor="#B5562F"
+          title="Oportunidades"
+          description="Popup del sitio: vendedor motivado, permuta, negociable."
+          statLabel="Gestionar popup"
         />
       </div>
     </section>

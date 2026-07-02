@@ -56,6 +56,8 @@ export default function AgentShell({ agentName, agentRole, children }: Props) {
   if (pathname === '/agentes/seleccion') return <>{children}</>
   // Análisis de cartera: layout propio full-width.
   if (pathname === '/agentes/cartera') return <>{children}</>
+  // Oportunidades (gestor del popup): layout propio full-width.
+  if (pathname === '/agentes/oportunidades') return <>{children}</>
 
   const isActive = (href: string) => {
     if (href === '/agentes') return pathname === '/agentes'
