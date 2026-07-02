@@ -948,6 +948,9 @@ export default function PropiedadesView({
         return sb - sa
       }
       case 'recientes':
+        // El feed no expone fecha de alta; el ID de Tokko es incremental,
+        // así que ID más alto ≈ cargada más recientemente.
+        return (Number(b.id) || 0) - (Number(a.id) || 0)
       default:
         return 0
     }
