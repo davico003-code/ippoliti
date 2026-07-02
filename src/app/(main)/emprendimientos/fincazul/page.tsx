@@ -35,7 +35,7 @@ export const metadata: Metadata = {
       'Conjuntos privados de 12 casas con portón de acceso. 2 dormitorios, jardín, piscina y parrillero propios. Paseo del Norte, Funes.',
     url: 'https://siinmobiliaria.com/emprendimientos/fincazul',
     siteName: 'SI Inmobiliaria',
-    images: [{ url: `${BASE}/render-3.jpg`, width: 1500, height: 843, alt: 'Fincazul · Funes' }],
+    images: [{ url: `${BASE}/portada.jpg`, width: 1402, height: 1122, alt: 'Fincazul · Funes' }],
     locale: 'es_AR',
     type: 'website',
   },
@@ -81,8 +81,29 @@ const OBRA_ITEMS = [
   'Armando estructura de pilotes, próximos a hormigonar',
 ]
 
-const RENDERS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-const OBRA_FOTOS = [1, 2, 3, 4, 5, 6]
+// Renders oficiales provistos por David (generación actual, más realista).
+const RENDERS = [
+  'render-conjunto.jpg',
+  'render-calle.jpg',
+  'render-patio.jpg',
+  'render-cocina.jpg',
+  'render-living.jpg',
+  'portada.jpg',
+]
+
+// Fotos reales: aéreas actuales del lote (actual-*) + avance de obra (obra-*).
+const OBRA_FOTOS = [
+  'actual-2.jpg',
+  'actual-1.jpg',
+  'actual-3.jpg',
+  'actual-4.jpg',
+  'obra-1.jpg',
+  'obra-2.jpg',
+  'obra-3.jpg',
+  'obra-4.jpg',
+  'obra-5.jpg',
+  'obra-6.jpg',
+]
 
 function CtaWhatsApp({ label = 'Consultar por WhatsApp' }: { label?: string }) {
   return (
@@ -104,7 +125,7 @@ export default function FincazulPage() {
       {/* ── Hero ── */}
       <section className="relative min-h-[78vh] flex items-end">
         <Image
-          src={`${BASE}/render-3.jpg`}
+          src={`${BASE}/portada.jpg`}
           alt="Fincazul — casas en condominio en Funes"
           fill
           priority
@@ -205,14 +226,14 @@ export default function FincazulPage() {
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {RENDERS.map((n, i) => (
+            {RENDERS.map((src, i) => (
               <div
-                key={n}
+                key={src}
                 className={`relative rounded-xl overflow-hidden bg-gray-100 ${i === 0 ? 'col-span-2 md:col-span-2 md:row-span-2 aspect-[16/10] md:aspect-auto' : 'aspect-[4/3]'}`}
               >
                 <Image
-                  src={`${BASE}/render-${n}.jpg`}
-                  alt={`Fincazul render ${n}`}
+                  src={`${BASE}/${src}`}
+                  alt={`Fincazul render ${i + 1}`}
                   fill
                   className="object-cover hover:scale-105 transition-transform duration-500"
                   sizes={i === 0 ? '(max-width: 768px) 100vw, 66vw' : '(max-width: 768px) 50vw, 33vw'}
@@ -282,14 +303,14 @@ export default function FincazulPage() {
               </a>
             </div>
             <div className="grid grid-cols-3 gap-2.5">
-              {OBRA_FOTOS.map((n) => (
-                <div key={n} className={`relative rounded-lg overflow-hidden bg-gray-200 ${n === 1 ? 'col-span-3 aspect-[16/9]' : 'aspect-square'}`}>
+              {OBRA_FOTOS.map((src, i) => (
+                <div key={src} className={`relative rounded-lg overflow-hidden bg-gray-200 ${i === 0 ? 'col-span-3 aspect-[16/9]' : 'aspect-square'}`}>
                   <Image
-                    src={`${BASE}/obra-${n}.jpg`}
-                    alt={`Avance de obra Fincazul ${n}`}
+                    src={`${BASE}/${src}`}
+                    alt={`Fincazul — foto real ${i + 1}`}
                     fill
                     className="object-cover"
-                    sizes={n === 1 ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 33vw, 16vw'}
+                    sizes={i === 0 ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 33vw, 16vw'}
                   />
                 </div>
               ))}
