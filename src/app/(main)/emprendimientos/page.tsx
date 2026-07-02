@@ -136,6 +136,48 @@ export default async function EmprendimientosPage() {
                   </div>
                 )
               })}
+              {/* Card Fincazul (landing propia, no viene del feed) */}
+              <Link
+                href="/emprendimientos/fincazul"
+                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 transition-all duration-300 hover:-translate-y-1 flex flex-col"
+              >
+                <div className="relative h-64 bg-gray-100 overflow-hidden">
+                  <Image
+                    src="/emprendimientos/fincazul/render-1.jpg"
+                    alt="Fincazul - Casas en condominio en Funes"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-brand-600/90 text-white uppercase tracking-wide backdrop-blur-sm">
+                      Casas en condominio
+                    </span>
+                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-white/90 text-brand-700 uppercase tracking-wide backdrop-blur-sm">
+                      En construcción
+                    </span>
+                  </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <h2 className="text-2xl font-black text-gray-900 mb-2 group-hover:text-brand-600 transition-colors">
+                    Fincazul
+                  </h2>
+                  <p className="text-brand-600 font-semibold text-sm mb-2">Tu casa en condominio en Funes</p>
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-3">
+                    <MapPin className="w-4 h-4 text-brand-500 flex-shrink-0" />
+                    <span>Paseo del Norte, Funes</span>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
+                    Conjuntos privados de doce casas con portón de acceso. Casas de 2 dormitorios
+                    con jardín, piscina y parrillero propios. Desarrollado por MSR, muy cerca de Fisherton.
+                  </p>
+                  <div className="mt-auto pt-2">
+                    <span className="inline-flex items-center gap-1.5 text-brand-600 font-bold text-sm group-hover:gap-2.5 transition-all">
+                      Ver emprendimiento <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
               {/* Card Hausing */}
               <Link
                 href="/hausing"
