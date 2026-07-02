@@ -143,7 +143,7 @@ export default async function EmprendimientosPage() {
               >
                 <div className="relative h-64 bg-gray-100 overflow-hidden">
                   <Image
-                    src="/emprendimientos/fincazul/render-3.jpg"
+                    src="/emprendimientos/fincazul/portada.jpg"
                     alt="Fincazul - Casas en condominio en Funes"
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
