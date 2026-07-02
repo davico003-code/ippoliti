@@ -12,7 +12,9 @@ const cspReportOnly = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org",
+  // analytics.google.com no matchea *.google-analytics.com (dominio distinto):
+  // GA4 manda /g/collect ahí y sin esta entrada quedaba como violación.
+  "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org",
   "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
   "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.supabase.co",
   "worker-src 'self' blob:",
