@@ -20,7 +20,7 @@ const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const DISMISS_KEY = 'si_oportunidades_dismiss'
 const DISMISS_DAYS = 3
 const SHOW_DELAY_MS = 5000
-const ROTATE_MS = 6500
+const ROTATE_MS = 11000
 
 // Rutas internas/flujos donde el popup no corresponde.
 const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer']
