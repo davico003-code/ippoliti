@@ -4,7 +4,7 @@
 // propiedad, elegís el gancho y guardás. La lista se refleja al instante en
 // el popup del sitio público (cache de 60s).
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import type { Oportunidad, Hook } from '@/lib/oportunidades'
@@ -32,6 +32,12 @@ function parsePropertyId(input: string): number | null {
   return m ? Number(m[1]) : null
 }
 
+interface Preview {
+  titulo: string
+  precio: string
+  foto: string | null
+}
+
 export default function OportunidadesManager({ initialItems }: { initialItems: Oportunidad[] }) {
   const [items, setItems] = useState<Oportunidad[]>(initialItems)
   const [input, setInput] = useState('')
@@ -39,6 +45,39 @@ export default function OportunidadesManager({ initialItems }: { initialItems: O
   const [precioAnterior, setPrecioAnterior] = useState('')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [preview, setPreview] = useState<Preview | null>(null)
+  const [previewState, setPreviewState] = useState<'idle' | 'cargando' | 'error'>('idle')
+
+  // Vista previa: al pegar el link/ID trae la propiedad y muestra su precio
+  // publicado ACTUAL — la referencia para cargar el precio anterior a mano.
+  useEffect(() => {
+    const id = parsePropertyId(input)
+    if (!id) {
+      setPreview(null)
+      setPreviewState('idle')
+      return
+    }
+    setPreviewState('cargando')
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/propiedades/${id}`)
+        if (!res.ok) throw new Error()
+        const p = await res.json()
+        const pr = p.operations?.[0]?.prices?.[0]
+        const precio = pr?.price
+          ? `${pr.currency || 'USD'} ${Number(pr.price).toLocaleString('es-AR')}`
+          : 'Consultar precio'
+        const fotos = p.photos as { image: string; is_front_cover?: boolean; is_blueprint?: boolean }[] | undefined
+        const foto = (fotos?.find((f) => f.is_front_cover && !f.is_blueprint) || fotos?.find((f) => !f.is_blueprint) || fotos?.[0])?.image ?? null
+        setPreview({ titulo: p.publication_title || p.fake_address || p.address || `Propiedad ${id}`, precio, foto })
+        setPreviewState('idle')
+      } catch {
+        setPreview(null)
+        setPreviewState('error')
+      }
+    }, 500)
+    return () => window.clearTimeout(t)
+  }, [input])
 
   const agregar = async () => {
     const propertyId = parsePropertyId(input)
@@ -141,6 +180,34 @@ export default function OportunidadesManager({ initialItems }: { initialItems: O
               <Plus size={15} strokeWidth={2.2} /> {busy ? 'Agregando…' : 'Agregar'}
             </button>
           </div>
+          {/* Vista previa de la propiedad pegada: confirma que es la correcta
+              y muestra el precio publicado actual (referencia para el anterior). */}
+          {previewState === 'cargando' && (
+            <p style={{ margin: '10px 0 0', fontFamily: POPPINS, fontSize: 12.5, color: TEXT_SOFT }}>Buscando propiedad…</p>
+          )}
+          {previewState === 'error' && (
+            <p style={{ margin: '10px 0 0', fontFamily: POPPINS, fontSize: 12.5, color: '#C0563E' }}>No se encontró esa propiedad — revisá el link o el ID.</p>
+          )}
+          {preview && previewState === 'idle' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, background: '#FAFAFA', border: `1px solid ${LINE}`, borderRadius: 12, padding: 10 }}>
+              {preview.foto ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={preview.foto} alt="" width={58} height={44} style={{ width: 58, height: 44, objectFit: 'cover', borderRadius: 8, flexShrink: 0, background: '#f2f2f2' }} />
+              ) : (
+                <span style={{ width: 58, height: 44, borderRadius: 8, background: '#EEF2F0', flexShrink: 0 }} />
+              )}
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 13.5, color: '#1c1c1e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {preview.titulo}
+                </div>
+                <div style={{ fontFamily: POPPINS, fontSize: 12.5, color: TEXT_MUTED, marginTop: 1 }}>
+                  Precio publicado actual: <b style={{ color: GREEN }}>{preview.precio}</b>
+                  {hook === 'bajo-precio' && <span style={{ color: TEXT_SOFT }}> — ingresá el precio anterior (mayor a este)</span>}
+                </div>
+              </div>
+            </div>
+          )}
+
           {msg && (
             <p style={{ margin: '10px 0 0', fontFamily: POPPINS, fontSize: 12.5, color: msg.ok ? GREEN : '#C0563E' }}>
               {msg.text}
