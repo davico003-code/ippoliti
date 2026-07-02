@@ -49,6 +49,11 @@ export default function OportunidadesPopup() {
   const [visible, setVisible] = useState(false)
   const [idx, setIdx] = useState(0)
   const timerRef = useRef<number | null>(null)
+  // Swipe lateral en mobile para descartar: seguimos el dedo y si pasa el
+  // umbral, se cierra; si no, vuelve con transición.
+  const [dragX, setDragX] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const touchStartX = useRef<number | null>(null)
 
   useEffect(() => {
     if (HIDE_PREFIXES.some((p) => pathname?.startsWith(p))) return
@@ -94,6 +99,21 @@ export default function OportunidadesPopup() {
     setIdx(i)
     if (timerRef.current) window.clearInterval(timerRef.current)
     timerRef.current = window.setInterval(() => setIdx((x) => (x + 1) % items.length), ROTATE_MS)
+  }
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    setDragging(true)
+  }
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current == null) return
+    setDragX(e.touches[0].clientX - touchStartX.current)
+  }
+  const onTouchEnd = () => {
+    setDragging(false)
+    touchStartX.current = null
+    if (Math.abs(dragX) > 70) dismiss()
+    else setDragX(0)
   }
 
   const precioNode = esBaja ? (
@@ -174,28 +194,39 @@ export default function OportunidadesPopup() {
         )}
       </aside>
 
-      {/* ── Mobile: mini-barra discreta ── */}
+      {/* ── Mobile: barra discreta, pegada abajo, swipe lateral para cerrar ── */}
       <aside
         className="si-oport-mobile"
         aria-label="Oportunidades"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
         style={{
-          position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 45,
+          position: 'fixed', left: 8, right: 8, zIndex: 45,
+          bottom: 'max(8px, env(safe-area-inset-bottom))',
           background: '#fff', borderRadius: 14, border: '1px solid #ECECEE',
           boxShadow: '0 10px 30px rgba(9, 30, 20, 0.15)',
-          animation: 'si-oport-in .45s cubic-bezier(.22,1,.36,1)',
+          animation: dragX === 0 ? 'si-oport-in .45s cubic-bezier(.22,1,.36,1)' : undefined,
+          transform: `translateX(${dragX}px)`,
+          opacity: Math.max(0.25, 1 - Math.abs(dragX) / 220),
+          transition: dragging ? 'none' : 'transform .25s ease, opacity .25s ease',
+          touchAction: 'pan-y',
         }}
       >
-        <div key={it.propertyId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', animation: 'si-oport-swap .35s ease' }}>
-          <Link href={it.href} onClick={dismiss} style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, textDecoration: 'none' }}>
+        <div key={it.propertyId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', animation: 'si-oport-swap .35s ease' }}>
+          <Link href={it.href} onClick={dismiss} style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0, textDecoration: 'none' }}>
             {it.foto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={it.foto} alt="" width={40} height={40} loading="lazy" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 9, flexShrink: 0, background: '#f2f2f2' }} />
+              <img src={it.foto} alt="" width={58} height={58} loading="lazy" style={{ width: 58, height: 58, objectFit: 'cover', borderRadius: 10, flexShrink: 0, background: '#f2f2f2' }} />
             ) : (
-              <span style={{ width: 40, height: 40, borderRadius: 9, background: '#EEF2F0', flexShrink: 0 }} />
+              <span style={{ width: 58, height: 58, borderRadius: 10, background: '#EEF2F0', flexShrink: 0 }} />
             )}
-            <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <span style={{ fontFamily: POPPINS, fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
+            <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
                 {meta.badge}{esBaja && typeof it.pctBaja === 'number' ? ` · −${String(it.pctBaja).replace('.', ',')}%` : ''}
+              </span>
+              <span style={{ fontFamily: RALEWAY, fontSize: 12.5, fontWeight: 700, color: '#1c1c1e', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {it.titulo}
               </span>
               <span style={{ fontFamily: POPPINS, fontSize: 12, color: '#3a3a3a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {it.precio} · <span style={{ color: GREEN, fontWeight: 600 }}>{meta.cta} →</span>
@@ -204,9 +235,9 @@ export default function OportunidadesPopup() {
           </Link>
           <button
             type="button" onClick={dismiss} aria-label="Cerrar"
-            style={{ width: 34, height: 34, borderRadius: '50%', background: '#F6F6F7', border: 'none', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: '#F6F6F7', border: 'none', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
           >
-            <X size={15} strokeWidth={2.2} />
+            <X size={16} strokeWidth={2.2} />
           </button>
         </div>
       </aside>
