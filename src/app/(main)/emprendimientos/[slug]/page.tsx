@@ -26,6 +26,7 @@ import { distritoFontVars, montserrat } from '@/components/distrito-roldan/fonts
 import SeccionIntro from '@/components/distrito-roldan/SeccionIntro'
 import SeccionMasterplan from '@/components/distrito-roldan/SeccionMasterplan'
 import SeccionRenders from '@/components/distrito-roldan/SeccionRenders'
+import SeccionAvancesObra from '@/components/distrito-roldan/SeccionAvancesObra'
 import SeccionUbicacion from '@/components/distrito-roldan/SeccionUbicacion'
 import SeccionServicios from '@/components/distrito-roldan/SeccionServicios'
 import SeccionCtaFinanciacion from '@/components/distrito-roldan/SeccionCtaFinanciacion'
@@ -206,6 +207,7 @@ export default async function DevelopmentPage({ params }: Props) {
           <SeccionIntro />
           <SeccionMasterplan />
           <SeccionRenders />
+          <SeccionAvancesObra />
           <SeccionUbicacion />
           <SeccionServicios />
         </>
