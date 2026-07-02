@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import PlanosGalleryLazy from '@/components/fincazul/PlanosGalleryLazy'
 import HeroBgVideo from '@/components/fincazul/HeroBgVideo'
+import FincazulGaleriaLazy from '@/components/fincazul/FincazulGaleriaLazy'
 
 const GREEN = '#1A5C38'
 const WA_TEXT = encodeURIComponent(
@@ -229,22 +230,7 @@ export default function FincazulPage() {
               <h2 className="text-2xl md:text-3xl font-black text-gray-900">Así va a ser Fincazul</h2>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {RENDERS.map((src, i) => (
-              <div
-                key={src}
-                className={`relative rounded-xl overflow-hidden bg-gray-100 ${i === 0 ? 'col-span-2 md:col-span-2 md:row-span-2 aspect-[16/10] md:aspect-auto' : 'aspect-[4/3]'}`}
-              >
-                <Image
-                  src={`${BASE}/${src}`}
-                  alt={`Fincazul render ${i + 1}`}
-                  fill
-                  className="object-cover hover:scale-105 transition-transform duration-500"
-                  sizes={i === 0 ? '(max-width: 768px) 100vw, 66vw' : '(max-width: 768px) 50vw, 33vw'}
-                />
-              </div>
-            ))}
-          </div>
+          <FincazulGaleriaLazy base={BASE} items={RENDERS} alt="Fincazul render" layout="renders" />
         </div>
       </section>
 
@@ -287,19 +273,7 @@ export default function FincazulPage() {
                 <Download className="w-4 h-4" /> Descargar presentación (PDF)
               </a>
             </div>
-            <div className="grid grid-cols-3 gap-2.5">
-              {OBRA_FOTOS.map((src, i) => (
-                <div key={src} className={`relative rounded-lg overflow-hidden bg-gray-200 ${i === 0 ? 'col-span-3 aspect-[16/9]' : 'aspect-square'}`}>
-                  <Image
-                    src={`${BASE}/${src}`}
-                    alt={`Fincazul — foto real ${i + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes={i === 0 ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 33vw, 16vw'}
-                  />
-                </div>
-              ))}
-            </div>
+            <FincazulGaleriaLazy base={BASE} items={OBRA_FOTOS} alt="Fincazul — foto real" layout="fotos" />
           </div>
         </div>
       </section>
