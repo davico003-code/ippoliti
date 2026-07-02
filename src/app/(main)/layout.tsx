@@ -26,7 +26,6 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import TawkTo from "@/components/TawkTo";
 import PopupManager from "@/components/PopupManager";
 import Clarity from "@/components/Clarity";
-import ScrollToTop from "@/components/ScrollToTop";
 import { AudioPlayerProvider } from "@/components/audio/AudioPlayerProvider";
 
 export const metadata: Metadata = {
@@ -233,7 +232,6 @@ export default function RootLayout({
           <FooterWrapper />
           <FloatingWhatsApp />
           <OportunidadesPopup />
-          <ScrollToTop />
           <PopupManager />
           <MetaPixel />
           <GoogleAnalytics />
