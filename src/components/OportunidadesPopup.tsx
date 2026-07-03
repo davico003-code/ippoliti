@@ -8,7 +8,7 @@
 // Mobile: mini-barra discreta abajo, una línea, fácil de cerrar.
 // Cerrable → no reaparece por 3 días (localStorage).
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
@@ -21,6 +21,10 @@ const DISMISS_KEY = 'si_oportunidades_dismiss'
 const DISMISS_DAYS = 3
 const SHOW_DELAY_MS = 5000
 const ROTATE_MS = 11000
+// Si la persona se va (cierra, cambia de pestaña o de app) y vuelve después de
+// este tiempo, el popup reaparece aunque lo haya cerrado antes.
+const LASTSEEN_KEY = 'si_oportunidades_lastseen'
+const AWAY_RESET_MS = 10 * 60 * 1000
 
 // Rutas internas/flujos donde el popup no corresponde.
 const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer']
@@ -55,26 +59,101 @@ export default function OportunidadesPopup() {
   const [dragging, setDragging] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
-  useEffect(() => {
-    if (HIDE_PREFIXES.some((p) => pathname?.startsWith(p))) return
+  // Refs espejo para leer el estado actual dentro de listeners (visibility/focus).
+  const itemsRef = useRef<Item[]>([])
+  const visibleRef = useRef(false)
+  useEffect(() => { itemsRef.current = items }, [items])
+  useEffect(() => { visibleRef.current = visible }, [visible])
+
+  const enRutaOculta = useCallback(
+    () => HIDE_PREFIXES.some((p) => pathname?.startsWith(p)),
+    [pathname],
+  )
+
+  const marcarVisto = useCallback(() => {
+    try { window.localStorage.setItem(LASTSEEN_KEY, String(Date.now())) } catch {}
+  }, [])
+
+  const dismissActivo = useCallback(() => {
     try {
       const dismissed = Number(window.localStorage.getItem(DISMISS_KEY) || 0)
-      if (Date.now() - dismissed < DISMISS_DAYS * 24 * 60 * 60 * 1000) return
+      return Date.now() - dismissed < DISMISS_DAYS * 24 * 60 * 60 * 1000
+    } catch { return false }
+  }, [])
+
+  const cargarItems = useCallback(async (): Promise<Item[]> => {
+    try {
+      const r = await fetch('/api/oportunidades')
+      if (!r.ok) return []
+      const d = await r.json()
+      return (d?.items?.slice(0, 4) as Item[]) ?? []
+    } catch { return [] }
+  }, [])
+
+  // Montaje: si vuelve tras estar +10 min afuera (cerró la pestaña y reabrió),
+  // se limpia el "cerrado por 3 días" para que reaparezca. Luego, flujo normal.
+  useEffect(() => {
+    if (enRutaOculta()) return
+    try {
+      const lastSeen = Number(window.localStorage.getItem(LASTSEEN_KEY) || 0)
+      if (lastSeen && Date.now() - lastSeen > AWAY_RESET_MS) {
+        window.localStorage.removeItem(DISMISS_KEY)
+      }
     } catch {}
+    marcarVisto()
+
+    if (dismissActivo()) return
 
     let alive = true
-    fetch('/api/oportunidades')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!alive || !d?.items?.length) return
-        setItems(d.items.slice(0, 4))
-        window.setTimeout(() => { if (alive) setVisible(true) }, SHOW_DELAY_MS)
-      })
-      .catch(() => {})
+    cargarItems().then((list) => {
+      if (!alive || !list.length) return
+      setItems(list)
+      window.setTimeout(() => { if (alive) setVisible(true) }, SHOW_DELAY_MS)
+    })
     return () => { alive = false }
     // Solo al montar; si navega con el popup visible, persiste.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Reaparición al volver: marcamos cuándo se fue (hidden/blur/pagehide) y, al
+  // volver a la pestaña (visible/focus), si pasó +10 min, mostramos de nuevo
+  // aunque lo hubiera cerrado.
+  useEffect(() => {
+    const alSalir = () => marcarVisto()
+
+    const alVolver = async () => {
+      if (document.visibilityState !== 'visible') return
+      if (enRutaOculta() || visibleRef.current) { marcarVisto(); return }
+      let lastSeen = 0
+      try { lastSeen = Number(window.localStorage.getItem(LASTSEEN_KEY) || 0) } catch {}
+      const afuera = Date.now() - lastSeen
+      marcarVisto()
+      if (!lastSeen || afuera <= AWAY_RESET_MS) return
+      try { window.localStorage.removeItem(DISMISS_KEY) } catch {}
+      let list = itemsRef.current
+      if (!list.length) {
+        list = await cargarItems()
+        if (list.length) setItems(list)
+      }
+      if (list.length) { setIdx(0); setVisible(true) }
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') alSalir()
+      else alVolver()
+    }
+
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pagehide', alSalir)
+    window.addEventListener('blur', alSalir)
+    window.addEventListener('focus', alVolver)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', alSalir)
+      window.removeEventListener('blur', alSalir)
+      window.removeEventListener('focus', alVolver)
+    }
+  }, [enRutaOculta, marcarVisto, cargarItems])
 
   // Rotación automática entre oportunidades.
   useEffect(() => {
