@@ -89,8 +89,8 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
       <div className="mx-auto max-w-6xl px-4 pb-24 md:px-8">
         {/* ── POST DESTACADO — full-bleed editorial ── */}
         {featured && (
-          <Link href={`/blog/${featured.slug}`} className="group mb-14 block md:mb-16">
-            <article className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl bg-gray-900 sm:aspect-[16/9] lg:aspect-[21/9]">
+          <Link href={`/blog/${featured.slug}`} className="group si-tap mb-14 block md:mb-16">
+            <article className="si-img-shimmer relative aspect-[4/3] w-full overflow-hidden rounded-3xl sm:aspect-[16/9] lg:aspect-[21/9]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={featured.image}
@@ -142,10 +142,10 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
         {rest.length > 0 && (
           <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {rest.map(post => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="group block">
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="group si-tap block">
                 <article className="flex h-full flex-col">
                   {/* Imagen */}
-                  <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100">
+                  <div className="si-img-shimmer relative aspect-[16/10] overflow-hidden rounded-2xl">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={post.image}
