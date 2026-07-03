@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Building2, Banknote, ArrowRight } from 'lucide-react'
+import { MapPin, Building2, ArrowRight, ArrowUpRight } from 'lucide-react'
 import ShareCardButton from '@/components/ShareCardButton'
 import {
   getDevelopments,
@@ -21,287 +21,316 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://siinmobiliaria.com/emprendimientos' },
 }
 
+const GREEN = '#1A5C38'
+const GOLD = '#C9A84C'
+
+type Card = {
+  key: string
+  href: string
+  image: string | null
+  eyebrow?: string
+  title: string
+  location?: string
+  description?: string
+  chips: string[]
+  accent: string
+  share?: { slug: string; title: string; path: string }
+}
+
 export default async function EmprendimientosPage() {
   const [developments, clientes] = await Promise.all([
     getDevelopments().catch(() => []),
     getAllClientes().catch(() => []),
   ])
 
+  // Normalizamos todas las fuentes (feed Tokko + landings propias + clientes de
+  // Redis) a una sola forma para renderizar una grilla cohesiva tipo "poster".
+  const cards: Card[] = []
+
+  for (const dev of developments) {
+    const slug = generateDevSlug(dev)
+    cards.push({
+      key: `dev-${dev.id}`,
+      href: `/emprendimientos/${slug}`,
+      image: getDevMainPhoto(dev),
+      eyebrow: dev.publication_title && dev.publication_title !== dev.name ? dev.publication_title : undefined,
+      title: dev.name,
+      location: dev.location?.name || dev.fake_address || dev.address || undefined,
+      description: dev.description ? `${dev.description.replace(/<[^>]*>/g, '').slice(0, 160)}…` : undefined,
+      chips: [translateDevType(dev.type?.name || ''), getConstructionStatus(dev.construction_status)].filter(Boolean),
+      accent: GREEN,
+      share: { slug, title: dev.name, path: `/emprendimientos/${slug}` },
+    })
+  }
+
+  cards.push({
+    key: 'fincazul',
+    href: '/emprendimientos/fincazul',
+    image: '/emprendimientos/fincazul/portada.jpg',
+    eyebrow: 'Tu casa en condominio en Funes',
+    title: 'Fincazul',
+    location: 'Paseo del Norte, Funes',
+    description:
+      'Conjuntos privados de doce casas dúplex con portón de acceso. 2 dormitorios y 2 baños, con jardín, piscina y parrillero propios. A pasos de Fisherton.',
+    chips: ['Casas en condominio', 'En construcción'],
+    accent: GREEN,
+  })
+
+  cards.push({
+    key: 'hausing',
+    href: '/hausing',
+    image: '/hausing-portada.jpg',
+    eyebrow: 'Barrios cerrados premium · Funes',
+    title: 'Hausing — Casas de Diseño',
+    location: 'Vida, Cadaques, Don Mateo, Kentucky · Funes',
+    description:
+      'Casas exclusivas en los mejores barrios cerrados de Funes. Diseño contemporáneo, pileta, 3 y 4 dormitorios. Financiación en dólares.',
+    chips: ['Casas premium', 'Funes'],
+    accent: GREEN,
+  })
+
+  cards.push({
+    key: 'aurea',
+    href: '/propiedades/7296792-lotes-en-venta-desde-500m2-barrio-privado-aurea-en-roldan',
+    image: '/aurea-portada.jpg',
+    eyebrow: 'Desarrollo residencial premium · Roldán',
+    title: 'Aurea — Barrio Privado',
+    location: 'Roldán · Acceso directo por autopista',
+    description:
+      'Lotes desde 500 m² en barrio privado con seguridad 24 hs, club house, pileta y espacios verdes. Financiación disponible.',
+    chips: ['Lotes desde 500m²', 'Roldán'],
+    accent: GOLD,
+  })
+
+  for (const c of clientes) {
+    cards.push({
+      key: `cliente-${c.slug}`,
+      href: `/emprendimientos/${c.slug}`,
+      image: c.coverImage || null,
+      title: c.name,
+      description: c.description || undefined,
+      chips: ['Comercializamos'],
+      accent: GREEN,
+    })
+  }
+
+  const [featured, ...rest] = cards
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <section className="relative h-[420px] flex items-center justify-center overflow-hidden">
+      {/* ── Hero inmersivo ─────────────────────────────────────────── */}
+      <section className="relative flex min-h-[560px] items-end overflow-hidden md:min-h-[640px]">
         <Image
-          src="https://images.pexels.com/photos/9338940/pexels-photo-9338940.jpeg?auto=compress&cs=tinysrgb&w=1400"
-          alt="Emprendimientos en construcción"
+          src="/images/distrito-roldan/render-residencial.webp"
+          alt="Emprendimientos y desarrollos de SI Inmobiliaria"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
-        <div className="relative z-10 text-white text-center px-4 max-w-4xl mx-auto">
-          <p className="text-green-400 text-sm font-bold tracking-widest uppercase mb-4">
-            Inversión y Desarrollo
-          </p>
-          <h1 className="text-4xl md:text-6xl font-black mb-4 leading-tight drop-shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/30" />
+        <div
+          className="absolute inset-0 opacity-[0.15]"
+          style={{ backgroundImage: `linear-gradient(120deg, ${GREEN} 0%, transparent 55%)` }}
+        />
+
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-14 pt-32 md:pb-20">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#4ADE80]" />
+            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/90">
+              Inversión y Desarrollo
+            </span>
+          </div>
+
+          <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-white drop-shadow-xl md:text-7xl">
             Emprendimientos
           </h1>
-          <p className="text-white/80 text-lg max-w-2xl mx-auto">
-            Conocé los desarrollos inmobiliarios que comercializamos en Roldán, Funes y Rosario.
-            Barrios, condominios y proyectos con financiación.
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
+            Los desarrollos que comercializamos en Roldán, Funes y Rosario. Barrios, condominios y
+            proyectos con financiación — seleccionados por SI Inmobiliaria.
           </p>
+
+          {/* Franja de datos */}
+          <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+            <Stat value={String(cards.length)} label="Desarrollos activos" />
+            <span className="hidden h-8 w-px bg-white/20 sm:block" />
+            <Stat value="3" label="Zonas · Roldán · Funes · Rosario" />
+            <span className="hidden h-8 w-px bg-white/20 sm:block" />
+            <Stat value="1983" label="Trayectoria desde" />
+          </div>
         </div>
       </section>
 
-      {/* Grid */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          {developments.length === 0 ? (
-            <div className="text-center py-20">
-              <Building2 className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No hay emprendimientos disponibles actualmente.</p>
+      {/* ── Grilla de emprendimientos ──────────────────────────────── */}
+      <section className="px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          {cards.length === 0 ? (
+            <div className="py-20 text-center">
+              <Building2 className="mx-auto mb-4 h-12 w-12 text-gray-200" />
+              <p className="text-lg text-gray-500">No hay emprendimientos disponibles actualmente.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {developments.map(dev => {
-                const photo = getDevMainPhoto(dev)
-                const slug = generateDevSlug(dev)
-                const status = getConstructionStatus(dev.construction_status)
-                const typeName = translateDevType(dev.type?.name || '')
-                const locationName = dev.location?.name || dev.fake_address || dev.address
+            <>
+              {featured && <FeaturedCard card={featured} />}
 
-                return (
-                  <div key={dev.id} className="relative">
-                    <div className="absolute top-4 right-4 z-10">
-                      <ShareCardButton slug={slug} title={dev.name} path={`/emprendimientos/${slug}`} />
-                    </div>
-                  <Link
-                    href={`/emprendimientos/${slug}`}
-                    className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 transition-all duration-300 hover:-translate-y-1 flex flex-col"
-                  >
-                    {/* Image */}
-                    <div className="relative h-64 bg-gray-100 overflow-hidden">
-                      {photo ? (
-                        <Image
-                          src={photo}
-                          alt={dev.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-700"
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Building2 className="w-16 h-16 text-gray-300" />
-                        </div>
-                      )}
-                      {/* Badges */}
-                      <div className="absolute top-4 left-4 flex gap-2">
-                        <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-brand-600/90 text-white uppercase tracking-wide backdrop-blur-sm">
-                          {typeName}
-                        </span>
-                        <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-white/90 text-brand-700 uppercase tracking-wide backdrop-blur-sm">
-                          {status}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6 flex-1 flex flex-col">
-                      <h2 className="text-2xl font-black text-gray-900 mb-2 group-hover:text-brand-600 transition-colors">
-                        {dev.name}
-                      </h2>
-                      {dev.publication_title && dev.publication_title !== dev.name && (
-                        <p className="text-brand-600 font-semibold text-sm mb-2">{dev.publication_title}</p>
-                      )}
-                      <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-3">
-                        <MapPin className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                        <span>{locationName}</span>
-                      </div>
-                      <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
-                        {dev.description?.replace(/<[^>]*>/g, '').slice(0, 200)}...
-                      </p>
-                      {dev.financing_details && (
-                        <div className="flex items-center gap-1.5 text-sm text-brand-700 bg-brand-50 px-3 py-2 rounded-lg mb-4">
-                          <Banknote className="w-4 h-4 flex-shrink-0" />
-                          <span className="font-semibold">{dev.financing_details}</span>
-                        </div>
-                      )}
-                      <div className="mt-auto pt-2">
-                        <span className="inline-flex items-center gap-1.5 text-brand-600 font-bold text-sm group-hover:gap-2.5 transition-all">
-                          Ver emprendimiento <ArrowRight className="w-4 h-4" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                  </div>
-                )
-              })}
-              {/* Card Fincazul (landing propia, no viene del feed) */}
-              <Link
-                href="/emprendimientos/fincazul"
-                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 transition-all duration-300 hover:-translate-y-1 flex flex-col"
-              >
-                <div className="relative h-64 bg-gray-100 overflow-hidden">
-                  <Image
-                    src="/emprendimientos/fincazul/portada.jpg"
-                    alt="Fincazul - Casas en condominio en Funes"
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-brand-600/90 text-white uppercase tracking-wide backdrop-blur-sm">
-                      Casas en condominio
-                    </span>
-                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-white/90 text-brand-700 uppercase tracking-wide backdrop-blur-sm">
-                      En construcción
-                    </span>
-                  </div>
+              {rest.length > 0 && (
+                <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {rest.map(card => (
+                    <PosterCard key={card.key} card={card} />
+                  ))}
                 </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h2 className="text-2xl font-black text-gray-900 mb-2 group-hover:text-brand-600 transition-colors">
-                    Fincazul
-                  </h2>
-                  <p className="text-brand-600 font-semibold text-sm mb-2">Tu casa en condominio en Funes</p>
-                  <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-3">
-                    <MapPin className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                    <span>Paseo del Norte, Funes</span>
-                  </div>
-                  <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
-                    Conjuntos privados de doce casas dúplex con portón de acceso. 2 dormitorios y
-                    2 baños, con jardín, piscina y parrillero propios. Desarrollado por MSR, muy cerca de Fisherton.
-                  </p>
-                  <div className="mt-auto pt-2">
-                    <span className="inline-flex items-center gap-1.5 text-brand-600 font-bold text-sm group-hover:gap-2.5 transition-all">
-                      Ver emprendimiento <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-              {/* Card Hausing */}
-              <Link
-                href="/hausing"
-                className="group bg-[#0a0a0a] rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl border border-gray-800 transition-all duration-300 hover:-translate-y-1 flex flex-col"
-              >
-                <div className="relative h-64 bg-gray-900 overflow-hidden">
-                  <Image
-                    src="/hausing-portada.jpg"
-                    alt="Hausing - Casas de diseño en Funes"
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-[#1A5C38] text-white uppercase tracking-wide">
-                      Casas Premium
-                    </span>
-                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-white/10 text-white uppercase tracking-wide backdrop-blur-sm border border-white/20">
-                      Funes
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h2 className="text-2xl font-black text-white mb-2 group-hover:text-[#4ADE80] transition-colors">
-                    Hausing — Casas de Diseño
-                  </h2>
-                  <p className="text-[#4ADE80] font-semibold text-sm mb-2">Barrios cerrados premium · Funes</p>
-                  <div className="flex items-center gap-1.5 text-gray-400 text-sm mb-3">
-                    <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
-                    <span>Vida, Cadaques, Don Mateo, Kentucky · Funes</span>
-                  </div>
-                  <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                    Casas exclusivas en los mejores barrios cerrados de Funes. Diseño contemporáneo, pileta, 3 y 4 dormitorios. Financiación en dólares.
-                  </p>
-                  <div className="mt-auto pt-2">
-                    <span className="inline-flex items-center gap-1.5 text-[#4ADE80] font-bold text-sm group-hover:gap-2.5 transition-all">
-                      Ver propiedades Hausing <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-
-              {/* Card Aurea */}
-              <Link
-                href="/propiedades/7296792-lotes-en-venta-desde-500m2-barrio-privado-aurea-en-roldan"
-                className="group bg-[#0a0a0a] rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl border border-[#C9A84C]/20 transition-all duration-300 hover:-translate-y-1 flex flex-col"
-              >
-                <div className="relative h-64 bg-gray-900 overflow-hidden">
-                  <Image
-                    src="/aurea-portada.jpg"
-                    alt="Aurea - Barrio Privado en Roldán"
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-[#C9A84C] text-black uppercase tracking-wide">
-                      Lotes desde 500m²
-                    </span>
-                    <span className="px-3 py-1 text-[10px] font-bold rounded-full bg-white/10 text-white uppercase tracking-wide backdrop-blur-sm border border-white/20">
-                      Roldán
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h2 className="text-2xl font-black text-white mb-2 group-hover:text-[#C9A84C] transition-colors">
-                    Aurea — Barrio Privado
-                  </h2>
-                  <p className="text-[#C9A84C] font-semibold text-sm mb-2">Desarrollo residencial premium · Roldán</p>
-                  <div className="flex items-center gap-1.5 text-gray-400 text-sm mb-3">
-                    <MapPin className="w-4 h-4 text-[#C9A84C] flex-shrink-0" />
-                    <span>Roldán, Santa Fe · Acceso directo por autopista</span>
-                  </div>
-                  <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                    Lotes desde 500m² en barrio privado con seguridad 24hs, club house, pileta y espacios verdes. Financiación disponible.
-                  </p>
-                  <div className="mt-auto pt-2">
-                    <span className="inline-flex items-center gap-1.5 text-[#C9A84C] font-bold text-sm group-hover:gap-2.5 transition-all">
-                      Ver lotes disponibles <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-
-              {/* Manual clients from Redis */}
-              {clientes.map(c => (
-                <Link
-                  key={c.slug}
-                  href={`/emprendimientos/${c.slug}`}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 hover:-translate-y-1 flex flex-col"
-                >
-                  <div className="relative h-64 bg-[#1A5C38]/5 overflow-hidden">
-                    {c.coverImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.coverImage} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-16 h-16 bg-[#1A5C38]/10 rounded-2xl flex items-center justify-center">
-                          <Building2 className="w-8 h-8 text-[#1A5C38]" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6 flex flex-col flex-1">
-                    <h2 className="text-xl font-black text-gray-900 group-hover:text-brand-600 transition-colors mb-2">
-                      {c.name}
-                    </h2>
-                    {c.description && (
-                      <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">{c.description}</p>
-                    )}
-                    <div className="mt-auto pt-2">
-                      <span className="inline-flex items-center gap-1.5 text-brand-600 font-bold text-sm group-hover:gap-2.5 transition-all">
-                        Ver propiedades <ArrowRight className="w-4 h-4" />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
       </section>
+    </div>
+  )
+}
+
+/* ── Sub-componentes ──────────────────────────────────────────────── */
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <p className="text-3xl font-black leading-none text-white md:text-4xl">{value}</p>
+      <p className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-white/60">{label}</p>
+    </div>
+  )
+}
+
+function Chips({ chips, accent }: { chips: string[]; accent: string }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {chips.map((chip, i) => (
+        <span
+          key={chip}
+          className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide backdrop-blur-md"
+          style={
+            i === 0
+              ? { backgroundColor: accent, color: accent === GOLD ? '#000' : '#fff' }
+              : { backgroundColor: 'rgba(255,255,255,0.85)', color: '#111' }
+          }
+        >
+          {chip}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+// Card destacada: formato cinematográfico ancho con el texto sobre la imagen.
+function FeaturedCard({ card }: { card: Card }) {
+  const accentText = card.accent === GOLD ? GOLD : '#4ADE80'
+  return (
+    <div className="group relative">
+      {card.share && (
+        <div className="absolute right-4 top-4 z-20">
+          <ShareCardButton slug={card.share.slug} title={card.share.title} path={card.share.path} />
+        </div>
+      )}
+      <Link
+        href={card.href}
+        className="relative block aspect-[16/10] overflow-hidden rounded-3xl bg-gray-900 shadow-lg md:aspect-[21/9]"
+      >
+        {card.image ? (
+          <Image
+            src={card.image}
+            alt={card.title}
+            fill
+            priority
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 1024px) 100vw, 1152px"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-100">
+            <Building2 className="h-16 w-16 text-gray-300" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+        <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
+          <Chips chips={card.chips} accent={card.accent} />
+          {card.eyebrow && (
+            <p className="mt-4 text-sm font-semibold" style={{ color: accentText }}>
+              {card.eyebrow}
+            </p>
+          )}
+          <h2 className="mt-1 max-w-2xl text-3xl font-black leading-tight text-white md:text-5xl">
+            {card.title}
+          </h2>
+          {card.location && (
+            <div className="mt-3 flex items-center gap-1.5 text-sm text-white/75">
+              <MapPin className="h-4 w-4 flex-shrink-0" style={{ color: accentText }} />
+              <span>{card.location}</span>
+            </div>
+          )}
+          {card.description && (
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70 line-clamp-2 md:text-base">
+              {card.description}
+            </p>
+          )}
+          <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-gray-900 transition-all group-hover:gap-3">
+            Ver emprendimiento
+            <ArrowUpRight className="h-4 w-4" />
+          </span>
+        </div>
+      </Link>
+    </div>
+  )
+}
+
+// Card estándar tipo "poster": imagen vertical con overlay y datos abajo.
+function PosterCard({ card }: { card: Card }) {
+  const accentText = card.accent === GOLD ? GOLD : '#4ADE80'
+  return (
+    <div className="group relative">
+      {card.share && (
+        <div className="absolute right-3 top-3 z-20">
+          <ShareCardButton slug={card.share.slug} title={card.share.title} path={card.share.path} />
+        </div>
+      )}
+      <Link
+        href={card.href}
+        className="relative block aspect-[4/5] overflow-hidden rounded-3xl bg-gray-900 shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl"
+      >
+        {card.image ? (
+          <Image
+            src={card.image}
+            alt={card.title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-100">
+            <Building2 className="h-14 w-14 text-gray-300" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+
+        <div className="absolute left-4 right-4 top-4">
+          <Chips chips={card.chips} accent={card.accent} />
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 p-5">
+          {card.eyebrow && (
+            <p className="text-xs font-semibold" style={{ color: accentText }}>
+              {card.eyebrow}
+            </p>
+          )}
+          <h2 className="mt-0.5 text-xl font-black leading-tight text-white">{card.title}</h2>
+          {card.location && (
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-white/70">
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0" style={{ color: accentText }} />
+              <span className="line-clamp-1">{card.location}</span>
+            </div>
+          )}
+          <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-white transition-all group-hover:gap-2.5">
+            Ver emprendimiento
+            <ArrowRight className="h-4 w-4" style={{ color: accentText }} />
+          </span>
+        </div>
+      </Link>
     </div>
   )
 }
