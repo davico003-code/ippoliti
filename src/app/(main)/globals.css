@@ -267,3 +267,55 @@ div[id="propiedades"],
 div[id="nosotros"] {
   scroll-margin-top: 5rem;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Experiencia premium — transición de página, blur-up de imágenes y
+   micro-interacciones. Todo cae elegante bajo prefers-reduced-motion.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Transición al navegar: cada página entra con un fade sutil (lo dispara
+   template.tsx, que se re-monta en cada navegación). Solo opacidad: no usa
+   transform para no reposicionar elementos position:fixed de la página. */
+@keyframes si-page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.si-page-enter {
+  animation: si-page-in 0.3s ease-out both;
+}
+
+/* Blur-up: shimmer detrás de las fotos que aún no cargaron. Cuando la imagen
+   pinta, la tapa. Se aplica al contenedor de la imagen. */
+@keyframes si-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.si-img-shimmer {
+  background-color: #f1f1f0;
+  background-image: linear-gradient(90deg, #f1f1f0 25%, #e7e7e4 37%, #f1f1f0 63%);
+  background-size: 200% 100%;
+  animation: si-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Micro-interacciones opt-in. .si-tap = feedback táctil al presionar;
+   .si-lift = elevación suave al hover (cards). */
+.si-tap {
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.si-tap:active {
+  transform: scale(0.97);
+}
+.si-lift {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+}
+.si-lift:hover {
+  transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .si-page-enter { animation: none; }
+  .si-img-shimmer { animation: none; }
+  .si-tap, .si-lift { transition: none; }
+  .si-tap:active, .si-lift:hover { transform: none; }
+}

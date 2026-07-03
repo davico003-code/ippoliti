@@ -122,7 +122,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       href={`/propiedades/${slug}`}
       prefetch={false}
       onClick={onClick}
-      className="group cursor-pointer block"
+      className="group si-tap cursor-pointer block"
       style={{
         borderRadius: 14,
         border: isSelected ? '1px solid #1A5C38' : '1px solid #e5e7eb',
@@ -133,18 +133,20 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         boxShadow: isSelected
           ? '0 10px 25px rgba(0,0,0,0.1)'
           : '0 1px 3px rgba(0,0,0,0.06)',
-        transition: 'box-shadow 200ms, border-color 200ms',
+        transition: 'box-shadow 250ms, border-color 250ms, transform 250ms cubic-bezier(0.22,1,0.36,1)',
       }}
       onMouseEnter={e => {
         if (!isSelected) {
-          e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)'
+          e.currentTarget.style.boxShadow = '0 14px 30px rgba(9,30,20,0.13)'
           e.currentTarget.style.borderColor = 'var(--mundial-accent)'
+          e.currentTarget.style.transform = 'translateY(-3px)'
         }
       }}
       onMouseLeave={e => {
         if (!isSelected) {
           e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
           e.currentTarget.style.borderColor = '#e5e7eb'
+          e.currentTarget.style.transform = 'translateY(0)'
         }
       }}
     >
@@ -152,7 +154,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           así flechas y dots aparecen solo al pasar el mouse sobre la foto.
           Los handlers touch dan swipe horizontal en mobile. */}
       <div
-        className="group/media relative w-full bg-gray-100 overflow-hidden aspect-[2/1]"
+        className={`group/media relative w-full overflow-hidden aspect-[2/1] ${images.length > 0 ? 'si-img-shimmer' : 'bg-gray-100'}`}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onClickCapture={onClickCapture}
