@@ -73,7 +73,7 @@ export default function HeroSearch() {
         />
         <button
           type="submit"
-          className="hero-buscar-btn flex-shrink-0 border-none cursor-pointer"
+          className="hero-buscar-btn si-tap flex-shrink-0 border-none cursor-pointer"
           style={{
             // Acento fijo: verde de marca sólido (estilos en globals.css).
             // Texto blanco sobre verde.

@@ -230,7 +230,7 @@ function FeaturedCard({ card }: { card: Card }) {
       )}
       <Link
         href={card.href}
-        className="relative block aspect-[16/10] overflow-hidden rounded-3xl bg-gray-900 shadow-lg md:aspect-[21/9]"
+        className="si-img-shimmer si-tap relative block aspect-[16/10] overflow-hidden rounded-3xl shadow-lg md:aspect-[21/9]"
       >
         {card.image ? (
           <Image
@@ -291,7 +291,7 @@ function PosterCard({ card }: { card: Card }) {
       )}
       <Link
         href={card.href}
-        className="relative block aspect-[4/5] overflow-hidden rounded-3xl bg-gray-900 shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl"
+        className="si-img-shimmer si-tap relative block aspect-[4/5] overflow-hidden rounded-3xl shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl"
       >
         {card.image ? (
           <Image

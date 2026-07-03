@@ -98,7 +98,7 @@ export default function HeroMobile() {
             />
             <button
               type="submit"
-              className="shrink-0 border-none cursor-pointer"
+              className="si-tap shrink-0 border-none cursor-pointer"
               style={{
                 // Acento fijo: verde de marca sólido (igual que el hero desktop).
                 background: '#1A5C38',
