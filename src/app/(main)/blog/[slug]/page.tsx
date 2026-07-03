@@ -1,9 +1,16 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Calendar, ArrowLeft, ExternalLink, User } from 'lucide-react'
+import { Calendar, ArrowLeft, ExternalLink, User, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug } from '@/lib/blog'
+import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
+
+/* Tiempo de lectura estimado (≈200 palabras/min). */
+function readingMinutes(content: string): number {
+  const words = content.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(2, Math.round(words / 200))
+}
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
 // su fecha, sin depender del revalidate on-demand.
@@ -22,11 +29,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: 'Artículo no encontrado | SI Inmobiliaria' }
 
   const url = `https://siinmobiliaria.com/blog/${params.slug}`
-  // Imagen OG SIEMPRE absoluta: las notas usan rutas locales (/blog/images/...),
-  // que no sirven como OG. Fallback al og-image del sitio si no hay imagen.
-  const ogImage = post.image
-    ? (post.image.startsWith('http') ? post.image : `https://siinmobiliaria.com${post.image}`)
-    : 'https://siinmobiliaria.com/og-image.jpg'
+  // Imagen OG SIEMPRE absoluta: usamos la imagen curada (única por post) y, si
+  // fuera un path local (/blog/images/...), la prefijamos con el dominio.
+  const resolved = resolveBlogImage(post.slug, post.image)
+  const ogImage = resolved.startsWith('http')
+    ? resolved
+    : `https://siinmobiliaria.com${resolved}`
 
   return {
     title: `${post.title} | Blog SI Inmobiliaria`,
@@ -50,74 +58,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-/* Pexels image map — same as blog/page.tsx */
-const PEXELS_IMAGES: Record<string, number> = {
-  'costo-construccion-argentina-precio-propiedades': 3862132,
-  'composicion-precio-m2-pozo-emprendimientos': 1396122,
-  'red-flags-emprendimientos-inmobiliarios-pozo': 1370704,
-  'inmobiliarias-roldan-como-elegir-la-mejor': 106399,
-  'desarrollo-costo-vs-precio-cerrado-compradores': 3184292,
-  'arquitectos-roldan-cuando-necesitas-uno-para-tu-propiedad': 1109541,
-  'mano-obra-construccion-precio-propiedades-funes': 159358,
-  'escribanos-roldan-rol-en-compra-venta-propiedad': 95916,
-  'como-evaluar-desarrolladora-antes-invertir': 3184292,
-  'constructoras-roldan-funes-construir-casa-2025': 2219024,
-  'invertir-pozo-funes-2025-analisis': 1115804,
-  'colegios-roldan-funes-guia-familias-que-se-mudan': 764681,
-  'financiacion-largo-plazo-emprendimientos-2026': 5699823,
-  'que-aspectos-aumentan-valor-lote-funes-roldan': 259588,
-  'supermercados-comercios-roldan-vivir-sin-auto': 1005638,
-  'acopio-materiales-canje-m2-compradores': 3760529,
-  'transporte-colectivo-roldan-rosario-opciones': 1178448,
-  'precio-m2-funes-roldan-perspectiva-2026': 323780,
-  'salud-medicos-clinicas-roldan-lo-que-tenes-que-saber': 40568,
-  'bancos-cajeros-roldan-servicios-financieros': 50987,
-  'restaurantes-gastronomia-roldan-para-vivir-y-disfrutar': 1640777,
-  'mercado-inmobiliario-2025-que-esta-pasando': 1546168,
-  'seguridad-privada-barrios-cerrados-roldan-funes': 280229,
-  'gimnasios-deportes-roldan-calidad-de-vida': 260447,
-  'piletas-construccion-mantenimiento-roldan-funes': 261102,
-  'paneles-solares-roldan-funes-conviene-2025': 2800832,
-  'mudarse-roldan-desde-rosario-guia-completa-2025': 1115804,
-  'funes-roldan-nuevo-eje-crecimiento-inmobiliario-gran-rosario': 1396122,
-  'cuanto-deberia-rendir-inversion-inmobiliaria-dolares': 5699823,
-  'comprar-casa-funes-roldan': 106399,
-  'comprar-con-escritura-inmediata-inversion-segura': 95916,
-  'como-detectar-loteo-confiable-funes-roldan': 259588,
-  'barrios-cerrados-vs-abiertos-cual-conviene': 280229,
-  'creditos-hipotecarios-argentina-que-tener-en-cuenta': 50987,
-  'como-fijar-precio-venta-propiedad-sin-perder-dinero': 1370704,
-  'inmobiliarias-en-roldan': 106399,
-  '5-errores-comunes-comprar-inmueble-primera-vez': 3184292,
-  'invertir-en-pozo-funes-ventajas-riesgos': 1115804,
-  'corredor-funes-roldan-historia-crecimiento-proyeccion': 1396122,
-  'inmobiliarias-en-funes': 106399,
-  'que-es-cac-como-afecta-valor-propiedades-pesos': 5699823,
-  'valor-m2-funes-roldan-analisis-por-barrio-tipologia': 323780,
-  'como-preparar-propiedad-vender-rapido-mejor-precio': 2219024,
-  'alquilar-o-comprar-2025-analisis-zona-oeste-rosario': 1370704,
-  'por-que-roldan-nueva-apuesta-desarrolladores-inmobiliarios': 1396122,
-  'financiacion-dolares-cuotas-fijas-vs-hipoteca': 50987,
-  'donacion-herencia-compraventa-transferir-propiedad-argentina': 95916,
-  'guia-completa-invertir-lotes-santa-fe': 259588,
-  'por-que-si-inmobiliaria-43-anos-historia-familiar-roldan': 106399,
-  'mercado-inmobiliario-roldan-como-saber-propiedad-bien-valuada': 323780,
-  'si-inmobiliaria-abre-funes-galeria-arte': 1640777,
-  'de-susana-ippoliti-a-si-inmobiliaria-cambio-dice-si-futuro': 106399,
-}
-
-function resolveImage(slug: string, originalImage: string): string | null {
-  if (PEXELS_IMAGES[slug]) {
-    const id = PEXELS_IMAGES[slug]
-    return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=800`
-  }
-  // Acepta URLs http(s) (Unsplash/Pexels/Blob override) y paths locales /blog/…
-  // (la asignación determinística por hash del slug). Sin esto, el detalle
-  // mostraba el gradiente verde para las notas con imagen local.
-  if (originalImage.startsWith('http') || originalImage.startsWith('/')) return originalImage
-  return null
-}
-
 export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(params.slug)
 
@@ -133,7 +73,11 @@ export default async function BlogPostPage({ params }: Props) {
     .slice(0, 3)
 
   const authorName = post.author || 'SI Inmobiliaria'
-  const heroImage = resolveImage(post.slug, post.image)
+  const heroImage = resolveBlogImage(post.slug, post.image)
+  const minutos = readingMinutes(post.content)
+  // Si la imagen viene del mapa curado, la atribución propia del post ya no
+  // corresponde (reemplazamos la foto original).
+  const usaImagenCurada = Boolean(BLOG_IMAGES[post.slug])
 
   // BlogPosting completo para rich results. Solo campos con datos reales del
   // post (sin dateModified: BlogPost no trackea fecha de edición). El publisher
@@ -148,7 +92,7 @@ export default async function BlogPostPage({ params }: Props) {
     mainEntityOfPage: { '@type': 'WebPage', '@id': postUrl },
     url: postUrl,
     inLanguage: 'es-AR',
-    ...(heroImage ? { image: [heroImage] } : {}),
+    image: [heroImage],
     author: {
       '@type': post.author ? 'Person' : 'Organization',
       name: authorName,
@@ -174,68 +118,51 @@ export default async function BlogPostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* ── HERO ── */}
-      {heroImage ? (
-        <div
-          className="relative w-full h-[50vh] md:h-[60vh] bg-cover bg-center"
-          style={{ backgroundImage: `url('${heroImage}')` }}
-        >
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="absolute bottom-0 left-0 right-0 px-4 pb-10 md:pb-14">
-            <div className="max-w-3xl mx-auto">
-              <Link
-                href="/blog"
-                className="inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-medium transition-colors mb-6"
+      {/* ── HERO editorial ── */}
+      <header className="relative w-full h-[54vh] min-h-[420px] md:h-[64vh] md:min-h-[520px]">
+        <Image
+          src={heroImage}
+          alt={post.title}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/20" />
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-10 md:pb-14">
+          <div className="mx-auto max-w-3xl">
+            <Link
+              href="/blog"
+              className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-white/75 transition-colors hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver al blog
+            </Link>
+            {post.category && (
+              <span
+                className="mb-4 inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
+                style={{ backgroundColor: '#1A5C38' }}
               >
-                <ArrowLeft className="w-4 h-4" />
-                Volver al blog
-              </Link>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="flex items-center gap-1.5 text-sm text-white/70">
-                  <Calendar className="w-4 h-4" />
-                  {post.dateDisplay}
-                </span>
-                {post.category && (
-                  <span className="px-3 py-1 bg-white/15 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
-                    {post.category}
-                  </span>
-                )}
-              </div>
-              <h1 className="text-3xl md:text-5xl font-black leading-tight text-white drop-shadow-md">
-                {post.title}
-              </h1>
+                {post.category}
+              </span>
+            )}
+            <h1 className="text-3xl font-black leading-[1.08] text-white drop-shadow-sm md:text-5xl">
+              {post.title}
+            </h1>
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-white/75">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" />
+                {post.dateDisplay}
+              </span>
+              <span className="text-white/40">·</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="h-4 w-4" />
+                {minutos} min de lectura
+              </span>
             </div>
           </div>
         </div>
-      ) : (
-        <div className="relative w-full h-[50vh] md:h-[60vh] bg-gradient-to-br from-[#1A5C38] to-[#0f3d26]">
-          <div className="absolute bottom-0 left-0 right-0 px-4 pb-10 md:pb-14">
-            <div className="max-w-3xl mx-auto">
-              <Link
-                href="/blog"
-                className="inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-medium transition-colors mb-6"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Volver al blog
-              </Link>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="flex items-center gap-1.5 text-sm text-white/70">
-                  <Calendar className="w-4 h-4" />
-                  {post.dateDisplay}
-                </span>
-                {post.category && (
-                  <span className="px-3 py-1 bg-white/15 text-white text-xs font-semibold rounded-full">
-                    {post.category}
-                  </span>
-                )}
-              </div>
-              <h1 className="text-3xl md:text-5xl font-black leading-tight text-white">
-                {post.title}
-              </h1>
-            </div>
-          </div>
-        </div>
-      )}
+      </header>
 
       {/* ── ARTICLE BODY ── */}
       <article className="py-12 md:py-16 px-4">
@@ -261,21 +188,39 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Content */}
           <div className="space-y-6">
-            {paragraphs.map((paragraph, i) => {
-              const isHeading = /^[A-ZÁÉÍÓÚÑ¿¡]/.test(paragraph) && (paragraph.endsWith('?') || (paragraph.length < 80 && !paragraph.includes('.')))
-              if (isHeading) {
-                return <h2 key={i} className="text-2xl font-black text-gray-900 mt-10 mb-2">{paragraph}</h2>
-              }
-              return (
-                <p key={i} className="text-gray-700 text-lg leading-relaxed">
-                  {paragraph}
-                </p>
+            {(() => {
+              const firstParaIdx = paragraphs.findIndex(
+                p => !(/^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && (p.endsWith('?') || (p.length < 80 && !p.includes('.')))),
               )
-            })}
+              return paragraphs.map((paragraph, i) => {
+                const isHeading = /^[A-ZÁÉÍÓÚÑ¿¡]/.test(paragraph) && (paragraph.endsWith('?') || (paragraph.length < 80 && !paragraph.includes('.')))
+                if (isHeading) {
+                  return (
+                    <h2 key={i} className="mb-2 mt-12 text-[1.6rem] font-black leading-tight tracking-tight text-gray-900">
+                      {paragraph}
+                    </h2>
+                  )
+                }
+                // Capitular solo en el primer párrafo real y si arranca con letra.
+                const dropCap = i === firstParaIdx && /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(paragraph)
+                return (
+                  <p
+                    key={i}
+                    className={`text-[17px] leading-[1.8] text-gray-700 md:text-lg ${
+                      dropCap
+                        ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[3.4rem] first-letter:font-black first-letter:leading-[0.8] first-letter:text-[#1A5C38]'
+                        : ''
+                    }`}
+                  >
+                    {paragraph}
+                  </p>
+                )
+              })
+            })()}
           </div>
 
           {/* ── Atribución Unsplash (requisito de licencia) ── */}
-          {post.imagen_photographer && post.imagen_photographer_url && (
+          {!usaImagenCurada && post.imagen_photographer && post.imagen_photographer_url && (
             <p className="text-xs text-gray-500 mt-8 italic">
               Foto:{' '}
               <a
@@ -332,26 +277,18 @@ export default async function BlogPostPage({ params }: Props) {
               <h3 className="text-xl font-black text-gray-900 mb-6">Artículos relacionados</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {related.map(r => {
-                  const rImage = resolveImage(r.slug, r.image)
+                  const rImage = resolveBlogImage(r.slug, r.image)
                   return (
                     <Link key={r.slug} href={`/blog/${r.slug}`} className="group block">
                       <div className="relative aspect-video rounded-xl overflow-hidden mb-3 transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.02]">
-                        {rImage ? (
-                          <Image
-                            src={rImage}
-                            alt={r.title}
-                            fill
-                            sizes="(max-width: 640px) 100vw, 33vw"
-                            className="object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#1A5C38] to-[#0f3d26] flex items-center justify-center p-4">
-                            <span className="text-white/80 text-sm font-semibold text-center leading-tight line-clamp-3">
-                              {r.title}
-                            </span>
-                          </div>
-                        )}
+                        <Image
+                          src={rImage}
+                          alt={r.title}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 33vw"
+                          className="object-cover"
+                          loading="lazy"
+                        />
                       </div>
                       <h4 className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-[#1A5C38] transition-colors leading-tight">
                         {r.title}
