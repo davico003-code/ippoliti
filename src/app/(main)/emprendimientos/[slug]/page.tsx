@@ -172,8 +172,8 @@ export default async function DevelopmentPage({ params }: Props) {
           url={tourUrl}
           titulo="Tour 360° Distrito Roldán"
           badge="Mapa interactivo de lotes"
-          cropTop={54}
-          cropTopMobile={64}
+          cropTop={58}
+          cropTopMobile={66}
         />
       ) : mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
