@@ -39,6 +39,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const fallback = getMainPhoto(property)
   const images = photos.length > 0 ? photos : fallback ? [fallback] : []
   const [imgIdx, setImgIdx] = useState(0)
+  // Corta el shimmer del blur-up cuando la primera foto pintó (evita decenas de
+  // animaciones corriendo bajo imágenes ya cargadas en grillas grandes).
+  const [imgLoaded, setImgLoaded] = useState(false)
 
   const operation = getOperationType(property)
   const price = formatPrice(property)
@@ -122,7 +125,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       href={`/propiedades/${slug}`}
       prefetch={false}
       onClick={onClick}
-      className="group si-tap cursor-pointer block"
+      className="group si-press-lift cursor-pointer block"
       style={{
         borderRadius: 14,
         border: isSelected ? '1px solid #1A5C38' : '1px solid #e5e7eb',
@@ -139,14 +142,12 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         if (!isSelected) {
           e.currentTarget.style.boxShadow = '0 14px 30px rgba(9,30,20,0.13)'
           e.currentTarget.style.borderColor = 'var(--mundial-accent)'
-          e.currentTarget.style.transform = 'translateY(-3px)'
         }
       }}
       onMouseLeave={e => {
         if (!isSelected) {
           e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
           e.currentTarget.style.borderColor = '#e5e7eb'
-          e.currentTarget.style.transform = 'translateY(0)'
         }
       }}
     >
@@ -154,7 +155,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           así flechas y dots aparecen solo al pasar el mouse sobre la foto.
           Los handlers touch dan swipe horizontal en mobile. */}
       <div
-        className={`group/media relative w-full overflow-hidden aspect-[2/1] ${images.length > 0 ? 'si-img-shimmer' : 'bg-gray-100'}`}
+        className={`group/media relative w-full overflow-hidden aspect-[2/1] ${images.length === 0 ? 'bg-gray-100' : imgLoaded ? '' : 'si-img-shimmer'}`}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onClickCapture={onClickCapture}
@@ -166,6 +167,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 25vw"
+            onLoad={() => setImgLoaded(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
