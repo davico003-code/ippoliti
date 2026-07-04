@@ -96,15 +96,18 @@ export default function Navbar() {
   const [agent, setAgent] = useState<{ name: string } | null>(null)
   const isPropiedades = pathname.startsWith('/propiedades')
   const isHome = pathname === '/'
-  const transparent = isHome && !scrolled
+  const isBarriosHub = pathname === '/barrios-privados'
+  // Navbar transparente sobre el hero inmersivo (home + hub de barrios).
+  const overHero = isHome || isBarriosHub
+  const transparent = overHero && !scrolled
 
   useEffect(() => {
-    if (!isHome) return
+    if (!overHero) return
     const onScroll = () => setScrolled(window.scrollY > 50)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [isHome])
+  }, [overHero])
 
   useEffect(() => {
     let alive = true
