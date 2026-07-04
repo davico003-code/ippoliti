@@ -81,7 +81,7 @@ export const metadata: Metadata = {
     title: 'Inmobiliaria en Funes | SI Inmobiliaria',
     description: 'Tu inmobiliaria de confianza en Funes. Casas, terrenos y departamentos en los mejores barrios. Más de 40 años de experiencia.',
     url: 'https://siinmobiliaria.com/inmobiliaria-funes',
-    images: ['/og-funes.jpg'],
+    images: ['/og-image.jpg'],
   },
   alternates: {
     canonical: 'https://siinmobiliaria.com/inmobiliaria-funes',

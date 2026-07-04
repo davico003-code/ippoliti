@@ -43,13 +43,13 @@ export const metadata: Metadata = {
     url: CANONICAL,
     type: "website",
     siteName: "SI INMOBILIARIA",
-    images: ["/og-default.jpg"],
+    images: ["/og-image.jpg"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Barrios cerrados de Funes",
     description: "11 barrios analizados por SI Inmobiliaria — Mat. 0621",
-    images: ["/og-default.jpg"],
+    images: ["/og-image.jpg"],
   },
 };
 

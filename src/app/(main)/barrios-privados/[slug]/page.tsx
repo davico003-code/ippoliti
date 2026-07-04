@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // og:image: portada procesada 01.webp; fallback al hero legacy / default
   const [portada] = getBarrioFotos(barrio.slug);
-  const ogImage = portada ?? barrio.imagenes.hero ?? "/og-default.jpg";
+  const ogImage = portada ?? barrio.imagenes.hero ?? "/og-image.jpg";
 
   return {
     title,
