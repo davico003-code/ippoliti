@@ -24,23 +24,29 @@ export default function DetalleMapaCercanias({
   const categorias = Object.keys(POI_CATEGORIA_META) as PoiCategoria[];
 
   return (
-    <section className="bg-[#FAF7F2] py-14 md:py-20">
-      <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+    <section id="ubicacion" className="scroll-mt-28 bg-white py-16 md:scroll-mt-32 md:py-20">
+      <div className="mx-auto max-w-[1180px] px-6 md:px-8">
+        <span
+          className="text-[11px] font-bold uppercase tracking-[0.19em] text-[#00754A]"
+          style={{ fontFamily: P }}
+        >
+          Cómo llegar
+        </span>
         <h2
-          className="mb-8 text-2xl text-[#0a0a0a] md:text-[28px]"
-          style={{ fontFamily: R, fontWeight: 700, letterSpacing: "-0.015em" }}
+          className="mb-7 mt-2 text-[1.5rem] leading-[1.15] text-[#0E1A14] md:text-[2rem]"
+          style={{ fontFamily: R, fontWeight: 300, letterSpacing: "-0.01em" }}
         >
           Ubicación y cercanías
         </h2>
 
         {/* Card compacta: dirección de ingreso + accesos + distancia */}
         {(u.direccionIngreso || u.accesos.length > 0 || u.distanciaCentroRosarioMin) && (
-          <div className="mb-6 flex flex-wrap gap-x-10 gap-y-4 rounded-xl border border-[#e8e2d5] bg-white p-5 md:p-6">
+          <div className="mb-6 flex flex-wrap gap-x-10 gap-y-4 rounded-xl border border-black/10 bg-white p-5 md:p-6">
             {(u.direccionIngreso || u.referencia) && (
               <div className="flex items-start gap-2.5">
                 <MapPin size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-[#1A5C38]" aria-hidden />
                 <div>
-                  <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#B8935A]" style={{ fontFamily: P }}>
+                  <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#00754A]" style={{ fontFamily: P }}>
                     Dirección de ingreso
                   </div>
                   <div className="text-sm font-medium text-[#0a0a0a]" style={{ fontFamily: P }}>
@@ -59,7 +65,7 @@ export default function DetalleMapaCercanias({
               <div className="flex items-start gap-2.5">
                 <Navigation size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-[#1A5C38]" aria-hidden />
                 <div>
-                  <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#B8935A]" style={{ fontFamily: P }}>
+                  <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#00754A]" style={{ fontFamily: P }}>
                     Accesos
                   </div>
                   <div className="text-sm text-[#0a0a0a]" style={{ fontFamily: P }}>
@@ -73,7 +79,7 @@ export default function DetalleMapaCercanias({
               <div className="flex items-start gap-2.5">
                 <Clock size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-[#1A5C38]" aria-hidden />
                 <div>
-                  <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#B8935A]" style={{ fontFamily: P }}>
+                  <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#00754A]" style={{ fontFamily: P }}>
                     A Rosario centro
                   </div>
                   <div className="text-sm font-medium text-[#0a0a0a]" style={{ fontFamily: P, fontVariantNumeric: "tabular-nums" }}>
@@ -87,12 +93,12 @@ export default function DetalleMapaCercanias({
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.6fr_1fr]">
           {/* Mapa */}
-          <div className="h-[380px] overflow-hidden rounded-xl border border-[#e8e2d5] md:h-[480px]">
+          <div className="h-[380px] overflow-hidden rounded-xl border border-black/10 md:h-[480px]">
             <MapaPoisLazy lat={lat} lng={lng} nombre={barrio.nombre} />
           </div>
 
           {/* Cercanías por categoría */}
-          <div className="rounded-xl border border-[#e8e2d5] bg-white p-5 md:p-6">
+          <div className="rounded-xl border border-black/10 bg-white p-5 md:p-6">
             <h3
               className="mb-4 text-base text-[#0a0a0a]"
               style={{ fontFamily: R, fontWeight: 700 }}

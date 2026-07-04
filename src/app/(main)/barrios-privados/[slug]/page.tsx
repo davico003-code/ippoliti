@@ -23,8 +23,10 @@ import BarrioCTAFinal from "@/components/barrios/BarrioCTAFinal";
 import LandingTracker from "./LandingTracker";
 
 import DetalleHero from "./_components/DetalleHero";
+import DetalleSubnav, { type SubnavItem } from "./_components/DetalleSubnav";
 import DetalleIntro from "./_components/DetalleIntro";
 import DetalleGaleria from "./_components/DetalleGaleria";
+import DetalleAmenities from "./_components/DetalleAmenities";
 import DetallePlano from "./_components/DetallePlano";
 import DetalleMapaCercanias from "./_components/DetalleMapaCercanias";
 
@@ -99,6 +101,15 @@ export default function BarrioPage({ params }: Props) {
   const lat = hub?.lat ?? barrio.ubicacion.coordenadas?.lat ?? null;
   const lng = hub?.lng ?? barrio.ubicacion.coordenadas?.lng ?? null;
 
+  // Ítems del sub-nav sticky — solo las secciones que efectivamente se renderean.
+  const subnavItems: SubnavItem[] = [
+    { id: "resumen", label: "Resumen" },
+    ...(galeria.length > 0 ? [{ id: "galeria", label: "Galería" }] : []),
+    ...(barrio.amenities.length > 0 ? [{ id: "amenities", label: "Amenities" }] : []),
+    { id: "plano", label: "Plano" },
+    ...(lat != null && lng != null ? [{ id: "ubicacion", label: "Ubicación" }] : []),
+  ];
+
   // JSON-LD (Place + Breadcrumb + FAQ)
   const faqsParaJsonLd = barrio.faqExtendida?.length
     ? barrio.faqExtendida
@@ -167,24 +178,32 @@ export default function BarrioPage({ params }: Props) {
       />
       <LandingTracker slug={barrio.slug} nombre={barrio.nombre} />
 
-      {/* 1. HERO — portada + stats */}
+      {/* 1. HERO inmersivo — portada + stats */}
       <DetalleHero barrio={barrio} portada={portada} />
 
-      {/* 2. INTRO EDITORIAL + chips destacados */}
+      {/* Sub-nav sticky con scroll-spy */}
+      <DetalleSubnav items={subnavItems} />
+
+      {/* 2. RESUMEN — intro editorial + datos rápidos */}
       <DetalleIntro barrio={barrio} />
 
       {/* 3. GALERÍA con lightbox (oculta si el barrio tiene 0-1 fotos) */}
       <DetalleGaleria fotos={galeria} nombre={barrio.nombre} />
 
-      {/* 4. PLANO descargable */}
+      {/* 4. AMENITIES */}
+      <DetalleAmenities barrio={barrio} />
+
+      {/* 5. PLANO descargable + card destacada */}
       <DetallePlano
         slug={barrio.slug}
         nombre={barrio.nombre}
         planoUrl={planoUrl}
         previewUrl={planoPreview}
+        destacada={galeria[0] ?? portada}
+        destacadaTitular={barrio.miradaBroker.titular}
       />
 
-      {/* 5. MAPA Y CERCANÍAS */}
+      {/* 6. UBICACIÓN Y CERCANÍAS */}
       {lat != null && lng != null && (
         <DetalleMapaCercanias barrio={barrio} lat={lat} lng={lng} />
       )}
