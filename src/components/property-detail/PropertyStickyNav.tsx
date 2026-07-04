@@ -48,11 +48,17 @@ export default function PropertyStickyNav({
   const jumpTo = (id: string) => {
     const el = document.getElementById(id)
     if (!el) return
-    // scrollIntoView scrollea el ancestro scrolleable correcto (window O el div
-    // del overlay) y RESPETA el scroll-margin-top de la sección (scroll-mt-*),
-    // así queda justo debajo del header + esta barra. Antes el offset manual
-    // fallaba en el overlay (Ubicación/Similares saltaban al tope).
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // Scroll manual del contenedor correcto (el div del overlay O window). Más
+    // confiable que scrollIntoView smooth en Safari con contenedores anidados.
+    const navH = navRef.current?.offsetHeight ?? 0
+    const offset = stickyTop + navH + 12
+    if (scrollRoot) {
+      const y = el.getBoundingClientRect().top - scrollRoot.getBoundingClientRect().top + scrollRoot.scrollTop - offset
+      scrollRoot.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
+    } else {
+      const y = el.getBoundingClientRect().top + window.scrollY - offset
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
+    }
     setActive(id)
   }
 
@@ -64,15 +70,15 @@ export default function PropertyStickyNav({
       aria-label="Secciones de la propiedad"
     >
       <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8">
-        <ul className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-none">
+        <ul className="flex gap-2 md:gap-5 overflow-x-auto scrollbar-none md:justify-center">
           {sections.map(s => {
             const isActive = active === s.id
             return (
               <li key={s.id}>
                 <button
                   onClick={() => jumpTo(s.id)}
-                  className={`relative px-4 py-4 text-[13px] font-semibold whitespace-nowrap transition-colors ${
-                    isActive ? 'text-[#1A5C38]' : 'text-gray-500 hover:text-gray-800'
+                  className={`relative px-3 py-4 text-[15px] whitespace-nowrap transition-colors ${
+                    isActive ? 'text-[#1A5C38] font-bold' : 'text-gray-500 font-semibold hover:text-gray-800'
                   }`}
                   style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
                 >
