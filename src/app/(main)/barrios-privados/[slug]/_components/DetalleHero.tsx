@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Barrio } from "@/lib/barrios";
 
-// Hero a pantalla casi completa: portada 01.webp + overlay verde oscuro,
-// breadcrumb, badge tier, nombre y fila de stats con separadores dorados.
-// Fallback sin foto: fondo verde con patrón sutil (barrios sin assets).
+// Hero inmersivo: portada full-bleed + velo verde oscuro, breadcrumb sutil,
+// badge tier con punto verde, nombre en peso liviano y fila de stats con
+// separadores finos blancos. Fallback sin foto: verde de marca con patrón.
 
 const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif";
 const P = "var(--font-poppins), 'Poppins', system-ui, sans-serif";
@@ -35,7 +35,7 @@ export default function DetalleHero({ barrio, portada }: { barrio: Barrio; porta
   const stats = buildStats(barrio);
 
   return (
-    <section className="relative flex min-h-[60vh] flex-col justify-end overflow-hidden md:min-h-[70vh]">
+    <section className="relative flex min-h-[78vh] flex-col justify-end overflow-hidden md:min-h-[86vh]">
       {/* Fondo: portada o fallback verde con patrón sutil */}
       {portada ? (
         <>
@@ -52,7 +52,7 @@ export default function DetalleHero({ barrio, portada }: { barrio: Barrio; porta
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(to top, rgba(15,63,38,0.92) 0%, rgba(15,63,38,0.62) 28%, rgba(15,63,38,0.18) 55%, transparent 80%)",
+                "linear-gradient(180deg, rgba(15,58,35,0.28) 0%, rgba(15,58,35,0) 30%), linear-gradient(0deg, rgba(8,20,13,0.90) 3%, rgba(8,20,13,0.34) 42%, rgba(8,20,13,0) 70%)",
             }}
           />
         </>
@@ -68,69 +68,58 @@ export default function DetalleHero({ barrio, portada }: { barrio: Barrio; porta
         />
       )}
 
-      <div className="relative mx-auto w-full max-w-[1280px] px-6 pb-10 pt-32 md:px-10 md:pb-14">
-        {/* Breadcrumb */}
-        <nav aria-label="breadcrumb" className="mb-4">
+      <div className="relative mx-auto w-full max-w-[1180px] px-6 pb-11 pt-28 md:px-8 md:pb-16">
+        {/* Breadcrumb sutil */}
+        <nav aria-label="breadcrumb" className="mb-5">
           <Link
             href="/barrios-privados"
-            className="text-[12px] font-medium text-white/75 transition-colors hover:text-white"
+            className="text-[12px] font-medium text-white/70 transition-colors hover:text-white"
             style={{ fontFamily: P }}
           >
-            Barrios cerrados
+            ← Barrios privados
           </Link>
-          <span className="mx-2 text-[12px] text-white/50">/</span>
-          <span className="text-[12px] font-medium text-white" style={{ fontFamily: P }}>
-            {barrio.nombre}
-          </span>
         </nav>
 
         {/* Badge tier + zona */}
-        <div className="mb-3 flex items-center gap-2">
-          <span
-            className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#1A5C38]"
-            style={{ fontFamily: P }}
-          >
-            {barrio.tier}
-          </span>
-          <span
-            className="rounded-full border border-white/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white"
-            style={{ fontFamily: P }}
-          >
-            Funes
-          </span>
-        </div>
+        <span
+          className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white backdrop-blur-sm"
+          style={{ fontFamily: P }}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-[#8CF0B4]" aria-hidden />
+          {barrio.tier} · Funes
+        </span>
 
         {/* Nombre */}
         <h1
-          className="mb-2 text-4xl leading-[1.05] text-white md:text-6xl"
-          style={{ fontFamily: R, fontWeight: 800, letterSpacing: "-0.02em" }}
+          className="mb-2 mt-4 text-[2.6rem] leading-[0.98] text-white md:text-[4.4rem]"
+          style={{ fontFamily: R, fontWeight: 300, letterSpacing: "-0.02em", textWrap: "balance" }}
         >
           {barrio.nombre}
         </h1>
         {barrio.subtitulo && (
-          <p className="mb-6 max-w-xl text-[15px] leading-relaxed text-white/85" style={{ fontFamily: P }}>
+          <p className="max-w-[34ch] text-[15px] leading-relaxed text-white/90 md:text-[17px]" style={{ fontFamily: P }}>
             {barrio.subtitulo}
           </p>
         )}
 
-        {/* Stats con separadores dorados */}
+        {/* Stats con separadores finos blancos */}
         {stats.length > 0 && (
-          <dl className="mt-6 flex flex-wrap items-stretch gap-y-4">
+          <dl className="mt-7 flex flex-wrap items-stretch border-t border-white/25 pt-1">
             {stats.map((s, i) => (
               <div
                 key={s.label}
-                className={`flex flex-col pr-5 md:pr-8 ${
-                  i > 0 ? "border-l border-[#B8935A]/70 pl-5 md:pl-8" : ""
+                className={`flex flex-col py-3 pr-6 md:pr-8 ${
+                  i > 0 ? "border-l border-white/15 pl-6 md:pl-8" : ""
                 }`}
               >
                 <dd
-                  className="text-xl text-white md:text-[26px]"
-                  style={{ fontFamily: P, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}
+                  className="text-lg text-white md:text-[22px]"
+                  style={{ fontFamily: P, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}
                 >
                   {s.valor}
                 </dd>
                 <dt
-                  className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8935A]"
+                  className="mt-1 text-[11px] font-medium uppercase tracking-[0.06em] text-white/70"
                   style={{ fontFamily: P }}
                 >
                   {s.label}
