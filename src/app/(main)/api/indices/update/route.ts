@@ -27,10 +27,11 @@ interface IndecResponse {
 }
 
 export async function GET(req: NextRequest) {
-  // Auth check: Vercel cron sends this automatically, or manual with header
+  // Auth check (fail-closed, igual que los demás crons): si CRON_SECRET no está
+  // seteada NO se abre el endpoint — antes `cronSecret && ...` lo dejaba público
+  // ante una env faltante, permitiendo reescribir IPC/CER/UVA sin auth.
   const authHeader = req.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

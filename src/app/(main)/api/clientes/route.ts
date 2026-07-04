@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { redis } from '@/lib/redis'
+import { assertTeamCode } from '@/lib/team-auth'
 
 function parse<T>(raw: unknown): T | null {
   if (!raw) return null
@@ -21,6 +22,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   try {
     const { name, slug, description, coverImage } = await req.json()
     if (!name || !slug) return NextResponse.json({ error: 'name y slug requeridos' }, { status: 400 })
@@ -42,6 +45,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   try {
     const slug = req.nextUrl.searchParams.get('slug')
     if (!slug) return NextResponse.json({ error: 'slug requerido' }, { status: 400 })

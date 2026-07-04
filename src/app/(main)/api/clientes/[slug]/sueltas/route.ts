@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { redis } from '@/lib/redis'
+import { assertTeamCode } from '@/lib/team-auth'
 
 function parse<T>(raw: unknown): T | null {
   if (!raw) return null
@@ -16,6 +17,8 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 }
 
 export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   try {
     const { tokkoId, action } = await req.json()
     if (!tokkoId || !action) return NextResponse.json({ error: 'tokkoId y action requeridos' }, { status: 400 })
