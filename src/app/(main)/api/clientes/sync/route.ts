@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
 import { redis } from '@/lib/redis'
+import { assertTeamCode } from '@/lib/team-auth'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST() {
+export async function POST(req: Request) {
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   try {
     const apiKey = process.env.TOKKO_API_KEY
     if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })

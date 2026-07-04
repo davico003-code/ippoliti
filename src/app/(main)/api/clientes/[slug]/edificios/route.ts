@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { redis } from '@/lib/redis'
+import { assertTeamCode } from '@/lib/team-auth'
 
 function parse<T>(raw: unknown): T | null {
   if (!raw) return null
@@ -22,6 +23,8 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 }
 
 export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   try {
     const { nombre, descripcion } = await req.json()
     if (!nombre) return NextResponse.json({ error: 'nombre requerido' }, { status: 400 })
@@ -42,6 +45,8 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { slug: string } }) {
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   try {
     const { order } = await req.json()
     if (!Array.isArray(order)) return NextResponse.json({ error: 'order array requerido' }, { status: 400 })
@@ -53,6 +58,8 @@ export async function PUT(req: NextRequest, { params }: { params: { slug: string
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { slug: string } }) {
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   try {
     const edId = req.nextUrl.searchParams.get('edId')
     if (!edId) return NextResponse.json({ error: 'edId requerido' }, { status: 400 })
