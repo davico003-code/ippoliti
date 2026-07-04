@@ -147,7 +147,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
       miradaBroker:
         'Kentucky se vende solo y, a la vez, no se vende tan fácil. Buena parte del stock no llega al portal: las casas se mueven entre contactos, family offices y redes privadas antes de publicarse. Eso obliga a tener el barrio mapeado y a trabajar con tiempo. Para perfil aspiracional puro hay alternativas más nuevas. Para perfil patrimonial-tradicional, donde se valora prestigio histórico y discreción, no hay reemplazo en la zona. En pandemia se aceleró la valorización porque mucha gente que tenía Kentucky como segunda residencia se mudó definitivamente.',
       comparado:
-        'Único barrio con cancha de golf de 18 hoyos en la zona. Vida CdC tiene practice con 3 greens-isla, distinto producto. En lote promedio (1.200 m²) y superficie (242 ha) está por encima de cualquier desarrollo nuevo. No compite por infraestructura moderna sino por marca histórica y tipología de propietario.',
+        'Único barrio con cancha de golf de 18 hoyos en la zona. En lote promedio (1.200 m²) y superficie (242 ha) está por encima de cualquier desarrollo nuevo. No compite por infraestructura moderna sino por marca histórica y tipología de propietario.',
     },
     faqExtendida: [
       {
@@ -251,44 +251,38 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
     tier: 'En desarrollo',
     tierColor: '#666666',
     palette: { from: '#1F4D2E', to: '#3D7050', accent: '#F0E8D0' },
-    elementoSvg: 'golf',
-    subtitulo: 'Practice de golf y Club House de autor',
+    elementoSvg: 'tenis',
+    subtitulo: 'Club House de autor y lotes de 1.000 m²',
     ubicacionEditorial: 'Funes, Santa Fe',
     distanciaRosario: '22 min',
     stats: [
       { value: '659', unit: '', label: 'Lotes totales' },
       { value: '135', unit: 'ha', label: 'Superficie' },
-      { value: '3', unit: '', label: 'Greens-isla practice' },
+      { value: '1.000', unit: 'm²', label: 'Lote desde' },
       { value: '8', unit: '', label: 'Canchas tenis' },
     ],
     amenitiesEditorial: [
-      'Practice de golf con 3 greens-isla',
       'Club House de autor (hormigón + madera)',
       '7-8 canchas de tenis polvo de ladrillo',
       'Pileta climatizada',
       'Cancha de fútbol',
-      'Restaurant en Club House',
+      'Restaurante en Club House',
       'Salón de eventos',
       'Seguridad 24 hs',
     ],
     contenidoSEO: {
       intro:
-        'Vida Club de Campo distribuye 659 lotes de 1.000 a 1.270 m² sobre 135 hectáreas en Funes. Suma dos diferenciales: practice de golf propio con 3 greens-isla funcionales y un Club House de autor en hormigón visto y madera, planta octogonal con jardín central. Completan la propuesta 7-8 canchas de tenis de polvo de ladrillo.',
+        'Vida Club de Campo distribuye 659 lotes de 1.000 a 1.270 m² sobre 135 hectáreas en Funes. Su diferencial es un Club House de autor en hormigón visto y madera, de planta octogonal con jardín central. Completan la propuesta 7-8 canchas de tenis de polvo de ladrillo, pileta climatizada y cancha de fútbol.',
       vidaAdentro:
-        'El practice atrae golfistas que quieren entrenar a diario sin la formalidad de un campo de 18 hoyos. Las canchas de tenis lo convierten en polo tenístico real: torneos y escuela activa. Vecindario mixto: mitad familias ya instaladas, mitad lotes en construcción.',
+        'Las canchas de tenis lo convierten en un polo tenístico real: torneos y escuela activa. El Club House de autor es el corazón social del barrio, con comedor, salón de eventos y deck sobre las canchas. Vecindario mixto: mitad familias ya instaladas, mitad lotes en construcción.',
       ubicacionTexto:
         'Funes, sobre el eje principal, con acceso directo a autopista. 22 minutos de Rosario, 5 del centro de Funes. Colegios de Funes a 15 minutos. GO Sanatorio a 10.',
       miradaBroker:
-        'Entendió cómo competir con Kentucky sin imitarlo. En vez de ofrecer un campo de 18 hoyos menor, ofrece un practice serio que cubre el 80% de la práctica habitual de un golfista, con costo de mantenimiento más bajo, lo que se refleja en expensas más razonables. Para familia ABC1 joven que quiere infraestructura premium sin la carga de un country tradicional, este es el barrio.',
+        'Entendió cómo competir con Kentucky sin imitarlo: arquitectura más contemporánea, lotes grandes y uniformes de 1.000 m², y un set de tenis serio junto al reservorio, con expensas más razonables que un country tradicional. Para familia ABC1 joven que quiere infraestructura premium sin la carga de un country clásico, este es el barrio.',
       comparado:
         'Más chico y nuevo que Kentucky (135 vs 242 ha), pero con arquitectura más contemporánea y mayor cantidad de canchas de tenis. Frente a Funes Lakes, formato club tradicional vs náutico.',
     },
     faqExtendida: [
-      {
-        pregunta: '¿El practice reemplaza una cancha de 18 hoyos?',
-        respuesta:
-          'No, son productos distintos. El practice cubre driving, approach y putting — permite entrenar técnica y juego corto todos los días. Para 18 hoyos, los socios suelen ir al Jockey Club o Kentucky por convenio.',
-      },
       {
         pregunta: '¿Cuánto se demora en construir?',
         respuesta:
@@ -302,7 +296,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
       {
         pregunta: '¿Qué stock tienen?',
         respuesta:
-          'Stock actualizado contra el sistema central. Lotes en distintas ubicaciones (frente al practice, sobre canchas, internos) y valores. Pedinos el listado al día.',
+          'Stock actualizado contra el sistema central. Lotes en distintas ubicaciones (sobre canchas, internos, perimetrales) y valores. Pedinos el listado al día.',
       },
       {
         pregunta: '¿Restaurant abierto al público?',
@@ -310,7 +304,7 @@ export const BARRIOS_EDITORIAL: Record<string, BarrioEditorial> = {
           'Restringido a propietarios e invitados según reglamento. Para conocer el espacio, la visita guiada con almuerzo se coordina con tu broker.',
       },
     ],
-    keywords: 'vida club de campo funes, practice golf funes, canchas tenis polvo ladrillo, club house arquitectura, barrio cerrado funes premium',
+    keywords: 'vida club de campo funes, lotes 1000 m2 funes, canchas tenis polvo ladrillo, club house arquitectura, barrio cerrado funes premium',
     comparativaKeys: ['Kentucky', 'Vida Lagoon', 'Funes Lakes'],
   },
 
