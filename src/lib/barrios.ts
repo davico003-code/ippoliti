@@ -404,7 +404,6 @@ export const BARRIOS: Barrio[] = [
       hectareasTotales: 135,
       distintivos: [
         "Club House de autor en hormigón visto y madera (planta octogonal con jardín central)",
-        "Practice de golf propio con 3 greens-isla — caso raro fuera de Kentucky",
         "Set de 7-8 canchas de tenis de polvo de ladrillo junto al reservorio",
         "Portal de ingreso de diseño en hormigón visto sobre canal de agua",
         "Lotes grandes y uniformes (1.000-1.270 m²)",
@@ -435,17 +434,16 @@ export const BARRIOS: Barrio[] = [
     ],
     seguridad: ["Vigilancia 24hs", "Portal de control de acceso", "Cerco perimetral"],
     miradaBroker: {
-      titular: "Tiene practice de golf propio. El secreto mejor guardado del corredor.",
+      titular: "Club House de autor y lotes de 1.000 m². El secreto mejor guardado del corredor.",
       parrafo:
-        "Vida Club de Campo es el barrio que más me sorprendió cuando lo recorrí en obra. La gente lo conoce por los lotes grandes (1.000-1.270 m² uniformes), pero pocos saben que tiene practice de golf con tres greens-isla dentro del barrio. Eso, sumado a un Club House de autor en hormigón visto y madera, y siete u ocho canchas de tenis de polvo de ladrillo frente al reservorio, te pone a un escalón de Kentucky con un ticket muy distinto. La otra mitad ya tiene casas habitadas, así que no estás comprando una promesa sino un barrio que ya está viviendo. Si viajás seguido, sumá que estás a minutos del Aeropuerto de Rosario.",
+        "Vida Club de Campo es el barrio que más me sorprendió cuando lo recorrí en obra. La gente lo conoce por los lotes grandes (1.000-1.270 m² uniformes), pero su verdadero diferencial está puertas adentro: un Club House de autor en hormigón visto y madera, y siete u ocho canchas de tenis de polvo de ladrillo frente al reservorio, que te ponen a un escalón de Kentucky con un ticket muy distinto. La otra mitad ya tiene casas habitadas, así que no estás comprando una promesa sino un barrio que ya está viviendo. Si viajás seguido, sumá que estás a minutos del Aeropuerto de Rosario.",
     },
     perfilComprador: [
       "Compradores que quieren lote grande (1.000 m²) como base",
-      "Golfistas que no quieren pagar Kentucky pero quieren practicar",
       "Familias deportivas (mucho tenis disponible)",
       "Viajeros frecuentes que valoran cercanía al aeropuerto",
     ],
-    tags: ["lotes-grandes", "practice-golf", "aeropuerto", "tenis", "paddle", "futbol", "clubhouse-diseño", "reservorio"],
+    tags: ["lotes-grandes", "aeropuerto", "tenis", "paddle", "futbol", "clubhouse-diseño", "reservorio"],
     tokko: { matchByTitle: ["vida club de campo"] },
     imagenes: {
       hero: "/barrios/vida-club-de-campo/hero-clubhouse-octogonal.jpg",
@@ -455,8 +453,6 @@ export const BARRIOS: Barrio[] = [
         "/barrios/vida-club-de-campo/clubhouse-vista-frontal.jpg",
         "/barrios/vida-club-de-campo/clubhouse-arquitectura.jpg",
         "/barrios/vida-club-de-campo/aerea-clubhouse-practice.jpg",
-        "/barrios/vida-club-de-campo/practice-golf-tenis.jpg",
-        "/barrios/vida-club-de-campo/practice-golf-detalle.jpg",
         "/barrios/vida-club-de-campo/tenis-aerea.jpg",
         "/barrios/vida-club-de-campo/tenis-paddle-paisaje.jpg",
         "/barrios/vida-club-de-campo/portal-ingreso-aereo.jpg",
@@ -468,9 +464,9 @@ export const BARRIOS: Barrio[] = [
       ],
     },
     seo: {
-      metaTitle: "Vida Club de Campo, Funes — Practice de golf, Club House de autor y lotes de 1.000 m² | SI Inmobiliaria",
+      metaTitle: "Vida Club de Campo, Funes — Club House de autor y lotes de 1.000 m² | SI Inmobiliaria",
       metaDescription:
-        "Vida Club de Campo: 659 lotes de 1.000 m² con practice de golf, Club House de autor en hormigón visto y 7 canchas de tenis. A minutos del Aeropuerto Rosario. Stock por SI Inmobiliaria.",
+        "Vida Club de Campo: 659 lotes de 1.000 m² con Club House de autor en hormigón visto y 7 canchas de tenis de polvo de ladrillo. A minutos del Aeropuerto Rosario. Stock por SI Inmobiliaria.",
       keywordsLongTail: [
         "vida club de campo funes",
         "lote 1000 m2 funes",
@@ -1398,9 +1394,9 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
   },
   "vida-club-de-campo": {
     sigla: "VC",
-    descripcion: "Practice de golf y Club House de autor. Diseño contemporáneo a escala campestre.",
-    datos: ["659 lotes", "135 ha", "Golf practice"],
-    amenities: ["golf"],
+    descripcion: "Club House de autor y lotes grandes. Diseño contemporáneo a escala campestre.",
+    datos: ["659 lotes", "135 ha", "Lotes 1.000 m²"],
+    amenities: ["laguna"],
     lat: -32.9300, lng: -60.7857,
     imagenHero: "/barrios/vida-club-de-campo/aerea-barrio-completo.jpg",
   },

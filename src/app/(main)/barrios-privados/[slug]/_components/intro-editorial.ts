@@ -45,7 +45,7 @@ export const INTRO_EDITORIAL: Record<string, IntroEditorial> = {
   'vida-club-de-campo': {
     titulo: 'El secreto mejor guardado del corredor',
     parrafos: [
-      'Vida Club de Campo es conocido por los lotes grandes —1.000 a 1.270 m², uniformes— pero su verdadero diferencial está puertas adentro: practice de golf propio con tres greens-isla, un caso que fuera de Kentucky no existe en la zona, y un set de siete a ocho canchas de tenis de polvo de ladrillo junto al reservorio.',
+      'Vida Club de Campo es conocido por los lotes grandes —1.000 a 1.270 m², uniformes— pero su verdadero diferencial está puertas adentro: un Club House de autor en hormigón visto y madera, de planta octogonal con jardín central, y un set de siete a ocho canchas de tenis de polvo de ladrillo junto al reservorio.',
       'El Club House es de autor: hormigón visto y madera en planta octogonal con jardín central, a la altura de la arquitectura que el barrio quiere atraer. Son 659 lotes en 135 hectáreas con escala campestre real.',
       'Queda a un escalón de Kentucky en categoría, a una fracción del ticket. Para el comprador que quiere campo, deporte y diseño sin pagar la prima del clásico, es la compra inteligente del corredor.',
     ],
