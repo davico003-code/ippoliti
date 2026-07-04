@@ -52,7 +52,7 @@ export default function PropertyDetailSimilars({
       <SectionBoundary name="similares">
         <section
           id="similares"
-          className="bg-white rounded-2xl px-5 md:px-8 pt-6 pb-8 shadow-sm border border-gray-100 scroll-mt-32"
+          className="bg-white rounded-2xl px-5 md:px-8 pt-6 pb-8 shadow-sm border border-gray-100 scroll-mt-40"
           aria-busy="true"
         >
           <div className="h-7 w-56 bg-gray-200 rounded animate-pulse mb-6" />
@@ -78,7 +78,7 @@ export default function PropertyDetailSimilars({
       <SectionBoundary name="similares">
         <section
           id="similares"
-          className="bg-white rounded-2xl px-5 md:px-8 py-6 shadow-sm border border-gray-100 scroll-mt-32"
+          className="bg-white rounded-2xl px-5 md:px-8 py-6 shadow-sm border border-gray-100 scroll-mt-40"
         >
           <p className="text-sm text-gray-600 mb-3">No pudimos cargar las propiedades similares.</p>
           <button
@@ -98,7 +98,7 @@ export default function PropertyDetailSimilars({
     <SectionBoundary name="similares">
       <section
         id="similares"
-        className="bg-white rounded-2xl px-5 md:px-8 pt-2 pb-8 shadow-sm border border-gray-100 scroll-mt-32"
+        className="bg-white rounded-2xl px-5 md:px-8 pt-2 pb-8 shadow-sm border border-gray-100 scroll-mt-40"
       >
         {/* SimilarProperties espera TokkoProperty[]; PropertyCardProjection
             es asignable estructuralmente porque mantenemos el shape parcial

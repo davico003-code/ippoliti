@@ -6,8 +6,13 @@
 //   2. Copiar link público
 //   3. Placa Instagram (si hay placaHref)
 //   4. Generar link para colega → POST /api/ficha/crear + copia clipboard + toast
+//
+// El dropdown se PORTALIZA a document.body (position:fixed) para no quedar
+// cortado por el overflow del sidebar. Se reposiciona con el botón y se cierra
+// al scrollear/resize.
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import {
   Check,
@@ -33,18 +38,36 @@ export default function ShareMenu({ propertyId, slug, title, placaHref }: Props)
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [generando, setGenerando] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState<{ top: number; left: number; width: number } | null>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
   const waText = encodeURIComponent(`Mirá esta propiedad: ${title}\n${url}`)
 
+  const abrir = () => {
+    const r = btnRef.current?.getBoundingClientRect()
+    if (r) setCoords({ top: r.bottom + 6, left: r.left, width: r.width })
+    setOpen(o => !o)
+  }
+
+  // Cierre por click afuera (botón O menú), y al scrollear/resize (para no
+  // quedar desalineado, ya que el menú es position:fixed).
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (!btnRef.current?.contains(t) && !menuRef.current?.contains(t)) setOpen(false)
     }
+    const cerrar = () => setOpen(false)
     document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
+    window.addEventListener('scroll', cerrar, true)
+    window.addEventListener('resize', cerrar)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      window.removeEventListener('scroll', cerrar, true)
+      window.removeEventListener('resize', cerrar)
+    }
   }, [open])
 
   const copy = async () => {
@@ -80,111 +103,102 @@ export default function ShareMenu({ propertyId, slug, title, placaHref }: Props)
         Compartir propiedad
       </p>
 
-      <div ref={wrapRef} style={{ position: 'relative' }}>
-        <button
-          type="button"
-          onClick={() => setOpen(o => !o)}
-          aria-expanded={open}
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={abrir}
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          padding: '12px 18px',
+          background: '#F3F4F6',
+          color: '#1f2937',
+          border: 'none',
+          borderRadius: 14,
+          fontSize: 14,
+          fontWeight: 600,
+          fontFamily: R,
+          cursor: 'pointer',
+        }}
+      >
+        <Share2 size={16} />
+        Compartir
+      </button>
+
+      {open && coords && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={menuRef}
+          role="menu"
           style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            padding: '12px 18px',
-            background: '#F3F4F6',
-            color: '#1f2937',
-            border: 'none',
+            position: 'fixed',
+            top: coords.top,
+            left: coords.left,
+            width: coords.width,
+            background: '#fff',
+            border: '1px solid #E5E7EB',
             borderRadius: 14,
-            fontSize: 14,
-            fontWeight: 600,
-            fontFamily: R,
-            cursor: 'pointer',
+            overflow: 'hidden',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            zIndex: 1000,
           }}
         >
-          <Share2 size={16} />
-          Compartir
-        </button>
+          <a
+            href={`https://wa.me/?text=${waText}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            role="menuitem"
+            style={{ ...itemBase, borderTop: 'none' }}
+            onClick={() => setOpen(false)}
+          >
+            <MessageCircle size={16} color="#25D366" />
+            Compartir por WhatsApp
+          </a>
 
-        {open && (
-          <div
-            role="menu"
+          <button type="button" role="menuitem" onClick={copy} style={itemBase}>
+            {copied ? <Check size={16} color="#1A5C38" /> : <Link2 size={16} />}
+            {copied ? 'Link copiado' : 'Copiar link público'}
+          </button>
+
+          {placaHref && (
+            <Link href={placaHref} role="menuitem" style={itemBase} onClick={() => setOpen(false)}>
+              <Instagram size={16} />
+              Generar placa Instagram
+            </Link>
+          )}
+
+          <button
+            type="button"
+            role="menuitem"
+            disabled={generando}
+            onClick={async () => {
+              if (generando) return
+              setOpen(false)
+              setGenerando(true)
+              try {
+                await generarYCopiarFichaLink(propertyId)
+              } finally {
+                setGenerando(false)
+              }
+            }}
             style={{
-              position: 'absolute',
-              top: 'calc(100% + 6px)',
-              left: 0,
-              right: 0,
-              background: '#fff',
-              border: '1px solid #E5E7EB',
-              borderRadius: 14,
-              overflow: 'hidden',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-              zIndex: 30,
+              ...itemBase,
+              background: '#FAFAF8',
+              fontWeight: 600,
+              color: '#1A5C38',
+              opacity: generando ? 0.7 : 1,
+              cursor: generando ? 'wait' : 'pointer',
             }}
           >
-            <a
-              href={`https://wa.me/?text=${waText}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              role="menuitem"
-              style={{ ...itemBase, borderTop: 'none' }}
-              onClick={() => setOpen(false)}
-            >
-              <MessageCircle size={16} color="#25D366" />
-              Compartir por WhatsApp
-            </a>
-
-            <button
-              type="button"
-              role="menuitem"
-              onClick={copy}
-              style={itemBase}
-            >
-              {copied ? <Check size={16} color="#1A5C38" /> : <Link2 size={16} />}
-              {copied ? 'Link copiado' : 'Copiar link público'}
-            </button>
-
-            {placaHref && (
-              <Link
-                href={placaHref}
-                role="menuitem"
-                style={itemBase}
-                onClick={() => setOpen(false)}
-              >
-                <Instagram size={16} />
-                Generar placa Instagram
-              </Link>
-            )}
-
-            <button
-              type="button"
-              role="menuitem"
-              disabled={generando}
-              onClick={async () => {
-                if (generando) return
-                setOpen(false)
-                setGenerando(true)
-                try {
-                  await generarYCopiarFichaLink(propertyId)
-                } finally {
-                  setGenerando(false)
-                }
-              }}
-              style={{
-                ...itemBase,
-                background: '#FAFAF8',
-                fontWeight: 600,
-                color: '#1A5C38',
-                opacity: generando ? 0.7 : 1,
-                cursor: generando ? 'wait' : 'pointer',
-              }}
-            >
-              <Sparkles size={16} />
-              {generando ? 'Generando…' : 'Generar link para colega'}
-            </button>
-          </div>
-        )}
-      </div>
+            <Sparkles size={16} />
+            {generando ? 'Generando…' : 'Generar link para colega'}
+          </button>
+        </div>,
+        document.body,
+      )}
     </div>
   )
 }

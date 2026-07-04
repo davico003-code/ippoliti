@@ -149,7 +149,7 @@ export default function PropertyDetailBody({
   return (
     <div className="space-y-6">
       {/* OVERVIEW — title + location + price + badges */}
-      <section id="overview" className={`${CARD} scroll-mt-32`}>
+      <section id="overview" className={`${CARD} scroll-mt-40`}>
         <h1 style={{ fontFamily: R, fontWeight: 800, fontSize: 28, color: '#111', lineHeight: 1.2, marginBottom: 8 }}>
           {property.publication_title || address}
         </h1>
@@ -269,7 +269,7 @@ export default function PropertyDetailBody({
 
       {/* CARACTERÍSTICAS */}
       {specs.length > 0 && (
-        <section id="caracteristicas" className={`${CARD} scroll-mt-32`}>
+        <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
           <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Características</h2>
           <div className="grid grid-cols-3 lg:grid-cols-5 gap-3">
             {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
@@ -290,7 +290,7 @@ export default function PropertyDetailBody({
       {/* DESCRIPCIÓN */}
       {description && (
         <SectionBoundary name="descripcion">
-          <section id="descripcion" className={`${CARD} scroll-mt-32`}>
+          <section id="descripcion" className={`${CARD} scroll-mt-40`}>
             <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Descripción</h2>
             <PropertyDescription text={description} />
           </section>
@@ -351,7 +351,7 @@ export default function PropertyDetailBody({
       {/* PLANOS */}
       {blueprints.length > 0 && (
         <SectionBoundary name="planos">
-          <section id="planos" className={`${CARD} scroll-mt-32`}>
+          <section id="planos" className={`${CARD} scroll-mt-40`}>
             <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Planos</h2>
             <BlueprintGallery blueprints={blueprints} />
           </section>
@@ -360,7 +360,7 @@ export default function PropertyDetailBody({
 
       {/* UBICACIÓN */}
       <SectionBoundary name="ubicacion">
-        <section id="ubicacion" className={`${CARD} scroll-mt-32`}>
+        <section id="ubicacion" className={`${CARD} scroll-mt-40`}>
           <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Ubicación</h2>
           <div className="rounded-[14px] overflow-hidden mb-3" style={{ aspectRatio: '4/3' }}>
             <PropertyMap

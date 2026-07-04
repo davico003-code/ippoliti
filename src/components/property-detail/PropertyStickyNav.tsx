@@ -22,16 +22,20 @@ export default function PropertyStickyNav({
   const [active, setActive] = useState<string>(sections[0]?.id ?? '')
   const navRef = useRef<HTMLElement>(null)
 
-  // Scroll-spy
+  // Scroll-spy: la pestaña activa es la sección más alta que cruza una línea de
+  // activación cerca del tope. Banda finita para que no queden dos activas.
   useEffect(() => {
     const opts: IntersectionObserverInit = {
       root: scrollRoot ?? null,
-      rootMargin: '-20% 0px -60% 0px',
+      rootMargin: '-15% 0px -75% 0px',
       threshold: 0,
     }
     const io = new IntersectionObserver((entries) => {
-      const visible = entries.filter(e => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-      if (visible?.target?.id) setActive(visible.target.id)
+      const visibles = entries.filter(e => e.isIntersecting)
+      if (visibles.length === 0) return
+      // La que estás mirando = la más cercana al tope entre las que cruzan.
+      const top = visibles.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+      if (top?.target?.id) setActive(top.target.id)
     }, opts)
 
     sections.forEach(s => {
@@ -44,19 +48,11 @@ export default function PropertyStickyNav({
   const jumpTo = (id: string) => {
     const el = document.getElementById(id)
     if (!el) return
-    // Offset = sticky page header + altura del propio nav (medida) + buffer.
-    // Sin la altura del nav propio, el target queda tapado por la barra de tabs.
-    const navH = navRef.current?.offsetHeight ?? 0
-    const totalOffset = stickyTop + navH + 8
-    if (scrollRoot) {
-      const elTop = el.getBoundingClientRect().top
-      const rootTop = scrollRoot.getBoundingClientRect().top
-      const offset = elTop - rootTop + scrollRoot.scrollTop - totalOffset
-      scrollRoot.scrollTo({ top: offset, behavior: 'smooth' })
-    } else {
-      const y = el.getBoundingClientRect().top + window.scrollY - totalOffset
-      window.scrollTo({ top: y, behavior: 'smooth' })
-    }
+    // scrollIntoView scrollea el ancestro scrolleable correcto (window O el div
+    // del overlay) y RESPETA el scroll-margin-top de la sección (scroll-mt-*),
+    // así queda justo debajo del header + esta barra. Antes el offset manual
+    // fallaba en el overlay (Ubicación/Similares saltaban al tope).
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     setActive(id)
   }
 
