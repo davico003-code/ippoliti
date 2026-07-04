@@ -3,14 +3,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'
-import { getAllPosts, getPostBySlug } from '@/lib/blog'
+import { getAllPosts, getPostBySlug, resolveCategory, readingMinutes } from '@/lib/blog'
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
-
-/* Tiempo de lectura estimado (≈200 palabras/min). */
-function readingMinutes(content: string): number {
-  const words = content.trim().split(/\s+/).filter(Boolean).length
-  return Math.max(2, Math.round(words / 200))
-}
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
 // su fecha, sin depender del revalidate on-demand.
@@ -66,10 +60,13 @@ export default async function BlogPostPage({ params }: Props) {
   // antes de su fecha. Renderiza el not-found brandeado de (main).
   if (!post) notFound()
 
+  // Categoría normalizada (misma fuente que el listado) para que el chip y los
+  // relacionados sean consistentes con lo que el usuario vio en /blog.
+  const category = resolveCategory(post.slug, post.category)
   const allPosts = await getAllPosts()
   const related = allPosts
     .filter(p => p.slug !== post.slug)
-    .filter(p => post.category ? p.category === post.category : true)
+    .filter(p => resolveCategory(p.slug, p.category) === category)
     .slice(0, 3)
 
   const authorName = post.author || 'SI Inmobiliaria'
@@ -138,14 +135,12 @@ export default async function BlogPostPage({ params }: Props) {
               <ArrowLeft className="h-4 w-4" />
               Volver al blog
             </Link>
-            {post.category && (
-              <span
-                className="mb-4 inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
-                style={{ backgroundColor: '#1A5C38' }}
-              >
-                {post.category}
-              </span>
-            )}
+            <span
+              className="mb-4 inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
+              style={{ backgroundColor: '#1A5C38' }}
+            >
+              {category}
+            </span>
             <h1 className="text-3xl font-black leading-[1.08] text-white drop-shadow-sm md:text-5xl">
               {post.title}
             </h1>
@@ -189,11 +184,15 @@ export default async function BlogPostPage({ params }: Props) {
           {/* Content */}
           <div className="space-y-6">
             {(() => {
-              const firstParaIdx = paragraphs.findIndex(
-                p => !(/^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && (p.endsWith('?') || (p.length < 80 && !p.includes('.')))),
-              )
+              // Heurística conservadora de subtítulo (el content es texto plano
+              // sin marcado): línea corta que arranca en mayúscula, sin punto y
+              // sin coma. Exigir "sin coma" y menos de 70 chars evita marcar
+              // frases cortas de prosa como h2. Sigue siendo inferencia.
+              const looksHeading = (p: string) =>
+                /^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && p.length < 70 && !p.includes('.') && !p.includes(',')
+              const firstParaIdx = paragraphs.findIndex(p => !looksHeading(p))
               return paragraphs.map((paragraph, i) => {
-                const isHeading = /^[A-ZÁÉÍÓÚÑ¿¡]/.test(paragraph) && (paragraph.endsWith('?') || (paragraph.length < 80 && !paragraph.includes('.')))
+                const isHeading = looksHeading(paragraph)
                 if (isHeading) {
                   return (
                     <h2 key={i} className="mb-2 mt-12 text-[1.6rem] font-black leading-tight tracking-tight text-gray-900">

@@ -269,3 +269,28 @@ export async function getAllPosts(): Promise<BlogPost[]> {
     .map(p => (overrides[p.slug] ? { ...p, image: overrides[p.slug] } : p))
     .sort((a, b) => b.date.localeCompare(a.date));
 }
+
+/**
+ * Categoría normalizada de un post. Fuente única de verdad: la usan tanto el
+ * listado como la ficha (y su bloque de relacionados) para que un post no
+ * aparezca con una categoría en el listado y otra en el detalle.
+ */
+export function resolveCategory(slug: string, existing?: string): string {
+  if (slug.match(/construccion|pozo|emprendimiento|costo|cac|financiacion|invertir|inversion|pileta|panel|acopio|material/))
+    return 'Inversión';
+  if (slug.match(/roldan|funes|zona|corredor|mudarse|eje/)) return 'Funes y Roldán';
+  if (slug.match(/mercado|precio|m2|valor|alquilar/)) return 'Mercado';
+  if (slug.match(/escritura|legal|credito|hipotecario|donacion|herencia|escribano/)) return 'Legal';
+  if (slug.match(/colegio|salud|comercio|supermercado|transporte|restaurante|gimnasio|deporte|seguridad/))
+    return 'Calidad de vida';
+  if (slug.match(/error|preparar|fijar|elegir|detectar|evaluar|red-flag|arquitecto/)) return 'Consejos';
+  if (slug.match(/historia|susana|si-inmobiliaria|ippoliti/)) return 'Mercado';
+  if (existing) return existing;
+  return 'Mercado';
+}
+
+/** Tiempo de lectura estimado en minutos (≈200 palabras/min). */
+export function readingMinutes(content: string): number {
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(2, Math.round(words / 200));
+}

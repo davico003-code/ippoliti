@@ -70,6 +70,10 @@ export default function ValuationSlider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valor])
 
+  // Cleanup del debounce: si se desmonta dentro de los 450 ms, no dejar un
+  // setTimeout pendiente disparando fetch sobre un componente ya ido.
+  useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current) }, [])
+
   const save = (nextPct: number, nextObj: string[]) => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {

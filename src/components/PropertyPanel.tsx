@@ -49,12 +49,17 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
+    // Guard de cancelación: en modo overlay se puede clickear otra card antes de
+    // que resuelva el fetch anterior. Sin esto, respuestas fuera de orden dejan
+    // pintada la propiedad equivocada (y hay setState tras unmount).
+    let active = true
     setLoading(true)
     setError(false)
     fetch(`/api/propiedades/${propertyId}`)
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then((data: TokkoProperty) => { setProperty(data); setLoading(false) })
-      .catch(() => { setError(true); setLoading(false) })
+      .then((data: TokkoProperty) => { if (active) { setProperty(data); setLoading(false) } })
+      .catch(() => { if (active) { setError(true); setLoading(false) } })
+    return () => { active = false }
   }, [propertyId])
 
   // Expose scroll container to the sticky nav once mounted

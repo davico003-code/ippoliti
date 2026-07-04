@@ -84,7 +84,14 @@ export function imagenPorSlug(slug: string): string {
   return IMAGENES_BLOG[h % IMAGENES_BLOG.length];
 }
 
-function blobToBlogPost(nota: NotaPublicadaBlob): BlogPost {
+function blobToBlogPost(nota: NotaPublicadaBlob): BlogPost | null {
+  // Guard: un blob incompleto (sin slug o sin fecha) reventaba en
+  // `fecha_publicacion.split` (TypeError) → la nota desaparecía del blog. Mejor
+  // descartarla explícita y silenciosamente.
+  if (!nota?.slug || !nota?.fecha_publicacion) {
+    console.warn('[blog-dinamicos] blob incompleto, se descarta:', nota?.slug);
+    return null;
+  }
   const fecha = new Date(nota.fecha_publicacion);
   // imagen_url (legacy Unsplash, hoy null en todas) → si no, asignación
   // determinística por hash del slug. Aplica retroactivamente a las notas
@@ -144,6 +151,10 @@ export async function getPostsDinamicos(): Promise<BlogPost[]> {
           // publicador (POST /api/revalidate) invalida la página cuando cambia
           // la lista. 'no-store' rompe SSG/ISR (DYNAMIC_SERVER_USAGE).
           const res = await fetch(blob.url, { cache: 'force-cache' });
+          if (!res.ok) {
+            console.warn(`[blog-dinamicos] blob ${blob.pathname} devolvió ${res.status}`);
+            return null;
+          }
           const data = (await res.json()) as NotaPublicadaBlob;
           return blobToBlogPost(data);
         } catch (err) {

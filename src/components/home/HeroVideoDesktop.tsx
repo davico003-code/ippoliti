@@ -17,15 +17,24 @@ export default function HeroVideoDesktop() {
     const video = videoRef.current
     if (!video) return
     video.muted = true
+    // Si el autoplay falla, reintentamos en la primera interacción. resume se
+    // quita a sí mismo de AMBOS eventos (antes: {once:true} dejaba colgado el
+    // listener de touchstart en desktop) y el cleanup los saca al desmontar.
+    const resume = () => {
+      document.removeEventListener('click', resume)
+      document.removeEventListener('touchstart', resume)
+      video.play().catch(() => {})
+    }
     const playPromise = video.play()
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        const resume = () => {
-          video.play().catch(() => {})
-        }
-        document.addEventListener('click', resume, { once: true })
-        document.addEventListener('touchstart', resume, { once: true })
+        document.addEventListener('click', resume)
+        document.addEventListener('touchstart', resume)
       })
+    }
+    return () => {
+      document.removeEventListener('click', resume)
+      document.removeEventListener('touchstart', resume)
     }
   }, [])
 

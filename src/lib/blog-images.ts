@@ -78,7 +78,7 @@ export const BLOG_IMAGES: Record<string, string> = {
   'mercado-inmobiliario-2025-que-esta-pasando':
     'https://images.unsplash.com/photo-1524813686514-a57563d77965?ixid=M3w5MjUyNzd8MHwxfHNlYXJjaHwxfHxzdWJ1cmJhbiUyMGhvdXNlcyUyMGFlcmlhbCUyMHZpZXd8ZW58MXwwfHx8MTc4MzExOTExMXww&ixlib=rb-4.1.0&w=1200&q=80&fm=jpg&fit=crop',
   'mercado-inmobiliario-roldan-como-saber-propiedad-bien-valuada':
-    'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    'https://images.pexels.com/photos/1546168/pexels-photo-1546168.jpeg?auto=compress&cs=tinysrgb&w=1200',
   'mudarse-roldan-desde-rosario-guia-completa-2025':
     'https://images.unsplash.com/photo-1600725935160-f67ee4f6084a?ixid=M3w5MjUyNzd8MHwxfHNlYXJjaHwxfHxtb3ZpbmclMjBib3hlcyUyMG5ldyUyMGhvbWV8ZW58MXwwfHx8MTc4MzExOTExOXww&ixlib=rb-4.1.0&w=1200&q=80&fm=jpg&fit=crop',
   'paneles-solares-roldan-funes-conviene-2025':

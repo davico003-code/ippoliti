@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getAllPosts } from '@/lib/blog'
+import { getAllPosts, resolveCategory, readingMinutes } from '@/lib/blog'
 import { resolveBlogImage } from '@/lib/blog-images'
 import BlogClient from './BlogClient'
 
@@ -19,29 +19,6 @@ export const metadata: Metadata = {
     url: 'https://siinmobiliaria.com/blog',
     images: ['/og-image.jpg'],
   },
-}
-
-/* ── Mapeo slug → categoría normalizada ── */
-function resolveCategory(slug: string, existing?: string): string {
-  if (slug.match(/construccion|pozo|emprendimiento|costo|cac|financiacion|invertir|inversion|pileta|panel|acopio|material/))
-    return 'Inversión'
-  if (slug.match(/roldan|funes|zona|corredor|mudarse|eje/)) return 'Funes y Roldán'
-  if (slug.match(/mercado|precio|m2|valor|alquilar/)) return 'Mercado'
-  if (slug.match(/escritura|legal|credito|hipotecario|donacion|herencia|escribano/))
-    return 'Legal'
-  if (slug.match(/colegio|salud|comercio|supermercado|transporte|restaurante|gimnasio|deporte|seguridad/))
-    return 'Calidad de vida'
-  if (slug.match(/error|preparar|fijar|elegir|detectar|evaluar|red-flag|arquitecto/))
-    return 'Consejos'
-  if (slug.match(/historia|susana|si-inmobiliaria|ippoliti/)) return 'Mercado'
-  if (existing) return existing
-  return 'Mercado'
-}
-
-/* Tiempo de lectura estimado (≈200 palabras/min). */
-function readingMinutes(content: string): number {
-  const words = content.trim().split(/\s+/).filter(Boolean).length
-  return Math.max(2, Math.round(words / 200))
 }
 
 export default async function BlogPage() {

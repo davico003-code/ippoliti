@@ -285,20 +285,24 @@ div[id="nosotros"] {
 }
 
 /* Blur-up: shimmer detrás de las fotos que aún no cargaron. Cuando la imagen
-   pinta, la tapa. Se aplica al contenedor de la imagen. */
+   pinta, la tapa. Acotado a pocas iteraciones (no infinite) para no dejar
+   decenas de animaciones corriendo bajo fotos ya cargadas en grillas grandes;
+   termina en un gris plano. En las cards con estado (PropiedadCardGrid) además
+   se saca la clase en onLoad. */
 @keyframes si-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -150% 0; }
+  100% { background-position: 150% 0; }
 }
 .si-img-shimmer {
   background-color: #f1f1f0;
   background-image: linear-gradient(90deg, #f1f1f0 25%, #e7e7e4 37%, #f1f1f0 63%);
   background-size: 200% 100%;
-  animation: si-shimmer 1.4s ease-in-out infinite;
+  animation: si-shimmer 1.4s ease-in-out 6 both;
 }
 
-/* Micro-interacciones opt-in. .si-tap = feedback táctil al presionar;
-   .si-lift = elevación suave al hover (cards). */
+/* Micro-interacciones. .si-tap = feedback táctil al presionar (botones/links
+   simples). .si-press-lift = elevación al hover + press, compone ambos estados
+   en CSS (evita que un transform inline pise el :active). */
 .si-tap {
   transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
   -webkit-tap-highlight-color: transparent;
@@ -306,16 +310,22 @@ div[id="nosotros"] {
 .si-tap:active {
   transform: scale(0.97);
 }
-.si-lift {
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+.si-press-lift {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
 }
-.si-lift:hover {
-  transform: translateY(-3px);
+@media (hover: hover) {
+  .si-press-lift:hover { transform: translateY(-3px); }
+  .si-press-lift:hover:active { transform: translateY(-3px) scale(0.98); }
 }
+.si-press-lift:active { transform: scale(0.97); }
 
 @media (prefers-reduced-motion: reduce) {
   .si-page-enter { animation: none; }
   .si-img-shimmer { animation: none; }
-  .si-tap, .si-lift { transition: none; }
-  .si-tap:active, .si-lift:hover { transform: none; }
+  .si-tap, .si-press-lift { transition: none; }
+  .si-tap:active,
+  .si-press-lift:hover,
+  .si-press-lift:active,
+  .si-press-lift:hover:active { transform: none; }
 }
