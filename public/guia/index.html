@@ -7,7 +7,7 @@
 <meta name="description" content="Guía profesional para comprar tu propiedad en Funes, Roldán y Rosario. Por David Flores, corredor inmobiliario con más de 15 años de experiencia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════
    DESIGN TOKENS — Legibilidad prioritaria para +40 años
@@ -22,7 +22,7 @@
 
   --gold:         #B8935A;
   --gold-l:       #D4B685;
-  --gold-xl:      #F5EDDD;
+  --gold-xl:      #F4F8F5;
 
   --ink:          #1C1C1E;
   --ink-80:       #2D2D30;
@@ -30,16 +30,18 @@
   --ink-40:       #8A8A92;
   --ink-20:       #D4D4D8;
 
-  --paper:        #FAF7F2;
-  --paper-d:      #F2EDE4;
+  /* Fondos limpios (sin beige): blanco + gris/verde muy claros. */
+  --paper:        #FFFFFF;
+  --paper-d:      #F4F6F5;
   --white:        #FFFFFF;
 
   --danger:       #991B1B;
   --danger-xl:    #FEE2E2;
 
-  /* Tipografía — ESCALA GENEROSA para +40 años */
-  --f-display:    'Fraunces', Georgia, serif;
-  --f-body:       'Inter', -apple-system, sans-serif;
+  /* Tipografía — fuentes de marca SI (Raleway display + Poppins cuerpo).
+     Escala generosa mantenida para lectura cómoda (+40 años). */
+  --f-display:    'Raleway', system-ui, -apple-system, sans-serif;
+  --f-body:       'Poppins', system-ui, -apple-system, sans-serif;
 
   /* Tamaños base aumentados para legibilidad */
   --t-xs:         0.95rem;    /* 15.2px */
@@ -140,7 +142,7 @@ header.top-bar{
   padding:0 4px;
 }
 .brand-mark .si-letter{
-  font-family:'Orbitron', sans-serif;
+  font-family:var(--f-body);
   font-weight:900;
   color:var(--white);
   font-size:1.4rem;
@@ -149,7 +151,7 @@ header.top-bar{
 }
 .brand-txt b{
   display:block;
-  font-family:'Montserrat', sans-serif;
+  font-family:var(--f-display);
   font-size:1.1rem;font-weight:700;
   color:var(--ink);letter-spacing:.08em;
   line-height:1.1;
@@ -1545,7 +1547,7 @@ footer .f-right{
   box-shadow:0 8px 24px rgba(26,92,56,.22);
 }
 .si-box-letter{
-  font-family:'Orbitron', sans-serif;
+  font-family:var(--f-body);
   font-weight:900;
   color:var(--white);
   font-size:2.8rem;
@@ -1553,7 +1555,7 @@ footer .f-right{
   letter-spacing:0;
 }
 .si-inmob-word{
-  font-family:'Montserrat', sans-serif;
+  font-family:var(--f-display);
   font-weight:700;
   font-size:1.5rem;
   letter-spacing:0.22em;
