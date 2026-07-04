@@ -92,9 +92,6 @@ export default function ExitPopup() {
           <X className="w-5 h-5" />
         </button>
 
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/LOGO_HORIZONTAL.png" alt="SI Inmobiliaria" className="h-8 mx-auto mb-4" />
-
         {status === 'sent' ? (
           <div className="text-center py-4">
             <p className="text-xl font-bold text-gray-900 mb-2 font-poppins">¡Listo! Te contactamos pronto</p>
