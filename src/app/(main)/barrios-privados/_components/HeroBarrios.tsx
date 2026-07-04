@@ -1,112 +1,86 @@
-// Hero del HUB /barrios-privados.
-// Grid 2 cols desktop (texto + buscador / 2 placas editoriales), 1 col mobile.
+// Hero del HUB /barrios-privados — inmersivo: portada full-bleed + velo verde,
+// título gigante ("de Funes." en verde menta), subhead y buscador funcional.
+// El navbar global va transparente sobre este hero (ver Navbar.tsx: overHero).
 
+import Image from "next/image";
 import HeroSearchBar from "./HeroSearchBar";
-import PlacaEditorial from "./PlacaEditorial";
-import { PLACAS_EDITORIALES } from "../data/placas-editoriales";
 
-// Tipografía estilo Apple para el hero (SF Pro en dispositivos Apple,
-// fallback al system font en el resto) — pedido de David jun-2026.
+// Tipografía estilo Apple para el hero (SF Pro en dispositivos Apple).
 const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif";
 
 export default function HeroBarrios() {
   return (
-    <section
-      className="bp-hero"
-      style={{
-        background: "#ffffff",
-        borderBottom: "1px solid #ececec",
-        padding: "64px 0 56px",
-      }}
-    >
+    <section className="bp-hero relative flex flex-col justify-center overflow-hidden min-h-[90svh] md:min-h-[100dvh] md:-mt-[77px] md:pt-[77px]">
+      <Image
+        src="/hero-barrios.webp"
+        alt="Barrios cerrados de Funes desde el aire"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
+      />
+      {/* Velos verdes para legibilidad del texto blanco */}
+      <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(6,20,12,.46) 0%, rgba(6,20,12,0) 16%)" }} />
+      <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(100deg, rgba(6,20,12,.72) 0%, rgba(6,20,12,.34) 40%, rgba(6,20,12,0) 66%)" }} />
+      <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(6,20,12,.42) 0%, rgba(6,20,12,0) 34%)" }} />
+
       <div
-        className="bp-hero-inner"
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          padding: "0 32px",
-          display: "grid",
-          gridTemplateColumns: "1.35fr 1fr",
-          gap: 56,
-          alignItems: "center",
-        }}
+        className="bp-hero-inner relative z-[2]"
+        style={{ maxWidth: 1280, width: "100%", margin: "0 auto", padding: "0 32px" }}
       >
-        {/* Columna izquierda — minimal, tipografía system Apple */}
-        <div>
-          <p
-            style={{
-              margin: "0 0 14px",
-              fontFamily: SF,
-              fontWeight: 500,
-              fontSize: 12,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "#86868b",
-            }}
-          >
-            Funes · Santa Fe
-          </p>
-
-          <h1
-            style={{
-              fontFamily: SF,
-              fontWeight: 600,
-              fontSize: "clamp(34px, 4.4vw, 54px)",
-              lineHeight: 1.06,
-              letterSpacing: "-0.018em",
-              color: "#1d1d1f",
-              margin: "0 0 16px",
-            }}
-          >
-            Barrios cerrados de Funes.
-          </h1>
-
-          <p
-            style={{
-              fontFamily: SF,
-              fontWeight: 400,
-              fontSize: 17,
-              lineHeight: 1.5,
-              color: "#6e6e73",
-              margin: "0 0 30px",
-              maxWidth: 440,
-            }}
-          >
-            Los 15 barrios del corredor, explicados por brokers que viven y
-            trabajan en la zona.
-          </p>
-
-          <HeroSearchBar />
-        </div>
-
-        {/* Columna derecha: 2 placas */}
-        <div
-          className="bp-hero-placas"
+        <p
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 14,
+            margin: "0 0 16px",
+            fontFamily: SF,
+            fontWeight: 600,
+            fontSize: 13,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,.9)",
+            textShadow: "0 1px 10px rgba(0,0,0,.4)",
           }}
         >
-          {PLACAS_EDITORIALES.map((placa) => (
-            <PlacaEditorial key={placa.href} placa={placa} />
-          ))}
-        </div>
+          Funes · Santa Fe
+        </p>
+
+        <h1
+          style={{
+            fontFamily: SF,
+            fontWeight: 700,
+            fontSize: "clamp(44px, 7vw, 92px)",
+            lineHeight: 0.96,
+            letterSpacing: "-0.028em",
+            color: "#fff",
+            margin: "0 0 18px",
+            textShadow: "0 3px 30px rgba(0,0,0,.34)",
+          }}
+        >
+          Barrios cerrados<br />
+          <span style={{ color: "#A6E7BE" }}>de Funes.</span>
+        </h1>
+
+        <p
+          style={{
+            fontFamily: SF,
+            fontWeight: 400,
+            fontSize: "clamp(17px, 2vw, 22px)",
+            lineHeight: 1.4,
+            color: "rgba(255,255,255,.94)",
+            margin: "0 0 34px",
+            maxWidth: 460,
+            textShadow: "0 1px 12px rgba(0,0,0,.4)",
+          }}
+        >
+          15 barrios explicados por expertos que viven y trabajan en la zona.
+        </p>
+
+        <HeroSearchBar />
       </div>
 
-      {/* Hover de placa + responsive. dangerouslySetInnerHTML evita el
-          escapado de special chars que rompía la hidratación. */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
-            .bp-placa { transition: transform 0.4s ease; }
-            .bp-placa:hover { transform: translateY(-4px) scale(1.02); }
-            @media (max-width: 1023px) {
-              .bp-hero-inner { grid-template-columns: 1fr !important; gap: 36px !important; }
-              .bp-hero-placas { max-width: 520px; }
-            }
             @media (max-width: 640px) {
-              .bp-hero { padding: 48px 0 40px !important; }
               .bp-hero-inner { padding: 0 20px !important; }
               .bp-search-pill { flex-wrap: wrap !important; }
             }

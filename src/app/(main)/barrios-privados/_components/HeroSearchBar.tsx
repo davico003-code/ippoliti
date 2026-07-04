@@ -45,7 +45,7 @@ export default function HeroSearchBar() {
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            background: "#f0ece2",
+            background: "#eef4ef",
             border: "none",
             borderRadius: 999,
             padding: "8px 14px 8px 12px",
@@ -134,7 +134,7 @@ export default function HeroSearchBar() {
           fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
         }}
       >
-        <span style={{ fontSize: 13, color: "#777", marginRight: 2 }}>Probá:</span>
+        <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,.9)", marginRight: 2, textShadow: "0 1px 6px rgba(0,0,0,.4)" }}>Probá:</span>
         {CHIPS_EJEMPLOS.map((chip) => {
           const active = search.trim().toLowerCase() === chip.toLowerCase();
           return (
@@ -148,9 +148,11 @@ export default function HeroSearchBar() {
                 fontSize: 12.5,
                 fontWeight: 500,
                 cursor: "pointer",
-                background: active ? "#1A5C38" : "#fff",
-                color: active ? "#fff" : "#444",
-                border: active ? "1px solid #1A5C38" : "1px solid #e8e2d5",
+                background: active ? "#1A5C38" : "rgba(255,255,255,.12)",
+                color: "#fff",
+                border: active ? "1px solid #1A5C38" : "1px solid rgba(255,255,255,.45)",
+                backdropFilter: "blur(4px)",
+                textShadow: active ? "none" : "0 1px 5px rgba(0,0,0,.35)",
                 transition: "background 150ms, color 150ms, border-color 150ms",
               }}
             >
