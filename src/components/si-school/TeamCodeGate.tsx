@@ -12,9 +12,13 @@ const STORAGE_KEY = 'si_team_access'
 
 interface Props {
   children: (ctx: { teamCode: string; onLogout: () => void }) => ReactNode
+  /** Copy de la pantalla de acceso (default: SI School). */
+  eyebrow?: string
+  title?: string
+  subtitle?: string
 }
 
-export default function TeamCodeGate({ children }: Props) {
+export default function TeamCodeGate({ children, eyebrow, title, subtitle }: Props) {
   const [teamCode, setTeamCode] = useState<string | null>(null)
   const [checking, setChecking] = useState(true)
 
@@ -42,12 +46,22 @@ export default function TeamCodeGate({ children }: Props) {
     )
   }
 
-  if (!teamCode) return <AccessGate onAuth={onAuth} />
+  if (!teamCode) return <AccessGate onAuth={onAuth} eyebrow={eyebrow} title={title} subtitle={subtitle} />
 
   return <>{children({ teamCode, onLogout })}</>
 }
 
-function AccessGate({ onAuth }: { onAuth: (code: string) => void }) {
+function AccessGate({
+  onAuth,
+  eyebrow = '● SI School',
+  title = 'Acceso de equipo',
+  subtitle = 'Ingresá el código del equipo SI para entrar al sistema operativo del agente.',
+}: {
+  onAuth: (code: string) => void
+  eyebrow?: string
+  title?: string
+  subtitle?: string
+}) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -86,13 +100,13 @@ function AccessGate({ onAuth }: { onAuth: (code: string) => void }) {
           className="font-poppins text-[11px] uppercase font-semibold mb-2"
           style={{ color: '#1A5C38', letterSpacing: '0.18em' }}
         >
-          ● SI School
+          {eyebrow}
         </p>
         <h1 className="text-[22px] font-bold m-0 mb-2" style={{ color: '#1A1A1A' }}>
-          Acceso de equipo
+          {title}
         </h1>
         <p className="text-[14px] mb-5 leading-relaxed" style={{ color: '#5A5A55' }}>
-          Ingresá el código del equipo SI para entrar al sistema operativo del agente.
+          {subtitle}
         </p>
         <input
           type="password"

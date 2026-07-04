@@ -7,6 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { getFicha, revocarFicha, trackView, isLikelyBot } from '@/lib/ficha'
+import { assertTeamCode } from '@/lib/team-auth'
 
 interface Ctx {
   params: { slug: string }
@@ -41,7 +42,11 @@ export async function GET(req: Request, { params }: Ctx) {
   })
 }
 
-export async function DELETE(_req: Request, { params }: Ctx) {
+export async function DELETE(req: Request, { params }: Ctx) {
+  // Revocar una ficha es destructivo y antes era público: con solo conocer un
+  // slug (capability de lectura) cualquiera la daba de baja. Requiere x-team-code.
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   const slug = (params.slug || '').trim()
   if (!slug) return NextResponse.json({ error: 'slug requerido' }, { status: 400 })
 
