@@ -1358,7 +1358,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["800 m² típico", "Tierras altas", "100% habitado"],
     amenities: [],
     lat: -32.9296, lng: -60.8278,
-    imagenHero: "/barrios/funes-hills-cadaques/DJI_0093.jpg",
+    imagenHero: "/barrios/funes-hills-cadaques/01.webp",
   },
   "funes-hills-miraflores": {
     sigla: "FH",
@@ -1382,7 +1382,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["294 lotes", "35 ha", "Centro comercial"],
     amenities: ["acceso-peatonal"],
     lat: -32.9291, lng: -60.7931,
-    imagenHero: "/barrios/vida-barrio-cerrado/dji_fly_20250217_175840_0535_1739834666297_photo.jpg",
+    imagenHero: "/barrios/vida-barrio-cerrado/01.webp",
   },
   "vida-lagoon": {
     sigla: "VL",
@@ -1398,7 +1398,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["659 lotes", "135 ha", "Lotes 1.000 m²"],
     amenities: ["laguna"],
     lat: -32.9300, lng: -60.7857,
-    imagenHero: "/barrios/vida-club-de-campo/aerea-barrio-completo.jpg",
+    imagenHero: "/barrios/vida-club-de-campo/01.webp",
   },
   "vida-jardin": {
     sigla: "VJ",
@@ -1406,7 +1406,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["242 lotes", "800–1.100 m²", "A autopista"],
     amenities: [],
     lat: -32.9307, lng: -60.8468,
-    imagenHero: "/barrios/vida-jardin/foto-2.jpg",
+    imagenHero: "/barrios/vida-jardin/01.webp",
   },
   "vida-green": {
     sigla: "VG",
@@ -1414,7 +1414,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["419 lotes", "500–700 m²", "Entry-level"],
     amenities: [],
     lat: -32.8968, lng: -60.8014,
-    imagenHero: "/barrios/vida-green/vida green.jpg",
+    imagenHero: "/barrios/vida-green/01.webp",
   },
   "funes-lakes": {
     sigla: "FL",
@@ -1422,7 +1422,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["485 lotes", "50 ha", "8 islas"],
     amenities: ["laguna"],
     lat: -32.9377, lng: -60.8024,
-    imagenHero: "/barrios/funes-lakes/IMG_8508.JPG",
+    imagenHero: "/barrios/funes-lakes/01.webp",
   },
   "aguadas": {
     sigla: "AG",
@@ -1430,7 +1430,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["234 lotes", "800 m² típico", "Club House"],
     amenities: [],
     lat: -32.9394, lng: -60.8117,
-    imagenHero: "/barrios/aguadas/01.webp",
+    imagenHero: "/barrios/aguadas/02.webp",
   },
   "la-finca-1": {
     sigla: "LF",
@@ -1446,7 +1446,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["420 lotes", "60 ha", "Desde 608 m²"],
     amenities: [],
     lat: -32.9097, lng: -60.8187,
-    imagenHero: "/barrios/la-finca-2/01.webp",
+    imagenHero: "/barrios/la-finca-2/02.webp",
   },
   "haras-de-funes": {
     sigla: "HD",
@@ -1454,7 +1454,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["170 lotes", "+1.000 m²", "Laguna natural"],
     amenities: [],
     lat: -32.9530, lng: -60.8371,
-    imagenHero: "/barrios/haras-de-funes/01.webp",
+    imagenHero: "/barrios/haras-de-funes/02.webp",
   },
 };
 
