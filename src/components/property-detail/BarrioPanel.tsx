@@ -8,6 +8,10 @@ import type { Barrio } from '@/lib/barrios'
 
 export default function BarrioPanel({ barrio }: { barrio: Barrio }) {
   const hero = barrio.imagenes?.hero
+  // Solo fotos reales existentes. Varios barrios tienen hero ".svg" que es un
+  // placeholder inexistente en /public → mostraría una imagen rota. En ese caso
+  // usamos un fondo verde de marca.
+  const hasPhoto = !!hero && /\.(jpe?g|png|webp|avif)$/i.test(hero)
   const tagline = barrio.miradaBroker?.titular
   const amenities = barrio.amenities?.slice(0, 5) ?? []
 
@@ -17,17 +21,20 @@ export default function BarrioPanel({ barrio }: { barrio: Barrio }) {
 
       <Link
         href={`/barrios-privados/${barrio.slug}`}
-        className="group block relative overflow-hidden rounded-2xl bg-gray-900 aspect-[16/8] shadow-sm ring-1 ring-black/5"
+        className="group block relative overflow-hidden rounded-2xl aspect-[16/8] shadow-sm ring-1 ring-black/5"
+        style={{ background: 'linear-gradient(135deg, #1A5C38 0%, #0F3A23 100%)' }}
       >
-        {hero && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={hero}
-            alt={barrio.nombre}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
+        {hasPhoto && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={hero}
+              alt={barrio.nombre}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+          </>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-6">
           <span
             className="inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
