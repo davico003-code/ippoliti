@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Calendar, Check, ChevronLeft, ChevronRight, Clock, X } from 'lucide-react'
+import { Calendar, Check, ChevronLeft, ChevronRight, Clock, MessageCircle, X } from 'lucide-react'
 
 interface Props {
   propertyId: number
@@ -68,6 +68,18 @@ export default function VisitWidget({
     : ''
   const canSubmit = selectedDay !== null && selectedHour !== ''
 
+  // Link de WhatsApp con el pedido pre-cargado. Se reusa en el submit y en la
+  // confirmación (por si el popup se bloqueó o el cliente no llegó a enviarlo).
+  const waHref = selectedDate
+    ? `https://wa.me/5493412101694?text=${encodeURIComponent(
+        [
+          `Hola! 👋 Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
+          ``,
+          `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
+        ].join('\n'),
+      )}`
+    : ''
+
   async function handleSubmit() {
     if (!canSubmit || !selectedDate) return
     setLoading(true)
@@ -93,13 +105,7 @@ export default function VisitWidget({
       })
     } catch {}
 
-    const lineas = [
-      `Hola! 👋 Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
-      ``,
-      `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
-    ]
-    const msg = encodeURIComponent(lineas.join('\n'))
-    window.open(`https://wa.me/5493412101694?text=${msg}`, '_blank')
+    if (waHref) window.open(waHref, '_blank')
 
     setLoading(false)
     setSent(true)
@@ -114,12 +120,24 @@ export default function VisitWidget({
         <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: '#E8F1ED' }}>
           <Check className="w-7 h-7" style={{ color: GREEN }} />
         </div>
-        <p className="text-[17px] font-bold text-gray-900 mb-1.5">¡Visita solicitada!</p>
-        <p className="text-sm text-gray-500 mb-4">Te confirmamos por WhatsApp en menos de 2 hs.</p>
-        <div className="rounded-xl p-3.5 text-left text-sm space-y-1 bg-gray-50">
+        <p className="text-[17px] font-bold text-gray-900 mb-1.5">¡Casi listo!</p>
+        <p className="text-sm text-gray-500 mb-4">
+          Te abrimos WhatsApp con tu pedido. Enviá el mensaje y te confirmamos la visita en menos de 2 hs.
+        </p>
+        <div className="rounded-xl p-3.5 text-left text-sm space-y-1 bg-gray-50 mb-4">
           <p><span className="text-gray-400">Día:</span> <span className="font-semibold text-gray-900">{dateLabel}</span></p>
           <p><span className="text-gray-400">Horario:</span> <span className="font-semibold font-numeric text-gray-900">{selectedHour} hs</span></p>
         </div>
+        <a
+          href={waHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm text-white"
+          style={{ background: '#25D366' }}
+        >
+          <MessageCircle className="w-4 h-4" />
+          Enviar por WhatsApp
+        </a>
       </div>
     )
   }
