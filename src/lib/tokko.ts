@@ -642,10 +642,98 @@ const TAG_ES: Record<string, string> = {
   'Financed': 'Financiado',
   'Quiet Location': 'Ubicación tranquila',
   'Direct sale': 'Venta directa',
+
+  // Faltantes que venían crudos en inglés
+  'General radiant floor heating': 'Losa radiante',
+  'Radiant floor heating': 'Losa radiante',
+  'Radiant floor': 'Losa radiante',
+  'Optical fiber': 'Fibra óptica',
+  'Fiber optic': 'Fibra óptica',
+  'Fiber Optic': 'Fibra óptica',
+  'Club house': 'Club house',
+  'Clubhouse': 'Club house',
+  'Paddle court': 'Cancha de pádel',
+  'Padel court': 'Cancha de pádel',
+  'Tennis court': 'Cancha de tenis',
+  'Private security': 'Seguridad privada',
 }
 
 export function translateTag(name: string): string {
   return TAG_ES[name] ?? name
+}
+
+// ─── Categorización de tags para la ficha ────────────────────────────────────
+// La ficha agrupa los tags en categorías claras en vez de mezclar todo. Un tag
+// que no esté acá NO se muestra (evita inglés crudo y "varios" sin sentido).
+export type TagCategoria = 'servicios' | 'seguridad' | 'amenities' | 'ambientes' | 'confort'
+
+const TAG_CAT: Record<string, TagCategoria> = {
+  // Servicios (infraestructura)
+  'Water': 'servicios', 'Drinking Water': 'servicios', 'Sewage': 'servicios',
+  'Natural Gas': 'servicios', 'Electricity': 'servicios', 'Underground electricity': 'servicios',
+  'Trifasic energy': 'servicios', 'Internet': 'servicios', 'WiFi': 'servicios',
+  'Cable': 'servicios', 'Cable TV building': 'servicios', 'Satellite TV': 'servicios',
+  'Phone': 'servicios', 'Pavement': 'servicios', 'Paved Street': 'servicios',
+  'Public lighting': 'servicios', 'Rainwater drainage': 'servicios',
+  'Gas Storage': 'servicios', 'Gas burners': 'servicios', 'Biodigesters': 'servicios',
+  'Generator': 'servicios', 'Automatic watering': 'servicios',
+  'Optical fiber': 'servicios', 'Fiber optic': 'servicios', 'Fiber Optic': 'servicios',
+  // Seguridad
+  '24 Hour Security': 'seguridad', '24 hr reception': 'seguridad', 'Security': 'seguridad',
+  'Security Guard': 'seguridad', 'Entrance Security': 'seguridad', 'Alarm': 'seguridad',
+  'Video Cameras': 'seguridad', 'Electric Gates': 'seguridad', 'Private security': 'seguridad',
+  // Amenities (barrio/edificio)
+  'Pool': 'amenities', 'Swimming Pool': 'amenities', 'Gym': 'amenities', 'SUM': 'amenities',
+  'Sauna': 'amenities', 'Jacuzzi': 'amenities', 'Solarium': 'amenities',
+  'Soccer Field': 'amenities', 'Sport center': 'amenities', 'Game room': 'amenities',
+  'Recreational area': 'amenities', 'Amenities': 'amenities', 'Deck': 'amenities',
+  'Playground': 'amenities', 'Lift': 'amenities', 'Elevator': 'amenities', 'Lobby': 'amenities',
+  'Club house': 'amenities', 'Clubhouse': 'amenities', 'Paddle court': 'amenities',
+  'Padel court': 'amenities', 'Tennis court': 'amenities',
+  // Ambientes y espacios (de la propiedad)
+  'Barbecue': 'ambientes', 'Barbecue area': 'ambientes', 'Covered BBQ': 'ambientes',
+  'Individual grill in the apartment': 'ambientes', 'Garden': 'ambientes', 'Backyard': 'ambientes',
+  'Terrace': 'ambientes', 'Balcony': 'ambientes', 'Balcony terrace': 'ambientes',
+  'Gallery': 'ambientes', 'Attic': 'ambientes', 'Hall': 'ambientes', 'Landing': 'ambientes',
+  'Storage room': 'ambientes', 'Storage': 'ambientes', 'Laundry': 'ambientes',
+  'Laundry room': 'ambientes', 'Public Laundry': 'ambientes', 'Kitchen': 'ambientes',
+  'Kitchenette': 'ambientes', 'Diary dining': 'ambientes', 'Dining lounge': 'ambientes',
+  'Toilette': 'ambientes', 'Service bathroom': 'ambientes', 'Dresser': 'ambientes',
+  'Fitted Wardrobes': 'ambientes', 'Independent Studio': 'ambientes', 'Office': 'ambientes',
+  'Fixed garage': 'ambientes', 'Garage attendants': 'ambientes', 'Parking': 'ambientes',
+  // Confort y climatización
+  'Heating': 'confort', 'Central Heating': 'confort', 'Gas heating': 'confort',
+  'Split heating': 'confort', 'Radiator heating': 'confort', 'Individual Air conditioner': 'confort',
+  'Pre-installed Air-Conditioning': 'confort', 'Air Conditioning': 'confort', 'Fireplace': 'confort',
+  'Luminous': 'confort', 'General radiant floor heating': 'confort',
+  'Radiant floor heating': 'confort', 'Radiant floor': 'confort',
+}
+
+const CAT_ORDEN: { cat: TagCategoria; label: string }[] = [
+  { cat: 'servicios', label: 'Servicios' },
+  { cat: 'seguridad', label: 'Seguridad' },
+  { cat: 'amenities', label: 'Amenities' },
+  { cat: 'ambientes', label: 'Ambientes y espacios' },
+  { cat: 'confort', label: 'Confort y climatización' },
+]
+
+/**
+ * Agrupa los tags de una propiedad en las categorías de la ficha. Traduce,
+ * deduplica (varios tags mapean al mismo label, ej. Laundry/Laundry room →
+ * Lavadero) y descarta los que no tengan categoría (misc / inglés desconocido).
+ * Devuelve solo las categorías con items, en orden.
+ */
+export function agruparTags(tags: { name: string }[]): { cat: TagCategoria; label: string; items: string[] }[] {
+  const porCat = new Map<TagCategoria, Set<string>>()
+  for (const t of tags) {
+    const cat = TAG_CAT[t.name]
+    if (!cat) continue
+    if (!porCat.has(cat)) porCat.set(cat, new Set())
+    porCat.get(cat)!.add(translateTag(t.name))
+  }
+  return CAT_ORDEN
+    .filter((c) => porCat.has(c.cat))
+    .map((c) => ({ cat: c.cat, label: c.label, items: Array.from(porCat.get(c.cat)!) }))
 }
 
 // Texto genérico que Tokko pone como footer/default en todas las propiedades

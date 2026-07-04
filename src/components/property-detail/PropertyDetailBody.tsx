@@ -19,7 +19,7 @@ import {
   getDescription,
   getBlueprintPhotos,
   translatePropertyType,
-  translateTag,
+  agruparTags,
   translateCondition,
   translateOrientation,
   translateDisposition,
@@ -325,19 +325,28 @@ export default function PropertyDetailBody({
         </section>
       )}
 
-      {/* AMENITIES */}
-      {property.tags && property.tags.length > 0 && (
-        <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Servicios y amenities</h2>
-          <div className="flex flex-wrap gap-2">
-            {property.tags.map(tag => (
-              <span key={tag.id} className="px-4 py-1.5 rounded-full text-sm border border-gray-200" style={{ color: '#374151' }}>
-                {translateTag(tag.name)}
-              </span>
+      {/* SERVICIOS Y AMENITIES — agrupados por categoría (servicios, seguridad,
+          amenities, ambientes, confort). Tags sin categoría no se muestran. */}
+      {(() => {
+        const grupos = agruparTags(property.tags ?? [])
+        if (grupos.length === 0) return null
+        return (
+          <section className={CARD}>
+            {grupos.map((g, i) => (
+              <div key={g.cat} className={i > 0 ? 'mt-5' : ''}>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 15, color: '#111', marginBottom: 10 }}>{g.label}</h2>
+                <div className="flex flex-wrap gap-2">
+                  {g.items.map(item => (
+                    <span key={item} className="px-4 py-1.5 rounded-full text-sm border border-gray-200" style={{ color: '#374151' }}>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
             ))}
-          </div>
-        </section>
-      )}
+          </section>
+        )
+      })()}
 
       {/* PLANOS */}
       {blueprints.length > 0 && (
