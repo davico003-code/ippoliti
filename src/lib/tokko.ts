@@ -665,7 +665,7 @@ export function translateTag(name: string): string {
 // ─── Categorización de tags para la ficha ────────────────────────────────────
 // La ficha agrupa los tags en categorías claras en vez de mezclar todo. Un tag
 // que no esté acá NO se muestra (evita inglés crudo y "varios" sin sentido).
-export type TagCategoria = 'servicios' | 'seguridad' | 'amenities' | 'ambientes' | 'confort'
+export type TagCategoria = 'servicios' | 'amenities' | 'ambientes' | 'confort'
 
 const TAG_CAT: Record<string, TagCategoria> = {
   // Servicios (infraestructura)
@@ -678,10 +678,10 @@ const TAG_CAT: Record<string, TagCategoria> = {
   'Gas Storage': 'servicios', 'Gas burners': 'servicios', 'Biodigesters': 'servicios',
   'Generator': 'servicios', 'Automatic watering': 'servicios',
   'Optical fiber': 'servicios', 'Fiber optic': 'servicios', 'Fiber Optic': 'servicios',
-  // Seguridad
-  '24 Hour Security': 'seguridad', '24 hr reception': 'seguridad', 'Security': 'seguridad',
-  'Security Guard': 'seguridad', 'Entrance Security': 'seguridad', 'Alarm': 'seguridad',
-  'Video Cameras': 'seguridad', 'Electric Gates': 'seguridad', 'Private security': 'seguridad',
+  // Seguridad (dentro de Amenities)
+  '24 Hour Security': 'amenities', '24 hr reception': 'amenities', 'Security': 'amenities',
+  'Security Guard': 'amenities', 'Entrance Security': 'amenities', 'Alarm': 'amenities',
+  'Video Cameras': 'amenities', 'Electric Gates': 'amenities', 'Private security': 'amenities',
   // Amenities (barrio/edificio)
   'Pool': 'amenities', 'Swimming Pool': 'amenities', 'Gym': 'amenities', 'SUM': 'amenities',
   'Sauna': 'amenities', 'Jacuzzi': 'amenities', 'Solarium': 'amenities',
@@ -711,8 +711,7 @@ const TAG_CAT: Record<string, TagCategoria> = {
 
 const CAT_ORDEN: { cat: TagCategoria; label: string }[] = [
   { cat: 'servicios', label: 'Servicios' },
-  { cat: 'seguridad', label: 'Seguridad' },
-  { cat: 'amenities', label: 'Amenities' },
+  { cat: 'amenities', label: 'Amenities y seguridad' },
   { cat: 'ambientes', label: 'Ambientes y espacios' },
   { cat: 'confort', label: 'Confort y climatización' },
 ]
