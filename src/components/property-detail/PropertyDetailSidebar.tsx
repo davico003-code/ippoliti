@@ -1,6 +1,7 @@
 'use client'
 
 // Shared sticky right column for desktop: WhatsApp + Call + Agent + Share + Visit.
+import type { CSSProperties } from 'react'
 import { MessageCircle, Phone } from 'lucide-react'
 import {
   type TokkoProperty,
@@ -49,7 +50,13 @@ export default function PropertyDetailSidebar({
 
   return (
     <div className="w-full md:w-[360px] md:shrink-0">
-      <div className="md:sticky space-y-4" style={{ top: topOffset }}>
+      {/* En desktop el sidebar es sticky; si el contenido supera la pantalla,
+          scrollea internamente (max-height + overflow) para que el panel de
+          visita SIEMPRE se alcance. En mobile no aplica (no es sticky). */}
+      <div
+        className="md:sticky space-y-4 md:max-h-[calc(100dvh-var(--sb-top)-1rem)] md:overflow-y-auto md:overscroll-contain"
+        style={{ top: topOffset, ['--sb-top' as string]: `${topOffset}px` } as unknown as CSSProperties}
+      >
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <AudioSummary propertyId={property.id} title={propertyTitle} />
           <a
