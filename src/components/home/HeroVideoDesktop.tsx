@@ -49,7 +49,10 @@ export default function HeroVideoDesktop() {
         muted
         loop
         playsInline
-        preload="auto"
+        // metadata (no 'auto'): el poster.webp cubre el primer frame y el
+        // autoplay igual bufferea lo necesario para arrancar. Evita descargar
+        // el video entero de entrada, liberando bandwidth para el LCP del home.
+        preload="metadata"
         poster="/videos/hero-poster.webp"
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"
