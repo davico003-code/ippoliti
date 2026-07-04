@@ -19,6 +19,11 @@ interface Props {
 export default function Lightbox({ images, startIndex = 0, zoomable = false, onClose }: Props) {
   const [active, setActive] = useState(startIndex)
   const containerRef = useRef<HTMLDivElement>(null)
+  // Mientras corre un scroll programático (flechas/teclado), ignoramos el
+  // listener de scroll: si no, los índices intermedios re-disparan el scrollTo
+  // y cortan la animación (navegación "trabada").
+  const programmatic = useRef(false)
+  const progTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Esc + flechas teclado
   useEffect(() => {
@@ -44,14 +49,19 @@ export default function Lightbox({ images, startIndex = 0, zoomable = false, onC
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
+    programmatic.current = true
+    if (progTimer.current) clearTimeout(progTimer.current)
     el.scrollTo({ left: active * el.clientWidth, behavior: 'smooth' })
+    progTimer.current = setTimeout(() => { programmatic.current = false }, 450)
+    return () => { if (progTimer.current) clearTimeout(progTimer.current) }
   }, [active])
 
-  // Track scroll → active
+  // Track scroll → active (ignora el scroll programático en curso)
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     const onScroll = () => {
+      if (programmatic.current) return
       const idx = Math.round(el.scrollLeft / el.clientWidth)
       setActive(Math.min(Math.max(idx, 0), images.length - 1))
     }
