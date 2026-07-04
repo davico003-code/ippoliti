@@ -364,3 +364,17 @@ div[id="nosotros"] {
 @media (prefers-reduced-motion: reduce) {
   .si-skip-link { transition: none; }
 }
+
+/* Reset global de motion: para quien pide menos movimiento en el SO, TODA
+   animación/transición del sitio (no solo las utilidades SI) se reduce a un
+   instante. Patrón estándar de accesibilidad. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
