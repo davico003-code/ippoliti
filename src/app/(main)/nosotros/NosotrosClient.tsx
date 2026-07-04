@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
-import { Target, Eye, Gem, Navigation, Phone, MessageCircle, Clock } from 'lucide-react'
+import { Target, Eye, Gem, Navigation, Phone, MessageCircle, Clock, User, Home, Heart, Quote } from 'lucide-react'
 import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
 
 // Liderazgo (Susana, David, Laura) ya aparece en la sección "Nuestra
@@ -585,72 +585,78 @@ export default function NosotrosClient() {
   return (
     <main className="bg-white text-gray-900">
 
-      {/* HERO — imagen estática de la oficina Gallery, sin texto encima.
-          <picture> responsive: en desktop (≥768px) sirve la variante 2400px,
-          en mobile la 1200px (1x) o 1200px (2x, fallback al mismo archivo).
-          Cero video — el hero es 100% imagen para todos los dispositivos. */}
-      <section className="relative h-[70vh] min-h-[480px] md:h-[80vh] md:min-h-[560px] overflow-hidden">
-        <picture>
-          <source
-            media="(min-width: 768px)"
-            srcSet="/images/hero/nosotros-desktop.webp"
-            type="image/webp"
-          />
-          <source
-            media="(min-width: 768px)"
-            srcSet="/images/hero/nosotros-desktop.jpg"
-            type="image/jpeg"
-          />
-          <source
-            srcSet="/images/hero/nosotros-mobile.webp 1x, /images/hero/nosotros-mobile@2x.webp 2x"
-            type="image/webp"
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/hero/nosotros-mobile.jpg"
-            alt="Oficina Gallery de SI Inmobiliaria en Funes"
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        </picture>
+      {/* QUIÉNES SOMOS + PRINCIPIOS */}
+      <section className="pt-16 pb-20 md:pt-24 md:pb-24" style={{ backgroundColor: '#F6F7F6' }}>
+        {/* Intro a 2 columnas: texto + stats / foto de la oficina + quote */}
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Izquierda: eyebrow + título + texto + stats */}
+            <div>
+              <div className="inline-flex items-center gap-3 mb-5">
+                <span className="w-8 h-px" style={{ background: '#1A5C38' }} />
+                <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
+                  Desde 1983
+                </p>
+              </div>
+              <h1 className="text-4xl md:text-[3.2rem] font-bold leading-[1.06] mb-6" style={{ color: '#0A0A0A', fontFamily: 'Raleway, sans-serif' }}>
+                Acompañamos cada decisión{' '}
+                <span style={{ color: '#1A5C38', fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>importante.</span>
+              </h1>
+              <span className="block w-14 h-[3px] mb-7 rounded-full" style={{ background: '#1A5C38' }} />
+              <p className="text-base md:text-lg leading-relaxed mb-9" style={{ color: '#525252', fontFamily: 'Raleway, sans-serif', maxWidth: 520 }}>
+                Dos generaciones, <strong style={{ color: '#0A0A0A', fontWeight: 700 }}>más de 1.500 propiedades vendidas</strong> y un mismo compromiso: que cada cliente reciba el mismo cuidado que le daríamos a una persona de nuestra familia.
+              </p>
+              <div className="flex flex-wrap gap-x-8 gap-y-6">
+                {[
+                  { Icon: User, n: '40+ años', l: 'de trayectoria' },
+                  { Icon: Home, n: '1.500+', l: 'propiedades vendidas' },
+                  { Icon: Heart, n: 'Miles de', l: 'clientes satisfechos' },
+                ].map(({ Icon, n, l }) => (
+                  <div key={l} className="flex items-center gap-3">
+                    <div className="flex items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-black/5" style={{ width: 46, height: 46 }}>
+                      <Icon size={20} style={{ color: '#1A5C38' }} strokeWidth={1.7} aria-hidden />
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold leading-tight" style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>{n}</div>
+                      <div className="text-sm" style={{ color: '#737373', fontFamily: 'Raleway, sans-serif' }}>{l}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-        {/* Fade inferior blanco — empalme con la sección de abajo */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-20 md:h-28 bg-gradient-to-t from-white via-white/50 to-transparent" />
-      </section>
-
-      {/* QUIÉNES SOMOS + PRINCIPIOS — unificadas bajo un fondo crema */}
-      <section className="pt-12 pb-20 md:pt-16 md:pb-24" style={{ backgroundColor: '#FAFAF7' }}>
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <span className="w-10 h-px" style={{ background: '#1A5C38' }} />
-            <p
-              className="text-xs uppercase tracking-widest"
-              style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}
-            >
-              Quiénes somos
-            </p>
-            <span className="w-10 h-px" style={{ background: '#1A5C38' }} />
+            {/* Derecha: foto de la oficina + card verde de quote */}
+            <div className="relative">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl shadow-lg">
+                <Image
+                  src="/images/hero/oficina-portada.webp"
+                  alt="Oficina de SI Inmobiliaria en Funes"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover object-center"
+                />
+              </div>
+              <div
+                className="mt-4 lg:mt-0 lg:absolute lg:-bottom-8 lg:right-0 lg:max-w-[300px] rounded-3xl p-7 shadow-xl"
+                style={{ background: '#1A5C38' }}
+              >
+                <Quote size={30} className="mb-3" style={{ color: 'rgba(255,255,255,.45)' }} fill="currentColor" aria-hidden />
+                <p className="text-lg leading-snug text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                  Más que vender propiedades, construimos relaciones{' '}
+                  <span style={{ fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>que duran generaciones.</span>
+                </p>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'rgba(255,255,255,.6)', fontFamily: 'Raleway, sans-serif' }}>
+                  SI INMOBILIARIA
+                </p>
+              </div>
+            </div>
           </div>
-          <h1
-            className="text-4xl md:text-5xl font-bold leading-tight mb-6"
-            style={{ color: '#0A0A0A', fontFamily: 'Raleway, sans-serif' }}
-          >
-            Desde 1983 acompañando<br className="hidden md:block" /> cada decisión importante
-          </h1>
-          <p
-            className="text-base md:text-lg leading-relaxed mx-auto"
-            style={{ color: '#525252', fontFamily: 'Raleway, sans-serif', maxWidth: 700 }}
-          >
-            Dos generaciones, más de 1.500 propiedades vendidas y un mismo compromiso:
-            que cada cliente reciba el mismo cuidado que le daríamos a una persona de
-            nuestra familia.
-          </p>
         </div>
 
-        {/* Sub-bloque PRINCIPIOS — mismo fondo crema, separación ~mitad de antes */}
-        <div className="max-w-5xl mx-auto px-6 mt-14 md:mt-16">
+        {/* Sub-bloque PRINCIPIOS — mismo fondo; margen extra para el card verde
+            del intro que sobresale en desktop. */}
+        <div className="max-w-5xl mx-auto px-6 mt-20 md:mt-28">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-3">
               <span className="w-10 h-px" style={{ background: '#1A5C38' }} />
