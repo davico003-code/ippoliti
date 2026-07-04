@@ -51,9 +51,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : barrio.seo.metaDescription;
   const keywords = barrio.keywords ?? barrio.seo.keywordsLongTail.join(", ");
 
-  // og:image: portada procesada 01.webp; fallback al hero legacy / default
+  // og:image: portada procesada 01.webp; fallback al hero legacy / default.
+  // El hero legacy ".svg" es un placeholder inexistente en /public → se excluye
+  // para no apuntar el OG a un 404 (además SVG no es válido como og:image).
   const [portada] = getBarrioFotos(barrio.slug);
-  const ogImage = portada ?? barrio.imagenes.hero ?? "/og-image.jpg";
+  const legacyHero =
+    barrio.imagenes.hero && !barrio.imagenes.hero.endsWith(".svg")
+      ? barrio.imagenes.hero
+      : null;
+  const ogImage = portada ?? legacyHero ?? "/og-image.jpg";
 
   return {
     title,
@@ -102,7 +108,11 @@ export default function BarrioPage({ params }: Props) {
   const description = barrio.contenidoSEO?.intro
     ? barrio.contenidoSEO.intro.slice(0, 300).trim()
     : barrio.seo.metaDescription;
-  const jsonLdImage = portada ?? barrio.imagenes.hero;
+  const jsonLdImage =
+    portada ??
+    (barrio.imagenes.hero && !barrio.imagenes.hero.endsWith(".svg")
+      ? barrio.imagenes.hero
+      : undefined);
 
   const placeJsonLd = {
     "@type": "Place",
