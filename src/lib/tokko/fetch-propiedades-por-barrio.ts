@@ -65,7 +65,9 @@ export async function getPropiedadesByBarrio(
     }
   }
 
-  const all = await getProperties({ limit: 100 })
+  // Traemos TODO el inventario (el feed ronda las ~250) para que el match por
+  // barrio no se corte: con limit:100 se perdían las propiedades del resto.
+  const all = await getProperties({ limit: 1000 })
   const filtered = (all.objects ?? [])
     .filter((p) => propertyMatchesBarrio(p, barrio))
     .filter((p) => matchesType(p, tipo))
@@ -93,7 +95,9 @@ export async function getPropiedadesByBarrio(
 export async function getCountsByBarrio(): Promise<Record<string, number>> {
   const counts: Record<string, number> = {}
   try {
-    const all = await getProperties({ limit: 100 })
+    // Traemos TODO el inventario (el feed ronda las ~250) para que el match por
+  // barrio no se corte: con limit:100 se perdían las propiedades del resto.
+  const all = await getProperties({ limit: 1000 })
     for (const barrio of BARRIOS) {
       counts[barrio.slug] = (all.objects ?? []).filter((p) =>
         propertyMatchesBarrio(p, barrio),
