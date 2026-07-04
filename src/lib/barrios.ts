@@ -1515,3 +1515,33 @@ export const TIER_HUB_META: Record<HubTierId, { label: string; badgeBg: string; 
   desarrollo:   { label: "En desarrollo", badgeBg: "#B8935A",                badgeColor: "#ffffff" },
   proximamente: { label: "Próximamente",  badgeBg: "#0a0a0a",                badgeColor: "#ffffff" },
 };
+
+/**
+ * Matchea una propiedad (por su título/dirección/ubicación) al barrio privado
+ * correspondiente usando `tokko.matchByTitle`. Devuelve el Barrio o null. Se usa
+ * en la ficha para mostrar el panel del barrio cuando la propiedad está en uno.
+ */
+export function findBarrioForProperty(p: {
+  publication_title?: string | null;
+  fake_address?: string | null;
+  address?: string | null;
+  location?: { name?: string | null; short_location?: string | null; full_location?: string | null } | null;
+}): Barrio | null {
+  const hay = [
+    p.publication_title,
+    p.fake_address,
+    p.address,
+    p.location?.name,
+    p.location?.short_location,
+    p.location?.full_location,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  if (!hay) return null;
+  for (const b of BARRIOS) {
+    const needles = b.tokko?.matchByTitle ?? [];
+    if (needles.some((n) => n && hay.includes(n.toLowerCase()))) return b;
+  }
+  return null;
+}
