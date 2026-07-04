@@ -17,7 +17,7 @@ const ICONOS: Record<string, LucideIcon> = {
   Briefcase, Sailboat, Anchor,
 };
 
-const MAX_CHIPS = 12;
+const MAX_CHIPS = 20;
 
 export default function DetalleAmenities({ barrio }: { barrio: Barrio }) {
   const chips = barrio.amenities.slice(0, MAX_CHIPS);
