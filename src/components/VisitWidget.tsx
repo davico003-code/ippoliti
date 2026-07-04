@@ -55,6 +55,7 @@ export default function VisitWidget({
 }: Props) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [selectedHour, setSelectedHour] = useState('')
+  const [nombre, setNombre] = useState('')
   const [dayStart, setDayStart] = useState(0)
   const [hourStart, setHourStart] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -66,7 +67,7 @@ export default function VisitWidget({
   const dateLabel = selectedDate
     ? `${DAY_NAMES[selectedDate.getDay()]} ${selectedDate.getDate()} ${MONTH_NAMES[selectedDate.getMonth()]}`
     : ''
-  const canSubmit = selectedDay !== null && selectedHour !== ''
+  const canSubmit = selectedDay !== null && selectedHour !== '' && nombre.trim() !== ''
 
   // Link de WhatsApp con el pedido pre-cargado. Se reusa en el submit y en la
   // confirmación (por si el popup se bloqueó o el cliente no llegó a enviarlo).
@@ -76,6 +77,7 @@ export default function VisitWidget({
           `Hola! 👋 Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
           ``,
           `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
+          nombre.trim() ? `\nSoy ${nombre.trim()}.` : '',
         ].join('\n'),
       )}`
     : ''
@@ -91,7 +93,7 @@ export default function VisitWidget({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: null,
+          nombre: nombre.trim() || null,
           telefono: null,
           email: null,
           fecha_preferida: fechaStr,
@@ -238,6 +240,16 @@ export default function VisitWidget({
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Nombre */}
+      <p className={label}>Tu nombre</p>
+      <input
+        type="text"
+        placeholder="Nombre y apellido"
+        value={nombre}
+        onChange={e => setNombre(e.target.value)}
+        className="w-full rounded-xl px-3.5 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none bg-gray-50 border border-gray-200 focus:border-[#1A5C38] transition-colors mb-6"
+      />
 
       <div className="border-t border-gray-100 mb-5" />
 
