@@ -12,6 +12,12 @@ const EXCLUIDOS_DEL_GRID = ['David Flores', 'Laura Flores']
 // Altas recientes que aún no figuran en Tokko. Se hardcodean para que ya
 // aparezcan en el grid; cuando entren al CRM se pueden remover de acá.
 // id negativo para no chocar con IDs reales de Tokko (todos positivos).
+// Override de foto para agentes del CRM: reemplaza la foto que viene de Tokko
+// por una versión propia en /public/team. Clave = name exacto del agente.
+const FOTO_OVERRIDES: Record<string, string> = {
+  'Mariana Orlate': '/team/mariana-orlate.jpg',
+}
+
 const AGENTES_EXTRA = [
   { id: -1, name: 'Marisa Benitez',     email: '', phone: '', cellphone: '', picture: '/team/marisa-benitez.jpg', position: '' },
   { id: -2, name: 'Sabrina Rogani',     email: '', phone: '', cellphone: '', picture: '/team/sabrina-rogani.jpg', position: '' },
@@ -729,7 +735,9 @@ export default function NosotrosClient() {
               const todos = [
                 ...agents.filter((a) => !EXCLUIDOS_DEL_GRID.includes(a.name)),
                 ...AGENTES_EXTRA,
-              ]
+              ].map((a) =>
+                FOTO_OVERRIDES[a.name] ? { ...a, picture: FOTO_OVERRIDES[a.name] } : a,
+              )
               // Render: primero todos los que tienen foto en orden de Tokko,
               // después los que solo tienen iniciales (sin foto al final).
               const conFoto = todos.filter((a) => !!a.picture)
