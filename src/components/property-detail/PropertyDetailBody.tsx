@@ -3,6 +3,7 @@
 // Shared desktop body: all content sections in identical order for
 // the modal (PropertyPanel) and the full page (/propiedades/[slug]).
 // Mobile is NOT rendered here — each parent keeps its own mobile layout.
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Phone } from 'lucide-react'
 import {
@@ -26,6 +27,8 @@ import {
 } from '@/lib/tokko'
 import PropertyDescription from '../PropertyDescription'
 import SectionBoundary from './SectionBoundary'
+import BarrioPanel from './BarrioPanel'
+import type { Barrio } from '@/lib/barrios'
 import PropertyVideo from './PropertyVideo'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
@@ -105,6 +108,17 @@ export default function PropertyDetailBody({
   const description = getDescription(property)
   const blueprints = getBlueprintPhotos(property)
   const address = property.fake_address || property.address
+
+  // Barrio privado (si aplica). Se carga por dynamic import para no meter el
+  // dataset grande de barrios.ts en el First Load JS de la ficha.
+  const [barrio, setBarrio] = useState<Barrio | null>(null)
+  useEffect(() => {
+    let alive = true
+    import('@/lib/barrios')
+      .then(m => { if (alive) setBarrio(m.findBarrioForProperty(property)) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [property])
 
   // Costos iniciales — solo alquiler permanente (operation_type === 'Rent';
   // 'Sale' y 'Temporary rent' / 'Temporary' quedan fuera).
@@ -355,6 +369,13 @@ export default function PropertyDetailBody({
             <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Planos</h2>
             <BlueprintGallery blueprints={blueprints} />
           </section>
+        </SectionBoundary>
+      )}
+
+      {/* BARRIO PRIVADO — solo si la propiedad está en un barrio cerrado conocido */}
+      {barrio && (
+        <SectionBoundary name="barrio">
+          <BarrioPanel barrio={barrio} />
         </SectionBoundary>
       )}
 
