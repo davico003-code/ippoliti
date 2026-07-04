@@ -329,3 +329,52 @@ div[id="nosotros"] {
   .si-press-lift:active,
   .si-press-lift:hover:active { transform: none; }
 }
+
+/* ── Accesibilidad ─────────────────────────────────────────────────────────
+   Skip-link (saltar navbar) + foco visible para navegación por teclado. */
+.si-skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  transform: translateY(-120%);
+  background: #1A5C38;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 0 0 10px 0;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: transform 0.18s ease;
+}
+.si-skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid #fbce07;
+  outline-offset: 2px;
+}
+
+/* Foco visible SOLO por teclado (no molesta al click de mouse). Baseline para
+   que ningún control quede sin indicador de foco; los componentes con su propio
+   ring lo pisan por especificidad. */
+:focus-visible {
+  outline: 2px solid #1A5C38;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .si-skip-link { transition: none; }
+}
+
+/* Reset global de motion: para quien pide menos movimiento en el SO, TODA
+   animación/transición del sitio (no solo las utilidades SI) se reduce a un
+   instante. Patrón estándar de accesibilidad. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -46,7 +46,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let propertyRoutes: MetadataRoute.Sitemap = []
   try {
-    const data = await getProperties({ limit: 100 })
+    // Sin limit: trae TODO el inventario (antes {limit:100} cortaba a 100 y en
+    // Hilo dejaba ~150 propiedades fuera del sitemap → sin indexar).
+    const data = await getProperties()
     propertyRoutes = (data.objects ?? []).map(p => ({
       url: `${BASE}/propiedades/${generatePropertySlug(p)}`,
       lastModified: new Date(),
