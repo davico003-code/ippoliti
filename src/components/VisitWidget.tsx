@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Clock, Check, ChevronRight, ChevronDown } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 interface Props {
   propertyId: number
@@ -25,33 +25,35 @@ function getNextBusinessDays(count: number): Date[] {
   return days
 }
 
-const HOURS = Array.from({ length: 9 }, (_, i) => `${9 + i}:00 hs`)
+const HOURS = Array.from({ length: 9 }, (_, i) => `${9 + i}:00`)
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
+// Modelo compacto (inspirado en mob): una sola vista — fecha, horario, nombre y
+// teléfono, con un único botón. Sin pasos ni scroll interno, así no queda
+// "a medio mostrar" en el sidebar.
 export default function VisitWidget({
   propertyId,
   propertyTitle,
   propertyUrl,
   source = 'otro',
 }: Props) {
-  const [step, setStep] = useState<1 | 2 | 3>(1)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [selectedHour, setSelectedHour] = useState('')
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
-  const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
 
   const days = useMemo(() => getNextBusinessDays(7), [])
-
-  const canContinue = selectedDay !== null && selectedHour !== ''
-  const canSubmit = nombre.trim() !== '' && telefono.trim() !== ''
 
   const selectedDate = selectedDay !== null ? days[selectedDay] : null
   const dateLabel = selectedDate
     ? `${DAY_NAMES[selectedDate.getDay()]} ${selectedDate.getDate()} ${MONTH_NAMES[selectedDate.getMonth()]}`
     : ''
+
+  const canSubmit =
+    selectedDay !== null && selectedHour !== '' && nombre.trim() !== '' && telefono.trim() !== ''
 
   async function handleSubmit() {
     if (!canSubmit || !selectedDate) return
@@ -66,9 +68,9 @@ export default function VisitWidget({
         body: JSON.stringify({
           nombre: nombre.trim(),
           telefono: telefono.trim(),
-          email: email.trim() || null,
+          email: null,
           fecha_preferida: fechaStr,
-          horario: selectedHour,
+          horario: `${selectedHour} hs`,
           propiedad_id: propertyId,
           propiedad_titulo: propertyTitle,
           propiedad_url: propertyUrl,
@@ -78,14 +80,10 @@ export default function VisitWidget({
       })
     } catch {}
 
-    // Mensaje WhatsApp del cliente al agente:
-    // - Identifica de qué propiedad viene + link a la ficha
-    // - Día y hora propuestos
-    // - Datos de contacto del cliente
     const lineas = [
       `Hola! 👋 Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
       ``,
-      `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour}.`,
+      `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
       ``,
       `Soy ${nombre.trim()}, mi teléfono es ${telefono.trim()}.`,
     ]
@@ -93,169 +91,120 @@ export default function VisitWidget({
     window.open(`https://wa.me/5493412101694?text=${msg}`, '_blank')
 
     setLoading(false)
-    setStep(3)
+    setSent(true)
   }
 
-  return (
-    <div className="bg-[#1A5C38] rounded-3xl p-6 text-white flex flex-col" style={{ maxHeight: 'calc(100vh - 320px)', overflowY: 'auto', scrollBehavior: 'smooth' }}>
-      {/* Progress */}
-      <div className="mb-5">
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] mb-3" style={{ color: 'rgba(255,255,255,0.55)' }}>
-          {step === 3 ? 'COMPLETADO' : `PASO ${step} DE 2`}
+  // ── Confirmación ──
+  if (sent) {
+    return (
+      <div className="bg-[#1A5C38] rounded-3xl p-6 text-white text-center">
+        <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
+          <Check className="w-7 h-7 text-white" />
+        </div>
+        <p className="text-[17px] font-bold mb-1.5">¡Visita solicitada!</p>
+        <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          Te confirmamos por WhatsApp en menos de 2 hs.
         </p>
-        <div className="flex gap-1.5">
-          <div className="flex-1 h-[2.5px] rounded-full bg-white" />
-          <div className={`flex-1 h-[2.5px] rounded-full ${step >= 2 ? 'bg-white' : 'bg-white/20'}`} />
+        <div className="rounded-xl p-3.5 text-left text-sm space-y-1" style={{ background: 'rgba(255,255,255,0.1)' }}>
+          <p><span className="text-white/50">Día:</span> <span className="font-semibold">{dateLabel}</span></p>
+          <p><span className="text-white/50">Horario:</span> <span className="font-semibold font-numeric">{selectedHour} hs</span></p>
+          <p><span className="text-white/50">Contacto:</span> <span className="font-semibold">{nombre}</span></p>
         </div>
       </div>
+    )
+  }
 
-      <h3 className="text-lg font-bold mb-5">
-        {step === 3 ? '¡Visita solicitada!' : 'Solicitá una visita'}
-      </h3>
+  const labelCls = 'text-[10px] font-bold uppercase tracking-[0.12em] mb-2'
+  const labelStyle = { color: 'rgba(255,255,255,0.5)' }
+  const inputCls = 'w-full rounded-xl px-3.5 py-3 text-sm font-medium text-white placeholder-white/40 outline-none'
+  const inputStyle = { background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }
 
-      {/* ── STEP 1 ── */}
-      {step === 1 && (
-        <div>
-          {/* Day selector */}
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Elegí un día
-          </p>
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide">
-            {days.map((d, i) => {
-              const active = selectedDay === i
-              return (
-                <button
-                  key={i}
-                  onClick={() => setSelectedDay(i)}
-                  className={`flex-shrink-0 w-[50px] flex flex-col items-center gap-0.5 py-2.5 rounded-xl transition-all ${
-                    active
-                      ? 'bg-white text-[#1A5C38]'
-                      : 'border border-white/20 hover:border-white/40'
-                  }`}
-                >
-                  <span className={`text-[10px] font-semibold uppercase ${active ? 'text-[#1A5C38]/60' : 'text-white/50'}`}>
-                    {DAY_NAMES[d.getDay()]}
-                  </span>
-                  <span className={`text-xl font-bold font-numeric ${active ? 'text-[#1A5C38]' : 'text-white'}`}>
-                    {d.getDate()}
-                  </span>
-                  <span className={`text-[9px] font-medium ${active ? 'text-[#1A5C38]/60' : 'text-white/40'}`}>
-                    {MONTH_NAMES[d.getMonth()]}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
+  return (
+    <div className="bg-[#1A5C38] rounded-3xl p-6 text-white">
+      <h3 className="text-lg font-bold mb-1">Agendá una visita</h3>
+      <p className="text-[13px] mb-5" style={{ color: 'rgba(255,255,255,0.6)' }}>
+        Elegí el día y horario que te quede mejor.
+      </p>
 
-          {/* Hour selector */}
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Horario preferido
-          </p>
-          <div className="relative mb-6">
-            <div className="flex items-center gap-2.5 rounded-xl px-3.5 py-[11px]" style={{ background: 'rgba(255,255,255,0.1)' }}>
-              <Clock className="w-4 h-4 text-white/60 flex-shrink-0" />
-              <select
-                value={selectedHour}
-                onChange={e => setSelectedHour(e.target.value)}
-                className="flex-1 bg-transparent text-sm font-semibold text-white appearance-none outline-none cursor-pointer"
-                style={{ WebkitAppearance: 'none' }}
-              >
-                <option value="" disabled className="text-gray-900">Seleccioná un horario</option>
-                {HOURS.map(h => (
-                  <option key={h} value={h} className="text-gray-900">{h}</option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-white/40 flex-shrink-0" />
-            </div>
-          </div>
-
-          {/* Continue */}
-          <div className="sticky bottom-0 pt-3 bg-[#1A5C38] mt-auto z-10 w-full">
+      {/* Fecha */}
+      <p className={labelCls} style={labelStyle}>Fecha</p>
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+        {days.map((d, i) => {
+          const active = selectedDay === i
+          return (
             <button
-              onClick={() => canContinue && setStep(2)}
-              disabled={!canContinue}
-              className={`w-full py-3 rounded-full font-bold text-sm transition-all flex items-center justify-center gap-1.5 ${
-                canContinue
-                  ? 'bg-white text-[#1A5C38] hover:bg-white/90'
-                  : 'bg-white text-[#1A5C38] opacity-[0.35] cursor-not-allowed'
+              key={i}
+              onClick={() => setSelectedDay(i)}
+              aria-pressed={active}
+              className={`flex-shrink-0 w-[50px] flex flex-col items-center gap-0.5 py-2.5 rounded-xl transition-all ${
+                active ? 'bg-white text-[#1A5C38]' : 'border border-white/20 hover:border-white/40'
               }`}
             >
-              Continuar <ChevronRight className="w-4 h-4" />
+              <span className={`text-[10px] font-semibold uppercase ${active ? 'text-[#1A5C38]/60' : 'text-white/50'}`}>
+                {DAY_NAMES[d.getDay()]}
+              </span>
+              <span className={`text-xl font-bold font-numeric ${active ? 'text-[#1A5C38]' : 'text-white'}`}>
+                {d.getDate()}
+              </span>
+              <span className={`text-[9px] font-medium ${active ? 'text-[#1A5C38]/60' : 'text-white/40'}`}>
+                {MONTH_NAMES[d.getMonth()]}
+              </span>
             </button>
-          </div>
-        </div>
-      )}
+          )
+        })}
+      </div>
 
-      {/* ── STEP 2 ── */}
-      {step === 2 && (
-        <div>
-          <div className="space-y-3 mb-6">
-            <input
-              type="text"
-              placeholder="Nombre *"
-              value={nombre}
-              onChange={e => setNombre(e.target.value)}
-              className="w-full rounded-xl px-3.5 py-3 text-sm font-medium text-white placeholder-white/40 outline-none"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
-            />
-            <input
-              type="tel"
-              placeholder="Teléfono *"
-              value={telefono}
-              onChange={e => setTelefono(e.target.value)}
-              className="w-full rounded-xl px-3.5 py-3 text-sm font-medium text-white placeholder-white/40 outline-none"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
-            />
-            <input
-              type="email"
-              placeholder="Email (opcional)"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-xl px-3.5 py-3 text-sm font-medium text-white placeholder-white/40 outline-none"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
-            />
-          </div>
+      {/* Horario */}
+      <p className={labelCls} style={labelStyle}>Horario</p>
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide">
+        {HOURS.map(h => {
+          const active = selectedHour === h
+          return (
+            <button
+              key={h}
+              onClick={() => setSelectedHour(h)}
+              aria-pressed={active}
+              className={`flex-shrink-0 px-3.5 py-2 rounded-xl text-sm font-semibold font-numeric transition-all ${
+                active ? 'bg-white text-[#1A5C38]' : 'border border-white/20 text-white hover:border-white/40'
+              }`}
+            >
+              {h}
+            </button>
+          )
+        })}
+      </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={!canSubmit || loading}
-            className={`w-full py-3 rounded-full font-bold text-sm transition-all mb-3 ${
-              canSubmit && !loading
-                ? 'bg-white text-[#1A5C38] hover:bg-white/90'
-                : 'bg-white text-[#1A5C38] opacity-[0.35] cursor-not-allowed'
-            }`}
-          >
-            {loading ? 'Enviando...' : 'Confirmar visita'}
-          </button>
+      {/* Datos */}
+      <div className="space-y-3 mb-5">
+        <input
+          type="text"
+          placeholder="Nombre y apellido"
+          value={nombre}
+          onChange={e => setNombre(e.target.value)}
+          className={inputCls}
+          style={inputStyle}
+        />
+        <input
+          type="tel"
+          placeholder="Teléfono"
+          value={telefono}
+          onChange={e => setTelefono(e.target.value)}
+          className={inputCls}
+          style={inputStyle}
+        />
+      </div>
 
-          <button
-            onClick={() => setStep(1)}
-            className="w-full text-center text-sm font-medium py-1"
-            style={{ color: 'rgba(255,255,255,0.45)' }}
-          >
-            &larr; Volver
-          </button>
-        </div>
-      )}
-
-      {/* ── SUCCESS ── */}
-      {step === 3 && (
-        <div className="text-center">
-          <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
-            <Check className="w-7 h-7 text-white" />
-          </div>
-          <p className="text-[17px] font-bold mb-2">¡Visita solicitada!</p>
-          <p className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            Te confirmamos por WhatsApp en menos de 2hs.
-          </p>
-          <div className="rounded-xl p-4 text-left text-sm space-y-1" style={{ background: 'rgba(255,255,255,0.1)' }}>
-            <p><span className="text-white/50">Día:</span> <span className="font-semibold">{dateLabel}</span></p>
-            <p><span className="text-white/50">Horario:</span> <span className="font-semibold font-numeric">{selectedHour}</span></p>
-            <p><span className="text-white/50">Contacto:</span> <span className="font-semibold">{nombre}</span></p>
-          </div>
-        </div>
-      )}
+      <button
+        onClick={handleSubmit}
+        disabled={!canSubmit || loading}
+        className={`w-full py-3.5 rounded-full font-bold text-sm transition-all ${
+          canSubmit && !loading
+            ? 'bg-white text-[#1A5C38] hover:bg-white/90'
+            : 'bg-white text-[#1A5C38] opacity-[0.35] cursor-not-allowed'
+        }`}
+      >
+        {loading ? 'Enviando…' : 'Agendar visita'}
+      </button>
     </div>
   )
 }
-
