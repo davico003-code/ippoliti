@@ -13,10 +13,10 @@ const EXCLUIDOS_DEL_GRID = ['David Flores', 'Laura Flores']
 // aparezcan en el grid; cuando entren al CRM se pueden remover de acá.
 // id negativo para no chocar con IDs reales de Tokko (todos positivos).
 const AGENTES_EXTRA = [
-  { id: -1, name: 'Marisa Benitez',     email: '', phone: '', cellphone: '', picture: null, position: '' },
-  { id: -2, name: 'Sabrina Riters',     email: '', phone: '', cellphone: '', picture: null, position: '' },
-  { id: -3, name: 'Eliana Rojas',       email: '', phone: '', cellphone: '', picture: null, position: '' },
-  { id: -4, name: 'Julian Ruschneider', email: '', phone: '', cellphone: '', picture: null, position: '' },
+  { id: -1, name: 'Marisa Benitez',     email: '', phone: '', cellphone: '', picture: '/team/marisa-benitez.jpg', position: '' },
+  { id: -2, name: 'Sabrina Rogani',     email: '', phone: '', cellphone: '', picture: '/team/sabrina-rogani.jpg', position: '' },
+  { id: -3, name: 'Eliana Rojas',       email: '', phone: '', cellphone: '', picture: '/team/eliana-rojas.jpg', position: '' },
+  { id: -4, name: 'Julian Ruschneider', email: '', phone: '', cellphone: '', picture: '/team/julian-ruschneider.jpg', position: '' },
 ]
 
 /* ─────────────────────────────────────────────
