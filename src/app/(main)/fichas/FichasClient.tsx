@@ -1,10 +1,11 @@
 'use client'
 
 // Panel del equipo SI para ver, copiar y revocar fichas anónimas generadas
-// en verficha.casa. Acceso abierto (cualquiera con la URL puede entrar) —
-// la auth se removió junto con el flujo de colega.
+// en verficha.casa. Protegido con código de equipo (TeamCodeGate): la lista
+// expone stats + IPs y el revocar es destructivo, así que no puede ser público.
 
 import { useEffect, useState } from 'react'
+import TeamCodeGate from '@/components/si-school/TeamCodeGate'
 import {
   AlertTriangle,
   Check,
@@ -37,6 +38,18 @@ interface FichaItem {
 }
 
 export default function FichasClient() {
+  return (
+    <TeamCodeGate
+      eyebrow="● Fichas"
+      title="Fichas para colegas"
+      subtitle="Ingresá el código del equipo SI para gestionar las fichas."
+    >
+      {({ teamCode }) => <FichasPanel teamCode={teamCode} />}
+    </TeamCodeGate>
+  )
+}
+
+function FichasPanel({ teamCode }: { teamCode: string }) {
   const [fichas, setFichas] = useState<FichaItem[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -52,7 +65,7 @@ export default function FichasClient() {
     setLoading(true)
     setLoadError(null)
     try {
-      const res = await fetch('/api/ficha/list')
+      const res = await fetch('/api/ficha/list', { headers: { 'x-team-code': teamCode } })
       const data = await res.json()
       setFichas(data.fichas || [])
     } catch {
@@ -64,6 +77,7 @@ export default function FichasClient() {
 
   useEffect(() => {
     void loadAll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const copyUrl = async (url: string) => {
@@ -75,7 +89,7 @@ export default function FichasClient() {
 
   const doRevoke = async (slug: string) => {
     try {
-      const res = await fetch(`/api/ficha/${slug}`, { method: 'DELETE' })
+      const res = await fetch(`/api/ficha/${slug}`, { method: 'DELETE', headers: { 'x-team-code': teamCode } })
       if (res.ok) {
         flashToast('Ficha revocada')
         void loadAll()

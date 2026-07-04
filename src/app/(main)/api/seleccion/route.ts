@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { crearSeleccion, listarSelecciones, listarSeleccionesPorAgente, listarTodasSelecciones, redis } from '@/lib/redis'
+import { crearSeleccion, listarSeleccionesPorAgente, listarTodasSelecciones, redis } from '@/lib/redis'
 import { verifyAgentToken } from '@/lib/auth'
 
 // Clave admin del flujo legacy, validada contra el env. Sin literal en el repo.
@@ -77,10 +77,11 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Fallback: query param
-    const agentParam = req.nextUrl.searchParams.get('agent') || undefined
-    const sessions = await listarSelecciones(agentParam)
-    return NextResponse.json(sessions)
+    // Sin admin-key ni JWT de agente válido → no listamos nada. Antes había un
+    // fallback anónimo por ?agent= que devolvía selecciones con PII de clientes
+    // (nombre/teléfono) sin autenticación. Los callers legítimos (panel de
+    // agentes) van siempre por la cookie JWT de arriba.
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   } catch {
     return NextResponse.json([], { status: 500 })
   }

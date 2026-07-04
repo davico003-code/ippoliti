@@ -1,15 +1,19 @@
 // GET /api/ficha/list → lista TODAS las fichas activas con stats y días
-//                       restantes para el panel /fichas. Sin auth.
+//                       restantes para el panel /fichas. Requiere x-team-code
+//                       (antes filtraba todas las fichas + IPs sin auth).
 
 import { NextResponse } from 'next/server'
 import { listFichas } from '@/lib/ficha'
+import { assertTeamCode } from '@/lib/team-auth'
 
 function diasRestantes(expiresAt: string): number {
   const ms = new Date(expiresAt).getTime() - Date.now()
   return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)))
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const denied = assertTeamCode(req)
+  if (denied) return denied
   try {
     const fichas = await listFichas()
     const items = fichas.map(f => ({
