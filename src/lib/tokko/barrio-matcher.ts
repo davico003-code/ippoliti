@@ -6,6 +6,10 @@ const normalize = (s: string): string =>
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
+    // Puntuación/símbolos → espacio, y colapsar. Así "Vida, Barrio cerrado -
+    // Funes" y "Vida Barrio Cerrado" normalizan igual y el match no se rompe.
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
 
 export function propertyMatchesBarrio(
   property: TokkoProperty,

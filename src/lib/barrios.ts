@@ -206,7 +206,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["consolidado", "tenis", "futbol", "pileta-climatizada", "gimnasio", "laguna", "diseño-estudio-bo"],
     tokko: {
-      matchByTitle: ["san sebastian", "san sebastián"],
+      matchByTitle: ["san sebastian barrio privado", "barrio privado san sebastian", "san sebastian av fuerza aerea"],
     },
     imagenes: {
       hero: "/barrios/san-sebastian/hero.svg",
@@ -289,7 +289,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["laguna", "playa", "premium", "nautico", "tenis", "paddle", "futbol", "lifestyle"],
     tokko: {
-      matchByTitle: ["vida lagoon"],
+      matchByTitle: ["vida lagoon", "vida crystal lagoon", "crystal lagoon"],
     },
     imagenes: {
       hero: "/barrios/vida-lagoon/hero.svg",
@@ -367,7 +367,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["comercial", "paddle", "tenis", "futbol", "laguna", "ósmosis-inversa"],
     tokko: {
-      matchByTitle: ["vida barrio cerrado", "vida un barrio"],
+      matchByTitle: ["vida barrio cerrado", "barrio cerrado vida", "barrio privado vida", "vida un barrio"],
     },
     imagenes: { hero: "/barrios/vida-barrio-cerrado/hero.svg" },
     seo: {
