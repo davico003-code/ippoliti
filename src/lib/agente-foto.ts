@@ -1,24 +1,52 @@
-// Foto del agente que arma la selección. Las fotos viven en el Supabase del CRM
-// (si-crm), que es una base distinta a la de verficha. Acá las leemos por la API
-// REST de Supabase (PostgREST) por nombre del agente, cacheado en Redis para no
-// pegarle en cada view.
+// Foto del agente que arma la selección. Misma fuente que la página /nosotros:
+//   1) fotos curadas propias en /public/team (fundadores + agentes del CRM con
+//      override + extras) — tienen prioridad, igual que en /nosotros;
+//   2) para el resto, la foto que viene de Tokko (cacheada en Redis 24h).
 //
-// Env (en el Vercel de ippoliti, tomadas del CRM):
-//   SI_SUPABASE_URL   → https://xxxx.supabase.co
-//   SI_SUPABASE_KEY   → service_role o anon con permiso de leer agents.avatar_url
-//
-// Best-effort: si no hay credenciales o falla, devuelve null y la vista usa el
-// avatar de iniciales.
+// Sin dependencia de Supabase ni env vars nuevas: /team/*.jpg ya está deployado
+// y Tokko usa la TOKKO_API_KEY que ya existe. Best-effort: si no hay match,
+// devuelve null y la vista usa el avatar de iniciales.
 
 import { redis } from './redis'
+import { getTokkoAgents } from './tokko-agents'
 
 const CACHE_TTL = 7 * 24 * 60 * 60 // 7d
-const cacheKey = (n: string) => `agente-foto:${n.toLowerCase().replace(/\s+/g, ' ').trim()}`
+
+// Normaliza para matchear sin importar acentos, mayúsculas ni dobles espacios.
+const norm = (s: string) =>
+  s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
+
+// Fotos propias en /public/team. Espejan las que muestra /nosotros y tienen
+// prioridad sobre la foto de Tokko.
+const FOTO_TEAM: Record<string, string> = {
+  'Susana Ippoliti': '/team/susana-ippoliti.jpg',
+  'David Flores': '/team/david-flores.jpg',
+  'Laura Flores': '/team/laura-flores.jpg',
+  'Mariana Orlate': '/team/mariana-orlate.jpg',
+  'Micaela Gonzalez': '/team/micaela-gonzalez.jpg',
+  'Leticia Alexenicer': '/team/leticia-alexenicer.jpg',
+  'Maria Jose Espilocin': '/team/maria-jose-espilocin.jpg',
+  'Marisa Benitez': '/team/marisa-benitez.jpg',
+  'Sabrina Rogani': '/team/sabrina-rogani.jpg',
+  'Eliana Rojas': '/team/eliana-rojas.jpg',
+  'Julian Ruschneider': '/team/julian-ruschneider.jpg',
+  'Claudia': '/team/claudia.jpg',
+}
+const FOTO_TEAM_NORM: Record<string, string> = Object.fromEntries(
+  Object.entries(FOTO_TEAM).map(([k, v]) => [norm(k), v]),
+)
+
+const cacheKey = (n: string) => `agente-foto:${norm(n)}`
 
 export async function getAgentePhoto(nombre: string | null | undefined): Promise<string | null> {
   const n = (nombre || '').replace(/\s+/g, ' ').trim()
   if (!n) return null
 
+  // 1) Foto curada propia: instantánea, sin red ni cache.
+  const propia = FOTO_TEAM_NORM[norm(n)]
+  if (propia) return propia
+
+  // 2) Cache por-agente (resultados de Tokko / sin-foto).
   try {
     const cached = await redis.get<string>(cacheKey(n))
     if (cached === '__none__') return null
@@ -27,24 +55,15 @@ export async function getAgentePhoto(nombre: string | null | undefined): Promise
     /* cache best-effort */
   }
 
-  const url = process.env.SI_SUPABASE_URL
-  const key = process.env.SI_SUPABASE_KEY
+  // 3) Foto de Tokko (misma lista que consume /nosotros).
   let foto: string | null = null
-  if (url && key) {
-    try {
-      const q = `${url}/rest/v1/agents?select=avatar_url&full_name=eq.${encodeURIComponent(n)}&limit=1`
-      const res = await fetch(q, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` },
-        signal: AbortSignal.timeout(6000),
-      })
-      if (res.ok) {
-        const rows = (await res.json()) as { avatar_url?: string | null }[]
-        const u = rows?.[0]?.avatar_url
-        if (u && /^https?:\/\//i.test(u)) foto = u
-      }
-    } catch {
-      /* red/timeout: best-effort */
-    }
+  try {
+    const { agents } = await getTokkoAgents()
+    const hit = agents.find((a) => norm(a.name) === norm(n))
+    const u = hit?.picture
+    if (u && /^https?:\/\//i.test(u)) foto = u
+  } catch {
+    /* red/timeout: best-effort */
   }
 
   try {
