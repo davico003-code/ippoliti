@@ -1,9 +1,15 @@
 'use client'
 
 // Kiosco VERTICAL (televisor parado / portrait): UNA propiedad por vez con estilo
-// "hero + tira". Una foto principal inmersiva a todo lo ancho con el precio
-// gigante encima, y abajo una tira con el resto de fotos de la MISMA casa + QR.
-// Cicla a la siguiente propiedad. Sin interacción — corre todo el día.
+// "hero + tira". Una foto principal inmersiva con el precio gigante encima, y
+// abajo una tira con el resto de fotos de la MISMA casa + QR. Cicla a la
+// siguiente propiedad. Sin interacción — corre todo el día.
+//
+// El contenido se dibuja SIEMPRE dentro de un marco vertical 9:16 centrado
+// (.tvv-stage), sin importar la orientación real de la pantalla: en un tele
+// apaisado queda una franja vertical con barras negras a los lados; en el tele
+// parado llena la pantalla. Todo se mide en container units (cqw/cqh) relativas
+// a ese marco, así los tamaños son correctos en cualquier pantalla.
 
 import { useEffect, useState } from 'react'
 import type { Slide } from '../tvData'
@@ -40,7 +46,7 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
 
   if (slides.length === 0) {
     return (
-      <main style={{ height: '100dvh', display: 'grid', placeItems: 'center' }}>
+      <main style={{ height: '100dvh', display: 'grid', placeItems: 'center', background: '#08100B' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" style={{ height: 56, width: 'auto', opacity: 0.9 }} />
       </main>
@@ -54,71 +60,78 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
 
   return (
     <main className="tvv-root">
-      {/* HERO inmersivo — foto principal a todo lo ancho */}
-      <section key={`hero-${idx}`} className="tvv-hero">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={hero} alt="" className="tvv-hero-img tvv-kb" />
-        <div className="tvv-scrim-top" />
-        <div className="tvv-scrim-bottom" />
-
-        {/* Header sobre la foto */}
-        <header className="tvv-header">
+      <div className="tvv-stage">
+        {/* HERO inmersivo — foto principal */}
+        <section key={`hero-${idx}`} className="tvv-hero">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" className="tvv-logo" />
-          {clock && (
-            <div className="tvv-clock">
-              <div className="tvv-clock-h">{clock.h}</div>
-              <div className="tvv-clock-d">{clock.d}</div>
-            </div>
-          )}
-        </header>
+          <img src={hero} alt="" className="tvv-hero-img tvv-kb" />
+          <div className="tvv-scrim-top" />
+          <div className="tvv-scrim-bottom" />
 
-        {/* Info sobre la foto */}
-        <div className="tvv-info tvv-in">
-          <div className="tvv-eyebrow">
-            {s.destacada && <span className="tvv-badge">Selección SI</span>}
-            <span className="tvv-meta">{s.tipo}{s.ubicacion ? ` · ${s.ubicacion}` : ''}</span>
+          {/* Header sobre la foto */}
+          <header className="tvv-header">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" className="tvv-logo" />
+            {clock && (
+              <div className="tvv-clock">
+                <div className="tvv-clock-h">{clock.h}</div>
+                <div className="tvv-clock-d">{clock.d}</div>
+              </div>
+            )}
+          </header>
+
+          {/* Info sobre la foto */}
+          <div className="tvv-info tvv-in">
+            <div className="tvv-eyebrow">
+              {s.destacada && <span className="tvv-badge">Selección SI</span>}
+              <span className="tvv-meta">{s.tipo}{s.ubicacion ? ` · ${s.ubicacion}` : ''}</span>
+            </div>
+            {s.titulo && <h2 className="tvv-title">{s.titulo}</h2>}
+            <div className="tvv-price">{s.precio}</div>
+            {s.specs.length > 0 && (
+              <div className="tvv-specs">
+                {s.specs.map((sp, i) => (
+                  <div key={i} className="tvv-spec">
+                    <span className="tvv-spec-v">{sp.v}</span>
+                    <span className="tvv-spec-l">{sp.l}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {s.titulo && <h2 className="tvv-title">{s.titulo}</h2>}
-          <div className="tvv-price">{s.precio}</div>
-          {s.specs.length > 0 && (
-            <div className="tvv-specs">
-              {s.specs.map((sp, i) => (
-                <div key={i} className="tvv-spec">
-                  <span className="tvv-spec-v">{sp.v}</span>
-                  <span className="tvv-spec-l">{sp.l}</span>
-                </div>
-              ))}
+        </section>
+
+        {/* TIRA — resto de fotos de la misma casa + QR */}
+        <div key={`strip-${idx}`} className="tvv-strip">
+          {thumbs.map((src, k) => (
+            <div key={k} className="tvv-thumb tvv-in" style={{ animationDelay: `${k * 90}ms` }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" className="tvv-thumb-img" />
+            </div>
+          ))}
+          {s.qr && (
+            <div className="tvv-qr tvv-in" style={{ animationDelay: `${thumbs.length * 90}ms` }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={s.qr} alt="Código QR" className="tvv-qr-img" />
+              <span className="tvv-qr-t">Escaneá</span>
             </div>
           )}
         </div>
-      </section>
 
-      {/* TIRA — resto de fotos de la misma casa + QR */}
-      <div key={`strip-${idx}`} className="tvv-strip">
-        {thumbs.map((src, k) => (
-          <div key={k} className="tvv-thumb tvv-in" style={{ animationDelay: `${k * 90}ms` }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src} alt="" className="tvv-thumb-img" />
-          </div>
-        ))}
-        {s.qr && (
-          <div className="tvv-qr tvv-in" style={{ animationDelay: `${thumbs.length * 90}ms` }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={s.qr} alt="Código QR" className="tvv-qr-img" />
-            <span className="tvv-qr-t">Escaneá</span>
-          </div>
+        {/* Barra de progreso */}
+        {slides.length > 1 && (
+          <div key={`p-${idx}`} className="tvv-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
         )}
       </div>
 
-      {/* Barra de progreso */}
-      {slides.length > 1 && (
-        <div key={`p-${idx}`} className="tvv-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
-      )}
-
       <style>{`
-        .tvv-root { position: fixed; inset: 0; overflow: hidden; background: #08100B;
-          display: flex; flex-direction: column; }
+        .tvv-root { position: fixed; inset: 0; overflow: hidden; background: #000;
+          display: flex; align-items: center; justify-content: center; }
+
+        /* Marco vertical 9:16 centrado: el mayor 9:16 que entra en la pantalla. */
+        .tvv-stage { position: relative; overflow: hidden; background: #08100B;
+          width: min(100vw, calc(100dvh * 9 / 16)); height: min(100dvh, calc(100vw * 16 / 9));
+          container-type: size; display: flex; flex-direction: column; }
 
         /* HERO */
         .tvv-hero { position: relative; flex: 1; min-height: 0; overflow: hidden; }
@@ -131,44 +144,44 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
           background: linear-gradient(0deg, rgba(6,14,9,.96) 0%, rgba(6,14,9,.75) 18%, rgba(6,14,9,.15) 40%, rgba(6,14,9,0) 58%); }
 
         .tvv-header { position: absolute; top: 0; left: 0; right: 0; z-index: 3;
-          display: flex; align-items: flex-start; justify-content: space-between; padding: 3vh 4vw 0; }
-        .tvv-logo { height: 3vh; min-height: 32px; width: auto; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
+          display: flex; align-items: flex-start; justify-content: space-between; padding: 3cqh 4cqw 0; }
+        .tvv-logo { height: 3.4cqh; min-height: 26px; width: auto; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
         .tvv-clock { text-align: right; text-shadow: 0 2px 12px rgba(0,0,0,.6); }
-        .tvv-clock-h { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 3.2vh; line-height: 1;
+        .tvv-clock-h { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 3.4cqh; line-height: 1;
           font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-        .tvv-clock-d { font-size: 1.4vh; color: rgba(255,255,255,.85); margin-top: .4vh; }
+        .tvv-clock-d { font-size: 1.5cqh; color: rgba(255,255,255,.85); margin-top: .4cqh; }
 
-        .tvv-info { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 0 4vw 3.4vh; }
-        .tvv-eyebrow { display: flex; align-items: center; gap: 1.4vw; margin-bottom: 1.4vh; flex-wrap: wrap; }
-        .tvv-badge { background: #1A5C38; color: #fff; font-weight: 700; font-size: 1.55vw; letter-spacing: .1em;
-          text-transform: uppercase; padding: .6vh 1.5vw; border-radius: 999px; }
-        .tvv-meta { font-size: 2vw; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #A6E7BE;
+        .tvv-info { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 0 4cqw 3.4cqh; }
+        .tvv-eyebrow { display: flex; align-items: center; gap: 1.4cqw; margin-bottom: 1.4cqh; flex-wrap: wrap; }
+        .tvv-badge { background: #1A5C38; color: #fff; font-weight: 700; font-size: 2.6cqw; letter-spacing: .1em;
+          text-transform: uppercase; padding: .6cqh 2.4cqw; border-radius: 999px; }
+        .tvv-meta { font-size: 3.2cqw; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #A6E7BE;
           text-shadow: 0 1px 8px rgba(0,0,0,.6); }
-        .tvv-title { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 3vw; line-height: 1.12;
-          margin: 0 0 1.4vh; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.6);
+        .tvv-title { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 5cqw; line-height: 1.12;
+          margin: 0 0 1.6cqh; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.6);
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .tvv-price { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 10.5vw; line-height: .92;
+        .tvv-price { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 15cqw; line-height: .92;
           letter-spacing: -.03em; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 3px 24px rgba(0,0,0,.55); }
-        .tvv-specs { display: flex; margin-top: 1.8vh; }
-        .tvv-spec { padding: 0 2.4vw; display: flex; flex-direction: column; }
+        .tvv-specs { display: flex; margin-top: 2cqh; }
+        .tvv-spec { padding: 0 3.4cqw; display: flex; flex-direction: column; }
         .tvv-spec:first-child { padding-left: 0; }
         .tvv-spec:last-child { padding-right: 0; }
         .tvv-spec + .tvv-spec { border-left: 1px solid rgba(255,255,255,.3); }
-        .tvv-spec-v { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 4vw; line-height: 1;
+        .tvv-spec-v { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 6cqw; line-height: 1;
           font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
-        .tvv-spec-l { font-size: 1.7vw; color: rgba(255,255,255,.85); margin-top: .6vh; }
+        .tvv-spec-l { font-size: 2.5cqw; color: rgba(255,255,255,.85); margin-top: .6cqh; }
 
         /* TIRA */
-        .tvv-strip { flex: none; display: flex; gap: 1.6vw; padding: 1.8vh 4vw 2.4vh; height: 17vh; }
-        .tvv-thumb { flex: 1; position: relative; border-radius: 1.8vh; overflow: hidden;
-          box-shadow: 0 1vh 2.4vh rgba(0,0,0,.5); outline: 1px solid rgba(255,255,255,.08); outline-offset: -1px; }
+        .tvv-strip { flex: none; display: flex; gap: 2.4cqw; padding: 2cqh 4cqw 2.6cqh; height: 17cqh; }
+        .tvv-thumb { flex: 1; position: relative; border-radius: 2.6cqw; overflow: hidden;
+          box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); outline: 1px solid rgba(255,255,255,.08); outline-offset: -1px; }
         .tvv-thumb-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .tvv-qr { flex: none; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: .6vh; background: #fff; border-radius: 1.8vh; padding: 1vh; box-shadow: 0 1vh 2.4vh rgba(0,0,0,.5); }
+          gap: .6cqh; background: #fff; border-radius: 2.6cqw; padding: 1cqh; box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); }
         .tvv-qr-img { flex: 1; min-height: 0; width: auto; aspect-ratio: 1; display: block; }
-        .tvv-qr-t { font-size: 1.3vw; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0E1A14; }
+        .tvv-qr-t { font-size: 2.2cqw; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #0E1A14; }
 
-        .tvv-progress { position: absolute; left: 0; bottom: 0; height: .5vh; min-height: 4px; z-index: 8;
+        .tvv-progress { position: absolute; left: 0; bottom: 0; height: .6cqh; min-height: 3px; z-index: 8;
           background: linear-gradient(90deg, #1A5C38, #8CF0B4); width: 0; animation-name: tvvProg;
           animation-timing-function: linear; animation-fill-mode: forwards; }
         @keyframes tvvProg { from { width: 0; } to { width: 100%; } }
