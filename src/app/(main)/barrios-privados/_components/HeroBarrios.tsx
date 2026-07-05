@@ -82,7 +82,12 @@ export default function HeroBarrios() {
           __html: `
             @media (max-width: 640px) {
               .bp-hero-inner { padding: 0 20px !important; }
-              .bp-search-pill { flex-wrap: wrap !important; }
+              /* El dropdown "Barrios" es decorativo (no filtra nada) — en
+                 mobile no entra junto al input sin romper el layout, así
+                 que se oculta y el buscador queda en una sola fila prolija. */
+              .bp-search-dropdown { display: none !important; }
+              .bp-search-pill { max-width: none !important; }
+              .bp-search-field { padding-left: 8px !important; }
             }
           `,
         }}

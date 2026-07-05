@@ -72,6 +72,7 @@ export default function HeroSearchBar() {
         </button>
 
         <div
+          className="bp-search-field"
           style={{
             display: "flex",
             alignItems: "center",
