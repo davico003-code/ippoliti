@@ -6,6 +6,7 @@ import QRCode from 'qrcode'
 import {
   getProperties,
   getMainPhoto,
+  getAllPhotos,
   getRoofedArea,
   getLotSurface,
   formatPrice,
@@ -15,7 +16,8 @@ import {
 } from '@/lib/tokko'
 
 export interface Slide {
-  photo: string
+  photo: string          // foto de portada (kiosco horizontal)
+  photos: string[]       // hasta 3 fotos de la MISMA propiedad (kiosco vertical)
   precio: string
   tipo: string
   ubicacion: string
@@ -95,12 +97,15 @@ export async function getSlides(): Promise<Slide[]> {
       const slug = generatePropertySlug(p)
       const url = `${SITE}/propiedades/${slug}`
       const photo = getMainPhoto(p) as string
+      // Hasta 3 fotos de la misma propiedad (portada primero, sin duplicar).
+      const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 3)
       let qr = ''
       try {
         qr = await QRCode.toDataURL(url, { margin: 1, width: 220, color: { dark: '#0E1A14', light: '#FFFFFF' } })
       } catch { /* sin QR si falla */ }
       return {
         photo,
+        photos,
         precio: formatPrice(p),
         tipo: tipoEs(p),
         ubicacion: formatLocation(p),
