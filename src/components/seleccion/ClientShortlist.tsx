@@ -1,7 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { parsePropertyLabel, getTimeLeft, buildWhatsAppMessage } from '@/lib/seleccion'
+import type { MapaProp } from './SeleccionMapa'
+
+// El mapa es client-only (Leaflet toca window): dynamic sin SSR.
+const SeleccionMapa = dynamic(() => import('./SeleccionMapa'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse" style={{ background: '#eef1ee' }} />,
+})
 
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
@@ -23,7 +31,11 @@ interface PropInfo {
   area: number
   price: string | null
   isColega: boolean
+  lat: number | null
+  lng: number | null
 }
+
+const WA_PHONE = '5493412101694'
 
 function extractTokkoId(url: string): string | null {
   const m = /\/(\d{6,8})[-\/]/.exec(url)
@@ -36,22 +48,33 @@ function isValidNote(note: string | undefined | null): boolean {
   return !!note && note.trim().length > 3
 }
 
+// Offset de privacidad (±30-50m) sobre las coords reales, como en las fichas.
+function offsetCoord(lat: number, lng: number): { lat: number; lng: number } {
+  const angle = Math.random() * 2 * Math.PI
+  const distM = 30 + Math.random() * 20
+  return {
+    lat: lat + (distM * Math.cos(angle)) / 111000,
+    lng: lng + (distM * Math.sin(angle)) / (111000 * Math.cos((lat * Math.PI) / 180)),
+  }
+}
+
+function iniciales(nombre: string): string {
+  const p = nombre.trim().split(/\s+/).filter(Boolean)
+  return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || nombre.slice(0, 2).toUpperCase()
+}
+
 /* ── SVGs ── */
-const IcBed = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><path d="M3 9V19M21 9V19M3 15H21M3 9C3 7.9 3.9 7 5 7H19C20.1 7 21 7.9 21 9"/><path d="M7 7V5C7 4.4 7.4 4 8 4H16C16.6 4 17 4.4 17 5V7"/></svg>
-const IcBath = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><path d="M4 12H20V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V12Z"/><path d="M4 12V6C4 4.9 4.9 4 6 4C7.1 4 8 4.9 8 6V8"/><path d="M8 8H20"/></svg>
-const IcArea = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9H21M9 3V21"/></svg>
-const IcPrice = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
-const IcHouse = () => <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-const IcWA = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+const IcBed = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6B62" strokeWidth="1.8"><path d="M3 9V19M21 9V19M3 15H21M3 9C3 7.9 3.9 7 5 7H19C20.1 7 21 7.9 21 9"/><path d="M7 7V5C7 4.4 7.4 4 8 4H16C16.6 4 17 4.4 17 5V7"/></svg>
+const IcBath = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6B62" strokeWidth="1.8"><path d="M4 12H20V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V12Z"/><path d="M4 12V6C4 4.9 4.9 4 6 4C7.1 4 8 4.9 8 6V8"/><path d="M8 8H20"/></svg>
+const IcArea = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6B62" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9H21M9 3V21"/></svg>
+const IcWA = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+const BtnHeart = ({ filled }: { filled?: boolean }) => <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+const BtnX = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+const BtnCal = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+const BtnCheck = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+const BtnPencil = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
 
-// Button SVGs (16px, stroke)
-const BtnHeart = ({ filled }: { filled?: boolean }) => <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-const BtnX = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-const BtnCal = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-const BtnCheck = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-const BtnPencil = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-
-const btn = 'flex items-center justify-center gap-2 w-full font-semibold text-[14px] transition-all hover:opacity-85 hover:-translate-y-px active:scale-[0.97]'
+const btn = 'flex items-center justify-center gap-1.5 w-full font-semibold text-[13px] transition-all active:scale-[0.97] rounded-[11px]'
 
 export default function ClientShortlist({
   session, initialReactions, token,
@@ -61,19 +84,21 @@ export default function ClientShortlist({
   const [commentDraft, setCommentDraft] = useState('')
   const [commentSaved, setCommentSaved] = useState<string | null>(null)
   const [propInfo, setPropInfo] = useState<Record<string, { loading: boolean; info: PropInfo | null }>>({})
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [ayudaVisible, setAyudaVisible] = useState(true)
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const { days } = getTimeLeft(session.expiresAt)
   const agentName = session.agentName || session.agent
 
-  // Fetch property data — Tokko for SI props, Microlink for external.
-  // Las externas cargadas a mano traen snapshot embebido: se renderizan directo,
-  // sin fetch.
+  // Fetch de datos por propiedad (Tokko para propias, snapshot/Microlink para
+  // externas). Ahora también capturamos lat/lng (de Tokko) para el mapa.
   useEffect(() => {
     const initial: Record<string, { loading: boolean; info: PropInfo | null }> = {}
     for (const p of session.properties) {
       initial[p.id] = p.snapshot
-        ? { loading: false, info: { ...p.snapshot, isColega: true } }
+        ? { loading: false, info: { ...p.snapshot, isColega: true, lat: null, lng: null } }
         : { loading: true, info: null }
     }
     setPropInfo(initial)
@@ -84,15 +109,16 @@ export default function ClientShortlist({
     Promise.allSettled(
       session.properties.filter(p => !p.snapshot).map(async (p): Promise<{ id: string; info: PropInfo }> => {
         const tokkoId = extractTokkoId(p.url)
-
         if (tokkoId) {
-          // SI / Tokko property
           const res = await fetch(`/api/propiedades/${tokkoId}`, { signal: controller.signal })
           if (res.ok) {
             const d = await res.json()
             const photos = (d.photos || []).filter((ph: { is_blueprint?: boolean }) => !ph.is_blueprint)
             const cover = photos.find((ph: { is_front_cover?: boolean }) => ph.is_front_cover) || photos[0]
             const pr = d.operations?.[0]?.prices?.[0]
+            const rawLat = d.geo_lat ? parseFloat(d.geo_lat) : NaN
+            const rawLng = d.geo_long ? parseFloat(d.geo_long) : NaN
+            const coords = Number.isFinite(rawLat) && Number.isFinite(rawLng) ? offsetCoord(rawLat, rawLng) : null
             return {
               id: p.id,
               info: {
@@ -104,27 +130,18 @@ export default function ClientShortlist({
                 area: parseFloat(d.roofed_surface || d.total_surface || d.surface || '0') || 0,
                 price: pr?.price ? `${pr.currency || 'USD'} ${pr.price.toLocaleString('es-AR')}` : null,
                 isColega: false,
+                lat: coords?.lat ?? null,
+                lng: coords?.lng ?? null,
               },
             }
           }
         }
-
-        // External — use Microlink
         const res = await fetch(`/api/seleccion/preview?url=${encodeURIComponent(p.url)}`, { signal: controller.signal })
         if (res.ok) {
           const d = await res.json()
           return {
             id: p.id,
-            info: {
-              title: d.title || parsePropertyLabel(p.url),
-              image: d.image || null,
-              location: '',
-              rooms: 0,
-              baths: 0,
-              area: 0,
-              price: null,
-              isColega: true,
-            },
+            info: { title: d.title || parsePropertyLabel(p.url), image: d.image || null, location: '', rooms: 0, baths: 0, area: 0, price: null, isColega: true, lat: null, lng: null },
           }
         }
         throw new Error('fail')
@@ -132,19 +149,8 @@ export default function ClientShortlist({
     ).then(results => {
       setPropInfo(prev => {
         const next = { ...prev }
-        for (const r of results) {
-          if (r.status === 'fulfilled') next[r.value.id] = { loading: false, info: r.value.info }
-          else {
-            // Find which prop failed
-            for (const p of session.properties) {
-              if (next[p.id]?.loading) next[p.id] = { loading: false, info: null }
-            }
-          }
-        }
-        // Clear any remaining loading
-        for (const p of session.properties) {
-          if (next[p.id]?.loading) next[p.id] = { loading: false, info: null }
-        }
+        for (const r of results) if (r.status === 'fulfilled') next[r.value.id] = { loading: false, info: r.value.info }
+        for (const p of session.properties) if (next[p.id]?.loading) next[p.id] = { loading: false, info: null }
         return next
       })
     })
@@ -161,7 +167,7 @@ export default function ClientShortlist({
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ propertyId, ...updated[propertyId] }),
-        }).catch(() => { /* red intermitente: evitar unhandled rejection */ })
+        }).catch(() => {})
       }, 800)
       return updated
     })
@@ -174,290 +180,220 @@ export default function ClientShortlist({
     setTimeout(() => setCommentSaved(null), 2000)
   }
 
+  // Pines del mapa: las propiedades que ya resolvieron coords.
+  const mapaProps: MapaProp[] = useMemo(() => {
+    const out: MapaProp[] = []
+    session.properties.forEach((p, idx) => {
+      const info = propInfo[p.id]?.info
+      if (info?.lat != null && info?.lng != null) {
+        out.push({ id: p.id, num: idx + 1, lat: info.lat, lng: info.lng, title: info.title, liked: reactions[p.id]?.liked })
+      }
+    })
+    return out
+  }, [session.properties, propInfo, reactions])
+
+  function seleccionar(id: string) {
+    setSelectedId(id)
+    cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => setSelectedId((cur) => (cur === id ? null : cur)), 2200)
+  }
+
   const stats = {
     liked: session.properties.filter(p => reactions[p.id]?.liked === true).length,
     wantVisit: session.properties.filter(p => reactions[p.id]?.wantVisit).length,
   }
-  const hasReactions = stats.liked + stats.wantVisit > 0
+  const etiqueta = (p: Property) => propInfo[p.id]?.info?.title || parsePropertyLabel(p.url)
+  const likedLabels = session.properties.filter(p => reactions[p.id]?.liked === true).map(etiqueta)
+  const visitLabels = session.properties.filter(p => reactions[p.id]?.wantVisit).map(etiqueta)
   const waMsg = encodeURIComponent(buildWhatsAppMessage(session, reactions))
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7]" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white" style={{ borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
-        <div className="max-w-5xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[#1A5C38] font-extrabold text-base" style={{ fontFamily: 'Raleway, sans-serif' }}>SI</span>
-            <span className="text-[#6E6E73] text-sm" style={{ fontFamily: 'Raleway, sans-serif' }}>Inmobiliaria</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-[15px] text-[#1C1C1E]">
-              Selección para: <strong>{session.clientName}</strong>
-            </p>
-            <span className={`text-[12px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
-              days <= 3 ? 'bg-red-50 text-red-500' : 'bg-[#1A5C38]/8 text-[#1A5C38]'
-            }`}>
-              Válida por {days} día{days !== 1 ? 's' : ''} más
-            </span>
-          </div>
+    <div className="flex min-h-screen flex-col bg-[#FBFAF8] text-[#1C2620]" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
+      {/* Top bar */}
+      <header className="sticky top-0 z-[60] flex items-center justify-between border-b border-[#E4E9E5] bg-white px-5 py-3 md:px-10">
+        <a href="https://siinmobiliaria.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1A5C38] text-[15px] font-extrabold text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>SI</span>
+          <span className="text-[15px] font-bold tracking-[0.4px]" style={{ fontFamily: 'Raleway, sans-serif' }}>SI <span className="text-[#1A5C38]">INMOBILIARIA</span></span>
+        </a>
+        <div className="flex items-center gap-3">
+          <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${days <= 3 ? 'bg-red-50 text-red-500' : 'bg-[#EAF3EE] text-[#1A5C38]'}`}>
+            Válida por {days} día{days !== 1 ? 's' : ''} más
+          </span>
+          <button type="button" onClick={() => setAyudaVisible(v => !v)} aria-label="¿Cómo funciona?"
+            className="flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[#E4E9E5] bg-white text-[15px] font-extrabold text-[#1A5C38]">?</button>
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1A5C38] text-[13px] font-bold text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>{iniciales(agentName)}</span>
         </div>
-      </nav>
+      </header>
 
-      <div className="max-w-5xl mx-auto px-4 py-5 pb-44">
-        {/* Agent note */}
-        {isValidNote(session.note) && (
-          <div className="bg-white rounded-2xl p-4 mb-5" style={{ border: '0.5px solid rgba(60,60,67,0.12)' }}>
-            <p className="text-[13px] text-[#6E6E73] mb-1">Mensaje de {agentName}:</p>
-            <p className="text-[15px] text-[#1C1C1E] leading-[1.5]">{session.note}</p>
+      {/* Ayuda: cómo funciona (fácil de entender, se cierra y se reabre con "?") */}
+      {ayudaVisible && (
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-[#d3e6da] bg-[#EAF3EE] px-5 py-2.5 text-[13px] text-[#123f27] md:px-10">
+          <b>¿Cómo funciona?</b>
+          <span className="flex items-center gap-1.5"><BtnHeart /> Marcá las que te gusten</span>
+          <span className="flex items-center gap-1.5"><BtnCal /> Pedí una visita</span>
+          <span className="flex items-center gap-1.5"><BtnPencil /> Dejanos una nota</span>
+          <span className="text-[#5B6B62]">— tu resumen se arma solo y te contactamos.</span>
+          <button type="button" onClick={() => setAyudaVisible(false)} aria-label="Cerrar ayuda" className="ml-auto text-[16px] text-[#123f27] opacity-60 hover:opacity-100">✕</button>
+        </div>
+      )}
+
+      {/* Layout 3 columnas */}
+      <div className="grid flex-1 grid-cols-1 lg:grid-cols-[300px_1fr_380px]">
+        {/* ── Sidebar cliente ── */}
+        <aside className="flex flex-col gap-6 border-b border-[#E4E9E5] bg-white p-7 lg:border-b-0 lg:border-r">
+          <div>
+            <div className="text-[12.5px] font-semibold tracking-[0.3px] text-[#1A5C38]" style={{ fontFamily: 'Raleway, sans-serif' }}>SI INMOBILIARIA</div>
+            <h1 className="mt-2 text-[26px] font-bold leading-[1.25]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+              Selección para:<br />
+              <span className="relative inline-block text-[#1A5C38] after:absolute after:-bottom-1.5 after:left-0 after:h-[3px] after:w-9 after:rounded-sm after:bg-[#1A5C38] after:content-['']">{session.clientName}</span>
+            </h1>
           </div>
-        )}
+          <p className="text-[14px] leading-[1.55] text-[#5B6B62]">Propiedades seleccionadas especialmente para vos, según lo que estuviste buscando.</p>
 
-        {/* Summary */}
-        {hasReactions && (
-          <div className="bg-[#1A5C38] rounded-2xl px-4 py-3.5 flex items-center justify-between text-white mb-5">
-            <p className="text-[14px] font-medium">
-              {stats.liked > 0 && <>{stats.liked} te gustaron</>}
-              {stats.liked > 0 && stats.wantVisit > 0 && ' · '}
-              {stats.wantVisit > 0 && <>{stats.wantVisit} querés visitar</>}
-            </p>
-            <span className="text-[12px] text-white/50">{session.properties.length} propiedades</span>
+          {/* Resumen EN VIVO: se arma solo a medida que el cliente reacciona */}
+          <div className="flex flex-col gap-2.5 rounded-2xl bg-[#1A5C38] p-4 text-white">
+            <h3 className="text-[14px] font-extrabold tracking-[0.2px]">Tu resumen</h3>
+            <div className="flex gap-4">
+              <div className="flex flex-col">
+                <b className="text-[22px] font-extrabold leading-none">{stats.liked}</b>
+                <span className="mt-0.5 text-[11.5px] opacity-85">Me gustan</span>
+              </div>
+              <div className="flex flex-col">
+                <b className="text-[22px] font-extrabold leading-none">{stats.wantVisit}</b>
+                <span className="mt-0.5 text-[11.5px] opacity-85">Para visitar</span>
+              </div>
+            </div>
+            {stats.liked + stats.wantVisit > 0 ? (
+              <div className="border-t border-white/20 pt-2.5 text-[12px] leading-[1.5]">
+                {likedLabels.length > 0 && <div className="mb-1"><b>Te gustan:</b> {likedLabels.join(', ')}</div>}
+                {visitLabels.length > 0 && <div><b>Querés visitar:</b> {visitLabels.join(', ')}</div>}
+              </div>
+            ) : (
+              <p className="text-[12.5px] leading-[1.5] opacity-80">A medida que marques lo que te gusta y pidas visitas, tu resumen se arma acá.</p>
+            )}
+            <a href={`https://wa.me/${WA_PHONE}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
+              className="mt-1 flex items-center justify-center gap-2 rounded-[11px] bg-white py-2.5 text-[13.5px] font-bold text-[#1A5C38]">
+              <IcWA /> Enviar mi resumen
+            </a>
           </div>
-        )}
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {session.properties.map((prop, idx) => {
-            const r = reactions[prop.id] || {}
-            const pi = propInfo[prop.id]
-            const info = pi?.info
-            const loading = pi?.loading
-            const title = info?.title || parsePropertyLabel(prop.url)
-            const borderColor = r.liked === true ? '#1A5C38' : r.liked === false ? '#FF3B30' : 'rgba(0,0,0,0.06)'
+          {isValidNote(session.note) && (
+            <div className="mt-auto flex flex-col gap-3.5 rounded-2xl bg-[#EAF3EE] p-5">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[14px] font-bold text-white" style={{ background: 'linear-gradient(135deg,#DD7349,#C7902F)', fontFamily: 'Raleway, sans-serif' }}>{iniciales(agentName)}</span>
+                <p className="text-[13.5px] leading-[1.55]"><b className="text-[#123f27]">{agentName}:</b> {session.note}</p>
+              </div>
+            </div>
+          )}
+        </aside>
 
-            return (
-              <div key={prop.id} className="bg-white rounded-2xl overflow-hidden flex flex-col" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)', border: `1px solid ${borderColor}` }}>
-                {/* Photo */}
-                <div className="relative h-[160px] bg-[#F2F2F7] shrink-0">
-                  {loading ? (
-                    <div className="w-full h-full" style={{ background: 'linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
-                  ) : info?.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={info.image} alt={title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center"><IcHouse /></div>
-                  )}
-                  {/* Number badge */}
-                  <span className="absolute top-2.5 right-2.5 bg-white text-[#1A5C38] text-[13px] font-bold px-2.5 py-1 rounded-full font-numeric" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.15)' }}>
-                    #{idx + 1}
-                  </span>
-                  {/* Colega badge */}
-                  {info?.isColega && (
-                    <span className="absolute top-2.5 left-2.5 bg-[#1A5C38] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                      Colega
-                    </span>
-                  )}
-                </div>
+        {/* ── Mapa central ── */}
+        <section className="relative min-h-[380px] bg-[#eef1ee] lg:min-h-[560px]">
+          {mapaProps.length > 0 ? (
+            <SeleccionMapa props={mapaProps} onSelect={seleccionar} />
+          ) : (
+            <div className="flex h-full min-h-[380px] items-center justify-center px-8 text-center">
+              <p className="text-[14px] text-[#5B6B62]">{session.properties.some(p => propInfo[p.id]?.loading) ? 'Ubicando las propiedades en el mapa…' : 'Las propiedades de esta selección todavía no tienen ubicación en el mapa. Podés verlas en el listado.'}</p>
+            </div>
+          )}
+        </section>
 
-                {/* Body */}
-                <div className="p-3.5 flex-1 flex flex-col">
-                  <h3 className="text-[15px] font-bold text-[#1C1C1E] leading-[1.35] mb-1" style={{ fontFamily: 'Raleway, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {title}
-                  </h3>
-                  {info?.location && <p className="text-[12px] text-[#6E6E73] mb-1.5">{info.location}</p>}
-
-                  {isValidNote(prop.note) && (
-                    <p className="text-[13px] text-[#6E6E73] italic mb-2 leading-[1.4]">&ldquo;{prop.note}&rdquo;</p>
-                  )}
-
-                  {/* Specs */}
-                  {info && (info.rooms > 0 || info.baths > 0 || info.area > 0 || info.price) && (
-                    <div className="flex flex-wrap gap-x-2.5 gap-y-1 mb-2.5">
-                      {info.rooms > 0 && <span className="flex items-center gap-1 text-[12px] text-[#6E6E73]"><IcBed /> {info.rooms} dorm.</span>}
-                      {info.baths > 0 && <span className="flex items-center gap-1 text-[12px] text-[#6E6E73]"><IcBath /> {info.baths} baño{info.baths > 1 ? 's' : ''}</span>}
-                      {info.area > 0 && <span className="flex items-center gap-1 text-[12px] text-[#6E6E73]"><IcArea /> {info.area} m²</span>}
-                      {info.price && <span className="flex items-center gap-1 text-[12px] font-semibold text-[#1A5C38]"><IcPrice /> {info.price}</span>}
+        {/* ── Listado derecho ── */}
+        <aside className="flex max-h-[calc(100vh-61px)] flex-col border-t border-[#E4E9E5] bg-white p-5 lg:border-t-0 lg:border-l">
+          <div className="flex flex-col gap-3.5 overflow-y-auto pb-4 pr-1">
+            {session.properties.map((prop, idx) => {
+              const r = reactions[prop.id] || {}
+              const pi = propInfo[prop.id]
+              const info = pi?.info
+              const loading = pi?.loading
+              const title = info?.title || parsePropertyLabel(prop.url)
+              const activo = selectedId === prop.id
+              return (
+                <div
+                  key={prop.id}
+                  ref={(el) => { cardRefs.current[prop.id] = el }}
+                  className="rounded-[14px] border p-2.5 transition-all"
+                  style={{
+                    borderColor: activo ? '#1A5C38' : r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5',
+                    background: activo ? '#f3faf6' : 'white',
+                    boxShadow: activo ? '0 4px 16px rgba(26,92,56,0.14)' : 'none',
+                  }}
+                >
+                  <div className="flex gap-3">
+                    <div className="relative h-[76px] w-[92px] shrink-0 overflow-hidden rounded-[10px] bg-[#eef1ee]">
+                      {loading ? (
+                        <div className="h-full w-full animate-pulse bg-[#e6ebe7]" />
+                      ) : info?.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={info.image} alt={title} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9bb0a4" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        </div>
+                      )}
+                      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/92 px-2 py-0.5 text-[11px] font-bold text-[#123f27]">#{idx + 1}</span>
                     </div>
-                  )}
+                    <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+                      <h3 className="text-[13.5px] font-semibold leading-[1.3] text-[#1C2620]" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</h3>
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#5B6B62]">
+                        {info && info.rooms > 0 && <span className="flex items-center gap-1"><IcBed /> {info.rooms}</span>}
+                        {info && info.baths > 0 && <span className="flex items-center gap-1"><IcBath /> {info.baths}</span>}
+                        {info && info.area > 0 && <span className="flex items-center gap-1"><IcArea /> {info.area} m²</span>}
+                      </div>
+                      {info?.price && <div className="text-[13.5px] font-bold text-[#1A5C38]">{info.price}</div>}
+                    </div>
+                  </div>
 
-                  <a href={prop.url} target="_blank" rel="noopener noreferrer" className="text-[13px] font-semibold text-[#1A5C38] hover:underline mb-2 inline-flex items-center gap-1">
-                    Ver propiedad &rarr;
-                  </a>
+                  {isValidNote(prop.note) && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{prop.note}&rdquo;</p>}
 
-                  <div className="flex-1" />
-
-                  {/* ── Buttons ── */}
-                  <div className="pt-3 space-y-2" style={{ borderTop: '1px solid #f0f0f0' }}>
-                    {/* Like / Dislike */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => patchReaction(prop.id, { liked: r.liked === true ? null : true })}
-                        className={btn}
-                        style={{
-                          padding: '10px 0',
-                          borderRadius: '12px',
-                          background: r.liked === true ? '#e8f5ee' : 'white',
-                          color: r.liked === true ? '#1A5C38' : '#6E6E73',
-                          border: r.liked === true ? '2px solid #1A5C38' : '1.5px solid #e0e0e0',
-                        }}
-                        onMouseEnter={e => { if (r.liked !== true) { e.currentTarget.style.background = '#f0faf4'; e.currentTarget.style.borderColor = '#1A5C38'; e.currentTarget.style.color = '#1A5C38' } }}
-                        onMouseLeave={e => { if (r.liked !== true) { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.color = '#6E6E73' } }}
-                      >
+                  {/* Reacciones (el corazón de la selección) */}
+                  <div className="mt-2.5 space-y-1.5">
+                    <div className="flex gap-1.5">
+                      <button onClick={() => patchReaction(prop.id, { liked: r.liked === true ? null : true })} className={btn}
+                        style={{ padding: '8px 0', background: r.liked === true ? '#e8f5ee' : 'white', color: r.liked === true ? '#1A5C38' : '#5B6B62', border: r.liked === true ? '2px solid #1A5C38' : '1.5px solid #e0e0e0' }}>
                         <BtnHeart filled={r.liked === true} /> Me gusta
                       </button>
-                      <button
-                        onClick={() => patchReaction(prop.id, { liked: r.liked === false ? null : false })}
-                        className={btn}
-                        style={{
-                          padding: '10px 0',
-                          borderRadius: '12px',
-                          background: r.liked === false ? '#fff0f0' : 'white',
-                          color: r.liked === false ? '#FF3B30' : '#6E6E73',
-                          border: r.liked === false ? '2px solid #FF3B30' : '1.5px solid #e0e0e0',
-                        }}
-                        onMouseEnter={e => { if (r.liked !== false) { e.currentTarget.style.background = '#fff5f5'; e.currentTarget.style.borderColor = '#FF3B30'; e.currentTarget.style.color = '#FF3B30' } }}
-                        onMouseLeave={e => { if (r.liked !== false) { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.color = '#6E6E73' } }}
-                      >
-                        <BtnX /> No me gusta
+                      <button onClick={() => patchReaction(prop.id, { liked: r.liked === false ? null : false })} className={btn}
+                        style={{ padding: '8px 0', background: r.liked === false ? '#fff0f0' : 'white', color: r.liked === false ? '#FF3B30' : '#5B6B62', border: r.liked === false ? '2px solid #FF3B30' : '1.5px solid #e0e0e0' }}>
+                        <BtnX /> No
                       </button>
                     </div>
-
-                    {/* Visit — prominent */}
-                    <button
-                      onClick={() => patchReaction(prop.id, { wantVisit: !r.wantVisit })}
-                      className={btn}
-                      style={{
-                        padding: '11px 16px',
-                        borderRadius: '12px',
-                        background: r.wantVisit ? '#0f4a2c' : '#1A5C38',
-                        color: 'white',
-                        boxShadow: r.wantVisit ? '0 2px 8px rgba(26,92,56,0.35)' : '0 2px 8px rgba(26,92,56,0.25)',
-                      }}
-                    >
-                      {r.wantVisit ? <BtnCheck /> : <BtnCal />}
-                      {r.wantVisit ? 'Visita solicitada' : 'Quiero visitarla'}
+                    <button onClick={() => patchReaction(prop.id, { wantVisit: !r.wantVisit })} className={btn}
+                      style={{ padding: '9px 12px', background: r.wantVisit ? '#0f4a2c' : '#1A5C38', color: 'white', boxShadow: '0 2px 8px rgba(26,92,56,0.25)' }}>
+                      {r.wantVisit ? <BtnCheck /> : <BtnCal />} {r.wantVisit ? 'Visita solicitada' : 'Quiero visitarla'}
                     </button>
-
-                    {/* Note */}
-                    <button
-                      onClick={() => { setEditingComment(editingComment === prop.id ? null : prop.id); setCommentDraft(r.comment || '') }}
-                      className={btn}
-                      style={{
-                        padding: '11px 16px',
-                        borderRadius: '12px',
-                        background: 'white',
-                        color: r.comment ? '#FF9500' : '#6E6E73',
-                        border: r.comment ? '1.5px solid #FF9500' : '1.5px solid #e0e0e0',
-                      }}
-                    >
-                      {r.comment ? <BtnCheck /> : <BtnPencil />}
-                      {r.comment ? 'Nota guardada' : 'Agregar nota'}
+                    <button onClick={() => { setEditingComment(editingComment === prop.id ? null : prop.id); setCommentDraft(r.comment || '') }} className={btn}
+                      style={{ padding: '9px 12px', background: 'white', color: r.comment ? '#C7902F' : '#5B6B62', border: r.comment ? '1.5px solid #C7902F' : '1.5px solid #e0e0e0' }}>
+                      {r.comment ? <BtnCheck /> : <BtnPencil />} {r.comment ? 'Nota guardada' : 'Agregar nota'}
                     </button>
                   </div>
 
-                  {/* Comment editor */}
                   {editingComment === prop.id && (
-                    <div className="mt-2 space-y-2">
-                      <textarea
-                        value={commentDraft}
-                        onChange={e => setCommentDraft(e.target.value)}
-                        placeholder="Escribí tu opinión sobre esta propiedad..."
-                        rows={2}
-                        className="w-full text-[14px] leading-[1.5] px-3 py-2.5 border-2 border-gray-200 rounded-xl outline-none focus:border-[#1A5C38] resize-none text-[#1C1C1E]"
-                      />
+                    <div className="mt-2 space-y-1.5">
+                      <textarea value={commentDraft} onChange={e => setCommentDraft(e.target.value)} placeholder="Escribí tu opinión…" rows={2}
+                        className="w-full resize-none rounded-xl border-2 border-gray-200 px-3 py-2 text-[13.5px] leading-[1.5] text-[#1C2620] outline-none focus:border-[#1A5C38]" />
                       <div className="flex gap-1.5">
-                        <button onClick={() => saveComment(prop.id)} className="flex-1 py-2.5 bg-[#1A5C38] text-white text-[13px] font-semibold rounded-xl">Guardar</button>
-                        <button onClick={() => setEditingComment(null)} className="px-4 py-2.5 bg-[#F2F2F7] text-[#6E6E73] text-[13px] font-semibold rounded-xl">Cancelar</button>
+                        <button onClick={() => saveComment(prop.id)} className="flex-1 rounded-xl bg-[#1A5C38] py-2 text-[13px] font-semibold text-white">Guardar</button>
+                        <button onClick={() => setEditingComment(null)} className="rounded-xl bg-[#F2F2F7] px-4 py-2 text-[13px] font-semibold text-[#5B6B62]">Cancelar</button>
                       </div>
                     </div>
                   )}
+                  {commentSaved === prop.id && <p className="mt-1.5 flex items-center gap-1 text-[12px] font-medium text-[#1A5C38]"><BtnCheck /> Guardado</p>}
+                  {r.comment && editingComment !== prop.id && commentSaved !== prop.id && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{r.comment}&rdquo;</p>}
 
-                  {commentSaved === prop.id && (
-                    <p className="mt-1.5 text-[12px] text-[#1A5C38] font-medium flex items-center gap-1"><BtnCheck /> Guardado</p>
-                  )}
-
-                  {r.comment && editingComment !== prop.id && commentSaved !== prop.id && (
-                    <p className="mt-1.5 text-[13px] text-[#6E6E73] italic leading-[1.4]">&ldquo;{r.comment}&rdquo;</p>
-                  )}
+                  <a href={prop.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#1A5C38] hover:underline">Ver propiedad →</a>
                 </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* ── Summary section ── */}
-        {hasReactions && (() => {
-          const likedProps = session.properties.filter(p => reactions[p.id]?.liked === true)
-          const visitProps = session.properties.filter(p => reactions[p.id]?.wantVisit)
-          const getLabel = (p: Property) => propInfo[p.id]?.info?.title || parsePropertyLabel(p.url)
-          const summaryMsg = encodeURIComponent(
-            `Hola ${agentName}! Ya revisé todas las propiedades.\nMe gustaron: ${likedProps.length ? likedProps.map(getLabel).join(', ') : 'ninguna aún'}.\nQuiero visitar: ${visitProps.length ? visitProps.map(getLabel).join(', ') : 'a confirmar'}.\nEsperando tu contacto!`
-          )
-          return (
-            <div className="mt-5 bg-white rounded-[20px] p-6" style={{ border: '2px solid #1A5C38' }}>
-              <h3 className="text-[18px] font-bold text-[#1C1C1E] mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>Tu resumen</h3>
-
-              {likedProps.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-[14px] font-semibold text-[#1A5C38] flex items-center gap-1.5 mb-1.5">
-                    <BtnHeart filled /> Te gustaron ({likedProps.length}):
-                  </p>
-                  <ul className="pl-4 space-y-0.5">
-                    {likedProps.map(p => (
-                      <li key={p.id} className="text-[14px] text-[#1C1C1E] before:content-['·'] before:mr-2 before:text-[#1A5C38] before:font-bold">
-                        {getLabel(p)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {visitProps.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-[14px] font-semibold text-[#1A5C38] flex items-center gap-1.5 mb-1.5">
-                    <BtnCal /> Querés visitar ({visitProps.length}):
-                  </p>
-                  <ul className="pl-4 space-y-0.5">
-                    {visitProps.map(p => (
-                      <li key={p.id} className="text-[14px] text-[#1C1C1E] before:content-['·'] before:mr-2 before:text-[#1A5C38] before:font-bold">
-                        {getLabel(p)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <a
-                href={`https://wa.me/5493412101694?text=${summaryMsg}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#25D366] hover:bg-[#1ea952] text-white text-[15px] font-bold rounded-xl transition-colors"
-              >
-                <IcWA /> Enviar resumen por WhatsApp
-              </a>
-            </div>
-          )
-        })()}
-      </div>
-
-      {/* Bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white" style={{ borderTop: '0.5px solid rgba(60,60,67,0.12)' }}>
-        <div className="max-w-5xl mx-auto px-4 py-3.5">
-          <div className="flex items-center justify-between gap-4">
-            <div className="hidden sm:block">
-              <p className="text-[15px] font-semibold text-[#1C1C1E]">¿Tenés alguna pregunta?</p>
-              <p className="text-[13px] text-[#6E6E73]">Respondemos en minutos</p>
-            </div>
-            <a
-              href={`https://wa.me/5493412101694?text=${waMsg}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto py-3.5 px-6 bg-[#25D366] hover:bg-[#1ea952] text-white text-[15px] font-bold rounded-2xl transition-colors"
-            >
-              <IcWA /> Escribir por WhatsApp
-            </a>
+              )
+            })}
           </div>
-        </div>
-      </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}` }} />
+          {/* CTA fijo abajo del listado */}
+          <a href={`https://wa.me/${WA_PHONE}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
+            className="mt-auto flex items-center justify-center gap-2.5 rounded-xl bg-[#1A5C38] py-3.5 text-[14.5px] font-semibold text-white transition-colors hover:bg-[#123f27]">
+            <IcWA /> Escribir por WhatsApp
+          </a>
+        </aside>
+      </div>
     </div>
   )
 }
