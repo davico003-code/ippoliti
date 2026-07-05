@@ -319,13 +319,15 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
             {formData.properties.map((p, i) => {
               const externa = isExternalUrl(p.url)
               const imp = imports[p.url.trim()]
-              const mf = manualForms[i] ?? { open: true, precio: '', moneda: 'USD', zona: '', foto: '', dorm: '', banos: '', m2: '' }
+              const mf = manualForms[i] ?? { open: false, precio: '', moneda: 'USD', zona: '', foto: '', dorm: '', banos: '', m2: '' }
               return (
                 <div key={i}>
                   <div className="mb-2 flex items-center gap-2.5">
                     <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg bg-[#EAF3EE] text-[12.5px] font-extrabold text-[#1A5C38]">{i + 1}</span>
                     <input placeholder={i === 0 ? 'https://www.zonaprop.com.ar/…-casa-en-funes-51234567.html' : 'Pegá otro link…'}
                       value={p.url} onChange={e => updateProperty(i, 'url', e.target.value)}
+                      onBlur={() => { const u = p.url.trim(); if (isExternalUrl(u) && !imports[u]) importarExterna(u) }}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const u = p.url.trim(); if (isExternalUrl(u) && !imports[u]) importarExterna(u) } }}
                       className="h-11 flex-1 rounded-xl border-[1.5px] border-[#E7ECE8] px-3.5 text-sm italic text-[#1C2620] outline-none placeholder:not-italic placeholder:text-[#c8d1ca] focus:border-[#1A5C38]"
                       style={p.url ? { fontStyle: 'normal' } : undefined} />
                     {formData.properties.length > 1 && (
@@ -347,8 +349,14 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
                           </div>
                           <a href={imp.verfichaUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 text-[11px] font-bold text-[#1A5C38] hover:underline">Ver</a>
                         </div>
-                      ) : (
+                      ) : imp?.loading ? (
+                        <div className="flex items-center gap-2.5 text-[13px] font-semibold text-[#1A5C38]">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#d3e6da] border-t-[#1A5C38]" /> Leyendo los datos del portal…
+                        </div>
+                      ) : mf.open ? (
+                        // Fallback manual (solo si el portal no dejó leer).
                         <div className="space-y-2">
+                          <p className="text-[12px] text-[#9aa39c]">El portal no dejó leer. Cargá los datos a mano:</p>
                           <input placeholder="Link de la foto" value={mf.foto} onChange={e => setManual(i, { foto: e.target.value })}
                             className="w-full rounded-lg border-[1.5px] border-[#E7ECE8] px-3 py-2 text-[13px] outline-none focus:border-[#1A5C38]" />
                           <div className="flex gap-2">
@@ -369,18 +377,22 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
                             <input placeholder="m²" value={mf.m2} onChange={e => setManual(i, { m2: e.target.value })}
                               className="flex-1 rounded-lg border-[1.5px] border-[#E7ECE8] px-3 py-2 text-[13px] outline-none focus:border-[#1A5C38]" />
                           </div>
-                          {(mf.error || imp?.error) && <p className="text-[12px] text-red-600">{mf.error || imp?.error}</p>}
-                          <div className="flex items-center gap-3">
-                            <button type="button" onClick={() => crearFichaManual(i, p.url)} disabled={mf.loading}
-                              className="rounded-lg px-3.5 py-1.5 text-[12px] font-bold text-white disabled:opacity-50" style={{ background: '#1A5C38' }}>
-                              {mf.loading ? 'Creando…' : 'Crear placa'}
-                            </button>
-                            <button type="button" onClick={() => importarExterna(p.url)} disabled={imp?.loading}
-                              className="text-[12px] font-semibold text-[#9aa39c] hover:text-[#1A5C38] disabled:opacity-50">
-                              {imp?.loading ? 'Leyendo del portal…' : 'o traer los datos del portal'}
-                            </button>
+                          {mf.error && <p className="text-[12px] text-red-600">{mf.error}</p>}
+                          <button type="button" onClick={() => crearFichaManual(i, p.url)} disabled={mf.loading}
+                            className="rounded-lg px-3.5 py-1.5 text-[12px] font-bold text-white disabled:opacity-50" style={{ background: '#1A5C38' }}>
+                            {mf.loading ? 'Creando…' : 'Crear placa'}
+                          </button>
+                        </div>
+                      ) : imp?.error ? (
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-[12px] text-red-600">No se pudo leer el aviso. Reintentá o cargalo a mano.</p>
+                          <div className="flex shrink-0 gap-2">
+                            <button type="button" onClick={() => importarExterna(p.url)} className="rounded-lg px-3 py-1.5 text-[12px] font-bold text-white" style={{ background: '#1A5C38' }}>Reintentar</button>
+                            <button type="button" onClick={() => setManual(i, { open: true })} className="rounded-lg border px-3 py-1.5 text-[12px] font-bold" style={{ borderColor: '#1A5C38', color: '#1A5C38' }}>Cargar a mano</button>
                           </div>
                         </div>
+                      ) : (
+                        <p className="text-[12px] text-[#9aa39c]">Al pegar el link leemos los datos solos. Tocá afuera o Enter si no arrancó.</p>
                       )}
                     </div>
                   )}
