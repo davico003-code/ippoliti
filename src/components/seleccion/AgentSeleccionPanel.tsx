@@ -1,17 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { getTimeLeft } from '@/lib/seleccion'
+import { useState } from 'react'
 
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
   price: string | null; rooms: number; baths: number; area: number
-}
-interface Session {
-  token: string; clientName: string; clientPhone: string; agent: string
-  properties: { id: string; url: string; note: string; source?: 'externa'; snapshot?: ExternaSnapshot }[]
-  createdAt: string; expiresAt: string; note: string
-  resumen: { liked: number; disliked: number; wantVisit: number; hasComments: boolean }
 }
 
 // Fila de propiedad en el form. Para externas (Zonaprop) el agente solo pega la
@@ -53,10 +46,7 @@ const PORTALES: { name: string; url: string; bg: string; fg: string; mark: strin
     mark: '<span style="font-weight:800;font-size:12px">SI</span>' },
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function AgentSeleccionPanel({ initialSessions, agentId }: { initialSessions: Session[]; agentId: string }) {
-  const [sessions, setSessions] = useState(initialSessions)
-  const [showForm, setShowForm] = useState(false)
+export default function AgentSeleccionPanel() {
   // days fijo (el link queda válido 1 año) — sacamos el selector de vencimiento.
   const [formData, setFormData] = useState({
     clientName: '', clientPhone: '', agent: 'David Flores', days: 365, note: '',
@@ -140,21 +130,6 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
     }
   }
 
-  // Auto-refresh
-  useEffect(() => {
-    const iv = setInterval(async () => {
-      try {
-        const res = await fetch('/api/seleccion?agent=all')
-        if (res.ok) setSessions(await res.json())
-      } catch {}
-    }, 30000)
-    return () => clearInterval(iv)
-  }, [])
-
-  const activas = sessions.filter(s => !getTimeLeft(s.expiresAt).expired)
-  const visitasPedidas = sessions.reduce((n, s) => n + s.resumen.wantVisit, 0)
-  const vencenPronto = activas.filter(s => getTimeLeft(s.expiresAt).days <= 2).length
-
   function addProperty() {
     setFormData(d => (d.properties.length >= MAX_PROPS ? d : { ...d, properties: [...d.properties, emptyProp()] }))
   }
@@ -216,10 +191,6 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
       // Copiar el link y abrirlo en otra pestaña para que el agente revise.
       navigator.clipboard.writeText(url).catch(() => {})
       window.open(url, '_blank', 'noopener')
-
-      // Refresh list
-      const listRes = await fetch('/api/seleccion?agent=all')
-      if (listRes.ok) setSessions(await listRes.json())
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Algo salió mal. Reintentá.')
     }
@@ -230,8 +201,7 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
     navigator.clipboard.writeText(createdUrl)
   }
 
-  // ── Form view ──
-  if (showForm) {
+  // ── Vista de éxito o formulario ──
     if (createdUrl) {
       return (
         <div className="mx-auto max-w-[600px]">
@@ -248,10 +218,10 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
             <div className="flex flex-col gap-2">
               <a href={createdUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-[#E7ECE8] py-3 text-sm font-bold text-[#1A5C38]">Abrir de nuevo para revisar</a>
               <button
-                onClick={() => { setShowForm(false); setCreatedUrl(''); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
+                onClick={() => { setCreatedUrl(''); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
                 className="py-2 text-sm text-gray-400 hover:text-gray-600"
               >
-                ← Volver al panel
+                Crear otra selección
               </button>
             </div>
           </div>
@@ -288,8 +258,6 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
 
     return (
       <div className="mx-auto max-w-[1120px]" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
-        <button onClick={() => setShowForm(false)} className="mb-3 text-sm font-semibold text-[#9aa39c] hover:text-gray-600">← Volver</button>
-
         {/* Header + ilustración */}
         <div className="relative overflow-hidden">
           <h2 className="text-[28px] font-extrabold tracking-[-0.4px] text-[#1C2620]">Nueva selección</h2>
@@ -471,159 +439,4 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
         </form>
       </div>
     )
-  }
-
-  // ── Main list view ──
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Selecciones</h2>
-        <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-[#1A5C38] text-white text-sm font-bold rounded-xl hover:bg-[#0F3A23] transition-colors">
-          + Nueva selección
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
-          <span className="text-2xl font-bold text-[#1A5C38] font-numeric block">{activas.length}</span>
-          <span className="text-xs text-gray-500">Activas</span>
-        </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
-          <span className="text-2xl font-bold text-blue-600 font-numeric block">{visitasPedidas}</span>
-          <span className="text-xs text-gray-500">Visitas pedidas</span>
-        </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
-          <span className={`text-2xl font-bold font-numeric block ${vencenPronto > 0 ? 'text-amber-500' : 'text-gray-300'}`}>{vencenPronto}</span>
-          <span className="text-xs text-gray-500">Vencen pronto</span>
-        </div>
-      </div>
-
-      {/* Sessions list */}
-      {sessions.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-gray-400 mb-4">No hay selecciones todavía</p>
-          <button onClick={() => setShowForm(true)} className="text-sm text-[#1A5C38] font-bold hover:underline">Crear la primera</button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {sessions.map(s => {
-            const { days: d, expired } = getTimeLeft(s.expiresAt)
-            const initials = s.clientName.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('') || '?'
-            const r = s.resumen
-            const hasReactions = r.liked > 0 || r.disliked > 0 || r.wantVisit > 0 || r.hasComments
-            return (
-              <div
-                key={s.token}
-                className={`group bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow ${expired ? 'opacity-60' : ''}`}
-              >
-                {/* Encabezado: avatar + nombre + plazo + borrar */}
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
-                    style={{
-                      background: expired ? '#F2F2F7' : '#e8f5ee',
-                      color: expired ? '#AEAEB2' : '#1A5C38',
-                      fontFamily: 'Poppins, sans-serif',
-                    }}
-                  >
-                    {initials}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-gray-900 text-[15px] truncate">{s.clientName}</h4>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${expired ? 'bg-gray-100 text-gray-400' : d <= 2 ? 'bg-amber-100 text-amber-600' : 'bg-[#e8f5ee] text-[#1A5C38]'}`}>
-                        {expired ? 'Expirada' : `${d} días`}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">
-                      {s.properties.length} {s.properties.length === 1 ? 'propiedad' : 'propiedades'} · {s.agent}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={async () => {
-                      if (!window.confirm(`¿Eliminar la selección de ${s.clientName}? Esta acción no se puede deshacer.`)) return
-                      const res = await fetch(`/api/seleccion/${s.token}`, { method: 'DELETE' })
-                      if (res.ok) setSessions(prev => prev.filter(x => x.token !== s.token))
-                    }}
-                    className="shrink-0 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                    title="Eliminar selección"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                  </button>
-                </div>
-
-                {/* Reacciones del cliente */}
-                {hasReactions && (
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {r.liked > 0 && <span className="text-[11px] font-medium bg-[#e8f5ee] text-[#1A5C38] px-2.5 py-1 rounded-full">❤️ {r.liked} me gusta</span>}
-                    {r.wantVisit > 0 && <span className="text-[11px] font-medium bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full">✅ {r.wantVisit} {r.wantVisit === 1 ? 'visita' : 'visitas'}</span>}
-                    {r.disliked > 0 && <span className="text-[11px] font-medium bg-red-50 text-red-500 px-2.5 py-1 rounded-full">👎 {r.disliked}</span>}
-                    {r.hasComments && <span className="text-[11px] font-medium bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full">✏️ Comentó</span>}
-                  </div>
-                )}
-
-                {/* Acciones */}
-                <div className="flex gap-2 mt-3">
-                  <a
-                    href={`/seleccion/${s.token}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 text-center px-4 py-2.5 bg-gray-50 text-gray-700 text-[13px] font-semibold rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
-                  >
-                    Ver selección &rarr;
-                  </a>
-                  <a
-                    href={`https://wa.me/54${s.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${s.clientName}! ¿Pudiste ver la selección de propiedades que te preparamos? ${window?.location?.origin || 'https://siinmobiliaria.com'}/seleccion/${s.token}`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#25D366] text-white text-[13px] font-semibold rounded-xl hover:bg-[#1ea952] transition-colors"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.01c-.24.68-1.42 1.31-1.95 1.36-.5.05-.96.24-3.23-.67-2.73-1.08-4.45-3.86-4.58-4.04-.13-.18-1.1-1.46-1.1-2.79 0-1.33.7-1.98.94-2.25.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.55.79 1.9.86 2.04.07.14.12.3.02.48-.09.18-.14.3-.27.46-.14.16-.29.36-.41.48-.14.14-.28.29-.12.56.16.27.71 1.17 1.53 1.9 1.05.93 1.94 1.22 2.21 1.36.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.2.51.31.07.11.07.64-.17 1.32z"/></svg>
-                    WhatsApp
-                  </a>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Próximamente */}
-      <div style={{ marginTop: '32px' }}>
-        <div className="text-[11px] font-bold uppercase tracking-wide mb-3" style={{ color: '#AEAEB2', letterSpacing: '0.06em' }}>
-          Próximamente
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            {
-              title: 'Estado del lead',
-              desc: 'Seguí cada selección: Enviada → Vista → Visita → Operación',
-              icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-            },
-            {
-              title: 'Alertas en tiempo real',
-              desc: 'Recibí un WhatsApp cuando el cliente reacciona',
-              icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
-            },
-            {
-              title: 'Historial por cliente',
-              desc: 'Todas las selecciones que le mandaste a cada persona',
-              icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
-            },
-          ].map(f => (
-            <div key={f.title} className="p-4 rounded-[14px] cursor-not-allowed" style={{ background: '#F9F9F9', border: '0.5px solid #E5E5E5', filter: 'grayscale(1)', opacity: 0.6 }}>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block mb-2" style={{ background: '#F2F2F7', color: '#AEAEB2' }}>Pronto</span>
-              <div className="mb-2" style={{ color: '#AEAEB2' }}>{f.icon}</div>
-              <h4 className="text-[14px] font-semibold mb-1.5" style={{ color: '#6E6E73' }}>{f.title}</h4>
-              <p className="text-[12px] leading-[1.5]" style={{ color: '#AEAEB2' }}>{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
 }
