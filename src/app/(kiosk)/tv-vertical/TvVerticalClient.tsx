@@ -165,8 +165,11 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
           animation-timing-function: linear; animation-fill-mode: forwards; }
         @keyframes tvvProg { from { width: 0; } to { width: 100%; } }
 
-        .tvv-in { animation: tvvIn 800ms cubic-bezier(.2,.7,.2,1) both; }
-        @keyframes tvvIn { from { opacity: 0; transform: translateY(26px) scale(.99); } to { opacity: 1; transform: none; } }
+        /* Entrada como PLUS: arranca desde un estado ya visible (opacity .85 +
+           leve slide). Si el navegador pausa las animaciones (tab en background,
+           navegadores de TV/signage) las tarjetas NUNCA quedan invisibles. */
+        .tvv-in { animation: tvvIn 700ms cubic-bezier(.2,.7,.2,1) both; }
+        @keyframes tvvIn { from { opacity: .85; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
         @media (prefers-reduced-motion: reduce) {
           .tvv-kb, .tvv-in { animation: none !important; }
