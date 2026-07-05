@@ -27,6 +27,13 @@ function toNum(v: unknown): number | null {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
+// Coordenadas: a diferencia de toNum, acepta NEGATIVOS (Argentina está en lat/lng
+// negativas) y valida el rango. Devuelve null si no es una coord plausible.
+function toCoord(v: unknown, max: number): number | null {
+  const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(/[^\d.-]/g, ''))
+  return Number.isFinite(n) && n !== 0 && Math.abs(n) <= max ? n : null
+}
+
 export async function POST(req: NextRequest) {
   // ── Auth ──
   const token = req.cookies.get('si_agent_token')?.value
@@ -103,6 +110,10 @@ export async function POST(req: NextRequest) {
     dormitorios: pickNum('dormitorios'),
     banos: pickNum('banos'),
     cocheras: pickNum('cocheras'),
+    // Coords del portal si las trae (ej. Argenprop embebe lat/lng), o del
+    // override manual. Si faltan, crearFichaExterna las geocodifica desde la zona.
+    lat: has('lat') ? toCoord(ov.lat, 90) : toCoord((scraped as Record<string, unknown> | null)?.lat, 90),
+    lng: has('lng') ? toCoord(ov.lng, 180) : toCoord((scraped as Record<string, unknown> | null)?.lng, 180),
   }
 
   const ip =
