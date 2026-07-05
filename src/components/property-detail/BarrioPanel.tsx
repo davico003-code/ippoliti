@@ -1,17 +1,21 @@
+'use client'
+
 // Panel del barrio privado en la ficha: aparece cuando la propiedad está en un
 // barrio cerrado conocido (match por findBarrioForProperty). Card sutil pero con
 // impacto — hero + tier + frase del broker — que linkea a /barrios-privados/[slug].
 
+import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import type { Barrio } from '@/lib/barrios'
 
 export default function BarrioPanel({ barrio }: { barrio: Barrio }) {
-  const hero = barrio.imagenes?.hero
-  // Solo fotos reales existentes. Varios barrios tienen hero ".svg" que es un
-  // placeholder inexistente en /public → mostraría una imagen rota. En ese caso
-  // usamos un fondo verde de marca.
-  const hasPhoto = !!hero && /\.(jpe?g|png|webp|avif)$/i.test(hero)
+  const [imgOk, setImgOk] = useState(true)
+  // Portada real de la galería del barrio (/barrios/{slug}/01.webp): existe para
+  // los 15 barrios. Antes se usaba barrio.imagenes.hero, que en varios barrios es
+  // un ".svg" placeholder inexistente → la foto no se mostraba (solo el verde).
+  const hero = `/barrios/${barrio.slug}/01.webp`
   const tagline = barrio.miradaBroker?.titular
   const amenities = barrio.amenities?.slice(0, 5) ?? []
 
@@ -24,13 +28,15 @@ export default function BarrioPanel({ barrio }: { barrio: Barrio }) {
         className="group block relative overflow-hidden rounded-2xl aspect-[16/8] shadow-sm ring-1 ring-black/5"
         style={{ background: 'linear-gradient(135deg, #1A5C38 0%, #0F3A23 100%)' }}
       >
-        {hasPhoto && (
+        {imgOk && (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={hero}
               alt={barrio.nombre}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              fill
+              sizes="(max-width: 768px) 100vw, 420px"
+              onError={() => setImgOk(false)}
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
           </>
