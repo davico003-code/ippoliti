@@ -19,6 +19,10 @@ export interface PropiedadExternaSnapshot {
   rooms: number
   baths: number
   area: number
+  // Coords para el pin del mapa. Se completan geocodificando `location` al
+  // renderizar la selección (cacheado). Opcionales: si no resuelven, sin pin.
+  lat?: number | null
+  lng?: number | null
 }
 
 interface SeleccionProperty {

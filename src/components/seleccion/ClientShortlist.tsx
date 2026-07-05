@@ -14,6 +14,7 @@ const SeleccionMapa = dynamic(() => import('./SeleccionMapa'), {
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
   price: string | null; rooms: number; baths: number; area: number
+  lat?: number | null; lng?: number | null
 }
 interface Property { id: string; url: string; note: string; source?: 'externa'; snapshot?: ExternaSnapshot }
 interface Reaction { liked?: boolean | null; wantVisit?: boolean; comment?: string }
@@ -98,7 +99,7 @@ export default function ClientShortlist({
     const initial: Record<string, { loading: boolean; info: PropInfo | null }> = {}
     for (const p of session.properties) {
       initial[p.id] = p.snapshot
-        ? { loading: false, info: { ...p.snapshot, isColega: true, lat: null, lng: null } }
+        ? { loading: false, info: { ...p.snapshot, isColega: true, lat: p.snapshot.lat ?? null, lng: p.snapshot.lng ?? null } }
         : { loading: true, info: null }
     }
     setPropInfo(initial)
