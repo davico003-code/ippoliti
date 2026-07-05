@@ -85,6 +85,7 @@ export default function ClientShortlist({
   const [commentSaved, setCommentSaved] = useState<string | null>(null)
   const [propInfo, setPropInfo] = useState<Record<string, { loading: boolean; info: PropInfo | null }>>({})
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [ayudaVisible, setAyudaVisible] = useState(true)
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -201,6 +202,9 @@ export default function ClientShortlist({
     liked: session.properties.filter(p => reactions[p.id]?.liked === true).length,
     wantVisit: session.properties.filter(p => reactions[p.id]?.wantVisit).length,
   }
+  const etiqueta = (p: Property) => propInfo[p.id]?.info?.title || parsePropertyLabel(p.url)
+  const likedLabels = session.properties.filter(p => reactions[p.id]?.liked === true).map(etiqueta)
+  const visitLabels = session.properties.filter(p => reactions[p.id]?.wantVisit).map(etiqueta)
   const waMsg = encodeURIComponent(buildWhatsAppMessage(session, reactions))
 
   return (
@@ -211,13 +215,27 @@ export default function ClientShortlist({
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1A5C38] text-[15px] font-extrabold text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>SI</span>
           <span className="text-[15px] font-bold tracking-[0.4px]" style={{ fontFamily: 'Raleway, sans-serif' }}>SI <span className="text-[#1A5C38]">INMOBILIARIA</span></span>
         </a>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${days <= 3 ? 'bg-red-50 text-red-500' : 'bg-[#EAF3EE] text-[#1A5C38]'}`}>
             Válida por {days} día{days !== 1 ? 's' : ''} más
           </span>
+          <button type="button" onClick={() => setAyudaVisible(v => !v)} aria-label="¿Cómo funciona?"
+            className="flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[#E4E9E5] bg-white text-[15px] font-extrabold text-[#1A5C38]">?</button>
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1A5C38] text-[13px] font-bold text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>{iniciales(agentName)}</span>
         </div>
       </header>
+
+      {/* Ayuda: cómo funciona (fácil de entender, se cierra y se reabre con "?") */}
+      {ayudaVisible && (
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-[#d3e6da] bg-[#EAF3EE] px-5 py-2.5 text-[13px] text-[#123f27] md:px-10">
+          <b>¿Cómo funciona?</b>
+          <span className="flex items-center gap-1.5"><BtnHeart /> Marcá las que te gusten</span>
+          <span className="flex items-center gap-1.5"><BtnCal /> Pedí una visita</span>
+          <span className="flex items-center gap-1.5"><BtnPencil /> Dejanos una nota</span>
+          <span className="text-[#5B6B62]">— tu resumen se arma solo y te contactamos.</span>
+          <button type="button" onClick={() => setAyudaVisible(false)} aria-label="Cerrar ayuda" className="ml-auto text-[16px] text-[#123f27] opacity-60 hover:opacity-100">✕</button>
+        </div>
+      )}
 
       {/* Layout 3 columnas */}
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-[300px_1fr_380px]">
@@ -232,13 +250,31 @@ export default function ClientShortlist({
           </div>
           <p className="text-[14px] leading-[1.55] text-[#5B6B62]">Propiedades seleccionadas especialmente para vos, según lo que estuviste buscando.</p>
 
-          <div className="flex items-center gap-2.5 rounded-xl border border-[#d3e6da] bg-[#EAF3EE] px-3.5 py-3 text-[13.5px] font-medium text-[#123f27]">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1A5C38]">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </span>
-            {stats.liked + stats.wantVisit > 0
-              ? <>{stats.liked} te {stats.liked === 1 ? 'gustó' : 'gustaron'} · {stats.wantVisit} para visitar</>
-              : <>{session.properties.length} propiedades para vos</>}
+          {/* Resumen EN VIVO: se arma solo a medida que el cliente reacciona */}
+          <div className="flex flex-col gap-2.5 rounded-2xl bg-[#1A5C38] p-4 text-white">
+            <h3 className="text-[14px] font-extrabold tracking-[0.2px]">Tu resumen</h3>
+            <div className="flex gap-4">
+              <div className="flex flex-col">
+                <b className="text-[22px] font-extrabold leading-none">{stats.liked}</b>
+                <span className="mt-0.5 text-[11.5px] opacity-85">Me gustan</span>
+              </div>
+              <div className="flex flex-col">
+                <b className="text-[22px] font-extrabold leading-none">{stats.wantVisit}</b>
+                <span className="mt-0.5 text-[11.5px] opacity-85">Para visitar</span>
+              </div>
+            </div>
+            {stats.liked + stats.wantVisit > 0 ? (
+              <div className="border-t border-white/20 pt-2.5 text-[12px] leading-[1.5]">
+                {likedLabels.length > 0 && <div className="mb-1"><b>Te gustan:</b> {likedLabels.join(', ')}</div>}
+                {visitLabels.length > 0 && <div><b>Querés visitar:</b> {visitLabels.join(', ')}</div>}
+              </div>
+            ) : (
+              <p className="text-[12.5px] leading-[1.5] opacity-80">A medida que marques lo que te gusta y pidas visitas, tu resumen se arma acá.</p>
+            )}
+            <a href={`https://wa.me/${WA_PHONE}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
+              className="mt-1 flex items-center justify-center gap-2 rounded-[11px] bg-white py-2.5 text-[13.5px] font-bold text-[#1A5C38]">
+              <IcWA /> Enviar mi resumen
+            </a>
           </div>
 
           {isValidNote(session.note) && (
