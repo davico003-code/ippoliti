@@ -12,6 +12,7 @@
 
 import { customAlphabet } from 'nanoid'
 import { redis } from './redis'
+import { geocodeZona } from './geocode'
 import {
   getPropertyById,
   getAllPhotos,
@@ -352,6 +353,11 @@ export interface FichaExternaInput {
   dormitorios: number | null
   banos: number | null
   cocheras?: number | null
+  // Coords reales (si el portal las trae, ej. Argenprop). Si no vienen, se
+  // geocodifican desde la zona en crearFichaExterna. Se les aplica offset de
+  // privacidad igual que a las de Tokko.
+  lat?: number | null
+  lng?: number | null
 }
 
 // Saca el nombre del portal del título/descripción para que la ficha se vea
@@ -373,6 +379,16 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
   const titulo =
     stripPortal(input.titulo) || deriveTituloGenerico(tipo, ambientes, zonaAprox)
   const fotos = (input.fotos || []).filter(u => typeof u === 'string' && u.startsWith('https://'))
+
+  // Coords: si vienen (del portal o geocodificadas), les aplicamos el mismo
+  // offset de privacidad que a las de Tokko para no exponer la ubicación exacta.
+  let lat: number | null = null
+  let lng: number | null = null
+  if (input.lat != null && input.lng != null && Number.isFinite(input.lat) && Number.isFinite(input.lng)) {
+    const off = applyOffset(input.lat, input.lng)
+    lat = off.lat
+    lng = off.lng
+  }
 
   return {
     fotos,
@@ -399,8 +415,8 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
     antiguedad: null,
     descripcion: stripPortal(input.descripcion),
     caracteristicas: [],
-    lat: null,
-    lng: null,
+    lat,
+    lng,
   }
 }
 
@@ -410,7 +426,15 @@ export async function crearFichaExterna(input: {
   ip: string
   userAgent: string
 }): Promise<{ slug: string; url: string; expiresAt: string; snapshot: FichaSnapshot }> {
-  const snapshot = buildSnapshotManual(input.manual)
+  // Si el portal no trajo coords, las geocodificamos desde la zona (cacheado).
+  // Best-effort: si no resuelve, la ficha queda sin pin (no rompe nada).
+  let manual = input.manual
+  if ((manual.lat == null || manual.lng == null) && manual.zona) {
+    const coords = await geocodeZona(manual.zona)
+    if (coords) manual = { ...manual, lat: coords.lat, lng: coords.lng }
+  }
+
+  const snapshot = buildSnapshotManual(manual)
 
   let slug = generarSlug()
   for (let i = 0; i < 5; i++) {
