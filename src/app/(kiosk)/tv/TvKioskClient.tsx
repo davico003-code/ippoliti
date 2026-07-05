@@ -5,17 +5,7 @@
 // Sin interacción — pensado para dejar corriendo en un televisor todo el día.
 
 import { useEffect, useState } from 'react'
-
-export interface Slide {
-  photo: string
-  precio: string
-  tipo: string
-  ubicacion: string
-  titulo: string
-  destacada: boolean
-  specs: { v: string; l: string }[]
-  qr: string
-}
+import type { Slide } from '../tvData'
 
 const SLIDE_MS = 9000
 const RELOAD_MS = 40 * 60 * 1000 // recargar cada 40 min para refrescar stock
