@@ -92,7 +92,7 @@ const IcBed = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" 
 const IcBath = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6B62" strokeWidth="1.8"><path d="M4 12H20V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V12Z"/><path d="M4 12V6C4 4.9 4.9 4 6 4C7.1 4 8 4.9 8 6V8"/><path d="M8 8H20"/></svg>
 const IcArea = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6B62" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9H21M9 3V21"/></svg>
 const IcWA = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-const IcMail = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg>
+const IcBookmark = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
 const IcGrid = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
 const IcPin = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
 const BtnHeart = ({ filled }: { filled?: boolean }) => <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -110,9 +110,10 @@ export default function ClientShortlist({
   const [propInfo, setPropInfo] = useState<Record<string, { loading: boolean; info: PropInfo | null }>>({})
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [ayudaVisible, setAyudaVisible] = useState(true)
-  const [vista, setVista] = useState<Vista>('mapa')
+  const [vista, setVista] = useState<Vista>('grilla')
   const [tipoFiltro, setTipoFiltro] = useState<'todas' | TipoKey>('todas')
   const [descartadasOpen, setDescartadasOpen] = useState(false)
+  const [guardado, setGuardado] = useState(false)
   const userToggled = useRef(false)
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -187,6 +188,7 @@ export default function ClientShortlist({
   }, [session.properties])
 
   const patchReaction = useCallback((propertyId: string, patch: Partial<Reaction>) => {
+    setGuardado(true)
     setReactions(prev => {
       const updated = { ...prev, [propertyId]: { ...prev[propertyId], ...patch } }
       clearTimeout(debounceRef.current[propertyId])
@@ -248,16 +250,21 @@ export default function ClientShortlist({
     [propInfo],
   )
 
+  const porReaccion = (k: ReactKey) => session.properties.filter(p => reactions[p.id]?.reaction === k)
   const stats = {
-    liked: session.properties.filter(p => reactions[p.id]?.liked === true).length,
+    encanta: porReaccion('encanta').length,
+    duda: porReaccion('duda').length,
+    cara: porReaccion('cara').length,
+    no: porReaccion('no').length,
     wantVisit: session.properties.filter(p => reactions[p.id]?.wantVisit).length,
   }
-  const likedLabels = session.properties.filter(p => reactions[p.id]?.liked === true).map(etiqueta)
+  const totalReacc = stats.encanta + stats.duda + stats.cara + stats.no + stats.wantVisit
+  const likedLabels = porReaccion('encanta').map(etiqueta)
+  const dudaLabels = porReaccion('duda').map(etiqueta)
+  const caraLabels = porReaccion('cara').map(etiqueta)
+  const noLabels = porReaccion('no').map(etiqueta)
   const visitLabels = session.properties.filter(p => reactions[p.id]?.wantVisit).map(etiqueta)
   const waMsg = encodeURIComponent(buildWhatsAppMessage(session, reactions))
-  const waAlertas = encodeURIComponent(
-    `Hola! Soy ${session.clientName}. Quiero recibir por WhatsApp nuevas propiedades como las de mi selección.`,
-  )
 
   // Chips de tipo (vista Lista): solo los tipos presentes en la selección.
   const chips = useMemo<TipoKey[]>(() => {
@@ -281,12 +288,14 @@ export default function ClientShortlist({
   function renderAcciones(prop: Property) {
     const r = reactions[prop.id] || {}
     const react = r.reaction
-    const follow = react === 'encanta'
-      ? { texto: '¡Buenísimo! Pedí la visita cuando quieras 👇', input: false as const }
+    const precioPub = propInfo[prop.id]?.info?.price || null
+    type Follow = { texto: string; input: string | false; ref?: string | null }
+    const follow: Follow | null = react === 'encanta'
+      ? { texto: '¡Buenísimo! Pedí la visita cuando quieras 👇', input: false }
       : react === 'duda'
         ? { texto: '¿Qué es lo que te hace dudar?', input: 'Ej: la ubicación, el estado…' }
         : react === 'cara'
-          ? { texto: 'El precio se puede charlar, sin problema.', input: '¿Qué valor tenías en mente? (opcional)' }
+          ? { texto: 'El precio se puede charlar. ¿Cuánto pagarías?', input: 'Tu oferta (ej: USD 220.000)', ref: precioPub }
           : react === 'no'
             ? { texto: 'Gracias por avisar. ¿Nos contás por qué?', input: 'Ej: buscaba otra zona / algo más chico…' }
             : null
@@ -309,10 +318,15 @@ export default function ClientShortlist({
           })}
         </div>
 
-        {/* Follow-up según la reacción */}
+        {/* Follow-up: alto mínimo para que la placa no cambie de tamaño al alternar reacciones */}
         {follow && (
-          <div className="mt-2.5 rounded-xl bg-[#F7FAF8] p-2.5">
+          <div className="mt-2.5 min-h-[84px] rounded-xl bg-[#F7FAF8] p-2.5">
             <p className="text-[12.5px] font-semibold leading-[1.4] text-[#123f27]">{follow.texto}</p>
+            {follow.ref && (
+              <div className="mt-1.5 flex items-center justify-between rounded-lg bg-white px-2.5 py-1.5 text-[12px] text-[#5B6B62]">
+                <span>Precio publicado</span><b className="text-[#1A5C38]">{follow.ref}</b>
+              </div>
+            )}
             {follow.input && (
               <textarea value={r.comment || ''} onChange={e => patchReaction(prop.id, { comment: e.target.value })} rows={2} placeholder={follow.input}
                 className="mt-2 w-full resize-none rounded-lg border-[1.5px] border-[#E4E9E5] px-2.5 py-1.5 text-[13px] leading-[1.4] text-[#1C2620] outline-none focus:border-[#1A5C38]" />
@@ -320,11 +334,11 @@ export default function ClientShortlist({
           </div>
         )}
 
-        {/* Botón directo: quiero visitarla */}
+        {/* Botón directo: quiero visitarla — CTA prominente */}
         <button type="button" onClick={() => patchReaction(prop.id, { wantVisit: !r.wantVisit })}
-          className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13.5px] font-bold text-white transition active:scale-[0.98]"
-          style={{ background: r.wantVisit ? '#0f4a2c' : '#1A5C38', boxShadow: '0 2px 8px rgba(26,92,56,0.22)' }}>
-          {r.wantVisit ? <BtnCheck /> : <BtnCal />} {r.wantVisit ? 'Visita solicitada' : 'Quiero visitarla'}
+          className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-extrabold text-white transition active:scale-[0.98]"
+          style={{ background: r.wantVisit ? '#0f4a2c' : '#1A5C38', boxShadow: r.wantVisit ? '0 4px 14px rgba(26,92,56,0.30)' : '0 6px 18px rgba(26,92,56,0.34)' }}>
+          {r.wantVisit ? <BtnCheck /> : <BtnCal />} {r.wantVisit ? '✓ Visita solicitada' : 'Quiero visitarla'}
         </button>
 
         <a href={prop.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#1A5C38] hover:underline">Ver propiedad →</a>
@@ -395,7 +409,7 @@ export default function ClientShortlist({
     return (
       <div key={prop.id} className="flex flex-col overflow-hidden rounded-2xl border bg-white"
         style={{ borderColor: r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5', boxShadow: '0 2px 12px rgba(20,50,35,0.05)' }}>
-        <div className="relative h-[170px] shrink-0 bg-[#eef1ee]">
+        <div className="relative aspect-[4/3] shrink-0 bg-[#eef1ee]">
           {loading ? (
             <div className="h-full w-full animate-pulse bg-[#e6ebe7]" />
           ) : info?.image ? (
@@ -444,7 +458,6 @@ export default function ClientShortlist({
 
   // ── Sidebar (compartido; el bloque de abajo cambia según la vista) ──
   const primerNombre = agentName.trim().split(/\s+/)[0]
-  const waAgente = encodeURIComponent(`Hola ${primerNombre}! Te escribo por la selección de propiedades que me preparaste.`)
   const sidebar = (
     <aside className="flex flex-col gap-5 border-b border-[#E4E9E5] bg-white p-7 lg:border-b-0 lg:border-r">
       {/* AGENTE protagonista: foto grande + mensaje + contacto directo */}
@@ -463,10 +476,12 @@ export default function ClientShortlist({
         <p className="mt-3 border-t border-[#E4E9E5] pt-3 text-[13px] leading-[1.55] text-[#5B6B62]">
           {isValidNote(session.note) ? session.note : `Hola ${session.clientName}! Te elegí estas propiedades pensando en lo que buscás. Reaccioná en cada una y coordinamos.`}
         </p>
-        <a href={`https://wa.me/${WA_PHONE}?text=${waAgente}`} target="_blank" rel="noopener noreferrer"
-          className="mt-3.5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A5C38] py-3 text-[14px] font-bold text-white">
-          <IcWA /> Escribirle a {primerNombre}
-        </a>
+        <button type="button" onClick={() => setGuardado(true)}
+          className="mt-3.5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-bold transition"
+          style={guardado ? { background: '#EAF3EE', color: '#1A5C38' } : { background: '#1A5C38', color: 'white' }}>
+          {guardado ? <><BtnCheck /> Búsqueda guardada</> : <><IcBookmark /> Guardar búsqueda</>}
+        </button>
+        {guardado && <p className="mt-2 text-[11.5px] leading-[1.45] text-[#5B6B62]">Guardamos tus respuestas. {primerNombre} te contacta con novedades.</p>}
       </div>
 
       <div>
@@ -477,23 +492,37 @@ export default function ClientShortlist({
       {/* Resumen EN VIVO: se arma solo a medida que el cliente reacciona */}
       <div className="flex flex-col gap-2.5 rounded-2xl bg-[#1A5C38] p-4 text-white">
         <h3 className="text-[14px] font-extrabold tracking-[0.2px]">Tu resumen</h3>
-        <div className="flex gap-4">
-          <div className="flex flex-col">
-            <b className="text-[22px] font-extrabold leading-none">{stats.liked}</b>
-            <span className="mt-0.5 text-[11.5px] opacity-85">Me gustan</span>
-          </div>
-          <div className="flex flex-col">
-            <b className="text-[22px] font-extrabold leading-none">{stats.wantVisit}</b>
-            <span className="mt-0.5 text-[11.5px] opacity-85">Para visitar</span>
-          </div>
-        </div>
-        {stats.liked + stats.wantVisit > 0 ? (
-          <div className="border-t border-white/20 pt-2.5 text-[12px] leading-[1.5]">
-            {likedLabels.length > 0 && <div className="mb-1"><b>Te gustan:</b> {likedLabels.join(', ')}</div>}
-            {visitLabels.length > 0 && <div><b>Querés visitar:</b> {visitLabels.join(', ')}</div>}
-          </div>
+        {totalReacc === 0 ? (
+          <p className="text-[12.5px] leading-[1.5] opacity-80">A medida que reacciones en cada propiedad, tu resumen se arma solo acá.</p>
         ) : (
-          <p className="text-[12.5px] leading-[1.5] opacity-80">A medida que marques lo que te gusta y pidas visitas, tu resumen se arma acá.</p>
+          <>
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { n: stats.encanta, e: '😍', l: 'Me encanta' },
+                { n: stats.duda, e: '🤔', l: 'En duda' },
+                { n: stats.cara, e: '💸', l: 'Caras' },
+                { n: stats.no, e: '🙈', l: 'No van' },
+              ].map(x => (
+                <div key={x.l} className="flex flex-col items-center rounded-xl bg-white/10 py-2">
+                  <span className="text-[17px] leading-none">{x.e}</span>
+                  <b className="mt-1 text-[16px] font-extrabold leading-none">{x.n}</b>
+                  <span className="mt-0.5 text-center text-[9px] leading-tight opacity-85">{x.l}</span>
+                </div>
+              ))}
+            </div>
+            {stats.wantVisit > 0 && (
+              <div className="flex items-center justify-center gap-1.5 rounded-xl bg-white/10 py-2 text-[12.5px] font-semibold">
+                📅 <b>{stats.wantVisit}</b> {stats.wantVisit === 1 ? 'visita pedida' : 'visitas pedidas'}
+              </div>
+            )}
+            <div className="border-t border-white/20 pt-2.5 text-[12px] leading-[1.5]">
+              {likedLabels.length > 0 && <div className="mb-1"><b>Te gustan:</b> {likedLabels.join(', ')}</div>}
+              {visitLabels.length > 0 && <div className="mb-1"><b>Querés visitar:</b> {visitLabels.join(', ')}</div>}
+              {dudaLabels.length > 0 && <div className="mb-1"><b>En duda:</b> {dudaLabels.join(', ')}</div>}
+              {caraLabels.length > 0 && <div className="mb-1"><b>Te parecen caras:</b> {caraLabels.join(', ')}</div>}
+              {noLabels.length > 0 && <div><b>No van:</b> {noLabels.join(', ')}</div>}
+            </div>
+          </>
         )}
         <a href={`https://wa.me/${WA_PHONE}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
           className="mt-1 flex items-center justify-center gap-2 rounded-[11px] bg-white py-2.5 text-[13.5px] font-bold text-[#1A5C38]">
@@ -501,17 +530,6 @@ export default function ClientShortlist({
         </a>
       </div>
 
-      {vista === 'grilla' && (
-        <div className="mt-auto flex flex-col gap-2.5 rounded-2xl bg-[#EAF3EE] p-5">
-          <span className="text-[#1A5C38]"><IcMail /></span>
-          <p className="text-[14.5px] font-bold leading-[1.4] text-[#123f27]">¿Querés recibir nuevas propiedades como estas?</p>
-          <p className="text-[13px] leading-[1.5] text-[#5B6B62]">Te avisamos por WhatsApp apenas ingresen.</p>
-          <a href={`https://wa.me/${WA_PHONE}?text=${waAlertas}`} target="_blank" rel="noopener noreferrer"
-            className="mt-1 flex items-center justify-center gap-2 rounded-[11px] bg-[#1A5C38] py-2.5 text-[13.5px] font-bold text-white">
-            <IcWA /> Activar alertas
-          </a>
-        </div>
-      )}
     </aside>
   )
 
