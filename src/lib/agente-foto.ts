@@ -31,6 +31,12 @@ const FOTO_TEAM: Record<string, string> = {
   'Eliana Rojas': '/team/eliana-rojas.jpg',
   'Julian Ruschneider': '/team/julian-ruschneider.jpg',
   'Claudia': '/team/claudia.jpg',
+  'Mauro Matteucci': '/team/mauro-matteucci.jpg',
+  'Gino Pecchenino': '/team/gino-pecchenino.jpg',
+  'Carolina Echen': '/team/carolina-echen.jpg',
+  'Aldana Ruiz': '/team/aldana-ruiz.jpg',
+  'Gisela Ramallo': '/team/gisela-ramallo.jpg',
+  'Lucia Wilson': '/team/lucia-wilson.jpg',
 }
 const FOTO_TEAM_NORM: Record<string, string> = Object.fromEntries(
   Object.entries(FOTO_TEAM).map(([k, v]) => [norm(k), v]),
