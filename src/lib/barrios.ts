@@ -531,7 +531,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["paddle", "tenis", "futbol", "deportes", "autopista", "bicisendas", "ósmosis-inversa"],
     tokko: { matchByTitle: ["vida jardin", "vida jardín"] },
-    imagenes: { hero: "/barrios/vida-jardin/hero.jpg" },
+    imagenes: { hero: "/barrios/vida-jardin/hero-legacy.webp" },
     seo: {
       metaTitle: "Vida Jardín, Funes — Lotes deportivos sobre autopista | SI Inmobiliaria",
       metaDescription:
@@ -666,7 +666,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["golf", "premium", "consolidado", "lago", "tenis", "arboleda-madura", "tierras-altas", "diseño-estudio-bo"],
     tokko: { matchByTitle: ["kentucky"] },
-    imagenes: { hero: "/barrios/kentucky/hero.jpg" },
+    imagenes: { hero: "/barrios/kentucky/hero-legacy.webp" },
     seo: {
       metaTitle: "Kentucky Club de Campo, Funes — Lotes con golf 18 hoyos | SI Inmobiliaria",
       metaDescription:
@@ -958,7 +958,7 @@ export const BARRIOS: Barrio[] = [
     ],
     tags: ["consolidado", "tenis-polvo-ladrillo", "futbol", "pileta", "servicios-ingreso", "delivery-interno"],
     tokko: { matchByTitle: ["miraflores", "funes hills miraflores"] },
-    imagenes: { hero: "/barrios/funes-hills-miraflores/hero.jpg" },
+    imagenes: { hero: "/barrios/funes-hills-miraflores/hero-legacy.webp" },
     seo: {
       metaTitle: "Funes Hills Miraflores — Lotes y casas en venta | SI Inmobiliaria",
       metaDescription:
@@ -1342,7 +1342,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["676 lotes", "242 ha", "Golf 18 hoyos"],
     amenities: ["golf"],
     lat: -32.9407, lng: -60.8273,
-    imagenHero: "/barrios/kentucky/dji_fly_20260120_174120_0248_1768942128667_photo.jpg",
+    imagenHero: "/barrios/kentucky/hero-cover.webp",
   },
   "funes-hills-san-marino": {
     sigla: "FH",
@@ -1350,7 +1350,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["Escala chica", "Electrógeno 100%", "Familiar"],
     amenities: ["grupo-electrogeno"],
     lat: -32.9276, lng: -60.8246,
-    imagenHero: "/barrios/funes-hills-san-marino/dji_fly_20241128_131904_0705_1732842535526_photo.jpg",
+    imagenHero: "/barrios/funes-hills-san-marino/hero-cover.webp",
   },
   "funes-hills-cadaques": {
     sigla: "FH",
@@ -1366,7 +1366,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["308 lotes", "800–1.215 m²", "Tenis"],
     amenities: [],
     lat: -32.9298, lng: -60.8398,
-    imagenHero: "/barrios/funes-hills-miraflores/339F719E-1BB0-4A2F-B487-A96A61CC4F03.jpg",
+    imagenHero: "/barrios/funes-hills-miraflores/hero-cover.webp",
   },
   "san-sebastian": {
     sigla: "SS",
@@ -1374,7 +1374,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["587 lotes", "68 ha", "Generador"],
     amenities: ["grupo-electrogeno"],
     lat: -32.9296, lng: -60.8115,
-    imagenHero: "/barrios/san-sebastian/dji_fly_20250123_163818_0326_1738178485894_photo.jpg",
+    imagenHero: "/barrios/san-sebastian/hero-cover.webp",
   },
   "vida-barrio-cerrado": {
     sigla: "VB",
@@ -1390,7 +1390,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
     datos: ["1.042 lotes", "100 ha", "Laguna 23.300 m²"],
     amenities: ["laguna"],
     lat: -32.9100, lng: -60.8422,
-    imagenHero: "/barrios/vida-lagoon/dji_fly_20241209_135900_0075_1733763810528_photo.jpg",
+    imagenHero: "/barrios/vida-lagoon/hero-cover.webp",
   },
   "vida-club-de-campo": {
     sigla: "VC",

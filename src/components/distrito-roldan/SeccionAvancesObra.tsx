@@ -7,7 +7,7 @@ import FincazulGaleriaLazy from '@/components/fincazul/FincazulGaleriaLazy'
 const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
 const POPPINS = 'var(--font-poppins), Poppins, sans-serif'
 
-const FOTOS = ['obra-1.jpg', 'obra-2.jpg', 'obra-3.jpg', 'obra-4.jpg']
+const FOTOS = ['obra-1.webp', 'obra-2.webp', 'obra-3.webp', 'obra-4.webp']
 
 export default function SeccionAvancesObra() {
   return (
