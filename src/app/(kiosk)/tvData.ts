@@ -97,8 +97,9 @@ export async function getSlides(): Promise<Slide[]> {
       const slug = generatePropertySlug(p)
       const url = `${SITE}/propiedades/${slug}`
       const photo = getMainPhoto(p) as string
-      // Hasta 3 fotos de la misma propiedad (portada primero, sin duplicar).
-      const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 3)
+      // Hasta 4 fotos de la misma propiedad (portada primero, sin duplicar):
+      // hero + tira de miniaturas en el kiosco vertical.
+      const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 4)
       let qr = ''
       try {
         qr = await QRCode.toDataURL(url, { margin: 1, width: 220, color: { dark: '#0E1A14', light: '#FFFFFF' } })
