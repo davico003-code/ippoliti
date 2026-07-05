@@ -52,6 +52,48 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
   const [submitting, setSubmitting] = useState(false)
   const [imports, setImports] = useState<Record<string, ImportState>>({})
   const [formError, setFormError] = useState('')
+  // Carga MANUAL de externas (indexada por fila): pegás el link + llenás los datos
+  // a mano, sin depender del scraping automático (que a veces bloquean los portales).
+  type ManualForm = { open: boolean; titulo: string; precio: string; moneda: string; zona: string; foto: string; loading?: boolean; error?: string }
+  const [manualForms, setManualForms] = useState<Record<number, ManualForm>>({})
+
+  function setManual(i: number, patch: Partial<ManualForm>) {
+    setManualForms(s => {
+      const base: ManualForm = s[i] ?? { open: true, titulo: '', precio: '', moneda: 'USD', zona: '', foto: '' }
+      return { ...s, [i]: { ...base, ...patch } }
+    })
+  }
+
+  // Crear la ficha con los datos cargados A MANO (mintea en verficha.casa igual que
+  // el importar automático, pero sin scraping — usa los overrides manuales).
+  async function crearFichaManual(i: number, url: string) {
+    const u = url.trim()
+    const m = manualForms[i]
+    if (!m?.titulo.trim()) { setManual(i, { error: 'Poné al menos un título' }); return }
+    setManual(i, { loading: true, error: undefined })
+    try {
+      const res = await fetch('/api/fichas/importar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: u,
+          manual: {
+            titulo: m.titulo.trim(),
+            precioRaw: m.precio.trim() || undefined,
+            moneda: m.moneda || 'USD',
+            zona: m.zona.trim() || undefined,
+            fotos: m.foto.trim() ? [m.foto.trim()] : undefined,
+          },
+        }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setManual(i, { loading: false, error: d.error || 'No se pudo crear' }); return }
+      setImports(s => ({ ...s, [u]: { verfichaUrl: d.url, slug: d.slug, snapshot: d.snapshot, fotos: d.fotos } }))
+      setManual(i, { loading: false, open: false })
+    } catch {
+      setManual(i, { loading: false, error: 'Error de red. Reintentá.' })
+    }
+  }
 
   // Importar automático: pega URL de Zonaprop → mintea ficha propia en
   // verficha.casa (scraping vía Microlink en el server) → devuelve el link limpio.
@@ -121,12 +163,6 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
     if (!formData.clientName.trim() || !formData.properties.some(p => p.url.trim())) return
 
     const rows = formData.properties.filter(p => p.url.trim())
-    // Toda externa tiene que estar importada (= ficha verficha lista) antes de crear.
-    const sinImportar = rows.find(p => isExternalUrl(p.url) && !imports[p.url.trim()]?.verfichaUrl)
-    if (sinImportar) {
-      setFormError('Importá las propiedades de Zonaprop antes de crear la selección (botón "Importar").')
-      return
-    }
 
     setSubmitting(true)
     try {
@@ -135,8 +171,13 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
         const base = { id: p.id || `prop-${i}`, url: p.url.trim(), note: p.note.trim() }
         const imp = imports[p.url.trim()]
         if (isExternalUrl(p.url) && imp?.verfichaUrl) {
-          // La ficha propia ya se minteó al importar: linkeamos a verficha.casa.
+          // La ficha propia ya se minteó (importar auto o carga manual): linkeamos a verficha.casa.
           return { ...base, url: imp.verfichaUrl, source: 'externa', snapshot: imp.snapshot }
+        }
+        if (isExternalUrl(p.url)) {
+          // Externa SIN importar ni cargar a mano: va con el link al portal y una
+          // ficha mínima (el cliente igual la ve, con "Ver propiedad").
+          return { ...base, source: 'externa', snapshot: { title: 'Propiedad', image: null, location: '', price: null, rooms: 0, baths: 0, area: 0 } }
         }
         return base
       })
@@ -255,6 +296,7 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
             {formData.properties.map((p, i) => {
               const externa = isExternalUrl(p.url)
               const imp = imports[p.url.trim()]
+              const mf = manualForms[i]
               return (
                 <div key={i} className="space-y-2">
                   <div className="flex gap-2">
@@ -285,18 +327,58 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
                           <a href={imp.verfichaUrl} target="_blank" rel="noopener noreferrer"
                             className="text-[11px] font-bold text-[#1A5C38] hover:underline shrink-0">Ver</a>
                         </div>
+                      ) : mf?.open ? (
+                        // ── Carga MANUAL: llenás los datos vos, sin depender del robot ──
+                        <div className="space-y-2">
+                          <p className="text-[12px] font-semibold text-[#1A5C38]">Cargá los datos de la propiedad</p>
+                          <input placeholder="Título (ej: Casa 3 dorm en Funes) *" value={mf.titulo}
+                            onChange={e => setManual(i, { titulo: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-[#1A5C38]" />
+                          <div className="flex gap-2">
+                            <input placeholder="Precio (ej: 145000)" value={mf.precio}
+                              onChange={e => setManual(i, { precio: e.target.value })}
+                              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-[#1A5C38]" />
+                            <select value={mf.moneda} onChange={e => setManual(i, { moneda: e.target.value })}
+                              className="px-2 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-[#1A5C38]">
+                              <option value="USD">USD</option><option value="ARS">ARS</option>
+                            </select>
+                          </div>
+                          <input placeholder="Zona / barrio (ej: Funes) — ubica el pin en el mapa" value={mf.zona}
+                            onChange={e => setManual(i, { zona: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-[#1A5C38]" />
+                          <input placeholder="Link de una foto (opcional)" value={mf.foto}
+                            onChange={e => setManual(i, { foto: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-[#1A5C38]" />
+                          {mf.error && <p className="text-[12px] text-red-600">{mf.error}</p>}
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => crearFichaManual(i, p.url)} disabled={mf.loading}
+                              className="text-[12px] font-bold px-3 py-1.5 rounded-lg disabled:opacity-50"
+                              style={{ background: '#1A5C38', color: 'white' }}>
+                              {mf.loading ? 'Creando…' : 'Crear ficha'}
+                            </button>
+                            <button type="button" onClick={() => setManual(i, { open: false, error: undefined })}
+                              className="text-[12px] font-semibold px-3 py-1.5 rounded-lg text-[#6E6E73]">Cancelar</button>
+                          </div>
+                        </div>
                       ) : (
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-[12px] text-[#6E6E73]">
                             {imp?.error
                               ? <span className="text-red-600">{imp.error}</span>
-                              : 'Propiedad de otro portal → se crea una ficha propia en verficha.casa.'}
+                              : 'Propiedad de otro portal. Cargala a mano, o probá importarla automáticamente.'}
                           </p>
-                          <button type="button" onClick={() => importarExterna(p.url)} disabled={imp?.loading}
-                            className="text-[12px] font-bold px-3 py-1.5 rounded-lg disabled:opacity-50 shrink-0"
-                            style={{ background: '#1A5C38', color: 'white' }}>
-                            {imp?.loading ? 'Importando…' : imp?.error ? 'Reintentar' : 'Importar'}
-                          </button>
+                          <div className="flex gap-2 shrink-0">
+                            <button type="button" onClick={() => setManual(i, { open: true })}
+                              className="text-[12px] font-bold px-3 py-1.5 rounded-lg border"
+                              style={{ borderColor: '#1A5C38', color: '#1A5C38' }}>
+                              Cargar a mano
+                            </button>
+                            <button type="button" onClick={() => importarExterna(p.url)} disabled={imp?.loading}
+                              className="text-[12px] font-bold px-3 py-1.5 rounded-lg disabled:opacity-50"
+                              style={{ background: '#1A5C38', color: 'white' }}>
+                              {imp?.loading ? 'Importando…' : imp?.error ? 'Reintentar' : 'Importar auto'}
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
