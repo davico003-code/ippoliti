@@ -1,15 +1,14 @@
-// Página /tv-vertical — modo KIOSCO para un televisor PARADO (portrait). Muestra
-// UNA propiedad por vez con 3 fotos de esa misma casa apiladas (aprovechando el
-// alto) y cicla a la siguiente. Misma data que /tv (mix inteligente + QR).
+// Página /tv-vertical — kiosco "vidriera viva" para un televisor PARADO (portrait).
+// Trae la secuencia curada (casas caras de Funes, lotes de barrios privados, las 2
+// de Roldán) con ganchos + placas institucionales, y el cliente la cicla rotando
+// 90° a pantalla completa.
 
-import { getSlides } from '../tvData'
+import { getVitrina } from '../tvVitrina'
 import TvVerticalClient from './TvVerticalClient'
 
 export const revalidate = 1800
 
 export default async function TvVerticalPage() {
-  const slides = await getSlides()
-  // Priorizar las propiedades que tienen 3 fotos reales (lucen mejor en vertical).
-  const ordered = [...slides].sort((a, b) => (b.photos.length >= 3 ? 1 : 0) - (a.photos.length >= 3 ? 1 : 0))
-  return <TvVerticalClient slides={ordered} />
+  const cards = await getVitrina()
+  return <TvVerticalClient cards={cards} />
 }
