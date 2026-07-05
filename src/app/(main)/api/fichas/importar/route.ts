@@ -17,6 +17,7 @@ import { verifyAgentToken } from '@/lib/auth'
 import { crearFichaExterna, type FichaExternaInput } from '@/lib/ficha'
 import { fetchZonaprop, isZonapropUrl } from '@/lib/zonaprop'
 import { fetchArgenprop, isArgenpropUrl } from '@/lib/argenprop'
+import { fetchMercadolibre, isMercadolibreUrl } from '@/lib/mercadolibre'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // el scraping vía Microlink puede tardar ~30s
@@ -68,12 +69,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'URL inválida' }, { status: 400 })
   }
 
-  // ── Scraping automático (Zonaprop vía Microlink / Argenprop vía fetch directo) ──
+  // ── Lectura automática por portal: Zonaprop (Microlink) · Argenprop (fetch
+  //    directo) · MercadoLibre (API de items con token). Cada uno cae a null si
+  //    no puede leer → carga manual. ──
   const scraped = isZonapropUrl(sourceUrl)
     ? await fetchZonaprop(sourceUrl)
     : isArgenpropUrl(sourceUrl)
       ? await fetchArgenprop(sourceUrl)
-      : null
+      : isMercadolibreUrl(sourceUrl)
+        ? await fetchMercadolibre(sourceUrl)
+        : null
 
   // Overrides manuales (corrección o fallback). Solo pisan si vienen presentes.
   const ov = (body.manual ?? {}) as Record<string, unknown>
@@ -83,15 +88,20 @@ export async function POST(req: NextRequest) {
   const pickNum = (k: string) =>
     has(k) ? toNum(ov[k]) : ((scraped?.[k as keyof typeof scraped] as number | null) ?? null)
 
-  const titulo = pick('titulo', '').slice(0, 200)
-  if (!titulo && !scraped) {
+  // La carga manual arma "una placa con foto y datos" — NO exige título: si el
+  // agente no lo tipea, lo derivamos de la zona ("Propiedad en Funes"). Solo
+  // frenamos si no hay NADA útil (ni scrape, ni ningún dato manual).
+  const hayDatoManual = has('zona') || has('precioRaw') || (Array.isArray(ov.fotos) && ov.fotos.length > 0)
+  let titulo = pick('titulo', '').slice(0, 200)
+  if (!titulo && !scraped && !hayDatoManual) {
     return NextResponse.json(
       { error: 'No se pudo leer el aviso (el portal puede estar lento o bloqueando). Reintentá o cargá los datos a mano.' },
       { status: 422 },
     )
   }
   if (!titulo) {
-    return NextResponse.json({ error: 'El aviso no tiene título legible; cargalo a mano.' }, { status: 422 })
+    const zonaFb = pick('zona', '').trim()
+    titulo = zonaFb ? `Propiedad en ${zonaFb}` : 'Propiedad'
   }
 
   // Fotos: del scraping + adicionales manuales. Se usan directo (sin re-host).
