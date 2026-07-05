@@ -16,7 +16,6 @@ import { HUB_FAQS } from "@/lib/barrios/faq";
 import HubTracker from "./HubTracker";
 import { BarriosHubProvider } from "./_components/BarriosHubProvider";
 import HeroBarrios from "./_components/HeroBarrios";
-import FiltrosAmenities from "./_components/FiltrosAmenities";
 import GrillaBarrios from "./_components/GrillaBarrios";
 import MapaBarrios from "./_components/MapaBarrios";
 import FaqBarrios from "./_components/FaqBarrios";
@@ -96,7 +95,6 @@ export default function BarriosPrivadosHubPage() {
 
       <BarriosHubProvider>
         <HeroBarrios />
-        <FiltrosAmenities />
         <GrillaBarrios />
       </BarriosHubProvider>
 
