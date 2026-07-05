@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 
@@ -95,22 +96,28 @@ export default function DetalleGaleria({ fotos, nombre }: { fotos: string[]; nom
         </div>
       </div>
 
-      {/* Lightbox */}
-      {abierta !== null && (
+      {/* Lightbox — galería clásica: portalizado a <body> para no quedar atrapado
+          en el stacking context de la sección (y así tapar chat/alertas flotantes).
+          Fondo oscuro sólido (inline, no depende de la opacidad de Tailwind),
+          cerrar/flechas prominentes y contador. */}
+      {abierta !== null && typeof document !== "undefined" && createPortal(
         <div
           role="dialog"
           aria-modal="true"
           aria-label={`Foto ${abierta + 1} de ${visibles.length}`}
-          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/92 p-4"
+          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-8"
+          style={{ background: "rgba(10, 12, 11, 0.97)" }}
           onClick={cerrar}
         >
+          {/* Cerrar — botón claro y prominente, siempre visible */}
           <button
             type="button"
             onClick={cerrar}
-            aria-label="Cerrar"
-            className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2.5 text-white transition-colors hover:bg-white/25"
+            aria-label="Cerrar galería"
+            className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full text-white transition-colors"
+            style={{ background: "rgba(0, 0, 0, 0.55)" }}
           >
-            <X size={22} strokeWidth={2} aria-hidden />
+            <X size={24} strokeWidth={2.2} aria-hidden />
           </button>
 
           {visibles.length > 1 && (
@@ -119,22 +126,27 @@ export default function DetalleGaleria({ fotos, nombre }: { fotos: string[]; nom
                 type="button"
                 onClick={(e) => { e.stopPropagation(); prev(); }}
                 aria-label="Foto anterior"
-                className="absolute left-3 z-10 rounded-full bg-white/10 p-2.5 text-white transition-colors hover:bg-white/25 md:left-6"
+                className="absolute left-3 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full text-white transition-colors md:left-6"
+                style={{ background: "rgba(0, 0, 0, 0.55)" }}
               >
-                <ChevronLeft size={24} strokeWidth={2} aria-hidden />
+                <ChevronLeft size={26} strokeWidth={2.2} aria-hidden />
               </button>
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); next(); }}
                 aria-label="Foto siguiente"
-                className="absolute right-3 z-10 rounded-full bg-white/10 p-2.5 text-white transition-colors hover:bg-white/25 md:right-6"
+                className="absolute right-3 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full text-white transition-colors md:right-6"
+                style={{ background: "rgba(0, 0, 0, 0.55)" }}
               >
-                <ChevronRight size={24} strokeWidth={2} aria-hidden />
+                <ChevronRight size={26} strokeWidth={2.2} aria-hidden />
               </button>
             </>
           )}
 
-          <div className="relative h-[80vh] w-full max-w-[1100px]" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative h-[78vh] w-full max-w-[1100px]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Image
               src={visibles[abierta]}
               alt={`${nombre} — foto ${abierta + 1} ampliada`}
@@ -143,7 +155,18 @@ export default function DetalleGaleria({ fotos, nombre }: { fotos: string[]; nom
               className="object-contain"
             />
           </div>
-        </div>
+
+          {/* Contador de fotos */}
+          {visibles.length > 1 && (
+            <span
+              className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full px-4 py-1.5 text-[13px] font-semibold text-white"
+              style={{ background: "rgba(0, 0, 0, 0.55)", fontFamily: P }}
+            >
+              {abierta + 1} / {visibles.length}
+            </span>
+          )}
+        </div>,
+        document.body,
       )}
     </section>
   );
