@@ -12,27 +12,31 @@ const EXCLUIDOS_DEL_GRID = ['David Flores', 'Laura Flores']
 // Altas recientes que aún no figuran en Tokko. Se hardcodean para que ya
 // aparezcan en el grid; cuando entren al CRM se pueden remover de acá.
 // id negativo para no chocar con IDs reales de Tokko (todos positivos).
-// Override de foto para agentes del CRM: reemplaza la foto que viene de Tokko
-// por una versión propia en /public/team. Clave = name exacto del agente.
-const FOTO_OVERRIDES: Record<string, string> = {
-  'Mariana Orlate': '/team/mariana-orlate.jpg',
-  'Micaela Gonzalez': '/team/micaela-gonzalez.jpg',
-  'Leticia Alexenicer': '/team/leticia-alexenicer.jpg',
-  'Maria Jose Espilocin': '/team/maria-jose-espilocin.jpg',
-  'Mauro Matteucci': '/team/mauro-matteucci.jpg',
-  'Gino Pecchenino': '/team/gino-pecchenino.jpg',
-  'Carolina Echen': '/team/carolina-echen.jpg',
-  'Aldana Ruiz': '/team/aldana-ruiz.jpg',
-  'Gisela Ramallo': '/team/gisela-ramallo.jpg',
-  'Lucia Wilson': '/team/lucia-wilson.jpg',
-}
-
 const AGENTES_EXTRA = [
   { id: -1, name: 'Marisa Benitez',     email: '', phone: '', cellphone: '', picture: '/team/marisa-benitez.jpg', position: '' },
   { id: -2, name: 'Sabrina Rogani',     email: '', phone: '', cellphone: '', picture: '/team/sabrina-rogani.jpg', position: '' },
   { id: -3, name: 'Eliana Rojas',       email: '', phone: '', cellphone: '', picture: '/team/eliana-rojas.jpg', position: '' },
   { id: -4, name: 'Julian Ruschneider', email: '', phone: '', cellphone: '', picture: '/team/julian-ruschneider.jpg', position: '' },
   { id: -5, name: 'Claudia',            email: '', phone: '', cellphone: '', picture: '/team/claudia.jpg', position: '' },
+]
+
+// Roster del equipo, hardcodeado. Reemplaza el fetch a /api/tokko/agents porque
+// Tokko quedó desconectado. Orden = el que mostraba el roster; fotos propias en
+// /public/team. David y Laura se filtran del grid vía EXCLUIDOS_DEL_GRID
+// (aparecen como dirección más arriba).
+const AGENTES_CRM: TokkoAgent[] = [
+  { id: 1,  name: 'David Flores',         email: '', phone: '', cellphone: '', picture: '/team/david-flores.jpg',         position: '' },
+  { id: 2,  name: 'Laura Flores',         email: '', phone: '', cellphone: '', picture: '/team/laura-flores.jpg',         position: '' },
+  { id: 3,  name: 'Mauro Matteucci',      email: '', phone: '', cellphone: '', picture: '/team/mauro-matteucci.jpg',      position: '' },
+  { id: 4,  name: 'Gino Pecchenino',      email: '', phone: '', cellphone: '', picture: '/team/gino-pecchenino.jpg',      position: '' },
+  { id: 5,  name: 'Leticia Alexenicer',   email: '', phone: '', cellphone: '', picture: '/team/leticia-alexenicer.jpg',   position: '' },
+  { id: 6,  name: 'Carolina Echen',       email: '', phone: '', cellphone: '', picture: '/team/carolina-echen.jpg',       position: '' },
+  { id: 7,  name: 'Aldana Ruiz',          email: '', phone: '', cellphone: '', picture: '/team/aldana-ruiz.jpg',          position: '' },
+  { id: 8,  name: 'Mariana Orlate',       email: '', phone: '', cellphone: '', picture: '/team/mariana-orlate.jpg',       position: '' },
+  { id: 9,  name: 'Micaela Gonzalez',     email: '', phone: '', cellphone: '', picture: '/team/micaela-gonzalez.jpg',     position: '' },
+  { id: 10, name: 'Gisela Ramallo',       email: '', phone: '', cellphone: '', picture: '/team/gisela-ramallo.jpg',       position: '' },
+  { id: 11, name: 'Maria Jose Espilocin', email: '', phone: '', cellphone: '', picture: '/team/maria-jose-espilocin.jpg', position: '' },
+  { id: 12, name: 'Lucia Wilson',         email: '', phone: '', cellphone: '', picture: '/team/lucia-wilson.jpg',         position: '' },
 ]
 
 /* ─────────────────────────────────────────────
@@ -576,22 +580,6 @@ function OficinasInteractivas() {
    PAGE
 ───────────────────────────────────────────── */
 export default function NosotrosClient() {
-  const [agents, setAgents] = useState<TokkoAgent[] | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/tokko/agents')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (cancelled || !data?.agents) return
-        setAgents(data.agents as TokkoAgent[])
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
   return (
     <main className="bg-white text-gray-900">
 
@@ -777,29 +765,18 @@ export default function NosotrosClient() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 mb-14">
-            {agents !== null && (() => {
+            {(() => {
               const todos = [
-                ...agents.filter((a) => !EXCLUIDOS_DEL_GRID.includes(a.name)),
+                ...AGENTES_CRM.filter((a) => !EXCLUIDOS_DEL_GRID.includes(a.name)),
                 ...AGENTES_EXTRA,
-              ].map((a) =>
-                FOTO_OVERRIDES[a.name] ? { ...a, picture: FOTO_OVERRIDES[a.name] } : a,
-              )
-              // Render: primero todos los que tienen foto en orden de Tokko,
-              // después los que solo tienen iniciales (sin foto al final).
+              ]
+              // Con foto primero, iniciales al final (hoy todos tienen foto propia).
               const conFoto = todos.filter((a) => !!a.picture)
               const sinFoto = todos.filter((a) => !a.picture)
               return [...conFoto, ...sinFoto].map((a) => (
                 <TeamCard key={a.id} agent={a} />
               ))
             })()}
-            {agents === null &&
-              Array.from({ length: 8 }).map((_, i) => (
-                <div key={`skel-${i}`} className="flex flex-col items-center">
-                  <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-neutral-200 animate-pulse mb-4" />
-                  <div className="h-3 w-24 bg-neutral-200 rounded animate-pulse mb-2" />
-                  <div className="h-2 w-16 bg-neutral-200 rounded animate-pulse" />
-                </div>
-              ))}
           </div>
 
           <div className="text-center">
