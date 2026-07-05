@@ -1,8 +1,10 @@
-// "Vidriera viva" — arma la secuencia CURADA de tarjetas para el kiosco vertical:
-// casas de Funes más caras (countdown Top 5), lotes de barrios privados, las 2
-// joyas de Roldán (Cotos de la Alameda / Las Tardes), placas institucionales con
-// CTA rotando cada 2 propiedades, y micro-récords entre medio. Cada propiedad
-// trae su gancho: precio oculto→reveal o adiviná-el-barrio.
+// "Vidriera viva" — arma la secuencia CURADA de tarjetas para el kiosco vertical.
+// Pisos de precio por tipo (casas ≥ USD 200k, lotes ≥ USD 40k) y un pool amplio
+// para que rote mucho sin repetir. Bloques: countdown Top 5 casas de Funes, las 2
+// joyas de Roldán (Cotos de la Alameda / Las Tardes), y el resto premium ordenado
+// de mayor a menor precio (para que el valor baje suave, no salte). Placas
+// institucionales con CTA rotando cada 2 propiedades + micro-récords entre medio.
+// Cada propiedad trae su gancho: precio oculto→reveal o adiviná-el-barrio.
 
 import QRCode from 'qrcode'
 import {
@@ -19,6 +21,9 @@ import {
 } from '@/lib/tokko'
 
 const SITE = 'https://siinmobiliaria.com'
+const MIN_CASA = 200000
+const MIN_LOTE = 40000
+const MAX_PROPS = 80
 
 export interface PropView {
   photos: string[]
@@ -76,6 +81,16 @@ function isPrivado(p: TokkoProperty): boolean {
   return /countr|cerrado|privad|b\.?\s*c\.?/i.test(`${p.location?.name} ${p.location?.short_location}`)
 }
 
+// Piso de precio por tipo: casas ≥ 200k, lotes ≥ 40k, otros ≥ 200k. Sin precio
+// visible (Consultar) queda afuera porque el gancho de reveal necesita un número.
+function passesFloor(p: TokkoProperty): boolean {
+  const price = priceNumber(p)
+  if (price <= 0) return false
+  if (isLote(p)) return price >= MIN_LOTE
+  if (isCasa(p)) return price >= MIN_CASA
+  return price >= MIN_CASA
+}
+
 function specsOf(p: TokkoProperty): { v: string; l: string }[] {
   const out: { v: string; l: string }[] = []
   const dorm = p.suite_amount || 0
@@ -124,6 +139,10 @@ async function toView(p: TokkoProperty): Promise<PropView> {
   }
 }
 
+function hookFor(p: TokkoProperty): 'reveal-price' | 'guess-zone' {
+  return isLote(p) && isPrivado(p) ? 'guess-zone' : 'reveal-price'
+}
+
 // ── CTAs institucionales (rotan) ─────────────────────────────────────────────
 const CTAS: Omit<CtaView, 'qr'>[] = [
   { title: 'Tasá tu propiedad', subtitle: 'con nosotros', note: 'Tasación en 24 hs' },
@@ -144,24 +163,27 @@ export async function getVitrina(): Promise<VitrinaCard[]> {
   const props = objects.filter((p) => {
     if (!getMainPhoto(p)) return false
     if (!p.operations?.length) return false
-    if (p.id && seen.has(p.id)) { return false }
+    if (p.id && seen.has(p.id)) return false
     if (p.id) seen.add(p.id)
     return true
   })
+
+  // Pool con pisos por tipo (casas ≥200k, lotes ≥40k).
+  const pool = props.filter(passesFloor)
 
   const used = new Set<number>()
   const take = (p: TokkoProperty) => { if (p.id) used.add(p.id) }
   const free = (p: TokkoProperty) => !p.id || !used.has(p.id)
 
   // 1) Top 5 casas de Funes más caras (countdown)
-  const funesCasas = props
-    .filter((p) => free(p) && isCasa(p) && isFunes(p) && priceNumber(p) > 0)
+  const funesCasas = pool
+    .filter((p) => free(p) && isCasa(p) && isFunes(p))
     .sort((a, b) => priceNumber(b) - priceNumber(a))
     .slice(0, 5)
   funesCasas.forEach(take)
 
-  // 2) Las 2 joyas de Roldán: Cotos de la Alameda y Las Tardes (~240k)
-  const roldan = props.filter((p) => free(p) && isRoldan(p))
+  // 2) Las 2 joyas de Roldán: Cotos de la Alameda y Las Tardes
+  const roldan = pool.filter((p) => free(p) && isRoldan(p))
   const pickRoldan = (rx: RegExp): TokkoProperty | undefined => {
     const cands = roldan.filter((p) => rx.test(locText(p)) && free(p))
     if (cands.length === 0) return undefined
@@ -171,43 +193,57 @@ export async function getVitrina(): Promise<VitrinaCard[]> {
     .filter((p): p is TokkoProperty => !!p)
   roldanPicks.forEach(take)
 
-  // 3) Lotes de barrios privados
-  const lotesPrivados = props
+  // 3) Lotes de barrios privados (≥40k) — bloque garantizado (si no, el orden por
+  //    precio los dejaría fuera del top). Gancho: adiviná el barrio.
+  const lotesPrivados = pool
     .filter((p) => free(p) && isLote(p) && isPrivado(p))
-    .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
-    .slice(0, 5)
+    .sort((a, b) => priceNumber(b) - priceNumber(a))
+    .slice(0, 10)
   lotesPrivados.forEach(take)
 
-  // ── Micro-récords (sobre todo el stock con precio/superficie) ──────────────
-  const records: RecordView[] = []
-  const withRoof = props.filter((p) => getRoofedArea(p))
-  const biggest = withRoof.sort((a, b) => (getRoofedArea(b) || 0) - (getRoofedArea(a) || 0))[0]
-  if (biggest) records.push({ emoji: '🏡', label: 'La casa más grande', value: `${getRoofedArea(biggest)!.toLocaleString('es-AR')} m²` })
-  const withLot = props.filter((p) => getLotSurface(p))
-  const biggestLot = withLot.sort((a, b) => (getLotSurface(b) || 0) - (getLotSurface(a) || 0))[0]
-  if (biggestLot) records.push({ emoji: '🌳', label: 'El lote más grande', value: `${getLotSurface(biggestLot)!.toLocaleString('es-AR')} m²` })
-  const priced = props.filter((p) => priceNumber(p) > 0)
-  const cheapest = priced.sort((a, b) => priceNumber(a) - priceNumber(b))[0]
-  if (cheapest) records.push({ emoji: '💰', label: 'Oportunidades desde', value: formatPrice(cheapest) })
-  records.push({ emoji: '📍', label: 'Propiedades en venta', value: `${priced.length}+` })
+  // 4) Resto premium (dentro del piso): de mayor a menor precio → el valor baja
+  //    suave y no salta. Muchas propiedades para que no repita.
+  const rest = pool
+    .filter((p) => free(p))
+    .sort((a, b) => priceNumber(b) - priceNumber(a))
+    .slice(0, Math.max(0, MAX_PROPS - used.size))
+  rest.forEach(take)
 
-  // ── armar las tarjetas de propiedad con su gancho ──────────────────────────
+  // ── Micro-récords (dentro del piso) ────────────────────────────────────────
+  const records: RecordView[] = []
+  const casasReales = pool.filter((p) => isCasa(p)).filter((p) => {
+    const r = getRoofedArea(p); return r && r >= 100 && r <= 2000
+  })
+  const biggest = casasReales.sort((a, b) => (getRoofedArea(b) || 0) - (getRoofedArea(a) || 0))[0]
+  if (biggest) records.push({ emoji: '🏡', label: 'La casa más grande', value: `${getRoofedArea(biggest)!.toLocaleString('es-AR')} m²` })
+  const lotes = pool.filter((p) => isLote(p) && getLotSurface(p))
+  const biggestLot = lotes.sort((a, b) => (getLotSurface(b) || 0) - (getLotSurface(a) || 0))[0]
+  if (biggestLot) records.push({ emoji: '🌳', label: 'El lote más grande', value: `${getLotSurface(biggestLot)!.toLocaleString('es-AR')} m²` })
+  const casasPriced = pool.filter((p) => isCasa(p) && priceNumber(p) > 0)
+  const cheapestCasa = casasPriced.sort((a, b) => priceNumber(a) - priceNumber(b))[0]
+  if (cheapestCasa) records.push({ emoji: '💰', label: 'Casas desde', value: formatPrice(cheapestCasa) })
+  records.push({ emoji: '📍', label: 'Propiedades en venta', value: `${pool.length}+` })
+
+  // ── tarjetas de propiedad con su gancho ────────────────────────────────────
   const propCards: VitrinaCard[] = []
 
-  // Countdown Top 5 Funes: se muestran de la MENOS cara del top (N° 5) a la MÁS
-  // cara (N° 1), que queda para el final como clímax.
+  // Countdown Top 5 Funes: de la MENOS cara del top (N°5) a la MÁS cara (N°1).
   const n = funesCasas.length
-  const funesDisplay = [...funesCasas].reverse() // asc por precio: [0]=N°5 … [n-1]=N°1
+  const funesDisplay = [...funesCasas].reverse()
   for (let j = 0; j < n; j++) {
     propCards.push({ kind: 'property', hook: 'reveal-price', rank: n - j, total: n, data: await toView(funesDisplay[j]) })
   }
-  // Roldán — gancho reveal de precio
+  // Roldán
   for (const p of roldanPicks) {
     propCards.push({ kind: 'property', hook: 'reveal-price', data: await toView(p) })
   }
-  // Lotes privados — gancho adiviná el barrio
+  // Lotes de barrios privados — adiviná el barrio
   for (const p of lotesPrivados) {
     propCards.push({ kind: 'property', hook: 'guess-zone', data: await toView(p) })
+  }
+  // Resto
+  for (const p of rest) {
+    propCards.push({ kind: 'property', hook: hookFor(p), data: await toView(p) })
   }
 
   if (propCards.length === 0) return []
@@ -228,14 +264,12 @@ export async function getVitrina(): Promise<VitrinaCard[]> {
       seq.push(ctaCards[ctaI % ctaCards.length])
       ctaI++
       sinceCta = 0
-      // cada 2 CTAs, un micro-récord
       if (ctaI % 2 === 0 && records.length) {
         seq.push({ kind: 'record', data: records[recI % records.length] })
         recI++
       }
     }
   })
-  // arrancar con un récord como teaser
   if (records.length) seq.unshift({ kind: 'record', data: records[records.length - 1] })
 
   return seq

@@ -55,9 +55,16 @@ export default function TvVerticalClient({ cards }: { cards: VitrinaCard[] }) {
   }
 
   const card = cards[idx % cards.length]
+  const propCount = cards.filter((c) => c.kind === 'property').length
 
   return (
-    <main className="tvv-root" onClick={toggleFullscreen} title="Tocar para pantalla completa">
+    <main
+      className="tvv-root"
+      onClick={toggleFullscreen}
+      title="Tocar para pantalla completa"
+      data-props={propCount}
+      data-total={cards.length}
+    >
       <div className="tvv-stage">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" className="tvv-logo" />
