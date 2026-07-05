@@ -110,15 +110,20 @@ function PropertyCard({
         </div>
       )}
 
-      {/* Tira de fotos de la misma casa */}
-      {thumbs.length > 0 && (
-        <div className="pc-strip">
-          {thumbs.map((src, k) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={k} src={src} alt="" className="pc-thumb" />
-          ))}
-        </div>
-      )}
+      {/* Columna derecha: fotos de la misma casa + QR (arriba, para no tapar el precio) */}
+      <div className="pc-side">
+        {thumbs.map((src, k) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={k} src={src} alt="" className="pc-thumb" />
+        ))}
+        {p.qr && (
+          <div className="pc-qr">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.qr} alt="QR" className="pc-qr-img" />
+            <span className="pc-qr-t">Escaneá</span>
+          </div>
+        )}
+      </div>
 
       <div className="pc-info">
         <div className="pc-eyebrow">
@@ -162,14 +167,6 @@ function PropertyCard({
           )
         )}
       </div>
-
-      {p.qr && (
-        <div className="pc-qr">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={p.qr} alt="QR" className="pc-qr-img" />
-          <span className="pc-qr-t">Escaneá</span>
-        </div>
-      )}
     </div>
   )
 }
@@ -253,7 +250,8 @@ const CSS = `
   .pc-rank-n { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 13cqw; line-height: .9;
     color: #fff; text-shadow: 0 3px 20px rgba(0,0,0,.5); }
 
-  .pc-strip { position: absolute; top: 8cqh; right: 5cqw; z-index: 6; display: flex; flex-direction: column; gap: 1.6cqh; }
+  .pc-side { position: absolute; top: 8cqh; right: 5cqw; z-index: 8; display: flex; flex-direction: column;
+    align-items: flex-end; gap: 1.6cqh; }
   .pc-thumb { width: 16cqw; height: 16cqw; object-fit: cover; border-radius: 2.4cqw; border: .35cqw solid rgba(255,255,255,.85);
     box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); animation: pop 600ms cubic-bezier(.34,1.56,.64,1) both; }
   .pc-thumb:nth-child(2) { animation-delay: 90ms; }
@@ -301,10 +299,9 @@ const CSS = `
     text-shadow: 0 2px 14px rgba(0,0,0,.6); line-height: 1; }
   @keyframes drop { from { opacity: 0; transform: translateY(-6cqh) scale(.6); } to { opacity: 1; transform: none; } }
 
-  .pc-qr { position: absolute; bottom: 4.5cqh; right: 5cqw; z-index: 8; display: flex; flex-direction: column;
-    align-items: center; gap: .6cqh; background: #fff; border-radius: 2.4cqw; padding: 1.4cqw;
-    box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); }
-  .pc-qr-img { width: 14cqw; height: 14cqw; display: block; }
+  .pc-qr { display: flex; flex-direction: column; align-items: center; gap: .6cqh; background: #fff;
+    border-radius: 2.4cqw; padding: 1.4cqw; box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); }
+  .pc-qr-img { width: 16cqw; height: 16cqw; display: block; }
   .pc-qr-t { font-size: 2cqw; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0E1A14; }
 
   /* ── CTA ── */
