@@ -6,10 +6,10 @@ export async function PATCH(
   { params }: { params: { token: string } }
 ) {
   try {
-    const { propertyId, liked, wantVisit, comment } = await req.json()
+    const { propertyId, liked, wantVisit, comment, reaction } = await req.json()
     if (!propertyId) return NextResponse.json({ error: 'propertyId required' }, { status: 400 })
 
-    await patchReaccion(params.token, propertyId, { liked, wantVisit, comment })
+    await patchReaccion(params.token, propertyId, { liked, wantVisit, comment, reaction })
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })

@@ -73,7 +73,7 @@ export async function getReacciones(token: string) {
 export async function patchReaccion(
   token: string,
   propertyId: string,
-  patch: { liked?: boolean | null; wantVisit?: boolean; comment?: string }
+  patch: { liked?: boolean | null; wantVisit?: boolean; comment?: string; reaction?: string | null }
 ) {
   const current = await getReacciones(token)
   const existing = current[propertyId] || {}

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getSeleccion, getReacciones, incrementViewCount } from '@/lib/redis'
 import { geocodeZona } from '@/lib/geocode'
+import { getAgentePhoto } from '@/lib/agente-foto'
 import ClientShortlist from '@/components/seleccion/ClientShortlist'
 
 interface Props { params: { token: string } }
@@ -66,8 +67,11 @@ export default async function SeleccionPage({ params }: Props) {
   }
 
   await geocodificarExternas(session)
-  const reactions = await getReacciones(params.token)
+  const [reactions, agentPhoto] = await Promise.all([
+    getReacciones(params.token),
+    getAgentePhoto(session.agentName || session.agent),
+  ])
   await incrementViewCount(params.token)
 
-  return <ClientShortlist session={session} initialReactions={reactions} token={params.token} />
+  return <ClientShortlist session={session} initialReactions={reactions} token={params.token} agentPhoto={agentPhoto} />
 }
