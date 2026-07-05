@@ -1,8 +1,35 @@
 import type { Metadata } from 'next'
 import { getSeleccion, getReacciones, incrementViewCount } from '@/lib/redis'
+import { geocodeZona } from '@/lib/geocode'
 import ClientShortlist from '@/components/seleccion/ClientShortlist'
 
 interface Props { params: { token: string } }
+
+type SelProp = {
+  source?: string
+  snapshot?: { location?: string; lat?: number | null; lng?: number | null }
+}
+
+/**
+ * Completa lat/lng de las propiedades EXTERNAS geocodificando su zona (cacheado
+ * en Redis por zona). Así Zonaprop/Argenprop aparecen con pin en el mapa igual
+ * que las propias de Tokko. Best-effort: si no resuelve, la ficha queda sin pin.
+ * Las propias (con tokko_id) resuelven coords en el cliente vía la API de Tokko.
+ */
+async function geocodificarExternas(session: { properties?: SelProp[] } | null): Promise<void> {
+  const externas = (session?.properties ?? []).filter(
+    (p) => p.source === 'externa' && p.snapshot?.location && p.snapshot.lat == null,
+  )
+  await Promise.all(
+    externas.map(async (p) => {
+      const coords = await geocodeZona(p.snapshot!.location)
+      if (coords) {
+        p.snapshot!.lat = coords.lat
+        p.snapshot!.lng = coords.lng
+      }
+    }),
+  )
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const session = await getSeleccion(params.token)
@@ -38,6 +65,7 @@ export default async function SeleccionPage({ params }: Props) {
     )
   }
 
+  await geocodificarExternas(session)
   const reactions = await getReacciones(params.token)
   await incrementViewCount(params.token)
 
