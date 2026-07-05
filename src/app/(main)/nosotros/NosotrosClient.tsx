@@ -16,6 +16,9 @@ const EXCLUIDOS_DEL_GRID = ['David Flores', 'Laura Flores']
 // por una versión propia en /public/team. Clave = name exacto del agente.
 const FOTO_OVERRIDES: Record<string, string> = {
   'Mariana Orlate': '/team/mariana-orlate.jpg',
+  'Micaela Gonzalez': '/team/micaela-gonzalez.jpg',
+  'Leticia Alexenicer': '/team/leticia-alexenicer.jpg',
+  'Maria Jose Espilocin': '/team/maria-jose-espilocin.jpg',
 }
 
 const AGENTES_EXTRA = [
@@ -23,6 +26,7 @@ const AGENTES_EXTRA = [
   { id: -2, name: 'Sabrina Rogani',     email: '', phone: '', cellphone: '', picture: '/team/sabrina-rogani.jpg', position: '' },
   { id: -3, name: 'Eliana Rojas',       email: '', phone: '', cellphone: '', picture: '/team/eliana-rojas.jpg', position: '' },
   { id: -4, name: 'Julian Ruschneider', email: '', phone: '', cellphone: '', picture: '/team/julian-ruschneider.jpg', position: '' },
+  { id: -5, name: 'Claudia',            email: '', phone: '', cellphone: '', picture: '/team/claudia.jpg', position: '' },
 ]
 
 /* ─────────────────────────────────────────────
