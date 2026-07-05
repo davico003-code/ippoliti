@@ -108,6 +108,7 @@ export default function ClientShortlist({
   const [ayudaVisible, setAyudaVisible] = useState(true)
   const [vista, setVista] = useState<Vista>('mapa')
   const [tipoFiltro, setTipoFiltro] = useState<'todas' | TipoKey>('todas')
+  const [descartadasOpen, setDescartadasOpen] = useState(false)
   const userToggled = useRef(false)
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -312,6 +313,116 @@ export default function ClientShortlist({
     )
   }
 
+  // Descartada = el cliente marcó "No me gusta". Se apaga en gris y baja a la
+  // sección "Descartadas" para que arriba queden solo las que le interesan.
+  const esDescartada = (id: string) => reactions[id]?.liked === false
+
+  // Card compacta (vista Mapa, listado derecho).
+  function renderCardListado(prop: Property, idx: number) {
+    const r = reactions[prop.id] || {}
+    const pi = propInfo[prop.id]
+    const info = pi?.info
+    const loading = pi?.loading
+    const title = etiqueta(prop)
+    const activo = selectedId === prop.id
+    return (
+      <div
+        key={prop.id}
+        ref={(el) => { cardRefs.current[prop.id] = el }}
+        className="rounded-[14px] border p-2.5 transition-all"
+        style={{
+          borderColor: activo ? '#1A5C38' : r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5',
+          background: activo ? '#f3faf6' : 'white',
+          boxShadow: activo ? '0 4px 16px rgba(26,92,56,0.14)' : 'none',
+        }}
+      >
+        <div className="flex gap-3">
+          <div className="relative h-[76px] w-[92px] shrink-0 overflow-hidden rounded-[10px] bg-[#eef1ee]">
+            {loading ? (
+              <div className="h-full w-full animate-pulse bg-[#e6ebe7]" />
+            ) : info?.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={info.image} alt={title} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9bb0a4" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </div>
+            )}
+            <span className="absolute left-1.5 top-1.5 rounded-full bg-white/92 px-2 py-0.5 text-[11px] font-bold text-[#123f27]">#{idx + 1}</span>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+            <h3 className="text-[13.5px] font-semibold leading-[1.3] text-[#1C2620]" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</h3>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#5B6B62]">
+              {info && info.rooms > 0 && <span className="flex items-center gap-1"><IcBed /> {info.rooms}</span>}
+              {info && info.baths > 0 && <span className="flex items-center gap-1"><IcBath /> {info.baths}</span>}
+              {info && info.area > 0 && <span className="flex items-center gap-1"><IcArea /> {info.area} m²</span>}
+            </div>
+            {info?.price && <div className="text-[13.5px] font-bold text-[#1A5C38]">{info.price}</div>}
+          </div>
+        </div>
+        {isValidNote(prop.note) && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{prop.note}&rdquo;</p>}
+        {renderAcciones(prop)}
+      </div>
+    )
+  }
+
+  // Card grande (vista Lista, grilla).
+  function renderCardGrilla(prop: Property, idx: number) {
+    const r = reactions[prop.id] || {}
+    const pi = propInfo[prop.id]
+    const info = pi?.info
+    const loading = pi?.loading
+    const title = etiqueta(prop)
+    return (
+      <div key={prop.id} className="flex flex-col overflow-hidden rounded-2xl border bg-white"
+        style={{ borderColor: r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5', boxShadow: '0 2px 12px rgba(20,50,35,0.05)' }}>
+        <div className="relative h-[170px] shrink-0 bg-[#eef1ee]">
+          {loading ? (
+            <div className="h-full w-full animate-pulse bg-[#e6ebe7]" />
+          ) : info?.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={info.image} alt={title} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9bb0a4" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+          )}
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-1 text-[12px] font-bold text-[#123f27]" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.14)' }}>#{idx + 1}</span>
+          <button type="button" aria-label="Me gusta"
+            onClick={() => patchReaction(prop.id, { liked: r.liked === true ? null : true })}
+            className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 transition active:scale-90"
+            style={{ color: r.liked === true ? '#1A5C38' : '#5B6B62', boxShadow: '0 1px 6px rgba(0,0,0,0.14)' }}>
+            <BtnHeart filled={r.liked === true} />
+          </button>
+        </div>
+        <div className="flex flex-1 flex-col p-3.5">
+          <h3 className="text-[15px] font-bold leading-[1.35] text-[#1C2620]" style={{ fontFamily: 'Raleway, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</h3>
+          {info?.location && <p className="mt-0.5 text-[12px] text-[#5B6B62]">{info.location}</p>}
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#5B6B62]">
+            {info && info.rooms > 0 && <span className="flex items-center gap-1"><IcBed /> {info.rooms} dorm.</span>}
+            {info && info.baths > 0 && <span className="flex items-center gap-1"><IcBath /> {info.baths} baño{info.baths > 1 ? 's' : ''}</span>}
+            {info && info.area > 0 && <span className="flex items-center gap-1"><IcArea /> {info.area} m²</span>}
+          </div>
+          {info?.price && <div className="mt-1.5 text-[15px] font-extrabold text-[#1A5C38]">{info.price}</div>}
+          {isValidNote(prop.note) && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{prop.note}&rdquo;</p>}
+          <div className="flex-1" />
+          {renderAcciones(prop)}
+        </div>
+      </div>
+    )
+  }
+
+  // Encabezado plegable de "Descartadas" (compartido por las dos vistas).
+  function headerDescartadas(n: number) {
+    return (
+      <button type="button" onClick={() => setDescartadasOpen(o => !o)}
+        className="flex w-full items-center justify-between rounded-xl border border-[#E4E9E5] bg-[#FBFAF8] px-3.5 py-2.5 text-[13px] font-bold text-[#5B6B62]">
+        <span className="flex items-center gap-2"><BtnX /> Descartadas ({n})</span>
+        <span className="text-[#9aa39c]">{descartadasOpen ? '▴' : '▾'}</span>
+      </button>
+    )
+  }
+
   // ── Sidebar (compartido; el bloque de abajo cambia según la vista) ──
   const sidebar = (
     <aside className="flex flex-col gap-6 border-b border-[#E4E9E5] bg-white p-7 lg:border-b-0 lg:border-r">
@@ -460,55 +571,19 @@ export default function ClientShortlist({
 
           <aside className="flex max-h-[calc(100vh-61px)] flex-col border-t border-[#E4E9E5] bg-white p-5 lg:border-t-0 lg:border-l">
             <div className="flex flex-col gap-3.5 overflow-y-auto pb-4 pr-1">
-              {session.properties.map((prop, idx) => {
-                const r = reactions[prop.id] || {}
-                const pi = propInfo[prop.id]
-                const info = pi?.info
-                const loading = pi?.loading
-                const title = etiqueta(prop)
-                const activo = selectedId === prop.id
+              {session.properties.map((prop, idx) => (esDescartada(prop.id) ? null : renderCardListado(prop, idx)))}
+              {(() => {
+                const desc = session.properties.map((prop, idx) => ({ prop, idx })).filter(x => esDescartada(x.prop.id))
+                if (!desc.length) return null
                 return (
-                  <div
-                    key={prop.id}
-                    ref={(el) => { cardRefs.current[prop.id] = el }}
-                    className="rounded-[14px] border p-2.5 transition-all"
-                    style={{
-                      borderColor: activo ? '#1A5C38' : r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5',
-                      background: activo ? '#f3faf6' : 'white',
-                      boxShadow: activo ? '0 4px 16px rgba(26,92,56,0.14)' : 'none',
-                    }}
-                  >
-                    <div className="flex gap-3">
-                      <div className="relative h-[76px] w-[92px] shrink-0 overflow-hidden rounded-[10px] bg-[#eef1ee]">
-                        {loading ? (
-                          <div className="h-full w-full animate-pulse bg-[#e6ebe7]" />
-                        ) : info?.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={info.image} alt={title} className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9bb0a4" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                          </div>
-                        )}
-                        <span className="absolute left-1.5 top-1.5 rounded-full bg-white/92 px-2 py-0.5 text-[11px] font-bold text-[#123f27]">#{idx + 1}</span>
-                      </div>
-                      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
-                        <h3 className="text-[13.5px] font-semibold leading-[1.3] text-[#1C2620]" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</h3>
-                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#5B6B62]">
-                          {info && info.rooms > 0 && <span className="flex items-center gap-1"><IcBed /> {info.rooms}</span>}
-                          {info && info.baths > 0 && <span className="flex items-center gap-1"><IcBath /> {info.baths}</span>}
-                          {info && info.area > 0 && <span className="flex items-center gap-1"><IcArea /> {info.area} m²</span>}
-                        </div>
-                        {info?.price && <div className="text-[13.5px] font-bold text-[#1A5C38]">{info.price}</div>}
-                      </div>
-                    </div>
-
-                    {isValidNote(prop.note) && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{prop.note}&rdquo;</p>}
-
-                    {renderAcciones(prop)}
+                  <div className="mt-1 space-y-2.5">
+                    {headerDescartadas(desc.length)}
+                    {descartadasOpen && desc.map(({ prop, idx }) => (
+                      <div key={prop.id} style={{ filter: 'grayscale(1)', opacity: 0.6 }}>{renderCardListado(prop, idx)}</div>
+                    ))}
                   </div>
                 )
-              })}
+              })()}
             </div>
 
             <a href={`https://wa.me/${WA_PHONE}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
@@ -525,54 +600,31 @@ export default function ClientShortlist({
           <section className="p-5 md:p-7">
             {filasGrilla.length === 0 ? (
               <p className="px-4 py-16 text-center text-[14px] text-[#5B6B62]">No hay propiedades de este tipo en tu selección.</p>
-            ) : (
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {filasGrilla.map(({ p: prop, idx }) => {
-                  const r = reactions[prop.id] || {}
-                  const pi = propInfo[prop.id]
-                  const info = pi?.info
-                  const loading = pi?.loading
-                  const title = etiqueta(prop)
-                  return (
-                    <div key={prop.id} className="flex flex-col overflow-hidden rounded-2xl border bg-white"
-                      style={{ borderColor: r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5', boxShadow: '0 2px 12px rgba(20,50,35,0.05)' }}>
-                      <div className="relative h-[170px] shrink-0 bg-[#eef1ee]">
-                        {loading ? (
-                          <div className="h-full w-full animate-pulse bg-[#e6ebe7]" />
-                        ) : info?.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={info.image} alt={title} className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9bb0a4" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                          </div>
-                        )}
-                        <span className="absolute left-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-1 text-[12px] font-bold text-[#123f27]" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.14)' }}>#{idx + 1}</span>
-                        <button type="button" aria-label="Me gusta"
-                          onClick={() => patchReaction(prop.id, { liked: r.liked === true ? null : true })}
-                          className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 transition active:scale-90"
-                          style={{ color: r.liked === true ? '#1A5C38' : '#5B6B62', boxShadow: '0 1px 6px rgba(0,0,0,0.14)' }}>
-                          <BtnHeart filled={r.liked === true} />
-                        </button>
-                      </div>
-                      <div className="flex flex-1 flex-col p-3.5">
-                        <h3 className="text-[15px] font-bold leading-[1.35] text-[#1C2620]" style={{ fontFamily: 'Raleway, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</h3>
-                        {info?.location && <p className="mt-0.5 text-[12px] text-[#5B6B62]">{info.location}</p>}
-                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#5B6B62]">
-                          {info && info.rooms > 0 && <span className="flex items-center gap-1"><IcBed /> {info.rooms} dorm.</span>}
-                          {info && info.baths > 0 && <span className="flex items-center gap-1"><IcBath /> {info.baths} baño{info.baths > 1 ? 's' : ''}</span>}
-                          {info && info.area > 0 && <span className="flex items-center gap-1"><IcArea /> {info.area} m²</span>}
-                        </div>
-                        {info?.price && <div className="mt-1.5 text-[15px] font-extrabold text-[#1A5C38]">{info.price}</div>}
-                        {isValidNote(prop.note) && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{prop.note}&rdquo;</p>}
-                        <div className="flex-1" />
-                        {renderAcciones(prop)}
-                      </div>
+            ) : (() => {
+              const activas = filasGrilla.filter(({ p }) => !esDescartada(p.id))
+              const desc = filasGrilla.filter(({ p }) => esDescartada(p.id))
+              return (
+                <>
+                  {activas.length > 0 && (
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {activas.map(({ p: prop, idx }) => renderCardGrilla(prop, idx))}
                     </div>
-                  )
-                })}
-              </div>
-            )}
+                  )}
+                  {desc.length > 0 && (
+                    <div className="mt-5 space-y-4">
+                      {headerDescartadas(desc.length)}
+                      {descartadasOpen && (
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                          {desc.map(({ p: prop, idx }) => (
+                            <div key={prop.id} style={{ filter: 'grayscale(1)', opacity: 0.6 }}>{renderCardGrilla(prop, idx)}</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )
+            })()}
           </section>
         </div>
       )}
