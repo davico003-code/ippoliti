@@ -19,6 +19,12 @@ const FOTO_OVERRIDES: Record<string, string> = {
   'Micaela Gonzalez': '/team/micaela-gonzalez.jpg',
   'Leticia Alexenicer': '/team/leticia-alexenicer.jpg',
   'Maria Jose Espilocin': '/team/maria-jose-espilocin.jpg',
+  'Mauro Matteucci': '/team/mauro-matteucci.jpg',
+  'Gino Pecchenino': '/team/gino-pecchenino.jpg',
+  'Carolina Echen': '/team/carolina-echen.jpg',
+  'Aldana Ruiz': '/team/aldana-ruiz.jpg',
+  'Gisela Ramallo': '/team/gisela-ramallo.jpg',
+  'Lucia Wilson': '/team/lucia-wilson.jpg',
 }
 
 const AGENTES_EXTRA = [
