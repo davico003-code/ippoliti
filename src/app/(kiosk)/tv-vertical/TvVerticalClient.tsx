@@ -1,57 +1,51 @@
 'use client'
 
-// Kiosco VERTICAL (televisor parado / portrait): UNA propiedad por vez con estilo
-// "hero + tira". Una foto principal inmersiva con el precio gigante encima, y
-// abajo una tira con el resto de fotos de la MISMA casa + QR. Cicla a la
-// siguiente propiedad. Sin interacción — corre todo el día.
-//
-// El contenido se dibuja SIEMPRE dentro de un marco vertical 9:16 centrado
-// (.tvv-stage), sin importar la orientación real de la pantalla: en un tele
-// apaisado queda una franja vertical con barras negras a los lados; en el tele
-// parado llena la pantalla. Todo se mide en container units (cqw/cqh) relativas
-// a ese marco, así los tamaños son correctos en cualquier pantalla.
+// Kiosco VERTICAL "vidriera viva". Renderiza una secuencia curada de tarjetas
+// (VitrinaCard) con ganchos para que enganche: precio oculto→reveal, adiviná el
+// barrio (pin en mini-mapa), countdown Top 5 de Funes, micro-récords y placas
+// institucionales con CTA rotando. Todo dentro de un marco 9:16 que se ROTA 90°
+// en pantallas apaisadas (para un TV parado que no auto-rota) y a pantalla
+// completa al tocar. El pase cicla solo y no se frena.
 
 import { useEffect, useState } from 'react'
-import type { Slide } from '../tvData'
+import type { VitrinaCard, PropView } from '../tvVitrina'
 
-const SLIDE_MS = 11000
 const RELOAD_MS = 40 * 60 * 1000
+const D = { hidden: 4000, reveal: 4500, cta: 5500, record: 4200 }
 
-export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
+function totalMs(c: VitrinaCard): number {
+  if (c.kind === 'property') return D.hidden + D.reveal
+  return c.kind === 'cta' ? D.cta : D.record
+}
+
+export default function TvVerticalClient({ cards }: { cards: VitrinaCard[] }) {
   const [idx, setIdx] = useState(0)
-  const [clock, setClock] = useState<{ h: string; d: string } | null>(null)
+  const [revealed, setRevealed] = useState(false)
 
   useEffect(() => {
-    if (slides.length <= 1) return
-    const t = setInterval(() => setIdx((i) => (i + 1) % slides.length), SLIDE_MS)
-    return () => clearInterval(t)
-  }, [slides.length])
-
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date()
-      const h = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
-      const d = now.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
-      setClock({ h, d: d.charAt(0).toUpperCase() + d.slice(1) })
+    if (cards.length === 0) return
+    setRevealed(false)
+    const c = cards[idx % cards.length]
+    const timers: ReturnType<typeof setTimeout>[] = []
+    if (c.kind === 'property') {
+      timers.push(setTimeout(() => setRevealed(true), D.hidden))
     }
-    tick()
-    const t = setInterval(tick, 15000)
-    return () => clearInterval(t)
-  }, [])
+    timers.push(setTimeout(() => setIdx((i) => (i + 1) % cards.length), totalMs(c)))
+    return () => timers.forEach(clearTimeout)
+  }, [idx, cards])
 
   useEffect(() => {
     const t = setTimeout(() => window.location.reload(), RELOAD_MS)
     return () => clearTimeout(t)
   }, [])
 
-  // Tocar/clickear la pantalla → pantalla completa (el TV no maximiza solo).
   const toggleFullscreen = () => {
     const el = document.documentElement
     if (!document.fullscreenElement) el.requestFullscreen?.().catch(() => {})
     else document.exitFullscreen?.().catch(() => {})
   }
 
-  if (slides.length === 0) {
+  if (cards.length === 0) {
     return (
       <main style={{ height: '100dvh', display: 'grid', placeItems: 'center', background: '#08100B' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -60,153 +54,280 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
     )
   }
 
-  const s = slides[idx]
-  const all = s.photos.length ? s.photos : [s.photo]
-  const hero = all[0]
-  const thumbs = all.slice(1, 4) // resto de fotos de la misma casa (hasta 3)
+  const card = cards[idx % cards.length]
 
   return (
     <main className="tvv-root" onClick={toggleFullscreen} title="Tocar para pantalla completa">
       <div className="tvv-stage">
-        {/* HERO inmersivo — foto principal */}
-        <section key={`hero-${idx}`} className="tvv-hero">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={hero} alt="" className="tvv-hero-img tvv-kb" />
-          <div className="tvv-scrim-top" />
-          <div className="tvv-scrim-bottom" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" className="tvv-logo" />
 
-          {/* Header sobre la foto */}
-          <header className="tvv-header">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" className="tvv-logo" />
-            {clock && (
-              <div className="tvv-clock">
-                <div className="tvv-clock-h">{clock.h}</div>
-                <div className="tvv-clock-d">{clock.d}</div>
-              </div>
-            )}
-          </header>
-
-          {/* Info sobre la foto */}
-          <div className="tvv-info tvv-in">
-            <div className="tvv-eyebrow">
-              {s.destacada && <span className="tvv-badge">Selección SI</span>}
-              <span className="tvv-meta">{s.tipo}{s.ubicacion ? ` · ${s.ubicacion}` : ''}</span>
-            </div>
-            {s.titulo && <h2 className="tvv-title">{s.titulo}</h2>}
-            <div className="tvv-price">{s.precio}</div>
-            {s.specs.length > 0 && (
-              <div className="tvv-specs">
-                {s.specs.map((sp, i) => (
-                  <div key={i} className="tvv-spec">
-                    <span className="tvv-spec-v">{sp.v}</span>
-                    <span className="tvv-spec-l">{sp.l}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* TIRA — resto de fotos de la misma casa + QR */}
-        <div key={`strip-${idx}`} className="tvv-strip">
-          {thumbs.map((src, k) => (
-            <div key={k} className="tvv-thumb tvv-in" style={{ animationDelay: `${k * 90}ms` }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="tvv-thumb-img" />
-            </div>
-          ))}
-          {s.qr && (
-            <div className="tvv-qr tvv-in" style={{ animationDelay: `${thumbs.length * 90}ms` }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s.qr} alt="Código QR" className="tvv-qr-img" />
-              <span className="tvv-qr-t">Escaneá</span>
-            </div>
-          )}
+        <div key={idx} className="tvv-card">
+          {card.kind === 'property' && <PropertyCard card={card} revealed={revealed} />}
+          {card.kind === 'cta' && <CtaCard data={card.data} />}
+          {card.kind === 'record' && <RecordCard data={card.data} />}
         </div>
 
-        {/* Barra de progreso */}
-        {slides.length > 1 && (
-          <div key={`p-${idx}`} className="tvv-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
-        )}
+        <div key={`p-${idx}`} className="tvv-progress" style={{ animationDuration: `${totalMs(card)}ms` }} />
       </div>
-
-      <style>{`
-        .tvv-root { position: fixed; inset: 0; overflow: hidden; background: #000; }
-
-        /* Marco vertical que llena la pantalla. En una pantalla PORTRAIT (celu)
-           se ve normal. En una pantalla LANDSCAPE (el TV, que emite apaisado) el
-           contenido se ROTA 90° a la derecha y se dibuja como portrait a pantalla
-           completa: al parar físicamente el TV queda derecho. */
-        .tvv-stage { position: absolute; top: 50%; left: 50%; overflow: hidden; background: #08100B;
-          width: 100vw; height: 100dvh; transform: translate(-50%, -50%);
-          container-type: size; display: flex; flex-direction: column; }
-        @media (orientation: landscape) {
-          .tvv-stage { width: 100dvh; height: 100vw; transform: translate(-50%, -50%) rotate(90deg); }
-        }
-
-        /* HERO */
-        .tvv-hero { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-        .tvv-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .tvv-kb { animation: tvvKb ${SLIDE_MS + 2000}ms ease-out forwards; }
-        @keyframes tvvKb { from { transform: scale(1.03); } to { transform: scale(1.13); } }
-        .tvv-scrim-top { position: absolute; inset: 0; pointer-events: none; z-index: 1;
-          background: linear-gradient(180deg, rgba(6,14,9,.72) 0%, rgba(6,14,9,0) 16%); }
-        .tvv-scrim-bottom { position: absolute; inset: 0; pointer-events: none; z-index: 1;
-          background: linear-gradient(0deg, rgba(6,14,9,.96) 0%, rgba(6,14,9,.75) 18%, rgba(6,14,9,.15) 40%, rgba(6,14,9,0) 58%); }
-
-        .tvv-header { position: absolute; top: 0; left: 0; right: 0; z-index: 3;
-          display: flex; align-items: flex-start; justify-content: space-between; padding: 3cqh 4cqw 0; }
-        .tvv-logo { height: 3.4cqh; min-height: 26px; width: auto; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
-        .tvv-clock { text-align: right; text-shadow: 0 2px 12px rgba(0,0,0,.6); }
-        .tvv-clock-h { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 3.4cqh; line-height: 1;
-          font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-        .tvv-clock-d { font-size: 1.5cqh; color: rgba(255,255,255,.85); margin-top: .4cqh; }
-
-        .tvv-info { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 0 4cqw 3.4cqh; }
-        .tvv-eyebrow { display: flex; align-items: center; gap: 1.4cqw; margin-bottom: 1.4cqh; flex-wrap: wrap; }
-        .tvv-badge { background: #1A5C38; color: #fff; font-weight: 700; font-size: 2.6cqw; letter-spacing: .1em;
-          text-transform: uppercase; padding: .6cqh 2.4cqw; border-radius: 999px; }
-        .tvv-meta { font-size: 3.2cqw; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #A6E7BE;
-          text-shadow: 0 1px 8px rgba(0,0,0,.6); }
-        .tvv-title { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 5cqw; line-height: 1.12;
-          margin: 0 0 1.6cqh; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.6);
-          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .tvv-price { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 12cqw; line-height: .95;
-          letter-spacing: -.03em; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 3px 24px rgba(0,0,0,.55); }
-        .tvv-specs { display: flex; margin-top: 2cqh; }
-        .tvv-spec { padding: 0 3.4cqw; display: flex; flex-direction: column; }
-        .tvv-spec:first-child { padding-left: 0; }
-        .tvv-spec:last-child { padding-right: 0; }
-        .tvv-spec + .tvv-spec { border-left: 1px solid rgba(255,255,255,.3); }
-        .tvv-spec-v { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 6cqw; line-height: 1;
-          font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
-        .tvv-spec-l { font-size: 2.5cqw; color: rgba(255,255,255,.85); margin-top: .6cqh; }
-
-        /* TIRA */
-        .tvv-strip { flex: none; display: flex; gap: 2.4cqw; padding: 2cqh 4cqw 2.6cqh; height: 17cqh; }
-        .tvv-thumb { flex: 1; position: relative; border-radius: 2.6cqw; overflow: hidden;
-          box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); outline: 1px solid rgba(255,255,255,.08); outline-offset: -1px; }
-        .tvv-thumb-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .tvv-qr { flex: none; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: .6cqh; background: #fff; border-radius: 2.6cqw; padding: 1cqh; box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); }
-        .tvv-qr-img { flex: 1; min-height: 0; width: auto; aspect-ratio: 1; display: block; }
-        .tvv-qr-t { font-size: 2.2cqw; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #0E1A14; }
-
-        .tvv-progress { position: absolute; left: 0; bottom: 0; height: .6cqh; min-height: 3px; z-index: 8;
-          background: linear-gradient(90deg, #1A5C38, #8CF0B4); width: 0; animation-name: tvvProg;
-          animation-timing-function: linear; animation-fill-mode: forwards; }
-        @keyframes tvvProg { from { width: 0; } to { width: 100%; } }
-
-        /* Entrada como PLUS: arranca desde un estado ya visible; si el navegador
-           pausa animaciones (tab en background, navegadores de TV) nada queda oculto. */
-        .tvv-in { animation: tvvIn 700ms cubic-bezier(.2,.7,.2,1) both; }
-        @keyframes tvvIn { from { opacity: .85; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-
-        @media (prefers-reduced-motion: reduce) {
-          .tvv-kb, .tvv-in { animation: none !important; }
-        }
-      `}</style>
+      <style>{CSS}</style>
     </main>
   )
 }
+
+// ── Property (con gancho reveal-price | guess-zone | countdown) ───────────────
+function PropertyCard({
+  card,
+  revealed,
+}: {
+  card: Extract<VitrinaCard, { kind: 'property' }>
+  revealed: boolean
+}) {
+  const p: PropView = card.data
+  const hero = p.photos[0]
+  const thumbs = p.photos.slice(1, 4)
+  const isGuess = card.hook === 'guess-zone'
+  const zoneText = [p.barrio, p.zona].filter(Boolean).join(' · ') || p.zona
+
+  return (
+    <div className="pc">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={hero} alt="" className="pc-hero tvv-kb" />
+      <div className="pc-scrim" />
+
+      {/* Rank del countdown */}
+      {card.rank != null && (
+        <div className="pc-rank">
+          <span className="pc-rank-kicker">Top {card.total} casas de Funes</span>
+          <span className="pc-rank-n">N° {card.rank}</span>
+        </div>
+      )}
+
+      {/* Tira de fotos de la misma casa */}
+      {thumbs.length > 0 && (
+        <div className="pc-strip">
+          {thumbs.map((src, k) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={k} src={src} alt="" className="pc-thumb" />
+          ))}
+        </div>
+      )}
+
+      <div className="pc-info">
+        <div className="pc-eyebrow">
+          {p.destacada && card.rank == null && <span className="pc-badge">Selección SI</span>}
+          {/* En guess-zone ocultamos la zona hasta el reveal */}
+          <span className="pc-meta">{p.tipo}{!isGuess && zoneText ? ` · ${zoneText}` : ''}</span>
+        </div>
+        {p.titulo && <h2 className="pc-title">{p.titulo}</h2>}
+        {p.specs.length > 0 && (
+          <div className="pc-specs">
+            {p.specs.map((s, i) => (
+              <div key={i} className="pc-spec"><span className="pc-spec-v">{s.v}</span><span className="pc-spec-l">{s.l}</span></div>
+            ))}
+          </div>
+        )}
+
+        {/* GANCHO */}
+        {!isGuess ? (
+          // precio oculto → reveal
+          !revealed ? (
+            <div className="pc-teaser"><span className="pc-teaser-q">¿Cuánto vale?</span><span className="pc-eye">👀</span></div>
+          ) : (
+            <div className="pc-price-row">
+              <div className="pc-price-lbl">Precio</div>
+              <div className="pc-price pc-pop">{p.price}</div>
+            </div>
+          )
+        ) : (
+          // adiviná el barrio → reveal con pin
+          !revealed ? (
+            <div className="pc-teaser"><span className="pc-teaser-q">¿Dónde está?</span><span className="pc-eye">👀</span></div>
+          ) : (
+            <div className="pc-zone pc-pop">
+              <MiniMap />
+              <div className="pc-zone-txt">
+                <span className="pc-pin">📍</span>
+                <span className="pc-zone-name">{zoneText}</span>
+              </div>
+              <div className="pc-price pc-price-sm">{p.price}</div>
+            </div>
+          )
+        )}
+      </div>
+
+      {p.qr && (
+        <div className="pc-qr">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={p.qr} alt="QR" className="pc-qr-img" />
+          <span className="pc-qr-t">Escaneá</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MiniMap() {
+  // Mapa estilizado (sin tiles externos): calles abstractas + pin que cae.
+  return (
+    <svg className="pc-map" viewBox="0 0 100 42" preserveAspectRatio="none" aria-hidden>
+      <rect width="100" height="42" fill="#0f2419" />
+      <g stroke="#1f4d34" strokeWidth="1.4">
+        <path d="M0 14 H100 M0 28 H100 M18 0 V42 M42 0 V42 M66 0 V42 M84 0 V42" />
+      </g>
+      <g stroke="#2c6b48" strokeWidth="2.2" opacity="0.7">
+        <path d="M0 21 H100 M50 0 V42" />
+      </g>
+    </svg>
+  )
+}
+
+// ── CTA institucional ────────────────────────────────────────────────────────
+function CtaCard({ data }: { data: Extract<VitrinaCard, { kind: 'cta' }>['data'] }) {
+  return (
+    <div className="cta">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" className="cta-logo" />
+      <div className="cta-main">
+        <h2 className="cta-title">{data.title}</h2>
+        <p className="cta-sub">{data.subtitle}</p>
+        <span className="cta-note">{data.note}</span>
+      </div>
+      {data.qr && (
+        <div className="cta-qr">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={data.qr} alt="QR" className="cta-qr-img" />
+          <span className="cta-qr-t">Escaneá</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Micro-récord ─────────────────────────────────────────────────────────────
+function RecordCard({ data }: { data: Extract<VitrinaCard, { kind: 'record' }>['data'] }) {
+  return (
+    <div className="rec">
+      <span className="rec-emoji">{data.emoji}</span>
+      <span className="rec-label">{data.label}</span>
+      <span className="rec-value pc-pop">{data.value}</span>
+    </div>
+  )
+}
+
+const CSS = `
+  .tvv-root { position: fixed; inset: 0; overflow: hidden; background: #000; }
+  .tvv-stage { position: absolute; top: 50%; left: 50%; overflow: hidden; background: #08100B;
+    width: 100vw; height: 100dvh; transform: translate(-50%, -50%);
+    container-type: size; }
+  @media (orientation: landscape) {
+    .tvv-stage { width: 100dvh; height: 100vw; transform: translate(-50%, -50%) rotate(90deg); }
+  }
+  .tvv-logo { position: absolute; top: 3cqh; left: 5cqw; z-index: 20; height: 3.2cqh; min-height: 26px; width: auto;
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
+  .tvv-card { position: absolute; inset: 0; }
+  .tvv-progress { position: absolute; left: 0; bottom: 0; height: .6cqh; min-height: 3px; z-index: 25;
+    background: linear-gradient(90deg, #1A5C38, #8CF0B4); width: 0; animation-name: prog;
+    animation-timing-function: linear; animation-fill-mode: forwards; }
+  @keyframes prog { from { width: 0; } to { width: 100%; } }
+
+  /* ── Property ── */
+  .pc { position: absolute; inset: 0; overflow: hidden; }
+  .pc-hero { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .tvv-kb { animation: kb 9000ms ease-out forwards; }
+  @keyframes kb { from { transform: scale(1.04); } to { transform: scale(1.14); } }
+  .pc-scrim { position: absolute; inset: 0;
+    background: linear-gradient(0deg, rgba(6,14,9,.95) 0%, rgba(6,14,9,.6) 26%, rgba(6,14,9,0) 55%),
+                linear-gradient(180deg, rgba(6,14,9,.55) 0%, rgba(6,14,9,0) 16%); }
+
+  .pc-rank { position: absolute; top: 9cqh; left: 5cqw; z-index: 6; display: flex; flex-direction: column;
+    animation: inUp 700ms cubic-bezier(.2,.7,.2,1) both; }
+  .pc-rank-kicker { font-size: 2.6cqw; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8CF0B4; }
+  .pc-rank-n { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 13cqw; line-height: .9;
+    color: #fff; text-shadow: 0 3px 20px rgba(0,0,0,.5); }
+
+  .pc-strip { position: absolute; top: 8cqh; right: 5cqw; z-index: 6; display: flex; flex-direction: column; gap: 1.6cqh; }
+  .pc-thumb { width: 16cqw; height: 16cqw; object-fit: cover; border-radius: 2.4cqw; border: .35cqw solid rgba(255,255,255,.85);
+    box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); animation: pop 600ms cubic-bezier(.34,1.56,.64,1) both; }
+  .pc-thumb:nth-child(2) { animation-delay: 90ms; }
+  .pc-thumb:nth-child(3) { animation-delay: 180ms; }
+
+  .pc-info { position: absolute; left: 5cqw; right: 5cqw; bottom: 4.5cqh; z-index: 6; }
+  .pc-eyebrow { display: flex; align-items: center; gap: 2cqw; margin-bottom: 1.4cqh; flex-wrap: wrap;
+    animation: inUp 600ms ease both; }
+  .pc-badge { background: #1A5C38; color: #fff; font-weight: 700; font-size: 2.4cqw; letter-spacing: .1em;
+    text-transform: uppercase; padding: .6cqh 2.4cqw; border-radius: 999px; }
+  .pc-meta { font-size: 3cqw; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #A6E7BE;
+    text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  .pc-title { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 4.6cqw; line-height: 1.12;
+    margin: 0 0 1.8cqh; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.6);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    animation: inUp 650ms ease both; }
+  .pc-specs { display: flex; margin-bottom: 2.4cqh; animation: inUp 700ms ease both; }
+  .pc-spec { padding: 0 3cqw; display: flex; flex-direction: column; }
+  .pc-spec:first-child { padding-left: 0; }
+  .pc-spec + .pc-spec { border-left: 1px solid rgba(255,255,255,.3); }
+  .pc-spec-v { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 5cqw; line-height: 1; }
+  .pc-spec-l { font-size: 2.2cqw; color: rgba(255,255,255,.8); margin-top: .5cqh; }
+
+  .pc-teaser { display: flex; align-items: center; gap: 2.5cqw; margin-top: 1.4cqh; animation: pulse 1.6s ease-in-out infinite; }
+  .pc-price-row, .pc-zone { margin-top: 1.6cqh; }
+  .pc-teaser-q { font-family: var(--font-raleway), sans-serif; font-weight: 800; font-size: 9cqw; color: #fff;
+    text-shadow: 0 3px 20px rgba(0,0,0,.5); }
+  .pc-eye { font-size: 8cqw; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+
+  .pc-price-row { }
+  .pc-price-lbl { font-family: var(--font-poppins), sans-serif; font-weight: 600; font-size: 2.4cqw;
+    letter-spacing: .4em; text-transform: uppercase; color: rgba(255,255,255,.75); margin-bottom: .6cqh; }
+  .pc-price { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 12cqw; line-height: .95;
+    letter-spacing: -.03em; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 3px 24px rgba(0,0,0,.55); }
+  .pc-price-sm { font-size: 8cqw; margin-top: 1.4cqh; }
+  .pc-pop { animation: pop 600ms cubic-bezier(.34,1.56,.64,1) both; }
+
+  .pc-zone { position: relative; }
+  .pc-map { width: 100%; height: 22cqh; display: block; border-radius: 2.6cqw; overflow: hidden;
+    outline: 1px solid rgba(255,255,255,.12); }
+  .pc-zone-txt { position: absolute; top: 6cqh; left: 4cqw; right: 4cqw; display: flex; align-items: center; gap: 2cqw; }
+  .pc-pin { font-size: 9cqw; animation: drop 600ms cubic-bezier(.34,1.56,.64,1) both; }
+  .pc-zone-name { font-family: var(--font-raleway), sans-serif; font-weight: 800; font-size: 6.5cqw; color: #fff;
+    text-shadow: 0 2px 14px rgba(0,0,0,.6); line-height: 1; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-6cqh) scale(.6); } to { opacity: 1; transform: none; } }
+
+  .pc-qr { position: absolute; bottom: 4.5cqh; right: 5cqw; z-index: 8; display: flex; flex-direction: column;
+    align-items: center; gap: .6cqh; background: #fff; border-radius: 2.4cqw; padding: 1.4cqw;
+    box-shadow: 0 1cqh 2.4cqh rgba(0,0,0,.5); }
+  .pc-qr-img { width: 14cqw; height: 14cqw; display: block; }
+  .pc-qr-t { font-size: 2cqw; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0E1A14; }
+
+  /* ── CTA ── */
+  .cta { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 4cqh; padding: 8cqw; text-align: center;
+    background: radial-gradient(120% 90% at 50% 15%, #1A5C38 0%, #0F3A23 48%, #08100B 100%); }
+  .cta-logo { height: 5cqh; width: auto; animation: inUp 700ms ease both; }
+  .cta-main { display: flex; flex-direction: column; align-items: center; gap: 1.4cqh; animation: inUp 800ms ease both; }
+  .cta-title { font-family: var(--font-raleway), sans-serif; font-weight: 800; font-size: 12cqw; line-height: 1; margin: 0; color: #fff; }
+  .cta-sub { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 6cqw; margin: 0; color: #A6E7BE; }
+  .cta-note { font-family: var(--font-poppins), sans-serif; font-size: 3.4cqw; color: rgba(255,255,255,.8); margin-top: 1cqh; }
+  .cta-qr { background: #fff; border-radius: 3cqw; padding: 2cqw; display: flex; flex-direction: column; align-items: center; gap: 1cqw;
+    box-shadow: 0 1.4cqh 3cqh rgba(0,0,0,.5); animation: pop 700ms cubic-bezier(.34,1.56,.64,1) both; }
+  .cta-qr-img { width: 26cqw; height: 26cqw; display: block; }
+  .cta-qr-t { font-size: 2.6cqw; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #0E1A14; }
+
+  /* ── Récord ── */
+  .rec { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2cqh; padding: 8cqw; text-align: center;
+    background: radial-gradient(120% 80% at 50% 30%, #0F3A23 0%, #08100B 70%); }
+  .rec-emoji { font-size: 22cqw; animation: pop 700ms cubic-bezier(.34,1.56,.64,1) both; }
+  .rec-label { font-family: var(--font-poppins), sans-serif; font-weight: 600; font-size: 4cqw;
+    letter-spacing: .1em; text-transform: uppercase; color: #A6E7BE; }
+  .rec-value { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 15cqw; line-height: 1;
+    color: #fff; font-variant-numeric: tabular-nums; }
+
+  @keyframes inUp { from { opacity: .3; transform: translateY(3cqh); } to { opacity: 1; transform: none; } }
+  @keyframes pop { from { opacity: .4; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tvv-kb, .pc-pop, .pc-thumb, .pc-teaser, .pc-pin, .cta-qr, .rec-emoji, .pc-rank, .pc-eyebrow, .pc-title, .pc-specs, .cta-logo, .cta-main { animation: none !important; }
+  }
+`
