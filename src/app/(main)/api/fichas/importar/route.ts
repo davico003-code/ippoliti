@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAgentToken } from '@/lib/auth'
 import { crearFichaExterna, type FichaExternaInput } from '@/lib/ficha'
 import { fetchZonaprop, isZonapropUrl } from '@/lib/zonaprop'
+import { fetchArgenprop, isArgenpropUrl } from '@/lib/argenprop'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // el scraping vía Microlink puede tardar ~30s
@@ -67,8 +68,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'URL inválida' }, { status: 400 })
   }
 
-  // ── Scraping automático (Zonaprop) ──
-  const scraped = isZonapropUrl(sourceUrl) ? await fetchZonaprop(sourceUrl) : null
+  // ── Scraping automático (Zonaprop vía Microlink / Argenprop vía fetch directo) ──
+  const scraped = isZonapropUrl(sourceUrl)
+    ? await fetchZonaprop(sourceUrl)
+    : isArgenpropUrl(sourceUrl)
+      ? await fetchArgenprop(sourceUrl)
+      : null
 
   // Overrides manuales (corrección o fallback). Solo pisan si vienen presentes.
   const ov = (body.manual ?? {}) as Record<string, unknown>
@@ -81,7 +86,7 @@ export async function POST(req: NextRequest) {
   const titulo = pick('titulo', '').slice(0, 200)
   if (!titulo && !scraped) {
     return NextResponse.json(
-      { error: 'No se pudo leer el aviso (Zonaprop puede estar lento o bloqueando). Reintentá o cargá los datos a mano.' },
+      { error: 'No se pudo leer el aviso (el portal puede estar lento o bloqueando). Reintentá o cargá los datos a mano.' },
       { status: 422 },
     )
   }
