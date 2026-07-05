@@ -17,6 +17,8 @@ const EXCLUIDOS_DEL_GRID = ['David Flores', 'Laura Flores']
 const FOTO_OVERRIDES: Record<string, string> = {
   'Mariana Orlate': '/team/mariana-orlate.jpg',
   'Micaela Gonzalez': '/team/micaela-gonzalez.jpg',
+  'Leticia Alexenicer': '/team/leticia-alexenicer.jpg',
+  'Maria Jose Espilocin': '/team/maria-jose-espilocin.jpg',
 }
 
 const AGENTES_EXTRA = [
