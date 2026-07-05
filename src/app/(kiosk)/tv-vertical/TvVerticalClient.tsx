@@ -125,13 +125,18 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
       </div>
 
       <style>{`
-        .tvv-root { position: fixed; inset: 0; overflow: hidden; background: #000;
-          display: flex; align-items: center; justify-content: center; }
+        .tvv-root { position: fixed; inset: 0; overflow: hidden; background: #000; }
 
-        /* Marco vertical 9:16 centrado: el mayor 9:16 que entra en la pantalla. */
-        .tvv-stage { position: relative; overflow: hidden; background: #08100B;
-          width: min(100vw, calc(100dvh * 9 / 16)); height: min(100dvh, calc(100vw * 16 / 9));
+        /* Marco vertical que llena la pantalla. En una pantalla PORTRAIT (celu)
+           se ve normal. En una pantalla LANDSCAPE (el TV, que emite apaisado) el
+           contenido se ROTA 90° a la derecha y se dibuja como portrait a pantalla
+           completa: al parar físicamente el TV queda derecho. */
+        .tvv-stage { position: absolute; top: 50%; left: 50%; overflow: hidden; background: #08100B;
+          width: 100vw; height: 100dvh; transform: translate(-50%, -50%);
           container-type: size; display: flex; flex-direction: column; }
+        @media (orientation: landscape) {
+          .tvv-stage { width: 100dvh; height: 100vw; transform: translate(-50%, -50%) rotate(90deg); }
+        }
 
         /* HERO */
         .tvv-hero { position: relative; flex: 1; min-height: 0; overflow: hidden; }
@@ -160,7 +165,7 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
         .tvv-title { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 5cqw; line-height: 1.12;
           margin: 0 0 1.6cqh; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.6);
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .tvv-price { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 15cqw; line-height: .92;
+        .tvv-price { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 12cqw; line-height: .95;
           letter-spacing: -.03em; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 3px 24px rgba(0,0,0,.55); }
         .tvv-specs { display: flex; margin-top: 2cqh; }
         .tvv-spec { padding: 0 3.4cqw; display: flex; flex-direction: column; }
