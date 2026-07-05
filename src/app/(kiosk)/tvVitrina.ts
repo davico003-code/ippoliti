@@ -77,9 +77,6 @@ function isCasa(p: TokkoProperty): boolean {
 function isLote(p: TokkoProperty): boolean {
   return /terreno|land|lote/i.test(`${p.type?.name} ${translatePropertyType(p.type?.name)}`)
 }
-function isPrivado(p: TokkoProperty): boolean {
-  return /countr|cerrado|privad|b\.?\s*c\.?/i.test(`${p.location?.name} ${p.location?.short_location}`)
-}
 
 // Piso de precio por tipo: casas ≥ 200k, lotes ≥ 40k, otros ≥ 200k. Sin precio
 // visible (Consultar) queda afuera porque el gancho de reveal necesita un número.
@@ -140,7 +137,7 @@ async function toView(p: TokkoProperty): Promise<PropView> {
 }
 
 function hookFor(p: TokkoProperty): 'reveal-price' | 'guess-zone' {
-  return isLote(p) && isPrivado(p) ? 'guess-zone' : 'reveal-price'
+  return isLote(p) ? 'guess-zone' : 'reveal-price'
 }
 
 // ── CTAs institucionales (rotan) ─────────────────────────────────────────────
@@ -193,13 +190,14 @@ export async function getVitrina(): Promise<VitrinaCard[]> {
     .filter((p): p is TokkoProperty => !!p)
   roldanPicks.forEach(take)
 
-  // 3) Lotes de barrios privados (≥40k) — bloque garantizado (si no, el orden por
-  //    precio los dejaría fuera del top). Gancho: adiviná el barrio.
-  const lotesPrivados = pool
-    .filter((p) => free(p) && isLote(p) && isPrivado(p))
+  // 3) Lotes (≥40k) — bloque garantizado (si no, el orden por precio los dejaría
+  //    fuera del top). No hace falta que sean de barrio privado. Gancho: adiviná
+  //    el barrio.
+  const lotes = pool
+    .filter((p) => free(p) && isLote(p))
     .sort((a, b) => priceNumber(b) - priceNumber(a))
-    .slice(0, 10)
-  lotesPrivados.forEach(take)
+    .slice(0, 12)
+  lotes.forEach(take)
 
   // 4) Resto premium (dentro del piso): de mayor a menor precio → el valor baja
   //    suave y no salta. Muchas propiedades para que no repita.
@@ -216,8 +214,8 @@ export async function getVitrina(): Promise<VitrinaCard[]> {
   })
   const biggest = casasReales.sort((a, b) => (getRoofedArea(b) || 0) - (getRoofedArea(a) || 0))[0]
   if (biggest) records.push({ emoji: '🏡', label: 'La casa más grande', value: `${getRoofedArea(biggest)!.toLocaleString('es-AR')} m²` })
-  const lotes = pool.filter((p) => isLote(p) && getLotSurface(p))
-  const biggestLot = lotes.sort((a, b) => (getLotSurface(b) || 0) - (getLotSurface(a) || 0))[0]
+  const lotesConSup = pool.filter((p) => isLote(p) && getLotSurface(p))
+  const biggestLot = lotesConSup.sort((a, b) => (getLotSurface(b) || 0) - (getLotSurface(a) || 0))[0]
   if (biggestLot) records.push({ emoji: '🌳', label: 'El lote más grande', value: `${getLotSurface(biggestLot)!.toLocaleString('es-AR')} m²` })
   const casasPriced = pool.filter((p) => isCasa(p) && priceNumber(p) > 0)
   const cheapestCasa = casasPriced.sort((a, b) => priceNumber(a) - priceNumber(b))[0]
@@ -237,8 +235,8 @@ export async function getVitrina(): Promise<VitrinaCard[]> {
   for (const p of roldanPicks) {
     propCards.push({ kind: 'property', hook: 'reveal-price', data: await toView(p) })
   }
-  // Lotes de barrios privados — adiviná el barrio
-  for (const p of lotesPrivados) {
+  // Lotes — adiviná el barrio
+  for (const p of lotes) {
     propCards.push({ kind: 'property', hook: 'guess-zone', data: await toView(p) })
   }
   // Resto
