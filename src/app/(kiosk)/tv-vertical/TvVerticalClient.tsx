@@ -121,14 +121,15 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
           padding: 2.4vh 3.4vw 1.6vh; }
         .tvv-logo { height: 2.8vh; min-height: 30px; width: auto; filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
         .tvv-clock { text-align: right; }
-        .tvv-clock-h { font-family: var(--font-raleway), sans-serif; font-weight: 700; font-size: 2.6vh; line-height: 1;
-          font-variant-numeric: tabular-nums; }
+        .tvv-clock-h { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 3vh; line-height: 1;
+          font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
         .tvv-clock-d { font-size: 1.35vh; color: rgba(255,255,255,.75); margin-top: .4vh; }
 
-        .tvv-photos { position: relative; flex: 1; display: flex; flex-direction: column; gap: 1.3vh;
+        .tvv-photos { position: relative; flex: 1; display: flex; flex-direction: column; gap: 1.7vh;
           padding: 0 2.6vw; min-height: 0; }
-        .tvv-shot { position: relative; flex: 1; min-height: 0; border-radius: 2vh; overflow: hidden;
-          box-shadow: 0 1vh 2.6vh rgba(0,0,0,.4); }
+        .tvv-shot { position: relative; flex: 1; min-height: 0; border-radius: 2.8vh; overflow: hidden;
+          box-shadow: 0 1.6vh 3.6vh rgba(0,0,0,.55), 0 .3vh 1vh rgba(0,0,0,.4);
+          outline: 1px solid rgba(255,255,255,.08); outline-offset: -1px; }
         .tvv-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .tvv-kb { animation: tvvKb ${SLIDE_MS + 2000}ms ease-out forwards; }
         @keyframes tvvKb { from { transform: scale(1.02); } to { transform: scale(1.12); } }
@@ -151,16 +152,17 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
         .tvv-title { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 3vw; line-height: 1.14;
           margin: 0 0 1.6vh; color: #fff;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .tvv-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 2vw; flex-wrap: wrap; }
-        .tvv-price { font-family: var(--font-raleway), sans-serif; font-weight: 800; font-size: 6.4vw; line-height: 1;
-          letter-spacing: -.02em; color: #fff; font-variant-numeric: tabular-nums; }
-        .tvv-specs { display: flex; padding-bottom: .6vh; }
-        .tvv-spec { padding: 0 2vw; display: flex; flex-direction: column; }
+        .tvv-row { display: flex; flex-direction: column; align-items: flex-start; gap: 1.8vh; }
+        .tvv-price { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 9.4vw; line-height: .95;
+          letter-spacing: -.03em; color: #fff; font-variant-numeric: tabular-nums; }
+        .tvv-specs { display: flex; }
+        .tvv-spec { padding: 0 2.4vw; display: flex; flex-direction: column; }
+        .tvv-spec:first-child { padding-left: 0; }
         .tvv-spec:last-child { padding-right: 0; }
         .tvv-spec + .tvv-spec { border-left: 1px solid rgba(255,255,255,.28); }
-        .tvv-spec-v { font-family: var(--font-raleway), sans-serif; font-weight: 700; font-size: 2.6vw; line-height: 1;
+        .tvv-spec-v { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 3.8vw; line-height: 1;
           font-variant-numeric: tabular-nums; }
-        .tvv-spec-l { font-size: 1.4vw; color: rgba(255,255,255,.75); margin-top: .5vh; }
+        .tvv-spec-l { font-size: 1.65vw; color: rgba(255,255,255,.8); margin-top: .6vh; }
 
         .tvv-progress { position: absolute; left: 0; bottom: 0; height: .5vh; min-height: 4px; z-index: 8;
           background: linear-gradient(90deg, #1A5C38, #8CF0B4); width: 0; animation-name: tvvProg;
