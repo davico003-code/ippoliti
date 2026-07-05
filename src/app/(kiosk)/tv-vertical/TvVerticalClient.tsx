@@ -44,6 +44,13 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
     return () => clearTimeout(t)
   }, [])
 
+  // Tocar/clickear la pantalla → pantalla completa (el TV no maximiza solo).
+  const toggleFullscreen = () => {
+    const el = document.documentElement
+    if (!document.fullscreenElement) el.requestFullscreen?.().catch(() => {})
+    else document.exitFullscreen?.().catch(() => {})
+  }
+
   if (slides.length === 0) {
     return (
       <main style={{ height: '100dvh', display: 'grid', placeItems: 'center', background: '#08100B' }}>
@@ -59,7 +66,7 @@ export default function TvVerticalClient({ slides }: { slides: Slide[] }) {
   const thumbs = all.slice(1, 4) // resto de fotos de la misma casa (hasta 3)
 
   return (
-    <main className="tvv-root">
+    <main className="tvv-root" onClick={toggleFullscreen} title="Tocar para pantalla completa">
       <div className="tvv-stage">
         {/* HERO inmersivo — foto principal */}
         <section key={`hero-${idx}`} className="tvv-hero">

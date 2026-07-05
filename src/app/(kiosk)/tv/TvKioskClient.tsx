@@ -43,6 +43,13 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
     return () => clearTimeout(t)
   }, [])
 
+  // Tocar/clickear la pantalla → pantalla completa (el TV no maximiza solo).
+  const toggleFullscreen = () => {
+    const el = document.documentElement
+    if (!document.fullscreenElement) el.requestFullscreen?.().catch(() => {})
+    else document.exitFullscreen?.().catch(() => {})
+  }
+
   if (slides.length === 0) {
     return (
       <main style={{ height: '100dvh', display: 'grid', placeItems: 'center', textAlign: 'center' }}>
@@ -57,7 +64,7 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
   const bubbles = (s.photos ?? []).slice(1, 4) // resto de fotos de la misma casa
 
   return (
-    <main className="tv-root">
+    <main className="tv-root" onClick={toggleFullscreen} title="Tocar para pantalla completa">
       {/* Capas de foto (crossfade + Ken Burns; alterna dirección para no aburrir) */}
       {slides.map((sl, i) =>
         windowIdx.has(i) ? (
