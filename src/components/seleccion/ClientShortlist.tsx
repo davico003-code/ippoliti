@@ -392,16 +392,27 @@ export default function ClientShortlist({
         </div>
       </header>
 
-      {/* Ayuda: cómo funciona (fácil de entender, se cierra y se reabre con "?") */}
+      {/* Ayuda: POP-UP flotante (no una barra fija). Arranca abierto la 1ª vez,
+          se cierra con la ✕ o tocando afuera, y se reabre con el "?". */}
       {ayudaVisible && (
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-[#d3e6da] bg-[#EAF3EE] px-5 py-2.5 text-[13px] text-[#123f27] md:px-10">
-          <b>¿Cómo funciona?</b>
-          <span className="flex items-center gap-1.5"><BtnHeart /> Marcá las que te gusten</span>
-          <span className="flex items-center gap-1.5"><BtnCal /> Pedí una visita</span>
-          <span className="flex items-center gap-1.5"><BtnPencil /> Dejanos una nota</span>
-          <span className="text-[#5B6B62]">— tu resumen se arma solo y te contactamos.</span>
-          <button type="button" onClick={() => setAyudaVisible(false)} aria-label="Cerrar ayuda" className="ml-auto text-[16px] text-[#123f27] opacity-60 hover:opacity-100">✕</button>
-        </div>
+        <>
+          <button type="button" aria-label="Cerrar ayuda" onClick={() => setAyudaVisible(false)}
+            className="fixed inset-0 z-[70] cursor-default bg-black/10" />
+          <div role="dialog" aria-label="Cómo funciona"
+            className="fixed right-3 top-[62px] z-[80] w-[300px] max-w-[calc(100vw-24px)] rounded-2xl border border-[#d3e6da] bg-white p-4 md:right-8"
+            style={{ boxShadow: '0 12px 32px rgba(20,50,35,0.18)' }}>
+            <div className="mb-2.5 flex items-center justify-between">
+              <b className="text-[14px] text-[#123f27]">¿Cómo funciona?</b>
+              <button type="button" onClick={() => setAyudaVisible(false)} aria-label="Cerrar" className="text-[16px] text-[#8A968E] hover:text-[#123f27]">✕</button>
+            </div>
+            <div className="flex flex-col gap-2.5 text-[13px] text-[#1C2620]">
+              <span className="flex items-center gap-2.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EAF3EE] text-[#1A5C38]"><BtnHeart /></span> Marcá las que te gusten</span>
+              <span className="flex items-center gap-2.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EAF3EE] text-[#1A5C38]"><BtnCal /></span> Pedí una visita</span>
+              <span className="flex items-center gap-2.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EAF3EE] text-[#1A5C38]"><BtnPencil /></span> Dejanos una nota</span>
+            </div>
+            <p className="mt-2.5 border-t border-[#EAF3EE] pt-2.5 text-[12.5px] leading-[1.5] text-[#5B6B62]">Tu resumen se arma solo y te contactamos.</p>
+          </div>
+        </>
       )}
 
       {/* Barra de vista: filtros por tipo (en Lista) + toggle Lista/Mapa */}
