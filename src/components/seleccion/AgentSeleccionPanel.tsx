@@ -70,7 +70,6 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
   // con foto y datos (sin título — se deriva de la zona). No depende del scraping.
   type ManualForm = { open: boolean; precio: string; moneda: string; zona: string; foto: string; dorm: string; banos: string; m2: string; loading?: boolean; error?: string }
   const [manualForms, setManualForms] = useState<Record<number, ManualForm>>({})
-  const [notaOpen, setNotaOpen] = useState(false)
   const MAX_PROPS = 6
 
   function setManual(i: number, patch: Partial<ManualForm>) {
@@ -262,59 +261,104 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
 
     const numDone = formData.properties.filter(p => p.url.trim()).length
 
+    const stepLabel = (n: number, icon: React.ReactNode, title: string, desc: string) => (
+      <div className="relative mb-9 flex items-start gap-3">
+        <span className={`z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold ${n === 1 ? 'bg-[#1A5C38] text-white shadow-[0_4px_10px_rgba(26,92,56,.22)]' : 'bg-[#EEF1EE] text-[#8a968e]'}`}>{n}</span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#E7ECE8] bg-white text-[#1A5C38]">{icon}</span>
+        <div className="pt-0.5">
+          <div className="text-[15px] font-extrabold leading-tight text-[#1C2620]">{title}</div>
+          <div className="mt-1 text-[12.5px] leading-[1.5] text-[#9aa39c]">{desc}</div>
+        </div>
+      </div>
+    )
+    const panelHead = (icon: React.ReactNode, title: string, right?: React.ReactNode, sub?: string) => (
+      <div className="mb-3.5">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF3EE] text-[#1A5C38]">{icon}</span>
+          <h3 className="text-[15.5px] font-extrabold text-[#1C2620]">{title}</h3>
+          {right && <span className="ml-auto text-[12px] font-bold text-[#9aa39c]">{right}</span>}
+        </div>
+        {sub && <p className="mt-1 pl-[42px] text-[12.5px] text-[#9aa39c]">{sub}</p>}
+      </div>
+    )
+    const IcPersona = <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" /></svg>
+    const IcBuscar = <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.5" y2="16.5" /></svg>
+    const IcLink = <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></svg>
+    const IcChat = <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+
     return (
-      <div className="mx-auto max-w-[600px]" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
+      <div className="mx-auto max-w-[1120px]" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
         <button onClick={() => setShowForm(false)} className="mb-3 text-sm font-semibold text-[#9aa39c] hover:text-gray-600">← Volver</button>
-        <h2 className="text-[23px] font-extrabold tracking-[-0.3px] text-[#1C2620]">Nueva selección</h2>
-        <p className="mb-6 mt-0.5 text-[13.5px] text-[#5B6B62]">En 3 pasos: cargás al cliente, buscás las propiedades y pegás los links.</p>
 
-        <form onSubmit={handleSubmit}>
-          {/* PASO 1 */}
-          <div className="relative pb-6 pl-[52px]">
-            <div className="absolute left-[17px] top-[38px] bottom-1.5 w-0.5 bg-[#E7ECE8]" />
-            <div className="absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-full bg-[#1A5C38] text-[17px] font-extrabold text-white shadow-[0_4px_10px_rgba(26,92,56,.22)]">1</div>
-            <div className="text-[16px] font-extrabold text-[#1C2620]">Llená a tu cliente</div>
-            <div className="mb-3 text-[13px] text-[#5B6B62]">Su nombre es lo único que necesitás.</div>
-            <div className="flex flex-col gap-2.5 sm:flex-row">
-              <input required placeholder="Nombre del cliente *" value={formData.clientName} onChange={e => setFormData(d => ({ ...d, clientName: e.target.value }))}
-                className="h-11 flex-1 rounded-xl border-[1.5px] border-[#E7ECE8] px-3.5 text-sm outline-none focus:border-[#1A5C38]" />
-              <select value={formData.agent} onChange={e => setFormData(d => ({ ...d, agent: e.target.value }))}
-                className="h-11 flex-1 rounded-xl border-[1.5px] border-[#E7ECE8] px-3 text-sm outline-none focus:border-[#1A5C38]">
-                <option>David Flores</option><option>Laura Flores</option><option>Susana Ippoliti</option>
-                <option>Aldana Ruiz</option><option>Carolina Echen</option><option>Gino Pecchenino</option>
-                <option>Gisela Ramallo</option><option>Leticia Alexenicer</option><option>Lucia Wilson</option>
-                <option>Maria Jose Espilocin</option><option>Mariana Orlate</option><option>Mauro Matteucci</option>
-                <option>Micaela Gonzalez</option><option>Julian Ruschneider</option>
-              </select>
-            </div>
-          </div>
+        {/* Header + ilustración */}
+        <div className="relative overflow-hidden">
+          <h2 className="text-[28px] font-extrabold tracking-[-0.4px] text-[#1C2620]">Nueva selección</h2>
+          <p className="mt-1 text-[14px] text-[#5B6B62]">En 3 pasos: cargás al cliente, buscás las propiedades y pegás los links.</p>
+          <svg className="pointer-events-none absolute right-0 top-[-16px] hidden h-[150px] w-[360px] lg:block" viewBox="0 0 360 150" fill="none" aria-hidden>
+            <path d="M0 118 Q90 92 190 112 T360 104 V150 H0 Z" fill="#EAF3EE" />
+            <path d="M120 150 V96 L166 70 L212 96 V150 Z" fill="#fff" stroke="#1A5C38" strokeWidth="2" strokeLinejoin="round" />
+            <path d="M166 70 L112 100 M166 70 L220 100" stroke="#1A5C38" strokeWidth="2" strokeLinecap="round" />
+            <rect x="154" y="112" width="24" height="30" fill="#EAF3EE" stroke="#1A5C38" strokeWidth="2" />
+            <rect x="188" y="108" width="16" height="14" fill="#EAF3EE" stroke="#1A5C38" strokeWidth="2" />
+            <g stroke="#3C9C64" strokeWidth="2" fill="#D6EEDC">
+              <path d="M262 150 V116" /><circle cx="262" cy="104" r="16" />
+              <path d="M300 150 V124" /><circle cx="300" cy="114" r="12" />
+              <path d="M92 150 V128" /><circle cx="92" cy="118" r="13" />
+            </g>
+          </svg>
+        </div>
 
-          {/* PASO 2 */}
-          <div className="relative pb-6 pl-[52px]">
-            <div className="absolute left-[17px] top-[38px] bottom-1.5 w-0.5 bg-[#E7ECE8]" />
-            <div className="absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-full bg-[#1A5C38] text-[17px] font-extrabold text-white shadow-[0_4px_10px_rgba(26,92,56,.22)]">2</div>
-            <div className="text-[16px] font-extrabold text-[#1C2620]">Buscá las propiedades</div>
-            <div className="mb-3 text-[13px] text-[#5B6B62]">Abrí los sitios en otra pestaña, buscá lo que le sirve y copiá el link de cada aviso.</div>
-            <div className="grid grid-cols-2 gap-2.5">
-              {PORTALES.map(pt => (
-                <a key={pt.name} href={pt.url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 rounded-xl border-[1.5px] border-[#E7ECE8] bg-white px-3 py-2.5 text-[13.5px] font-bold text-[#1C2620] transition hover:border-[#d3e6da] hover:shadow-sm">
-                  <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg" style={{ background: pt.bg, color: pt.fg }} dangerouslySetInnerHTML={{ __html: pt.mark }} />
-                  <span className="flex-1 leading-tight">{pt.name}</span>
-                  <span className="text-[#9aa39c]">↗</span>
-                </a>
-              ))}
+        <form onSubmit={handleSubmit} className="mt-7">
+          <div className="grid gap-x-8 gap-y-5 lg:grid-cols-[248px_1fr]">
+            {/* Rail de pasos (izquierda) */}
+            <div className="relative hidden flex-col lg:flex">
+              <span className="absolute left-[17px] top-5 bottom-[150px] w-0.5 bg-[#E7ECE8]" />
+              {stepLabel(1, IcPersona, 'Llená a tu cliente', 'Su nombre es lo único que necesitás.')}
+              {stepLabel(2, IcBuscar, 'Buscá las propiedades', 'Abrí los sitios en otra pestaña, buscá lo que le sirve y copiá el link de cada aviso.')}
+              {stepLabel(3, IcLink, 'Pegá los links que encontraste', 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
+              <div className="mt-auto flex flex-col gap-1.5 rounded-2xl bg-[#EAF3EE] p-4">
+                <span className="text-[13px] font-extrabold text-[#123f27]">✦ Hasta {MAX_PROPS} propiedades</span>
+                <span className="text-[12.5px] leading-[1.5] text-[#5B6B62]">— más de eso marea al cliente.</span>
+              </div>
             </div>
-          </div>
 
-          {/* PASO 3 */}
-          <div className="relative pb-2 pl-[52px]">
-            <div className="absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-full bg-[#1A5C38] text-[17px] font-extrabold text-white shadow-[0_4px_10px_rgba(26,92,56,.22)]">3</div>
-            <div className="text-[16px] font-extrabold text-[#1C2620]">Pegá los links que encontraste</div>
-            <div className="mb-3 text-[13px] text-[#5B6B62]">Pueden ser de cualquiera de los sitios. Uno por fila.</div>
-            <div className="mb-3 flex items-center gap-2 rounded-[10px] border border-[#d3e6da] bg-[#EAF3EE] px-3 py-2 text-[12.5px] font-semibold text-[#123f27]">
-              💡 Hasta {MAX_PROPS} propiedades — más de eso marea al cliente. {numDone > 0 && <span className="ml-auto opacity-70">{numDone}/{MAX_PROPS}</span>}
-            </div>
+            {/* Paneles (derecha) */}
+            <div className="flex flex-col gap-5">
+              {/* PANEL 1 */}
+              <div className="rounded-2xl border border-[#E7ECE8] bg-white p-5">
+                {panelHead(IcPersona, '¿A quién le armamos la selección?')}
+                <div className="flex flex-col gap-2.5 sm:flex-row">
+                  <input required placeholder="Nombre del cliente" value={formData.clientName} onChange={e => setFormData(d => ({ ...d, clientName: e.target.value }))}
+                    className="h-11 flex-1 rounded-xl border-[1.5px] border-[#E7ECE8] px-3.5 text-sm outline-none focus:border-[#1A5C38]" />
+                  <select value={formData.agent} onChange={e => setFormData(d => ({ ...d, agent: e.target.value }))}
+                    className="h-11 flex-1 rounded-xl border-[1.5px] border-[#E7ECE8] px-3 text-sm outline-none focus:border-[#1A5C38]">
+                    <option>David Flores</option><option>Laura Flores</option><option>Susana Ippoliti</option>
+                    <option>Aldana Ruiz</option><option>Carolina Echen</option><option>Gino Pecchenino</option>
+                    <option>Gisela Ramallo</option><option>Leticia Alexenicer</option><option>Lucia Wilson</option>
+                    <option>Maria Jose Espilocin</option><option>Mariana Orlate</option><option>Mauro Matteucci</option>
+                    <option>Micaela Gonzalez</option><option>Julian Ruschneider</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* PANEL 2 */}
+              <div className="rounded-2xl border border-[#E7ECE8] bg-white p-5">
+                {panelHead(IcBuscar, 'Elegí dónde buscar', undefined, 'Abrí los sitios en otra pestaña para buscar y copiar los links.')}
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {PORTALES.map(pt => (
+                    <a key={pt.name} href={pt.url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2.5 rounded-xl border-[1.5px] border-[#E7ECE8] bg-white px-3 py-2.5 text-[13.5px] font-bold text-[#1C2620] transition hover:border-[#d3e6da] hover:shadow-sm">
+                      <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg" style={{ background: pt.bg, color: pt.fg }} dangerouslySetInnerHTML={{ __html: pt.mark }} />
+                      <span className="flex-1 leading-tight">{pt.name}</span>
+                      <span className="text-[#9aa39c]">↗</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* PANEL 3 */}
+              <div className="rounded-2xl border border-[#E7ECE8] bg-white p-5">
+                {panelHead(IcLink, 'Pegá los links que encontraste', `${numDone}/${MAX_PROPS}`, 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
 
             {formData.properties.map((p, i) => {
               const externa = isExternalUrl(p.url)
@@ -404,27 +448,22 @@ export default function AgentSeleccionPanel({ initialSessions, agentId }: { init
             )}
           </div>
 
-          {/* Mensaje opcional (plegado) */}
-          <div className="mt-2 overflow-hidden rounded-2xl border border-[#E7ECE8] bg-white">
-            <button type="button" onClick={() => setNotaOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-[13.5px] font-bold">
-              <span>Mensaje al cliente <span className="ml-1 rounded-full border border-[#E7ECE8] bg-[#FBFAF8] px-2 py-0.5 text-[11px] font-semibold text-[#9aa39c]">opcional</span></span>
-              <span className="text-[#9aa39c]">{notaOpen ? '▴' : '▾'}</span>
-            </button>
-            {notaOpen && (
-              <div className="px-4 pb-4">
+              {/* PANEL Mensaje */}
+              <div className="rounded-2xl border border-[#E7ECE8] bg-white p-5">
+                {panelHead(IcChat, 'Mensaje al cliente (opcional)', `${formData.note.length}/250`)}
                 <button type="button"
-                  onClick={() => { const name = formData.clientName.trim() || 'nombre'; setFormData(d => ({ ...d, note: `Hola ${name}! Te preparé una selección de propiedades pensando en lo que buscás. Entrá al link, mirá las fotos y avisame cuáles te gustan o querés visitar.` })) }}
-                  className="mb-2 inline-block rounded-lg border border-dashed border-[#d3e6da] bg-[#EAF3EE] px-2.5 py-1 text-[12px] font-bold text-[#1A5C38]">✨ Usar mensaje sugerido</button>
-                <textarea placeholder="Hola! Te preparé unas opciones…" value={formData.note} onChange={e => setFormData(d => ({ ...d, note: e.target.value }))}
-                  className="w-full resize-none rounded-xl border-[1.5px] border-[#E7ECE8] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A5C38]" rows={2} />
+                  onClick={() => { const name = formData.clientName.trim() || 'nombre'; setFormData(d => ({ ...d, note: `Hola ${name}! Te preparé una selección de propiedades pensando en lo que buscás. Entrá al link, mirá las fotos y avisame cuáles te gustan o querés visitar.`.slice(0, 250) })) }}
+                  className="mb-2.5 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-[#d3e6da] bg-[#EAF3EE] px-2.5 py-1 text-[12px] font-bold text-[#1A5C38]">✨ Usar mensaje sugerido</button>
+                <textarea placeholder="Escribile algo corto y cálido. Si lo dejás vacío, mandamos uno lindo por defecto." value={formData.note} maxLength={250} onChange={e => setFormData(d => ({ ...d, note: e.target.value }))}
+                  className="w-full resize-none rounded-xl border-[1.5px] border-[#E7ECE8] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A5C38]" rows={3} />
               </div>
-            )}
+            </div>
           </div>
 
-          {formError && <p className="mt-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-[13px] text-red-600">{formError}</p>}
+          {formError && <p className="mt-4 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-[13px] text-red-600">{formError}</p>}
 
           <button type="submit" disabled={submitting}
-            className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#1A5C38] py-4 text-[15.5px] font-extrabold text-white shadow-[0_8px_20px_rgba(26,92,56,.24)] disabled:opacity-50">
+            className="mt-6 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#1A5C38] py-4 text-[15.5px] font-extrabold text-white shadow-[0_8px_20px_rgba(26,92,56,.24)] transition hover:bg-[#0F3A23] disabled:opacity-50">
             {!submitting && <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><path d="M15 3h6v6" /><path d="M10 14L21 3" /></svg>}
             {submitting ? 'Creando…' : 'Crear, copiar link y abrir para revisar'}
           </button>
