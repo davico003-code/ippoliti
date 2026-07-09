@@ -109,6 +109,66 @@ const STYLES = `
     margin: 0 auto;
     padding: clamp(18px, 2.2vw, 26px) 0 28px;
   }
+  .rr-content {
+    display: grid;
+    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+    gap: clamp(32px, 4vw, 56px);
+    align-items: start;
+  }
+  .rr-intro {
+    color: #111111;
+    padding-top: clamp(4px, 1vw, 8px);
+  }
+  .rr-eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+    color: #5b5b5b;
+    margin: 0 0 14px;
+  }
+  .rr-title {
+    margin: 0;
+    font-size: clamp(34px, 4vw, 56px);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+  }
+  .rr-title b {
+    color: #1a5c38;
+    font-weight: 800;
+  }
+  .rr-sub {
+    margin: 18px 0 0;
+    font-size: clamp(16px, 1.45vw, 19px);
+    line-height: 1.55;
+    color: #4f4f4f;
+    max-width: 34ch;
+  }
+  .rr-stats {
+    margin-top: 28px;
+    padding-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .rr-stat-label {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.2;
+    color: #787878;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .rr-stat-value {
+    font-size: clamp(24px, 2.2vw, 32px);
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #1a5c38;
+  }
+
   .rr-bento {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -144,9 +204,23 @@ const STYLES = `
     .rr-wrap {
       width: min(100% - 28px, 1280px);
     }
+    .rr-content {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .rr-stats {
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
     .rr-bento {
       grid-template-columns: 1fr;
       gap: 14px;
+    }
+    .rr-title {
+      font-size: clamp(34px, 11vw, 42px);
+    }
+    .rr-sub {
+      max-width: 46ch;
     }
   }
 `
@@ -221,13 +295,40 @@ export default function RecursosIndexPage() {
       <TrackPageView event="recursos_index_view" />
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
-      <div className="rr-page">
+    <div className="rr-page">
         <main className="rr-wrap">
-          <section className="rr-bento" aria-label="Herramientas y guías">
-            <ResourceCard card={feature} featured priority />
-            {rest.map((card) => (
-              <ResourceCard key={card.href} card={card} />
-            ))}
+          <section className="rr-content" aria-label="Recursos">
+            <div className="rr-intro">
+              <p className="rr-eyebrow">Recursos</p>
+              <h1 className="rr-title">
+                Información clara <b>para decidir mejor.</b>
+              </h1>
+              <p className="rr-sub">
+                Calculadoras precisas y guías honestas, hechas por agentes que conocen el
+                mercado.
+              </p>
+              <div className="rr-stats">
+                <div>
+                  <div className="rr-stat-value">5</div>
+                  <div className="rr-stat-label">herramientas</div>
+                </div>
+                <div>
+                  <div className="rr-stat-value">100%</div>
+                  <div className="rr-stat-label">gratis</div>
+                </div>
+                <div>
+                  <div className="rr-stat-value">Oficial</div>
+                  <div className="rr-stat-label">índices al día</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rr-bento" aria-label="Herramientas y guías">
+              <ResourceCard card={feature} featured priority />
+              {rest.map((card) => (
+                <ResourceCard key={card.href} card={card} />
+              ))}
+            </div>
           </section>
         </main>
 
