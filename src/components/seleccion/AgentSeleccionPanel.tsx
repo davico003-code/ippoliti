@@ -11,6 +11,7 @@ import {
   Link2,
   Plus,
   MessageCircle,
+  Pencil,
   Search,
   Send,
   X,
@@ -122,6 +123,7 @@ const PORTALES: { name: string; url: string; logo: string }[] = [
 ]
 
 export default function AgentSeleccionPanel({ initialContact }: { initialContact?: InitialContact }) {
+  const hasPrefilledClient = Boolean(initialContact?.name?.trim() && initialContact?.phone?.trim())
   // days fijo (el link queda válido 1 año) — sacamos el selector de vencimiento.
   const [formData, setFormData] = useState({
     clientName: initialContact?.name || '',
@@ -134,6 +136,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     note: '',
     properties: [emptyProp()] as FormProperty[],
   })
+  const [editingContact, setEditingContact] = useState(!hasPrefilledClient)
   const [createdUrl, setCreatedUrl] = useState('')
   const [copiedCreatedUrl, setCopiedCreatedUrl] = useState(false)
   const [bulkLinks, setBulkLinks] = useState('')
@@ -426,7 +429,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
                 Abrir para revisar
               </a>
               <button
-                onClick={() => { setCreatedUrl(''); setCopiedCreatedUrl(false); setBulkLinks(''); setBulkMessage(''); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
+                onClick={() => { setCreatedUrl(''); setCopiedCreatedUrl(false); setBulkLinks(''); setBulkMessage(''); setEditingContact(true); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
                 className="py-2 text-sm text-gray-400 hover:text-gray-600"
               >
                 Crear otra selección
@@ -474,6 +477,21 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     const IcBuscar = <Search className="w-[17px] h-[17px]" />
     const IcLink = <Link2 className="w-[17px] h-[17px]" />
     const IcChat = <MessageCircle className="w-[17px] h-[17px]" />
+    const sourceLabel = formData.contactSource
+      ? formData.contactSource.replace(/[-_]/g, ' ')
+      : 'consulta'
+    const agentSelect = (
+      <select value={formData.agent} onChange={e => setFormData(d => ({ ...d, agent: e.target.value }))}
+        className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3 text-sm outline-none"
+        style={{ borderColor: THEME.border, color: THEME.text }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }}>
+        <option>David Flores</option><option>Laura Flores</option><option>Susana Ippoliti</option>
+        <option>Aldana Ruiz</option><option>Carolina Echen</option><option>Gino Pecchenino</option>
+        <option>Gisela Ramallo</option><option>Leticia Alexenicer</option><option>Lucia Wilson</option>
+        <option>Maria Jose Espilocin</option><option>Mariana Orlate</option><option>Mauro Matteucci</option>
+        <option>Micaela Gonzalez</option><option>Julian Ruschneider</option>
+      </select>
+    )
     const statusChip = (label: string, tone: 'ok' | 'warn' | 'error' | 'idle' = 'idle') => {
       const styles = {
         ok: { bg: '#EAF7EF', color: '#1A5C38', border: '#CFEBDD' },
@@ -521,12 +539,12 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
             {/* Rail de pasos (izquierda) */}
             <div className="relative hidden flex-col lg:flex">
               <span className="absolute left-[17px] top-5 bottom-[150px] w-0.5" style={{ backgroundColor: THEME.border }} />
-              {stepLabel(1, IcPersona, 'Llená a tu cliente', 'Si viene desde una ficha o consulta, ya queda vinculado automáticamente.')}
+              {stepLabel(1, IcPersona, hasPrefilledClient ? 'Cliente detectado' : 'Llená a tu cliente', 'Si viene desde una ficha o consulta, ya queda vinculado automáticamente.')}
               {stepLabel(2, IcBuscar, 'Buscá las propiedades', 'Abrí los sitios en otra pestaña, buscá lo que le sirve y copiá el link de cada aviso.')}
               {stepLabel(3, IcLink, 'Pegá los links que encontraste', 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
               <div className="mt-auto flex flex-col gap-1.5 rounded-2xl p-4" style={{ backgroundColor: THEME.surface }}>
-                <span className="text-[13px] font-extrabold" style={{ color: THEME.text }}>✦ Hasta {MAX_PROPS} propiedades</span>
-                <span className="text-[12.5px] leading-[1.5]" style={{ color: THEME.muted }}>— más de eso marea al cliente.</span>
+                <span className="text-[13px] font-extrabold" style={{ color: THEME.text }}>Hasta {MAX_PROPS} propiedades</span>
+                <span className="text-[12.5px] leading-[1.5]" style={{ color: THEME.muted }}>Más de eso marea al cliente.</span>
               </div>
             </div>
 
@@ -534,27 +552,45 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
             <div className="flex flex-col gap-5">
               {/* PANEL 1 */}
               <div className="rounded-2xl border bg-white p-5" style={{ borderColor: THEME.border }}>
-                {panelHead(IcPersona, '¿A quién le armamos la selección?')}
-                <div className="flex flex-col gap-2.5 sm:flex-row">
-                  <input required placeholder="Nombre del cliente" value={formData.clientName} onChange={e => setFormData(d => ({ ...d, clientName: e.target.value }))}
-                    className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
-                    style={{ borderColor: THEME.border, color: THEME.text }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
-                  <input placeholder="WhatsApp o teléfono" value={formData.clientPhone} onChange={e => setFormData(d => ({ ...d, clientPhone: e.target.value }))}
-                    className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
-                    style={{ borderColor: THEME.border, color: THEME.text }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
-                  <select value={formData.agent} onChange={e => setFormData(d => ({ ...d, agent: e.target.value }))}
-                    className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3 text-sm outline-none"
-                    style={{ borderColor: THEME.border, color: THEME.text }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }}>
-                    <option>David Flores</option><option>Laura Flores</option><option>Susana Ippoliti</option>
-                    <option>Aldana Ruiz</option><option>Carolina Echen</option><option>Gino Pecchenino</option>
-                    <option>Gisela Ramallo</option><option>Leticia Alexenicer</option><option>Lucia Wilson</option>
-                    <option>Maria Jose Espilocin</option><option>Mariana Orlate</option><option>Mauro Matteucci</option>
-                    <option>Micaela Gonzalez</option><option>Julian Ruschneider</option>
-                  </select>
-                </div>
+                {panelHead(IcPersona, hasPrefilledClient && !editingContact ? 'Cliente detectado automáticamente' : '¿A quién le armamos la selección?')}
+                {hasPrefilledClient && !editingContact ? (
+                  <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
+                    <div className="rounded-2xl border p-4" style={{ borderColor: '#CFEBDD', backgroundColor: '#F3FAF6' }}>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-[17px] font-extrabold" style={{ color: THEME.text }}>{formData.clientName}</p>
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[13px]" style={{ color: THEME.mutedStrong }}>
+                            <span className="font-poppins tabular-nums">{formData.clientPhone}</span>
+                            {formData.clientEmail && <span>{formData.clientEmail}</span>}
+                            <span className="capitalize">Desde {sourceLabel}</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingContact(true)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] font-bold"
+                          style={{ borderColor: THEME.border, color: THEME.text }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Editar
+                        </button>
+                      </div>
+                    </div>
+                    {agentSelect}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2.5 sm:flex-row">
+                    <input required placeholder="Nombre del cliente" value={formData.clientName} onChange={e => setFormData(d => ({ ...d, clientName: e.target.value }))}
+                      className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
+                      style={{ borderColor: THEME.border, color: THEME.text }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
+                    <input placeholder="WhatsApp o teléfono" value={formData.clientPhone} onChange={e => setFormData(d => ({ ...d, clientPhone: e.target.value }))}
+                      className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
+                      style={{ borderColor: THEME.border, color: THEME.text }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
+                    {agentSelect}
+                  </div>
+                )}
               </div>
 
               {/* PANEL 2 */}
