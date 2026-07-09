@@ -1,34 +1,29 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import dynamic from 'next/dynamic'
-import { parsePropertyLabel, getTimeLeft, buildWhatsAppMessage } from '@/lib/seleccion'
-import type { MapaProp } from './SeleccionMapa'
-
-// El mapa es client-only (Leaflet toca window): dynamic sin SSR.
-const SeleccionMapa = dynamic(() => import('./SeleccionMapa'), {
-  ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse" style={{ background: '#eef1ee' }} />,
-})
+import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
+import { parsePropertyLabel, getTimeLeft } from '@/lib/seleccion'
 
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
   price: string | null; rooms: number; baths: number; area: number
   lat?: number | null; lng?: number | null
 }
-interface Property { id: string; url: string; note: string; source?: 'externa'; snapshot?: ExternaSnapshot }
-type ReactKey = 'encanta' | 'duda' | 'cara' | 'no'
-interface Reaction { liked?: boolean | null; wantVisit?: boolean; comment?: string; reaction?: ReactKey | null }
 
-// Las 4 reacciones (emoji animado). Mapean a liked para el resumen/descartadas.
-const EMOJIS: { key: ReactKey; emoji: string; label: string }[] = [
-  { key: 'encanta', emoji: '😍', label: 'Me encanta' },
-  { key: 'duda', emoji: '🤔', label: 'Lo dudo' },
-  { key: 'cara', emoji: '💸', label: 'La veo cara' },
-  { key: 'no', emoji: '🙈', label: 'No es para mí' },
+type PortalLogo = { name: string; logo: string }
+
+const PORTALES: PortalLogo[] = [
+  { name: 'Zonaprop', logo: '/portal-logos/zonaprop.jpg' },
+  { name: 'Argenprop', logo: '/portal-logos/argenprop.jpg' },
+  { name: 'Mercado Libre', logo: '/portal-logos/mercadolibre.png' },
+  { name: 'SI INMOBILIARIA', logo: '/portal-logos/si-inmobiliaria.png' },
 ]
+interface Property { id: string; url: string; note: string; source?: 'externa'; snapshot?: ExternaSnapshot }
+type ReactKey = 'encanta' | 'no'
+interface Reaction { liked?: boolean | null; wantVisit?: boolean; comment?: string; reaction?: ReactKey | null }
 interface Session {
   clientName: string; agent: string; agentName?: string; note: string; expiresAt: string
+  permanent?: boolean
   properties: Property[]
 }
 
@@ -45,8 +40,6 @@ interface PropInfo {
   lng: number | null
 }
 
-const WA_PHONE = '5493412101694'
-
 function extractTokkoId(url: string): string | null {
   const m = /\/(\d{6,8})[-\/]/.exec(url)
   if (m) return m[1]
@@ -56,6 +49,36 @@ function extractTokkoId(url: string): string | null {
 
 function isValidNote(note: string | undefined | null): boolean {
   return !!note && note.trim().length > 3
+}
+
+function logoDePortal(url: string): PortalLogo | null {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    if (host.includes('zonaprop.com')) return PORTALES[0]
+    if (host.includes('argenprop.com')) return PORTALES[1]
+    if (host.includes('mercadolibre.com') || host.includes('mercadolibre')) return PORTALES[2]
+    if (host.includes('siinmobiliaria.com')) return PORTALES[3]
+    return null
+  } catch {
+    return null
+  }
+}
+
+function previewUrlInterna(url: string): string | null {
+  try {
+    const u = new URL(url, typeof window !== 'undefined' ? window.location.origin : 'https://siinmobiliaria.com')
+    const host = u.hostname.toLowerCase()
+    if (host.includes('verficha.casa')) {
+      const slug = u.pathname.split('/').filter(Boolean)[0]
+      return slug ? `/v/${slug}?embed=1` : null
+    }
+    if (u.pathname.startsWith('/v/')) {
+      return `${u.pathname}?embed=1`
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
 // Offset de privacidad (±30-50m) sobre las coords reales, como en las fichas.
@@ -73,50 +96,24 @@ function iniciales(nombre: string): string {
   return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || nombre.slice(0, 2).toUpperCase()
 }
 
-// Tipo de propiedad derivado del título (para los filtros de la vista Lista).
-type TipoKey = 'casas' | 'departamentos' | 'quintas' | 'lotes' | 'otros'
-const TIPO_LABELS: Record<TipoKey, string> = {
-  casas: 'Casas', departamentos: 'Departamentos', quintas: 'Quintas', lotes: 'Lotes', otros: 'Otras',
-}
-function tipoDe(titulo: string): TipoKey {
-  const t = (titulo || '').toLowerCase()
-  if (/casa\s*quinta|quinta/.test(t)) return 'quintas'
-  if (/departamento|depto|monoambiente|\bph\b/.test(t)) return 'departamentos'
-  if (/lote|terreno/.test(t)) return 'lotes'
-  if (/casa|d[úu]plex|chalet/.test(t)) return 'casas'
-  return 'otros'
-}
-
 /* ── SVGs ── */
 const IcBed = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6B62" strokeWidth="1.8"><path d="M3 9V19M21 9V19M3 15H21M3 9C3 7.9 3.9 7 5 7H19C20.1 7 21 7.9 21 9"/><path d="M7 7V5C7 4.4 7.4 4 8 4H16C16.6 4 17 4.4 17 5V7"/></svg>
 const IcBath = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6B62" strokeWidth="1.8"><path d="M4 12H20V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V12Z"/><path d="M4 12V6C4 4.9 4.9 4 6 4C7.1 4 8 4.9 8 6V8"/><path d="M8 8H20"/></svg>
 const IcArea = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6B62" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9H21M9 3V21"/></svg>
-const IcWA = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-const IcBookmark = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-const IcGrid = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-const IcPin = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
 const BtnHeart = ({ filled }: { filled?: boolean }) => <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
 const BtnX = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 const BtnCal = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
 const BtnCheck = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-const BtnPencil = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-
-type Vista = 'mapa' | 'grilla'
+const ExternalLinkIcon = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M7 17L17 7"/><path d="M9 7h8v8"/><path d="M19 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg>
 
 export default function ClientShortlist({
   session, initialReactions, token, agentPhoto,
 }: { session: Session; initialReactions: Record<string, Reaction>; token: string; agentPhoto?: string | null }) {
   const [reactions, setReactions] = useState<Record<string, Reaction>>(initialReactions)
   const [propInfo, setPropInfo] = useState<Record<string, { loading: boolean; info: PropInfo | null }>>({})
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [ayudaVisible, setAyudaVisible] = useState(true)
-  const [vista, setVista] = useState<Vista>('grilla')
-  const [tipoFiltro, setTipoFiltro] = useState<'todas' | TipoKey>('todas')
+  const [previewPropId, setPreviewPropId] = useState<string | null>(null)
   const [descartadasOpen, setDescartadasOpen] = useState(false)
-  const [guardado, setGuardado] = useState(false)
-  const userToggled = useRef(false)
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const { days } = getTimeLeft(session.expiresAt)
   const agentName = session.agentName || session.agent
@@ -188,7 +185,6 @@ export default function ClientShortlist({
   }, [session.properties])
 
   const patchReaction = useCallback((propertyId: string, patch: Partial<Reaction>) => {
-    setGuardado(true)
     setReactions(prev => {
       const updated = { ...prev, [propertyId]: { ...prev[propertyId], ...patch } }
       clearTimeout(debounceRef.current[propertyId])
@@ -203,8 +199,21 @@ export default function ClientShortlist({
     })
   }, [token])
 
-  // Elegir/alternar una de las 4 reacciones. Mapea a `liked` para que el resumen
-  // (Me gustan = 😍) y las Descartadas (🙈) sigan funcionando.
+  useEffect(() => {
+    if (!previewPropId) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPreviewPropId(null)
+    }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [previewPropId])
+
+  // Elegir/alternar una reacción simple. Mapea a `liked` para el resumen y
+  // para mover abajo las descartadas.
   function setReaction(propId: string, key: ReactKey) {
     const actual = reactions[propId]?.reaction
     const next = actual === key ? null : key
@@ -212,37 +221,6 @@ export default function ClientShortlist({
       reaction: next,
       liked: next === 'encanta' ? true : next === 'no' ? false : null,
     })
-  }
-
-  // Pines del mapa: las propiedades que ya resolvieron coords.
-  const mapaProps: MapaProp[] = useMemo(() => {
-    const out: MapaProp[] = []
-    session.properties.forEach((p, idx) => {
-      const info = propInfo[p.id]?.info
-      if (info?.lat != null && info?.lng != null) {
-        out.push({ id: p.id, num: idx + 1, lat: info.lat, lng: info.lng, title: info.title, liked: reactions[p.id]?.liked })
-      }
-    })
-    return out
-  }, [session.properties, propInfo, reactions])
-
-  // Si terminó de cargar y NINGUNA propiedad tiene pin, la vista Lista es la
-  // que sirve — cambiamos solos (salvo que el cliente ya haya elegido vista).
-  useEffect(() => {
-    if (userToggled.current) return
-    const cargando = session.properties.some(p => propInfo[p.id]?.loading)
-    if (!cargando && Object.keys(propInfo).length > 0 && mapaProps.length === 0) setVista('grilla')
-  }, [propInfo, mapaProps, session.properties])
-
-  function elegirVista(v: Vista) {
-    userToggled.current = true
-    setVista(v)
-  }
-
-  function seleccionar(id: string) {
-    setSelectedId(id)
-    cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    setTimeout(() => setSelectedId((cur) => (cur === id ? null : cur)), 2200)
   }
 
   const etiqueta = useCallback(
@@ -253,34 +231,11 @@ export default function ClientShortlist({
   const porReaccion = (k: ReactKey) => session.properties.filter(p => reactions[p.id]?.reaction === k)
   const stats = {
     encanta: porReaccion('encanta').length,
-    duda: porReaccion('duda').length,
-    cara: porReaccion('cara').length,
     no: porReaccion('no').length,
     wantVisit: session.properties.filter(p => reactions[p.id]?.wantVisit).length,
   }
-  const totalReacc = stats.encanta + stats.duda + stats.cara + stats.no + stats.wantVisit
-  const likedLabels = porReaccion('encanta').map(etiqueta)
-  const dudaLabels = porReaccion('duda').map(etiqueta)
-  const caraLabels = porReaccion('cara').map(etiqueta)
-  const noLabels = porReaccion('no').map(etiqueta)
-  const visitLabels = session.properties.filter(p => reactions[p.id]?.wantVisit).map(etiqueta)
-  const waMsg = encodeURIComponent(buildWhatsAppMessage(session, reactions))
-
-  // Chips de tipo (vista Lista): solo los tipos presentes en la selección.
-  const chips = useMemo<TipoKey[]>(() => {
-    const counts = new Map<TipoKey, number>()
-    for (const p of session.properties) {
-      const t = tipoDe(etiqueta(p))
-      counts.set(t, (counts.get(t) ?? 0) + 1)
-    }
-    return Array.from(counts.keys())
-  }, [session.properties, etiqueta])
-
-  const filasGrilla = useMemo(() => {
-    const all = session.properties.map((p, idx) => ({ p, idx }))
-    if (tipoFiltro === 'todas') return all
-    return all.filter(({ p }) => tipoDe(etiqueta(p)) === tipoFiltro)
-  }, [session.properties, tipoFiltro, etiqueta])
+  const totalReacc = stats.encanta + stats.no + stats.wantVisit
+  const filasGrilla = session.properties.map((p, idx) => ({ p, idx }))
 
   // ── Acciones de una propiedad (compartidas por las dos vistas). Es una
   // función de render (NO un componente): definirla como componente adentro
@@ -288,60 +243,49 @@ export default function ClientShortlist({
   function renderAcciones(prop: Property) {
     const r = reactions[prop.id] || {}
     const react = r.reaction
-    const precioPub = propInfo[prop.id]?.info?.price || null
-    type Follow = { texto: string; input: string | false; ref?: string | null }
-    const follow: Follow | null = react === 'encanta'
-      ? { texto: '¡Buenísimo! Pedí la visita cuando quieras 👇', input: false }
-      : react === 'duda'
-        ? { texto: '¿Qué es lo que te hace dudar?', input: 'Ej: la ubicación, el estado…' }
-        : react === 'cara'
-          ? { texto: 'El precio se puede charlar. ¿Cuánto pagarías?', input: 'Tu oferta (ej: USD 220.000)', ref: precioPub }
-          : react === 'no'
-            ? { texto: 'Gracias por avisar. ¿Nos contás por qué?', input: 'Ej: buscaba otra zona / algo más chico…' }
-            : null
+    const feedbackLabel = react === 'encanta'
+      ? 'Qué te gustó o qué querés consultar?'
+      : react === 'no'
+        ? 'Contanos qué no cerró'
+        : 'Dejanos una nota'
+    const feedbackPlaceholder = react === 'encanta'
+      ? 'Ej: me gusta la zona, quiero saber horarios de visita...'
+      : react === 'no'
+        ? 'Ej: buscaba otra zona / algo más chico / la veo cara...'
+        : 'Escribí una duda o comentario...'
 
     return (
       <>
-        {/* Reacción: 4 emojis animados (se agrandan al pasar) */}
-        <div className="mt-2.5 text-[11px] font-bold uppercase tracking-[0.04em] text-[#9aa39c]">¿Qué te pareció?</div>
-        <div className="mt-1 flex gap-1">
-          {EMOJIS.map(e => {
-            const on = react === e.key
-            return (
-              <button key={e.key} type="button" onClick={() => setReaction(prop.id, e.key)}
-                className={`group flex flex-1 flex-col items-center gap-1 rounded-xl py-2 transition ${on ? 'bg-[#EAF3EE]' : 'hover:bg-[#F4F5FA]'}`}>
-                <span className="origin-bottom text-[22px] leading-none transition-transform duration-200 group-hover:scale-[1.5] group-active:scale-125"
-                  style={on ? { transform: 'scale(1.3) translateY(-2px)' } : undefined}>{e.emoji}</span>
-                <span className={`text-[10px] font-bold leading-none ${on ? 'text-[#1A5C38]' : 'text-[#5B6B62]'}`}>{e.label}</span>
-              </button>
-            )
-          })}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={() => setReaction(prop.id, 'encanta')}
+            className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-[13px] font-extrabold transition ${react === 'encanta' ? 'border-[#1A5C38] bg-[#EAF3EE] text-[#1A5C38]' : 'border-[#E4E9E5] bg-white text-[#5B6B62] hover:bg-[#F7FAF8]'}`}>
+            <BtnHeart filled={react === 'encanta'} /> Me gusta
+          </button>
+          <button type="button" onClick={() => setReaction(prop.id, 'no')}
+            className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-[13px] font-extrabold transition ${react === 'no' ? 'border-[#d85b52] bg-[#fff1f0] text-[#b9433d]' : 'border-[#E4E9E5] bg-white text-[#5B6B62] hover:bg-[#F7FAF8]'}`}>
+            <BtnX /> No me interesa
+          </button>
         </div>
 
-        {/* Follow-up: alto mínimo para que la placa no cambie de tamaño al alternar reacciones */}
-        {follow && (
-          <div className="mt-2.5 min-h-[84px] rounded-xl bg-[#F7FAF8] p-2.5">
-            <p className="text-[12.5px] font-semibold leading-[1.4] text-[#123f27]">{follow.texto}</p>
-            {follow.ref && (
-              <div className="mt-1.5 flex items-center justify-between rounded-lg bg-white px-2.5 py-1.5 text-[12px] text-[#5B6B62]">
-                <span>Precio publicado</span><b className="text-[#1A5C38]">{follow.ref}</b>
-              </div>
-            )}
-            {follow.input && (
-              <textarea value={r.comment || ''} onChange={e => patchReaction(prop.id, { comment: e.target.value })} rows={2} placeholder={follow.input}
-                className="mt-2 w-full resize-none rounded-lg border-[1.5px] border-[#E4E9E5] px-2.5 py-1.5 text-[13px] leading-[1.4] text-[#1C2620] outline-none focus:border-[#1A5C38]" />
-            )}
+        {(react || r.comment) && (
+          <div className="mt-2.5 rounded-xl bg-[#F7FAF8] p-2.5">
+            <p className="mb-1.5 text-[12px] font-bold text-[#5B6B62]">{feedbackLabel}</p>
+            <textarea value={r.comment || ''} onChange={e => patchReaction(prop.id, { comment: e.target.value })} rows={2} placeholder={feedbackPlaceholder}
+              className="w-full resize-none rounded-lg border-[1.5px] border-[#E4E9E5] px-2.5 py-2 text-[13px] leading-[1.4] text-[#1C2620] outline-none focus:border-[#1A5C38]" />
           </div>
         )}
 
-        {/* Botón directo: quiero visitarla — CTA prominente */}
-        <button type="button" onClick={() => patchReaction(prop.id, { wantVisit: !r.wantVisit })}
-          className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-extrabold text-white transition active:scale-[0.98]"
-          style={{ background: r.wantVisit ? '#0f4a2c' : '#1A5C38', boxShadow: r.wantVisit ? '0 4px 14px rgba(26,92,56,0.30)' : '0 6px 18px rgba(26,92,56,0.34)' }}>
-          {r.wantVisit ? <BtnCheck /> : <BtnCal />} {r.wantVisit ? '✓ Visita solicitada' : 'Quiero visitarla'}
+        <button type="button" onClick={() => setPreviewPropId(prop.id)}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-4 text-[16px] font-extrabold text-white transition active:scale-[0.98]"
+          style={{ background: '#1A5C38', boxShadow: '0 8px 22px rgba(26,92,56,0.32)' }}>
+          <ExternalLinkIcon /> Visitar propiedad
         </button>
 
-        <a href={prop.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#1A5C38] hover:underline">Ver propiedad →</a>
+        <button type="button" onClick={() => patchReaction(prop.id, { wantVisit: !r.wantVisit })}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-[14px] font-extrabold transition active:scale-[0.98]"
+          style={r.wantVisit ? { borderColor: '#1A5C38', background: '#EAF3EE', color: '#1A5C38' } : { borderColor: '#D8E5DC', background: 'white', color: '#1A5C38' }}>
+          {r.wantVisit ? <BtnCheck /> : <BtnCal />} {r.wantVisit ? 'Visita solicitada' : 'Quiero coordinar visita'}
+        </button>
       </>
     )
   }
@@ -350,55 +294,6 @@ export default function ClientShortlist({
   // sección "Descartadas" para que arriba queden solo las que le interesan.
   const esDescartada = (id: string) => reactions[id]?.liked === false
 
-  // Card compacta (vista Mapa, listado derecho).
-  function renderCardListado(prop: Property, idx: number) {
-    const r = reactions[prop.id] || {}
-    const pi = propInfo[prop.id]
-    const info = pi?.info
-    const loading = pi?.loading
-    const title = etiqueta(prop)
-    const activo = selectedId === prop.id
-    return (
-      <div
-        key={prop.id}
-        ref={(el) => { cardRefs.current[prop.id] = el }}
-        className="rounded-[14px] border p-2.5 transition-all"
-        style={{
-          borderColor: activo ? '#1A5C38' : r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5',
-          background: activo ? '#f3faf6' : 'white',
-          boxShadow: activo ? '0 4px 16px rgba(26,92,56,0.14)' : 'none',
-        }}
-      >
-        <div className="flex gap-3">
-          <div className="relative h-[76px] w-[92px] shrink-0 overflow-hidden rounded-[10px] bg-[#eef1ee]">
-            {loading ? (
-              <div className="h-full w-full animate-pulse bg-[#e6ebe7]" />
-            ) : info?.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={info.image} alt={title} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9bb0a4" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              </div>
-            )}
-            <span className="absolute left-1.5 top-1.5 rounded-full bg-white/92 px-2 py-0.5 text-[11px] font-bold text-[#123f27]">#{idx + 1}</span>
-          </div>
-          <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
-            <h3 className="text-[13.5px] font-semibold leading-[1.3] text-[#1C2620]" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</h3>
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#5B6B62]">
-              {info && info.rooms > 0 && <span className="flex items-center gap-1"><IcBed /> {info.rooms}</span>}
-              {info && info.baths > 0 && <span className="flex items-center gap-1"><IcBath /> {info.baths}</span>}
-              {info && info.area > 0 && <span className="flex items-center gap-1"><IcArea /> {info.area} m²</span>}
-            </div>
-            {info?.price && <div className="text-[13.5px] font-bold text-[#1A5C38]">{info.price}</div>}
-          </div>
-        </div>
-        {isValidNote(prop.note) && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{prop.note}&rdquo;</p>}
-        {renderAcciones(prop)}
-      </div>
-    )
-  }
-
   // Card grande (vista Lista, grilla).
   function renderCardGrilla(prop: Property, idx: number) {
     const r = reactions[prop.id] || {}
@@ -406,6 +301,7 @@ export default function ClientShortlist({
     const info = pi?.info
     const loading = pi?.loading
     const title = etiqueta(prop)
+    const portal = logoDePortal(prop.url)
     return (
       <div key={prop.id} className="flex flex-col overflow-hidden rounded-2xl border bg-white"
         style={{ borderColor: r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5', boxShadow: '0 2px 12px rgba(20,50,35,0.05)' }}>
@@ -421,9 +317,14 @@ export default function ClientShortlist({
             </div>
           )}
           <span className="absolute left-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-1 text-[12px] font-bold text-[#123f27]" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.14)' }}>#{idx + 1}</span>
+          {portal && (
+            <span className="absolute right-2.5 top-2.5 inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-white/95 p-1 shadow-sm" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.14)' }}>
+              <Image src={portal.logo} alt={portal.name} width={24} height={24} className="h-6 w-auto" />
+            </span>
+          )}
           <button type="button" aria-label="Me encanta"
             onClick={() => setReaction(prop.id, 'encanta')}
-            className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 transition active:scale-90"
+            className="absolute right-2.5 bottom-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 transition active:scale-90"
             style={{ color: r.reaction === 'encanta' ? '#1A5C38' : '#5B6B62', boxShadow: '0 1px 6px rgba(0,0,0,0.14)' }}>
             <BtnHeart filled={r.reaction === 'encanta'} />
           </button>
@@ -456,224 +357,99 @@ export default function ClientShortlist({
     )
   }
 
-  // ── Sidebar (compartido; el bloque de abajo cambia según la vista) ──
-  const primerNombre = agentName.trim().split(/\s+/)[0]
-  const sidebar = (
-    <aside className="flex flex-col gap-5 border-b border-[#E4E9E5] bg-white p-7 lg:border-b-0 lg:border-r">
-      {/* AGENTE protagonista: foto grande + mensaje + contacto directo */}
-      <div className="flex flex-col items-center rounded-2xl border border-[#E4E9E5] bg-white p-5 text-center" style={{ boxShadow: '0 8px 26px rgba(20,50,35,0.06)' }}>
-        <div className="relative mb-3.5">
-          {agentPhoto ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={agentPhoto} alt={agentName} className="h-24 w-24 rounded-full object-cover" style={{ boxShadow: '0 6px 18px rgba(20,50,35,0.18)' }} />
-          ) : (
-            <div className="flex h-24 w-24 items-center justify-center rounded-full text-[30px] font-extrabold text-white" style={{ background: 'linear-gradient(135deg,#DD7349,#C7902F)', fontFamily: 'Raleway, sans-serif', boxShadow: '0 6px 18px rgba(199,144,47,0.3)' }}>{iniciales(agentName)}</div>
-          )}
-          <span className="pointer-events-none absolute -inset-1.5 rounded-full border-2 border-[#EAF3EE]" />
-        </div>
-        <div className="text-[18px] font-extrabold text-[#123f27]" style={{ fontFamily: 'Raleway, sans-serif' }}>{agentName}</div>
-        <div className="mt-0.5 text-[12.5px] text-[#9aa39c]">SI Inmobiliaria · Tu asesor</div>
-        <p className="mt-3 border-t border-[#E4E9E5] pt-3 text-[13px] leading-[1.55] text-[#5B6B62]">
-          {isValidNote(session.note) ? session.note : `Hola ${session.clientName}! Te elegí estas propiedades pensando en lo que buscás. Reaccioná en cada una y coordinamos.`}
-        </p>
-        <button type="button" onClick={() => setGuardado(true)}
-          className="mt-3.5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-bold transition"
-          style={guardado ? { background: '#EAF3EE', color: '#1A5C38' } : { background: '#1A5C38', color: 'white' }}>
-          {guardado ? <><BtnCheck /> Búsqueda guardada</> : <><IcBookmark /> Guardar búsqueda</>}
-        </button>
-        {guardado && <p className="mt-2 text-[11.5px] leading-[1.45] text-[#5B6B62]">Guardamos tus respuestas. {primerNombre} te contacta con novedades.</p>}
-      </div>
-
-      <div>
-        <div className="text-[11.5px] font-semibold tracking-[0.3px] text-[#1A5C38]" style={{ fontFamily: 'Raleway, sans-serif' }}>SELECCIÓN PARA</div>
-        <h1 className="text-[21px] font-bold leading-[1.2] text-[#1A5C38]" style={{ fontFamily: 'Raleway, sans-serif' }}>{session.clientName}</h1>
-      </div>
-
-      {/* Resumen EN VIVO: se arma solo a medida que el cliente reacciona */}
-      <div className="flex flex-col gap-2.5 rounded-2xl bg-[#1A5C38] p-4 text-white">
-        <h3 className="text-[14px] font-extrabold tracking-[0.2px]">Tu resumen</h3>
-        {totalReacc === 0 ? (
-          <p className="text-[12.5px] leading-[1.5] opacity-80">A medida que reacciones en cada propiedad, tu resumen se arma solo acá.</p>
-        ) : (
-          <>
-            <div className="grid grid-cols-4 gap-1.5">
-              {[
-                { n: stats.encanta, e: '😍', l: 'Me encanta' },
-                { n: stats.duda, e: '🤔', l: 'En duda' },
-                { n: stats.cara, e: '💸', l: 'Caras' },
-                { n: stats.no, e: '🙈', l: 'No van' },
-              ].map(x => (
-                <div key={x.l} className="flex flex-col items-center rounded-xl bg-white/10 py-2">
-                  <span className="text-[17px] leading-none">{x.e}</span>
-                  <b className="mt-1 text-[16px] font-extrabold leading-none">{x.n}</b>
-                  <span className="mt-0.5 text-center text-[9px] leading-tight opacity-85">{x.l}</span>
-                </div>
-              ))}
-            </div>
-            {stats.wantVisit > 0 && (
-              <div className="flex items-center justify-center gap-1.5 rounded-xl bg-white/10 py-2 text-[12.5px] font-semibold">
-                📅 <b>{stats.wantVisit}</b> {stats.wantVisit === 1 ? 'visita pedida' : 'visitas pedidas'}
-              </div>
-            )}
-            <div className="border-t border-white/20 pt-2.5 text-[12px] leading-[1.5]">
-              {likedLabels.length > 0 && <div className="mb-1"><b>Te gustan:</b> {likedLabels.join(', ')}</div>}
-              {visitLabels.length > 0 && <div className="mb-1"><b>Querés visitar:</b> {visitLabels.join(', ')}</div>}
-              {dudaLabels.length > 0 && <div className="mb-1"><b>En duda:</b> {dudaLabels.join(', ')}</div>}
-              {caraLabels.length > 0 && <div className="mb-1"><b>Te parecen caras:</b> {caraLabels.join(', ')}</div>}
-              {noLabels.length > 0 && <div><b>No van:</b> {noLabels.join(', ')}</div>}
-            </div>
-          </>
-        )}
-        <a href={`https://wa.me/${WA_PHONE}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
-          className="mt-1 flex items-center justify-center gap-2 rounded-[11px] bg-white py-2.5 text-[13.5px] font-bold text-[#1A5C38]">
-          <IcWA /> Enviar mi resumen
-        </a>
-      </div>
-
-    </aside>
-  )
+  const previewProp = previewPropId ? session.properties.find(p => p.id === previewPropId) ?? null : null
+  const previewTitle = previewProp ? etiqueta(previewProp) : ''
+  const previewSrc = previewProp ? previewUrlInterna(previewProp.url) : null
+  const activas = filasGrilla.filter(({ p }) => !esDescartada(p.id))
+  const desc = filasGrilla.filter(({ p }) => esDescartada(p.id))
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FBFAF8] text-[#1C2620]" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
-      {/* Top bar */}
-      <header className="sticky top-0 z-[60] flex items-center justify-between border-b border-[#E4E9E5] bg-white px-5 py-3 md:px-10">
-        <a href="https://siinmobiliaria.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1A5C38] text-[15px] font-extrabold text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>SI</span>
-          <span className="text-[15px] font-bold tracking-[0.4px]" style={{ fontFamily: 'Raleway, sans-serif' }}>SI <span className="text-[#1A5C38]">INMOBILIARIA</span></span>
-        </a>
-        <div className="flex items-center gap-3">
-          <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${days <= 3 ? 'bg-red-50 text-red-500' : 'bg-[#EAF3EE] text-[#1A5C38]'}`}>
-            Válida por {days} día{days !== 1 ? 's' : ''} más
-          </span>
-          <button type="button" onClick={() => setAyudaVisible(v => !v)} aria-label="¿Cómo funciona?"
-            className="flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[#E4E9E5] bg-white text-[15px] font-extrabold text-[#1A5C38]">?</button>
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1A5C38] text-[13px] font-bold text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>{iniciales(agentName)}</span>
-        </div>
-      </header>
-
-      {/* Ayuda: POP-UP flotante (no una barra fija). Arranca abierto la 1ª vez,
-          se cierra con la ✕ o tocando afuera, y se reabre con el "?". */}
-      {ayudaVisible && (
-        <>
-          <button type="button" aria-label="Cerrar ayuda" onClick={() => setAyudaVisible(false)}
-            className="fixed inset-0 z-[70] cursor-default bg-black/10" />
-          <div role="dialog" aria-label="Cómo funciona"
-            className="fixed right-3 top-[62px] z-[80] w-[300px] max-w-[calc(100vw-24px)] rounded-2xl border border-[#d3e6da] bg-white p-4 md:right-8"
-            style={{ boxShadow: '0 12px 32px rgba(20,50,35,0.18)' }}>
-            <div className="mb-2.5 flex items-center justify-between">
-              <b className="text-[14px] text-[#123f27]">¿Cómo funciona?</b>
-              <button type="button" onClick={() => setAyudaVisible(false)} aria-label="Cerrar" className="text-[16px] text-[#8A968E] hover:text-[#123f27]">✕</button>
+    <div className="min-h-screen bg-[#F4F6F5] text-[#1C2620]" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
+      <main className="mx-auto flex min-h-screen w-full max-w-[1180px] flex-col px-4 py-5 sm:px-6 lg:px-8">
+        <section className="mb-5 rounded-2xl border border-[#E4E9E5] bg-white px-4 py-4 sm:px-5" style={{ boxShadow: '0 8px 28px rgba(20,50,35,0.06)' }}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#1A5C38]" style={{ fontFamily: 'Raleway, sans-serif' }}>Selección privada</p>
+              <h1 className="mt-0.5 text-[22px] font-extrabold leading-tight text-[#123f27] sm:text-[26px]" style={{ fontFamily: 'Raleway, sans-serif' }}>{session.clientName}</h1>
+              <p className="mt-1 max-w-[720px] text-[13px] leading-[1.55] text-[#5B6B62]">
+                {isValidNote(session.note) ? session.note : `${agentName} preparó estas propiedades para que las veas sin salir de este panel.`}
+              </p>
             </div>
-            <div className="flex flex-col gap-2.5 text-[13px] text-[#1C2620]">
-              <span className="flex items-center gap-2.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EAF3EE] text-[#1A5C38]"><BtnHeart /></span> Marcá las que te gusten</span>
-              <span className="flex items-center gap-2.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EAF3EE] text-[#1A5C38]"><BtnCal /></span> Pedí una visita</span>
-              <span className="flex items-center gap-2.5"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EAF3EE] text-[#1A5C38]"><BtnPencil /></span> Dejanos una nota</span>
+            <div className="flex shrink-0 items-center gap-2 rounded-xl bg-[#EAF3EE] px-3 py-2 text-[12.5px] font-bold text-[#1A5C38]">
+              {agentPhoto ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={agentPhoto} alt={agentName} className="h-7 w-7 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[10px] font-extrabold text-[#1A5C38]">{iniciales(agentName)}</span>
+              )}
+              <span>{agentName}</span>
+              <span className="h-1 w-1 rounded-full bg-[#1A5C38]" />
+              <span>{session.permanent ? 'Activa' : `${days} día${days !== 1 ? 's' : ''}`}</span>
             </div>
-            <p className="mt-2.5 border-t border-[#EAF3EE] pt-2.5 text-[12.5px] leading-[1.5] text-[#5B6B62]">Tu resumen se arma solo y te contactamos.</p>
           </div>
-        </>
-      )}
+        </section>
 
-      {/* Barra de vista: filtros por tipo (en Lista) + toggle Lista/Mapa */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E9E5] bg-white px-5 py-2.5 md:px-10">
-        {vista === 'grilla' && chips.length > 1 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button type="button" onClick={() => setTipoFiltro('todas')}
-              className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${tipoFiltro === 'todas' ? 'bg-[#1A5C38] text-white' : 'border border-[#E4E9E5] bg-white text-[#5B6B62]'}`}>
-              Todas
-            </button>
-            {chips.map(k => (
-              <button key={k} type="button" onClick={() => setTipoFiltro(k)}
-                className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${tipoFiltro === k ? 'bg-[#1A5C38] text-white' : 'border border-[#E4E9E5] bg-white text-[#5B6B62]'}`}>
-                {TIPO_LABELS[k]}
-              </button>
-            ))}
+        <section className="flex-1">
+          {activas.length > 0 ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {activas.map(({ p: prop, idx }) => renderCardGrilla(prop, idx))}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-[#E4E9E5] bg-white px-4 py-16 text-center text-[14px] text-[#5B6B62]">No hay propiedades activas en esta selección.</p>
+          )}
+
+          {desc.length > 0 && (
+            <div className="mt-5 space-y-4">
+              {headerDescartadas(desc.length)}
+              {descartadasOpen && (
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {desc.map(({ p: prop, idx }) => (
+                    <div key={prop.id} style={{ filter: 'grayscale(1)', opacity: 0.62 }}>{renderCardGrilla(prop, idx)}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        <footer className="mt-5 rounded-2xl border border-[#E4E9E5] bg-white p-4">
+          <div className="text-[13px] leading-[1.5] text-[#5B6B62]">
+            <b className="text-[#123f27]">Tu resumen:</b>{' '}
+            {totalReacc === 0 ? 'todavía no marcaste ninguna propiedad.' : `${stats.encanta} me gusta · ${stats.no} descartadas · ${stats.wantVisit} visita${stats.wantVisit !== 1 ? 's' : ''}`}
           </div>
-        )}
-        <div className="ml-auto flex rounded-full border border-[#E4E9E5] bg-white p-0.5">
-          <button type="button" onClick={() => elegirVista('grilla')}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${vista === 'grilla' ? 'bg-[#1A5C38] text-white' : 'text-[#5B6B62]'}`}>
-            <IcGrid /> Lista
-          </button>
-          <button type="button" onClick={() => elegirVista('mapa')}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${vista === 'mapa' ? 'bg-[#1A5C38] text-white' : 'text-[#5B6B62]'}`}>
-            <IcPin /> Mapa
-          </button>
-        </div>
-      </div>
+          <p className="mt-1 text-[12.5px] leading-[1.45] text-[#7C8A81]">Tus respuestas se guardan automáticamente para que el asesor pueda seguir la conversación.</p>
+        </footer>
+      </main>
 
-      {vista === 'mapa' ? (
-        /* ══ VISTA MAPA: sidebar / mapa / listado ══ */
-        <div className="grid flex-1 grid-cols-1 lg:grid-cols-[300px_1fr_380px]">
-          {sidebar}
-
-          <section className="relative min-h-[380px] bg-[#eef1ee] lg:min-h-[560px]">
-            {mapaProps.length > 0 ? (
-              <SeleccionMapa props={mapaProps} onSelect={seleccionar} />
-            ) : (
-              <div className="flex h-full min-h-[380px] items-center justify-center px-8 text-center">
-                <p className="text-[14px] text-[#5B6B62]">{session.properties.some(p => propInfo[p.id]?.loading) ? 'Ubicando las propiedades en el mapa…' : 'Las propiedades de esta selección todavía no tienen ubicación en el mapa. Podés verlas en la vista Lista.'}</p>
+      {previewProp && (
+        <div className="fixed inset-0 z-[100] bg-[#0f1f16]/70 p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Preview de propiedad">
+          <div className="mx-auto flex h-full max-w-[1180px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-[#E4E9E5] px-3 py-2.5 sm:px-4">
+              <div className="min-w-0">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#1A5C38]">Vista rápida</p>
+                <h2 className="truncate text-[14px] font-extrabold text-[#123f27] sm:text-[16px]">{previewTitle}</h2>
               </div>
-            )}
-          </section>
-
-          <aside className="flex max-h-[calc(100vh-61px)] flex-col border-t border-[#E4E9E5] bg-white p-5 lg:border-t-0 lg:border-l">
-            <div className="flex flex-col gap-3.5 overflow-y-auto pb-4 pr-1">
-              {session.properties.map((prop, idx) => (esDescartada(prop.id) ? null : renderCardListado(prop, idx)))}
-              {(() => {
-                const desc = session.properties.map((prop, idx) => ({ prop, idx })).filter(x => esDescartada(x.prop.id))
-                if (!desc.length) return null
-                return (
-                  <div className="mt-1 space-y-2.5">
-                    {headerDescartadas(desc.length)}
-                    {descartadasOpen && desc.map(({ prop, idx }) => (
-                      <div key={prop.id} style={{ filter: 'grayscale(1)', opacity: 0.6 }}>{renderCardListado(prop, idx)}</div>
-                    ))}
-                  </div>
-                )
-              })()}
+              <button type="button" onClick={() => setPreviewPropId(null)}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E4E9E5] bg-white text-[#123f27] transition hover:bg-[#F4F6F5]"
+                aria-label="Cerrar preview">
+                <BtnX />
+              </button>
             </div>
-
-            <a href={`https://wa.me/${WA_PHONE}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
-              className="mt-auto flex items-center justify-center gap-2.5 rounded-xl bg-[#1A5C38] py-3.5 text-[14.5px] font-semibold text-white transition-colors hover:bg-[#123f27]">
-              <IcWA /> Escribir por WhatsApp
-            </a>
-          </aside>
-        </div>
-      ) : (
-        /* ══ VISTA LISTA: sidebar / grilla de cards grandes ══ */
-        <div className="grid flex-1 grid-cols-1 lg:grid-cols-[300px_1fr]">
-          {sidebar}
-
-          <section className="p-5 md:p-7">
-            {filasGrilla.length === 0 ? (
-              <p className="px-4 py-16 text-center text-[14px] text-[#5B6B62]">No hay propiedades de este tipo en tu selección.</p>
-            ) : (() => {
-              const activas = filasGrilla.filter(({ p }) => !esDescartada(p.id))
-              const desc = filasGrilla.filter(({ p }) => esDescartada(p.id))
-              return (
-                <>
-                  {activas.length > 0 && (
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                      {activas.map(({ p: prop, idx }) => renderCardGrilla(prop, idx))}
-                    </div>
-                  )}
-                  {desc.length > 0 && (
-                    <div className="mt-5 space-y-4">
-                      {headerDescartadas(desc.length)}
-                      {descartadasOpen && (
-                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                          {desc.map(({ p: prop, idx }) => (
-                            <div key={prop.id} style={{ filter: 'grayscale(1)', opacity: 0.6 }}>{renderCardGrilla(prop, idx)}</div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )
-            })()}
-          </section>
+            <div className="relative flex-1 bg-[#eef1ee]">
+              {previewSrc ? (
+                <iframe src={previewSrc} title={previewTitle} className="h-full w-full border-0" />
+              ) : (
+                <div className="flex h-full items-center justify-center px-6 text-center">
+                  <div className="max-w-[420px] rounded-2xl bg-white p-6 shadow-sm">
+                    <p className="text-[18px] font-extrabold text-[#123f27]" style={{ fontFamily: 'Raleway, sans-serif' }}>Vista interna no disponible</p>
+                    <p className="mt-2 text-[14px] leading-[1.55] text-[#5B6B62]">
+                      Esta propiedad pertenece a una selección creada antes del preview interno. Pedí una actualización de la selección para verla completa dentro de este panel.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

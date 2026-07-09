@@ -36,6 +36,9 @@ interface SeleccionProperty {
 interface SeleccionInput {
   clientName: string
   clientPhone: string
+  clientEmail?: string
+  contactId?: string
+  contactSource?: string
   agent: string
   agentId: string
   agentName: string
@@ -44,16 +47,57 @@ interface SeleccionInput {
   properties: SeleccionProperty[]
 }
 
+function normalizeContactId(value: string | undefined | null): string {
+  return (value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9@._:+-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 120)
+}
+
+function contactIdFromInput(data: SeleccionInput): string {
+  const explicit = normalizeContactId(data.contactId)
+  if (explicit) return explicit
+  const phoneDigits = data.clientPhone.replace(/\D/g, '')
+  if (phoneDigits.length >= 8) return `phone:${phoneDigits}`
+  return ''
+}
+
 export async function crearSeleccion(data: SeleccionInput): Promise<string> {
-  const token = nanoid(10)
-  const redisTtl = 365 * 86400 // 1 year
+  const contactId = contactIdFromInput(data)
+  const activeKey = contactId ? `contacto:${contactId}:seleccion_activa` : ''
+  const existingToken = activeKey ? await redis.get<string>(activeKey) : null
+  const existingSelection = existingToken ? await getSeleccion(existingToken) : null
+  const token = existingSelection?.token || existingToken || nanoid(10)
   const now = new Date().toISOString()
-  const expiresAt = new Date(Date.now() + redisTtl * 1000).toISOString()
+  const createdAt = existingSelection?.createdAt || now
+  const expiresAt = '2099-12-31T23:59:59.999Z'
 
-  const payload = { ...data, token, createdAt: now, expiresAt }
+  const payload = {
+    ...data,
+    contactId: contactId || data.contactId || '',
+    token,
+    permanent: true,
+    createdAt,
+    updatedAt: now,
+    expiresAt,
+  }
 
-  await redis.set(`seleccion:${token}`, JSON.stringify(payload), { ex: redisTtl })
-  await redis.set(`reacciones:${token}`, JSON.stringify({ _meta: { viewCount: 0, lastActivity: now } }), { ex: redisTtl })
+  await redis.set(`seleccion:${token}`, JSON.stringify(payload))
+
+  const currentReactions = await redis.get(`reacciones:${token}`)
+  if (!currentReactions) {
+    await redis.set(`reacciones:${token}`, JSON.stringify({ _meta: { viewCount: 0, lastActivity: now } }))
+  }
+
+  if (activeKey) {
+    await redis.set(activeKey, token)
+    const historyKey = `contacto:${contactId}:selecciones`
+    const history = await redis.lrange<string>(historyKey, 0, 100)
+    if (!history.includes(token)) await redis.lpush(historyKey, token)
+  }
 
   return token
 }
@@ -84,6 +128,8 @@ export async function patchReaccion(
   const ttl = await redis.ttl(`reacciones:${token}`)
   if (ttl > 0) {
     await redis.set(`reacciones:${token}`, JSON.stringify(current), { ex: ttl })
+  } else {
+    await redis.set(`reacciones:${token}`, JSON.stringify(current))
   }
 }
 
@@ -96,6 +142,8 @@ export async function incrementViewCount(token: string) {
   const ttl = await redis.ttl(`reacciones:${token}`)
   if (ttl > 0) {
     await redis.set(`reacciones:${token}`, JSON.stringify(current), { ex: ttl })
+  } else {
+    await redis.set(`reacciones:${token}`, JSON.stringify(current))
   }
 }
 

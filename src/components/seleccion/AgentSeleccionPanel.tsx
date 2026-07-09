@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -49,11 +49,40 @@ type ImportState = {
   fotos?: number
 }
 
-// Externa = URL válida cuyo host no es siinmobiliaria.com.
+type InitialContact = {
+  contactId?: string
+  contactSource?: string
+  name?: string
+  phone?: string
+  email?: string
+}
+
+// URLs que deben terminar como ficha neutral en verficha.casa.
 function isExternalUrl(url: string): boolean {
   try {
-    const host = new URL(url).hostname
-    return !!host && !host.includes('siinmobiliaria.com')
+    const u = new URL(url)
+    const host = u.hostname.toLowerCase()
+    if (host.includes('verficha.casa')) return false
+    if (host.includes('siinmobiliaria.com')) return u.pathname.includes('/propiedades/')
+    return !!host
+  } catch {
+    return false
+  }
+}
+
+function normalizePastedUrl(value: string): string {
+  const clean = value.trim()
+  const match = clean.match(/https?:\/\/[^\s"'<>]+/i)
+  return (match?.[0] || clean).replace(/[),.;]+$/g, '')
+}
+
+function isImportableUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url.trim()) && isExternalUrl(url)
+}
+
+function isMercadoLibreUrl(url: string): boolean {
+  try {
+    return new URL(url).hostname.toLowerCase().includes('mercadolibre')
   } catch {
     return false
   }
@@ -67,28 +96,37 @@ const PORTALES: { name: string; url: string; logo: string }[] = [
   { name: 'SI INMOBILIARIA', url: 'https://siinmobiliaria.com/propiedades', logo: '/portal-logos/si-inmobiliaria.png' },
 ]
 
-export default function AgentSeleccionPanel() {
+export default function AgentSeleccionPanel({ initialContact }: { initialContact?: InitialContact }) {
   // days fijo (el link queda válido 1 año) — sacamos el selector de vencimiento.
   const [formData, setFormData] = useState({
-    clientName: '', clientPhone: '', agent: 'David Flores', days: 365, note: '',
+    clientName: initialContact?.name || '',
+    clientPhone: initialContact?.phone || '',
+    clientEmail: initialContact?.email || '',
+    contactId: initialContact?.contactId || '',
+    contactSource: initialContact?.contactSource || '',
+    agent: 'David Flores',
+    days: 365,
+    note: '',
     properties: [emptyProp()] as FormProperty[],
   })
   const [createdUrl, setCreatedUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [imports, setImports] = useState<Record<string, ImportState>>({})
   const [formError, setFormError] = useState('')
+  const autoImportTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
+  const importsRef = useRef(imports)
   // Carga MANUAL de externas (indexada por fila): pegás el link + armás la PLACA
   // con foto y datos (sin título — se deriva de la zona). No depende del scraping.
   type ManualForm = { open: boolean; precio: string; moneda: string; zona: string; foto: string; dorm: string; banos: string; m2: string; loading?: boolean; error?: string }
   const [manualForms, setManualForms] = useState<Record<number, ManualForm>>({})
   const MAX_PROPS = 6
 
-  function setManual(i: number, patch: Partial<ManualForm>) {
+  const setManual = useCallback((i: number, patch: Partial<ManualForm>) => {
     setManualForms(s => {
       const base: ManualForm = s[i] ?? { open: true, precio: '', moneda: 'USD', zona: '', foto: '', dorm: '', banos: '', m2: '' }
       return { ...s, [i]: { ...base, ...patch } }
     })
-  }
+  }, [])
 
   // Crear la ficha con los datos cargados A MANO (mintea en verficha.casa igual que
   // el importar automático, pero sin scraping — usa los overrides manuales).
@@ -127,9 +165,15 @@ export default function AgentSeleccionPanel() {
 
   // Importar automático: pega URL de Zonaprop → mintea ficha propia en
   // verficha.casa (scraping vía Microlink en el server) → devuelve el link limpio.
-  async function importarExterna(url: string) {
-    const u = url.trim()
-    if (!u || !isExternalUrl(u)) return
+  useEffect(() => {
+    importsRef.current = imports
+  }, [imports])
+
+  const importarExterna = useCallback(async (url: string, rowIndex?: number) => {
+    const u = normalizePastedUrl(url)
+    if (!u || !isImportableUrl(u)) return null
+    const existing = importsRef.current[u]
+    if (existing?.loading || existing?.verfichaUrl) return existing
     setImports(s => ({ ...s, [u]: { loading: true } }))
     try {
       const res = await fetch('/api/fichas/importar', {
@@ -140,28 +184,56 @@ export default function AgentSeleccionPanel() {
       const d = await res.json()
       if (!res.ok) {
         setImports(s => ({ ...s, [u]: { error: d.error || 'No se pudo importar' } }))
-        return
+        if (rowIndex != null && isMercadoLibreUrl(u)) {
+          setManual(rowIndex, {
+            open: true,
+            error: 'MercadoLibre bloqueó la lectura automática. Completá foto, precio o zona y la ficha se crea desde acá.',
+          })
+        }
+        return null
       }
-      setImports(s => ({
-        ...s,
-        [u]: { verfichaUrl: d.url, slug: d.slug, snapshot: d.snapshot, fotos: d.fotos },
-      }))
+      const next = { verfichaUrl: d.url, slug: d.slug, snapshot: d.snapshot, fotos: d.fotos }
+      if (rowIndex != null && isMercadoLibreUrl(u) && (!d.fotos || d.fotos === 0)) {
+        setManual(rowIndex, {
+          open: true,
+          error: 'MercadoLibre no entregó fotos. Pegá una foto para que la card no quede vacía.',
+        })
+      }
+      setImports(s => ({ ...s, [u]: next }))
+      return next
     } catch {
       setImports(s => ({ ...s, [u]: { error: 'Error de red. Reintentá.' } }))
+      return null
     }
-  }
+  }, [setManual])
+
+  useEffect(() => {
+    formData.properties.forEach((p, i) => {
+      const u = normalizePastedUrl(p.url)
+      clearTimeout(autoImportTimers.current[i])
+      if (!isImportableUrl(u) || imports[u]?.loading || imports[u]?.verfichaUrl) return
+      autoImportTimers.current[i] = setTimeout(() => {
+        importarExterna(u, i)
+      }, 650)
+    })
+    const timers = autoImportTimers.current
+    return () => {
+      Object.values(timers).forEach(clearTimeout)
+    }
+  }, [formData.properties, imports, importarExterna])
 
   function addProperty() {
     setFormData(d => (d.properties.length >= MAX_PROPS ? d : { ...d, properties: [...d.properties, emptyProp()] }))
   }
 
   function updateProperty(i: number, field: string, val: string) {
+    const nextVal = field === 'url' ? normalizePastedUrl(val) : val
     setFormData(d => {
       const props = [...d.properties]
-      props[i] = { ...props[i], [field]: val }
+      props[i] = { ...props[i], [field]: nextVal }
       // Auto-generate id from url
       if (field === 'url') {
-        try { props[i].id = new URL(val).pathname.split('/').filter(Boolean).at(-1) || `prop-${i}` } catch { props[i].id = `prop-${i}` }
+        try { props[i].id = new URL(nextVal).pathname.split('/').filter(Boolean).at(-1) || `prop-${i}` } catch { props[i].id = `prop-${i}` }
       }
       return { ...d, properties: props }
     })
@@ -177,22 +249,34 @@ export default function AgentSeleccionPanel() {
     setFormError('')
     if (!formData.clientName.trim() || !formData.properties.some(p => p.url.trim())) return
 
-    const rows = formData.properties.filter(p => p.url.trim())
+    const rows = formData.properties
+      .map(p => ({ ...p, url: normalizePastedUrl(p.url) }))
+      .filter(p => p.url.trim())
 
     setSubmitting(true)
     try {
-      const { clientName, clientPhone, agent, days, note } = formData
+      const { clientName, clientPhone, clientEmail, contactId, contactSource, agent, days, note } = formData
+      const pendingExternal = rows.filter(p => isImportableUrl(p.url) && !imports[p.url]?.verfichaUrl)
+      const resolvedImports: Record<string, ImportState> = { ...imports }
+      if (pendingExternal.length > 0) {
+        const imported = await Promise.all(pendingExternal.map(async p => {
+          const result = await importarExterna(p.url)
+          if (result?.verfichaUrl) resolvedImports[p.url] = result
+          return result
+        }))
+        if (imported.some(x => !x?.verfichaUrl)) {
+          setFormError('Hay links externos que todavía no se pudieron convertir a ficha neutral. Reintentá o cargalos a mano antes de crear la selección.')
+          setSubmitting(false)
+          return
+        }
+      }
+
       const properties = rows.map((p, i) => {
         const base = { id: p.id || `prop-${i}`, url: p.url.trim(), note: p.note.trim() }
-        const imp = imports[p.url.trim()]
-        if (isExternalUrl(p.url) && imp?.verfichaUrl) {
+        const imp = resolvedImports[p.url.trim()]
+        if (isImportableUrl(p.url) && imp?.verfichaUrl) {
           // La ficha propia ya se minteó (importar auto o carga manual): linkeamos a verficha.casa.
           return { ...base, url: imp.verfichaUrl, source: 'externa', snapshot: imp.snapshot }
-        }
-        if (isExternalUrl(p.url)) {
-          // Externa SIN importar ni cargar a mano: va con el link al portal y una
-          // ficha mínima (el cliente igual la ve, con "Ver propiedad").
-          return { ...base, source: 'externa', snapshot: { title: 'Propiedad', image: null, location: '', price: null, rooms: 0, baths: 0, area: 0 } }
         }
         return base
       })
@@ -200,7 +284,17 @@ export default function AgentSeleccionPanel() {
       const res = await fetch('/api/seleccion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientName, clientPhone, agent, days, note, properties }),
+        body: JSON.stringify({
+          clientName,
+          clientPhone,
+          clientEmail,
+          contactId,
+          contactSource,
+          agent,
+          days,
+          note,
+          properties,
+        }),
       })
       const data = await res.json()
       if (!res.ok || !data?.token) {
@@ -230,8 +324,8 @@ export default function AgentSeleccionPanel() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: THEME.surface }}>
               <CheckCircle2 className="h-6 w-6" style={{ color: THEME.accent }} />
             </div>
-            <h3 className="mb-1.5 text-xl font-bold" style={{ color: THEME.text }}>¡Selección creada!</h3>
-            <p className="mb-4 text-sm" style={{ color: THEME.muted }}>La abrimos en otra pestaña para que <b>revises que esté todo ok</b>. El link ya está copiado.</p>
+            <h3 className="mb-1.5 text-xl font-bold" style={{ color: THEME.text }}>¡Selección lista!</h3>
+            <p className="mb-4 text-sm" style={{ color: THEME.muted }}>La abrimos en otra pestaña para que <b>revises que esté todo ok</b>. Si vino desde una ficha o consulta, queda como selección activa permanente de ese contacto.</p>
             <div className="mb-4 flex items-center gap-2 rounded-xl p-3" style={{ backgroundColor: THEME.surface }}>
               <input readOnly value={createdUrl} className="min-w-0 flex-1 truncate bg-transparent text-sm outline-none" style={{ color: THEME.text }} />
               <button onClick={copyUrl} className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white" style={{ backgroundColor: THEME.accent }}>
@@ -249,7 +343,7 @@ export default function AgentSeleccionPanel() {
                 Abrir de nuevo para revisar
               </a>
               <button
-                onClick={() => { setCreatedUrl(''); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
+                onClick={() => { setCreatedUrl(''); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
                 className="py-2 text-sm text-gray-400 hover:text-gray-600"
               >
                 Crear otra selección
@@ -304,6 +398,11 @@ export default function AgentSeleccionPanel() {
         <div className="relative overflow-hidden">
           <h2 className="text-[28px] font-extrabold tracking-[-0.4px]" style={{ color: THEME.text }}>Nueva selección</h2>
           <p className="mt-1 text-[14px]" style={{ color: THEME.muted }}>En 3 pasos: cargás al cliente, buscás las propiedades y pegás los links.</p>
+          {formData.contactId && (
+            <div className="mt-4 inline-flex rounded-xl border px-3 py-2 text-[12.5px] font-bold" style={{ borderColor: THEME.border, backgroundColor: THEME.surface, color: THEME.text }}>
+              Selección activa vinculada a este contacto
+            </div>
+          )}
           <svg className="pointer-events-none absolute right-0 top-[-16px] hidden h-[150px] w-[360px] lg:block" viewBox="0 0 360 150" fill="none" aria-hidden>
             <path d="M0 118 Q90 92 190 112 T360 104 V150 H0 Z" fill={THEME.surface} />
             <path d="M120 150 V96 L166 70 L212 96 V150 Z" fill="#fff" stroke={THEME.accent} strokeWidth="2" strokeLinejoin="round" />
@@ -323,7 +422,7 @@ export default function AgentSeleccionPanel() {
             {/* Rail de pasos (izquierda) */}
             <div className="relative hidden flex-col lg:flex">
               <span className="absolute left-[17px] top-5 bottom-[150px] w-0.5" style={{ backgroundColor: THEME.border }} />
-              {stepLabel(1, IcPersona, 'Llená a tu cliente', 'Su nombre es lo único que necesitás.')}
+              {stepLabel(1, IcPersona, 'Llená a tu cliente', 'Si viene desde una ficha o consulta, ya queda vinculado automáticamente.')}
               {stepLabel(2, IcBuscar, 'Buscá las propiedades', 'Abrí los sitios en otra pestaña, buscá lo que le sirve y copiá el link de cada aviso.')}
               {stepLabel(3, IcLink, 'Pegá los links que encontraste', 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
               <div className="mt-auto flex flex-col gap-1.5 rounded-2xl p-4" style={{ backgroundColor: THEME.surface }}>
@@ -339,6 +438,10 @@ export default function AgentSeleccionPanel() {
                 {panelHead(IcPersona, '¿A quién le armamos la selección?')}
                 <div className="flex flex-col gap-2.5 sm:flex-row">
                   <input required placeholder="Nombre del cliente" value={formData.clientName} onChange={e => setFormData(d => ({ ...d, clientName: e.target.value }))}
+                    className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
+                    style={{ borderColor: THEME.border, color: THEME.text }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
+                  <input placeholder="WhatsApp o teléfono" value={formData.clientPhone} onChange={e => setFormData(d => ({ ...d, clientPhone: e.target.value }))}
                     className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
                     style={{ borderColor: THEME.border, color: THEME.text }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
@@ -388,8 +491,9 @@ export default function AgentSeleccionPanel() {
                 {panelHead(IcLink, 'Pegá los links que encontraste', `${numDone}/${MAX_PROPS}`, 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
 
             {formData.properties.map((p, i) => {
-              const externa = isExternalUrl(p.url)
-              const imp = imports[p.url.trim()]
+              const normalizedUrl = normalizePastedUrl(p.url)
+              const externa = isImportableUrl(normalizedUrl)
+              const imp = imports[normalizedUrl]
               const mf = manualForms[i] ?? { open: false, precio: '', moneda: 'USD', zona: '', foto: '', dorm: '', banos: '', m2: '' }
                   return (
                 <div key={i}>
@@ -397,8 +501,8 @@ export default function AgentSeleccionPanel() {
                     <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg text-[12.5px] font-extrabold" style={{ backgroundColor: THEME.surface, color: THEME.accent }}>{i + 1}</span>
                     <input placeholder={i === 0 ? 'https://www.zonaprop.com.ar/…-casa-en-funes-51234567.html' : 'Pegá otro link…'}
                       value={p.url} onChange={e => updateProperty(i, 'url', e.target.value)}
-                      onBlur={() => { const u = p.url.trim(); if (isExternalUrl(u) && !imports[u]) importarExterna(u) }}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const u = p.url.trim(); if (isExternalUrl(u) && !imports[u]) importarExterna(u) } }}
+                      onBlur={() => { if (isImportableUrl(normalizedUrl) && !imports[normalizedUrl]) importarExterna(normalizedUrl, i) }}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (isImportableUrl(normalizedUrl) && !imports[normalizedUrl]) importarExterna(normalizedUrl, i) } }}
                       className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm italic outline-none placeholder:not-italic"
                       style={{ borderColor: THEME.border, color: THEME.text, ...(p.url ? { fontStyle: 'normal' } : undefined) }}
                       onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
@@ -486,7 +590,7 @@ export default function AgentSeleccionPanel() {
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-[12px] text-red-600">No se pudo leer el aviso. Reintentá o cargalo a mano.</p>
                           <div className="flex shrink-0 gap-2">
-                            <button type="button" onClick={() => importarExterna(p.url)}
+                            <button type="button" onClick={() => importarExterna(normalizedUrl, i)}
                               className="rounded-lg px-3 py-1.5 text-[12px] font-bold text-white"
                               style={{ background: THEME.accent }}
                             >

@@ -38,6 +38,7 @@ const getFichaCached = cache(async (slug: string) => {
 
 interface Props {
   params: { slug: string }
+  searchParams?: { embed?: string }
 }
 
 function firstParagraph(text: string, maxLen = 160): string {
@@ -107,7 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function NeutralFichaPage({ params }: Props) {
+export default async function NeutralFichaPage({ params, searchParams }: Props) {
   const ficha = await getFichaCached(params.slug)
   if (!ficha) notFound()
 
@@ -133,6 +134,7 @@ export default async function NeutralFichaPage({ params }: Props) {
   const hasCoords = typeof s.lat === 'number' && typeof s.lng === 'number'
   const hasBlueprints = (s.blueprints?.length ?? 0) > 0
   const tieneAmenities = (s.caracteristicas?.length ?? 0) > 0 || (s.extras?.length ?? 0) > 0
+  const isEmbedded = searchParams?.embed === '1'
 
   // "Bv Sarmiento y alrededores · Charquito, Roldán" — sin número
   const ubicTexto = (() => {
@@ -245,30 +247,38 @@ export default async function NeutralFichaPage({ params }: Props) {
           <NearbyPlacesNeutral lat={s.lat as number} lng={s.lng as number} />
         )}
 
-        {/* Sección 7c: feedback anónimo de colegas (final del scroll, antes del CTA) */}
-        <FeedbackColega slug={params.slug} />
+        {!isEmbedded && (
+          <>
+            {/* Sección 7c: feedback anónimo de colegas (final del scroll, antes del CTA) */}
+            <FeedbackColega slug={params.slug} />
 
-        {/* Sección 8: CTA compartir */}
-        <ShareCTA url={url} />
+            {/* Sección 8: CTA compartir */}
+            <ShareCTA url={url} />
+          </>
+        )}
 
-        {/* Sección 9: footer mínimo */}
-        <footer
-          style={{
-            marginTop: 56,
-            paddingTop: 24,
-            paddingBottom: 32,
-            borderTop: '1px solid #E5E7EB',
-            textAlign: 'center',
-            fontSize: 12,
-            color: '#9CA3AF',
-          }}
-        >
-          {NEUTRAL_DOMAIN}
-        </footer>
+        {!isEmbedded && (
+          /* Sección 9: footer mínimo */
+          <footer
+            style={{
+              marginTop: 56,
+              paddingTop: 24,
+              paddingBottom: 32,
+              borderTop: '1px solid #E5E7EB',
+              textAlign: 'center',
+              fontSize: 12,
+              color: '#9CA3AF',
+            }}
+          >
+            {NEUTRAL_DOMAIN}
+          </footer>
+        )}
       </main>
 
-      {/* FAB — mobile only (CSS media query oculta en ≥768px) */}
-      <FloatingShareButton url={url} />
+      {!isEmbedded && (
+        /* FAB — mobile only (CSS media query oculta en ≥768px) */
+        <FloatingShareButton url={url} />
+      )}
 
       <style dangerouslySetInnerHTML={{ __html: `
         @media (min-width: 768px) {

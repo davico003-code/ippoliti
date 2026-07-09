@@ -8,6 +8,7 @@ export default function FooterWrapper() {
 
   // Panel /fichas: layout propio sin footer.
   if (pathname === '/fichas' || pathname?.startsWith('/fichas/')) return null
+  if (pathname?.startsWith('/seleccion/')) return null
 
   // Home: usa el mismo footer blanco global (responsive) que el resto del sitio.
   // El FooterMobile propio se removió de page.tsx para no duplicar.

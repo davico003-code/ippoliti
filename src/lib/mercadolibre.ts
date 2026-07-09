@@ -24,8 +24,12 @@ export function isMercadolibreUrl(url: string): boolean {
 
 /** Saca el ID del aviso (MLA########) del link pegado. */
 export function extraerItemId(url: string): string | null {
-  const m = /MLA-?(\d{6,})/i.exec(url)
-  return m ? `MLA${m[1]}` : null
+  const normalized = decodeURIComponent(url)
+  const m = /\bMLA-?(\d{6,})\b/i.exec(normalized)
+  if (m) return `MLA${m[1]}`
+
+  const compact = /\b(\d{9,})\b/.exec(normalized)
+  return compact ? `MLA${compact[1]}` : null
 }
 
 type MlAttr = { id: string; value_name?: string | null; value_struct?: { number?: number | null } | null }
