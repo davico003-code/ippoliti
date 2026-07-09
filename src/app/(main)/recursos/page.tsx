@@ -101,6 +101,8 @@ const STYLES = `
   .rr-page {
     background: #ffffff;
     font-family: var(--font-raleway), Raleway, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   .rr-wrap {
     width: min(100% - 40px, 1282px);
@@ -136,6 +138,7 @@ const STYLES = `
   }
   .rr-media img {
     object-fit: cover;
+    image-rendering: auto;
   }
   @media (max-width: 760px) {
     .rr-wrap {
@@ -165,7 +168,7 @@ const CARDS: CardData[] = [
     image: {
       src: '/recursos/placa-guia.webp',
       alt: 'Guía del comprador: todo lo que necesitás saber antes de comprar',
-      sizes: '(max-width: 760px) calc(100vw - 28px), 1282px',
+      sizes: 'min(100vw - 40px, 1282px)',
     },
   },
   {
@@ -174,7 +177,7 @@ const CARDS: CardData[] = [
     image: {
       src: '/recursos/placa-alquiler.webp',
       alt: 'Calculá cuánto necesitás para alquilar',
-      sizes: '(max-width: 760px) calc(100vw - 28px), 631px',
+      sizes: '(max-width: 760px) calc(100vw - 28px), calc((min(100vw - 40px, 1282px) - 20px) / 2)',
     },
   },
   {
@@ -183,7 +186,7 @@ const CARDS: CardData[] = [
     image: {
       src: '/recursos/placa-ajuste.webp',
       alt: 'Verificá si está bien calculado tu ajuste',
-      sizes: '(max-width: 760px) calc(100vw - 28px), 631px',
+      sizes: '(max-width: 760px) calc(100vw - 28px), calc((min(100vw - 40px, 1282px) - 20px) / 2)',
     },
   },
   {
@@ -192,7 +195,7 @@ const CARDS: CardData[] = [
     image: {
       src: '/recursos/placa-construccion.webp',
       alt: 'Estimá cuánto cuesta construir',
-      sizes: '(max-width: 760px) calc(100vw - 28px), 631px',
+      sizes: '(max-width: 760px) calc(100vw - 28px), calc((min(100vw - 40px, 1282px) - 20px) / 2)',
     },
   },
   {
@@ -201,7 +204,7 @@ const CARDS: CardData[] = [
     image: {
       src: '/recursos/placa-mapa.webp',
       alt: 'Explorá qué podés construir en tu lote',
-      sizes: '(max-width: 760px) calc(100vw - 28px), 631px',
+      sizes: '(max-width: 760px) calc(100vw - 28px), calc((min(100vw - 40px, 1282px) - 20px) / 2)',
     },
   },
 ]
@@ -255,6 +258,7 @@ function ResourceCard({
           src={card.image.src}
           alt={card.image.alt}
           fill
+          quality={100}
           priority={priority}
           sizes={card.image.sizes}
         />

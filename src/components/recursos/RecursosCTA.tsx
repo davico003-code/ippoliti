@@ -1,6 +1,6 @@
 // Contact strip reutilizable — placa verde profundo (paleta oficial SI) para que
 // resalte sobre el fondo blanco. Va al fondo de las páginas de recursos.
-const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', sans-serif"
+const FONT = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const GREEN_DEEP = '#0B3F2D'
 
 const WHATSAPP =
@@ -23,6 +23,7 @@ export default function RecursosCTA({
             background: linear-gradient(150deg, #1A5C38, #123F27);
             border-radius: 28px; padding: clamp(32px, 4vw, 52px) clamp(28px, 4vw, 56px);
             -webkit-font-smoothing: antialiased;
+            text-rendering: geometricPrecision;
           }
           .recursos-cta-btn { transition: transform .2s cubic-bezier(.2,.7,.2,1); }
           .recursos-cta-btn:hover { transform: scale(1.03); }
@@ -35,10 +36,31 @@ export default function RecursosCTA({
         ` }} />
         <div className="recursos-cta">
           <div>
-            <h2 style={{ fontFamily: FONT, fontSize: 'clamp(24px, 2.6vw, 34px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', margin: 0, lineHeight: 1.1 }}>
+            <h2
+              style={{
+                fontFamily: FONT,
+                fontSize: 'clamp(24px, 2.6vw, 34px)',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                color: '#fff',
+                margin: 0,
+                lineHeight: 1.1,
+                WebkitFontSmoothing: 'antialiased',
+                textRendering: 'geometricPrecision',
+              }}
+            >
               {title}
             </h2>
-            <p style={{ fontFamily: FONT, fontSize: 'clamp(15px, 1.4vw, 17px)', color: 'rgba(255,255,255,0.74)', margin: '10px 0 0', maxWidth: '46ch', lineHeight: 1.5 }}>
+            <p style={{
+              fontFamily: FONT,
+              fontSize: 'clamp(15px, 1.4vw, 17px)',
+              color: 'rgba(255,255,255,0.74)',
+              margin: '10px 0 0',
+              maxWidth: '46ch',
+              lineHeight: 1.5,
+              WebkitFontSmoothing: 'antialiased',
+              textRendering: 'geometricPrecision',
+            }}>
               {text}
             </p>
           </div>
@@ -57,6 +79,8 @@ export default function RecursosCTA({
               fontFamily: FONT,
               fontWeight: 600,
               fontSize: 16,
+              WebkitFontSmoothing: 'antialiased',
+              textRendering: 'geometricPrecision',
               height: 54,
               padding: '0 30px',
               borderRadius: 999,
