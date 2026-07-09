@@ -121,6 +121,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     properties: [emptyProp()] as FormProperty[],
   })
   const [createdUrl, setCreatedUrl] = useState('')
+  const [copiedCreatedUrl, setCopiedCreatedUrl] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [imports, setImports] = useState<Record<string, ImportState>>({})
   const [formError, setFormError] = useState('')
@@ -317,6 +318,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       }
       const url = `${window.location.origin}/seleccion/${data.token}`
       setCreatedUrl(url)
+      setCopiedCreatedUrl(false)
       // Copiar el link y abrirlo en otra pestaña para que el agente revise.
       navigator.clipboard.writeText(url).catch(() => {})
       window.open(url, '_blank', 'noopener')
@@ -330,6 +332,8 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
 
   function copyUrl() {
     navigator.clipboard.writeText(createdUrl)
+    setCopiedCreatedUrl(true)
+    window.setTimeout(() => setCopiedCreatedUrl(false), 1800)
   }
 
   // ── Vista de éxito o formulario ──
@@ -342,24 +346,28 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
             </div>
             <h3 className="mb-1.5 text-xl font-bold" style={{ color: THEME.text }}>¡Selección lista!</h3>
             <p className="mb-4 text-sm" style={{ color: THEME.muted }}>La abrimos en otra pestaña para que <b>revises que esté todo ok</b>. Si vino desde una ficha o consulta, queda como selección activa permanente de ese contacto.</p>
-            <div className="mb-4 flex items-center gap-2 rounded-xl p-3" style={{ backgroundColor: THEME.surface }}>
-              <input readOnly value={createdUrl} className="min-w-0 flex-1 truncate bg-transparent text-sm outline-none" style={{ color: THEME.text }} />
-              <button onClick={copyUrl} className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white" style={{ backgroundColor: THEME.accent }}>
-                Copiar
-              </button>
+            <div className="mb-4 rounded-xl p-3" style={{ backgroundColor: THEME.surface }}>
+              <input readOnly value={createdUrl} className="w-full min-w-0 truncate bg-transparent text-sm outline-none" style={{ color: THEME.text }} />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onClick={copyUrl}
+                className="inline-flex w-auto items-center justify-center rounded-xl px-4 py-2 text-[13px] font-extrabold text-white"
+                style={{ backgroundColor: '#244A86' }}
+              >
+                {copiedCreatedUrl ? 'Link copiado' : 'Copiar link para enviar al interesado'}
+              </button>
               <a
                 href={createdUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-xl py-3 text-sm font-bold"
-                style={{ border: `1px solid ${THEME.border}`, color: THEME.accent }}
+                className="text-sm font-bold hover:underline"
+                style={{ color: THEME.accent }}
               >
-                Abrir de nuevo para revisar
+                Abrir para revisar
               </a>
               <button
-                onClick={() => { setCreatedUrl(''); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
+                onClick={() => { setCreatedUrl(''); setCopiedCreatedUrl(false); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
                 className="py-2 text-sm text-gray-400 hover:text-gray-600"
               >
                 Crear otra selección
