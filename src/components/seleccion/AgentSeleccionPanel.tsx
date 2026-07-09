@@ -12,6 +12,7 @@ import {
   Plus,
   MessageCircle,
   Search,
+  Send,
   X,
 } from 'lucide-react'
 import { displayImageUrl } from '@/lib/external-images'
@@ -79,6 +80,11 @@ function normalizePastedUrl(value: string): string {
   return (match?.[0] || clean).replace(/[),.;]+$/g, '')
 }
 
+function extractUrlsFromText(value: string): string[] {
+  const urls = value.match(/https?:\/\/[^\s"'<>]+/gi) || []
+  return Array.from(new Set(urls.map(normalizePastedUrl).filter(Boolean)))
+}
+
 function isFullUrl(url: string): boolean {
   return /^https?:\/\//i.test(url.trim())
 }
@@ -98,6 +104,14 @@ function isNeutralFichaUrl(url: string): boolean {
 
 function isAllowedSourceUrl(url: string): boolean {
   return isImportableUrl(url) || isNeutralFichaUrl(url)
+}
+
+function phoneForWhatsapp(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (!digits) return ''
+  if (digits.startsWith('549')) return digits
+  if (digits.startsWith('54')) return digits
+  return digits
 }
 
 // Accesos a los portales (paso 2): abren la búsqueda en otra pestaña.
@@ -122,6 +136,8 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
   })
   const [createdUrl, setCreatedUrl] = useState('')
   const [copiedCreatedUrl, setCopiedCreatedUrl] = useState(false)
+  const [bulkLinks, setBulkLinks] = useState('')
+  const [bulkMessage, setBulkMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [imports, setImports] = useState<Record<string, ImportState>>({})
   const [formError, setFormError] = useState('')
@@ -224,6 +240,26 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
 
   function addProperty() {
     setFormData(d => (d.properties.length >= MAX_PROPS ? d : { ...d, properties: [...d.properties, emptyProp()] }))
+  }
+
+  function applyBulkLinks(value = bulkLinks) {
+    const urls = extractUrlsFromText(value).slice(0, MAX_PROPS)
+    if (!urls.length) {
+      setBulkMessage('No encontré links completos para cargar.')
+      return
+    }
+    setFormData(d => {
+      const nextProps = urls.map((url, i) => {
+        let id = `prop-${i}`
+        try {
+          id = new URL(url).pathname.split('/').filter(Boolean).at(-1) || id
+        } catch {}
+        return { id, url, note: '' }
+      })
+      return { ...d, properties: nextProps.length ? nextProps : [emptyProp()] }
+    })
+    setBulkLinks('')
+    setBulkMessage(`${urls.length} link${urls.length === 1 ? '' : 's'} cargado${urls.length === 1 ? '' : 's'}.`)
   }
 
   function updateProperty(i: number, field: string, val: string) {
@@ -336,6 +372,17 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     window.setTimeout(() => setCopiedCreatedUrl(false), 1800)
   }
 
+  const whatsappPhone = phoneForWhatsapp(formData.clientPhone)
+  const whatsappGreeting = formData.clientName.trim()
+    ? `Hola ${formData.clientName.trim()}.`
+    : 'Hola.'
+  const whatsappMessage = encodeURIComponent(
+    `${whatsappGreeting} Te paso la selección de propiedades que preparé para vos:\n\n${createdUrl}\n\nCuando puedas mirala y marcame cuáles te gustan.`,
+  )
+  const whatsappUrl = whatsappPhone
+    ? `https://wa.me/${whatsappPhone}?text=${whatsappMessage}`
+    : ''
+
   // ── Vista de éxito o formulario ──
     if (createdUrl) {
       return (
@@ -357,6 +404,18 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
               >
                 {copiedCreatedUrl ? 'Link copiado' : 'Copiar link para enviar al interesado'}
               </button>
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-auto items-center justify-center gap-2 rounded-xl px-4 py-2 text-[13px] font-extrabold text-white"
+                  style={{ backgroundColor: '#1A5C38' }}
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  Enviar por WhatsApp al interesado
+                </a>
+              )}
               <a
                 href={createdUrl}
                 target="_blank"
@@ -367,7 +426,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
                 Abrir para revisar
               </a>
               <button
-                onClick={() => { setCreatedUrl(''); setCopiedCreatedUrl(false); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
+                onClick={() => { setCreatedUrl(''); setCopiedCreatedUrl(false); setBulkLinks(''); setBulkMessage(''); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
                 className="py-2 text-sm text-gray-400 hover:text-gray-600"
               >
                 Crear otra selección
@@ -415,6 +474,22 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     const IcBuscar = <Search className="w-[17px] h-[17px]" />
     const IcLink = <Link2 className="w-[17px] h-[17px]" />
     const IcChat = <MessageCircle className="w-[17px] h-[17px]" />
+    const statusChip = (label: string, tone: 'ok' | 'warn' | 'error' | 'idle' = 'idle') => {
+      const styles = {
+        ok: { bg: '#EAF7EF', color: '#1A5C38', border: '#CFEBDD' },
+        warn: { bg: '#FFF7E6', color: '#8A5A00', border: '#F3D99B' },
+        error: { bg: '#FEECEC', color: '#B42318', border: '#F3B8B3' },
+        idle: { bg: THEME.surface, color: THEME.mutedStrong, border: THEME.border },
+      }[tone]
+      return (
+        <span
+          className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold"
+          style={{ backgroundColor: styles.bg, color: styles.color, borderColor: styles.border }}
+        >
+          {label}
+        </span>
+      )
+    }
 
     return (
       <div className="mx-auto max-w-[1120px]" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
@@ -512,12 +587,46 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
               {/* PANEL 3 */}
               <div className="rounded-2xl border bg-white p-5" style={{ borderColor: THEME.border }}>
                 {panelHead(IcLink, 'Pegá los links que encontraste', `${numDone}/${MAX_PROPS}`, 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
+                <div className="mb-4 rounded-2xl border p-3" style={{ borderColor: THEME.border, backgroundColor: THEME.surface }}>
+                  <textarea
+                    value={bulkLinks}
+                    onChange={e => { setBulkLinks(e.target.value); if (bulkMessage) setBulkMessage('') }}
+                    onPaste={e => {
+                      const pasted = e.clipboardData.getData('text')
+                      if (extractUrlsFromText(pasted).length > 1) {
+                        window.setTimeout(() => applyBulkLinks(pasted), 0)
+                      }
+                    }}
+                    placeholder="Pegá varios links juntos y los ordenamos solos. Uno por línea o todos mezclados."
+                    className="min-h-[88px] w-full resize-none rounded-xl border bg-white px-3 py-2.5 text-[13px] outline-none placeholder:text-[#9ca3af]"
+                    style={{ borderColor: THEME.border, color: THEME.text }}
+                  />
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[12px]" style={{ color: bulkMessage.startsWith('No') ? '#B42318' : THEME.muted }}>
+                      {bulkMessage || `Podés cargar hasta ${MAX_PROPS} propiedades de una sola vez.`}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => applyBulkLinks()}
+                      className="rounded-lg px-3 py-1.5 text-[12px] font-extrabold text-white disabled:opacity-40"
+                      style={{ backgroundColor: THEME.accent }}
+                      disabled={!bulkLinks.trim()}
+                    >
+                      Cargar links
+                    </button>
+                  </div>
+                </div>
 
             {formData.properties.map((p, i) => {
               const normalizedUrl = normalizePastedUrl(p.url)
               const externa = isImportableUrl(normalizedUrl)
               const imp = imports[normalizedUrl]
               const mf = manualForms[i] ?? { open: false, precio: '', moneda: 'USD', zona: '', foto: '', dorm: '', banos: '', m2: '' }
+              const hasUrl = !!normalizedUrl
+              const allowed = hasUrl && isAllowedSourceUrl(normalizedUrl)
+              const neutral = hasUrl && isNeutralFichaUrl(normalizedUrl)
+              const fichaOk = neutral || !!imp?.verfichaUrl
+              const fotoOk = !!imp?.snapshot?.image || neutral
                   return (
                 <div key={i}>
                   <div className="mb-2 flex items-center gap-2.5">
@@ -541,6 +650,18 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
                       </button>
                     )}
                   </div>
+
+                  {hasUrl && (
+                    <div className="mb-2 ml-[35px] flex flex-wrap gap-1.5">
+                      {statusChip(allowed ? 'Link OK' : 'Link no soportado', allowed ? 'ok' : 'error')}
+                      {imp?.loading
+                        ? statusChip('Ficha leyendo...', 'warn')
+                        : statusChip(fichaOk ? 'Ficha OK' : 'Ficha pendiente', fichaOk ? 'ok' : imp?.error ? 'error' : 'idle')}
+                      {imp?.loading
+                        ? statusChip('Foto leyendo...', 'warn')
+                        : statusChip(fotoOk ? 'Foto OK' : 'Foto pendiente', fotoOk ? 'ok' : imp?.error ? 'error' : 'idle')}
+                    </div>
+                  )}
 
                   {externa && (
                     <div className="mb-2.5 ml-[35px] rounded-xl bg-white p-3" style={{ border: `1px solid ${THEME.borderStrong}` }}>
