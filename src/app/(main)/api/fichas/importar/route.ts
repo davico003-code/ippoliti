@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAgentToken } from '@/lib/auth'
-import { crearFichaExterna, type FichaExternaInput } from '@/lib/ficha'
+import { crearFicha, crearFichaExterna, type FichaExternaInput } from '@/lib/ficha'
 import { fetchZonaprop, isZonapropUrl } from '@/lib/zonaprop'
 import { fetchArgenprop, isArgenpropUrl } from '@/lib/argenprop'
 import { fetchMercadolibre, isMercadolibreUrl } from '@/lib/mercadolibre'
@@ -23,6 +23,21 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // el scraping vía Microlink puede tardar ~30s
 
 const MAX_FOTOS = 20
+
+function isSiPropertyUrl(url: string): boolean {
+  try {
+    const u = new URL(url)
+    return u.hostname.toLowerCase().includes('siinmobiliaria.com') && u.pathname.includes('/propiedades/')
+  } catch {
+    return false
+  }
+}
+
+function extractTokkoId(url: string): number | null {
+  const m = /\/(\d{6,8})(?:[-/]|$)/.exec(url) || /\b(\d{6,8})\b/.exec(url)
+  const id = m ? Number(m[1]) : NaN
+  return Number.isFinite(id) && id > 0 ? id : null
+}
 
 function toNum(v: unknown): number | null {
   const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(/[^\d.]/g, ''))
@@ -67,6 +82,38 @@ export async function POST(req: NextRequest) {
     }
   } catch {
     return NextResponse.json({ error: 'URL inválida' }, { status: 400 })
+  }
+
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown'
+  const userAgent = req.headers.get('user-agent') || 'unknown'
+
+  if (isSiPropertyUrl(sourceUrl)) {
+    const propertyId = extractTokkoId(sourceUrl)
+    if (!propertyId) {
+      return NextResponse.json({ error: 'No pude detectar el ID de la ficha SI.' }, { status: 422 })
+    }
+
+    try {
+      const { slug, url, ficha } = await crearFicha({ propertyId, ip, userAgent })
+      const snapshot = ficha.snapshot
+      const card = {
+        title: snapshot.tituloGenerico,
+        image: snapshot.fotos[0] || null,
+        location: snapshot.zonaAprox,
+        price: snapshot.precio && snapshot.precio !== 'Consultar' ? snapshot.precio : null,
+        rooms: snapshot.dormitorios || 0,
+        baths: snapshot.banos || 0,
+        area: snapshot.m2cubiertos || snapshot.m2terreno || 0,
+        lat: snapshot.lat,
+        lng: snapshot.lng,
+      }
+      return NextResponse.json({ slug, url, snapshot: card, fotos: snapshot.fotos.length })
+    } catch {
+      return NextResponse.json({ error: 'No se pudo crear la ficha SI.' }, { status: 500 })
+    }
   }
 
   // ── Lectura automática por portal: Zonaprop (Microlink) · Argenprop (fetch
@@ -131,17 +178,12 @@ export async function POST(req: NextRequest) {
     lng: has('lng') ? toCoord(ov.lng, 180) : toCoord((scraped as Record<string, unknown> | null)?.lng, 180),
   }
 
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
-
   try {
     const { slug, url, snapshot } = await crearFichaExterna({
       manual,
       sourceUrl,
       ip,
-      userAgent: req.headers.get('user-agent') || 'unknown',
+      userAgent,
     })
 
     const card = {

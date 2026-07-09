@@ -34,6 +34,11 @@ export async function DELETE(
 
   await redis.del(`seleccion:${params.token}`)
   await redis.del(`reacciones:${params.token}`)
+  if (session.contactId) {
+    const activeKey = `contacto:${session.contactId}:seleccion_activa`
+    const activeToken = await redis.get<string>(activeKey)
+    if (activeToken === params.token) await redis.del(activeKey)
+  }
 
   return NextResponse.json({ ok: true })
 }

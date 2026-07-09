@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import OpenHousePopup from './OpenHousePopup'
 import ExitPopup from './ExitPopup'
 
@@ -9,11 +10,14 @@ import ExitPopup from './ExitPopup'
 const CUTOFF = new Date('2026-04-17T03:00:00Z')
 
 export default function PopupManager() {
+  const pathname = usePathname()
   const [isOpenHousePeriod, setIsOpenHousePeriod] = useState<boolean | null>(null)
 
   useEffect(() => {
     setIsOpenHousePeriod(new Date() < CUTOFF)
   }, [])
+
+  if (pathname?.startsWith('/seleccion/')) return null
 
   // Wait for client-side date check
   if (isOpenHousePeriod === null) return null

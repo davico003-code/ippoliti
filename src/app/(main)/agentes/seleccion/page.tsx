@@ -5,7 +5,17 @@ import AgentSeleccionPanel from '@/components/seleccion/AgentSeleccionPanel'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AgentesSeleccionPage() {
+interface Props {
+  searchParams?: {
+    contactId?: string
+    contactSource?: string
+    name?: string
+    phone?: string
+    email?: string
+  }
+}
+
+export default async function AgentesSeleccionPage({ searchParams }: Props) {
   const cookieStore = cookies()
   const token = cookieStore.get('si_agent_token')?.value
   if (!token) redirect('/agentes/login')
@@ -27,7 +37,15 @@ export default async function AgentesSeleccionPage() {
       </div>
 
       <div className="max-w-[1160px] mx-auto px-4 py-8">
-        <AgentSeleccionPanel />
+        <AgentSeleccionPanel
+          initialContact={{
+            contactId: searchParams?.contactId || searchParams?.email || searchParams?.phone || '',
+            contactSource: searchParams?.contactSource || '',
+            name: searchParams?.name || '',
+            phone: searchParams?.phone || '',
+            email: searchParams?.email || '',
+          }}
+        />
       </div>
     </div>
   )

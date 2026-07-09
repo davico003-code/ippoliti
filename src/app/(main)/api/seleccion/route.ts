@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { crearSeleccion, listarSeleccionesPorAgente, listarTodasSelecciones, redis } from '@/lib/redis'
+import { crearSeleccion, getSeleccion, listarSeleccionesPorAgente, listarTodasSelecciones, redis } from '@/lib/redis'
 import { verifyAgentToken } from '@/lib/auth'
 
 // Clave admin del flujo legacy, validada contra el env. Sin literal en el repo.
 const ADMIN_KEY = process.env.ADMIN_PASSWORD || process.env.SI_TEAM_CODE || ''
+
+function normalizeContactId(value: string | null): string {
+  return (value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9@._:+-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 120)
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,7 +41,7 @@ export async function POST(req: NextRequest) {
       if (agent) { agentId = agent.id; agentName = agent.name }
     }
 
-    const { clientName, clientPhone, days, note, properties } = body
+    const { clientName, clientPhone, clientEmail, contactId, contactSource, days, note, properties } = body
     if (!clientName || !properties?.length) {
       return NextResponse.json({ error: 'clientName y al menos 1 propiedad requeridos' }, { status: 400 })
     }
@@ -39,6 +49,9 @@ export async function POST(req: NextRequest) {
     const selToken = await crearSeleccion({
       clientName,
       clientPhone: clientPhone || '',
+      clientEmail: clientEmail || '',
+      contactId: contactId || '',
+      contactSource: contactSource || '',
       agent: agentName,
       agentId,
       agentName,
@@ -70,6 +83,18 @@ export async function GET(req: NextRequest) {
     if (jwtToken) {
       const agent = await verifyAgentToken(jwtToken)
       if (agent) {
+        const contactId = normalizeContactId(req.nextUrl.searchParams.get('contactId'))
+        if (contactId) {
+          const activeToken = await redis.get<string>(`contacto:${contactId}:seleccion_activa`)
+          const session = activeToken ? await getSeleccion(activeToken) : null
+          return NextResponse.json({
+            contactId,
+            token: session ? activeToken : null,
+            url: session && activeToken ? `/seleccion/${activeToken}` : null,
+            session,
+          })
+        }
+
         const sessions = agent.role === 'admin'
           ? await listarTodasSelecciones()
           : await listarSeleccionesPorAgente(agent.id)

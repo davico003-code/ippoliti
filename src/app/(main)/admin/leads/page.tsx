@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Lock, Download, MessageCircle, Filter } from 'lucide-react'
+import { Lock, Download, MessageCircle, Filter, Link2 } from 'lucide-react'
 
 interface Lead {
   nombre: string
@@ -75,6 +75,17 @@ export default function LeadsPage() {
       `Hola ${nombre}, soy David de SI INMOBILIARIA. Vi que descargaste la guía, ¿te puedo ayudar con algo específico?`
     )
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank')
+  }
+
+  const selectionHref = (lead: Lead) => {
+    const params = new URLSearchParams()
+    const contactId = lead.email || lead.whatsapp || lead.nombre
+    if (contactId) params.set('contactId', contactId)
+    params.set('contactSource', lead.origen || lead.tipo || 'consulta')
+    if (lead.nombre) params.set('name', lead.nombre)
+    if (lead.whatsapp) params.set('phone', lead.whatsapp)
+    if (lead.email) params.set('email', lead.email)
+    return `/agentes/seleccion?${params.toString()}`
   }
 
   if (!auth) {
@@ -189,6 +200,14 @@ export default function LeadsPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-400 text-xs">{fechaStr}</td>
                       <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-2">
+                        <a
+                          href={selectionHref(l)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-gray-900 text-white text-[11px] font-bold rounded-lg hover:bg-gray-700 transition"
+                          title="Crear o actualizar selección"
+                        >
+                          <Link2 className="w-3 h-3" /> Selección
+                        </a>
                         {(l.whatsapp || l.origen === 'guia-comprador') && (
                           <button
                             onClick={() => openWhatsApp(l)}
@@ -198,6 +217,7 @@ export default function LeadsPage() {
                             <MessageCircle className="w-3 h-3" /> WA
                           </button>
                         )}
+                        </div>
                       </td>
                     </tr>
                   )
