@@ -1,7 +1,6 @@
-// Importa una propiedad externa (Zonaprop) y la convierte en una ficha PROPIA de
+// Importa una propiedad externa y la convierte en una ficha PROPIA de
 // verficha.casa. Flujo automático: el agente pega la URL → acá scrapeamos vía
-// Microlink (que pasa el Cloudflare de Zonaprop) y minteamos la ficha. Devuelve
-// el link verficha listo.
+// el importador del portal y minteamos la ficha. Devuelve el link verficha listo.
 //
 // Las fotos se usan DIRECTO del CDN de Zonaprop (imgar.zonapropcdn.com) — su CDN
 // no restringe hotlink y así evitamos el re-host (más rápido y se ven siempre).
@@ -17,7 +16,6 @@ import { verifyAgentToken } from '@/lib/auth'
 import { crearFicha, crearFichaExterna, type FichaExternaInput } from '@/lib/ficha'
 import { fetchZonaprop, isZonapropUrl } from '@/lib/zonaprop'
 import { fetchArgenprop, isArgenpropUrl } from '@/lib/argenprop'
-import { fetchMercadolibre, isMercadolibreUrl } from '@/lib/mercadolibre'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // el scraping vía Microlink puede tardar ~30s
@@ -28,6 +26,14 @@ function isSiPropertyUrl(url: string): boolean {
   try {
     const u = new URL(url)
     return u.hostname.toLowerCase().includes('siinmobiliaria.com') && u.pathname.includes('/propiedades/')
+  } catch {
+    return false
+  }
+}
+
+function isMercadolibreUrl(url: string): boolean {
+  try {
+    return /(^|\.)mercadolibre\.com(\.ar)?$/i.test(new URL(url).hostname)
   } catch {
     return false
   }
@@ -49,6 +55,23 @@ function toNum(v: unknown): number | null {
 function toCoord(v: unknown, max: number): number | null {
   const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(/[^\d.-]/g, ''))
   return Number.isFinite(n) && n !== 0 && Math.abs(n) <= max ? n : null
+}
+
+function normalizePhotoUrl(raw: string): string | null {
+  try {
+    const url = new URL(raw.trim())
+    if (url.protocol !== 'https:') return null
+    const host = url.hostname.toLowerCase()
+    const isPrivate =
+      host === 'localhost' || host === '0.0.0.0' || host === '[::1]' ||
+      host.endsWith('.local') || host.endsWith('.internal') ||
+      /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(host) || /^169\.254\./.test(host)
+    if (isPrivate) return null
+    return url.toString()
+  } catch {
+    return null
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -116,24 +139,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  if (isMercadolibreUrl(sourceUrl)) {
+    return NextResponse.json(
+      { error: 'MercadoLibre queda fuera de este flujo por ahora. Usá Zonaprop, Argenprop o una ficha de SI INMOBILIARIA.' },
+      { status: 422 },
+    )
+  }
+
   // ── Lectura automática por portal: Zonaprop (Microlink) · Argenprop (fetch
-  //    directo) · MercadoLibre (API de items con token). Cada uno cae a null si
-  //    no puede leer → carga manual. ──
+  //    directo). Cada uno cae a null si no puede leer. ──
   const portal = isZonapropUrl(sourceUrl)
     ? 'Zonaprop'
     : isArgenpropUrl(sourceUrl)
       ? 'Argenprop'
-      : isMercadolibreUrl(sourceUrl)
-        ? 'MercadoLibre'
-        : 'el portal'
+      : 'el portal'
 
   const scraped = isZonapropUrl(sourceUrl)
     ? await fetchZonaprop(sourceUrl)
     : isArgenpropUrl(sourceUrl)
       ? await fetchArgenprop(sourceUrl)
-      : isMercadolibreUrl(sourceUrl)
-        ? await fetchMercadolibre(sourceUrl)
-        : null
+      : null
 
   // Overrides manuales (corrección o fallback). Solo pisan si vienen presentes.
   const ov = (body.manual ?? {}) as Record<string, unknown>
@@ -162,8 +187,16 @@ export async function POST(req: NextRequest) {
   // Fotos: del scraping + adicionales manuales. Se usan directo (sin re-host).
   const fotosManual = Array.isArray(ov.fotos) ? (ov.fotos as unknown[]).map(String) : []
   const fotos = [...(scraped?.fotos ?? []), ...fotosManual]
-    .filter(u => /^https:\/\//i.test(u))
+    .map(normalizePhotoUrl)
+    .filter((u): u is string => !!u)
     .slice(0, MAX_FOTOS)
+
+  if (scraped && fotos.length === 0) {
+    return NextResponse.json(
+      { error: `${portal} se leyó, pero no pude capturar una ruta válida de imagen. Reintentá con el link completo de la publicación.` },
+      { status: 422 },
+    )
+  }
 
   const manual: FichaExternaInput = {
     titulo,

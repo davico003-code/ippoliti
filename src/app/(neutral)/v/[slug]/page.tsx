@@ -14,6 +14,7 @@ import { headers } from 'next/headers'
 import { cache } from 'react'
 
 import { getFicha, isLikelyBot, trackView } from '@/lib/ficha'
+import { publicImageUrl } from '@/lib/external-images'
 import HeroGallery from '@/components/v/HeroGallery'
 import AudioSummaryNeutral from '@/components/v/AudioSummaryNeutral'
 import PriceHero from '@/components/v/PriceHero'
@@ -77,7 +78,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const descRaw = firstParagraph(s.descripcion, 160)
   const desc = stripSI(descRaw) || stripSI(s.tituloGenerico) || 'Ficha de propiedad'
   const url = `https://${NEUTRAL_DOMAIN}/${params.slug}`
-  const img = s.ogImage || s.fotos[0] || null
+  const img = publicImageUrl(s.ogImage || s.fotos[0] || null, `https://${NEUTRAL_DOMAIN}`)
 
   return {
     title: titulo,
