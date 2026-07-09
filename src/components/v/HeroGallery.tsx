@@ -14,11 +14,12 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Camera, Images, X } from 'lucide-react'
+import { displayImageUrl } from '@/lib/external-images'
 
-// Fotos de avisos externos (Zonaprop/Navent) se sirven directo de su CDN: las
+// Fotos de avisos externos (Zonaprop/Navent/Argenprop) se sirven directo de su CDN: las
 // renderizamos sin el optimizador de Vercel para que se vean siempre, sin
 // depender de que el optimizador pueda fetchear ese host.
-const isExternalCdn = (src: string): boolean => /zonapropcdn|naventcdn/.test(src)
+const isExternalCdn = (src: string): boolean => /zonapropcdn|naventcdn|argenprop\.com\/static-content/.test(src)
 
 export default function HeroGallery({ photos }: { photos: string[] }) {
   const [showAll, setShowAll] = useState(false)
@@ -54,6 +55,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
 
   const thumbs = photos.slice(1, 5)
   const hasOverlaySlot = photos.length > 5
+  const cover = photos[0]
 
   return (
     <>
@@ -70,12 +72,12 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
           onClick={() => setShowAll(true)}
         >
           <Image
-            src={photos[0]}
+            src={displayImageUrl(cover)}
             alt=""
             fill
             sizes="100vw"
             priority
-            unoptimized={isExternalCdn(photos[0])}
+            unoptimized={isExternalCdn(cover)}
             style={{ objectFit: 'cover' }}
           />
           {photos.length > 1 && (
@@ -130,12 +132,12 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
             onClick={() => setShowAll(true)}
           >
             <Image
-              src={photos[0]}
+              src={displayImageUrl(cover)}
               alt=""
               fill
               sizes="(min-width: 1024px) 60vw, 100vw"
               priority
-              unoptimized={isExternalCdn(photos[0])}
+              unoptimized={isExternalCdn(cover)}
               style={{ objectFit: 'cover', transition: 'transform 300ms' }}
             />
           </div>
@@ -160,7 +162,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
                 onClick={() => setShowAll(true)}
               >
                 <Image
-                  src={photo}
+                  src={displayImageUrl(photo)}
                   alt=""
                   fill
                   sizes="20vw"
@@ -274,7 +276,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
               {photos.map((p, i) => (
                 <Image
                   key={i}
-                  src={p}
+                  src={displayImageUrl(p)}
                   alt={`Foto ${i + 1}`}
                   width={1200}
                   height={800}

@@ -47,6 +47,12 @@ function cleanTitle(t: string): string {
     .trim()
 }
 
+function isGenericListingTitle(t: string): boolean {
+  return /propiedades e inmuebles en argentina/i.test(t) ||
+    /inmuebles en argentina/i.test(t) ||
+    /^\s*\d[\d.]*\s+propiedades/i.test(t)
+}
+
 function num(v: string | undefined | null): number | null {
   if (!v) return null
   const n = parseInt(String(v).replace(/[^\d]/g, ''), 10)
@@ -74,6 +80,7 @@ export async function fetchZonaprop(url: string): Promise<ZonapropParsed | null>
 
   // ── Título / operación / tipo / zona (desde el meta title) ──
   const rawTitle = json.data?.title || ''
+  if (isGenericListingTitle(rawTitle)) return null
   const titulo = cleanTitle(rawTitle)
   const operacion = /\balquiler\s+temporario\b/i.test(rawTitle)
     ? 'Alquiler temporario'
@@ -151,8 +158,9 @@ export async function fetchZonaprop(url: string): Promise<ZonapropParsed | null>
     if (!fotos.includes(u)) fotos.push(u)
   }
 
-  // Sin título Y sin fotos Y sin precio ⇒ no parseamos nada útil.
-  if (!titulo && !fotos.length && !precioRaw) return null
+  // Sin datos de aviso, o si Microlink cayó en una página genérica/listado,
+  // devolvemos null para abrir carga manual y no mintear una ficha basura.
+  if ((!titulo && !fotos.length && !precioRaw) || (isGenericListingTitle(titulo) && !fotos.length)) return null
 
   return {
     titulo,
@@ -169,5 +177,13 @@ export async function fetchZonaprop(url: string): Promise<ZonapropParsed | null>
     dormitorios: num(dorm?.[1]),
     banos: num(banos?.[1]),
     cocheras,
+    caracteristicas: [
+      ambientes ? `${ambientes} ambientes` : '',
+      m2cubiertos ? `${m2cubiertos} m² cubiertos` : '',
+      num(terr?.[1]) ? `${num(terr?.[1])} m² terreno` : '',
+      num(dorm?.[1]) ? `${num(dorm?.[1])} dormitorios` : '',
+      num(banos?.[1]) ? `${num(banos?.[1])} baños` : '',
+      cocheras ? `${cocheras} cocheras` : '',
+    ].filter(Boolean),
   }
 }

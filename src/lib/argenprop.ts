@@ -15,7 +15,6 @@
 // fallback: reintentar / carga manual).
 
 import type { FichaExternaInput } from './ficha'
-import { geocodeZona } from './geocode'
 
 export type ArgenpropParsed = FichaExternaInput & { cocheras: number | null }
 
@@ -30,6 +29,7 @@ export function isArgenpropUrl(url: string): boolean {
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36'
 const BASE = 'https://www.argenprop.com'
+const MICROLINK = 'https://api.microlink.io'
 
 function decodeEntities(s: string): string {
   return (s || '')
@@ -54,6 +54,12 @@ function stripHtml(s: string): string {
     .trim()
 }
 
+function metaContent(html: string, key: 'name' | 'property', value: string): string {
+  const re = new RegExp(`<meta(?=[^>]*\\b${key}=["']${value}["'])(?=[^>]*\\bcontent=["']([^"']*)["'])[^>]*>`, 'i')
+  const m = re.exec(html)
+  return decodeEntities(m?.[1] || '')
+}
+
 function num(v: string | undefined | null): number | null {
   if (v == null) return null
   const n = parseInt(String(v).replace(/[^\d]/g, ''), 10)
@@ -71,15 +77,18 @@ type JsonLd = {
 
 /** Extrae el bloque JSON-LD (schema.org) del aviso, si está. */
 function extraerJsonLd(html: string): JsonLd | null {
-  const m = /<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i.exec(html)
-  if (!m) return null
-  try {
-    const parsed = JSON.parse(m[1].trim())
-    const node = Array.isArray(parsed) ? parsed.find((n) => n?.address || n?.name) ?? parsed[0] : parsed
-    return (node ?? null) as JsonLd | null
-  } catch {
-    return null
+  const blocks = Array.from(html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi))
+  for (const m of blocks) {
+    try {
+      const parsed = JSON.parse(m[1].trim())
+      const nodes = Array.isArray(parsed) ? parsed : [parsed]
+      const node = nodes.find((n) => n?.address || n?.numberOfRooms || n?.numberOfBedrooms || n?.floorSize)
+      if (node) return node as JsonLd
+    } catch {
+      // probamos el siguiente bloque
+    }
   }
+  return null
 }
 
 /**
@@ -94,7 +103,8 @@ export function parseArgenprop(
   const ld = extraerJsonLd(html)
 
   // ── Título (meta) con specs y nombre del JSON-LD ──
-  const rawTitle = decodeEntities(/<title>([^<]+)<\/title>/i.exec(html)?.[1] ?? '')
+  const rawTitle = decodeEntities(/<title>([^<]+)<\/title>/i.exec(html)?.[1] ?? '') ||
+    metaContent(html, 'property', 'og:title')
   const nombre = decodeEntities(ld?.name ?? '')
   const base = `${nombre} ${rawTitle}`
 
@@ -136,6 +146,20 @@ export function parseArgenprop(
   const banos = num(/(\d+)\s*ba[ñn]o/i.exec(html)?.[1])
   const cocheras = num(/(\d+)\s*cochera/i.exec(html)?.[1])
 
+  const visibleAddress = stripHtml(/class="titlebar__address"[^>]*>([\s\S]*?)<\/h2>/i.exec(html)?.[1] || '')
+  const visibleTitle = stripHtml(/class="titlebar__title"[^>]*>([\s\S]*?)<\/h2>/i.exec(html)?.[1] || '')
+  const keywords = metaContent(html, 'name', 'keywords')
+  const metaDesc = metaContent(html, 'name', 'description')
+  const kwParts = keywords.split(',').map(s => s.trim()).filter(Boolean)
+  const keywordTipo = kwParts[1] || ''
+  const keywordOperacion = kwParts[2] || ''
+  const keywordZona = kwParts[3] || ''
+  const featureSource = `${html} ${keywords} ${rawTitle}`
+  const m2Total =
+    num(/([\d.]+)\s*m[²2]?\s*total/i.exec(featureSource)?.[1]) ??
+    num(/([\d.]+)\s*m[²2]?\s*terreno/i.exec(featureSource)?.[1])
+  const m2Construible = num(/([\d.]+)\s*m[²2]?\s*construible/i.exec(featureSource)?.[1])
+
   // ── Precio (body: "USD 750.000" / "$ 350.000") ──
   let precioRaw = 0
   let moneda = 'USD'
@@ -159,9 +183,9 @@ export function parseArgenprop(
     .replace(/\s{2,}/g, ' ')
     .trim()
   // zona de display: region (barrio/ciudad chica), o el "en X" del nombre.
-  let zona = region
+  let zona = region || keywordZona
   if (!zona) {
-    const enParts = nombre.split(/\s+en\s+/i)
+    const enParts = (visibleTitle || nombre || rawTitle).split(/\s+en\s+/i)
     zona = enParts.length > 1 ? enParts[enParts.length - 1].split(/[-,–|]/)[0].trim() : ''
   }
   // query de geocoding: dirección de calle (más precisa) + zona + Argentina.
@@ -172,18 +196,25 @@ export function parseArgenprop(
       .join(', ') || (zona ? `${zona}, Argentina` : null)
 
   // ── Descripción (JSON-LD o meta) ──
-  const descripcion = stripHtml(
-    ld?.description ||
-      /<meta[^>]+name="description"[^>]+content="([^"]+)"/i.exec(html)?.[1] ||
-      '',
+  const visibleDesc = stripHtml(
+    /<section[^>]*class="[^"]*\bsection-description\b[^"]*"[\s\S]*?<div[^>]*class="[^"]*section-description__content[^"]*"[^>]*>([\s\S]*?)<\/div>/i.exec(html)?.[1] ||
+    /<section[^>]*class="[^"]*\bsection-description\b[^"]*"[\s\S]*?<div[^>]*class="[^"]*section-description--content[^"]*"[^>]*>([\s\S]*?)<\/div>/i.exec(html)?.[1] ||
+    /<section[^>]*class="[^"]*\bsection-description\b[^"]*"[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i.exec(html)?.[1] ||
+    '',
   )
+  const descripcion = stripHtml(ld?.description || visibleDesc || metaDesc || '')
 
-  // ── Fotos: /static-content/<listingId>/<uuid>.jpg (dedup, en orden) ──
+  // ── Fotos: usar la URL REAL que trae Argenprop. Antes reconstruíamos
+  // /static-content/<id>/<uuid>.jpg y eso rompe con IDs tipo "890082_a" y
+  // variantes actuales "_u_medium.jpg". Priorizamos medium/large del aviso y
+  // descartamos thumbnails relacionados si ya tenemos galería principal.
+  const fotosRaw = Array.from(html.matchAll(/(?:https?:\/\/www\.argenprop\.com)?\/static-content\/[A-Za-z0-9_-]+\/[a-f0-9-]{36}(?:_[a-z]+)?(?:_(?:small|medium|large))?\.jpe?g/gi))
+    .map(m => m[0].startsWith('http') ? m[0] : `${BASE}${m[0]}`)
+  const hasUsefulSizes = fotosRaw.some(u => /_(?:medium|large)\.jpe?g/i.test(u))
   const fotos: string[] = []
-  const reFoto = /\/static-content\/(\d+)\/([a-f0-9-]{36})/gi
-  let mf: RegExpExecArray | null
-  while ((mf = reFoto.exec(html))) {
-    const u = `${BASE}/static-content/${mf[1]}/${mf[2]}.jpg`
+  for (const raw of fotosRaw) {
+    const u = raw.replace(/_small\.jpe?g$/i, '_medium.jpg')
+    if (hasUsefulSizes && /_small\.jpe?g/i.test(raw)) continue
     if (!fotos.includes(u)) fotos.push(u)
   }
 
@@ -201,16 +232,27 @@ export function parseArgenprop(
       descripcion,
       fotos: fotos.slice(0, 20),
       operacion,
-      tipo,
+      tipo: tipo === 'Propiedad' && keywordTipo ? keywordTipo : tipo,
       precioRaw,
       moneda,
       zona,
+      direccion: visibleAddress || calle,
       m2cubiertos,
-      m2terreno,
+      m2terreno: m2terreno ?? m2Total,
       ambientes,
       dormitorios,
       banos,
       cocheras,
+      caracteristicas: [
+        m2terreno ?? m2Total ? `${m2terreno ?? m2Total} m² total` : '',
+        m2cubiertos ? `${m2cubiertos} m² cubiertos` : '',
+        m2Construible ? `${m2Construible} m² construible` : '',
+        ambientes ? `${ambientes} ambientes` : '',
+        dormitorios ? `${dormitorios} dormitorios` : '',
+        banos ? `${banos} baños` : '',
+        keywordOperacion || operacion,
+        cocheras ? `${cocheras} cocheras` : '',
+      ].filter(Boolean),
       lat: null,
       lng: null,
     },
@@ -238,11 +280,29 @@ export async function fetchArgenprop(url: string): Promise<ArgenpropParsed | nul
   try {
     const res = await fetch(url, { headers: BROWSER_HEADERS, signal: AbortSignal.timeout(20000) })
     // CloudFront devuelve 202/403 con un body de challenge cuando nos bloquea.
-    if (res.status !== 200) return null
-    html = await res.text()
+    html = res.status === 200 ? await res.text() : ''
   } catch {
-    return null
+    html = ''
   }
+
+  // Fallback best-effort: a veces Microlink logra traer el body aunque el fetch
+  // directo sea bloqueado. Si también recibe el challenge, el guard positivo
+  // de abajo lo descarta.
+  if (!/application\/ld\+json/.test(html) && !/\/static-content\/\d+\//.test(html)) {
+    try {
+      const api =
+        `${MICROLINK}?url=${encodeURIComponent(url)}` +
+        `&meta=true&data.body.selector=body&data.body.type=text`
+      const res = await fetch(api, { signal: AbortSignal.timeout(45000) })
+      if (res.ok) {
+        const json = await res.json() as { status?: string; data?: { body?: string } }
+        if (json.status === 'success') html = json.data?.body || ''
+      }
+    } catch {
+      // cae al guard positivo de abajo
+    }
+  }
+
   // Guard positivo: la página real trae JSON-LD y fotos en /static-content. Si no
   // están, es un challenge/página vacía de CloudFront → degradamos a carga manual.
   if (!/application\/ld\+json/.test(html) && !/\/static-content\/\d+\//.test(html)) return null
@@ -250,15 +310,5 @@ export async function fetchArgenprop(url: string): Promise<ArgenpropParsed | nul
   const parsed = parseArgenprop(html, url)
   if (!parsed) return null
 
-  // Geocoding de la dirección de calle (Argenprop no trae lat/lng en el HTML).
-  // Best-effort: si no resuelve, la ficha queda con la geocodificación de zona
-  // que hace crearFichaExterna, o sin pin.
-  if (parsed.geoQuery) {
-    const coords = await geocodeZona(parsed.geoQuery)
-    if (coords) {
-      parsed.data.lat = coords.lat
-      parsed.data.lng = coords.lng
-    }
-  }
   return parsed.data
 }

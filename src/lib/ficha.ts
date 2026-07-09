@@ -12,7 +12,6 @@
 
 import { customAlphabet } from 'nanoid'
 import { redis } from './redis'
-import { geocodeZona } from './geocode'
 import {
   getPropertyById,
   getAllPhotos,
@@ -347,12 +346,14 @@ export interface FichaExternaInput {
   precioRaw: number
   moneda: string              // 'USD' | 'ARS'
   zona: string
+  direccion?: string | null
   m2cubiertos: number | null
   m2terreno: number | null
   ambientes: number | null
   dormitorios: number | null
   banos: number | null
   cocheras?: number | null
+  caracteristicas?: string[]
   // Coords reales (si el portal las trae, ej. Argenprop). Si no vienen, se
   // geocodifican desde la zona en crearFichaExterna. Se les aplica offset de
   // privacidad igual que a las de Tokko.
@@ -370,6 +371,20 @@ export function stripPortal(s: string): string {
 function formatPrecioManual(precioRaw: number, moneda: string): string {
   if (!precioRaw || precioRaw <= 0) return 'Consultar'
   return `${moneda || 'USD'} ${precioRaw.toLocaleString('es-AR')}`
+}
+
+function buildExternalFeatures(input: FichaExternaInput): string[] {
+  const provided = (input.caracteristicas || []).map(stripPortal).map(s => s.trim()).filter(Boolean)
+  if (provided.length > 0) return Array.from(new Set(provided))
+
+  return Array.from(new Set([
+    input.ambientes ? `${input.ambientes} ambientes` : '',
+    input.dormitorios ? `${input.dormitorios} dormitorios` : '',
+    input.banos ? `${input.banos} baños` : '',
+    input.cocheras ? `${input.cocheras} cocheras` : '',
+    input.m2cubiertos ? `${input.m2cubiertos} m² cubiertos` : '',
+    input.m2terreno ? `${input.m2terreno} m² terreno` : '',
+  ].map(stripPortal).map(s => s.trim()).filter(Boolean)))
 }
 
 export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
@@ -402,7 +417,7 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
     tituloGenerico: titulo,
     zonaAprox,
     zonaCompleta: zonaAprox,
-    direccionCalle: '',
+    direccionCalle: stripPortal(input.direccion || ''),
     m2cubiertos: input.m2cubiertos,
     m2totales: null,
     m2terreno: input.m2terreno,
@@ -414,7 +429,7 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
     cocheras: input.cocheras ?? null,
     antiguedad: null,
     descripcion: stripPortal(input.descripcion),
-    caracteristicas: [],
+    caracteristicas: buildExternalFeatures(input),
     lat,
     lng,
   }
@@ -426,15 +441,7 @@ export async function crearFichaExterna(input: {
   ip: string
   userAgent: string
 }): Promise<{ slug: string; url: string; expiresAt: string; snapshot: FichaSnapshot }> {
-  // Si el portal no trajo coords, las geocodificamos desde la zona (cacheado).
-  // Best-effort: si no resuelve, la ficha queda sin pin (no rompe nada).
-  let manual = input.manual
-  if ((manual.lat == null || manual.lng == null) && manual.zona) {
-    const coords = await geocodeZona(manual.zona)
-    if (coords) manual = { ...manual, lat: coords.lat, lng: coords.lng }
-  }
-
-  const snapshot = buildSnapshotManual(manual)
+  const snapshot = buildSnapshotManual(input.manual)
 
   let slug = generarSlug()
   for (let i = 0; i < 5; i++) {
