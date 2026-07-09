@@ -119,6 +119,14 @@ export async function POST(req: NextRequest) {
   // ── Lectura automática por portal: Zonaprop (Microlink) · Argenprop (fetch
   //    directo) · MercadoLibre (API de items con token). Cada uno cae a null si
   //    no puede leer → carga manual. ──
+  const portal = isZonapropUrl(sourceUrl)
+    ? 'Zonaprop'
+    : isArgenpropUrl(sourceUrl)
+      ? 'Argenprop'
+      : isMercadolibreUrl(sourceUrl)
+        ? 'MercadoLibre'
+        : 'el portal'
+
   const scraped = isZonapropUrl(sourceUrl)
     ? await fetchZonaprop(sourceUrl)
     : isArgenpropUrl(sourceUrl)
@@ -142,7 +150,7 @@ export async function POST(req: NextRequest) {
   let titulo = pick('titulo', '').slice(0, 200)
   if (!titulo && !scraped && !hayDatoManual) {
     return NextResponse.json(
-      { error: 'No se pudo leer el aviso (el portal puede estar lento o bloqueando). Reintentá o cargá los datos a mano.' },
+      { error: `${portal} no dejó leer el aviso automáticamente. Reintentá o pegá el link completo de la publicación.` },
       { status: 422 },
     )
   }
@@ -166,12 +174,16 @@ export async function POST(req: NextRequest) {
     precioRaw: pickNum('precioRaw') ?? 0,
     moneda: pick('moneda', 'USD').slice(0, 8),
     zona: pick('zona', '').slice(0, 120),
+    direccion: pick('direccion', '').slice(0, 180),
     m2cubiertos: pickNum('m2cubiertos'),
     m2terreno: pickNum('m2terreno'),
     ambientes: pickNum('ambientes'),
     dormitorios: pickNum('dormitorios'),
     banos: pickNum('banos'),
     cocheras: pickNum('cocheras'),
+    caracteristicas: Array.isArray((scraped as FichaExternaInput | null)?.caracteristicas)
+      ? ((scraped as FichaExternaInput).caracteristicas || []).slice(0, 24)
+      : [],
     // Coords del portal si las trae (ej. Argenprop embebe lat/lng), o del
     // override manual. Si faltan, crearFichaExterna las geocodifica desde la zona.
     lat: has('lat') ? toCoord(ov.lat, 90) : toCoord((scraped as Record<string, unknown> | null)?.lat, 90),

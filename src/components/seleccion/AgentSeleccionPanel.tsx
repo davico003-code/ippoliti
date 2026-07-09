@@ -76,16 +76,12 @@ function normalizePastedUrl(value: string): string {
   return (match?.[0] || clean).replace(/[),.;]+$/g, '')
 }
 
-function isImportableUrl(url: string): boolean {
-  return /^https?:\/\//i.test(url.trim()) && isExternalUrl(url)
+function isFullUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url.trim())
 }
 
-function isMercadoLibreUrl(url: string): boolean {
-  try {
-    return new URL(url).hostname.toLowerCase().includes('mercadolibre')
-  } catch {
-    return false
-  }
+function isImportableUrl(url: string): boolean {
+  return isFullUrl(url) && isExternalUrl(url)
 }
 
 // Accesos a los portales (paso 2): abren la búsqueda en otra pestaña.
@@ -169,7 +165,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     importsRef.current = imports
   }, [imports])
 
-  const importarExterna = useCallback(async (url: string, rowIndex?: number) => {
+  const importarExterna = useCallback(async (url: string) => {
     const u = normalizePastedUrl(url)
     if (!u || !isImportableUrl(u)) return null
     const existing = importsRef.current[u]
@@ -184,28 +180,16 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       const d = await res.json()
       if (!res.ok) {
         setImports(s => ({ ...s, [u]: { error: d.error || 'No se pudo importar' } }))
-        if (rowIndex != null && isMercadoLibreUrl(u)) {
-          setManual(rowIndex, {
-            open: true,
-            error: 'MercadoLibre bloqueó la lectura automática. Completá foto, precio o zona y la ficha se crea desde acá.',
-          })
-        }
         return null
       }
       const next = { verfichaUrl: d.url, slug: d.slug, snapshot: d.snapshot, fotos: d.fotos }
-      if (rowIndex != null && isMercadoLibreUrl(u) && (!d.fotos || d.fotos === 0)) {
-        setManual(rowIndex, {
-          open: true,
-          error: 'MercadoLibre no entregó fotos. Pegá una foto para que la card no quede vacía.',
-        })
-      }
       setImports(s => ({ ...s, [u]: next }))
       return next
     } catch {
       setImports(s => ({ ...s, [u]: { error: 'Error de red. Reintentá.' } }))
       return null
     }
-  }, [setManual])
+  }, [])
 
   useEffect(() => {
     formData.properties.forEach((p, i) => {
@@ -213,7 +197,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       clearTimeout(autoImportTimers.current[i])
       if (!isImportableUrl(u) || imports[u]?.loading || imports[u]?.verfichaUrl) return
       autoImportTimers.current[i] = setTimeout(() => {
-        importarExterna(u, i)
+        importarExterna(u)
       }, 650)
     })
     const timers = autoImportTimers.current
@@ -253,6 +237,13 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       .map(p => ({ ...p, url: normalizePastedUrl(p.url) }))
       .filter(p => p.url.trim())
 
+    const invalidRows = rows.filter(p => !isFullUrl(p.url))
+    if (invalidRows.length > 0) {
+      setFormError('Hay una fila que no es un link completo. Pegá la URL completa que empieza con https://.')
+      setSubmitting(false)
+      return
+    }
+
     setSubmitting(true)
     try {
       const { clientName, clientPhone, clientEmail, contactId, contactSource, agent, days, note } = formData
@@ -265,7 +256,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
           return result
         }))
         if (imported.some(x => !x?.verfichaUrl)) {
-          setFormError('Hay links externos que todavía no se pudieron convertir a ficha neutral. Reintentá o cargalos a mano antes de crear la selección.')
+          setFormError('Hay links externos que todavía no se pudieron convertir a ficha neutral. Reintentá o revisá que sean links completos de una propiedad.')
           setSubmitting(false)
           return
         }
@@ -299,6 +290,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       const data = await res.json()
       if (!res.ok || !data?.token) {
         setFormError(data?.error || 'No se pudo crear la selección. Reintentá.')
+        setSubmitting(false)
         return
       }
       const url = `${window.location.origin}/seleccion/${data.token}`
@@ -308,6 +300,8 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       window.open(url, '_blank', 'noopener')
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Algo salió mal. Reintentá.')
+      setSubmitting(false)
+      return
     }
     setSubmitting(false)
   }
@@ -501,8 +495,8 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
                     <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg text-[12.5px] font-extrabold" style={{ backgroundColor: THEME.surface, color: THEME.accent }}>{i + 1}</span>
                     <input placeholder={i === 0 ? 'https://www.zonaprop.com.ar/…-casa-en-funes-51234567.html' : 'Pegá otro link…'}
                       value={p.url} onChange={e => updateProperty(i, 'url', e.target.value)}
-                      onBlur={() => { if (isImportableUrl(normalizedUrl) && !imports[normalizedUrl]) importarExterna(normalizedUrl, i) }}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (isImportableUrl(normalizedUrl) && !imports[normalizedUrl]) importarExterna(normalizedUrl, i) } }}
+                      onBlur={() => { if (isImportableUrl(normalizedUrl) && !imports[normalizedUrl]) importarExterna(normalizedUrl) }}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (isImportableUrl(normalizedUrl) && !imports[normalizedUrl]) importarExterna(normalizedUrl) } }}
                       className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm italic outline-none placeholder:not-italic"
                       style={{ borderColor: THEME.border, color: THEME.text, ...(p.url ? { fontStyle: 'normal' } : undefined) }}
                       onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
@@ -588,19 +582,13 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
                         </div>
                       ) : imp?.error ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-[12px] text-red-600">No se pudo leer el aviso. Reintentá o cargalo a mano.</p>
+                          <p className="text-[12px] text-red-600">{imp.error || 'No se pudo leer el aviso automáticamente.'}</p>
                           <div className="flex shrink-0 gap-2">
-                            <button type="button" onClick={() => importarExterna(normalizedUrl, i)}
+                            <button type="button" onClick={() => importarExterna(normalizedUrl)}
                               className="rounded-lg px-3 py-1.5 text-[12px] font-bold text-white"
                               style={{ background: THEME.accent }}
                             >
                               Reintentar
-                            </button>
-                            <button type="button" onClick={() => setManual(i, { open: true })}
-                              className="rounded-lg border px-3 py-1.5 text-[12px] font-bold"
-                              style={{ borderColor: THEME.accent, color: THEME.accent }}
-                            >
-                              Cargar a mano
                             </button>
                           </div>
                         </div>

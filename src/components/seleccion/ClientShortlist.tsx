@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { parsePropertyLabel, getTimeLeft } from '@/lib/seleccion'
+import { displayImageUrl } from '@/lib/external-images'
 
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
@@ -258,11 +259,11 @@ export default function ClientShortlist({
       <>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button type="button" onClick={() => setReaction(prop.id, 'encanta')}
-            className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-[13px] font-extrabold transition ${react === 'encanta' ? 'border-[#1A5C38] bg-[#EAF3EE] text-[#1A5C38]' : 'border-[#E4E9E5] bg-white text-[#5B6B62] hover:bg-[#F7FAF8]'}`}>
+            className={`flex items-center justify-center gap-1.5 rounded-lg border py-2 text-[12.5px] font-extrabold transition ${react === 'encanta' ? 'border-[#1A5C38] bg-[#EAF3EE] text-[#1A5C38]' : 'border-[#E4E9E5] bg-white text-[#5B6B62] hover:bg-[#F7FAF8]'}`}>
             <BtnHeart filled={react === 'encanta'} /> Me gusta
           </button>
           <button type="button" onClick={() => setReaction(prop.id, 'no')}
-            className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-[13px] font-extrabold transition ${react === 'no' ? 'border-[#d85b52] bg-[#fff1f0] text-[#b9433d]' : 'border-[#E4E9E5] bg-white text-[#5B6B62] hover:bg-[#F7FAF8]'}`}>
+            className={`flex items-center justify-center gap-1.5 rounded-lg border py-2 text-[12.5px] font-extrabold transition ${react === 'no' ? 'border-[#d85b52] bg-[#fff1f0] text-[#b9433d]' : 'border-[#E4E9E5] bg-white text-[#5B6B62] hover:bg-[#F7FAF8]'}`}>
             <BtnX /> No me interesa
           </button>
         </div>
@@ -275,14 +276,8 @@ export default function ClientShortlist({
           </div>
         )}
 
-        <button type="button" onClick={() => setPreviewPropId(prop.id)}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-4 text-[16px] font-extrabold text-white transition active:scale-[0.98]"
-          style={{ background: '#1A5C38', boxShadow: '0 8px 22px rgba(26,92,56,0.32)' }}>
-          <ExternalLinkIcon /> Visitar propiedad
-        </button>
-
         <button type="button" onClick={() => patchReaction(prop.id, { wantVisit: !r.wantVisit })}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-[14px] font-extrabold transition active:scale-[0.98]"
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-[13px] font-extrabold transition active:scale-[0.98]"
           style={r.wantVisit ? { borderColor: '#1A5C38', background: '#EAF3EE', color: '#1A5C38' } : { borderColor: '#D8E5DC', background: 'white', color: '#1A5C38' }}>
           {r.wantVisit ? <BtnCheck /> : <BtnCal />} {r.wantVisit ? 'Visita solicitada' : 'Quiero coordinar visita'}
         </button>
@@ -305,12 +300,12 @@ export default function ClientShortlist({
     return (
       <div key={prop.id} className="flex flex-col overflow-hidden rounded-2xl border bg-white"
         style={{ borderColor: r.liked === true ? '#bfe0cc' : r.liked === false ? '#f5c6c3' : '#E4E9E5', boxShadow: '0 2px 12px rgba(20,50,35,0.05)' }}>
-        <div className="relative aspect-[4/3] shrink-0 bg-[#eef1ee]">
+        <div className="relative aspect-[16/11] shrink-0 bg-[#eef1ee]">
           {loading ? (
             <div className="h-full w-full animate-pulse bg-[#e6ebe7]" />
           ) : info?.image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={info.image} alt={title} className="h-full w-full object-cover" />
+            <img src={displayImageUrl(info.image)} alt={title} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9bb0a4" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -332,13 +327,18 @@ export default function ClientShortlist({
         <div className="flex flex-1 flex-col p-3.5">
           <h3 className="text-[15px] font-bold leading-[1.35] text-[#1C2620]" style={{ fontFamily: 'Raleway, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</h3>
           {info?.location && <p className="mt-0.5 text-[12px] text-[#5B6B62]">{info.location}</p>}
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#5B6B62]">
+          <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-[#5B6B62]">
             {info && info.rooms > 0 && <span className="flex items-center gap-1"><IcBed /> {info.rooms} dorm.</span>}
             {info && info.baths > 0 && <span className="flex items-center gap-1"><IcBath /> {info.baths} baño{info.baths > 1 ? 's' : ''}</span>}
             {info && info.area > 0 && <span className="flex items-center gap-1"><IcArea /> {info.area} m²</span>}
           </div>
-          {info?.price && <div className="mt-1.5 text-[15px] font-extrabold text-[#1A5C38]">{info.price}</div>}
+          {info?.price && <div className="mt-2 text-[15px] font-extrabold text-[#1A5C38]">{info.price}</div>}
           {isValidNote(prop.note) && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{prop.note}&rdquo;</p>}
+          <button type="button" onClick={() => setPreviewPropId(prop.id)}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-[13px] font-extrabold transition active:scale-[0.98]"
+            style={{ borderColor: '#B8C8E6', background: '#F1F6FF', color: '#244A86' }}>
+            <ExternalLinkIcon /> Ver ficha
+          </button>
           <div className="flex-1" />
           {renderAcciones(prop)}
         </div>
@@ -365,33 +365,48 @@ export default function ClientShortlist({
 
   return (
     <div className="min-h-screen bg-[#F4F6F5] text-[#1C2620]" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
-      <main className="mx-auto flex min-h-screen w-full max-w-[1180px] flex-col px-4 py-5 sm:px-6 lg:px-8">
-        <section className="mb-5 rounded-2xl border border-[#E4E9E5] bg-white px-4 py-4 sm:px-5" style={{ boxShadow: '0 8px 28px rgba(20,50,35,0.06)' }}>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#1A5C38]" style={{ fontFamily: 'Raleway, sans-serif' }}>Selección privada</p>
-              <h1 className="mt-0.5 text-[22px] font-extrabold leading-tight text-[#123f27] sm:text-[26px]" style={{ fontFamily: 'Raleway, sans-serif' }}>{session.clientName}</h1>
-              <p className="mt-1 max-w-[720px] text-[13px] leading-[1.55] text-[#5B6B62]">
-                {isValidNote(session.note) ? session.note : `${agentName} preparó estas propiedades para que las veas sin salir de este panel.`}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2 rounded-xl bg-[#EAF3EE] px-3 py-2 text-[12.5px] font-bold text-[#1A5C38]">
+      <main className="mx-auto grid min-h-screen w-full max-w-[1400px] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-7">
+        <aside className="lg:sticky lg:top-5 lg:h-[calc(100vh-40px)]">
+          <section className="flex h-full flex-col rounded-2xl border border-[#E4E9E5] bg-white p-4 sm:p-5" style={{ boxShadow: '0 8px 28px rgba(20,50,35,0.06)' }}>
+            <div className="flex items-center gap-3">
               {agentPhoto ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={agentPhoto} alt={agentName} className="h-7 w-7 rounded-full object-cover" />
+                <img src={agentPhoto} alt={agentName} className="h-14 w-14 rounded-full object-cover ring-4 ring-[#EAF3EE]" />
               ) : (
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[10px] font-extrabold text-[#1A5C38]">{iniciales(agentName)}</span>
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#EAF3EE] text-[16px] font-extrabold text-[#1A5C38]">{iniciales(agentName)}</span>
               )}
-              <span>{agentName}</span>
-              <span className="h-1 w-1 rounded-full bg-[#1A5C38]" />
-              <span>{session.permanent ? 'Activa' : `${days} día${days !== 1 ? 's' : ''}`}</span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#1A5C38]" style={{ fontFamily: 'Raleway, sans-serif' }}>Tu asesor</p>
+                <h2 className="truncate text-[17px] font-extrabold text-[#123f27]" style={{ fontFamily: 'Raleway, sans-serif' }}>{agentName}</h2>
+              </div>
             </div>
-          </div>
-        </section>
 
-        <section className="flex-1">
+            <div className="relative mt-5 rounded-2xl border border-[#DDE8E2] bg-[#F8FBF9] p-4">
+              <span className="absolute -top-2 left-7 h-4 w-4 rotate-45 border-l border-t border-[#DDE8E2] bg-[#F8FBF9]" />
+              <p className="text-[13.5px] leading-[1.55] text-[#425248]">
+                {isValidNote(session.note)
+                  ? session.note
+                  : `Hola ${session.clientName}. Te preparé esta búsqueda especialmente para vos. Mirá las fichas tranquilo y marcame cuáles te gustan.`}
+              </p>
+            </div>
+
+            <div className="mt-5 rounded-xl bg-[#F1F6FF] p-3 text-[#244A86]">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.08em]">Selección para</p>
+              <h1 className="mt-0.5 text-[22px] font-extrabold leading-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>{session.clientName}</h1>
+              <p className="mt-1 text-[12.5px]">{session.permanent ? 'Activa y disponible para actualizar' : `${days} día${days !== 1 ? 's' : ''} disponible`}</p>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-[#E4E9E5] p-3 text-[13px] leading-[1.5] text-[#5B6B62]">
+              <b className="text-[#123f27]">Resumen:</b>{' '}
+              {totalReacc === 0 ? 'todavía no marcaste ninguna propiedad.' : `${stats.encanta} me gusta · ${stats.no} descartadas · ${stats.wantVisit} visita${stats.wantVisit !== 1 ? 's' : ''}`}
+              <p className="mt-1 text-[12px] text-[#7C8A81]">Tus respuestas se guardan automáticamente.</p>
+            </div>
+          </section>
+        </aside>
+
+        <section className="min-w-0">
           {activas.length > 0 ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {activas.map(({ p: prop, idx }) => renderCardGrilla(prop, idx))}
             </div>
           ) : (
@@ -402,7 +417,7 @@ export default function ClientShortlist({
             <div className="mt-5 space-y-4">
               {headerDescartadas(desc.length)}
               {descartadasOpen && (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {desc.map(({ p: prop, idx }) => (
                     <div key={prop.id} style={{ filter: 'grayscale(1)', opacity: 0.62 }}>{renderCardGrilla(prop, idx)}</div>
                   ))}
@@ -411,14 +426,6 @@ export default function ClientShortlist({
             </div>
           )}
         </section>
-
-        <footer className="mt-5 rounded-2xl border border-[#E4E9E5] bg-white p-4">
-          <div className="text-[13px] leading-[1.5] text-[#5B6B62]">
-            <b className="text-[#123f27]">Tu resumen:</b>{' '}
-            {totalReacc === 0 ? 'todavía no marcaste ninguna propiedad.' : `${stats.encanta} me gusta · ${stats.no} descartadas · ${stats.wantVisit} visita${stats.wantVisit !== 1 ? 's' : ''}`}
-          </div>
-          <p className="mt-1 text-[12.5px] leading-[1.45] text-[#7C8A81]">Tus respuestas se guardan automáticamente para que el asesor pueda seguir la conversación.</p>
-        </footer>
       </main>
 
       {previewProp && (
