@@ -14,6 +14,7 @@ import {
   Search,
   X,
 } from 'lucide-react'
+import { displayImageUrl } from '@/lib/external-images'
 
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
@@ -64,7 +65,9 @@ function isExternalUrl(url: string): boolean {
     const host = u.hostname.toLowerCase()
     if (host.includes('verficha.casa')) return false
     if (host.includes('siinmobiliaria.com')) return u.pathname.includes('/propiedades/')
-    return !!host
+    if (host.endsWith('zonaprop.com.ar')) return true
+    if (host.endsWith('argenprop.com')) return true
+    return false
   } catch {
     return false
   }
@@ -84,11 +87,23 @@ function isImportableUrl(url: string): boolean {
   return isFullUrl(url) && isExternalUrl(url)
 }
 
+function isNeutralFichaUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    return host.includes('verficha.casa')
+  } catch {
+    return false
+  }
+}
+
+function isAllowedSourceUrl(url: string): boolean {
+  return isImportableUrl(url) || isNeutralFichaUrl(url)
+}
+
 // Accesos a los portales (paso 2): abren la búsqueda en otra pestaña.
 const PORTALES: { name: string; url: string; logo: string }[] = [
   { name: 'Zonaprop', url: 'https://www.zonaprop.com.ar/', logo: '/portal-logos/zonaprop.jpg' },
   { name: 'Argenprop', url: 'https://www.argenprop.com/', logo: '/portal-logos/argenprop.jpg' },
-  { name: 'Mercado Libre', url: 'https://inmuebles.mercadolibre.com.ar/', logo: '/portal-logos/mercadolibre.png' },
   { name: 'SI INMOBILIARIA', url: 'https://siinmobiliaria.com/propiedades', logo: '/portal-logos/si-inmobiliaria.png' },
 ]
 
@@ -240,6 +255,13 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     const invalidRows = rows.filter(p => !isFullUrl(p.url))
     if (invalidRows.length > 0) {
       setFormError('Hay una fila que no es un link completo. Pegá la URL completa que empieza con https://.')
+      setSubmitting(false)
+      return
+    }
+
+    const unsupportedRows = rows.filter(p => !isAllowedSourceUrl(p.url))
+    if (unsupportedRows.length > 0) {
+      setFormError('Por ahora usá solo links de Zonaprop, Argenprop o propiedades de SI INMOBILIARIA.')
       setSubmitting(false)
       return
     }
@@ -454,21 +476,20 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
 
               {/* PANEL 2 */}
               <div className="rounded-2xl border bg-white p-5" style={{ borderColor: THEME.border }}>
-                {panelHead(IcBuscar, 'Elegí dónde buscar', undefined, 'Abrí los sitios en otra pestaña para buscar y copiar los links.')}
-                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {panelHead(IcBuscar, 'Elegí dónde buscar', undefined, 'Abrí los sitios validados en otra pestaña para buscar y copiar los links.')}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   {PORTALES.map(pt => (
                     <a key={pt.name} href={pt.url} target="_blank" rel="noopener noreferrer"
-                      className="group flex items-center gap-2.5 rounded-xl border-[1.5px] bg-white px-3 py-2.5 text-[13.5px] font-bold transition duration-150"
+                      className="group flex min-h-[82px] items-center gap-3 rounded-2xl border-[1.5px] bg-white px-4 py-3.5 text-[14px] font-extrabold transition duration-150 hover:-translate-y-0.5 hover:shadow-sm"
                       style={{ borderColor: THEME.border, color: THEME.text }}
                     >
-                      <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg overflow-hidden border bg-white" style={{ borderColor: THEME.border }}>
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-white" style={{ borderColor: THEME.border }}>
                         <Image
                           src={pt.logo}
                           alt={`${pt.name} logo`}
-                          width={20}
-                          height={20}
-                          className="h-5 w-auto object-contain"
-                          style={{ filter: pt.name === 'Mercado Libre' ? 'brightness(0.95)' : undefined }}
+                          width={34}
+                          height={34}
+                          className="h-8 w-auto object-contain"
                         />
                       </span>
                       <span className="flex-1 leading-tight">{pt.name}</span>
@@ -519,7 +540,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
                         <div className="flex items-center gap-3">
                           {imp.snapshot?.image && (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={imp.snapshot.image} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                            <img src={displayImageUrl(imp.snapshot.image)} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
                           )}
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[13px] font-bold text-gray-900">{imp.snapshot?.title || 'Placa lista'}</p>
