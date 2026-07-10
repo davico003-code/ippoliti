@@ -60,6 +60,23 @@ type InitialContact = {
   email?: string
 }
 
+type ActiveSelectionSession = {
+  token?: string
+  clientName?: string
+  clientPhone?: string
+  clientEmail?: string
+  note?: string
+  properties?: FormProperty[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+type ActiveSelection = {
+  token: string
+  url: string
+  session: ActiveSelectionSession
+}
+
 // URLs que deben terminar como ficha neutral en verficha.casa.
 function isExternalUrl(url: string): boolean {
   try {
@@ -115,6 +132,13 @@ function phoneForWhatsapp(phone: string): string {
   return digits
 }
 
+function formatShortDate(value?: string) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+}
+
 // Accesos a los portales (paso 2): abren la búsqueda en otra pestaña.
 const PORTALES: { name: string; url: string; logo: string }[] = [
   { name: 'Zonaprop', url: 'https://www.zonaprop.com.ar/', logo: '/portal-logos/zonaprop.jpg' },
@@ -144,6 +168,9 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
   const [submitting, setSubmitting] = useState(false)
   const [imports, setImports] = useState<Record<string, ImportState>>({})
   const [formError, setFormError] = useState('')
+  const [activeSelection, setActiveSelection] = useState<ActiveSelection | null>(null)
+  const [activeSelectionLoading, setActiveSelectionLoading] = useState(false)
+  const [activeSelectionError, setActiveSelectionError] = useState('')
   const autoImportTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
   const importsRef = useRef(imports)
   // Carga MANUAL de externas (indexada por fila): pegás el link + armás la PLACA
@@ -199,6 +226,55 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
   useEffect(() => {
     importsRef.current = imports
   }, [imports])
+
+  useEffect(() => {
+    const contactId = formData.contactId.trim()
+    if (!contactId) return
+    const controller = new AbortController()
+    setActiveSelectionLoading(true)
+    setActiveSelectionError('')
+
+    fetch(`/api/seleccion?contactId=${encodeURIComponent(contactId)}`, { signal: controller.signal })
+      .then(async res => {
+        const data = await res.json()
+        if (!res.ok) throw new Error(data?.error || 'No se pudo revisar la selección activa')
+        if (!data?.token || !data?.session) return
+
+        const session = data.session as ActiveSelectionSession
+        const props = (session.properties || [])
+          .slice(0, MAX_PROPS)
+          .map((p, i) => ({
+            id: p.id || `prop-${i}`,
+            url: normalizePastedUrl(p.url || ''),
+            note: p.note || '',
+          }))
+          .filter(p => p.url)
+
+        setActiveSelection({
+          token: data.token,
+          url: data.url || `/seleccion/${data.token}`,
+          session,
+        })
+        setFormData(d => {
+          const hasCurrentUrls = d.properties.some(p => p.url.trim())
+          return {
+            ...d,
+            clientName: d.clientName || session.clientName || '',
+            clientPhone: d.clientPhone || session.clientPhone || '',
+            clientEmail: d.clientEmail || session.clientEmail || '',
+            note: d.note || session.note || '',
+            properties: !hasCurrentUrls && props.length ? props : d.properties,
+          }
+        })
+      })
+      .catch(err => {
+        if (err instanceof DOMException && err.name === 'AbortError') return
+        setActiveSelectionError(err instanceof Error ? err.message : 'No se pudo revisar la selección activa')
+      })
+      .finally(() => setActiveSelectionLoading(false))
+
+    return () => controller.abort()
+  }, [formData.contactId])
 
   const importarExterna = useCallback(async (url: string) => {
     const u = normalizePastedUrl(url)
@@ -357,6 +433,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       }
       const url = `${window.location.origin}/seleccion/${data.token}`
       setCreatedUrl(url)
+      setActiveSelection(s => s ? { ...s, token: data.token, url: `/seleccion/${data.token}` } : s)
       setCopiedCreatedUrl(false)
       // Copiar el link y abrirlo en otra pestaña para que el agente revise.
       navigator.clipboard.writeText(url).catch(() => {})
@@ -480,6 +557,9 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     const sourceLabel = formData.contactSource
       ? formData.contactSource.replace(/[-_]/g, ' ')
       : 'consulta'
+    const activeSelectionUrl = activeSelection?.url || ''
+    const activeSelectionCount = activeSelection?.session.properties?.length || 0
+    const activeSelectionUpdatedAt = formatShortDate(activeSelection?.session.updatedAt || activeSelection?.session.createdAt)
     const agentSelect = (
       <select value={formData.agent} onChange={e => setFormData(d => ({ ...d, agent: e.target.value }))}
         className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3 text-sm outline-none"
@@ -517,7 +597,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
           <p className="mt-1 text-[14px]" style={{ color: THEME.muted }}>En 3 pasos: cargás al cliente, buscás las propiedades y pegás los links.</p>
           {formData.contactId && (
             <div className="mt-4 inline-flex rounded-xl border px-3 py-2 text-[12.5px] font-bold" style={{ borderColor: THEME.border, backgroundColor: THEME.surface, color: THEME.text }}>
-              Selección activa vinculada a este contacto
+              {activeSelection ? 'Selección activa encontrada para este contacto' : activeSelectionLoading ? 'Buscando selección activa de este contacto...' : 'Selección activa vinculada a este contacto'}
             </div>
           )}
           <svg className="pointer-events-none absolute right-0 top-[-16px] hidden h-[150px] w-[360px] lg:block" viewBox="0 0 360 150" fill="none" aria-hidden>
@@ -550,6 +630,48 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
 
             {/* Paneles (derecha) */}
             <div className="flex flex-col gap-5">
+              {activeSelection && (
+                <div className="rounded-2xl border bg-white p-5" style={{ borderColor: '#CFEBDD', backgroundColor: '#F6FBF8' }}>
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <p className="text-[15px] font-extrabold" style={{ color: '#1A5C38' }}>
+                        Este cliente ya tiene una selección activa
+                      </p>
+                      <p className="mt-1 text-[13px] leading-[1.5]" style={{ color: THEME.mutedStrong }}>
+                        Cargamos como base {activeSelectionCount || formData.properties.length} propiedades actuales. Al guardar, se actualiza el mismo link permanente del contacto
+                        {activeSelectionUpdatedAt ? ` · última edición ${activeSelectionUpdatedAt}` : ''}.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={activeSelectionUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border px-3 text-[12.5px] font-extrabold"
+                        style={{ borderColor: '#CFEBDD', color: '#1A5C38', backgroundColor: '#fff' }}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Abrir selección
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('seleccion-links-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        className="inline-flex h-10 items-center justify-center rounded-xl px-3 text-[12.5px] font-extrabold text-white"
+                        style={{ backgroundColor: '#1A5C38' }}
+                      >
+                        Actualizar propiedades
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeSelectionError && (
+                <p className="rounded-xl border px-3 py-2 text-[13px]" style={{ borderColor: '#F3D99B', backgroundColor: '#FFF7E6', color: '#8A5A00' }}>
+                  {activeSelectionError}
+                </p>
+              )}
+
               {/* PANEL 1 */}
               <div className="rounded-2xl border bg-white p-5" style={{ borderColor: THEME.border }}>
                 {panelHead(IcPersona, hasPrefilledClient && !editingContact ? 'Cliente detectado automáticamente' : '¿A quién le armamos la selección?')}
@@ -621,7 +743,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
               </div>
 
               {/* PANEL 3 */}
-              <div className="rounded-2xl border bg-white p-5" style={{ borderColor: THEME.border }}>
+              <div id="seleccion-links-panel" className="scroll-mt-6 rounded-2xl border bg-white p-5" style={{ borderColor: THEME.border }}>
                 {panelHead(IcLink, 'Pegá los links que encontraste', `${numDone}/${MAX_PROPS}`, 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
                 <div className="mb-4 rounded-2xl border p-3" style={{ borderColor: THEME.border, backgroundColor: THEME.surface }}>
                   <textarea
@@ -818,7 +940,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
             style={{ backgroundColor: THEME.accent, boxShadow: '0 8px 20px rgba(17,24,39,.25)' }}
           >
             {!submitting && <ExternalLink className="h-4 w-4" />}
-            {submitting ? 'Creando…' : 'Crear, copiar link y abrir para revisar'}
+            {submitting ? (activeSelection ? 'Actualizando...' : 'Creando...') : activeSelection ? 'Actualizar, copiar link y abrir para revisar' : 'Crear, copiar link y abrir para revisar'}
           </button>
           <p className="mt-2.5 text-center text-[12.5px]" style={{ color: THEME.muted }}>Se abre en otra pestaña — revisá que esté todo ok antes de mandárselo al cliente.</p>
         </form>
