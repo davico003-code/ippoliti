@@ -11,7 +11,9 @@ import {
   Link2,
   Plus,
   MessageCircle,
+  Pencil,
   Search,
+  Send,
   X,
 } from 'lucide-react'
 import { displayImageUrl } from '@/lib/external-images'
@@ -79,6 +81,11 @@ function normalizePastedUrl(value: string): string {
   return (match?.[0] || clean).replace(/[),.;]+$/g, '')
 }
 
+function extractUrlsFromText(value: string): string[] {
+  const urls = value.match(/https?:\/\/[^\s"'<>]+/gi) || []
+  return Array.from(new Set(urls.map(normalizePastedUrl).filter(Boolean)))
+}
+
 function isFullUrl(url: string): boolean {
   return /^https?:\/\//i.test(url.trim())
 }
@@ -100,6 +107,14 @@ function isAllowedSourceUrl(url: string): boolean {
   return isImportableUrl(url) || isNeutralFichaUrl(url)
 }
 
+function phoneForWhatsapp(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (!digits) return ''
+  if (digits.startsWith('549')) return digits
+  if (digits.startsWith('54')) return digits
+  return digits
+}
+
 // Accesos a los portales (paso 2): abren la búsqueda en otra pestaña.
 const PORTALES: { name: string; url: string; logo: string }[] = [
   { name: 'Zonaprop', url: 'https://www.zonaprop.com.ar/', logo: '/portal-logos/zonaprop.jpg' },
@@ -108,6 +123,7 @@ const PORTALES: { name: string; url: string; logo: string }[] = [
 ]
 
 export default function AgentSeleccionPanel({ initialContact }: { initialContact?: InitialContact }) {
+  const hasPrefilledClient = Boolean(initialContact?.name?.trim() && initialContact?.phone?.trim())
   // days fijo (el link queda válido 1 año) — sacamos el selector de vencimiento.
   const [formData, setFormData] = useState({
     clientName: initialContact?.name || '',
@@ -120,7 +136,11 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     note: '',
     properties: [emptyProp()] as FormProperty[],
   })
+  const [editingContact, setEditingContact] = useState(!hasPrefilledClient)
   const [createdUrl, setCreatedUrl] = useState('')
+  const [copiedCreatedUrl, setCopiedCreatedUrl] = useState(false)
+  const [bulkLinks, setBulkLinks] = useState('')
+  const [bulkMessage, setBulkMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [imports, setImports] = useState<Record<string, ImportState>>({})
   const [formError, setFormError] = useState('')
@@ -225,6 +245,26 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     setFormData(d => (d.properties.length >= MAX_PROPS ? d : { ...d, properties: [...d.properties, emptyProp()] }))
   }
 
+  function applyBulkLinks(value = bulkLinks) {
+    const urls = extractUrlsFromText(value).slice(0, MAX_PROPS)
+    if (!urls.length) {
+      setBulkMessage('No encontré links completos para cargar.')
+      return
+    }
+    setFormData(d => {
+      const nextProps = urls.map((url, i) => {
+        let id = `prop-${i}`
+        try {
+          id = new URL(url).pathname.split('/').filter(Boolean).at(-1) || id
+        } catch {}
+        return { id, url, note: '' }
+      })
+      return { ...d, properties: nextProps.length ? nextProps : [emptyProp()] }
+    })
+    setBulkLinks('')
+    setBulkMessage(`${urls.length} link${urls.length === 1 ? '' : 's'} cargado${urls.length === 1 ? '' : 's'}.`)
+  }
+
   function updateProperty(i: number, field: string, val: string) {
     const nextVal = field === 'url' ? normalizePastedUrl(val) : val
     setFormData(d => {
@@ -317,6 +357,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       }
       const url = `${window.location.origin}/seleccion/${data.token}`
       setCreatedUrl(url)
+      setCopiedCreatedUrl(false)
       // Copiar el link y abrirlo en otra pestaña para que el agente revise.
       navigator.clipboard.writeText(url).catch(() => {})
       window.open(url, '_blank', 'noopener')
@@ -330,7 +371,20 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
 
   function copyUrl() {
     navigator.clipboard.writeText(createdUrl)
+    setCopiedCreatedUrl(true)
+    window.setTimeout(() => setCopiedCreatedUrl(false), 1800)
   }
+
+  const whatsappPhone = phoneForWhatsapp(formData.clientPhone)
+  const whatsappGreeting = formData.clientName.trim()
+    ? `Hola ${formData.clientName.trim()}.`
+    : 'Hola.'
+  const whatsappMessage = encodeURIComponent(
+    `${whatsappGreeting} Te paso la selección de propiedades que preparé para vos:\n\n${createdUrl}\n\nCuando puedas mirala y marcame cuáles te gustan.`,
+  )
+  const whatsappUrl = whatsappPhone
+    ? `https://wa.me/${whatsappPhone}?text=${whatsappMessage}`
+    : ''
 
   // ── Vista de éxito o formulario ──
     if (createdUrl) {
@@ -342,24 +396,40 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
             </div>
             <h3 className="mb-1.5 text-xl font-bold" style={{ color: THEME.text }}>¡Selección lista!</h3>
             <p className="mb-4 text-sm" style={{ color: THEME.muted }}>La abrimos en otra pestaña para que <b>revises que esté todo ok</b>. Si vino desde una ficha o consulta, queda como selección activa permanente de ese contacto.</p>
-            <div className="mb-4 flex items-center gap-2 rounded-xl p-3" style={{ backgroundColor: THEME.surface }}>
-              <input readOnly value={createdUrl} className="min-w-0 flex-1 truncate bg-transparent text-sm outline-none" style={{ color: THEME.text }} />
-              <button onClick={copyUrl} className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white" style={{ backgroundColor: THEME.accent }}>
-                Copiar
-              </button>
+            <div className="mb-4 rounded-xl p-3" style={{ backgroundColor: THEME.surface }}>
+              <input readOnly value={createdUrl} className="w-full min-w-0 truncate bg-transparent text-sm outline-none" style={{ color: THEME.text }} />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onClick={copyUrl}
+                className="inline-flex w-auto items-center justify-center rounded-xl px-4 py-2 text-[13px] font-extrabold text-white"
+                style={{ backgroundColor: '#244A86' }}
+              >
+                {copiedCreatedUrl ? 'Link copiado' : 'Copiar link para enviar al interesado'}
+              </button>
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-auto items-center justify-center gap-2 rounded-xl px-4 py-2 text-[13px] font-extrabold text-white"
+                  style={{ backgroundColor: '#1A5C38' }}
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  Enviar por WhatsApp al interesado
+                </a>
+              )}
               <a
                 href={createdUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-xl py-3 text-sm font-bold"
-                style={{ border: `1px solid ${THEME.border}`, color: THEME.accent }}
+                className="text-sm font-bold hover:underline"
+                style={{ color: THEME.accent }}
               >
-                Abrir de nuevo para revisar
+                Abrir para revisar
               </a>
               <button
-                onClick={() => { setCreatedUrl(''); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
+                onClick={() => { setCreatedUrl(''); setCopiedCreatedUrl(false); setBulkLinks(''); setBulkMessage(''); setEditingContact(true); setImports({}); setManualForms({}); setFormData({ clientName: '', clientPhone: '', clientEmail: '', contactId: '', contactSource: '', agent: 'David Flores', days: 365, note: '', properties: [emptyProp()] }) }}
                 className="py-2 text-sm text-gray-400 hover:text-gray-600"
               >
                 Crear otra selección
@@ -407,6 +477,37 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     const IcBuscar = <Search className="w-[17px] h-[17px]" />
     const IcLink = <Link2 className="w-[17px] h-[17px]" />
     const IcChat = <MessageCircle className="w-[17px] h-[17px]" />
+    const sourceLabel = formData.contactSource
+      ? formData.contactSource.replace(/[-_]/g, ' ')
+      : 'consulta'
+    const agentSelect = (
+      <select value={formData.agent} onChange={e => setFormData(d => ({ ...d, agent: e.target.value }))}
+        className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3 text-sm outline-none"
+        style={{ borderColor: THEME.border, color: THEME.text }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }}>
+        <option>David Flores</option><option>Laura Flores</option><option>Susana Ippoliti</option>
+        <option>Aldana Ruiz</option><option>Carolina Echen</option><option>Gino Pecchenino</option>
+        <option>Gisela Ramallo</option><option>Leticia Alexenicer</option><option>Lucia Wilson</option>
+        <option>Maria Jose Espilocin</option><option>Mariana Orlate</option><option>Mauro Matteucci</option>
+        <option>Micaela Gonzalez</option><option>Julian Ruschneider</option>
+      </select>
+    )
+    const statusChip = (label: string, tone: 'ok' | 'warn' | 'error' | 'idle' = 'idle') => {
+      const styles = {
+        ok: { bg: '#EAF7EF', color: '#1A5C38', border: '#CFEBDD' },
+        warn: { bg: '#FFF7E6', color: '#8A5A00', border: '#F3D99B' },
+        error: { bg: '#FEECEC', color: '#B42318', border: '#F3B8B3' },
+        idle: { bg: THEME.surface, color: THEME.mutedStrong, border: THEME.border },
+      }[tone]
+      return (
+        <span
+          className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold"
+          style={{ backgroundColor: styles.bg, color: styles.color, borderColor: styles.border }}
+        >
+          {label}
+        </span>
+      )
+    }
 
     return (
       <div className="mx-auto max-w-[1120px]" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
@@ -438,12 +539,12 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
             {/* Rail de pasos (izquierda) */}
             <div className="relative hidden flex-col lg:flex">
               <span className="absolute left-[17px] top-5 bottom-[150px] w-0.5" style={{ backgroundColor: THEME.border }} />
-              {stepLabel(1, IcPersona, 'Llená a tu cliente', 'Si viene desde una ficha o consulta, ya queda vinculado automáticamente.')}
+              {stepLabel(1, IcPersona, hasPrefilledClient ? 'Cliente detectado' : 'Llená a tu cliente', 'Si viene desde una ficha o consulta, ya queda vinculado automáticamente.')}
               {stepLabel(2, IcBuscar, 'Buscá las propiedades', 'Abrí los sitios en otra pestaña, buscá lo que le sirve y copiá el link de cada aviso.')}
               {stepLabel(3, IcLink, 'Pegá los links que encontraste', 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
               <div className="mt-auto flex flex-col gap-1.5 rounded-2xl p-4" style={{ backgroundColor: THEME.surface }}>
-                <span className="text-[13px] font-extrabold" style={{ color: THEME.text }}>✦ Hasta {MAX_PROPS} propiedades</span>
-                <span className="text-[12.5px] leading-[1.5]" style={{ color: THEME.muted }}>— más de eso marea al cliente.</span>
+                <span className="text-[13px] font-extrabold" style={{ color: THEME.text }}>Hasta {MAX_PROPS} propiedades</span>
+                <span className="text-[12.5px] leading-[1.5]" style={{ color: THEME.muted }}>Más de eso marea al cliente.</span>
               </div>
             </div>
 
@@ -451,27 +552,45 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
             <div className="flex flex-col gap-5">
               {/* PANEL 1 */}
               <div className="rounded-2xl border bg-white p-5" style={{ borderColor: THEME.border }}>
-                {panelHead(IcPersona, '¿A quién le armamos la selección?')}
-                <div className="flex flex-col gap-2.5 sm:flex-row">
-                  <input required placeholder="Nombre del cliente" value={formData.clientName} onChange={e => setFormData(d => ({ ...d, clientName: e.target.value }))}
-                    className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
-                    style={{ borderColor: THEME.border, color: THEME.text }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
-                  <input placeholder="WhatsApp o teléfono" value={formData.clientPhone} onChange={e => setFormData(d => ({ ...d, clientPhone: e.target.value }))}
-                    className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
-                    style={{ borderColor: THEME.border, color: THEME.text }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
-                  <select value={formData.agent} onChange={e => setFormData(d => ({ ...d, agent: e.target.value }))}
-                    className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3 text-sm outline-none"
-                    style={{ borderColor: THEME.border, color: THEME.text }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }}>
-                    <option>David Flores</option><option>Laura Flores</option><option>Susana Ippoliti</option>
-                    <option>Aldana Ruiz</option><option>Carolina Echen</option><option>Gino Pecchenino</option>
-                    <option>Gisela Ramallo</option><option>Leticia Alexenicer</option><option>Lucia Wilson</option>
-                    <option>Maria Jose Espilocin</option><option>Mariana Orlate</option><option>Mauro Matteucci</option>
-                    <option>Micaela Gonzalez</option><option>Julian Ruschneider</option>
-                  </select>
-                </div>
+                {panelHead(IcPersona, hasPrefilledClient && !editingContact ? 'Cliente detectado automáticamente' : '¿A quién le armamos la selección?')}
+                {hasPrefilledClient && !editingContact ? (
+                  <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
+                    <div className="rounded-2xl border p-4" style={{ borderColor: '#CFEBDD', backgroundColor: '#F3FAF6' }}>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-[17px] font-extrabold" style={{ color: THEME.text }}>{formData.clientName}</p>
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[13px]" style={{ color: THEME.mutedStrong }}>
+                            <span className="font-poppins tabular-nums">{formData.clientPhone}</span>
+                            {formData.clientEmail && <span>{formData.clientEmail}</span>}
+                            <span className="capitalize">Desde {sourceLabel}</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingContact(true)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] font-bold"
+                          style={{ borderColor: THEME.border, color: THEME.text }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Editar
+                        </button>
+                      </div>
+                    </div>
+                    {agentSelect}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2.5 sm:flex-row">
+                    <input required placeholder="Nombre del cliente" value={formData.clientName} onChange={e => setFormData(d => ({ ...d, clientName: e.target.value }))}
+                      className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
+                      style={{ borderColor: THEME.border, color: THEME.text }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
+                    <input placeholder="WhatsApp o teléfono" value={formData.clientPhone} onChange={e => setFormData(d => ({ ...d, clientPhone: e.target.value }))}
+                      className="h-11 flex-1 rounded-xl border-[1.5px] bg-white px-3.5 text-sm outline-none placeholder:text-[#9ca3af]"
+                      style={{ borderColor: THEME.border, color: THEME.text }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = THEME.accent }} />
+                    {agentSelect}
+                  </div>
+                )}
               </div>
 
               {/* PANEL 2 */}
@@ -504,12 +623,46 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
               {/* PANEL 3 */}
               <div className="rounded-2xl border bg-white p-5" style={{ borderColor: THEME.border }}>
                 {panelHead(IcLink, 'Pegá los links que encontraste', `${numDone}/${MAX_PROPS}`, 'Pueden ser de cualquiera de los sitios. Uno por fila.')}
+                <div className="mb-4 rounded-2xl border p-3" style={{ borderColor: THEME.border, backgroundColor: THEME.surface }}>
+                  <textarea
+                    value={bulkLinks}
+                    onChange={e => { setBulkLinks(e.target.value); if (bulkMessage) setBulkMessage('') }}
+                    onPaste={e => {
+                      const pasted = e.clipboardData.getData('text')
+                      if (extractUrlsFromText(pasted).length > 1) {
+                        window.setTimeout(() => applyBulkLinks(pasted), 0)
+                      }
+                    }}
+                    placeholder="Pegá varios links juntos y los ordenamos solos. Uno por línea o todos mezclados."
+                    className="min-h-[88px] w-full resize-none rounded-xl border bg-white px-3 py-2.5 text-[13px] outline-none placeholder:text-[#9ca3af]"
+                    style={{ borderColor: THEME.border, color: THEME.text }}
+                  />
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[12px]" style={{ color: bulkMessage.startsWith('No') ? '#B42318' : THEME.muted }}>
+                      {bulkMessage || `Podés cargar hasta ${MAX_PROPS} propiedades de una sola vez.`}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => applyBulkLinks()}
+                      className="rounded-lg px-3 py-1.5 text-[12px] font-extrabold text-white disabled:opacity-40"
+                      style={{ backgroundColor: THEME.accent }}
+                      disabled={!bulkLinks.trim()}
+                    >
+                      Cargar links
+                    </button>
+                  </div>
+                </div>
 
             {formData.properties.map((p, i) => {
               const normalizedUrl = normalizePastedUrl(p.url)
               const externa = isImportableUrl(normalizedUrl)
               const imp = imports[normalizedUrl]
               const mf = manualForms[i] ?? { open: false, precio: '', moneda: 'USD', zona: '', foto: '', dorm: '', banos: '', m2: '' }
+              const hasUrl = !!normalizedUrl
+              const allowed = hasUrl && isAllowedSourceUrl(normalizedUrl)
+              const neutral = hasUrl && isNeutralFichaUrl(normalizedUrl)
+              const fichaOk = neutral || !!imp?.verfichaUrl
+              const fotoOk = !!imp?.snapshot?.image || neutral
                   return (
                 <div key={i}>
                   <div className="mb-2 flex items-center gap-2.5">
@@ -533,6 +686,18 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
                       </button>
                     )}
                   </div>
+
+                  {hasUrl && (
+                    <div className="mb-2 ml-[35px] flex flex-wrap gap-1.5">
+                      {statusChip(allowed ? 'Link OK' : 'Link no soportado', allowed ? 'ok' : 'error')}
+                      {imp?.loading
+                        ? statusChip('Ficha leyendo...', 'warn')
+                        : statusChip(fichaOk ? 'Ficha OK' : 'Ficha pendiente', fichaOk ? 'ok' : imp?.error ? 'error' : 'idle')}
+                      {imp?.loading
+                        ? statusChip('Foto leyendo...', 'warn')
+                        : statusChip(fotoOk ? 'Foto OK' : 'Foto pendiente', fotoOk ? 'ok' : imp?.error ? 'error' : 'idle')}
+                    </div>
+                  )}
 
                   {externa && (
                     <div className="mb-2.5 ml-[35px] rounded-xl bg-white p-3" style={{ border: `1px solid ${THEME.borderStrong}` }}>

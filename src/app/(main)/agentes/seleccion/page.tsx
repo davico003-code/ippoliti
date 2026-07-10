@@ -8,11 +8,28 @@ export const dynamic = 'force-dynamic'
 interface Props {
   searchParams?: {
     contactId?: string
+    contactoId?: string
+    hiloContactId?: string
+    leadId?: string
+    id?: string
     contactSource?: string
+    source?: string
+    origen?: string
     name?: string
+    nombre?: string
+    clientName?: string
     phone?: string
+    whatsapp?: string
+    telefono?: string
+    tel?: string
+    clientPhone?: string
     email?: string
+    clientEmail?: string
   }
+}
+
+function firstValue(...values: Array<string | undefined>) {
+  return values.find(value => typeof value === 'string' && value.trim())?.trim() || ''
 }
 
 export default async function AgentesSeleccionPage({ searchParams }: Props) {
@@ -39,11 +56,21 @@ export default async function AgentesSeleccionPage({ searchParams }: Props) {
       <div className="max-w-[1160px] mx-auto px-4 py-8">
         <AgentSeleccionPanel
           initialContact={{
-            contactId: searchParams?.contactId || searchParams?.email || searchParams?.phone || '',
-            contactSource: searchParams?.contactSource || '',
-            name: searchParams?.name || '',
-            phone: searchParams?.phone || '',
-            email: searchParams?.email || '',
+            contactId: firstValue(
+              searchParams?.contactId,
+              searchParams?.contactoId,
+              searchParams?.hiloContactId,
+              searchParams?.leadId,
+              searchParams?.id,
+              searchParams?.email,
+              searchParams?.whatsapp,
+              searchParams?.phone,
+              searchParams?.telefono,
+            ),
+            contactSource: firstValue(searchParams?.contactSource, searchParams?.source, searchParams?.origen),
+            name: firstValue(searchParams?.name, searchParams?.nombre, searchParams?.clientName),
+            phone: firstValue(searchParams?.phone, searchParams?.whatsapp, searchParams?.telefono, searchParams?.tel, searchParams?.clientPhone),
+            email: firstValue(searchParams?.email, searchParams?.clientEmail),
           }}
         />
       </div>
