@@ -49,6 +49,7 @@ export default function HeroMobile() {
         className="object-cover"
         sizes="100vw"
         priority
+        quality={95}
       />
       <div
         className="absolute inset-0"

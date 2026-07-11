@@ -13,6 +13,7 @@ export default function HeroVideoDesktop() {
         alt=""
         fill
         priority
+        quality={95}
         sizes="100vw"
         className="absolute inset-0 w-full h-full object-cover"
       />
