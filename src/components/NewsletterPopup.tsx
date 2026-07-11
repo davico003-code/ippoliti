@@ -123,14 +123,14 @@ export default function NewsletterPopup() {
           animation: si-newsletter-in .45s cubic-bezier(.22,1,.36,1);
         }
         .si-newsletter-art {
-          height: min(492px, calc(82dvh - 166px));
-          min-height: 328px;
+          height: min(424px, calc(82dvh - 166px));
+          min-height: 316px;
         }
         .si-newsletter-body {
           padding: 14px;
         }
         .si-newsletter-ia-note {
-          display: none;
+          display: flex;
         }
         @media (max-width: 640px) {
           .si-newsletter-popup {
@@ -148,9 +148,6 @@ export default function NewsletterPopup() {
           }
           .si-newsletter-body {
             padding: 12px;
-          }
-          .si-newsletter-ia-note {
-            display: flex;
           }
           .si-newsletter-body form {
             gap: 8px;
