@@ -5,10 +5,11 @@
 // comercial (vendedor motivado / permuta / negociable / bajó el precio).
 //
 // Desktop: card compacta abajo a la derecha, arriba de la burbuja de WhatsApp.
-// Mobile: mini-barra discreta abajo, una línea, fácil de cerrar.
+// Mobile: "smart peek" lateral que no pisa mapa, compartir ni acciones fijas.
 // Cerrable → no reaparece por 3 días (localStorage).
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
@@ -51,13 +52,9 @@ export default function OportunidadesPopup() {
   const pathname = usePathname()
   const [items, setItems] = useState<Item[]>([])
   const [visible, setVisible] = useState(false)
+  const [mobileExpanded, setMobileExpanded] = useState(false)
   const [idx, setIdx] = useState(0)
   const timerRef = useRef<number | null>(null)
-  // Swipe lateral en mobile para descartar: seguimos el dedo y si pasa el
-  // umbral, se cierra; si no, vuelve con transición.
-  const [dragX, setDragX] = useState(0)
-  const [dragging, setDragging] = useState(false)
-  const touchStartX = useRef<number | null>(null)
 
   // Refs espejo para leer el estado actual dentro de listeners (visibility/focus).
   const itemsRef = useRef<Item[]>([])
@@ -112,7 +109,8 @@ export default function OportunidadesPopup() {
       window.setTimeout(() => {
         if (!alive) return
         const isMobile = window.matchMedia('(max-width: 640px)').matches
-        if (!isMobile || window.scrollY > 260) {
+        const isPropiedades = pathname === '/propiedades' || pathname?.startsWith('/propiedades/')
+        if (!isMobile || isPropiedades || window.scrollY > 260) {
           setVisible(true)
           return
         }
@@ -188,9 +186,11 @@ export default function OportunidadesPopup() {
   const it = items[idx % items.length]
   const meta = HOOK_META[it.hook] ?? HOOK_META.negociable
   const esBaja = it.hook === 'bajo-precio' && it.precioAnterior
+  const compactMobile = pathname === '/propiedades' || pathname?.startsWith('/propiedades/')
 
   const dismiss = () => {
     setVisible(false)
+    setMobileExpanded(false)
     try { window.localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch {}
   }
 
@@ -198,21 +198,6 @@ export default function OportunidadesPopup() {
     setIdx(i)
     if (timerRef.current) window.clearInterval(timerRef.current)
     timerRef.current = window.setInterval(() => setIdx((x) => (x + 1) % items.length), ROTATE_MS)
-  }
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-    setDragging(true)
-  }
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return
-    setDragX(e.touches[0].clientX - touchStartX.current)
-  }
-  const onTouchEnd = () => {
-    setDragging(false)
-    touchStartX.current = null
-    if (Math.abs(dragX) > 70) dismiss()
-    else setDragX(0)
   }
 
   const precioNode = esBaja ? (
@@ -234,11 +219,14 @@ export default function OportunidadesPopup() {
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes si-oport-in { from { opacity: 0; transform: translateY(18px) scale(.97) } to { opacity: 1; transform: none } }
         @keyframes si-oport-swap { from { opacity: 0; transform: translateX(10px) } to { opacity: 1; transform: none } }
+        @keyframes si-oport-peek { 0% { transform: translateX(-12px); opacity: 0 } 100% { transform: translateX(0); opacity: 1 } }
+        @keyframes si-oport-sheet { from { opacity: 0; transform: translateY(12px) scale(.98) } to { opacity: 1; transform: none } }
         .si-oport-desktop { display: block; }
-        .si-oport-mobile { display: none; }
+        .si-oport-peek, .si-oport-sheet { display: none; }
         @media (max-width: 640px) {
           .si-oport-desktop { display: none; }
-          .si-oport-mobile { display: block; }
+          .si-oport-peek { display: inline-flex; }
+          .si-oport-sheet { display: block; }
         }
       ` }} />
 
@@ -263,8 +251,7 @@ export default function OportunidadesPopup() {
         <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
           {it.foto && (
             <div style={{ position: 'relative', height: 118, background: '#f2f2f2' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={it.foto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
+              <Image src={it.foto} alt="" fill sizes="316px" style={{ objectFit: 'cover', display: 'block' }} />
               <span style={{ position: 'absolute', left: 10, bottom: 10, fontFamily: POPPINS, fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: 'rgba(255,255,255,.95)', borderRadius: 999, padding: '4px 10px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
                 {meta.badge}
               </span>
@@ -293,53 +280,120 @@ export default function OportunidadesPopup() {
         )}
       </aside>
 
-      {/* ── Mobile: barra discreta, pegada abajo, swipe lateral para cerrar ── */}
-      <aside
-        className="si-oport-mobile"
-        aria-label="Oportunidades"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        style={{
-          position: 'fixed', left: 8, right: 8, zIndex: 45,
-          bottom: 'max(8px, env(safe-area-inset-bottom))',
-          background: '#fff', borderRadius: 14, border: '1px solid #ECECEE',
-          boxShadow: '0 10px 30px rgba(9, 30, 20, 0.15)',
-          animation: dragX === 0 ? 'si-oport-in .45s cubic-bezier(.22,1,.36,1)' : undefined,
-          transform: `translateX(${dragX}px)`,
-          opacity: Math.max(0.25, 1 - Math.abs(dragX) / 220),
-          transition: dragging ? 'none' : 'transform .25s ease, opacity .25s ease',
-          touchAction: 'pan-y',
-        }}
-      >
-        <div key={it.propertyId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', animation: 'si-oport-swap .35s ease' }}>
-          <Link href={it.href} onClick={dismiss} style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, textDecoration: 'none' }}>
-            {it.foto ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={it.foto} alt="" width={50} height={50} loading="lazy" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 10, flexShrink: 0, background: '#f2f2f2' }} />
-            ) : (
-              <span style={{ width: 50, height: 50, borderRadius: 10, background: '#EEF2F0', flexShrink: 0 }} />
-            )}
-            <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontFamily: POPPINS, fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
-                {meta.badge}{esBaja && typeof it.pctBaja === 'number' ? ` · −${String(it.pctBaja).replace('.', ',')}%` : ''}
+      {/* ── Mobile: acceso lateral + ficha bajo demanda, sin tapar mapa/share ── */}
+      {!mobileExpanded && (
+        <button
+          type="button"
+          className="si-oport-peek"
+          aria-label="Ver oportunidad destacada"
+          onClick={() => setMobileExpanded(true)}
+          style={{
+            position: 'fixed',
+            left: 10,
+            top: compactMobile ? '44%' : '52%',
+            zIndex: 44,
+            width: compactMobile ? 46 : 134,
+            height: 46,
+            borderRadius: 999,
+            border: '1px solid rgba(26,92,56,.16)',
+            background: '#FFFFFF',
+            color: GREEN,
+            boxShadow: '0 12px 30px rgba(9, 30, 20, 0.16)',
+            padding: compactMobile ? 0 : '5px 10px 5px 5px',
+            cursor: 'pointer',
+            animation: 'si-oport-peek .42s cubic-bezier(.22,1,.36,1)',
+            alignItems: 'center',
+            justifyContent: compactMobile ? 'center' : 'flex-start',
+            gap: 8,
+            touchAction: 'manipulation',
+          }}
+        >
+          {it.foto ? (
+            <span style={{ position: 'relative', width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, background: '#EEF2F0' }}>
+              <Image src={it.foto} alt="" fill sizes="34px" style={{ objectFit: 'cover' }} />
+            </span>
+          ) : (
+            <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#EEF2F0', flexShrink: 0 }} />
+          )}
+          {!compactMobile && (
+            <span style={{ display: 'flex', minWidth: 0, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.05 }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 9.5, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
+                Oportunidad
               </span>
-              <span style={{ fontFamily: RALEWAY, fontSize: 12, fontWeight: 700, color: '#1c1c1e', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: RALEWAY, fontSize: 12.5, fontWeight: 800, color: '#1C1C1E', whiteSpace: 'nowrap' }}>
+                Ver ahora
+              </span>
+            </span>
+          )}
+        </button>
+      )}
+
+      {mobileExpanded && (
+        <aside
+          className="si-oport-sheet"
+          aria-label="Oportunidad destacada"
+          style={{
+            position: 'fixed',
+            left: 10,
+            right: 10,
+            zIndex: 46,
+            bottom: compactMobile
+              ? 'calc(env(safe-area-inset-bottom, 0px) + 86px)'
+              : 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
+            background: '#fff',
+            borderRadius: 18,
+            border: '1px solid rgba(26,92,56,.12)',
+            boxShadow: '0 18px 44px rgba(9, 30, 20, 0.18)',
+            overflow: 'hidden',
+            animation: 'si-oport-sheet .3s cubic-bezier(.22,1,.36,1)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setMobileExpanded(false)}
+            aria-label="Minimizar oportunidad"
+            style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,.94)', border: '1px solid #ECECEE', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <X size={15} strokeWidth={2.2} />
+          </button>
+
+          <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0,1fr)', gap: 12, padding: 10, minHeight: 98, textDecoration: 'none', animation: 'si-oport-swap .28s ease' }}>
+            {it.foto ? (
+              <span style={{ position: 'relative', width: 96, height: 82, borderRadius: 12, overflow: 'hidden', background: '#EEF2F0' }}>
+                <Image src={it.foto} alt="" fill sizes="96px" style={{ objectFit: 'cover' }} />
+              </span>
+            ) : (
+              <span style={{ width: 96, height: 82, borderRadius: 12, background: '#EEF2F0' }} />
+            )}
+            <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, paddingRight: 30 }}>
+              <span style={{ alignSelf: 'flex-start', fontFamily: POPPINS, fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: meta.color, background: meta.bg, borderRadius: 999, padding: '3px 8px', whiteSpace: 'nowrap' }}>
+                {meta.badge}{esBaja && typeof it.pctBaja === 'number' ? ` · -${String(it.pctBaja).replace('.', ',')}%` : ''}
+              </span>
+              <span style={{ fontFamily: RALEWAY, fontSize: 13.5, fontWeight: 800, color: '#1C1C1E', lineHeight: 1.18, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                 {it.titulo}
               </span>
-              <span style={{ fontFamily: POPPINS, fontSize: 11.5, color: '#3a3a3a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {it.precio} · <span style={{ color: GREEN, fontWeight: 600 }}>{meta.cta} →</span>
+              <span style={{ fontFamily: POPPINS, fontSize: 12, color: '#3A3A3A', display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.precio}</span>
+                <b style={{ color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta}</b>
               </span>
             </span>
           </Link>
-          <button
-            type="button" onClick={dismiss} aria-label="Cerrar"
-            style={{ width: 32, height: 32, borderRadius: '50%', background: '#F6F6F7', border: 'none', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          >
-            <X size={16} strokeWidth={2.2} />
-          </button>
-        </div>
-      </aside>
+
+          {items.length > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '0 10px 10px' }}>
+              {items.map((x, i) => (
+                <button
+                  key={x.propertyId}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Oportunidad ${i + 1}`}
+                  style={{ width: i === idx % items.length ? 18 : 7, height: 7, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
+                />
+              ))}
+            </div>
+          )}
+        </aside>
+      )}
     </>
   )
 }
