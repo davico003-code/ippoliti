@@ -821,8 +821,10 @@ async function hiloGetProperties(params?: {
   typeId?: number;
   limit?: number;
   offset?: number;
+  fetchAll?: boolean;
 }): Promise<TokkoListResponse> {
-  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=1000`, {
+  const upstreamLimit = params?.fetchAll === false ? (params.limit ?? 50) : 1000;
+  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${upstreamLimit}`, {
     next: { revalidate: 3600, tags: ['tokko-properties'] },
   });
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
@@ -848,6 +850,7 @@ export async function getProperties(params?: {
   typeId?: number;
   limit?: number;
   offset?: number;
+  fetchAll?: boolean;
 }): Promise<TokkoListResponse> {
   if (isHiloSource()) return hiloGetProperties(params);
 
@@ -901,7 +904,8 @@ export async function getProperties(params?: {
   const fetchedCount = firstPage.objects.length;
 
   // TODO: add integration test — getProperties() sin params debe traer total_count completo (>100)
-  if (fetchedCount < totalCount) {
+  const shouldFetchAll = params?.fetchAll !== false;
+  if (shouldFetchAll && fetchedCount < totalCount) {
     const remainingPages = Math.ceil((totalCount - fetchedCount) / initialLimit);
     const promises = [];
 
@@ -963,8 +967,24 @@ export async function getPropertyById(id: number): Promise<TokkoProperty> {
 }
 
 export async function getFeaturedProperties(limit = 6): Promise<TokkoProperty[]> {
-  const data = await getProperties({ limit: 100 });
-  const starred = data.objects.filter((p) => p.is_starred_on_web);
-  const source = starred.length > 0 ? starred : data.objects;
+  const first = await getProperties({ limit: 50, offset: 0, fetchAll: false });
+  let objects = first.objects ?? [];
+  let starred = objects.filter((p) => p.is_starred_on_web);
+
+  // Si la primera página no alcanza, miramos una segunda página cacheable.
+  // Evita traer todo el inventario para pintar 6-8 cards en home.
+  if (starred.length < limit && (first.meta?.total_count ?? 0) > objects.length) {
+    const second = await getProperties({ limit: 50, offset: 50, fetchAll: false });
+    objects = [...objects, ...(second.objects ?? [])];
+    const seen = new Set<number>();
+    objects = objects.filter((p) => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+    starred = objects.filter((p) => p.is_starred_on_web);
+  }
+
+  const source = starred.length > 0 ? starred : objects;
   return source.slice(0, limit);
 }
