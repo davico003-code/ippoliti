@@ -35,7 +35,7 @@ async function geocodificarExternas(session: { properties?: SelProp[] } | null):
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const session = await getSeleccion(params.token)
   return {
-    title: session ? `Selección para ${session.clientName} · SI Inmobiliaria` : 'Selección expirada · SI Inmobiliaria',
+    title: session ? `Selección para ${session.clientName} · SI INMOBILIARIA` : 'Selección expirada · SI INMOBILIARIA',
   }
 }
 

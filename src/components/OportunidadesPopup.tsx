@@ -105,12 +105,32 @@ export default function OportunidadesPopup() {
     if (dismissActivo()) return
 
     let alive = true
+    let removeMobileScroll: (() => void) | null = null
     cargarItems().then((list) => {
       if (!alive || !list.length) return
       setItems(list)
-      window.setTimeout(() => { if (alive) setVisible(true) }, SHOW_DELAY_MS)
+      window.setTimeout(() => {
+        if (!alive) return
+        const isMobile = window.matchMedia('(max-width: 640px)').matches
+        if (!isMobile || window.scrollY > 260) {
+          setVisible(true)
+          return
+        }
+
+        const revealOnScroll = () => {
+          if (!alive || window.scrollY <= 260) return
+          window.removeEventListener('scroll', revealOnScroll)
+          removeMobileScroll = null
+          setVisible(true)
+        }
+        window.addEventListener('scroll', revealOnScroll, { passive: true })
+        removeMobileScroll = () => window.removeEventListener('scroll', revealOnScroll)
+      }, SHOW_DELAY_MS)
     })
-    return () => { alive = false }
+    return () => {
+      alive = false
+      removeMobileScroll?.()
+    }
     // Solo al montar; si navega con el popup visible, persiste.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -292,29 +312,29 @@ export default function OportunidadesPopup() {
           touchAction: 'pan-y',
         }}
       >
-        <div key={it.propertyId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', animation: 'si-oport-swap .35s ease' }}>
-          <Link href={it.href} onClick={dismiss} style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0, textDecoration: 'none' }}>
+        <div key={it.propertyId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', animation: 'si-oport-swap .35s ease' }}>
+          <Link href={it.href} onClick={dismiss} style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, textDecoration: 'none' }}>
             {it.foto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={it.foto} alt="" width={58} height={58} loading="lazy" style={{ width: 58, height: 58, objectFit: 'cover', borderRadius: 10, flexShrink: 0, background: '#f2f2f2' }} />
+              <img src={it.foto} alt="" width={50} height={50} loading="lazy" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 10, flexShrink: 0, background: '#f2f2f2' }} />
             ) : (
-              <span style={{ width: 58, height: 58, borderRadius: 10, background: '#EEF2F0', flexShrink: 0 }} />
+              <span style={{ width: 50, height: 50, borderRadius: 10, background: '#EEF2F0', flexShrink: 0 }} />
             )}
             <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
                 {meta.badge}{esBaja && typeof it.pctBaja === 'number' ? ` · −${String(it.pctBaja).replace('.', ',')}%` : ''}
               </span>
-              <span style={{ fontFamily: RALEWAY, fontSize: 12.5, fontWeight: 700, color: '#1c1c1e', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: RALEWAY, fontSize: 12, fontWeight: 700, color: '#1c1c1e', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {it.titulo}
               </span>
-              <span style={{ fontFamily: POPPINS, fontSize: 12, color: '#3a3a3a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 11.5, color: '#3a3a3a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {it.precio} · <span style={{ color: GREEN, fontWeight: 600 }}>{meta.cta} →</span>
               </span>
             </span>
           </Link>
           <button
             type="button" onClick={dismiss} aria-label="Cerrar"
-            style={{ width: 36, height: 36, borderRadius: '50%', background: '#F6F6F7', border: 'none', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            style={{ width: 32, height: 32, borderRadius: '50%', background: '#F6F6F7', border: 'none', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
           >
             <X size={16} strokeWidth={2.2} />
           </button>

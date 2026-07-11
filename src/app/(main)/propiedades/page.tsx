@@ -9,11 +9,11 @@ import PropiedadesView from '@/components/PropiedadesView'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Propiedades en venta y alquiler en Funes, Roldán y Rosario | SI Inmobiliaria',
+  title: 'Propiedades en venta y alquiler en Funes, Roldán y Rosario | SI INMOBILIARIA',
   description: 'Explorá todas nuestras propiedades en venta y alquiler en Roldán, Rosario y Funes. Casas, departamentos, terrenos y emprendimientos.',
   alternates: { canonical: 'https://siinmobiliaria.com/propiedades' },
   openGraph: {
-    title: 'Propiedades en venta y alquiler | SI Inmobiliaria',
+    title: 'Propiedades en venta y alquiler | SI INMOBILIARIA',
     description: 'Casas, departamentos, terrenos y emprendimientos en Funes, Roldán y Rosario.',
     url: 'https://siinmobiliaria.com/propiedades',
     images: ['/og-image.jpg'],

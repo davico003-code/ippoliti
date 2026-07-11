@@ -48,7 +48,6 @@ import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } fr
 // estático de PropiedadesMap acá anularía el dynamic() de abajo y metería
 // leaflet en el First Load JS de /propiedades.
 import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
-import { isSpecificSearch } from '@/lib/search'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
   ssr: false,
@@ -672,16 +671,17 @@ export default function PropiedadesView({
   const [flyToCenter, setFlyToCenter]   = useState<FlyToTarget | null>(null)
   // Vista mobile (toggle Lista↔Mapa). En desktop ambos paneles son visibles
   // siempre, así que esta variable solo afecta a <md.
-  // Default: 'map'. Si el usuario togglea manualmente, su preferencia queda
+  // Default: 'list'. En teléfono la persona necesita ver fotos/precios rápido;
+  // el mapa queda a un toque sin descargar Leaflet como primera experiencia.
+  // Si el usuario togglea manualmente, su preferencia queda
   // en sessionStorage `si_view_preference` y gana sobre el default automático
   // de búsquedas específicas.
-  // IMPORTANTE: el valor inicial debe ser server-estable ('map' en SSR) para no
-  // generar hydration mismatch. La vista "lista" para búsquedas específicas /
-  // links compartidos la aplica el effect post-montaje (más abajo), ya hidratado.
+  // IMPORTANTE: el valor inicial debe ser server-estable ('list' en SSR) para
+  // no generar hydration mismatch.
   const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
-    if (typeof window === 'undefined') return 'map'
+    if (typeof window === 'undefined') return 'list'
     const pref = safeSessionGet('si_view_preference')
-    return pref === 'list' || pref === 'map' ? pref : 'map'
+    return pref === 'list' || pref === 'map' ? pref : 'list'
   })
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
@@ -987,27 +987,6 @@ export default function PropiedadesView({
     return list
   }, [propertiesForMap, mapBounds])
 
-  // Default automático de vista mobile basado en isSpecificSearch.
-  // Solo aplica si el usuario aún NO togglea manualmente en la sesión
-  // (sessionStorage 'si_view_preference' ausente).
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const pref = safeSessionGet('si_view_preference')
-    if (pref === 'list' || pref === 'map') return
-    // Cualquier búsqueda específica → lista en mobile. "Específica" = hay texto,
-    // tipo, ubicación, dormitorios o precio (no solo la operación, que es amplia).
-    const specific =
-      !!filters.search.trim() ||
-      (!!filters.type && filters.type !== 'todos') ||
-      filters.location !== 'todos' ||
-      filters.beds !== 'todos' ||
-      !!filters.priceMin ||
-      !!filters.priceMax ||
-      isSpecificSearch(filters.search, visibleProperties.length)
-    const auto: 'list' | 'map' = specific ? 'list' : 'map'
-    setMobileView(prev => (prev === auto ? prev : auto))
-  }, [filters.search, filters.type, filters.location, filters.beds, filters.priceMin, filters.priceMax, visibleProperties.length])
-
   // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
   // que el filtro de radio sea el único activo (sino se acumulan).
   const handleNearbyOrigin = useCallback((lat: number, lng: number) => {
@@ -1059,6 +1038,7 @@ export default function PropiedadesView({
   // Reactivo para gate del DesktopGrid lazy. En SSR y primer paint client
   // devuelve false, evitando que mobile descargue/monte el chunk del grid.
   const isDesktopViewport = useMediaQuery('(min-width: 768px)')
+  const shouldRenderMap = isDesktopViewport || mobileView === 'map'
   const [panelPropertyId, setPanelPropertyId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -1603,7 +1583,7 @@ export default function PropiedadesView({
                 </div>
                 {/* Mobile list */}
                 <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">
-                  {visibleProperties.map(p => (
+                  {visibleProperties.map((p, i) => (
                     <div key={p.id} data-property-id={p.id}>
                       {/* Mobile: el Link navega solo, sin onClick. El prefetch
                           ocurre cuando la card entra al viewport. */}
@@ -1611,6 +1591,7 @@ export default function PropiedadesView({
                         property={p}
                         isSelected={p.id === selectedId}
                         variant="mobile"
+                        priority={i === 0}
                         distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
                       />
                     </div>
@@ -1623,29 +1604,31 @@ export default function PropiedadesView({
 
         {/* Right: Map */}
         <div className={`relative w-full md:w-[52%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
-          <PropiedadesMap
-            properties={propertiesForMap}
-            selectedId={selectedId}
-            hoveredId={hoveredId}
-            onSelect={handleMapSelect}
-            onDeselect={handleMapDeselect}
-            onOpenDetail={(id) => setPanelPropertyId(id)}
-            flyToCenter={flyToCenter}
-            onBoundsSearch={(bounds) => {
-              setRefreshing(true)
-              setMapBounds({
-                south: bounds.getSouth(),
-                north: bounds.getNorth(),
-                west: bounds.getWest(),
-                east: bounds.getEast(),
-              })
-              setTimeout(() => setRefreshing(false), 500)
-            }}
-            activeZona={activeZona}
-            onMapMove={closeBottomSheet}
-            onNearbyOrigin={handleNearbyOrigin}
-            nearbyActive={nearbyOrigin != null}
-          />
+          {shouldRenderMap && (
+            <PropiedadesMap
+              properties={propertiesForMap}
+              selectedId={selectedId}
+              hoveredId={hoveredId}
+              onSelect={handleMapSelect}
+              onDeselect={handleMapDeselect}
+              onOpenDetail={(id) => setPanelPropertyId(id)}
+              flyToCenter={flyToCenter}
+              onBoundsSearch={(bounds) => {
+                setRefreshing(true)
+                setMapBounds({
+                  south: bounds.getSouth(),
+                  north: bounds.getNorth(),
+                  west: bounds.getWest(),
+                  east: bounds.getEast(),
+                })
+                setTimeout(() => setRefreshing(false), 500)
+              }}
+              activeZona={activeZona}
+              onMapMove={closeBottomSheet}
+              onNearbyOrigin={handleNearbyOrigin}
+              nearbyActive={nearbyOrigin != null}
+            />
+          )}
           {/* Chip "modo cercanía" — cerrable, sobre el mapa, no tapa el contador. */}
           {nearbyOrigin && (
             <div
