@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { CheckCircle2, X } from 'lucide-react'
+import { CheckCircle2, Sparkles, X } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 
 const GREEN = '#1A5C38'
@@ -129,6 +129,9 @@ export default function NewsletterPopup() {
         .si-newsletter-body {
           padding: 14px;
         }
+        .si-newsletter-ia-note {
+          display: none;
+        }
         @media (max-width: 640px) {
           .si-newsletter-popup {
             left: 50%;
@@ -145,6 +148,9 @@ export default function NewsletterPopup() {
           }
           .si-newsletter-body {
             padding: 12px;
+          }
+          .si-newsletter-ia-note {
+            display: flex;
           }
           .si-newsletter-body form {
             gap: 8px;
@@ -195,6 +201,10 @@ export default function NewsletterPopup() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+              <p className="si-newsletter-ia-note items-start gap-2 rounded-xl border border-[#DCEBE2] bg-[#F4FAF6] px-3 py-2 font-poppins text-[11.5px] font-medium leading-snug text-[#315241]">
+                <Sparkles size={14} strokeWidth={2.2} className="mt-0.5 shrink-0 text-[#1A5C38]" />
+                <span><b className="text-[#1A5C38]">IA + revisión humana:</b> filtramos precio, m² y zona para mandarte oportunidades reales.</span>
+              </p>
               <input
                 type="text"
                 name="nombre"
