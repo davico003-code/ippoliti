@@ -72,10 +72,10 @@ export default function Footer() {
             <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
               <Image
                 src="/LOGO_HORIZONTAL.png"
-                alt="SI Inmobiliaria"
-                width={164}
-                height={32}
-                style={{ height: 30, width: 'auto', objectFit: 'contain' }}
+                alt="SI INMOBILIARIA"
+                width={205}
+                height={30}
+                className="object-contain"
               />
             </Link>
             <p style={{ fontFamily: RALEWAY, fontSize: 15, color: MUTED, maxWidth: '34ch', margin: '18px 0 0', lineHeight: 1.5, fontWeight: 500 }}>

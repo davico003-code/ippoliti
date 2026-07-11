@@ -12,6 +12,10 @@
 import { getAudioUrlsBulk } from './audio'
 import type { TokkoProperty } from './tokko'
 
+function isStaticBuild() {
+  return process.env.NEXT_PHASE === 'phase-production-build'
+}
+
 export interface PropertyCardProjection {
   id: number
   publication_title: string | null
@@ -151,6 +155,7 @@ export async function enrichCardsWithAudio<T extends { id: number; audioUrl: str
   cards: T[],
 ): Promise<T[]> {
   if (cards.length === 0) return cards
+  if (isStaticBuild()) return cards
   const ids = cards.map(c => c.id)
   const urls = await getAudioUrlsBulk(ids)
   for (const card of cards) {
