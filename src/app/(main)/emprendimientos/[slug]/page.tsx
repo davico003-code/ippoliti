@@ -58,17 +58,39 @@ export async function generateStaticParams() {
   }
 }
 
+// Overrides de SEO por emprendimiento (keyed por ID de Tokko). Permite title/meta
+// custom sin tocar dev.name — que además arma el slug, así que cambiarlo rompería
+// la URL ya indexada. Solo afecta el <title> y la meta description; el H1 y el
+// contenido siguen saliendo de los datos del CRM.
+const DEV_SEO: Record<number, { title: string; description: string }> = {
+  // Dock Garden — Aldea Fisherton (Fisherton, Rosario)
+  67173: {
+    title: 'Dock Garden Aldea Fisherton | Condominio y Paseo Comercial en Rosario',
+    description:
+      'Dock Garden Aldea Fisherton: condominio residencial de baja altura con paseo comercial en Fisherton, Rosario. Departamentos en venta con financiación.',
+  },
+  // Distrito Roldán (barrio abierto sobre Ruta 9)
+  67178: {
+    title: 'Distrito Roldán | Lotes Residenciales y Comerciales en Roldán, Ruta 9',
+    description:
+      'Distrito Roldán: barrio abierto con 180 lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario. Financiación 30% + 24 cuotas fijas en dólares.',
+  },
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const id = getDevIdFromSlug(params.slug)
     const dev = await getDevelopmentById(id)
-    const desc = dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title
+    const override = DEV_SEO[dev.id]
+    const desc =
+      override?.description ??
+      (dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title)
     return {
-      title: `${dev.name} | Emprendimientos SI Inmobiliaria`,
+      title: override?.title ?? `${dev.name} | Emprendimientos SI Inmobiliaria`,
       description: desc,
       alternates: { canonical: `https://siinmobiliaria.com/emprendimientos/${params.slug}` },
       openGraph: {
-        title: `${dev.name} | SI Inmobiliaria`,
+        title: override?.title ?? `${dev.name} | SI Inmobiliaria`,
         description: desc,
         images: getDevMainPhoto(dev) ? [{ url: getDevMainPhoto(dev)! }] : [],
       },
