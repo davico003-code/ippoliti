@@ -20,7 +20,7 @@ import { esEdicionMundial } from "@/lib/mundial";
 import ConditionalChrome from "@/components/ConditionalChrome";
 import FooterWrapper from "@/components/FooterWrapper";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import OportunidadesPopup from "@/components/OportunidadesPopup";
+import NewsletterPopup from "@/components/NewsletterPopup";
 import MetaPixel from "@/components/MetaPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import TawkTo from "@/components/TawkTo";
@@ -231,7 +231,7 @@ export default function RootLayout({
           <ConditionalChrome>{children}</ConditionalChrome>
           <FooterWrapper />
           <FloatingWhatsApp />
-          <OportunidadesPopup />
+          <NewsletterPopup />
           <PopupManager />
           <MetaPixel />
           <GoogleAnalytics />

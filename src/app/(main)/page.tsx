@@ -12,7 +12,6 @@ import { KickerMundial, SeparadorMundial } from '@/components/mundial/MundialSec
 import { esDiaDePartido } from '@/lib/mundial'
 import ProyectosCarousel from '@/components/home/ProyectosCarousel'
 import GuiaSection from '@/components/home/GuiaSection'
-import NewsletterBanner from '@/components/home/NewsletterBanner'
 import ConfianzaSection from '@/components/home/ConfianzaSection'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
@@ -240,7 +239,6 @@ export default async function Home() {
         <ProyectosCarousel />
         <GuiaSection />
         <ConfianzaSection />
-        <NewsletterBanner />
         {/* Footer: lo provee FooterWrapper (footer blanco global, responsive). */}
       </div>
 
@@ -266,7 +264,6 @@ export default async function Home() {
         <EmprendimientosHome />
         <GuiaDesktop />
         <ConfianzaDesktop />
-        <NewsletterBanner />
       </div>
     </>
   )
