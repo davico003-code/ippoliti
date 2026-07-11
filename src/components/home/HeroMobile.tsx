@@ -43,8 +43,8 @@ export default function HeroMobile() {
     <section className="relative flex flex-col overflow-hidden" style={{ height: 290 }}>
       {/* Background image + overlay */}
       <Image
-        src="/hero-home.jpg"
-        alt="Zona oeste del Gran Rosario — Funes y Roldán"
+        src="/images/hero/portada-arquitectura-terraza.webp"
+        alt="Terraza moderna con vista al lago en Funes y Roldán"
         fill
         className="object-cover"
         sizes="100vw"

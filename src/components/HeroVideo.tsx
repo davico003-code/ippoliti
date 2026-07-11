@@ -7,13 +7,13 @@ export default function HeroVideo() {
   return (
     <section
       className="hero-video-section relative w-full bg-cover bg-center h-[547px] md:-mt-[77px] md:pt-[77px]"
-      style={{ backgroundImage: "url('/hero-home.jpg')" }}
+      style={{ backgroundImage: "url('/images/hero/portada-arquitectura-terraza.webp')" }}
     >
       <HeroVideoDesktop />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/10 to-black/25" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/30 to-black/45" />
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-[110px] bg-gradient-to-b from-black/55 to-transparent pointer-events-none"
+        className="absolute inset-x-0 top-0 h-[120px] bg-gradient-to-b from-black/60 to-transparent pointer-events-none"
       />
 
       <div className="relative z-10 h-full flex items-start justify-center px-4 pt-[140px]">
