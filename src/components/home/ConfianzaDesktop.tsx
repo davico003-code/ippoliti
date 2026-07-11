@@ -85,35 +85,43 @@ export default function ConfianzaDesktop() {
         </div>
       </section>
 
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-5xl px-8 text-center">
-          <p className="font-poppins text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: GREEN }}>
-            Dos generaciones
-          </p>
-          <h2 className="font-poppins mt-3 text-[48px] font-black leading-[1.1] text-gray-900">
-            No vendemos casas.<br />
-            <span className="italic" style={{ color: GREEN }}>Acompañamos historias.</span>
-          </h2>
-          <p className="font-poppins mx-auto mt-6 max-w-[640px] text-[17px] leading-relaxed text-gray-600">
-            Empezamos en 1983 cuando Susana abrió la primera oficina en Roldán. Hoy somos un equipo
-            en tres sedes, pero seguimos pensándonos como un estudio: pocos clientes a la vez,
-            mucha cabeza puesta en cada uno.
-          </p>
-        </div>
-      </section>
+      <section className="bg-white py-14">
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_minmax(390px,0.72fr)] items-center gap-14 px-8">
+          <div className="text-left">
+            <p className="font-poppins text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: GREEN }}>
+              Dos generaciones
+            </p>
+            <h2 className="font-poppins mt-3 text-[44px] font-black leading-[1.06] text-gray-900">
+              No vendemos casas.<br />
+              <span className="italic" style={{ color: GREEN }}>Acompañamos historias.</span>
+            </h2>
+            <p className="font-poppins mt-5 max-w-[660px] text-[16px] leading-relaxed text-gray-600">
+              Empezamos en 1983 cuando Susana abrió la primera oficina en Roldán. Hoy somos un equipo
+              en tres sedes, pero seguimos pensándonos como un estudio: pocos clientes a la vez,
+              mucha cabeza puesta en cada uno.
+            </p>
+          </div>
 
-      <section className="bg-white pb-16">
-        <div className="mx-auto max-w-4xl px-8">
-          <div className="flex items-center justify-center gap-8 text-center lg:gap-12">
-            {STATS.map((s, i) => (
-              <div key={s.label} className="flex items-center gap-8 lg:gap-12">
-                {i > 0 && <div className="h-14 w-px bg-gray-200" />}
-                <div>
-                  <p className="font-poppins text-[38px] font-bold leading-none" style={{ color: GREEN, fontVariantNumeric: 'tabular-nums' }}>{s.num}</p>
-                  <p className="font-poppins mt-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{s.label}</p>
+          <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-5 shadow-[0_18px_45px_rgba(17,24,39,0.06)]">
+            <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
+              {STATS.map((s, i) => (
+                <div
+                  key={s.label}
+                  className={[
+                    'px-6 py-5 text-left',
+                    i % 2 === 0 ? 'border-r border-gray-200' : '',
+                    i < 2 ? 'border-b border-gray-200' : '',
+                  ].join(' ')}
+                >
+                  <p className="font-poppins text-[34px] font-bold leading-none" style={{ color: GREEN, fontVariantNumeric: 'tabular-nums' }}>
+                    {s.num}
+                  </p>
+                  <p className="font-poppins mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-500">
+                    {s.label}
+                  </p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
