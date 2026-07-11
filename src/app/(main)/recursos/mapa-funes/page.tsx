@@ -1,10 +1,18 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import RecursoHero from '@/components/recursos/RecursoHero'
 import RecursosCTA from '@/components/recursos/RecursosCTA'
-import MapaFunesInteractivo from '@/components/recursos/MapaFunesInteractivo'
+
+const MapaFunesInteractivo = dynamic(
+  () => import('@/components/recursos/MapaFunesInteractivo'),
+  {
+    ssr: false,
+    loading: () => <MapaFunesSkeleton />,
+  },
+)
 
 export const metadata: Metadata = {
-  title: 'Mapa de zonificación de Funes | SI Inmobiliaria',
+  title: 'Mapa de zonificación de Funes | SI INMOBILIARIA',
   description:
     'Mapa interactivo de zonificación de Funes: pasá por tu zona y mirá FOS, FOT, altura y cuánto podés construir, con calculadora según las medidas del lote. Gratis y al instante.',
   alternates: {
@@ -22,11 +30,27 @@ export const metadata: Metadata = {
     description:
       'Pasá por tu zona y mirá FOS, FOT, altura y cuánto podés construir, con calculadora según las medidas del lote.',
     url: 'https://siinmobiliaria.com/recursos/mapa-funes',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
     locale: 'es_AR',
     type: 'website',
   },
+}
+
+function MapaFunesSkeleton() {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="h-9 w-28 animate-pulse rounded-lg bg-gray-100" />
+        <div className="h-9 w-24 animate-pulse rounded-lg bg-gray-100" />
+        <div className="h-9 w-32 animate-pulse rounded-lg bg-gray-100" />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-[1fr_392px]">
+        <div className="aspect-[1044/566] min-h-[360px] animate-pulse rounded-2xl bg-gray-100" />
+        <div className="min-h-[360px] animate-pulse rounded-2xl bg-gray-100" />
+      </div>
+    </div>
+  )
 }
 
 const breadcrumbJsonLd = {

@@ -156,8 +156,8 @@ export default function Navbar() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/logo-blanco.png"
-                  alt="SI Inmobiliaria"
-                  width={192}
+                  alt="SI INMOBILIARIA"
+                  width={160}
                   height={28}
                   className="object-contain"
                   style={{ height: 28, width: 'auto' }}
@@ -169,11 +169,10 @@ export default function Navbar() {
             ) : (
               <Image
                 src="/LOGO_HORIZONTAL.png"
-                alt="SI Inmobiliaria"
-                width={192}
+                alt="SI INMOBILIARIA"
+                width={191}
                 height={28}
                 className="object-contain"
-                style={{ height: 28, width: 'auto' }}
                 priority
                 quality={90}
               />
@@ -210,11 +209,10 @@ export default function Navbar() {
           <Link href="/" className="absolute left-1/2 top-1/2" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
             <Image
               src="/LOGO_HORIZONTAL.png"
-              alt="SI Inmobiliaria"
-              width={205}
+              alt="SI INMOBILIARIA"
+              width={164}
               height={24}
               className="object-contain"
-              style={{ height: 24, width: 'auto' }}
               priority
               quality={90}
             />
@@ -239,11 +237,10 @@ export default function Navbar() {
               <Link href="/" onClick={() => setIsOpen(false)} style={{ textDecoration: 'none' }}>
                 <Image
                   src="/LOGO_HORIZONTAL.png"
-                  alt="SI Inmobiliaria"
+                  alt="SI INMOBILIARIA"
                   width={164}
                   height={24}
                   className="object-contain"
-                  style={{ height: 24, width: 'auto' }}
                   quality={90}
                 />
               </Link>

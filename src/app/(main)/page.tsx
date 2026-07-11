@@ -189,12 +189,12 @@ async function FeaturedPropertiesSection() {
 // ─── Metadata ────────────────────────────────────────────────────────────────
 
 export const metadata = {
-  title: 'SI Inmobiliaria · Propiedades en Funes, Roldán y Rosario',
+  title: 'SI INMOBILIARIA · Propiedades en Funes, Roldán y Rosario',
   description:
     'Inmobiliaria familiar fundada en 1983. Casas, departamentos, terrenos y emprendimientos en Funes, Roldán y Rosario. Tasaciones profesionales en 24 horas.',
   alternates: { canonical: 'https://siinmobiliaria.com' },
   openGraph: {
-    title: 'SI Inmobiliaria · Propiedades en Funes, Roldán y Rosario',
+    title: 'SI INMOBILIARIA · Propiedades en Funes, Roldán y Rosario',
     description:
       'Inmobiliaria familiar desde 1983. Casas, departamentos y terrenos en Funes, Roldán y Rosario.',
     url: 'https://siinmobiliaria.com',
@@ -205,14 +205,14 @@ export const metadata = {
 const homeJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'RealEstateAgent',
-  name: 'SI Inmobiliaria',
+  name: 'SI INMOBILIARIA',
   image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   url: 'https://siinmobiliaria.com',
   logo: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   telephone: '+5493412101694',
   foundingDate: '1983',
   founder: 'Susana Ippoliti',
-  description: 'Inmobiliaria familiar con más de 40 años de experiencia en Roldán, Funes y Rosario.',
+  description: 'SI INMOBILIARIA es una inmobiliaria familiar con más de 40 años de experiencia en Roldán, Funes y Rosario.',
   address: [
     { '@type': 'PostalAddress', streetAddress: 'Hipólito Yrigoyen 2643', addressLocality: 'Funes', addressRegion: 'Santa Fe', addressCountry: 'AR' },
     { '@type': 'PostalAddress', streetAddress: '1ro de Mayo 258', addressLocality: 'Roldán', addressRegion: 'Santa Fe', addressCountry: 'AR' },
