@@ -10,7 +10,7 @@ import {
   getRoofedArea,
   getLotSurface,
   isLand,
-  getProperties,
+  getPropertyCount,
   type TokkoProperty,
 } from '@/lib/tokko'
 
@@ -30,8 +30,7 @@ export default async function SeleccionCarousel() {
     // Tokko API no disponible — seguimos rendering la sección con el CTA.
   }
   try {
-    const allData = await getProperties({ limit: 1 })
-    totalCount = allData.meta?.total_count ?? 0
+    totalCount = await getPropertyCount()
   } catch {
     // ok — usamos fallback en el CTA
   }

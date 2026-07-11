@@ -782,6 +782,31 @@ function isHiloSource(): boolean {
 }
 const HILO_BASE = process.env.HILO_FEED_URL || 'https://meethilo.com';
 
+export async function getPropertyCount(): Promise<number> {
+  if (isHiloSource()) {
+    const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=1`, {
+      next: { revalidate: 3600, tags: ['tokko-properties'] },
+    });
+    if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
+    const data = (await res.json()) as TokkoListResponse;
+    return data.meta?.total_count ?? data.objects?.length ?? 0;
+  }
+
+  const url = new URL(`${BASE_URL}/property/`);
+  url.searchParams.set('key', getApiKey());
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('lang', 'es');
+  url.searchParams.set('limit', '1');
+  url.searchParams.set('offset', '0');
+
+  const res = await fetch(url.toString(), {
+    next: { revalidate: 3600, tags: ['tokko-properties'] },
+  });
+  if (!res.ok) throw new Error(`Tokko API error: ${res.status} ${res.statusText}`);
+  const data = (await res.json()) as TokkoListResponse;
+  return data.meta?.total_count ?? data.objects?.length ?? 0;
+}
+
 async function hiloGetPropertyById(id: number): Promise<TokkoProperty> {
   const res = await fetch(`${HILO_BASE}/api/public/propiedades/${id}`, {
     next: { revalidate: 21600, tags: ['tokko-properties', `tokko-property-${id}`] },
@@ -865,7 +890,10 @@ export async function getProperties(params?: {
     throw lastErr ?? new Error('Tokko API: unreachable');
   };
 
-  const initialLimit = params?.limit ?? 100;
+  // Next Data Cache rechaza items >2MB. Con limit=100 Tokko supera ese tamaño
+  // en varias cuentas; 50 mantiene cada página cacheable y evita cold renders
+  // lentos con warnings de "items over 2MB can not be cached".
+  const initialLimit = Math.min(params?.limit ?? 50, 50);
   const initialOffset = params?.offset ?? 0;
 
   const firstPage = await fetchPage(initialLimit, initialOffset);

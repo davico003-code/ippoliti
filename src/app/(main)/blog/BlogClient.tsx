@@ -168,26 +168,26 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
 
   return (
     <div className="min-h-screen bg-[#FAFBF7]">
-      <section className="border-b border-[#E8EEE7] bg-white px-4 pb-8 pt-28 md:pb-10 md:pt-36">
+      <section className="border-b border-[#E8EEE7] bg-white px-4 pb-5 pt-20 md:pb-10 md:pt-36">
         <div className="mx-auto max-w-6xl">
-          <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-end">
+          <div className="grid gap-5 md:gap-8 lg:grid-cols-[1fr_360px] lg:items-end">
             <div>
               <p
-                className="mb-4 text-[12px] font-bold uppercase tracking-[0.24em]"
+                className="mb-2 text-[11px] font-bold uppercase tracking-[0.22em] md:mb-4 md:text-[12px] md:tracking-[0.24em]"
                 style={{ color: GREEN }}
               >
                 SI INMOBILIARIA · Editorial
               </p>
-              <h1 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight text-gray-950 md:text-6xl">
+              <h1 className="max-w-3xl text-[42px] font-black leading-[1.02] tracking-tight text-gray-950 md:text-6xl">
                 Blog inmobiliario
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-relaxed text-gray-600 md:text-xl">
+              <p className="mt-3 max-w-2xl text-[17px] leading-relaxed text-gray-600 md:mt-5 md:text-xl">
                 Mercado, consejos y análisis para comprar, vender e invertir con más claridad
                 en Funes, Roldán y la región.
               </p>
             </div>
 
-            <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-[#DDE8DF] bg-[#F4F7F2]">
+            <div className="hidden grid-cols-3 overflow-hidden rounded-2xl border border-[#DDE8DF] bg-[#F4F7F2] sm:grid">
               <div className="border-r border-[#DDE8DF] p-4">
                 <span className="block font-poppins text-2xl font-black text-[#173229]">
                   {posts.length}
@@ -209,14 +209,14 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-3 lg:grid-cols-[1fr_230px]">
+          <div className="mt-5 grid gap-2 md:mt-8 md:gap-3 lg:grid-cols-[1fr_230px]">
             <label className="relative block">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
                 value={search}
                 onChange={event => setSearch(event.target.value)}
-                placeholder="Buscar por tema, zona o palabra clave"
-                className="h-12 w-full rounded-2xl border border-[#DDE8DF] bg-white pl-12 pr-11 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#1A5C38] focus:ring-4 focus:ring-[#1A5C38]/10"
+                placeholder="Buscar nota o zona"
+                className="h-11 w-full rounded-2xl border border-[#DDE8DF] bg-white pl-11 pr-10 text-sm font-semibold text-gray-800 outline-none transition focus:border-[#1A5C38] focus:ring-4 focus:ring-[#1A5C38]/10 md:h-12 md:pl-12 md:pr-11"
               />
               {search && (
                 <button
@@ -235,7 +235,7 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
               <select
                 value={sort}
                 onChange={event => setSort(event.target.value as SortOption)}
-                className="h-12 w-full appearance-none rounded-2xl border border-[#DDE8DF] bg-white pl-12 pr-4 text-sm font-bold text-gray-800 outline-none transition focus:border-[#1A5C38] focus:ring-4 focus:ring-[#1A5C38]/10"
+                className="h-11 w-full appearance-none rounded-2xl border border-[#DDE8DF] bg-white pl-11 pr-4 text-sm font-bold text-gray-800 outline-none transition focus:border-[#1A5C38] focus:ring-4 focus:ring-[#1A5C38]/10 md:h-12 md:pl-12"
               >
                 {SORT_OPTIONS.map(option => (
                   <option key={option.value} value={option.value}>
@@ -246,7 +246,7 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
             </label>
           </div>
 
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide md:mt-5 md:pb-2">
             {CATEGORIES.map(cat => {
               const on = active === cat
               const count = categoryCounts[cat] ?? 0
@@ -256,7 +256,7 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
                   type="button"
                   onClick={() => setActive(cat)}
                   aria-pressed={on}
-                  className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-all ${
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-[13px] font-bold transition-all md:px-4 md:text-sm ${
                     on
                       ? 'border-transparent text-white shadow-sm'
                       : 'border-[#DDE8DF] bg-white text-gray-600 hover:border-[#AFC5B6] hover:text-gray-950'
@@ -272,11 +272,11 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 py-10 md:px-8 md:py-12">
+      <main className="mx-auto max-w-6xl px-4 py-5 md:px-8 md:py-12">
         {featured && (
-          <div className="mb-12 grid gap-5 lg:grid-cols-[1fr_380px]">
+          <div className="mb-8 grid gap-5 md:mb-12 lg:grid-cols-[1fr_380px]">
             <Link href={`/blog/${featured.slug}`} className="group si-tap block">
-              <article className="si-img-shimmer relative aspect-[4/3] overflow-hidden rounded-2xl bg-[#173229] shadow-sm sm:aspect-[16/9] lg:aspect-[16/10]">
+              <article className="si-img-shimmer relative aspect-[5/4] overflow-hidden rounded-2xl bg-[#173229] shadow-sm sm:aspect-[16/9] lg:aspect-[16/10]">
                 <ArticleImage
                   post={featured}
                   priority
@@ -284,20 +284,20 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
 
-                <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 lg:p-10">
+                <div className="absolute inset-x-0 bottom-0 p-4 md:p-8 lg:p-10">
                   <span
                     className="inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white"
                     style={{ backgroundColor: CLAY }}
                   >
                     Destacado · {featured.category}
                   </span>
-                  <h2 className="mt-4 max-w-3xl text-2xl font-black leading-[1.08] text-white drop-shadow-sm md:text-4xl">
+                  <h2 className="mt-3 max-w-3xl text-[23px] font-black leading-[1.08] text-white drop-shadow-sm md:mt-4 md:text-4xl">
                     {featured.title}
                   </h2>
-                  <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-white/80 line-clamp-2 md:text-base">
+                  <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-white/80 line-clamp-2 md:mt-3 md:text-base">
                     {featured.summary}
                   </p>
-                  <div className="mt-5 flex flex-wrap items-center gap-4">
+                  <div className="mt-4 flex flex-wrap items-center gap-3 md:mt-5 md:gap-4">
                     <Meta post={featured} light />
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-black text-[#173229] transition group-hover:bg-[#F4F7F2]">
                       Leer artículo

@@ -39,7 +39,7 @@ export default function HeroMobile() {
   }
 
   return (
-    <section className="relative flex flex-col overflow-hidden" style={{ height: 290 }}>
+    <section className="relative flex flex-col overflow-hidden" style={{ height: 276 }}>
       {/* Background image + overlay */}
       <picture className="absolute inset-0 block h-full w-full">
         <source
@@ -69,8 +69,8 @@ export default function HeroMobile() {
       />
 
       {/* Contenido del hero (header global se encarga del navbar) */}
-      <div className="flex-1 flex flex-col justify-center items-center px-6 text-white text-center relative z-10">
-        <h1 className="font-raleway font-black text-[34px] leading-[1.02] drop-shadow-lg whitespace-nowrap">
+      <div className="flex-1 flex flex-col justify-center items-center px-5 text-white text-center relative z-10">
+        <h1 className="font-raleway font-black text-[32px] leading-[1.02] drop-shadow-lg whitespace-nowrap">
           Encontrá tu hogar
         </h1>
         <p className="font-poppins text-white/95 text-[14px] mt-1 drop-shadow">
@@ -84,8 +84,8 @@ export default function HeroMobile() {
             className="bg-white shadow-xl flex items-center"
             style={{
               borderRadius: 9999,
-              padding: '7px 7px 7px 22px',
-              gap: 10,
+              padding: '6px 6px 6px 16px',
+              gap: 8,
             }}
           >
             <Search size={18} style={{ color: '#888780', flexShrink: 0 }} aria-hidden="true" />
@@ -97,13 +97,13 @@ export default function HeroMobile() {
                 setShowDropdown(e.target.value.trim().length >= 2)
               }}
               onFocus={() => { if (query.trim().length >= 2 && filtered.length > 0) setShowDropdown(true) }}
-              placeholder="¿Dónde querés buscar?"
+              placeholder="Barrio, ciudad o dirección"
               aria-label="Buscar por barrio, ciudad o dirección"
               autoComplete="off"
               className="flex-1 min-w-0 outline-none bg-transparent placeholder:text-[#888780]"
               style={{
                 fontFamily: 'Raleway, sans-serif',
-                fontSize: 15,
+                fontSize: 14,
                 color: '#111',
               }}
             />
@@ -115,9 +115,9 @@ export default function HeroMobile() {
                 background: '#1A5C38',
                 color: '#fff',
                 fontFamily: 'Raleway, sans-serif',
-                fontSize: 14,
-                fontWeight: 500,
-                padding: '11px 24px',
+                fontSize: 13,
+                fontWeight: 700,
+                padding: '11px 16px',
                 borderRadius: 9999,
                 transition: 'background 180ms',
               }}
