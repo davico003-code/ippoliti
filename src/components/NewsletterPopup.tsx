@@ -9,7 +9,7 @@ import { trackEvent, trackFbEvent } from '@/lib/analytics'
 const GREEN = '#1A5C38'
 const DISMISS_KEY = 'si_newsletter_popup_dismiss'
 const DISMISS_DAYS = 3
-const SHOW_DELAY_MS = 4500
+const SHOW_DELAY_MS = 90_000
 const DESKTOP_SCROLL_Y = 520
 const MOBILE_SCROLL_Y = 340
 const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer']
@@ -93,9 +93,19 @@ export default function NewsletterPopup() {
           from { opacity: 0; transform: translate(-50%, calc(-50% + 18px)) scale(.97); }
           to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
-        @keyframes si-newsletter-mobile-in {
-          from { opacity: 0; transform: translateX(-50%) translateY(16px) scale(.98); }
-          to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+        @keyframes si-newsletter-backdrop-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .si-newsletter-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 54;
+          border: 0;
+          background: rgba(7, 17, 13, 0.22);
+          -webkit-backdrop-filter: blur(3px);
+          backdrop-filter: blur(3px);
+          animation: si-newsletter-backdrop-in .3s ease-out;
         }
         .si-newsletter-popup {
           position: fixed;
@@ -108,7 +118,7 @@ export default function NewsletterPopup() {
           border-radius: 22px;
           background: #fff;
           border: 1px solid rgba(229, 231, 235, 0.95);
-          box-shadow: 0 26px 90px rgba(9, 30, 20, 0.32);
+          box-shadow: 0 30px 96px rgba(2, 8, 5, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.62);
           transform: translate(-50%, -50%);
           animation: si-newsletter-in .45s cubic-bezier(.22,1,.36,1);
         }
@@ -122,21 +132,19 @@ export default function NewsletterPopup() {
         @media (max-width: 640px) {
           .si-newsletter-popup {
             left: 50%;
-            right: auto;
-            top: auto;
-            bottom: max(12px, env(safe-area-inset-bottom));
-            width: min(292px, calc(100vw - 72px));
-            max-height: min(60dvh, 450px);
-            border-radius: 18px;
-            transform: translateX(-50%);
-            animation: si-newsletter-mobile-in .38s cubic-bezier(.22,1,.36,1);
+            top: 50%;
+            width: min(340px, calc(100vw - 42px));
+            max-height: min(74dvh, 560px);
+            border-radius: 20px;
+            transform: translate(-50%, -50%);
+            animation: si-newsletter-in .42s cubic-bezier(.22,1,.36,1);
           }
           .si-newsletter-art {
-            height: min(24dvh, 184px);
-            min-height: 156px;
+            height: min(36dvh, 304px);
+            min-height: 232px;
           }
           .si-newsletter-body {
-            padding: 10px;
+            padding: 12px;
           }
           .si-newsletter-body form {
             gap: 8px;
@@ -147,6 +155,13 @@ export default function NewsletterPopup() {
           }
         }
       ` }} />
+
+      <button
+        type="button"
+        className="si-newsletter-backdrop"
+        aria-label="Cerrar newsletter"
+        onClick={dismiss}
+      />
 
       <aside className="si-newsletter-popup" aria-label="Recibir oportunidades seleccionadas">
         <button
@@ -163,7 +178,7 @@ export default function NewsletterPopup() {
             src="/newsletter-placa.jpg"
             alt="Recibí oportunidades reales - propiedades seleccionadas por IA y revisión humana de SI INMOBILIARIA"
             fill
-            sizes="(max-width: 640px) 292px, 430px"
+            sizes="(max-width: 640px) 340px, 430px"
             className="h-full w-full object-cover object-top"
           />
         </div>
