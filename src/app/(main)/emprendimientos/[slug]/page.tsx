@@ -58,17 +58,49 @@ export async function generateStaticParams() {
   }
 }
 
+// Overrides de SEO por emprendimiento (keyed por ID de Tokko). Permite title/meta
+// custom sin tocar dev.name — que además arma el slug, así que cambiarlo rompería
+// la URL ya indexada. displayName solo cambia el H1/JSON-LD en el render (no el
+// slug), intro se antepone a "Sobre el emprendimiento" y bodyFixes corrige el
+// texto visible de la descripción.
+const DEV_SEO: Record<
+  number,
+  { title: string; description: string; displayName?: string; intro?: string; bodyFixes?: Array<[RegExp, string]> }
+> = {
+  // Dock Garden — Aldea Fisherton (Fisherton, Rosario)
+  67173: {
+    title: 'Dock Garden Aldea Fisherton | Condominio y Paseo Comercial en Rosario',
+    description:
+      'Dock Garden Aldea Fisherton: condominio residencial de baja altura con paseo comercial en Fisherton, Rosario. Departamentos en venta con financiación.',
+    // El CRM escribe "Dockgarden" pegado; la marca (y las búsquedas) usan
+    // "Dock Garden" separado.
+    displayName: 'Dock Garden - Aldea Fisherton',
+    intro:
+      'Dock Garden Aldea Fisherton es un condominio residencial de baja altura ubicado en Fisherton, Rosario. El proyecto Dock Garden combina viviendas y un paseo comercial integrado al entorno verde de la Aldea.',
+    bodyFixes: [[/DockGarden/g, 'Dock Garden']],
+  },
+  // Distrito Roldán (barrio abierto sobre Ruta 9)
+  67178: {
+    title: 'Distrito Roldán | Lotes Residenciales y Comerciales en Roldán, Ruta 9',
+    description:
+      'Distrito Roldán: barrio abierto con 180 lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario. Financiación 30% + 24 cuotas fijas en dólares.',
+  },
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const id = getDevIdFromSlug(params.slug)
     const dev = await getDevelopmentById(id)
-    const desc = dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title
+    const override = DEV_SEO[dev.id]
+    const desc =
+      override?.description ??
+      (dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title)
     return {
-      title: `${dev.name} | Emprendimientos SI Inmobiliaria`,
+      title: override?.title ?? `${dev.name} | Emprendimientos SI Inmobiliaria`,
       description: desc,
       alternates: { canonical: `https://siinmobiliaria.com/emprendimientos/${params.slug}` },
       openGraph: {
-        title: `${dev.name} | SI Inmobiliaria`,
+        title: override?.title ?? `${dev.name} | SI Inmobiliaria`,
         description: desc,
         images: getDevMainPhoto(dev) ? [{ url: getDevMainPhoto(dev)! }] : [],
       },
@@ -120,10 +152,20 @@ export default async function DevelopmentPage({ params }: Props) {
   const status = getConstructionStatus(dev.construction_status)
   const typeName = translateDevType(dev.type?.name || '')
   const locationName = dev.location?.full_location?.split('|').slice(-2).map(s => s.trim()).reverse().join(', ') || dev.location?.name || dev.address
-  const description = (dev.description || '').replace(/<[^>]*>/g, '').trim()
-  const paragraphs = description.split('\n').filter(p => p.trim())
+  // Override de SEO: nombre para display (H1/JSON-LD, no cambia el slug),
+  // párrafo intro antepuesto a "Sobre el emprendimiento" y fixes del texto.
+  const seoOverride = DEV_SEO[dev.id]
+  const displayName = seoOverride?.displayName ?? dev.name
+  let description = (dev.description || '').replace(/<[^>]*>/g, '').trim()
+  for (const [pattern, replacement] of seoOverride?.bodyFixes ?? []) {
+    description = description.replace(pattern, replacement)
+  }
+  const paragraphs = [
+    ...(seoOverride?.intro ? [seoOverride.intro] : []),
+    ...description.split('\n').filter(p => p.trim()),
+  ]
 
-  const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${dev.name}`)
+  const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${displayName}`)
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
 
   // Units y otros emprendimientos son independientes → en paralelo (antes en serie).
@@ -138,7 +180,7 @@ export default async function DevelopmentPage({ params }: Props) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
-    name: dev.name,
+    name: displayName,
     description: description.slice(0, 300),
     image: mainPhotoUrl ? [mainPhotoUrl] : [],
     address: {
@@ -177,7 +219,7 @@ export default async function DevelopmentPage({ params }: Props) {
         />
       ) : mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
-          <Image src={mainPhoto} alt={dev.name} fill className="object-cover" sizes="100vw" priority />
+          <Image src={mainPhoto} alt={displayName} fill className="object-cover" sizes="100vw" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
             <div className="max-w-7xl mx-auto">
@@ -189,7 +231,7 @@ export default async function DevelopmentPage({ params }: Props) {
                   {status}
                 </span>
               </div>
-              <h1 className="text-3xl md:text-5xl font-black text-white mb-2 drop-shadow-md">{dev.name}</h1>
+              <h1 className="text-3xl md:text-5xl font-black text-white mb-2 drop-shadow-md">{displayName}</h1>
               {dev.publication_title && dev.publication_title !== dev.name && (
                 <p className="text-white/80 text-lg font-medium">{dev.publication_title}</p>
               )}
@@ -202,7 +244,7 @@ export default async function DevelopmentPage({ params }: Props) {
         </div>
       ) : (
         <div className="bg-[#1A5C38] text-white py-20 px-4 text-center">
-          <h1 className="text-4xl font-black">{dev.name}</h1>
+          <h1 className="text-4xl font-black">{displayName}</h1>
         </div>
       )}
 
@@ -251,7 +293,7 @@ export default async function DevelopmentPage({ params }: Props) {
             )}
 
             {/* Units section — before description */}
-            <DevUnitsSection units={units} devName={dev.name} whatsappUrl={whatsappUrl} variant={isDistrito ? 'distrito' : 'default'} location={dev.location?.name} />
+            <DevUnitsSection units={units} devName={displayName} whatsappUrl={whatsappUrl} variant={isDistrito ? 'distrito' : 'default'} location={dev.location?.name} />
 
             {/* Description — oculto en 67178 (el Intro trae su propio lead) */}
             {!isDistrito && paragraphs.length > 0 && (
@@ -280,7 +322,7 @@ export default async function DevelopmentPage({ params }: Props) {
                   <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
                     <iframe
                       src={embedUrl}
-                      title={video.title || dev.name}
+                      title={video.title || displayName}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="absolute inset-0 w-full h-full"
@@ -297,7 +339,7 @@ export default async function DevelopmentPage({ params }: Props) {
                   Galería
                   <span className="text-gray-400 text-sm font-normal ml-2 font-numeric">{photos.length} fotos</span>
                 </h2>
-                <PhotoGalleryLazy photos={photos} alt={dev.name} variant={isDistrito ? 'distrito' : 'default'} />
+                <PhotoGalleryLazy photos={photos} alt={displayName} variant={isDistrito ? 'distrito' : 'default'} />
               </div>
             )}
 
@@ -384,7 +426,7 @@ export default async function DevelopmentPage({ params }: Props) {
                     necesita su propio adapter de datos (otro ticket). */}
                 <ShareButtons
                   slug={`emprendimientos/${params.slug}`}
-                  title={dev.name}
+                  title={displayName}
                 />
 
                 {(isDistrito || dev.financing_details) && (
@@ -400,7 +442,7 @@ export default async function DevelopmentPage({ params }: Props) {
               {/* Visit widget */}
               <VisitWidget
                 propertyId={dev.id}
-                propertyTitle={dev.name}
+                propertyTitle={displayName}
                 propertyUrl={`https://siinmobiliaria.com/emprendimientos/${params.slug}`}
                 source="emprendimiento"
               />

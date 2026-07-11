@@ -1,3 +1,5 @@
+import { PROPERTY_SEO } from '@/lib/seoOverrides'
+
 function getApiKey(): string {
   const key = process.env.TOKKO_API_KEY
   if (!key) throw new Error('TOKKO_API_KEY is not configured')
@@ -174,10 +176,17 @@ export async function getDevUnits(developmentId: number): Promise<DevUnit[]> {
     const res = await fetch(url, { next: { revalidate: 3600 } })
     if (!res.ok) return []
     const data = await res.json()
-    // Filter by development ID (safety) and exclude sold (status 3)
-    return (data.objects || []).filter((u: DevUnit & { development?: { id: number } | null }) =>
-      u.status !== 3 && (!u.development || u.development.id === developmentId)
-    )
+    // Filter by development ID (safety) and exclude sold (status 3).
+    // El título pasa por el override de SEO (corrige dormitorios/typos del CRM
+    // en las cards de la landing; el link usa solo el ID, no cambia nada más).
+    return (data.objects || [])
+      .filter((u: DevUnit & { development?: { id: number } | null }) =>
+        u.status !== 3 && (!u.development || u.development.id === developmentId)
+      )
+      .map((u: DevUnit) => {
+        const seo = PROPERTY_SEO[u.id]
+        return seo ? { ...u, publication_title: seo.title } : u
+      })
   } catch {
     return []
   }

@@ -26,6 +26,7 @@ import {
   buildPropertyWhatsappUrl,
   type TokkoProperty,
 } from '@/lib/tokko';
+import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
 
 export const revalidate = 21600;
 
@@ -46,12 +47,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const id = getIdFromSlug(params.slug);
     const property = await getPropertyById(id);
-    const rawTitle = property.publication_title || property.address;
+    // Override de SEO por ID (unidades de emprendimientos): title y meta custom.
+    // El canonical de abajo usa el publication_title ORIGINAL (el slug no cambia).
+    const seo = PROPERTY_SEO[property.id];
+    const rawTitle = seo?.title || property.publication_title || property.address;
     const title = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
     // #1: el texto de Tokko trae whitespace/newlines al inicio; los tags se
     // reemplazan por espacio (no pegar palabras), se colapsan los espacios y se
     // trimea ANTES de cortar a 160, para no desperdiciar el límite con basura.
-    const desc = (property.description || property.description_only || '')
+    const desc = seo?.metaDescription ?? (property.description || property.description_only || '')
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
@@ -113,6 +117,11 @@ export default async function PropertyPage({ params }: Props) {
   // #3: slug canónico derivado del ID/título, para que el JSON-LD (url +
   // breadcrumb) apunte siempre a la forma canónica y no al slug pedido.
   const canonicalSlug = generatePropertySlug(property);
+
+  // Override de SEO por ID (unidades de emprendimientos): corrige título (H1,
+  // JSON-LD, alts) y typos de la descripción. Va DESPUÉS de canonicalSlug para
+  // que la URL no cambie (el slug se genera del título original).
+  applyPropertySeoOverride(property);
 
   const price = formatPrice(property);
   const area = getTotalSurface(property);
