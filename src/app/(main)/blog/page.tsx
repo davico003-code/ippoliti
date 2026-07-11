@@ -8,9 +8,9 @@ import BlogClient from './BlogClient'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Blog inmobiliario — Funes, Roldán y región | SI Inmobiliaria',
+  title: 'Blog inmobiliario — Funes, Roldán y región | SI INMOBILIARIA',
   description:
-    'Mercado, consejos y análisis para comprar, vender e invertir en Funes y Roldán. Blog de SI Inmobiliaria.',
+    'Mercado, consejos y análisis para comprar, vender e invertir en Funes y Roldán. Blog de SI INMOBILIARIA.',
   alternates: { canonical: 'https://siinmobiliaria.com/blog' },
   openGraph: {
     title: 'Blog inmobiliario — Funes, Roldán y región',
@@ -27,6 +27,7 @@ export default async function BlogPage() {
     slug: p.slug,
     title: p.title,
     summary: p.summary,
+    date: p.date,
     dateDisplay: p.dateDisplay,
     image: resolveBlogImage(p.slug, p.image),
     category: resolveCategory(p.slug, p.category),

@@ -20,7 +20,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
-  if (!post) return { title: 'Artículo no encontrado | SI Inmobiliaria' }
+  if (!post) return { title: 'Artículo no encontrado | SI INMOBILIARIA' }
 
   const url = `https://siinmobiliaria.com/blog/${params.slug}`
   // Imagen OG SIEMPRE absoluta: usamos la imagen curada (única por post) y, si
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : `https://siinmobiliaria.com${resolved}`
 
   return {
-    title: `${post.title} | Blog SI Inmobiliaria`,
+    title: `${post.title} | Blog SI INMOBILIARIA`,
     description: post.summary,
     alternates: { canonical: url },
     openGraph: {
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: post.summary,
       type: 'article',
       publishedTime: post.date,
-      siteName: 'SI Inmobiliaria',
+      siteName: 'SI INMOBILIARIA',
       url,
       images: [{ url: ogImage, width: 1200, height: 630, alt: post.title }],
     },
@@ -69,7 +69,7 @@ export default async function BlogPostPage({ params }: Props) {
     .filter(p => resolveCategory(p.slug, p.category) === category)
     .slice(0, 3)
 
-  const authorName = post.author || 'SI Inmobiliaria'
+  const authorName = post.author || 'SI INMOBILIARIA'
   const heroImage = resolveBlogImage(post.slug, post.image)
   const minutos = readingMinutes(post.content)
   // Si la imagen viene del mapa curado, la atribución propia del post ya no
@@ -98,7 +98,7 @@ export default async function BlogPostPage({ params }: Props) {
     publisher: {
       '@type': 'Organization',
       '@id': 'https://siinmobiliaria.com/#organization',
-      name: 'SI Inmobiliaria',
+      name: 'SI INMOBILIARIA',
       logo: {
         '@type': 'ImageObject',
         url: 'https://siinmobiliaria.com/logo-si-horizontal.png',
@@ -173,7 +173,7 @@ export default async function BlogPostPage({ params }: Props) {
                 <p className="text-xs text-gray-400">{post.dateDisplay}</p>
               </div>
             </div>
-            {post.source !== 'SI Inmobiliaria' && (
+            {post.source !== 'SI INMOBILIARIA' && post.source !== 'SI Inmobiliaria' && (
               <div className="flex items-center gap-1.5 text-xs text-gray-400">
                 <ExternalLink className="w-3.5 h-3.5" />
                 Fuente: <span className="font-semibold text-gray-600">{post.source}</span>

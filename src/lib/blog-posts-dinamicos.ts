@@ -11,11 +11,16 @@ let _redirCache: { map: Record<string, string>; ts: number } | null = null;
 let _imgCache: { map: Record<string, string>; ts: number } | null = null;
 const META_TTL_MS = 60_000;
 
+function isStaticBuild() {
+  return process.env.NEXT_PHASE === 'phase-production-build';
+}
+
 // Notas borradas (soft-delete): slug → URL destino del 301. Sirve de tombstone
 // (se filtra del listado público) y de fuente del redirect. NO se destruye el
 // Blob; quitar el slug del hash revierte el borrado.
 export async function getBlogRedirects(): Promise<Record<string, string>> {
   if (_redirCache && Date.now() - _redirCache.ts < META_TTL_MS) return _redirCache.map;
+  if (isStaticBuild()) return {};
   try {
     const map = (await redis.hgetall<Record<string, string>>('blog:redirects')) ?? {};
     _redirCache = { map, ts: Date.now() };
@@ -29,6 +34,7 @@ export async function getBlogRedirects(): Promise<Record<string, string>> {
 // Override manual de imagen por nota: slug → URL de imagen (Blob).
 export async function getImageOverrides(): Promise<Record<string, string>> {
   if (_imgCache && Date.now() - _imgCache.ts < META_TTL_MS) return _imgCache.map;
+  if (isStaticBuild()) return {};
   try {
     const map = (await redis.hgetall<Record<string, string>>('blog:image_override')) ?? {};
     _imgCache = { map, ts: Date.now() };
@@ -57,9 +63,10 @@ interface NotaPublicadaBlob {
   imagen_photographer_url?: string;
 }
 
-// 11 imágenes aéreas curadas (Funes/Roldán) en public/blog/images/. El default
-// por nota se asigna por hash del slug → estable (mismo slug = misma imagen
-// siempre, sin importar cuántas notas haya) y repartido entre las 11.
+// Pool mixto de imágenes locales + Pexels gratuitas. El default por nota se
+// asigna por hash del slug → estable (mismo slug = misma imagen siempre) y
+// repartido para evitar que las notas dinámicas repitan siempre las mismas
+// aéreas de Funes/Roldán.
 const IMAGENES_BLOG = [
   '/blog/images/funes-autopista-acceso-aerea.webp',
   '/blog/images/funes-avenida-arbolada-campo.webp',
@@ -72,6 +79,21 @@ const IMAGENES_BLOG = [
   '/blog/images/funes-zona-residencial-arboles-aereo.webp',
   '/blog/images/roldan-vista-aerea-autopista.webp',
   '/blog/images/roldan-vista-aerea-panoramica.webp',
+  'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/280229/pexels-photo-280229.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/1546168/pexels-photo-1546168.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/8293777/pexels-photo-8293777.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/8293744/pexels-photo-8293744.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/4626268/pexels-photo-4626268.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/30751525/pexels-photo-30751525.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/7587880/pexels-photo-7587880.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/7578992/pexels-photo-7578992.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/7109314/pexels-photo-7109314.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/31015267/pexels-photo-31015267.jpeg?auto=compress&cs=tinysrgb&w=1200',
 ] as const;
 
 // Hash estable (multiplicador 31, 32-bit) → índice en IMAGENES_BLOG. Pura
@@ -108,7 +130,7 @@ function blobToBlogPost(nota: NotaPublicadaBlob): BlogPost | null {
       month: 'long',
       year: 'numeric',
     }),
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image,
     summary: nota.bajada,
     content: nota.contenido_markdown,
