@@ -6,8 +6,7 @@ import HeroVideoDesktop from './home/HeroVideoDesktop'
 export default function HeroVideo() {
   return (
     <section
-      className="hero-video-section relative w-full bg-cover bg-center h-[547px] md:-mt-[77px] md:pt-[77px]"
-      style={{ backgroundImage: "url('/images/hero/portada-arquitectura-terraza.webp')" }}
+      className="hero-video-section relative w-full h-[547px] md:-mt-[77px] md:pt-[77px]"
     >
       <HeroVideoDesktop />
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/30 to-black/45" />

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
@@ -42,14 +41,26 @@ export default function HeroMobile() {
   return (
     <section className="relative flex flex-col overflow-hidden" style={{ height: 290 }}>
       {/* Background image + overlay */}
-      <Image
-        src="/images/hero/portada-arquitectura-terraza.webp"
-        alt="Terraza moderna con vista al lago en Funes y Roldán"
-        fill
-        className="object-cover"
-        sizes="100vw"
-        priority
-      />
+      <picture className="absolute inset-0 block h-full w-full">
+        <source
+          srcSet="/images/hero/home-architecture-small.webp, /images/hero/home-architecture-small_2x.webp 2x"
+          media="(max-width: 734px)"
+          type="image/webp"
+        />
+        <source
+          srcSet="/images/hero/home-architecture-medium.webp, /images/hero/home-architecture-medium_2x.webp 2x"
+          media="(min-width: 0px)"
+          type="image/webp"
+        />
+        <img
+          src="/images/hero/home-architecture-small.webp"
+          alt="Terraza moderna con vista al lago en Funes y Roldán"
+          className="h-full w-full object-cover"
+          decoding="async"
+          fetchPriority="high"
+          loading="eager"
+        />
+      </picture>
       <div
         className="absolute inset-0"
         style={{
