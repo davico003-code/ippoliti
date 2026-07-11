@@ -18,7 +18,7 @@ export function trackEvent(eventName: string, params?: Record<string, string | n
   }
 }
 
-export function trackFbEvent(eventName: string, params?: Record<string, string | number>) {
+export function trackFbEvent(eventName: string, params?: Record<string, string | number | string[]>) {
   if (typeof window === 'undefined') return
   if (window.fbq) {
     window.fbq('track', eventName, params)
@@ -42,10 +42,13 @@ export const events = {
       property_title: title,
       property_price: price,
     })
+    // content_type home_listing + content_ids = home_listing_id del feed de
+    // catálogo (/api/meta/catalogo en HILO usa el tokko_id, que acá es
+    // property.id): el match exacto que pide el retargeting de catálogo.
     trackFbEvent('ViewContent', {
-      content_ids: String(propertyId),
+      content_ids: [String(propertyId)],
       content_name: title,
-      content_type: 'property',
+      content_type: 'home_listing',
     })
   },
 
