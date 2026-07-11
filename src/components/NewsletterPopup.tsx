@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { CheckCircle2, X } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
@@ -89,39 +90,60 @@ export default function NewsletterPopup() {
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes si-newsletter-in {
-          from { opacity: 0; transform: translateY(18px) scale(.97); }
-          to { opacity: 1; transform: none; }
+          from { opacity: 0; transform: translate(-50%, calc(-50% + 18px)) scale(.97); }
+          to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes si-newsletter-mobile-in {
+          from { opacity: 0; transform: translateX(-50%) translateY(16px) scale(.98); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
         }
         .si-newsletter-popup {
           position: fixed;
-          right: 20px;
-          bottom: 104px;
+          left: 50%;
+          top: 50%;
           z-index: 55;
-          width: min(292px, calc(100vw - 32px));
-          max-height: min(760px, calc(100dvh - 128px));
+          width: min(430px, calc(100vw - 40px));
+          max-height: min(82dvh, 760px);
           overflow: hidden;
           border-radius: 22px;
           background: #fff;
           border: 1px solid rgba(229, 231, 235, 0.95);
-          box-shadow: 0 22px 70px rgba(9, 30, 20, 0.22);
+          box-shadow: 0 26px 90px rgba(9, 30, 20, 0.32);
+          transform: translate(-50%, -50%);
           animation: si-newsletter-in .45s cubic-bezier(.22,1,.36,1);
         }
         .si-newsletter-art {
-          height: min(356px, calc(100dvh - 270px));
-          min-height: 270px;
+          height: min(492px, calc(82dvh - 166px));
+          min-height: 328px;
+        }
+        .si-newsletter-body {
+          padding: 14px;
         }
         @media (max-width: 640px) {
           .si-newsletter-popup {
-            left: 22px;
-            right: 22px;
+            left: 50%;
+            right: auto;
+            top: auto;
             bottom: max(12px, env(safe-area-inset-bottom));
-            width: auto;
-            max-height: min(78dvh, 610px);
-            border-radius: 20px;
+            width: min(292px, calc(100vw - 72px));
+            max-height: min(60dvh, 450px);
+            border-radius: 18px;
+            transform: translateX(-50%);
+            animation: si-newsletter-mobile-in .38s cubic-bezier(.22,1,.36,1);
           }
           .si-newsletter-art {
-            height: min(39dvh, 330px);
-            min-height: 238px;
+            height: min(24dvh, 184px);
+            min-height: 156px;
+          }
+          .si-newsletter-body {
+            padding: 10px;
+          }
+          .si-newsletter-body form {
+            gap: 8px;
+          }
+          .si-newsletter-body input,
+          .si-newsletter-body button {
+            height: 36px;
           }
         }
       ` }} />
@@ -137,17 +159,16 @@ export default function NewsletterPopup() {
         </button>
 
         <div className="si-newsletter-art relative bg-[#07110d]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="/newsletter-placa.jpg"
             alt="Recibí oportunidades reales - propiedades seleccionadas por IA y revisión humana de SI INMOBILIARIA"
-            loading="eager"
-            decoding="async"
+            fill
+            sizes="(max-width: 640px) 292px, 430px"
             className="h-full w-full object-cover object-top"
           />
         </div>
 
-        <div className="bg-white p-3.5">
+        <div className="si-newsletter-body bg-white">
           {status === 'sent' ? (
             <div
               className="flex items-center gap-3 rounded-xl border px-4 py-3 font-poppins text-[13px] font-semibold"

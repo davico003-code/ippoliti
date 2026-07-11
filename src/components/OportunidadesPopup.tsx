@@ -227,7 +227,7 @@ export default function OportunidadesPopup() {
         className="si-oport-desktop"
         aria-label="Oportunidades"
         style={{
-          position: 'fixed', right: 20, bottom: 100, zIndex: 45, width: 316,
+          position: 'fixed', right: 20, bottom: 138, zIndex: 45, width: 316,
           background: '#fff', borderRadius: 18, border: '1px solid #ECECEE',
           boxShadow: '0 18px 50px rgba(9, 30, 20, 0.16)', overflow: 'hidden',
           animation: 'si-oport-in .45s cubic-bezier(.22,1,.36,1)',
