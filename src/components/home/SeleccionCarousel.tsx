@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import CardMediaButtons from '@/components/CardMediaButtons'
-import { KickerMundial, SeparadorMundial } from '@/components/mundial/MundialSeccion'
 import {
   getFeaturedProperties,
   generatePropertySlug,
@@ -39,21 +38,19 @@ export default async function SeleccionCarousel() {
 
   return (
     <section className="px-5 pt-4 pb-6">
-      <KickerMundial />
       <h2
         className="font-raleway font-black text-[22px] leading-tight"
         style={{ color: '#111' }}
       >
         Nuestra selección
       </h2>
-      <SeparadorMundial marginTop={8} />
       <p className="font-poppins text-gray-500 mt-0.5 text-[13px]">
         Elegidas con criterio, no por algoritmo.
       </p>
 
       {/* Carrusel */}
       <div
-        className="mt-5 -mx-5 px-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2"
+        className="mt-3 -mx-5 px-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2"
         style={{ scrollbarWidth: 'none' }}
       >
         {properties.map((p, i) => {

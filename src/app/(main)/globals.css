@@ -54,11 +54,6 @@ html.mundial ::selection {
 .hero-buscar-btn { background: #1A5C38; }
 .hero-buscar-btn:hover { background: #144a2c; }
 
-/* Sombra/glow celeste bajo el hero (video) de la home. */
-html.mundial .hero-video-section {
-  box-shadow: 0 20px 55px -14px rgba(117, 170, 219, 0.55);
-}
-
 /* Barra superior Argentina: rayas diagonales celestes en los bordes. */
 .barra-mundial-stripes {
   position: absolute;

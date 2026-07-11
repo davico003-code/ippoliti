@@ -8,7 +8,6 @@ import HorizontalCarousel from '@/components/HorizontalCarousel'
 import HeroMobile from '@/components/home/HeroMobile'
 import SeleccionCarousel from '@/components/home/SeleccionCarousel'
 import CardMediaButtons from '@/components/CardMediaButtons'
-import { KickerMundial, SeparadorMundial } from '@/components/mundial/MundialSeccion'
 import { esDiaDePartido } from '@/lib/mundial'
 import ProyectosCarousel from '@/components/home/ProyectosCarousel'
 import GuiaSection from '@/components/home/GuiaSection'
@@ -135,16 +134,14 @@ async function FeaturedPropertiesSection() {
 
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-4 md:pt-6 md:pb-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-4 md:pt-5 md:pb-6">
         {/* Header row */}
-        <KickerMundial />
         <div className="flex items-end justify-between">
           <h2 className="text-2xl md:text-3xl tracking-tight" style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111827', lineHeight: 1.2, margin: 0 }}>
             Nuestra selección
           </h2>
         </div>
-        <SeparadorMundial />
-        <p className="text-sm text-gray-500 mb-4 mt-1" style={{ fontFamily: RALEWAY }}>
+        <p className="text-sm text-gray-500 mb-2 mt-0.5" style={{ fontFamily: RALEWAY }}>
           Elegidas con criterio, no por algoritmo.
         </p>
 
