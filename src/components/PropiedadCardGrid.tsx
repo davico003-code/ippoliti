@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import CardMediaButtons from '@/components/CardMediaButtons'
@@ -35,6 +36,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
    *  Null/undefined → no se muestra. */
   distanceKm?: number | null
 }) {
+  const router = useRouter()
+  const cardRef = useRef<HTMLAnchorElement | null>(null)
   const isMobile = variant === 'mobile'
   const photos = getAllPhotos(property)
   const fallback = getMainPhoto(property)
@@ -55,6 +58,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const baths = property.bathroom_amount
   const address = property.fake_address || property.address
   const location = property.location?.short_location || property.location?.name || ''
+  const cardHref = `/propiedades/${slug}`
 
   // Build specs: "3 dorm · 2 baños · 190 m² · 1.691 m² lote"
   const specs: { num: string; label: string }[] = []
@@ -118,12 +122,43 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
     }
   }
 
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el || typeof window === 'undefined') return
+    let timeoutId: number | null = null
+    let prefetched = false
+    const prefetch = () => {
+      if (prefetched) return
+      prefetched = true
+      timeoutId = window.setTimeout(() => router.prefetch(cardHref), 180)
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      prefetch()
+      return () => { if (timeoutId) window.clearTimeout(timeoutId) }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        prefetch()
+        observer.disconnect()
+      }
+    }, { rootMargin: '520px 0px', threshold: 0.01 })
+
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      if (timeoutId) window.clearTimeout(timeoutId)
+    }
+  }, [cardHref, router])
+
   // Render como <Link> para que Next prefetchee la ficha en hover (desktop)
   // y al entrar al viewport (mobile). El onClick del padre puede llamar
   // e.preventDefault() para evitar la navegación (caso desktop = abrir panel).
   return (
     <Link
-      href={`/propiedades/${slug}`}
+      ref={cardRef}
+      href={cardHref}
       prefetch={false}
       onClick={onClick}
       className="group si-press-lift cursor-pointer block"
@@ -140,6 +175,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         transition: 'box-shadow 250ms, border-color 250ms, transform 250ms cubic-bezier(0.22,1,0.36,1)',
       }}
       onMouseEnter={e => {
+        router.prefetch(cardHref)
         if (!isSelected) {
           e.currentTarget.style.boxShadow = '0 14px 30px rgba(9,30,20,0.13)'
           e.currentTarget.style.borderColor = 'var(--mundial-accent)'
@@ -167,7 +203,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             alt={address}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 25vw"
+            sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw"
             priority={priority && imgIdx === 0}
             onLoad={() => setImgLoaded(true)}
           />

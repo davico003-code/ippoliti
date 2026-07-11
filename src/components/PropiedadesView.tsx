@@ -1591,7 +1591,7 @@ export default function PropiedadesView({
                         property={p}
                         isSelected={p.id === selectedId}
                         variant="mobile"
-                        priority={i === 0}
+                        priority={i < 2}
                         distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
                       />
                     </div>

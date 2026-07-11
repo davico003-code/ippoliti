@@ -22,7 +22,7 @@ export default function PropiedadesViewDesktopGrid({
 }: Props) {
   return (
     <div className="grid p-4 grid-cols-1 xl:grid-cols-2 gap-4">
-      {properties.map(p => (
+      {properties.map((p, i) => (
         <div
           key={p.id}
           data-property-id={p.id}
@@ -33,6 +33,7 @@ export default function PropiedadesViewDesktopGrid({
             property={p}
             isSelected={p.id === selectedId}
             onClick={e => { e.preventDefault(); onCardClick(p) }}
+            priority={i < 2}
             distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
           />
         </div>

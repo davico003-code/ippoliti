@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { Calendar, MessageCircle, Share2, Link2, Check, Instagram, Sparkles } from 'lucide-react'
 import VisitWidget from './VisitWidget'
+import LikeHeart from './feedback/LikeHeart'
+import { FEEDBACK_ENABLED } from './feedback/flag'
+import { showToast } from './Toast'
 import { generarYCopiarFichaLink } from '@/lib/share-ficha'
 import { events } from '@/lib/analytics'
 
@@ -37,16 +40,23 @@ export default function MobileStickyBar({
   const propertyUrl = `https://siinmobiliaria.com/propiedades/${slug}`
   // (también lo pasamos al VisitWidget para enriquecer el mensaje WhatsApp)
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(propertyUrl)
-    setLinkCopied(true)
-    setTimeout(() => { setLinkCopied(false); setShareOpen(false) }, 1500)
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(propertyUrl)
+      setLinkCopied(true)
+      showToast('Link copiado')
+      setTimeout(() => { setLinkCopied(false); setShareOpen(false) }, 1200)
+    } catch {
+      showToast('No se pudo copiar el link', { variant: 'error' })
+      setShareOpen(false)
+    }
   }
 
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(`Mirá esta propiedad:\n${title}\n${propertyUrl}`)
     window.open(`https://wa.me/?text=${text}`, '_blank')
     setShareOpen(false)
+    showToast('Listo para enviar por WhatsApp')
   }
 
   const handleVisita = () => {
@@ -55,15 +65,25 @@ export default function MobileStickyBar({
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white"
+      className="fixed left-0 right-0 z-50 md:hidden pointer-events-none"
       style={{
-        borderTop: '1px solid #e4e9ec',
-        boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
-        padding: '8px 10px',
-        paddingBottom: 'max(14px, env(safe-area-inset-bottom))',
+        bottom: 'max(8px, env(safe-area-inset-bottom))',
+        padding: '0 10px',
       }}
     >
-      <div className="flex items-start gap-3">
+      <div
+        className="pointer-events-auto mx-auto flex items-center gap-2"
+        style={{
+          maxWidth: 520,
+          border: '1px solid rgba(26,92,56,.12)',
+          boxShadow: '0 12px 34px rgba(9,30,20,.16)',
+          borderRadius: 20,
+          background: 'rgba(255,255,255,.96)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          padding: '7px',
+        }}
+      >
         {/* 1. Solicitá una visita — CTA principal */}
         <button
           onClick={handleVisita}
@@ -73,63 +93,52 @@ export default function MobileStickyBar({
             alignItems: 'center',
             justifyContent: 'center',
             gap: 8,
-            height: 46,
-            background: '#0b6b3a',
+            minWidth: 0,
+            height: 48,
+            background: '#1A5C38',
             color: '#fff',
             fontFamily: "'Raleway', system-ui, sans-serif",
             fontSize: 14,
-            fontWeight: 700,
-            borderRadius: 10,
+            fontWeight: 800,
+            borderRadius: 14,
             border: 'none',
             cursor: 'pointer',
+            boxShadow: '0 8px 18px rgba(26,92,56,.22)',
           }}
         >
           <Calendar className="w-[18px] h-[18px]" />
-          Solicitá una visita
+          <span className="truncate">Solicitar visita</span>
         </button>
 
         {/* 2. WhatsApp */}
-        <div className="flex flex-col items-center" style={{ gap: 2 }}>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Contactar por WhatsApp"
-            onClick={() => events.clickWhatsapp(undefined, title)}
-            className="flex items-center justify-center"
-            style={{
-              width: 46, height: 46,
-              borderRadius: '50%',
-              background: '#22c55e',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <MessageCircle className="w-[20px] h-[20px] text-white" />
-          </a>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#16a34a' }}>Chat</span>
-        </div>
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Contactar por WhatsApp"
+          onClick={() => events.clickWhatsapp(undefined, title)}
+          className="flex items-center justify-center"
+          style={{
+            width: 48, height: 48,
+            borderRadius: 14,
+            background: '#22c55e',
+            border: 'none',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <MessageCircle className="w-[21px] h-[21px] text-white" />
+        </a>
 
-        {/* 3. Placa (Instagram) — link a la página de selección de fotos */}
-        <div className="flex flex-col items-center" style={{ gap: 2 }}>
-          <Link
-            href={`/propiedades/${slug}/placa`}
-            aria-label="Crear placa Instagram"
-            className="flex items-center justify-center"
-            style={{
-              width: 46,
-              height: 46,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
-            }}
-          >
-            <Instagram className="w-[18px] h-[18px] text-white" />
-          </Link>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#e04e8a' }}>Placa</span>
-        </div>
+        {/* 3. Guardar */}
+        {FEEDBACK_ENABLED && (
+          <div className="flex items-center justify-center" style={{ width: 48, height: 48, flexShrink: 0 }}>
+            <LikeHeart propertyId={propertyId} size={42} className="" />
+          </div>
+        )}
 
         {/* 4. Compartir */}
-        <div className="flex flex-col items-center relative" style={{ gap: 2 }} ref={shareRef}>
+        <div className="relative" ref={shareRef} style={{ flexShrink: 0 }}>
           <button
             onClick={() => setShareOpen(o => !o)}
             aria-label="Compartir"
@@ -137,8 +146,8 @@ export default function MobileStickyBar({
             aria-expanded={shareOpen}
             className="flex items-center justify-center"
             style={{
-              width: 46, height: 46,
-              borderRadius: '50%',
+              width: 48, height: 48,
+              borderRadius: 14,
               background: '#fff',
               border: '1.5px solid #cfd7dc',
               cursor: 'pointer',
@@ -146,7 +155,6 @@ export default function MobileStickyBar({
           >
             <Share2 className="w-[20px] h-[20px]" style={{ color: '#3a4a54' }} />
           </button>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#5a6a74' }}>Compartir</span>
 
           {/* Popup de compartir */}
           {shareOpen && (
@@ -218,6 +226,28 @@ export default function MobileStickyBar({
                 {linkCopied ? 'Copiado!' : 'Copiar link'}
               </button>
 
+              <Link
+                href={`/propiedades/${slug}/placa`}
+                onClick={() => setShareOpen(false)}
+                className="w-full flex items-center gap-3 text-left"
+                style={{
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: '#1a1a1a',
+                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  textDecoration: 'none',
+                }}
+              >
+                <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
+                  <Instagram className="w-4 h-4 text-white" />
+                </div>
+                Crear placa
+              </Link>
+
               <div style={{ height: 1, background: '#f0f3f5', margin: '4px 12px' }} />
 
               <button
@@ -228,6 +258,9 @@ export default function MobileStickyBar({
                   setGenerandoFicha(true)
                   try {
                     await generarYCopiarFichaLink(propertyId)
+                    showToast('Link para colega copiado')
+                  } catch {
+                    showToast('No se pudo generar el link', { variant: 'error' })
                   } finally {
                     setGenerandoFicha(false)
                   }

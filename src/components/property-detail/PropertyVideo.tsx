@@ -17,11 +17,18 @@ type EmbedInfo =
   | { kind: 'mp4'; src: string; thumbs: string[] }
   | null
 
+function cleanVideoId(id: string | null | undefined): string | null {
+  const raw = id?.trim()
+  if (!raw) return null
+  const match = raw.match(/^([\w-]+)/)
+  return match?.[1] ?? null
+}
+
 function parseVideo(v: TokkoVideo, fallbackPoster: string | null): EmbedInfo {
   const rawUrl = v.player_url || v.url || ''
   // YouTube
   const ytId = (() => {
-    if (v.provider?.toLowerCase() === 'youtube' && v.video_id) return v.video_id
+    if (v.provider?.toLowerCase() === 'youtube' && v.video_id) return cleanVideoId(v.video_id)
     const m1 = rawUrl.match(/youtube\.com\/embed\/([\w-]+)/)
     if (m1) return m1[1]
     const m2 = rawUrl.match(/shorts\/([\w-]+)/)
@@ -47,7 +54,7 @@ function parseVideo(v: TokkoVideo, fallbackPoster: string | null): EmbedInfo {
   }
   // Vimeo
   const vimeoId = (() => {
-    if (v.provider?.toLowerCase() === 'vimeo' && v.video_id) return v.video_id
+    if (v.provider?.toLowerCase() === 'vimeo' && v.video_id) return cleanVideoId(v.video_id)
     const m = rawUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/)
     return m ? m[1] : null
   })()
