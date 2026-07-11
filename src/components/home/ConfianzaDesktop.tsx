@@ -51,8 +51,18 @@ export default function ConfianzaDesktop() {
             className="object-cover object-center"
             style={{ objectPosition: 'center 18%' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#fbf8f2]/30 to-[#fbf8f2]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#fbf8f2] via-transparent to-transparent" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(90deg, rgba(251,248,242,0) 0%, rgba(251,248,242,0.02) 66%, rgba(251,248,242,0.45) 88%, #fbf8f2 100%)',
+            }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(0deg, rgba(251,248,242,0.28) 0%, rgba(251,248,242,0.08) 18%, rgba(251,248,242,0) 38%)',
+            }}
+          />
         </div>
 
         <div className="relative mx-auto flex min-h-[520px] max-w-[1320px] items-center justify-end px-8 lg:px-12">
@@ -92,7 +102,7 @@ export default function ConfianzaDesktop() {
           <div className="grid grid-cols-4 divide-x divide-[#ded6cc]">
             {STATS.map((s) => (
               <div key={s.label} className="px-7 text-center first:pl-0 last:pr-0">
-                <p className="text-[30px] font-extrabold leading-none" style={{ color: GREEN, fontVariantNumeric: 'tabular-nums' }}>
+                <p className="font-poppins text-[30px] font-extrabold leading-none" style={{ color: GREEN, fontVariantNumeric: 'tabular-nums' }}>
                   {s.num}
                 </p>
                 <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-[#68717c]">
