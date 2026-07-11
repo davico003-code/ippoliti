@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { CheckCircle2, Sparkles, X } from 'lucide-react'
+import { BarChart3, CheckCircle2, Cpu, MapPin, UserRound, X } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 
 const GREEN = '#1A5C38'
@@ -13,6 +13,29 @@ const SHOW_DELAY_MS = 90_000
 const DESKTOP_SCROLL_Y = 520
 const MOBILE_SCROLL_Y = 340
 const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer']
+
+const selectionSteps = [
+  {
+    title: 'IA detectó',
+    body: 'Propiedades con señales de buen precio o potencial.',
+    Icon: Cpu,
+  },
+  {
+    title: 'Comparamos',
+    body: 'Analizamos precio/m² y referencias en la zona.',
+    Icon: BarChart3,
+  },
+  {
+    title: 'Cruzamos datos',
+    body: 'Ubicación, metros, tipología y contexto de mercado.',
+    Icon: MapPin,
+  },
+  {
+    title: 'Revisión humana',
+    body: 'El equipo verifica y aprueba lo que realmente vale.',
+    Icon: UserRound,
+  },
+]
 
 export default function NewsletterPopup() {
   const pathname = usePathname()
@@ -123,34 +146,128 @@ export default function NewsletterPopup() {
           animation: si-newsletter-in .45s cubic-bezier(.22,1,.36,1);
         }
         .si-newsletter-art {
-          height: min(492px, calc(82dvh - 166px));
-          min-height: 328px;
+          height: min(352px, calc(82dvh - 272px));
+          min-height: 286px;
         }
         .si-newsletter-body {
           padding: 14px;
         }
-        .si-newsletter-ia-note {
-          display: none;
+        .si-newsletter-steps {
+          border: 1px solid #DCEBE2;
+          border-radius: 15px;
+          background: #FBFEFC;
+          padding: 10px 10px 9px;
+        }
+        .si-newsletter-steps-head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 9px;
+        }
+        .si-newsletter-steps-head::before,
+        .si-newsletter-steps-head::after {
+          content: '';
+          height: 1px;
+          flex: 1;
+          background: #2C8C45;
+          opacity: .75;
+        }
+        .si-newsletter-steps-title {
+          margin: 0;
+          flex-shrink: 0;
+          color: #111;
+          font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1.15;
+        }
+        .si-newsletter-steps-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          column-gap: 9px;
+          row-gap: 8px;
+        }
+        .si-newsletter-step {
+          display: grid;
+          grid-template-columns: 26px 1fr;
+          gap: 7px;
+          align-items: start;
+          min-width: 0;
+        }
+        .si-newsletter-step-icon {
+          display: inline-flex;
+          width: 26px;
+          height: 26px;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          border: 1px solid #D7E6D9;
+          background: #F2F8EE;
+          color: #2E9B22;
+          box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.74);
+        }
+        .si-newsletter-step-title {
+          display: block;
+          margin: 0;
+          color: #151515;
+          font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
+          font-size: 10.5px;
+          font-weight: 800;
+          line-height: 1.12;
+        }
+        .si-newsletter-step-body {
+          display: block;
+          margin: 2px 0 0;
+          color: #4B5563;
+          font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+          font-size: 9.5px;
+          font-weight: 600;
+          line-height: 1.18;
         }
         @media (max-width: 640px) {
           .si-newsletter-popup {
             left: 50%;
             top: 50%;
             width: min(340px, calc(100vw - 42px));
-            max-height: min(74dvh, 560px);
+            max-height: min(82dvh, 650px);
             border-radius: 20px;
             transform: translate(-50%, -50%);
             animation: si-newsletter-in .42s cubic-bezier(.22,1,.36,1);
           }
           .si-newsletter-art {
-            height: min(36dvh, 304px);
-            min-height: 232px;
+            height: min(28dvh, 238px);
+            min-height: 196px;
           }
           .si-newsletter-body {
             padding: 12px;
           }
-          .si-newsletter-ia-note {
-            display: flex;
+          .si-newsletter-steps {
+            padding: 9px 9px 8px;
+          }
+          .si-newsletter-steps-head {
+            gap: 7px;
+            margin-bottom: 8px;
+          }
+          .si-newsletter-steps-title {
+            font-size: 10.5px;
+          }
+          .si-newsletter-steps-grid {
+            column-gap: 7px;
+            row-gap: 7px;
+          }
+          .si-newsletter-step {
+            grid-template-columns: 24px 1fr;
+            gap: 6px;
+          }
+          .si-newsletter-step-icon {
+            width: 24px;
+            height: 24px;
+          }
+          .si-newsletter-step-title {
+            font-size: 9.6px;
+          }
+          .si-newsletter-step-body {
+            font-size: 8.8px;
           }
           .si-newsletter-body form {
             gap: 8px;
@@ -201,10 +318,24 @@ export default function NewsletterPopup() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
-              <p className="si-newsletter-ia-note items-start gap-2 rounded-xl border border-[#DCEBE2] bg-[#F4FAF6] px-3 py-2 font-poppins text-[11.5px] font-medium leading-snug text-[#315241]">
-                <Sparkles size={14} strokeWidth={2.2} className="mt-0.5 shrink-0 text-[#1A5C38]" />
-                <span><b className="text-[#1A5C38]">IA + revisión humana:</b> filtramos precio, m² y zona para mandarte oportunidades reales.</span>
-              </p>
+              <div className="si-newsletter-steps" aria-label="Así seleccionamos cada oportunidad">
+                <div className="si-newsletter-steps-head">
+                  <h3 className="si-newsletter-steps-title">Así seleccionamos cada oportunidad</h3>
+                </div>
+                <div className="si-newsletter-steps-grid">
+                  {selectionSteps.map(({ title, body, Icon }) => (
+                    <div key={title} className="si-newsletter-step">
+                      <span className="si-newsletter-step-icon" aria-hidden="true">
+                        <Icon size={15} strokeWidth={2.35} />
+                      </span>
+                      <span>
+                        <strong className="si-newsletter-step-title">{title}</strong>
+                        <span className="si-newsletter-step-body">{body}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <input
                 type="text"
                 name="nombre"
