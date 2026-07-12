@@ -98,6 +98,7 @@ export default function MobileStickyBar({
       >
         {/* 1. Solicitá una visita — CTA principal */}
         <button
+          type="button"
           onClick={handleVisita}
           style={{
             flex: 1,
@@ -152,6 +153,7 @@ export default function MobileStickyBar({
         {/* 4. Compartir */}
         <div className="relative" ref={shareRef} style={{ flexShrink: 0 }}>
           <button
+            type="button"
             onClick={() => setShareOpen(o => !o)}
             aria-label="Compartir"
             aria-haspopup="menu"
@@ -171,6 +173,8 @@ export default function MobileStickyBar({
           {/* Popup de compartir */}
           {shareOpen && (
             <div
+              role="menu"
+              aria-label="Compartir propiedad"
               style={{
                 position: 'absolute',
                 bottom: 'calc(100% + 12px)',
@@ -199,6 +203,8 @@ export default function MobileStickyBar({
               />
 
               <button
+                type="button"
+                role="menuitem"
                 onClick={handleShareWhatsApp}
                 className="w-full flex items-center gap-3 text-left"
                 style={{
@@ -219,6 +225,8 @@ export default function MobileStickyBar({
               </button>
 
               <button
+                type="button"
+                role="menuitem"
                 onClick={handleCopyLink}
                 className="w-full flex items-center gap-3 text-left"
                 style={{
@@ -240,6 +248,7 @@ export default function MobileStickyBar({
 
               <Link
                 href={`/propiedades/${slug}/placa`}
+                role="menuitem"
                 onClick={() => setShareOpen(false)}
                 className="w-full flex items-center gap-3 text-left"
                 style={{
@@ -263,6 +272,8 @@ export default function MobileStickyBar({
               <div style={{ height: 1, background: '#f0f3f5', margin: '4px 12px' }} />
 
               <button
+                type="button"
+                role="menuitem"
                 disabled={generandoFicha}
                 onClick={async () => {
                   if (generandoFicha) return
@@ -305,12 +316,16 @@ export default function MobileStickyBar({
         <div
           className="fixed inset-0 z-[60] flex items-end"
           onClick={e => { if (e.target === e.currentTarget) setVisitOpen(false) }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Agendar visita"
         >
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="relative w-full max-h-[90vh] overflow-y-auto" style={{ animation: 'slideUp 250ms ease-out' }}>
             <div className="bg-[#1A5C38] rounded-t-3xl p-6 pb-24">
               <div className="w-10 h-1 rounded-full bg-white/30 mx-auto mb-4" />
               <button
+                type="button"
                 onClick={() => setVisitOpen(false)}
                 aria-label="Cerrar"
                 className="absolute top-5 right-5 text-white/80 hover:text-white text-xl leading-none"
@@ -322,6 +337,7 @@ export default function MobileStickyBar({
                 propertyTitle={propertyTitle}
                 propertyUrl={propertyUrl}
                 source="mobile-sticky"
+                onClose={() => setVisitOpen(false)}
               />
             </div>
           </div>

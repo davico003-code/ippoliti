@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { formatDescription, type FormattedBlock } from '@/lib/formatDescription'
 
 const GREEN = '#1A5C38'
@@ -105,14 +106,16 @@ export default function PropertyDescription({ text }: { text: string | null | un
       </div>
       {isLong && (
         <button
+          type="button"
           onClick={() => setExpanded(v => !v)}
-          className="mt-1 font-semibold text-sm hover:underline inline-flex items-center gap-1.5"
+          aria-expanded={expanded}
+          className="mt-1 min-h-11 font-semibold text-sm hover:underline inline-flex items-center gap-1.5"
           style={{ color: GREEN, fontFamily: R, fontWeight: 600 }}
         >
           {expanded ? (
-            <>Ver menos <span aria-hidden>↑</span></>
+            <>Ver menos <ChevronUp className="h-4 w-4" aria-hidden /></>
           ) : (
-            <>Ver más <span aria-hidden>↓</span></>
+            <>Ver más <ChevronDown className="h-4 w-4" aria-hidden /></>
           )}
         </button>
       )}

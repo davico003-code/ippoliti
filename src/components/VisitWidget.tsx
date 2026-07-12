@@ -74,7 +74,7 @@ export default function VisitWidget({
   const waHref = selectedDate
     ? `https://wa.me/5493412101694?text=${encodeURIComponent(
         [
-          `Hola! 👋 Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
+          `Hola! Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
           ``,
           `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
           nombre.trim() ? `\nSoy ${nombre.trim()}.` : '',
@@ -156,7 +156,7 @@ export default function VisitWidget({
         </span>
         <h3 className="text-xl font-bold text-gray-900">Agendar visita</h3>
         {onClose && (
-          <button onClick={onClose} aria-label="Cerrar" className="ml-auto text-gray-400 hover:text-gray-600">
+          <button type="button" onClick={onClose} aria-label="Cerrar" className="ml-auto text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         )}
@@ -167,6 +167,7 @@ export default function VisitWidget({
       <p className={label}>Elegí un día</p>
       <div className="flex items-stretch gap-2 mb-6">
         <button
+          type="button"
           className={arrowBtn}
           onClick={() => setDayStart(s => Math.max(0, s - 1))}
           disabled={dayStart === 0}
@@ -180,6 +181,7 @@ export default function VisitWidget({
             const active = selectedDay === i
             return (
               <button
+                type="button"
                 key={i}
                 onClick={() => setSelectedDay(i)}
                 aria-pressed={active}
@@ -194,6 +196,7 @@ export default function VisitWidget({
           })}
         </div>
         <button
+          type="button"
           className={arrowBtn}
           onClick={() => setDayStart(s => Math.min(days.length - DAY_WIN, s + 1))}
           disabled={dayStart + DAY_WIN >= days.length}
@@ -207,6 +210,7 @@ export default function VisitWidget({
       <p className={label}>Elegí un horario</p>
       <div className="flex items-stretch gap-2 mb-6">
         <button
+          type="button"
           className={arrowBtn}
           onClick={() => setHourStart(s => Math.max(0, s - 1))}
           disabled={hourStart === 0}
@@ -219,6 +223,7 @@ export default function VisitWidget({
             const active = selectedHour === h
             return (
               <button
+                type="button"
                 key={h}
                 onClick={() => setSelectedHour(h)}
                 aria-pressed={active}
@@ -232,6 +237,7 @@ export default function VisitWidget({
           })}
         </div>
         <button
+          type="button"
           className={arrowBtn}
           onClick={() => setHourStart(s => Math.min(HOURS.length - HOUR_WIN, s + 1))}
           disabled={hourStart + HOUR_WIN >= HOURS.length}
@@ -245,6 +251,8 @@ export default function VisitWidget({
       <p className={label}>Tu nombre</p>
       <input
         type="text"
+        autoComplete="name"
+        inputMode="text"
         placeholder="Nombre y apellido"
         value={nombre}
         onChange={e => setNombre(e.target.value)}
@@ -254,6 +262,7 @@ export default function VisitWidget({
       <div className="border-t border-gray-100 mb-5" />
 
       <button
+        type="button"
         onClick={handleSubmit}
         disabled={!canSubmit || loading}
         className="w-full py-3.5 rounded-2xl font-bold text-sm text-white transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
