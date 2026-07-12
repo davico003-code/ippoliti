@@ -33,8 +33,20 @@ export default function MobileStickyBar({
     const handler = (e: MouseEvent) => {
       if (shareRef.current && !shareRef.current.contains(e.target as Node)) setShareOpen(false)
     }
+    const touchHandler = (e: TouchEvent) => {
+      if (shareRef.current && !shareRef.current.contains(e.target as Node)) setShareOpen(false)
+    }
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShareOpen(false)
+    }
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('touchstart', touchHandler, { passive: true })
+    document.addEventListener('keydown', keyHandler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('touchstart', touchHandler)
+      document.removeEventListener('keydown', keyHandler)
+    }
   }, [shareOpen])
 
   const propertyUrl = `https://siinmobiliaria.com/propiedades/${slug}`

@@ -24,6 +24,16 @@ import { formatDistanceAR } from '@/lib/geo'
 const RALEWAY = "'Raleway', system-ui, sans-serif"
 const POPPINS = "'Poppins', system-ui, sans-serif"
 
+type NetworkInformationLite = {
+  saveData?: boolean
+  effectiveType?: string
+}
+
+type WindowWithIdle = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number
+  cancelIdleCallback?: (id: number) => void
+}
+
 export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop', priority = false, distanceKm }: {
   property: TokkoProperty
   isSelected: boolean
@@ -125,17 +135,29 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   useEffect(() => {
     const el = cardRef.current
     if (!el || typeof window === 'undefined') return
+    const connection = (navigator as Navigator & { connection?: NetworkInformationLite }).connection
+    if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType ?? '')) return
+
     let timeoutId: number | null = null
+    let idleId: number | null = null
     let prefetched = false
     const prefetch = () => {
       if (prefetched) return
       prefetched = true
-      timeoutId = window.setTimeout(() => router.prefetch(cardHref), 180)
+      const win = window as WindowWithIdle
+      if (typeof win.requestIdleCallback === 'function') {
+        idleId = win.requestIdleCallback(() => router.prefetch(cardHref), { timeout: 1200 })
+        return
+      }
+      timeoutId = window.setTimeout(() => router.prefetch(cardHref), 220)
     }
 
     if (!('IntersectionObserver' in window)) {
       prefetch()
-      return () => { if (timeoutId) window.clearTimeout(timeoutId) }
+      return () => {
+        if (timeoutId) window.clearTimeout(timeoutId)
+        if (idleId != null) (window as WindowWithIdle).cancelIdleCallback?.(idleId)
+      }
     }
 
     const observer = new IntersectionObserver((entries) => {
@@ -149,6 +171,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
     return () => {
       observer.disconnect()
       if (timeoutId) window.clearTimeout(timeoutId)
+      if (idleId != null) (window as WindowWithIdle).cancelIdleCallback?.(idleId)
     }
   }, [cardHref, router])
 
