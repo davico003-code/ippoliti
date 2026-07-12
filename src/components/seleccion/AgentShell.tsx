@@ -7,6 +7,7 @@ import Link from 'next/link'
 const NAV_ITEMS = [
   { label: 'Inicio', icon: '🏠', href: '/agentes' },
   { label: 'Selecciones', icon: '🔗', href: '/agentes/seleccion', badge: true },
+  { label: 'Stock de colegas', icon: '🗂️', href: '/agentes/stock' },
   { label: 'Contratos y modelos', icon: '📋', href: '/agentes/modulo/contratos' },
   { label: 'Análisis de mercado', icon: '📊', href: '/agentes/modulo/mercado' },
   { label: 'Guías para asesores', icon: '🧭', href: '/agentes/modulo/guias' },
