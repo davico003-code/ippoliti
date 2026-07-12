@@ -15,13 +15,19 @@ const CONTAINER_ID = '__si_toast_container'
 
 function ensureContainer(): HTMLDivElement {
   let container = document.getElementById(CONTAINER_ID) as HTMLDivElement | null
-  if (container) return container
+  const mobileBottom = window.matchMedia?.('(max-width: 768px)').matches
+    ? 'calc(env(safe-area-inset-bottom, 0px) + 88px)'
+    : '16px'
+  if (container) {
+    container.style.bottom = mobileBottom
+    return container
+  }
   container = document.createElement('div')
   container.id = CONTAINER_ID
   Object.assign(container.style, {
     position: 'fixed',
     right: '16px',
-    bottom: '16px',
+    bottom: mobileBottom,
     zIndex: '9999',
     display: 'flex',
     flexDirection: 'column',

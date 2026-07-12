@@ -28,7 +28,7 @@ const LASTSEEN_KEY = 'si_oportunidades_lastseen'
 const AWAY_RESET_MS = 10 * 60 * 1000
 
 // Rutas internas/flujos donde el popup no corresponde.
-const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer']
+const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/']
 
 const HOOK_META: Record<string, { badge: string; cta: string; color: string; bg: string }> = {
   motivado: { badge: 'Vendedor motivado', cta: 'Pasá a conocerla', color: '#B5562F', bg: '#FCEBE3' },
@@ -109,7 +109,7 @@ export default function OportunidadesPopup() {
       window.setTimeout(() => {
         if (!alive) return
         const isMobile = window.matchMedia('(max-width: 640px)').matches
-        const isPropiedades = pathname === '/propiedades' || pathname?.startsWith('/propiedades/')
+        const isPropiedades = pathname === '/propiedades'
         if (!isMobile || isPropiedades || window.scrollY > 260) {
           setVisible(true)
           return
@@ -186,7 +186,7 @@ export default function OportunidadesPopup() {
   const it = items[idx % items.length]
   const meta = HOOK_META[it.hook] ?? HOOK_META.negociable
   const esBaja = it.hook === 'bajo-precio' && it.precioAnterior
-  const compactMobile = pathname === '/propiedades' || pathname?.startsWith('/propiedades/')
+  const compactMobile = pathname === '/propiedades'
 
   const dismiss = () => {
     setVisible(false)

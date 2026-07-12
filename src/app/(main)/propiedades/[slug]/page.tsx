@@ -209,7 +209,10 @@ export default async function PropertyPage({ params }: Props) {
           ════════════════════════════════════════════ */}
       <div className="md:hidden min-h-screen bg-[#fafafa]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 112px)' }}>
         {/* Header propio de la ficha mobile — back + logo + (acciones) */}
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 grid grid-cols-3 items-center px-4" style={{ height: 56 }}>
+        <div
+          className="sticky top-0 z-40 bg-white border-b border-gray-200 grid items-center px-4"
+          style={{ height: 56, gridTemplateColumns: 'minmax(76px,1fr) auto minmax(76px,1fr)' }}
+        >
           <Link
             href="/propiedades"
             className="flex items-center gap-1.5 text-sm font-semibold text-gray-700"
@@ -217,16 +220,15 @@ export default async function PropertyPage({ params }: Props) {
             style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="truncate">Volver al mapa</span>
+            <span>Mapa</span>
           </Link>
           <Link href="/" className="flex items-center justify-center" aria-label="Ir a la página principal">
             <Image
               src="/LOGO_HORIZONTAL.png"
-              alt="SI Inmobiliaria"
+              alt="SI INMOBILIARIA"
               width={120}
               height={24}
-              className="object-contain"
-              style={{ height: 24, width: 'auto' }}
+              className="h-6 w-[120px] object-contain"
               priority
             />
           </Link>
@@ -308,4 +310,3 @@ export default async function PropertyPage({ params }: Props) {
     </div>
   );
 }
-
