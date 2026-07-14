@@ -190,28 +190,62 @@ export default async function BlogPostPage({ params }: Props) {
               // frases cortas de prosa como h2. Sigue siendo inferencia.
               const looksHeading = (p: string) =>
                 /^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && p.length < 70 && !p.includes('.') && !p.includes(',')
-              const firstParaIdx = paragraphs.findIndex(p => !looksHeading(p))
+              const getMarkdownImage = (p: string) => {
+                const match = p.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
+                if (!match) return null
+                return { alt: match[1].trim(), src: match[2].trim() }
+              }
+              const isRenderableText = (p: string) => !looksHeading(p) && !getMarkdownImage(p)
+              const firstParaIdx = paragraphs.findIndex(isRenderableText)
               return paragraphs.map((paragraph, i) => {
-                const isHeading = looksHeading(paragraph)
+                const trimmed = paragraph.trim()
+                const inlineImage = getMarkdownImage(trimmed)
+                if (inlineImage) {
+                  const alt = inlineImage.alt || post.title
+                  return (
+                    <figure
+                      key={i}
+                      className="my-10 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
+                    >
+                      <div className="relative aspect-[4/3] w-full">
+                        <Image
+                          src={inlineImage.src}
+                          alt={alt}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 768px"
+                          className="object-cover"
+                        />
+                      </div>
+                      {inlineImage.alt && (
+                        <figcaption className="px-4 py-3 text-sm leading-relaxed text-gray-500">
+                          {inlineImage.alt}
+                        </figcaption>
+                      )}
+                    </figure>
+                  )
+                }
+
+                const markdownHeading = trimmed.match(/^#{2,3}\s+(.+)$/)
+                const isHeading = Boolean(markdownHeading) || looksHeading(trimmed)
                 if (isHeading) {
                   return (
                     <h2 key={i} className="mb-2 mt-12 text-[1.6rem] font-black leading-tight tracking-tight text-gray-900">
-                      {paragraph}
+                      {markdownHeading ? markdownHeading[1] : trimmed}
                     </h2>
                   )
                 }
                 // Capitular solo en el primer párrafo real y si arranca con letra.
-                const dropCap = i === firstParaIdx && /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(paragraph)
+                const dropCap = i === firstParaIdx && /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(trimmed)
                 return (
                   <p
                     key={i}
                     className={`text-[17px] leading-[1.8] text-gray-700 md:text-lg ${
                       dropCap
                         ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[3.4rem] first-letter:font-black first-letter:leading-[0.8] first-letter:text-[#1A5C38]'
-                        : ''
+                      : ''
                     }`}
                   >
-                    {paragraph}
+                    {trimmed}
                   </p>
                 )
               })
