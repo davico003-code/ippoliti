@@ -14,6 +14,7 @@ export interface BlogPost {
   imagen_photographer?: string
   imagen_photographer_url?: string
   publishAt?: string    // ISO completo; si es futuro, la nota está programada
+  hasImageOverride?: boolean
 }
 
 export const posts: BlogPost[] = [
@@ -252,7 +253,9 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | undefined>
   // Programada con fecha futura: tratarla como inexistente (igual que borrada)
   if (!local || !yaPublicada(local)) return undefined;
   const overrides = await getImageOverrides();
-  return overrides[slug] ? { ...local, image: overrides[slug] } : local;
+  return overrides[slug]
+    ? { ...local, image: overrides[slug], hasImageOverride: true }
+    : local;
 }
 
 export async function getAllPosts(): Promise<BlogPost[]> {
@@ -266,7 +269,11 @@ export async function getAllPosts(): Promise<BlogPost[]> {
   return [...posts, ...dinamicos]
     .filter(p => !redirects[p.slug])                                  // tombstone: oculta borradas (estáticas y dinámicas)
     .filter(yaPublicada)                                              // programadas: ocultas hasta su fecha
-    .map(p => (overrides[p.slug] ? { ...p, image: overrides[p.slug] } : p))
+    .map(p => (
+      overrides[p.slug]
+        ? { ...p, image: overrides[p.slug], hasImageOverride: true }
+        : p
+    ))
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 

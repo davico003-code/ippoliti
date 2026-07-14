@@ -29,7 +29,7 @@ export default async function BlogPage() {
     summary: p.summary,
     date: p.date,
     dateDisplay: p.dateDisplay,
-    image: resolveBlogImage(p.slug, p.image),
+    image: resolveBlogImage(p.slug, p.image, p.hasImageOverride),
     category: resolveCategory(p.slug, p.category),
     readingMinutes: readingMinutes(p.content),
   }))

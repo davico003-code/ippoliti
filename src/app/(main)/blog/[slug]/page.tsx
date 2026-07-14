@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const url = `https://siinmobiliaria.com/blog/${params.slug}`
   // Imagen OG SIEMPRE absoluta: usamos la imagen curada (única por post) y, si
   // fuera un path local (/blog/images/...), la prefijamos con el dominio.
-  const resolved = resolveBlogImage(post.slug, post.image)
+  const resolved = resolveBlogImage(post.slug, post.image, post.hasImageOverride)
   const ogImage = resolved.startsWith('http')
     ? resolved
     : `https://siinmobiliaria.com${resolved}`
@@ -70,11 +70,11 @@ export default async function BlogPostPage({ params }: Props) {
     .slice(0, 3)
 
   const authorName = post.author || 'SI INMOBILIARIA'
-  const heroImage = resolveBlogImage(post.slug, post.image)
+  const heroImage = resolveBlogImage(post.slug, post.image, post.hasImageOverride)
   const minutos = readingMinutes(post.content)
   // Si la imagen viene del mapa curado, la atribución propia del post ya no
   // corresponde (reemplazamos la foto original).
-  const usaImagenCurada = Boolean(BLOG_IMAGES[post.slug])
+  const usaImagenCurada = post.hasImageOverride || Boolean(BLOG_IMAGES[post.slug])
 
   // BlogPosting completo para rich results. Solo campos con datos reales del
   // post (sin dateModified: BlogPost no trackea fecha de edición). El publisher
@@ -310,7 +310,7 @@ export default async function BlogPostPage({ params }: Props) {
               <h3 className="text-xl font-black text-gray-900 mb-6">Artículos relacionados</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {related.map(r => {
-                  const rImage = resolveBlogImage(r.slug, r.image)
+                  const rImage = resolveBlogImage(r.slug, r.image, r.hasImageOverride)
                   return (
                     <Link key={r.slug} href={`/blog/${r.slug}`} className="group block">
                       <div className="relative aspect-video rounded-xl overflow-hidden mb-3 transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.02]">
