@@ -46,6 +46,7 @@ export async function POST(req: Request) {
   // Compat blog: si vino slug, revalida la página de blog
   if (body.slug) {
     extraPaths.push('/blog', `/blog/${body.slug}`)
+    extraTags.push('blog-posts')
   }
 
   const dedupe = (xs: string[]) => Array.from(new Set(xs))
