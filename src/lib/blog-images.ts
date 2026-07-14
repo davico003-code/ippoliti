@@ -114,10 +114,17 @@ export const BLOG_IMAGES: Record<string, string> = {
 }
 
 /**
- * Devuelve la imagen a usar para un post: mapa curado → imagen propia del post
- * (http o path local) → genérico. Nunca devuelve vacío.
+ * Devuelve la imagen a usar para un post: override editorial → mapa curado →
+ * imagen propia del post (http o path local) → genérico. Nunca devuelve vacío.
  */
-export function resolveBlogImage(slug: string, ownImage?: string): string {
+export function resolveBlogImage(
+  slug: string,
+  ownImage?: string,
+  hasImageOverride = false,
+): string {
+  if (hasImageOverride && ownImage && (ownImage.startsWith('http') || ownImage.startsWith('/'))) {
+    return ownImage
+  }
   if (BLOG_IMAGES[slug]) return BLOG_IMAGES[slug]
   if (ownImage && (ownImage.startsWith('http') || ownImage.startsWith('/'))) return ownImage
   return GENERIC

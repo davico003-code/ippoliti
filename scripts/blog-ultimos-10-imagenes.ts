@@ -163,11 +163,14 @@ async function revalidar(slug: string): Promise<void> {
   const secret = process.env.REVALIDATE_SECRET;
   if (!secret) return;
 
-  await fetch(`${BASE_URL}/api/revalidate`, {
+  const res = await fetch(`${BASE_URL}/api/revalidate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${secret}` },
     body: JSON.stringify({ slug }),
   });
+  if (!res.ok) {
+    throw new Error(`No se pudo revalidar ${slug}: ${res.status} ${await res.text()}`);
+  }
 }
 
 async function main(): Promise<void> {
