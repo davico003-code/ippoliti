@@ -131,6 +131,26 @@ export const BLOG_IMAGES: Record<string, string> = {
     '/images/blog/mercado-rosario/agente-mostrando-casa-pareja.jpg',
   'como-negociar-la-compra-de-una-propiedad':
     '/images/blog/inversion/firma-contrato-escritorio.jpg',
+  'infraestructura-servicios-valor-barrio-funes-roldan':
+    '/images/blog/funes-y-roldan/barrio-aereo-denso.jpg',
+  'casas-autosustentables-en-tu-lote':
+    'https://images.pexels.com/photos/16427010/pexels-photo-16427010.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'bomberos-funes-roldan-infraestructura-valor-propiedad':
+    'https://images.pexels.com/photos/4090002/pexels-photo-4090002.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'acm-los-tres-precios-de-una-propiedad':
+    'https://images.pexels.com/photos/8293647/pexels-photo-8293647.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'que-buscan-compradores-funes-roldan-corredor-oeste':
+    'https://images.pexels.com/photos/23224991/pexels-photo-23224991.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'steel-framing-y-construccion-en-seco':
+    '/images/blog/construccion/obrero-estructura-madera.jpg',
+  'infraestructura-electrica-roldan-licitacion-epe-desarrollo-inmobiliario':
+    'https://images.pexels.com/photos/4626268/pexels-photo-4626268.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'como-se-tasa-una-propiedad':
+    'https://images.pexels.com/photos/29899813/pexels-photo-29899813.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'aislacion-termica-por-donde-se-escapa-el-calor':
+    'https://zscl1yt5nlp1egia.public.blob.vercel-storage.com/blog-overrides/aislacion-termica-por-donde-se-escapa-el-calor-V3TfeS3Ak75QrpZ10Iai3Ei5csEe1s.webp',
+  'calefaccion-eficiente-que-sistema-conviene':
+    'https://zscl1yt5nlp1egia.public.blob.vercel-storage.com/blog-overrides/calefaccion-eficiente-que-sistema-conviene-maDjo038bDixX4hg1qWExWQ2f0KDEZ.webp',
 }
 
 /**
