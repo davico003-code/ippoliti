@@ -111,6 +111,26 @@ export const BLOG_IMAGES: Record<string, string> = {
     'https://images.unsplash.com/photo-1641309664023-52a016965404?ixid=M3w5MjUyNzd8MHwxfHNlYXJjaHwxfHxjaXR5JTIwYnVzJTIwcHVibGljJTIwdHJhbnNwb3J0fGVufDF8MHx8fDE3ODMxMTkwOTB8MA&ixlib=rb-4.1.0&w=1200&q=80&fm=jpg&fit=crop',
   'valor-m2-funes-roldan-analisis-por-barrio-tipologia':
     'https://images.unsplash.com/photo-1782200506280-d8ac0de36641?ixid=M3w5MjUyNzd8MHwxfHNlYXJjaHwxfHxyZXNpZGVudGlhbCUyMHN0cmVldCUyMGhvdXNlc3xlbnwxfDB8fHwxNzgzMTE5MjI4fDA&ixlib=rb-4.1.0&w=1200&q=80&fm=jpg&fit=crop',
+  'hipotecas-oeste-caida-funes-roldan':
+    '/images/blog/mercado-rosario/firma-living-pareja-agente.jpg',
+  'home-staging-vender-tu-casa-mas-rapido':
+    '/images/blog/mercado-rosario/pareja-mudanza-cajas.jpg',
+  'drenaje-roldan-limpieza-canales-valor-propiedades':
+    '/images/blog/funes-y-roldan/zona-oeste-campo-aerea.jpg',
+  'construir-sin-gastar-de-mas-8-decisiones-clave':
+    '/images/blog/construccion/albanil-bloques-pared.jpg',
+  'casas-modulares-chinas-funes-roldan-20000-dolares':
+    'https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  '5-senales-de-un-corredor-inmobiliario-confiable':
+    '/images/blog/inversion/llaves-casa-mano.jpg',
+  'infraestructura-vial-roldan-impacto-valor-propiedades':
+    '/blog/images/funes-autopista-acceso-aerea.webp',
+  'domotica-sumar-valor-a-tu-casa-con-poca-inversion':
+    'https://zscl1yt5nlp1egia.public.blob.vercel-storage.com/blog-overrides/domotica-sumar-valor-a-tu-casa-con-poca-inversion-vBHbXWUspuvwzIcqaXWjayDkgc1aT6.webp',
+  'comprar-casa-funes-roldan-precios-credito-financiamiento':
+    '/images/blog/mercado-rosario/agente-mostrando-casa-pareja.jpg',
+  'como-negociar-la-compra-de-una-propiedad':
+    '/images/blog/inversion/firma-contrato-escritorio.jpg',
 }
 
 /**
