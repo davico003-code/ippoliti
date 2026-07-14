@@ -1,8 +1,8 @@
-// Actualiza las portadas y agrega una imagen interna a los 10 últimos posts
+// Actualiza las portadas y agrega una imagen interna a los 20 últimos posts
 // publicados del blog. Por defecto corre en dry-run:
 //
-//   npx tsx scripts/blog-ultimos-10-imagenes.ts
-//   npx tsx scripts/blog-ultimos-10-imagenes.ts --aplicar
+//   npx tsx scripts/blog-ultimos-20-imagenes.ts
+//   npx tsx scripts/blog-ultimos-20-imagenes.ts --aplicar
 //
 // Requiere .env.production. Las portadas se escriben en el hash Redis
 // blog:image_override, igual que el editor admin. Las imágenes internas se
@@ -10,7 +10,7 @@
 
 import { config as loadEnv } from 'dotenv';
 
-loadEnv({ path: '.env.production' });
+loadEnv({ path: process.env.BLOG_ENV_PATH || '.env.production' });
 
 const APLICAR = process.argv.includes('--aplicar');
 const BASE_URL = 'https://siinmobiliaria.com';
@@ -38,8 +38,8 @@ const POSTS: Record<string, ImageConfig> = {
     title: 'Hipotecas en el Oeste',
     hero: '/images/blog/mercado-rosario/firma-living-pareja-agente.jpg',
     inline: {
-      src: '/images/blog/inversion/llaves-casa-mano.jpg',
-      alt: 'Llaves de una vivienda listas para entregar después de definir una operación inmobiliaria',
+      src: 'https://images.pexels.com/photos/11348119/pexels-photo-11348119.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Modelo de vivienda, monedas y reloj como referencia de planificación hipotecaria',
     },
   },
   'home-staging-vender-tu-casa-mas-rapido': {
@@ -62,8 +62,8 @@ const POSTS: Record<string, ImageConfig> = {
     title: 'Construir sin gastar de más',
     hero: '/images/blog/construccion/albanil-bloques-pared.jpg',
     inline: {
-      src: '/images/blog/construccion/obrero-estructura-madera.jpg',
-      alt: 'Trabajador avanzando en una estructura de obra seca durante una construcción residencial',
+      src: 'https://images.pexels.com/photos/4956914/pexels-photo-4956914.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Trabajador con equipo de seguridad avanzando sobre una estructura de obra',
     },
   },
   'casas-modulares-chinas-funes-roldan-20000-dolares': {
@@ -78,16 +78,16 @@ const POSTS: Record<string, ImageConfig> = {
     title: 'Corredor inmobiliario confiable',
     hero: '/images/blog/inversion/llaves-casa-mano.jpg',
     inline: {
-      src: '/images/blog/mercado-rosario/firma-living-pareja-agente.jpg',
-      alt: 'Reunión entre asesor y clientes para revisar condiciones de una operación inmobiliaria',
+      src: 'https://images.pexels.com/photos/23224986/pexels-photo-23224986.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Corredor inmobiliario conversando con una pareja durante una consulta en un living',
     },
   },
   'infraestructura-vial-roldan-impacto-valor-propiedades': {
     title: 'Infraestructura vial en Roldán',
     hero: '/blog/images/funes-autopista-acceso-aerea.webp',
     inline: {
-      src: '/images/blog/funes-y-roldan/zona-oeste-campo-aerea.jpg',
-      alt: 'Vista aérea de accesos y trama urbana en la zona oeste de Rosario',
+      src: '/blog/images/roldan-vista-aerea-autopista.webp',
+      alt: 'Vista aérea de Roldán y su conexión con la autopista Rosario Córdoba',
     },
   },
   'domotica-sumar-valor-a-tu-casa-con-poca-inversion': {
@@ -110,8 +110,88 @@ const POSTS: Record<string, ImageConfig> = {
     title: 'Negociar la compra de una propiedad',
     hero: '/images/blog/inversion/firma-contrato-escritorio.jpg',
     inline: {
-      src: '/images/blog/inversion/llaves-casa-mano.jpg',
-      alt: 'Llaves sobre una operación cerrada después de negociar la compra de una propiedad',
+      src: 'https://images.pexels.com/photos/7937705/pexels-photo-7937705.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Pareja revisando planos y condiciones de compra con una asesora inmobiliaria',
+    },
+  },
+  'infraestructura-servicios-valor-barrio-funes-roldan': {
+    title: 'Servicios que aumentan el valor de un barrio',
+    hero: '/images/blog/funes-y-roldan/barrio-aereo-denso.jpg',
+    inline: {
+      src: '/blog/images/funes-avenida-arbolada-campo.webp',
+      alt: 'Avenida arbolada y entorno urbano consolidado en el corredor oeste',
+    },
+  },
+  'casas-autosustentables-en-tu-lote': {
+    title: 'Casas autosustentables',
+    hero: 'https://images.pexels.com/photos/16427010/pexels-photo-16427010.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    inline: {
+      src: 'https://images.pexels.com/photos/6233727/pexels-photo-6233727.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Viviendas residenciales con paneles solares instalados sobre sus techos',
+    },
+  },
+  'bomberos-funes-roldan-infraestructura-valor-propiedad': {
+    title: 'Bomberos, servicios y valor de la propiedad',
+    hero: 'https://images.pexels.com/photos/4090002/pexels-photo-4090002.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    inline: {
+      src: 'https://images.pexels.com/photos/36409934/pexels-photo-36409934.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Bombero equipado junto a una unidad de respuesta durante un operativo',
+    },
+  },
+  'acm-los-tres-precios-de-una-propiedad': {
+    title: 'Los tres precios de una propiedad',
+    hero: 'https://images.pexels.com/photos/8293647/pexels-photo-8293647.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    inline: {
+      src: 'https://images.pexels.com/photos/7433832/pexels-photo-7433832.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Análisis de números y comparables con calculadora y gráficos de mercado',
+    },
+  },
+  'que-buscan-compradores-funes-roldan-corredor-oeste': {
+    title: 'Qué buscan los compradores del corredor oeste',
+    hero: 'https://images.pexels.com/photos/23224991/pexels-photo-23224991.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    inline: {
+      src: 'https://images.pexels.com/photos/7937330/pexels-photo-7937330.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Pareja recorriendo una vivienda mientras conversa con un asesor inmobiliario',
+    },
+  },
+  'steel-framing-y-construccion-en-seco': {
+    title: 'Steel framing y construcción en seco',
+    hero: '/images/blog/construccion/obrero-estructura-madera.jpg',
+    inline: {
+      src: 'https://images.pexels.com/photos/7961889/pexels-photo-7961889.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Equipo de obra montando una estructura metálica en una construcción',
+    },
+  },
+  'infraestructura-electrica-roldan-licitacion-epe-desarrollo-inmobiliario': {
+    title: 'Infraestructura eléctrica en Roldán',
+    hero: 'https://images.pexels.com/photos/4626268/pexels-photo-4626268.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    inline: {
+      src: 'https://images.pexels.com/photos/29024404/pexels-photo-29024404.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Red de alta tensión atravesando un paisaje abierto como referencia de infraestructura eléctrica',
+    },
+  },
+  'como-se-tasa-una-propiedad': {
+    title: 'Cómo se tasa una propiedad',
+    hero: 'https://images.pexels.com/photos/29899813/pexels-photo-29899813.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    inline: {
+      src: 'https://images.pexels.com/photos/34135038/pexels-photo-34135038.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Documentación, llaves y modelos de vivienda utilizados para analizar una tasación',
+    },
+  },
+  'aislacion-termica-por-donde-se-escapa-el-calor': {
+    title: 'Aislación térmica',
+    hero: 'https://zscl1yt5nlp1egia.public.blob.vercel-storage.com/blog-overrides/aislacion-termica-por-donde-se-escapa-el-calor-V3TfeS3Ak75QrpZ10Iai3Ei5csEe1s.webp',
+    inline: {
+      src: 'https://images.pexels.com/photos/5511085/pexels-photo-5511085.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Edificio residencial en obra con capas de aislación visibles en la envolvente',
+    },
+  },
+  'calefaccion-eficiente-que-sistema-conviene': {
+    title: 'Calefacción eficiente',
+    hero: 'https://zscl1yt5nlp1egia.public.blob.vercel-storage.com/blog-overrides/calefaccion-eficiente-que-sistema-conviene-maDjo038bDixX4hg1qWExWQ2f0KDEZ.webp',
+    inline: {
+      src: 'https://images.pexels.com/photos/12644994/pexels-photo-12644994.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      alt: 'Mano ajustando la válvula termostática de un radiador para regular el consumo',
     },
   },
 };
@@ -136,20 +216,25 @@ function setContent(post: BlogPostPayload, content: string): BlogPostPayload {
 }
 
 function insertarImagenInterna(content: string, inline: ImageConfig['inline']): string {
-  if (content.includes(`](${inline.src})`)) return content;
-
   const block = `![${inline.alt}](${inline.src})`;
-  const parts = content.split(/\n{2,}/).map(part => part.trim()).filter(Boolean);
+  const parts = content
+    .split(/\n{2,}/)
+    .map(part => part.trim())
+    .filter(part => part && !/^!\[[^\]]*\]\([^)]+\)$/.test(part));
   const insertAt = Math.min(parts.length, Math.max(2, parts.findIndex(part => !part.startsWith('#')) + 2));
   parts.splice(insertAt, 0, block);
   return parts.join('\n\n');
 }
 
 async function validarImagenes(): Promise<void> {
+  const expected = Object.keys(POSTS).length * 2;
   const uniqueImages = Array.from(new Set(Object.values(POSTS).flatMap(config => [
     config.hero,
     config.inline.src,
   ])));
+  if (uniqueImages.length !== expected) {
+    throw new Error(`Hay imágenes repetidas: ${uniqueImages.length} únicas para ${expected} ubicaciones.`);
+  }
 
   for (const src of uniqueImages) {
     const res = await fetch(absoluteImage(src), { method: 'HEAD' });
