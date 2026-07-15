@@ -32,9 +32,10 @@ const WHATSAPP_DISPLAY = '+54 9 341 341 5159'
 const PLANILLA_CSS = `
 /* Oculta el shell del sitio (navbar, footer, popups, scroll, whatsapp flotante).
    El layout root no se puede sobrescribir, pero podemos ocultar todo lo que no
-   sea la planilla. <main> queda visible y dentro solo se muestra el documento. */
+   sea la planilla. El template compartido agrega .si-page-enter entre <main>
+   y el documento, por eso neutralizamos esa caja sin ocultar sus hijos. */
 body > *:not(main):not(script) { display: none !important; }
-main > *:not(.planilla-page) { display: none !important; }
+main > .si-page-enter { display: contents !important; }
 main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 
 :root {
@@ -411,7 +412,7 @@ html, body {
     overflow: visible !important;
   }
   body > *:not(main):not(script) { display: none !important; }
-  main > *:not(.planilla-page) { display: none !important; }
+  main > .si-page-enter { display: contents !important; }
   .no-print { display: none !important; }
   /* min-height: 0 es el fix clave — la caja deja de forzar el alto de A4 y se
      ajusta al contenido, eliminando la página 2 fantasma. El llenado de la
