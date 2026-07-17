@@ -2,7 +2,7 @@
 
 // Card "Alquilar" (Sección 4) — preview del costo de ingreso.
 // Usa la función REAL calcularCostosIngreso de lib/calculadora-alquiler
-// (honorarios 5%, admin 3%, sellado 1,2%, IVA 21%). Sin "depósito": la
+// (honorarios 5%, admin 3%, sellado comercial 0,25%, IVA 21%). Sin "depósito": la
 // herramienta real no lo modela, así el preview coincide 1:1 con ella.
 // Defaults: vivienda, 24 meses, ARS. Valores ORIENTATIVOS.
 

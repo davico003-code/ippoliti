@@ -13,7 +13,7 @@ export type FormaPagoHonorarios = '3cuotas' | '1pago'
 
 export const SELLADO_PCT: Record<TipoFiscal, number> = {
   vivienda: 0,
-  comercio: 0.012,
+  comercio: 0.0025,
 }
 
 // Mapeo nombre Tokko (inglés o español) → tipo fiscal.
@@ -36,7 +36,7 @@ export const TIPO_FISCAL_POR_PROPIEDAD: Record<string, TipoFiscal> = {
   cabana: 'vivienda',
   'dúplex': 'vivienda',
   duplex: 'vivienda',
-  // Comercio (incluye terrenos: el sellado de un alquiler de lote sigue siendo 1,2%)
+  // Comercio (incluye terrenos: el sellado de un alquiler de lote sigue siendo 0,25%)
   store: 'comercio',
   'bussiness premises': 'comercio',
   office: 'comercio',
