@@ -586,7 +586,7 @@ export default function PlanillaPrintable() {
   const selladoLabelSub =
     tipo === 'vivienda'
       ? 'Vivienda · exento en Santa Fe'
-      : 'Comercio · 1,2% del total del contrato'
+      : 'Comercio · 0,25% del total del contrato'
 
   const ajusteFinalContrato =
     moneda === 'USD'
