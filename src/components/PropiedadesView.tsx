@@ -81,6 +81,7 @@ type Beds      = 'todos' | '1' | '2' | '3' | '4+'
 type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
 type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
+type OperationType = 'Sale' | 'Rent'
 // listMode era un toggle huérfano (compact|list) que no afectaba el render de
 // las cards; eliminado junto con su estado y los botones de la barra superior.
 
@@ -103,6 +104,32 @@ const DEFAULTS: Filters = {
   search: '', operation: 'todos', type: 'todos',
   beds: 'todos', location: 'todos',
   priceMin: '', priceMax: '', currency: 'USD',
+}
+
+function operationTypeForFilter(operation: Operation): OperationType | null {
+  if (operation === 'venta') return 'Sale'
+  if (operation === 'alquiler') return 'Rent'
+  return null
+}
+
+function operationForView(property: TokkoProperty, operationType: OperationType | null) {
+  if (!operationType) return property.operations?.[0] ?? null
+  return property.operations?.find(operation => operation.operation_type === operationType) ?? null
+}
+
+/**
+ * Las cards y el mapa leen la primera operación para decidir etiqueta y precio.
+ * Al filtrar una propiedad mixta, priorizamos la operación elegida sin mutar la
+ * ficha original ni descartar la otra operación.
+ */
+function prioritizeOperationForView(property: TokkoProperty, operationType: OperationType | null): TokkoProperty {
+  if (!operationType || !property.operations?.length) return property
+  const index = property.operations.findIndex(operation => operation.operation_type === operationType)
+  if (index <= 0) return property
+  const operations = property.operations.slice()
+  const [selected] = operations.splice(index, 1)
+  if (!selected) return property
+  return { ...property, operations: [selected, ...operations] }
 }
 
 // Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
@@ -870,6 +897,7 @@ export default function PropiedadesView({
     return map
   }, [properties])
 
+  const selectedOperationType = operationTypeForFilter(filters.operation)
   const filtered = useMemo(() => properties.filter(p => {
     if (filters.search) {
       const q = norm(filters.search)
@@ -887,10 +915,8 @@ export default function PropiedadesView({
       ].filter(Boolean).join(' '))
       if (!haystack.includes(q)) return false
     }
-    if (filters.operation !== 'todos') {
-      const op = p.operations?.[0]?.operation_type
-      if (filters.operation === 'venta' && op !== 'Sale') return false
-      if (filters.operation === 'alquiler' && op !== 'Rent') return false
+    if (selectedOperationType && !p.operations?.some(operation => operation.operation_type === selectedOperationType)) {
+      return false
     }
     if (filters.type !== 'todos') {
       // Match por id exacto contra el grupo del filtro (sin substring de nombre:
@@ -910,11 +936,8 @@ export default function PropiedadesView({
     if (filters.priceMin || filters.priceMax) {
       const minNum = filters.priceMin ? parseInt(filters.priceMin, 10) : 0
       const maxNum = filters.priceMax ? parseInt(filters.priceMax, 10) : Number.POSITIVE_INFINITY
-      // Buscar el precio que coincida con la moneda seleccionada en lugar de
-      // asumir prices[0]. Tokko a veces devuelve múltiples prices en orden
-      // distinto al esperado y prices[0] hardcoded descartaba propiedades
-      // matcheables (bug del filtro de precio).
-      const matchingPrice = p.operations?.[0]?.prices?.find(pr => pr.currency === filters.currency)
+      // Buscar el precio de la operación activa y la moneda seleccionada.
+      const matchingPrice = operationForView(p, selectedOperationType)?.prices?.find(pr => pr.currency === filters.currency)
       if (!matchingPrice) return false
       if (matchingPrice.price < minNum || matchingPrice.price > maxNum) return false
     }
@@ -933,13 +956,13 @@ export default function PropiedadesView({
         return 0
       }
       case 'precio-asc': {
-        const pa = a.operations?.[0]?.prices?.[0]?.price ?? Infinity
-        const pb = b.operations?.[0]?.prices?.[0]?.price ?? Infinity
+        const pa = operationForView(a, selectedOperationType)?.prices?.[0]?.price ?? Infinity
+        const pb = operationForView(b, selectedOperationType)?.prices?.[0]?.price ?? Infinity
         return pa - pb
       }
       case 'precio-desc': {
-        const pa = a.operations?.[0]?.prices?.[0]?.price ?? 0
-        const pb = b.operations?.[0]?.prices?.[0]?.price ?? 0
+        const pa = operationForView(a, selectedOperationType)?.prices?.[0]?.price ?? 0
+        const pb = operationForView(b, selectedOperationType)?.prices?.[0]?.price ?? 0
         return pb - pa
       }
       case 'superficie': {
@@ -954,7 +977,13 @@ export default function PropiedadesView({
       default:
         return 0
     }
-  }), [properties, filters, sortBy, resolvedNeighborhoods])
+  }).map(property => prioritizeOperationForView(property, selectedOperationType)), [
+    properties,
+    filters,
+    sortBy,
+    resolvedNeighborhoods,
+    selectedOperationType,
+  ])
 
   // Lista para el mapa: aplica filtros + cercanía. NO aplica mapBounds porque
   // el bounds se calcula desde el viewport y filtrar por bounds antes de
