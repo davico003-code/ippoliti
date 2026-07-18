@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { getBarrioBySlug } from '@/lib/barrios'
 import { pushLeadToHilo } from '@/lib/hilo-leads'
+import { rateLimit } from '@/lib/feedback'
 
 function getRedis(): Redis | null {
   if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return null
@@ -22,6 +23,13 @@ interface LeadBody {
 }
 
 export async function POST(request: NextRequest) {
+  // Rate-limit anti-flood por IP (mismo patrón que /api/leads): sin esto un bot
+  // llena Redis + inbox de HILO + CRM con basura. fail-open.
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  if (!(await rateLimit(ip, 'barrios-lead', 6, 60))) {
+    return NextResponse.json({ error: 'Demasiados envíos seguidos. Esperá un momento y reintentá.' }, { status: 429 })
+  }
+
   let body: LeadBody
   try {
     body = (await request.json()) as LeadBody

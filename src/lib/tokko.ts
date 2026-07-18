@@ -1,3 +1,4 @@
+import { normalizeArWhatsapp } from './phone'
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
 // del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
@@ -259,13 +260,9 @@ const FALLBACK_PRODUCER_NAME = 'SI Inmobiliaria'
 // símbolos). Si no se puede inferir, devuelve el número general.
 export function getProducerWhatsappNumber(property: TokkoProperty): string {
   const raw = property.producer?.cellphone || property.producer?.phone || ''
-  const digits = String(raw).replace(/\D/g, '')
-  if (!digits) return FALLBACK_WA_NUMBER
-  if (digits.startsWith('549')) return digits
-  if (digits.startsWith('54')) return `549${digits.slice(2)}`
-  if (digits.startsWith('0')) return `549${digits.slice(1)}`
-  // Asume número AR sin código país ni 0 → completar con 549
-  return `549${digits}`
+  // normalizeArWhatsapp maneja el 0 de larga distancia y el 54 duplicado (antes
+  // '+54 0341...' → '5490341...' con el 0 pegado = wa.me roto).
+  return normalizeArWhatsapp(raw) || FALLBACK_WA_NUMBER
 }
 
 export function getProducerName(property: TokkoProperty): string {

@@ -18,9 +18,12 @@ export type HiloLeadPayload = {
   tokkoPropertyId?: string | number | null
 }
 
-export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<void> {
+/** Devuelve true si el lead quedó registrado en el inbox de Hilo. best-effort:
+ *  nunca lanza (el caller ya lo guardó en Redis), pero ahora el caller puede
+ *  saber si el push funcionó para no reportar éxito falso. */
+export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<boolean> {
   const secret = process.env.HILO_INGEST_SECRET
-  if (!secret) return // sin secreto no intentamos; la web ya capturó el lead
+  if (!secret) return false // sin secreto no intentamos; la web ya capturó el lead
 
   const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
   try {
@@ -33,10 +36,12 @@ export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<void> {
       body: JSON.stringify(payload),
       cache: 'no-store',
     })
-    if (!res.ok) {
-      console.warn('[hilo-leads] push no-ok:', res.status, await res.text().catch(() => ''))
-    }
+    // No logueamos el body de la respuesta: puede reflejar PII del lead a los
+    // logs de Vercel. Solo el status.
+    if (!res.ok) console.warn('[hilo-leads] push no-ok:', res.status)
+    return res.ok
   } catch (err) {
     console.warn('[hilo-leads] push error:', err)
+    return false
   }
 }
