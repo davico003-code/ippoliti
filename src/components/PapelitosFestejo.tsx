@@ -126,11 +126,11 @@ export default function PapelitosFestejo() {
       <button
         type="button"
         onClick={lanzar}
-        aria-label="Lanzar papelitos celeste y blanco"
+        aria-label="Estamos en la final, festejá con papelitos"
         className={`papelitos-btn${activo ? ' es-activo' : ''}`}
       >
         <span className="papelitos-emoji" aria-hidden>🎉</span>
-        <span className="papelitos-txt">¡Festejá!</span>
+        <span className="papelitos-txt">¡Estamos en la final! Festejá 🇦🇷</span>
       </button>
 
       <style>{`
