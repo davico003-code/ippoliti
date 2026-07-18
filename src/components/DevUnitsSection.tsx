@@ -31,6 +31,14 @@ const TYPE_MAP: Record<string, string> = {
   'PH': 'PH',
   'Duplex': 'Dúplex',
   'Local': 'Local comercial',
+  // Completado con el resto de tipos del feed para no mostrar inglés crudo.
+  'Warehouse': 'Galpón',
+  'Condo': 'Condominio',
+  'Countryside': 'Campo / Chacra',
+  'Country House': 'Casa de campo',
+  'Farm': 'Campo',
+  'Building': 'Edificio',
+  'Store': 'Local comercial',
 }
 
 function translateType(name: string): string {

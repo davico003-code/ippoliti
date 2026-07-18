@@ -204,7 +204,7 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
                 <span className="block font-poppins text-2xl font-black text-[#173229]">
                   1h
                 </span>
-                <span className="mt-1 block text-xs font-semibold text-gray-500">update</span>
+                <span className="mt-1 block text-xs font-semibold text-gray-500">actualización</span>
               </div>
             </div>
           </div>
