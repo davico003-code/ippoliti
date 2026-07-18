@@ -823,13 +823,22 @@ async function hiloGetProperties(params?: {
   offset?: number;
   fetchAll?: boolean;
 }): Promise<TokkoListResponse> {
-  const upstreamLimit = params?.fetchAll === false ? (params.limit ?? 50) : 1000;
-  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${upstreamLimit}`, {
+  // El feed HILO no filtra server-side, así que SIEMPRE traemos el feed completo
+  // (UNA sola entry de cache reutilizada por todos los callers) y filtramos +
+  // paginamos acá. Ignoramos fetchAll para el fetch upstream: filtrar/paginar
+  // sobre un subconjunto truncado daría total_count mentiroso y perdería
+  // propiedades (p.ej. filtrar Rent sobre los primeros 50 del feed).
+  const UPSTREAM_CAP = 1000;
+  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${UPSTREAM_CAP}`, {
     next: { revalidate: 3600, tags: ['tokko-properties'] },
   });
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
   const data = (await res.json()) as TokkoListResponse;
   let objects = data.objects ?? [];
+  const feedTotal = data.meta?.total_count ?? objects.length;
+  if (feedTotal > UPSTREAM_CAP || objects.length >= UPSTREAM_CAP) {
+    console.warn(`[hilo] feed truncado: recibidas ${objects.length}/${feedTotal} — subir UPSTREAM_CAP o paginar`);
+  }
   // El filtrado por operación/tipo lo hacemos acá (tenemos los ids de Tokko en type.id).
   if (params?.operation) {
     objects = objects.filter((o) => (o.operations || []).some((op) => op.operation_type === params.operation));
@@ -837,10 +846,11 @@ async function hiloGetProperties(params?: {
   if (params?.typeId) {
     objects = objects.filter((o) => o.type?.id === params.typeId);
   }
+  const total = objects.length;
   const offset = params?.offset ?? 0;
-  const limit = params?.limit ?? objects.length;
+  const limit = params?.limit ?? total;
   return {
-    meta: { limit, offset, total_count: objects.length, next: null, previous: null },
+    meta: { limit, offset, total_count: total, next: null, previous: null },
     objects: objects.slice(offset, offset + limit),
   };
 }
