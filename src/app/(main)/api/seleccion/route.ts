@@ -32,14 +32,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ id, url: `https://siinmobiliaria.com/seleccion/${id}` })
     }
 
-    // Read agent from JWT cookie
+    // Requiere agente autenticado (JWT). ANTES: sin token válido default-eaba a
+    // 'david' → cualquiera anónimo podía crear selecciones permanentes atribuidas
+    // a David. Ahora sin agente válido (ni la admin-key legacy de arriba) → 401.
     const token = req.cookies.get('si_agent_token')?.value
-    let agentId = 'david'
-    let agentName = 'David Flores'
-    if (token) {
-      const agent = await verifyAgentToken(token)
-      if (agent) { agentId = agent.id; agentName = agent.name }
+    const agent = token ? await verifyAgentToken(token) : null
+    if (!agent) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
+    const agentId = agent.id
+    const agentName = agent.name
 
     const { clientName, clientPhone, clientEmail, contactId, contactSource, days, note, properties } = body
     if (!clientName || !properties?.length) {
