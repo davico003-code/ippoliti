@@ -25,8 +25,8 @@ export default function PopupManager() {
     return <OpenHousePopup />
   }
 
-  // ExitPopup ("¿Encontraste lo que buscabas?") retirado a pedido: el newsletter
-  // activo es NewsletterPopup (montado aparte en el layout). El mecanismo de
-  // Open House queda cableado por si se revive un período futuro.
+  // ExitPopup ("¿Encontraste lo que buscabas?") retirado a pedido de David. El
+  // único popup activo del sitio es OportunidadesPopup (montado en el layout).
+  // El mecanismo de Open House queda cableado por si se revive un período futuro.
   return null
 }
