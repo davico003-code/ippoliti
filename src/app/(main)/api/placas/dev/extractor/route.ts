@@ -11,6 +11,7 @@ import { NextResponse } from 'next/server'
 import { extraerCarrusel } from '@/agents/placas/lib/extractor'
 import { leerNotaPorSlug } from '@/agents/placas/lib/leer-nota'
 import type { NotaParaExtractor } from '@/agents/placas/types'
+import { blockPlacasDevInProd } from '@/agents/placas/lib/dev-guard'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -70,6 +71,7 @@ En Funes y Roldán siempre hay oportunidades. Solo hay que saber leerlas. El ROI
 }
 
 export async function GET(req: Request) {
+  const __blocked = blockPlacasDevInProd(); if (__blocked) return __blocked
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }

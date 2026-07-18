@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { redis } from '@/lib/redis'
+import { isCronAuthorized } from '@/lib/cron-auth'
 
 const SERIES: Record<string, { url: string; label: string }> = {
   IPC: {
@@ -30,8 +31,7 @@ export async function GET(req: NextRequest) {
   // Auth check (fail-closed, igual que los demás crons): si CRON_SECRET no está
   // seteada NO se abre el endpoint — antes `cronSecret && ...` lo dejaba público
   // ante una env faltante, permitiendo reescribir IPC/CER/UVA sin auth.
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

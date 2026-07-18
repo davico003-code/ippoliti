@@ -105,6 +105,8 @@ export async function PATCH(req: Request, { params }: { params: { slug: string }
 
 interface DeleteBody {
   delete_code?: string
+  /** Requerido para borrar un acuerdo FIRMADO (registro legal inmutable). */
+  force_firmada?: boolean
 }
 
 export async function DELETE(req: Request, { params }: { params: { slug: string } }) {
@@ -139,9 +141,15 @@ export async function DELETE(req: Request, { params }: { params: { slug: string 
   }
 
   try {
-    const existed = await eliminarAutorizacion(slug)
-    if (!existed) {
+    const result = await eliminarAutorizacion(slug, { allowFirmada: body.force_firmada === true })
+    if (result === 'not_found') {
       return NextResponse.json({ error: 'No encontrada' }, { status: 404 })
+    }
+    if (result === 'protegida_firmada') {
+      return NextResponse.json(
+        { error: 'Acuerdo firmado: es un registro legal inmutable (Ley 25.506) y no se puede eliminar. Reenviá con force_firmada:true solo si estás 100% seguro.' },
+        { status: 409 },
+      )
     }
     return NextResponse.json({ ok: true })
   } catch (e) {

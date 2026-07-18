@@ -52,3 +52,6 @@ public/Funes.jpg
 public/cadaques.jpg
 public/dji_fly_*.jpg
 .env.production
+
+# config local personal (contiene secretos en la allowlist) — NUNCA trackear
+.claude/settings.local.json

@@ -202,33 +202,17 @@ export const metadata = {
   },
 }
 
-const homeJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'RealEstateAgent',
-  name: 'SI INMOBILIARIA',
-  image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
-  url: 'https://siinmobiliaria.com',
-  logo: 'https://siinmobiliaria.com/logo-si-horizontal.png',
-  telephone: '+5493412101694',
-  foundingDate: '1983',
-  founder: 'Susana Ippoliti',
-  description: 'SI INMOBILIARIA es una inmobiliaria familiar con más de 40 años de experiencia en Roldán, Funes y Rosario.',
-  address: [
-    { '@type': 'PostalAddress', streetAddress: 'Hipólito Yrigoyen 2643', addressLocality: 'Funes', addressRegion: 'Santa Fe', addressCountry: 'AR' },
-    { '@type': 'PostalAddress', streetAddress: '1ro de Mayo 258', addressLocality: 'Roldán', addressRegion: 'Santa Fe', addressCountry: 'AR' },
-    { '@type': 'PostalAddress', streetAddress: 'Catamarca 775', addressLocality: 'Roldán', addressRegion: 'Santa Fe', addressCountry: 'AR' },
-  ],
-  sameAs: ['https://www.instagram.com/inmobiliaria.si'],
-  areaServed: ['Roldán', 'Funes', 'Rosario', 'Fisherton'],
-}
+// El JSON-LD de negocio (RealEstateAgent + LocalBusiness de cada sucursal) lo
+// emite el layout site-wide con un @id canónico. Antes la home emitía OTRO
+// RealEstateAgent (sin @id, con teléfono/nombre distintos) → dos entidades
+// contradictorias para Google. Se eliminó; el dato único (founder) se movió al
+// del layout.
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
 export default async function Home() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }} />
-
       {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
       <div className="md:hidden">
         <HeroMobile />

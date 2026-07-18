@@ -7,7 +7,9 @@ import type { DevUnit } from '@/lib/developments'
 function getPhoto(u: DevUnit): string | null {
   const photos = (u.photos || []).filter(p => !p.is_blueprint)
   const cover = photos.find(p => p.is_front_cover)
-  return (cover || photos[0])?.image || (cover || photos[0])?.thumb || null
+  // Preferir el thumb (las cards son chicas): la original full-res de Tokko
+  // pesa MB por card y se descargaban todas de una.
+  return (cover || photos[0])?.thumb || (cover || photos[0])?.image || null
 }
 
 function getDorms(u: DevUnit): number {
@@ -193,6 +195,8 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
                     <img
                       src={photo}
                       alt={u.publication_title || u.reference_code}
+                      loading="lazy"
+                      decoding="async"
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : (
@@ -275,7 +279,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
               <div className="relative h-[160px] bg-[#F2F2F7]">
                 {photo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt={u.publication_title || u.reference_code} className="w-full h-full object-cover" />
+                  <img src={photo} alt={u.publication_title || u.reference_code} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5">

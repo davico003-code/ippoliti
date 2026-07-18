@@ -46,6 +46,15 @@ export default function PropertyMap({ lat, lng, address }: Props) {
   )
   const [loading, setLoading] = useState(!coords)
 
+  // El estado se inicializa de props UNA vez: sin esto, al navegar de una ficha
+  // a otra (mismo componente, sin key) el mapa se quedaba en la ubicación de la
+  // propiedad anterior. Re-sincronizamos coords cuando cambian lat/lng.
+  useEffect(() => {
+    const has = lat != null && lng != null && !isNaN(lat) && !isNaN(lng)
+    setCoords(has ? [lat, lng] : null)
+    setLoading(!has)
+  }, [lat, lng])
+
   useEffect(() => {
     if (coords || !address) { setLoading(false); return }
 

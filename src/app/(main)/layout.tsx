@@ -164,6 +164,7 @@ const jsonLd = [
     url: "https://siinmobiliaria.com",
     logo: "https://siinmobiliaria.com/logo-si-horizontal.png",
     foundingDate: "1983",
+    founder: { "@type": "Person", name: "Susana Ippoliti" },
     telephone: "+54-341-210-1694",
     email: "contacto@siinmobiliaria.com",
     address: {

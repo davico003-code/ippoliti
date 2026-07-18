@@ -1,3 +1,4 @@
+import { normalizeArWhatsapp } from './phone'
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
 // del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
@@ -259,13 +260,9 @@ const FALLBACK_PRODUCER_NAME = 'SI Inmobiliaria'
 // símbolos). Si no se puede inferir, devuelve el número general.
 export function getProducerWhatsappNumber(property: TokkoProperty): string {
   const raw = property.producer?.cellphone || property.producer?.phone || ''
-  const digits = String(raw).replace(/\D/g, '')
-  if (!digits) return FALLBACK_WA_NUMBER
-  if (digits.startsWith('549')) return digits
-  if (digits.startsWith('54')) return `549${digits.slice(2)}`
-  if (digits.startsWith('0')) return `549${digits.slice(1)}`
-  // Asume número AR sin código país ni 0 → completar con 549
-  return `549${digits}`
+  // normalizeArWhatsapp maneja el 0 de larga distancia y el 54 duplicado (antes
+  // '+54 0341...' → '5490341...' con el 0 pegado = wa.me roto).
+  return normalizeArWhatsapp(raw) || FALLBACK_WA_NUMBER
 }
 
 export function getProducerName(property: TokkoProperty): string {
@@ -823,13 +820,22 @@ async function hiloGetProperties(params?: {
   offset?: number;
   fetchAll?: boolean;
 }): Promise<TokkoListResponse> {
-  const upstreamLimit = params?.fetchAll === false ? (params.limit ?? 50) : 1000;
-  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${upstreamLimit}`, {
+  // El feed HILO no filtra server-side, así que SIEMPRE traemos el feed completo
+  // (UNA sola entry de cache reutilizada por todos los callers) y filtramos +
+  // paginamos acá. Ignoramos fetchAll para el fetch upstream: filtrar/paginar
+  // sobre un subconjunto truncado daría total_count mentiroso y perdería
+  // propiedades (p.ej. filtrar Rent sobre los primeros 50 del feed).
+  const UPSTREAM_CAP = 1000;
+  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${UPSTREAM_CAP}`, {
     next: { revalidate: 3600, tags: ['tokko-properties'] },
   });
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
   const data = (await res.json()) as TokkoListResponse;
   let objects = data.objects ?? [];
+  const feedTotal = data.meta?.total_count ?? objects.length;
+  if (feedTotal > UPSTREAM_CAP || objects.length >= UPSTREAM_CAP) {
+    console.warn(`[hilo] feed truncado: recibidas ${objects.length}/${feedTotal} — subir UPSTREAM_CAP o paginar`);
+  }
   // El filtrado por operación/tipo lo hacemos acá (tenemos los ids de Tokko en type.id).
   if (params?.operation) {
     objects = objects.filter((o) => (o.operations || []).some((op) => op.operation_type === params.operation));
@@ -837,10 +843,11 @@ async function hiloGetProperties(params?: {
   if (params?.typeId) {
     objects = objects.filter((o) => o.type?.id === params.typeId);
   }
+  const total = objects.length;
   const offset = params?.offset ?? 0;
-  const limit = params?.limit ?? objects.length;
+  const limit = params?.limit ?? total;
   return {
-    meta: { limit, offset, total_count: objects.length, next: null, previous: null },
+    meta: { limit, offset, total_count: total, next: null, previous: null },
     objects: objects.slice(offset, offset + limit),
   };
 }

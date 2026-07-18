@@ -19,6 +19,10 @@ import {
 
 export const dynamic = 'force-dynamic'
 
+// Ruta de prueba que DUPLICA la ficha real → nunca indexar (además del disallow
+// en robots.txt, que por sí solo no evita la indexación si la enlazan).
+export const metadata = { robots: { index: false, follow: false } }
+
 const HILO_BASE = process.env.HILO_FEED_URL || 'https://meethilo.com'
 
 export default async function PropiedadHiloTestPage({ params }: { params: { id: string } }) {

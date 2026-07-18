@@ -1,3 +1,4 @@
+import { isCronAuthorized } from '@/lib/cron-auth'
 // Cron del generador de placas — corre Mar/Vie 11:05 UTC, 5 min después
 // del blog-writer. Toma la última nota publicada, genera el carrusel
 // completo y deja todo listo para aprobación en /admin/placas/{slug}.
@@ -7,8 +8,7 @@ export const runtime = 'nodejs'
 export const maxDuration = 300
 
 export async function GET(req: Request) {
-  const auth = req.headers.get('authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCronAuthorized(req)) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

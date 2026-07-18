@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { MapPin, Building2, Banknote, ArrowLeft, CheckCircle2, Phone, MessageCircle, Calendar } from 'lucide-react'
 import {
   getDevelopments,
@@ -98,7 +99,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: override?.title ?? `${dev.name} | Emprendimientos SI Inmobiliaria`,
       description: desc,
-      alternates: { canonical: `https://siinmobiliaria.com/emprendimientos/${params.slug}` },
+      // Canonical al slug CANÓNICO del dev (no al pedido): así /emprendimientos/
+      // 67173-cualquier-cosa consolida en la URL correcta en vez de auto-
+      // canonicalizarse y generar duplicados infinitos.
+      alternates: { canonical: `https://siinmobiliaria.com/emprendimientos/${generateDevSlug(dev)}` },
       openGraph: {
         title: override?.title ?? `${dev.name} | SI Inmobiliaria`,
         description: desc,
@@ -137,14 +141,9 @@ export default async function DevelopmentPage({ params }: Props) {
       if (cliente) return <ManualClientePage cliente={cliente} />
     } catch {}
 
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
-        <h1 className="text-3xl font-black text-gray-900 mb-4">Emprendimiento no encontrado</h1>
-        <Link href="/emprendimientos" className="px-6 py-3 bg-brand-600 text-white rounded-lg font-semibold hover:bg-brand-700 transition-colors">
-          Ver emprendimientos
-        </Link>
-      </div>
-    )
+    // Ni emprendimiento ni cliente manual → 404 real (antes servía este JSX con
+    // HTTP 200 = soft-404, y Google indexaba páginas de error).
+    notFound()
   }
 
   const photos = getDevAllPhotos(dev)
