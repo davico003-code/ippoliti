@@ -348,6 +348,17 @@ export function getOperationType(property: TokkoProperty): string {
   return String(type);
 }
 
+// Color canónico del badge de operación. Fuente única de verdad: antes esta
+// lógica estaba copiada en 6 componentes y "Venta" quedó pintado inconsistente
+// (verde en /propiedades, rojo en home/detalle). Convención unificada:
+//   Venta → verde de marca · Alquiler (y temporario) → rojo oscuro (pedido de
+//   David) · resto (permutas, etc.) → violeta.
+export function operationBadgeColor(operation: string): string {
+  if (operation === 'Venta') return '#1A5C38';
+  if (operation.startsWith('Alquiler')) return '#991B1B';
+  return '#7c3aed';
+}
+
 // Extrae el nombre de calle sin número, para mostrar en /v sin filtrar dirección.
 //   "Bv Sarmiento 578" → "Bv Sarmiento"
 //   "Casilda 621 - Villa Elvira - Funes" → "Casilda"
