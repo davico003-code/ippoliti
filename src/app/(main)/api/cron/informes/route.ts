@@ -1,8 +1,8 @@
+import { isCronAuthorized } from '@/lib/cron-auth'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
-  const auth = req.headers.get('authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCronAuthorized(req)) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
