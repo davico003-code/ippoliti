@@ -10,6 +10,7 @@
 import { NextResponse } from 'next/server'
 import { renderPlaca } from '@/agents/placas/lib/renderer'
 import type { Carrusel } from '@/agents/placas/types'
+import { blockPlacasDevInProd } from '@/agents/placas/lib/dev-guard'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -142,6 +143,7 @@ const CARRUSEL: Carrusel = {
 }
 
 export async function GET(req: Request) {
+  const __blocked = blockPlacasDevInProd(); if (__blocked) return __blocked
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
