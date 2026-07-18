@@ -97,7 +97,7 @@ export async function getSlides(): Promise<Slide[]> {
       const photo = getMainPhoto(p) as string
       // Hasta 4 fotos de la misma propiedad (portada primero, sin duplicar):
       // hero + tira de miniaturas en el kiosco vertical.
-      const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 4)
+      const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 5)
       let qr = ''
       try {
         qr = await QRCode.toDataURL(url, { margin: 1, width: 220, color: { dark: '#0E1A14', light: '#FFFFFF' } })
