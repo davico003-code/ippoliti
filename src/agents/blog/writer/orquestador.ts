@@ -60,6 +60,20 @@ export async function ejecutarWriterDia(
 ): Promise<WriterResult> {
   const redis = getRedis();
 
+  // 0. Lock de idempotencia por día: si el cron se dispara dos veces (o alguien
+  //    corre el endpoint mientras el cron ya está en vuelo) NO se publican dos
+  //    notas el mismo día. Lock de 10 min con NX.
+  const hoy = new Date().toISOString().slice(0, 10);
+  const lockKey = `blog:writer:lock:${dia}:${hoy}`;
+  const gotLock = await redis.set(lockKey, '1', { nx: true, ex: 600 });
+  if (!gotLock) {
+    await registrarActividad({
+      tipo: 'error',
+      mensaje: `${dia}: ya hay una ejecución del writer en curso/hecha hoy (lock activo). No se publica de nuevo.`,
+    });
+    return { ok: false, error: 'lock-activo' };
+  }
+
   // 1. Leer la cola de temas del radar (ya no hay estado "aprobado": el radar
   //    del lunes llena blog:temas_semana y el writer auto-selecciona).
   const raw = await redis.get<string>(BLOG_REDIS_KEYS.temasSemana);

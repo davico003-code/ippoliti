@@ -19,9 +19,9 @@ const STYLE_GUIDE = `# Voz Editorial David Flores / SI Inmobiliaria
 - Confianza sin arrogancia. Los datos y la trayectoria hablan solos.
 
 ## Estructura típica
-1. Bajada / hook con contexto + dato concreto (1-2 oraciones)
+1. Bajada / hook con contexto (dato concreto SOLO si es verificado)
 2. Subtítulo de sección con pregunta o tema claro
-3. Desarrollo con números específicos (%, rangos USD, m²)
+3. Desarrollo claro (números específicos solo si son datos verificados, nunca inventados)
 4. Ángulo local Funes/Roldán cuando aplique
 5. Cierre con filosofía breve + invitación (no venta dura)
 
@@ -33,10 +33,15 @@ const STYLE_GUIDE = `# Voz Editorial David Flores / SI Inmobiliaria
 - "Hoy quien compra en Funes/Roldán no solo invierte en una propiedad, sino en un estilo de vida"
 - "En SI trabajamos todos los días con personas que..."
 
-## Uso de datos
-- Siempre cifras concretas. No "el mercado subió", sí "+17,7% según COCIR".
-- Comparaciones explícitas con rangos.
-- Fuentes mencionadas: COCIR, UNR, Colegio de Escribanos, BCRA, Zonaprop, CAC.
+## Uso de datos (CRÍTICO)
+- NUNCA inventes cifras, porcentajes ni estadísticas, y NUNCA atribuyas un número
+  a una fuente (COCIR, UNR, BCRA, INDEC, Zonaprop, CAC, etc.) salvo que el dato
+  venga EXPLÍCITO en el contexto que te pasamos. Inventar un dato con fuente es
+  la falta más grave: la nota se publica sola y sin revisión.
+- Si no tenés un número verificado, escribí en términos cualitativos
+  ("la construcción viene en alza", "la demanda en Funes se mantiene firme"),
+  sin porcentajes ni montos inventados.
+- Solo cuando el dato venga del contexto, citalo con su fuente en blockquote.
 
 ## Prohibido
 - Clichés: "en un mercado cambiante", "es importante destacar", "cabe mencionar", "sin lugar a dudas"
