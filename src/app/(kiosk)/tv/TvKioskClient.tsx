@@ -1,9 +1,9 @@
 'use client'
 
 // Kiosco de TV HORIZONTAL: una propiedad a pantalla completa con Ken Burns +
-// crossfade, precio y datos, burbujas redondas con el resto de fotos de la misma
-// casa y QR para abrir en el celular. Reloj/fecha y branding SI. Sin interacción
-// — pensado para dejar corriendo en un televisor todo el día.
+// crossfade, precio y datos, y hasta 4 fotos 4:3 de la misma casa en la columna
+// derecha. Reloj/fecha y branding SI. Sin interacción — pensado para dejar
+// corriendo en un televisor todo el día.
 
 import { useEffect, useState } from 'react'
 import type { Slide } from '../tvData'
@@ -61,7 +61,7 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
 
   const windowIdx = new Set([mod(idx - 1, slides.length), idx, mod(idx + 1, slides.length)])
   const s = slides[idx]
-  const bubbles = (s.photos ?? []).slice(1, 4) // resto de fotos de la misma casa
+  const bubbles = (s.photos ?? []).slice(1, 5) // hasta 4 fotos más de la misma casa
 
   return (
     <main className="tv-root" onClick={toggleFullscreen} title="Tocar para pantalla completa">
@@ -111,7 +111,7 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
         )}
       </div>
 
-      {/* Columna derecha: burbujas de fotos + QR */}
+      {/* Columna derecha: fotos de la misma casa (hasta 4) */}
       <div key={`side-${idx}`} className="tv-side">
         {bubbles.map((src, k) => (
           <div key={k} className="tv-bubble" style={{ animationDelay: `${120 + k * 120}ms` }}>
@@ -119,13 +119,6 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
             <img src={src} alt="" className="tv-bubble-img" />
           </div>
         ))}
-        {s.qr && (
-          <div className="tv-qr" style={{ animationDelay: `${120 + bubbles.length * 120}ms` }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={s.qr} alt="Código QR de la propiedad" className="tv-qr-img" />
-            <div className="tv-qr-text">Escaneá</div>
-          </div>
-        )}
       </div>
 
       {/* Barra de progreso */}
@@ -172,18 +165,13 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
           font-variant-numeric: tabular-nums; }
         .tv-spec-l { font-size: 1.5vh; color: rgba(255,255,255,.75); margin-top: .7vh; }
 
-        /* Columna derecha: burbujas + QR, centradas verticalmente */
+        /* Columna derecha: hasta 4 fotos 4:3 de la misma casa, centradas */
         .tv-side { position: absolute; right: 3.4vw; top: 50%; transform: translateY(-50%); z-index: 6;
-          display: flex; flex-direction: column; align-items: center; gap: 2.6vh; }
-        .tv-bubble { width: 15vh; height: 15vh; border-radius: 50%; overflow: hidden; position: relative;
-          border: .35vh solid rgba(255,255,255,.9); box-shadow: 0 1.4vh 3vh rgba(0,0,0,.5);
+          display: flex; flex-direction: column; align-items: center; gap: 3.5vh; }
+        .tv-bubble { width: 27vh; aspect-ratio: 16 / 9; border-radius: 2vh; overflow: hidden; position: relative;
+          border: .3vh solid rgba(255,255,255,.9); box-shadow: 0 1.4vh 3vh rgba(0,0,0,.5);
           animation: tvPop 700ms cubic-bezier(.34,1.56,.64,1) both; }
         .tv-bubble-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .tv-qr { width: 15vh; display: flex; flex-direction: column; align-items: center; gap: .8vh;
-          background: #fff; border-radius: 1.6vh; padding: 1.2vh; box-shadow: 0 1.4vh 3vh rgba(0,0,0,.5);
-          animation: tvPop 700ms cubic-bezier(.34,1.56,.64,1) both; }
-        .tv-qr-img { width: 100%; aspect-ratio: 1; display: block; }
-        .tv-qr-text { font-size: 1.5vh; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0E1A14; }
 
         .tv-progress { position: absolute; left: 0; bottom: 0; height: .55vh; min-height: 4px; z-index: 7;
           background: linear-gradient(90deg, #1A5C38, #8CF0B4); width: 0; animation-name: tvProgress;
@@ -197,7 +185,7 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
         @keyframes tvPop { from { opacity: .5; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
 
         @media (prefers-reduced-motion: reduce) {
-          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-bubble, .tv-qr { animation: none !important; transition: none !important; }
+          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-bubble { animation: none !important; transition: none !important; }
         }
       `}</style>
     </main>
