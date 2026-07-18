@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import OpenHousePopup from './OpenHousePopup'
-import ExitPopup from './ExitPopup'
 
 // Open House runs until April 16, 2026 23:59:59 ART (UTC-3)
 // April 17 00:00:00 ART = April 17 03:00:00 UTC
@@ -26,5 +25,8 @@ export default function PopupManager() {
     return <OpenHousePopup />
   }
 
-  return <ExitPopup />
+  // ExitPopup ("¿Encontraste lo que buscabas?") retirado a pedido: el newsletter
+  // activo es NewsletterPopup (montado aparte en el layout). El mecanismo de
+  // Open House queda cableado por si se revive un período futuro.
+  return null
 }
