@@ -11,6 +11,7 @@ import {
   getMainPhoto,
   getRoofedArea,
   getLotSurface,
+  translatePropertyType,
 } from '@/lib/tokko'
 import { trackEvent } from '@/lib/analytics'
 
@@ -140,7 +141,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
               </div>
               <div className="space-y-1.5 p-4">
                 <p className="text-xs uppercase tracking-wide text-stone-500">
-                  {p.type?.name ?? ''} · {formatLocation(p)}
+                  {translatePropertyType(p.type?.name)} · {formatLocation(p)}
                 </p>
                 <h4 className="font-raleway text-base font-semibold text-navy-700 line-clamp-2">
                   {p.publication_title}

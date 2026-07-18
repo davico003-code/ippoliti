@@ -12,6 +12,7 @@ import {
   formatPrice,
   formatLocation,
   generatePropertySlug,
+  translatePropertyType,
   type TokkoProperty,
 } from '@/lib/tokko'
 
@@ -30,15 +31,12 @@ export interface Slide {
 const SITE = 'https://siinmobiliaria.com'
 const MAX_SLIDES = 30
 
-const TIPO_ES: Record<string, string> = {
-  House: 'Casa', Apartment: 'Departamento', Land: 'Terreno', Office: 'Oficina',
-  Warehouse: 'Galpón', Condo: 'Casa', PH: 'PH', Business: 'Fondo de comercio',
-  Store: 'Local', Local: 'Local', Terreno: 'Terreno', Casa: 'Casa',
-}
-
+// Traducción de tipología: usa el mapa canónico de tokko.ts (única fuente de
+// verdad) para no repetir un mapa parcial. El local previo tenía 'Business'
+// (nunca matcheaba: el feed manda 'Bussiness Premises') y le faltaban 'Garage'
+// y 'Countryside', que caían crudos en inglés en pantalla.
 function tipoEs(p: TokkoProperty): string {
-  const n = p.type?.name ?? ''
-  return TIPO_ES[n] ?? n
+  return translatePropertyType(p.type?.name)
 }
 
 function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {

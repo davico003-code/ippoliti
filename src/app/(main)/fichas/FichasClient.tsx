@@ -226,7 +226,7 @@ function FichaHeaderRow() {
     >
       <div style={cell}>Foto</div>
       <div style={cell}>Propiedad</div>
-      <div style={cell}>Views</div>
+      <div style={cell}>Vistas</div>
       <div style={cell}>Días</div>
       <div style={cell}>Acciones</div>
     </div>

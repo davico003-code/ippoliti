@@ -429,7 +429,7 @@ export default function ClientShortlist({
       </main>
 
       {previewProp && (
-        <div className="fixed inset-0 z-[100] bg-[#0f1f16]/70 p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Preview de propiedad">
+        <div className="fixed inset-0 z-[100] bg-[#0f1f16]/70 p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Vista previa de propiedad">
           <div className="mx-auto flex h-full max-w-[1180px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between gap-3 border-b border-[#E4E9E5] px-3 py-2.5 sm:px-4">
               <div className="min-w-0">
@@ -438,7 +438,7 @@ export default function ClientShortlist({
               </div>
               <button type="button" onClick={() => setPreviewPropId(null)}
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E4E9E5] bg-white text-[#123f27] transition hover:bg-[#F4F6F5]"
-                aria-label="Cerrar preview">
+                aria-label="Cerrar vista previa">
                 <BtnX />
               </button>
             </div>
