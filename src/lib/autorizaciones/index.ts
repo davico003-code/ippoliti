@@ -31,6 +31,39 @@ export function generarSlug(): string {
   return slugGen()
 }
 
+// Persiste el acuerdo eligiendo el TTL según su estado:
+//  - firmada  → SIN expiración. Es el registro probatorio de una firma
+//    electrónica (Ley 25.506): borrarlo destruiría la prueba. Inmutable.
+//  - resto    → TTL hasta expires_at (mín. 1h), para que extender expires_at
+//    extienda de verdad la vigencia del link (antes el TTL quedaba fijo a 90d
+//    desde la creación y un PATCH de expires_at no lo movía).
+async function persist(auth: Autorizacion): Promise<void> {
+  if (auth.status === 'firmada') {
+    await redis.set(KEY(auth.slug), JSON.stringify(auth))
+    return
+  }
+  const ttl = Math.max(3600, Math.ceil((new Date(auth.expires_at).getTime() - Date.now()) / 1000))
+  await redis.set(KEY(auth.slug), JSON.stringify(auth), { ex: ttl })
+}
+
+// Escritura de metadata (salud, notas, precio, expires) que NUNCA puede revertir
+// una firma: relee justo antes de guardar y, si entró una firma en la ventana
+// read→write, conserva los campos firmados en vez de pisarlos con estado viejo.
+async function persistPreservingSignature(candidate: Autorizacion): Promise<void> {
+  const fresh = await getAutorizacion(candidate.slug)
+  if (fresh && fresh.status === 'firmada' && candidate.status !== 'firmada') {
+    candidate = {
+      ...candidate,
+      status: fresh.status,
+      signed_at: fresh.signed_at,
+      signer: fresh.signer,
+      documento_snapshot: fresh.documento_snapshot,
+      expires_at: fresh.expires_at,
+    }
+  }
+  await persist(candidate)
+}
+
 // ── Tipos ──────────────────────────────────────────────────────────────────
 
 export type TipoAutorizacion = 'exclusiva' | 'no_exclusiva'
@@ -248,7 +281,7 @@ export async function marcarFirmada(slug: string, signer: Signer): Promise<Autor
     ...partial,
     documento_snapshot: buildDocumentoSnapshot(partial, signer, now),
   }
-  await redis.set(KEY(slug), JSON.stringify(updated), { ex: TTL_SECONDS })
+  await persist(updated) // firmada → sin TTL (registro legal inmutable)
   await redis.zrem(LIST_PENDIENTE, slug)
   await redis.zadd(LIST_FIRMADA, { score: now.getTime(), member: slug })
   return updated
@@ -282,7 +315,7 @@ export async function actualizarAutorizacion(
   if (patch.expires_at !== undefined) {
     updated.expires_at = patch.expires_at
   }
-  await redis.set(KEY(slug), JSON.stringify(updated), { ex: TTL_SECONDS })
+  await persistPreservingSignature(updated)
   return updated
 }
 
@@ -298,22 +331,28 @@ export async function actualizarSalud(
   const auth = await getAutorizacion(slug)
   if (!auth) return null
   const updated: Autorizacion = { ...auth, salud }
-  await redis.set(KEY(slug), JSON.stringify(updated), { ex: TTL_SECONDS })
+  await persistPreservingSignature(updated)
   return updated
 }
 
 // ── Eliminación ────────────────────────────────────────────────────────────
 
 /** Elimina el acuerdo del Redis (key + ambos sorted sets). Idempotente.
- *  Retorna true si existía, false si no. */
-export async function eliminarAutorizacion(slug: string): Promise<boolean> {
-  const existed = (await redis.exists(KEY(slug))) === 1
+ *  Un acuerdo FIRMADO es un registro legal inmutable (Ley 25.506): NO se puede
+ *  borrar salvo que se pase `allowFirmada: true` explícito. */
+export async function eliminarAutorizacion(
+  slug: string,
+  opts?: { allowFirmada?: boolean },
+): Promise<'not_found' | 'protegida_firmada' | 'deleted'> {
+  const auth = await getAutorizacion(slug)
+  if (!auth) return 'not_found'
+  if (auth.status === 'firmada' && !opts?.allowFirmada) return 'protegida_firmada'
   await Promise.all([
     redis.del(KEY(slug)),
     redis.zrem(LIST_PENDIENTE, slug),
     redis.zrem(LIST_FIRMADA, slug),
   ])
-  return existed
+  return 'deleted'
 }
 
 // ── Listado ────────────────────────────────────────────────────────────────
