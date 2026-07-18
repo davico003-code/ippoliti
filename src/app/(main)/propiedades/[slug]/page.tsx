@@ -86,7 +86,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: 'Propiedad | SI Inmobiliaria' };
+    // La propiedad no existe / el feed falló. La ruta hace notFound() pero por
+    // una limitación de Next el streaming ya commiteó HTTP 200 (soft-404). El
+    // noindex evita que Google indexe esa página de error.
+    return { title: 'Propiedad no encontrada | SI Inmobiliaria', robots: { index: false, follow: false } };
   }
 }
 
