@@ -27,6 +27,24 @@ async function hiloFeed(): Promise<any[]> {
   return data.objects ?? []
 }
 
+// El `development` embebido en el FEED DE LISTA viene recortado (sin photos ni
+// financing_details). El endpoint de UNA propiedad sí trae el development
+// completo, así que para los datos ricos del emprendimiento (fotos del hero,
+// financiación) leemos una unidad cualquiera de ese dev.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function hiloRichDev(unitId: number): Promise<any | null> {
+  try {
+    const res = await fetch(`${HILO_BASE}/api/public/propiedades/${unitId}`, {
+      next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${unitId}`] },
+    })
+    if (!res.ok) return null
+    const p = await res.json()
+    return p.development ?? null
+  } catch {
+    return null
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRawDev(d: any): Development {
   return {
@@ -185,12 +203,20 @@ export { translateTag } from './tokko'
 export async function getDevelopments(): Promise<Development[]> {
   if (isHiloSource()) {
     const objs = await hiloFeed()
-    const byId = new Map<number, Development>()
+    // Una unidad representativa por dev (para traer el development completo).
+    const unitByDev = new Map<number, number>()
     for (const o of objs) {
       const d = o.development
-      if (d?.id && d.display_on_web !== false && !byId.has(d.id)) byId.set(d.id, mapRawDev(d))
+      if (d?.id && d.display_on_web !== false && !unitByDev.has(d.id)) unitByDev.set(d.id, o.id)
     }
-    return Array.from(byId.values())
+    const devs = await Promise.all(
+      Array.from(unitByDev.entries()).map(async ([devId, unitId]) => {
+        const rich = await hiloRichDev(unitId)
+        // Fallback al dev recortado del feed si la lectura rica falla.
+        return mapRawDev(rich ?? objs.find((o) => o.development?.id === devId)?.development)
+      }),
+    )
+    return devs
   }
   const url = `${BASE_URL}/development/?key=${getApiKey()}&lang=es&format=json&limit=100`
   const res = await fetch(url, { next: { revalidate: 3600 } })
@@ -204,7 +230,9 @@ export async function getDevelopmentById(id: number): Promise<Development> {
     const objs = await hiloFeed()
     const hit = objs.find((o) => o.development?.id === id)
     if (!hit) throw new Error(`Development ${id} not found`)
-    return mapRawDev(hit.development)
+    // Traer el development COMPLETO (con fotos/financiación) desde la unidad.
+    const rich = await hiloRichDev(hit.id)
+    return mapRawDev(rich ?? hit.development)
   }
   const url = `${BASE_URL}/development/${id}/?key=${getApiKey()}&lang=es&format=json`
   const res = await fetch(url, { next: { revalidate: 3600 } })
