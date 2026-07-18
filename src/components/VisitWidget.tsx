@@ -84,8 +84,13 @@ export default function VisitWidget({
 
   async function handleSubmit() {
     if (!canSubmit || !selectedDate) return
-    setLoading(true)
 
+    // Abrir WhatsApp SINCRÓNICO, dentro del gesto del click: si va después del
+    // `await fetch`, iOS Safari lo bloquea y el flujo principal de leads mobile
+    // no abre WhatsApp. El registro de la visita se hace en background.
+    if (waHref) window.open(waHref, '_blank')
+
+    setLoading(true)
     const fechaStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
 
     try {
@@ -106,8 +111,6 @@ export default function VisitWidget({
         }),
       })
     } catch {}
-
-    if (waHref) window.open(waHref, '_blank')
 
     setLoading(false)
     setSent(true)
