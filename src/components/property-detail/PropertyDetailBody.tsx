@@ -428,6 +428,7 @@ export default function PropertyDetailBody({
           el flag está off). publishedPrice=0 cuando no hay precio visible
           (oculta el slider, deja caritas + alerta). */}
       <FeedbackDetalle
+        key={property.id}
         propertyId={property.id}
         publishedPrice={
           property.web_price !== false && typeof price0?.price === 'number' && price0.price > 0

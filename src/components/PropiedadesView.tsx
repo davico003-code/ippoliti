@@ -705,11 +705,15 @@ export default function PropiedadesView({
   // de búsquedas específicas.
   // IMPORTANTE: el valor inicial debe ser server-estable ('list' en SSR) para
   // no generar hydration mismatch.
-  const [mobileView, setMobileView]     = useState<'list' | 'map'>(() => {
-    if (typeof window === 'undefined') return 'list'
+  // Valor inicial SERVER-ESTABLE ('list'): leer sessionStorage en el initializer
+  // hacía que la primera render del cliente ('map' si el usuario lo prefería) no
+  // coincidiera con el SSR ('list') → hydration mismatch. La preferencia se
+  // aplica en un effect post-montaje (abajo).
+  const [mobileView, setMobileView]     = useState<'list' | 'map'>('list')
+  useEffect(() => {
     const pref = safeSessionGet('si_view_preference')
-    return pref === 'list' || pref === 'map' ? pref : 'list'
-  })
+    if (pref === 'list' || pref === 'map') setMobileView(pref)
+  }, [])
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
