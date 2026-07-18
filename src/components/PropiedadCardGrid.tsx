@@ -13,6 +13,7 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
+  operationBadgeColor,
   getRoofedArea,
   getLotSurface,
   isLand,
@@ -282,8 +283,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         <div className="absolute top-2.5 left-2.5 flex gap-1.5">
           {operation && (
             <span style={{
-              background: operation === 'Venta' ? '#1A5C38'
-                : operation === 'Alquiler' ? '#2563eb' : '#7c3aed',
+              background: operationBadgeColor(operation),
               color: '#fff',
               fontFamily: RALEWAY,
               fontWeight: 600,

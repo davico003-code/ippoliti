@@ -7,6 +7,7 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
+  operationBadgeColor,
   getRoofedArea,
   getLotSurface,
   isLand,
@@ -17,8 +18,8 @@ import {
 // Badge basado en operation_type real de Tokko
 function getBadge(p: TokkoProperty): { label: string; bg: string } {
   const op = getOperationType(p)
-  if (op === 'Alquiler') return { label: 'ALQUILER', bg: '#2563eb' }
-  return { label: 'VENTA', bg: '#1A5C38' }
+  if (op.startsWith('Alquiler')) return { label: 'ALQUILER', bg: operationBadgeColor(op) }
+  return { label: 'VENTA', bg: operationBadgeColor('Venta') }
 }
 
 export default async function SeleccionCarousel() {

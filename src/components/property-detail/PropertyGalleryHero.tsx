@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
-import { getAllPhotos, getOperationType, translatePropertyType } from '@/lib/tokko'
+import { getAllPhotos, getOperationType, operationBadgeColor, translatePropertyType } from '@/lib/tokko'
 import LikeHeart from '@/components/feedback/LikeHeart'
 
 const GREEN = '#1A5C38'
@@ -97,7 +97,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
           {operation && (
             <span
               className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white"
-              style={{ background: operation === 'Venta' ? '#dc2626' : '#2563eb' }}
+              style={{ background: operationBadgeColor(operation) }}
             >
               {operation}
             </span>
@@ -139,7 +139,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
             {operation && (
               <span
                 className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white"
-                style={{ background: operation === 'Venta' ? '#dc2626' : '#2563eb' }}
+                style={{ background: operationBadgeColor(operation) }}
               >
                 {operation}
               </span>

@@ -36,6 +36,7 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
+  operationBadgeColor,
   getRoofedArea,
   getLotSurface,
   isLand,
@@ -1813,7 +1814,7 @@ export default function PropiedadesView({
                 return op ? (
                   <span className="absolute top-2.5 left-2.5"
                     style={{
-                      background: op === 'Venta' ? '#1A5C38' : op === 'Alquiler' ? '#2563eb' : '#7c3aed',
+                      background: operationBadgeColor(op),
                       color: '#fff', fontFamily: "'Raleway', system-ui, sans-serif",
                       fontWeight: 600, fontSize: 11, textTransform: 'uppercase',
                       padding: '5px 10px', borderRadius: 6,

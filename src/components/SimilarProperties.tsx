@@ -12,6 +12,7 @@ import {
   getTotalSurface,
   getRoofedArea,
   translatePropertyType,
+  operationBadgeColor,
 } from '@/lib/tokko'
 
 type SortMode = 'recomendado' | 'precio' | 'dormitorios' | 'barrio'
@@ -173,7 +174,7 @@ export default function SimilarProperties({ properties }: Props) {
                 {op && (
                   <span
                     className="absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[10px] font-bold rounded text-white uppercase tracking-wide"
-                    style={{ background: op === 'Venta' ? '#dc2626' : '#2563eb' }}
+                    style={{ background: operationBadgeColor(op) }}
                   >
                     {op}
                   </span>

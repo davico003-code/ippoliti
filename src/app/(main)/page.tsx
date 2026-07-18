@@ -21,6 +21,7 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
+  operationBadgeColor,
   getRoofedArea,
   getLotSurface,
   isLand,
@@ -86,7 +87,7 @@ async function FeaturedPropertiesSection() {
           {operation && (
             <span style={{
               position: 'absolute', top: 10, left: 10,
-              background: operation === 'Venta' ? '#E53E3E' : '#2563eb',
+              background: operationBadgeColor(operation),
               color: '#fff', fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
               textTransform: 'uppercase', padding: '3px 10px', borderRadius: 6,
             }}>
