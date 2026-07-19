@@ -1,10 +1,12 @@
 'use client'
 
-// Modal fullscreen para fotos y planos. Sin libs externas.
-// - Swipe horizontal en mobile (scroll-snap).
-// - Botón ✕ arriba a la derecha, Esc para cerrar.
-// - Para planos pasamos `zoomable`: tap-to-zoom (transform: scale()) con
-//   pan vía drag/touchmove. Implementación mínima, suficiente para leer cotas.
+// Modal fullscreen para planos de verficha. Sin libs externas.
+// - Abre SIEMPRE ajustado a la pantalla (fit / contain). Antes abría a tamaño
+//   natural (gigante) y quedabas trabado scrolleando por dentro.
+// - Tap sobre el plano → toggle zoom (fit ↔ tamaño real, pan con scroll). Un tap
+//   siempre revierte, nunca te deja atrapado en el zoom.
+// - Cerrar: ✕ grande arriba, tocar el fondo negro, o Esc.
+// - Swipe horizontal entre planos cuando no está en zoom.
 
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
@@ -18,6 +20,7 @@ interface Props {
 
 export default function Lightbox({ images, startIndex = 0, zoomable = false, onClose }: Props) {
   const [active, setActive] = useState(startIndex)
+  const [zoomed, setZoomed] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   // Mientras corre un scroll programático (flechas/teclado), ignoramos el
   // listener de scroll: si no, los índices intermedios re-disparan el scrollTo
@@ -25,52 +28,50 @@ export default function Lightbox({ images, startIndex = 0, zoomable = false, onC
   const programmatic = useRef(false)
   const progTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Esc + flechas teclado
+  // Esc + flechas teclado. Esc: primero sale del zoom, después cierra.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowRight') setActive(i => Math.min(i + 1, images.length - 1))
-      if (e.key === 'ArrowLeft') setActive(i => Math.max(i - 1, 0))
+      if (e.key === 'Escape') { if (zoomed) setZoomed(false); else onClose() }
+      if (e.key === 'ArrowRight') { setZoomed(false); setActive(i => Math.min(i + 1, images.length - 1)) }
+      if (e.key === 'ArrowLeft') { setZoomed(false); setActive(i => Math.max(i - 1, 0)) }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [images.length, onClose])
+  }, [images.length, onClose, zoomed])
 
   // Bloquear scroll del body mientras está abierto
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
+    return () => { document.body.style.overflow = prev }
   }, [])
 
-  // Sincronizar el scroll-snap con el active state
+  // Sincronizar el scroll-snap con el active state (solo cuando no hay zoom)
   useEffect(() => {
     const el = containerRef.current
-    if (!el) return
+    if (!el || zoomed) return
     programmatic.current = true
     if (progTimer.current) clearTimeout(progTimer.current)
     el.scrollTo({ left: active * el.clientWidth, behavior: 'smooth' })
     progTimer.current = setTimeout(() => { programmatic.current = false }, 450)
     return () => { if (progTimer.current) clearTimeout(progTimer.current) }
-  }, [active])
+  }, [active, zoomed])
 
-  // Track scroll → active (ignora el scroll programático en curso)
+  // Track scroll → active (ignora el scroll programático y el zoom)
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     const onScroll = () => {
-      if (programmatic.current) return
+      if (programmatic.current || zoomed) return
       const idx = Math.round(el.scrollLeft / el.clientWidth)
       setActive(Math.min(Math.max(idx, 0), images.length - 1))
     }
     el.addEventListener('scroll', onScroll, { passive: true })
     return () => el.removeEventListener('scroll', onScroll)
-  }, [images.length])
+  }, [images.length, zoomed])
 
   const total = images.length
-  const showArrows = total > 1
+  const showArrows = total > 1 && !zoomed
 
   return (
     <div
@@ -93,6 +94,8 @@ export default function Lightbox({ images, startIndex = 0, zoomable = false, onC
           justifyContent: 'space-between',
           padding: '14px 18px',
           color: '#fff',
+          flexShrink: 0,
+          zIndex: 2,
         }}
       >
         <span style={{ fontSize: 13, opacity: 0.7 }}>
@@ -103,76 +106,83 @@ export default function Lightbox({ images, startIndex = 0, zoomable = false, onC
           onClick={onClose}
           aria-label="Cerrar"
           style={{
-            background: 'rgba(255,255,255,0.08)',
-            border: 'none',
-            borderRadius: 999,
-            width: 38,
-            height: 38,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: 6,
+            background: 'rgba(255,255,255,0.16)',
+            border: '1px solid rgba(255,255,255,0.22)',
+            borderRadius: 999,
+            height: 44,
+            padding: '0 16px',
             cursor: 'pointer',
             color: '#fff',
+            fontSize: 14,
+            fontWeight: 600,
           }}
         >
-          <X size={20} />
+          <X size={20} /> Cerrar
         </button>
       </div>
 
       {/* Slides */}
       <div
         ref={containerRef}
+        className="lightbox-scroll"
         style={{
           flex: 1,
           display: 'flex',
-          overflowX: 'auto',
+          overflowX: zoomed ? 'hidden' : 'auto',
           overflowY: 'hidden',
-          scrollSnapType: 'x mandatory',
+          scrollSnapType: zoomed ? 'none' : 'x mandatory',
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
+          minHeight: 0,
         }}
-        className="lightbox-scroll"
       >
-        {images.map((url, i) => (
-          <div
-            key={i}
-            style={{
-              flex: '0 0 100%',
-              scrollSnapAlign: 'center',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 16,
-              boxSizing: 'border-box',
-              overflow: zoomable ? 'auto' : 'hidden',
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={url}
-              alt=""
-              draggable={false}
+        {images.map((url, i) => {
+          const isActive = i === active
+          const zoomHere = zoomable && zoomed && isActive
+          return (
+            <div
+              key={i}
+              // Tocar el área alrededor del plano (fondo) cierra.
+              onClick={e => { if (e.target === e.currentTarget) onClose() }}
               style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain',
-                userSelect: 'none',
-                cursor: zoomable ? 'zoom-in' : 'default',
-                ...(zoomable
-                  ? {
-                      // Tap-to-zoom: el browser permite pinch-zoom nativo si tocás
-                      // dentro del contenedor con overflow auto.
-                      maxWidth: 'none',
-                      maxHeight: 'none',
-                      width: 'auto',
-                      height: 'auto',
-                    }
-                  : {}),
+                flex: '0 0 100%',
+                scrollSnapAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+                boxSizing: 'border-box',
+                overflow: zoomHere ? 'auto' : 'hidden',
               }}
-            />
-          </div>
-        ))}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={url}
+                alt={`Plano ${i + 1}`}
+                draggable={false}
+                onClick={() => { if (zoomable) setZoomed(z => !z) }}
+                style={{
+                  userSelect: 'none',
+                  cursor: zoomable ? (zoomHere ? 'zoom-out' : 'zoom-in') : 'default',
+                  ...(zoomHere
+                    ? { maxWidth: 'none', maxHeight: 'none', width: 'auto', height: 'auto' }
+                    : { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }),
+                }}
+              />
+            </div>
+          )
+        })}
       </div>
+
+      {/* Hint */}
+      {zoomable && (
+        <div style={{ flexShrink: 0, textAlign: 'center', color: 'rgba(255,255,255,0.55)', fontSize: 12, padding: '10px 0 14px' }}>
+          {zoomed ? 'Tocá el plano para achicar · ✕ para cerrar' : 'Tocá el plano para acercar · tocá afuera o ✕ para cerrar'}
+        </div>
+      )}
 
       {showArrows && (
         <>
