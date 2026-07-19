@@ -21,27 +21,12 @@ const MOBILE_SCROLL_Y = 280
 // Rutas internas/flujos donde el popup no corresponde.
 const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/']
 
+// Pasos simplificados a un solo renglón: icono + label corto (sin descripción).
 const selectionSteps = [
-  {
-    title: 'IA detectó',
-    body: 'Propiedades con señales de buen precio o potencial.',
-    Icon: Cpu,
-  },
-  {
-    title: 'Comparamos',
-    body: 'Analizamos precio/m² y referencias en la zona.',
-    Icon: BarChart3,
-  },
-  {
-    title: 'Cruzamos datos',
-    body: 'Ubicación, metros, tipología y contexto de mercado.',
-    Icon: MapPin,
-  },
-  {
-    title: 'Revisión humana',
-    body: 'El equipo verifica y aprueba lo que realmente vale.',
-    Icon: UserRound,
-  },
+  { title: 'IA detecta', Icon: Cpu },
+  { title: 'Comparamos', Icon: BarChart3 },
+  { title: 'Cruzamos', Icon: MapPin },
+  { title: 'Revisión', Icon: UserRound },
 ]
 
 export default function OportunidadesPopup() {
@@ -152,8 +137,10 @@ export default function OportunidadesPopup() {
           left: 50%;
           top: 50%;
           z-index: 55;
-          width: min(430px, calc(100vw - 40px));
-          max-height: min(88dvh, 780px);
+          display: flex;
+          flex-direction: column;
+          width: min(400px, calc(100vw - 40px));
+          max-height: min(90dvh, 880px);
           overflow: hidden;
           border-radius: 22px;
           background: #fff;
@@ -162,18 +149,29 @@ export default function OportunidadesPopup() {
           transform: translate(-50%, -50%);
           animation: si-oport-in .45s cubic-bezier(.22,1,.36,1);
         }
+        .si-oport-scroll {
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
         .si-oport-art {
-          height: min(300px, calc(88dvh - 300px));
-          min-height: 232px;
+          line-height: 0;
+          background: #fff;
+        }
+        .si-oport-art img {
+          display: block;
+          width: 100%;
+          height: auto;
         }
         .si-oport-body {
-          padding: 14px;
+          padding: 0 14px 14px;
         }
         .si-oport-steps {
           border: 1px solid #DCEBE2;
           border-radius: 15px;
           background: #FBFEFC;
-          padding: 10px 10px 9px;
+          padding: 9px 8px 10px;
         }
         .si-oport-steps-head {
           display: flex;
@@ -198,23 +196,23 @@ export default function OportunidadesPopup() {
           font-weight: 700;
           line-height: 1.15;
         }
-        .si-oport-steps-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          column-gap: 9px;
-          row-gap: 8px;
+        .si-oport-steps-row {
+          display: flex;
+          gap: 4px;
         }
         .si-oport-step {
-          display: grid;
-          grid-template-columns: 26px 1fr;
-          gap: 7px;
-          align-items: start;
+          flex: 1 1 0;
           min-width: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 5px;
+          text-align: center;
         }
         .si-oport-step-icon {
           display: inline-flex;
-          width: 26px;
-          height: 26px;
+          width: 30px;
+          height: 30px;
           align-items: center;
           justify-content: center;
           border-radius: 999px;
@@ -228,31 +226,19 @@ export default function OportunidadesPopup() {
           margin: 0;
           color: #151515;
           font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
-          font-size: 10.5px;
+          font-size: 10px;
           font-weight: 800;
-          line-height: 1.12;
-        }
-        .si-oport-step-body {
-          display: block;
-          margin: 2px 0 0;
-          color: #4B5563;
-          font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
-          font-size: 9.5px;
-          font-weight: 600;
-          line-height: 1.18;
+          line-height: 1.1;
+          white-space: nowrap;
         }
         @media (max-width: 640px) {
           .si-oport-popup {
             width: min(340px, calc(100vw - 42px));
-            max-height: min(90dvh, 700px);
+            max-height: min(90dvh, 760px);
             border-radius: 20px;
           }
-          .si-oport-art {
-            height: min(26dvh, 220px);
-            min-height: 176px;
-          }
           .si-oport-body {
-            padding: 12px;
+            padding: 0 12px 12px;
           }
           .si-oport-steps {
             padding: 9px 9px 8px;
@@ -264,23 +250,12 @@ export default function OportunidadesPopup() {
           .si-oport-steps-title {
             font-size: 10.5px;
           }
-          .si-oport-steps-grid {
-            column-gap: 7px;
-            row-gap: 7px;
-          }
-          .si-oport-step {
-            grid-template-columns: 24px 1fr;
-            gap: 6px;
-          }
           .si-oport-step-icon {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
           }
           .si-oport-step-title {
-            font-size: 9.6px;
-          }
-          .si-oport-step-body {
-            font-size: 8.8px;
+            font-size: 9.4px;
           }
           .si-oport-body form {
             gap: 8px;
@@ -309,13 +284,15 @@ export default function OportunidadesPopup() {
           <X size={16} strokeWidth={2.3} />
         </button>
 
-        <div className="si-oport-art relative bg-white">
+        <div className="si-oport-scroll">
+        <div className="si-oport-art">
           <Image
             src="/oportunidades-ia.webp"
             alt="Oportunidades con IA — propiedades analizadas 24/7 por SI INMOBILIARIA"
-            fill
-            sizes="(max-width: 640px) 340px, 430px"
-            className="h-full w-full object-cover object-top"
+            width={900}
+            height={1407}
+            sizes="(max-width: 640px) 340px, 400px"
+            className="block w-full h-auto"
           />
         </div>
 
@@ -335,16 +312,13 @@ export default function OportunidadesPopup() {
                 <div className="si-oport-steps-head">
                   <h3 className="si-oport-steps-title">Así seleccionamos cada oportunidad</h3>
                 </div>
-                <div className="si-oport-steps-grid">
-                  {selectionSteps.map(({ title, body, Icon }) => (
+                <div className="si-oport-steps-row">
+                  {selectionSteps.map(({ title, Icon }) => (
                     <div key={title} className="si-oport-step">
                       <span className="si-oport-step-icon" aria-hidden="true">
-                        <Icon size={15} strokeWidth={2.35} />
+                        <Icon size={16} strokeWidth={2.35} />
                       </span>
-                      <span>
-                        <strong className="si-oport-step-title">{title}</strong>
-                        <span className="si-oport-step-body">{body}</span>
-                      </span>
+                      <strong className="si-oport-step-title">{title}</strong>
                     </div>
                   ))}
                 </div>
@@ -385,6 +359,7 @@ export default function OportunidadesPopup() {
               )}
             </form>
           )}
+        </div>
         </div>
       </aside>
     </>
