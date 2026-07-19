@@ -154,7 +154,7 @@ export default function OportunidadesPopup() {
           min-height: 0;
           position: relative;
           background: #fff;
-          margin-top: 4px;
+          margin-top: 34px;
         }
         .si-oport-body {
           flex: 0 0 auto;
@@ -279,7 +279,7 @@ export default function OportunidadesPopup() {
 
         <div className="si-oport-art">
           <Image
-            src="/oportunidades-ia.webp"
+            src="/oportunidades-ia-v2.webp"
             alt="Oportunidades con IA — propiedades analizadas 24/7 por SI INMOBILIARIA"
             fill
             sizes="(max-width: 640px) 340px, 400px"
