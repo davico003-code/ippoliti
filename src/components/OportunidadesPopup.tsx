@@ -140,7 +140,7 @@ export default function OportunidadesPopup() {
           display: flex;
           flex-direction: column;
           width: min(400px, calc(100vw - 40px));
-          max-height: min(90dvh, 880px);
+          height: min(90dvh, 720px);
           overflow: hidden;
           border-radius: 22px;
           background: #fff;
@@ -149,23 +149,16 @@ export default function OportunidadesPopup() {
           transform: translate(-50%, -50%);
           animation: si-oport-in .45s cubic-bezier(.22,1,.36,1);
         }
-        .si-oport-scroll {
+        .si-oport-art {
           flex: 1 1 auto;
           min-height: 0;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-        .si-oport-art {
-          line-height: 0;
+          position: relative;
           background: #fff;
-        }
-        .si-oport-art img {
-          display: block;
-          width: 100%;
-          height: auto;
+          margin-top: 4px;
         }
         .si-oport-body {
-          padding: 0 14px 14px;
+          flex: 0 0 auto;
+          padding: 10px 14px 14px;
         }
         .si-oport-steps {
           border: 1px solid #DCEBE2;
@@ -234,7 +227,7 @@ export default function OportunidadesPopup() {
         @media (max-width: 640px) {
           .si-oport-popup {
             width: min(340px, calc(100vw - 42px));
-            max-height: min(90dvh, 760px);
+            height: min(92dvh, 680px);
             border-radius: 20px;
           }
           .si-oport-body {
@@ -284,15 +277,13 @@ export default function OportunidadesPopup() {
           <X size={16} strokeWidth={2.3} />
         </button>
 
-        <div className="si-oport-scroll">
         <div className="si-oport-art">
           <Image
             src="/oportunidades-ia.webp"
             alt="Oportunidades con IA — propiedades analizadas 24/7 por SI INMOBILIARIA"
-            width={900}
-            height={1407}
+            fill
             sizes="(max-width: 640px) 340px, 400px"
-            className="block w-full h-auto"
+            style={{ objectFit: 'contain', objectPosition: 'center' }}
           />
         </div>
 
@@ -359,7 +350,6 @@ export default function OportunidadesPopup() {
               )}
             </form>
           )}
-        </div>
         </div>
       </aside>
     </>
