@@ -169,6 +169,12 @@ export default function OportunidadesPopup() {
           flex: 0 0 auto;
           padding: 10px 14px 14px;
         }
+        /* Baja la fuente de los inputs: la regla global fuerza 16px en mobile
+           (anti-zoom iOS) con !important; acá gana por mayor especificidad. El
+           viewport ya tiene maximum-scale=1, así que no hay auto-zoom igual. */
+        .si-oport-body input {
+          font-size: 13px !important;
+        }
         .si-oport-steps {
           border: 1px solid #DCEBE2;
           border-radius: 15px;
@@ -337,7 +343,7 @@ export default function OportunidadesPopup() {
                 autoComplete="name"
                 required
                 minLength={3}
-                className="h-9 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[12.5px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                className="h-9 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[13px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
               />
               <input
                 type="email"
@@ -347,7 +353,7 @@ export default function OportunidadesPopup() {
                 placeholder="Email"
                 autoComplete="email"
                 required
-                className="h-9 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[12.5px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                className="h-9 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[13px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
               />
               <button
                 type="submit"
