@@ -152,9 +152,18 @@ export default function OportunidadesPopup() {
         .si-oport-art {
           flex: 1 1 auto;
           min-height: 0;
-          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 30px 22px 16px;
           background: #fff;
-          margin-top: 34px;
+        }
+        .si-oport-art img {
+          max-width: 100%;
+          max-height: 90%;
+          width: auto;
+          height: auto;
+          object-fit: contain;
         }
         .si-oport-body {
           flex: 0 0 auto;
@@ -230,6 +239,9 @@ export default function OportunidadesPopup() {
             height: min(92dvh, 680px);
             border-radius: 20px;
           }
+          .si-oport-art {
+            padding: 26px 18px 14px;
+          }
           .si-oport-body {
             padding: 0 12px 12px;
           }
@@ -253,9 +265,11 @@ export default function OportunidadesPopup() {
           .si-oport-body form {
             gap: 8px;
           }
-          .si-oport-body input,
+          .si-oport-body input {
+            height: 36px;
+          }
           .si-oport-body button {
-            height: 38px;
+            height: 40px;
           }
         }
       ` }} />
@@ -281,9 +295,9 @@ export default function OportunidadesPopup() {
           <Image
             src="/oportunidades-ia-v2.webp"
             alt="Oportunidades con IA — propiedades analizadas 24/7 por SI INMOBILIARIA"
-            fill
-            sizes="(max-width: 640px) 340px, 400px"
-            style={{ objectFit: 'contain', objectPosition: 'center' }}
+            width={900}
+            height={1170}
+            sizes="(max-width: 640px) 300px, 360px"
           />
         </div>
 
@@ -323,7 +337,7 @@ export default function OportunidadesPopup() {
                 autoComplete="name"
                 required
                 minLength={3}
-                className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[13px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                className="h-9 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[12.5px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
               />
               <input
                 type="email"
@@ -333,7 +347,7 @@ export default function OportunidadesPopup() {
                 placeholder="Email"
                 autoComplete="email"
                 required
-                className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[13px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                className="h-9 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[12.5px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
               />
               <button
                 type="submit"
