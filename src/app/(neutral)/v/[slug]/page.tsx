@@ -25,6 +25,7 @@ import AmenityChips from '@/components/v/AmenityChips'
 import BlueprintGallery from '@/components/v/BlueprintGallery'
 import LocationMap from '@/components/v/LocationMap'
 import NearbyPlacesNeutral from '@/components/v/NearbyPlacesNeutral'
+import QRCode from 'qrcode'
 import ShareCTA from '@/components/v/ShareCTA'
 import FloatingShareButton from '@/components/v/FloatingShareButton'
 import FeedbackColega from '@/components/neutral/FeedbackColega'
@@ -115,6 +116,10 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
 
   const s = ficha.snapshot
   const url = `https://${NEUTRAL_DOMAIN}/${params.slug}`
+
+  // QR del link para la sección Compartir (screenshot / cartelería). Se genera
+  // server-side; si falla, ShareCTA simplemente no lo muestra.
+  const qrDataUrl = await QRCode.toDataURL(url, { margin: 1, width: 320 }).catch(() => null)
 
   // Tracking — fire-after-await, ignorando errores. Misma regla de bots que
   // el endpoint /api/ficha/[slug] (compartido vía isLikelyBot del lib).
@@ -254,7 +259,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
             <FeedbackColega slug={params.slug} />
 
             {/* Sección 8: CTA compartir */}
-            <ShareCTA url={url} />
+            <ShareCTA url={url} slug={params.slug} qrDataUrl={qrDataUrl} />
           </>
         )}
 

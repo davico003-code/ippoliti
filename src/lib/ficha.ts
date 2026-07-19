@@ -93,6 +93,7 @@ export interface Ficha {
   notas: string                // notas internas, NUNCA renderizadas en /v
   origen?: 'tokko' | 'externa' // default tokko; 'externa' = importada a mano
   sourceUrl?: string           // URL original (Zonaprop), interna, NUNCA renderizada
+  agentName?: string           // agente que la creó (para la alerta de interés)
   createdAt: string            // ISO
   expiresAt: string            // ISO (createdAt + 60d)
   revokedAt: string | null     // ISO si fue revocada manualmente
@@ -108,6 +109,7 @@ export interface FichaStats {
   views: number
   lastViewAt: string | null
   ips: string[]                // últimas 50, más recientes primero
+  notified?: number[]          // umbrales de vistas ya avisados por WhatsApp
 }
 
 // ── Construcción del snapshot desde Tokko ──────────────────────────────────
@@ -440,6 +442,7 @@ export async function crearFichaExterna(input: {
   sourceUrl: string
   ip: string
   userAgent: string
+  agentName?: string
 }): Promise<{ slug: string; url: string; expiresAt: string; snapshot: FichaSnapshot }> {
   const snapshot = buildSnapshotManual(input.manual)
 
@@ -459,6 +462,7 @@ export async function crearFichaExterna(input: {
     notas: '',
     origen: 'externa',
     sourceUrl: (input.sourceUrl || '').trim(),
+    agentName: (input.agentName || '').trim() || undefined,
     createdAt: now.toISOString(),
     expiresAt: expiresAt.toISOString(),
     revokedAt: null,
@@ -542,6 +546,35 @@ export function isLikelyBot(userAgent: string | null | undefined): boolean {
   return BOT_UA_RE.test(userAgent)
 }
 
+// Alerta de interés: al cruzar estos umbrales de vistas avisamos por WhatsApp
+// a la oficina. Solo en los hitos (no en cada vista) para no spamear.
+const VIEW_ALERT_THRESHOLDS = [1, 3, 10]
+const OFICINA_WA = '5493412101694'
+
+// Manda el aviso si `views` es un hito no avisado. Devuelve el umbral disparado
+// (para marcarlo) o null. Nunca lanza: la alerta jamás debe romper el tracking.
+async function maybeAlertView(slug: string, views: number, already: number[]): Promise<number | null> {
+  if (!VIEW_ALERT_THRESHOLDS.includes(views) || already.includes(views)) return null
+  try {
+    const ficha = await getFicha(slug)
+    if (!ficha) return null
+    const s = ficha.snapshot
+    const titulo = s.tituloGenerico || 'Propiedad'
+    const precio = s.precio && s.precio !== 'Consultar' ? ` · ${s.precio}` : ''
+    const quien = ficha.agentName ? ` · creada por ${ficha.agentName}` : ''
+    const domain = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
+    const body =
+      `👀 Interés en una ficha\n"${titulo}"${precio}\n` +
+      `${views} vista${views > 1 ? 's' : ''}${quien}\n` +
+      `https://${domain}/${slug}`
+    const { enviarWhatsApp } = await import('./twilio-client')
+    await enviarWhatsApp({ to: `+${OFICINA_WA}`, body })
+    return views
+  } catch {
+    return null
+  }
+}
+
 // Tracking de view: incrementa contador, anota IP (cap 50). Preserva TTL.
 export async function trackView(slug: string, ip: string): Promise<void> {
   const ttl = await redis.ttl(STATS_KEY(slug))
@@ -550,11 +583,19 @@ export async function trackView(slug: string, ip: string): Promise<void> {
   const current = await getFichaStats(slug)
   const cleanIp = (ip || 'unknown').slice(0, 64)
   const ips = [cleanIp, ...current.ips.filter(i => i !== cleanIp)].slice(0, 50)
+  const views = (current.views || 0) + 1
+
+  // Alerta de interés en hitos (solo hace fetch/Twilio en 1/3/10; en el resto
+  // sale al instante). Se awaita porque en serverless una promesa sin await se
+  // puede matar al responder — pero solo pega en 3 vistas de toda la vida.
+  const already = current.notified || []
+  const fired = await maybeAlertView(slug, views, already)
 
   const next: FichaStats = {
-    views: (current.views || 0) + 1,
+    views,
     lastViewAt: new Date().toISOString(),
     ips,
+    notified: fired ? [...already, fired] : already,
   }
   await redis.set(STATS_KEY(slug), JSON.stringify(next), { ex: ttl })
 }

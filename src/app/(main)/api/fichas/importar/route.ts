@@ -229,6 +229,7 @@ export async function POST(req: NextRequest) {
       sourceUrl,
       ip,
       userAgent,
+      agentName: agent.name,
     })
 
     const card = {

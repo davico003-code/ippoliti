@@ -5,13 +5,16 @@
 // clientes y todas las visitas suman a las stats del mismo slug.
 
 import { useEffect, useRef, useState } from 'react'
-import { Check, Copy, MessageCircle, Share2 } from 'lucide-react'
+import { Check, Copy, Download, MessageCircle, QrCode, Share2 } from 'lucide-react'
 
 const BLUE = '#2563EB'
 
-export default function ShareCTA({ url }: { url: string }) {
+export default function ShareCTA({
+  url, slug, qrDataUrl,
+}: { url: string; slug?: string; qrDataUrl?: string | null }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showQr, setShowQr] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -122,9 +125,42 @@ export default function ShareCTA({ url }: { url: string }) {
               <MessageCircle size={15} color="#25D366" />
               Compartir por WhatsApp
             </a>
+            {slug && (
+              <a
+                href={`/api/ficha/${slug}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                role="menuitem"
+                style={menuItem}
+                onClick={() => setOpen(false)}
+              >
+                <Download size={15} color={BLUE} />
+                Descargar PDF
+              </a>
+            )}
+            {qrDataUrl && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => { setShowQr(v => !v); setOpen(false) }}
+                style={menuItem}
+              >
+                <QrCode size={15} />
+                {showQr ? 'Ocultar código QR' : 'Ver código QR'}
+              </button>
+            )}
           </div>
         )}
       </div>
+
+      {showQr && qrDataUrl && (
+        <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={qrDataUrl} alt="Código QR de la propiedad" width={180} height={180}
+            style={{ borderRadius: 12, border: '1px solid #E5E7EB' }} />
+          <span style={{ fontSize: 12, color: '#6B7280' }}>Escaneá para abrir la ficha</span>
+        </div>
+      )}
     </section>
   )
 }

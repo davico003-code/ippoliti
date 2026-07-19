@@ -59,7 +59,11 @@ export async function middleware(request: NextRequest) {
     // - /api/audio/check        → el AudioPlayer consulta si hay audio cacheado
     // - /api/colega/feedback    → feedback anónimo de colegas
     // El resto de /api sigue cayendo en not-found para no exponer APIs branded de SI.
-    if (pathname === '/api/audio/check' || pathname === '/api/colega/feedback') {
+    if (
+      pathname === '/api/audio/check' ||
+      pathname === '/api/colega/feedback' ||
+      /^\/api\/ficha\/[^/]+\/pdf$/.test(pathname)  // PDF neutro de la ficha
+    ) {
       return NextResponse.next()
     }
     if (SLUG_RE.test(pathname)) {
