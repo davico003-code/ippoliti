@@ -1,14 +1,14 @@
 'use client'
 
-// Popup de "Oportunidades con IA" — modal centrado con la placa de SI arriba y
-// una captura de lead simple debajo (Nombre y apellido + Email). El contacto se
-// guarda en /api/leads (misma vía que usaba el newsletter). Cerrable → no
-// reaparece por 3 días (localStorage).
+// Popup de "Oportunidades con IA" — modal centrado con la placa de SI arriba,
+// la sección "Así seleccionamos cada oportunidad" (4 pasos IA) y una captura de
+// lead simple (Nombre y apellido + Email). El contacto se guarda en /api/leads
+// (misma vía que usaba el newsletter). Cerrable → no reaparece por 3 días.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { CheckCircle2, X } from 'lucide-react'
+import { BarChart3, CheckCircle2, Cpu, MapPin, UserRound, X } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 
 const GREEN = '#1A5C38'
@@ -20,6 +20,29 @@ const MOBILE_SCROLL_Y = 280
 
 // Rutas internas/flujos donde el popup no corresponde.
 const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/']
+
+const selectionSteps = [
+  {
+    title: 'IA detectó',
+    body: 'Propiedades con señales de buen precio o potencial.',
+    Icon: Cpu,
+  },
+  {
+    title: 'Comparamos',
+    body: 'Analizamos precio/m² y referencias en la zona.',
+    Icon: BarChart3,
+  },
+  {
+    title: 'Cruzamos datos',
+    body: 'Ubicación, metros, tipología y contexto de mercado.',
+    Icon: MapPin,
+  },
+  {
+    title: 'Revisión humana',
+    body: 'El equipo verifica y aprueba lo que realmente vale.',
+    Icon: UserRound,
+  },
+]
 
 export default function OportunidadesPopup() {
   const pathname = usePathname()
@@ -124,15 +147,13 @@ export default function OportunidadesPopup() {
           backdrop-filter: blur(3px);
           animation: si-oport-backdrop-in .3s ease-out;
         }
-        .si-oport-modal {
+        .si-oport-popup {
           position: fixed;
           left: 50%;
           top: 50%;
           z-index: 55;
-          display: flex;
-          flex-direction: column;
-          width: min(400px, calc(100vw - 40px));
-          max-height: min(90dvh, 820px);
+          width: min(430px, calc(100vw - 40px));
+          max-height: min(88dvh, 780px);
           overflow: hidden;
           border-radius: 22px;
           background: #fff;
@@ -142,31 +163,131 @@ export default function OportunidadesPopup() {
           animation: si-oport-in .45s cubic-bezier(.22,1,.36,1);
         }
         .si-oport-art {
-          position: relative;
-          flex: 1 1 auto;
-          min-height: 0;
-          height: min(56dvh, 600px);
-          background: #fff;
+          height: min(300px, calc(88dvh - 300px));
+          min-height: 232px;
         }
         .si-oport-body {
-          flex: 0 0 auto;
-          padding: 4px 16px 16px;
+          padding: 14px;
+        }
+        .si-oport-steps {
+          border: 1px solid #DCEBE2;
+          border-radius: 15px;
+          background: #FBFEFC;
+          padding: 10px 10px 9px;
+        }
+        .si-oport-steps-head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 9px;
+        }
+        .si-oport-steps-head::before,
+        .si-oport-steps-head::after {
+          content: '';
+          height: 1px;
+          flex: 1;
+          background: #2C8C45;
+          opacity: .75;
+        }
+        .si-oport-steps-title {
+          margin: 0;
+          flex-shrink: 0;
+          color: #111;
+          font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1.15;
+        }
+        .si-oport-steps-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          column-gap: 9px;
+          row-gap: 8px;
+        }
+        .si-oport-step {
+          display: grid;
+          grid-template-columns: 26px 1fr;
+          gap: 7px;
+          align-items: start;
+          min-width: 0;
+        }
+        .si-oport-step-icon {
+          display: inline-flex;
+          width: 26px;
+          height: 26px;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          border: 1px solid #D7E6D9;
+          background: #F2F8EE;
+          color: #2E9B22;
+          box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.74);
+        }
+        .si-oport-step-title {
+          display: block;
+          margin: 0;
+          color: #151515;
+          font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
+          font-size: 10.5px;
+          font-weight: 800;
+          line-height: 1.12;
+        }
+        .si-oport-step-body {
+          display: block;
+          margin: 2px 0 0;
+          color: #4B5563;
+          font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+          font-size: 9.5px;
+          font-weight: 600;
+          line-height: 1.18;
         }
         @media (max-width: 640px) {
-          .si-oport-modal {
+          .si-oport-popup {
             width: min(340px, calc(100vw - 42px));
-            max-height: min(90dvh, 720px);
+            max-height: min(90dvh, 700px);
             border-radius: 20px;
           }
           .si-oport-art {
-            height: min(46dvh, 440px);
+            height: min(26dvh, 220px);
+            min-height: 176px;
           }
           .si-oport-body {
-            padding: 4px 13px 13px;
+            padding: 12px;
+          }
+          .si-oport-steps {
+            padding: 9px 9px 8px;
+          }
+          .si-oport-steps-head {
+            gap: 7px;
+            margin-bottom: 8px;
+          }
+          .si-oport-steps-title {
+            font-size: 10.5px;
+          }
+          .si-oport-steps-grid {
+            column-gap: 7px;
+            row-gap: 7px;
+          }
+          .si-oport-step {
+            grid-template-columns: 24px 1fr;
+            gap: 6px;
+          }
+          .si-oport-step-icon {
+            width: 24px;
+            height: 24px;
+          }
+          .si-oport-step-title {
+            font-size: 9.6px;
+          }
+          .si-oport-step-body {
+            font-size: 8.8px;
+          }
+          .si-oport-body form {
+            gap: 8px;
           }
           .si-oport-body input,
           .si-oport-body button {
-            height: 40px;
+            height: 38px;
           }
         }
       ` }} />
@@ -178,7 +299,7 @@ export default function OportunidadesPopup() {
         onClick={dismiss}
       />
 
-      <aside className="si-oport-modal" aria-label="Oportunidades con IA">
+      <aside className="si-oport-popup" aria-label="Oportunidades con IA">
         <button
           type="button"
           onClick={dismiss}
@@ -188,17 +309,17 @@ export default function OportunidadesPopup() {
           <X size={16} strokeWidth={2.3} />
         </button>
 
-        <div className="si-oport-art">
+        <div className="si-oport-art relative bg-white">
           <Image
             src="/oportunidades-ia.webp"
             alt="Oportunidades con IA — propiedades analizadas 24/7 por SI INMOBILIARIA"
             fill
-            sizes="(max-width: 640px) 340px, 400px"
-            style={{ objectFit: 'contain', objectPosition: 'center' }}
+            sizes="(max-width: 640px) 340px, 430px"
+            className="h-full w-full object-cover object-top"
           />
         </div>
 
-        <div className="si-oport-body">
+        <div className="si-oport-body bg-white">
           {status === 'sent' ? (
             <div
               className="flex items-center gap-3 rounded-xl border px-4 py-3 font-poppins text-[13px] font-semibold"
@@ -210,6 +331,24 @@ export default function OportunidadesPopup() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+              <div className="si-oport-steps" aria-label="Así seleccionamos cada oportunidad">
+                <div className="si-oport-steps-head">
+                  <h3 className="si-oport-steps-title">Así seleccionamos cada oportunidad</h3>
+                </div>
+                <div className="si-oport-steps-grid">
+                  {selectionSteps.map(({ title, body, Icon }) => (
+                    <div key={title} className="si-oport-step">
+                      <span className="si-oport-step-icon" aria-hidden="true">
+                        <Icon size={15} strokeWidth={2.35} />
+                      </span>
+                      <span>
+                        <strong className="si-oport-step-title">{title}</strong>
+                        <span className="si-oport-step-body">{body}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <input
                 type="text"
                 name="nombre"
@@ -219,7 +358,7 @@ export default function OportunidadesPopup() {
                 autoComplete="name"
                 required
                 minLength={3}
-                className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[13px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[13px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
               />
               <input
                 type="email"
@@ -229,12 +368,12 @@ export default function OportunidadesPopup() {
                 placeholder="Email"
                 autoComplete="email"
                 required
-                className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[13px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3.5 font-poppins text-[13px] text-[#1C1C1E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]"
               />
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="h-11 w-full rounded-xl font-poppins text-[13px] font-bold text-white transition disabled:opacity-70"
+                className="h-10 w-full rounded-xl font-poppins text-[13px] font-bold text-white transition disabled:opacity-70"
                 style={{ background: GREEN }}
               >
                 {status === 'sending' ? 'Enviando...' : 'Quiero recibir oportunidades'}
