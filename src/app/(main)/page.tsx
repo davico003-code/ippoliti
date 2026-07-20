@@ -25,6 +25,7 @@ import {
   getRoofedArea,
   getLotSurface,
   isLand,
+  isMonoambiente,
   type TokkoProperty,
 } from '@/lib/tokko'
 
@@ -50,12 +51,14 @@ async function FeaturedPropertiesSection() {
     const operation = getOperationType(property)
     const roofed = getRoofedArea(property)
     const land = isLand(property)
+    const mono = isMonoambiente(property)
     const beds = property.suite_amount ?? property.room_amount
     const baths = property.bathroom_amount
     const address = property.fake_address || property.address
     const location = property.location?.short_location || property.location?.name || ''
     const specs: { num: string; unit: string }[] = []
-    if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
+    if (!land && mono) specs.push({ num: '', unit: 'Monoambiente' })
+    else if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
     if (!land && baths != null && baths > 0) specs.push({ num: String(baths), unit: ` baño${baths > 1 ? 's' : ''}` })
     if (roofed != null && roofed > 0) specs.push({ num: String(roofed), unit: ' m²' })
     if (land) { const lot = getLotSurface(property); if (lot != null && lot > 0) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m²' }) }

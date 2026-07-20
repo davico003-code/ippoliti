@@ -16,6 +16,7 @@ import {
   getRoofedArea,
   getTotalSurface,
   getLotSurface,
+  isMonoambiente,
   formatLocation,
   getDescription,
   getBlueprintPhotos,
@@ -141,7 +142,8 @@ export default function PropertyDetailBody({
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
   if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Superficie', value: `${area} m²` })
   if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea} m²` })
-  if (property.suite_amount > 0) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Dormitorios', value: property.suite_amount })
+  if (isMonoambiente(property)) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Ambientes', value: 'Monoambiente' })
+  else if (property.suite_amount > 0) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Dormitorios', value: property.suite_amount })
   if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: 'Baños', value: property.bathroom_amount })
   if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: 'Cocheras', value: property.parking_lot_amount })
   if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface} m²` })

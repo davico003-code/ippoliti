@@ -17,6 +17,7 @@ import {
   getRoofedArea,
   getLotSurface,
   isLand,
+  isMonoambiente,
   propertyTypeLabelById,
   generatePropertySlug,
 } from '@/lib/tokko'
@@ -63,6 +64,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const roofed = getRoofedArea(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
+  const mono = isMonoambiente(property)
   const typeName = propertyTypeLabelById(property.type?.id)
   const slug = generatePropertySlug(property)
   const beds = property.suite_amount || property.room_amount
@@ -73,7 +75,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
 
   // Build specs: "3 dorm · 2 baños · 190 m² · 1.691 m² lote"
   const specs: { num: string; label: string }[] = []
-  if (!land && beds > 0) specs.push({ num: String(beds), label: ' dorm' })
+  if (!land && mono) specs.push({ num: '', label: 'Monoambiente' })
+  else if (!land && beds > 0) specs.push({ num: String(beds), label: ' dorm' })
   if (!land && baths > 0) specs.push({ num: String(baths), label: ` baño${baths > 1 ? 's' : ''}` })
   if (roofed != null && roofed > 0) specs.push({ num: roofed.toLocaleString('es-AR'), label: ' m²' })
   if (lot != null && lot > 0 && lot !== roofed) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })

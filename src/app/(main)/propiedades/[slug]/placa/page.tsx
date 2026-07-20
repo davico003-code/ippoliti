@@ -8,6 +8,7 @@ import {
   getTotalSurface,
   getLotSurface,
   translatePropertyType,
+  isMonoambiente,
   type TokkoProperty,
 } from '@/lib/tokko'
 import PlacaSelectorClient, { type PlacaPhoto } from '@/components/PlacaSelectorClient'
@@ -64,7 +65,9 @@ export default async function PlacaPage({ params }: Props) {
   const propertyType = translatePropertyType(property.type?.name)
   const area = getTotalSurface(property)
   const lotSurface = getLotSurface(property)
-  const rooms = property.suite_amount || property.room_amount || 0
+  // Monoambiente: 0 dormitorios. Pasamos rooms=0 para que la placa no muestre
+  // "1 dorm" (fallback erróneo de suite_amount 0 → room_amount 1).
+  const rooms = isMonoambiente(property) ? 0 : (property.suite_amount || property.room_amount || 0)
   const bathrooms = property.bathroom_amount || 0
   const parking = property.parking_lot_amount || 0
   const city = property.location?.name || null
