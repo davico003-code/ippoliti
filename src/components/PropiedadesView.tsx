@@ -40,6 +40,7 @@ import {
   getRoofedArea,
   getLotSurface,
   isLand,
+  isMonoambiente,
   propertyTypeLabelById,
   generatePropertySlug,
   TYPE_FILTER_GROUPS,
@@ -1854,7 +1855,9 @@ export default function PropiedadesView({
                   const r = getRoofedArea(selectedProperty)
                   const land2 = isLand(selectedProperty)
                   const lot = getLotSurface(selectedProperty)
-                  if (!land2 && (selectedProperty.suite_amount || selectedProperty.room_amount) > 0)
+                  if (!land2 && isMonoambiente(selectedProperty))
+                    specs.push('Monoambiente')
+                  else if (!land2 && (selectedProperty.suite_amount || selectedProperty.room_amount) > 0)
                     specs.push(`${selectedProperty.suite_amount || selectedProperty.room_amount} dorm`)
                   if (!land2 && selectedProperty.bathroom_amount > 0)
                     specs.push(`${selectedProperty.bathroom_amount} baño${selectedProperty.bathroom_amount > 1 ? 's' : ''}`)

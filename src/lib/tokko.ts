@@ -430,6 +430,22 @@ export function isLand(property: TokkoProperty): boolean {
   return name === 'land' || name === 'terreno';
 }
 
+// Un monoambiente es un departamento sin dormitorio separado. En el feed viene
+// con suite_amount === 0 (dormitorios) y a lo sumo 1 ambiente. El patrón viejo
+// `suite_amount || room_amount` lo mostraba como "1 dorm" porque, al ser 0 el
+// suite_amount, caía al fallback room_amount (= 1). Detectarlo deja mostrar
+// "Monoambiente" en vez de "1 dorm". Se restringe a departamentos: hay casas
+// con suite_amount 0 por dato faltante que NO son monoambientes.
+export function isMonoambiente(property: TokkoProperty): boolean {
+  const typeName = (property.type?.name ?? '').toLowerCase();
+  const isApartment =
+    property.type?.id === 2 ||
+    typeName === 'apartment' ||
+    typeName === 'departamento' ||
+    typeName === 'depto';
+  return isApartment && property.suite_amount === 0 && (property.room_amount ?? 0) <= 1;
+}
+
 // Formato de ubicación legible: "Santa Fe | San Lorenzo | Roldan" → "Roldan, San Lorenzo"
 export function formatLocation(property: TokkoProperty): string {
   const loc = property.location;
