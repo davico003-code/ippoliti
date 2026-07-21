@@ -79,7 +79,7 @@ type Operation = 'todos' | 'venta' | 'alquiler'
 // según el inventario presente). String abierto porque las opciones se derivan
 // del mapa de tipos por id en tokko.ts.
 type PropType  = string
-type Beds      = 'todos' | '1' | '2' | '3' | '4+'
+type Beds      = 'todos' | 'mono' | '1' | '2' | '3' | '4+'
 type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
 type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
@@ -633,7 +633,7 @@ export default function PropiedadesView({
       search: safeDecodeQuery(searchParams.get('q') ?? searchParams.get('search') ?? ''),
       operation: op === 'venta' || op === 'alquiler' ? (op as Operation) : 'todos',
       type: searchParams.get('tipo') || searchParams.get('type') || 'todos',
-      beds: (['1', '2', '3', '4+'].includes(beds) ? beds : 'todos') as Beds,
+      beds: (['mono', '1', '2', '3', '4+'].includes(beds) ? beds : 'todos') as Beds,
       location: (['roldan', 'rosario', 'funes'].includes(loc) ? loc : 'todos') as Location,
       priceMin: digitsOnly(searchParams.get('precio_min') ?? ''),
       priceMax: digitsOnly(searchParams.get('precio_max') ?? ''),
@@ -931,9 +931,16 @@ export default function PropiedadesView({
       if (!grp || !grp.ids.includes(p.type?.id ?? -1)) return false
     }
     if (filters.beds !== 'todos') {
-      const rooms = p.suite_amount || p.room_amount || 0
-      if (filters.beds === '4+' && rooms < 4) return false
-      if (filters.beds !== '4+' && rooms !== parseInt(filters.beds)) return false
+      if (filters.beds === 'mono') {
+        // Solo monoambientes (0 dormitorios).
+        if (!isMonoambiente(p)) return false
+      } else {
+        // Dormitorios reales: un monoambiente NO cuenta como "1 dorm".
+        if (isMonoambiente(p)) return false
+        const rooms = p.suite_amount || p.room_amount || 0
+        if (filters.beds === '4+' && rooms < 4) return false
+        if (filters.beds !== '4+' && rooms !== parseInt(filters.beds)) return false
+      }
     }
     // Filtro de precio: cohorte por moneda. Si el usuario fija algún tope,
     // solo se evalúan propiedades publicadas en esa moneda; las demás se
@@ -1478,7 +1485,7 @@ export default function PropiedadesView({
         <FilterSelect value={filters.type} onChange={v => set('type', v)}
           options={typeOptions} />
         <FilterSelect value={filters.beds} onChange={v => set('beds', v)}
-          options={[{value:'todos',label:'Dormitorios'},{value:'1',label:'1 dorm.'},{value:'2',label:'2 dorm.'},{value:'3',label:'3 dorm.'},{value:'4+',label:'4+ dorm.'}]} />
+          options={[{value:'todos',label:'Dormitorios'},{value:'mono',label:'Monoambiente'},{value:'1',label:'1 dorm.'},{value:'2',label:'2 dorm.'},{value:'3',label:'3 dorm.'},{value:'4+',label:'4+ dorm.'}]} />
         <PriceFilterDropdown
           min={filters.priceMin}
           max={filters.priceMax}
