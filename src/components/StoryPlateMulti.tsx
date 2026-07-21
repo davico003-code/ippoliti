@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { Instagram } from 'lucide-react'
 
 export interface StoryPlateMultiProps {
@@ -17,6 +17,7 @@ export interface StoryPlateMultiProps {
   slug: string
   city?: string
   neighborhood?: string
+  address?: string
   btnStyle?: React.CSSProperties
   buttonLabel?: string
   disabled?: boolean
@@ -57,6 +58,141 @@ function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: numb
   ctx.restore()
 }
 
+function drawContain(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+  const sc = Math.min(w / img.width, h / img.height)
+  const iw = img.width * sc
+  const ih = img.height * sc
+  ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih)
+}
+
+/**
+ * Conserva la foto completa cuando el formato original obligaría a recortar
+ * más de 12 %. El fondo desenfocado mantiene la placa a sangre sin ocultar la
+ * arquitectura; para diferencias menores usamos cover porque el recorte es
+ * visualmente imperceptible.
+ */
+function drawAdaptivePhoto(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+) {
+  const imageRatio = img.width / img.height
+  const frameRatio = w / h
+  const visibleRatio = Math.min(imageRatio / frameRatio, frameRatio / imageRatio)
+
+  if (visibleRatio >= 0.88) {
+    drawCover(ctx, img, x, y, w, h)
+    return
+  }
+
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(x, y, w, h)
+  ctx.clip()
+  ctx.fillStyle = '#0F2419'
+  ctx.fillRect(x, y, w, h)
+  ctx.globalAlpha = 0.72
+  ctx.filter = 'blur(24px)'
+  drawCover(ctx, img, x - 18, y - 18, w + 36, h + 36)
+  ctx.filter = 'none'
+  ctx.globalAlpha = 1
+  drawContain(ctx, img, x, y, w, h)
+  ctx.restore()
+}
+
+type BrandSegment = { text: string; numeric: boolean }
+
+function brandSegments(text: string): BrandSegment[] {
+  return text
+    .split(/([0-9²³]+(?:[.,:/-][0-9²³]+)*)/g)
+    .filter(Boolean)
+    .map(segment => ({ text: segment, numeric: /^[0-9²³]/.test(segment) }))
+}
+
+function setBrandFont(
+  ctx: CanvasRenderingContext2D,
+  numeric: boolean,
+  size: number,
+  letterWeight: number,
+  numberWeight: number,
+) {
+  ctx.font = numeric
+    ? `${numberWeight} ${size}px Poppins, system-ui, sans-serif`
+    : `${letterWeight} ${size}px Raleway, system-ui, sans-serif`
+}
+
+function measureBrandText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  size: number,
+  letterWeight = 700,
+  numberWeight = 600,
+): number {
+  return brandSegments(text).reduce((width, segment) => {
+    setBrandFont(ctx, segment.numeric, size, letterWeight, numberWeight)
+    return width + ctx.measureText(segment.text).width
+  }, 0)
+}
+
+function drawBrandText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  size: number,
+  letterWeight = 700,
+  numberWeight = 600,
+): number {
+  let cursor = x
+  for (const segment of brandSegments(text)) {
+    setBrandFont(ctx, segment.numeric, size, letterWeight, numberWeight)
+    ctx.fillText(segment.text, cursor, y)
+    cursor += ctx.measureText(segment.text).width
+  }
+  return cursor
+}
+
+function wrapBrandText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxW: number,
+  size: number,
+  letterWeight = 700,
+  numberWeight = 600,
+): string[] {
+  const words = text.split(/\s+/)
+  const lines: string[] = []
+  let current = ''
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word
+    if (current && measureBrandText(ctx, candidate, size, letterWeight, numberWeight) > maxW) {
+      lines.push(current)
+      current = word
+    } else {
+      current = candidate
+    }
+  }
+  if (current) lines.push(current)
+  return lines
+}
+
+function appendBrandEllipsis(
+  ctx: CanvasRenderingContext2D,
+  line: string,
+  maxW: number,
+  size: number,
+): string {
+  const ellipsis = '…'
+  let truncated = line
+  while (truncated && measureBrandText(ctx, `${truncated}${ellipsis}`, size) > maxW) {
+    truncated = truncated.slice(0, -1).trimEnd()
+  }
+  return `${truncated}${ellipsis}`
+}
+
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
   const words = text.split(/\s+/)
   const lines: string[] = []
@@ -74,16 +210,6 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number): st
   return lines
 }
 
-function appendEllipsis(ctx: CanvasRenderingContext2D, line: string, maxW: number): string {
-  const ell = '…'
-  if (ctx.measureText(line + ell).width <= maxW) return line + ell
-  let truncated = line
-  while (truncated.length > 0 && ctx.measureText(truncated + ell).width > maxW) {
-    truncated = truncated.slice(0, -1).trimEnd()
-  }
-  return truncated + ell
-}
-
 // Abreviación de "dormitorios" → "dorm." para títulos largos del Split Card
 // que no entran en 2 líneas al min size. Solo se intenta antes de aplicar
 // elipsis (último recurso). Case-insensitive, palabra completa.
@@ -98,10 +224,10 @@ function drawPill(
   y: number,
   opts: { variant: PillVariant; fontSize: number; textColor: string; pillH: number; padX: number }
 ): number {
-  ctx.font = `700 ${opts.fontSize}px Raleway, system-ui, sans-serif`
   ctx.textBaseline = 'middle'
   setLetterSpacing(ctx, 1.5)
-  const tw = measureLetterSpaced(ctx, text, opts.fontSize, 1.5)
+  const tw = measureBrandText(ctx, text, opts.fontSize, 700, 600)
+    + 1.5 * Math.max(0, text.length - 1) * 0.2
   const pw = tw + opts.padX * 2
   ctx.beginPath()
   ctx.roundRect(x, y, pw, opts.pillH, 999)
@@ -120,7 +246,7 @@ function drawPill(
     ctx.stroke()
   }
   ctx.fillStyle = opts.textColor
-  ctx.fillText(text, x + opts.padX, y + opts.pillH / 2)
+  drawBrandText(ctx, text, x + opts.padX, y + opts.pillH / 2, opts.fontSize, 700, 600)
   setLetterSpacing(ctx, 0)
   ctx.textBaseline = 'alphabetic'
   return pw
@@ -130,13 +256,6 @@ function setLetterSpacing(ctx: CanvasRenderingContext2D, px: number) {
   // ctx.letterSpacing is supported in modern browsers (Chrome 99+, Safari 16+)
   // TypeScript DOM types may not include it yet
   try { (ctx as unknown as { letterSpacing: string }).letterSpacing = `${px}px` } catch { /* unsupported */ }
-}
-
-function measureLetterSpaced(ctx: CanvasRenderingContext2D, text: string, _fontSize: number, spacing: number): number {
-  // Best-effort: most modern browsers reflect letterSpacing in measureText.
-  const base = ctx.measureText(text).width
-  // If letterSpacing isn't applied in measureText, add manual estimate.
-  return base + Math.max(0, spacing) * Math.max(0, text.length - 1) * 0.2
 }
 
 function buildSpecs(props: { area: number | null; rooms: number; bathrooms: number; lotSurface?: number | null; parking?: number; propertyType: string }): Spec[] {
@@ -209,26 +328,72 @@ function drawFooterRow(ctx: CanvasRenderingContext2D, y: number, primaryColor: s
   ctx.textBaseline = 'alphabetic'
   ctx.fillText('David Flores', PAD, y + 40)
   ctx.fillStyle = secondaryColor
-  ctx.font = '400 34px Poppins, system-ui, sans-serif'
-  ctx.fillText('Mat. N° 0621', PAD, y + 40 + 4 + 34)
+  ctx.font = '500 24px Poppins, system-ui, sans-serif'
+  ctx.fillText('MN 0621', PAD, y + 40 + 5 + 24)
 
   ctx.fillStyle = primaryColor
   ctx.font = '700 40px Raleway, system-ui, sans-serif'
   ctx.textAlign = 'right'
   ctx.fillText('@inmobiliaria.si', W - PAD, y + 40)
   ctx.fillStyle = secondaryColor
-  ctx.font = '400 34px Poppins, system-ui, sans-serif'
-  ctx.fillText('Consultá por DM', W - PAD, y + 40 + 4 + 34)
+  ctx.font = '600 28px Raleway, system-ui, sans-serif'
+  ctx.fillText('Consultá por DM', W - PAD, y + 40 + 5 + 28)
   ctx.textAlign = 'left'
+}
+
+function fitBrandTextSize(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  initialSize: number,
+  minSize: number,
+  weight = 600,
+): number {
+  let size = initialSize
+  while (size > minSize && measureBrandText(ctx, text, size, weight, weight) > maxWidth) size -= 2
+  return size
+}
+
+function drawLocationPin(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  const radius = size * 0.32
+  const centerX = x + size / 2
+  const centerY = y + radius
+
+  ctx.save()
+  ctx.fillStyle = '#fff'
+  ctx.beginPath()
+  ctx.arc(centerX, centerY, radius, Math.PI, 0)
+  ctx.bezierCurveTo(
+    centerX + radius,
+    centerY + radius * 0.95,
+    centerX,
+    y + size,
+    centerX,
+    y + size,
+  )
+  ctx.bezierCurveTo(
+    centerX,
+    y + size,
+    centerX - radius,
+    centerY + radius * 0.95,
+    centerX - radius,
+    centerY,
+  )
+  ctx.fill()
+  ctx.fillStyle = 'rgba(10,14,11,.72)'
+  ctx.beginPath()
+  ctx.arc(centerX, centerY, radius * 0.38, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
 }
 
 async function ensureFonts() {
   try { await document.fonts.ready } catch { /* ignore */ }
   const loads = [
-    '400 34px Poppins', '400 52px Poppins', '600 32px Poppins',
+    '400 34px Poppins', '400 52px Poppins', '500 24px Poppins', '600 32px Poppins',
     '700 42px Poppins', '700 44px Poppins', '700 48px Poppins', '700 52px Poppins', '700 56px Poppins', '700 60px Poppins', '700 64px Poppins', '700 98px Poppins', '700 120px Poppins', '700 140px Poppins',
     '300 52px Poppins',
-    '400 40px Raleway', '700 24px Raleway', '700 40px Raleway',
+    '400 40px Raleway', '600 28px Raleway', '600 30px Raleway', '700 24px Raleway', '700 40px Raleway',
     '700 100px Raleway', '800 92px Raleway', '800 76px Raleway', '800 64px Raleway',
   ]
   await Promise.all(loads.map(f => document.fonts.load(f).catch(() => null)))
@@ -308,7 +473,7 @@ async function drawEditorialCover(
   const div1H = 1
   const priceBlockH = priceLabelSize + 8 + priceValueSize
   const div2H = 1
-  const footerH = 40 + 4 + 34
+  const footerH = 40 + 5 + 28
 
   const totalBlockH = pillsRowH
     + PILLS_TO_TITLE_GAP + titleH
@@ -452,8 +617,7 @@ async function drawSplitCard(
   let lineH = 0
   let titleToRender = props.title
   while (true) {
-    ctx.font = `700 ${tSize}px Raleway, system-ui, sans-serif`
-    tLines = wrapText(ctx, titleToRender, bandCw)
+    tLines = wrapBrandText(ctx, titleToRender, bandCw, tSize)
     lineH = Math.round(tSize * 1.05)
     const allowedLines = tSize <= TITLE_MIN_SIZE ? TITLE_MAX_LINES_AT_MIN : TITLE_MAX_LINES_NORMAL
     const fits = tLines.length <= allowedLines && tLines.length * lineH <= titleHCap
@@ -472,7 +636,7 @@ async function drawSplitCard(
       if (tLines.length > TITLE_MAX_LINES_AT_MIN) {
         const cap = TITLE_MAX_LINES_AT_MIN
         const kept = tLines.slice(0, cap)
-        kept[cap - 1] = appendEllipsis(ctx, kept[cap - 1], bandCw)
+        kept[cap - 1] = appendBrandEllipsis(ctx, kept[cap - 1], bandCw, tSize)
         tLines = kept
       }
       break
@@ -491,10 +655,10 @@ async function drawSplitCard(
   const BOT_START = BAND_TOP + bandH
   const BOT_H = H - BOT_START
 
-  if (photo1) drawCover(ctx, photo1, 0, 0, W, TOP_H)
+  if (photo1) drawAdaptivePhoto(ctx, photo1, 0, 0, W, TOP_H)
   else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, 0, W, TOP_H) }
 
-  if (photo2) drawCover(ctx, photo2, 0, BOT_START, W, BOT_H)
+  if (photo2) drawAdaptivePhoto(ctx, photo2, 0, BOT_START, W, BOT_H)
   else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, BOT_START, W, BOT_H) }
 
   const topShade = ctx.createLinearGradient(0, 0, 0, TOP_H * 0.18)
@@ -547,11 +711,10 @@ async function drawSplitCard(
   cy += pillH + bandGap
 
   ctx.fillStyle = '#1a1a1a'
-  ctx.font = `700 ${tSize}px Raleway, system-ui, sans-serif`
   ctx.textBaseline = 'alphabetic'
   setLetterSpacing(ctx, -3)
   for (const line of tLines) {
-    ctx.fillText(line, BAND_PAD_SIDES, cy + tSize)
+    drawBrandText(ctx, line, BAND_PAD_SIDES, cy + tSize, tSize)
     cy += lineH
   }
   setLetterSpacing(ctx, 0)
@@ -574,9 +737,8 @@ async function drawSplitCard(
   // Bottom block — anchor footer last baseline at H - PADDING_BOTTOM (≥60 px from edge).
   const PADDING_BOTTOM = 60
   const priceLabelSize = 32
-  const footerH = 40 + 4 + 34
+  const footerH = 40 + 5 + 28
   const divH = 1
-  const divMarginTop = 35
   const divMarginBottom = 44 // ≥40 px between divider and first footer line
 
   // Adaptive price font size: start −10% smaller than before, then iteratively
@@ -597,7 +759,16 @@ async function drawSplitCard(
 
   const footerY = H - PADDING_BOTTOM - footerH
   const dividerY = footerY - divMarginBottom - divH
-  const priceValueBaseline = dividerY - divMarginTop
+  const address = props.address?.trim() || ''
+  const pinSize = 30
+  const addressGap = address ? 16 : 0
+  const addressSize = address
+    ? fitBrandTextSize(ctx, address, cw - pinSize - 14, 30, 20, 600)
+    : 0
+  const addressBaseline = dividerY - 22
+  const priceValueBaseline = address
+    ? addressBaseline - addressSize - addressGap
+    : dividerY - 35
   const priceLabelBaseline = priceValueBaseline - priceValueSize - 8
 
   ctx.fillStyle = 'rgba(255,255,255,0.75)'
@@ -617,6 +788,15 @@ async function drawSplitCard(
   ctx.shadowBlur = 0
   ctx.shadowOffsetY = 0
 
+  if (address) {
+    const pinTop = addressBaseline - pinSize + 2
+    drawLocationPin(ctx, PAD, pinTop, pinSize)
+    ctx.fillStyle = 'rgba(255,255,255,0.92)'
+    ctx.textBaseline = 'alphabetic'
+    setLetterSpacing(ctx, 0)
+    drawBrandText(ctx, address, PAD + pinSize + 14, addressBaseline, addressSize, 600, 600)
+  }
+
   ctx.fillStyle = 'rgba(255,255,255,0.25)'
   ctx.fillRect(PAD, dividerY, cw, divH)
 
@@ -625,43 +805,111 @@ async function drawSplitCard(
 
 export default function StoryPlateMulti(props: StoryPlateMultiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const previewSequenceRef = useRef(0)
   const [generating, setGenerating] = useState(false)
+  const [previewing, setPreviewing] = useState(true)
+  const [previewError, setPreviewError] = useState<string | null>(null)
 
-  const generate = useCallback(async (): Promise<Blob | null> => {
-    const canvas = canvasRef.current
-    if (!canvas) return null
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return null
+  const {
+    photos,
+    title,
+    price,
+    operation,
+    propertyType,
+    area,
+    rooms,
+    bathrooms,
+    lotSurface,
+    parking,
+    slug,
+    city,
+    neighborhood,
+    address,
+    disabled,
+    btnStyle,
+    buttonLabel,
+  } = props
 
+  const renderPlate = useCallback(async (): Promise<HTMLCanvasElement> => {
+    const canvas = document.createElement('canvas')
     canvas.width = W
     canvas.height = H
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('No se pudo preparar el lienzo de la placa.')
 
     await ensureFonts()
 
-    const [photos, logo] = await Promise.all([
-      Promise.all((props.photos || []).slice(0, 2).map(url => tryLoadImage(url))),
+    const [loadedPhotos, logo] = await Promise.all([
+      Promise.all((photos || []).slice(0, 2).map(url => tryLoadImage(url))),
       tryLoadImage(LOGO_URL),
     ])
 
-    const validPhotos = photos.filter((p): p is HTMLImageElement => p !== null)
-
-    if (validPhotos.length >= 2) {
-      await drawSplitCard(ctx, props, validPhotos[0], validPhotos[1], logo)
-    } else {
-      const single = validPhotos[0] || null
-      await drawEditorialCover(ctx, props, single, logo)
+    const validPhotos = loadedPhotos.filter((photo): photo is HTMLImageElement => photo !== null)
+    const plateProps: StoryPlateMultiProps = {
+      photos,
+      title,
+      price,
+      operation,
+      propertyType,
+      area,
+      rooms,
+      bathrooms,
+      lotSurface,
+      parking,
+      slug,
+      city,
+      neighborhood,
+      address,
     }
 
-    return new Promise<Blob | null>(resolve => canvas.toBlob(b => resolve(b), 'image/png'))
-  }, [props])
+    if (validPhotos.length >= 2) {
+      await drawSplitCard(ctx, plateProps, validPhotos[0], validPhotos[1], logo)
+    } else {
+      const single = validPhotos[0] || null
+      await drawEditorialCover(ctx, plateProps, single, logo)
+    }
+
+    return canvas
+  }, [photos, title, price, operation, propertyType, area, rooms, bathrooms, lotSurface, parking, slug, city, neighborhood, address])
+
+  useEffect(() => {
+    const sequence = ++previewSequenceRef.current
+    setPreviewing(true)
+    setPreviewError(null)
+
+    void renderPlate()
+      .then(source => {
+        if (sequence !== previewSequenceRef.current) return
+        const target = canvasRef.current
+        const ctx = target?.getContext('2d')
+        if (!target || !ctx) return
+        target.width = W
+        target.height = H
+        ctx.clearRect(0, 0, W, H)
+        ctx.drawImage(source, 0, 0)
+      })
+      .catch(error => {
+        if (sequence === previewSequenceRef.current) {
+          setPreviewError(error instanceof Error ? error.message : 'No se pudo generar la vista previa.')
+        }
+      })
+      .finally(() => {
+        if (sequence === previewSequenceRef.current) setPreviewing(false)
+      })
+
+    return () => {
+      previewSequenceRef.current += 1
+    }
+  }, [renderPlate])
 
   const handleDownload = useCallback(async () => {
-    if (generating || props.disabled) return
+    if (generating || disabled) return
     setGenerating(true)
     try {
-      const blob = await generate()
+      const rendered = await renderPlate()
+      const blob = await new Promise<Blob | null>(resolve => rendered.toBlob(resolve, 'image/png'))
       if (!blob) return
-      const file = new File([blob], `placa-${props.slug}.png`, { type: 'image/png' })
+      const file = new File([blob], `placa-${slug}.png`, { type: 'image/png' })
       const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean }
       if (nav.share && nav.canShare?.({ files: [file] })) {
         try {
@@ -672,35 +920,74 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `placa-${props.slug}.png`
+      a.download = `placa-${slug}.png`
       a.click()
       URL.revokeObjectURL(url)
     } finally {
       setGenerating(false)
     }
-  }, [generate, generating, props.disabled, props.slug])
+  }, [disabled, generating, renderPlate, slug])
 
   return (
     <>
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
-      <button
-        onClick={handleDownload}
-        disabled={generating || props.disabled}
-        style={{
-          ...(props.btnStyle ?? {}),
-          background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
-          color: '#fff',
-          opacity: generating || props.disabled ? 0.6 : 1,
-          cursor: generating || props.disabled ? 'not-allowed' : 'pointer',
-        }}
+      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+        <p
+          className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-gray-500"
+          style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
+        >
+          Vista previa
+        </p>
+        <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl bg-[#0F2419]">
+          <canvas
+            ref={canvasRef}
+            width={W}
+            height={H}
+            className="block size-full"
+            aria-label="Vista previa de la placa de Instagram"
+          />
+          {previewing && (
+            <div className="absolute inset-0 grid place-items-center bg-[#0F2419]/35" role="status" aria-label="Generando vista previa">
+              <span className="size-7 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            </div>
+          )}
+          {previewError && !previewing && (
+            <div className="absolute inset-0 grid place-items-center bg-[#0F2419] px-6 text-center text-sm font-semibold text-white">
+              {previewError}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white px-4 py-3 md:relative md:border-t-0 md:bg-transparent md:p-0"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
-        {generating ? (
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        ) : (
-          <Instagram size={16} />
-        )}
-        {props.buttonLabel ?? 'Descargar placa'}
-      </button>
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={generating || disabled}
+          style={{
+            ...(btnStyle ?? {}),
+            background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
+            color: '#fff',
+            opacity: generating || disabled ? 0.6 : 1,
+            cursor: generating || disabled ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {generating ? (
+            <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          ) : (
+            <Instagram size={16} aria-hidden />
+          )}
+          {buttonLabel ?? 'Descargar placa'}
+        </button>
+        <p
+          className="mt-2 text-center text-[11px] text-gray-400"
+          style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
+        >
+          PNG 1080×1920 · listo para Instagram Story
+        </p>
+      </div>
     </>
   )
 }

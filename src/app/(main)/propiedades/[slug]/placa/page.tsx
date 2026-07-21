@@ -24,6 +24,26 @@ interface Props {
   params: { slug: string }
 }
 
+function stripLocationSuffix(address: string, locationNames: Array<string | null>): string {
+  const names = locationNames
+    .filter((name): name is string => Boolean(name?.trim()))
+    .sort((a, b) => b.length - a.length)
+
+  let normalized = address.trim()
+  let previous = ''
+  while (normalized && normalized !== previous) {
+    previous = normalized
+    for (const name of names) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      normalized = normalized
+        .replace(new RegExp(`\\s*(?:-|,|\\|)\\s*${escaped}\\s*$`, 'i'), '')
+        .trim()
+    }
+  }
+
+  return normalized
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: 'Crear placa Instagram | SI INMOBILIARIA',
@@ -70,14 +90,37 @@ export default async function PlacaPage({ params }: Props) {
   const rooms = isMonoambiente(property) ? 0 : (property.suite_amount || property.room_amount || 0)
   const bathrooms = property.bathroom_amount || 0
   const parking = property.parking_lot_amount || 0
-  const city = property.location?.name || null
+  const locationParts = (property.location?.full_location || property.location?.short_location || '')
+    .split('|')
+    .map(part => part.trim())
+    .filter(part => part && part.toLowerCase() !== 'argentina')
+  const province = locationParts[0] || null
+  const cityFromLocation = locationParts.filter(part => /^(funes|rold[aá]n|rosario)$/i.test(part)).pop() || null
+  const city = cityFromLocation || property.location?.name || null
 
   const addrText = property.fake_address || property.address || ''
   const sortedDivs = [...(property.location?.divisions ?? [])].sort((a, b) => b.name.length - a.name.length)
-  const neighborhood = sortedDivs.find(d => {
+  const divisionNeighborhood = sortedDivs.find(d => {
     const esc = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     return new RegExp(`\\b${esc}\\b`, 'i').test(addrText)
   })?.name || null
+  const neighborhoodFromLocation = [...locationParts]
+    .reverse()
+    .find(part => part !== province && part !== cityFromLocation) || null
+  const neighborhood = divisionNeighborhood || neighborhoodFromLocation
+
+  const rawStreetAddress = property.real_address || property.address || property.fake_address || ''
+  const streetAddress = stripLocationSuffix(rawStreetAddress, [neighborhood, cityFromLocation, city, province])
+  const addressHead = [streetAddress, province]
+    .filter(Boolean)
+    .filter((part, index, parts) => index === 0 || !String(parts[0]).toLowerCase().includes(String(part).toLowerCase()))
+    .join(', ')
+  const addressLine = [addressHead, cityFromLocation, neighborhood]
+    .filter(Boolean)
+    .filter((part, index, parts) =>
+      parts.findIndex(candidate => String(candidate).toLowerCase() === String(part).toLowerCase()) === index,
+    )
+    .join(' | ')
 
   const locationLabel = [neighborhood, city].filter(Boolean).join(' · ') || 'Propiedad'
 
@@ -98,6 +141,7 @@ export default async function PlacaPage({ params }: Props) {
       city={city}
       neighborhood={neighborhood}
       locationLabel={locationLabel}
+      addressLine={addressLine}
     />
   )
 }

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import StoryPlateMulti from './StoryPlateMulti'
-import PlacaPreview from './PlacaPreview'
 
 export interface PlacaPhoto {
   thumb: string
@@ -28,6 +27,7 @@ interface Props {
   city: string | null
   neighborhood: string | null
   locationLabel: string
+  addressLine: string
 }
 
 export default function PlacaSelectorClient(props: Props) {
@@ -70,6 +70,7 @@ export default function PlacaSelectorClient(props: Props) {
     parking: props.parking,
     city: props.city ?? undefined,
     neighborhood: props.neighborhood ?? undefined,
+    address: props.addressLine,
   }
 
   const renderThumb = (p: PlacaPhoto) => {
@@ -231,40 +232,14 @@ export default function PlacaSelectorClient(props: Props) {
                 </p>
               </div>
 
-              {/* Preview */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                <p
-                  className="text-[11px] uppercase tracking-[0.15em] text-gray-500 font-bold mb-3"
-                  style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
-                >
-                  Vista previa
-                </p>
-                <PlacaPreview photos={previewPhotos} {...sharedPlateProps} />
-              </div>
-
-              {/* Download button — fixed-bottom on mobile, inline (sticky via parent) on desktop */}
-              <div
-                className="
-                  fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3
-                  md:relative md:border-t-0 md:bg-transparent md:p-0
-                "
-                style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
-              >
-                <StoryPlateMulti
-                  {...sharedPlateProps}
-                  slug={props.slug}
-                  photos={selected}
-                  disabled={selected.length === 0}
-                  buttonLabel="Descargar placa"
-                  btnStyle={downloadBtnStyle}
-                />
-                <p
-                  className="text-[11px] text-gray-400 text-center mt-2"
-                  style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
-                >
-                  PNG 1080×1920 · listo para Instagram Story
-                </p>
-              </div>
+              <StoryPlateMulti
+                {...sharedPlateProps}
+                slug={props.slug}
+                photos={previewPhotos}
+                disabled={selected.length === 0}
+                buttonLabel="Descargar placa"
+                btnStyle={downloadBtnStyle}
+              />
             </div>
           </aside>
         </div>
