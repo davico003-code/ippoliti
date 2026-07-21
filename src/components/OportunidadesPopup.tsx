@@ -5,7 +5,7 @@
 // lead simple (Nombre y apellido + Email). El contacto se guarda en /api/leads
 // (misma vía que usaba el newsletter). Cerrable → no reaparece por 3 días.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { BarChart3, CheckCircle2, Cpu, MapPin, UserRound, X } from 'lucide-react'
@@ -15,8 +15,6 @@ const GREEN = '#1A5C38'
 const DISMISS_KEY = 'si_oportunidades_dismiss'
 const DISMISS_DAYS = 3
 const SHOW_DELAY_MS = 7000
-const DESKTOP_SCROLL_Y = 420
-const MOBILE_SCROLL_Y = 280
 
 // Rutas internas/flujos donde el popup no corresponde.
 const HIDE_PREFIXES = ['/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/']
@@ -34,7 +32,6 @@ export default function OportunidadesPopup() {
   const [form, setForm] = useState({ nombre: '', email: '' })
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [visible, setVisible] = useState(false)
-  const delayReady = useRef(false)
 
   const enRutaOculta = useCallback(
     () => HIDE_PREFIXES.some((prefix) => pathname?.startsWith(prefix)),
@@ -55,32 +52,21 @@ export default function OportunidadesPopup() {
     try { window.localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch {}
   }, [])
 
-  // Aparición: tras un delay y con algo de scroll (señal de interés). En
-  // /propiedades alcanza con el delay porque ya está buscando.
+  // Aparición: tras un delay aparece en cualquier página (no oculta ni dismiss).
+  // Antes dependía de window.scrollY como señal de interés, pero en el home
+  // html/body tienen overflow:clip y scrollY queda siempre en 0 → el popup nunca
+  // salía ahí. El delay es un disparo confiable en todas las rutas.
   useEffect(() => {
     if (enRutaOculta() || dismissActivo()) return
-
-    delayReady.current = false
     let alive = true
-    const showIfReady = () => {
-      if (!alive || visible || !delayReady.current) return
-      if (pathname === '/propiedades') { setVisible(true); return }
-      const minScroll = window.innerWidth < 768 ? MOBILE_SCROLL_Y : DESKTOP_SCROLL_Y
-      if (window.scrollY >= minScroll) setVisible(true)
-    }
-
     const timer = window.setTimeout(() => {
-      delayReady.current = true
-      showIfReady()
+      if (alive) setVisible(true)
     }, SHOW_DELAY_MS)
-
-    window.addEventListener('scroll', showIfReady, { passive: true })
     return () => {
       alive = false
       window.clearTimeout(timer)
-      window.removeEventListener('scroll', showIfReady)
     }
-  }, [dismissActivo, enRutaOculta, pathname, visible])
+  }, [dismissActivo, enRutaOculta, pathname])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -25,9 +25,10 @@ export const FIXTURE: PartidoMundial[] = [
 // Ventana en la que un partido se considera "en vivo" (90' + ET + descuento).
 export const DURACION_PARTIDO_MIN = 150
 
-// Fin de la edición (fin del torneo + margen). Mientras now < esto, el feature
-// está activo. La final del Mundial 2026 es ~19 jul.
-const FIN_EDICION = new Date('2026-07-20T00:00:00-03:00')
+// Fin de la edición. Mientras now < esto, el feature está activo. La final del
+// Mundial 2026 fue el 19 jul y David confirmó que terminó → se cierra la edición
+// (apaga franja, acento celeste y demás piezas gateadas por esEdicionMundial).
+const FIN_EDICION = new Date('2026-07-19T00:00:00-03:00')
 
 // ¿El feature Mundial está activo? (gate de ambas piezas)
 export function esEdicionMundial(now: Date = new Date()): boolean {

@@ -17,33 +17,47 @@ function getInitials(name: string): string {
 }
 
 type IngresarButtonProps = {
-  agent: { name: string } | null
+  agent: { name: string; foto?: string | null } | null
   onClick?: () => void
 }
 
 function IngresarButton({ agent, onClick }: IngresarButtonProps) {
   const isAuthed = !!agent
+  // Solo si está logueado y tiene foto curada/Tokko mostramos su avatar, y más
+  // grande que el círculo de iniciales (48 vs 40). Sin foto → iniciales; sin
+  // sesión → ícono genérico.
+  const foto = isAuthed ? agent!.foto : null
+  const size = foto ? 48 : 40
   return (
     <Link
       href="/agentes"
       onClick={onClick}
       aria-label={isAuthed ? `Cuenta de ${agent!.name}` : 'Ingresar'}
-      className="inline-flex items-center justify-center transition-colors duration-200"
+      className="inline-flex items-center justify-center overflow-hidden transition-transform duration-200 hover:scale-105"
       style={{
-        width: 40,
-        height: 40,
-        background: '#1A5C38',
-        border: '2px solid rgba(255,255,255,0.25)',
+        width: size,
+        height: size,
+        background: foto ? '#fff' : '#1A5C38',
+        border: foto ? '2px solid #fff' : '2px solid rgba(255,255,255,0.25)',
         borderRadius: 9999,
         cursor: 'pointer',
         textDecoration: 'none',
         color: '#fff',
         flexShrink: 0,
+        boxShadow: foto ? '0 2px 10px rgba(0,0,0,0.22)' : 'none',
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = '#144a2c' }}
-      onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
+      onMouseEnter={e => { if (!foto) e.currentTarget.style.background = '#144a2c' }}
+      onMouseLeave={e => { if (!foto) e.currentTarget.style.background = '#1A5C38' }}
     >
-      {isAuthed ? (
+      {foto ? (
+        <Image
+          src={foto}
+          alt={agent!.name}
+          width={size}
+          height={size}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 9999 }}
+        />
+      ) : isAuthed ? (
         <span style={{ fontFamily: R, fontWeight: 500, fontSize: 13, color: '#fff', lineHeight: 1 }}>
           {getInitials(agent!.name)}
         </span>
@@ -93,7 +107,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [agent, setAgent] = useState<{ name: string } | null>(null)
+  const [agent, setAgent] = useState<{ name: string; foto?: string | null } | null>(null)
   const isPropiedades = pathname.startsWith('/propiedades')
   const isHome = pathname === '/'
   const isBarriosHub = pathname === '/barrios-privados'

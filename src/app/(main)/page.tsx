@@ -14,7 +14,6 @@ import GuiaSection from '@/components/home/GuiaSection'
 import ConfianzaSection from '@/components/home/ConfianzaSection'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
-import PapelitosFestejo from '@/components/PapelitosFestejo'
 import {
   getFeaturedProperties,
   generatePropertySlug,
@@ -215,9 +214,6 @@ export const metadata = {
 export default async function Home() {
   return (
     <>
-      {/* Botón festivo: papelitos celeste y blanco al tocar (client island). */}
-      <PapelitosFestejo />
-
       {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
       <div className="md:hidden">
         <HeroMobile />
