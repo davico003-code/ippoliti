@@ -5,6 +5,7 @@
 // `scrollRoot` = the modal's overflow-y-auto element so the nav sticks to its
 // top and the scroll-spy observes intersections inside it.
 import { useEffect, useRef, useState } from 'react'
+import { findPropertySection } from './propertySectionTarget'
 
 type Section = { id: string; label: string }
 
@@ -39,14 +40,14 @@ export default function PropertyStickyNav({
     }, opts)
 
     sections.forEach(s => {
-      const el = document.getElementById(s.id)
+      const el = findPropertySection(s.id, scrollRoot)
       if (el) io.observe(el)
     })
     return () => io.disconnect()
   }, [sections, scrollRoot])
 
   const jumpTo = (id: string) => {
-    const el = document.getElementById(id)
+    const el = findPropertySection(id, scrollRoot)
     if (!el) return
     // Scroll manual del contenedor correcto (el div del overlay O window). Más
     // confiable que scrollIntoView smooth en Safari con contenedores anidados.
