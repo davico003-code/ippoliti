@@ -55,6 +55,14 @@ const nextConfig = {
         destination: '/guia',
         permanent: true,
       },
+      // Consolidación SEO: la landing vieja de San Sebastián canibalizaba al hub
+      // de barrios-privados (dos páginas self-canonical compitiendo por la misma
+      // keyword). 301 → el hub, que tiene 2.4x más contenido.
+      {
+        source: '/barrio-san-sebastian-funes',
+        destination: '/barrios-privados/san-sebastian',
+        permanent: true,
+      },
       // Renombre /herramientas → /recursos
       {
         source: '/herramientas',

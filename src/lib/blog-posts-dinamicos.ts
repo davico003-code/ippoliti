@@ -1,5 +1,5 @@
 import { list, type ListBlobResultBlob } from '@vercel/blob';
-import { redis } from './redis';
+import { hgetallCached } from './redis-isr';
 import type { BlogPost } from './blog';
 
 // Cache simple en memoria (60 segundos)
@@ -21,28 +21,20 @@ function isStaticBuild() {
 export async function getBlogRedirects(): Promise<Record<string, string>> {
   if (_redirCache && Date.now() - _redirCache.ts < META_TTL_MS) return _redirCache.map;
   if (isStaticBuild()) return {};
-  try {
-    const map = (await redis.hgetall<Record<string, string>>('blog:redirects')) ?? {};
-    _redirCache = { map, ts: Date.now() };
-    return map;
-  } catch (err) {
-    console.warn('[blog] error leyendo blog:redirects:', err);
-    return _redirCache?.map ?? {};
-  }
+  // hgetallCached: fetch cacheable (ISR-safe). El cliente @upstash/redis hacía
+  // no-store → DYNAMIC_SERVER_USAGE → 500 en slugs desconocidos del blog.
+  const map = await hgetallCached('blog:redirects');
+  _redirCache = { map, ts: Date.now() };
+  return map;
 }
 
 // Override manual de imagen por nota: slug → URL de imagen (Blob).
 export async function getImageOverrides(): Promise<Record<string, string>> {
   if (_imgCache && Date.now() - _imgCache.ts < META_TTL_MS) return _imgCache.map;
   if (isStaticBuild()) return {};
-  try {
-    const map = (await redis.hgetall<Record<string, string>>('blog:image_override')) ?? {};
-    _imgCache = { map, ts: Date.now() };
-    return map;
-  } catch (err) {
-    console.warn('[blog] error leyendo blog:image_override:', err);
-    return _imgCache?.map ?? {};
-  }
+  const map = await hgetallCached('blog:image_override');
+  _imgCache = { map, ts: Date.now() };
+  return map;
 }
 
 interface NotaPublicadaBlob {
