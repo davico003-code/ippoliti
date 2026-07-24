@@ -13,6 +13,7 @@ import AudioSummary from '../AudioSummary'
 import ShareMenu from '../ShareMenu'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
+import { getAgenteRol } from '@/lib/agente-titulo'
 
 const TOUR_MEET_USD_THRESHOLD = 450_000
 
@@ -83,7 +84,8 @@ export default function PropertyDetailSidebar({
               {(() => {
                 const producer = property.producer
                 const name = producer?.name?.trim() || 'SI Inmobiliaria'
-                const subtitle = 'Asesor inmobiliario'
+                const rol = getAgenteRol(name)
+                const subtitle = rol.titulo
                 const initials = name
                   .split(/\s+/)
                   .filter(Boolean)
@@ -120,7 +122,7 @@ export default function PropertyDetailSidebar({
                       className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
                       style={{ background: '#e7f2eb', color: GREEN }}
                     >
-                      Asesor
+                      {rol.badge}
                     </span>
                   </>
                 )

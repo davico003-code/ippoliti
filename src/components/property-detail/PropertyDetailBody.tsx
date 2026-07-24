@@ -31,6 +31,7 @@ import SectionBoundary from './SectionBoundary'
 import BarrioPanel from './BarrioPanel'
 import type { Barrio } from '@/lib/barrios'
 import PropertyVideo from './PropertyVideo'
+import { getAgenteRol } from '@/lib/agente-titulo'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
 import FeedbackDetalle from '../feedback/FeedbackDetalle'
@@ -220,6 +221,7 @@ export default function PropertyDetailBody({
           {(() => {
             const producer = property.producer
             const name = producer?.name?.trim() || 'SI Inmobiliaria'
+            const rol = getAgenteRol(name)
             const initials =
               name
                 .split(/\s+/)
@@ -256,13 +258,13 @@ export default function PropertyDetailBody({
                   >
                     {name}
                   </span>
-                  <span className="text-xs text-gray-500 block truncate">Asesor inmobiliario</span>
+                  <span className="text-xs text-gray-500 block truncate">{rol.titulo}</span>
                 </div>
                 <span
                   className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
                   style={{ background: '#e7f2eb', color: '#1A5C38' }}
                 >
-                  Asesor
+                  {rol.badge}
                 </span>
               </div>
             )
