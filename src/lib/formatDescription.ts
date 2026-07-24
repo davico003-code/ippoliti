@@ -1,18 +1,19 @@
-// Parser de descripciones de propiedades de Tokko.
+// Parser de descripciones de propiedades (Tokko / HILO).
 //
-// Dos caminos:
-//  1) Texto YA formateado (con saltos de línea): camino clásico — detecta títulos
-//     (negrita), líneas de dato "Label: value" (agrupadas), subtítulos inline y
-//     párrafos normales. No se toca: respeta lo que cargó el agente.
-//  2) Texto "corrido" (sin saltos, todo pegado por camelCase y punto+mayúscula):
-//     se normaliza automáticamente — se arreglan los espacios, se separan los
-//     ítems pegados, se detectan secciones (Planta Baja/Alta, Terminaciones, etc.)
-//     y se renderizan como párrafos con título en negrita. Degrada elegante.
+// El texto llega en formatos muy variados según lo cargó el agente:
+//  1) Con saltos de línea reales (uno por párrafo o por ítem) — el más común.
+//  2) HTML ya "aplanado" por getDescription (que convirtió <p>/<div>/<br> a \n).
+//  3) Texto "corrido": todo pegado, sin saltos, unido por camelCase y punto+
+//     mayúscula.
+//
+// Objetivo: que leer un anuncio sea AGRADABLE — títulos en negrita con aire,
+// listas de comodidades como viñetas y párrafos separados, nunca un muro denso.
 
 export type FormattedBlock =
   | { type: 'title'; content: string }
   | { type: 'paragraph'; content: string; subtitle?: string }
   | { type: 'dataGroup'; content: Array<{ key: string; value: string }> }
+  | { type: 'list'; items: string[] }
 
 // Secciones conocidas (multi-palabra y distintivas para evitar falsos positivos).
 const SECTION_HEADERS = [
@@ -30,16 +31,66 @@ const SECTION_HEADERS = [
   'Características',
 ]
 
-// ── Heurísticas de título (camino clásico) ─────────────────────────────────
+// Encabezados de sección de una/dos palabras que aparecen solos en su línea
+// (labels de bloques que muchos agentes usan). Se detectan como título aunque
+// no estén en MAYÚSCULAS ni terminen en ":".
+const SHORT_HEADERS = [
+  'El Edificio',
+  'El Barrio',
+  'La Propiedad',
+  'Ubicación',
+  'Observación',
+  'Observaciones',
+  'Superficies',
+  'Superficie',
+  'Antigüedad',
+  'Garantías',
+  'Garantía',
+  'Expensas',
+  'Método de pago',
+  'Etapa del inmueble',
+  'Condiciones del contrato',
+  'Contrato',
+  'Dormitorios',
+  'Cocina',
+  'Living',
+  'Baños',
+  'Detalle',
+]
+
+const norm = (s: string) =>
+  s.trim().toLocaleLowerCase('es-AR').normalize('NFD').replace(/[̀-ͯ]/g, '')
+const KNOWN_HEADERS_NORM = new Set([...SECTION_HEADERS, ...SHORT_HEADERS].map(norm))
+
+// ¿La línea es un encabezado de sección conocido? (tolerante a acentos/caso)
+function isKnownSectionHeader(line: string): boolean {
+  return KNOWN_HEADERS_NORM.has(norm(stripTrailingColon(line)))
+}
+
+// Secciones que abren una LISTA de comodidades (sus ítems van como viñetas).
+const LIST_SECTION_RE = /^(planta |amenities|comodidades|servicios|terminaciones|equipamiento|caracter[ií]sticas|detalles)/i
+
+// Encabezados que introducen una lista de comodidades: las líneas cortas que les
+// siguen se agrupan como viñetas aunque no traigan marcador.
+const LIST_INTRO_RE =
+  /^(consta de|cuenta con|la propiedad (cuenta|consta)|incluye|comodidades|caracter[ií]sticas|servicios|amenities|detalles|equipamiento|distribuci[óo]n|posee|dispone de)\b/i
+
+// Marcador de viñeta al inicio de línea: •, -, –, *, ✓, y el "?" con el que
+// HILO/Tokko suelen mandar los ítems (un check que se degradó a "?").
+const BULLET_RE = /^\s*(?:[•·‣▪◦●○*✓✔☑▶►»–—-]|\?)\s+/
+
+// ── Heurísticas de título ──────────────────────────────────────────────────
 function isTitle(line: string): boolean {
   const trimmed = line.trim()
   if (!trimmed) return false
-  if (trimmed.length < 60) {
+  // Línea en MAYÚSCULAS (headline), sin puntuación de cierre.
+  if (trimmed.length <= 90) {
     const letters = trimmed.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g, '')
     if (letters.length >= 3 && letters === letters.toLocaleUpperCase('es-AR') && !/[.!?]$/.test(trimmed)) {
       return true
     }
   }
+  // Línea corta que termina en ":" (subtítulo tipo "Cuenta con:").
   if (trimmed.length < 50 && /:\s*$/.test(trimmed)) return true
   return false
 }
@@ -71,71 +122,132 @@ function parseSubtitle(line: string): { subtitle: string; rest: string } | null 
   return { subtitle, rest }
 }
 
-// ── Camino clásico (texto ya con saltos de línea) ──────────────────────────
+// Un título en MAYÚSCULAS suele venir pegado al cuerpo por falta de salto:
+// "…POSIBILIDADESSobre un extraordinario terreno…". Detectamos la transición
+// (última MAYÚS de la corrida seguida de Palabra-Capitalizada) y separamos el
+// headline en su propia línea.
+function splitGluedHeadline(line: string): string {
+  const m = line.match(
+    /^([A-ZÁÉÍÓÚÜÑ][A-ZÁÉÍÓÚÜÑ0-9 ,;.|/&()°²–—-]{6,})([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ].*)$/,
+  )
+  if (!m) return line
+  const head = m[1].trim()
+  const rest = m[2].trim()
+  // El head tiene que ser realmente un headline en mayúsculas (sin minúsculas).
+  const headLetters = head.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g, '')
+  if (headLetters.length < 6 || headLetters !== headLetters.toLocaleUpperCase('es-AR')) return line
+  return `${head}\n${rest}`
+}
+
+// Es una línea de prosa "de verdad": tiene corte de oración interno o es larga.
+function isProseLine(line: string): boolean {
+  return /[.;]\s/.test(line) || line.length > 92
+}
+
+// ── Camino principal (texto con saltos de línea) ───────────────────────────
 function parseStructured(normalized: string): FormattedBlock[] {
-  const paragraphs = normalized.split(/\n{2,}/)
+  // Cada \n es un corte deliberado del agente → cada línea es una unidad.
+  const lines = normalized
+    .split('\n')
+    .flatMap((l) => splitGluedHeadline(l.trim()).split('\n'))
+    .map((l) => l.trim())
+
   const blocks: FormattedBlock[] = []
+  let dataGroup: Array<{ key: string; value: string }> = []
+  let listItems: string[] = []
+  // Si el título anterior introduce una lista, las líneas cortas siguientes se
+  // agrupan como viñetas aunque no traigan marcador.
+  let listMode = false
 
-  for (const para of paragraphs) {
-    const lines = para.split('\n').map(l => l.trim()).filter(Boolean)
-    if (lines.length === 0) continue
-
-    let dataGroup: Array<{ key: string; value: string }> = []
-    let proseBuffer: string[] = []
-
-    const flushData = () => {
-      if (dataGroup.length > 0) {
-        blocks.push({ type: 'dataGroup', content: dataGroup })
-        dataGroup = []
-      }
+  const flushData = () => {
+    if (dataGroup.length > 0) {
+      blocks.push({ type: 'dataGroup', content: dataGroup })
+      dataGroup = []
     }
-    const flushProse = () => {
-      if (proseBuffer.length > 0) {
-        const joined = proseBuffer.join(' ')
-        const sub = proseBuffer.length === 1 ? parseSubtitle(joined) : null
-        if (sub) {
-          blocks.push({ type: 'paragraph', content: sub.rest, subtitle: sub.subtitle })
-        } else {
-          blocks.push({ type: 'paragraph', content: joined })
-        }
-        proseBuffer = []
-      }
-    }
-
-    for (const line of lines) {
-      if (isTitle(line)) {
-        flushData()
-        flushProse()
-        blocks.push({ type: 'title', content: stripTrailingColon(line) })
-        continue
-      }
-      const dl = parseDataLine(line)
-      if (dl) {
-        flushProse()
-        dataGroup.push(dl)
-        continue
-      }
-      flushData()
-      proseBuffer.push(line)
-    }
-    flushData()
-    flushProse()
   }
+  const flushList = () => {
+    if (listItems.length > 0) {
+      blocks.push({ type: 'list', items: listItems })
+      listItems = []
+    }
+  }
+
+  // Label corto (1-4 palabras, sin puntuación de cierre) que rotula el bloque
+  // siguiente: título si lo que sigue es prosa o un dato ("El Edificio", "Método
+  // de pago"). No dispara en modo lista (ahí una línea corta es un ítem).
+  const looksLikeLabel = (line: string, next: string | undefined): boolean => {
+    if (!next) return false
+    if (line.length > 30 || /[.!?:;]$/.test(line)) return false
+    if (!/^[A-ZÁÉÍÓÚÜÑ¿]/.test(line)) return false
+    if (line.split(/\s+/).length > 4) return false
+    if (BULLET_RE.test(line) || parseDataLine(line)) return false
+    return isProseLine(next) || !!parseDataLine(next)
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (!line) continue
+    const next = lines.slice(i + 1).find(Boolean)
+
+    // Ítem con marcador explícito (•, -, ?, …): siempre viñeta.
+    if (BULLET_RE.test(line)) {
+      flushData()
+      listItems.push(line.replace(BULLET_RE, '').trim())
+      continue
+    }
+
+    const knownHeader = isKnownSectionHeader(line)
+    if (knownHeader || isTitle(line) || looksLikeLabel(line, next)) {
+      flushData()
+      flushList()
+      const clean = stripTrailingColon(line)
+      blocks.push({ type: 'title', content: clean })
+      // ¿Este título abre una lista de comodidades? (secciones tipo "Planta
+      // Baja", "Amenities", intros "Cuenta con:", o cualquier título seguido de
+      // líneas cortas). Un label seguido de prosa NO abre lista.
+      listMode =
+        LIST_INTRO_RE.test(clean) ||
+        LIST_SECTION_RE.test(clean) ||
+        /:\s*$/.test(line) ||
+        (!!next && !isProseLine(next) && !parseDataLine(next))
+      continue
+    }
+
+    const dl = parseDataLine(line)
+    if (dl) {
+      flushList()
+      dataGroup.push(dl)
+      continue
+    }
+
+    flushData()
+
+    // En "modo lista" (venimos de un intro tipo "Cuenta con:" o "Planta Baja"),
+    // las líneas cortas sin corte de oración son ítems; una de prosa cierra la
+    // lista.
+    if (listMode && !isProseLine(line)) {
+      listItems.push(line)
+      continue
+    }
+    listMode = false
+    flushList()
+
+    // Párrafo (con posible subtítulo inline "Documentación. El texto…").
+    const sub = parseSubtitle(line)
+    if (sub) blocks.push({ type: 'paragraph', content: sub.rest, subtitle: sub.subtitle })
+    else blocks.push({ type: 'paragraph', content: line })
+  }
+  flushData()
+  flushList()
 
   return blocks
 }
 
 // ── Camino "texto corrido" ─────────────────────────────────────────────────
-// Inserta los cortes que el texto no trae: espacio tras puntuación pegada a
-// mayúscula, salto al unir ítems (minúscula/dígito → Mayúscula) y aísla las
-// secciones conocidas en su propia línea.
 function preprocessRunOn(raw: string): string {
   let t = raw.replace(/\r\n?/g, '\n').trim()
-  // Oraciones pegadas: "minutos.La" → "minutos. La"
   t = t.replace(/([.;:!?,])(?=[A-ZÁÉÍÓÚÑ¿¡])/g, '$1 ')
-  // Ítems pegados: "guardadoBaño" / "82x82Aberturas" → salto de línea
   t = t.replace(/([a-záéíóúüñ0-9%²°)\]])([A-ZÁÉÍÓÚÑ])/g, '$1\n$2')
-  // Aísla las secciones conocidas en su propia línea (solo si ocupan el final de la línea)
   for (const h of SECTION_HEADERS) {
     const re = new RegExp(`[ \\t]*(${h})[ \\t]*(?=\\n|$)`, 'g')
     t = t.replace(re, '\n$1\n')
@@ -149,18 +261,13 @@ function preprocessRunOn(raw: string): string {
 
 function isKnownHeader(line: string): boolean {
   const l = line.trim().toLowerCase()
-  return SECTION_HEADERS.some(h => h.toLowerCase() === l)
-}
-
-// Línea de prosa: tiene corte de oración interno o es larga (no es un ítem suelto).
-function isProseLine(line: string): boolean {
-  return /\.\s/.test(line) || line.length > 92
+  return SECTION_HEADERS.some((h) => h.toLowerCase() === l)
 }
 
 function parseRunOn(raw: string): FormattedBlock[] {
   const lines = preprocessRunOn(raw)
     .split('\n')
-    .map(l => l.trim())
+    .map((l) => l.trim())
     .filter(Boolean)
 
   const blocks: FormattedBlock[] = []
@@ -168,8 +275,7 @@ function parseRunOn(raw: string): FormattedBlock[] {
 
   const flushItems = () => {
     if (items.length === 0) return
-    const joined = items.join(' · ').replace(/\s{2,}/g, ' ').trim()
-    blocks.push({ type: 'paragraph', content: joined })
+    blocks.push({ type: 'list', items: items.slice() })
     items = []
   }
 
@@ -181,7 +287,7 @@ function parseRunOn(raw: string): FormattedBlock[] {
       flushItems()
       blocks.push({ type: 'paragraph', content: line })
     } else {
-      items.push(line)
+      items.push(line.replace(BULLET_RE, '').trim())
     }
   }
   flushItems()
@@ -189,19 +295,18 @@ function parseRunOn(raw: string): FormattedBlock[] {
   return blocks
 }
 
-// Polish tipográfico SEGURO (no toca palabras ni mayúsculas):
-//  - dimensiones "82x82" → "82×82"
-//  - espacios sobrantes antes de signos de puntuación
+// Polish tipográfico SEGURO (no toca palabras ni mayúsculas).
 function polish(s: string): string {
   return s
-    .replace(/(\d)\s*[xX]\s*(\d)/g, '$1×$2')
-    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/(\d)[ \t]*[xX][ \t]*(\d)/g, '$1×$2')
+    // Solo espacios/tabs antes de puntuación (NO \n: rompía las viñetas "\n? item",
+    // porque "?" es puntuación y se comía el salto de línea del ítem).
+    .replace(/[ \t]+([,.;:!?])/g, '$1')
     .replace(/[ \t]{2,}/g, ' ')
 }
 
-// Detecta un "headline SEO" inicial — la típica primera línea que repite el
-// título de la ficha (operación + tipo + dormitorios + barrio, con guiones).
-// No tiene corte de oración (no es prosa real) y no se pisa con la intro.
+// "Headline SEO" inicial (repite el título de la ficha): operación + tipo +
+// dormitorios + barrio, con guiones. No es prosa real.
 const LISTING_KW = /\b(en venta|en alquiler|venta|alquiler|dormitorios?|ambientes?|monoambiente|departamento|casa|ph|lote|terreno|local|oficina|d[uú]plex|chalet)\b/i
 function isSeoHeadline(content: string): boolean {
   const c = content.trim()
@@ -221,7 +326,6 @@ export function formatDescription(raw: string | null | undefined): FormattedBloc
       .trim(),
   )
 
-  // "Texto corrido": casi sin saltos pero largo → normalización automática.
   const newlineCount = (normalized.match(/\n/g) || []).length
   const isRunOn = newlineCount < 2 && normalized.length > 180
 

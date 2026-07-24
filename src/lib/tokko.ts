@@ -768,7 +768,26 @@ const BOILERPLATE = [
 // Devuelve la descripción limpia (texto plano, sin HTML, sin boilerplate)
 export function getDescription(property: TokkoProperty): string {
   const raw = property.description || property.description_only || property.rich_description || '';
-  let clean = raw.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  // Muchas descripciones vienen como HTML (<p>, <div>, <br>, <li>). Eliminar los
+  // tags a secas dejaba TODO pegado en un bloque denso: primero convertimos los
+  // cierres de bloque y saltos a \n (y los <li> a viñeta) para conservar la
+  // estructura, después removemos los tags restantes y decodificamos entidades.
+  let clean = raw
+    .replace(/<\s*br\s*\/?>/gi, '\n')
+    .replace(/<\s*li[^>]*>/gi, '\n• ')
+    .replace(/<\s*(p|div|h[1-6])[^>]*>/gi, '\n')
+    .replace(/<\/\s*(p|div|li|h[1-6]|ul|ol|tr|table|section|header)\s*>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0*39;|&apos;/gi, "'")
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
   if (!clean) return '';
 
   // Strip the explicit footer field if Tokko sent it appended.

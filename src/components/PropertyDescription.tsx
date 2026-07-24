@@ -26,6 +26,35 @@ function Block({ block }: { block: FormattedBlock }) {
     )
   }
 
+  if (block.type === 'list') {
+    return (
+      <ul style={{ listStyle: 'none', margin: '0 0 16px', padding: 0 }}>
+        {block.items.map((item, i) => (
+          <li
+            key={i}
+            className="text-[15px] md:text-[15.5px]"
+            style={{
+              position: 'relative',
+              paddingLeft: 20,
+              color: '#374151',
+              lineHeight: 1.65,
+              marginBottom: i === block.items.length - 1 ? 0 : 7,
+              fontWeight: 400,
+            }}
+          >
+            <span
+              aria-hidden
+              style={{ position: 'absolute', left: 2, top: 1, color: GREEN, fontWeight: 700 }}
+            >
+              ✓
+            </span>
+            {item}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
   if (block.type === 'dataGroup') {
     return (
       <div className="data-group" style={{ marginBottom: 16 }}>
