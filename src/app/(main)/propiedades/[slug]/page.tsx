@@ -258,6 +258,11 @@ export default async function PropertyPage({ params }: Props) {
           sections={[
             { id: 'overview', label: 'Resumen' },
             { id: 'caracteristicas', label: 'Características' },
+            // "Video" solo si la propiedad tiene recorrido (misma condición que
+            // la sección #video en PropertyDetailBody).
+            ...(property.videos && property.videos.length > 0
+              ? [{ id: 'video', label: 'Video' }]
+              : []),
             { id: 'descripcion', label: 'Descripción' },
             { id: 'planos', label: 'Planos' },
             { id: 'ubicacion', label: 'Ubicación' },

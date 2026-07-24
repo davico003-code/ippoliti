@@ -296,7 +296,7 @@ export default function PropertyDetailBody({
       {/* VIDEO — arriba de la descripción, solo si la propiedad tiene videos */}
       {property.videos && property.videos.length > 0 && (
         <SectionBoundary name="video">
-          <section id="video" className={CARD}>
+          <section id="video" className={`${CARD} scroll-mt-40`}>
             <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Recorrido en video</h2>
             <PropertyVideo videos={property.videos} fallbackPoster={property.photos?.[0]?.image ?? null} />
           </section>

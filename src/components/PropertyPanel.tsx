@@ -196,8 +196,17 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
           <PropertyGalleryHero property={property} />
         </div>
 
-        {/* Sticky nav (desktop only) — ancla al top del modal (debajo del panel header) */}
-        <PropertyStickyNav sections={SECTIONS} scrollRoot={scrollRoot} stickyTop={PANEL_HEADER_H} />
+        {/* Sticky nav (desktop only) — ancla al top del modal (debajo del panel header).
+            "Video" se inserta tras "Características" solo si la propiedad tiene recorrido. */}
+        <PropertyStickyNav
+          sections={
+            property?.videos && property.videos.length > 0
+              ? [SECTIONS[0], SECTIONS[1], { id: 'video', label: 'Video' }, ...SECTIONS.slice(2)]
+              : SECTIONS
+          }
+          scrollRoot={scrollRoot}
+          stickyTop={PANEL_HEADER_H}
+        />
 
         {/* Contenido (2 cols en desktop: body + sidebar) */}
         <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6">
