@@ -214,6 +214,37 @@ export default function TasacionesPage() {
           </div>
 
         </div>
+
+        {/* Tasadores online por zona: entrada SEO y descubrimiento interno de
+            las landings /tasar/{tipo}-{barrio}. */}
+        <div className="mx-auto max-w-[1100px] px-5 pb-14">
+          <h2 className="mb-1 text-[19px] font-extrabold text-[#1d1d1f]">
+            ¿Preferís una estimación al instante?
+          </h2>
+          <p className="mb-4 text-[14.5px] text-[#6e6e73]">
+            Probá el tasador online de tu zona: te da un valor en dos minutos, gratis y sin registrarte.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              ['casa-roldan', 'Casa en Roldán'],
+              ['casa-funes', 'Casa en Funes'],
+              ['lote-roldan', 'Lote en Roldán'],
+              ['lote-funes', 'Lote en Funes'],
+              ['casa-kentucky', 'Casa en Kentucky'],
+              ['casa-san-sebastian', 'Casa en San Sebastián'],
+              ['casa-tierra-de-suenos-2', 'Casa en Tierra de Sueños 2'],
+              ['lote-funes-lakes', 'Lote en Funes Lakes'],
+            ].map(([slug, label]) => (
+              <a
+                key={slug}
+                href={`/tasar/${slug}`}
+                className="rounded-[10px] bg-[#f5f5f7] px-3.5 py-2 text-[13.5px] font-semibold text-[#374151] transition-colors hover:bg-[#e7f2eb] hover:text-[#1A5C38]"
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

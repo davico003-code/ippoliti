@@ -25,6 +25,22 @@ function deserialize(raw: string): string {
   }
 }
 
+// GET cacheable. Devuelve null ante cualquier problema (fail-open lectura).
+export async function getCached(key: string, revalidate = 3600): Promise<string | null> {
+  if (!REST_URL || !REST_TOKEN) return null
+  try {
+    const res = await fetch(`${REST_URL}/get/${encodeURIComponent(key)}`, {
+      headers: { Authorization: `Bearer ${REST_TOKEN}` },
+      next: { revalidate },
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as { result?: string | null }
+    return typeof data.result === 'string' ? data.result : null
+  } catch {
+    return null
+  }
+}
+
 // HGETALL cacheable. Devuelve {} ante cualquier problema (fail-open lectura).
 export async function hgetallCached(
   key: string,
