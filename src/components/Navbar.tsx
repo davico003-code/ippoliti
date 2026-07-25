@@ -37,6 +37,13 @@ function IngresarButton({ agent, onClick }: IngresarButtonProps) {
       style={{
         width: size,
         height: size,
+        // El avatar con foto es más grande (48 vs 40). Con margen vertical
+        // negativo ocupa solo 40px de alto en el flujo del navbar (se centra y
+        // protruye dentro del padding), así NO agranda la barra: si crecía, el
+        // hero (-mt-[77px]) dejaba una franja blanca arriba cuando el usuario
+        // estaba logueado.
+        marginTop: foto ? -4 : 0,
+        marginBottom: foto ? -4 : 0,
         background: foto ? '#fff' : '#1A5C38',
         border: foto ? '2px solid #fff' : '2px solid rgba(255,255,255,0.25)',
         borderRadius: 9999,
