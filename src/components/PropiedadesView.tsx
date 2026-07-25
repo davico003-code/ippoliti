@@ -1029,6 +1029,46 @@ export default function PropiedadesView({
     return list
   }, [propertiesForMap, mapBounds])
 
+  // ── Render incremental de las cards ──────────────────────────────────────
+  // Antes se renderizaban TODAS las propiedades filtradas (248): el HTML de
+  // /propiedades pesaba 4,6 MB — 3,5 MB solo de markup de cards — y la
+  // hidratación tenía que montar 248 componentes. Ahora se pinta una tanda y
+  // el resto entra al scrollear. Los datos ya están en memoria (no se pide
+  // nada al server) y el contador y el mapa siguen usando el total.
+  const CARDS_POR_TANDA = 24
+  const [tandas, setTandas] = useState(1)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+
+  const renderedProperties = useMemo(
+    () => visibleProperties.slice(0, tandas * CARDS_POR_TANDA),
+    [visibleProperties, tandas],
+  )
+  const hayMas = renderedProperties.length < visibleProperties.length
+
+  // Cualquier cambio de resultado vuelve a la primera tanda.
+  useEffect(() => { setTandas(1) }, [visibleProperties.length])
+
+  useEffect(() => {
+    if (!hayMas) return
+    const el = sentinelRef.current
+    if (!el) return
+    // En desktop la lista scrollea dentro de su propio contenedor, no en el
+    // viewport: si no le pasamos ese ancestro como root, el observer nunca
+    // dispara. Buscamos el primer ancestro con overflow scrolleable.
+    let root: HTMLElement | null = el.parentElement
+    while (root) {
+      const oy = getComputedStyle(root).overflowY
+      if ((oy === 'auto' || oy === 'scroll') && root.scrollHeight > root.clientHeight) break
+      root = root.parentElement
+    }
+    const io = new IntersectionObserver(
+      (entries) => { if (entries[0]?.isIntersecting) setTandas(t => t + 1) },
+      { root, rootMargin: '600px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [hayMas, renderedProperties.length])
+
   // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
   // que el filtro de radio sea el único activo (sino se acumulan).
   const handleNearbyOrigin = useCallback((lat: number, lng: number) => {
@@ -1613,7 +1653,7 @@ export default function PropiedadesView({
                 <div className="hidden md:block">
                   {isDesktopViewport ? (
                     <PropiedadesViewDesktopGrid
-                      properties={visibleProperties}
+                      properties={renderedProperties}
                       selectedId={selectedId}
                       onHover={setHoveredId}
                       onCardClick={handleCardClick}
@@ -1625,7 +1665,7 @@ export default function PropiedadesView({
                 </div>
                 {/* Mobile list */}
                 <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">
-                  {visibleProperties.map((p, i) => (
+                  {renderedProperties.map((p, i) => (
                     <div key={p.id} data-property-id={p.id}>
                       {/* Mobile: el Link navega solo, sin onClick. El prefetch
                           ocurre cuando la card entra al viewport. */}
@@ -1639,6 +1679,21 @@ export default function PropiedadesView({
                     </div>
                   ))}
                 </div>
+                {/* Carga incremental: el observer pinta la tanda siguiente al
+                    acercarse, y el botón garantiza el control manual (y que
+                    funcione aunque el observer no dispare en algún navegador). */}
+                {hayMas && (
+                  <div ref={sentinelRef} className="flex justify-center px-4 py-6">
+                    <button
+                      type="button"
+                      onClick={() => setTandas(t => t + 1)}
+                      className="rounded-xl border-2 px-6 py-3 text-sm font-bold transition-colors"
+                      style={{ borderColor: '#1A5C38', color: '#1A5C38' }}
+                    >
+                      Ver más propiedades ({visibleProperties.length - renderedProperties.length} restantes)
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>
