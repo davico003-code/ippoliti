@@ -102,7 +102,10 @@ function pickCardPhotos(p: TokkoProperty) {
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   return [cover, ...rest].slice(0, CARD_PHOTO_MAX).map((ph, i) => ({
     image: ph.image,
-    thumb: ph.thumb,
+    // `thumb` NO viaja: ningún consumidor de la proyección lo lee (getMainPhoto
+    // y getAllPhotos usan .image) y duplicaba una URL larga por foto — eran
+    // ~350 kB del payload de /propiedades.
+    thumb: '',
     is_front_cover: i === 0,     // la primera es la cover para getMainPhoto
     is_blueprint: false,
     order: i,
