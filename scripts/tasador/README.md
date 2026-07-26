@@ -5,9 +5,12 @@ corregir un nombre o sumar un barrio nuevo.
 
 Fuentes:
 - **Barrios**: OpenStreetMap vía Overpass API (`place=suburb|neighbourhood|quarter`
-  + `landuse=residential` dentro de los límites administrativos de Funes y Roldán),
+  + `landuse=residential` dentro de los límites administrativos de Funes, Roldán y Rosario),
   filtrados a la región (lat -32.7..-33.1 / lon -60.6..-61.1) para descartar
   homónimos de España.
+- **Precio de departamentos (ppm2Depto)**: promedio de USD/m² CUBIERTO de los
+  departamentos en venta del feed. Los deptos NO se valúan por método del costo
+  (no tienen lote propio): se comparan contra unidades similares de la zona.
 - **Precio de tierra (ppm2)**: promedio de USD/m² de los terrenos en venta del
   feed HILO cuyo texto de ubicación matchea el nombre del barrio. Si un barrio
   no tiene muestras propias, la landing usa el promedio de la ciudad

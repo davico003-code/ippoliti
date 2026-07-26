@@ -10,11 +10,13 @@
 
 import { useMemo, useState } from 'react'
 import {
+  AMENITIES_DEPTO,
   ANTIGUEDAD,
   ESTADO,
   EXTRAS,
   fmtUSD,
   tasar,
+  tasarDepartamento,
   type AntiguedadId,
   type EstadoId,
 } from '@/lib/tasador/motor'
@@ -39,6 +41,7 @@ interface Props {
   muestras: number
   calidades: CalidadConstruccion[]
   esLote: boolean
+  esDepto?: boolean
   whatsappBase: string
 }
 
@@ -106,6 +109,7 @@ export default function TasadorWidget({
   muestras,
   calidades,
   esLote,
+  esDepto = false,
   whatsappBase,
 }: Props) {
   const [lote, setLote] = useState(esLote ? 600 : 300)
@@ -114,13 +118,25 @@ export default function TasadorWidget({
   const [antiguedad, setAntiguedad] = useState<AntiguedadId>('estrenar')
   const [estado, setEstado] = useState<EstadoId>('muybueno')
   const [extras, setExtras] = useState<string[]>([])
+  const [amenities, setAmenities] = useState('sinamenities')
+  const [cochera, setCochera] = useState(false)
   const [tocado, setTocado] = useState(false)
 
   const costoM2 = calidades.find((c) => c.slug === calidadSlug)?.costoM2 ?? calidades[0]?.costoM2 ?? 0
 
   const res = useMemo(
     () =>
-      tasar({
+      esDepto
+        ? tasarDepartamento({
+            cubiertosM2: cubiertos,
+            ppm2Zona: ppm2Tierra,       // en depto, ppm2Tierra trae el USD/m² cubierto de la zona
+            antiguedad,
+            estado,
+            amenities,
+            cochera,
+            fuenteZona: fuenteTierra,
+          })
+        : tasar({
         loteM2: lote,
         cubiertosM2: esLote ? 0 : cubiertos,
         ppm2Tierra,
@@ -130,7 +146,7 @@ export default function TasadorWidget({
         extras,
         fuenteTierra,
       }),
-    [lote, cubiertos, ppm2Tierra, costoM2, antiguedad, estado, extras, esLote, fuenteTierra],
+    [lote, cubiertos, ppm2Tierra, costoM2, antiguedad, estado, extras, esLote, fuenteTierra, esDepto, amenities, cochera],
   )
 
   const marcar = () => {
@@ -143,7 +159,7 @@ export default function TasadorWidget({
     const detalle = [
       `Hola! Usé el tasador online de ${barrioNombre}.`,
       `Estimación: ${fmtUSD(res.total)}`,
-      esLote ? `Lote: ${lote} m²` : `Lote: ${lote} m² · Cubiertos: ${cubiertos} m²`,
+      esLote ? `Lote: ${lote} m²` : esDepto ? `Cubiertos: ${cubiertos} m²` : `Lote: ${lote} m² · Cubiertos: ${cubiertos} m²`,
       !esLote && `Antigüedad: ${ANTIGUEDAD.find((a) => a.id === antiguedad)?.label}`,
       !esLote && `Estado: ${ESTADO.find((e) => e.id === estado)?.label}`,
       'Quiero mi tasación precisa.',
@@ -172,7 +188,7 @@ export default function TasadorWidget({
         onChange={marcar}
       >
         <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, marginBottom: 4 }}>
-          {esLote ? 'Contanos de tu lote' : 'Contanos de tu propiedad'}
+          {esLote ? 'Contanos de tu lote' : esDepto ? 'Contanos de tu departamento' : 'Contanos de tu propiedad'}
         </h2>
         <p style={{ fontSize: 13, color: '#6e6e73', marginBottom: 18 }}>
           {esLote
@@ -180,14 +196,14 @@ export default function TasadorWidget({
             : 'Tres datos alcanzan. El valor se actualiza mientras completás.'}
         </p>
 
-        <div className={esLote ? '' : 'grid grid-cols-2 gap-3.5'}>
-          <Campo label="Superficie del lote (m²)" value={lote} onChange={setLote} />
+        <div className={esLote || esDepto ? '' : 'grid grid-cols-2 gap-3.5'}>
+          {!esDepto && <Campo label="Superficie del lote (m²)" value={lote} onChange={setLote} />}
           {!esLote && (
             <Campo label="Superficie cubierta (m²)" value={cubiertos} onChange={setCubiertos} />
           )}
         </div>
 
-        {!esLote && (
+        {!esLote && !esDepto && (
           <>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, margin: '16px 0 6px' }}>
               Calidad de la construcción
@@ -270,6 +286,50 @@ export default function TasadorWidget({
             </div>
           </>
         )}
+
+        {esDepto && (
+          <>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, margin: '16px 0 6px' }}>
+              Antigüedad
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {ANTIGUEDAD.map((a) => (
+                <button key={a.id} type="button" onClick={() => { setAntiguedad(a.id); marcar() }}
+                  style={antiguedad === a.id ? chipOn : chipBase}>{a.label}</button>
+              ))}
+            </div>
+
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, margin: '16px 0 6px' }}>
+              Estado general
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {ESTADO.map((x) => (
+                <button key={x.id} type="button" onClick={() => { setEstado(x.id); marcar() }}
+                  style={estado === x.id ? chipOn : chipBase}>{x.label}</button>
+              ))}
+            </div>
+
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, margin: '16px 0 6px' }}>
+              Amenities del edificio
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {AMENITIES_DEPTO.map((a) => (
+                <button key={a.id} type="button" onClick={() => { setAmenities(a.id); marcar() }}
+                  style={amenities === a.id ? chipOn : chipBase}>{a.label}</button>
+              ))}
+            </div>
+
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, margin: '16px 0 6px' }}>
+              Cochera
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => { setCochera(true); marcar() }}
+                style={cochera ? chipOn : chipBase}>Con cochera</button>
+              <button type="button" onClick={() => { setCochera(false); marcar() }}
+                style={!cochera ? chipOn : chipBase}>Sin cochera</button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Resultado + captura ── */}
@@ -311,17 +371,28 @@ export default function TasadorWidget({
               gap: 7,
             }}
           >
-            <div className="flex justify-between">
-              <span>
-                Tierra ({lote} m² × USD {ppm2Tierra})
-              </span>
-              <b>{fmtUSD(res.tierra)}</b>
-            </div>
-            {!esLote && (
+            {esDepto ? (
               <div className="flex justify-between">
-                <span>Construcción depreciada</span>
+                <span>
+                  {cubiertos} m² × USD {ppm2Tierra}/m² de la zona
+                </span>
                 <b>{fmtUSD(res.construccion)}</b>
               </div>
+            ) : (
+              <>
+                <div className="flex justify-between">
+                  <span>
+                    Tierra ({lote} m² × USD {ppm2Tierra})
+                  </span>
+                  <b>{fmtUSD(res.tierra)}</b>
+                </div>
+                {!esLote && (
+                  <div className="flex justify-between">
+                    <span>Construcción depreciada</span>
+                    <b>{fmtUSD(res.construccion)}</b>
+                  </div>
+                )}
+              </>
             )}
             {res.extras > 0 && (
               <div className="flex justify-between">
@@ -332,11 +403,15 @@ export default function TasadorWidget({
           </div>
 
           <p style={{ marginTop: 14, fontSize: 11.5, opacity: 0.75, lineHeight: 1.5 }}>
-            Valor de la tierra:{' '}
+            {esDepto ? 'Valor de referencia: ' : 'Valor de la tierra: '}
             {fuenteTierra === 'barrio'
-              ? `promedio de ${muestras} ${muestras === 1 ? 'terreno relevado' : 'terrenos relevados'} en ${barrioNombre}`
-              : `promedio de terrenos en ${ciudad} (todavía no tenemos muestra propia de ${barrioNombre})`}
-            {!esLote && ` · Costo de construcción: USD ${costoM2}/m² llave en mano, actualizado por IPC`}
+              ? `promedio de ${muestras} ${
+                  esDepto
+                    ? muestras === 1 ? 'departamento relevado' : 'departamentos relevados'
+                    : muestras === 1 ? 'terreno relevado' : 'terrenos relevados'
+                } en ${barrioNombre}`
+              : `promedio de ${esDepto ? 'departamentos' : 'terrenos'} en ${ciudad} (todavía no tenemos muestra propia de ${barrioNombre})`}
+            {!esLote && !esDepto && ` · Costo de construcción: USD ${costoM2}/m² llave en mano, actualizado por IPC`}
             . Estimación orientativa: no reemplaza una tasación profesional.
           </p>
         </div>

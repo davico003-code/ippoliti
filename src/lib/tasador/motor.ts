@@ -123,3 +123,54 @@ export async function getFactorIPCSafe(mesBase: string): Promise<number> {
     return 1
   }
 }
+
+// ── Departamentos ──────────────────────────────────────────────────────────
+// Un departamento no se valúa por el método del costo (no tiene lote propio ni
+// se "reconstruye" solo): se compara contra unidades similares de la zona.
+//
+//   Valor = m² cubiertos × USD/m² de la zona × antigüedad × estado
+//           + cochera + ajuste por amenities
+//
+// El USD/m² sale de los departamentos en venta del feed HILO en ese barrio
+// (o el promedio de la ciudad si el barrio no tiene muestra propia).
+
+export const AMENITIES_DEPTO: { id: string; label: string; factor: number }[] = [
+  { id: 'sinamenities', label: 'Sin amenities', factor: 1 },
+  { id: 'basicos', label: 'Básicos (SUM, laundry)', factor: 1.04 },
+  { id: 'completos', label: 'Completos (pileta, gym)', factor: 1.09 },
+]
+
+export const COCHERA_USD = 15000
+
+export interface EntradaDepto {
+  cubiertosM2: number
+  ppm2Zona: number
+  antiguedad: AntiguedadId
+  estado: EstadoId
+  amenities?: string
+  cochera?: boolean
+  fuenteZona?: 'barrio' | 'ciudad'
+}
+
+export function tasarDepartamento(e: EntradaDepto): ResultadoTasacion {
+  const cub = Math.max(0, e.cubiertosM2 || 0)
+  const factorAmen = AMENITIES_DEPTO.find((a) => a.id === e.amenities)?.factor ?? 1
+  const factorDepreciacion = factorDe(ANTIGUEDAD, e.antiguedad) * factorDe(ESTADO, e.estado)
+
+  // El m² de la zona ya refleja el mercado (incluye la parte proporcional del
+  // terreno), así que la depreciación acá es un ajuste fino, no el grueso.
+  const construccion = cub * e.ppm2Zona * factorDepreciacion * factorAmen
+  const extras = e.cochera ? COCHERA_USD : 0
+  const total = construccion + extras
+  const margen = e.fuenteZona === 'ciudad' ? MARGEN_SIN_DATO_BARRIO : MARGEN_BASE
+
+  return {
+    tierra: 0,
+    construccion,
+    extras,
+    total,
+    min: total * (1 - margen),
+    max: total * (1 + margen),
+    factorDepreciacion,
+  }
+}

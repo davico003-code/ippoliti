@@ -11,7 +11,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import TasadorWidget from '@/components/tasador/TasadorWidget'
-import { BARRIOS_TASADOR, getBarrio, precioTierra } from '@/lib/tasador/barrios'
+import { BARRIOS_TASADOR, getBarrio, precioTierra, precioDepto } from '@/lib/tasador/barrios'
 import { MATRIZ_RESIDENCIAL_BASE, MES_BASE, ajustar } from '@/lib/costos-construccion'
 import { getFactorIPCSafe } from '@/lib/tasador/motor'
 
@@ -48,11 +48,19 @@ function resolver(slug: string) {
 // Pre-renderizamos los que más tráfico y margen tienen (criterio Magnin: no
 // gastar en barrios sin negocio). El resto se genera on-demand vía ISR.
 export function generateStaticParams() {
-  const prioritarios = BARRIOS_TASADOR.filter((b) => b.cerrado || b.muestras > 0)
-  return prioritarios.flatMap((b) => [
-    { slug: `casa-${b.slug}` },
-    { slug: `lote-${b.slug}` },
-  ])
+  const params: { slug: string }[] = []
+  for (const b of BARRIOS_TASADOR) {
+    // Casas y lotes: barrios cerrados o con muestras de tierra.
+    if (b.cerrado || b.muestras > 0) {
+      params.push({ slug: `casa-${b.slug}` }, { slug: `lote-${b.slug}` })
+    }
+    // Departamentos: donde hay mercado real de deptos (muestras propias) o es
+    // una ciudad. En Rosario el depto es la operación principal.
+    if (b.muestrasDepto > 0 || b.ciudad === 'Rosario') {
+      params.push({ slug: `departamento-${b.slug}` })
+    }
+  }
+  return params
 }
 
 export async function generateMetadata({
@@ -62,9 +70,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const r = resolver(params.slug)
   if (!r) return { title: 'Tasación | SI INMOBILIARIA' }
-  const { barrio, tipoInfo } = r
+  const { barrio, tipoInfo, tipo } = r
   const title = `¿Cuánto vale ${tipoInfo.articulo} en ${barrio.nombre}? Tasador online gratis`
-  const description = `Tasá ${tipoInfo.articulo} en ${barrio.nombre}, ${barrio.ciudad}, gratis y al instante. Calculamos con el valor real de la tierra en la zona y el costo de construcción actualizado. Tasación profesional sin cargo en 24 hs.`
+  const comoCalcula =
+    tipo === 'departamento'
+      ? 'Calculamos con el valor real del m² de departamentos en la zona.'
+      : 'Calculamos con el valor real de la tierra en la zona y el costo de construcción actualizado.'
+  const description = `Tasá ${tipoInfo.articulo} en ${barrio.nombre}, ${barrio.ciudad}, gratis y al instante. ${comoCalcula} Tasación profesional sin cargo en 24 hs.`
   const url = `${BASE}/tasar/${params.slug}`
   return {
     title: `${title} | SI INMOBILIARIA`,
@@ -79,7 +91,8 @@ export default async function TasarPage({ params }: { params: { slug: string } }
   const r = resolver(params.slug)
   if (!r) notFound()
   const { tipo, barrio, tipoInfo } = r
-  const { ppm2, fuente, muestras } = precioTierra(barrio)
+  const esDepto = tipo === 'departamento'
+  const { ppm2, fuente, muestras } = esDepto ? precioDepto(barrio) : precioTierra(barrio)
 
   // Costos de construcción vigentes (base jun-2026 ajustada por IPC) — misma
   // fuente que la Calculadora de Costos de /recursos.
@@ -105,8 +118,12 @@ export default async function TasarPage({ params }: { params: { slug: string } }
       q: `¿De dónde sale el precio del m² en ${barrio.nombre}?`,
       a:
         fuente === 'barrio'
-          ? `De terrenos reales en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² de tierra, calculado sobre ${muestras} ${muestras === 1 ? 'lote' : 'lotes'}. Es un dato vivo: se actualiza solo cuando cambia la oferta de la zona.`
-          : `Del promedio de terrenos en venta en ${barrio.ciudad}, hoy USD ${ppm2} por m². Todavía no tenemos suficientes lotes publicados dentro de ${barrio.nombre} como para dar un valor propio del barrio, así que usamos el de la ciudad y ampliamos el rango de la estimación.`,
+          ? esDepto
+            ? `De los departamentos en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² cubierto, calculado sobre ${muestras} ${muestras === 1 ? 'unidad' : 'unidades'}. Es un dato vivo: se mueve con la oferta real de la zona.`
+            : `De terrenos reales en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² de tierra, calculado sobre ${muestras} ${muestras === 1 ? 'lote' : 'lotes'}. Es un dato vivo: se actualiza solo cuando cambia la oferta de la zona.`
+          : esDepto
+            ? `Del promedio de departamentos en venta en ${barrio.ciudad}, hoy USD ${ppm2} por m² cubierto. Todavía no tenemos suficientes unidades publicadas dentro de ${barrio.nombre} como para dar un valor propio del barrio, así que usamos el de la ciudad y ampliamos el rango.`
+            : `Del promedio de terrenos en venta en ${barrio.ciudad}, hoy USD ${ppm2} por m². Todavía no tenemos suficientes lotes publicados dentro de ${barrio.nombre} como para dar un valor propio del barrio, así que usamos el de la ciudad y ampliamos el rango de la estimación.`,
     },
     {
       q: '¿Por qué me piden tan pocos datos?',
@@ -162,9 +179,10 @@ export default async function TasarPage({ params }: { params: { slug: string } }
             ¿Cuánto vale {tipoInfo.articulo} en {barrio.nombre}?
           </h1>
           <p className="mx-auto mt-3 max-w-[640px] text-[17px] font-medium text-[#6e6e73]">
-            Estimación <b style={{ color: '#1A5C38' }}>gratis y al instante</b>, sin registrarte.
-            Calculada con el valor real de la tierra en {fuente === 'barrio' ? barrio.nombre : barrio.ciudad} y
-            el costo de construcción actualizado.
+            Estimación <b style={{ color: '#1A5C38' }}>gratis y al instante</b>, sin registrarte.{' '}
+            {esDepto
+              ? `Calculada con el valor real del m² de departamentos en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad}.`
+              : `Calculada con el valor real de la tierra en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad} y el costo de construcción actualizado.`}
           </p>
         </div>
 
@@ -178,6 +196,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
             muestras={muestras}
             calidades={calidades}
             esLote={tipoInfo.esLote}
+            esDepto={esDepto}
             whatsappBase={WSP}
           />
         </div>
@@ -187,26 +206,50 @@ export default async function TasarPage({ params }: { params: { slug: string } }
           <h2 className="mb-3 text-2xl font-extrabold" style={{ fontFamily: R }}>
             Cómo calculamos el valor en {barrio.nombre}
           </h2>
-          <p className="max-w-[760px] text-[15.5px] leading-[1.7] text-[#374151]">
-            Usamos el método del costo, el mismo con el que arranca cualquier tasador profesional:
-            cuánto vale la tierra en la zona más cuánto costaría construir hoy lo que está edificado,
-            descontando antigüedad y estado. La diferencia con una calculadora genérica es de dónde
-            sacamos los números: el valor de la tierra sale de los terrenos que relevamos en{' '}
-            {barrio.ciudad} y el costo de construcción es el mismo que publicamos en nuestro informe
-            de costos, ajustado por IPC todos los meses.
-          </p>
+          {esDepto ? (
+            <p className="max-w-[760px] text-[15.5px] leading-[1.7] text-[#374151]">
+              Un departamento no se valúa por lo que costaría construirlo: se compara contra
+              unidades parecidas de la misma zona. Tomamos el valor del m² cubierto que hoy piden
+              los departamentos en venta {fuente === 'barrio' ? `en ${barrio.nombre}` : `en ${barrio.ciudad}`},
+              lo multiplicamos por tus metros y lo ajustamos por antigüedad, estado, amenities del
+              edificio y cochera. Es el mismo criterio con el que arranca una tasación profesional;
+              la diferencia es que los comparables salen de propiedades que publicamos y seguimos
+              nosotros, no de un promedio nacional.
+            </p>
+          ) : (
+            <p className="max-w-[760px] text-[15.5px] leading-[1.7] text-[#374151]">
+              Usamos el método del costo, el mismo con el que arranca cualquier tasador
+              profesional: cuánto vale la tierra en la zona más cuánto costaría construir hoy lo
+              que está edificado, descontando antigüedad y estado. La diferencia con una
+              calculadora genérica es de dónde sacamos los números: el valor de la tierra sale de
+              los terrenos que relevamos en {barrio.ciudad} y el costo de construcción es el mismo
+              que publicamos en nuestro informe de costos, ajustado por IPC todos los meses.
+            </p>
+          )}
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             {[
-              {
-                n: 1,
-                t: 'Tu tierra, a valor de la zona',
-                d: `Los m² de tu lote por el precio real del m² en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad}: hoy USD ${ppm2}.`,
-              },
-              {
-                n: 2,
-                t: 'Tu construcción, a costo de hoy',
-                d: 'Los m² cubiertos al costo actual de construir, con la depreciación que corresponde por antigüedad y estado.',
-              },
+              esDepto
+                ? {
+                    n: 1,
+                    t: 'El m² de tu zona',
+                    d: `Lo que hoy piden los departamentos en venta en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad}: USD ${ppm2} por m² cubierto.`,
+                  }
+                : {
+                    n: 1,
+                    t: 'Tu tierra, a valor de la zona',
+                    d: `Los m² de tu lote por el precio real del m² en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad}: hoy USD ${ppm2}.`,
+                  },
+              esDepto
+                ? {
+                    n: 2,
+                    t: 'Los ajustes de tu unidad',
+                    d: 'Antigüedad, estado, amenities del edificio y cochera mueven el valor sobre ese m² de referencia.',
+                  }
+                : {
+                    n: 2,
+                    t: 'Tu construcción, a costo de hoy',
+                    d: 'Los m² cubiertos al costo actual de construir, con la depreciación que corresponde por antigüedad y estado.',
+                  },
               {
                 n: 3,
                 t: 'El ajuste fino, con un matriculado',
