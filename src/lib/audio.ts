@@ -346,7 +346,13 @@ export async function getAudioUrlsBulk(
 
   const keys = uniqueIds.map(id => URL_KEY(id))
   try {
-    const values = (await redis.mget(...keys)) as Array<string | null>
+    // mgetCached (REST + fetch cacheable) en vez de redis.mget: el cliente
+    // @upstash/redis usa no-store y dentro del render de una página ISR eso
+    // dispara DYNAMIC_SERVER_USAGE, que ni siquiera se puede atrapar con
+    // try/catch (Next ya marcó el render como dinámico). Así /propiedades
+    // puede cachearse.
+    const { mgetCached } = await import('./redis-isr')
+    const values = await mgetCached(keys)
     uniqueIds.forEach((id, i) => {
       const v = values[i]
       out[id] = typeof v === 'string' && v.length > 0 ? v : null

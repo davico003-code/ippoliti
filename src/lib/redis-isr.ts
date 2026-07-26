@@ -25,6 +25,49 @@ function deserialize(raw: string): string {
   }
 }
 
+// GET cacheable. Devuelve null ante cualquier problema (fail-open lectura).
+export async function getCached(key: string, revalidate = 3600): Promise<string | null> {
+  if (!REST_URL || !REST_TOKEN) return null
+  try {
+    const res = await fetch(`${REST_URL}/get/${encodeURIComponent(key)}`, {
+      headers: { Authorization: `Bearer ${REST_TOKEN}` },
+      next: { revalidate },
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as { result?: string | null }
+    return typeof data.result === 'string' ? data.result : null
+  } catch {
+    return null
+  }
+}
+
+// MGET cacheable. Devuelve un array del mismo largo que `keys` (null donde no
+// haya valor) y todo-null ante cualquier problema (fail-open lectura).
+export async function mgetCached(keys: string[], revalidate = 300): Promise<(string | null)[]> {
+  if (!REST_URL || !REST_TOKEN || keys.length === 0) return keys.map(() => null)
+  try {
+    // La REST API acepta el comando como array en el body: ["MGET", k1, k2, ...]
+    const res = await fetch(REST_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${REST_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(['MGET', ...keys]),
+      next: { revalidate },
+    })
+    if (!res.ok) return keys.map(() => null)
+    const data = (await res.json()) as { result?: (string | null)[] | null }
+    const arr = Array.isArray(data.result) ? data.result : []
+    return keys.map((_, i) => {
+      const v = arr[i]
+      return typeof v === 'string' ? deserialize(v) : null
+    })
+  } catch {
+    return keys.map(() => null)
+  }
+}
+
 // HGETALL cacheable. Devuelve {} ante cualquier problema (fail-open lectura).
 export async function hgetallCached(
   key: string,

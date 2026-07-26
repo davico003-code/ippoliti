@@ -3,6 +3,7 @@ import { getProperties, generatePropertySlug } from '@/lib/tokko'
 import { getAllPosts } from '@/lib/blog'
 import { getDevelopments, generateDevSlug } from '@/lib/developments'
 import { BARRIOS } from '@/lib/barrios'
+import { BARRIOS_TASADOR } from '@/lib/tasador/barrios'
 
 const BASE = 'https://siinmobiliaria.com'
 
@@ -94,5 +95,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]
 
-  return [...staticRoutes, ...barriosRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
+  // Landings de tasación (/tasar/{tipo}-{barrio}). Priorizamos los barrios con
+  // negocio real: cerrados o con muestras propias de terrenos.
+  const tasadorRoutes: MetadataRoute.Sitemap = BARRIOS_TASADOR
+    .filter((b) => b.cerrado || b.muestras > 0)
+    .flatMap((b) => ['casa', 'lote'].map((tipo) => ({
+      url: `${BASE}/tasar/${tipo}-${b.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: b.muestras > 0 ? 0.8 : 0.6,
+    })))
+
+  return [...staticRoutes, ...tasadorRoutes, ...barriosRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
 }

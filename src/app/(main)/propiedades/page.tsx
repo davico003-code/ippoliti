@@ -4,8 +4,13 @@ import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko
 import { enrichCardsWithAudio, projectToCard, type PropertyCardProjection } from '@/lib/projections'
 import PropiedadesView from '@/components/PropiedadesView'
 
-// Force dynamic render to avoid build-time Tokko rate-limit (403) that empties the HTML.
-// Runtime fetches are fine; build-time mass prerender was the problem.
+// Render dinámico a propósito. Se probó pasarlo a ISR (revalidate) para bajar
+// el TTFB de ~400 ms a ~5 ms y evitar los picos de revalidación bloqueante,
+// PERO PropiedadesView usa useSearchParams(): en un prerender estático eso
+// fuerza el fallback del Suspense, así que el HTML sale con el skeleton y las
+// cards recién se pintan al hidratar (peor LCP y sin contenido para el
+// crawler). Mientras los filtros se lean del querystring en el cliente, este
+// listado tiene que renderizarse por request.
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
