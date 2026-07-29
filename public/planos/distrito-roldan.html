@@ -393,7 +393,11 @@ const CFG = {
   /* Foto aérea. Mientras sea null, el botón Plano/Foto no aparece.
      src: ruta de la imagen · w,h: su tamaño en píxeles
      m:  matriz que la calza sobre el plano [a,b,c,d,e,f] */
-  foto: null,
+  foto: {
+    src: "distrito-roldan-aerea.webp",   // relativa: sirve en el sitio y en local
+    w: 1600, h: 900,
+    m: [1.52850, 0.00000, 0.00000, 1.56201, -299.81467, 136.51984]
+  },
   // Financiación de la lista de mayo: distinta según el tipo de lote.
   financiacion: {
     residencial: { anticipoPct: 30, cuotas: 24, contadoTxt: "US$ 5/m² de descuento" },
@@ -878,7 +882,7 @@ function build(){
   /* Foto aérea, debajo de todo. Va calzada con la matriz de CFG.foto. */
   if(CFG.foto){
     const f=CFG.foto, g=el("g",{class:"foto-capa","aria-hidden":"true"});
-    g.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#2A2E22"}));
+    g.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#3D4938"}));  // color del borde de la foto
     const img=el("image",{x:0,y:0,width:f.w,height:f.h,
       transform:`matrix(${f.m.join(",")})`,preserveAspectRatio:"none"});
     img.setAttribute("href",f.src);
