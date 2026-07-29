@@ -20,12 +20,12 @@ import {
 import DevUnitsSection from '@/components/DevUnitsSection'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
-import HeroTour360 from '@/components/HeroTour360'
 import BotonVolver from '@/components/BotonVolver'
 import { TOURS_360 } from '@/lib/tours360'
 import { distritoFontVars, montserrat } from '@/components/distrito-roldan/fonts'
 import SeccionIntro from '@/components/distrito-roldan/SeccionIntro'
 import SeccionMasterplan from '@/components/distrito-roldan/SeccionMasterplan'
+import SeccionPlanoLotes from '@/components/distrito-roldan/SeccionPlanoLotes'
 import SeccionRenders from '@/components/distrito-roldan/SeccionRenders'
 import SeccionAvancesObra from '@/components/distrito-roldan/SeccionAvancesObra'
 import SeccionUbicacion from '@/components/distrito-roldan/SeccionUbicacion'
@@ -206,17 +206,11 @@ export default async function DevelopmentPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Hero — tour 360° cargado directo si está configurado (67178);
-          si no, la imagen original con título y badges. */}
-      {isDistrito ? (
-        <HeroTour360
-          url={tourUrl}
-          titulo="Tour 360° Distrito Roldán"
-          badge="Mapa interactivo de lotes"
-          cropTop={58}
-          cropTopMobile={66}
-        />
-      ) : mainPhoto ? (
+      {/* Hero — en 67178 no va hero: la página abre directo con SeccionIntro,
+          que es la que trae el <h1>. El tour 360° quedó fuera a
+          pedido; para reponerlo, volver a renderizarlo en esta rama.
+          En el resto de los emprendimientos sigue la imagen con título y badges. */}
+      {isDistrito ? null : mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
           <Image src={mainPhoto} alt={displayName} fill className="object-cover" sizes="100vw" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
@@ -254,6 +248,7 @@ export default async function DevelopmentPage({ params }: Props) {
           <SeccionIntro />
           <SeccionMasterplan />
           <SeccionRenders />
+          <SeccionPlanoLotes tourUrl={tourUrl} />
           <SeccionAvancesObra />
           <SeccionUbicacion />
           <SeccionServicios />

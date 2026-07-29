@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EDE7DA">
+<title>Distrito Roldán — Plano interactivo de lotes | SI Inmobiliaria</title>
+<meta name="description" content="Plano interactivo de Distrito Roldán: 180 lotes en Ruta 9 y Di María, Roldán. Consultá disponibilidad, medidas, superficie y precio de cada lote.">
+<style>
+/* ============================================================
+   DISTRITO ROLDÁN — PLANO INTERACTIVO
+   SI Inmobiliaria · David Flores (Mat. 0621)
+   ============================================================ */
+:root{
+  --paper:#EDE7DA; --paper-2:#E3DCCC;
+  --ink:#23291F; --ink-2:#5A6152; --line:rgba(35,41,31,.14);
+  --disp:#6B8F3C; --nodisp:#C79A2E; --vend:#9A9689;
+  --brand:#2F4A3A;
+  --panel:#FBF8F1; --shadow:0 1px 2px rgba(35,41,31,.10), 0 8px 24px -8px rgba(35,41,31,.22);
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font:400 15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-tap-highlight-color:rgba(107,143,60,.18);
+  -webkit-font-smoothing:antialiased;
+}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+:focus-visible{outline:3px solid #1F5FBF;outline-offset:2px;border-radius:4px}
+button{font:inherit;color:inherit;touch-action:manipulation}
+
+.wrap{max-width:920px;margin:0 auto;padding:14px;
+  padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+@media (max-width:960px){ .wrap{padding:10px} }
+
+/* ---------- encabezado ---------- */
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;margin:2px 2px 12px}
+.head h1{margin:0;font-size:clamp(20px,2.4vw,28px);line-height:1.15;letter-spacing:-.02em;font-weight:700}
+.head h1 span{color:var(--ink-2);font-weight:500}
+.head .sub{margin:2px 0 0;color:var(--ink-2);font-size:13.5px}
+.head .live{margin-left:auto;font-size:13px;font-weight:600;color:var(--ink-2);
+  background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;box-shadow:var(--shadow)}
+
+/* ---------- barra de filtros ---------- */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:9px;margin-bottom:12px;box-shadow:var(--shadow)}
+.layers{display:flex;gap:8px;flex-wrap:wrap}
+.layers button{
+  display:flex;align-items:center;gap:9px;min-height:44px;padding:9px 15px;
+  border:1.5px solid var(--line);background:#fff;border-radius:12px;
+  font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  transition:border-color .14s ease,color .14s ease,background .14s ease
+}
+.layers button:hover{background:var(--paper-2);color:var(--ink)}
+.layers i{width:14px;height:14px;border-radius:4px;display:block;flex:none;
+  background:#D6D2C7;box-shadow:inset 0 0 0 1px rgba(35,41,31,.18);transition:background .14s ease}
+.layers b{font-weight:700;font-variant-numeric:tabular-nums;opacity:.55}
+.layers button[aria-pressed="true"]{color:var(--ink);background:#fff}
+.layers button[aria-pressed="true"] b{opacity:1}
+.layers button[data-lay="d"][aria-pressed="true"]{border-color:var(--disp)}
+.layers button[data-lay="d"][aria-pressed="true"] i{background:var(--disp)}
+.layers button[data-lay="n"][aria-pressed="true"]{border-color:var(--nodisp)}
+.layers button[data-lay="n"][aria-pressed="true"] i{background:var(--nodisp)}
+.layers button[data-lay="v"][aria-pressed="true"]{border-color:var(--vend)}
+.layers button[data-lay="v"][aria-pressed="true"] i{background:var(--vend)}
+
+.seg{display:flex;background:var(--paper-2);border-radius:10px;padding:3px;gap:2px;
+  max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:none;white-space:nowrap;border:0;background:transparent;border-radius:8px;
+  padding:8px 12px;min-height:38px;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  transition:background .14s ease,color .14s ease}
+.seg button:hover{background:rgba(255,255,255,.7);color:var(--ink)}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(35,41,31,.16)}
+.bar label{font-size:12.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:7px}
+.bar input[type=search]{font-size:16px;padding:9px 12px;min-height:38px;width:126px;border-radius:10px;
+  border:1px solid var(--line);background:#fff;color:var(--ink)}
+.bar input[type=range]{width:112px;accent-color:var(--disp)}
+.spacer{flex:1 1 auto;min-width:0}
+.linkish{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;min-height:38px;
+  font-size:13px;font-weight:600;cursor:pointer}
+.linkish:hover{background:var(--paper-2)}
+
+/* ---------- mapa ----------
+   Sin zoom: el plano nunca baja de --minplano de ancho, y si no entra
+   en la pantalla el contenedor se desplaza con el dedo o la rueda. */
+:root{ --minplano:820px }   /* ancho mínimo para que los números se lean */
+.mapbox{position:relative;background:var(--paper-2);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--shadow)}
+.mapscroll{overflow:auto;border-radius:var(--r);overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.mapscroll svg{display:block;width:100%;min-width:var(--minplano);height:auto}
+
+.lot{cursor:pointer;transition:opacity .18s ease}
+.lot rect.f{transition:fill .22s ease,opacity .16s ease}
+.lot:hover rect.f,.lot.on rect.f{opacity:.84}
+.lot rect.o{fill:none;stroke:rgba(255,255,255,.8);stroke-width:1.2;pointer-events:none}
+.lot.on rect.o{stroke:#111;stroke-width:3.4}
+.lot text{fill:#fff;font-weight:700;pointer-events:none;paint-order:stroke;
+  stroke:rgba(18,26,14,.38);stroke-width:2.4px;stroke-linejoin:round}
+.lot.lit rect.f{filter:url(#glow)}
+.lot.lit rect.o{stroke:#F2FFD6;stroke-width:2.2}
+.lot.lit text{stroke:rgba(40,60,14,.55)}
+.lot.dim{opacity:.26;pointer-events:none}
+.lot:focus{outline:none}
+.lot:focus-visible rect.o{stroke:#1F5FBF;stroke-width:4}
+.street{fill:#7A766B;font-size:15px;letter-spacing:.06em;font-weight:600}
+.mzplate{fill:rgba(35,41,31,.5);font-size:15px;font-weight:700;letter-spacing:.08em}
+
+/* aviso de desplazamiento, solo si el plano no entra completo */
+.swipe{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:34;
+  display:none;align-items:center;gap:8px;pointer-events:none;
+  background:rgba(28,34,24,.9);color:#fff;border-radius:999px;padding:9px 16px;
+  font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.22);
+  transition:opacity .25s ease}
+.swipe.on{display:flex}
+.swipe.gone{opacity:0}
+.swipe svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- aviso flotante ---------- */
+.toast{position:absolute;left:50%;top:14px;z-index:36;transform:translate(-50%,-14px);
+  background:rgba(28,34,24,.94);color:#fff;border-radius:999px;padding:11px 20px;
+  font-size:14px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.2),0 14px 30px -12px rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;
+  display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;flex:none}
+
+/* ---------- tooltip de hover ---------- */
+.tip{position:absolute;left:0;top:0;z-index:30;pointer-events:none;opacity:0;will-change:transform;
+  background:rgba(28,34,24,.96);color:#fff;border-radius:12px;padding:10px 13px;
+  font-size:13px;line-height:1.45;min-width:190px;max-width:250px;
+  box-shadow:0 2px 6px rgba(0,0,0,.24),0 14px 34px -10px rgba(0,0,0,.5);transition:opacity .12s ease}
+.tip.show{opacity:1}
+.tip .h{margin-bottom:7px}
+.tip .h b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.15;white-space:nowrap}
+.tip .h span{display:block;margin-top:2px;font-size:11.5px;color:rgba(255,255,255,.66);font-weight:600}
+.tip .st{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.tip .st i{width:7px;height:7px;border-radius:99px;display:block;flex:none}
+.tip dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0;font-variant-numeric:tabular-nums}
+.tip dt{color:rgba(255,255,255,.6);font-size:12px}
+.tip dd{margin:0;text-align:right;font-weight:600;font-size:12.5px}
+.tip .pr{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.16);
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.tip .pr small{color:rgba(255,255,255,.6);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.tip .pr b{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.tip .cta{margin-top:7px;font-size:11px;color:rgba(255,255,255,.55)}
+@media (hover:none){ .tip{display:none} }
+
+/* ---------- ficha del lote (flotante sobre el mapa) ---------- */
+.side{position:absolute;right:12px;top:12px;width:328px;z-index:38;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:0 2px 6px rgba(35,41,31,.14),0 18px 44px -14px rgba(35,41,31,.5);
+  opacity:0;transform:translateY(-8px);pointer-events:none;
+  transition:opacity .2s ease,transform .2s ease;max-height:calc(100% - 24px);overflow:auto;
+  overscroll-behavior:contain}
+.side.open{opacity:1;transform:translateY(0);pointer-events:auto}
+.side h2{margin:0;padding:13px 16px;font-size:13px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-2);border-bottom:1px solid var(--line)}
+.side .body{padding:14px 16px}
+.closer{position:absolute;right:8px;top:8px;width:38px;height:38px;border-radius:10px;
+  border:1px solid var(--line);background:#fff;font-size:19px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.closer:hover{background:var(--paper-2)}
+
+.lotnum{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lotnum b{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.lotnum .mz{font-size:13px;color:var(--ink-2);font-weight:600}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:11px 0 0}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+  border-radius:999px;padding:5px 11px;border:1px solid transparent}
+.tag i{width:8px;height:8px;border-radius:99px;display:block}
+.tag.t-disp{background:#EAF2DE;color:#3D5720;border-color:#C9DDAE}
+.tag.t-nodisp{background:#FAF0D6;color:#7A5C0C;border-color:#EAD5A0}
+.tag.t-vend{background:#EDEBE7;color:#575349;border-color:#D8D4CB}
+.tag.t-tipo{background:#E4EDE7;color:#2C4A38;border-color:#C2D6C9}
+dl.specs{display:grid;grid-template-columns:1fr auto;gap:9px 12px;margin:15px 0 0;font-size:14px}
+dl.specs dt{color:var(--ink-2)}
+dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.rule{height:1px;background:var(--line);margin:15px 0}
+.price{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.price .v{font-size:27px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.price .k{font-size:12px;color:var(--ink-2);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.fin{margin:11px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+.fin b{color:var(--ink);font-variant-numeric:tabular-nums}
+.wa{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:15px;
+  min-height:48px;border-radius:12px;border:0;background:#1FA855;color:#fff;
+  font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.14),0 6px 16px -6px rgba(31,168,85,.6);transition:background .14s ease}
+.wa:hover{background:#188544}
+.wa svg{width:19px;height:19px;fill:currentColor;flex:none}
+.muted{font-size:12px;color:var(--ink-2);margin:10px 0 0;line-height:1.5}
+
+@media (max-width:960px){
+  .side{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;border-radius:16px 16px 0 0;
+    transform:translateY(102%);max-height:78dvh;z-index:60}
+  .side.open{transform:translateY(0)}
+  .head .live{margin-left:0}
+  .layers button{padding:9px 12px;font-size:13px}
+}
+@media (max-width:640px){
+  .head h1{width:100%}
+  .layers{width:100%}
+  .layers button{flex:1 1 auto;justify-content:center;padding:10px 8px}
+  .bar>label,.bar input[type=search]{flex:1 1 auto}
+  .bar input[type=search]{width:auto;min-width:0}
+  .spacer{display:none}
+}
+@media (max-width:560px){
+  .toast{font-size:13px;padding:9px 15px}
+  .swipe{font-size:12.5px;padding:8px 14px}
+  .lg{display:none}                       /* "Lotes disponibles" → "disponibles" */
+  .layers button{font-size:12.5px;gap:7px}
+  .layers i{width:12px;height:12px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+
+<a class="sr" href="#mapa">Saltar al plano</a>
+
+<div class="wrap">
+  <header class="head">
+    <div>
+      <h1 translate="no">Distrito Roldán <span>· Plano de lotes</span></h1>
+      <p class="sub">Ruta 9 y Di María, Roldán · 180 lotes · 11 manzanas</p>
+    </div>
+    <p class="live" id="live" aria-live="polite">180 lotes</p>
+  </header>
+
+  <div class="bar">
+    <div class="layers" role="group" aria-label="Marcar lotes por estado">
+      <button type="button" data-lay="d" aria-pressed="false"><i></i><span><span class="lg">Lotes </span>disponibles</span><b></b></button>
+      <button type="button" data-lay="n" aria-pressed="false"><i></i><span><span class="lg">Lotes </span>no disponibles</span><b></b></button>
+      <button type="button" data-lay="v" aria-pressed="false"><i></i><span><span class="lg">Lotes </span>vendidos</span><b></b></button>
+    </div>
+    <div class="seg" role="group" aria-label="Filtrar por tipo">
+      <button type="button" data-tipo="all" aria-pressed="true">Todo tipo</button>
+      <button type="button" data-tipo="0" aria-pressed="false">Residencial</button>
+      <button type="button" data-tipo="1" aria-pressed="false">Comercial</button>
+    </div>
+    <label for="q" class="sr">Buscar lote por número</label>
+    <input type="search" id="q" placeholder="N.º de lote…" inputmode="numeric" autocomplete="off" spellcheck="false">
+    <div class="spacer"></div>
+    <button type="button" class="linkish" id="reset">Limpiar</button>
+  </div>
+
+  <div class="mapbox" id="mapa">
+    <div class="mapscroll" id="mapscroll" tabindex="0" role="region" aria-label="Plano del loteo, desplazable">
+      <div id="svghost"></div>
+    </div>
+    <div class="tip" id="tip" role="tooltip" aria-hidden="true"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <p class="swipe" id="swipe" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/></svg>
+      Deslizá para ver todo el plano</p>
+    <aside class="side" id="side" aria-label="Detalle del lote">
+      <button type="button" class="closer" id="closer" aria-label="Cerrar detalle">×</button>
+      <h2>Detalle del lote</h2>
+      <div class="body" id="detailBody"></div>
+    </aside>
+  </div>
+
+  <p class="muted" style="max-width:74ch">
+    Plano de referencia comercial elaborado sobre el plano catastral escalado del loteo.
+    Las superficies corresponden a la planilla oficial de mensura (86.879,56&nbsp;m² en 180 lotes);
+    frentes y fondos surgen del plano acotado. Valores y disponibilidad sujetos a modificación
+    sin previo aviso. No constituye oferta contractual.
+  </p>
+</div>
+
+<script>
+/* ==========================================================================
+   1) CONFIGURACIÓN Y DATOS
+   Editá esto desde el PANEL DE CONTROL (panel-distrito-roldan.html),
+   no a mano. El panel regenera este archivo completo y listo para subir.
+   ========================================================================== */
+
+/*__CFG_START__*/
+const CFG = {
+  whatsapp: "5493412101694",
+  proyecto: "Distrito Roldán",
+  anticipoPct: 30,
+  cuotas: 24,
+  precioM2: { residencial: 92, comercial: 269 }
+};
+/*__CFG_END__*/
+
+/* Datos editables por lote:
+     frente, fondo, sup (m²) · precio (USD) · estado
+   Estados:  "d" disponible (verde claro) · "n" no disponible (ámbar) · "v" vendido (gris) */
+/*__LOTES_START__*/
+const LOTES = {
+  1: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
+  2: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
+  3: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "v" },
+  4: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "v" },
+  5: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
+  6: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
+  7: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
+  8: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
+  9: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "v" },
+  10: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "v" },
+  11: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "v" },
+  12: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "v" },
+  13: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "v" },
+  14: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "v" },
+  15: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
+  16: { frente: 14.6, fondo: 45, sup: 657, precio: 176733, estado: "n" },
+  17: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
+  18: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
+  19: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
+  20: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
+  21: { frente: 14.34, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
+  22: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  23: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  24: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  25: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  26: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  27: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  28: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  29: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  30: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  31: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
+  32: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  33: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  34: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  35: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  36: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  37: { frente: 14.6, fondo: 30, sup: 438, precio: 40296, estado: "n" },
+  38: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  39: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  40: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  41: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  42: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
+  43: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
+  44: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
+  45: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  46: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  47: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  48: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  49: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  50: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  51: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  52: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  53: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  54: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  55: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  56: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
+  57: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
+  58: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  59: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  60: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  61: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  62: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  63: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  64: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  65: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  66: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  67: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  68: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  69: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
+  70: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
+  71: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  72: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  73: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  74: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  75: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  76: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  77: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  78: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  79: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  80: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  81: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  82: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
+  83: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
+  84: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  85: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  86: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  87: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  88: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  89: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  90: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  91: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  92: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  93: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  94: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  95: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
+  96: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
+  97: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  98: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  99: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  100: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  101: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  102: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  103: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  104: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  105: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  106: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  107: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  108: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
+  109: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
+  110: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  111: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
+  112: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  113: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  114: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  115: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  116: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  117: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  118: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  119: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  120: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
+  121: { frente: 13.72, fondo: 32.5, sup: 445.9, precio: 41023, estado: "v" },
+  122: { frente: 15, fondo: 27.38, sup: 410.7, precio: 37784, estado: "v" },
+  123: { frente: 13.72, fondo: 32.5, sup: 445.9, precio: 41023, estado: "v" },
+  124: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "v" },
+  125: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  126: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  127: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "v" },
+  128: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  129: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  130: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  131: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
+  132: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
+  133: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
+  134: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  135: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "d" },
+  136: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "n" },
+  137: { frente: 15, fondo: 27.32, sup: 409.8, precio: 37702, estado: "n" },
+  138: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "n" },
+  139: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "d" },
+  140: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  141: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  142: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  143: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
+  144: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
+  145: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
+  146: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  147: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  148: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  149: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
+  150: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "v" },
+  151: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "n" },
+  152: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "d" },
+  153: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  154: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  155: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
+  156: { frente: 16.64, fondo: 30.01, sup: 498.33, precio: 45846, estado: "n" },
+  157: { frente: 16.55, fondo: 29.99, sup: 496.52, precio: 45680, estado: "n" },
+  158: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
+  159: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
+  160: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
+  161: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "d" },
+  162: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "d" },
+  163: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "v" },
+  164: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
+  165: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  166: { frente: 16.8, fondo: 30, sup: 503.16, precio: 46291, estado: "d" },
+  167: { frente: 16.71, fondo: 30, sup: 501.35, precio: 46124, estado: "d" },
+  168: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  169: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  170: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  171: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "v" },
+  172: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "n" },
+  173: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
+  174: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
+  175: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
+  176: { frente: 16.96, fondo: 30, sup: 508, precio: 46736, estado: "n" },
+  177: { frente: 16.87, fondo: 30, sup: 506.2, precio: 46570, estado: "d" },
+  178: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  179: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  180: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+};
+/*__LOTES_END__*/
+
+/* ==========================================================================
+   2) GEOMETRÍA DEL PLANO — del plano catastral escalado. No se edita.
+   [n, x, y, ancho, alto, esComercial, manzana]
+   ========================================================================== */
+const D = [
+[1,1564,110,181,57,1,'I'],
+[2,1564,166,181,57,1,'I'],
+[3,1564,222,181,57,1,'I'],
+[4,1564,278,181,57,1,'I'],
+[5,1564,334,181,57,1,'I'],
+[6,1564,390,181,57,1,'I'],
+[7,1564,446,181,57,1,'I'],
+[8,1564,502,181,57,1,'I'],
+[9,1564,558,181,57,1,'I'],
+[10,1564,614,181,57,1,'I'],
+[11,1564,750,181,59,1,'II'],
+[12,1564,808,181,59,1,'II'],
+[13,1564,866,181,59,1,'II'],
+[14,1564,924,181,59,1,'II'],
+[15,1564,982,181,59,1,'II'],
+[16,1564,1040,181,59,1,'II'],
+[17,1564,1098,181,59,1,'II'],
+[18,1564,1156,181,59,1,'II'],
+[19,1564,1214,181,59,1,'II'],
+[20,1564,1272,181,59,1,'II'],
+[21,1564,1330,181,59,1,'II'],
+[22,1384,110,121,57,0,'III'],
+[23,1384,166,121,57,0,'III'],
+[24,1384,222,121,57,0,'III'],
+[25,1384,278,121,57,0,'III'],
+[26,1384,334,121,57,0,'III'],
+[27,1384,390,121,57,0,'III'],
+[28,1384,446,121,57,0,'III'],
+[29,1384,502,121,57,0,'III'],
+[30,1384,558,121,57,0,'III'],
+[31,1384,614,121,57,0,'III'],
+[32,1384,750,121,59,0,'IV'],
+[33,1384,808,121,59,0,'IV'],
+[34,1384,866,121,59,0,'IV'],
+[35,1384,924,121,59,0,'IV'],
+[36,1384,982,121,59,0,'IV'],
+[37,1384,1040,121,59,0,'IV'],
+[38,1384,1098,121,59,0,'IV'],
+[39,1384,1156,121,59,0,'IV'],
+[40,1384,1214,121,59,0,'IV'],
+[41,1384,1272,121,59,0,'IV'],
+[42,1384,1330,121,59,0,'IV'],
+[43,1241,110,65,121,0,'V'],
+[44,1241,230,65,121,0,'V'],
+[45,1183,230,59,121,0,'V'],
+[46,1125,230,59,121,0,'V'],
+[47,1067,230,59,121,0,'V'],
+[48,1009,230,59,121,0,'V'],
+[49,951,230,59,121,0,'V'],
+[50,893,230,59,121,0,'V'],
+[51,835,230,59,121,0,'V'],
+[52,777,230,59,121,0,'V'],
+[53,719,230,59,121,0,'V'],
+[54,661,230,59,121,0,'V'],
+[55,603,230,59,121,0,'V'],
+[56,539,230,65,121,0,'V'],
+[57,539,110,65,121,0,'V'],
+[58,603,110,59,121,0,'V'],
+[59,661,110,59,121,0,'V'],
+[60,719,110,59,121,0,'V'],
+[61,777,110,59,121,0,'V'],
+[62,835,110,59,121,0,'V'],
+[63,893,110,59,121,0,'V'],
+[64,951,110,59,121,0,'V'],
+[65,1009,110,59,121,0,'V'],
+[66,1067,110,59,121,0,'V'],
+[67,1125,110,59,121,0,'V'],
+[68,1183,110,59,121,0,'V'],
+[69,1241,430,65,121,0,'VI'],
+[70,1241,550,65,121,0,'VI'],
+[71,1183,550,59,121,0,'VI'],
+[72,1125,550,59,121,0,'VI'],
+[73,1067,550,59,121,0,'VI'],
+[74,1009,550,59,121,0,'VI'],
+[75,951,550,59,121,0,'VI'],
+[76,893,550,59,121,0,'VI'],
+[77,835,550,59,121,0,'VI'],
+[78,777,550,59,121,0,'VI'],
+[79,719,550,59,121,0,'VI'],
+[80,661,550,59,121,0,'VI'],
+[81,603,550,59,121,0,'VI'],
+[82,539,550,65,121,0,'VI'],
+[83,539,430,65,121,0,'VI'],
+[84,603,430,59,121,0,'VI'],
+[85,661,430,59,121,0,'VI'],
+[86,719,430,59,121,0,'VI'],
+[87,777,430,59,121,0,'VI'],
+[88,835,430,59,121,0,'VI'],
+[89,893,430,59,121,0,'VI'],
+[90,951,430,59,121,0,'VI'],
+[91,1009,430,59,121,0,'VI'],
+[92,1067,430,59,121,0,'VI'],
+[93,1125,430,59,121,0,'VI'],
+[94,1183,430,59,121,0,'VI'],
+[95,1241,750,65,121,0,'VII'],
+[96,1241,870,65,121,0,'VII'],
+[97,1183,870,59,121,0,'VII'],
+[98,1125,870,59,121,0,'VII'],
+[99,1067,870,59,121,0,'VII'],
+[100,1009,870,59,121,0,'VII'],
+[101,951,870,59,121,0,'VII'],
+[102,893,870,59,121,0,'VII'],
+[103,835,870,59,121,0,'VII'],
+[104,777,870,59,121,0,'VII'],
+[105,719,870,59,121,0,'VII'],
+[106,661,870,59,121,0,'VII'],
+[107,603,870,59,121,0,'VII'],
+[108,539,870,65,121,0,'VII'],
+[109,539,750,65,121,0,'VII'],
+[110,603,750,59,121,0,'VII'],
+[111,661,750,59,121,0,'VII'],
+[112,719,750,59,121,0,'VII'],
+[113,777,750,59,121,0,'VII'],
+[114,835,750,59,121,0,'VII'],
+[115,893,750,59,121,0,'VII'],
+[116,951,750,59,121,0,'VII'],
+[117,1009,750,59,121,0,'VII'],
+[118,1067,750,59,121,0,'VII'],
+[119,1125,750,59,121,0,'VII'],
+[120,1183,750,59,121,0,'VII'],
+[121,1249,1068,56,131,0,'VIII'],
+[122,1195,1198,110,61,0,'VIII'],
+[123,1249,1258,56,131,0,'VIII'],
+[124,1195,1258,55,131,0,'VIII'],
+[125,1140,1228,56,161,0,'VIII'],
+[126,1085,1228,56,161,0,'VIII'],
+[127,1031,1228,55,161,0,'VIII'],
+[128,976,1228,56,161,0,'VIII'],
+[129,921,1228,56,161,0,'VIII'],
+[130,867,1228,55,161,0,'VIII'],
+[131,812,1228,56,161,0,'VIII'],
+[132,758,1228,55,161,0,'VIII'],
+[133,703,1228,56,161,0,'VIII'],
+[134,648,1228,56,161,0,'VIII'],
+[135,594,1258,55,131,0,'VIII'],
+[136,539,1258,56,131,0,'VIII'],
+[137,539,1198,110,61,0,'VIII'],
+[138,539,1068,56,131,0,'VIII'],
+[139,594,1068,55,131,0,'VIII'],
+[140,648,1068,56,161,0,'VIII'],
+[141,703,1068,56,161,0,'VIII'],
+[142,758,1068,55,161,0,'VIII'],
+[143,812,1068,56,161,0,'VIII'],
+[144,867,1068,55,161,0,'VIII'],
+[145,921,1068,56,161,0,'VIII'],
+[146,976,1068,56,161,0,'VIII'],
+[147,1031,1068,55,161,0,'VIII'],
+[148,1085,1068,56,161,0,'VIII'],
+[149,1140,1068,56,161,0,'VIII'],
+[150,1195,1068,55,131,0,'VIII'],
+[151,393,110,67,121,0,'IX'],
+[152,393,230,67,121,0,'IX'],
+[153,329,230,65,121,0,'IX'],
+[154,265,230,65,121,0,'IX'],
+[155,201,230,65,121,0,'IX'],
+[156,135,230,67,121,0,'IX'],
+[157,135,110,67,121,0,'IX'],
+[158,201,110,65,121,0,'IX'],
+[159,265,110,65,121,0,'IX'],
+[160,329,110,65,121,0,'IX'],
+[161,393,430,67,121,0,'X'],
+[162,393,550,67,121,0,'X'],
+[163,329,550,65,121,0,'X'],
+[164,265,550,65,121,0,'X'],
+[165,201,550,65,121,0,'X'],
+[166,135,550,67,121,0,'X'],
+[167,135,430,67,121,0,'X'],
+[168,201,430,65,121,0,'X'],
+[169,265,430,65,121,0,'X'],
+[170,329,430,65,121,0,'X'],
+[171,393,750,67,121,0,'XI'],
+[172,393,870,67,121,0,'XI'],
+[173,329,870,65,121,0,'XI'],
+[174,265,870,65,121,0,'XI'],
+[175,201,870,65,121,0,'XI'],
+[176,135,870,67,121,0,'XI'],
+[177,135,750,67,121,0,'XI'],
+[178,201,750,65,121,0,'XI'],
+[179,265,750,65,121,0,'XI'],
+[180,329,750,65,121,0,'XI']
+];
+const BLOCKS = {"I": [1564.0, 110.0, 1745.0, 671.0], "II": [1564.0, 750.0, 1745.0, 1389.0], "III": [1384.0, 110.0, 1505.0, 671.0], "IV": [1384.0, 750.0, 1505.0, 1389.0], "V": [539.0, 110.0, 1306.0, 351.0], "VI": [539.0, 430.0, 1306.0, 671.0], "VII": [539.0, 750.0, 1306.0, 991.0], "VIII": [539.0, 1068.0, 1305.0, 1389.0], "IX": [135.0, 110.0, 460.0, 351.0], "X": [135.0, 430.0, 460.0, 671.0], "XI": [135.0, 750.0, 460.0, 991.0]};
+
+
+/* ==========================================================================
+   3) MOTOR
+   ========================================================================== */
+const SVGNS="http://www.w3.org/2000/svg";
+const nf  = new Intl.NumberFormat("es-AR");
+const nf2 = new Intl.NumberFormat("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const usd = n => "US$ " + nf.format(Math.round(n));
+const m2  = n => nf2.format(n) + " m²";
+const med = n => nf2.format(n) + " m";
+
+/* Estados. g = relleno cuando la capa está prendida · tc = color legible sobre el tooltip oscuro */
+const EST = {
+  d:{k:"Disponible",    c:"#6B8F3C", tc:"#9DCB5C", t:"t-disp",   g:"url(#gd)"},
+  n:{k:"No disponible", c:"#C79A2E", tc:"#E7C05A", t:"t-nodisp", g:"url(#gn)"},
+  v:{k:"Vendido",       c:"#9A9689", tc:"#C6C2B7", t:"t-vend",   g:"url(#gv)"}
+};
+
+const lots = D.map(a=>{
+  const o={n:a[0],x:a[1],y:a[2],w:a[3],h:a[4],com:!!a[5],mz:a[6]};
+  const r=LOTES[o.n]||{};
+  o.frente=r.frente; o.fondo=r.fondo; o.sup=r.sup;
+  o.estado=r.estado||"d";
+  o.precio=r.precio!=null ? r.precio
+         : Math.round(o.sup*(o.com?CFG.precioM2.comercial:CFG.precioM2.residencial));
+  return o;
+});
+const byN=new Map(lots.map(l=>[l.n,l]));
+const CAN_HOVER = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+
+/* ---- encuadre ---- */
+const PAD=64;
+let X0=1e9,Y0=1e9,X1=-1e9,Y1=-1e9;
+for(const l of lots){X0=Math.min(X0,l.x);Y0=Math.min(Y0,l.y);X1=Math.max(X1,l.x+l.w);Y1=Math.max(Y1,l.y+l.h);}
+const RES={x:135,y:1068,w:325,h:321};
+Y1=Math.max(Y1,RES.y+RES.h); X0=Math.min(X0,RES.x);
+const R9={x:1772,w:46};
+const VB={x:X0-PAD,y:Y0-PAD,w:(R9.x+R9.w+22)-(X0-PAD),h:(Y1-Y0)+PAD*2+34};
+
+const CALLES=[
+  {t:"Calle SAN PEDRO",x:922,y:391},{t:"Calle MARÍA AUXILIADORA",x:900,y:710},
+  {t:"Calle MARÍA TERESA",x:922,y:1029},{t:"Calle DON BOSCO",x:912,y:1428}
+];
+
+function el(t,a){const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+let _s=7; const rnd=()=>{_s=(_s*1664525+1013904223)%4294967296;return _s/4294967296;};
+
+function build(){
+  const svg=el("svg",{viewBox:`${VB.x} ${VB.y} ${VB.w} ${VB.h}`,role:"img",
+    "aria-label":"Plano de Distrito Roldán con 180 lotes seleccionables"});
+  svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+
+  const defs=el("defs",{});
+  defs.innerHTML =
+    /* verde base del plano */
+    '<linearGradient id="gbase" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0" stop-color="#759C42"/><stop offset="1" stop-color="#5C7F2F"/></linearGradient>'+
+    /* comerciales al frente: verde más oscuro */
+    '<linearGradient id="gcom" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0" stop-color="#416B4C"/><stop offset="1" stop-color="#2E5138"/></linearGradient>'+
+    /* capas de estado */
+    '<linearGradient id="gd" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0" stop-color="#A6DA57"/><stop offset="1" stop-color="#7FB539"/></linearGradient>'+
+    '<linearGradient id="gn" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0" stop-color="#D8AC42"/><stop offset="1" stop-color="#B98C22"/></linearGradient>'+
+    '<linearGradient id="gv" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0" stop-color="#A9A69B"/><stop offset="1" stop-color="#8B8779"/></linearGradient>'+
+    '<linearGradient id="gw" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0" stop-color="#4E7F63"/><stop offset="1" stop-color="#39604A"/></linearGradient>'+
+    '<filter id="glow" x="-22%" y="-22%" width="144%" height="144%">'+
+      '<feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#CDF283" flood-opacity=".85"/></filter>'+
+    '<filter id="sh" x="-8%" y="-8%" width="116%" height="116%">'+
+      '<feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#2A2E22" flood-opacity=".26"/></filter>';
+  svg.appendChild(defs);
+
+  const stage=el("g",{id:"stage"}); svg.appendChild(stage);
+  stage.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#E8E2D4"}));
+
+  /* calzadas: gris algo más marcado, con línea de eje */
+  const roads=el("g",{}); stage.appendChild(roads);
+  const RD=[[460,110,79,1279],[1306,110,78,1279],[1505,110,59,1279],
+            [135,351,1610,79],[135,671,1610,79],[135,991,1610,77],[95,1389,1690,58],[95,52,1690,58]];
+  for(const [x,y,w,h] of RD){
+    roads.appendChild(el("rect",{x,y,width:w,height:h,fill:"#C9C4B8"}));
+    const hz=w>h;
+    roads.appendChild(el("line",{x1:hz?x+10:x+w/2,y1:hz?y+h/2:y+10,x2:hz?x+w-10:x+w/2,y2:hz?y+h/2:y+h-10,
+      stroke:"#F5F2E9","stroke-width":3,"stroke-dasharray":"18 13","stroke-linecap":"round",opacity:".95"}));
+  }
+  const r9c=R9.x+R9.w/2;
+  stage.appendChild(el("rect",{x:R9.x,y:VB.y,width:R9.w,height:VB.h,fill:"#BFB9AC"}));
+  stage.appendChild(el("line",{x1:r9c,y1:VB.y+16,x2:r9c,y2:VB.y+VB.h-16,stroke:"#F5F2E9",
+    "stroke-width":3,"stroke-dasharray":"20 15","stroke-linecap":"round",opacity:".95"}));
+  const r9=el("text",{x:r9c,y:750,fill:"#57534A","font-size":15,"font-weight":700,"letter-spacing":"0.18em",
+    "text-anchor":"middle",transform:`rotate(90 ${r9c} 750)`}); r9.textContent="RUTA NACIONAL N.º 9";
+  stage.appendChild(r9);
+
+  /* reservorio */
+  const rg=el("g",{});
+  rg.appendChild(el("rect",{x:RES.x,y:RES.y,width:RES.w,height:RES.h,rx:8,fill:"url(#gw)",filter:"url(#sh)"}));
+  const rt=el("text",{x:RES.x+RES.w/2,y:RES.y+RES.h/2+26,fill:"rgba(255,255,255,.94)","font-size":19,
+    "font-weight":700,"letter-spacing":"0.14em","text-anchor":"middle"}); rt.textContent="RESERVORIO";
+  rg.appendChild(rt);
+  rg.appendChild(el("path",{d:`M${RES.x+RES.w/2} ${RES.y+RES.h/2-42}c14 20 22 30 22 40a22 22 0 0 1-44 0c0-10 8-20 22-40z`,
+    fill:"none",stroke:"rgba(255,255,255,.9)","stroke-width":3}));
+  stage.appendChild(rg);
+
+  /* arbolado */
+  const trees=el("g",{"aria-hidden":"true"}); stage.appendChild(trees);
+  const addTrees=(x,y,w,h)=>{
+    const step=27,pts=[];
+    for(let i=x+6;i<x+w-4;i+=step){pts.push([i,y-4]);pts.push([i,y+h+4]);}
+    for(let j=y+6;j<y+h-4;j+=step){pts.push([x-4,j]);pts.push([x+w+4,j]);}
+    for(const [px,py] of pts){
+      trees.appendChild(el("circle",{cx:px+(rnd()-.5)*6,cy:py+(rnd()-.5)*6,r:6.4+rnd()*3.2,
+        fill:rnd()>.5?"#4E6F2E":"#628A3B",opacity:".95"}));
+    }
+  };
+  for(const k in BLOCKS){const b=BLOCKS[k];addTrees(b[0],b[1],b[2]-b[0],b[3]-b[1]);}
+  addTrees(RES.x,RES.y,RES.w,RES.h);
+
+  /* lotes */
+  const lg=el("g",{}); stage.appendChild(lg);
+  for(const l of lots){
+    const g=el("g",{class:"lot",tabindex:"0",role:"button","data-n":l.n});
+    g.setAttribute("aria-label",
+      `Lote ${l.n}, manzana ${l.mz}, ${l.com?"comercial":"residencial"}, ${EST[l.estado].k}. `+
+      `Frente ${med(l.frente)}, fondo ${med(l.fondo)}, superficie ${m2(l.sup)}, precio ${usd(l.precio)}`);
+    g.appendChild(el("rect",{class:"f",x:l.x,y:l.y,width:l.w,height:l.h,fill:baseFill(l)}));
+    g.appendChild(el("rect",{class:"o",x:l.x,y:l.y,width:l.w,height:l.h}));
+    const fs=Math.max(13,Math.min(22,Math.min(l.w,l.h)*0.40));
+    const t=el("text",{x:l.x+l.w/2,y:l.y+l.h/2+fs*0.35,"text-anchor":"middle","font-size":fs});
+    t.textContent=l.n; g.appendChild(t);
+    lg.appendChild(g); l.node=g; l.face=g.firstChild;
+  }
+
+  /* rótulos */
+  const lab=el("g",{"aria-hidden":"true"}); stage.appendChild(lab);
+  for(const c of CALLES){
+    const t=el("text",{x:c.x,y:c.y+5,class:"street","text-anchor":"middle"}); t.textContent=c.t; lab.appendChild(t);
+  }
+  for(const k in BLOCKS){
+    const b=BLOCKS[k];
+    const t=el("text",{x:(b[0]+b[2])/2,y:b[1]-14,class:"mzplate","text-anchor":"middle"});
+    t.textContent="Mz. "+k; lab.appendChild(t);
+  }
+  document.getElementById("svghost").appendChild(svg);
+  return svg;
+}
+const baseFill = l => l.com ? "url(#gcom)" : "url(#gbase)";
+
+const svg=build();
+const box=document.getElementById("mapa");
+
+/* ==========================================================================
+   CAPAS DE ESTADO — se prenden y pintan sobre el mapa verde
+   ========================================================================== */
+const LAY={d:false,n:false,v:false};
+const F={tipo:"all",q:""};
+
+function visible(l){
+  if(F.tipo!=="all" && (l.com?1:0)!==+F.tipo) return false;
+  if(F.q && !String(l.n).startsWith(F.q)) return false;
+  return true;
+}
+function paint(){
+  let shown=0;
+  for(const l of lots){
+    const on=LAY[l.estado];
+    l.face.setAttribute("fill", on ? EST[l.estado].g : baseFill(l));
+    l.node.classList.toggle("lit", on && l.estado==="d");
+    const v=visible(l); l.node.classList.toggle("dim",!v); if(v) shown++;
+  }
+  const c={d:0,n:0,v:0}; for(const l of lots) c[l.estado]++;
+  document.querySelectorAll("[data-lay]").forEach(b=>{ b.querySelector("b").textContent=c[b.dataset.lay]; });
+  const act=Object.keys(LAY).filter(k=>LAY[k]);
+  document.getElementById("live").textContent =
+    act.length ? act.map(k=>`${c[k]} ${EST[k].k.toLowerCase()}s`).join(" · ")
+               : `${shown} lotes en el plano`;
+  syncURL();
+}
+function syncURL(){
+  const p=new URLSearchParams();
+  const act=Object.keys(LAY).filter(k=>LAY[k]);
+  if(act.length)p.set("ver",act.join(","));
+  if(F.tipo!=="all")p.set("tipo",F.tipo);
+  if(sel)p.set("lote",sel);
+  const q=p.toString();
+  history.replaceState(null,"",q?"?"+q:location.pathname);
+}
+
+/* aviso flotante al prender una capa */
+const toast=document.getElementById("toast");
+let toastT=null;
+function say(msg){
+  toast.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h10M11 8l4 4-4 4"/>'+
+    '<circle cx="19" cy="12" r="2.2"/></svg><span></span>';
+  toast.querySelector("span").textContent=msg;
+  toast.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>toast.classList.remove("show"),4600);
+}
+const VERBO = () => CAN_HOVER
+  ? "Pasá el mouse por un lote para ver sus valores"
+  : "Tocá un lote para ver sus valores";
+
+document.querySelectorAll("[data-lay]").forEach(b=>b.addEventListener("click",()=>{
+  const k=b.dataset.lay, on=!LAY[k];
+  LAY[k]=on; b.setAttribute("aria-pressed",String(on));
+  paint();
+  if(on) say(VERBO());
+}));
+
+document.querySelectorAll("[data-tipo]").forEach(b=>b.addEventListener("click",()=>{
+  F.tipo=b.dataset.tipo;
+  document.querySelectorAll("[data-tipo]").forEach(o=>o.setAttribute("aria-pressed",String(o===b)));
+  paint();
+}));
+document.getElementById("q").addEventListener("input",e=>{F.q=e.target.value.replace(/\D/g,""); paint();});
+document.getElementById("reset").addEventListener("click",()=>{
+  for(const k in LAY) LAY[k]=false;
+  document.querySelectorAll("[data-lay]").forEach(o=>o.setAttribute("aria-pressed","false"));
+  F.tipo="all"; F.q="";
+  document.querySelectorAll("[data-tipo]").forEach(o=>o.setAttribute("aria-pressed",String(o.dataset.tipo==="all")));
+  document.getElementById("q").value="";
+  paint();
+});
+
+/* ---------- ficha del lote ---------- */
+let sel=null;
+const side=document.getElementById("side"), dBody=document.getElementById("detailBody");
+function waLink(l){
+  const msg=`Hola SI Inmobiliaria, me interesa el Lote ${l.n} (Mz. ${l.mz}) de ${CFG.proyecto} — `+
+            `${m2(l.sup)}, ${med(l.frente)} de frente. ¿Sigue disponible?`;
+  return `https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent(msg)}`;
+}
+function select(n){
+  const l=byN.get(n); if(!l) return;
+  if(sel!=null && byN.get(sel)) byN.get(sel).node.classList.remove("on");
+  sel=n; l.node.classList.add("on");
+  const e=EST[l.estado];
+  const anticipo=l.precio*CFG.anticipoPct/100, cuota=(l.precio-anticipo)/CFG.cuotas;
+  dBody.innerHTML=`
+    <div class="lotnum"><b>Lote ${l.n}</b><span class="mz">Manzana ${l.mz}</span></div>
+    <div class="tags">
+      <span class="tag ${e.t}"><i style="background:${e.c}"></i>${e.k}</span>
+      <span class="tag t-tipo">${l.com?"Comercial · Ruta 9":"Residencial"}</span>
+    </div>
+    <dl class="specs">
+      <dt>Frente</dt><dd>${med(l.frente)}</dd>
+      <dt>Fondo</dt><dd>${med(l.fondo)}</dd>
+      <dt>Superficie</dt><dd>${m2(l.sup)}</dd>
+    </dl>
+    <div class="rule"></div>
+    <div class="price"><span class="k">Precio de lista</span><span class="v">${usd(l.precio)}</span></div>
+    <p class="fin">Anticipo ${CFG.anticipoPct}%: <b>${usd(anticipo)}</b><br>
+      Saldo en <b>${CFG.cuotas}</b> cuotas fijas de <b>${usd(cuota)}</b></p>
+    ${l.estado==="d"
+      ? `<a class="wa" href="${waLink(l)}" target="_blank" rel="noopener">
+           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.06 24l1.68-6.16a11.87 11.87 0 01-1.6-5.95C.15 5.33 5.5 0 12.06 0a11.8 11.8 0 018.4 3.49 11.75 11.75 0 013.48 8.4c0 6.55-5.35 11.88-11.92 11.88a11.9 11.9 0 01-5.7-1.45L.06 24zm6.6-3.8l.36.21a9.87 9.87 0 005.03 1.38c5.45 0 9.9-4.43 9.9-9.88a9.83 9.83 0 00-2.9-6.99 9.8 9.8 0 00-6.98-2.9c-5.46 0-9.9 4.43-9.9 9.88 0 1.87.52 3.7 1.52 5.28l.24.38-1 3.65 3.73-1.01zm11.4-5.55c-.08-.12-.28-.2-.58-.35-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15s-.77.96-.94 1.16c-.18.2-.35.22-.65.07a8.1 8.1 0 01-2.38-1.47 8.94 8.94 0 01-1.65-2.05c-.17-.3-.02-.46.13-.6.14-.14.3-.36.45-.53.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.62-.93-2.22-.24-.58-.49-.5-.67-.51h-.58c-.2 0-.53.07-.8.37-.28.3-1.05 1.02-1.05 2.5s1.07 2.9 1.22 3.1c.15.2 2.1 3.22 5.1 4.51.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42z"/></svg>
+           Consultar por WhatsApp</a>`
+      : `<p class="muted" style="margin-top:15px">Este lote figura como <b>${e.k.toLowerCase()}</b>. Escribinos y te mostramos alternativas equivalentes.</p>
+         <a class="wa" style="background:#5A6152;box-shadow:none" href="https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent("Hola, quiero ver lotes disponibles en "+CFG.proyecto)}" target="_blank" rel="noopener">Ver alternativas</a>`}
+    <p class="muted">Superficie según planilla oficial de mensura. Precios sujetos a modificación sin previo aviso.</p>`;
+  side.classList.add("open");
+  syncURL();
+}
+function deselect(){
+  side.classList.remove("open");
+  if(sel!=null && byN.get(sel)) byN.get(sel).node.classList.remove("on");
+  sel=null; syncURL();
+}
+document.getElementById("closer").addEventListener("click",deselect);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") deselect(); });
+svg.addEventListener("click",e=>{
+  const g=e.target.closest(".lot"); if(g && !g.classList.contains("dim")) select(+g.dataset.n);
+});
+svg.addEventListener("keydown",e=>{
+  const g=e.target.closest(".lot");
+  if(g && (e.key==="Enter"||e.key===" ")){e.preventDefault();select(+g.dataset.n);}
+});
+
+/* ---------- tooltip de hover ---------- */
+const tip=document.getElementById("tip");
+let tipOn=false,tipT=null,coolT=null,warm=false,tipLot=null;
+function tipHTML(l){
+  const e=EST[l.estado];
+  return `<div class="h"><b>Lote ${l.n}</b><span>Mz. ${l.mz} · ${l.com?"Comercial":"Residencial"}</span></div>
+    <div class="st" style="color:${e.tc}"><i style="background:${e.tc}"></i>${e.k}</div>
+    <dl>
+      <dt>Frente</dt><dd>${med(l.frente)}</dd>
+      <dt>Fondo</dt><dd>${med(l.fondo)}</dd>
+      <dt>Superficie</dt><dd>${m2(l.sup)}</dd>
+    </dl>
+    <div class="pr"><small>Precio</small><b>${usd(l.precio)}</b></div>
+    <div class="cta">Clic para ver financiación y consultar</div>`;
+}
+function placeTip(cx,cy){
+  const r=box.getBoundingClientRect();
+  let x=cx-r.left+16,y=cy-r.top+16;
+  const tw=tip.offsetWidth,th=tip.offsetHeight;
+  if(x+tw>r.width-8)  x=cx-r.left-tw-16;
+  if(y+th>r.height-8) y=cy-r.top-th-16;
+  tip.style.transform=`translate(${Math.max(8,x)}px,${Math.max(8,y)}px)`;
+}
+function showTip(l,cx,cy){
+  if(tipLot!==l.n){tip.innerHTML=tipHTML(l);tipLot=l.n;}
+  placeTip(cx,cy);
+  if(tipOn) return;
+  clearTimeout(tipT);
+  tipT=setTimeout(()=>{tip.classList.add("show");tipOn=true;warm=true;}, warm?0:140);
+}
+function hideTip(){
+  clearTimeout(tipT);tip.classList.remove("show");tipOn=false;tipLot=null;
+  clearTimeout(coolT);coolT=setTimeout(()=>{warm=false;},450);
+}
+if(CAN_HOVER){
+  svg.addEventListener("pointermove",e=>{
+    if(e.pointerType!=="mouse") return;
+    const g=e.target.closest(".lot");
+    if(!g||g.classList.contains("dim")) return hideTip();
+    const l=byN.get(+g.dataset.n); if(l) showTip(l,e.clientX,e.clientY);
+  });
+  svg.addEventListener("pointerleave",hideTip);
+  box.addEventListener("pointerdown",hideTip);
+  window.addEventListener("scroll",()=>{if(tipOn)hideTip();},{passive:true});
+  svg.addEventListener("focusin",e=>{
+    const g=e.target.closest(".lot"); if(!g) return;
+    const l=byN.get(+g.dataset.n); if(!l) return;
+    const r=g.getBoundingClientRect(); warm=true; showTip(l,r.right,r.bottom);
+  });
+  svg.addEventListener("focusout",hideTip);
+}
+
+/* ---------- desplazamiento del plano ----------
+   Sin zoom: se usa el scroll nativo del contenedor. En celular se arrastra
+   con el dedo; en escritorio, con la rueda o shift+rueda. */
+const scroller=document.getElementById("mapscroll");
+const swipe=document.getElementById("swipe");
+let swipeSeen=false;
+
+function checkOverflow(){
+  const over = scroller.scrollWidth - scroller.clientWidth > 8;
+  swipe.classList.toggle("on", over && !swipeSeen);
+}
+function dismissSwipe(){
+  if(swipeSeen) return;
+  swipeSeen=true; swipe.classList.add("gone");
+  setTimeout(()=>swipe.classList.remove("on","gone"),300);
+}
+scroller.addEventListener("scroll",()=>{ dismissSwipe(); if(tipOn) hideTip(); },{passive:true});
+new ResizeObserver(checkOverflow).observe(scroller);
+window.addEventListener("resize",checkOverflow);
+
+/* la rueda vertical sobre el plano lo desplaza en horizontal cuando hace falta */
+scroller.addEventListener("wheel",e=>{
+  if(e.deltaX!==0 || e.shiftKey) return;
+  const over=scroller.scrollWidth-scroller.clientWidth>8;
+  if(!over) return;
+  const room = (e.deltaY<0 && scroller.scrollLeft>0) || (e.deltaY>0 && scroller.scrollLeft<scroller.scrollWidth-scroller.clientWidth-1);
+  if(!room) return;
+  e.preventDefault(); scroller.scrollLeft += e.deltaY;
+},{passive:false});
+
+/* ---------- arranque ---------- */
+(function init(){
+  const p=new URLSearchParams(location.search);
+  if(p.get("ver")) p.get("ver").split(",").forEach(k=>{
+    const b=document.querySelector(`[data-lay="${k}"]`); if(b&&!LAY[k]){LAY[k]=true;b.setAttribute("aria-pressed","true");}
+  });
+  if(p.get("tipo")){const b=document.querySelector(`[data-tipo="${p.get("tipo")}"]`); if(b)b.click();}
+  paint(); checkOverflow();
+  if(p.get("lote")) select(+p.get("lote"));
+  const post=()=>{try{parent.postMessage({type:"plano-height",h:document.documentElement.scrollHeight},"*")}catch(_){}}
+  post(); new ResizeObserver(post).observe(document.documentElement);
+})();
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ import {
   ChevronDown,
   FileText,
   GraduationCap,
+  LandPlot,
   LogOut,
   Mail,
   Megaphone,
@@ -182,6 +183,15 @@ export default function AgentDashboardV2({
             title="Calculadora de comisiones"
             description="Ventas, alquileres y tus objetivos."
             statLabel="Simulá cuánto cobrás"
+          />
+          <PlacaCard
+            href="/agentes/plano-distrito-roldan"
+            icon={<LandPlot size={22} strokeWidth={1.8} />}
+            pastel="#D5E3C2"
+            iconColor="#4A6B24"
+            title="Plano de lotes · Distrito Roldán"
+            description="Disponibilidad, medidas y precios de los 180 lotes."
+            statLabel="Actualizá y descargá el plano"
           />
         </div>
 
