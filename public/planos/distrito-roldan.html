@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#EDE7DA">
 <title>Distrito Roldán — Plano interactivo de lotes | SI Inmobiliaria</title>
-<meta name="description" content="Plano interactivo de Distrito Roldán: 180 lotes en Ruta 9 y Di María, Roldán. Consultá disponibilidad, medidas, superficie y precio de cada lote.">
+<meta name="description" content="Plano interactivo de Distrito Roldán: 180 lotes en Ruta 9 y María Auxiliadora, Roldán. Consultá disponibilidad, medidas, superficie y precio de cada lote.">
 <style>
 /* ============================================================
    DISTRITO ROLDÁN — PLANO INTERACTIVO
@@ -254,7 +254,7 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
   .head h1{width:100%}
   .bar{gap:8px;padding:10px}
   .layers{width:100%;gap:7px}
-  .layers button{flex:1 1 0;min-width:0;justify-content:center;padding:10px 10px;gap:7px}
+  .layers button{flex:1 1 0;min-width:0;justify-content:center;padding:7px 8px;gap:6px}
   .seg{flex:1 1 auto}
   .seg button{flex:1 1 0;text-align:center;padding:9px 10px}
   .bar input[type=search]{flex:1 1 auto;width:auto;min-width:0}
@@ -264,14 +264,13 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 @media (max-width:560px){
   .toast{font-size:13px;padding:9px 15px}
   .swipe{display:none !important}
-  /* En pantalla chica cada filtro se arma en dos renglones:
-     punto + contador arriba, etiqueta corta abajo. */
-  .layers button{flex-wrap:wrap;justify-content:center;gap:4px 6px;padding:6px 5px;min-height:44px}
+  /* En pantalla chica: etiqueta corta y todo en un solo renglón. */
+  .layers button{flex-wrap:nowrap;justify-content:center;gap:5px;
+    padding:6px 8px;min-height:34px;font-size:11.5px}
   .lbl{display:none}
-  .lbl-sh{display:block;flex:1 0 100%;order:3;text-align:center;
-    font-size:10.5px;font-weight:600;line-height:1.1;opacity:.85}
-  .layers i{order:1;width:10px;height:10px;box-shadow:inset 0 0 0 2px var(--c)}
-  .layers b{order:2;font-size:12.5px;min-width:0;padding:0;background:transparent;font-weight:800}
+  .lbl-sh{display:inline;white-space:nowrap;font-weight:600}
+  .layers i{width:9px;height:9px;box-shadow:inset 0 0 0 2px var(--c)}
+  .layers b{font-size:11.5px;min-width:0;padding:0;background:transparent;font-weight:800}
   .layers button[aria-pressed="true"] b{background:transparent}
 }
 }
@@ -286,7 +285,7 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
   <header class="head">
     <div>
       <h1 translate="no">Distrito Roldán <span>· Plano de lotes</span></h1>
-      <p class="sub">Ruta 9 y Di María, Roldán · 180 lotes · 11 manzanas</p>
+      <p class="sub">Ruta 9 y María Auxiliadora · Roldán · 180 lotes</p>
     </div>
     <p class="live" id="live" aria-live="polite">180 lotes</p>
   </header>
