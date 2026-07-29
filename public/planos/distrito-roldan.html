@@ -149,7 +149,10 @@ button{font:inherit;color:inherit;touch-action:manipulation}
   display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .tip .pr small{color:rgba(255,255,255,.6);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
 .tip .pr b{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.tip .pr2{margin-top:2px;padding-top:0;border-top:0}
+.tip .pr2 b{font-size:14px;color:rgba(255,255,255,.82)}
 .tip .cta{margin-top:7px;font-size:11px;color:rgba(255,255,255,.55)}
+.tip .cta2{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.16);font-size:12px}
 @media (hover:none){ .tip{display:none} }
 
 /* ---------- ficha del lote (flotante sobre el mapa) ---------- */
@@ -186,7 +189,10 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 .price{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .price .v{font-size:27px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .price .k{font-size:12px;color:var(--ink-2);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.price2{margin-top:6px}
+.price2 .v{font-size:19px;color:var(--ink-2)}
 .fin{margin:11px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+.fin-nota{font-size:12.5px;opacity:.8}
 .fin b{color:var(--ink);font-variant-numeric:tabular-nums}
 .wa{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:15px;
   min-height:48px;border-radius:12px;border:0;background:#1FA855;color:#fff;
@@ -286,197 +292,201 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 const CFG = {
   whatsapp: "5493412101694",
   proyecto: "Distrito Roldán",
-  anticipoPct: 30,
-  cuotas: 24,
-  precioM2: { residencial: 92, comercial: 269 }
+  // Financiación de la lista de mayo: distinta según el tipo de lote.
+  financiacion: {
+    residencial: { anticipoPct: 30, cuotas: 24, contadoTxt: "US$ 5/m² de descuento" },
+    comercial:   { anticipoPct: 50, cuotas: 12, contadoTxt: "10% de descuento" }
+  }
 };
 /*__CFG_END__*/
 
 /* Datos editables por lote:
-     frente, fondo, sup (m²) · precio (USD) · estado
-   Estados:  "d" disponible (verde claro) · "n" no disponible (ámbar) · "v" vendido (gris) */
+     frente, fondo, sup (m²) · estado · pm2, precio, contado (USD)
+   Estados:  "d" disponible (verde claro) · "n" no disponible (ámbar) · "v" vendido (gris)
+   Los precios solo se cargan en los lotes disponibles: en el plano, un lote que
+   no está a la venta no muestra valores. */
 /*__LOTES_START__*/
 const LOTES = {
-  1: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
-  2: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
-  3: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "v" },
-  4: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "v" },
-  5: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
-  6: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
-  7: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
-  8: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "n" },
-  9: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "v" },
-  10: { frente: 14, fondo: 45, sup: 630, precio: 169470, estado: "v" },
-  11: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "v" },
-  12: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "v" },
-  13: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "v" },
-  14: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "v" },
-  15: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
-  16: { frente: 14.6, fondo: 45, sup: 657, precio: 176733, estado: "n" },
-  17: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
-  18: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
-  19: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
-  20: { frente: 14.54, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
-  21: { frente: 14.34, fondo: 45, sup: 654.3, precio: 176007, estado: "n" },
-  22: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  23: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  24: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  25: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  26: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  27: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  28: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  29: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  30: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  31: { frente: 14, fondo: 30, sup: 420, precio: 38640, estado: "n" },
-  32: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  33: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  34: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  35: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  36: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  37: { frente: 14.6, fondo: 30, sup: 438, precio: 40296, estado: "n" },
-  38: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  39: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  40: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  41: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  42: { frente: 14.54, fondo: 30, sup: 436.2, precio: 40130, estado: "n" },
-  43: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
-  44: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
-  45: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  46: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  47: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  48: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  49: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  50: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  51: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  52: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  53: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  54: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  55: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  56: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
-  57: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
-  58: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  59: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  60: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  61: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  62: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  63: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  64: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  65: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  66: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  67: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  68: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  69: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
-  70: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
-  71: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  72: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  73: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  74: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  75: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  76: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  77: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  78: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  79: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  80: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  81: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  82: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
-  83: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
-  84: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  85: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  86: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  87: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  88: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  89: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  90: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  91: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  92: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  93: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  94: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  95: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
-  96: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "v" },
-  97: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  98: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  99: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  100: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  101: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  102: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  103: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  104: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  105: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  106: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  107: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  108: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
-  109: { frente: 15.9, fondo: 30, sup: 477, precio: 43884, estado: "n" },
-  110: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  111: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "n" },
-  112: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  113: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  114: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  115: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  116: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  117: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  118: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  119: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  120: { frente: 14.5, fondo: 30, sup: 435, precio: 40020, estado: "v" },
-  121: { frente: 13.72, fondo: 32.5, sup: 445.9, precio: 41023, estado: "v" },
-  122: { frente: 15, fondo: 27.38, sup: 410.7, precio: 37784, estado: "v" },
-  123: { frente: 13.72, fondo: 32.5, sup: 445.9, precio: 41023, estado: "v" },
-  124: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "v" },
-  125: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  126: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  127: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "v" },
-  128: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  129: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  130: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  131: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
-  132: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
-  133: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
-  134: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  135: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "d" },
-  136: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "n" },
-  137: { frente: 15, fondo: 27.32, sup: 409.8, precio: 37702, estado: "n" },
-  138: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "n" },
-  139: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "d" },
-  140: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  141: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  142: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  143: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
-  144: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
-  145: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "n" },
-  146: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  147: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  148: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  149: { frente: 13.66, fondo: 40, sup: 546.4, precio: 50269, estado: "d" },
-  150: { frente: 13.66, fondo: 32.5, sup: 443.95, precio: 40843, estado: "v" },
-  151: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "n" },
-  152: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "d" },
-  153: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
-  154: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
-  155: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
-  156: { frente: 16.64, fondo: 30.01, sup: 498.33, precio: 45846, estado: "n" },
-  157: { frente: 16.55, fondo: 29.99, sup: 496.52, precio: 45680, estado: "n" },
-  158: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
-  159: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
-  160: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
-  161: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "d" },
-  162: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "d" },
-  163: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "v" },
-  164: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
-  165: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
-  166: { frente: 16.8, fondo: 30, sup: 503.16, precio: 46291, estado: "d" },
-  167: { frente: 16.71, fondo: 30, sup: 501.35, precio: 46124, estado: "d" },
-  168: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
-  169: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
-  170: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
-  171: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "v" },
-  172: { frente: 16.6, fondo: 30, sup: 498, precio: 45816, estado: "n" },
-  173: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
-  174: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
-  175: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "n" },
-  176: { frente: 16.96, fondo: 30, sup: 508, precio: 46736, estado: "n" },
-  177: { frente: 16.87, fondo: 30, sup: 506.2, precio: 46570, estado: "d" },
-  178: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
-  179: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
-  180: { frente: 16, fondo: 30, sup: 480, precio: 44160, estado: "d" },
+  1: { frente: 14, fondo: 45, sup: 630, estado: "n" },
+  2: { frente: 14, fondo: 45, sup: 630, estado: "n" },
+  3: { frente: 14, fondo: 45, sup: 630, estado: "v" },
+  4: { frente: 14, fondo: 45, sup: 630, estado: "v" },
+  5: { frente: 14, fondo: 45, sup: 630, estado: "n" },
+  6: { frente: 14, fondo: 45, sup: 630, estado: "n" },
+  7: { frente: 14, fondo: 45, sup: 630, estado: "n" },
+  8: { frente: 14, fondo: 45, sup: 630, estado: "d", pm2: 270, precio: 170100, contado: 153090 },
+  9: { frente: 14, fondo: 45, sup: 630, estado: "v" },
+  10: { frente: 14, fondo: 45, sup: 630, estado: "v" },
+  11: { frente: 14.54, fondo: 45, sup: 654.3, estado: "v" },
+  12: { frente: 14.54, fondo: 45, sup: 654.3, estado: "v" },
+  13: { frente: 14.54, fondo: 45, sup: 654.3, estado: "v" },
+  14: { frente: 14.54, fondo: 45, sup: 654.3, estado: "v" },
+  15: { frente: 14.54, fondo: 45, sup: 654.3, estado: "n" },
+  16: { frente: 14.6, fondo: 45, sup: 657, estado: "n" },
+  17: { frente: 14.54, fondo: 45, sup: 654.3, estado: "n" },
+  18: { frente: 14.54, fondo: 45, sup: 654.3, estado: "d", pm2: 270, precio: 176661, contado: 158995 },
+  19: { frente: 14.54, fondo: 45, sup: 654.3, estado: "d", pm2: 270, precio: 176661, contado: 158995 },
+  20: { frente: 14.54, fondo: 45, sup: 654.3, estado: "n" },
+  21: { frente: 14.34, fondo: 45, sup: 654.3, estado: "n" },
+  22: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  23: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  24: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  25: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  26: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  27: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  28: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  29: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  30: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  31: { frente: 14, fondo: 30, sup: 420, estado: "n" },
+  32: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  33: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  34: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  35: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  36: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  37: { frente: 14.6, fondo: 30, sup: 438, estado: "n" },
+  38: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  39: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  40: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  41: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  42: { frente: 14.54, fondo: 30, sup: 436.2, estado: "n" },
+  43: { frente: 15.9, fondo: 30, sup: 477, estado: "n" },
+  44: { frente: 15.9, fondo: 30, sup: 477, estado: "v" },
+  45: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  46: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  47: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  48: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  49: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  50: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  51: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  52: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  53: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  54: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  55: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  56: { frente: 15.9, fondo: 30, sup: 477, estado: "v" },
+  57: { frente: 15.9, fondo: 30, sup: 477, estado: "n" },
+  58: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  59: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  60: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  61: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  62: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  63: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  64: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  65: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  66: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  67: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  68: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  69: { frente: 15.9, fondo: 30, sup: 477, estado: "v" },
+  70: { frente: 15.9, fondo: 30, sup: 477, estado: "v" },
+  71: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  72: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  73: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  74: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  75: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  76: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  77: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  78: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  79: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  80: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  81: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  82: { frente: 15.9, fondo: 30, sup: 477, estado: "n" },
+  83: { frente: 15.9, fondo: 30, sup: 477, estado: "n" },
+  84: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  85: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  86: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  87: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  88: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  89: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  90: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  91: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  92: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  93: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  94: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  95: { frente: 15.9, fondo: 30, sup: 477, estado: "v" },
+  96: { frente: 15.9, fondo: 30, sup: 477, estado: "v" },
+  97: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  98: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  99: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  100: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  101: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  102: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  103: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  104: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  105: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  106: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  107: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  108: { frente: 15.9, fondo: 30, sup: 477, estado: "n" },
+  109: { frente: 15.9, fondo: 30, sup: 477, estado: "n" },
+  110: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  111: { frente: 14.5, fondo: 30, sup: 435, estado: "n" },
+  112: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  113: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  114: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  115: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  116: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  117: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  118: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  119: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  120: { frente: 14.5, fondo: 30, sup: 435, estado: "v" },
+  121: { frente: 13.72, fondo: 32.5, sup: 445.9, estado: "v" },
+  122: { frente: 15, fondo: 27.38, sup: 410.7, estado: "v" },
+  123: { frente: 13.72, fondo: 32.5, sup: 445.9, estado: "v" },
+  124: { frente: 13.66, fondo: 32.5, sup: 443.95, estado: "v" },
+  125: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 85, precio: 46444, contado: 43712 },
+  126: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 85, precio: 46444, contado: 43712 },
+  127: { frente: 13.66, fondo: 40, sup: 546.4, estado: "v" },
+  128: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 85, precio: 46444, contado: 43712 },
+  129: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 85, precio: 46444, contado: 43712 },
+  130: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 85, precio: 46444, contado: 43712 },
+  131: { frente: 13.66, fondo: 40, sup: 546.4, estado: "n" },
+  132: { frente: 13.66, fondo: 40, sup: 546.4, estado: "n" },
+  133: { frente: 13.66, fondo: 40, sup: 546.4, estado: "n" },
+  134: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 85, precio: 46444, contado: 43712 },
+  135: { frente: 13.66, fondo: 32.5, sup: 443.95, estado: "d", pm2: 85, precio: 37736, contado: 35516 },
+  136: { frente: 13.66, fondo: 32.5, sup: 443.95, estado: "n" },
+  137: { frente: 15, fondo: 27.32, sup: 409.8, estado: "n" },
+  138: { frente: 13.66, fondo: 32.5, sup: 443.95, estado: "n" },
+  139: { frente: 13.66, fondo: 32.5, sup: 443.95, estado: "d", pm2: 95, precio: 42175, contado: 39956 },
+  140: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 95, precio: 51908, contado: 49176 },
+  141: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 95, precio: 51908, contado: 49176 },
+  142: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 95, precio: 51908, contado: 49176 },
+  143: { frente: 13.66, fondo: 40, sup: 546.4, estado: "n" },
+  144: { frente: 13.66, fondo: 40, sup: 546.4, estado: "n" },
+  145: { frente: 13.66, fondo: 40, sup: 546.4, estado: "n" },
+  146: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 95, precio: 51908, contado: 49176 },
+  147: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 95, precio: 51908, contado: 49176 },
+  148: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 95, precio: 51908, contado: 49176 },
+  149: { frente: 13.66, fondo: 40, sup: 546.4, estado: "d", pm2: 95, precio: 51908, contado: 49176 },
+  150: { frente: 13.66, fondo: 32.5, sup: 443.95, estado: "v" },
+  151: { frente: 16.6, fondo: 30, sup: 498, estado: "n" },
+  152: { frente: 16.6, fondo: 30, sup: 498, estado: "d", pm2: 95, precio: 47310, contado: 44820 },
+  153: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  154: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  155: { frente: 16, fondo: 30, sup: 480, estado: "n" },
+  156: { frente: 16.64, fondo: 30.01, sup: 498.33, estado: "n" },
+  157: { frente: 16.55, fondo: 29.99, sup: 496.52, estado: "n" },
+  158: { frente: 16, fondo: 30, sup: 480, estado: "n" },
+  159: { frente: 16, fondo: 30, sup: 480, estado: "n" },
+  160: { frente: 16, fondo: 30, sup: 480, estado: "n" },
+  161: { frente: 16.6, fondo: 30, sup: 498, estado: "d", pm2: 95, precio: 47310, contado: 44820 },
+  162: { frente: 16.6, fondo: 30, sup: 498, estado: "d", pm2: 95, precio: 47310, contado: 44820 },
+  163: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  164: { frente: 16, fondo: 30, sup: 480, estado: "n" },
+  165: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  166: { frente: 16.8, fondo: 30, sup: 503.16, estado: "d", pm2: 95, precio: 47800, contado: 45284 },
+  167: { frente: 16.71, fondo: 30, sup: 501.35, estado: "d", pm2: 95, precio: 47628, contado: 45122 },
+  168: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  169: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  170: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  171: { frente: 16.6, fondo: 30, sup: 498, estado: "v" },
+  172: { frente: 16.6, fondo: 30, sup: 498, estado: "n" },
+  173: { frente: 16, fondo: 30, sup: 480, estado: "n" },
+  174: { frente: 16, fondo: 30, sup: 480, estado: "n" },
+  175: { frente: 16, fondo: 30, sup: 480, estado: "n" },
+  176: { frente: 16.96, fondo: 30, sup: 508, estado: "n" },
+  177: { frente: 16.87, fondo: 30, sup: 506.2, estado: "d", pm2: 95, precio: 48089, contado: 45558 },
+  178: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  179: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
+  180: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
 };
 /*__LOTES_END__*/
 
@@ -691,8 +701,10 @@ const lots = D.map(a=>{
   const r=LOTES[o.n]||{};
   o.frente=r.frente; o.fondo=r.fondo; o.sup=r.sup;
   o.estado=r.estado||"d";
-  o.precio=r.precio!=null ? r.precio
-         : Math.round(o.sup*(o.com?CFG.precioM2.comercial:CFG.precioM2.residencial));
+  o.pm2=r.pm2??null; o.precio=r.precio??null; o.contado=r.contado??null;
+  o.fin=CFG.financiacion[o.com?"comercial":"residencial"];
+  // Solo se muestran valores de los lotes que están efectivamente a la venta.
+  o.conPrecio = o.estado==="d" && o.precio!=null;
   return o;
 });
 const byN=new Map(lots.map(l=>[l.n,l]));
@@ -794,7 +806,8 @@ function build(){
     const g=el("g",{class:"lot",tabindex:"0",role:"button","data-n":l.n});
     g.setAttribute("aria-label",
       `Lote ${l.n}, manzana ${l.mz}, ${l.com?"comercial":"residencial"}, ${EST[l.estado].k}. `+
-      `Frente ${med(l.frente)}, fondo ${med(l.fondo)}, superficie ${m2(l.sup)}, precio ${usd(l.precio)}`);
+      `Frente ${med(l.frente)}, fondo ${med(l.fondo)}, superficie ${m2(l.sup)}`+
+      (l.conPrecio ? `, precio de lista ${usd(l.precio)}, contado ${usd(l.contado)}` : ""));
     g.appendChild(el("rect",{class:"f",x:l.x,y:l.y,width:l.w,height:l.h,fill:baseFill(l)}));
     g.appendChild(el("rect",{class:"o",x:l.x,y:l.y,width:l.w,height:l.h}));
     const fs=Math.max(13,Math.min(22,Math.min(l.w,l.h)*0.40));
@@ -899,7 +912,8 @@ let sel=null;
 const side=document.getElementById("side"), dBody=document.getElementById("detailBody");
 function waLink(l){
   const msg=`Hola SI Inmobiliaria, me interesa el Lote ${l.n} (Mz. ${l.mz}) de ${CFG.proyecto} — `+
-            `${m2(l.sup)}, ${med(l.frente)} de frente. ¿Sigue disponible?`;
+            `${m2(l.sup)}, ${med(l.frente)} de frente`+
+            (l.conPrecio ? `, lista ${usd(l.precio)}` : "")+`. ¿Sigue disponible?`;
   return `https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent(msg)}`;
 }
 function select(n){
@@ -907,7 +921,9 @@ function select(n){
   if(sel!=null && byN.get(sel)) byN.get(sel).node.classList.remove("on");
   sel=n; l.node.classList.add("on");
   const e=EST[l.estado];
-  const anticipo=l.precio*CFG.anticipoPct/100, cuota=(l.precio-anticipo)/CFG.cuotas;
+  const f=l.fin;
+  const anticipo=l.conPrecio ? l.precio*f.anticipoPct/100 : 0;
+  const cuota=l.conPrecio ? (l.precio-anticipo)/f.cuotas : 0;
   dBody.innerHTML=`
     <div class="lotnum"><b>Lote ${l.n}</b><span class="mz">Manzana ${l.mz}</span></div>
     <div class="tags">
@@ -920,16 +936,22 @@ function select(n){
       <dt>Superficie</dt><dd>${m2(l.sup)}</dd>
     </dl>
     <div class="rule"></div>
-    <div class="price"><span class="k">Precio de lista</span><span class="v">${usd(l.precio)}</span></div>
-    <p class="fin">Anticipo ${CFG.anticipoPct}%: <b>${usd(anticipo)}</b><br>
-      Saldo en <b>${CFG.cuotas}</b> cuotas fijas de <b>${usd(cuota)}</b></p>
+    ${l.conPrecio ? `
+      <div class="price"><span class="k">Precio de lista</span><span class="v">${usd(l.precio)}</span></div>
+      <div class="price price2"><span class="k">Contado</span><span class="v">${usd(l.contado)}</span></div>
+      <p class="fin">Anticipo ${f.anticipoPct}%: <b>${usd(anticipo)}</b><br>
+        Saldo en <b>${f.cuotas}</b> cuotas fijas de <b>${usd(cuota)}</b><br>
+        <span class="fin-nota">Contado: ${f.contadoTxt}</span></p>`
+      : l.estado==="d"
+        ? `<p class="fin">Consultanos el valor de este lote.</p>` : ``}
     ${l.estado==="d"
       ? `<a class="wa" href="${waLink(l)}" target="_blank" rel="noopener">
            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.06 24l1.68-6.16a11.87 11.87 0 01-1.6-5.95C.15 5.33 5.5 0 12.06 0a11.8 11.8 0 018.4 3.49 11.75 11.75 0 013.48 8.4c0 6.55-5.35 11.88-11.92 11.88a11.9 11.9 0 01-5.7-1.45L.06 24zm6.6-3.8l.36.21a9.87 9.87 0 005.03 1.38c5.45 0 9.9-4.43 9.9-9.88a9.83 9.83 0 00-2.9-6.99 9.8 9.8 0 00-6.98-2.9c-5.46 0-9.9 4.43-9.9 9.88 0 1.87.52 3.7 1.52 5.28l.24.38-1 3.65 3.73-1.01zm11.4-5.55c-.08-.12-.28-.2-.58-.35-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15s-.77.96-.94 1.16c-.18.2-.35.22-.65.07a8.1 8.1 0 01-2.38-1.47 8.94 8.94 0 01-1.65-2.05c-.17-.3-.02-.46.13-.6.14-.14.3-.36.45-.53.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.62-.93-2.22-.24-.58-.49-.5-.67-.51h-.58c-.2 0-.53.07-.8.37-.28.3-1.05 1.02-1.05 2.5s1.07 2.9 1.22 3.1c.15.2 2.1 3.22 5.1 4.51.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42z"/></svg>
            Consultar por WhatsApp</a>`
       : `<p class="muted" style="margin-top:15px">Este lote figura como <b>${e.k.toLowerCase()}</b>. Escribinos y te mostramos alternativas equivalentes.</p>
          <a class="wa" style="background:#5A6152;box-shadow:none" href="https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent("Hola, quiero ver lotes disponibles en "+CFG.proyecto)}" target="_blank" rel="noopener">Ver alternativas</a>`}
-    <p class="muted">Superficie según planilla oficial de mensura. Precios sujetos a modificación sin previo aviso.</p>`;
+    <p class="muted">Superficie según planilla oficial de mensura. Valores de la lista vigente,
+      sujetos a modificación sin previo aviso.</p>`;
   side.classList.add("open");
   syncURL();
 }
@@ -960,8 +982,11 @@ function tipHTML(l){
       <dt>Fondo</dt><dd>${med(l.fondo)}</dd>
       <dt>Superficie</dt><dd>${m2(l.sup)}</dd>
     </dl>
-    <div class="pr"><small>Precio</small><b>${usd(l.precio)}</b></div>
-    <div class="cta">Clic para ver financiación y consultar</div>`;
+    ${l.conPrecio ? `
+    <div class="pr"><small>Lista</small><b>${usd(l.precio)}</b></div>
+    <div class="pr pr2"><small>Contado</small><b>${usd(l.contado)}</b></div>
+    <div class="cta">Clic para ver financiación y consultar</div>`
+    : `<div class="cta cta2">Este lote no está a la venta</div>`}`;
 }
 function placeTip(cx,cy){
   const r=box.getBoundingClientRect();
