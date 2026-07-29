@@ -405,8 +405,8 @@ const CFG = {
      m:  matriz que la calza sobre el plano [a,b,c,d,e,f] */
   foto: {
     src: "distrito-roldan-aerea.webp",   // relativa: sirve en el sitio y en local
-    w: 1600, h: 900,
-    m: [1.52850, 0.00000, 0.00000, 1.56201, -299.81467, 136.51984]
+    w: 1084, h: 867,
+    m: [2.17997, 0.00000, 0.00000, 2.20659, -188.40412, -180.75471]
   },
   // Financiación de la lista de mayo: distinta según el tipo de lote.
   financiacion: {
@@ -1002,12 +1002,16 @@ function build(){
       fill:"#2E6B6B","fill-opacity":".34",
       stroke:"rgba(255,255,255,.9)","stroke-width":3,"stroke-dasharray":"14 9"}));
     const fx=RES.x+RES.w/2+42, fy=RES.y+RES.h/2-30;   // corrido, la brújula cae en esa esquina
+    /* Las dos líneas se contrarrotan juntas, como un bloque: si cada una girara
+       sobre su propio eje, con el plano de costado terminarían una encima de la
+       otra en vez de quedar apiladas. */
+    const rot=el("g",derecho(fx,fy)); rf.appendChild(rot);
     const t1=el("text",{x:fx,y:fy-4,"text-anchor":"middle","font-size":19,"font-weight":700,
-      "letter-spacing":"0.14em",fill:"#fff",...derecho(fx,fy)});
-    t1.textContent="RESERVORIO"; rf.appendChild(t1);
+      "letter-spacing":"0.14em",fill:"#fff"});
+    t1.textContent="RESERVORIO"; rot.appendChild(t1);
     const t2=el("text",{x:fx,y:fy+20,"text-anchor":"middle","font-size":13,"font-weight":600,
-      "letter-spacing":"0.06em",fill:"rgba(255,255,255,.82)",...derecho(fx,fy+24)});
-    t2.textContent="a ejecutar"; rf.appendChild(t2);
+      "letter-spacing":"0.06em",fill:"rgba(255,255,255,.82)"});
+    t2.textContent="a ejecutar"; rot.appendChild(t2);
     stage.appendChild(rf);
   }
 
@@ -1112,8 +1116,8 @@ document.getElementById("reset").addEventListener("click",()=>{
 const vista=document.getElementById("vista");
 const AVISO={
   plano:null,
-  foto:"Foto real del predio, con las calles ya abiertas.",
-  mixta:"Los lotes translúcidos sobre el terreno real."
+  foto:"Vista aérea del predio y su entorno.",
+  mixta:"Los lotes translúcidos sobre el terreno."
 };
 if(CFG.foto){
   vista.hidden=false;
