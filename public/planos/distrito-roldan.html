@@ -44,57 +44,79 @@ button{font:inherit;color:inherit;touch-action:manipulation}
   background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;box-shadow:var(--shadow)}
 
 /* ---------- barra de filtros ---------- */
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
-  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
-  padding:9px;margin-bottom:12px;box-shadow:var(--shadow)}
-.layers{display:flex;gap:8px;flex-wrap:wrap}
-.layers button{
-  display:flex;align-items:center;gap:9px;min-height:44px;padding:9px 15px;
-  border:1.5px solid var(--line);background:#fff;border-radius:12px;
-  font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;
-  transition:border-color .14s ease,color .14s ease,background .14s ease
-}
-.layers button:hover{background:var(--paper-2);color:var(--ink)}
-.layers i{width:14px;height:14px;border-radius:4px;display:block;flex:none;
-  background:#D6D2C7;box-shadow:inset 0 0 0 1px rgba(35,41,31,.18);transition:background .14s ease}
-.layers b{font-weight:700;font-variant-numeric:tabular-nums;opacity:.55}
-.layers button[aria-pressed="true"]{color:var(--ink);background:#fff}
-.layers button[aria-pressed="true"] b{opacity:1}
-.layers button[data-lay="d"][aria-pressed="true"]{border-color:var(--disp)}
-.layers button[data-lay="d"][aria-pressed="true"] i{background:var(--disp)}
-.layers button[data-lay="n"][aria-pressed="true"]{border-color:var(--nodisp)}
-.layers button[data-lay="n"][aria-pressed="true"] i{background:var(--nodisp)}
-.layers button[data-lay="v"][aria-pressed="true"]{border-color:var(--vend)}
-.layers button[data-lay="v"][aria-pressed="true"] i{background:var(--vend)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  background:linear-gradient(180deg,#FDFBF6,var(--panel));
+  border:1px solid var(--line);border-radius:18px;
+  padding:11px;margin-bottom:14px;
+  box-shadow:0 1px 2px rgba(35,41,31,.05), 0 10px 26px -14px rgba(35,41,31,.3)}
 
-.seg{display:flex;background:var(--paper-2);border-radius:10px;padding:3px;gap:2px;
-  max-width:100%;overflow-x:auto;scrollbar-width:none}
+/* capas de estado: píldoras que se encienden con su color */
+.layers{display:flex;gap:9px;flex-wrap:wrap}
+.layers button{
+  --c:#B4AEA0; --tint:#F3F0E8;
+  display:inline-flex;align-items:center;gap:10px;
+  min-height:46px;padding:10px 18px 10px 15px;
+  border:1.5px solid var(--line);background:#fff;border-radius:999px;
+  font-size:14.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  transition:border-color .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease;
+  box-shadow:0 1px 1px rgba(35,41,31,.04)}
+.layers button:hover{border-color:#CBC3B2;background:#FDFCF9;color:var(--ink)}
+.layers i{
+  width:15px;height:15px;border-radius:999px;display:block;flex:none;
+  background:transparent;box-shadow:inset 0 0 0 2.5px var(--c);
+  transition:background .18s ease,box-shadow .18s ease}
+.lbl-sh{display:none}
+.layers b{
+  font-weight:700;font-variant-numeric:tabular-nums;font-size:13px;
+  min-width:26px;padding:2px 7px;border-radius:999px;text-align:center;
+  background:var(--tint);color:var(--ink-2);
+  transition:background .18s ease,color .18s ease}
+.layers button[aria-pressed="true"]{
+  color:var(--ink);border-color:var(--c);background:var(--tint);
+  box-shadow:0 1px 2px rgba(35,41,31,.07), 0 6px 16px -8px var(--c)}
+.layers button[aria-pressed="true"] i{background:var(--c);box-shadow:inset 0 0 0 2.5px var(--c),0 0 0 3px #fff}
+.layers button[aria-pressed="true"] b{background:#fff;color:var(--ink)}
+.layers button[data-lay="d"]{--c:#6B8F3C; --tint:#EDF3E2}
+.layers button[data-lay="n"]{--c:#C79A2E; --tint:#FAF2DE}
+.layers button[data-lay="v"]{--c:#9A9689; --tint:#F0EEEA}
+
+/* segmento de tipo */
+.seg{display:inline-flex;background:#EFEBE1;border-radius:999px;padding:4px;gap:3px;
+  max-width:100%;overflow-x:auto;scrollbar-width:none;
+  box-shadow:inset 0 1px 2px rgba(35,41,31,.06)}
 .seg::-webkit-scrollbar{display:none}
-.seg button{flex:none;white-space:nowrap;border:0;background:transparent;border-radius:8px;
-  padding:8px 12px;min-height:38px;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;
-  transition:background .14s ease,color .14s ease}
-.seg button:hover{background:rgba(255,255,255,.7);color:var(--ink)}
-.seg button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(35,41,31,.16)}
-.bar label{font-size:12.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:7px}
-.bar input[type=search]{font-size:16px;padding:9px 12px;min-height:38px;width:126px;border-radius:10px;
-  border:1px solid var(--line);background:#fff;color:var(--ink)}
-.bar input[type=range]{width:112px;accent-color:var(--disp)}
+.seg button{flex:none;white-space:nowrap;border:0;background:transparent;border-radius:999px;
+  padding:9px 16px;min-height:38px;font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  transition:background .18s ease,color .18s ease,box-shadow .18s ease}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink);
+  box-shadow:0 1px 2px rgba(35,41,31,.12),0 2px 6px -2px rgba(35,41,31,.14)}
+
+.bar input[type=search]{
+  font-size:16px;padding:10px 15px;min-height:44px;width:150px;border-radius:999px;
+  border:1.5px solid var(--line);background:#fff;color:var(--ink);
+  transition:border-color .18s ease,box-shadow .18s ease}
+.bar input[type=search]:focus{outline:none;border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(47,74,58,.12)}
 .spacer{flex:1 1 auto;min-width:0}
-.linkish{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;min-height:38px;
-  font-size:13px;font-weight:600;cursor:pointer}
-.linkish:hover{background:var(--paper-2)}
+.linkish{border:1.5px solid var(--line);background:#fff;border-radius:999px;
+  padding:10px 17px;min-height:44px;font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  transition:background .18s ease,border-color .18s ease,color .18s ease}
+.linkish:hover{background:var(--paper-2);border-color:#CBC3B2;color:var(--ink)}
 
 /* ---------- mapa ----------
    Sin zoom: el plano nunca baja de --minplano de ancho, y si no entra
    en la pantalla el contenedor se desplaza con el dedo o la rueda. */
-:root{ --minplano:820px }   /* ancho mínimo para que los números se lean */
+:root{ --minplano:0px }   /* el plano siempre entra completo, sin desplazamiento */
 .mapbox{position:relative;background:var(--paper-2);border:1px solid var(--line);
   border-radius:var(--r);box-shadow:var(--shadow)}
 .mapscroll{overflow:auto;border-radius:var(--r);overscroll-behavior-x:contain;
   -webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .mapscroll svg{display:block;width:100%;min-width:var(--minplano);height:auto}
-/* Girado el plano es más angosto, así que necesita menos ancho para leerse. */
-@media (max-width:700px){ :root{ --minplano:640px } }
+@media (max-width:700px){
+  .mapscroll{overflow:visible}
+  .lot.dim text{display:none}    /* con el plano chico, sin ruido de números apagados */
+}
 
 .lot{cursor:pointer;transition:opacity .18s ease}
 .lot rect.f{transition:fill .22s ease,opacity .16s ease}
@@ -111,6 +133,23 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .lot:focus-visible rect.o{stroke:#1F5FBF;stroke-width:4}
 .street{fill:#7A766B;font-size:15px;letter-spacing:.06em;font-weight:600}
 .mzplate{fill:rgba(35,41,31,.5);font-size:15px;font-weight:700;letter-spacing:.08em}
+
+/* Brújula. El Norte apunta a Ruta 9: arriba con el plano girado (celular),
+   a la derecha en escritorio. No intercepta toques, así que no tapa lotes. */
+.compass{position:absolute;right:12px;bottom:12px;z-index:32;pointer-events:none;
+  width:58px;height:58px;border-radius:999px;
+  background:rgba(253,251,246,.94);border:1.5px solid rgba(35,41,31,.22);
+  box-shadow:0 1px 2px rgba(35,41,31,.12),0 6px 16px -8px rgba(35,41,31,.5);
+  display:flex;align-items:center;justify-content:center}
+.compass .needle{display:block;width:34px;height:34px;transform:rotate(90deg)}
+.compass .needle svg{display:block;width:100%;height:100%}
+.compass .n{position:absolute;font-size:11px;font-weight:800;color:var(--ink);
+  line-height:1;right:4px;top:50%;transform:translateY(-50%)}
+@media (max-width:700px){
+  .compass{width:52px;height:52px}
+  .compass .needle{transform:none}
+  .compass .n{right:auto;top:3px;left:50%;transform:translateX(-50%)}
+}
 
 /* aviso de desplazamiento, solo si el plano no entra completo */
 .swipe{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:34;
@@ -213,18 +252,28 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 }
 @media (max-width:640px){
   .head h1{width:100%}
-  .layers{width:100%}
-  .layers button{flex:1 1 auto;justify-content:center;padding:10px 8px}
-  .bar>label,.bar input[type=search]{flex:1 1 auto}
-  .bar input[type=search]{width:auto;min-width:0}
+  .bar{gap:8px;padding:10px}
+  .layers{width:100%;gap:7px}
+  .layers button{flex:1 1 0;min-width:0;justify-content:center;padding:10px 10px;gap:7px}
+  .seg{flex:1 1 auto}
+  .seg button{flex:1 1 0;text-align:center;padding:9px 10px}
+  .bar input[type=search]{flex:1 1 auto;width:auto;min-width:0}
+  .linkish{flex:0 0 auto}
   .spacer{display:none}
 }
 @media (max-width:560px){
   .toast{font-size:13px;padding:9px 15px}
-  .swipe{font-size:12.5px;padding:8px 14px}
-  .lg{display:none}                       /* "Lotes disponibles" → "disponibles" */
-  .layers button{font-size:12.5px;gap:7px}
-  .layers i{width:12px;height:12px}
+  .swipe{display:none !important}
+  /* En pantalla chica cada filtro se arma en dos renglones:
+     punto + contador arriba, etiqueta corta abajo. */
+  .layers button{flex-wrap:wrap;justify-content:center;gap:6px;padding:9px 6px;min-height:52px}
+  .lbl{display:none}
+  .lbl-sh{display:block;flex:1 0 100%;order:3;text-align:center;
+    font-size:11.5px;font-weight:600;line-height:1.1}
+  .layers i{order:1;width:13px;height:13px;box-shadow:inset 0 0 0 2.5px var(--c)}
+  .layers b{order:2;font-size:13px;min-width:0;padding:0;background:transparent;font-weight:800}
+  .layers button[aria-pressed="true"] b{background:transparent}
+}
 }
 @media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
 </style>
@@ -244,9 +293,9 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 
   <div class="bar">
     <div class="layers" role="group" aria-label="Marcar lotes por estado">
-      <button type="button" data-lay="d" aria-pressed="false"><i></i><span><span class="lg">Lotes </span>disponibles</span><b></b></button>
-      <button type="button" data-lay="n" aria-pressed="false"><i></i><span><span class="lg">Lotes </span>no disponibles</span><b></b></button>
-      <button type="button" data-lay="v" aria-pressed="false"><i></i><span><span class="lg">Lotes </span>vendidos</span><b></b></button>
+      <button type="button" data-lay="d" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>disponibles</span><span class="lbl-sh">Disp.</span><b></b></button>
+      <button type="button" data-lay="n" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>no disponibles</span><span class="lbl-sh">No disp.</span><b></b></button>
+      <button type="button" data-lay="v" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>vendidos</span><span class="lbl-sh">Vend.</span><b></b></button>
     </div>
     <div class="seg" role="group" aria-label="Filtrar por tipo">
       <button type="button" data-tipo="all" aria-pressed="true">Todo tipo</button>
@@ -265,6 +314,15 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
     </div>
     <div class="tip" id="tip" role="tooltip" aria-hidden="true"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="compass" id="compass" aria-hidden="true">
+      <span class="needle">
+        <svg viewBox="0 0 40 40"><path d="M20 5 L27 30 L20 26 Z" fill="#B4441F"/>
+          <path d="M20 5 L13 30 L20 26 Z" fill="#8A3617"/>
+          <path d="M20 35 L27 14 L20 18 Z" fill="#A5A196" opacity=".55"/>
+          <path d="M20 35 L13 14 L20 18 Z" fill="#8D8983" opacity=".55"/></svg>
+      </span>
+      <span class="n">N</span>
+    </div>
     <p class="swipe" id="swipe" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/></svg>
       Deslizá para recorrer el plano</p>
@@ -275,12 +333,6 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
     </aside>
   </div>
 
-  <p class="muted" style="max-width:74ch">
-    Plano de referencia comercial elaborado sobre el plano catastral escalado del loteo.
-    Las superficies corresponden a la planilla oficial de mensura (86.879,56&nbsp;m² en 180 lotes);
-    frentes y fondos surgen del plano acotado. Valores y disponibilidad sujetos a modificación
-    sin previo aviso. No constituye oferta contractual.
-  </p>
 </div>
 
 <script>
@@ -827,7 +879,7 @@ function build(){
       (l.conPrecio ? `, precio de lista ${usd(l.precio)}, contado ${usd(l.contado)}` : ""));
     g.appendChild(el("rect",{class:"f",x:l.x,y:l.y,width:l.w,height:l.h,fill:baseFill(l)}));
     g.appendChild(el("rect",{class:"o",x:l.x,y:l.y,width:l.w,height:l.h}));
-    const fs=Math.max(13,Math.min(22,Math.min(l.w,l.h)*0.40));
+    const fs=Math.max(15,Math.min(ROT?30:22,Math.min(l.w,l.h)*(ROT?0.52:0.40)));
     const tx=l.x+l.w/2, ty=l.y+l.h/2+fs*0.35;
     const t=el("text",{x:tx,y:ty,"text-anchor":"middle","font-size":fs,...derecho(tx,ty)});
     t.textContent=l.n; g.appendChild(t);
