@@ -93,6 +93,8 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .mapscroll{overflow:auto;border-radius:var(--r);overscroll-behavior-x:contain;
   -webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .mapscroll svg{display:block;width:100%;min-width:var(--minplano);height:auto}
+/* Girado el plano es más angosto, así que necesita menos ancho para leerse. */
+@media (max-width:700px){ :root{ --minplano:640px } }
 
 .lot{cursor:pointer;transition:opacity .18s ease}
 .lot rect.f{transition:fill .22s ease,opacity .16s ease}
@@ -265,7 +267,7 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <p class="swipe" id="swipe" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/></svg>
-      Deslizá para ver todo el plano</p>
+      Deslizá para recorrer el plano</p>
     <aside class="side" id="side" aria-label="Detalle del lote">
       <button type="button" class="closer" id="closer" aria-label="Cerrar detalle">×</button>
       <h2>Detalle del lote</h2>
@@ -727,10 +729,22 @@ const CALLES=[
 function el(t,a){const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
 let _s=7; const rnd=()=>{_s=(_s*1664525+1013904223)%4294967296;return _s/4294967296;};
 
+/* En pantallas angostas el plano se dibuja girado 90° a la izquierda: Ruta 9
+   queda arriba, que es como se llega al barrio, y el lado largo del loteo cae
+   en vertical, que es la dirección natural de scroll en un celular. */
+const CX=VB.x+VB.w/2, CY=VB.y+VB.h/2;
+const rotado = () => window.matchMedia("(max-width: 700px)").matches;
+let ROT=rotado();
+
 function build(){
-  const svg=el("svg",{viewBox:`${VB.x} ${VB.y} ${VB.w} ${VB.h}`,role:"img",
+  ROT=rotado();
+  const vb = ROT ? `${CX-VB.h/2} ${CY-VB.w/2} ${VB.h} ${VB.w}`
+                 : `${VB.x} ${VB.y} ${VB.w} ${VB.h}`;
+  const svg=el("svg",{viewBox:vb,role:"img",
     "aria-label":"Plano de Distrito Roldán con 180 lotes seleccionables"});
   svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+  // Textos que deben leerse horizontales aunque el plano esté girado.
+  const derecho = (x,y) => ROT ? {transform:`rotate(90 ${x} ${y})`} : {};
 
   const defs=el("defs",{});
   defs.innerHTML =
@@ -755,7 +769,8 @@ function build(){
       '<feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#2A2E22" flood-opacity=".26"/></filter>';
   svg.appendChild(defs);
 
-  const stage=el("g",{id:"stage"}); svg.appendChild(stage);
+  const stage=el("g", ROT ? {id:"stage",transform:`rotate(-90 ${CX} ${CY})`} : {id:"stage"});
+  svg.appendChild(stage);
   stage.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#E8E2D4"}));
 
   /* calzadas: gris algo más marcado, con línea de eje */
@@ -779,11 +794,13 @@ function build(){
   /* reservorio */
   const rg=el("g",{});
   rg.appendChild(el("rect",{x:RES.x,y:RES.y,width:RES.w,height:RES.h,rx:8,fill:"url(#gw)",filter:"url(#sh)"}));
-  const rt=el("text",{x:RES.x+RES.w/2,y:RES.y+RES.h/2+26,fill:"rgba(255,255,255,.94)","font-size":19,
-    "font-weight":700,"letter-spacing":"0.14em","text-anchor":"middle"}); rt.textContent="RESERVORIO";
-  rg.appendChild(rt);
-  rg.appendChild(el("path",{d:`M${RES.x+RES.w/2} ${RES.y+RES.h/2-42}c14 20 22 30 22 40a22 22 0 0 1-44 0c0-10 8-20 22-40z`,
-    fill:"none",stroke:"rgba(255,255,255,.9)","stroke-width":3}));
+  const rx=RES.x+RES.w/2, ry=RES.y+RES.h/2+26;
+  const rt=el("text",{x:rx,y:ry,fill:"rgba(255,255,255,.94)","font-size":19,
+    "font-weight":700,"letter-spacing":"0.14em","text-anchor":"middle",...derecho(rx,ry)});
+  rt.textContent="RESERVORIO"; rg.appendChild(rt);
+  const gy=RES.y+RES.h/2-42;
+  rg.appendChild(el("path",{d:`M${rx} ${gy}c14 20 22 30 22 40a22 22 0 0 1-44 0c0-10 8-20 22-40z`,
+    fill:"none",stroke:"rgba(255,255,255,.9)","stroke-width":3,...derecho(rx,gy+30)}));
   stage.appendChild(rg);
 
   /* arbolado */
@@ -811,7 +828,8 @@ function build(){
     g.appendChild(el("rect",{class:"f",x:l.x,y:l.y,width:l.w,height:l.h,fill:baseFill(l)}));
     g.appendChild(el("rect",{class:"o",x:l.x,y:l.y,width:l.w,height:l.h}));
     const fs=Math.max(13,Math.min(22,Math.min(l.w,l.h)*0.40));
-    const t=el("text",{x:l.x+l.w/2,y:l.y+l.h/2+fs*0.35,"text-anchor":"middle","font-size":fs});
+    const tx=l.x+l.w/2, ty=l.y+l.h/2+fs*0.35;
+    const t=el("text",{x:tx,y:ty,"text-anchor":"middle","font-size":fs,...derecho(tx,ty)});
     t.textContent=l.n; g.appendChild(t);
     lg.appendChild(g); l.node=g; l.face=g.firstChild;
   }
@@ -823,15 +841,18 @@ function build(){
   }
   for(const k in BLOCKS){
     const b=BLOCKS[k];
-    const t=el("text",{x:(b[0]+b[2])/2,y:b[1]-14,class:"mzplate","text-anchor":"middle"});
+    const mx=(b[0]+b[2])/2, my=b[1]-14;
+    const t=el("text",{x:mx,y:my,class:"mzplate","text-anchor":"middle",...derecho(mx,my)});
     t.textContent="Mz. "+k; lab.appendChild(t);
   }
-  document.getElementById("svghost").appendChild(svg);
+  const host=document.getElementById("svghost");
+  host.textContent="";
+  host.appendChild(svg);
   return svg;
 }
 const baseFill = l => l.com ? "url(#gcom)" : "url(#gbase)";
 
-const svg=build();
+let svg=build();
 const box=document.getElementById("mapa");
 
 /* ==========================================================================
@@ -962,13 +983,29 @@ function deselect(){
 }
 document.getElementById("closer").addEventListener("click",deselect);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") deselect(); });
-svg.addEventListener("click",e=>{
-  const g=e.target.closest(".lot"); if(g && !g.classList.contains("dim")) select(+g.dataset.n);
-});
-svg.addEventListener("keydown",e=>{
-  const g=e.target.closest(".lot");
-  if(g && (e.key==="Enter"||e.key===" ")){e.preventDefault();select(+g.dataset.n);}
-});
+function bindSvg(s){
+  s.addEventListener("click",e=>{
+    const g=e.target.closest(".lot"); if(g && !g.classList.contains("dim")) select(+g.dataset.n);
+  });
+  s.addEventListener("keydown",e=>{
+    const g=e.target.closest(".lot");
+    if(g && (e.key==="Enter"||e.key===" ")){e.preventDefault();select(+g.dataset.n);}
+  });
+  if(!CAN_HOVER) return;
+  s.addEventListener("pointermove",e=>{
+    if(e.pointerType!=="mouse") return;
+    const g=e.target.closest(".lot");
+    if(!g||g.classList.contains("dim")) return hideTip();
+    const l=byN.get(+g.dataset.n); if(l) showTip(l,e.clientX,e.clientY);
+  });
+  s.addEventListener("pointerleave",hideTip);
+  s.addEventListener("focusin",e=>{
+    const g=e.target.closest(".lot"); if(!g) return;
+    const l=byN.get(+g.dataset.n); if(!l) return;
+    const r=g.getBoundingClientRect(); warm=true; showTip(l,r.right,r.bottom);
+  });
+  s.addEventListener("focusout",hideTip);
+}
 
 /* ---------- tooltip de hover ---------- */
 const tip=document.getElementById("tip");
@@ -1008,22 +1045,19 @@ function hideTip(){
   clearTimeout(coolT);coolT=setTimeout(()=>{warm=false;},450);
 }
 if(CAN_HOVER){
-  svg.addEventListener("pointermove",e=>{
-    if(e.pointerType!=="mouse") return;
-    const g=e.target.closest(".lot");
-    if(!g||g.classList.contains("dim")) return hideTip();
-    const l=byN.get(+g.dataset.n); if(l) showTip(l,e.clientX,e.clientY);
-  });
-  svg.addEventListener("pointerleave",hideTip);
   box.addEventListener("pointerdown",hideTip);
   window.addEventListener("scroll",()=>{if(tipOn)hideTip();},{passive:true});
-  svg.addEventListener("focusin",e=>{
-    const g=e.target.closest(".lot"); if(!g) return;
-    const l=byN.get(+g.dataset.n); if(!l) return;
-    const r=g.getBoundingClientRect(); warm=true; showTip(l,r.right,r.bottom);
-  });
-  svg.addEventListener("focusout",hideTip);
 }
+bindSvg(svg);
+
+/* Al girar el teléfono o cruzar el punto de corte, el plano se redibuja
+   en la orientación que corresponde y se recuperan estado y selección. */
+window.matchMedia("(max-width: 700px)").addEventListener("change",()=>{
+  const abierto=sel;
+  svg=build(); bindSvg(svg); paint();
+  if(abierto!=null){ const l=byN.get(abierto); if(l) l.node.classList.add("on"); }
+  checkOverflow();
+});
 
 /* ---------- desplazamiento del plano ----------
    Sin zoom: se usa el scroll nativo del contenedor. En celular se arrastra
