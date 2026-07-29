@@ -197,15 +197,23 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .tip .cta2{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.16);font-size:12px}
 @media (hover:none){ .tip{display:none} }
 
-/* modo foto: se apaga el dibujo de base y los lotes dejan ver el terreno */
-.modo-foto .base{display:none}
-.modo-foto .lot rect.f{opacity:.42}
-.modo-foto .lot:hover rect.f,.modo-foto .lot.on rect.f{opacity:.62}
-.modo-foto .lot rect.o{stroke:rgba(255,255,255,.92);stroke-width:1.6}
-.modo-foto .lot text{stroke:rgba(12,20,8,.72);stroke-width:3px}
-.modo-foto .street,.modo-foto .mzplate{display:none}
+/* Tres vistas: el plano dibujado, la foto sola y las dos combinadas.
+   En las dos que muestran foto se apaga el dibujo de base. */
 .foto-capa{display:none}
-.modo-foto .foto-capa{display:block}
+.v-foto .foto-capa,.v-mixta .foto-capa{display:block}
+.v-foto .base,.v-mixta .base{display:none}
+.v-foto .street,.v-foto .mzplate,.v-mixta .street,.v-mixta .mzplate{display:none}
+/* foto sola: el terreno tal cual, sin lotes encima */
+.v-foto .lot{opacity:0;pointer-events:none}
+/* el reservorio se marca solo cuando se ve la foto */
+.res-foto{display:none}
+.v-foto .res-foto,.v-mixta .res-foto{display:block}
+.res-foto text{paint-order:stroke;stroke:rgba(10,32,32,.55);stroke-width:3px;stroke-linejoin:round}
+/* combinada: los lotes translúcidos dejan ver el terreno */
+.v-mixta .lot rect.f{opacity:.42}
+.v-mixta .lot:hover rect.f,.v-mixta .lot.on rect.f{opacity:.62}
+.v-mixta .lot rect.o{stroke:rgba(255,255,255,.92);stroke-width:1.6}
+.v-mixta .lot text{stroke:rgba(12,20,8,.72);stroke-width:3px}
 
 /* pie: fecha de actualización + descargo */
 .pie{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 12px;
@@ -328,6 +336,8 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
     <div class="seg vista" id="vista" role="group" aria-label="Vista del plano" hidden>
       <button type="button" data-vista="plano" aria-pressed="true">Plano</button>
       <button type="button" data-vista="foto" aria-pressed="false">Foto</button>
+      <button type="button" data-vista="mixta" aria-pressed="false">
+        <span class="lbl">Combinada</span><span class="lbl-sh">Ambas</span></button>
     </div>
     <div class="seg" role="group" aria-label="Filtrar por tipo">
       <button type="button" data-tipo="all" aria-pressed="true"><span class="lbl">Todo tipo</span><span class="lbl-sh">Todos</span></button>
@@ -840,14 +850,42 @@ let _s=7; const rnd=()=>{_s=(_s*1664525+1013904223)%4294967296;return _s/4294967
    queda arriba, que es como se llega al barrio, y el lado largo del loteo cae
    en vertical, que es la dirección natural de scroll en un celular. */
 const CX=VB.x+VB.w/2, CY=VB.y+VB.h/2;
+
+/* Encuadre ampliado para las vistas con foto: entra la imagen entera, así se
+   ven Ruta 9 y el barrio lindero como referencia. */
+function bboxFoto(){
+  if(!CFG.foto) return null;
+  const f=CFG.foto, m=f.m;
+  const P=(px,py)=>[m[0]*px+m[2]*py+m[4], m[1]*px+m[3]*py+m[5]];
+  const c=[P(0,0),P(f.w,0),P(0,f.h),P(f.w,f.h)];
+  const xs=c.map(p=>p[0]), ys=c.map(p=>p[1]);
+  // unión con el plano, para no recortar ningún lote
+  const x0=Math.min(VB.x,...xs), x1=Math.max(VB.x+VB.w,...xs);
+  const y0=Math.min(VB.y,...ys), y1=Math.max(VB.y+VB.h,...ys);
+  return {x:x0,y:y0,w:x1-x0,h:y1-y0};
+}
+const VBF=bboxFoto();
+
+/* Con el plano girado, el encuadre también gira alrededor del mismo centro. */
+function girar(b){
+  const pts=[[b.x,b.y],[b.x+b.w,b.y],[b.x,b.y+b.h],[b.x+b.w,b.y+b.h]]
+    .map(([x,y])=>[CX+(y-CY), CY-(x-CX)]);
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  return {x:Math.min(...xs),y:Math.min(...ys),
+          w:Math.max(...xs)-Math.min(...xs), h:Math.max(...ys)-Math.min(...ys)};
+}
+function encuadre(conFoto){
+  const b = (conFoto && VBF) ? VBF : VB;
+  const r = ROT ? girar(b) : b;
+  return `${r.x} ${r.y} ${r.w} ${r.h}`;
+}
 const rotado = () => window.matchMedia("(max-width: 700px)").matches;
 let ROT=rotado();
 
 function build(){
   ROT=rotado();
-  const vb = ROT ? `${CX-VB.h/2} ${CY-VB.w/2} ${VB.h} ${VB.w}`
-                 : `${VB.x} ${VB.y} ${VB.w} ${VB.h}`;
-  const svg=el("svg",{viewBox:vb,role:"img",
+  const conFoto = box && (box.classList.contains("v-foto")||box.classList.contains("v-mixta"));
+  const svg=el("svg",{viewBox:encuadre(conFoto),role:"img",
     "aria-label":"Plano de Distrito Roldán con 180 lotes seleccionables"});
   svg.setAttribute("preserveAspectRatio","xMidYMid meet");
   // Textos que deben leerse horizontales aunque el plano esté girado.
@@ -882,7 +920,8 @@ function build(){
   /* Foto aérea, debajo de todo. Va calzada con la matriz de CFG.foto. */
   if(CFG.foto){
     const f=CFG.foto, g=el("g",{class:"foto-capa","aria-hidden":"true"});
-    g.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#3D4938"}));  // color del borde de la foto
+    const fb=VBF||VB;
+    g.appendChild(el("rect",{x:fb.x,y:fb.y,width:fb.w,height:fb.h,fill:"#3D4938"}));  // color del borde de la foto
     const img=el("image",{x:0,y:0,width:f.w,height:f.h,
       transform:`matrix(${f.m.join(",")})`,preserveAspectRatio:"none"});
     img.setAttribute("href",f.src);
@@ -955,6 +994,23 @@ function build(){
     lg.appendChild(g); l.node=g; l.face=g.firstChild;
   }
 
+  /* Reservorio sobre la foto. El dibujo de base se apaga en las vistas con
+     foto, y en el terreno todavía no está excavado: se marca dónde va. */
+  {
+    const rf=el("g",{class:"res-foto","aria-hidden":"true"});
+    rf.appendChild(el("rect",{x:RES.x,y:RES.y,width:RES.w,height:RES.h,rx:8,
+      fill:"#2E6B6B","fill-opacity":".34",
+      stroke:"rgba(255,255,255,.9)","stroke-width":3,"stroke-dasharray":"14 9"}));
+    const fx=RES.x+RES.w/2+42, fy=RES.y+RES.h/2-30;   // corrido, la brújula cae en esa esquina
+    const t1=el("text",{x:fx,y:fy-4,"text-anchor":"middle","font-size":19,"font-weight":700,
+      "letter-spacing":"0.14em",fill:"#fff",...derecho(fx,fy)});
+    t1.textContent="RESERVORIO"; rf.appendChild(t1);
+    const t2=el("text",{x:fx,y:fy+20,"text-anchor":"middle","font-size":13,"font-weight":600,
+      "letter-spacing":"0.06em",fill:"rgba(255,255,255,.82)",...derecho(fx,fy+24)});
+    t2.textContent="a ejecutar"; rf.appendChild(t2);
+    stage.appendChild(rf);
+  }
+
   /* rótulos */
   const lab=el("g",{"aria-hidden":"true"}); stage.appendChild(lab);
   for(const c of CALLES){
@@ -976,8 +1032,8 @@ function build(){
 }
 const baseFill = l => l.com ? "url(#gcom)" : "url(#gbase)";
 
-let svg=build();
 const box=document.getElementById("mapa");
+let svg=build();
 
 /* ==========================================================================
    CAPAS DE ESTADO — se prenden y pintan sobre el mapa verde
@@ -1054,13 +1110,21 @@ document.getElementById("reset").addEventListener("click",()=>{
 
 /* ---------- alternar plano / foto ---------- */
 const vista=document.getElementById("vista");
+const AVISO={
+  plano:null,
+  foto:"Foto real del predio, con las calles ya abiertas.",
+  mixta:"Los lotes translúcidos sobre el terreno real."
+};
 if(CFG.foto){
   vista.hidden=false;
   vista.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>{
-    const foto = b.dataset.vista==="foto";
+    const v=b.dataset.vista;
     document.querySelectorAll("[data-vista]").forEach(o=>o.setAttribute("aria-pressed",String(o===b)));
-    box.classList.toggle("modo-foto",foto);
-    if(foto) say("Terreno real. Los lotes se ven translúcidos sobre la foto.");
+    box.classList.remove("v-foto","v-mixta");
+    if(v!=="plano") box.classList.add("v-"+v);
+    svg.setAttribute("viewBox", encuadre(v!=="plano"));
+    if(AVISO[v]) say(AVISO[v]);
+    if(v==="foto") { hideTip(); deselect(); }   // sin lotes no hay nada que consultar
   }));
 }
 
