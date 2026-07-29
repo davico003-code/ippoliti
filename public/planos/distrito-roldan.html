@@ -197,6 +197,16 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .tip .cta2{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.16);font-size:12px}
 @media (hover:none){ .tip{display:none} }
 
+/* pie: fecha de actualización + descargo */
+.pie{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 12px;
+  margin:9px 4px 0;font-size:11.5px;line-height:1.5;color:#7C8272}
+.pie .fecha{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  color:var(--ink-2);font-weight:600}
+.pie .fecha::before{content:"";width:6px;height:6px;border-radius:999px;background:var(--disp)}
+.pie .fecha b{color:var(--ink);font-weight:700}
+.pie .legal{flex:1 1 260px;min-width:0}
+@media (max-width:560px){ .pie{font-size:10.5px;gap:3px 10px;margin-top:8px} }
+
 /* ---------- ficha del lote (flotante sobre el mapa) ---------- */
 .side{position:absolute;right:12px;top:12px;width:328px;z-index:38;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
@@ -344,6 +354,12 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
     </aside>
   </div>
 
+  <p class="pie">
+    <span class="fecha">Actualizado: <b id="fecha"></b></span>
+    <span class="legal">Valores y disponibilidad sujetos a modificación sin previo aviso.
+      Plano de referencia comercial: no constituye oferta contractual.</span>
+  </p>
+
 </div>
 
 <script>
@@ -357,6 +373,9 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 const CFG = {
   whatsapp: "5493412101694",
   proyecto: "Distrito Roldán",
+  // Mes y año de la última actualización. El panel de control lo pone solo
+  // cada vez que se descarga el plano, y se puede escribir a mano.
+  actualizado: "Agosto 2026",
   // Financiación de la lista de mayo: distinta según el tipo de lote.
   financiacion: {
     residencial: { anticipoPct: 30, cuotas: 24, contadoTxt: "US$ 5/m² de descuento" },
@@ -1160,6 +1179,8 @@ scroller.addEventListener("wheel",e=>{
 },{passive:false});
 
 /* ---------- arranque ---------- */
+document.getElementById("fecha").textContent = CFG.actualizado || "—";
+
 (function init(){
   const p=new URLSearchParams(location.search);
   if(p.get("ver")) p.get("ver").split(",").forEach(k=>{
