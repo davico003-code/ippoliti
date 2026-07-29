@@ -33,7 +33,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 
 .wrap{max-width:920px;margin:0 auto;padding:14px;
   padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
-@media (max-width:960px){ .wrap{padding:10px} }
+@media (max-width:960px){ .wrap{padding:8px} }
 
 /* ---------- encabezado ---------- */
 .head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;margin:2px 2px 12px}
@@ -66,6 +66,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
   background:transparent;box-shadow:inset 0 0 0 2px var(--c);
   transition:background .18s ease,box-shadow .18s ease}
 .lbl-sh{display:none}
+.linkish{display:inline-flex;align-items:center;gap:6px}
 .layers b{
   font-weight:700;font-variant-numeric:tabular-nums;font-size:11.5px;
   min-width:22px;padding:1px 6px;border-radius:999px;text-align:center;
@@ -136,7 +137,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 
 /* Brújula. El Norte apunta a Ruta 9: arriba con el plano girado (celular),
    a la derecha en escritorio. No intercepta toques, así que no tapa lotes. */
-.compass{position:absolute;right:12px;bottom:12px;z-index:32;pointer-events:none;
+.compass{position:absolute;left:12px;bottom:12px;z-index:32;pointer-events:none;
   width:58px;height:58px;border-radius:999px;
   background:rgba(253,251,246,.94);border:1.5px solid rgba(35,41,31,.22);
   box-shadow:0 1px 2px rgba(35,41,31,.12),0 6px 16px -8px rgba(35,41,31,.5);
@@ -146,7 +147,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .compass .n{position:absolute;font-size:11px;font-weight:800;color:var(--ink);
   line-height:1;right:4px;top:50%;transform:translateY(-50%)}
 @media (max-width:700px){
-  .compass{width:52px;height:52px}
+  .compass{width:52px;height:52px;left:auto;right:12px}
   .compass .needle{transform:none}
   .compass .n{right:auto;top:3px;left:50%;transform:translateX(-50%)}
 }
@@ -251,14 +252,22 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
   .layers button{padding:9px 12px;font-size:13px}
 }
 @media (max-width:640px){
-  .head h1{width:100%}
-  .bar{gap:8px;padding:10px}
+  .head{gap:4px 12px;margin:0 2px 8px}
+  .head h1{width:100%;font-size:19px}
+  .head .sub{font-size:12.5px}
+  .head .live{display:none}          /* el conteo ya está en los propios filtros */
+  .bar{gap:6px;padding:7px;margin-bottom:9px;border-radius:16px}
+  .mapbox{border-radius:16px}
   .layers{width:100%;gap:7px}
   .layers button{flex:1 1 0;min-width:0;justify-content:center;padding:7px 8px;gap:6px}
-  .seg{flex:1 1 auto}
-  .seg button{flex:1 1 0;text-align:center;padding:9px 10px}
-  .bar input[type=search]{flex:1 1 auto;width:auto;min-width:0}
-  .linkish{flex:0 0 auto}
+  /* Tipo, buscador y limpiar entran juntos en un solo renglón. */
+  .seg{flex:1 1 150px;padding:2px}
+  .seg button{flex:1 1 0;text-align:center;padding:6px 5px;min-height:28px;font-size:11.5px}
+  .bar input[type=search]{flex:1 1 96px;width:auto;min-width:0;min-height:34px;padding:6px 11px;font-size:16px}
+  .linkish{flex:0 0 auto;min-height:34px;width:34px;padding:0;
+    display:inline-flex;align-items:center;justify-content:center}
+  .linkish .lbl-sh{display:block;width:15px;height:15px;fill:none;stroke:currentColor;
+    stroke-width:2.2;stroke-linecap:round}
   .spacer{display:none}
 }
 @media (max-width:560px){
@@ -297,14 +306,17 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
       <button type="button" data-lay="v" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>vendidos</span><span class="lbl-sh">Vend.</span><b></b></button>
     </div>
     <div class="seg" role="group" aria-label="Filtrar por tipo">
-      <button type="button" data-tipo="all" aria-pressed="true">Todo tipo</button>
-      <button type="button" data-tipo="0" aria-pressed="false">Residencial</button>
-      <button type="button" data-tipo="1" aria-pressed="false">Comercial</button>
+      <button type="button" data-tipo="all" aria-pressed="true"><span class="lbl">Todo tipo</span><span class="lbl-sh">Todos</span></button>
+      <button type="button" data-tipo="0" aria-pressed="false"><span class="lbl">Residencial</span><span class="lbl-sh">Resid.</span></button>
+      <button type="button" data-tipo="1" aria-pressed="false"><span class="lbl">Comercial</span><span class="lbl-sh">Comerc.</span></button>
     </div>
     <label for="q" class="sr">Buscar lote por número</label>
     <input type="search" id="q" placeholder="N.º de lote…" inputmode="numeric" autocomplete="off" spellcheck="false">
     <div class="spacer"></div>
-    <button type="button" class="linkish" id="reset">Limpiar</button>
+    <button type="button" class="linkish" id="reset" aria-label="Limpiar filtros">
+      <span class="lbl">Limpiar</span>
+      <svg class="lbl-sh" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
   </div>
 
   <div class="mapbox" id="mapa">
@@ -770,7 +782,10 @@ for(const l of lots){X0=Math.min(X0,l.x);Y0=Math.min(Y0,l.y);X1=Math.max(X1,l.x+
 const RES={x:135,y:1068,w:325,h:321};
 Y1=Math.max(Y1,RES.y+RES.h); X0=Math.min(X0,RES.x);
 const R9={x:1772,w:46};
-const VB={x:X0-PAD,y:Y0-PAD,w:(R9.x+R9.w+22)-(X0-PAD),h:(Y1-Y0)+PAD*2+34};
+/* El encuadre se ciñe a lo dibujado: calzadas (x desde 95, y desde 52 hasta
+   1447) y la franja de Ruta 9, con un margen parejo. */
+const M=16;
+const VB={x:95-M, y:52-M, w:(R9.x+R9.w)+M-(95-M), h:(1447+M)-(52-M)};
 
 const CALLES=[
   {t:"Calle SAN PEDRO",x:922,y:391},{t:"Calle MARÍA AUXILIADORA",x:900,y:710},
@@ -845,9 +860,9 @@ function build(){
   /* reservorio */
   const rg=el("g",{});
   rg.appendChild(el("rect",{x:RES.x,y:RES.y,width:RES.w,height:RES.h,rx:8,fill:"url(#gw)",filter:"url(#sh)"}));
-  // Con el plano girado, la esquina inferior derecha de la pantalla cae sobre
-  // el reservorio, que es donde va la brújula: el rótulo se corre para no chocar.
-  const rx=RES.x+RES.w/2+(ROT?46:0), ry=RES.y+RES.h/2-(ROT?40:0);
+  // La brújula cae siempre sobre la misma esquina del reservorio (abajo a la
+  // izquierda del bloque), así que el rótulo se corre hacia el lado opuesto.
+  const rx=RES.x+RES.w/2+42, ry=RES.y+RES.h/2-30;
   const rt=el("text",{x:rx,y:ry+7,fill:"rgba(255,255,255,.94)","font-size":19,
     "font-weight":700,"letter-spacing":"0.14em","text-anchor":"middle",...derecho(rx,ry)});
   rt.textContent="RESERVORIO"; rg.appendChild(rt);
