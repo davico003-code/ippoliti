@@ -44,63 +44,63 @@ button{font:inherit;color:inherit;touch-action:manipulation}
   background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;box-shadow:var(--shadow)}
 
 /* ---------- barra de filtros ---------- */
-.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
   background:linear-gradient(180deg,#FDFBF6,var(--panel));
   border:1px solid var(--line);border-radius:18px;
-  padding:11px;margin-bottom:14px;
+  padding:9px;margin-bottom:14px;
   box-shadow:0 1px 2px rgba(35,41,31,.05), 0 10px 26px -14px rgba(35,41,31,.3)}
 
 /* capas de estado: píldoras que se encienden con su color */
-.layers{display:flex;gap:9px;flex-wrap:wrap}
+.layers{display:flex;gap:7px;flex-wrap:wrap}
 .layers button{
   --c:#B4AEA0; --tint:#F3F0E8;
-  display:inline-flex;align-items:center;gap:10px;
-  min-height:46px;padding:10px 18px 10px 15px;
+  display:inline-flex;align-items:center;gap:7px;
+  min-height:36px;padding:7px 12px 7px 10px;
   border:1.5px solid var(--line);background:#fff;border-radius:999px;
-  font-size:14.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;letter-spacing:-.005em;
   transition:border-color .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease;
   box-shadow:0 1px 1px rgba(35,41,31,.04)}
 .layers button:hover{border-color:#CBC3B2;background:#FDFCF9;color:var(--ink)}
 .layers i{
-  width:15px;height:15px;border-radius:999px;display:block;flex:none;
-  background:transparent;box-shadow:inset 0 0 0 2.5px var(--c);
+  width:11px;height:11px;border-radius:999px;display:block;flex:none;
+  background:transparent;box-shadow:inset 0 0 0 2px var(--c);
   transition:background .18s ease,box-shadow .18s ease}
 .lbl-sh{display:none}
 .layers b{
-  font-weight:700;font-variant-numeric:tabular-nums;font-size:13px;
-  min-width:26px;padding:2px 7px;border-radius:999px;text-align:center;
+  font-weight:700;font-variant-numeric:tabular-nums;font-size:11.5px;
+  min-width:22px;padding:1px 6px;border-radius:999px;text-align:center;
   background:var(--tint);color:var(--ink-2);
   transition:background .18s ease,color .18s ease}
 .layers button[aria-pressed="true"]{
   color:var(--ink);border-color:var(--c);background:var(--tint);
   box-shadow:0 1px 2px rgba(35,41,31,.07), 0 6px 16px -8px var(--c)}
-.layers button[aria-pressed="true"] i{background:var(--c);box-shadow:inset 0 0 0 2.5px var(--c),0 0 0 3px #fff}
+.layers button[aria-pressed="true"] i{background:var(--c);box-shadow:inset 0 0 0 2px var(--c),0 0 0 2.5px #fff}
 .layers button[aria-pressed="true"] b{background:#fff;color:var(--ink)}
 .layers button[data-lay="d"]{--c:#6B8F3C; --tint:#EDF3E2}
 .layers button[data-lay="n"]{--c:#C79A2E; --tint:#FAF2DE}
 .layers button[data-lay="v"]{--c:#9A9689; --tint:#F0EEEA}
 
 /* segmento de tipo */
-.seg{display:inline-flex;background:#EFEBE1;border-radius:999px;padding:4px;gap:3px;
+.seg{display:inline-flex;background:#EFEBE1;border-radius:999px;padding:3px;gap:2px;
   max-width:100%;overflow-x:auto;scrollbar-width:none;
   box-shadow:inset 0 1px 2px rgba(35,41,31,.06)}
 .seg::-webkit-scrollbar{display:none}
 .seg button{flex:none;white-space:nowrap;border:0;background:transparent;border-radius:999px;
-  padding:9px 16px;min-height:38px;font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  padding:6px 13px;min-height:30px;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
   transition:background .18s ease,color .18s ease,box-shadow .18s ease}
 .seg button:hover{color:var(--ink)}
 .seg button[aria-pressed="true"]{background:#fff;color:var(--ink);
   box-shadow:0 1px 2px rgba(35,41,31,.12),0 2px 6px -2px rgba(35,41,31,.14)}
 
 .bar input[type=search]{
-  font-size:16px;padding:10px 15px;min-height:44px;width:150px;border-radius:999px;
+  font-size:16px;padding:7px 14px;min-height:36px;width:132px;border-radius:999px;
   border:1.5px solid var(--line);background:#fff;color:var(--ink);
   transition:border-color .18s ease,box-shadow .18s ease}
 .bar input[type=search]:focus{outline:none;border-color:var(--brand);
   box-shadow:0 0 0 3px rgba(47,74,58,.12)}
 .spacer{flex:1 1 auto;min-width:0}
 .linkish{border:1.5px solid var(--line);background:#fff;border-radius:999px;
-  padding:10px 17px;min-height:44px;font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  padding:7px 14px;min-height:36px;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
   transition:background .18s ease,border-color .18s ease,color .18s ease}
 .linkish:hover{background:var(--paper-2);border-color:#CBC3B2;color:var(--ink)}
 
@@ -131,7 +131,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .lot.dim{opacity:.26;pointer-events:none}
 .lot:focus{outline:none}
 .lot:focus-visible rect.o{stroke:#1F5FBF;stroke-width:4}
-.street{fill:#7A766B;font-size:15px;letter-spacing:.06em;font-weight:600}
+.street{fill:#5F5B51;font-size:15.5px;letter-spacing:.07em;font-weight:800}
 .mzplate{fill:rgba(35,41,31,.5);font-size:15px;font-weight:700;letter-spacing:.08em}
 
 /* Brújula. El Norte apunta a Ruta 9: arriba con el plano girado (celular),
@@ -266,12 +266,12 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
   .swipe{display:none !important}
   /* En pantalla chica cada filtro se arma en dos renglones:
      punto + contador arriba, etiqueta corta abajo. */
-  .layers button{flex-wrap:wrap;justify-content:center;gap:6px;padding:9px 6px;min-height:52px}
+  .layers button{flex-wrap:wrap;justify-content:center;gap:4px 6px;padding:6px 5px;min-height:44px}
   .lbl{display:none}
   .lbl-sh{display:block;flex:1 0 100%;order:3;text-align:center;
-    font-size:11.5px;font-weight:600;line-height:1.1}
-  .layers i{order:1;width:13px;height:13px;box-shadow:inset 0 0 0 2.5px var(--c)}
-  .layers b{order:2;font-size:13px;min-width:0;padding:0;background:transparent;font-weight:800}
+    font-size:10.5px;font-weight:600;line-height:1.1;opacity:.85}
+  .layers i{order:1;width:10px;height:10px;box-shadow:inset 0 0 0 2px var(--c)}
+  .layers b{order:2;font-size:12.5px;min-width:0;padding:0;background:transparent;font-weight:800}
   .layers button[aria-pressed="true"] b{background:transparent}
 }
 }
@@ -846,13 +846,12 @@ function build(){
   /* reservorio */
   const rg=el("g",{});
   rg.appendChild(el("rect",{x:RES.x,y:RES.y,width:RES.w,height:RES.h,rx:8,fill:"url(#gw)",filter:"url(#sh)"}));
-  const rx=RES.x+RES.w/2, ry=RES.y+RES.h/2+26;
-  const rt=el("text",{x:rx,y:ry,fill:"rgba(255,255,255,.94)","font-size":19,
+  // Con el plano girado, la esquina inferior derecha de la pantalla cae sobre
+  // el reservorio, que es donde va la brújula: el rótulo se corre para no chocar.
+  const rx=RES.x+RES.w/2+(ROT?46:0), ry=RES.y+RES.h/2-(ROT?40:0);
+  const rt=el("text",{x:rx,y:ry+7,fill:"rgba(255,255,255,.94)","font-size":19,
     "font-weight":700,"letter-spacing":"0.14em","text-anchor":"middle",...derecho(rx,ry)});
   rt.textContent="RESERVORIO"; rg.appendChild(rt);
-  const gy=RES.y+RES.h/2-42;
-  rg.appendChild(el("path",{d:`M${rx} ${gy}c14 20 22 30 22 40a22 22 0 0 1-44 0c0-10 8-20 22-40z`,
-    fill:"none",stroke:"rgba(255,255,255,.9)","stroke-width":3,...derecho(rx,gy+30)}));
   stage.appendChild(rg);
 
   /* arbolado */
@@ -880,8 +879,10 @@ function build(){
     g.appendChild(el("rect",{class:"f",x:l.x,y:l.y,width:l.w,height:l.h,fill:baseFill(l)}));
     g.appendChild(el("rect",{class:"o",x:l.x,y:l.y,width:l.w,height:l.h}));
     const fs=Math.max(15,Math.min(ROT?30:22,Math.min(l.w,l.h)*(ROT?0.52:0.40)));
-    const tx=l.x+l.w/2, ty=l.y+l.h/2+fs*0.35;
-    const t=el("text",{x:tx,y:ty,"text-anchor":"middle","font-size":fs,...derecho(tx,ty)});
+    const cx=l.x+l.w/2, cy=l.y+l.h/2;
+    // y es la línea de base; el giro pivotea en el centro real del lote,
+    // que es lo que mantiene el número centrado con el plano rotado.
+    const t=el("text",{x:cx,y:cy+fs*0.35,"text-anchor":"middle","font-size":fs,...derecho(cx,cy)});
     t.textContent=l.n; g.appendChild(t);
     lg.appendChild(g); l.node=g; l.face=g.firstChild;
   }
@@ -893,8 +894,11 @@ function build(){
   }
   for(const k in BLOCKS){
     const b=BLOCKS[k];
-    const mx=(b[0]+b[2])/2, my=b[1]-14;
-    const t=el("text",{x:mx,y:my,class:"mzplate","text-anchor":"middle",...derecho(mx,my)});
+    // Girado, el rótulo de manzana centrado cae justo sobre el nombre de la
+    // calle: se corre hacia el arranque de la manzana para que no se pisen.
+    const mx = ROT ? b[0]+(b[2]-b[0])*0.16 : (b[0]+b[2])/2;
+    const my = b[1]-14;
+    const t=el("text",{x:mx,y:my,class:"mzplate","text-anchor":"middle",...derecho(mx,my-5)});
     t.textContent="Mz. "+k; lab.appendChild(t);
   }
   const host=document.getElementById("svghost");
