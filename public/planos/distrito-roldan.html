@@ -197,6 +197,16 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .tip .cta2{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.16);font-size:12px}
 @media (hover:none){ .tip{display:none} }
 
+/* modo foto: se apaga el dibujo de base y los lotes dejan ver el terreno */
+.modo-foto .base{display:none}
+.modo-foto .lot rect.f{opacity:.42}
+.modo-foto .lot:hover rect.f,.modo-foto .lot.on rect.f{opacity:.62}
+.modo-foto .lot rect.o{stroke:rgba(255,255,255,.92);stroke-width:1.6}
+.modo-foto .lot text{stroke:rgba(12,20,8,.72);stroke-width:3px}
+.modo-foto .street,.modo-foto .mzplate{display:none}
+.foto-capa{display:none}
+.modo-foto .foto-capa{display:block}
+
 /* pie: fecha de actualización + descargo */
 .pie{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 12px;
   margin:9px 4px 0;font-size:11.5px;line-height:1.5;color:#7C8272}
@@ -315,6 +325,10 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
       <button type="button" data-lay="n" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>no disponibles</span><span class="lbl-sh">No disp.</span><b></b></button>
       <button type="button" data-lay="v" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>vendidos</span><span class="lbl-sh">Vend.</span><b></b></button>
     </div>
+    <div class="seg vista" id="vista" role="group" aria-label="Vista del plano" hidden>
+      <button type="button" data-vista="plano" aria-pressed="true">Plano</button>
+      <button type="button" data-vista="foto" aria-pressed="false">Foto</button>
+    </div>
     <div class="seg" role="group" aria-label="Filtrar por tipo">
       <button type="button" data-tipo="all" aria-pressed="true"><span class="lbl">Todo tipo</span><span class="lbl-sh">Todos</span></button>
       <button type="button" data-tipo="0" aria-pressed="false"><span class="lbl">Residencial</span><span class="lbl-sh">Resid.</span></button>
@@ -376,6 +390,10 @@ const CFG = {
   // Mes y año de la última actualización. El panel de control lo pone solo
   // cada vez que se descarga el plano, y se puede escribir a mano.
   actualizado: "Agosto 2026",
+  /* Foto aérea. Mientras sea null, el botón Plano/Foto no aparece.
+     src: ruta de la imagen · w,h: su tamaño en píxeles
+     m:  matriz que la calza sobre el plano [a,b,c,d,e,f] */
+  foto: null,
   // Financiación de la lista de mayo: distinta según el tipo de lote.
   financiacion: {
     residencial: { anticipoPct: 30, cuotas: 24, contadoTxt: "US$ 5/m² de descuento" },
@@ -856,10 +874,23 @@ function build(){
 
   const stage=el("g", ROT ? {id:"stage",transform:`rotate(-90 ${CX} ${CY})`} : {id:"stage"});
   svg.appendChild(stage);
-  stage.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#E8E2D4"}));
+
+  /* Foto aérea, debajo de todo. Va calzada con la matriz de CFG.foto. */
+  if(CFG.foto){
+    const f=CFG.foto, g=el("g",{class:"foto-capa","aria-hidden":"true"});
+    g.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#2A2E22"}));
+    const img=el("image",{x:0,y:0,width:f.w,height:f.h,
+      transform:`matrix(${f.m.join(",")})`,preserveAspectRatio:"none"});
+    img.setAttribute("href",f.src);
+    g.appendChild(img); stage.appendChild(g);
+  }
+
+  /* Dibujo de base: terreno, calzadas, reservorio y arbolado. Se oculta en modo foto. */
+  const base=el("g",{class:"base"}); stage.appendChild(base);
+  base.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#E8E2D4"}));
 
   /* calzadas: gris algo más marcado, con línea de eje */
-  const roads=el("g",{}); stage.appendChild(roads);
+  const roads=el("g",{}); base.appendChild(roads);
   const RD=[[460,110,79,1279],[1306,110,78,1279],[1505,110,59,1279],
             [135,351,1610,79],[135,671,1610,79],[135,991,1610,77],[95,1389,1690,58],[95,52,1690,58]];
   for(const [x,y,w,h] of RD){
@@ -869,12 +900,12 @@ function build(){
       stroke:"#F5F2E9","stroke-width":3,"stroke-dasharray":"18 13","stroke-linecap":"round",opacity:".95"}));
   }
   const r9c=R9.x+R9.w/2;
-  stage.appendChild(el("rect",{x:R9.x,y:VB.y,width:R9.w,height:VB.h,fill:"#BFB9AC"}));
-  stage.appendChild(el("line",{x1:r9c,y1:VB.y+16,x2:r9c,y2:VB.y+VB.h-16,stroke:"#F5F2E9",
+  base.appendChild(el("rect",{x:R9.x,y:VB.y,width:R9.w,height:VB.h,fill:"#BFB9AC"}));
+  base.appendChild(el("line",{x1:r9c,y1:VB.y+16,x2:r9c,y2:VB.y+VB.h-16,stroke:"#F5F2E9",
     "stroke-width":3,"stroke-dasharray":"20 15","stroke-linecap":"round",opacity:".95"}));
   const r9=el("text",{x:r9c,y:750,fill:"#57534A","font-size":15,"font-weight":700,"letter-spacing":"0.18em",
     "text-anchor":"middle",transform:`rotate(90 ${r9c} 750)`}); r9.textContent="RUTA NACIONAL N.º 9";
-  stage.appendChild(r9);
+  base.appendChild(r9);
 
   /* reservorio */
   const rg=el("g",{});
@@ -885,10 +916,10 @@ function build(){
   const rt=el("text",{x:rx,y:ry+7,fill:"rgba(255,255,255,.94)","font-size":19,
     "font-weight":700,"letter-spacing":"0.14em","text-anchor":"middle",...derecho(rx,ry)});
   rt.textContent="RESERVORIO"; rg.appendChild(rt);
-  stage.appendChild(rg);
+  base.appendChild(rg);
 
   /* arbolado */
-  const trees=el("g",{"aria-hidden":"true"}); stage.appendChild(trees);
+  const trees=el("g",{"aria-hidden":"true"}); base.appendChild(trees);
   const addTrees=(x,y,w,h)=>{
     const step=27,pts=[];
     for(let i=x+6;i<x+w-4;i+=step){pts.push([i,y-4]);pts.push([i,y+h+4]);}
@@ -1016,6 +1047,18 @@ document.getElementById("reset").addEventListener("click",()=>{
   document.getElementById("q").value="";
   paint();
 });
+
+/* ---------- alternar plano / foto ---------- */
+const vista=document.getElementById("vista");
+if(CFG.foto){
+  vista.hidden=false;
+  vista.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>{
+    const foto = b.dataset.vista==="foto";
+    document.querySelectorAll("[data-vista]").forEach(o=>o.setAttribute("aria-pressed",String(o===b)));
+    box.classList.toggle("modo-foto",foto);
+    if(foto) say("Terreno real. Los lotes se ven translúcidos sobre la foto.");
+  }));
+}
 
 /* ---------- ficha del lote ---------- */
 let sel=null;
