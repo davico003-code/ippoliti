@@ -12,9 +12,12 @@ import PropertyDetailZillowDesktopPanel from '@/components/property-detail/Prope
 import PropertyGalleryHero from '@/components/property-detail/PropertyGalleryHero';
 import PropertyStickyNav from '@/components/property-detail/PropertyStickyNav';
 import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody';
+import EdificioBanner from '@/components/property-detail/EdificioBanner';
+import { detectarEdificios, edificioDe, desdeTexto } from '@/lib/edificios';
 import PropertyDetailSimilars from '@/components/property-detail/PropertyDetailSimilars';
 import {
   getPropertyById,
+  getProperties,
   getIdFromSlug,
   generatePropertySlug,
   isMonoambiente,
@@ -142,6 +145,26 @@ export default async function PropertyPage({ params }: Props) {
   // ahora cada uno fetchea su propia data via /api/propiedades/{similar,nearby,list-cards}
   // que están cacheados en CDN (s-maxage=900). Esto saca ~9 MB del RSC payload
   // de la ficha mobile.
+
+  // ¿La unidad pertenece a un edificio con más departamentos publicados?
+  // getProperties() está cacheado y compartido; acá solo derivamos el dato
+  // resuelto (nombre, slug, cuántas otras) — el array no viaja al cliente.
+  let edificioInfo: { nombre: string; slug: string; otras: number; desde: string | null } | null = null;
+  try {
+    const todas = await getProperties();
+    const eds = detectarEdificios((todas.objects ?? []).map(sanitizeProperty));
+    const ed = edificioDe(property, eds);
+    if (ed && ed.unidades.length > 1) {
+      edificioInfo = {
+        nombre: ed.nombre,
+        slug: ed.slug,
+        otras: ed.unidades.length - 1,
+        desde: desdeTexto(ed),
+      };
+    }
+  } catch {
+    edificioInfo = null;
+  }
 
   const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
   const currentLng = property.geo_long ? parseFloat(property.geo_long) : null;
@@ -276,6 +299,16 @@ export default async function PropertyPage({ params }: Props) {
 
         {/* Contenido compartido */}
         <div className="px-4 py-4">
+          {edificioInfo && (
+            <div className="mb-4">
+              <EdificioBanner
+                nombre={edificioInfo.nombre}
+                slug={edificioInfo.slug}
+                otrasUnidades={edificioInfo.otras}
+                desde={edificioInfo.desde}
+              />
+            </div>
+          )}
           <PropertyDetailBody
             property={property}
             whatsappUrl={whatsappUrl}
