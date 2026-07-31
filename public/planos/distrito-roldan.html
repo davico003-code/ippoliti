@@ -408,26 +408,30 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 <script>
 /* ==========================================================================
    1) CONFIGURACIÓN Y DATOS
-   Editá esto desde el PANEL DE CONTROL (panel-distrito-roldan.html),
+   Editá esto desde el PANEL DE CONTROL (/agentes/plano-distrito-roldan),
    no a mano. El panel regenera este archivo completo y listo para subir.
+
+   IMPORTANTE: todo lo que va ENTRE los marcadores __CFG_START__/__CFG_END__ y
+   __LOTES_START__/__LOTES_END__ lo reescribe el panel al descargar. No pongas
+   comentarios ahí adentro: se pierden. Documentá acá afuera, como esto.
+
+   Qué contiene CFG:
+     whatsapp     número al que van las consultas de cada lote
+     proyecto     nombre que se muestra en el encabezado
+     actualizado  mes y año de la última lista. El panel lo sella solo al
+                  descargar (si hubo cambios) y también se puede escribir a mano
+     foto         aérea que se superpone al plano. Mientras sea null, el botón
+                  Plano/Foto no aparece. src: ruta relativa · w,h: tamaño en
+                  píxeles · m: matriz que la calza sobre el plano [a,b,c,d,e,f]
+     financiacion anticipo, cuotas y texto del contado, por tipo de lote
    ========================================================================== */
 
 /*__CFG_START__*/
 const CFG = {
   whatsapp: "5493412101694",
   proyecto: "Distrito Roldán",
-  // Mes y año de la última actualización. El panel de control lo pone solo
-  // cada vez que se descarga el plano, y se puede escribir a mano.
   actualizado: "Agosto 2026",
-  /* Foto aérea. Mientras sea null, el botón Plano/Foto no aparece.
-     src: ruta de la imagen · w,h: su tamaño en píxeles
-     m:  matriz que la calza sobre el plano [a,b,c,d,e,f] */
-  foto: {
-    src: "distrito-roldan-aerea.webp",   // relativa: sirve en el sitio y en local
-    w: 1084, h: 867,
-    m: [2.17997, 0.00000, 0.00000, 2.20659, -188.40412, -180.75471]
-  },
-  // Financiación de la lista de mayo: distinta según el tipo de lote.
+  foto: {"src":"distrito-roldan-aerea.webp","w":1084,"h":867,"m":[2.17997,0,0,2.20659,-188.40412,-180.75471]},
   financiacion: {
     residencial: { anticipoPct: 30, cuotas: 24, contadoTxt: "US$ 5/m² de descuento" },
     comercial:   { anticipoPct: 50, cuotas: 12, contadoTxt: "10% de descuento" }
