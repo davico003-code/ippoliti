@@ -1323,8 +1323,22 @@ document.getElementById("fecha").textContent = CFG.actualizado || "—";
   if(p.get("tipo")){const b=document.querySelector(`[data-tipo="${p.get("tipo")}"]`); if(b)b.click();}
   paint(); checkOverflow();
   if(p.get("lote")) select(+p.get("lote"));
-  const post=()=>{try{parent.postMessage({type:"plano-height",h:document.documentElement.scrollHeight},"*")}catch(_){}}
-  post(); new ResizeObserver(post).observe(document.documentElement);
+  /* Le avisamos al contenedor cuánto mide el plano, así el iframe se ajusta y
+     no queda ni cortado ni con un hueco debajo.
+     Ojo con qué se observa: el <html> siempre mide exactamente el alto del
+     iframe, así que observarlo a él nunca avisa que el contenido creció. El que
+     cambia de alto es el body. Y solo avisamos cuando el número cambió de
+     verdad, para no entrar en un ida y vuelta con el contenedor. */
+  let ultimoAlto=0;
+  const post=()=>{
+    const h=document.documentElement.scrollHeight;
+    if(Math.abs(h-ultimoAlto)<2) return;
+    ultimoAlto=h;
+    try{parent.postMessage({type:"plano-height",h},"*")}catch(_){}
+  };
+  post();
+  addEventListener("load",post);          // fuentes e imágenes ya pesan lo suyo
+  new ResizeObserver(post).observe(document.body);
 })();
 </script>
 </body>
