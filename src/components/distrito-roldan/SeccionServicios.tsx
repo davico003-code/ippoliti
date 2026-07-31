@@ -1,7 +1,5 @@
 import { Zap, Droplets, Flame, Construction, TreePine, Store } from 'lucide-react'
 
-const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
-
 const ITEMS = [
   { Icon: Zap, titulo: 'Red Eléctrica', desc: 'Red eléctrica e iluminación eficiente.' },
   { Icon: Droplets, titulo: 'Agua Potable', desc: 'Red de agua potable conectada a toda la urbanización.' },
@@ -13,30 +11,25 @@ const ITEMS = [
 
 export default function SeccionServicios() {
   return (
-    <section className="bg-white px-6 py-24 md:py-[120px]">
+    <section className="bg-white px-6 py-20 md:py-28">
       <div className="mx-auto max-w-[1180px]">
-        {/* Header */}
-        <div className="mb-14 text-center">
-          <h2
-            className="text-[#0F3F26]"
-            style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 'clamp(34px, 4.5vw, 48px)' }}
-          >
-            Infraestructura y servicios
+        <div className="mb-12 grid gap-6 lg:grid-cols-2 lg:items-end">
+          <h2 className="max-w-[15ch] text-balance text-[clamp(34px,4.5vw,56px)] font-bold leading-[1.05] tracking-[-0.03em] text-[#345544]">
+            Infraestructura para acompañar cada etapa.
           </h2>
-          <p className="mt-3 text-[#6b6b6b]" style={{ fontFamily: RALEWAY, fontWeight: 300, fontSize: 17 }}>
+          <p className="max-w-[52ch] text-[15px] leading-7 text-[#345544]/70 lg:justify-self-end">
             Solidez y diseño urbano que acompaña tu estilo de vida.
           </p>
         </div>
 
-        {/* Grid de servicios */}
-        <div className="grid grid-cols-2 gap-10 lg:grid-cols-3 max-[520px]:grid-cols-1">
+        <div className="grid border-b border-[#345544]/[0.15] md:grid-cols-2">
           {ITEMS.map(({ Icon, titulo, desc }) => (
-            <div key={titulo} className="text-center">
-              <Icon className="mx-auto mb-4 h-12 w-12 text-[#1A5C38]" strokeWidth={1.5} />
-              <h3 className="text-[16px] font-semibold tracking-[0.04em] text-[#0F3F26]" style={{ fontFamily: RALEWAY }}>
-                {titulo}
-              </h3>
-              <p className="mx-auto mt-2 max-w-[260px] text-[13px] leading-[1.55] text-[#6b6b6b]">{desc}</p>
+            <div key={titulo} className="flex gap-5 border-t border-[#345544]/[0.15] py-7 md:px-7 md:odd:border-r">
+              <Icon className="mt-0.5 h-7 w-7 shrink-0 text-[#B35E21]" strokeWidth={1.6} aria-hidden />
+              <div>
+                <h3 className="text-base font-semibold text-[#345544]">{titulo}</h3>
+                <p className="mt-2 max-w-[46ch] text-sm leading-6 text-[#345544]/[0.65]">{desc}</p>
+              </div>
             </div>
           ))}
         </div>

@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#EDE7DA">
-<title>Distrito Roldán — Plano interactivo de lotes | SI Inmobiliaria</title>
+<title>Distrito Roldán — Plano interactivo de lotes | SI INMOBILIARIA</title>
 <meta name="description" content="Plano interactivo de Distrito Roldán: 180 lotes en Ruta 9 y María Auxiliadora, Roldán. Consultá disponibilidad, medidas, superficie y precio de cada lote.">
 <style>
 /* ============================================================
    DISTRITO ROLDÁN — PLANO INTERACTIVO
-   SI Inmobiliaria · David Flores (Mat. 0621)
+   SI INMOBILIARIA · David Flores (Mat. 0621)
    ============================================================ */
 :root{
   --paper:#EDE7DA; --paper-2:#E3DCCC;
@@ -1159,7 +1159,7 @@ if(CFG.foto){
 let sel=null;
 const side=document.getElementById("side"), dBody=document.getElementById("detailBody");
 function waLink(l){
-  const msg=`Hola SI Inmobiliaria, me interesa el Lote ${l.n} (Mz. ${l.mz}) de ${CFG.proyecto} — `+
+  const msg=`Hola SI INMOBILIARIA, me interesa el Lote ${l.n} (Mz. ${l.mz}) de ${CFG.proyecto} — `+
             `${m2(l.sup)}, ${med(l.frente)} de frente`+
             (l.conPrecio ? `, lista ${usd(l.precio)}` : "")+`. ¿Sigue disponible?`;
   return `https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent(msg)}`;

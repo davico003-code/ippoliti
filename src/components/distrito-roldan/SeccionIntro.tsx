@@ -1,62 +1,52 @@
-const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
-const MONTSERRAT = 'var(--font-montserrat), Montserrat, sans-serif'
-
 const DATOS = [
-  { label: 'Tipología', valor: 'Barrio Abierto' },
-  { label: 'Estado', valor: 'En construcción' },
-  { label: 'Financiación', valor: 'Entrega 30% + 24 cuotas fijas en dólares' },
-  { label: 'Ubicación', valor: 'Ruta 9 y Andes — Roldán' },
+  { numero: '159', label: 'Lotes residenciales', detalle: 'Desde 450 m²' },
+  { numero: '21', label: 'Lotes comerciales', detalle: 'Promedio 630 m²' },
+  { numero: '180', label: 'Lotes totales', detalle: 'Barrio abierto' },
 ]
 
 export default function SeccionIntro() {
   return (
-    <section className="bg-[#FAF7F2] px-6 py-24">
-      <div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-12 lg:grid-cols-[1.4fr_1fr] lg:gap-20">
-        {/* Izquierda */}
-        <div>
-          <div className="mb-8 flex flex-wrap gap-2">
-            <span className="rounded-full bg-[#1A5C38] px-[14px] py-1.5 font-poppins text-[11px] font-semibold uppercase tracking-[0.1em] text-white">
-              Barrio Abierto
-            </span>
-            <span className="rounded-full bg-[#B8935A] px-[14px] py-1.5 font-poppins text-[11px] font-semibold uppercase tracking-[0.1em] text-white">
-              En construcción
-            </span>
+    <section id="proyecto" className="relative overflow-hidden bg-[#F8F1E6] px-6 py-20 md:py-28">
+      <div aria-hidden className="absolute -right-20 top-10 h-80 w-80 text-[#345544]/[0.08]">
+        <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" strokeWidth="5">
+          <path d="M98 101C57 94 30 65 24 24c41 6 70 33 74 77Z" />
+          <path d="M103 97c7-40 36-67 77-72-7 41-35 69-77 72Z" />
+          <path d="M101 106c39 9 64 39 67 80-40-9-66-38-67-80Z" />
+        </svg>
+      </div>
+
+      <div className="relative mx-auto max-w-[1180px]">
+        <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:gap-20">
+          <div>
+            <p className="text-sm font-semibold text-[#B35E21]">Distrito Roldán</p>
+            <h2 className="mt-4 max-w-[15ch] text-balance text-[clamp(36px,4.8vw,62px)] font-bold leading-[1.04] tracking-[-0.03em] text-[#345544]">
+              Un proyecto para vivir, construir e invertir mejor.
+            </h2>
           </div>
-
-          <h1
-            className="text-[#0F3F26]"
-            style={{ fontFamily: MONTSERRAT, fontWeight: 800, fontSize: 'clamp(48px, 7vw, 92px)', lineHeight: 0.98, letterSpacing: '-0.02em' }}
-          >
-            Distrito <em className="not-italic text-[#B8935A]">Roldán</em>
-          </h1>
-
-          <p
-            className="mt-6 uppercase text-[#6b6b6b]"
-            style={{ fontFamily: RALEWAY, fontWeight: 400, fontSize: 18, letterSpacing: '0.18em' }}
-          >
-            La evolución del desarrollo urbano
-          </p>
-
-          <p
-            className="mt-10 max-w-[540px] border-l-2 border-[#B8935A] pl-6 text-[#3a3a3a]"
-            style={{ fontFamily: RALEWAY, fontWeight: 300, fontStyle: 'italic', fontSize: 22, lineHeight: 1.5 }}
-          >
-            Un barrio abierto que combina vida residencial y un área comercial con infraestructura
-            de alto nivel, en una zona ya consolidada de Roldán, sobre Ruta Nacional 9, a minutos
-            de Funes y Rosario.
-          </p>
+          <div className="max-w-[58ch] text-pretty text-[16px] leading-8 text-[#345544]/[0.85] lg:pt-8">
+            <p>
+              Un barrio abierto que integra vida residencial y actividad comercial sobre Ruta Nacional 9,
+              en una zona consolidada de Roldán y a pocos minutos de Funes y Rosario.
+            </p>
+            <p className="mt-5">
+              Calles amplias, forestación planificada y servicios subterráneos acompañan un trazado pensado
+              para crecer con el entorno.
+            </p>
+            <p className="mt-6 font-semibold text-[#345544]">Entrega del 30% y saldo en 24 cuotas fijas en dólares.</p>
+          </div>
         </div>
 
-        {/* Derecha — card datos rápidos */}
-        <div className="h-fit rounded-3xl border border-[#e8e3da] bg-white p-9 shadow-[0_4px_24px_rgba(15,63,38,0.06)]">
-          {DATOS.map((d, i) => (
-            <div key={d.label} className={i < DATOS.length - 1 ? 'mb-5 border-b border-[#e8e3da] pb-5' : ''}>
-              <p className="mb-1.5 font-poppins text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6b6b6b]">
-                {d.label}
+        <div className="mt-14 grid border-y border-[#345544]/20 sm:grid-cols-3">
+          {DATOS.map((dato, index) => (
+            <div
+              key={dato.label}
+              className={`py-7 sm:px-7 sm:py-9 ${index > 0 ? 'border-t border-[#345544]/20 sm:border-l sm:border-t-0' : ''}`}
+            >
+              <p className="text-[clamp(42px,5vw,66px)] font-medium leading-none tracking-[-0.04em] text-[#345544]">
+                {dato.numero}
               </p>
-              <p className="text-[#0F3F26]" style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 18, lineHeight: 1.35 }}>
-                {d.valor}
-              </p>
+              <p className="mt-3 font-semibold text-[#345544]">{dato.label}</p>
+              <p className="mt-1 text-sm text-[#345544]/[0.65]">{dato.detalle}</p>
             </div>
           ))}
         </div>
