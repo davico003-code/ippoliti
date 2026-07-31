@@ -22,6 +22,10 @@ import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
 import BotonVolver from '@/components/BotonVolver'
 import { TOURS_360 } from '@/lib/tours360'
+import HeroAerea from '@/components/distrito-roldan/HeroAerea'
+
+// Sitio dedicado del tour 360° de Distrito Roldán (botón del hero).
+const TOUR_360_EXTERNO = 'https://distritoroldan360.com'
 import { distritoFontVars, montserrat } from '@/components/distrito-roldan/fonts'
 import SeccionIntro from '@/components/distrito-roldan/SeccionIntro'
 import SeccionMasterplan from '@/components/distrito-roldan/SeccionMasterplan'
@@ -191,7 +195,9 @@ export default async function DevelopmentPage({ params }: Props) {
     },
   }
 
-  // Distrito Roldán (67178): rediseño con tour como hero + secciones de marca.
+  // Distrito Roldán (67178): la aérea es el hero y el tour 360° pasó a ser un
+  // botón que abre el sitio dedicado.
+  // Distrito Roldán (67178): rediseño con secciones de marca.
   const tourUrl = TOURS_360[String(dev.id)]
   const isDistrito = Boolean(tourUrl)
 
@@ -206,11 +212,18 @@ export default async function DevelopmentPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Hero — en 67178 no va hero: la página abre directo con SeccionIntro,
-          que es la que trae el <h1>. El tour 360° quedó fuera a
-          pedido; para reponerlo, volver a renderizarlo en esta rama.
+      {/* Hero — en 67178, la aérea del barrio con los dos accesos que busca la
+          visita: el tour 360° (externo) y la disponibilidad de lotes con
+          precios. El tour dejó de ser el hero: ahora es uno de los dos botones.
           En el resto de los emprendimientos sigue la imagen con título y badges. */}
-      {isDistrito ? null : mainPhoto ? (
+      {isDistrito ? (
+        <HeroAerea
+          tourUrl={TOUR_360_EXTERNO}
+          disponibilidadUrl="/distrito-roldan-precios"
+          titulo="Distrito Roldán"
+          bajada="180 lotes residenciales y comerciales sobre Ruta 9 y María Auxiliadora, con financiación propia."
+        />
+      ) : mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
           <Image src={mainPhoto} alt={displayName} fill className="object-cover" sizes="100vw" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
