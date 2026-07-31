@@ -3,6 +3,8 @@ import { getProperties, generatePropertySlug } from '@/lib/tokko'
 import { getAllPosts } from '@/lib/blog'
 import { getDevelopments, generateDevSlug } from '@/lib/developments'
 import { BARRIOS } from '@/lib/barrios'
+import { detectarEdificios } from '@/lib/edificios'
+import { sanitizeProperty } from '@/lib/tokko'
 import { BARRIOS_TASADOR } from '@/lib/tasador/barrios'
 
 const BASE = 'https://siinmobiliaria.com'
@@ -106,5 +108,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: b.muestras > 0 ? 0.8 : 0.6,
     })))
 
-  return [...staticRoutes, ...tasadorRoutes, ...barriosRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
+  // Páginas de edificio (departamentos agrupados por dirección).
+  let edificioRoutes: MetadataRoute.Sitemap = []
+  try {
+    const data = await getProperties()
+    edificioRoutes = detectarEdificios((data.objects ?? []).map(sanitizeProperty)).map((e) => ({
+      url: `${BASE}/edificios/${e.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
+  } catch {}
+
+  return [...staticRoutes, ...edificioRoutes, ...tasadorRoutes, ...barriosRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
 }
