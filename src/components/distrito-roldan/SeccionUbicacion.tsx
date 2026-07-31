@@ -1,25 +1,21 @@
 import MapaDistritoRoldan from './MapaDistritoRoldan'
 
-const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
-
 export default function SeccionUbicacion() {
   return (
-    <section className="bg-[#F4EFE5] px-6 py-24 md:py-[120px]">
+    <section id="ubicacion" className="bg-[#F8F1E6] px-6 py-20 md:py-28">
       <div className="mx-auto max-w-[1180px]">
-        {/* Header */}
-        <div className="mx-auto mb-12 max-w-[680px] text-center">
-          <p className="uppercase text-[#B8935A]" style={{ fontFamily: RALEWAY, fontWeight: 600, letterSpacing: '0.24em', fontSize: 12 }}>
-            Ubicación
-          </p>
-          <h2
-            className="mt-4 text-[#0F3F26]"
-            style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 'clamp(34px, 4.5vw, 52px)', lineHeight: 1.15 }}
-          >
+        <div className="mb-12 grid gap-5 lg:grid-cols-2 lg:items-end">
+          <div>
+            <p className="text-sm font-semibold text-[#B35E21]">Ubicación</p>
+            <h2 className="mt-4 max-w-[16ch] text-balance text-[clamp(34px,4.5vw,56px)] font-bold leading-[1.05] tracking-[-0.03em] text-[#345544]">
             Excelente conectividad, a minutos de todo.
-          </h2>
+            </h2>
+          </div>
+          <p className="max-w-[52ch] text-[15px] leading-7 text-[#345544]/70 lg:justify-self-end">
+            Sobre Ruta Nacional 9 y María Auxiliadora, con conexión directa hacia Roldán, Funes y Rosario.
+          </p>
         </div>
 
-        {/* Mapa interactivo (Leaflet + OSRM) */}
         <MapaDistritoRoldan />
       </div>
     </section>
