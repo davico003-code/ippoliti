@@ -29,6 +29,7 @@ import { distritoFontVars, montserrat } from '@/components/distrito-roldan/fonts
 import SeccionIntro from '@/components/distrito-roldan/SeccionIntro'
 import SeccionPlanoLotes from '@/components/distrito-roldan/SeccionPlanoLotes'
 import SeccionRenders from '@/components/distrito-roldan/SeccionRenders'
+import SeccionGaleriaBarrio from '@/components/distrito-roldan/SeccionGaleriaBarrio'
 import SeccionAvancesObra from '@/components/distrito-roldan/SeccionAvancesObra'
 import SeccionUbicacion from '@/components/distrito-roldan/SeccionUbicacion'
 import SeccionServicios from '@/components/distrito-roldan/SeccionServicios'
@@ -260,6 +261,8 @@ export default async function DevelopmentPage({ params }: Props) {
         <>
           <SeccionIntro />
           <SeccionRenders />
+          {/* El nombre va escrito acá y no desde el CRM, que lo tiene sin tilde. */}
+          <SeccionGaleriaBarrio fotos={photos} proyecto="Distrito Roldán" />
           <SeccionPlanoLotes tourUrl={TOUR_360_EXTERNO} />
           <SeccionAvancesObra />
           <SeccionServicios />
