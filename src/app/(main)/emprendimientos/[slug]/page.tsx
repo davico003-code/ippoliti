@@ -21,14 +21,12 @@ import DevUnitsSection from '@/components/DevUnitsSection'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
 import BotonVolver from '@/components/BotonVolver'
-import { TOURS_360 } from '@/lib/tours360'
 import HeroAerea from '@/components/distrito-roldan/HeroAerea'
 
 // Sitio dedicado del tour 360° de Distrito Roldán (botón del hero).
 const TOUR_360_EXTERNO = 'https://distritoroldan360.com'
 import { distritoFontVars, montserrat } from '@/components/distrito-roldan/fonts'
 import SeccionIntro from '@/components/distrito-roldan/SeccionIntro'
-import SeccionMasterplan from '@/components/distrito-roldan/SeccionMasterplan'
 import SeccionPlanoLotes from '@/components/distrito-roldan/SeccionPlanoLotes'
 import SeccionRenders from '@/components/distrito-roldan/SeccionRenders'
 import SeccionAvancesObra from '@/components/distrito-roldan/SeccionAvancesObra'
@@ -101,14 +99,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       override?.description ??
       (dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title)
     return {
-      title: override?.title ?? `${dev.name} | Emprendimientos SI Inmobiliaria`,
+      title: override?.title ?? `${dev.name} | Emprendimientos SI INMOBILIARIA`,
       description: desc,
       // Canonical al slug CANÓNICO del dev (no al pedido): así /emprendimientos/
       // 67173-cualquier-cosa consolida en la URL correcta en vez de auto-
       // canonicalizarse y generar duplicados infinitos.
       alternates: { canonical: `https://siinmobiliaria.com/emprendimientos/${generateDevSlug(dev)}` },
       openGraph: {
-        title: override?.title ?? `${dev.name} | SI Inmobiliaria`,
+        title: override?.title ?? `${dev.name} | SI INMOBILIARIA`,
         description: desc,
         images: getDevMainPhoto(dev) ? [{ url: getDevMainPhoto(dev)! }] : [],
       },
@@ -120,13 +118,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const cliente = await getClienteBySlug(params.slug)
       if (cliente) {
         return {
-          title: `${cliente.name} | SI Inmobiliaria`,
-          description: cliente.description || `Propiedades de ${cliente.name} en SI Inmobiliaria`,
+          title: `${cliente.name} | SI INMOBILIARIA`,
+          description: cliente.description || `Propiedades de ${cliente.name} en SI INMOBILIARIA`,
           alternates: { canonical: `https://siinmobiliaria.com/emprendimientos/${params.slug}` },
         }
       }
     } catch {}
-    return { title: 'Emprendimiento | SI Inmobiliaria' }
+    return { title: 'Emprendimiento | SI INMOBILIARIA' }
   }
 }
 
@@ -171,13 +169,18 @@ export default async function DevelopmentPage({ params }: Props) {
   const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${displayName}`)
   const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
 
-  // Units y otros emprendimientos son independientes → en paralelo (antes en serie).
-  const [units, otherDevs] = await Promise.all([
-    getDevUnits(dev.id).catch(() => [] as DevUnit[]),
-    getDevelopments()
-      .then(all => all.filter(d => d.id !== dev!.id).slice(0, 3))
-      .catch(() => [] as Development[]),
-  ])
+  const isDistrito = dev.id === 67178
+
+  // Distrito tiene un funnel propio y no necesita volver a pedir unidades ni
+  // emprendimientos relacionados que después quedarían ocultos.
+  const [units, otherDevs] = isDistrito
+    ? [[], []] as [DevUnit[], Development[]]
+    : await Promise.all([
+        getDevUnits(dev.id).catch(() => [] as DevUnit[]),
+        getDevelopments()
+          .then(all => all.filter(d => d.id !== dev!.id).slice(0, 3))
+          .catch(() => [] as Development[]),
+      ])
 
   const mainPhotoUrl = getDevMainPhoto(dev)
   const jsonLd = {
@@ -198,13 +201,10 @@ export default async function DevelopmentPage({ params }: Props) {
   // Distrito Roldán (67178): la aérea es el hero y el tour 360° pasó a ser un
   // botón que abre el sitio dedicado.
   // Distrito Roldán (67178): rediseño con secciones de marca.
-  const tourUrl = TOURS_360[String(dev.id)]
-  const isDistrito = Boolean(tourUrl)
-
   return (
     <div className={`min-h-screen bg-gray-50 ${isDistrito ? distritoFontVars : ''}`}>
-      {/* Botón Volver — solo en páginas con tour (mismo gate que el hero del tour).
-          Con el Navbar oculto en 67178, es la única navegación visible arriba. */}
+      {/* Con el Navbar global oculto en Distrito, este acceso mantiene una salida
+          clara hacia el listado de emprendimientos. */}
       {isDistrito && <BotonVolver />}
 
       <script
@@ -221,7 +221,7 @@ export default async function DevelopmentPage({ params }: Props) {
           tourUrl={TOUR_360_EXTERNO}
           disponibilidadUrl="/distrito-roldan-precios"
           titulo="Distrito Roldán"
-          bajada="180 lotes residenciales y comerciales sobre Ruta 9 y María Auxiliadora, con financiación propia."
+          bajada="Lotes residenciales y comerciales sobre Ruta 9 y María Auxiliadora, con financiación propia y una ubicación conectada con Roldán, Funes y Rosario."
         />
       ) : mainPhoto ? (
         <div className="relative w-full h-[60vh] md:h-[75vh]">
@@ -259,16 +259,16 @@ export default async function DevelopmentPage({ params }: Props) {
       {isDistrito && (
         <>
           <SeccionIntro />
-          <SeccionMasterplan />
           <SeccionRenders />
-          <SeccionPlanoLotes tourUrl={tourUrl} />
+          <SeccionPlanoLotes tourUrl={TOUR_360_EXTERNO} />
           <SeccionAvancesObra />
-          <SeccionUbicacion />
           <SeccionServicios />
+          <SeccionUbicacion />
         </>
       )}
 
-      <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-10 ${isDistrito ? 'max-w-[1180px]' : 'max-w-7xl'}`}>
+      {!isDistrito && (
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className={`grid grid-cols-1 gap-10 ${isDistrito ? '' : 'lg:grid-cols-3'}`}>
           {/* Left column — full width en 67178 (sin sidebar) */}
           <div className={isDistrito ? 'space-y-8' : 'lg:col-span-2 space-y-8'}>
@@ -300,7 +300,7 @@ export default async function DevelopmentPage({ params }: Props) {
             )}
 
             {/* Units section — before description */}
-            <DevUnitsSection units={units} devName={displayName} whatsappUrl={whatsappUrl} variant={isDistrito ? 'distrito' : 'default'} location={dev.location?.name} />
+            <DevUnitsSection units={units} devName={displayName} whatsappUrl={whatsappUrl} location={dev.location?.name} />
 
             {/* Description — oculto en 67178 (el Intro trae su propio lead) */}
             {!isDistrito && paragraphs.length > 0 && (
@@ -346,7 +346,7 @@ export default async function DevelopmentPage({ params }: Props) {
                   Galería
                   <span className="text-gray-400 text-sm font-normal ml-2 font-numeric">{photos.length} fotos</span>
                 </h2>
-                <PhotoGalleryLazy photos={photos} alt={displayName} variant={isDistrito ? 'distrito' : 'default'} />
+                <PhotoGalleryLazy photos={photos} alt={displayName} />
               </div>
             )}
 
@@ -493,6 +493,7 @@ export default async function DevelopmentPage({ params }: Props) {
           </div>
         )}
       </div>
+      )}
 
       {/* CTA financiación — cierre full-width, solo Distrito Roldán */}
       {isDistrito && <SeccionCtaFinanciacion />}

@@ -8,20 +8,20 @@
 // (panel-distrito-roldan.html), que regenera ese mismo archivo.
 
 import { useEffect, useState } from 'react'
-
-const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
-const POPPINS = 'var(--font-poppins), Poppins, sans-serif'
+import { ArrowUpRight, Compass } from 'lucide-react'
 
 const SRC = '/planos/distrito-roldan.html'
 
 export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
-  const [alto, setAlto] = useState(1080)
+  // Arranca cerca del alto real del plano en mobile. Si el contenido necesita
+  // más espacio, el propio iframe informa su scrollHeight por postMessage.
+  const [alto, setAlto] = useState(780)
 
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
       const d = e.data as { type?: string; h?: number } | null
       if (d && d.type === 'plano-height' && typeof d.h === 'number') {
-        setAlto(Math.max(700, Math.min(2000, d.h)))
+        setAlto(Math.max(720, Math.min(1600, d.h)))
       }
     }
     window.addEventListener('message', onMsg)
@@ -29,48 +29,51 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
   }, [])
 
   return (
-    <section id="plano" className="bg-[#f7f5f0] px-6 py-24 md:py-[120px]">
+    <section id="plano" className="bg-[#345544] px-4 py-20 text-white sm:px-6 md:py-28">
       <div className="mx-auto max-w-[1180px]">
-        <div className="max-w-2xl">
-          <p className="mb-4 uppercase text-[#1A5C38]" style={{ fontWeight: 600, letterSpacing: '0.18em', fontSize: 13 }}>
-            Disponibilidad
-          </p>
-          <h2 style={{ fontFamily: RALEWAY, fontWeight: 300, fontSize: 'clamp(30px, 4vw, 46px)', lineHeight: 1.15, color: '#0F3F26' }}>
-            Elegí tu lote en el plano.
-          </h2>
-          <p className="mt-5 text-[14px] leading-[1.7] text-[#6b6b6b]" style={{ fontFamily: POPPINS }}>
-            Prendé los filtros para ver qué lotes están disponibles, cuáles no y cuáles ya se vendieron.
-            Pasá el mouse por cualquiera para conocer frente, fondo, superficie y precio — y tocalo para
-            consultarlo por WhatsApp.
-          </p>
-
-          {/* Tour 360° — acceso secundario, deliberadamente discreto: el
-              protagonista de la sección es el plano. */}
-          {tourUrl && (
+        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold text-[#BB8D3F]">Masterplan interactivo</p>
+            <h2 className="mt-4 text-balance text-[clamp(34px,4.5vw,58px)] font-bold leading-[1.04] tracking-[-0.03em] text-[#F8F1E6]">
+              Encontrá el lote que mejor se adapta a vos.
+            </h2>
+            <p className="mt-6 max-w-[62ch] text-[15px] leading-7 text-white/75">
+              Prendé los filtros para ver qué lotes están disponibles, cuáles no y cuáles ya se vendieron.
+              Pasá el mouse por cualquiera para conocer frente, fondo, superficie y precio, y tocalo para
+              consultarlo por WhatsApp.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
             <a
-              href={tourUrl}
+              href="/distrito-roldan-precios"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-2 border-b border-[#c9c2b4] pb-0.5 text-[13px] text-[#6b6b6b] transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38]"
-              style={{ fontFamily: POPPINS }}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#B35E21] px-6 text-sm font-bold text-white transition-colors hover:bg-[#9d4f18]"
             >
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
-                <ellipse cx="12" cy="12" rx="10" ry="4.5" />
-                <path d="M2 12a10 4.5 0 0 0 20 0" />
-                <circle cx="12" cy="12" r="2" />
-              </svg>
-              También podés recorrer el barrio en el tour 360°
+              Abrir plano completo
+              <ArrowUpRight className="h-4 w-4" aria-hidden />
             </a>
-          )}
+            {tourUrl && (
+              <a
+                href={tourUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/30 px-6 text-sm font-semibold text-white transition-colors hover:border-white/70"
+              >
+                <Compass className="h-4 w-4" aria-hidden />
+                Recorrer en 360°
+              </a>
+            )}
+          </div>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-10 overflow-hidden border border-white/20 bg-[#F8F1E6] p-1 sm:p-2">
           <iframe
             src={SRC}
             title="Plano interactivo de lotes — Distrito Roldán"
             loading="lazy"
-            className="block w-full rounded-3xl border-[0.5px] border-[#e8e3da]"
-            style={{ height: alto, background: '#EDE7DA' }}
+            className="block w-full border-0"
+            style={{ height: alto, background: '#F8F1E6' }}
           />
         </div>
       </div>

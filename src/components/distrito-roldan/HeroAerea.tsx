@@ -7,9 +7,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Compass, MapPinned } from 'lucide-react'
-
-const VERDE = '#1A5C38'
+import { ArrowRight, Compass, MapPin } from 'lucide-react'
 
 interface Props {
   /** Tour 360° externo. */
@@ -22,8 +20,7 @@ interface Props {
 
 export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }: Props) {
   return (
-    <section className="relative w-full h-[68vh] min-h-[440px] md:h-[78vh]">
-      {/* Aérea: mobile y desktop por separado para no bajar 610 kB en celular. */}
+    <section id="inicio" className="relative isolate min-h-[680px] w-full overflow-hidden bg-[#345544] md:min-h-[760px]">
       <picture>
         <source media="(max-width: 768px)" srcSet="/images/distrito-roldan/hero-aerea-mobile.webp" />
         <Image
@@ -32,48 +29,69 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
           fill
           priority
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-center"
         />
       </picture>
 
-      {/* Degradado: sostiene el texto sin tapar la vista del barrio. */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
+      <div className="absolute inset-0 bg-[#345544]/20" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,49,37,.88)_0%,rgba(20,49,37,.58)_42%,rgba(20,49,37,.08)_75%)] max-md:bg-[linear-gradient(0deg,rgba(20,49,37,.92)_0%,rgba(20,49,37,.56)_55%,rgba(20,49,37,.1)_100%)]" />
 
-      <div className="absolute inset-x-0 bottom-0 p-6 pb-8 md:p-12">
-        <div className="mx-auto max-w-[1180px]">
-          <h1
-            className="max-w-[16ch] text-[clamp(30px,5.5vw,52px)] font-extrabold leading-[1.05] tracking-tight text-white"
-            style={{ textShadow: '0 2px 14px rgba(0,0,0,.45)' }}
+      <div className="absolute inset-x-0 top-0 z-10 border-b border-white/[0.15]">
+        <div className="mx-auto flex h-24 max-w-[1240px] items-center justify-between px-6 pl-20 sm:pl-32 lg:px-8 lg:pl-36">
+          {/* Logo oficial vectorial extraído del brandbook. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/distrito-roldan/brand/logo-distrito-roldan.svg"
+            alt="Distrito Roldán, barrio abierto"
+            className="h-auto w-[210px] brightness-0 invert sm:w-[250px]"
+          />
+          <nav aria-label="Secciones de Distrito Roldán" className="hidden items-center gap-7 lg:flex">
+            <a href="#proyecto" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">El proyecto</a>
+            <a href="#plano" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">Masterplan</a>
+            <a href="#avances" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">Avances</a>
+            <a href="#ubicacion" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">Ubicación</a>
+          </nav>
+          <Link
+            href={disponibilidadUrl}
+            className="hidden min-h-11 items-center justify-center rounded-full bg-[#B35E21] px-5 text-sm font-bold text-white transition-colors hover:bg-[#9d4f18] sm:inline-flex"
           >
-            {titulo}
+            Ver lotes y precios
+          </Link>
+        </div>
+      </div>
+
+      <div className="relative z-[1] mx-auto flex min-h-[680px] max-w-[1240px] items-end px-6 pb-14 pt-36 md:min-h-[760px] md:items-center md:pb-16 md:pt-32 lg:px-8">
+        <div className="max-w-[660px]">
+          <p className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#F8F1E6]">
+            <MapPin className="h-4 w-4 text-[#BB8D3F]" aria-hidden />
+            Ruta 9 y María Auxiliadora, Roldán
+          </p>
+          <h1 className="max-w-[12ch] text-balance text-[clamp(44px,6vw,84px)] font-extrabold leading-[0.98] tracking-[-0.035em] text-[#F8F1E6]">
+            Un barrio abierto a vos
           </h1>
-          <p
-            className="mt-2.5 max-w-[46ch] text-[15px] font-medium text-white/90 md:text-[17px]"
-            style={{ textShadow: '0 1px 10px rgba(0,0,0,.5)' }}
-          >
+          <p className="mt-7 max-w-[55ch] text-pretty text-base leading-7 text-white/[0.88] md:text-lg md:leading-8">
             {bajada}
           </p>
 
-          <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:gap-3">
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href={disponibilidadUrl}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#B35E21] px-7 text-[15px] font-bold text-white transition-colors hover:bg-[#9d4f18]"
+            >
+              Ver lotes y precios
+              <ArrowRight className="h-[18px] w-[18px]" aria-hidden />
+            </Link>
             <a
               href={tourUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-[15px] font-bold text-white transition-transform hover:scale-[1.02]"
-              style={{ background: VERDE, boxShadow: '0 8px 24px rgba(9,30,20,.35)' }}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/[0.45] bg-[#345544]/30 px-7 text-[15px] font-semibold text-white transition-colors hover:border-white hover:bg-[#345544]/[0.55]"
             >
               <Compass className="h-[18px] w-[18px]" aria-hidden />
-              Ver tour 360°
+              Recorrer en 360°
             </a>
-            <Link
-              href={disponibilidadUrl}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-[15px] font-bold transition-transform hover:scale-[1.02]"
-              style={{ color: VERDE, boxShadow: '0 8px 24px rgba(0,0,0,.22)' }}
-            >
-              <MapPinned className="h-[18px] w-[18px]" aria-hidden />
-              Ver disponibilidad
-            </Link>
           </div>
+          <span className="sr-only">{titulo}</span>
         </div>
       </div>
     </section>

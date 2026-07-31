@@ -11,7 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { Building2, TreePine, MapPin } from 'lucide-react'
 
-const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
+const MONTSERRAT = 'var(--font-montserrat), Montserrat, sans-serif'
 
 // Coordenadas exactas (verificadas en Google Maps).
 const DISTRITO: [number, number] = [-32.9098725, -60.8876773]
@@ -235,6 +235,13 @@ export default function MapaDistritoRoldanClient() {
     }).addTo(map)
     lineRef.current = line
 
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) {
+      line.setLatLngs(ruta)
+      setBanner({ nombre: d.nombre, km: d.km, min: d.min })
+      return
+    }
+
     let t0: number | null = null
     const duration = 1700
     const step = (ts: number) => {
@@ -292,7 +299,7 @@ export default function MapaDistritoRoldanClient() {
           recibe `position:relative !important` desde globals.css, que pisaría un
           `absolute inset-0` y colapsaría el alto a 0. Con alto definido + hijo
           h-full, `height:100%` resuelve y los tiles se miden bien. */}
-      <div className="h-[380px] md:h-[520px] w-full overflow-hidden rounded-3xl border-[0.5px] border-[#e8e3da] bg-[#e8e3da] shadow-[0_8px_32px_rgba(15,63,38,0.08)]">
+      <div className="h-[380px] w-full overflow-hidden border border-[#345544]/[0.15] bg-[#345544]/10 md:h-[520px]">
         <div ref={containerRef} className="h-full w-full" />
       </div>
 
@@ -307,12 +314,12 @@ export default function MapaDistritoRoldanClient() {
               type="button"
               onClick={() => animar(key)}
               disabled={isLoading}
-              className="dr-btn flex items-center gap-3 rounded-full border px-[18px] py-3.5 text-left transition-all duration-200"
+              className="dr-btn flex min-h-14 items-center gap-3 rounded-full border px-[18px] py-3.5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B35E21] focus-visible:ring-offset-2"
               style={{
-                fontFamily: RALEWAY,
-                background: isActive ? '#1A5C38' : '#fff',
-                color: isActive ? '#fff' : '#0F3F26',
-                borderColor: isActive ? '#1A5C38' : '#e8e3da',
+                fontFamily: MONTSERRAT,
+                background: isActive ? '#345544' : '#fff',
+                color: isActive ? '#fff' : '#345544',
+                borderColor: isActive ? '#345544' : 'rgba(52,85,68,.2)',
                 cursor: isLoading ? 'wait' : 'pointer',
                 opacity: isLoading ? 0.7 : 1,
               }}
@@ -320,12 +327,12 @@ export default function MapaDistritoRoldanClient() {
             >
               <span
                 className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-200"
-                style={{ background: isActive ? 'rgba(255,255,255,0.18)' : '#FAF7F2' }}
+                style={{ background: isActive ? 'rgba(255,255,255,0.18)' : '#F8F1E6' }}
               >
                 <Icon
                   size={16}
                   className={isLoading ? 'dr-pulse' : undefined}
-                  style={{ color: isActive ? '#fff' : '#B8935A' }}
+                  style={{ color: isActive ? '#fff' : '#B35E21' }}
                 />
               </span>
               <span className="min-w-0 flex-1">
@@ -346,7 +353,7 @@ export default function MapaDistritoRoldanClient() {
 
       {/* Banner */}
       <div
-        className="dr-banner mt-3.5 flex items-center justify-around gap-4 rounded-[14px] border-[0.5px] border-[#e8e3da] bg-white px-[22px] py-[18px] transition-[opacity,transform] duration-[350ms]"
+        className="dr-banner mt-3.5 flex items-center justify-around gap-4 border border-[#345544]/[0.15] bg-white px-[22px] py-[18px] transition-[opacity,transform] duration-[350ms]"
         style={{
           opacity: banner ? 1 : 0,
           transform: banner ? 'translateY(0)' : 'translateY(4px)',
@@ -355,31 +362,31 @@ export default function MapaDistritoRoldanClient() {
         aria-hidden={!banner}
       >
         <div className="dr-stat flex flex-col gap-1 text-center">
-          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#6b6b6b', letterSpacing: '0.12em', fontWeight: 500 }}>
+          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#345544', letterSpacing: '0.12em', fontWeight: 600, opacity: 0.65 }}>
             Destino
           </span>
-          <span style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 18, color: '#1A5C38', letterSpacing: '-0.01em' }}>
+          <span style={{ fontFamily: MONTSERRAT, fontWeight: 600, fontSize: 18, color: '#345544', letterSpacing: '-0.01em' }}>
             {banner?.nombre ?? '—'}
           </span>
         </div>
-        <div className="dr-sep h-9 w-px bg-[#e8e3da]" />
+        <div className="dr-sep h-9 w-px bg-[#345544]/[0.15]" />
         <div className="dr-stat flex flex-col gap-1 text-center">
-          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#6b6b6b', letterSpacing: '0.12em', fontWeight: 500 }}>
+          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#345544', letterSpacing: '0.12em', fontWeight: 600, opacity: 0.65 }}>
             Distancia
           </span>
-          <span style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 26, color: '#1A5C38', letterSpacing: '-0.01em' }}>
+          <span style={{ fontFamily: MONTSERRAT, fontWeight: 600, fontSize: 26, color: '#345544', letterSpacing: '-0.01em' }}>
             {banner?.km ?? 0}
-            <small style={{ fontSize: 13, fontWeight: 400, color: '#0F3F26', opacity: 0.7, marginLeft: 3 }}>km</small>
+            <small style={{ fontSize: 13, fontWeight: 400, color: '#345544', opacity: 0.7, marginLeft: 3 }}>km</small>
           </span>
         </div>
-        <div className="dr-sep h-9 w-px bg-[#e8e3da]" />
+        <div className="dr-sep h-9 w-px bg-[#345544]/[0.15]" />
         <div className="dr-stat flex flex-col gap-1 text-center">
-          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#6b6b6b', letterSpacing: '0.12em', fontWeight: 500 }}>
+          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#345544', letterSpacing: '0.12em', fontWeight: 600, opacity: 0.65 }}>
             Tiempo
           </span>
-          <span style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 26, color: '#1A5C38', letterSpacing: '-0.01em' }}>
+          <span style={{ fontFamily: MONTSERRAT, fontWeight: 600, fontSize: 26, color: '#345544', letterSpacing: '-0.01em' }}>
             {banner?.min ?? 0}
-            <small style={{ fontSize: 13, fontWeight: 400, color: '#0F3F26', opacity: 0.7, marginLeft: 3 }}>min en auto</small>
+            <small style={{ fontSize: 13, fontWeight: 400, color: '#345544', opacity: 0.7, marginLeft: 3 }}>min en auto</small>
           </span>
         </div>
       </div>
@@ -408,7 +415,7 @@ export default function MapaDistritoRoldanClient() {
           border: 0;
           padding: 6px 14px;
           border-radius: 6px;
-          font: 600 12px/1 ${RALEWAY};
+          font: 600 12px/1 ${MONTSERRAT};
           box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
           letter-spacing: 0.02em;
         }
@@ -421,14 +428,14 @@ export default function MapaDistritoRoldanClient() {
           border: 0;
           padding: 5px 12px;
           border-radius: 6px;
-          font: 500 12px/1 ${RALEWAY};
+          font: 500 12px/1 ${MONTSERRAT};
           box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
         }
         .leaflet-tooltip.tt-dest::before {
           display: none;
         }
         .dr-btn:hover:not([data-active='true']) {
-          border-color: #b8935a !important;
+          border-color: #b35e21 !important;
           transform: translateY(-1px);
           box-shadow: 0 4px 14px rgba(15, 63, 38, 0.08);
         }
@@ -443,6 +450,14 @@ export default function MapaDistritoRoldanClient() {
         }
         .dr-pulse {
           animation: dr-pulse 1s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .dr-btn,
+          .dr-banner,
+          .dr-pulse {
+            animation: none !important;
+            transition: none !important;
+          }
         }
         @media (max-width: 640px) {
           .dr-banner {

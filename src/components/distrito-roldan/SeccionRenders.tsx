@@ -1,10 +1,6 @@
 import Image from 'next/image'
 
-const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
-const POPPINS = 'var(--font-poppins), Poppins, sans-serif'
-
 interface Bloque {
-  cifra: string
   titulo: string
   frase: string
   detalle: string
@@ -17,7 +13,6 @@ interface Bloque {
 
 const BLOQUES: Bloque[] = [
   {
-    cifra: '159',
     titulo: 'Lotes residenciales',
     frase: 'La calma que buscás, con la conexión que necesitás.',
     detalle:
@@ -27,7 +22,6 @@ const BLOQUES: Bloque[] = [
     imagenDerecha: false,
   },
   {
-    cifra: '21',
     titulo: 'Lotes comerciales',
     frase: 'Con frente Ruta 9 y dársenas de estacionamiento.',
     detalle:
@@ -44,22 +38,22 @@ const BLOQUES: Bloque[] = [
 
 export default function SeccionRenders() {
   return (
-    <section className="bg-[#FAF7F2] px-6 py-24 md:py-[120px]">
+    <section className="bg-white px-6 py-20 md:py-28">
       <div className="mx-auto max-w-[1180px]">
         {BLOQUES.map((b, i) => (
           <div
             key={b.titulo}
-            className={`grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-16 ${i < BLOQUES.length - 1 ? 'mb-16 lg:mb-[100px]' : ''}`}
+            className={`grid grid-cols-1 items-center gap-9 lg:grid-cols-[1.15fr_.85fr] lg:gap-20 ${i < BLOQUES.length - 1 ? 'mb-20 lg:mb-32' : ''}`}
           >
             {/* Imagen (+ galería secundaria opcional) */}
             <div className={b.imagenDerecha ? 'order-1 lg:order-2' : 'order-1'}>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-lg">
-                <Image src={b.img} alt={b.alt} fill sizes="(max-width: 1024px) 100vw, 590px" className="object-cover" />
+              <div className={`relative overflow-hidden ${i === 0 ? 'aspect-[1491/1055]' : 'aspect-[1672/941]'}`}>
+                <Image src={b.img} alt={b.alt} fill sizes="(max-width: 1024px) 100vw, 680px" className="object-cover" />
               </div>
               {b.galeria && (
-                <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="mt-3 grid grid-cols-2 gap-3">
                   {b.galeria.map(g => (
-                    <div key={g.img} className="relative aspect-[4/3] overflow-hidden rounded-xl shadow-md">
+                    <div key={g.img} className="relative aspect-[16/9] overflow-hidden">
                       <Image src={g.img} alt={g.alt} fill sizes="(max-width: 1024px) 50vw, 287px" className="object-cover" />
                     </div>
                   ))}
@@ -69,16 +63,14 @@ export default function SeccionRenders() {
 
             {/* Texto */}
             <div className={b.imagenDerecha ? 'order-2 lg:order-1' : 'order-2'}>
-              <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 'clamp(72px, 8vw, 120px)', lineHeight: 1, color: '#1A5C38' }}>
-                {b.cifra}
-              </p>
-              <p className="mb-6 mt-2 uppercase text-[#1A5C38]" style={{ fontWeight: 600, letterSpacing: '0.18em', fontSize: 13 }}>
-                {b.titulo}
-              </p>
-              <p style={{ fontFamily: RALEWAY, fontWeight: 300, fontStyle: 'italic', fontSize: 22, lineHeight: 1.45, color: '#0F3F26' }}>
+              <p className="text-sm font-semibold text-[#B35E21]">{b.titulo}</p>
+              <h2 className="mt-4 text-balance text-[clamp(32px,4vw,52px)] font-bold leading-[1.08] tracking-[-0.03em] text-[#345544]">
                 {b.frase}
-              </p>
-              <p className="mt-5 text-[14px] leading-[1.7] text-[#6b6b6b]">{b.detalle}</p>
+              </h2>
+              <p className="mt-6 max-w-[55ch] text-[15px] leading-7 text-[#345544]/75">{b.detalle}</p>
+              <a href="#plano" className="mt-7 inline-flex min-h-11 items-center border-b border-[#B35E21] text-sm font-semibold text-[#345544] transition-colors hover:text-[#B35E21]">
+                Ver ubicación de los lotes
+              </a>
             </div>
           </div>
         ))}
