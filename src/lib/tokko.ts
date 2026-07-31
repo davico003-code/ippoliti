@@ -1,4 +1,5 @@
 import { normalizeArWhatsapp } from './phone'
+import { corregirTipo } from './correcciones'
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
 // del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
@@ -149,7 +150,10 @@ export interface TokkoListResponse {
 // sanitizeProperty reconstruye el objeto property dejando SOLO los campos
 // declarados, así nada interno de la API de Tokko llega al HTML.
 export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
-  return {
+  // corregirTipo: repara al vuelo propiedades mal tipificadas en el CRM (p. ej.
+  // un departamento cargado como casa), que si no rompen los filtros y la
+  // agrupación por edificio. Ver lib/correcciones.ts.
+  return corregirTipo({
     id: p.id,
     publication_title: p.publication_title,
     address: p.address,
@@ -244,7 +248,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
           picture: p.producer.picture ?? null,
         }
       : null,
-  };
+  });
 }
 
 // ─── Productor (asesor asignado en Tokko) ───────────────────────────────────
