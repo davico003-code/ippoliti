@@ -99,14 +99,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Landings de tasación (/tasar/{tipo}-{barrio}). Priorizamos los barrios con
   // negocio real: cerrados o con muestras propias de terrenos.
-  const tasadorRoutes: MetadataRoute.Sitemap = BARRIOS_TASADOR
-    .filter((b) => b.cerrado || b.muestras > 0)
-    .flatMap((b) => ['casa', 'lote'].map((tipo) => ({
+  const tasadorRoutes: MetadataRoute.Sitemap = BARRIOS_TASADOR.flatMap((b) => {
+    const tipos: string[] = []
+    if (b.cerrado || b.muestras > 0) tipos.push('casa', 'lote')
+    if (b.muestrasDepto > 0 || b.ciudad === 'Rosario') tipos.push('departamento')
+    return tipos.map((tipo) => ({
       url: `${BASE}/tasar/${tipo}-${b.slug}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
-      priority: b.muestras > 0 ? 0.8 : 0.6,
-    })))
+      priority: b.muestras > 0 || b.muestrasDepto > 0 ? 0.8 : 0.6,
+    }))
+  })
 
   // Páginas de edificio (departamentos agrupados por dirección).
   let edificioRoutes: MetadataRoute.Sitemap = []

@@ -234,6 +234,10 @@ export default function TasacionesPage() {
               ['casa-san-sebastian', 'Casa en San Sebastián'],
               ['casa-tierra-de-suenos-2', 'Casa en Tierra de Sueños 2'],
               ['lote-funes-lakes', 'Lote en Funes Lakes'],
+              ['departamento-centro-rosario', 'Depto en Centro (Rosario)'],
+              ['departamento-pichincha', 'Depto en Pichincha'],
+              ['departamento-echesortu', 'Depto en Echesortu'],
+              ['departamento-fisherton', 'Depto en Fisherton'],
             ].map(([slug, label]) => (
               <a
                 key={slug}

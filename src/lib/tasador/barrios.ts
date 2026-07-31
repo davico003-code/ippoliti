@@ -1,25 +1,35 @@
-// AUTO-GENERADO desde OpenStreetMap (Overpass) + feed HILO — 2026-07-25
-// Barrios de Funes y Roldán para las landings de tasación (/tasar/[slug]).
-//   ppm2    = USD/m² de tierra calculado con terrenos reales del feed (null = usar
-//             el promedio de la ciudad; ver PPM2_CIUDAD).
-//   muestras= cuántos terrenos respaldan ese ppm2 (transparencia del dato).
-// Regenerar: scripts/tasador/generar-barrios.mjs
+// AUTO-GENERADO desde OpenStreetMap (Overpass) + feed HILO — 2026-07-26
+// Barrios de Funes, Roldán y Rosario para las landings de tasación.
+//   ppm2       = USD/m² de TIERRA (terrenos del feed). Para casas y lotes.
+//   ppm2Depto  = USD/m² CUBIERTO de departamentos comparables de la zona.
+//   null       = sin muestra propia: se usa el promedio de la ciudad.
+// Regenerar: ver scripts/tasador/README.md
 
 export interface BarrioTasador {
   slug: string
   nombre: string
-  ciudad: "Funes" | "Roldán"
+  ciudad: "Funes" | "Roldán" | "Rosario"
   lat: number
   lon: number
   cerrado: boolean
   ppm2: number | null
   muestras: number
+  ppm2Depto: number | null
+  muestrasDepto: number
 }
 
-// Promedio de tierra por ciudad — fallback para barrios sin muestra propia.
-export const PPM2_CIUDAD: Record<"Funes" | "Roldán", number> = {
+// Promedios por ciudad — fallback cuando el barrio no tiene muestra propia.
+export const PPM2_CIUDAD: Record<string, number> = {
   "Funes": 176,
   "Roldán": 106,
+  "Rosario": 400,
+}
+
+// Departamentos: USD/m² cubierto promedio por ciudad.
+export const PPM2_DEPTO_CIUDAD: Record<string, number> = {
+  "Funes": 2150,
+  "Roldán": 1500,
+  "Rosario": 2182,
 }
 
 export const BARRIOS_TASADOR: BarrioTasador[] = [
@@ -31,7 +41,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.811,
     "cerrado": false,
     "ppm2": 176,
-    "muestras": 36
+    "muestras": 36,
+    "ppm2Depto": 2150,
+    "muestrasDepto": 1
   },
   {
     "slug": "roldan",
@@ -41,7 +53,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.913,
     "cerrado": false,
     "ppm2": 106,
-    "muestras": 26
+    "muestras": 26,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "abra-casas-concretas",
@@ -51,7 +65,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83169,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "aero-funes",
@@ -61,7 +77,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.77602,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "aguadas",
@@ -71,7 +89,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80767,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "alfonsin",
@@ -81,7 +101,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81298,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "altos-de-funes",
@@ -91,7 +113,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80575,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "atardeceres-de-funes",
@@ -101,7 +125,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83032,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "barani",
@@ -111,7 +137,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.77937,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "barquia-3",
@@ -121,7 +149,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81379,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "brancatelli",
@@ -131,7 +161,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84824,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "brisas-de-funes",
@@ -141,7 +173,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83272,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "brisas-de-funes-1",
@@ -151,7 +185,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83287,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "brisas-de-funes-2",
@@ -161,7 +197,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83285,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "brisas-de-funes-3",
@@ -171,7 +209,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83135,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "buena-vista",
@@ -181,7 +221,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81835,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "cadaques",
@@ -191,7 +233,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83195,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "calmo",
@@ -201,7 +245,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81507,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "candelaria",
@@ -211,7 +257,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81231,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "cannes",
@@ -221,7 +269,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.79923,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "cantegril",
@@ -231,7 +281,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84566,
     "cerrado": false,
     "ppm2": 196,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "cantore-linare",
@@ -241,7 +293,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85539,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "carpanetto",
@@ -251,7 +305,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.7989,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "colinas-de-funes",
@@ -261,7 +317,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84545,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "condo-funes",
@@ -271,7 +329,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80292,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "condominio-las-moras",
@@ -281,7 +341,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80134,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "condominios-bagua",
@@ -291,7 +353,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81631,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "condominios-dm",
@@ -301,7 +365,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84926,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "condominios-dm-2",
@@ -311,7 +377,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85526,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "condominios-pedro-rios",
@@ -321,7 +389,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.82269,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "damfield-residencial",
@@ -331,7 +401,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81492,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "don-bosco",
@@ -341,7 +413,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80899,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "don-bosco-ii",
@@ -351,7 +425,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80762,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "don-ignacio",
@@ -361,7 +437,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86308,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "don-juan",
@@ -371,7 +449,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80502,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "don-luis",
@@ -381,7 +461,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85828,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "don-mateo",
@@ -391,7 +473,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85489,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "drazi",
@@ -401,7 +485,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8357,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-bosquecillo",
@@ -411,7 +497,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84992,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-palomar",
@@ -421,7 +509,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83417,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-sol-de-funes",
@@ -431,7 +521,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85244,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "funes-centro",
@@ -441,7 +533,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8109,
     "cerrado": false,
     "ppm2": 483,
-    "muestras": 2
+    "muestras": 2,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "funes-city",
@@ -451,7 +545,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.79823,
     "cerrado": false,
     "ppm2": 155,
-    "muestras": 2
+    "muestras": 2,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "funes-green-house",
@@ -461,7 +557,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80201,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "funes-lakes",
@@ -471,7 +569,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.79824,
     "cerrado": true,
     "ppm2": 187,
-    "muestras": 7
+    "muestras": 7,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "funes-norte",
@@ -481,7 +581,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81018,
     "cerrado": false,
     "ppm2": 118,
-    "muestras": 5
+    "muestras": 5,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "funes-ranch",
@@ -491,7 +593,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85304,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "funes-suites",
@@ -501,7 +605,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8319,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "haras-de-funes",
@@ -511,7 +617,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84153,
     "cerrado": true,
     "ppm2": 81,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "inmobiliaria-parque",
@@ -521,7 +629,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81963,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "islas-malvinas",
@@ -531,7 +641,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.79202,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "kentucky",
@@ -541,7 +653,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.82799,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "km-318",
@@ -551,7 +665,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.79934,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "km-323",
@@ -561,7 +677,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85138,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-cardera",
@@ -571,7 +689,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.82724,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-finca-country-club",
@@ -581,7 +701,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.77069,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-finca-ii",
@@ -591,7 +713,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81945,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-florida",
@@ -601,7 +725,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80607,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-guillermina",
@@ -611,7 +737,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85522,
     "cerrado": false,
     "ppm2": 82,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-rural",
@@ -621,7 +749,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84105,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-siesta",
@@ -631,7 +761,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8345,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-calandrias",
@@ -641,7 +773,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84949,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-glicinas",
@@ -651,7 +785,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80185,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-glicinas-2",
@@ -661,7 +797,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8021,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-glicinas-3",
@@ -671,7 +809,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80192,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-quintas",
@@ -681,7 +821,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85771,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "latucca-y-mondini",
@@ -691,7 +833,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83046,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "lomas-de-funes",
@@ -701,7 +845,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81476,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-2-chinos",
@@ -711,7 +857,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80227,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-aljibes",
@@ -721,7 +869,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.82159,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-chalecitos",
@@ -731,7 +881,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81724,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-girasoles",
@@ -741,7 +893,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8341,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-morros",
@@ -751,7 +905,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83066,
     "cerrado": false,
     "ppm2": 128,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-nogales",
@@ -761,7 +917,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.82318,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-solares",
@@ -771,7 +929,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.78985,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-troncos",
@@ -781,7 +941,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8185,
     "cerrado": false,
     "ppm2": 211,
-    "muestras": 2
+    "muestras": 2,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "maria-auxiliadora",
@@ -791,7 +953,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80023,
     "cerrado": false,
     "ppm2": 180,
-    "muestras": 4
+    "muestras": 4,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "miraflores",
@@ -801,7 +965,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84021,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "mojon-de-funes",
@@ -811,7 +977,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8323,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "ocho-sauces",
@@ -821,7 +989,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83567,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "pao-pey",
@@ -831,7 +1001,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84019,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "paseo-del-norte",
@@ -841,7 +1013,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81199,
     "cerrado": false,
     "ppm2": 96,
-    "muestras": 3
+    "muestras": 3,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "proa-200",
@@ -851,7 +1025,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84103,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "profesional-country-club",
@@ -861,7 +1037,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85664,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "propio-hogar",
@@ -871,7 +1049,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84673,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "pueblo-funes",
@@ -881,7 +1061,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81665,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "puente-golf",
@@ -891,7 +1073,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.76469,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "puerta-del-sol",
@@ -901,7 +1085,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.78065,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "quinta-natacha",
@@ -911,7 +1097,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.82654,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "residencial-funes",
@@ -921,7 +1109,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84193,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "rincon-de-funes",
@@ -931,7 +1121,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80105,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "rincon-de-la-arboleda",
@@ -941,7 +1133,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84849,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "rio-de-pajaros",
@@ -951,7 +1145,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80134,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "rudof",
@@ -961,7 +1157,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81151,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-alberto-2",
@@ -971,7 +1169,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86385,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-jose",
@@ -981,7 +1181,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81132,
     "cerrado": false,
     "ppm2": 107,
-    "muestras": 2
+    "muestras": 2,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-juan",
@@ -991,7 +1193,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80079,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": 2083,
+    "muestrasDepto": 5
   },
   {
     "slug": "san-marino",
@@ -1001,7 +1205,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.82374,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-sebastian",
@@ -1011,7 +1217,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8082,
     "cerrado": true,
     "ppm2": 253,
-    "muestras": 3
+    "muestras": 3,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-telmo",
@@ -1021,7 +1229,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81367,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "santa-isabel-3",
@@ -1031,7 +1241,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8595,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "santa-isabel-4",
@@ -1041,7 +1253,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86031,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "scaglione",
@@ -1051,7 +1265,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81751,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "sol-de-funes",
@@ -1061,7 +1277,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8358,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "terraz-funes",
@@ -1071,7 +1289,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81317,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "tomas-de-la-torre",
@@ -1081,7 +1301,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.78834,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "top-funes",
@@ -1091,7 +1313,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.83539,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "travaccio",
@@ -1101,7 +1325,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.79371,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "turcatto",
@@ -1111,7 +1337,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85267,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "vazquez-rey",
@@ -1121,7 +1349,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81008,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "velez-sarsfield",
@@ -1131,7 +1361,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.81458,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "vida",
@@ -1141,7 +1373,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.79352,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "vida-club-de-campo",
@@ -1151,7 +1385,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.78773,
     "cerrado": true,
     "ppm2": 146,
-    "muestras": 2
+    "muestras": 2,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "vida-crystal-lagoon",
@@ -1161,7 +1397,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.84776,
     "cerrado": true,
     "ppm2": 141,
-    "muestras": 4
+    "muestras": 4,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "vida-green",
@@ -1171,7 +1409,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8019,
     "cerrado": true,
     "ppm2": 110,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "vida-jardin",
@@ -1181,7 +1421,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.85246,
     "cerrado": true,
     "ppm2": 168,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-del-sol",
@@ -1191,7 +1433,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80902,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-elvira",
@@ -1201,7 +1445,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.79626,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-ercolina",
@@ -1211,7 +1457,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.80541,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-golf",
@@ -1221,7 +1469,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.77159,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "acequias-del-aire",
@@ -1231,7 +1481,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87255,
     "cerrado": false,
     "ppm2": 106,
-    "muestras": 3
+    "muestras": 3,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "aires-de-campo",
@@ -1241,7 +1493,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87433,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "alto-residencial",
@@ -1251,7 +1505,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89203,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "alto-verde",
@@ -1261,7 +1517,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87218,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "altos-de-pellegrini",
@@ -1271,7 +1529,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.91751,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "altos-del-este",
@@ -1281,7 +1541,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89813,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "america",
@@ -1291,7 +1553,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.91082,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "arrabal",
@@ -1301,7 +1565,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.90258,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "aurea",
@@ -1311,7 +1577,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89298,
     "cerrado": false,
     "ppm2": 70,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "beaudrix",
@@ -1321,7 +1589,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.9046,
     "cerrado": false,
     "ppm2": 78,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "belisario-roldan",
@@ -1331,7 +1601,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89652,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "bosque-azul",
@@ -1341,7 +1613,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88829,
     "cerrado": true,
     "ppm2": 77,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "brofft",
@@ -1351,7 +1625,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.91631,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "capra",
@@ -1361,7 +1637,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87987,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "chacra-los-raigales",
@@ -1371,7 +1649,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89615,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "cotitos-r",
@@ -1381,7 +1661,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86905,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "cotos-de-la-alameda",
@@ -1391,7 +1673,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.877,
     "cerrado": true,
     "ppm2": 72,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "cotos-de-la-alameda-ii",
@@ -1401,7 +1685,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8845,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "cotos-unanue",
@@ -1411,7 +1697,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87106,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "delle-vedove",
@@ -1421,7 +1709,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.91058,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "distrito-roldan",
@@ -1431,7 +1721,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88838,
     "cerrado": false,
     "ppm2": 180,
-    "muestras": 4
+    "muestras": 4,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "don-quijote",
@@ -1441,7 +1733,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89279,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "edelweiss",
@@ -1451,7 +1745,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86744,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-alba",
@@ -1461,7 +1757,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88385,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-charquito",
@@ -1471,7 +1769,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.9127,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-cielo",
@@ -1481,7 +1781,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88111,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-cruce",
@@ -1491,7 +1793,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89657,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-descanso",
@@ -1501,7 +1805,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.90174,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-eden",
@@ -1511,7 +1817,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88855,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-molino",
@@ -1521,7 +1829,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87393,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-sol-naciente",
@@ -1531,7 +1841,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89059,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-summun",
@@ -1541,7 +1853,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86614,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "el-troncal",
@@ -1551,7 +1865,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89233,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "estacion-roldan",
@@ -1561,7 +1877,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87941,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "estancia-la-catalina",
@@ -1571,7 +1889,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.9155,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "fontanet",
@@ -1581,7 +1901,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.90204,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "funes-town",
@@ -1591,7 +1913,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86024,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-estancia-i",
@@ -1601,7 +1925,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86722,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-estancia-ii",
@@ -1611,7 +1937,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86695,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-ilusion-polo-lakeside",
@@ -1621,7 +1949,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.929,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "la-ilusion-ranches",
@@ -1631,7 +1961,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.92556,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-acequias",
@@ -1641,7 +1973,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8836,
     "cerrado": false,
     "ppm2": 110,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-estacas-i",
@@ -1651,7 +1985,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.9137,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-estacas-ii",
@@ -1661,7 +1997,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89053,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-palmeras",
@@ -1671,7 +2009,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88685,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "las-tardes",
@@ -1681,7 +2021,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88107,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "lenaue",
@@ -1691,7 +2033,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86438,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-aromos",
@@ -1701,7 +2045,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88042,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-cedros",
@@ -1711,7 +2057,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88842,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-cocos",
@@ -1721,7 +2069,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.91678,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-indios",
@@ -1731,7 +2081,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86899,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-olmos",
@@ -1741,7 +2093,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89635,
     "cerrado": false,
     "ppm2": 87,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "los-rosales",
@@ -1751,7 +2105,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87707,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "maiz",
@@ -1761,7 +2117,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88549,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "makey",
@@ -1771,7 +2129,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88663,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "marcos-ateca",
@@ -1781,7 +2141,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.90676,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "maria-esther",
@@ -1791,7 +2153,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88675,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "mazzoni-de-bernaschini",
@@ -1801,7 +2165,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87862,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "mi-sosiego",
@@ -1811,7 +2177,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86908,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "muradore",
@@ -1821,7 +2189,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.91813,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "nadine",
@@ -1831,7 +2201,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.91546,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "parque-esmeralda",
@@ -1841,7 +2213,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88444,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "posta-16",
@@ -1851,7 +2225,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89692,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "prados-del-sol",
@@ -1861,7 +2237,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87316,
     "cerrado": true,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "prosperity-lands",
@@ -1871,7 +2249,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87801,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "pucara-los-buhos",
@@ -1881,7 +2261,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.9067,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "puerto-roldan",
@@ -1891,7 +2273,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88506,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "punta-chacra",
@@ -1901,7 +2285,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.9367,
     "cerrado": false,
     "ppm2": 43,
-    "muestras": 1
+    "muestras": 1,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "punta-chacra-weekend-1",
@@ -1911,7 +2297,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.93293,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "punta-chacra-weekend-2",
@@ -1921,7 +2309,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.93765,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "quintas-de-funes",
@@ -1931,7 +2321,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86519,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-alberto",
@@ -1941,7 +2333,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86349,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-andres",
@@ -1951,7 +2345,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89591,
     "cerrado": false,
     "ppm2": 91,
-    "muestras": 3
+    "muestras": 3,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-eduardo-i",
@@ -1961,7 +2357,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88785,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "san-javier",
@@ -1971,7 +2369,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.9164,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "santa-isabel-1",
@@ -1981,7 +2381,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86407,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "santa-isabel-2",
@@ -1991,7 +2393,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86343,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "santa-isabel-5",
@@ -2001,7 +2405,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86296,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "santa-isabel-j-a",
@@ -2011,7 +2417,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86707,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "santa-teresa",
@@ -2021,7 +2429,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89026,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "santo-domingo",
@@ -2031,7 +2441,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.91923,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "tierra-de-suenos-1",
@@ -2041,7 +2453,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89756,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "tierra-de-suenos-2",
@@ -2051,7 +2465,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89312,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "tierra-de-suenos-3",
@@ -2061,7 +2477,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88475,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "travattore-giandomenico",
@@ -2071,7 +2489,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88592,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "tu-lugar",
@@ -2081,7 +2501,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.90119,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-alda",
@@ -2091,7 +2513,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89835,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-alicia",
@@ -2101,7 +2525,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.87259,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-celina",
@@ -2111,7 +2537,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.89855,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-eduardito",
@@ -2121,7 +2549,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.88163,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-flores",
@@ -2131,7 +2561,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.90662,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-lourdes-1",
@@ -2141,7 +2573,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86944,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "villa-lourdes-2",
@@ -2151,7 +2585,9 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.8706,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   },
   {
     "slug": "wirth",
@@ -2161,14 +2597,2039 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
     "lon": -60.86765,
     "cerrado": false,
     "ppm2": null,
-    "muestras": 0
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "rosario",
+    "nombre": "Rosario",
+    "ciudad": "Rosario",
+    "lat": -32.9468,
+    "lon": -60.6393,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 2182,
+    "muestrasDepto": 61
+  },
+  {
+    "slug": "centro-rosario",
+    "nombre": "Centro",
+    "ciudad": "Rosario",
+    "lat": -32.9468,
+    "lon": -60.6393,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 2218,
+    "muestrasDepto": 21
+  },
+  {
+    "slug": "pichincha",
+    "nombre": "Pichincha",
+    "ciudad": "Rosario",
+    "lat": -32.935,
+    "lon": -60.648,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 2562,
+    "muestrasDepto": 5
+  },
+  {
+    "slug": "macrocentro",
+    "nombre": "Macrocentro",
+    "ciudad": "Rosario",
+    "lat": -32.952,
+    "lon": -60.652,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 2790,
+    "muestrasDepto": 1
+  },
+  {
+    "slug": "microcentro",
+    "nombre": "Microcentro",
+    "ciudad": "Rosario",
+    "lat": -32.944,
+    "lon": -60.64,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 1364,
+    "muestrasDepto": 1
+  },
+  {
+    "slug": "refineria",
+    "nombre": "Refinería",
+    "ciudad": "Rosario",
+    "lat": -32.92,
+    "lon": -60.66,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "arroyito",
+    "nombre": "Arroyito",
+    "ciudad": "Rosario",
+    "lat": -32.91,
+    "lon": -60.67,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "14-de-octubre",
+    "nombre": "14 de Octubre",
+    "ciudad": "Rosario",
+    "lat": -32.997,
+    "lon": -60.66342,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "17-de-agosto",
+    "nombre": "17 de Agosto",
+    "ciudad": "Rosario",
+    "lat": -33.01189,
+    "lon": -60.66006,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "7-de-septiembre",
+    "nombre": "7 de Septiembre",
+    "ciudad": "Rosario",
+    "lat": -32.9117,
+    "lon": -60.73189,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "abasto",
+    "nombre": "Abasto",
+    "ciudad": "Rosario",
+    "lat": -32.96164,
+    "lon": -60.64705,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "acindar",
+    "nombre": "Acindar",
+    "ciudad": "Rosario",
+    "lat": -32.98408,
+    "lon": -60.67983,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "alberdi",
+    "nombre": "Alberdi",
+    "ciudad": "Rosario",
+    "lat": -32.89509,
+    "lon": -60.69318,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "albert-schweitzer",
+    "nombre": "Albert Schweitzer",
+    "ciudad": "Rosario",
+    "lat": -32.91236,
+    "lon": -60.71496,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "alberto-olmedo",
+    "nombre": "Alberto Olmedo",
+    "ciudad": "Rosario",
+    "lat": -32.93821,
+    "lon": -60.65968,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "aldea-del-lago",
+    "nombre": "Aldea del Lago",
+    "ciudad": "Rosario",
+    "lat": -32.91164,
+    "lon": -60.75304,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "altos-de-mendoza",
+    "nombre": "Altos de Mendoza",
+    "ciudad": "Rosario",
+    "lat": -32.94515,
+    "lon": -60.72792,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "alvear",
+    "nombre": "Alvear",
+    "ciudad": "Rosario",
+    "lat": -32.97746,
+    "lon": -60.67851,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "amiga",
+    "nombre": "Amiga",
+    "ciudad": "Rosario",
+    "lat": -32.92107,
+    "lon": -60.73056,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "antartida-argentina",
+    "nombre": "Antártida Argentina",
+    "ciudad": "Rosario",
+    "lat": -32.9342,
+    "lon": -60.73137,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "arboria",
+    "nombre": "Arboria",
+    "ciudad": "Rosario",
+    "lat": -32.9473,
+    "lon": -60.7686,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "azcuenaga",
+    "nombre": "Azcuénaga",
+    "ciudad": "Rosario",
+    "lat": -32.9426,
+    "lon": -60.69836,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "barrio-ingles",
+    "nombre": "Barrio Inglés",
+    "ciudad": "Rosario",
+    "lat": -32.92961,
+    "lon": -60.67304,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "barrio-moreno",
+    "nombre": "Barrio Moreno",
+    "ciudad": "Rosario",
+    "lat": -32.98058,
+    "lon": -60.66015,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "belgrano",
+    "nombre": "Belgrano",
+    "ciudad": "Rosario",
+    "lat": -32.94097,
+    "lon": -60.71336,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 3987,
+    "muestrasDepto": 1
+  },
+  {
+    "slug": "bella-vista",
+    "nombre": "Bella Vista",
+    "ciudad": "Rosario",
+    "lat": -32.96675,
+    "lon": -60.68081,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "bernardo-de-irigoyen",
+    "nombre": "Bernardo de Irigoyen",
+    "ciudad": "Rosario",
+    "lat": -33.0135,
+    "lon": -60.64973,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "celedonio-escalada",
+    "nombre": "Celedonio Escalada",
+    "ciudad": "Rosario",
+    "lat": -32.87493,
+    "lon": -60.72998,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "cinco-esquinas",
+    "nombre": "Cinco Esquinas",
+    "ciudad": "Rosario",
+    "lat": -32.95435,
+    "lon": -60.68203,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "ciudad-ribera",
+    "nombre": "Ciudad Ribera",
+    "ciudad": "Rosario",
+    "lat": -32.92343,
+    "lon": -60.66379,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "club-duendes",
+    "nombre": "Club Duendes",
+    "ciudad": "Rosario",
+    "lat": -33.00564,
+    "lon": -60.68491,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "colombres",
+    "nombre": "Colombres",
+    "ciudad": "Rosario",
+    "lat": -32.93362,
+    "lon": -60.74183,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "condo-del-bosque",
+    "nombre": "Condo del Bosque",
+    "ciudad": "Rosario",
+    "lat": -32.89687,
+    "lon": -60.73651,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "condominios-del-alto",
+    "nombre": "Condominios del Alto",
+    "ciudad": "Rosario",
+    "lat": -32.92793,
+    "lon": -60.66482,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "condominios-palos-verdes",
+    "nombre": "Condominios Palos Verdes",
+    "ciudad": "Rosario",
+    "lat": -32.89978,
+    "lon": -60.7462,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "condos-tierra-nueva",
+    "nombre": "Condos Tierra Nueva",
+    "ciudad": "Rosario",
+    "lat": -32.93124,
+    "lon": -60.76362,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "cordon-ayacucho",
+    "nombre": "Cordón Ayacucho",
+    "ciudad": "Rosario",
+    "lat": -32.98852,
+    "lon": -60.63513,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "country-carlos-pellegrini",
+    "nombre": "Country Carlos Pellegrini",
+    "ciudad": "Rosario",
+    "lat": -32.9327,
+    "lon": -60.75509,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "country-golf-rosario",
+    "nombre": "Country Golf Rosario",
+    "ciudad": "Rosario",
+    "lat": -32.92091,
+    "lon": -60.77199,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "country-tenis-aldea",
+    "nombre": "Country Tenis Aldea",
+    "ciudad": "Rosario",
+    "lat": -32.91178,
+    "lon": -60.75806,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "cristaleria",
+    "nombre": "Cristalería",
+    "ciudad": "Rosario",
+    "lat": -32.88135,
+    "lon": -60.73156,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "domingo-faustino-sarmiento",
+    "nombre": "Domingo Faustino Sarmiento",
+    "ciudad": "Rosario",
+    "lat": -32.90643,
+    "lon": -60.68773,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "domingo-matheu",
+    "nombre": "Domingo Matheu",
+    "ciudad": "Rosario",
+    "lat": -32.98186,
+    "lon": -60.65377,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "echesortu",
+    "nombre": "Echesortu",
+    "ciudad": "Rosario",
+    "lat": -32.9436,
+    "lon": -60.68237,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 1978,
+    "muestrasDepto": 3
+  },
+  {
+    "slug": "el-grafico",
+    "nombre": "El Gráfico",
+    "ciudad": "Rosario",
+    "lat": -32.9362,
+    "lon": -60.74541,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "el-mangrullo",
+    "nombre": "El Mangrullo",
+    "ciudad": "Rosario",
+    "lat": -32.99794,
+    "lon": -60.61588,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "empalme-graneros",
+    "nombre": "Empalme Graneros",
+    "ciudad": "Rosario",
+    "lat": -32.92113,
+    "lon": -60.70693,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "espana-y-hospitales",
+    "nombre": "España y Hospitales",
+    "ciudad": "Rosario",
+    "lat": -32.97138,
+    "lon": -60.65234,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "estacion-el-gaucho",
+    "nombre": "Estación El Gaucho",
+    "ciudad": "Rosario",
+    "lat": -33.00524,
+    "lon": -60.68727,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "esteban-echeverria",
+    "nombre": "Esteban Echeverría",
+    "ciudad": "Rosario",
+    "lat": -32.99499,
+    "lon": -60.62423,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "fisherton",
+    "nombre": "Fisherton",
+    "ciudad": "Rosario",
+    "lat": -32.91857,
+    "lon": -60.73818,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 2105,
+    "muestrasDepto": 9
+  },
+  {
+    "slug": "fisherton-del-este",
+    "nombre": "Fisherton del Este",
+    "ciudad": "Rosario",
+    "lat": -32.91227,
+    "lon": -60.7193,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "fisherton-industrial",
+    "nombre": "Fisherton Industrial",
+    "ciudad": "Rosario",
+    "lat": -32.92365,
+    "lon": -60.71847,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "fisherton-r",
+    "nombre": "Fisherton R.",
+    "ciudad": "Rosario",
+    "lat": -32.92627,
+    "lon": -60.75734,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 1728,
+    "muestrasDepto": 1
+  },
+  {
+    "slug": "floresta",
+    "nombre": "Floresta",
+    "ciudad": "Rosario",
+    "lat": -32.94294,
+    "lon": -60.76072,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "fonavi-a-donado-y-mendoza",
+    "nombre": "Fonavi A Donado y Mendoza",
+    "ciudad": "Rosario",
+    "lat": -32.94377,
+    "lon": -60.72453,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "fonavi-b-donado-y-mendoza",
+    "nombre": "Fonavi B Donado y Mendoza",
+    "ciudad": "Rosario",
+    "lat": -32.93804,
+    "lon": -60.72578,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "fonavi-casiano-casas",
+    "nombre": "Fonavi Casiano Casas",
+    "ciudad": "Rosario",
+    "lat": -32.89805,
+    "lon": -60.71305,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "forum-puerto-norte",
+    "nombre": "Forum Puerto Norte",
+    "ciudad": "Rosario",
+    "lat": -32.92225,
+    "lon": -60.66514,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "general-las-heras",
+    "nombre": "General Las Heras",
+    "ciudad": "Rosario",
+    "lat": -32.98746,
+    "lon": -60.63723,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "general-san-martin",
+    "nombre": "General San Martín",
+    "ciudad": "Rosario",
+    "lat": -32.97648,
+    "lon": -60.63726,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "godoy",
+    "nombre": "Godoy",
+    "ciudad": "Rosario",
+    "lat": -32.96509,
+    "lon": -60.7212,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "grandoli",
+    "nombre": "Grandoli",
+    "ciudad": "Rosario",
+    "lat": -32.99276,
+    "lon": -60.62778,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "greenes-de-fisherton",
+    "nombre": "Greenes de Fisherton",
+    "ciudad": "Rosario",
+    "lat": -32.91635,
+    "lon": -60.77454,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "hostal-del-sol",
+    "nombre": "Hostal del Sol",
+    "ciudad": "Rosario",
+    "lat": -32.90479,
+    "lon": -60.75163,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "hostal-del-sol-oeste",
+    "nombre": "Hostal del Sol Oeste",
+    "ciudad": "Rosario",
+    "lat": -32.90502,
+    "lon": -60.76391,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "hoyo-12",
+    "nombre": "Hoyo 12",
+    "ciudad": "Rosario",
+    "lat": -32.92059,
+    "lon": -60.75455,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "hume",
+    "nombre": "Hume",
+    "ciudad": "Rosario",
+    "lat": -33.00198,
+    "lon": -60.68403,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "islas-malvinas",
+    "nombre": "Islas Malvinas",
+    "ciudad": "Rosario",
+    "lat": -32.92434,
+    "lon": -60.67016,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "jorge-cura",
+    "nombre": "Jorge Cura",
+    "ciudad": "Rosario",
+    "lat": -32.96836,
+    "lon": -60.66334,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "jose-ignacio-rucci",
+    "nombre": "Jose Ignacio Rucci",
+    "ciudad": "Rosario",
+    "lat": -32.88858,
+    "lon": -60.71287,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-bajada",
+    "nombre": "La Bajada",
+    "ciudad": "Rosario",
+    "lat": -32.99145,
+    "lon": -60.6413,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-banana",
+    "nombre": "La Banana",
+    "ciudad": "Rosario",
+    "lat": -32.96282,
+    "lon": -60.68893,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-ceramica",
+    "nombre": "La Cerámica",
+    "ciudad": "Rosario",
+    "lat": -32.8878,
+    "lon": -60.70541,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-esperanza",
+    "nombre": "La Esperanza",
+    "ciudad": "Rosario",
+    "lat": -32.89662,
+    "lon": -60.71116,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-floresta",
+    "nombre": "La Floresta",
+    "ciudad": "Rosario",
+    "lat": -32.87231,
+    "lon": -60.70801,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-florida",
+    "nombre": "La Florida",
+    "ciudad": "Rosario",
+    "lat": -32.87868,
+    "lon": -60.69192,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-granada",
+    "nombre": "La Granada",
+    "ciudad": "Rosario",
+    "lat": -33.01848,
+    "lon": -60.64864,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-guardia",
+    "nombre": "La Guardia",
+    "ciudad": "Rosario",
+    "lat": -32.98984,
+    "lon": -60.65589,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-roca",
+    "nombre": "La Roca",
+    "ciudad": "Rosario",
+    "lat": -32.97359,
+    "lon": -60.69709,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-tablada",
+    "nombre": "La Tablada",
+    "ciudad": "Rosario",
+    "lat": -32.9763,
+    "lon": -60.6304,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "la-travesia",
+    "nombre": "La Travesía",
+    "ciudad": "Rosario",
+    "lat": -32.9186,
+    "lon": -60.69195,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "larrea",
+    "nombre": "Larrea",
+    "ciudad": "Rosario",
+    "lat": -32.91666,
+    "lon": -60.71847,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "las-delicias",
+    "nombre": "Las Delicias",
+    "ciudad": "Rosario",
+    "lat": -33.00218,
+    "lon": -60.67083,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "las-flores",
+    "nombre": "Las Flores",
+    "ciudad": "Rosario",
+    "lat": -33.01676,
+    "lon": -60.65583,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "las-flores-norte",
+    "nombre": "Las Flores Norte",
+    "ciudad": "Rosario",
+    "lat": -33.0119,
+    "lon": -60.65403,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "las-flores-sur",
+    "nombre": "Las Flores Sur",
+    "ciudad": "Rosario",
+    "lat": -33.0201,
+    "lon": -60.65988,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "las-palmeras",
+    "nombre": "Las Palmeras",
+    "ciudad": "Rosario",
+    "lat": -32.9561,
+    "lon": -60.72329,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "las-torcazas",
+    "nombre": "Las Torcazas",
+    "ciudad": "Rosario",
+    "lat": -32.92044,
+    "lon": -60.75033,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "latinoamerica",
+    "nombre": "Latinoámerica",
+    "ciudad": "Rosario",
+    "lat": -32.96681,
+    "lon": -60.66601,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "lisandro-de-la-torre",
+    "nombre": "Lisandro de la Torre",
+    "ciudad": "Rosario",
+    "lat": -32.91658,
+    "lon": -60.67711,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "lomas-de-alberdi",
+    "nombre": "Lomas de Alberdi",
+    "ciudad": "Rosario",
+    "lat": -32.88131,
+    "lon": -60.7061,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "lomas-de-fisherton",
+    "nombre": "Lomas de Fisherton",
+    "ciudad": "Rosario",
+    "lat": -32.93836,
+    "lon": -60.73598,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-duendes",
+    "nombre": "Los Duendes",
+    "ciudad": "Rosario",
+    "lat": -33.00105,
+    "lon": -60.71256,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-humitos",
+    "nombre": "Los Humitos",
+    "ciudad": "Rosario",
+    "lat": -32.97017,
+    "lon": -60.72961,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-pasos-arroyo",
+    "nombre": "Los Pasos Arroyo",
+    "ciudad": "Rosario",
+    "lat": -32.9454,
+    "lon": -60.77354,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-pasos-barrios-abierto",
+    "nombre": "Los Pasos Barrios Abierto",
+    "ciudad": "Rosario",
+    "lat": -32.93772,
+    "lon": -60.76128,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-pasos-country",
+    "nombre": "Los Pasos Country",
+    "ciudad": "Rosario",
+    "lat": -32.93569,
+    "lon": -60.75496,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-pasos-fisherton",
+    "nombre": "Los Pasos Fisherton",
+    "ciudad": "Rosario",
+    "lat": -32.93859,
+    "lon": -60.76313,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-pasos-golf",
+    "nombre": "Los Pasos Golf",
+    "ciudad": "Rosario",
+    "lat": -32.93952,
+    "lon": -60.76711,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-pasos-puente",
+    "nombre": "Los Pasos Puente",
+    "ciudad": "Rosario",
+    "lat": -32.94366,
+    "lon": -60.76634,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-pinos",
+    "nombre": "Los Pinos",
+    "ciudad": "Rosario",
+    "lat": -32.87952,
+    "lon": -60.73275,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-pumitas",
+    "nombre": "Los Pumitas",
+    "ciudad": "Rosario",
+    "lat": -32.91132,
+    "lon": -60.70392,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-tilos",
+    "nombre": "Los Tilos",
+    "ciudad": "Rosario",
+    "lat": -32.88595,
+    "lon": -60.72948,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "los-unidos",
+    "nombre": "Los Unidos",
+    "ciudad": "Rosario",
+    "lat": -32.93834,
+    "lon": -60.7561,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "loteo-avellaneda-oeste",
+    "nombre": "Loteo Avellaneda Oeste",
+    "ciudad": "Rosario",
+    "lat": -32.98021,
+    "lon": -60.69249,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "luduena",
+    "nombre": "Ludueña",
+    "ciudad": "Rosario",
+    "lat": -32.93159,
+    "lon": -60.69222,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "luis-agote",
+    "nombre": "Luis Agote",
+    "ciudad": "Rosario",
+    "lat": -32.93512,
+    "lon": -60.67163,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "magnano",
+    "nombre": "Magnano",
+    "ciudad": "Rosario",
+    "lat": -33.01125,
+    "lon": -60.63937,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "martin",
+    "nombre": "Martin",
+    "ciudad": "Rosario",
+    "lat": -32.95391,
+    "lon": -60.63042,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 1908,
+    "muestrasDepto": 6
+  },
+  {
+    "slug": "metra-puerto-norte",
+    "nombre": "Metra Puerto Norte",
+    "ciudad": "Rosario",
+    "lat": -32.92115,
+    "lon": -60.6697,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "modena-fisherton",
+    "nombre": "Módena Fisherton",
+    "ciudad": "Rosario",
+    "lat": -32.93323,
+    "lon": -60.76247,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "moderno",
+    "nombre": "Moderno",
+    "ciudad": "Rosario",
+    "lat": -32.97761,
+    "lon": -60.69993,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "newbery",
+    "nombre": "Newbery",
+    "ciudad": "Rosario",
+    "lat": -32.9066,
+    "lon": -60.73421,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "nuestra-senora-de-la-paz",
+    "nombre": "Nuestra Señora de la Paz",
+    "ciudad": "Rosario",
+    "lat": -32.90256,
+    "lon": -60.70934,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "nuestra-senora-de-lourdes",
+    "nombre": "Nuestra Señora de Lourdes",
+    "ciudad": "Rosario",
+    "lat": -32.94841,
+    "lon": -60.66085,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 2156,
+    "muestrasDepto": 8
+  },
+  {
+    "slug": "nueva-fisherton",
+    "nombre": "Nueva Fisherton",
+    "ciudad": "Rosario",
+    "lat": -32.92827,
+    "lon": -60.73116,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 1902,
+    "muestrasDepto": 4
+  },
+  {
+    "slug": "nuevo-alberdi",
+    "nombre": "Nuevo Alberdi",
+    "ciudad": "Rosario",
+    "lat": -32.88867,
+    "lon": -60.72492,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "nuevo-alberdi-oeste",
+    "nombre": "Nuevo Alberdi Oeste",
+    "ciudad": "Rosario",
+    "lat": -32.89094,
+    "lon": -60.73012,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "palos-verdes",
+    "nombre": "Palos Verdes",
+    "ciudad": "Rosario",
+    "lat": -32.89771,
+    "lon": -60.74264,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "parque",
+    "nombre": "Parque",
+    "ciudad": "Rosario",
+    "lat": -32.95885,
+    "lon": -60.66802,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "parque-casado",
+    "nombre": "Parque Casado",
+    "ciudad": "Rosario",
+    "lat": -32.96998,
+    "lon": -60.67055,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "parque-casas",
+    "nombre": "Parque Casas",
+    "ciudad": "Rosario",
+    "lat": -32.90551,
+    "lon": -60.70074,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "parque-field",
+    "nombre": "Parque Field",
+    "ciudad": "Rosario",
+    "lat": -32.89168,
+    "lon": -60.71308,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "parque-habitacional-calasanz",
+    "nombre": "Parque Habitacional Calasanz",
+    "ciudad": "Rosario",
+    "lat": -32.94262,
+    "lon": -60.7583,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "parque-habitacional-ibarlucea",
+    "nombre": "Parque Habitacional Ibarlucea",
+    "ciudad": "Rosario",
+    "lat": -32.87526,
+    "lon": -60.73622,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "parque-habitacional-ibarlucea-este",
+    "nombre": "Parque Habitacional Ibarlucea Este",
+    "ciudad": "Rosario",
+    "lat": -32.88245,
+    "lon": -60.71737,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "parque-regional-sur",
+    "nombre": "Parque Regional Sur",
+    "ciudad": "Rosario",
+    "lat": -33.0054,
+    "lon": -60.63175,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "plata",
+    "nombre": "Plata",
+    "ciudad": "Rosario",
+    "lat": -33.00016,
+    "lon": -60.68179,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "polledo",
+    "nombre": "Polledo",
+    "ciudad": "Rosario",
+    "lat": -32.88445,
+    "lon": -60.71865,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "portal-de-aldea",
+    "nombre": "Portal de Aldea",
+    "ciudad": "Rosario",
+    "lat": -32.91689,
+    "lon": -60.76564,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "presidente-roque-saenz-pena",
+    "nombre": "Presidente Roque Saenz Peña",
+    "ciudad": "Rosario",
+    "lat": -33.00639,
+    "lon": -60.64049,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "puente-gallego",
+    "nombre": "Puente Gallego",
+    "ciudad": "Rosario",
+    "lat": -33.02794,
+    "lon": -60.6864,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "puerto-norte",
+    "nombre": "Puerto Norte",
+    "ciudad": "Rosario",
+    "lat": -32.92804,
+    "lon": -60.66083,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "republica-de-la-sexta",
+    "nombre": "Republica de la Sexta",
+    "ciudad": "Rosario",
+    "lat": -32.96562,
+    "lon": -60.63072,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 1119,
+    "muestrasDepto": 1
+  },
+  {
+    "slug": "roberto-fontanarrosa",
+    "nombre": "Roberto Fontanarrosa",
+    "ciudad": "Rosario",
+    "lat": -32.88036,
+    "lon": -60.72486,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "roque-carranza",
+    "nombre": "Roque Carranza",
+    "ciudad": "Rosario",
+    "lat": -32.87185,
+    "lon": -60.70189,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "saladillo",
+    "nombre": "Saladillo",
+    "ciudad": "Rosario",
+    "lat": -32.99994,
+    "lon": -60.62774,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "saladillo-sur",
+    "nombre": "Saladillo Sur",
+    "ciudad": "Rosario",
+    "lat": -32.9994,
+    "lon": -60.61888,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "san-cayetano",
+    "nombre": "San Cayetano",
+    "ciudad": "Rosario",
+    "lat": -32.93054,
+    "lon": -60.75667,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "san-cayetano-oeste",
+    "nombre": "San Cayetano Oeste",
+    "ciudad": "Rosario",
+    "lat": -32.96535,
+    "lon": -60.73004,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "san-eduardo",
+    "nombre": "San Eduardo",
+    "ciudad": "Rosario",
+    "lat": -32.912,
+    "lon": -60.76697,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "santa-lucia",
+    "nombre": "Santa Lucía",
+    "ciudad": "Rosario",
+    "lat": -32.95444,
+    "lon": -60.72636,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "santa-teresita",
+    "nombre": "Santa Teresita",
+    "ciudad": "Rosario",
+    "lat": -32.98851,
+    "lon": -60.67964,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "stella-maris",
+    "nombre": "Stella Maris",
+    "ciudad": "Rosario",
+    "lat": -32.9185,
+    "lon": -60.74779,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "tango",
+    "nombre": "Tango",
+    "ciudad": "Rosario",
+    "lat": -32.94427,
+    "lon": -60.75379,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "tierra-nueva",
+    "nombre": "Tierra Nueva",
+    "ciudad": "Rosario",
+    "lat": -32.9292,
+    "lon": -60.76058,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": 1902,
+    "muestrasDepto": 4
+  },
+  {
+    "slug": "tio-rolo",
+    "nombre": "Tio Rolo",
+    "ciudad": "Rosario",
+    "lat": -33.01645,
+    "lon": -60.68823,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "tiro-suizo",
+    "nombre": "Tiro Suizo",
+    "ciudad": "Rosario",
+    "lat": -32.99948,
+    "lon": -60.65257,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "triangulo",
+    "nombre": "Triángulo",
+    "ciudad": "Rosario",
+    "lat": -32.96697,
+    "lon": -60.70064,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "union",
+    "nombre": "Unión",
+    "ciudad": "Rosario",
+    "lat": -32.89689,
+    "lon": -60.70421,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "union-y-parque-casas",
+    "nombre": "Unión y Parque Casas",
+    "ciudad": "Rosario",
+    "lat": -32.90134,
+    "lon": -60.70284,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "vicente-lopez-y-planes",
+    "nombre": "Vicente Lopez y Planes",
+    "ciudad": "Rosario",
+    "lat": -33.01153,
+    "lon": -60.64566,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "victoria-walsh",
+    "nombre": "Victoria Walsh",
+    "ciudad": "Rosario",
+    "lat": -32.96462,
+    "lon": -60.68909,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-banana",
+    "nombre": "Villa Banana",
+    "ciudad": "Rosario",
+    "lat": -32.95951,
+    "lon": -60.69191,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-cooperativa-25-de-mayo",
+    "nombre": "Villa Cooperativa 25 de Mayo",
+    "ciudad": "Rosario",
+    "lat": -32.89152,
+    "lon": -60.73902,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-de-empalme-graneros",
+    "nombre": "Villa de Empalme Graneros",
+    "ciudad": "Rosario",
+    "lat": -32.9125,
+    "lon": -60.70576,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-la-antena",
+    "nombre": "Villa La Antena",
+    "ciudad": "Rosario",
+    "lat": -32.94239,
+    "lon": -60.74623,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-la-bombacha",
+    "nombre": "Villa La Bombacha",
+    "ciudad": "Rosario",
+    "lat": -32.91518,
+    "lon": -60.7497,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-la-lata",
+    "nombre": "Villa La Lata",
+    "ciudad": "Rosario",
+    "lat": -32.97163,
+    "lon": -60.64962,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-la-vincha",
+    "nombre": "Villa La Vincha",
+    "ciudad": "Rosario",
+    "lat": -32.98682,
+    "lon": -60.69666,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-los-euca",
+    "nombre": "Villa Los Euca",
+    "ciudad": "Rosario",
+    "lat": -32.9506,
+    "lon": -60.72384,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-manuelita",
+    "nombre": "Villa Manuelita",
+    "ciudad": "Rosario",
+    "lat": -32.98587,
+    "lon": -60.62523,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-olimpica",
+    "nombre": "Villa Olímpica",
+    "ciudad": "Rosario",
+    "lat": -32.99244,
+    "lon": -60.63961,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-puente-negro",
+    "nombre": "Villa Puente Negro",
+    "ciudad": "Rosario",
+    "lat": -32.90645,
+    "lon": -60.70538,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-santa-rosa",
+    "nombre": "Villa Santa Rosa",
+    "ciudad": "Rosario",
+    "lat": -32.9177,
+    "lon": -60.75045,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-urquiza",
+    "nombre": "Villa Urquiza",
+    "ciudad": "Rosario",
+    "lat": -32.95485,
+    "lon": -60.7043,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
+  },
+  {
+    "slug": "villa-via-honda",
+    "nombre": "Villa Vía Honda",
+    "ciudad": "Rosario",
+    "lat": -32.97545,
+    "lon": -60.69051,
+    "cerrado": false,
+    "ppm2": null,
+    "muestras": 0,
+    "ppm2Depto": null,
+    "muestrasDepto": 0
   }
 ]
 
 export const getBarrio = (slug: string) => BARRIOS_TASADOR.find(b => b.slug === slug)
 
-// Precio de tierra efectivo del barrio + de dónde salió (para mostrarlo honesto).
+// Precio de TIERRA efectivo (casas y lotes).
 export function precioTierra(b: BarrioTasador): { ppm2: number; fuente: "barrio" | "ciudad"; muestras: number } {
   if (b.ppm2 && b.muestras > 0) return { ppm2: b.ppm2, fuente: "barrio", muestras: b.muestras }
-  return { ppm2: PPM2_CIUDAD[b.ciudad], fuente: "ciudad", muestras: 0 }
+  return { ppm2: PPM2_CIUDAD[b.ciudad] ?? 150, fuente: "ciudad", muestras: 0 }
+}
+
+// Precio por m² CUBIERTO de departamentos (método comparativo, no del costo:
+// un depto no tiene lote propio, se valúa contra unidades similares de la zona).
+export function precioDepto(b: BarrioTasador): { ppm2: number; fuente: "barrio" | "ciudad"; muestras: number } {
+  if (b.ppm2Depto && b.muestrasDepto > 0) return { ppm2: b.ppm2Depto, fuente: "barrio", muestras: b.muestrasDepto }
+  return { ppm2: PPM2_DEPTO_CIUDAD[b.ciudad] ?? 2000, fuente: "ciudad", muestras: 0 }
 }
