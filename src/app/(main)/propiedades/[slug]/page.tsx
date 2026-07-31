@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { normalizarTitulo } from '@/lib/titulo';
 import { ArrowLeft } from 'lucide-react';
 
 import AudioSummary from '@/components/AudioSummary';
@@ -51,7 +52,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // Override de SEO por ID (unidades de emprendimientos): title y meta custom.
     // El canonical de abajo usa el publication_title ORIGINAL (el slug no cambia).
     const seo = PROPERTY_SEO[property.id];
-    const rawTitle = seo?.title || property.publication_title || property.address;
+    // normalizarTitulo: si el aviso se cargó TODO EN MAYÚSCULAS, el <title> y
+    // el OG salían gritados (generateMetadata no pasa por sanitizeProperty).
+    const rawTitle = seo?.title || normalizarTitulo(property.publication_title) || property.address;
     const title = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
     // #1: el texto de Tokko trae whitespace/newlines al inicio; los tags se
     // reemplazan por espacio (no pegar palabras), se colapsan los espacios y se

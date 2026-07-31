@@ -1,4 +1,5 @@
 import { normalizeArWhatsapp } from './phone'
+import { normalizarTitulo } from './titulo'
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
 // del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
@@ -151,7 +152,9 @@ export interface TokkoListResponse {
 export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
   return {
     id: p.id,
-    publication_title: p.publication_title,
+    // Títulos cargados TODO EN MAYÚSCULAS se pasan a mayúscula/minúscula.
+    // No afecta el slug (generatePropertySlug pasa todo a minúsculas).
+    publication_title: normalizarTitulo(p.publication_title),
     address: p.address,
     fake_address: p.fake_address,
     real_address: p.real_address,
