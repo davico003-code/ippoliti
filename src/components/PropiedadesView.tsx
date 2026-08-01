@@ -42,6 +42,7 @@ import {
   propertyTypeLabelById,
   generatePropertySlug,
   TYPE_FILTER_GROUPS,
+  isMarketProperty,
 } from '@/lib/tokko'
 import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } from '@/lib/geo'
 // Constantes del mapa desde @/lib/map-config (módulo sin leaflet): un import
@@ -1798,15 +1799,17 @@ export default function PropiedadesView({
                 <X className="w-4 h-4 text-gray-800" />
               </button>
               {/* Share button — al lado del X */}
-              <PropertyShareButton
-                propertyId={selectedProperty.id}
-                slug={generatePropertySlug(selectedProperty)}
-                title={selectedProperty.publication_title || selectedProperty.address || ''}
-                priceLabel={formatPrice(selectedProperty)}
-                top={10}
-                right={48}
-                size={32}
-              />
+              {!isMarketProperty(selectedProperty) && (
+                <PropertyShareButton
+                  propertyId={selectedProperty.id}
+                  slug={generatePropertySlug(selectedProperty)}
+                  title={selectedProperty.publication_title || selectedProperty.address || ''}
+                  priceLabel={formatPrice(selectedProperty)}
+                  top={10}
+                  right={48}
+                  size={32}
+                />
+              )}
             </div>
 
             {/* Body — tap en cualquier parte abre la ficha completa */}

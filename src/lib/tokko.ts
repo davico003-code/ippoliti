@@ -123,6 +123,13 @@ export interface TokkoProperty {
   // propiedad (Vercel Blob) si fue generado en /admin/audio. Populado por
   // enrichCardsWithAudio() en los endpoints que sirven listados al cliente.
   audioUrl?: string | null;
+  // Catálogo experto de Hilo. Ausentes = stock propio. Las oportunidades de
+  // mercado llegan verificadas, sin exponer el portal ni la inmobiliaria.
+  catalog_source?: 'propio' | 'mercado';
+  market_id?: string;
+  market_verified_at?: string | null;
+  market_discount_pct?: number | null;
+  market_photo_rights?: 'sin_confirmar' | 'autorizadas' | 'no_autorizadas' | null;
 }
 
 export interface TokkoMeta {
@@ -243,6 +250,11 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
           picture: p.producer.picture ?? null,
         }
       : null,
+    catalog_source: p.catalog_source,
+    market_id: p.market_id,
+    market_verified_at: p.market_verified_at ?? null,
+    market_discount_pct: p.market_discount_pct ?? null,
+    market_photo_rights: p.market_photo_rights ?? null,
   };
 }
 
@@ -253,7 +265,13 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
 // general; ahora cada propiedad rutea al asesor real.
 
 const FALLBACK_WA_NUMBER = '5493412101694'
-const FALLBACK_PRODUCER_NAME = 'SI Inmobiliaria'
+const FALLBACK_PRODUCER_NAME = 'SI INMOBILIARIA'
+
+export function isMarketProperty(
+  property: Pick<TokkoProperty, 'catalog_source' | 'market_id'>,
+): boolean {
+  return property.catalog_source === 'mercado' && !!property.market_id
+}
 
 // Normaliza un teléfono crudo a formato wa.me (54 + 9 + área + número, sin
 // símbolos). Si no se puede inferir, devuelve el número general.
@@ -279,7 +297,9 @@ export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string):
   const address = property.fake_address || property.address || ''
   const code = property.reference_code ? ` (cod ${property.reference_code})` : ''
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
-  const text = `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`
+  const text = isMarketProperty(property)
+    ? `Hola SI INMOBILIARIA, quiero consultar la disponibilidad de esta oportunidad del mercado en ${address}${code}.\n\n${url}`
+    : `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 }
 
@@ -292,7 +312,9 @@ export function buildPriceConsultWhatsappUrl(property: TokkoProperty, slug: stri
   const address = property.fake_address || property.address || ''
   const code = property.reference_code ? ` (cod ${property.reference_code})` : ''
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
-  const text = `Hola ${name}! Quiero consultar el precio de la propiedad ${address}${code}.\n\n${url}`
+  const text = isMarketProperty(property)
+    ? `Hola SI INMOBILIARIA, quiero consultar el precio y la disponibilidad de esta oportunidad del mercado en ${address}${code}.\n\n${url}`
+    : `Hola ${name}! Quiero consultar el precio de la propiedad ${address}${code}.\n\n${url}`
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 }
 

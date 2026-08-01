@@ -10,9 +10,9 @@
 // strip on mobile that filled the viewport.
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { Camera, Images } from 'lucide-react'
+import { Camera, Images, ShieldCheck } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
-import { getAllPhotos, getOperationType, translatePropertyType } from '@/lib/tokko'
+import { getAllPhotos, getOperationType, isMarketProperty, translatePropertyType } from '@/lib/tokko'
 import LikeHeart from '@/components/feedback/LikeHeart'
 
 const GREEN = '#1A5C38'
@@ -23,6 +23,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
   const operation = getOperationType(property)
   const propType = translatePropertyType(property.type?.name)
   const address = property.fake_address || property.address
+  const market = isMarketProperty(property)
 
   // Bloqueo de scroll del body mientras el lightbox está abierto. Sin esto, al
   // llegar al final de las fotos el scroll se "cae" a la página de atrás
@@ -73,7 +74,22 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
     return () => window.removeEventListener('keydown', onKey)
   }, [showAll])
 
-  if (photos.length === 0) return null
+  if (photos.length === 0) {
+    if (!market) return null
+    return (
+      <section className="flex min-h-[220px] items-center justify-center rounded-2xl border border-[#CFE5D7] bg-gradient-to-br from-[#F4FBF6] to-[#E7F4EB] px-6 text-center md:min-h-[320px]">
+        <div className="max-w-md">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#17613C] text-white">
+            <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <h2 className="mt-4 text-lg font-extrabold text-[#123D28]">Otra propiedad disponible en el mercado</h2>
+          <p className="mt-1 text-sm font-medium leading-relaxed text-gray-600">
+            SI INMOBILIARIA verificó recientemente el aviso. Las fotos no se reproducen aquí hasta validar su autorización de uso.
+          </p>
+        </div>
+      </section>
+    )
+  }
 
   const thumbs = photos.slice(1, 5)
   const hasOverlaySlot = photos.length > 5
@@ -117,7 +133,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
             </span>
           )}
           {/* Like discreto sobre la portada (esquina top-right libre) */}
-          <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />
+          {!market && <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />}
         </div>
       </div>
 
@@ -153,7 +169,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
               </span>
             )}
             {/* Like discreto sobre la portada (esquina top-right libre) */}
-            <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />
+            {!market && <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />}
           </div>
 
           {Array.from({ length: 4 }).map((_, i) => {

@@ -16,10 +16,11 @@ interface Props {
   title: string
   propertyId: number
   propertyTitle: string
+  isMarket?: boolean
 }
 
 export default function MobileStickyBar({
-  whatsappUrl, slug, title, propertyId, propertyTitle,
+  whatsappUrl, slug, title, propertyId, propertyTitle, isMarket = false,
 }: Props) {
   const [shareOpen, setShareOpen] = useState(false)
   const [visitOpen, setVisitOpen] = useState(false)
@@ -97,9 +98,36 @@ export default function MobileStickyBar({
         }}
       >
         {/* 1. Solicitá una visita — CTA principal */}
-        <button
-          type="button"
-          onClick={handleVisita}
+        {isMarket ? (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Consultar disponibilidad por WhatsApp"
+            onClick={() => events.clickWhatsapp(undefined, title)}
+            className="flex items-center justify-center"
+            style={{
+              flex: 1,
+              gap: 8,
+              minWidth: 0,
+              height: 48,
+              background: '#1A5C38',
+              color: '#fff',
+              fontFamily: "'Raleway', system-ui, sans-serif",
+              fontSize: 14,
+              fontWeight: 800,
+              borderRadius: 14,
+              textDecoration: 'none',
+              boxShadow: '0 8px 18px rgba(26,92,56,.22)',
+            }}
+          >
+            <MessageCircle className="w-[18px] h-[18px]" />
+            <span className="truncate">Consultar disponibilidad</span>
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={handleVisita}
           style={{
             flex: 1,
             display: 'flex',
@@ -118,10 +146,11 @@ export default function MobileStickyBar({
             cursor: 'pointer',
             boxShadow: '0 8px 18px rgba(26,92,56,.22)',
           }}
-        >
-          <Calendar className="w-[18px] h-[18px]" />
-          <span className="truncate">Solicitar visita</span>
-        </button>
+          >
+            <Calendar className="w-[18px] h-[18px]" />
+            <span className="truncate">Solicitar visita</span>
+          </button>
+        )}
 
         {/* 2. WhatsApp */}
         <a
@@ -144,7 +173,7 @@ export default function MobileStickyBar({
         </a>
 
         {/* 3. Guardar */}
-        {FEEDBACK_ENABLED && (
+        {FEEDBACK_ENABLED && !isMarket && (
           <div className="flex items-center justify-center" style={{ width: 48, height: 48, flexShrink: 0 }}>
             <LikeHeart propertyId={propertyId} size={42} className="" />
           </div>
@@ -246,66 +275,70 @@ export default function MobileStickyBar({
                 {linkCopied ? 'Copiado!' : 'Copiar link'}
               </button>
 
-              <Link
-                href={`/propiedades/${slug}/placa`}
-                role="menuitem"
-                onClick={() => setShareOpen(false)}
-                className="w-full flex items-center gap-3 text-left"
-                style={{
-                  padding: '12px 16px',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: '#1a1a1a',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
-                  textDecoration: 'none',
-                }}
-              >
-                <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
-                  <Instagram className="w-4 h-4 text-white" />
-                </div>
-                Crear placa
-              </Link>
+              {!isMarket && (
+                <>
+                  <Link
+                    href={`/propiedades/${slug}/placa`}
+                    role="menuitem"
+                    onClick={() => setShareOpen(false)}
+                    className="w-full flex items-center gap-3 text-left"
+                    style={{
+                      padding: '12px 16px',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: '#1a1a1a',
+                      fontFamily: "'Raleway', system-ui, sans-serif",
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
+                      <Instagram className="w-4 h-4 text-white" />
+                    </div>
+                    Crear placa
+                  </Link>
 
-              <div style={{ height: 1, background: '#f0f3f5', margin: '4px 12px' }} />
+                  <div style={{ height: 1, background: '#f0f3f5', margin: '4px 12px' }} />
 
-              <button
-                type="button"
-                role="menuitem"
-                disabled={generandoFicha}
-                onClick={async () => {
-                  if (generandoFicha) return
-                  setShareOpen(false)
-                  setGenerandoFicha(true)
-                  try {
-                    await generarYCopiarFichaLink(propertyId)
-                    showToast('Link para colega copiado')
-                  } catch {
-                    showToast('No se pudo generar el link', { variant: 'error' })
-                  } finally {
-                    setGenerandoFicha(false)
-                  }
-                }}
-                className="w-full flex items-center gap-3 text-left"
-                style={{
-                  padding: '12px 16px',
-                  background: '#fafaf8',
-                  border: 'none',
-                  cursor: generandoFicha ? 'wait' : 'pointer',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: '#1A5C38',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
-                  opacity: generandoFicha ? 0.7 : 1,
-                }}
-              >
-                <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#e7f2eb' }}>
-                  <Sparkles className="w-4 h-4" style={{ color: '#1A5C38' }} />
-                </div>
-                {generandoFicha ? 'Generando…' : 'Link para colega'}
-              </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={generandoFicha}
+                    onClick={async () => {
+                      if (generandoFicha) return
+                      setShareOpen(false)
+                      setGenerandoFicha(true)
+                      try {
+                        await generarYCopiarFichaLink(propertyId)
+                        showToast('Link para colega copiado')
+                      } catch {
+                        showToast('No se pudo generar el link', { variant: 'error' })
+                      } finally {
+                        setGenerandoFicha(false)
+                      }
+                    }}
+                    className="w-full flex items-center gap-3 text-left"
+                    style={{
+                      padding: '12px 16px',
+                      background: '#fafaf8',
+                      border: 'none',
+                      cursor: generandoFicha ? 'wait' : 'pointer',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: '#1A5C38',
+                      fontFamily: "'Raleway', system-ui, sans-serif",
+                      opacity: generandoFicha ? 0.7 : 1,
+                    }}
+                  >
+                    <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#e7f2eb' }}>
+                      <Sparkles className="w-4 h-4" style={{ color: '#1A5C38' }} />
+                    </div>
+                    {generandoFicha ? 'Generando…' : 'Link para colega'}
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

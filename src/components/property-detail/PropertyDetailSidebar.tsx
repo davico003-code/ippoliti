@@ -8,6 +8,7 @@ import {
   getOperationType,
   generatePropertySlug,
   formatPrice,
+  isMarketProperty,
 } from '@/lib/tokko'
 import AudioSummary from '../AudioSummary'
 import ShareMenu from '../ShareMenu'
@@ -47,6 +48,7 @@ export default function PropertyDetailSidebar({
   const isPremiumSale = isVenta && usdPrice >= TOUR_MEET_USD_THRESHOLD
   const propertyTitle = property.publication_title || address
   const propertyUrl = `https://siinmobiliaria.com/propiedades/${slug}`
+  const market = isMarketProperty(property)
 
   return (
     <div className="w-full md:w-[360px] md:shrink-0">
@@ -58,7 +60,7 @@ export default function PropertyDetailSidebar({
         style={{ top: topOffset, ['--sb-top' as string]: `${topOffset}px` } as unknown as CSSProperties}
       >
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <AudioSummary propertyId={property.id} title={propertyTitle} />
+          {!market && <AudioSummary propertyId={property.id} title={propertyTitle} />}
           <a
             href={whatsappUrl}
             target="_blank"
@@ -82,7 +84,7 @@ export default function PropertyDetailSidebar({
             <div className="flex items-center gap-3">
               {(() => {
                 const producer = property.producer
-                const name = producer?.name?.trim() || 'SI Inmobiliaria'
+                const name = producer?.name?.trim() || 'SI INMOBILIARIA'
                 const subtitle = 'Asesor inmobiliario'
                 const initials = name
                   .split(/\s+/)
@@ -128,15 +130,17 @@ export default function PropertyDetailSidebar({
             </div>
           </div>
 
-          <ShareMenu
-            propertyId={property.id}
-            slug={slug}
-            title={property.publication_title || address}
-            placaHref={`/propiedades/${slug}/placa`}
-          />
+          {!market && (
+            <ShareMenu
+              propertyId={property.id}
+              slug={slug}
+              title={property.publication_title || address}
+              placaHref={`/propiedades/${slug}/placa`}
+            />
+          )}
         </div>
 
-        {operation?.toLowerCase().includes('venta') && (
+        {!market && operation?.toLowerCase().includes('venta') && (
           <VisitWidget
             propertyId={property.id}
             propertyTitle={propertyTitle}
@@ -145,7 +149,7 @@ export default function PropertyDetailSidebar({
           />
         )}
 
-        {isPremiumSale && (
+        {!market && isPremiumSale && (
           <TourMeetWidget
             propertyId={property.id}
             propertyTitle={propertyTitle}

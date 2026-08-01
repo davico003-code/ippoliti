@@ -24,6 +24,7 @@ import {
   getDescription,
   sanitizeProperty,
   buildPropertyWhatsappUrl,
+  isMarketProperty,
   type TokkoProperty,
 } from '@/lib/tokko';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
@@ -129,6 +130,7 @@ export default async function PropertyPage({ params }: Props) {
   // El wa.me apunta al productor asignado en Tokko (asesor real de la propiedad);
   // si producer es null, cae al número general 5493412101694.
   const whatsappUrl = buildPropertyWhatsappUrl(property, params.slug);
+  const market = isMarketProperty(property);
 
   // ── allProperties ya NO se fetchea SSR ──
   // Los componentes que antes lo necesitaban (Similars, NearbyMap, ZillowPanel)
@@ -242,12 +244,14 @@ export default async function PropertyPage({ params }: Props) {
 
         {/* Audio narrado (solo aparece si la propiedad tiene audio cacheado;
             el componente se auto-oculta si /api/audio/check devuelve hasAudio:false) */}
-        <div className="px-4 pb-2">
-          <AudioSummary
-            propertyId={property.id}
-            title={property.publication_title || property.address}
-          />
-        </div>
+        {!market && (
+          <div className="px-4 pb-2">
+            <AudioSummary
+              propertyId={property.id}
+              title={property.publication_title || property.address}
+            />
+          </div>
+        )}
 
         {/* Sticky tabs con scroll horizontal */}
         <PropertyStickyNav
@@ -306,6 +310,7 @@ export default async function PropertyPage({ params }: Props) {
         title={property.publication_title || property.address}
         propertyId={property.id}
         propertyTitle={property.publication_title || property.address}
+        isMarket={market}
       />
     </div>
   );

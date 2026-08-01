@@ -24,6 +24,7 @@ import {
   translateCondition,
   translateOrientation,
   translateDisposition,
+  isMarketProperty,
 } from '@/lib/tokko'
 import PropertyDescription from '../PropertyDescription'
 import SectionBoundary from './SectionBoundary'
@@ -108,6 +109,7 @@ export default function PropertyDetailBody({
   const description = getDescription(property)
   const blueprints = getBlueprintPhotos(property)
   const address = property.fake_address || property.address
+  const market = isMarketProperty(property)
 
   // Barrio privado (si aplica). Se carga por dynamic import para no meter el
   // dataset grande de barrios.ts en el First Load JS de la ficha.
@@ -164,6 +166,14 @@ export default function PropertyDetailBody({
     <div className="space-y-6">
       {/* OVERVIEW — title + location + price + badges */}
       <section id="overview" className={`${CARD} scroll-mt-40`}>
+        {market && (
+          <div className="mb-4 rounded-xl border border-[#CFE5D7] bg-[#F4FBF6] px-4 py-3">
+            <span className="text-[11px] font-extrabold uppercase tracking-wide text-[#17613C]">Oportunidad verificada</span>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-gray-700">
+              Es una propiedad de otro participante del mercado, no del stock propio de SI INMOBILIARIA. Consultamos su disponibilidad antes de coordinar una visita.
+            </p>
+          </div>
+        )}
         <h1 style={{ fontFamily: R, fontWeight: 800, fontSize: 28, color: '#111', lineHeight: 1.2, marginBottom: 8 }}>
           {property.publication_title || address}
         </h1>
@@ -427,15 +437,17 @@ export default function PropertyDetailBody({
           Aditivo y detrás de NEXT_PUBLIC_FEEDBACK_ENABLED (se auto-oculta si
           el flag está off). publishedPrice=0 cuando no hay precio visible
           (oculta el slider, deja caritas + alerta). */}
-      <FeedbackDetalle
-        propertyId={property.id}
-        publishedPrice={
-          property.web_price !== false && typeof price0?.price === 'number' && price0.price > 0
-            ? price0.price
-            : 0
-        }
-        currency={price0?.currency ?? 'USD'}
-      />
+      {!market && (
+        <FeedbackDetalle
+          propertyId={property.id}
+          publishedPrice={
+            property.web_price !== false && typeof price0?.price === 'number' && price0.price > 0
+              ? price0.price
+              : 0
+          }
+          currency={price0?.currency ?? 'USD'}
+        />
+      )}
 
       {/* "Otras opciones para vos" ya no va acá — el parent lo renderiza full-width
           via <PropertyDetailSimilars /> debajo del grid de 2 columnas. */}

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import CardMediaButtons from '@/components/CardMediaButtons'
 import {
@@ -18,6 +18,7 @@ import {
   isLand,
   propertyTypeLabelById,
   generatePropertySlug,
+  isMarketProperty,
 } from '@/lib/tokko'
 import { formatDistanceAR } from '@/lib/geo'
 
@@ -69,6 +70,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const address = property.fake_address || property.address
   const location = property.location?.short_location || property.location?.name || ''
   const cardHref = `/propiedades/${slug}`
+  const market = isMarketProperty(property)
 
   // Build specs: "3 dorm · 2 baños · 190 m² · 1.691 m² lote"
   const specs: { num: string; label: string }[] = []
@@ -232,7 +234,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-            Sin foto
+            <span className="flex flex-col items-center gap-2 px-4 text-center font-semibold text-[#17613C]">
+              <ShieldCheck className="h-7 w-7" aria-hidden="true" />
+              {market ? 'Oportunidad verificada del mercado' : 'Sin foto'}
+            </span>
           </div>
         )}
 
@@ -279,7 +284,12 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         )}
 
         {/* Badge top-left — operation only (Destacada eliminado) */}
-        <div className="absolute top-2.5 left-2.5 flex gap-1.5">
+        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
+          {market && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#17613C] shadow-sm">
+              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Mercado verificado
+            </span>
+          )}
           {operation && (
             <span style={{
               background: operation === 'Venta' ? '#1A5C38'
@@ -299,12 +309,14 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
 
         {/* Play + like juntos, arriba-derecha. audioUrl ya viene enriquecido en
             el listado (string = hay audio, null = no hay). */}
-        <CardMediaButtons
-          propertyId={property.id}
-          audioUrl={property.audioUrl ?? null}
-          size={32}
-          className="absolute top-2.5 right-2.5"
-        />
+        {!market && (
+          <CardMediaButtons
+            propertyId={property.id}
+            audioUrl={property.audioUrl ?? null}
+            size={32}
+            className="absolute top-2.5 right-2.5"
+          />
+        )}
       </div>
 
       {/* Body */}
@@ -321,18 +333,20 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           }}>
             {price}
           </p>
-          <div onClick={e => e.stopPropagation()}>
-            <PropertyShareButton
-              propertyId={property.id}
-              slug={slug}
-              title={address || ''}
-              priceLabel={price}
-              inline
-              size={36}
-              popoverDirection="up"
-              buttonVariant="card"
-            />
-          </div>
+          {!market && (
+            <div onClick={e => e.stopPropagation()}>
+              <PropertyShareButton
+                propertyId={property.id}
+                slug={slug}
+                title={address || ''}
+                priceLabel={price}
+                inline
+                size={36}
+                popoverDirection="up"
+                buttonVariant="card"
+              />
+            </div>
+          )}
         </div>
 
         {specs.length > 0 && (

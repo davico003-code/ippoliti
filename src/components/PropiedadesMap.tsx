@@ -13,6 +13,7 @@ import {
   propertyTypeLabelById,
   getTotalSurface,
   generatePropertySlug,
+  isMarketProperty,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
 import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
@@ -660,15 +661,17 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                           {typeName}
                         </span>
                       )}
-                      <PropertyShareButton
-                        propertyId={property.id}
-                        slug={generatePropertySlug(property)}
-                        title={property.publication_title || property.address || ''}
-                        priceLabel={fullPrice}
-                        top={8}
-                        right={8}
-                        size={32}
-                      />
+                      {!isMarketProperty(property) && (
+                        <PropertyShareButton
+                          propertyId={property.id}
+                          slug={generatePropertySlug(property)}
+                          title={property.publication_title || property.address || ''}
+                          priceLabel={fullPrice}
+                          top={8}
+                          right={8}
+                          size={32}
+                        />
+                      )}
                     </div>
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
