@@ -241,10 +241,21 @@ button{font:inherit;color:inherit;touch-action:manipulation}
   display:flex;align-items:center;justify-content:center}
 .closer:hover{background:var(--paper-2)}
 
-.lotnum{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.lotnum b{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1}
-.lotnum .mz{font-size:13px;color:var(--ink-2);font-weight:600}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin:11px 0 0}
+/* Cabecera del detalle en UNA línea: número + manzana a la izquierda y los
+   chips de estado a la derecha. Antes iban apilados y comían alto, que en el
+   celular obligaba a scrollear el panel para llegar al precio. */
+.lotline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lotnum{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.lotnum b{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.lotnum .mz{font-size:12.5px;color:var(--ink-2);font-weight:600}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+/* Medidas en una sola línea: "16,60 m × 30,00 m · 498 m²". */
+.medidas{margin:9px 0 0;font-size:13.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.medidas b{color:var(--ink);font-weight:700}
+/* Lista y contado lado a lado. */
+.precios{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+  margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.precios .price{display:block;flex:0 1 auto}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
   border-radius:999px;padding:5px 11px;border:1px solid transparent}
 .tag i{width:8px;height:8px;border-radius:99px;display:block}
@@ -256,15 +267,16 @@ dl.specs{display:grid;grid-template-columns:1fr auto;gap:9px 12px;margin:15px 0 
 dl.specs dt{color:var(--ink-2)}
 dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
 .rule{height:1px;background:var(--line);margin:15px 0}
-.price{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.price .v{font-size:27px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.price .k{font-size:12px;color:var(--ink-2);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-.price2{margin-top:6px}
-.price2 .v{font-size:19px;color:var(--ink-2)}
-.fin{margin:11px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+.price .v{display:block;font-size:25px;font-weight:800;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.1}
+.price .k{display:block;font-size:11px;color:var(--ink-2);font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.price2{text-align:right}
+.price2 .v{font-size:18px;color:var(--ink-2)}
+.fin{margin:9px 0 0;font-size:13px;color:var(--ink-2);line-height:1.45}
 .fin-nota{font-size:12.5px;opacity:.8}
 .fin b{color:var(--ink);font-variant-numeric:tabular-nums}
-.wa{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:15px;
+.wa{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:12px;
   min-height:48px;border-radius:12px;border:0;background:#1FA855;color:#fff;
   font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;
   box-shadow:0 1px 2px rgba(0,0,0,.14),0 6px 16px -6px rgba(31,168,85,.6);transition:background .14s ease}
@@ -273,8 +285,15 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 .muted{font-size:12px;color:var(--ink-2);margin:10px 0 0;line-height:1.5}
 
 @media (max-width:960px){
+  /* Bottom sheet: con el detalle compacto ya no necesita 78dvh. Ocupa lo que
+     mide su contenido (tope 52dvh por si el texto crece) y así el plano sigue
+     visible arriba — se puede ver dónde cae el lote elegido sin cerrar nada. */
   .side{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;border-radius:16px 16px 0 0;
-    transform:translateY(102%);max-height:78dvh;z-index:60}
+    transform:translateY(102%);max-height:52dvh;z-index:60;
+    padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  .side h2{padding:10px 16px 9px;font-size:11.5px}
+  .side .body{padding:12px 16px 4px}
+  .closer{width:34px;height:34px;top:6px;right:8px}
   .side.open{transform:translateY(0)}
   .head .live{margin-left:0}
   .layers button{padding:9px 12px;font-size:13px}
@@ -389,26 +408,30 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
 <script>
 /* ==========================================================================
    1) CONFIGURACIÓN Y DATOS
-   Editá esto desde el PANEL DE CONTROL (panel-distrito-roldan.html),
+   Editá esto desde el PANEL DE CONTROL (/agentes/plano-distrito-roldan),
    no a mano. El panel regenera este archivo completo y listo para subir.
+
+   IMPORTANTE: todo lo que va ENTRE los marcadores __CFG_START__/__CFG_END__ y
+   __LOTES_START__/__LOTES_END__ lo reescribe el panel al descargar. No pongas
+   comentarios ahí adentro: se pierden. Documentá acá afuera, como esto.
+
+   Qué contiene CFG:
+     whatsapp     número al que van las consultas de cada lote
+     proyecto     nombre que se muestra en el encabezado
+     actualizado  mes y año de la última lista. El panel lo sella solo al
+                  descargar (si hubo cambios) y también se puede escribir a mano
+     foto         aérea que se superpone al plano. Mientras sea null, el botón
+                  Plano/Foto no aparece. src: ruta relativa · w,h: tamaño en
+                  píxeles · m: matriz que la calza sobre el plano [a,b,c,d,e,f]
+     financiacion anticipo, cuotas y texto del contado, por tipo de lote
    ========================================================================== */
 
 /*__CFG_START__*/
 const CFG = {
   whatsapp: "5493412101694",
   proyecto: "Distrito Roldán",
-  // Mes y año de la última actualización. El panel de control lo pone solo
-  // cada vez que se descarga el plano, y se puede escribir a mano.
   actualizado: "Agosto 2026",
-  /* Foto aérea. Mientras sea null, el botón Plano/Foto no aparece.
-     src: ruta de la imagen · w,h: su tamaño en píxeles
-     m:  matriz que la calza sobre el plano [a,b,c,d,e,f] */
-  foto: {
-    src: "distrito-roldan-aerea.webp",   // relativa: sirve en el sitio y en local
-    w: 1084, h: 867,
-    m: [2.17997, 0.00000, 0.00000, 2.20659, -188.40412, -180.75471]
-  },
-  // Financiación de la lista de mayo: distinta según el tipo de lote.
+  foto: {"src":"distrito-roldan-aerea.webp","w":1084,"h":867,"m":[2.17997,0,0,2.20659,-188.40412,-180.75471]},
   financiacion: {
     residencial: { anticipoPct: 30, cuotas: 24, contadoTxt: "US$ 5/m² de descuento" },
     comercial:   { anticipoPct: 50, cuotas: 12, contadoTxt: "10% de descuento" }
@@ -1150,23 +1173,20 @@ function select(n){
   const anticipo=l.conPrecio ? l.precio*f.anticipoPct/100 : 0;
   const cuota=l.conPrecio ? (l.precio-anticipo)/f.cuotas : 0;
   dBody.innerHTML=`
-    <div class="lotnum"><b>Lote ${l.n}</b><span class="mz">Manzana ${l.mz}</span></div>
-    <div class="tags">
-      <span class="tag ${e.t}"><i style="background:${e.c}"></i>${e.k}</span>
-      <span class="tag t-tipo">${l.com?"Comercial · Ruta 9":"Residencial"}</span>
+    <div class="lotline">
+      <div class="lotnum"><b>Lote ${l.n}</b><span class="mz">Mz. ${l.mz}</span></div>
+      <div class="tags">
+        <span class="tag ${e.t}"><i style="background:${e.c}"></i>${e.k}</span>
+        <span class="tag t-tipo">${l.com?"Comercial":"Residencial"}</span>
+      </div>
     </div>
-    <dl class="specs">
-      <dt>Frente</dt><dd>${med(l.frente)}</dd>
-      <dt>Fondo</dt><dd>${med(l.fondo)}</dd>
-      <dt>Superficie</dt><dd>${m2(l.sup)}</dd>
-    </dl>
-    <div class="rule"></div>
+    <p class="medidas">${med(l.frente)} × ${med(l.fondo)} · <b>${m2(l.sup)}</b></p>
     ${l.conPrecio ? `
-      <div class="price"><span class="k">Precio de lista</span><span class="v">${usd(l.precio)}</span></div>
-      <div class="price price2"><span class="k">Contado</span><span class="v">${usd(l.contado)}</span></div>
-      <p class="fin">Anticipo ${f.anticipoPct}%: <b>${usd(anticipo)}</b><br>
-        Saldo en <b>${f.cuotas}</b> cuotas fijas de <b>${usd(cuota)}</b><br>
-        <span class="fin-nota">Contado: ${f.contadoTxt}</span></p>`
+      <div class="precios">
+        <div class="price"><span class="k">Lista</span><span class="v">${usd(l.precio)}</span></div>
+        <div class="price price2"><span class="k">Contado</span><span class="v">${usd(l.contado)}</span></div>
+      </div>
+      <p class="fin">Anticipo ${f.anticipoPct}% <b>${usd(anticipo)}</b> + <b>${f.cuotas}</b> cuotas de <b>${usd(cuota)}</b></p>`
       : l.estado==="d"
         ? `<p class="fin">Consultanos el valor de este lote.</p>` : ``}
     ${l.estado==="d"
@@ -1175,8 +1195,7 @@ function select(n){
            Consultar por WhatsApp</a>`
       : `<p class="muted" style="margin-top:15px">Este lote figura como <b>${e.k.toLowerCase()}</b>. Escribinos y te mostramos alternativas equivalentes.</p>
          <a class="wa" style="background:#5A6152;box-shadow:none" href="https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent("Hola, quiero ver lotes disponibles en "+CFG.proyecto)}" target="_blank" rel="noopener">Ver alternativas</a>`}
-    <p class="muted">Superficie según planilla oficial de mensura. Valores de la lista vigente,
-      sujetos a modificación sin previo aviso.</p>`;
+    <p class="muted">Superficie según mensura oficial. Valores sujetos a modificación.</p>`;
   side.classList.add("open");
   syncURL();
 }
@@ -1304,8 +1323,22 @@ document.getElementById("fecha").textContent = CFG.actualizado || "—";
   if(p.get("tipo")){const b=document.querySelector(`[data-tipo="${p.get("tipo")}"]`); if(b)b.click();}
   paint(); checkOverflow();
   if(p.get("lote")) select(+p.get("lote"));
-  const post=()=>{try{parent.postMessage({type:"plano-height",h:document.documentElement.scrollHeight},"*")}catch(_){}}
-  post(); new ResizeObserver(post).observe(document.documentElement);
+  /* Le avisamos al contenedor cuánto mide el plano, así el iframe se ajusta y
+     no queda ni cortado ni con un hueco debajo.
+     Ojo con qué se observa: el <html> siempre mide exactamente el alto del
+     iframe, así que observarlo a él nunca avisa que el contenido creció. El que
+     cambia de alto es el body. Y solo avisamos cuando el número cambió de
+     verdad, para no entrar en un ida y vuelta con el contenedor. */
+  let ultimoAlto=0;
+  const post=()=>{
+    const h=document.documentElement.scrollHeight;
+    if(Math.abs(h-ultimoAlto)<2) return;
+    ultimoAlto=h;
+    try{parent.postMessage({type:"plano-height",h},"*")}catch(_){}
+  };
+  post();
+  addEventListener("load",post);          // fuentes e imágenes ya pesan lo suyo
+  new ResizeObserver(post).observe(document.body);
 })();
 </script>
 </body>
