@@ -47,6 +47,7 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
           />
           <nav aria-label="Secciones de Distrito Roldán" className="hidden items-center gap-7 lg:flex">
             <a href="#proyecto" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">El proyecto</a>
+            <a href="#barrio" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">El barrio</a>
             <a href="#plano" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">Masterplan</a>
             <a href="#avances" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">Avances</a>
             <a href="#ubicacion" className="text-sm font-medium text-white/[0.85] transition-colors hover:text-white">Ubicación</a>
