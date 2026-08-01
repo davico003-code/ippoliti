@@ -1330,15 +1330,20 @@ document.getElementById("fecha").textContent = CFG.actualizado || "—";
      cambia de alto es el body. Y solo avisamos cuando el número cambió de
      verdad, para no entrar en un ida y vuelta con el contenedor. */
   let ultimoAlto=0;
-  const post=()=>{
+  const post=(forzar)=>{
     const h=document.documentElement.scrollHeight;
-    if(Math.abs(h-ultimoAlto)<2) return;
+    // El "no cambió" solo vale para el observador continuo. Los envíos forzados
+    // salen igual: el contenedor puede montar su escucha después que el plano,
+    // y si el primer aviso se pierde queda esperándolo para siempre —hay
+    // pantallas que arrancan el plano invisible hasta recibirlo.
+    if(!forzar && Math.abs(h-ultimoAlto)<2) return;
     ultimoAlto=h;
     try{parent.postMessage({type:"plano-height",h},"*")}catch(_){}
   };
-  post();
-  addEventListener("load",post);          // fuentes e imágenes ya pesan lo suyo
-  new ResizeObserver(post).observe(document.body);
+  post(true);
+  addEventListener("load",()=>post(true));   // fuentes e imágenes ya pesan lo suyo
+  [80,250,700,1500].forEach(ms=>setTimeout(()=>post(true),ms));
+  new ResizeObserver(()=>post()).observe(document.body);
 })();
 </script>
 </body>
