@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 }
 
 const WHATSAPP_URL = `https://wa.me/5493412101694?text=${encodeURIComponent(
-  'Hola, quiero recibir asesoramiento sobre los desarrollos que comercializa SI INMOBILIARIA.',
+  'Hola, quiero recibir asesoramiento sobre los emprendimientos que comercializa SI INMOBILIARIA.',
 )}`
 
 type Card = {
@@ -90,7 +90,7 @@ export default async function EmprendimientosPage() {
     key: 'aurea',
     href: '/propiedades/7296792-lotes-en-venta-desde-500m2-barrio-privado-aurea-en-roldan',
     image: '/aurea-portada.jpg',
-    eyebrow: 'Desarrollo residencial premium · Roldán',
+    eyebrow: 'Emprendimiento residencial premium · Roldán',
     title: 'Aurea · Barrio Privado',
     location: 'Roldán · Acceso directo por autopista',
     description:
@@ -116,7 +116,7 @@ export default async function EmprendimientosPage() {
       <section className="relative flex min-h-[680px] items-end overflow-hidden md:min-h-[760px]">
         <Image
           src="/images/distrito-roldan/render-residencial.webp"
-          alt="Vista aérea de un desarrollo residencial comercializado por SI INMOBILIARIA"
+          alt="Vista aérea de un emprendimiento residencial comercializado por SI INMOBILIARIA"
           fill
           className="object-cover object-[62%_center] md:object-center"
           sizes="100vw"
@@ -130,7 +130,7 @@ export default async function EmprendimientosPage() {
             Roldán · Funes · Rosario
           </p>
           <h1 className="mt-7 max-w-5xl text-balance text-[clamp(3.25rem,9vw,6rem)] font-extrabold leading-[0.92] tracking-[-0.035em] text-white">
-            Desarrollos con lugar propio.
+            Emprendimientos con lugar propio.
           </h1>
           <p className="mt-7 max-w-2xl text-pretty text-base leading-7 text-white/85 sm:text-lg sm:leading-8">
             Barrios, condominios y proyectos residenciales que conocemos de cerca, seleccionados y
@@ -203,7 +203,7 @@ export default async function EmprendimientosPage() {
           <div className="relative grid gap-8 md:grid-cols-12 md:items-end">
             <div className="md:col-span-7">
               <h2 className="text-balance text-3xl font-extrabold leading-tight tracking-[-0.025em] sm:text-4xl">
-                ¿Estás evaluando invertir en un desarrollo?
+                ¿Estás evaluando invertir en un emprendimiento?
               </h2>
               <p className="mt-4 max-w-2xl text-pretty text-base leading-7 text-white/75">
                 Te ayudamos a entender las diferencias entre cada proyecto, sus etapas y sus
