@@ -54,6 +54,16 @@ export async function POST(request: NextRequest) {
     email,
     phone: whatsapp,
     origen,
+    marketOpportunityId: typeof body.marketOpportunityId === 'string' ? body.marketOpportunityId : null,
+    intent: typeof body.intent === 'string' ? body.intent : null,
+    propertyTypes: Array.isArray(body.propertyTypes) ? body.propertyTypes : body.propertyType ? [body.propertyType] : [],
+    preferredZones: Array.isArray(body.preferredZones) ? body.preferredZones : body.zone ? [body.zone] : [],
+    budgetMin: typeof body.budgetMin === 'number' ? body.budgetMin : null,
+    budgetMax: typeof body.budgetMax === 'number'
+      ? body.budgetMax
+      : typeof body.budget === 'number'
+        ? body.budget
+        : null,
     message: isGuiaLead
       ? 'Lead desde Guía del Comprador 2026 — siinmobiliaria.com'
       : `Operación: ${body.operation || 'Venta'} | Tipo: ${body.propertyType || 'Casa'} | Presupuesto: ${body.budget || 'Sin límite'}`,

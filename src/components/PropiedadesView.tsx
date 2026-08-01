@@ -27,6 +27,7 @@ import PropiedadCardGrid from '@/components/PropiedadCardGrid'
 import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesktopGridSkeleton'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
 import PropertyShareButton from '@/components/PropertyShareButton'
+import SmartPropertyFinder from '@/components/SmartPropertyFinder'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { buscarZonas } from '@/lib/zonas'
 import { highlightMatch } from '@/lib/highlight'
@@ -45,6 +46,16 @@ import {
   isMarketProperty,
 } from '@/lib/tokko'
 import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } from '@/lib/geo'
+import {
+  DEFAULT_SMART_PROFILE,
+  type PropertyFit,
+  type SmartLifestyleNeed,
+  type SmartObjective,
+  type SmartProfile,
+  type SmartPropertyType,
+  isRelevantForProfile,
+  scorePropertyFit,
+} from '@/lib/property-fit'
 // Constantes del mapa desde @/lib/map-config (módulo sin leaflet): un import
 // estático de PropiedadesMap acá anularía el dynamic() de abajo y metería
 // leaflet en el First Load JS de /propiedades.
@@ -81,11 +92,12 @@ type PropType  = string
 type Beds      = 'todos' | '1' | '2' | '3' | '4+'
 type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
-type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
+type SortBy    = 'compatibilidad' | 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
 // listMode era un toggle huérfano (compact|list) que no afectaba el render de
 // las cards; eliminado junto con su estado y los botones de la barra superior.
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: 'compatibilidad', label: 'Mejor para mí' },
   { value: 'destacadas', label: 'Destacadas primero' },
   { value: 'recientes', label: 'Más recientes' },
   { value: 'precio-asc', label: 'Menor precio' },
@@ -104,6 +116,17 @@ const DEFAULTS: Filters = {
   search: '', operation: 'todos', type: 'todos',
   beds: 'todos', location: 'todos',
   priceMin: '', priceMax: '', currency: 'USD',
+}
+
+const SMART_OBJECTIVES = new Set<SmartObjective>(['vivir', 'invertir', 'oportunidad'])
+const SMART_TYPES = new Set<SmartPropertyType>(['todos', 'casa', 'departamento', 'terreno'])
+const SMART_NEEDS = new Set<SmartLifestyleNeed>(['pileta', 'verde', 'cochera', 'seguridad', 'lista'])
+const SMART_LOCATIONS = new Set<SmartProfile['locations'][number]>(['funes', 'roldan', 'rosario'])
+
+const positiveIntOrNull = (value: string | null): number | null => {
+  if (!value) return null
+  const parsed = Number.parseInt(value.replace(/\D/g, ''), 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
 }
 
 // Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
@@ -613,6 +636,29 @@ export default function PropiedadesView({
     }
   }, [searchParams])
 
+  const parseSmartProfile = useCallback((): SmartProfile => {
+    const rawObjective = searchParams.get('objetivo') as SmartObjective | null
+    const rawType = searchParams.get('tipo_ideal') as SmartPropertyType | null
+    const locations = (searchParams.get('zonas') ?? '')
+      .split(',')
+      .filter((value): value is SmartProfile['locations'][number] => SMART_LOCATIONS.has(value as SmartProfile['locations'][number]))
+    const needs = (searchParams.get('preferencias') ?? '')
+      .split(',')
+      .filter((value): value is SmartLifestyleNeed => SMART_NEEDS.has(value as SmartLifestyleNeed))
+
+    return {
+      operation: searchParams.get('operacion_ideal') === 'alquiler' ? 'alquiler' : 'venta',
+      objective: rawObjective && SMART_OBJECTIVES.has(rawObjective) ? rawObjective : DEFAULT_SMART_PROFILE.objective,
+      locations,
+      propertyType: rawType && SMART_TYPES.has(rawType) ? rawType : DEFAULT_SMART_PROFILE.propertyType,
+      bedroomsMin: positiveIntOrNull(searchParams.get('dormitorios_min')),
+      budgetMax: positiveIntOrNull(searchParams.get('presupuesto_max')),
+      surfaceMin: positiveIntOrNull(searchParams.get('superficie_min')),
+      flexible: searchParams.get('flexible') !== '0',
+      needs,
+    }
+  }, [searchParams])
+
   // Resolve zona from q param
   const resolvedZona = useMemo<Zona | null>(() => {
     if (!initialSearch) return null
@@ -627,6 +673,8 @@ export default function PropiedadesView({
   const activeZona = resolvedZona
 
   const [filters, setFilters]           = useState<Filters>(parseFilters)
+  const [smartProfile, setSmartProfile] = useState<SmartProfile>(parseSmartProfile)
+  const [smartActive, setSmartActive]   = useState(() => searchParams.get('seleccion') === '1')
   // True cuando el cambio de URL fue iniciado por esta UI (sync estado→URL).
   // Sirve para que el effect URL→estado no resetee en el viaje de vuelta.
   const internalUrlSyncRef = useRef(false)
@@ -641,7 +689,9 @@ export default function PropiedadesView({
       return
     }
     setFilters(parseFilters())
-  }, [searchParams, parseFilters])
+    setSmartProfile(parseSmartProfile())
+    setSmartActive(searchParams.get('seleccion') === '1')
+  }, [searchParams, parseFilters, parseSmartProfile])
 
   // Estado → URL: refleja TODOS los filtros activos en la query (compartible).
   // Debounced para no spamear el historial mientras se tipea en el buscador.
@@ -659,6 +709,16 @@ export default function PropiedadesView({
     put('precio_min', filters.priceMin)
     put('precio_max', filters.priceMax)
     put('moneda', (filters.priceMin || filters.priceMax) ? filters.currency : '')
+    put('seleccion', smartActive ? '1' : '')
+    put('objetivo', smartActive ? smartProfile.objective : '')
+    put('operacion_ideal', smartActive ? smartProfile.operation : '')
+    put('zonas', smartActive && smartProfile.locations.length ? smartProfile.locations.join(',') : '')
+    put('tipo_ideal', smartActive && smartProfile.propertyType !== 'todos' ? smartProfile.propertyType : '')
+    put('dormitorios_min', smartActive && smartProfile.bedroomsMin != null ? String(smartProfile.bedroomsMin) : '')
+    put('presupuesto_max', smartActive && smartProfile.budgetMax != null ? String(smartProfile.budgetMax) : '')
+    put('superficie_min', smartActive && smartProfile.surfaceMin != null ? String(smartProfile.surfaceMin) : '')
+    put('flexible', smartActive && !smartProfile.flexible ? '0' : '')
+    put('preferencias', smartActive && smartProfile.needs.length ? smartProfile.needs.join(',') : '')
     const qs = params.toString()
     if (qs === searchParams.toString()) return
     const t = setTimeout(() => {
@@ -666,7 +726,7 @@ export default function PropiedadesView({
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
     }, 250)
     return () => clearTimeout(t)
-  }, [filters, pathname, router, searchParams])
+  }, [filters, pathname, router, searchParams, smartActive, smartProfile])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [hoveredId, setHoveredId]       = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<FlyToTarget | null>(null)
@@ -702,6 +762,10 @@ export default function PropiedadesView({
   const [locationError, setLocationError] = useState<string | null>(null)
   const [searchHistory, setSearchHistory] = useState<string[]>([])
   const searchWrapDesktopRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!smartActive && sortBy === 'compatibilidad') setSortBy('destacadas')
+  }, [smartActive, sortBy])
 
   // Cargar historial persistente del localStorage al montar
   useEffect(() => {
@@ -771,8 +835,32 @@ export default function PropiedadesView({
 
   const reset = useCallback(() => {
     setFilters(DEFAULTS)
+    setSmartActive(false)
     setNearbyOrigin(null)
     // La URL se limpia sola vía el effect estado→URL (DEFAULTS = sin params).
+  }, [])
+
+  const applySmartProfile = useCallback((profile: SmartProfile) => {
+    setSmartProfile(profile)
+    setSmartActive(true)
+    setFilters((current) => ({
+      ...current,
+      search: '',
+      operation: profile.operation,
+      type: 'todos',
+      beds: 'todos',
+      location: 'todos',
+      priceMin: '',
+      priceMax: '',
+    }))
+    setSortBy('compatibilidad')
+    setMapBounds(null)
+    setNearbyOrigin(null)
+  }, [])
+
+  const clearSmartProfile = useCallback(() => {
+    setSmartActive(false)
+    setSortBy((current) => current === 'compatibilidad' ? 'destacadas' : current)
   }, [])
 
   // Cambia el filtro de operación y refleja el cambio en la URL para que sea
@@ -782,8 +870,11 @@ export default function PropiedadesView({
   // beds/type/location/precios cuando el cambio salió de esta UI.
   const updateOperation = useCallback((v: Operation) => {
     setFilters(prev => ({ ...prev, operation: v }))
+    if (smartActive && v !== 'todos') {
+      setSmartProfile((current) => ({ ...current, operation: v }))
+    }
     // La URL refleja el cambio vía el effect estado→URL.
-  }, [])
+  }, [smartActive])
 
   // Aplica un rango de precio + moneda al estado y URL en una sola operación.
   // `min`/`max` ya vienen sanitizados (solo dígitos). Vacío = sin tope ese extremo.
@@ -871,7 +962,14 @@ export default function PropiedadesView({
     return map
   }, [properties])
 
+  const smartFits = useMemo<Record<number, PropertyFit>>(() => {
+    if (!smartActive) return {}
+    const entries = properties.map((property) => [property.id, scorePropertyFit(property, smartProfile)] as const)
+    return Object.fromEntries(entries)
+  }, [properties, smartActive, smartProfile])
+
   const filtered = useMemo(() => properties.filter(p => {
+    if (smartActive && !isRelevantForProfile(p, smartProfile)) return false
     if (filters.search) {
       const q = norm(filters.search)
       // Solo incluir el barrio resuelto (no toda la lista de divisions de la ciudad)
@@ -928,6 +1026,8 @@ export default function PropiedadesView({
     return true
   }).sort((a, b) => {
     switch (sortBy) {
+      case 'compatibilidad':
+        return (smartFits[b.id]?.score ?? 0) - (smartFits[a.id]?.score ?? 0)
       case 'destacadas': {
         if (a.is_starred_on_web && !b.is_starred_on_web) return -1
         if (!a.is_starred_on_web && b.is_starred_on_web) return 1
@@ -955,7 +1055,7 @@ export default function PropiedadesView({
       default:
         return 0
     }
-  }), [properties, filters, sortBy, resolvedNeighborhoods])
+  }), [properties, filters, sortBy, resolvedNeighborhoods, smartActive, smartFits, smartProfile])
 
   // Lista para el mapa: aplica filtros + cercanía. NO aplica mapBounds porque
   // el bounds se calcula desde el viewport y filtrar por bounds antes de
@@ -987,6 +1087,13 @@ export default function PropiedadesView({
     }
     return list
   }, [propertiesForMap, mapBounds])
+
+  const availableSortOptions = smartActive
+    ? SORT_OPTIONS
+    : SORT_OPTIONS.filter((option) => option.value !== 'compatibilidad')
+  const bestSmartScore = smartActive && propertiesForMap.length > 0
+    ? Math.max(...propertiesForMap.map((property) => smartFits[property.id]?.score ?? 0))
+    : null
 
   // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
   // que el filtro de radio sea el único activo (sino se acumulan).
@@ -1484,6 +1591,15 @@ export default function PropiedadesView({
         {/* Left: Property list */}
         <div className={`flex flex-col border-r border-gray-200 w-full md:w-[48%] ${mobileView === 'map' ? 'hidden md:flex' : 'flex'}`}>
 
+          <SmartPropertyFinder
+            profile={smartProfile}
+            active={smartActive}
+            resultCount={propertiesForMap.length}
+            bestScore={bestSmartScore}
+            onApply={applySmartProfile}
+            onClear={clearSmartProfile}
+          />
+
           {/* Count header + sort + view toggle — desktop only */}
           <div className="hidden md:flex px-3 py-2 bg-gray-50 border-b border-gray-100 flex-shrink-0 items-center justify-between gap-2">
             {/* Sort dropdown */}
@@ -1494,14 +1610,14 @@ export default function PropiedadesView({
               >
                 <ArrowUpDown className="w-3 h-3" />
                 <span className="hidden sm:inline">
-                  {sortBy === 'destacadas' ? 'Ordenar' : SORT_OPTIONS.find(o => o.value === sortBy)?.label}
+                  {sortBy === 'destacadas' ? 'Ordenar' : availableSortOptions.find(o => o.value === sortBy)?.label}
                 </span>
                 <span className="sm:hidden">Ordenar</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
               </button>
               {sortOpen && (
                 <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden z-50">
-                  {SORT_OPTIONS.map(opt => (
+                  {availableSortOptions.map(opt => (
                     <button
                       key={opt.value}
                       onClick={() => { setSortBy(opt.value); setSortOpen(false) }}
@@ -1529,7 +1645,16 @@ export default function PropiedadesView({
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
-                {nearbyOrigin ? (
+                {smartActive ? (
+                  <>
+                    <p className="text-gray-700 font-semibold text-sm mb-1">
+                      No hay una propiedad suficientemente cercana a lo que pediste.
+                    </p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[300px]">
+                      Preferimos decirlo con honestidad antes que llenar la pantalla con opciones flojas. Ajustá una condición desde “Tu selección SI”.
+                    </p>
+                  </>
+                ) : nearbyOrigin ? (
                   <>
                     <p className="text-gray-700 font-semibold text-sm mb-1">
                       No hay propiedades a {GEO_NEARBY_RADIUS_KM} km de tu ubicación.
@@ -1577,6 +1702,7 @@ export default function PropiedadesView({
                       onHover={setHoveredId}
                       onCardClick={handleCardClick}
                       nearbyOrigin={nearbyOrigin}
+                      fits={smartFits}
                     />
                   ) : (
                     <PropiedadesViewDesktopGridSkeleton />
@@ -1594,6 +1720,7 @@ export default function PropiedadesView({
                         variant="mobile"
                         priority={i < 2}
                         distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
+                        fit={smartFits[p.id] ?? null}
                       />
                     </div>
                   ))}
@@ -1664,7 +1791,9 @@ export default function PropiedadesView({
               <span className="text-xs font-bold text-gray-900 font-numeric">
                 {visibleProperties.filter(p => p.geo_lat && p.geo_long).length}
               </span>
-              <span className="text-xs text-gray-500"> propiedades</span>
+              <span className="text-xs text-gray-500">
+                {visibleProperties.filter(p => p.geo_lat && p.geo_long).length === 1 ? ' propiedad' : ' propiedades'}
+              </span>
             </div>
           </div>
         </div>
@@ -1723,7 +1852,7 @@ export default function PropiedadesView({
               </button>
             </div>
             <div style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}>
-              {SORT_OPTIONS.map(opt => (
+              {availableSortOptions.map(opt => (
                 <button
                   key={opt.value}
                   onClick={() => { setSortBy(opt.value); setMobileSortOpen(false) }}

@@ -48,9 +48,17 @@ export interface PropertyCardProjection {
   suite_amount: number
   room_amount: number
   bathroom_amount: number
+  parking_lot_amount: number
+  covered_parking_lot: number
   roofed_surface: string
   total_surface: string
   surface: string
+
+  // Señales livianas para el selector experto. Conservamos solo nombre/id de
+  // amenities y condición; nunca enviamos la descripción larga a la grilla.
+  age: number
+  property_condition: string | null
+  tags: Array<{ id: number; name: string; type: number }>
 
   // Hasta 5 fotos (cover primero). Mantiene shape TokkoPhoto-compat para que
   // getMainPhoto/getAllPhotos y el carrusel de la card funcionen sin cambios.
@@ -139,9 +147,14 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
     suite_amount: p.suite_amount,
     room_amount: p.room_amount,
     bathroom_amount: p.bathroom_amount,
+    parking_lot_amount: p.parking_lot_amount,
+    covered_parking_lot: p.covered_parking_lot,
     roofed_surface: p.roofed_surface,
     total_surface: p.total_surface,
     surface: p.surface,
+    age: p.age,
+    property_condition: p.property_condition,
+    tags: (p.tags ?? []).map(tag => ({ id: tag.id, name: tag.name, type: tag.type })),
     photos: pickCardPhotos(p),
     is_starred_on_web: p.is_starred_on_web,
     development: p.development

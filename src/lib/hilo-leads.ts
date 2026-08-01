@@ -16,6 +16,13 @@ export type HiloLeadPayload = {
   origen?: string | null
   /** tokko_id de la propiedad consultada (si el lead viene de una ficha). */
   tokkoPropertyId?: string | number | null
+  /** UUID de oportunidad externa verificada, para atribución comercial. */
+  marketOpportunityId?: string | null
+  intent?: string | null
+  propertyTypes?: string[]
+  preferredZones?: string[]
+  budgetMin?: number | null
+  budgetMax?: number | null
 }
 
 export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<void> {
