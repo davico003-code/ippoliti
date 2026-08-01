@@ -103,6 +103,9 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
       // Fotos servidas desde Hilo (Supabase Storage) — puente Tokko → Hilo.
       { protocol: 'https', hostname: '*.supabase.co' },
+      // Proxies estables de oportunidades del catálogo experto. Se habilitan
+      // únicamente cuando Hilo confirma derechos de reutilización.
+      { protocol: 'https', hostname: 'meethilo.com' },
       // Fotos de avisos externos (Zonaprop/Navent) en fichas importadas. Se
       // sirven directo del CDN del portal (ver isExternalCdn en HeroGallery).
       { protocol: 'https', hostname: '*.zonapropcdn.com' },
