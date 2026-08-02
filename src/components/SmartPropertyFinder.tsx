@@ -184,38 +184,48 @@ export default function SmartPropertyFinder({
         className={`border-b px-3 py-3 sm:px-4 ${active ? 'border-[#CFE6D8] bg-[#F4FAF6]' : 'border-gray-100 bg-white'}`}
         aria-label="Preferencias de búsqueda"
       >
-        <div className="flex min-w-0 items-center gap-3">
-          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${active ? 'bg-[#17613C] text-white' : 'bg-[#EAF4EE] text-[#17613C]'}`}>
-            <Search className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-extrabold text-gray-950">
-              {active ? `Tu búsqueda · ${resultCount} ${resultCount === 1 ? 'propiedad' : 'propiedades'}` : 'Encontrá la propiedad que buscás'}
-            </p>
-            <p className="truncate text-[11.5px] font-medium text-gray-600">
-              {active
-                ? smartProfileLabel(profile)
-                : 'Definí zona, tipo, presupuesto y características.'}
-            </p>
+        {/* En celular el texto va arriba y el botón abajo, a lo ancho. Con todo
+            en una fila, en 360px al título le quedaban 125px para 215 que
+            necesita: se leía "Encontrá la propie…" y el resumen cortado. */}
+        <div className="flex min-w-0 flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${active ? 'bg-[#17613C] text-white' : 'bg-[#EAF4EE] text-[#17613C]'}`}>
+              <Search className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-extrabold text-gray-950">
+                {active ? `Tu búsqueda · ${resultCount} ${resultCount === 1 ? 'propiedad' : 'propiedades'}` : 'Encontrá la propiedad que buscás'}
+              </p>
+              <p className="line-clamp-2 text-[11.5px] font-medium leading-snug text-gray-600">
+                {active
+                  ? smartProfileLabel(profile)
+                  : 'Definí zona, tipo, presupuesto y características.'}
+              </p>
+            </div>
           </div>
-          {active && (
+          {/* Los dos botones en una fila propia. "Limpiar" estaba oculto en
+              celular (hidden sm:flex): con una búsqueda cargada no había forma
+              de volver a ver todo el stock sin borrar la URL a mano. */}
+          <div className="flex shrink-0 items-center gap-2">
+            {active && (
+              <button
+                type="button"
+                onClick={onClear}
+                className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center gap-1 rounded-xl border border-gray-200 px-3 text-[12px] font-bold text-gray-600 hover:bg-white hover:text-gray-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#17613C]/20 sm:flex-none"
+              >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Limpiar
+              </button>
+            )}
             <button
+              ref={triggerRef}
               type="button"
-              onClick={onClear}
-              className="hidden min-h-10 touch-manipulation items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-bold text-gray-500 hover:bg-white hover:text-gray-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#17613C]/20 sm:flex"
+              onClick={() => setOpen(true)}
+              className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-[#17613C] px-3.5 text-[12px] font-extrabold text-white transition-colors hover:bg-[#124D30] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#17613C]/30 sm:flex-none"
             >
-              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Limpiar
+              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+              {active ? 'Ajustar' : 'Personalizar'}
             </button>
-          )}
-          <button
-            ref={triggerRef}
-            type="button"
-            onClick={() => setOpen(true)}
-            className="inline-flex min-h-11 shrink-0 touch-manipulation items-center gap-1.5 rounded-xl bg-[#17613C] px-3.5 text-[12px] font-extrabold text-white transition-colors hover:bg-[#124D30] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#17613C]/30"
-          >
-            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-            {active ? 'Ajustar' : 'Personalizar'}
-          </button>
+          </div>
         </div>
       </section>
 
@@ -329,17 +339,27 @@ export default function SmartPropertyFinder({
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-[14px] font-extrabold text-gray-950">Presupuesto máximo</span>
+                    <span className="mb-2 block text-[14px] font-extrabold text-gray-950">
+                      {draft.operation === 'alquiler' ? 'Alquiler máximo por mes' : 'Presupuesto máximo'}
+                    </span>
                     <span className="relative block">
-                      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-extrabold text-gray-500">USD</span>
+                      {/* La moneda sigue a la operación: las ventas se publican
+                          en dólares y los alquileres en pesos. Con "USD" fijo,
+                          quien buscaba alquiler cargaba un número que no tenía
+                          nada que ver con los precios que iba a ver. */}
+                      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-extrabold text-gray-500">
+                        {draft.operation === 'alquiler' ? '$' : 'USD'}
+                      </span>
                       <input
                         name="budget_max"
                         inputMode="numeric"
                         autoComplete="off"
-                        placeholder="Ej. 250.000…"
+                        placeholder={draft.operation === 'alquiler' ? 'Ej. 700.000…' : 'Ej. 250.000…'}
                         value={draft.budgetMax?.toLocaleString('es-AR') ?? ''}
                         onChange={(event) => setDraft((current) => ({ ...current, budgetMax: numberOrNull(event.target.value) }))}
-                        className="h-12 w-full rounded-xl border border-gray-300 bg-white pl-14 pr-3 text-[16px] font-semibold tabular-nums text-gray-950 focus:border-[#17613C] focus:outline-none focus:ring-4 focus:ring-[#17613C]/15"
+                        className={`h-12 w-full rounded-xl border border-gray-300 bg-white pr-3 text-[16px] font-semibold tabular-nums text-gray-950 focus:border-[#17613C] focus:outline-none focus:ring-4 focus:ring-[#17613C]/15 ${
+                          draft.operation === 'alquiler' ? 'pl-8' : 'pl-14'
+                        }`}
                       />
                     </span>
                   </label>

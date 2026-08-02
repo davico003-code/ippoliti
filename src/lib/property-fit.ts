@@ -1,4 +1,4 @@
-import type { TokkoProperty } from '@/lib/tokko'
+import { isMonoambiente, type TokkoProperty } from '@/lib/tokko'
 
 export type SmartObjective = 'vivir' | 'invertir' | 'oportunidad'
 export type SmartPropertyType = 'todos' | 'casa' | 'departamento' | 'terreno'
@@ -82,13 +82,17 @@ const NEED_TERMS: Record<SmartLifestyleNeed, string[]> = {
     'funes hills',
     'kentucky',
     'san sebastian',
-    'vida',
-    'el paso',
-    'aldea',
+    // Nombres completos, nunca sueltos: "vida" a secas también matcheaba
+    // "conectividad" y marcaba como barrio cerrado a cualquier aviso que usara
+    // esa palabra.
+    'vida club de campo',
+    'vida crystal lagoon',
+    'vida lagoon',
     'tierra de sueños',
     'los aromos',
     'don mateo',
     'el molino',
+    'aldea fisherton',
   ],
 }
 
@@ -112,15 +116,41 @@ function propertyHaystack(property: TokkoProperty): string {
   ].filter(Boolean).join(' '))
 }
 
-function propertyPriceUsd(property: TokkoProperty): number | null {
+/**
+ * Moneda en la que se piensa el presupuesto de cada operación.
+ *
+ * Las ventas se publican en dólares (las 225 del catálogo) y los alquileres
+ * casi siempre en pesos (24 de 30). Comparar todo contra dólares hacía que los
+ * alquileres en pesos no tuvieran "precio" y se cayeran del resultado: poner un
+ * presupuesto en alquiler escondía 24 de las 30 propiedades.
+ */
+export function monedaDeOperacion(operation: 'venta' | 'alquiler'): 'USD' | 'ARS' {
+  return operation === 'alquiler' ? 'ARS' : 'USD'
+}
+
+/**
+ * Precio de la propiedad en la moneda que corresponde a la búsqueda.
+ *
+ * Devuelve null cuando la propiedad no publica precio en esa moneda. Ojo: eso
+ * NO significa "no entra en el presupuesto", significa "no se puede comparar".
+ * Quien llama tiene que dejarla pasar, no descartarla.
+ */
+function propertyPrice(
+  property: TokkoProperty,
+  moneda: 'USD' | 'ARS',
+): number | null {
   if (property.web_price === false) return null
   const price = property.operations
     ?.flatMap((operation) => operation.prices ?? [])
-    .find((candidate) => candidate.currency === 'USD')?.price
+    .find((candidate) => candidate.currency === moneda && Number(candidate.price) > 0)?.price
   return price != null && Number.isFinite(Number(price)) ? Number(price) : null
 }
 
 function propertyBedrooms(property: TokkoProperty): number {
+  // Un monoambiente tiene CERO dormitorios. Sin este chequeo, `suite_amount ||
+  // room_amount` caía al ambiente único y lo contaba como 1: la card decía
+  // "Monoambiente" y el motivo de abajo "1 dormitorio", contradiciéndose.
+  if (isMonoambiente(property)) return 0
   return Number(property.suite_amount || property.room_amount || 0)
 }
 
@@ -147,8 +177,11 @@ function matchesNeed(property: TokkoProperty, need: SmartLifestyleNeed): boolean
 
 function budgetStretchPct(property: TokkoProperty, profile: SmartProfile): 0 | 5 | 10 | 15 | null {
   if (profile.budgetMax == null) return 0
-  const price = propertyPriceUsd(property)
-  if (price == null) return null
+  const price = propertyPrice(property, monedaDeOperacion(profile.operation))
+  // Sin precio comparable (la propiedad publica en otra moneda, o no publica
+  // precio) la tratamos como "entra": mejor mostrarla y que la persona decida,
+  // que esconderle una propiedad que quizás le servía.
+  if (price == null) return 0
   const ratio = price / profile.budgetMax
   if (ratio <= 1) return 0
   if (ratio <= 1.05) return 5
@@ -249,7 +282,7 @@ function addCriterion(
 /** Puntaje explicable y determinístico: no inventa atributos ausentes. */
 export function scorePropertyFit(property: TokkoProperty, profile: SmartProfile): PropertyFit {
   const state = { earned: 0, possible: 0, reasons: [] as string[], caveats: [] as string[] }
-  const price = propertyPriceUsd(property)
+  const price = propertyPrice(property, monedaDeOperacion(profile.operation))
   const bedrooms = propertyBedrooms(property)
   const surface = propertySurface(property)
 

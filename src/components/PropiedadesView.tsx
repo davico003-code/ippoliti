@@ -1709,8 +1709,8 @@ export default function PropiedadesView({
                     <p className="text-gray-400 text-xs mb-4">Probá con otros filtros</p>
                   </>
                 )}
-                <button onClick={() => { reset(); setMapBounds(null); clearNearby() }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
-                  Borrar filtros
+                <button onClick={() => { reset(); setMapBounds(null); clearNearby(); limpiarPerfil() }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
+                  {smartActivo ? 'Empezar de nuevo' : 'Borrar filtros'}
                 </button>
               </div>
             ) : (
@@ -1776,7 +1776,9 @@ export default function PropiedadesView({
         <div className={`relative w-full md:w-[52%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
           {shouldRenderMap && (
             <PropiedadesMap
-              properties={propertiesForMap}
+              // Con el asistente activo el mapa acompaña a la lista: si no,
+              // la lista decía 5 propiedades y el mapa seguía con 32 chinches.
+              properties={smartSelection ? smartSelection.properties : propertiesForMap}
               selectedId={selectedId}
               hoveredId={hoveredId}
               onSelect={handleMapSelect}

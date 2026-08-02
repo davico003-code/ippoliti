@@ -39,8 +39,13 @@ function lista(raw: string | null): string[] {
 export function leerPerfilDeUrl(params: URLSearchParams): SmartProfile {
   const objetivo = params.get('objetivo') as SmartObjective | null
   const tipo = params.get('tipo_ideal') as SmartPropertyType | null
+  // `operacion` y no `op`: el listado usa `operacion` como parámetro propio y
+  // borra `op` de la URL a los 250 ms (es un alias viejo). Escribiendo `op`, la
+  // operación elegida en el asistente se daba vuelta sola a "Comprar" y de paso
+  // disparaba una segunda carga del listado.
+  const operacion = (params.get('operacion') ?? params.get('op') ?? '').toLowerCase()
   return {
-    operation: params.get('op') === 'alquiler' ? 'alquiler' : 'venta',
+    operation: operacion === 'alquiler' ? 'alquiler' : 'venta',
     objective: objetivo && OBJETIVOS.has(objetivo) ? objetivo : DEFAULT_SMART_PROFILE.objective,
     locations: lista(params.get('zonas')).filter((z): z is SmartProfile['locations'][number] =>
       ZONAS.has(z),
@@ -75,7 +80,9 @@ export function escribirPerfilEnUrl(
   out.set(PARAM_ACTIVO, '1')
   out.set('objetivo', perfil.objective)
   out.set('tipo_ideal', perfil.propertyType)
-  out.set('op', perfil.operation)
+  // El mismo parámetro que usa el listado, para que los dos hablen de lo mismo.
+  out.set('operacion', perfil.operation)
+  out.delete('op')
   const set = (clave: string, valor: string | number | null) => {
     if (valor == null || valor === '') out.delete(clave)
     else out.set(clave, String(valor))

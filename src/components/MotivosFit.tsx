@@ -26,9 +26,19 @@ export default function MotivosFit({
   // Sin nada que decir no ponemos una tira vacía debajo de la card.
   if (fit.reasons.length === 0 && fit.caveats.length === 0) return null
 
+  // Se muestran tres motivos, así que importa cuáles. El del presupuesto es el
+  // que más pesa en la decisión y venía último en el orden en que se generan:
+  // en las propiedades que SÍ entraban justo se cortaba, y quedaban a la vista
+  // solo "está en una de tus zonas" y "tipología pedida", que dicen menos.
+  const prioridad = (texto: string) =>
+    /presupuesto|debajo de tu tope/i.test(texto) ? 0
+      : /dormitorio|m²|superficie/i.test(texto) ? 1
+        : 2
+  const motivos = [...fit.reasons].sort((a, b) => prioridad(a) - prioridad(b))
+
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pb-2">
-      {fit.reasons.slice(0, 3).map(motivo => (
+      {motivos.slice(0, 3).map(motivo => (
         <span key={motivo} className="inline-flex items-center gap-1 text-[12px]" style={{ color: VERDE }}>
           <Check className="h-3 w-3 shrink-0" aria-hidden />
           {motivo}
