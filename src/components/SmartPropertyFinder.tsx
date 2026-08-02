@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import {
+  DEFAULT_SMART_PROFILE,
   type SmartLifestyleNeed,
   type SmartObjective,
   type SmartProfile,
@@ -101,6 +102,7 @@ export default function SmartPropertyFinder({
   const [mounted, setMounted] = useState(false)
   const [draft, setDraft] = useState(profile)
   const [error, setError] = useState<string | null>(null)
+  const errorRef = useRef<HTMLParagraphElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const firstChoiceRef = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -161,7 +163,12 @@ export default function SmartPropertyFinder({
 
   const apply = (event: React.FormEvent) => {
     event.preventDefault()
+    // Elegir "Alquilar" YA es un criterio: separa 30 propiedades de 253. Antes
+    // no contaba, así que quien tocaba solo esa opción apretaba "Ver
+    // resultados" y no pasaba nada — el aviso de error se pintaba mil píxeles
+    // más abajo, fuera de la pantalla.
     const hasUsefulCriterion =
+      draft.operation !== DEFAULT_SMART_PROFILE.operation ||
       draft.locations.length > 0 ||
       draft.propertyType !== 'todos' ||
       draft.bedroomsMin != null ||
@@ -172,6 +179,9 @@ export default function SmartPropertyFinder({
 
     if (!hasUsefulCriterion) {
       setError('Elegí al menos una zona, un presupuesto o una característica importante.')
+      // El aviso vive arriba del formulario, que puede estar scrolleado: sin
+      // esto el botón parecía no responder.
+      errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
     onApply(draft)
@@ -409,7 +419,7 @@ export default function SmartPropertyFinder({
                 </label>
 
                 {error && (
-                  <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12px] font-semibold text-red-700">
+                  <p ref={errorRef} role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12px] font-semibold text-red-700">
                     {error}
                   </p>
                 )}
