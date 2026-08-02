@@ -287,30 +287,41 @@ export default function SmartPropertyFinder({
                     </ChoiceButton>
                     <ChoiceButton
                       active={draft.operation === 'alquiler'}
-                      onClick={() => setDraft((current) => ({ ...current, operation: 'alquiler' }))}
+                      // Al pasar a alquiler el objetivo vuelve a "vivir": si
+                      // quedaba "invertir" de una búsqueda anterior, el campo ya
+                      // no se ve pero el puntaje lo seguía usando.
+                      onClick={() =>
+                        setDraft((current) => ({ ...current, operation: 'alquiler', objective: 'vivir' }))
+                      }
                     >
                       Alquilar
                     </ChoiceButton>
                   </div>
                 </fieldset>
 
-                <fieldset>
-                  <legend className="mb-2.5 text-[14px] font-extrabold text-gray-950">¿Para qué la buscás?</legend>
-                  <div className="grid gap-2 sm:grid-cols-3">
-                    {OBJECTIVES.map((item) => (
-                      <ChoiceButton
-                        key={item.value}
-                        active={draft.objective === item.value}
-                        onClick={() => setDraft((current) => ({ ...current, objective: item.value }))}
-                      >
-                        <span>
-                          <span className="block">{item.label}</span>
-                          <span className="mt-0.5 block text-[10.5px] font-medium leading-snug text-gray-500">{item.description}</span>
-                        </span>
-                      </ChoiceButton>
-                    ))}
-                  </div>
-                </fieldset>
+                {/* La pregunta del objetivo es solo para compra: el que alquila
+                    lo hace para vivir o para su negocio, no para invertir.
+                    Preguntarlo en alquiler suma un paso que no lleva a nada y
+                    encima el puntaje de "invertir" pondera cosas de venta. */}
+                {draft.operation === 'venta' && (
+                  <fieldset>
+                    <legend className="mb-2.5 text-[14px] font-extrabold text-gray-950">¿Para qué la buscás?</legend>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {OBJECTIVES.map((item) => (
+                        <ChoiceButton
+                          key={item.value}
+                          active={draft.objective === item.value}
+                          onClick={() => setDraft((current) => ({ ...current, objective: item.value }))}
+                        >
+                          <span>
+                            <span className="block">{item.label}</span>
+                            <span className="mt-0.5 block text-[10.5px] font-medium leading-snug text-gray-500">{item.description}</span>
+                          </span>
+                        </ChoiceButton>
+                      ))}
+                    </div>
+                  </fieldset>
+                )}
 
                 <fieldset>
                   <legend className="mb-2.5 text-[14px] font-extrabold text-gray-950">Zonas aceptables</legend>

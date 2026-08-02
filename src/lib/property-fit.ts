@@ -375,6 +375,14 @@ export function smartProfileLabel(profile: SmartProfile): string {
   }
   if (profile.propertyType !== 'todos') parts.push(profile.propertyType)
   if (profile.bedroomsMin != null) parts.push(`${profile.bedroomsMin}+ dorm.`)
-  if (profile.budgetMax != null) parts.push(`hasta USD ${profile.budgetMax.toLocaleString('es-AR')}`)
+  if (profile.budgetMax != null) {
+    // La misma moneda con la que se compara: dólares en venta, pesos por mes en
+    // alquiler. Decir "hasta USD 800.000" en un alquiler no tenía sentido.
+    parts.push(
+      profile.operation === 'alquiler'
+        ? `hasta $${profile.budgetMax.toLocaleString('es-AR')}/mes`
+        : `hasta USD ${profile.budgetMax.toLocaleString('es-AR')}`,
+    )
+  }
   return parts.join(' · ') || 'criterios abiertos'
 }
