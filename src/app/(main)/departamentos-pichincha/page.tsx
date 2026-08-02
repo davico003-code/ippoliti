@@ -13,8 +13,8 @@ const faqJsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
 ]}
 
 export const metadata: Metadata = {
-  title: 'Departamentos en Pichincha | Venta Rosario | SI Inmobiliaria',
-  description: 'Departamentos en venta en Pichincha, Rosario. Barrio de moda, polo gastronómico. Desde USD 60.000. Ideal inversores. SI Inmobiliaria.',
+  title: 'Departamentos en Pichincha | Venta Rosario | SI INMOBILIARIA',
+  description: 'Departamentos en venta en Pichincha, Rosario. Barrio de moda, polo gastronómico. Desde USD 60.000. Ideal inversores. SI INMOBILIARIA.',
   keywords: 'departamentos pichincha, pichincha rosario, departamentos venta pichincha',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-pichincha' },
   openGraph: {
@@ -62,7 +62,7 @@ export default async function Page() {
       <section className="py-12 px-4 bg-gray-50"><div className="max-w-4xl mx-auto prose prose-lg">
         <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>Vivir en Pichincha</h2>
         <p>Pichincha es el barrio con más personalidad de Rosario. Cervecerías artesanales, restaurantes de autor, galerías de arte y una vida nocturna que no para. Limita con Puerto Norte al norte y el centro al sur, combinando lo mejor de ambos mundos.</p>
-        <p>Los departamentos en Pichincha son los más demandados por <strong>jóvenes profesionales y estudiantes</strong>, lo que garantiza una alta tasa de ocupación para inversores. En SI Inmobiliaria te ayudamos a encontrar la mejor relación precio-rentabilidad.</p>
+        <p>Los departamentos en Pichincha son los más demandados por <strong>jóvenes profesionales y estudiantes</strong>, lo que garantiza una alta tasa de ocupación para inversores. En SI INMOBILIARIA te ayudamos a encontrar la mejor relación precio-rentabilidad.</p>
       </div></section>
 
       <section className="py-12 px-4 bg-gray-50"><div className="max-w-3xl mx-auto"><h2 className="text-2xl font-black text-gray-900 text-center mb-8" style={{ fontFamily: 'var(--font-raleway)' }}>Preguntas frecuentes</h2><div className="space-y-4">{faqJsonLd.mainEntity.map((f, i) => (<details key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 group"><summary className="font-bold text-gray-900 cursor-pointer list-none flex items-center justify-between">{f.name}<span className="text-[#1A5C38] group-open:rotate-180 transition-transform">&#9660;</span></summary><p className="mt-4 text-gray-600">{f.acceptedAnswer.text}</p></details>))}</div></div></section>

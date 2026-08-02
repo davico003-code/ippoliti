@@ -3,7 +3,7 @@ import CalculadoraAjuste from '@/components/recursos/CalculadoraAjuste'
 import RecursoHero from '@/components/recursos/RecursoHero'
 
 export const metadata: Metadata = {
-  title: '¿Está bien calculado tu aumento de alquiler? | SI Inmobiliaria',
+  title: '¿Está bien calculado tu aumento de alquiler? | SI INMOBILIARIA',
   description:
     'Verificá el ajuste de tu alquiler con la calculadora oficial. ICL, IPC, CasaPropia y todos los índices explicados. Para vivienda y comercio.',
   alternates: {
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
     description:
       'Verificá el ajuste con la calculadora oficial. ICL, IPC, CasaPropia y todos los índices explicados.',
     url: 'https://siinmobiliaria.com/recursos/ajuste-alquiler',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
     locale: 'es_AR',
     type: 'website',
   },

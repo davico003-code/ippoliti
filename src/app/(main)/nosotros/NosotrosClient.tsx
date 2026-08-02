@@ -66,7 +66,7 @@ const direccion = [
 const historia = [
   { año: '1983', titulo: 'Fundación', desc: 'Susana Ippoliti abre la primera oficina en 1ro de Mayo 258, Roldán. Comienza una historia familiar de confianza y profesionalismo.' },
   { año: '2015', titulo: 'Segunda oficina en Roldán', desc: 'Apertura de la segunda oficina en Catamarca 775, Roldán. Consolidación como referente inmobiliario en la ciudad.' },
-  { año: '2024', titulo: 'Nueva oficina, galería de arte y rebranding', desc: 'En noviembre inauguramos la nueva oficina en Funes, un espacio único que combina inmobiliaria y galería de arte x PARED. En paralelo nace SI Inmobiliaria, con una identidad renovada para una nueva etapa.' },
+  { año: '2024', titulo: 'Nueva oficina, galería de arte y rebranding', desc: 'En noviembre inauguramos la nueva oficina en Funes, un espacio único que combina inmobiliaria y galería de arte x PARED. En paralelo nace SI INMOBILIARIA, con una identidad renovada para una nueva etapa.' },
 ]
 
 const testimonios: { texto: string; nombre: string; etiqueta: string; antiguedad: string }[] = [
@@ -591,7 +591,7 @@ export default function NosotrosClient() {
         <div className="hidden lg:block absolute top-0 right-0 bottom-0" style={{ width: '62%' }}>
           <Image
             src="/images/hero/oficina-portada.webp"
-            alt="Oficina de SI Inmobiliaria en Funes"
+            alt="Oficina de SI INMOBILIARIA en Funes"
             fill
             priority
             sizes="62vw"
@@ -668,7 +668,7 @@ export default function NosotrosClient() {
           <div className="relative h-[300px] w-full">
             <Image
               src="/images/hero/oficina-portada.webp"
-              alt="Oficina de SI Inmobiliaria en Funes"
+              alt="Oficina de SI INMOBILIARIA en Funes"
               fill
               sizes="100vw"
               className="object-cover"
@@ -917,7 +917,7 @@ export default function NosotrosClient() {
         <div className="max-w-[1100px] mx-auto px-6">
           <YoutubeEmbed
             videoId="4zu7ACCErzk"
-            title="SI Inmobiliaria — Video institucional"
+            title="SI INMOBILIARIA — Video institucional"
             className="w-full aspect-video rounded-2xl overflow-hidden shadow-lg"
           />
         </div>
@@ -934,7 +934,7 @@ export default function NosotrosClient() {
         <div className="max-w-[1100px] mx-auto px-6">
           <YoutubeEmbed
             videoId="hx7wlATWXT0"
-            title="Charlas Que Sí — La historia de SI Inmobiliaria"
+            title="Charlas Que Sí — La historia de SI INMOBILIARIA"
             className="w-full aspect-video rounded-2xl overflow-hidden shadow-lg"
           />
         </div>

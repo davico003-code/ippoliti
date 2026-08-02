@@ -3,16 +3,16 @@ import Link from 'next/link'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
-  title: 'Propiedades en Don Mateo, Funes — SI Inmobiliaria',
-  description: 'Casas y lotes en barrio Don Mateo, Funes. Barrio cerrado con pileta, club house y seguridad 24hs. Propiedades en venta y alquiler. SI Inmobiliaria.',
+  title: 'Propiedades en Don Mateo, Funes — SI INMOBILIARIA',
+  description: 'Casas y lotes en barrio Don Mateo, Funes. Barrio cerrado con pileta, club house y seguridad 24hs. Propiedades en venta y alquiler. SI INMOBILIARIA.',
   alternates: { canonical: 'https://siinmobiliaria.com/barrio-don-mateo-funes' },
   openGraph: {
-    title: 'Propiedades en Don Mateo, Funes — SI Inmobiliaria',
+    title: 'Propiedades en Don Mateo, Funes — SI INMOBILIARIA',
     description: 'Barrio cerrado en Funes con amenities premium y excelente ubicación.',
     url: 'https://siinmobiliaria.com/barrio-don-mateo-funes',
     type: 'website',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
   },
 }
 
@@ -78,7 +78,7 @@ export default function BarrioDonMateoPage() {
                 En cuanto a inversión, Don Mateo tiene un potencial interesante. Al ser un barrio relativamente nuevo, los valores todavía están por debajo de los barrios más establecidos como Funes Hills o Kentucky. Pero el nivel de construcción y los amenities son equivalentes, lo que sugiere un recorrido alcista importante para los próximos años.
               </p>
               <p>
-                En SI Inmobiliaria tenemos propiedades en Don Mateo permanentemente. Si te interesa comprar o si ya vivís ahí y querés vender, nuestro equipo conoce el barrio en detalle. Hacemos tasaciones profesionales y te acompañamos en todo el proceso de compraventa con la seriedad de más de 40 años en el mercado.
+                En SI INMOBILIARIA tenemos propiedades en Don Mateo permanentemente. Si te interesa comprar o si ya vivís ahí y querés vender, nuestro equipo conoce el barrio en detalle. Hacemos tasaciones profesionales y te acompañamos en todo el proceso de compraventa con la seriedad de más de 40 años en el mercado.
               </p>
             </div>
           </div>

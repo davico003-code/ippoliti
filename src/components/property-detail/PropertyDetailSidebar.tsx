@@ -83,7 +83,7 @@ export default function PropertyDetailSidebar({
             <div className="flex items-center gap-3">
               {(() => {
                 const producer = property.producer
-                const name = producer?.name?.trim() || 'SI Inmobiliaria'
+                const name = producer?.name?.trim() || 'SI INMOBILIARIA'
                 const rol = getAgenteRol(name)
                 const subtitle = rol.titulo
                 const initials = name

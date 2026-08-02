@@ -13,8 +13,8 @@ const faqJsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
 ]}
 
 export const metadata: Metadata = {
-  title: 'Departamentos en Abasto | Venta Rosario | SI Inmobiliaria',
-  description: 'Departamentos en venta en Abasto, Rosario. Zona en crecimiento, gastronomía, construcción nueva. Desde USD 55.000. SI Inmobiliaria.',
+  title: 'Departamentos en Abasto | Venta Rosario | SI INMOBILIARIA',
+  description: 'Departamentos en venta en Abasto, Rosario. Zona en crecimiento, gastronomía, construcción nueva. Desde USD 55.000. SI INMOBILIARIA.',
   keywords: 'departamentos abasto, abasto rosario, departamentos venta abasto rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-abasto' },
   openGraph: {
@@ -62,7 +62,7 @@ export default async function Page() {
       <section className="py-12 px-4 bg-gray-50"><div className="max-w-4xl mx-auto prose prose-lg">
         <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>Vivir en Abasto</h2>
         <p>Abasto es una de las zonas con mayor crecimiento de Rosario. La <strong>Plaza Libertad</strong> y el <strong>Bv. 27 de Febrero</strong> son sus ejes, con una escena gastronómica emergente y mucha construcción nueva.</p>
-        <p>Los departamentos en Abasto ofrecen excelente relación precio-calidad. Jóvenes profesionales y familias jóvenes eligen esta zona por su accesibilidad y proyección. En <strong>SI Inmobiliaria</strong> te ayudamos a encontrar la mejor oportunidad.</p>
+        <p>Los departamentos en Abasto ofrecen excelente relación precio-calidad. Jóvenes profesionales y familias jóvenes eligen esta zona por su accesibilidad y proyección. En <strong>SI INMOBILIARIA</strong> te ayudamos a encontrar la mejor oportunidad.</p>
       </div></section>
 
       <section className="py-12 px-4 bg-gray-50"><div className="max-w-3xl mx-auto"><h2 className="text-2xl font-black text-gray-900 text-center mb-8" style={{ fontFamily: 'var(--font-raleway)' }}>Preguntas frecuentes</h2><div className="space-y-4">{faqJsonLd.mainEntity.map((f, i) => (<details key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 group"><summary className="font-bold text-gray-900 cursor-pointer list-none flex items-center justify-between">{f.name}<span className="text-[#1A5C38] group-open:rotate-180 transition-transform">&#9660;</span></summary><p className="mt-4 text-gray-600">{f.acceptedAnswer.text}</p></details>))}</div></div></section>

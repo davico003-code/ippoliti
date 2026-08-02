@@ -38,7 +38,7 @@ function serializarChrome(): string {
 }
 
 function buildSystemPrompt(): string {
-  return `Sos director de arte y editor de contenido de SI Inmobiliaria (siinmobiliaria.com),
+  return `Sos director de arte y editor de contenido de SI INMOBILIARIA (siinmobiliaria.com),
 inmobiliaria familiar de Funes, Roldán y Rosario fundada en 1983. Tu tarea:
 recibir una nota del blog y diseñar un carrusel de Instagram de 3 a 6 placas
 que transmita profesionalismo editorial, conocimiento local del corredor oeste

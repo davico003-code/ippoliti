@@ -5,7 +5,7 @@ const GREEN_DEEP = '#0B3F2D'
 
 const WHATSAPP =
   'https://wa.me/5493412101694?text=' +
-  encodeURIComponent('Hola SI Inmobiliaria, tengo una consulta sobre mi operación.')
+  encodeURIComponent('Hola SI INMOBILIARIA, tengo una consulta sobre mi operación.')
 
 export default function RecursosCTA({
   title = '¿Tenés dudas con tu operación?',

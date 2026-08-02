@@ -1,4 +1,8 @@
-import { redis } from '@/lib/redis'
+// Se lee con getCached y no con el cliente crudo de Upstash: ese hace fetch con
+// cache:'no-store' y una sola lectura así degrada a dinámica cualquier página
+// con `revalidate` que llame acá (/recursos/costos-de-construccion y
+// /mercado-inmobiliario-funes). El IPC se publica una vez al mes: 24 h de caché.
+import { getCached } from '@/lib/redis-isr'
 
 // Fuente única de los valores del Índice de Costos de Construcción
 // (/recursos/costos-de-construccion). Los valores por m² se definen como BASE
@@ -95,7 +99,7 @@ interface PuntoIndice {
 // nunca se rompe por el índice.
 export async function getAjusteIPC(): Promise<AjusteIPC> {
   try {
-    const raw = await redis.get('indices:IPC')
+    const raw = await getCached('indices:IPC', 86400)
     const serie = (typeof raw === 'string' ? JSON.parse(raw) : raw) as PuntoIndice[] | null
     if (!serie || serie.length === 0) return { factor: 1, mes: MES_BASE }
 

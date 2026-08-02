@@ -261,7 +261,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
 // general; ahora cada propiedad rutea al asesor real.
 
 const FALLBACK_WA_NUMBER = '5493412101694'
-const FALLBACK_PRODUCER_NAME = 'SI Inmobiliaria'
+const FALLBACK_PRODUCER_NAME = 'SI INMOBILIARIA'
 
 // Normaliza un teléfono crudo a formato wa.me (54 + 9 + área + número, sin
 // símbolos). Si no se puede inferir, devuelve el número general.
@@ -345,9 +345,27 @@ export function getBlueprintPhotos(property: TokkoProperty): string[] {
 }
 
 // Mapea operation_type de Tokko a español
+/**
+ * La operación que se muestra en la card y en la ficha.
+ *
+ * Una propiedad puede estar publicada en venta Y alquiler a la vez. Tomar
+ * operations[0] a ciegas la publica con la operación equivocada cuando esa
+ * primera vino sin precio cargado: así el galpón en alquiler de USD 1.300
+ * aparecía como "Venta · Consultar precio". Preferimos la operación que tiene
+ * un precio real; si ninguna lo tiene, queda la primera.
+ */
+export function operacionPrincipal(
+  property: Pick<TokkoProperty, 'operations'>,
+): TokkoOperation | null {
+  const ops = property.operations ?? [];
+  if (ops.length === 0) return null;
+  return ops.find((op) => (op.prices ?? []).some((p) => p.price > 0)) ?? ops[0];
+}
+
 export function getOperationType(property: TokkoProperty): string {
-  if (!property.operations || property.operations.length === 0) return '';
-  const type = property.operations[0].operation_type;
+  const op = operacionPrincipal(property);
+  if (!op) return '';
+  const type = op.operation_type;
   if (type === 'Sale') return 'Venta';
   if (type === 'Rent') return 'Alquiler';
   const raw = String(type).toLowerCase();
@@ -393,8 +411,10 @@ export function mostrarPrecio(
   property: Pick<TokkoProperty, 'operations' | 'web_price'>,
 ): string | null {
   if (property.web_price === false) return null;
-  if (!property.operations || property.operations.length === 0) return null;
-  const op = property.operations[0];
+  // Misma operación que elige getOperationType, para que el precio y el cartel
+  // de Venta/Alquiler nunca se contradigan.
+  const op = operacionPrincipal(property);
+  if (!op) return null;
   if (!op.prices || op.prices.length === 0) return null;
   const p = op.prices[0];
   if (!p.price || p.price === 0) return null;

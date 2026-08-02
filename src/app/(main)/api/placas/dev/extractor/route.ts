@@ -45,7 +45,7 @@ Con datos concretos:
 
 ## Cuatro cosas que miramos antes de aconsejar
 
-En SI Inmobiliaria, antes de presentar un terreno como "inversión", corroboramos:
+En SI INMOBILIARIA, antes de presentar un terreno como "inversión", corroboramos:
 
 1. Ubicación real, no el nombre del barrio. Cercanía a ruta, escuelas, centros comerciales.
 2. Servicios asegurados: agua de red, cloacas, gas natural, pavimento.
@@ -62,7 +62,7 @@ El problema: sin el cálculo, no sabés si vas a recuperar con rentabilidad supe
 
 En Funes y Roldán siempre hay oportunidades. Solo hay que saber leerlas. El ROI bien calculado es la primera herramienta — la que separa al que compra una casa del que hace una inversión.
 
-— David Flores, Corredor Inmobiliario (Mat. N° 0621), SI Inmobiliaria`,
+— David Flores, Corredor Inmobiliario (Mat. N° 0621), SI INMOBILIARIA`,
   keywords: ['ROI', 'inversión', 'Funes', 'Roldán', 'terreno', 'rentabilidad'],
   categoria: 'inversion',
   imagen_sugerida: 'terreno-funes-atardecer-inversion',

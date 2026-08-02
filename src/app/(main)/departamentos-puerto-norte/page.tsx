@@ -12,7 +12,7 @@ const ZONE_SLUG = 'puerto-norte'
 
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'RealEstateAgent',
-  name: 'SI Inmobiliaria — Departamentos en Puerto Norte', url: `https://siinmobiliaria.com/departamentos-${ZONE_SLUG}`,
+  name: 'SI INMOBILIARIA — Departamentos en Puerto Norte', url: `https://siinmobiliaria.com/departamentos-${ZONE_SLUG}`,
   telephone: '+5493412101694', areaServed: [ZONE, 'Rosario'],
   address: { '@type': 'PostalAddress', addressLocality: 'Rosario', addressRegion: 'Santa Fe', addressCountry: 'AR' },
 }
@@ -24,7 +24,7 @@ const faqJsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
 ]}
 
 export const metadata: Metadata = {
-  title: `Departamentos en ${ZONE} | Venta y alquiler | SI Inmobiliaria`,
+  title: `Departamentos en ${ZONE} | Venta y alquiler | SI INMOBILIARIA`,
   description: `Departamentos en ${ZONE}, Rosario. Torres premium con vista al río Paraná, pileta, gym, seguridad 24hs. Ciudad Ribera, Forum, Dolfines. Desde USD 120.000.`,
   keywords: `departamentos ${ZONE_LOWER}, departamentos venta ${ZONE_LOWER}, ${ZONE_LOWER} rosario`,
   alternates: { canonical: `https://siinmobiliaria.com/departamentos-${ZONE_SLUG}` },
@@ -84,7 +84,7 @@ export default async function Page() {
           <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>Vivir en Puerto Norte</h2>
           <p>Puerto Norte es el desarrollo urbanístico más ambicioso de Rosario. Ubicado sobre la costa del río Paraná, ofrece torres de categoría con amenities de nivel internacional: piletas climatizadas, gimnasios equipados, rooftop gardens y seguridad 24 horas.</p>
           <p>Edificios como <strong>Ciudad Ribera</strong>, <strong>Forum</strong>, <strong>Dolfines Guaraní</strong> y <strong>Condominios del Alto</strong> definen el skyline de la ciudad. El precio promedio por m² es de USD 2.300, con departamentos desde USD 120.000 (1 dorm) hasta más de USD 500.000 (penthouse).</p>
-          <p>La renta por alquiler temporario es la más alta de Rosario, convirtiéndola en una excelente opción para inversores. En <strong>SI Inmobiliaria</strong> te asesoramos sobre rentabilidad, expensas y proyección de valor.</p>
+          <p>La renta por alquiler temporario es la más alta de Rosario, convirtiéndola en una excelente opción para inversores. En <strong>SI INMOBILIARIA</strong> te asesoramos sobre rentabilidad, expensas y proyección de valor.</p>
         </div>
       </section>
 

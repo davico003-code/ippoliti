@@ -3,16 +3,16 @@ import Link from 'next/link'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
-  title: 'Propiedades en Los Aromos, Roldán — SI Inmobiliaria',
-  description: 'Casas, lotes y terrenos en barrio Los Aromos, Roldán. Barrio abierto residencial con excelente conectividad a Rosario. SI Inmobiliaria — desde 1983.',
+  title: 'Propiedades en Los Aromos, Roldán — SI INMOBILIARIA',
+  description: 'Casas, lotes y terrenos en barrio Los Aromos, Roldán. Barrio abierto residencial con excelente conectividad a Rosario. SI INMOBILIARIA — desde 1983.',
   alternates: { canonical: 'https://siinmobiliaria.com/barrio-los-aromos-roldan' },
   openGraph: {
-    title: 'Propiedades en Los Aromos, Roldán — SI Inmobiliaria',
+    title: 'Propiedades en Los Aromos, Roldán — SI INMOBILIARIA',
     description: 'Barrio residencial en Roldán con lotes amplios y calles arboladas.',
     url: 'https://siinmobiliaria.com/barrio-los-aromos-roldan',
     type: 'website',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
   },
 }
 
@@ -78,7 +78,7 @@ export default function BarrioLosAromosPage() {
                 Las propiedades disponibles van desde terrenos sin construir hasta casas de 2, 3 y 4 dormitorios. También hay algunas opciones de casas a estrenar de desarrolladores locales con financiación en pesos. Es un barrio flexible que se adapta a distintos presupuestos y necesidades.
               </p>
               <p>
-                Desde SI Inmobiliaria operamos en Roldán desde 1983. Nuestra oficina histórica en 1ro de Mayo 258 está a pocas cuadras de Los Aromos. Si querés comprar, vender o tasar en este barrio, hablá con nosotros — conocemos cada calle, cada lote y cada vecino.
+                Desde SI INMOBILIARIA operamos en Roldán desde 1983. Nuestra oficina histórica en 1ro de Mayo 258 está a pocas cuadras de Los Aromos. Si querés comprar, vender o tasar en este barrio, hablá con nosotros — conocemos cada calle, cada lote y cada vecino.
               </p>
             </div>
           </div>

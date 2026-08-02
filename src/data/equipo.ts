@@ -2,7 +2,7 @@ export const equipo = [
   {
     nombre: 'Susana Ippoliti',
     rol: 'Fundadora',
-    descripcion: 'Fundó SI Inmobiliaria en 1983. Más de 40 años en el mercado inmobiliario de Funes y Roldán.',
+    descripcion: 'Fundó SI INMOBILIARIA en 1983. Más de 40 años en el mercado inmobiliario de Funes y Roldán.',
     whatsapp: '5493412101694',
     foto: null,
   },

@@ -15,9 +15,9 @@ import { getAllClientes } from '@/lib/clientes'
 export const revalidate = 21600
 
 export const metadata: Metadata = {
-  title: 'Emprendimientos | SI Inmobiliaria',
+  title: 'Emprendimientos | SI INMOBILIARIA',
   description:
-    'Emprendimientos inmobiliarios en Roldán, Funes y Rosario. Condominios, barrios abiertos y cerrados. SI Inmobiliaria — desde 1983.',
+    'Emprendimientos inmobiliarios en Roldán, Funes y Rosario. Condominios, barrios abiertos y cerrados. SI INMOBILIARIA — desde 1983.',
   alternates: { canonical: 'https://siinmobiliaria.com/emprendimientos' },
 }
 
@@ -122,7 +122,7 @@ export default async function EmprendimientosPage() {
       <section className="relative flex min-h-[560px] items-end overflow-hidden md:min-h-[640px]">
         <Image
           src="/images/distrito-roldan/render-residencial.webp"
-          alt="Emprendimientos y desarrollos de SI Inmobiliaria"
+          alt="Emprendimientos y desarrollos de SI INMOBILIARIA"
           fill
           className="object-cover"
           priority
@@ -146,7 +146,7 @@ export default async function EmprendimientosPage() {
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
             Los desarrollos que comercializamos en Roldán, Funes y Rosario. Barrios, condominios y
-            proyectos con financiación — seleccionados por SI Inmobiliaria.
+            proyectos con financiación — seleccionados por SI INMOBILIARIA.
           </p>
 
           {/* Franja de datos */}

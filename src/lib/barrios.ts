@@ -1,5 +1,5 @@
 // lib/barrios.ts
-// SI Inmobiliaria — Barrios privados del corredor de Funes
+// SI INMOBILIARIA — Barrios privados del corredor de Funes
 // Generado: data curada por David Flores, Mat. 0621
 // IMPORTANTE: este archivo es la fuente única de verdad para /barrios-privados
 
@@ -214,9 +214,9 @@ export const BARRIOS: Barrio[] = [
       plano: "/barrios/san-sebastian/plano.jpg",
     },
     seo: {
-      metaTitle: "Lotes en San Sebastián, Funes — Precios y disponibilidad | SI Inmobiliaria",
+      metaTitle: "Lotes en San Sebastián, Funes — Precios y disponibilidad | SI INMOBILIARIA",
       metaDescription:
-        "Lotes y casas en San Sebastián, Funes. 587 lotes de 800 a 1.400 m² en 68 hectáreas. Stock actualizado, análisis de mercado y asesoramiento por SI Inmobiliaria, Mat. 0621.",
+        "Lotes y casas en San Sebastián, Funes. 587 lotes de 800 a 1.400 m² en 68 hectáreas. Stock actualizado, análisis de mercado y asesoramiento por SI INMOBILIARIA, Mat. 0621.",
       keywordsLongTail: [
         "lotes san sebastian funes",
         "casas en venta san sebastian",
@@ -296,9 +296,9 @@ export const BARRIOS: Barrio[] = [
       galeria: [],
     },
     seo: {
-      metaTitle: "Vida Lagoon, Funes — Lotes con vista a la laguna | SI Inmobiliaria",
+      metaTitle: "Vida Lagoon, Funes — Lotes con vista a la laguna | SI INMOBILIARIA",
       metaDescription:
-        "Lotes en Vida Lagoon, Funes. 1.042 lotes con laguna cristalina de 23.300 m², playa de arena de cuarzo y deportes náuticos. Stock actualizado por SI Inmobiliaria.",
+        "Lotes en Vida Lagoon, Funes. 1.042 lotes con laguna cristalina de 23.300 m², playa de arena de cuarzo y deportes náuticos. Stock actualizado por SI INMOBILIARIA.",
       keywordsLongTail: [
         "vida lagoon funes precios",
         "lote con laguna funes",
@@ -371,9 +371,9 @@ export const BARRIOS: Barrio[] = [
     },
     imagenes: { hero: "/barrios/vida-barrio-cerrado/hero.svg" },
     seo: {
-      metaTitle: "Vida Barrio Cerrado, Funes — Lotes con centro comercial | SI Inmobiliaria",
+      metaTitle: "Vida Barrio Cerrado, Funes — Lotes con centro comercial | SI INMOBILIARIA",
       metaDescription:
-        "294 lotes de 800 a 1.400 m² en Vida Barrio Cerrado, Funes. Único con centro comercial propio en el ingreso. Stock y precios por SI Inmobiliaria.",
+        "294 lotes de 800 a 1.400 m² en Vida Barrio Cerrado, Funes. Único con centro comercial propio en el ingreso. Stock y precios por SI INMOBILIARIA.",
       keywordsLongTail: [
         "vida barrio cerrado funes",
         "barrio privado con supermercado funes",
@@ -464,9 +464,9 @@ export const BARRIOS: Barrio[] = [
       ],
     },
     seo: {
-      metaTitle: "Vida Club de Campo, Funes — Club House de autor y lotes de 1.000 m² | SI Inmobiliaria",
+      metaTitle: "Vida Club de Campo, Funes — Club House de autor y lotes de 1.000 m² | SI INMOBILIARIA",
       metaDescription:
-        "Vida Club de Campo: 659 lotes de 1.000 m² con Club House de autor en hormigón visto y 7 canchas de tenis de polvo de ladrillo. A minutos del Aeropuerto Rosario. Stock por SI Inmobiliaria.",
+        "Vida Club de Campo: 659 lotes de 1.000 m² con Club House de autor en hormigón visto y 7 canchas de tenis de polvo de ladrillo. A minutos del Aeropuerto Rosario. Stock por SI INMOBILIARIA.",
       keywordsLongTail: [
         "vida club de campo funes",
         "lote 1000 m2 funes",
@@ -533,9 +533,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["vida jardin", "vida jardín"] },
     imagenes: { hero: "/barrios/vida-jardin/hero-legacy.webp" },
     seo: {
-      metaTitle: "Vida Jardín, Funes — Lotes deportivos sobre autopista | SI Inmobiliaria",
+      metaTitle: "Vida Jardín, Funes — Lotes deportivos sobre autopista | SI INMOBILIARIA",
       metaDescription:
-        "242 lotes de 800 a 1.100 m² en Vida Jardín, Funes. Acceso directo a la autopista, canchas de tenis, pádel y fútbol. Stock por SI Inmobiliaria.",
+        "242 lotes de 800 a 1.100 m² en Vida Jardín, Funes. Acceso directo a la autopista, canchas de tenis, pádel y fútbol. Stock por SI INMOBILIARIA.",
       keywordsLongTail: [
         "vida jardin funes",
         "barrio con paddle funes",
@@ -598,9 +598,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["vida green"] },
     imagenes: { hero: "/barrios/vida-green/hero.svg" },
     seo: {
-      metaTitle: "Vida Green, Funes — Lotes desde 500 m² | SI Inmobiliaria",
+      metaTitle: "Vida Green, Funes — Lotes desde 500 m² | SI INMOBILIARIA",
       metaDescription:
-        "419 lotes de 500 a 700 m² en Vida Green, Funes. La entrada más accesible al universo Vida, con tenis, pádel y fútbol. Stock por SI Inmobiliaria.",
+        "419 lotes de 500 a 700 m² en Vida Green, Funes. La entrada más accesible al universo Vida, con tenis, pádel y fútbol. Stock por SI INMOBILIARIA.",
       keywordsLongTail: [
         "vida green funes precios",
         "lote 500 m2 barrio privado funes",
@@ -668,9 +668,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["kentucky"] },
     imagenes: { hero: "/barrios/kentucky/hero-legacy.webp" },
     seo: {
-      metaTitle: "Kentucky Club de Campo, Funes — Lotes con golf 18 hoyos | SI Inmobiliaria",
+      metaTitle: "Kentucky Club de Campo, Funes — Lotes con golf 18 hoyos | SI INMOBILIARIA",
       metaDescription:
-        "Kentucky Club de Campo: 242 hectáreas, campo de golf 18 hoyos, lago de 7 ha y arboleda madura. El barrio más consolidado y exclusivo del corredor. SI Inmobiliaria.",
+        "Kentucky Club de Campo: 242 hectáreas, campo de golf 18 hoyos, lago de 7 ha y arboleda madura. El barrio más consolidado y exclusivo del corredor. SI INMOBILIARIA.",
       keywordsLongTail: [
         "kentucky club de campo funes",
         "barrio con golf funes",
@@ -726,9 +726,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["san marino", "funes hills san marino"] },
     imagenes: { hero: "/barrios/funes-hills-san-marino/hero.svg" },
     seo: {
-      metaTitle: "Funes Hills San Marino — Barrio cerrado con grupo electrógeno | SI Inmobiliaria",
+      metaTitle: "Funes Hills San Marino — Barrio cerrado con grupo electrógeno | SI INMOBILIARIA",
       metaDescription:
-        "Funes Hills San Marino: barrio cerrado consolidado en Funes con grupo electrógeno propio. Comunidad chica, tenis, fútbol, pileta. Stock por SI Inmobiliaria.",
+        "Funes Hills San Marino: barrio cerrado consolidado en Funes con grupo electrógeno propio. Comunidad chica, tenis, fútbol, pileta. Stock por SI INMOBILIARIA.",
       keywordsLongTail: [
         "funes hills san marino",
         "barrio con grupo electrogeno funes",
@@ -791,9 +791,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["cadaques", "cadaqués", "funes hills cadaques"] },
     imagenes: { hero: "/barrios/funes-hills-cadaques/hero.svg" },
     seo: {
-      metaTitle: "Funes Hills Cadaqués — Barrio cerrado en tierras altas | SI Inmobiliaria",
+      metaTitle: "Funes Hills Cadaqués — Barrio cerrado en tierras altas | SI INMOBILIARIA",
       metaDescription:
-        "Funes Hills Cadaqués: barrio cerrado consolidado en tierras altas de Funes, con boulevard central forestado, tenis, fútbol y pileta. SI Inmobiliaria.",
+        "Funes Hills Cadaqués: barrio cerrado consolidado en tierras altas de Funes, con boulevard central forestado, tenis, fútbol y pileta. SI INMOBILIARIA.",
       keywordsLongTail: [
         "funes hills cadaques",
         "barrio cerrado tierras altas funes",
@@ -881,9 +881,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["funes lakes"] },
     imagenes: { hero: "/barrios/funes-lakes/hero.svg" },
     seo: {
-      metaTitle: "Funes Lakes — El único barrio náutico de Funes | SI Inmobiliaria",
+      metaTitle: "Funes Lakes — El único barrio náutico de Funes | SI INMOBILIARIA",
       metaDescription:
-        "Funes Lakes: 409 lotes con salida privada al agua, 8 islas, 10 km de costa. Único barrio náutico del corredor de Funes. Stock y análisis por SI Inmobiliaria.",
+        "Funes Lakes: 409 lotes con salida privada al agua, 8 islas, 10 km de costa. Único barrio náutico del corredor de Funes. Stock y análisis por SI INMOBILIARIA.",
       keywordsLongTail: [
         "funes lakes precios",
         "lote con agua privada funes",
@@ -960,9 +960,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["miraflores", "funes hills miraflores"] },
     imagenes: { hero: "/barrios/funes-hills-miraflores/hero-legacy.webp" },
     seo: {
-      metaTitle: "Funes Hills Miraflores — Lotes y casas en venta | SI Inmobiliaria",
+      metaTitle: "Funes Hills Miraflores — Lotes y casas en venta | SI INMOBILIARIA",
       metaDescription:
-        "Funes Hills Miraflores: barrio consolidado en Av. Fuerza Aérea 3102, Funes. Lotes de 800-850 m², 4 canchas de tenis de polvo de ladrillo y servicios en el ingreso. SI Inmobiliaria.",
+        "Funes Hills Miraflores: barrio consolidado en Av. Fuerza Aérea 3102, Funes. Lotes de 800-850 m², 4 canchas de tenis de polvo de ladrillo y servicios en el ingreso. SI INMOBILIARIA.",
       keywordsLongTail: [
         "funes hills miraflores casas en venta",
         "lote en miraflores funes precio",
@@ -1037,9 +1037,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["aguadas"] },
     imagenes: { hero: "/barrios/aguadas/01.webp" },
     seo: {
-      metaTitle: "Aguadas Barrio Cerrado, Funes — Lotes y casas en venta | SI Inmobiliaria",
+      metaTitle: "Aguadas Barrio Cerrado, Funes — Lotes y casas en venta | SI INMOBILIARIA",
       metaDescription:
-        "Aguadas: barrio cerrado consolidado en la zona sur de Funes, sobre la colectora de la autopista. 234 lotes desde 800 m², Club House, piscina climatizada y seguridad 24hs. SI Inmobiliaria.",
+        "Aguadas: barrio cerrado consolidado en la zona sur de Funes, sobre la colectora de la autopista. 234 lotes desde 800 m², Club House, piscina climatizada y seguridad 24hs. SI INMOBILIARIA.",
       keywordsLongTail: [
         "aguadas barrio cerrado funes",
         "lote en aguadas funes precio",
@@ -1111,9 +1111,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["la finca 1", "la finca i", "la finca country"] },
     imagenes: { hero: "/barrios/la-finca-1/01.webp" },
     seo: {
-      metaTitle: "La Finca Country, Funes — Lotes y casas en venta | SI Inmobiliaria",
+      metaTitle: "La Finca Country, Funes — Lotes y casas en venta | SI INMOBILIARIA",
       metaDescription:
-        "La Finca Country: 68 hectáreas y 444 lotes de 800 m² en el límite Funes–Rosario, lindero al Arroyo Ludueña. Lago, restaurant, club de vinos y set deportivo completo. SI Inmobiliaria.",
+        "La Finca Country: 68 hectáreas y 444 lotes de 800 m² en el límite Funes–Rosario, lindero al Arroyo Ludueña. Lago, restaurant, club de vinos y set deportivo completo. SI INMOBILIARIA.",
       keywordsLongTail: [
         "la finca country funes",
         "lote en la finca funes precio",
@@ -1179,9 +1179,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["la finca 2", "la finca ii", "las fincas ii"] },
     imagenes: { hero: "/barrios/la-finca-2/01.webp" },
     seo: {
-      metaTitle: "La Finca II, Funes — Lotes en venta en etapa final | SI Inmobiliaria",
+      metaTitle: "La Finca II, Funes — Lotes en venta en etapa final | SI INMOBILIARIA",
       metaDescription:
-        "La Finca II: 60 hectáreas y 420 lotes desde 608 m² en la zona norte de Funes. Club House con restaurante, coworking, lago y deportes. Etapa final de obra. SI Inmobiliaria.",
+        "La Finca II: 60 hectáreas y 420 lotes desde 608 m² en la zona norte de Funes. Club House con restaurante, coworking, lago y deportes. Etapa final de obra. SI INMOBILIARIA.",
       keywordsLongTail: [
         "la finca 2 funes",
         "la finca ii lotes precio",
@@ -1252,9 +1252,9 @@ export const BARRIOS: Barrio[] = [
     tokko: { matchByTitle: ["haras"] },
     imagenes: { hero: "/barrios/haras-de-funes/01.webp" },
     seo: {
-      metaTitle: "Haras de Funes Club de Campo — Lotes de +1.000 m² | SI Inmobiliaria",
+      metaTitle: "Haras de Funes Club de Campo — Lotes de +1.000 m² | SI INMOBILIARIA",
       metaDescription:
-        "Haras de Funes: club de campo contiguo a Kentucky con 170 lotes escriturados de más de 1.000 m², laguna natural de 2,5 ha, club house y seguridad 24hs. SI Inmobiliaria.",
+        "Haras de Funes: club de campo contiguo a Kentucky con 170 lotes escriturados de más de 1.000 m², laguna natural de 2,5 ha, club house y seguridad 24hs. SI INMOBILIARIA.",
       keywordsLongTail: [
         "haras de funes lotes",
         "club de campo funes lotes grandes",

@@ -29,7 +29,7 @@ import Clarity from "@/components/Clarity";
 import { AudioPlayerProvider } from "@/components/audio/AudioPlayerProvider";
 
 export const metadata: Metadata = {
-  title: "SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario",
+  title: "SI INMOBILIARIA — Propiedades en Funes, Roldán y Rosario",
   description:
     "Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.",
   metadataBase: new URL('https://siinmobiliaria.com'),
@@ -48,18 +48,18 @@ export const metadata: Metadata = {
     google: 'vzBOIhp_zjfmlEuh_-0vZ6K9PDOyNAY_wSet1AWsNUI',
   },
   openGraph: {
-    title: 'SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario',
+    title: 'SI INMOBILIARIA — Propiedades en Funes, Roldán y Rosario',
     description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.',
     url: 'https://siinmobiliaria.com',
-    siteName: 'SI Inmobiliaria',
+    siteName: 'SI INMOBILIARIA',
     // og-image.jpg: asset OG real 1200×630 (logo sobre fondo blanco).
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
     locale: 'es_AR',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SI Inmobiliaria — Propiedades en Funes, Roldán y Rosario',
+    title: 'SI INMOBILIARIA — Propiedades en Funes, Roldán y Rosario',
     description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario.',
     images: ['/og-image.jpg'],
   },
@@ -78,7 +78,7 @@ const OFFICES = [
   {
     "@type": "LocalBusiness",
     "@id": "https://siinmobiliaria.com/#oficina-roldan-historica",
-    name: "SI Inmobiliaria — Oficina Histórica Roldán",
+    name: "SI INMOBILIARIA — Oficina Histórica Roldán",
     image: "https://siinmobiliaria.com/logo-si-horizontal.png",
     telephone: "+54-341-210-1694",
     address: {
@@ -97,7 +97,7 @@ const OFFICES = [
   {
     "@type": "LocalBusiness",
     "@id": "https://siinmobiliaria.com/#oficina-roldan-catamarca",
-    name: "SI Inmobiliaria — Oficina Ventas Roldán",
+    name: "SI INMOBILIARIA — Oficina Ventas Roldán",
     image: "https://siinmobiliaria.com/logo-si-horizontal.png",
     telephone: "+54-341-210-1694",
     address: {
@@ -116,7 +116,7 @@ const OFFICES = [
   {
     "@type": "LocalBusiness",
     "@id": "https://siinmobiliaria.com/#oficina-funes",
-    name: "SI Inmobiliaria — Oficina Funes",
+    name: "SI INMOBILIARIA — Oficina Funes",
     image: "https://siinmobiliaria.com/logo-si-horizontal.png",
     telephone: "+54-341-210-1694",
     address: {
@@ -142,7 +142,7 @@ const jsonLd = [
     "@type": "WebSite",
     "@id": "https://siinmobiliaria.com/#website",
     url: "https://siinmobiliaria.com",
-    name: "SI Inmobiliaria",
+    name: "SI INMOBILIARIA",
     inLanguage: "es-AR",
     publisher: { "@id": "https://siinmobiliaria.com/#organization" },
     potentialAction: {
@@ -158,7 +158,7 @@ const jsonLd = [
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
     "@id": "https://siinmobiliaria.com/#organization",
-    name: "SI Inmobiliaria",
+    name: "SI INMOBILIARIA",
     alternateName: "Inmobiliaria Ippoliti",
     url: "https://siinmobiliaria.com",
     logo: "https://siinmobiliaria.com/logo-si-horizontal.png",

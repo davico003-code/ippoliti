@@ -178,7 +178,7 @@ export default function SchoolPage() {
               </button>
             </form>
           </div>
-          <p className="text-white/20 text-xs text-center mt-6 font-poppins">SI Inmobiliaria &middot; Desde 1983</p>
+          <p className="text-white/20 text-xs text-center mt-6 font-poppins">SI INMOBILIARIA &middot; Desde 1983</p>
         </div>
       </div>
     )
@@ -364,7 +364,7 @@ export default function SchoolPage() {
 
         {/* Footer */}
         <div className="mt-12 pt-6 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-400 font-poppins">SI Inmobiliaria &middot; Material de uso interno &middot; Desde 1983</p>
+          <p className="text-xs text-gray-400 font-poppins">SI INMOBILIARIA &middot; Material de uso interno &middot; Desde 1983</p>
         </div>
       </div>
     </div>

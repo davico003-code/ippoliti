@@ -220,7 +220,7 @@ export default function PropertyDetailBody({
           {/* Agente — foto + nombre + badge */}
           {(() => {
             const producer = property.producer
-            const name = producer?.name?.trim() || 'SI Inmobiliaria'
+            const name = producer?.name?.trim() || 'SI INMOBILIARIA'
             const rol = getAgenteRol(name)
             const initials =
               name

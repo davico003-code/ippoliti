@@ -15,7 +15,7 @@ import {
 // IPC). Params inválidos o faltantes → redirect a la guía.
 
 export const metadata: Metadata = {
-  title: 'Mi proyección de costo de construcción | SI Inmobiliaria',
+  title: 'Mi proyección de costo de construcción | SI INMOBILIARIA',
   description:
     'Proyección de costo de obra llave en mano en Funes y Roldán: inversión total y valor de mercado estimado, con valores reales por m².',
   // Página parametrizable (infinitas variantes): fuera del índice de Google.
@@ -24,8 +24,8 @@ export const metadata: Metadata = {
     title: 'Mi proyección de costo de construcción',
     description:
       'Mirá la proyección: costo de obra llave en mano, inversión total y valor de mercado estimado en Funes y Roldán.',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
     locale: 'es_AR',
     type: 'website',
   },
@@ -185,7 +185,7 @@ export default async function CalculoPage({ searchParams }: Props) {
               rel="noopener noreferrer"
               className="costos-btn-cafe"
             >
-              Hablar con SI Inmobiliaria
+              Hablar con SI INMOBILIARIA
             </a>
           </div>
         </div>

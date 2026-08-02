@@ -67,7 +67,7 @@ const PLACAS: Record<string, Placa> = {
       },
       {
         tipo: 'fuente',
-        texto: '— Relevamiento SI Inmobiliaria, 200 operaciones 2024–2025.',
+        texto: '— Relevamiento SI INMOBILIARIA, 200 operaciones 2024–2025.',
       },
     ],
   },
@@ -89,7 +89,7 @@ const PLACAS: Record<string, Placa> = {
       },
       {
         tipo: 'fuente',
-        texto: '— Relevamiento propio SI Inmobiliaria, 2026.',
+        texto: '— Relevamiento propio SI INMOBILIARIA, 2026.',
       },
     ],
   },

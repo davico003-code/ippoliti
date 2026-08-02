@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import NosotrosClient from './NosotrosClient'
 
 export const metadata: Metadata = {
-  title: 'Sobre nosotros — 40 años en Funes, Roldán y Rosario | SI Inmobiliaria',
-  description: 'Conocé la historia de SI Inmobiliaria. Más de 40 años acompañando familias en Roldán, Funes y Rosario. Susana Ippoliti, Laura y David.',
+  title: 'Sobre nosotros — 40 años en Funes, Roldán y Rosario | SI INMOBILIARIA',
+  description: 'Conocé la historia de SI INMOBILIARIA. Más de 40 años acompañando familias en Roldán, Funes y Rosario. Susana Ippoliti, Laura y David.',
   alternates: { canonical: 'https://siinmobiliaria.com/nosotros' },
   openGraph: {
-    title: 'Sobre nosotros | SI Inmobiliaria',
+    title: 'Sobre nosotros | SI INMOBILIARIA',
     description: 'Dos generaciones acompañando familias en Funes, Roldán y Rosario desde 1983.',
     url: 'https://siinmobiliaria.com/nosotros',
     images: ['/og-image.jpg'],
@@ -26,12 +26,12 @@ const faqJsonLd = {
       acceptedAnswer: {
         '@type': 'Answer',
         text:
-          'SI Inmobiliaria es una inmobiliaria con más de 40 años de trayectoria en el corredor Funes–Roldán–Rosario. Dos generaciones (Susana Ippoliti, Laura y David Flores) acompañan operaciones de compra, venta y alquiler de casas, departamentos, lotes y barrios cerrados en la zona oeste de Rosario. Corredor responsable: David Flores, Mat. N° 0621.',
+          'SI INMOBILIARIA es una inmobiliaria con más de 40 años de trayectoria en el corredor Funes–Roldán–Rosario. Dos generaciones (Susana Ippoliti, Laura y David Flores) acompañan operaciones de compra, venta y alquiler de casas, departamentos, lotes y barrios cerrados en la zona oeste de Rosario. Corredor responsable: David Flores, Mat. N° 0621.',
       },
     },
     {
       '@type': 'Question',
-      name: '¿Hace cuánto tiempo trabaja SI Inmobiliaria?',
+      name: '¿Hace cuánto tiempo trabaja SI INMOBILIARIA?',
       acceptedAnswer: {
         '@type': 'Answer',
         text:
@@ -40,7 +40,7 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
-      name: '¿En qué zonas opera SI Inmobiliaria?',
+      name: '¿En qué zonas opera SI INMOBILIARIA?',
       acceptedAnswer: {
         '@type': 'Answer',
         text:
@@ -49,7 +49,7 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
-      name: '¿Qué servicios ofrece SI Inmobiliaria?',
+      name: '¿Qué servicios ofrece SI INMOBILIARIA?',
       acceptedAnswer: {
         '@type': 'Answer',
         text:
@@ -58,7 +58,7 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
-      name: '¿Cómo contacto a SI Inmobiliaria?',
+      name: '¿Cómo contacto a SI INMOBILIARIA?',
       acceptedAnswer: {
         '@type': 'Answer',
         text:

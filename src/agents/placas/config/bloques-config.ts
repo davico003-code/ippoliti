@@ -164,7 +164,7 @@ export const CATALOGO_BLOQUES: CatalogoBloque[] = [
     descripcion: 'Cita de fuente al pie. Raleway italic 300 a 28px.',
     props: '{ texto: string }',
     cuando_usar:
-      'Siempre que se muestre un dato numérico del que haya fuente externa. "— Relevamiento SI Inmobiliaria 2024-2025", "Fuente: COCIR Rosario", etc.',
+      'Siempre que se muestre un dato numérico del que haya fuente externa. "— Relevamiento SI INMOBILIARIA 2024-2025", "Fuente: COCIR Rosario", etc.',
   },
   {
     tipo: 'cta-actions',

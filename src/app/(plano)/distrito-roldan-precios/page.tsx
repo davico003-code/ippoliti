@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: 'website',
     title: TITULO,
     description: BAJADA,
-    siteName: 'SI Inmobiliaria',
+    siteName: 'SI INMOBILIARIA',
     locale: 'es_AR',
     images: [{ url: OG, width: 1200, height: 630, alt: 'Plano de lotes de Distrito Roldán' }],
   },

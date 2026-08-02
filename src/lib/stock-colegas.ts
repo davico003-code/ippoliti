@@ -1,4 +1,4 @@
-// Stock de Colegas — el MLS privado de SI Inmobiliaria.
+// Stock de Colegas — el MLS privado de SI INMOBILIARIA.
 //
 // El MOTOR (Cowork, ~/Downloads/INFO PROPIEDADES FUNES) rastrea Zonaprop +
 // Argenprop a diario, deduplica (26% de los avisos son duplicados) y emite

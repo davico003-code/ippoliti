@@ -3,16 +3,16 @@ import Link from 'next/link'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
-  title: 'Propiedades en El Molino, Roldán — SI Inmobiliaria',
-  description: 'Casas y lotes en barrio El Molino, Roldán. Barrio cerrado con seguridad, amenities y financiación. Venta de propiedades. SI Inmobiliaria — desde 1983.',
+  title: 'Propiedades en El Molino, Roldán — SI INMOBILIARIA',
+  description: 'Casas y lotes en barrio El Molino, Roldán. Barrio cerrado con seguridad, amenities y financiación. Venta de propiedades. SI INMOBILIARIA — desde 1983.',
   alternates: { canonical: 'https://siinmobiliaria.com/barrio-el-molino-roldan' },
   openGraph: {
-    title: 'Propiedades en El Molino, Roldán — SI Inmobiliaria',
+    title: 'Propiedades en El Molino, Roldán — SI INMOBILIARIA',
     description: 'Barrio cerrado en Roldán con lotes amplios, pileta y seguridad 24hs.',
     url: 'https://siinmobiliaria.com/barrio-el-molino-roldan',
     type: 'website',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
   },
 }
 
@@ -78,7 +78,7 @@ export default function BarrioElMolinoPage() {
                 En los últimos 5 años, El Molino se consolidó como uno de los barrios con mayor desarrollo de Roldán. Las etapas nuevas se vendieron rápidamente y la ocupación es alta, lo que habla de un barrio vivo y en crecimiento. Las casas terminadas tienen muy buena reventa, y los lotes disponibles son cada vez menos — el que entra ahora, entra bien.
               </p>
               <p>
-                En SI Inmobiliaria somos de Roldán. Nuestra primera oficina la abrimos acá en 1983. Conocemos El Molino desde sus inicios y tenemos relación directa con el desarrollador. Si querés comprar un lote, una casa, o si querés vender tu propiedad en El Molino, hablá con nosotros. Te damos una tasación sin cargo y te asesoramos con la experiencia de quien conoce cada rincón de la ciudad.
+                En SI INMOBILIARIA somos de Roldán. Nuestra primera oficina la abrimos acá en 1983. Conocemos El Molino desde sus inicios y tenemos relación directa con el desarrollador. Si querés comprar un lote, una casa, o si querés vender tu propiedad en El Molino, hablá con nosotros. Te damos una tasación sin cargo y te asesoramos con la experiencia de quien conoce cada rincón de la ciudad.
               </p>
             </div>
           </div>

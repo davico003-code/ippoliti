@@ -135,7 +135,7 @@ export default function Footer() {
           }}
         >
           <p style={{ fontFamily: RALEWAY, fontSize: 14, color: MUTED, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
-            © 2026 SI Inmobiliaria · David Flores Mat. N° 0621
+            © 2026 SI INMOBILIARIA · David Flores Mat. N° 0621
           </p>
           <LineaMundial />
           <div style={{ fontFamily: RALEWAY, fontSize: 14, color: MUTED, display: 'flex', gap: 12 }}>

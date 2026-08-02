@@ -1,4 +1,4 @@
-# Blog Writer — SI Inmobiliaria
+# Blog Writer — SI INMOBILIARIA
 
 ## Qué hace
 Martes y viernes a las 8am AR (11am UTC), toma los temas aprobados por el admin el lunes, genera una nota editorial con Claude Opus, la valida automáticamente y la publica en Vercel Blob. Si falla 3 veces, alerta por WhatsApp.

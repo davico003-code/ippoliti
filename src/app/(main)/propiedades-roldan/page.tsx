@@ -9,15 +9,15 @@ export const revalidate = 21600
 export const metadata: Metadata = {
   title: 'Propiedades en Venta en Roldán | Casas, Terrenos y Departamentos',
   description:
-    'Propiedades en venta en Roldán, Santa Fe. Casas, terrenos, departamentos y locales comerciales. SI Inmobiliaria - más de 40 años en el mercado inmobiliario de Roldán.',
+    'Propiedades en venta en Roldán, Santa Fe. Casas, terrenos, departamentos y locales comerciales. SI INMOBILIARIA - más de 40 años en el mercado inmobiliario de Roldán.',
   alternates: { canonical: 'https://siinmobiliaria.com/propiedades-roldan' },
   openGraph: {
     images: ['/og-image.jpg'],
-    title: 'Propiedades en Venta en Roldán | SI Inmobiliaria',
+    title: 'Propiedades en Venta en Roldán | SI INMOBILIARIA',
     description: 'Casas, terrenos y departamentos en venta en Roldán.',
     url: 'https://siinmobiliaria.com/propiedades-roldan',
     type: 'website',
-    siteName: 'SI Inmobiliaria',
+    siteName: 'SI INMOBILIARIA',
   },
 }
 
@@ -65,7 +65,7 @@ export default async function PropiedadesRoldanPage() {
             Roldán es hoy una de las ciudades con mayor proyección inmobiliaria de la provincia de Santa Fe. Su ubicación privilegiada sobre la Autopista Rosario-Córdoba, a solo 25 km del centro de Rosario, la convierte en el destino ideal para familias que buscan calidad de vida sin resignar conectividad. El crecimiento sostenido de la ciudad ha traído nuevos barrios residenciales, desarrollos urbanísticos y una infraestructura de servicios cada vez más completa.
           </p>
           <p>
-            En <strong>SI Inmobiliaria</strong> contamos con la cartera de propiedades en venta más amplia de Roldán. Ofrecemos casas en barrios como <strong>Tierra de Sueños, Fincas de Roldán, Los Raigales, Barrio Sur</strong> y el casco céntrico, así como terrenos en loteos nuevos con todos los servicios y departamentos en desarrollos modernos. Cada propiedad es verificada por nuestro equipo y cuenta con documentación al día.
+            En <strong>SI INMOBILIARIA</strong> contamos con la cartera de propiedades en venta más amplia de Roldán. Ofrecemos casas en barrios como <strong>Tierra de Sueños, Fincas de Roldán, Los Raigales, Barrio Sur</strong> y el casco céntrico, así como terrenos en loteos nuevos con todos los servicios y departamentos en desarrollos modernos. Cada propiedad es verificada por nuestro equipo y cuenta con documentación al día.
           </p>
           <p>
             Nuestro proceso de compra incluye: búsqueda personalizada según tu presupuesto y necesidades, coordinación de visitas, asesoramiento en la negociación, verificación legal con estudio jurídico propio y acompañamiento hasta la firma de la escritura. Comprá con la tranquilidad de tener más de 40 años de experiencia de tu lado.

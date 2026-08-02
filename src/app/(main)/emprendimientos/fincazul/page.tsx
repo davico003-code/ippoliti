@@ -28,7 +28,7 @@ const WA_URL = `https://wa.me/5493412101694?text=${WA_TEXT}`
 const BASE = '/emprendimientos/fincazul'
 
 export const metadata: Metadata = {
-  title: 'Fincazul · Casas en condominio en Funes | SI Inmobiliaria',
+  title: 'Fincazul · Casas en condominio en Funes | SI INMOBILIARIA',
   description:
     'Fincazul: conjuntos privados de 12 casas con portón de acceso en Paseo del Norte, Funes. Casas de 2 dormitorios con jardín, piscina y parrillero propios. Desarrollado por MSR.',
   alternates: { canonical: 'https://siinmobiliaria.com/emprendimientos/fincazul' },
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     description:
       'Conjuntos privados de 12 casas con portón de acceso. 2 dormitorios, jardín, piscina y parrillero propios. Paseo del Norte, Funes.',
     url: 'https://siinmobiliaria.com/emprendimientos/fincazul',
-    siteName: 'SI Inmobiliaria',
+    siteName: 'SI INMOBILIARIA',
     images: [{ url: `${BASE}/portada.jpg`, width: 1402, height: 1122, alt: 'Fincazul · Funes' }],
     locale: 'es_AR',
     type: 'website',

@@ -91,7 +91,7 @@ const CARRUSEL: Carrusel = {
         },
         {
           tipo: 'fuente',
-          texto: '— Relevamiento SI Inmobiliaria sobre 200 operaciones 2024-2025',
+          texto: '— Relevamiento SI INMOBILIARIA sobre 200 operaciones 2024-2025',
         },
       ],
     },
