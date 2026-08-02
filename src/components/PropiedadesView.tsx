@@ -1667,7 +1667,9 @@ export default function PropiedadesView({
                   Con tu tope había pocas opciones, así que ampliamos hasta un{' '}
                   <b>{smartSelection.maxBudgetStretchPct}% más</b>.{' '}
                   {smartSelection.exactBudgetCount > 0
-                    ? `${smartSelection.exactBudgetCount} entran justo en tu presupuesto.`
+                    ? `${smartSelection.exactBudgetCount} ${
+                        smartSelection.exactBudgetCount === 1 ? 'entra' : 'entran'
+                      } justo en tu presupuesto.`
                     : 'Ninguna entra justo en tu presupuesto.'}
                 </p>
               )
