@@ -18,8 +18,24 @@ import { getProperties, type TokkoProperty } from './tokko'
 import { redis } from './redis'
 import { generateAudio, getAudioUrlsBulk } from './audio'
 
-const DEFAULT_MAX_PER_DAY = 20
+// Medido en producción con el mismo pipeline: 39 audios en 12 min 59 s, o sea
+// ~20 s por audio. Con la corrida limitada a 300 s (maxDuration del endpoint),
+// 20 por día no entran: se cortaba cerca del audio 13, a mitad de camino.
+const DEFAULT_MAX_PER_DAY = 10
 const DELAY_BETWEEN_MS = 1500
+
+/**
+ * Cuánto puede durar la corrida antes de cerrar prolijamente.
+ *
+ * El endpoint se corta a los 300 s sin avisar: lo que quedó a medio hacer no se
+ * registra y el consumo del mes queda mal contado. Frenamos antes, dejamos lo
+ * hecho asentado y las que faltan salen mañana. 240 s deja margen para cerrar
+ * incluso si el último audio arrancó tarde.
+ */
+const PRESUPUESTO_MS = 240_000
+
+/** Fallos seguidos que hacen abortar: si el servicio está caído, no se insiste. */
+const FALLOS_SEGUIDOS_MAX = 3
 
 const LASTRUN_KEY = 'audio:cron:lastrun'
 const LASTRUN_TTL_SECONDS = 365 * 24 * 60 * 60
@@ -184,9 +200,35 @@ export async function processBatch(
   let failed = 0
   let charsRun = 0
   const generatedIds: number[] = []
+  const arranque = Date.now()
+  let fallosSeguidos = 0
 
   for (let i = 0; i < elegibles.length; i++) {
     const p = elegibles[i]
+
+    // Freno por tiempo: mejor cerrar prolijo y seguir mañana que quedar cortado
+    // por el límite del endpoint, que se lleva puesto el registro de lo gastado.
+    if (enabled && Date.now() - arranque > PRESUPUESTO_MS) {
+      for (let j = i; j < elegibles.length; j++) {
+        items.push({ propertyId: elegibles[j].id, status: 'over-limit' })
+      }
+      console.log(
+        `[audio-batch] se acabó el tiempo de la corrida (${Math.round((Date.now() - arranque) / 1000)}s): ${elegibles.length - i} quedan para mañana`,
+      )
+      break
+    }
+
+    // Freno por fallos: si el servicio está caído, seguir intentando gasta
+    // plata sin guardar nada.
+    if (fallosSeguidos >= FALLOS_SEGUIDOS_MAX) {
+      for (let j = i; j < elegibles.length; j++) {
+        items.push({ propertyId: elegibles[j].id, status: 'over-limit' })
+      }
+      console.error(
+        `[audio-batch] ${FALLOS_SEGUIDOS_MAX} fallos seguidos: se corta la corrida para no seguir gastando`,
+      )
+      break
+    }
 
     if (!enabled) {
       items.push({ propertyId: p.id, status: 'dry-run' })
@@ -203,6 +245,7 @@ export async function processBatch(
       const charged = result.meta.charsUsed ?? result.meta.textLength ?? 0
       charsRun += charged
       generated++
+      fallosSeguidos = 0
       generatedIds.push(p.id)
       items.push({
         propertyId: p.id,
@@ -214,6 +257,7 @@ export async function processBatch(
       )
     } catch (e) {
       failed++
+      fallosSeguidos++
       const msg = e instanceof Error ? e.message : 'error desconocido'
       items.push({ propertyId: p.id, status: 'failed', error: msg })
       console.error(
