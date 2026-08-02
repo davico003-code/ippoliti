@@ -16,7 +16,7 @@
 
 import { getProperties, type TokkoProperty } from './tokko'
 import { redis } from './redis'
-import { generateAudio, getCachedAudioUrl } from './audio'
+import { generateAudio, getAudioUrlsBulk } from './audio'
 
 const DEFAULT_MAX_PER_DAY = 20
 const DELAY_BETWEEN_MS = 1500
@@ -88,8 +88,18 @@ function isSale(p: TokkoProperty): boolean {
     && p.operations.some(op => op.operation_type === 'Sale')
 }
 
+/**
+ * Apagado mientras nadie lo prenda: hay que poner AUDIO_CRON_ENABLED=true.
+ *
+ * Cada audio consume dos servicios pagos (el texto y la voz). Con el default
+ * invertido, mergear esto arrancaba solo a la mañana siguiente y se llevaba de
+ * una las ~163 propiedades sin audio. Prenderlo es una decisión de plata, no de
+ * código: primero se mira el saldo, se define el tope diario y recién ahí se
+ * activa. Mientras tanto la corrida se puede probar en seco desde el panel, que
+ * informa cuántas propiedades tomaría sin generar nada.
+ */
 function readEnabled(): boolean {
-  return (process.env.AUDIO_CRON_ENABLED ?? 'true').toLowerCase() !== 'false'
+  return (process.env.AUDIO_CRON_ENABLED ?? 'false').toLowerCase() === 'true'
 }
 
 function readMaxPerDay(): number {
@@ -136,20 +146,21 @@ export async function processBatch(
     `[audio-batch] start trigger=${options.trigger} enabled=${enabled} maxPerDay=${maxPerDay}`,
   )
 
-  // 1. Traer todas las propiedades activas y filtrar ventas en JS.
-  const data = await getProperties({ limit: 100 })
+  // 1. Traer TODAS las propiedades activas y filtrar ventas en JS.
+  // fetchAll y no limit:100 — el catálogo pasó de 100 a 253 propiedades, así
+  // que con el tope viejo las que están más abajo del listado no recibían audio
+  // nunca, por más días que corriera el proceso.
+  const data = await getProperties({ fetchAll: true })
   const total = data.objects?.length ?? 0
   const ventas = (data.objects ?? []).filter(isSale)
-  console.log(`[audio-batch] tokko total=${total} ventas=${ventas.length}`)
+  console.log(`[audio-batch] catálogo total=${total} ventas=${ventas.length}`)
 
-  // 2. Detectar cuáles ya tienen audio cacheado.
-  let alreadyHas = 0
-  const sinAudio: TokkoProperty[] = []
-  for (const p of ventas) {
-    const url = await getCachedAudioUrl(p.id)
-    if (url) alreadyHas++
-    else sinAudio.push(p)
-  }
+  // 2. Detectar cuáles ya tienen audio, con UNA sola consulta.
+  // Antes se preguntaba de a una: con 225 propiedades eran 225 idas y vueltas
+  // a Redis antes de empezar a trabajar, comiéndose el presupuesto de 300s.
+  const urls = await getAudioUrlsBulk(ventas.map(p => p.id))
+  const sinAudio: TokkoProperty[] = ventas.filter(p => !urls[p.id])
+  const alreadyHas = ventas.length - sinAudio.length
   console.log(
     `[audio-batch] sinAudio=${sinAudio.length} yaTenian=${alreadyHas}`,
   )

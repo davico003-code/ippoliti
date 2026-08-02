@@ -12,6 +12,7 @@
 
 import { NextResponse } from 'next/server'
 import { processBatch, type BatchTrigger } from '@/lib/audio-batch'
+import { isCronAuthorized } from '@/lib/cron-auth'
 
 export const dynamic = 'force-dynamic'
 // Cap del plan actual de Vercel. El batch es secuencial: si se corta antes
@@ -24,9 +25,11 @@ type AuthResult =
   | { ok: false; response: NextResponse }
 
 function authorize(req: Request): AuthResult {
-  const cronSecret = process.env.CRON_SECRET
-  const authHeader = req.headers.get('authorization') || ''
-  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+  // isCronAuthorized: el helper endurecido que usan todos los crons del repo
+  // (compara en tiempo constante y niega si falta el secreto). Antes acá había
+  // una comparación propia con ===, que quedaba como el único cron sin ese
+  // tratamiento.
+  if (isCronAuthorized(req)) {
     return { ok: true, trigger: 'cron' }
   }
 
