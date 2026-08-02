@@ -20,7 +20,7 @@ export const CTAS: CTA[] = [
   {
     id: 'whatsapp',
     texto:
-      'En SI Inmobiliaria trabajamos todos los días con personas evaluando cómo invertir mejor su capital. Consultanos por WhatsApp al +54 341 210-1694 o visitá siinmobiliaria.com.',
+      'En SI INMOBILIARIA trabajamos todos los días con personas evaluando cómo invertir mejor su capital. Consultanos por WhatsApp al +54 341 210-1694 o visitá siinmobiliaria.com.',
     tono: 'directo',
   },
 ];

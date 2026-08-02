@@ -1,9 +1,9 @@
-# Style Guide — Voz Editorial David Flores / SI Inmobiliaria
+# Style Guide — Voz Editorial David Flores / SI INMOBILIARIA
 
 ## Identidad del autor
 - Nombre: David Flores
 - Cargo: Corredor Inmobiliario, Mat. N° 0621
-- Empresa: SI Inmobiliaria (antes Susana Ippoliti Inmobiliaria), fundada en 1983
+- Empresa: SI INMOBILIARIA (antes Susana Ippoliti Inmobiliaria), fundada en 1983
 - Ubicación: oficinas en Funes, Roldán y Rosario (zona oeste del Gran Rosario)
 - Trayectoria: 15+ años personal, 43+ años familiar
 
@@ -57,7 +57,7 @@ Rotar entre 3 CTAs (ver ctas.ts): web, instagram, whatsapp.
 - Zoom a barrios específicos del corredor oeste
 - Tendencias regionales
 
-## Diferencial SI Inmobiliaria
+## Diferencial SI INMOBILIARIA
 - Zoom local obsesivo barrio por barrio
 - Datos propios de tasaciones reales
 - Visión familiar + inversor

@@ -4,7 +4,7 @@ import RecursoHero from '@/components/recursos/RecursoHero'
 import RecursosCTA from '@/components/recursos/RecursosCTA'
 
 export const metadata: Metadata = {
-  title: 'Asistente de obras particulares de Funes | SI Inmobiliaria',
+  title: 'Asistente de obras particulares de Funes | SI INMOBILIARIA',
   description:
     'Calculá cuánto podés construir en tu lote de Funes (FOS, FOT, altura), la plusvalía por mayor aprovechamiento, la tasa de edificación y qué papeles necesitás para tu trámite. Gratis y al instante.',
   alternates: {
@@ -24,8 +24,8 @@ export const metadata: Metadata = {
     description:
       'Cuánto podés construir, plusvalía, tasa de edificación y papeles para tu obra en Funes. Estimación orientativa, gratis.',
     url: 'https://siinmobiliaria.com/recursos/asistente-obras',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
     locale: 'es_AR',
     type: 'website',
   },

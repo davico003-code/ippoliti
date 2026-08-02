@@ -8,7 +8,7 @@ import React, { useState, useMemo, useEffect } from "react";
    Fuentes:
    · Instructivo Obras Particulares Funes 04/2025 (Ord. 288/85 y modif.)
    · Ord. 1213/19 — Contribución por Mejoras / Mayor Aprovechamiento Urbanístico
-   Hecho para SI Inmobiliaria · atención al cliente
+   Hecho para SI INMOBILIARIA · atención al cliente
    ========================================================================= */
 
 // ---- DATOS DE ZONAS (del instructivo) --------------------------------------

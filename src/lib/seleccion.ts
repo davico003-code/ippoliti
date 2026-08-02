@@ -24,7 +24,7 @@ export function buildWhatsAppMessage(
   },
   reactions: Record<string, { liked?: boolean | null; wantVisit?: boolean }>
 ): string {
-  const name = session.agentName || session.agent || 'SI Inmobiliaria'
+  const name = session.agentName || session.agent || 'SI INMOBILIARIA'
   // Para propiedades externas cargadas a mano preferimos el título del snapshot;
   // el slug de una URL de Zonaprop es ilegible.
   const label = (p: { url: string; snapshot?: { title?: string } }) =>

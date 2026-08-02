@@ -13,8 +13,8 @@ const faqJsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
 ]}
 
 export const metadata: Metadata = {
-  title: 'Departamentos en Centro Rosario | Venta | SI Inmobiliaria',
-  description: 'Departamentos en venta en el centro de Rosario. Peatonal Córdoba, Plaza Pringles. Desde USD 45.000. Ideal inversores. SI Inmobiliaria.',
+  title: 'Departamentos en Centro Rosario | Venta | SI INMOBILIARIA',
+  description: 'Departamentos en venta en el centro de Rosario. Peatonal Córdoba, Plaza Pringles. Desde USD 45.000. Ideal inversores. SI INMOBILIARIA.',
   keywords: 'departamentos centro rosario, departamentos venta centro rosario, departamentos rosario centro',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-centro-rosario' },
   openGraph: {
@@ -63,7 +63,7 @@ export default async function Page() {
       <section className="py-12 px-4 bg-gray-50"><div className="max-w-4xl mx-auto prose prose-lg">
         <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>El centro de Rosario</h2>
         <p>El centro de Rosario concentra la mayor actividad comercial, gastronómica y cultural de la ciudad. La <strong>Peatonal Córdoba</strong>, <strong>Plaza Pringles</strong> y el corredor de <strong>Bv. Oroño</strong> definen una zona con máxima conectividad y servicios.</p>
-        <p>Los departamentos de 1-2 dormitorios son los más demandados, tanto por profesionales como por inversores que buscan renta estable. En <strong>SI Inmobiliaria</strong> te asesoramos sobre la mejor ubicación y proyección de valor.</p>
+        <p>Los departamentos de 1-2 dormitorios son los más demandados, tanto por profesionales como por inversores que buscan renta estable. En <strong>SI INMOBILIARIA</strong> te asesoramos sobre la mejor ubicación y proyección de valor.</p>
       </div></section>
 
       <section className="py-12 px-4 bg-gray-50"><div className="max-w-3xl mx-auto"><h2 className="text-2xl font-black text-gray-900 text-center mb-8" style={{ fontFamily: 'var(--font-raleway)' }}>Preguntas frecuentes</h2><div className="space-y-4">{faqJsonLd.mainEntity.map((f, i) => (<details key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 group"><summary className="font-bold text-gray-900 cursor-pointer list-none flex items-center justify-between">{f.name}<span className="text-[#1A5C38] group-open:rotate-180 transition-transform">&#9660;</span></summary><p className="mt-4 text-gray-600">{f.acceptedAnswer.text}</p></details>))}</div></div></section>

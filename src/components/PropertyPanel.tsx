@@ -180,7 +180,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
           <Link href="/" className="flex items-center justify-center" aria-label="Ir a la página principal">
             <Image
               src="/LOGO_HORIZONTAL.png"
-              alt="SI Inmobiliaria"
+              alt="SI INMOBILIARIA"
               width={140}
               height={28}
               className="object-contain"

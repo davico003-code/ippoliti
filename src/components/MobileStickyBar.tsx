@@ -314,7 +314,10 @@ export default function MobileStickyBar({
       {/* Bottom-sheet de visita (misma UX que el VisitMobileTrigger original) */}
       {visitOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-end"
+          // pointer-events-auto: el contenedor de la barra es pointer-events-none
+          // (para no tapar la página) y el sheet lo hereda. Sin esto el panel se
+          // abre pero no se puede escribir, enviar ni cerrar.
+          className="fixed inset-0 z-[60] flex items-end pointer-events-auto"
           onClick={e => { if (e.target === e.currentTarget) setVisitOpen(false) }}
           role="dialog"
           aria-modal="true"

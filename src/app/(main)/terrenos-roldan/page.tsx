@@ -7,8 +7,8 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const revalidate = 21600
 
 export const metadata: Metadata = {
-  title: 'Terrenos en Roldán | Lotes desde USD 25.000 | SI Inmobiliaria',
-  description: 'Terrenos y lotes en venta en Roldán. Desde USD 25.000 con financiación. Valorización 15-20% anual. Los Aromos, El Molino, Tierra de Sueños. SI Inmobiliaria.',
+  title: 'Terrenos en Roldán | Lotes desde USD 25.000 | SI INMOBILIARIA',
+  description: 'Terrenos y lotes en venta en Roldán. Desde USD 25.000 con financiación. Valorización 15-20% anual. Los Aromos, El Molino, Tierra de Sueños. SI INMOBILIARIA.',
   keywords: 'terrenos roldan, lotes roldan, terrenos en venta roldan, lotes en venta roldan santa fe',
   alternates: { canonical: 'https://siinmobiliaria.com/terrenos-roldan' },
   openGraph: {
@@ -64,7 +64,7 @@ export default async function Page() {
           <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>¿Por qué comprar un terreno en Roldán?</h2>
           <p>Roldán es la mejor oportunidad de inversión en terrenos del Gran Rosario. Con precios desde USD 25.000 y una valorización del 15-20% anual sostenido, comprar hoy es asegurar tu patrimonio.</p>
           <p>Muchos desarrollos ofrecen <strong>financiación directa</strong> en pesos o dólares, lo que facilita el acceso. Los barrios más buscados son Los Aromos, El Molino, Tierra de Sueños y Don Mateo.</p>
-          <p>En <strong>SI Inmobiliaria</strong> evaluamos cada lote: orientación, servicios, aptitud constructiva y proyección del barrio. Con 2 oficinas en Roldán, somos la inmobiliaria que mejor conoce el mercado local.</p>
+          <p>En <strong>SI INMOBILIARIA</strong> evaluamos cada lote: orientación, servicios, aptitud constructiva y proyección del barrio. Con 2 oficinas en Roldán, somos la inmobiliaria que mejor conoce el mercado local.</p>
         </div>
       </section>
 

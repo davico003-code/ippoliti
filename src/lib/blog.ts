@@ -21,24 +21,24 @@ export const posts: BlogPost[] = [
   ...seoPosts,
   {
     slug: 'por-que-si-inmobiliaria-43-anos-historia-familiar-roldan',
-    title: 'Por qué SI Inmobiliaria: 43 años de historia familiar en Roldán',
+    title: 'Por qué SI INMOBILIARIA: 43 años de historia familiar en Roldán',
     date: '2025-11-15',
     dateDisplay: '15 de noviembre de 2025',
     source: 'elroldanense.com',
     image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary:
-      'Desde 1983, Susana Ippoliti construyó una inmobiliaria basada en la confianza, la cercanía y el conocimiento profundo de Roldán. Hoy, con Laura y David, SI Inmobiliaria sigue siendo la referencia del mercado local.',
-    content: `Cuando Susana Ippoliti abrió las puertas de su inmobiliaria en Roldán en 1983, la ciudad era un pueblo tranquilo de la pampa santafesina con apenas unos miles de habitantes. Cuatro décadas después, Roldán se transformó en una de las ciudades con mayor crecimiento del Gran Rosario, y SI Inmobiliaria acompañó cada etapa de esa transformación.
+      'Desde 1983, Susana Ippoliti construyó una inmobiliaria basada en la confianza, la cercanía y el conocimiento profundo de Roldán. Hoy, con Laura y David, SI INMOBILIARIA sigue siendo la referencia del mercado local.',
+    content: `Cuando Susana Ippoliti abrió las puertas de su inmobiliaria en Roldán en 1983, la ciudad era un pueblo tranquilo de la pampa santafesina con apenas unos miles de habitantes. Cuatro décadas después, Roldán se transformó en una de las ciudades con mayor crecimiento del Gran Rosario, y SI INMOBILIARIA acompañó cada etapa de esa transformación.
 
-La historia de SI Inmobiliaria es inseparable de la historia de Roldán. Susana fue testigo y protagonista del desarrollo urbano de la ciudad: desde los primeros loteos en el casco céntrico hasta la explosión de los barrios cerrados como Tierra de Sueños, Fincas de Roldán y Los Raigales. "Conocemos cada manzana, cada calle, cada barrio porque estuvimos ahí cuando se crearon", suele decir Susana.
+La historia de SI INMOBILIARIA es inseparable de la historia de Roldán. Susana fue testigo y protagonista del desarrollo urbano de la ciudad: desde los primeros loteos en el casco céntrico hasta la explosión de los barrios cerrados como Tierra de Sueños, Fincas de Roldán y Los Raigales. "Conocemos cada manzana, cada calle, cada barrio porque estuvimos ahí cuando se crearon", suele decir Susana.
 
-Lo que distingue a SI Inmobiliaria de las grandes cadenas o franquicias inmobiliarias es su carácter familiar. Susana formó a sus hijos Laura y David en el oficio, transmitiendo no solo conocimientos técnicos sino también valores: la importancia de la palabra, el trato personalizado y la transparencia en cada operación. "Para nosotros cada cliente es un vecino, no un número", explica Laura, quien hoy lidera el área de ventas desde la oficina de Catamarca 775.
+Lo que distingue a SI INMOBILIARIA de las grandes cadenas o franquicias inmobiliarias es su carácter familiar. Susana formó a sus hijos Laura y David en el oficio, transmitiendo no solo conocimientos técnicos sino también valores: la importancia de la palabra, el trato personalizado y la transparencia en cada operación. "Para nosotros cada cliente es un vecino, no un número", explica Laura, quien hoy lidera el área de ventas desde la oficina de Catamarca 775.
 
 La inmobiliaria cuenta con estudio jurídico propio, un diferencial que pocos competidores pueden ofrecer. Esto permite agilizar trámites, verificar la documentación de cada propiedad y brindar seguridad legal completa tanto a compradores como a vendedores. David, por su parte, incorporó herramientas digitales para modernizar la gestión: desde publicación en portales inmobiliarios hasta recorridos virtuales y atención por WhatsApp.
 
-El cambio de nombre a "SI Inmobiliaria" en 2024 marcó un hito: mantener la esencia familiar pero con una identidad renovada que refleja el compromiso de decir "sí" a cada desafío del mercado. Las dos letras representan las iniciales de Susana Ippoliti y, al mismo tiempo, una actitud positiva hacia el futuro.
+El cambio de nombre a "SI INMOBILIARIA" en 2024 marcó un hito: mantener la esencia familiar pero con una identidad renovada que refleja el compromiso de decir "sí" a cada desafío del mercado. Las dos letras representan las iniciales de Susana Ippoliti y, al mismo tiempo, una actitud positiva hacia el futuro.
 
-Hoy, con oficinas en 1ro de Mayo 258 (administración) y Catamarca 775 (ventas), SI Inmobiliaria sigue siendo la inmobiliaria de referencia en Roldán. Más de 40 años de trayectoria, tres generaciones de compromiso y un conocimiento del mercado local que solo da la experiencia.`,
+Hoy, con oficinas en 1ro de Mayo 258 (administración) y Catamarca 775 (ventas), SI INMOBILIARIA sigue siendo la inmobiliaria de referencia en Roldán. Más de 40 años de trayectoria, tres generaciones de compromiso y un conocimiento del mercado local que solo da la experiencia.`,
   },
   {
     slug: 'mercado-inmobiliario-roldan-como-saber-propiedad-bien-valuada',
@@ -51,7 +51,7 @@ Hoy, con oficinas en 1ro de Mayo 258 (administración) y Catamarca 775 (ventas),
       'Una tasación profesional es clave para vender al precio justo. Susana Ippoliti explica qué factores determinan el valor real de una propiedad en Roldán y por qué no alcanza con mirar portales online.',
     content: `El mercado inmobiliario de Roldán tiene particularidades que lo distinguen de Rosario, Funes o cualquier otra ciudad de la región. Entender estas diferencias es fundamental para valuar correctamente una propiedad y no cometer errores que pueden costar miles de dólares.
 
-"Muchos propietarios ponen el precio basándose en lo que ven en portales de internet, pero eso es un error grave", advierte Susana Ippoliti, fundadora de SI Inmobiliaria y con más de 40 años de experiencia en el mercado local. "Los precios publicados no son los precios de cierre. Una propiedad puede estar publicada a 120 mil dólares y venderse a 95 mil. Sin conocer el mercado real, es imposible fijar un precio correcto."
+"Muchos propietarios ponen el precio basándose en lo que ven en portales de internet, pero eso es un error grave", advierte Susana Ippoliti, fundadora de SI INMOBILIARIA y con más de 40 años de experiencia en el mercado local. "Los precios publicados no son los precios de cierre. Una propiedad puede estar publicada a 120 mil dólares y venderse a 95 mil. Sin conocer el mercado real, es imposible fijar un precio correcto."
 
 Los factores que determinan el valor de una propiedad en Roldán son múltiples y específicos de la zona. La ubicación dentro de la ciudad es determinante: no es lo mismo una casa en el casco céntrico, con todos los servicios y a metros de la plaza, que una vivienda en un barrio nuevo donde aún no llegó el gas natural o el asfalto.
 
@@ -61,41 +61,41 @@ La orientación de la propiedad, el estado de conservación, la antigüedad, los
 
 "Nosotros tasamos y entregamos el informe en 24 horas", explica Susana. "No es solo un número: es un análisis del mercado actual con comparables reales de la zona, tendencias de precio y recomendaciones para maximizar el valor de venta."
 
-SI Inmobiliaria realiza tasaciones profesionales desde 1983. Con oficinas en 1ro de Mayo 258 y Catamarca 775 en Roldán, el equipo de Susana, Laura y David conoce el valor real de cada metro cuadrado de la ciudad.`,
+SI INMOBILIARIA realiza tasaciones profesionales desde 1983. Con oficinas en 1ro de Mayo 258 y Catamarca 775 en Roldán, el equipo de Susana, Laura y David conoce el valor real de cada metro cuadrado de la ciudad.`,
   },
   {
     slug: 'si-inmobiliaria-abre-funes-galeria-arte',
-    title: 'SI Inmobiliaria abre en Funes: inmobiliaria + galería de arte',
+    title: 'SI INMOBILIARIA abre en Funes: inmobiliaria + galería de arte',
     date: '2025-05-10',
     dateDisplay: '10 de mayo de 2025',
     source: 'infofunes.com.ar',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'La expansión a Funes combina el negocio inmobiliario con una propuesta cultural única: un espacio donde el arte y las propiedades conviven bajo el mismo techo.',
-    content: `SI Inmobiliaria dio un paso audaz en su expansión al abrir una nueva oficina en Funes que rompe con el formato tradicional de una inmobiliaria: el espacio funciona también como galería de arte contemporáneo, creando un punto de encuentro entre cultura y negocios inmobiliarios.
+    content: `SI INMOBILIARIA dio un paso audaz en su expansión al abrir una nueva oficina en Funes que rompe con el formato tradicional de una inmobiliaria: el espacio funciona también como galería de arte contemporáneo, creando un punto de encuentro entre cultura y negocios inmobiliarios.
 
-La idea surgió de la convicción de que una inmobiliaria puede ser mucho más que un lugar donde se firman contratos. "Queríamos crear un espacio donde la gente quiera venir, no solo cuando necesita comprar o alquilar, sino porque se siente atraída por lo que ofrecemos", explica el equipo de SI Inmobiliaria.
+La idea surgió de la convicción de que una inmobiliaria puede ser mucho más que un lugar donde se firman contratos. "Queríamos crear un espacio donde la gente quiera venir, no solo cuando necesita comprar o alquilar, sino porque se siente atraída por lo que ofrecemos", explica el equipo de SI INMOBILIARIA.
 
 La oficina de Funes exhibe obras de artistas locales y regionales en rotación permanente. Las paredes que normalmente mostrarían planos y fotos de propiedades ahora alternan entre cuadros, fotografías artísticas y las fichas de los inmuebles en venta o alquiler. El resultado es un ambiente cálido, estéticamente cuidado y completamente diferente a cualquier otra inmobiliaria de la zona.
 
-Esta apuesta por la cultura no es casual. Funes es una ciudad con un perfil sociocultural marcado: muchos de sus residentes son profesionales, artistas y emprendedores que valoran la estética y el diseño. Al posicionar la oficina como un espacio cultural, SI Inmobiliaria conecta con su público de una manera más profunda y genuina.
+Esta apuesta por la cultura no es casual. Funes es una ciudad con un perfil sociocultural marcado: muchos de sus residentes son profesionales, artistas y emprendedores que valoran la estética y el diseño. Al posicionar la oficina como un espacio cultural, SI INMOBILIARIA conecta con su público de una manera más profunda y genuina.
 
 El modelo de negocio se mantiene intacto: venta y alquiler de propiedades en Funes y la zona oeste del Gran Rosario, tasaciones profesionales y asesoramiento jurídico con el respaldo de más de 40 años de experiencia. Lo que cambia es la experiencia del cliente al visitar la oficina.
 
-La apertura en Funes complementa las dos oficinas que SI Inmobiliaria ya tiene en Roldán (1ro de Mayo 258 y Catamarca 775) y consolida la presencia de la empresa en las dos ciudades de mayor crecimiento de la zona oeste. Con esta expansión, SI Inmobiliaria reafirma su compromiso con la innovación sin perder su esencia familiar.
+La apertura en Funes complementa las dos oficinas que SI INMOBILIARIA ya tiene en Roldán (1ro de Mayo 258 y Catamarca 775) y consolida la presencia de la empresa en las dos ciudades de mayor crecimiento de la zona oeste. Con esta expansión, SI INMOBILIARIA reafirma su compromiso con la innovación sin perder su esencia familiar.
 
 "Funes es una plaza natural para nosotros", señalan desde la empresa. "Muchos de nuestros clientes de Roldán se mudan a Funes y viceversa. Tener presencia en ambas ciudades nos permite ofrecer un servicio más completo."`,
   },
   {
     slug: 'de-susana-ippoliti-a-si-inmobiliaria-cambio-dice-si-futuro',
-    title: 'De Susana Ippoliti a SI Inmobiliaria: el cambio que dice sí al futuro',
+    title: 'De Susana Ippoliti a SI INMOBILIARIA: el cambio que dice sí al futuro',
     date: '2024-08-01',
     dateDisplay: '1 de agosto de 2024',
     source: 'Comunicado agosto 2024',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'En agosto de 2024, la inmobiliaria fundada por Susana Ippoliti renovó su identidad. El nuevo nombre "SI" honra las iniciales de su fundadora y representa una actitud: decir sí a cada nuevo desafío.',
-    content: `En agosto de 2024, la inmobiliaria más tradicional de Roldán dio un paso que muchos esperaban y pocos imaginaban: Susana Ippoliti Inmobiliaria se convirtió en SI Inmobiliaria. El cambio de nombre no fue un capricho de marketing sino una decisión meditada que refleja la evolución de una empresa familiar hacia su segunda generación de liderazgo.
+    content: `En agosto de 2024, la inmobiliaria más tradicional de Roldán dio un paso que muchos esperaban y pocos imaginaban: Susana Ippoliti Inmobiliaria se convirtió en SI INMOBILIARIA. El cambio de nombre no fue un capricho de marketing sino una decisión meditada que refleja la evolución de una empresa familiar hacia su segunda generación de liderazgo.
 
 Las letras "SI" encierran un doble significado cuidadosamente elegido. Por un lado, son las iniciales de Susana Ippoliti, la fundadora que en 1983 abrió la primera oficina en Roldán y construyó, ladrillo a ladrillo, una reputación basada en la confianza y el profesionalismo. Por otro lado, "SI" es una declaración de intenciones: decir sí al cambio, sí a la innovación, sí a las nuevas generaciones que toman la posta.
 
@@ -103,18 +103,18 @@ El proceso de rebranding incluyó una nueva identidad visual con el verde instit
 
 Laura y David, los hijos de Susana, lideran esta nueva etapa con la misma filosofía que heredaron: honestidad, cercanía y compromiso con cada cliente. "No cambiamos lo que somos. Cambiamos la forma de mostrarlo", explican. "Nuestra esencia sigue siendo la misma: una familia que acompaña a otras familias en las decisiones más importantes de su vida."
 
-El cambio también se manifestó en la apertura de una nueva oficina de ventas en Catamarca 775, que complementa la oficina histórica de administración en 1ro de Mayo 258. Con esta nueva estructura, SI Inmobiliaria separó las áreas de negocio para brindar un servicio más especializado: ventas y tasaciones en Catamarca, administración de alquileres y asesoría legal en 1ro de Mayo.
+El cambio también se manifestó en la apertura de una nueva oficina de ventas en Catamarca 775, que complementa la oficina histórica de administración en 1ro de Mayo 258. Con esta nueva estructura, SI INMOBILIARIA separó las áreas de negocio para brindar un servicio más especializado: ventas y tasaciones en Catamarca, administración de alquileres y asesoría legal en 1ro de Mayo.
 
 La respuesta del mercado fue inmediata. Clientes de toda la vida reconocieron la marca renovada y nuevos clientes se acercaron atraídos por una imagen fresca que, sin embargo, lleva más de 40 años de experiencia detrás. "Lo mejor que nos dijeron fue: 'Siguen siendo ustedes, pero mejor'", comparte Laura con una sonrisa.
 
-SI Inmobiliaria hoy opera en Roldán y Funes con un equipo comprometido, tecnología actual y la trayectoria más extensa de la zona. El "sí" no es solo un nombre: es una promesa de seguir diciendo sí a cada familia que confía en ellos.`,
+SI INMOBILIARIA hoy opera en Roldán y Funes con un equipo comprometido, tecnología actual y la trayectoria más extensa de la zona. El "sí" no es solo un nombre: es una promesa de seguir diciendo sí a cada familia que confía en ellos.`,
   },
   {
     slug: 'inmobiliarias-en-funes',
     title: 'Las mejores inmobiliarias en Funes: guía completa 2025',
     date: '2026-01-20',
     dateDisplay: '20 de enero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'Guía para elegir inmobiliaria en Funes. Qué tener en cuenta, cómo funciona el mercado inmobiliario de Funes y por qué la trayectoria y el conocimiento local hacen la diferencia.',
@@ -134,9 +134,9 @@ Los terrenos en loteos nuevos representan una oportunidad para quienes quieren c
 
 Los valores en Funes varían enormemente según la zona. Un terreno en un country puede costar el doble que uno en barrio abierto, a igual superficie. Una casa de tres dormitorios en Funes Hills no tiene el mismo valor que una casa similar en el casco urbano. Estas diferencias solo las conoce quien opera en la zona hace años.
 
-¿Por qué elegir SI Inmobiliaria en Funes?
+¿Por qué elegir SI INMOBILIARIA en Funes?
 
-SI Inmobiliaria opera en Funes con el respaldo de más de 40 años de trayectoria en el mercado inmobiliario regional. Fundada por Susana Ippoliti en 1983 en Roldán, la empresa expandió su presencia a Funes con una propuesta que combina experiencia, tecnología y un trato genuinamente personalizado.
+SI INMOBILIARIA opera en Funes con el respaldo de más de 40 años de trayectoria en el mercado inmobiliario regional. Fundada por Susana Ippoliti en 1983 en Roldán, la empresa expandió su presencia a Funes con una propuesta que combina experiencia, tecnología y un trato genuinamente personalizado.
 
 Lo que nos diferencia es simple: conocemos cada calle, cada barrio, cada desarrollo de la zona porque llevamos décadas trabajando aquí. No somos una franquicia ni una plataforma digital impersonal. Somos una familia — Susana, Laura y David — que acompaña a otras familias en las decisiones más importantes de su vida.
 
@@ -153,7 +153,7 @@ También podés solicitar una tasación profesional de tu propiedad completando 
     title: 'Inmobiliarias en Roldán: cómo elegir la mejor para tu operación',
     date: '2026-02-05',
     dateDisplay: '5 de febrero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'Roldán crece y la oferta inmobiliaria también. Te contamos qué mirar a la hora de elegir una inmobiliaria en Roldán y cómo asegurarte una operación segura.',
@@ -179,9 +179,9 @@ Roldán ofrece una variedad de opciones que pocas ciudades de su tamaño pueden 
 
 Los precios en Roldán son sensiblemente más accesibles que en Funes y mucho más que en Rosario. Un terreno de 400m² con servicios completos puede conseguirse desde USD 25.000 en zonas en desarrollo. Casas de tres dormitorios con pileta arrancan en USD 90.000 en barrios abiertos. Esta relación precio-calidad de vida es la que sigue atrayendo familias año tras año.
 
-SI Inmobiliaria: la inmobiliaria con más trayectoria en Roldán
+SI INMOBILIARIA: la inmobiliaria con más trayectoria en Roldán
 
-Fundada en 1983 por Susana Ippoliti, SI Inmobiliaria es la inmobiliaria más antigua y experimentada de Roldán. Con dos oficinas en la ciudad — 1ro de Mayo 258 (administración) y Catamarca 775 (ventas) — y un equipo familiar conformado por Susana, Laura y David, ofrecemos un servicio que ninguna franquicia puede replicar: conocimiento profundo del terreno, trato personalizado y compromiso real con cada cliente.
+Fundada en 1983 por Susana Ippoliti, SI INMOBILIARIA es la inmobiliaria más antigua y experimentada de Roldán. Con dos oficinas en la ciudad — 1ro de Mayo 258 (administración) y Catamarca 775 (ventas) — y un equipo familiar conformado por Susana, Laura y David, ofrecemos un servicio que ninguna franquicia puede replicar: conocimiento profundo del terreno, trato personalizado y compromiso real con cada cliente.
 
 Contamos con estudio jurídico propio, tasaciones profesionales con informe en 24hs, administración de alquileres y presencia en los principales portales inmobiliarios. Más de 40 años de operaciones exitosas en Roldán nos respaldan.
 
@@ -192,7 +192,7 @@ Contamos con estudio jurídico propio, tasaciones profesionales con informe en 2
     title: 'Comprar casa en Funes o Roldán: todo lo que necesitás saber en 2025',
     date: '2026-03-01',
     dateDisplay: '1 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary:
       'Guía completa para comprar casa en Funes o Roldán. Comparativa de precios, barrios, trámites legales y consejos de expertos con más de 40 años de experiencia.',
@@ -224,7 +224,7 @@ Servicios del barrio. Verificá qué servicios tiene el barrio: gas natural, clo
 
 Financiación. Si no contás con el total en efectivo, consultá las opciones de financiación. Muchos desarrolladores ofrecen planes en cuotas en pesos o dólares. Los créditos hipotecarios UVA también son una opción para propiedades con escritura. Una inmobiliaria con experiencia puede guiarte en las alternativas disponibles.
 
-¿Por qué consultar con SI Inmobiliaria?
+¿Por qué consultar con SI INMOBILIARIA?
 
 Con más de 40 años operando en Roldán y Funes, somos la inmobiliaria que mejor conoce ambos mercados. Nuestro equipo — Susana, Laura y David — te asesora de forma honesta y personalizada, sin presión de venta. Contamos con estudio jurídico propio para garantizar la seguridad de la operación y realizamos tasaciones profesionales.
 

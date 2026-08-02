@@ -264,7 +264,7 @@ export const NOTAS_BIBLIOTECA: NotaBrief[] = [
       'Insight clave: la propiedad sobrevaluada "se quema" en los portales — más tiempo publicada, más gastos de promoción y mantenimiento, y suele terminar vendiéndose por menos. Una tasación correcta acorta los tiempos de venta.',
     ],
     anguloLocal:
-      'En Funes y Roldán los comparables correctos son del mismo barrio o de lotes equivalentes de la zona; SI Inmobiliaria tasa con matrícula desde 1983.',
+      'En Funes y Roldán los comparables correctos son del mismo barrio o de lotes equivalentes de la zona; SI INMOBILIARIA tasa con matrícula desde 1983.',
   },
   {
     slug: 'acm-los-tres-precios-de-una-propiedad',
@@ -292,7 +292,7 @@ export const NOTAS_BIBLIOTECA: NotaBrief[] = [
       'Errores que arruinan un ACM: comparar con propiedades no equivalentes y usar datos viejos en un mercado dinámico.',
     ],
     anguloLocal:
-      'La evolución del valor del m² en Funes y Roldán hace imprescindible comparar con datos frescos del mismo barrio; el ACM es parte del servicio de SI Inmobiliaria.',
+      'La evolución del valor del m² en Funes y Roldán hace imprescindible comparar con datos frescos del mismo barrio; el ACM es parte del servicio de SI INMOBILIARIA.',
   },
   {
     slug: 'como-negociar-la-compra-de-una-propiedad',
@@ -354,7 +354,7 @@ export const NOTAS_BIBLIOTECA: NotaBrief[] = [
       'Si dudás: pedir información concreta por escrito (matrícula, condiciones, plazos), consultar otras opiniones, comparar varias inmobiliarias y verificar datos oficiales.',
     ],
     anguloLocal:
-      'Branding directo: SI Inmobiliaria opera en Funes y Roldán desde 1983 con matrícula 0621 — la nota recorre las 5 señales mostrando cómo trabaja una inmobiliaria de la zona que las cumple.',
+      'Branding directo: SI INMOBILIARIA opera en Funes y Roldán desde 1983 con matrícula 0621 — la nota recorre las 5 señales mostrando cómo trabaja una inmobiliaria de la zona que las cumple.',
   },
   {
     slug: 'home-staging-vender-tu-casa-mas-rapido',

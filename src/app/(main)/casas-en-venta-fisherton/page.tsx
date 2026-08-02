@@ -7,8 +7,8 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const revalidate = 21600
 
 export const metadata: Metadata = {
-  title: 'Casas en venta en Fisherton | Precios y fotos | SI Inmobiliaria',
-  description: 'Casas en venta en Fisherton, Rosario. Green Village, Palos Verdes, Aldea. Zona residencial premium. Precios, fotos, m² y dormitorios. SI Inmobiliaria.',
+  title: 'Casas en venta en Fisherton | Precios y fotos | SI INMOBILIARIA',
+  description: 'Casas en venta en Fisherton, Rosario. Green Village, Palos Verdes, Aldea. Zona residencial premium. Precios, fotos, m² y dormitorios. SI INMOBILIARIA.',
   keywords: 'casas en venta fisherton, casas fisherton, fisherton rosario casas, propiedades fisherton',
   alternates: { canonical: 'https://siinmobiliaria.com/casas-en-venta-fisherton' },
   openGraph: {
@@ -62,7 +62,7 @@ export default async function Page() {
         <div className="max-w-4xl mx-auto prose prose-lg">
           <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>Vivir en Fisherton</h2>
           <p>Fisherton es el barrio residencial más buscado de Rosario. Calles arboladas, casas amplias con jardín, cercanía al Jockey Club y al Golf Club, y acceso directo a Funes en 10 minutos. Las casas van desde USD 150.000 en zona abierta hasta más de USD 500.000 en countries como Green Village o Palos Verdes.</p>
-          <p>En <strong>SI Inmobiliaria</strong> trabajamos la zona de Fisherton con el mismo conocimiento profundo que nos distingue en Funes y Roldán. Te asesoramos sobre cada cuadra y cada barrio.</p>
+          <p>En <strong>SI INMOBILIARIA</strong> trabajamos la zona de Fisherton con el mismo conocimiento profundo que nos distingue en Funes y Roldán. Te asesoramos sobre cada cuadra y cada barrio.</p>
         </div>
       </section>
 

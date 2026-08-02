@@ -94,7 +94,7 @@ export default function MentorWelcomeCard() {
 
             <div style={{ color: TEXT, fontFamily: POPPINS, fontSize: 14.5, lineHeight: 1.65 }}>
               <p style={{ margin: '0 0 12px', color: TEXT_SOFT }}>
-                Bienvenido a SI School. Si llegaste hasta acá, es porque te sumaste a SI Inmobiliaria — o
+                Bienvenido a SI School. Si llegaste hasta acá, es porque te sumaste a SI INMOBILIARIA — o
                 estás por hacerlo. En cualquiera de los dos casos, lo que viene ahora es lo que va a
                 definir cómo arrancás tu carrera con nosotros.
               </p>

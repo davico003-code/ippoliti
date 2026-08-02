@@ -7,8 +7,8 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const revalidate = 21600
 
 export const metadata: Metadata = {
-  title: 'Terrenos en Funes | Lotes en venta | SI Inmobiliaria',
-  description: 'Terrenos y lotes en venta en Funes, Santa Fe. Funes Hills, Kentucky, Portal de Funes. Desde USD 40.000. Fotos, medidas y financiación. SI Inmobiliaria.',
+  title: 'Terrenos en Funes | Lotes en venta | SI INMOBILIARIA',
+  description: 'Terrenos y lotes en venta en Funes, Santa Fe. Funes Hills, Kentucky, Portal de Funes. Desde USD 40.000. Fotos, medidas y financiación. SI INMOBILIARIA.',
   keywords: 'terrenos funes, lotes funes, terrenos en venta funes, lotes en venta funes santa fe',
   alternates: { canonical: 'https://siinmobiliaria.com/terrenos-funes' },
   openGraph: {
@@ -63,7 +63,7 @@ export default async function Page() {
         <div className="max-w-4xl mx-auto prose prose-lg">
           <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>Invertir en terrenos en Funes</h2>
           <p>Los terrenos en Funes son una de las inversiones más seguras de la zona. Desde USD 40.000 en loteos nuevos hasta USD 150.000 en barrios premium, la valorización sostenida hace que comprar hoy sea una decisión inteligente.</p>
-          <p>En <strong>SI Inmobiliaria</strong> te asesoramos sobre orientación, servicios disponibles, aptitud constructiva y proyección de cada zona. Más de 40 años vendiendo terrenos en Funes nos respaldan.</p>
+          <p>En <strong>SI INMOBILIARIA</strong> te asesoramos sobre orientación, servicios disponibles, aptitud constructiva y proyección de cada zona. Más de 40 años vendiendo terrenos en Funes nos respaldan.</p>
         </div>
       </section>
 

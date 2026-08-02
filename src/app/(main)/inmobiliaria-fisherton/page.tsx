@@ -9,7 +9,7 @@ export const revalidate = 21600
 
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'RealEstateAgent',
-  name: 'SI Inmobiliaria Fisherton', image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
+  name: 'SI INMOBILIARIA Fisherton', image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', telephone: '+5493412101694',
   address: { '@type': 'PostalAddress', addressLocality: 'Fisherton, Rosario', addressRegion: 'Santa Fe', addressCountry: 'AR' },
   geo: { '@type': 'GeoCoordinates', latitude: -32.9320, longitude: -60.7080 },
@@ -28,11 +28,11 @@ const faqJsonLd = {
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Fisherton | Casas y Propiedades | SI Inmobiliaria',
+  title: 'Inmobiliaria en Fisherton | Casas y Propiedades | SI INMOBILIARIA',
   description: 'Inmobiliaria en Fisherton, Rosario. Casas, departamentos y terrenos en la zona residencial premium de Rosario. Green Village, Palos Verdes, Aldea. +40 años.',
   keywords: 'inmobiliaria fisherton, casas en fisherton, propiedades fisherton, fisherton rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-fisherton' },
-  openGraph: { title: 'Inmobiliaria en Fisherton | SI Inmobiliaria', description: 'Propiedades en la zona residencial premium de Rosario.', url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', images: ['/og-image.jpg'] },
+  openGraph: { title: 'Inmobiliaria en Fisherton | SI INMOBILIARIA', description: 'Propiedades en la zona residencial premium de Rosario.', url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', images: ['/og-image.jpg'] },
 }
 
 const BARRIOS = [
@@ -92,7 +92,7 @@ export default async function Page() {
           <p className="text-gray-700"><strong>Fisherton</strong> es el barrio residencial más tradicional y codiciado de Rosario. Ubicado en la zona noroeste de la ciudad, se caracteriza por sus calles arboladas, casas amplias con jardín y una atmósfera tranquila que contrasta con el ritmo urbano del centro.</p>
           <p className="text-gray-700">La cercanía al <strong>Jockey Club Rosario</strong> y al <strong>Rosario Golf Club</strong>, sumada a la presencia de colegios de primer nivel, hacen de Fisherton la elección natural para familias que buscan calidad de vida sin alejarse de la ciudad.</p>
           <p className="text-gray-700">Desde Fisherton se accede a <strong>Funes en solo 10-15 minutos</strong> por Av. Eva Perón, lo que convierte a esta zona en un puente natural entre lo urbano y lo suburbano. Muchas familias evalúan ambas opciones al momento de comprar.</p>
-          <p className="text-gray-700">En <strong>SI Inmobiliaria</strong> trabajamos Fisherton con el mismo conocimiento de terreno que nos distingue en Funes y Roldán. Nuestros más de 40 años de trayectoria incluyen operaciones en todas las zonas premium del Gran Rosario.</p>
+          <p className="text-gray-700">En <strong>SI INMOBILIARIA</strong> trabajamos Fisherton con el mismo conocimiento de terreno que nos distingue en Funes y Roldán. Nuestros más de 40 años de trayectoria incluyen operaciones en todas las zonas premium del Gran Rosario.</p>
           <h3 className="text-2xl font-bold text-gray-900 mt-10 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>Servicios en Fisherton</h3>
           <ul className="space-y-3 not-prose">
             {['Venta de casas, departamentos y terrenos', 'Alquiler tradicional y temporario', 'Tasaciones profesionales en 24 horas', 'Asesoramiento legal integral', 'Conexión directa con mercado de Funes y Roldán'].map(s => (

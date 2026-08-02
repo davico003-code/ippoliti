@@ -5,7 +5,7 @@ export const TEMAS_EVERGREEN: TemaPropuesto[] = [
     titulo: 'Cómo tasar correctamente una propiedad en Funes y Roldán',
     angulo_local: 'Comparables reales de operaciones cerradas en barrios del corredor oeste',
     keywords_seo: ['tasar propiedad funes', 'tasación inmobiliaria roldán', 'valor propiedad'],
-    fuentes_consultar: ['Datos propios SI Inmobiliaria', 'COCIR'],
+    fuentes_consultar: ['Datos propios SI INMOBILIARIA', 'COCIR'],
     tipo: 'guia',
     urgencia: 'baja',
     score_seo: 7,

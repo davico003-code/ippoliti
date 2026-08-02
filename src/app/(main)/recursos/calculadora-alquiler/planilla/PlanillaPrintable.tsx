@@ -619,7 +619,7 @@ export default function PlanillaPrintable() {
           <img
             className="header-logo"
             src="/logo-si-horizontal.png"
-            alt="SI Inmobiliaria"
+            alt="SI INMOBILIARIA"
           />
           <div className="header-meta">
             Funes · Roldán · Rosario
@@ -859,7 +859,7 @@ export default function PlanillaPrintable() {
             <img
               className="footer-logo"
               src="/logo-si-horizontal.png"
-              alt="SI Inmobiliaria"
+              alt="SI INMOBILIARIA"
             />
             <div className="footer-tagline">
               Desde 1983 · Funes · Roldán · Rosario

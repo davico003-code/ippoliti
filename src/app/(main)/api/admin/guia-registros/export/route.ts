@@ -46,7 +46,7 @@ export async function GET(req: Request) {
   const items = await readAll()
 
   const wb = new ExcelJS.Workbook()
-  wb.creator = 'SI Inmobiliaria'
+  wb.creator = 'SI INMOBILIARIA'
   wb.created = new Date()
   const ws = wb.addWorksheet('Registros Guía', {
     views: [{ state: 'frozen', ySplit: 1 }],

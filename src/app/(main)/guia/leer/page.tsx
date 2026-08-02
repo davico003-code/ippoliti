@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Guía del Comprador 2026 | SI Inmobiliaria',
+  title: 'Guía del Comprador 2026 | SI INMOBILIARIA',
   description: '14 capítulos sobre cómo comprar en Funes y Roldán con criterio.',
   robots: { index: false, follow: false },
 }

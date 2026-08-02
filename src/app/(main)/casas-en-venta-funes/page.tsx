@@ -7,8 +7,8 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const revalidate = 21600
 
 export const metadata: Metadata = {
-  title: 'Casas en venta en Funes | Precios y fotos | SI Inmobiliaria',
-  description: 'Casas en venta en Funes, Santa Fe. Funes Hills, Kentucky, Portal de Funes y más. Precios desde USD 150.000. Fotos, m², dormitorios. SI Inmobiliaria desde 1983.',
+  title: 'Casas en venta en Funes | Precios y fotos | SI INMOBILIARIA',
+  description: 'Casas en venta en Funes, Santa Fe. Funes Hills, Kentucky, Portal de Funes y más. Precios desde USD 150.000. Fotos, m², dormitorios. SI INMOBILIARIA desde 1983.',
   keywords: 'casas en venta funes, casas funes, venta casas funes santa fe, casas en funes precios',
   alternates: { canonical: 'https://siinmobiliaria.com/casas-en-venta-funes' },
   openGraph: {
@@ -64,7 +64,7 @@ export default async function Page() {
         <div className="max-w-4xl mx-auto prose prose-lg">
           <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>Comprar una casa en Funes</h2>
           <p>Funes ofrece opciones para todos los perfiles: desde casas compactas en barrios abiertos (USD 150.000) hasta residencias premium en countries como Funes Hills o Kentucky (USD 400.000+). La mayoría de las casas cuentan con jardín, parrilla y cochera.</p>
-          <p>En <strong>SI Inmobiliaria</strong> te asesoramos sobre la mejor relación precio-ubicación según tu presupuesto y estilo de vida. Nuestro equipo vive en Funes y conoce cada barrio en detalle.</p>
+          <p>En <strong>SI INMOBILIARIA</strong> te asesoramos sobre la mejor relación precio-ubicación según tu presupuesto y estilo de vida. Nuestro equipo vive en Funes y conoce cada barrio en detalle.</p>
         </div>
       </section>
 

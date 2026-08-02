@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import PlanillaPrintable from './PlanillaPrintable'
 
 export const metadata: Metadata = {
-  title: 'Planilla de costos — SI Inmobiliaria',
+  title: 'Planilla de costos — SI INMOBILIARIA',
   robots: { index: false, follow: false },
 }
 

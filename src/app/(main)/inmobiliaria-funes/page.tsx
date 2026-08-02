@@ -10,7 +10,7 @@ export const revalidate = 21600
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'RealEstateAgent',
-  name: 'SI Inmobiliaria Funes',
+  name: 'SI INMOBILIARIA Funes',
   image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   url: 'https://siinmobiliaria.com/inmobiliaria-funes',
   telephone: '+5493412101694',
@@ -73,12 +73,12 @@ const faqJsonLd = {
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Funes | Casas, Terrenos y Departamentos | SI Inmobiliaria',
+  title: 'Inmobiliaria en Funes | Casas, Terrenos y Departamentos | SI INMOBILIARIA',
   description:
     'Inmobiliaria en Funes, Santa Fe. Venta y alquiler de casas, terrenos y departamentos en los mejores barrios: Funes Hills, Kentucky, Portal de Funes. +40 años de experiencia. Tasaciones en 24hs.',
   keywords: 'inmobiliaria funes, casas en funes, terrenos en funes, propiedades funes, inmobiliaria funes santa fe, casas en venta funes, alquiler funes',
   openGraph: {
-    title: 'Inmobiliaria en Funes | SI Inmobiliaria',
+    title: 'Inmobiliaria en Funes | SI INMOBILIARIA',
     description: 'Tu inmobiliaria de confianza en Funes. Casas, terrenos y departamentos en los mejores barrios. Más de 40 años de experiencia.',
     url: 'https://siinmobiliaria.com/inmobiliaria-funes',
     images: ['/og-image.jpg'],
@@ -176,7 +176,7 @@ export default async function InmobiliariaFunesPage() {
             </p>
 
             <p className="text-gray-700 leading-relaxed">
-              Como <strong>inmobiliaria en Funes</strong> con más de cuatro décadas de trayectoria, en <strong>SI Inmobiliaria</strong> conocemos cada calle, cada barrio y cada oportunidad que ofrece esta ciudad. Nuestra oficina en Funes cuenta con un equipo especializado que vive y trabaja en la zona, lo que nos permite ofrecer un asesoramiento genuino basado en experiencia real.
+              Como <strong>inmobiliaria en Funes</strong> con más de cuatro décadas de trayectoria, en <strong>SI INMOBILIARIA</strong> conocemos cada calle, cada barrio y cada oportunidad que ofrece esta ciudad. Nuestra oficina en Funes cuenta con un equipo especializado que vive y trabaja en la zona, lo que nos permite ofrecer un asesoramiento genuino basado en experiencia real.
             </p>
 
             <h3 className="text-2xl font-bold text-gray-900 mt-10 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>Ventajas de vivir en Funes</h3>

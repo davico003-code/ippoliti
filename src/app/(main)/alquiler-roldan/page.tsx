@@ -9,15 +9,15 @@ export const revalidate = 21600
 export const metadata: Metadata = {
   title: 'Alquiler de Propiedades en Roldán | Casas y Departamentos',
   description:
-    'Propiedades en alquiler en Roldán, Santa Fe. Casas, departamentos y locales comerciales. SI Inmobiliaria - administración profesional de alquileres desde 1983.',
+    'Propiedades en alquiler en Roldán, Santa Fe. Casas, departamentos y locales comerciales. SI INMOBILIARIA - administración profesional de alquileres desde 1983.',
   alternates: { canonical: 'https://siinmobiliaria.com/alquiler-roldan' },
   openGraph: {
     images: ['/og-image.jpg'],
-    title: 'Alquiler de Propiedades en Roldán | SI Inmobiliaria',
+    title: 'Alquiler de Propiedades en Roldán | SI INMOBILIARIA',
     description: 'Casas y departamentos en alquiler en Roldán.',
     url: 'https://siinmobiliaria.com/alquiler-roldan',
     type: 'website',
-    siteName: 'SI Inmobiliaria',
+    siteName: 'SI INMOBILIARIA',
   },
 }
 
@@ -65,7 +65,7 @@ export default async function AlquilerRoldanPage() {
             Alquilar una propiedad en Roldán es cada vez más buscado por familias y profesionales que trabajan en Rosario pero prefieren la calidad de vida que ofrece una ciudad más tranquila, segura y con espacios verdes. Roldán cuenta con excelentes opciones de alquiler que van desde departamentos céntricos hasta casas amplias en barrios residenciales, con valores significativamente más accesibles que Rosario.
           </p>
           <p>
-            <strong>SI Inmobiliaria</strong> administra alquileres en Roldán desde 1983. Nuestra oficina de administración en <strong>1ro de Mayo 258</strong> se encarga de todo el proceso: búsqueda de la propiedad ideal, verificación del estado, confección del contrato con nuestro estudio jurídico, gestión de garantías y administración mensual del alquiler. Tanto inquilinos como propietarios cuentan con un servicio serio, transparente y profesional.
+            <strong>SI INMOBILIARIA</strong> administra alquileres en Roldán desde 1983. Nuestra oficina de administración en <strong>1ro de Mayo 258</strong> se encarga de todo el proceso: búsqueda de la propiedad ideal, verificación del estado, confección del contrato con nuestro estudio jurídico, gestión de garantías y administración mensual del alquiler. Tanto inquilinos como propietarios cuentan con un servicio serio, transparente y profesional.
           </p>
           <p>
             Para <strong>inquilinos</strong>: te ayudamos a encontrar la propiedad que se ajuste a tus necesidades y presupuesto. Coordinamos visitas, verificamos el estado del inmueble y gestionamos todo el proceso contractual. No cobramos comisión de renovación y atendemos cualquier reclamo durante la vigencia del contrato.

@@ -73,7 +73,7 @@ export async function generarPropuestasSemanales(): Promise<TemaPropuesto[]> {
     .map((t, i) => `${i + 1}. [${clean(t.fuente, 40)}] "${clean(t.titulo, 200)}" (score: ${t.score.toFixed(1)})${t.resumen ? ` — ${clean(t.resumen, 300)}` : ''}`)
     .join('\n');
 
-  const systemPrompt = `Sos un editor de contenido para el blog de SI Inmobiliaria (siinmobiliaria.com), inmobiliaria familiar de Funes, Roldán y Rosario (zona oeste del Gran Rosario, Argentina).
+  const systemPrompt = `Sos un editor de contenido para el blog de SI INMOBILIARIA (siinmobiliaria.com), inmobiliaria familiar de Funes, Roldán y Rosario (zona oeste del Gran Rosario, Argentina).
 
 Tu tarea: analizar los titulares de la semana y proponer EXACTAMENTE 5 temas para notas del blog.
 

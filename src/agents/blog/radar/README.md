@@ -1,4 +1,4 @@
-# Blog Radar — SI Inmobiliaria
+# Blog Radar — SI INMOBILIARIA
 
 ## Qué hace
 Cada lunes a las 7am AR (10am UTC) el cron scrapea 16 fuentes de noticias, puntúa los titulares y propone 5 temas para el blog vía WhatsApp. El admin responde con 2 números para aprobar.

@@ -27,6 +27,7 @@ import {
   getTotalSurface,
   getMainPhoto,
   getDescription,
+  getBlueprintPhotos,
   sanitizeProperty,
   buildPropertyWhatsappUrl,
   type TokkoProperty,
@@ -75,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // consolidar los duplicados que sirve cualquier sufijo con el ID correcto.
     const canonicalUrl = `https://siinmobiliaria.com/propiedades/${generatePropertySlug(property)}`;
     return {
-      title: `${title} | SI Inmobiliaria`,
+      title: `${title} | SI INMOBILIARIA`,
       description: desc,
       alternates: { canonical: canonicalUrl },
       openGraph: {
@@ -96,7 +97,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // La propiedad no existe / el feed falló. La ruta hace notFound() pero por
     // una limitación de Next el streaming ya commiteó HTTP 200 (soft-404). El
     // noindex evita que Google indexe esa página de error.
-    return { title: 'Propiedad no encontrada | SI Inmobiliaria', robots: { index: false, follow: false } };
+    return { title: 'Propiedad no encontrada | SI INMOBILIARIA', robots: { index: false, follow: false } };
   }
 }
 
@@ -289,8 +290,13 @@ export default async function PropertyPage({ params }: Props) {
             ...(property.videos && property.videos.length > 0
               ? [{ id: 'video', label: 'Video' }]
               : []),
-            { id: 'descripcion', label: 'Descripción' },
-            { id: 'planos', label: 'Planos' },
+            // Igual que "Video": la pestaña se muestra solo si abajo existe la
+            // sección. Si no, queda un botón visible que no lleva a ningún lado
+            // (pasa en ~1 de cada 10 fichas, las que no tienen plano cargado).
+            ...(description ? [{ id: 'descripcion', label: 'Descripción' }] : []),
+            ...(getBlueprintPhotos(property).length > 0
+              ? [{ id: 'planos', label: 'Planos' }]
+              : []),
             { id: 'ubicacion', label: 'Ubicación' },
             { id: 'similares', label: 'Similares' },
           ]}

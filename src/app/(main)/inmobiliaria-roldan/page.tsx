@@ -9,7 +9,7 @@ export const revalidate = 21600
 
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'RealEstateAgent',
-  name: 'SI Inmobiliaria Roldán', image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
+  name: 'SI INMOBILIARIA Roldán', image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
   url: 'https://siinmobiliaria.com/inmobiliaria-roldan', telephone: '+5493412101694',
   address: { '@type': 'PostalAddress', streetAddress: '1ro de Mayo 258', addressLocality: 'Roldán', addressRegion: 'Santa Fe', addressCountry: 'AR' },
   geo: { '@type': 'GeoCoordinates', latitude: -32.8967, longitude: -60.9083 },
@@ -22,16 +22,16 @@ const faqJsonLd = {
   mainEntity: [
     { '@type': 'Question', name: '¿Cuánto cuesta un terreno en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Los terrenos en Roldán arrancan desde USD 25.000 en loteos nuevos. En barrios consolidados como Los Aromos o El Molino, desde USD 45.000. Los precios son 30-40% menores que en Funes, con excelente valorización.' } },
     { '@type': 'Question', name: '¿Cuáles son los mejores barrios de Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Los barrios más buscados son: Los Aromos (premium), El Molino (consolidado), Tierra de Sueños (accesible), Don Mateo (nuevo), Distrito Roldán (moderno) y el Casco Urbano con su vida de pueblo.' } },
-    { '@type': 'Question', name: '¿Por qué invertir en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Roldán es la ciudad que más crece del Gran Rosario. Con precios 30-40% menores que Funes, valorización del 15-20% anual y dos oficinas de SI Inmobiliaria, es la mejor oportunidad de inversión inmobiliaria de la zona.' } },
+    { '@type': 'Question', name: '¿Por qué invertir en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Roldán es la ciudad que más crece del Gran Rosario. Con precios 30-40% menores que Funes, valorización del 15-20% anual y dos oficinas de SI INMOBILIARIA, es la mejor oportunidad de inversión inmobiliaria de la zona.' } },
     { '@type': 'Question', name: '¿A qué distancia está Roldán de Rosario?', acceptedAnswer: { '@type': 'Answer', text: 'Roldán está a 25 km del centro de Rosario, unos 20 minutos por autopista Rosario-Córdoba. Tiene acceso directo y transporte público frecuente.' } },
   ],
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Roldán | Casas, Terrenos y Lotes | SI Inmobiliaria',
+  title: 'Inmobiliaria en Roldán | Casas, Terrenos y Lotes | SI INMOBILIARIA',
   description: 'Inmobiliaria en Roldán con 2 oficinas. Casas, terrenos y lotes en Los Aromos, El Molino, Tierra de Sueños, Don Mateo. +40 años. Tasaciones en 24hs.',
   keywords: 'inmobiliaria roldan, casas en roldan, terrenos en roldan, propiedades roldan, lotes roldan',
-  openGraph: { title: 'Inmobiliaria en Roldán | SI Inmobiliaria', description: 'Tu inmobiliaria de confianza en Roldán. 2 oficinas, +40 años.', url: 'https://siinmobiliaria.com/inmobiliaria-roldan', images: ['/og-image.jpg'] },
+  openGraph: { title: 'Inmobiliaria en Roldán | SI INMOBILIARIA', description: 'Tu inmobiliaria de confianza en Roldán. 2 oficinas, +40 años.', url: 'https://siinmobiliaria.com/inmobiliaria-roldan', images: ['/og-image.jpg'] },
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-roldan' },
 }
 
@@ -90,7 +90,7 @@ export default async function Page() {
         <div className="max-w-4xl mx-auto prose prose-lg max-w-none">
           <h2 className="text-3xl font-black text-gray-900 mb-6" style={{ fontFamily: 'var(--font-raleway)' }}>¿Por qué elegir Roldán?</h2>
           <p className="text-gray-700">Roldán es la ciudad con mayor crecimiento demográfico del Gran Rosario. Ubicada a 25 km del centro de Rosario por autopista, ofrece terrenos amplios, barrios planificados y una calidad de vida excepcional a precios significativamente menores que Funes.</p>
-          <p className="text-gray-700">Con <strong>2 oficinas en Roldán</strong> (1ro de Mayo 258 y Catamarca 775), <strong>SI Inmobiliaria</strong> es la referencia del mercado local. Nuestro equipo conoce cada desarrollo, cada oportunidad y cada barrio porque vivimos y trabajamos aquí desde 1983.</p>
+          <p className="text-gray-700">Con <strong>2 oficinas en Roldán</strong> (1ro de Mayo 258 y Catamarca 775), <strong>SI INMOBILIARIA</strong> es la referencia del mercado local. Nuestro equipo conoce cada desarrollo, cada oportunidad y cada barrio porque vivimos y trabajamos aquí desde 1983.</p>
           <p className="text-gray-700">Los <strong>terrenos en Roldán</strong> arrancan desde USD 25.000, las casas desde USD 80.000 en barrios abiertos y desde USD 150.000 en countries. La valorización promedio es del 15-20% anual, convirtiéndola en una de las mejores plazas para invertir.</p>
           <h3 className="text-2xl font-bold text-gray-900 mt-10 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>Nuestros servicios en Roldán</h3>
           <ul className="space-y-3 not-prose">

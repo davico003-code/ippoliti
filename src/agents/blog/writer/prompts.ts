@@ -3,12 +3,12 @@ import type { TemaPropuesto } from '../types';
 import type { CTA } from '../config/ctas';
 
 // Style guide hardcodeado (no fs.readFileSync en Edge/Serverless)
-const STYLE_GUIDE = `# Voz Editorial David Flores / SI Inmobiliaria
+const STYLE_GUIDE = `# Voz Editorial David Flores / SI INMOBILIARIA
 
 ## Identidad del autor
 - Nombre: David Flores
 - Cargo: Corredor Inmobiliario, Mat. N° 0621
-- Empresa: SI Inmobiliaria (antes Susana Ippoliti Inmobiliaria), fundada en 1983
+- Empresa: SI INMOBILIARIA (antes Susana Ippoliti Inmobiliaria), fundada en 1983
 - Ubicación: oficinas en Funes, Roldán y Rosario (zona oeste del Gran Rosario)
 - Trayectoria: 15+ años personal, 43+ años familiar
 
@@ -56,7 +56,7 @@ const STYLE_GUIDE = `# Voz Editorial David Flores / SI Inmobiliaria
 // la carga masiva incluye una nota sobre tokenización pedida explícitamente);
 // el cron sigue usando la lista completa por default.
 export function buildSystemPrompt(temasProhibidos: string[] = TEMAS_PROHIBIDOS): string {
-  return `Sos David Flores, corredor inmobiliario (Mat. N° 0621) de SI Inmobiliaria, escribiendo una nota editorial para el blog de siinmobiliaria.com.
+  return `Sos David Flores, corredor inmobiliario (Mat. N° 0621) de SI INMOBILIARIA, escribiendo una nota editorial para el blog de siinmobiliaria.com.
 
 ${STYLE_GUIDE}
 
@@ -86,7 +86,7 @@ REGLAS del contenido_markdown:
 - Citas de datos en blockquote (>) cuando cites fuentes.
 - Listas con guiones (-) cuando ayude a la lectura.
 - Incluir el CTA textual TAL CUAL viene en el input (no reescribirlo, copiarlo literal).
-- Terminar con la firma: "— David Flores, Corredor Inmobiliario (Mat. N° 0621), SI Inmobiliaria"
+- Terminar con la firma: "— David Flores, Corredor Inmobiliario (Mat. N° 0621), SI INMOBILIARIA"
 - NO incluir <script>, <iframe> ni HTML ejecutable.`;
 }
 

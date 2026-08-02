@@ -63,7 +63,7 @@ const PLACAS: Record<string, Placa> = {
         texto:
           'de los que invierten en el **corredor oeste** *nunca calcularon* su ROI antes de comprar.',
       },
-      { tipo: 'fuente', texto: '— Relevamiento propio SI Inmobiliaria, 200 operaciones 2024–2025.' },
+      { tipo: 'fuente', texto: '— Relevamiento propio SI INMOBILIARIA, 200 operaciones 2024–2025.' },
     ],
   },
   '4': {

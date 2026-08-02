@@ -373,7 +373,7 @@ export default function CalculadoraCostos() {
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
       try {
         await navigator.share({
-          title: 'Planilla de costos de alquiler — SI Inmobiliaria',
+          title: 'Planilla de costos de alquiler — SI INMOBILIARIA',
           text: 'Mirá este cálculo de costos de alquiler',
           url,
         })

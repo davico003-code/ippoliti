@@ -12,8 +12,8 @@ const faqJsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
 ]}
 
 export const metadata: Metadata = {
-  title: 'Departamentos en Echesortu | Venta Rosario | SI Inmobiliaria',
-  description: 'Departamentos en venta en Echesortu, Rosario. Vida barrial, Av. Pellegrini, buena conectividad. Desde USD 50.000. SI Inmobiliaria.',
+  title: 'Departamentos en Echesortu | Venta Rosario | SI INMOBILIARIA',
+  description: 'Departamentos en venta en Echesortu, Rosario. Vida barrial, Av. Pellegrini, buena conectividad. Desde USD 50.000. SI INMOBILIARIA.',
   keywords: 'departamentos echesortu, echesortu rosario, departamentos venta echesortu',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-echesortu' },
   openGraph: {
@@ -61,7 +61,7 @@ export default async function Page() {
       <section className="py-12 px-4 bg-gray-50"><div className="max-w-4xl mx-auto prose prose-lg">
         <h2 className="text-2xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>Vivir en Echesortu</h2>
         <p>Echesortu es el centro geográfico de Rosario. Con la <strong>Av. Pellegrini</strong> como eje principal, ofrece excelente conectividad, vida comercial activa y un ambiente barrial que combina tradición con desarrollo.</p>
-        <p>Es la opción preferida por familias y estudiantes que buscan departamentos accesibles con buena calidad de vida. En <strong>SI Inmobiliaria</strong> conocemos cada cuadra y te asesoramos para encontrar la mejor opción.</p>
+        <p>Es la opción preferida por familias y estudiantes que buscan departamentos accesibles con buena calidad de vida. En <strong>SI INMOBILIARIA</strong> conocemos cada cuadra y te asesoramos para encontrar la mejor opción.</p>
       </div></section>
 
       <section className="py-12 px-4 bg-gray-50"><div className="max-w-3xl mx-auto"><h2 className="text-2xl font-black text-gray-900 text-center mb-8" style={{ fontFamily: 'var(--font-raleway)' }}>Preguntas frecuentes</h2><div className="space-y-4">{faqJsonLd.mainEntity.map((f, i) => (<details key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 group"><summary className="font-bold text-gray-900 cursor-pointer list-none flex items-center justify-between">{f.name}<span className="text-[#1A5C38] group-open:rotate-180 transition-transform">&#9660;</span></summary><p className="mt-4 text-gray-600">{f.acceptedAnswer.text}</p></details>))}</div></div></section>

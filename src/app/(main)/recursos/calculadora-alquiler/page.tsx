@@ -4,7 +4,7 @@ import CalculadoraCostos from '@/components/recursos/CalculadoraCostos'
 import RecursoHero from '@/components/recursos/RecursoHero'
 
 export const metadata: Metadata = {
-  title: 'Calculadora de alquiler — costos iniciales | SI Inmobiliaria',
+  title: 'Calculadora de alquiler — costos iniciales | SI INMOBILIARIA',
   description:
     'Calculá cuánto necesitás para alquilar: primer mes, honorarios, sellado, depósito en dólares, costos administrativos. Gratis y al instante.',
   alternates: {
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     description:
       'Calculá cuánto necesitás para alquilar: primer mes, honorarios, sellado, depósito en dólares, costos administrativos.',
     url: 'https://siinmobiliaria.com/recursos/calculadora-alquiler',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
     locale: 'es_AR',
     type: 'website',
   },

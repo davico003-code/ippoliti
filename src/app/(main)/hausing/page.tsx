@@ -7,12 +7,12 @@ import type { TokkoProperty } from "@/lib/tokko"
 import HausingAnimations from "@/components/HausingAnimations"
 
 export const metadata: Metadata = {
-  title: 'Hausing — Casas de Diseño en Funes | SI Inmobiliaria',
+  title: 'Hausing — Casas de Diseño en Funes | SI INMOBILIARIA',
   description: 'Casas de diseño arquitectónico en barrios cerrados de Funes. Pileta, seguridad 24hs, financiación en USD. Llave en mano.',
   alternates: { canonical: 'https://siinmobiliaria.com/hausing' },
   openGraph: {
     title: 'Hausing — Casas de Diseño en Funes',
-    description: 'Casas premium en los barrios más exclusivos de Funes. Desde SI Inmobiliaria.',
+    description: 'Casas premium en los barrios más exclusivos de Funes. Desde SI INMOBILIARIA.',
     url: 'https://siinmobiliaria.com/hausing',
     images: ['/og-image.jpg'],
   },
@@ -56,7 +56,7 @@ export default async function HausingPage() {
           <img src="/hausing-logo.svg" alt="Hausing" className="hausing-logo" style={{height:"30px",width:"auto",display:"block",filter:"brightness(0) invert(1)"}} />
         </div>
         <Link href="/" style={{color:"rgba(255,255,255,0.6)",fontSize:"13px",textDecoration:"none",display:"flex",alignItems:"center",gap:"6px"}}>
-          &larr; SI Inmobiliaria
+          &larr; SI INMOBILIARIA
         </Link>
       </nav>
 
@@ -287,7 +287,7 @@ export default async function HausingPage() {
           <div style={{width:"24px",height:"24px",background:"#fff",borderRadius:"6px",display:"flex",alignItems:"center",justifyContent:"center"}}>
             <span style={{color:"#000",fontWeight:900,fontSize:"11px"}}>H</span>
           </div>
-          <span style={{color:"rgba(255,255,255,0.4)",fontSize:"13px"}}>Hausing &times; SI Inmobiliaria &middot; Desde 1983</span>
+          <span style={{color:"rgba(255,255,255,0.4)",fontSize:"13px"}}>Hausing &times; SI INMOBILIARIA &middot; Desde 1983</span>
         </div>
         <Link href="/propiedades" style={{color:"rgba(255,255,255,0.4)",fontSize:"13px",textDecoration:"none"}}>Ver todas las propiedades &rarr;</Link>
       </div>

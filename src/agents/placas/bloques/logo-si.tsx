@@ -1,4 +1,4 @@
-// Logo SI Inmobiliaria — componente JSX compatible con Satori.
+// Logo SI INMOBILIARIA — componente JSX compatible con Satori.
 // Valores escalados del HTML de referencia (x2 porque el HTML estaba a 50%).
 //
 // Estructura: [caja verde cuadrada con "SI"] [gap] [INMOBILIARIA uppercase]

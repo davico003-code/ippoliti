@@ -23,7 +23,7 @@ const MUTED = '#5e6a63'
 const LINE = '#e6eae7'
 
 export const metadata: Metadata = {
-  title: 'Mercado inmobiliario de Funes y Roldán: precios y costos 2026 | SI Inmobiliaria',
+  title: 'Mercado inmobiliario de Funes y Roldán: precios y costos 2026 | SI INMOBILIARIA',
   description:
     'Datos del mercado inmobiliario de Funes y Roldán: cuánto cuesta construir por m², barrios cerrados, zonificación y costos de compra/alquiler. Valores actualizados por una inmobiliaria de la zona desde 1983.',
   alternates: { canonical: 'https://siinmobiliaria.com/mercado-inmobiliario-funes' },
@@ -40,8 +40,8 @@ export const metadata: Metadata = {
     description:
       'Cuánto cuesta construir por m², barrios cerrados, zonificación y costos de compra/alquiler en Funes y Roldán. Datos actualizados.',
     url: 'https://siinmobiliaria.com/mercado-inmobiliario-funes',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
     locale: 'es_AR',
     type: 'article',
   },
@@ -106,7 +106,7 @@ export default async function MercadoFunesPage() {
         name: '¿Cuánto cuesta construir por m² en Funes y Roldán?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `Una construcción de nivel medio ronda los ${fmtUSD(media.llave)}/m² llave en mano (${fmtUSD(media.cuentaPropia)}/m² por cuenta propia), y una de nivel alto unos ${fmtUSD(alta.llave)}/m² llave en mano, según valores de obra vigentes en Funes y Roldán. Los valores se ajustan por inflación y se pueden proyectar para tu lote con la calculadora de costos de construcción de SI Inmobiliaria.`,
+          text: `Una construcción de nivel medio ronda los ${fmtUSD(media.llave)}/m² llave en mano (${fmtUSD(media.cuentaPropia)}/m² por cuenta propia), y una de nivel alto unos ${fmtUSD(alta.llave)}/m² llave en mano, según valores de obra vigentes en Funes y Roldán. Los valores se ajustan por inflación y se pueden proyectar para tu lote con la calculadora de costos de construcción de SI INMOBILIARIA.`,
         },
       },
       {
@@ -130,7 +130,7 @@ export default async function MercadoFunesPage() {
         name: '¿Cómo está el mercado inmobiliario de Funes en 2026?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Funes y Roldán mantienen tracción sostenida como corredor de inversión del oeste de Rosario, con valores aún atractivos frente a la ciudad. SI Inmobiliaria publica informes semanales con dólar, inflación, índice de alquileres (ICL) y costo de construcción para seguir el mercado con datos oficiales.',
+          text: 'Funes y Roldán mantienen tracción sostenida como corredor de inversión del oeste de Rosario, con valores aún atractivos frente a la ciudad. SI INMOBILIARIA publica informes semanales con dólar, inflación, índice de alquileres (ICL) y costo de construcción para seguir el mercado con datos oficiales.',
         },
       },
     ],
@@ -218,7 +218,7 @@ export default async function MercadoFunesPage() {
             ¿Por qué seguir el mercado de Funes con nosotros?
           </h2>
           <p style={{ fontFamily: RALEWAY, fontSize: 15, color: MUTED, lineHeight: 1.6, margin: 0 }}>
-            SI Inmobiliaria opera en Funes, Roldán y Rosario desde 1983. Además de la cartera de propiedades,
+            SI INMOBILIARIA opera en Funes, Roldán y Rosario desde 1983. Además de la cartera de propiedades,
             publicamos datos propios del mercado del corredor oeste —costo de construcción, índice de alquileres,
             zonificación y evolución del dólar— para que cualquiera pueda tomar decisiones con información clara y
             actualizada. Corredor responsable: David Flores, Mat. N° 0621.

@@ -1,6 +1,6 @@
 import type { BlogPost } from '@/lib/blog'
 
-const AUTHOR = 'David Flores \u2013 SI Inmobiliaria'
+const AUTHOR = 'David Flores \u2013 SI INMOBILIARIA'
 
 export const seoPosts: BlogPost[] = [
   {
@@ -8,9 +8,9 @@ export const seoPosts: BlogPost[] = [
     title: 'Qu\u00e9 aspectos aumentan m\u00e1s r\u00e1pido el valor de un lote en Funes y Rold\u00e1n',
     date: '2026-03-20',
     dateDisplay: '20 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
-    summary: 'Descubr\u00ed qu\u00e9 factores hacen que un lote en Funes o Rold\u00e1n se valorice m\u00e1s r\u00e1pido: servicios, accesos, barrio y entorno. Gu\u00eda experta de SI Inmobiliaria.',
+    summary: 'Descubr\u00ed qu\u00e9 factores hacen que un lote en Funes o Rold\u00e1n se valorice m\u00e1s r\u00e1pido: servicios, accesos, barrio y entorno. Gu\u00eda experta de SI INMOBILIARIA.',
     category: 'Inversi\u00f3n',
     author: AUTHOR,
     content: `Si est\u00e1s evaluando comprar un lote en Funes o Rold\u00e1n como inversi\u00f3n, la pregunta clave no es solo cu\u00e1nto vale hoy, sino qu\u00e9 factores van a hacer que se valorice m\u00e1s r\u00e1pido en los pr\u00f3ximos a\u00f1os. Trabajo en el mercado inmobiliario de la zona oeste de Rosario hace a\u00f1os, y he visto lotes duplicar su valor en tres a\u00f1os mientras otros apenas se movieron. La diferencia siempre est\u00e1 en los mismos factores.
@@ -19,7 +19,7 @@ La llegada de servicios b\u00e1sicos
 
 El factor n\u00famero uno que dispara el valor de un lote es la llegada de servicios: agua corriente, cloacas, gas natural, electricidad y asfalto. Un terreno sin servicios en Rold\u00e1n puede estar en el orden de los 20 a 30 mil d\u00f3lares. El mismo lote, una vez que el municipio extiende la red de gas y pavimenta la calle, puede saltar a 45 o 60 mil d\u00f3lares sin que el due\u00f1o haya hecho absolutamente nada. Esto no es teor\u00eda: lo hemos visto suceder decenas de veces en barrios como Los Raigales, Tierra de Sue\u00f1os y en sectores nuevos de Funes.
 
-La clave est\u00e1 en anticiparse. Cuando un municipio aprueba un plan de extensi\u00f3n de servicios, el precio del lote todav\u00eda no refleja esa mejora futura. Si compr\u00e1s en ese momento, est\u00e1s capturando la valorizaci\u00f3n antes de que ocurra. En SI Inmobiliaria monitoreamos permanentemente los planes de obras p\u00fablicas de Funes y Rold\u00e1n para asesorar a nuestros clientes sobre d\u00f3nde conviene comprar.
+La clave est\u00e1 en anticiparse. Cuando un municipio aprueba un plan de extensi\u00f3n de servicios, el precio del lote todav\u00eda no refleja esa mejora futura. Si compr\u00e1s en ese momento, est\u00e1s capturando la valorizaci\u00f3n antes de que ocurra. En SI INMOBILIARIA monitoreamos permanentemente los planes de obras p\u00fablicas de Funes y Rold\u00e1n para asesorar a nuestros clientes sobre d\u00f3nde conviene comprar.
 
 Accesibilidad y conectividad
 
@@ -41,16 +41,16 @@ El desarrollo comercial cercano
 
 La aparici\u00f3n de comercios, escuelas, centros de salud y supermercados en la zona genera una valorizaci\u00f3n significativa. Cuando Rold\u00e1n sum\u00f3 sus primeros supermercados de cadena y se instalaron colegios privados en la zona sur, los lotes del \u00e1rea subieron entre un 15 y un 25 por ciento en dos a\u00f1os. Lo mismo pasa con Funes: cada nuevo colegio, cada centro m\u00e9dico, cada local gastron\u00f3mico que abre refuerza la percepci\u00f3n de que la zona est\u00e1 \u201ccompleta\u201d y eso se traduce en precio.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-Si est\u00e1s pensando en comprar un lote como inversi\u00f3n en Funes o Rold\u00e1n, lo m\u00e1s importante es tener informaci\u00f3n precisa y actualizada. En SI Inmobiliaria conocemos cada barrio, cada calle y cada proyecto en desarrollo de la zona. Podemos orientarte hacia los lotes con mayor potencial de valorizaci\u00f3n seg\u00fan tu presupuesto y tu horizonte de inversi\u00f3n. Consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos por WhatsApp al 341 210 1694.`,
+Si est\u00e1s pensando en comprar un lote como inversi\u00f3n en Funes o Rold\u00e1n, lo m\u00e1s importante es tener informaci\u00f3n precisa y actualizada. En SI INMOBILIARIA conocemos cada barrio, cada calle y cada proyecto en desarrollo de la zona. Podemos orientarte hacia los lotes con mayor potencial de valorizaci\u00f3n seg\u00fan tu presupuesto y tu horizonte de inversi\u00f3n. Consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos por WhatsApp al 341 210 1694.`,
   },
   {
     slug: 'mercado-inmobiliario-2025-que-esta-pasando',
     title: 'Mercado inmobiliario 2025: qu\u00e9 est\u00e1 pasando y c\u00f3mo aprovecharlo',
     date: '2026-03-15',
     dateDisplay: '15 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary: 'An\u00e1lisis del mercado inmobiliario argentino 2025-2026: precios en d\u00f3lares, cr\u00e9ditos hipotecarios, oportunidades en Funes y Rold\u00e1n.',
     category: 'Mercado',
@@ -77,16 +77,16 @@ Qu\u00e9 esperar para 2026
 
 Mi proyecci\u00f3n para los pr\u00f3ximos 12 meses es moderadamente optimista. Creo que los precios van a seguir subiendo de forma gradual, empujados por el cr\u00e9dito hipotecario y la demanda genuina. No espero saltos bruscos ni burbujas, sino una normalizaci\u00f3n progresiva del mercado. El riesgo principal sigue siendo la macro: si la inflaci\u00f3n se descontrola o el tipo de cambio pega un salto, el mercado puede volver a frenarse.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-Si quer\u00e9s aprovechar el momento actual del mercado, sea para comprar tu primera casa, invertir en un lote o vender una propiedad al mejor precio, en SI Inmobiliaria podemos ayudarte con informaci\u00f3n concreta y actualizada de la zona. Visit\u00e1 nuestro cat\u00e1logo en /propiedades o consult\u00e1 por WhatsApp al 341 210 1694.`,
+Si quer\u00e9s aprovechar el momento actual del mercado, sea para comprar tu primera casa, invertir en un lote o vender una propiedad al mejor precio, en SI INMOBILIARIA podemos ayudarte con informaci\u00f3n concreta y actualizada de la zona. Visit\u00e1 nuestro cat\u00e1logo en /propiedades o consult\u00e1 por WhatsApp al 341 210 1694.`,
   },
   {
     slug: 'funes-roldan-nuevo-eje-crecimiento-inmobiliario-gran-rosario',
     title: 'Funes y Rold\u00e1n: por qu\u00e9 son el nuevo eje del crecimiento inmobiliario del Gran Rosario',
     date: '2026-03-10',
     dateDisplay: '10 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Funes y Rold\u00e1n lideran el crecimiento inmobiliario del Gran Rosario. An\u00e1lisis de por qu\u00e9 estas ciudades atraen cada vez m\u00e1s familias e inversores.',
     category: 'Mercado',
@@ -103,7 +103,7 @@ Los n\u00fameros que respaldan el crecimiento
 
 Rold\u00e1n pas\u00f3 de 14 mil habitantes en el censo 2010 a m\u00e1s de 30 mil estimados en 2025. Funes ya supera los 35 mil. Ambas ciudades duplicaron su poblaci\u00f3n en poco m\u00e1s de una d\u00e9cada, un ritmo de crecimiento que muy pocas localidades del pa\u00eds pueden mostrar.
 
-Este crecimiento poblacional se traduce directamente en demanda inmobiliaria. En SI Inmobiliaria lo vemos todos los d\u00edas: las consultas de familias de Rosario que quieren mudarse a la zona representan m\u00e1s del 60 por ciento de nuestras operaciones. Y la tendencia no muestra se\u00f1ales de desaceleraci\u00f3n.
+Este crecimiento poblacional se traduce directamente en demanda inmobiliaria. En SI INMOBILIARIA lo vemos todos los d\u00edas: las consultas de familias de Rosario que quieren mudarse a la zona representan m\u00e1s del 60 por ciento de nuestras operaciones. Y la tendencia no muestra se\u00f1ales de desaceleraci\u00f3n.
 
 Infraestructura y servicios en expansi\u00f3n
 
@@ -115,16 +115,16 @@ Qu\u00e9 significa para el inversor
 
 Para quien piensa en t\u00e9rminos de inversi\u00f3n, Funes y Rold\u00e1n ofrecen una combinaci\u00f3n atractiva: precios todav\u00eda accesibles comparados con Rosario, una trayectoria clara de valorizaci\u00f3n y una demanda creciente que asegura liquidez. Un lote bien ubicado en Rold\u00e1n se valoriza entre un 8 y un 15 por ciento anual en d\u00f3lares. Una casa en Funes tiene demanda de alquiler permanente por parte de familias que quieren \u201cprobar\u201d la zona antes de comprar.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-Con m\u00e1s de 40 a\u00f1os en Rold\u00e1n y presencia activa en Funes, SI Inmobiliaria es la inmobiliaria que mejor conoce este corredor de crecimiento. Si quer\u00e9s invertir, comprar tu casa o simplemente entender mejor el mercado, visit\u00e1 nuestro cat\u00e1logo de propiedades o consult\u00e1 con nosotros.`,
+Con m\u00e1s de 40 a\u00f1os en Rold\u00e1n y presencia activa en Funes, SI INMOBILIARIA es la inmobiliaria que mejor conoce este corredor de crecimiento. Si quer\u00e9s invertir, comprar tu casa o simplemente entender mejor el mercado, visit\u00e1 nuestro cat\u00e1logo de propiedades o consult\u00e1 con nosotros.`,
   },
   {
     slug: 'cuanto-deberia-rendir-inversion-inmobiliaria-dolares',
     title: 'Cu\u00e1nto deber\u00eda rendir una buena inversi\u00f3n inmobiliaria en d\u00f3lares',
     date: '2026-03-05',
     dateDisplay: '5 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-vista-aerea-barrios-2026.webp',
     summary: 'Rendimiento esperado de inversiones inmobiliarias en Argentina: renta, valorizaci\u00f3n y retorno real en d\u00f3lares para Funes, Rold\u00e1n y Rosario.',
     category: 'Inversi\u00f3n',
@@ -153,16 +153,16 @@ Dicho esto, no toda inversi\u00f3n inmobiliaria es buena. Un departamento en el 
 
 La clave est\u00e1 en la selecci\u00f3n del activo, y para eso necesit\u00e1s informaci\u00f3n precisa del mercado local. No alcanza con mirar portales de internet: hay que conocer la zona, los planes de desarrollo, los valores reales de cierre y las tendencias de demanda.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-En SI Inmobiliaria analizamos cada oportunidad de inversi\u00f3n con datos concretos y conocimiento profundo de la zona. Si quer\u00e9s evaluar d\u00f3nde poner tu capital para obtener el mejor rendimiento, consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694.`,
+En SI INMOBILIARIA analizamos cada oportunidad de inversi\u00f3n con datos concretos y conocimiento profundo de la zona. Si quer\u00e9s evaluar d\u00f3nde poner tu capital para obtener el mejor rendimiento, consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694.`,
   },
   {
     slug: 'comprar-con-escritura-inmediata-inversion-segura',
     title: 'Por qu\u00e9 comprar con escritura inmediata es clave para una inversi\u00f3n segura',
     date: '2026-02-28',
     dateDisplay: '28 de febrero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-vista-aerea-barrios-2026.webp',
     summary: 'Ventajas de comprar propiedades con escritura inmediata en Funes y Rold\u00e1n. Seguridad jur\u00eddica, financiamiento y c\u00f3mo evitar riesgos.',
     category: 'Legal',
@@ -185,9 +185,9 @@ C\u00f3mo verificar que pod\u00e9s escriturar
 
 Antes de hacer una oferta por una propiedad, hay que verificar tres cosas fundamentales. Primero, que el t\u00edtulo de propiedad est\u00e9 en regla y coincida con el inmueble que est\u00e1s comprando. Segundo, que no haya gravámenes, inhibiciones o embargos sobre la propiedad o sobre el vendedor. Tercero, que los impuestos y tasas municipales est\u00e9n al d\u00eda. Estos estudios de t\u00edtulo se hacen a trav\u00e9s de un escribano o un abogado especializado en derecho inmobiliario.
 
-En SI Inmobiliaria contamos con estudio jur\u00eddico propio, lo que nos permite hacer esta verificaci\u00f3n de forma interna y r\u00e1pida. Cada propiedad que comercializamos tiene sus antecedentes legales verificados antes de salir al mercado.
+En SI INMOBILIARIA contamos con estudio jur\u00eddico propio, lo que nos permite hacer esta verificaci\u00f3n de forma interna y r\u00e1pida. Cada propiedad que comercializamos tiene sus antecedentes legales verificados antes de salir al mercado.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Si est\u00e1s por comprar una propiedad en Funes o Rold\u00e1n, no te arriesgues con operaciones sin respaldo legal. Consult\u00e1 con nuestro equipo para verificar la documentaci\u00f3n y asegurar una operaci\u00f3n transparente. Visit\u00e1 nuestras propiedades disponibles o escribinos al 341 210 1694.`,
   },
@@ -196,7 +196,7 @@ Si est\u00e1s por comprar una propiedad en Funes o Rold\u00e1n, no te arriesgues
     title: 'C\u00f3mo detectar si un loteo en Funes o Rold\u00e1n es realmente confiable',
     date: '2026-02-20',
     dateDisplay: '20 de febrero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Gu\u00eda para evaluar la confiabilidad de un loteo en Funes o Rold\u00e1n: aprobaciones municipales, servicios, antecedentes del desarrollador y se\u00f1ales de alerta.',
     category: 'Gu\u00edas',
@@ -223,9 +223,9 @@ Precio: si es demasiado barato, sospech\u00e1
 
 Un lote que se ofrece a la mitad del precio de mercado no es una ganga: es una se\u00f1al de alerta. Los precios por debajo del mercado suelen indicar problemas de t\u00edtulo, falta de aprobaci\u00f3n municipal, servicios inexistentes o ubicaciones problem\u00e1ticas (zonas inundables, cercan\u00eda a industrias, falta de acceso).
 
-En SI Inmobiliaria realizamos un due diligence completo de cada loteo antes de recomendarlo a nuestros clientes. Verificamos documentaci\u00f3n, visitamos la obra, hablamos con los desarrolladores y chequeamos antecedentes. Si un loteo no pasa nuestro filtro, no lo ofrecemos.
+En SI INMOBILIARIA realizamos un due diligence completo de cada loteo antes de recomendarlo a nuestros clientes. Verificamos documentaci\u00f3n, visitamos la obra, hablamos con los desarrolladores y chequeamos antecedentes. Si un loteo no pasa nuestro filtro, no lo ofrecemos.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Antes de comprar un lote en Funes o Rold\u00e1n, consult\u00e1 con nosotros. Conocemos cada emprendimiento de la zona y podemos orientarte hacia opciones seguras y con buen potencial. Visit\u00e1 nuestras propiedades o escribinos al 341 210 1694.`,
   },
@@ -234,7 +234,7 @@ Antes de comprar un lote en Funes o Rold\u00e1n, consult\u00e1 con nosotros. Con
     title: 'Barrios cerrados vs barrios abiertos: cu\u00e1l conviene seg\u00fan tu perfil',
     date: '2026-02-15',
     dateDisplay: '15 de febrero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrio-cerrado-lotes-aereo.webp',
     summary: 'Comparativa entre barrios cerrados y abiertos en Funes y Rold\u00e1n: seguridad, costos, valorizaci\u00f3n, estilo de vida. Cu\u00e1l elegir seg\u00fan tu situaci\u00f3n.',
     category: 'Gu\u00edas',
@@ -263,16 +263,16 @@ Cu\u00e1l elegir seg\u00fan tu perfil
 
 Si ten\u00e9s familia con chicos, la seguridad de un barrio cerrado suele ser prioritaria. Si sos una pareja joven con presupuesto ajustado, un barrio abierto te permite acceder a un lote m\u00e1s grande por menos dinero. Si tu objetivo es inversi\u00f3n pura, ambas opciones pueden funcionar dependiendo del barrio espec\u00edfico y del momento del mercado.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-En SI Inmobiliaria conocemos cada barrio de Funes y Rold\u00e1n en detalle. Podemos ayudarte a elegir la opci\u00f3n que mejor se adapte a tu perfil y tu presupuesto. Visit\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694.`,
+En SI INMOBILIARIA conocemos cada barrio de Funes y Rold\u00e1n en detalle. Podemos ayudarte a elegir la opci\u00f3n que mejor se adapte a tu perfil y tu presupuesto. Visit\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694.`,
   },
   {
     slug: 'creditos-hipotecarios-argentina-que-tener-en-cuenta',
     title: 'Cr\u00e9ditos hipotecarios en Argentina: qu\u00e9 tener en cuenta antes de firmar',
     date: '2026-02-10',
     dateDisplay: '10 de febrero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary: 'Gu\u00eda pr\u00e1ctica sobre cr\u00e9ditos hipotecarios en Argentina: UVA, tasa fija, requisitos, riesgos y c\u00f3mo elegir el mejor para comprar en Funes o Rold\u00e1n.',
     category: 'Gu\u00edas',
@@ -289,7 +289,7 @@ Requisitos generales
 
 Para acceder a un cr\u00e9dito hipotecario necesit\u00e1s ingresos demostrables (recibo de sueldo, monotributo con antig\u00fcedad o ingresos de aut\u00f3nomo declarados), antig\u00fcedad laboral de al menos un a\u00f1o, no estar en el Veraz con deudas impagas, y contar con un ahorro inicial que generalmente oscila entre el 20 y el 30 por ciento del valor de la propiedad.
 
-La propiedad que compr\u00e9s tambi\u00e9n tiene requisitos: debe ser apta para escriturar, tener los planos aprobados, estar libre de gravámenes y tener las tasas municipales al d\u00eda. Esto es algo que verificamos de forma est\u00e1ndar en todas las propiedades que comercializamos en SI Inmobiliaria.
+La propiedad que compr\u00e9s tambi\u00e9n tiene requisitos: debe ser apta para escriturar, tener los planos aprobados, estar libre de gravámenes y tener las tasas municipales al d\u00eda. Esto es algo que verificamos de forma est\u00e1ndar en todas las propiedades que comercializamos en SI INMOBILIARIA.
 
 El costo total del cr\u00e9dito
 
@@ -297,16 +297,16 @@ Muchos compradores se enfocan solo en el valor de la cuota mensual, pero es fund
 
 Tambi\u00e9n hay que considerar los gastos de escrituraci\u00f3n (entre 3 y 5 por ciento del valor), el seguro de vida obligatorio, la tasaci\u00f3n bancaria y los honorarios profesionales.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-En SI Inmobiliaria te acompa\u00f1amos en todo el proceso de compra con cr\u00e9dito hipotecario: desde la b\u00fasqueda de la propiedad adecuada hasta la escrituraci\u00f3n. Conocemos qu\u00e9 bancos operan en la zona y qu\u00e9 propiedades califican para cada l\u00ednea. Visit\u00e1 nuestro cat\u00e1logo de propiedades.`,
+En SI INMOBILIARIA te acompa\u00f1amos en todo el proceso de compra con cr\u00e9dito hipotecario: desde la b\u00fasqueda de la propiedad adecuada hasta la escrituraci\u00f3n. Conocemos qu\u00e9 bancos operan en la zona y qu\u00e9 propiedades califican para cada l\u00ednea. Visit\u00e1 nuestro cat\u00e1logo de propiedades.`,
   },
   {
     slug: 'como-fijar-precio-venta-propiedad-sin-perder-dinero',
     title: 'C\u00f3mo fijar el precio de venta de tu propiedad sin perder dinero',
     date: '2026-02-05',
     dateDisplay: '5 de febrero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary: 'C\u00f3mo tasar correctamente tu propiedad en Funes o Rold\u00e1n: errores comunes, factores de valuaci\u00f3n y por qu\u00e9 una tasaci\u00f3n profesional marca la diferencia.',
     category: 'Venta',
@@ -317,7 +317,7 @@ El error de mirar solo los portales
 
 El primer impulso de muchos propietarios es buscar propiedades similares en portales inmobiliarios y fijar un precio parecido. El problema con este enfoque es que los precios publicados no son los precios de cierre. Una propiedad puede estar publicada a 150 mil d\u00f3lares y venderse a 120 mil despu\u00e9s de una negociaci\u00f3n. Otra puede estar publicada hace un a\u00f1o sin venderse porque est\u00e1 sobrevaluada. Sin conocer los valores reales de cierre, est\u00e1s fijando el precio a ciegas.
 
-En SI Inmobiliaria tenemos un registro hist\u00f3rico de todas las operaciones que realizamos en la zona, con precios de cierre reales. Eso nos permite ofrecer tasaciones precisas basadas en datos de mercado, no en publicaciones.
+En SI INMOBILIARIA tenemos un registro hist\u00f3rico de todas las operaciones que realizamos en la zona, con precios de cierre reales. Eso nos permite ofrecer tasaciones precisas basadas en datos de mercado, no en publicaciones.
 
 Factores que determinan el precio
 
@@ -329,9 +329,9 @@ La importancia de la tasaci\u00f3n profesional
 
 Una tasaci\u00f3n profesional no es un n\u00famero arbitrario. Es un an\u00e1lisis t\u00e9cnico que considera comparables recientes, ajustes por diferencias y tendencias del mercado. Un tasador con experiencia en la zona puede detectar factores de valorizaci\u00f3n que el propietario no percibe, o problemas que afectan el precio a la baja.
 
-En SI Inmobiliaria realizamos tasaciones sin costo para propiedades en Funes y Rold\u00e1n. Las entregamos en 24 horas y las respaldamos con datos de mercado concretos.
+En SI INMOBILIARIA realizamos tasaciones sin costo para propiedades en Funes y Rold\u00e1n. Las entregamos en 24 horas y las respaldamos con datos de mercado concretos.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Si est\u00e1s pensando en vender tu propiedad, el primer paso es conocer su valor real. Solicit\u00e1 tu tasaci\u00f3n gratuita o visit\u00e1 nuestro cat\u00e1logo de propiedades para entender el mercado actual.`,
   },
@@ -340,7 +340,7 @@ Si est\u00e1s pensando en vender tu propiedad, el primer paso es conocer su valo
     title: 'Los 5 errores m\u00e1s comunes al comprar un inmueble por primera vez',
     date: '2026-01-30',
     dateDisplay: '30 de enero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary: 'Los errores m\u00e1s frecuentes de compradores primerizos de propiedades en Funes y Rold\u00e1n, y c\u00f3mo evitarlos con asesoramiento profesional.',
     category: 'Gu\u00edas',
@@ -367,16 +367,16 @@ Error 5: Apurarse por miedo a perder la oportunidad
 
 La urgencia es mala consejera en decisiones inmobiliarias. Si un vendedor o una inmobiliaria te presionan para que decidas ya, desconfi\u00e1. Las buenas propiedades se venden r\u00e1pido, es cierto, pero siempre hay m\u00e1s oportunidades.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-En SI Inmobiliaria acompa\u00f1amos a compradores primerizos en cada paso del proceso, desde la b\u00fasqueda hasta la escrituraci\u00f3n. Nuestro estudio jur\u00eddico propio verifica toda la documentaci\u00f3n para que compres con total tranquilidad. Visit\u00e1 nuestras propiedades disponibles.`,
+En SI INMOBILIARIA acompa\u00f1amos a compradores primerizos en cada paso del proceso, desde la b\u00fasqueda hasta la escrituraci\u00f3n. Nuestro estudio jur\u00eddico propio verifica toda la documentaci\u00f3n para que compres con total tranquilidad. Visit\u00e1 nuestras propiedades disponibles.`,
   },
   {
     slug: 'invertir-en-pozo-funes-ventajas-riesgos',
     title: 'Invertir en pozo en Funes: ventajas, riesgos y c\u00f3mo elegir bien',
     date: '2026-01-25',
     dateDisplay: '25 de enero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'An\u00e1lisis de la inversi\u00f3n en pozo en Funes: ventajas de precio, riesgos de plazo, c\u00f3mo elegir un desarrollador confiable y proteger tu inversi\u00f3n.',
     category: 'Inversi\u00f3n',
@@ -401,16 +401,16 @@ C\u00f3mo proteger tu inversi\u00f3n
 
 Investig\u00e1 al desarrollador: sus proyectos anteriores, su situaci\u00f3n financiera, las opiniones de compradores previos. Exig\u00ed un fideicomiso: esta figura legal protege los fondos de los compradores y asegura que se destinen exclusivamente a la obra. Verific\u00e1 que el terreno est\u00e9 a nombre del fideicomiso o del desarrollador sin gravámenes. Y us\u00e1 un abogado independiente para revisar el contrato.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-En SI Inmobiliaria analizamos cada emprendimiento en pozo antes de recomendarlo. Verificamos antecedentes, documentaci\u00f3n legal y viabilidad financiera del proyecto. Consult\u00e1 nuestro cat\u00e1logo de propiedades y emprendimientos.`,
+En SI INMOBILIARIA analizamos cada emprendimiento en pozo antes de recomendarlo. Verificamos antecedentes, documentaci\u00f3n legal y viabilidad financiera del proyecto. Consult\u00e1 nuestro cat\u00e1logo de propiedades y emprendimientos.`,
   },
   {
     slug: 'corredor-funes-roldan-historia-crecimiento-proyeccion',
     title: 'El corredor Funes-Rold\u00e1n: historia, crecimiento y proyecci\u00f3n 2026',
     date: '2026-01-20',
     dateDisplay: '20 de enero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Historia del corredor Funes-Rold\u00e1n desde pueblos rurales hasta el eje inmobiliario m\u00e1s din\u00e1mico del Gran Rosario. Proyecci\u00f3n y oportunidades.',
     category: 'Mercado',
@@ -435,7 +435,7 @@ Mi proyecci\u00f3n para los pr\u00f3ximos a\u00f1os es de crecimiento sostenido.
 
 Para el inversor, esto significa que todav\u00eda hay ventana de oportunidad para comprar a precios que en cinco a\u00f1os van a parecer muy baratos.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Como inmobiliaria con ra\u00edces en Rold\u00e1n desde 1983, tenemos una perspectiva \u00fanica del crecimiento de esta zona. Si quer\u00e9s entender d\u00f3nde est\u00e1n las oportunidades, consult\u00e1 con nuestro equipo o visit\u00e1 nuestras propiedades.`,
   },
@@ -444,7 +444,7 @@ Como inmobiliaria con ra\u00edces en Rold\u00e1n desde 1983, tenemos una perspec
     title: 'Qu\u00e9 es el CAC y c\u00f3mo afecta el valor de las propiedades en pesos',
     date: '2026-01-15',
     dateDisplay: '15 de enero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-vista-aerea-barrios-2026.webp',
     summary: '\u00cdndice CAC explicado: c\u00f3mo el costo de construcci\u00f3n en pesos impacta en el valor real de las propiedades en Funes, Rold\u00e1n y Rosario.',
     category: 'Mercado',
@@ -467,18 +467,18 @@ C\u00f3mo usar el CAC en tus decisiones
 
 Si est\u00e1s pensando en comprar una propiedad usada, compar\u00e1 el precio por metro cuadrado con el costo de construcci\u00f3n nuevo seg\u00fan el CAC. Si la diferencia es grande, puede ser una oportunidad. Si est\u00e1s pensando en construir, el CAC te da un presupuesto de referencia realista para no llevarte sorpresas.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-En SI Inmobiliaria realizamos tasaciones que consideran el CAC como uno de los factores de valuaci\u00f3n. Si quer\u00e9s conocer el valor real de tu propiedad o evaluar una inversi\u00f3n, consult\u00e1 con nuestro equipo o visit\u00e1 nuestras propiedades.`,
+En SI INMOBILIARIA realizamos tasaciones que consideran el CAC como uno de los factores de valuaci\u00f3n. Si quer\u00e9s conocer el valor real de tu propiedad o evaluar una inversi\u00f3n, consult\u00e1 con nuestro equipo o visit\u00e1 nuestras propiedades.`,
   },
   {
     slug: 'valor-m2-funes-roldan-analisis-por-barrio-tipologia',
     title: 'Valor del m\u00b2 en Funes y Rold\u00e1n: an\u00e1lisis actualizado por barrio y tipolog\u00eda',
     date: '2026-01-10',
     dateDisplay: '10 de enero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
-    summary: 'Valores actualizados del m\u00b2 en Funes y Rold\u00e1n por barrio y tipo de propiedad. Datos reales de mercado de SI Inmobiliaria.',
+    summary: 'Valores actualizados del m\u00b2 en Funes y Rold\u00e1n por barrio y tipo de propiedad. Datos reales de mercado de SI INMOBILIARIA.',
     category: 'Mercado',
     author: AUTHOR,
     content: `Conocer el valor del metro cuadrado en cada barrio de Funes y Rold\u00e1n es esencial tanto para compradores como para vendedores. Los precios var\u00edan significativamente seg\u00fan la ubicaci\u00f3n, el tipo de propiedad y las caracter\u00edsticas del barrio. Aqu\u00ed presento un an\u00e1lisis basado en datos reales de operaciones recientes.
@@ -505,7 +505,7 @@ Tendencia de precios
 
 La tendencia general es alcista pero moderada. Los precios en d\u00f3lares vienen recuper\u00e1ndose desde el piso de 2022-2023 a un ritmo del 5 al 12 por ciento anual, dependiendo del segmento. Los lotes sin servicios son los que m\u00e1s r\u00e1pido se valorizan cuando llegan las mejoras de infraestructura.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Estos son valores de referencia general. Cada propiedad tiene caracter\u00edsticas particulares que pueden hacer que su valor se aleje del promedio. Para una valuaci\u00f3n precisa de tu propiedad o para encontrar la mejor opci\u00f3n dentro de tu presupuesto, consult\u00e1 con nuestro equipo. Visit\u00e1 nuestras propiedades disponibles.`,
   },
@@ -514,7 +514,7 @@ Estos son valores de referencia general. Cada propiedad tiene caracter\u00edstic
     title: 'C\u00f3mo preparar tu propiedad para vender m\u00e1s r\u00e1pido y a mejor precio',
     date: '2026-01-05',
     dateDisplay: '5 de enero de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary: 'Consejos pr\u00e1cticos para preparar tu casa o lote en Funes y Rold\u00e1n antes de vender: fotos, reparaciones, limpieza y presentaci\u00f3n.',
     category: 'Venta',
@@ -531,7 +531,7 @@ La importancia de las fotos profesionales
 
 El 90 por ciento de los compradores buscan propiedades online antes de visitar. Si las fotos de tu propiedad son oscuras, est\u00e1n torcidas o muestran desorden, la mayor\u00eda de los compradores potenciales ni siquiera va a querer visitarla. Invertir en fotos profesionales no es un gasto: es la herramienta de marketing m\u00e1s efectiva que existe.
 
-En SI Inmobiliaria realizamos fotograf\u00eda profesional de todas las propiedades que comercializamos, incluyendo fotos a\u00e9reas con dron cuando corresponde. Esto marca una diferencia real en la cantidad de consultas que recibe cada propiedad.
+En SI INMOBILIARIA realizamos fotograf\u00eda profesional de todas las propiedades que comercializamos, incluyendo fotos a\u00e9reas con dron cuando corresponde. Esto marca una diferencia real en la cantidad de consultas que recibe cada propiedad.
 
 Despersonalizaci\u00f3n y orden
 
@@ -541,16 +541,16 @@ El jard\u00edn y los espacios exteriores
 
 En Funes y Rold\u00e1n, donde las casas suelen tener jard\u00edn y patio, el espacio exterior es tan importante como el interior. Un c\u00e9sped cortado, plantas cuidadas y un quincho limpio generan una impresi\u00f3n de vida residencial que atrae compradores. Un jard\u00edn descuidado con pasto alto y hojas secas genera el efecto contrario.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-Si est\u00e1s por vender, empez\u00e1 con una tasaci\u00f3n profesional gratuita. En SI Inmobiliaria te asesoramos sobre qu\u00e9 reparaciones hacer y c\u00f3mo presentar tu propiedad para obtener el mejor resultado. Visit\u00e1 nuestro sitio o escribinos al 341 210 1694.`,
+Si est\u00e1s por vender, empez\u00e1 con una tasaci\u00f3n profesional gratuita. En SI INMOBILIARIA te asesoramos sobre qu\u00e9 reparaciones hacer y c\u00f3mo presentar tu propiedad para obtener el mejor resultado. Visit\u00e1 nuestro sitio o escribinos al 341 210 1694.`,
   },
   {
     slug: 'alquilar-o-comprar-2025-analisis-zona-oeste-rosario',
     title: 'Alquilar o comprar en 2025: un an\u00e1lisis honesto para la zona oeste de Rosario',
     date: '2025-12-28',
     dateDisplay: '28 de diciembre de 2025',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-roldan-zona-oeste-aerea.webp',
     summary: 'Alquilar vs comprar en Funes, Rold\u00e1n y zona oeste de Rosario: comparaci\u00f3n financiera real con datos del mercado actual.',
     category: 'Gu\u00edas',
@@ -577,7 +577,7 @@ Cu\u00e1ndo conviene comprar
 
 Si ten\u00e9s estabilidad laboral, plan de quedarte en la zona al menos cinco a\u00f1os, y algo de capital ahorrado, comprar es casi siempre la mejor decisi\u00f3n financiera. En el contexto actual, con cr\u00e9ditos hipotecarios disponibles y precios todav\u00eda por debajo de los picos hist\u00f3ricos, la ventana de oportunidad es clara.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Si quer\u00e9s evaluar si es el momento de dejar de alquilar y comprar tu primera casa en Funes o Rold\u00e1n, consult\u00e1 con nuestro equipo. Te ayudamos a encontrar la propiedad ideal dentro de tu presupuesto. Visit\u00e1 nuestras propiedades.`,
   },
@@ -586,7 +586,7 @@ Si quer\u00e9s evaluar si es el momento de dejar de alquilar y comprar tu primer
     title: 'Por qu\u00e9 Rold\u00e1n es la nueva apuesta de los desarrolladores inmobiliarios',
     date: '2025-12-20',
     dateDisplay: '20 de diciembre de 2025',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Rold\u00e1n se posiciona como destino preferido de desarrolladores inmobiliarios del Gran Rosario. Suelo disponible, precios accesibles y demanda creciente.',
     category: 'Mercado',
@@ -609,7 +609,7 @@ El municipio de Rold\u00e1n est\u00e1 invirtiendo fuertemente en infraestructura
 
 Para el comprador final, esto significa que quien compra hoy en Rold\u00e1n probablemente va a ver c\u00f3mo su barrio mejora significativamente en los pr\u00f3ximos a\u00f1os sin haber pagado el premium de una zona ya consolidada.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Con m\u00e1s de 40 a\u00f1os en Rold\u00e1n, somos los que mejor conocemos cada emprendimiento y cada barrio de la ciudad. Si quer\u00e9s invertir o comprar en Rold\u00e1n, consult\u00e1 con nosotros. Visit\u00e1 nuestras propiedades.`,
   },
@@ -618,7 +618,7 @@ Con m\u00e1s de 40 a\u00f1os en Rold\u00e1n, somos los que mejor conocemos cada 
     title: 'Financiaci\u00f3n en d\u00f3lares: cuotas fijas vs hipoteca, qu\u00e9 conviene hoy',
     date: '2025-12-15',
     dateDisplay: '15 de diciembre de 2025',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-autopista-acceso-aerea.webp',
     summary: 'Comparativa entre financiaci\u00f3n directa en d\u00f3lares del desarrollador y cr\u00e9dito hipotecario bancario para comprar en Funes y Rold\u00e1n.',
     category: 'Inversi\u00f3n',
@@ -643,16 +643,16 @@ Cu\u00e1l conviene
 
 Si ten\u00e9s ahorros en d\u00f3lares y un ingreso que te permite generar un excedente mensual en moneda dura, la financiaci\u00f3n del desarrollador es m\u00e1s simple y predecible. Si tu ingreso es en pesos y necesit\u00e1s plazos largos, el cr\u00e9dito hipotecario es probablemente tu \u00fanica opci\u00f3n para acceder a la propiedad.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
-En SI Inmobiliaria conocemos las opciones de financiamiento de cada emprendimiento de la zona y podemos ayudarte a comparar escenarios. Consult\u00e1 nuestras propiedades y emprendimientos o escribinos al 341 210 1694.`,
+En SI INMOBILIARIA conocemos las opciones de financiamiento de cada emprendimiento de la zona y podemos ayudarte a comparar escenarios. Consult\u00e1 nuestras propiedades y emprendimientos o escribinos al 341 210 1694.`,
   },
   {
     slug: 'donacion-herencia-compraventa-transferir-propiedad-argentina',
     title: 'Donaci\u00f3n, herencia o compraventa: c\u00f3mo transferir una propiedad en Argentina',
     date: '2025-12-10',
     dateDisplay: '10 de diciembre de 2025',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary: 'Las tres formas de transferir una propiedad en Argentina: donaci\u00f3n, herencia y compraventa. Ventajas, costos impositivos y consideraciones legales.',
     category: 'Legal',
@@ -681,7 +681,7 @@ Qu\u00e9 conviene en cada caso
 
 Para transferir a hijos mayores con patrimonio propio, la compraventa suele ser la opci\u00f3n m\u00e1s segura. Para anticipar herencia a hijos j\u00f3venes, la donaci\u00f3n puede ser apropiada pero con asesoramiento legal. Y en caso de fallecimiento, iniciar la sucesi\u00f3n lo antes posible evita complicaciones futuras.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Nuestro estudio jur\u00eddico propio puede asesorarte sobre la mejor forma de transferir tu propiedad seg\u00fan tu situaci\u00f3n particular. Consult\u00e1 con nuestro equipo o visit\u00e1 nuestras propiedades.`,
   },
@@ -690,9 +690,9 @@ Nuestro estudio jur\u00eddico propio puede asesorarte sobre la mejor forma de tr
     title: 'Gu\u00eda completa para invertir en lotes en Santa Fe: lo que nadie te cuenta',
     date: '2025-12-05',
     dateDisplay: '5 de diciembre de 2025',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-vista-aerea-barrios-2026.webp',
-    summary: 'Todo lo que necesit\u00e1s saber para invertir en lotes en Santa Fe: ubicaci\u00f3n, servicios, documentaci\u00f3n, financiaci\u00f3n y errores a evitar. Gu\u00eda de SI Inmobiliaria.',
+    summary: 'Todo lo que necesit\u00e1s saber para invertir en lotes en Santa Fe: ubicaci\u00f3n, servicios, documentaci\u00f3n, financiaci\u00f3n y errores a evitar. Gu\u00eda de SI INMOBILIARIA.',
     category: 'Inversi\u00f3n',
     author: AUTHOR,
     content: `Invertir en lotes es una de las formas m\u00e1s accesibles de entrar al mercado inmobiliario argentino. Con montos desde 15 mil d\u00f3lares es posible adquirir un terreno en zonas de crecimiento de la provincia de Santa Fe. Pero no todos los lotes son buena inversi\u00f3n. Esta gu\u00eda te da las herramientas para elegir bien.
@@ -723,7 +723,7 @@ No compres basándote solo en promesas de valorizaci\u00f3n futura. Compr\u00e1 
 
 No subestimes los costos de mantenimiento. Un lote vac\u00edo genera impuestos, tasas municipales y la obligaci\u00f3n de mantener el terreno limpio. Estos gastos, aunque menores, se acumulan a lo largo de los a\u00f1os.
 
-Consult\u00e1 con SI Inmobiliaria
+Consult\u00e1 con SI INMOBILIARIA
 
 Si quer\u00e9s invertir en lotes en Funes, Rold\u00e1n o cualquier localidad de la zona, consult\u00e1 con nuestro equipo. Conocemos cada emprendimiento, cada barrio y cada oportunidad. Visit\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694. Con m\u00e1s de 40 a\u00f1os en el mercado, te aseguramos una inversi\u00f3n respaldada por experiencia y conocimiento local.`,
   },
@@ -732,7 +732,7 @@ Si quer\u00e9s invertir en lotes en Funes, Rold\u00e1n o cualquier localidad de 
     title: 'Inmobiliarias en Roldán: cómo elegir la mejor',
     date: '2026-03-25',
     dateDisplay: '25 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Guía para elegir inmobiliaria en Roldán. Qué mirar, qué preguntar y por qué la matrícula y la trayectoria importan más que el cartel.',
     category: 'Guías',
@@ -743,7 +743,7 @@ Matrícula habilitante: lo primero que tenés que pedir
 
 Antes que nada: verificá que el corredor inmobiliario tenga matrícula vigente del Colegio de Corredores Inmobiliarios de Santa Fe. Esto no es opcional, es la ley. Un corredor sin matrícula no puede intermediar legalmente en una operación inmobiliaria, y si algo sale mal no tenés ningún respaldo profesional.
 
-En Roldán hay varios corredores matriculados y también algunos que operan sin habilitación. Pedí el número de matrícula y verificalo. En SI Inmobiliaria, por ejemplo, David Flores trabaja con matrícula N° 0621 y Susana Ippoliti con matrícula N° 0559. Es información que tiene que ser pública y transparente.
+En Roldán hay varios corredores matriculados y también algunos que operan sin habilitación. Pedí el número de matrícula y verificalo. En SI INMOBILIARIA, por ejemplo, David Flores trabaja con matrícula N° 0621 y Susana Ippoliti con matrícula N° 0559. Es información que tiene que ser pública y transparente.
 
 Trayectoria y conocimiento del mercado local
 
@@ -767,14 +767,14 @@ La relación personal
 
 Vender o comprar una propiedad es una de las decisiones financieras más importantes de tu vida. Necesitás trabajar con alguien en quien confíes y con quien tengas buena comunicación. Si en la primera reunión sentís que te apuran, que no te escuchan o que solo les importa cerrar — seguí buscando.
 
-En SI Inmobiliaria recibimos a cada persona en nuestras oficinas de Roldán con la misma dedicación, ya sea que esté buscando un lote de 30 mil dólares o una casa de medio millón. Si estás evaluando opciones, pasá por Catamarca 775 o llamanos al 341 210 1694. Llevamos más de 40 años en Roldán y la mejor carta de presentación son las familias que confiaron en nosotros.`,
+En SI INMOBILIARIA recibimos a cada persona en nuestras oficinas de Roldán con la misma dedicación, ya sea que esté buscando un lote de 30 mil dólares o una casa de medio millón. Si estás evaluando opciones, pasá por Catamarca 775 o llamanos al 341 210 1694. Llevamos más de 40 años en Roldán y la mejor carta de presentación son las familias que confiaron en nosotros.`,
   },
   {
     slug: 'arquitectos-roldan-cuando-necesitas-uno-para-tu-propiedad',
     title: 'Arquitectos en Roldán: cuándo necesitás uno',
     date: '2026-03-24',
     dateDisplay: '24 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Cuándo contratar un arquitecto antes de comprar, ampliar o vender tu propiedad en Roldán. Guía práctica desde la inmobiliaria.',
     category: 'Guías',
@@ -803,20 +803,20 @@ Cuándo NO necesitás un arquitecto
 
 Para refacciones menores como pintura, cambio de aberturas, renovación de baño o cocina sin modificar instalaciones, generalmente no necesitás un arquitecto. Un buen constructor o contratista de la zona puede hacer el trabajo.
 
-Tampoco necesitás un arquitecto para tasar tu propiedad — para eso estamos los corredores inmobiliarios matriculados. En SI Inmobiliaria hacemos tasaciones profesionales basadas en comparación de mercado, que es el método más preciso para determinar el valor real de una propiedad en Roldán.
+Tampoco necesitás un arquitecto para tasar tu propiedad — para eso estamos los corredores inmobiliarios matriculados. En SI INMOBILIARIA hacemos tasaciones profesionales basadas en comparación de mercado, que es el método más preciso para determinar el valor real de una propiedad en Roldán.
 
 Cómo elegir un buen arquitecto en la zona
 
 Pedí referencias a vecinos, preguntá en la inmobiliaria (siempre tenemos arquitectos de confianza para recomendar) y verificá que tenga matrícula provincial vigente. Visitá obras que haya realizado en la zona. Y muy importante: pedí presupuesto cerrado antes de arrancar.
 
-Si estás evaluando comprar, vender o construir en Roldán, consultanos en SI Inmobiliaria. Podemos asesorarte sobre qué necesitás profesionalmente para tu operación y conectarte con los mejores profesionales de la zona.`,
+Si estás evaluando comprar, vender o construir en Roldán, consultanos en SI INMOBILIARIA. Podemos asesorarte sobre qué necesitás profesionalmente para tu operación y conectarte con los mejores profesionales de la zona.`,
   },
   {
     slug: 'escribanos-roldan-rol-en-compra-venta-propiedad',
     title: 'El escribano en Roldán: su rol en tu operación',
     date: '2026-03-23',
     dateDisplay: '23 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Qué hace el escribano en la compra-venta de una propiedad en Roldán. Costos, plazos y cómo elegir el correcto.',
     category: 'Guías',
@@ -833,7 +833,7 @@ Pero su trabajo empieza mucho antes de la firma. Un buen escribano realiza un es
 
 En Argentina, la costumbre es que el comprador elige y paga al escribano. Esto tiene lógica: el comprador es quien necesita la mayor seguridad jurídica sobre lo que está comprando. Sin embargo, esto puede negociarse entre las partes.
 
-En Roldán hay varios escribanos que trabajan habitualmente con operaciones inmobiliarias. Desde SI Inmobiliaria siempre recomendamos trabajar con escribanos que tengan experiencia específica en la zona, porque conocen las particularidades registrales del departamento San Lorenzo y los tiempos del Registro de la Propiedad de Rosario.
+En Roldán hay varios escribanos que trabajan habitualmente con operaciones inmobiliarias. Desde SI INMOBILIARIA siempre recomendamos trabajar con escribanos que tengan experiencia específica en la zona, porque conocen las particularidades registrales del departamento San Lorenzo y los tiempos del Registro de la Propiedad de Rosario.
 
 Cuánto cuesta la escrituración
 
@@ -851,14 +851,14 @@ Errores comunes
 
 El error más frecuente que vemos es que el comprador elige un escribano barato pero lento, y la operación se demora meses. Otro error común: no verificar si la propiedad tiene ampliaciones sin declarar, lo que puede trabar la escrituración.
 
-En SI Inmobiliaria acompañamos a nuestros clientes en todo el proceso legal, desde el boleto hasta la escritura. Si tenés dudas sobre cómo funciona la compraventa inmobiliaria en Roldán, consultanos sin compromiso.`,
+En SI INMOBILIARIA acompañamos a nuestros clientes en todo el proceso legal, desde el boleto hasta la escritura. Si tenés dudas sobre cómo funciona la compraventa inmobiliaria en Roldán, consultanos sin compromiso.`,
   },
   {
     slug: 'constructoras-roldan-funes-construir-casa-2025',
     title: 'Constructoras en Roldán y Funes: guía 2025',
     date: '2026-03-22',
     dateDisplay: '22 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Todo lo que necesitás saber antes de construir en Roldán o Funes. Costos actuales, cómo elegir constructora y errores a evitar.',
     category: 'Construcción',
@@ -891,14 +891,14 @@ El error número uno: no tener un arquitecto que dirija la obra. El arquitecto n
 
 Otro error clásico: empezar a construir sin tener todo el dinero. En Argentina, con la inflación y la volatilidad del dólar, quedarse a mitad de obra es carísimo. Si no tenés el capital completo, evaluá construir por etapas o buscá financiación antes de arrancar.
 
-En SI Inmobiliaria vendemos lotes en los mejores barrios de Roldán y Funes, y podemos conectarte con constructoras de confianza que ya conocemos por trabajar en la zona. Consultanos en nuestras oficinas de Roldán o al 341 210 1694.`,
+En SI INMOBILIARIA vendemos lotes en los mejores barrios de Roldán y Funes, y podemos conectarte con constructoras de confianza que ya conocemos por trabajar en la zona. Consultanos en nuestras oficinas de Roldán o al 341 210 1694.`,
   },
   {
     slug: 'colegios-roldan-funes-guia-familias-que-se-mudan',
     title: 'Colegios en Roldán y Funes: guía para familias',
     date: '2026-03-21',
     dateDisplay: '21 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Los mejores colegios de Roldán y Funes para familias que se mudan. Públicos, privados, distancias y todo lo que tenés que saber.',
     category: 'Vivir en la zona',
@@ -931,14 +931,14 @@ Si la educación es prioridad, los barrios de Funes cercanos a la Autopista Rosa
 
 En Roldán, los barrios más cercanos al centro (como Los Aromos o las zonas céntricas) tienen la ventaja de estar a pocas cuadras de las escuelas locales, lo que permite que los chicos vayan caminando o en bici — algo que en Rosario ya no es tan común.
 
-Si estás buscando una propiedad pensando en tu familia, en SI Inmobiliaria te podemos asesorar sobre qué barrios tienen la mejor combinación de colegios, seguridad y calidad de vida. Visitá nuestro catálogo de propiedades en siinmobiliaria.com.`,
+Si estás buscando una propiedad pensando en tu familia, en SI INMOBILIARIA te podemos asesorar sobre qué barrios tienen la mejor combinación de colegios, seguridad y calidad de vida. Visitá nuestro catálogo de propiedades en siinmobiliaria.com.`,
   },
   {
     slug: 'supermercados-comercios-roldan-vivir-sin-auto',
     title: 'Comercios en Roldán: ¿se puede vivir sin auto?',
     date: '2026-03-20',
     dateDisplay: '20 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Análisis honesto de la infraestructura comercial de Roldán. Supermercados, farmacias y servicios para quien evalúa mudarse.',
     category: 'Vivir en la zona',
@@ -971,14 +971,14 @@ Sin embargo, muchas familias tienen un solo auto y se organizan. El que trabaja 
 
 La tendencia es positiva. Con el crecimiento de la ciudad, cada vez abren más comercios en las zonas residenciales. Algunos barrios cerrados nuevos incluso tienen mini supermercados internos o están a metros de centros comerciales de barrio.
 
-Si estás evaluando mudarte a Roldán, en SI Inmobiliaria te mostramos propiedades teniendo en cuenta la cercanía a servicios. Sabemos que no alcanza con una casa linda — necesitás que la vida cotidiana funcione. Consultanos al 341 210 1694.`,
+Si estás evaluando mudarte a Roldán, en SI INMOBILIARIA te mostramos propiedades teniendo en cuenta la cercanía a servicios. Sabemos que no alcanza con una casa linda — necesitás que la vida cotidiana funcione. Consultanos al 341 210 1694.`,
   },
   {
     slug: 'transporte-colectivo-roldan-rosario-opciones',
     title: 'Transporte Roldán-Rosario: todas las opciones',
     date: '2026-03-19',
     dateDisplay: '19 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Guía completa de transporte entre Roldán y Rosario. Colectivos, horarios y alternativas para quien trabaja en Rosario.',
     category: 'Vivir en la zona',
@@ -1013,14 +1013,14 @@ Haciendo números: vivir en Roldán y viajar a Rosario diariamente en auto cuest
 
 Una casa de 3 dormitorios en un buen barrio de Roldán puede costar entre 30 y 40% menos que una equivalente en Fisherton o zona norte de Rosario. Esa diferencia, proyectada a 10 o 20 años, compensa ampliamente el gasto de transporte.
 
-Si estás evaluando el cambio, en SI Inmobiliaria podemos mostrarte propiedades que optimicen la distancia al acceso de autopista. Consultanos y hacemos los números juntos.`,
+Si estás evaluando el cambio, en SI INMOBILIARIA podemos mostrarte propiedades que optimicen la distancia al acceso de autopista. Consultanos y hacemos los números juntos.`,
   },
   {
     slug: 'salud-medicos-clinicas-roldan-lo-que-tenes-que-saber',
     title: 'Salud en Roldán: lo que tenés que saber',
     date: '2026-03-18',
     dateDisplay: '18 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Servicios de salud en Roldán. Médicos, clínicas, guardias y qué esperar si te mudás a la zona. Análisis honesto.',
     category: 'Vivir en la zona',
@@ -1055,14 +1055,14 @@ La tendencia
 
 El crecimiento de Roldán está atrayendo cada vez más profesionales de la salud. Lo que hace 5 años era una preocupación legítima, hoy es menos problemático. Y la tendencia es claramente positiva: a medida que crece la población, crece la oferta de servicios de salud.
 
-Si la salud es una prioridad para tu familia, en SI Inmobiliaria podemos ayudarte a encontrar propiedades cercanas a los centros de salud de la zona. Consultanos al 341 210 1694 o visitá nuestras oficinas en Roldán.`,
+Si la salud es una prioridad para tu familia, en SI INMOBILIARIA podemos ayudarte a encontrar propiedades cercanas a los centros de salud de la zona. Consultanos al 341 210 1694 o visitá nuestras oficinas en Roldán.`,
   },
   {
     slug: 'bancos-cajeros-roldan-servicios-financieros',
     title: 'Bancos en Roldán: lo que encontrás y lo que falta',
     date: '2026-03-17',
     dateDisplay: '17 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Servicios bancarios y financieros en Roldán. Cajeros, sucursales y cómo manejar tus finanzas si vivís en la zona.',
     category: 'Vivir en la zona',
@@ -1085,7 +1085,7 @@ Créditos hipotecarios
 
 Si estás buscando comprar una propiedad con crédito hipotecario en Roldán, la gestión se hace generalmente en sucursales bancarias de Rosario. Los principales bancos (Nación, Provincia, Santander, BBVA, Macro) tienen líneas de crédito que cubren propiedades en Roldán sin problema — no es necesario que la propiedad esté en Rosario para acceder al crédito.
 
-En SI Inmobiliaria asesoramos a nuestros clientes sobre las líneas de crédito disponibles y los conectamos con los oficiales bancarios que mejor conocen la zona. Si estás evaluando comprar con crédito, consultanos para analizar tu situación particular.
+En SI INMOBILIARIA asesoramos a nuestros clientes sobre las líneas de crédito disponibles y los conectamos con los oficiales bancarios que mejor conocen la zona. Si estás evaluando comprar con crédito, consultanos para analizar tu situación particular.
 
 Pagos y servicios
 
@@ -1095,14 +1095,14 @@ Lo que viene
 
 Con el crecimiento de Roldán es probable que se sumen más sucursales bancarias y puntos de atención. Varios bancos ya tienen planes de expansión hacia las ciudades satélite de Rosario.
 
-En definitiva, la cuestión bancaria no debería ser un factor decisivo para no mudarte a Roldán. Las limitaciones son menores y la tendencia es claramente hacia la mejora. Si estás buscando tu propiedad en la zona, consultanos en SI Inmobiliaria — te asesoramos sobre todo lo que necesitás saber antes de dar el paso.`,
+En definitiva, la cuestión bancaria no debería ser un factor decisivo para no mudarte a Roldán. Las limitaciones son menores y la tendencia es claramente hacia la mejora. Si estás buscando tu propiedad en la zona, consultanos en SI INMOBILIARIA — te asesoramos sobre todo lo que necesitás saber antes de dar el paso.`,
   },
   {
     slug: 'restaurantes-gastronomia-roldan-para-vivir-y-disfrutar',
     title: 'Gastronomía en Roldán: dónde comer y disfrutar',
     date: '2026-03-16',
     dateDisplay: '16 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Los mejores restaurantes, bares y cervecerías de Roldán. Calidad de vida gastronómica para quienes se mudan a la zona.',
     category: 'Vivir en la zona',
@@ -1131,14 +1131,14 @@ Delivery y pedidos
 
 El delivery en Roldán funciona, aunque no con la inmediatez de Rosario. Las principales apps ya cubren la zona y hay delivery propio de muchos restaurantes. Para una noche de semana en la que no querés cocinar, tenés opciones.
 
-La gastronomía es uno de esos factores "blandos" que muchos no consideran al elegir dónde vivir, pero que impactan directamente en la calidad de vida cotidiana. En SI Inmobiliaria conocemos cada rincón de Roldán — incluidos los mejores restaurantes. Consultanos si estás evaluando mudarte a la zona.`,
+La gastronomía es uno de esos factores "blandos" que muchos no consideran al elegir dónde vivir, pero que impactan directamente en la calidad de vida cotidiana. En SI INMOBILIARIA conocemos cada rincón de Roldán — incluidos los mejores restaurantes. Consultanos si estás evaluando mudarte a la zona.`,
   },
   {
     slug: 'seguridad-privada-barrios-cerrados-roldan-funes',
     title: 'Seguridad en Roldán y Funes: cerrado vs. abierto',
     date: '2026-03-15',
     dateDisplay: '15 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Comparación honesta de seguridad entre barrios cerrados y zonas abiertas en Roldán y Funes. Datos para tomar una buena decisión.',
     category: 'Vivir en la zona',
@@ -1173,14 +1173,14 @@ Nuestra recomendación
 
 Si la seguridad es tu prioridad principal, un barrio cerrado te da una capa adicional de protección que vale la pena. Si tu presupuesto es más acotado, un barrio abierto bien ubicado en Roldán puede ser igual de seguro a un costo mucho menor.
 
-En SI Inmobiliaria tenemos propiedades en ambas opciones. Consultanos y te asesoramos según tu perfil y presupuesto.`,
+En SI INMOBILIARIA tenemos propiedades en ambas opciones. Consultanos y te asesoramos según tu perfil y presupuesto.`,
   },
   {
     slug: 'gimnasios-deportes-roldan-calidad-de-vida',
     title: 'Gimnasios y deporte en Roldán: calidad de vida',
     date: '2026-03-14',
     dateDisplay: '14 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Opciones deportivas en Roldán. Gimnasios, running, natación, paddle y la vida activa que atrae a las familias.',
     category: 'Vivir en la zona',
@@ -1215,14 +1215,14 @@ Fútbol y clubes
 
 Roldán tiene varios clubes deportivos con canchas de fútbol, hockey, básquet y actividades para chicos. La vida social de muchas familias gira alrededor del club del barrio, donde los chicos hacen deporte y los padres socializan.
 
-La vida deportiva en Roldán es uno de esos factores que la gente no pondera lo suficiente cuando evalúa mudarse, pero que después valora enormemente. Si buscás una propiedad donde la vida activa sea parte del día a día, consultanos en SI Inmobiliaria.`,
+La vida deportiva en Roldán es uno de esos factores que la gente no pondera lo suficiente cuando evalúa mudarse, pero que después valora enormemente. Si buscás una propiedad donde la vida activa sea parte del día a día, consultanos en SI INMOBILIARIA.`,
   },
   {
     slug: 'piletas-construccion-mantenimiento-roldan-funes',
     title: 'Piletas en Roldán y Funes: valor para tu propiedad',
     date: '2026-03-13',
     dateDisplay: '13 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Cómo una pileta impacta en el valor de tu propiedad en Roldán y Funes. Costos de construcción, mantenimiento y tips.',
     category: 'Inversión',
@@ -1255,14 +1255,14 @@ Si estás buscando casa con pileta en Roldán o Funes, prestá atención a: esta
 
 Si estás vendiendo una casa con pileta, un consejo: vendé en verano. Una pileta limpia y funcionando con el agua turquesa brillando al sol vende más que mil fotos de interiores.
 
-En SI Inmobiliaria tenemos propiedades con pileta en los mejores barrios de Roldán y Funes. Consultanos para ver opciones.`,
+En SI INMOBILIARIA tenemos propiedades con pileta en los mejores barrios de Roldán y Funes. Consultanos para ver opciones.`,
   },
   {
     slug: 'paneles-solares-roldan-funes-conviene-2025',
     title: 'Paneles solares en Roldán y Funes: ¿conviene?',
     date: '2026-03-12',
     dateDisplay: '12 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Análisis de paneles solares para propiedades en Roldán y Funes. Costos, ahorro real y cómo impacta en el valor de tu casa.',
     category: 'Inversión',
@@ -1297,14 +1297,14 @@ Un punto a considerar: si tu techo es de chapa y tiene más de 15 años, probabl
 
 Si pensás quedarte en la propiedad más de 5 años: sí, conviene. Si estás por vender: probablemente no convenga instalarlo ahora, pero sí destacar el potencial solar del terreno en la publicación.
 
-En SI Inmobiliaria asesoramos a nuestros clientes sobre mejoras que aumentan el valor de la propiedad antes de vender. Consultanos al 341 210 1694.`,
+En SI INMOBILIARIA asesoramos a nuestros clientes sobre mejoras que aumentan el valor de la propiedad antes de vender. Consultanos al 341 210 1694.`,
   },
   {
     slug: 'mudarse-roldan-desde-rosario-guia-completa-2025',
     title: 'Mudarse a Roldán desde Rosario: guía completa',
     date: '2026-03-11',
     dateDisplay: '11 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Todo lo que necesitás saber para mudarte de Rosario a Roldán en 2025. Colegios, transporte, seguridad, propiedades y calidad de vida.',
     category: 'Vivir en la zona',
@@ -1347,7 +1347,7 @@ El paso a paso para mudarte
 
 Primero: definí presupuesto y prioridades (barrio cerrado o abierto, cantidad de dormitorios, distancia al acceso de autopista). Segundo: visitá la zona varias veces, en distintos horarios y días de la semana. Tercero: asesorate con una inmobiliaria local que conozca cada barrio — acá es donde entramos nosotros.
 
-En SI Inmobiliaria llevamos más de 40 años en Roldán. Conocemos cada calle, cada barrio, cada oportunidad. Si estás evaluando el cambio, pasá por nuestras oficinas en Catamarca 775 o llamanos al 341 210 1694. Te mostramos opciones reales y te acompañamos en todo el proceso — desde la primera visita hasta la escritura.
+En SI INMOBILIARIA llevamos más de 40 años en Roldán. Conocemos cada calle, cada barrio, cada oportunidad. Si estás evaluando el cambio, pasá por nuestras oficinas en Catamarca 775 o llamanos al 341 210 1694. Te mostramos opciones reales y te acompañamos en todo el proceso — desde la primera visita hasta la escritura.
 
 El mejor momento para mudarse es siempre ahora. Los precios en Roldán siguen subiendo, y cada año que esperás es un año que pagás más.`,
   },
@@ -1356,7 +1356,7 @@ El mejor momento para mudarse es siempre ahora. Los precios en Roldán siguen su
     title: 'Por qué construir cuesta más en dólares',
     date: '2026-03-28',
     dateDisplay: '28 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-autopista-acceso-aerea.webp',
     summary: 'Los costos de construcción subieron 86% en dos años mientras el dólar se movió 23%. Qué significa para el precio de tu próxima propiedad.',
     category: 'Mercado',
@@ -1379,14 +1379,14 @@ En Funes y Roldán estamos viendo este efecto con claridad: los proyectos nuevos
 
 La conclusión práctica: si estás evaluando invertir en un emprendimiento, el momento de actuar no es cuando el precio baje — probablemente no baje — sino cuando el proyecto, la zona y tu situación financiera estén alineados.
 
-Si querés analizar un proyecto puntual, consultanos en SI Inmobiliaria. Llevamos más de 40 años en el mercado de Funes y Roldán.`,
+Si querés analizar un proyecto puntual, consultanos en SI INMOBILIARIA. Llevamos más de 40 años en el mercado de Funes y Roldán.`,
   },
   {
     slug: 'composicion-precio-m2-pozo-emprendimientos',
     title: 'Cuánto vale realmente el m² en pozo',
     date: '2026-03-27',
     dateDisplay: '27 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-vista-aerea-barrios-2026.webp',
     summary: 'Desglose real del precio por m² en emprendimientos: materiales 19%, mano de obra 24%, terreno 22%, margen del desarrollador solo 10%.',
     category: 'Educación financiera',
@@ -1403,14 +1403,14 @@ Lo que esto implica para tu análisis como comprador: primero, que un descuento 
 
 En zonas como Funes y Roldán, donde el valor del terreno tiene una incidencia alta, el peso del componente tierra puede superar el 30%, lo que comprime aún más el margen real del desarrollador.
 
-Saber esto te convierte en un comprador más informado — y más difícil de engañar. Si tenés dudas sobre un proyecto, consultanos en SI Inmobiliaria.`,
+Saber esto te convierte en un comprador más informado — y más difícil de engañar. Si tenés dudas sobre un proyecto, consultanos en SI INMOBILIARIA.`,
   },
   {
     slug: 'red-flags-emprendimientos-inmobiliarios-pozo',
     title: '5 señales de alerta en emprendimientos en pozo',
     date: '2026-03-26',
     dateDisplay: '26 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrio-cerrado-lotes-aereo.webp',
     summary: 'Las 5 red flags que tenés que identificar antes de invertir en un emprendimiento inmobiliario en pozo. Con más de 40 años de experiencia.',
     category: 'Consejos',
@@ -1437,14 +1437,14 @@ Las desarrolladoras serias tienen líderes visibles: con nombre, apellido, perfi
 
 Los desarrolladores que participan en cámaras sectoriales están expuestos a mecanismos de control colectivo. Los que operan completamente al margen del sector formal, no.
 
-En SI Inmobiliaria solo comercializamos los proyectos que nosotros mismos evaluamos. Si tenés dudas sobre un proyecto puntual, consultanos — aunque no sea nuestro.`,
+En SI INMOBILIARIA solo comercializamos los proyectos que nosotros mismos evaluamos. Si tenés dudas sobre un proyecto puntual, consultanos — aunque no sea nuestro.`,
   },
   {
     slug: 'desarrollo-costo-vs-precio-cerrado-compradores',
     title: 'Al costo vs. precio cerrado: ¿qué te conviene?',
     date: '2026-03-25',
     dateDisplay: '25 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-casas-piletas-barrios-aereo.webp',
     summary: 'Desarrollo al costo vs. precio cerrado: dos modelos opuestos de distribuir el riesgo entre comprador y desarrollador.',
     category: 'Educación financiera',
@@ -1467,14 +1467,14 @@ Con los costos de construcción subiendo en dólares (mano de obra +177% en peso
 
 Para compradores que no son desarrolladores ni tienen experiencia gestionando ese tipo de variabilidad, el precio cerrado ofrece una tranquilidad que vale lo que cuesta el diferencial de precio.
 
-Cada caso es diferente. Si estás analizando un proyecto puntual, conversemos. En SI Inmobiliaria podemos ayudarte a entender la estructura del contrato antes de firmar.`,
+Cada caso es diferente. Si estás analizando un proyecto puntual, conversemos. En SI INMOBILIARIA podemos ayudarte a entender la estructura del contrato antes de firmar.`,
   },
   {
     slug: 'mano-obra-construccion-precio-propiedades-funes',
     title: 'La mano de obra subió más que el dólar',
     date: '2026-03-24',
     dateDisplay: '24 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-arbolados-aerea.webp',
     summary: 'Mano de obra +177% en pesos, dólar +23%. Qué significa para quienes construyen, invierten o venden en Funes y Roldán.',
     category: 'Mercado local',
@@ -1495,14 +1495,14 @@ Para propietarios que piensan vender
 
 Si tenés una propiedad construida hace más de cinco años en una zona premium como Funes o Roldán, tu inmueble compite favorablemente en precio contra lo que hoy costaría construir algo equivalente. Eso es un argumento de valor que muchos vendedores no están usando.
 
-El mercado de la construcción y el mercado inmobiliario están más conectados de lo que parece. Entender esa relación te da ventaja. Consultanos en SI Inmobiliaria.`,
+El mercado de la construcción y el mercado inmobiliario están más conectados de lo que parece. Entender esa relación te da ventaja. Consultanos en SI INMOBILIARIA.`,
   },
   {
     slug: 'como-evaluar-desarrolladora-antes-invertir',
     title: 'Cómo evaluar una desarrolladora antes de invertir',
     date: '2026-03-23',
     dateDisplay: '23 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/nosotros/si-inmobiliaria-oficina-funes-interior.webp',
     summary: 'Guía práctica para evaluar una desarrolladora antes de poner tu dinero. Trayectoria, documentación, presencia pública y más.',
     category: 'Consejos prácticos',
@@ -1534,7 +1534,7 @@ En una zona como Funes y Roldán, el conocimiento local tiene un valor enorme. N
     title: 'Invertir en pozo en Funes en 2025',
     date: '2026-03-22',
     dateDisplay: '22 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-roldan-zona-oeste-aerea.webp',
     summary: 'Análisis del mercado de pozo en Funes: lo que los números dicen, lo que no te dicen, y las preguntas que tenés que hacerte.',
     category: 'Mercado local',
@@ -1555,14 +1555,14 @@ Las preguntas que sí tenés que hacerte
 
 ¿Cuándo se estima la entrega y qué penalidades aplican si se demora? ¿El precio es cerrado en dólares o al costo con ajuste por CAC? ¿Hay un fideicomiso al costo o el dinero va a la cuenta operativa del desarrollador? ¿La inmobiliaria que te lo ofrece evaluó el proyecto o simplemente lo comercializa?
 
-En SI Inmobiliaria solo ofrecemos proyectos que hemos evaluado. Podés consultarnos los detalles de cualquier emprendimiento que estés analizando en la zona.`,
+En SI INMOBILIARIA solo ofrecemos proyectos que hemos evaluado. Podés consultarnos los detalles de cualquier emprendimiento que estés analizando en la zona.`,
   },
   {
     slug: 'financiacion-largo-plazo-emprendimientos-2026',
     title: 'Financiación a largo plazo: el cambio que viene',
     date: '2026-03-21',
     dateDisplay: '21 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-barrios-nuevos-aereo.webp',
     summary: 'La financiación post-entrega va a transformar el mercado de emprendimientos en zonas como Funes y Roldán. Qué implica para compradores.',
     category: 'Tendencias',
@@ -1583,14 +1583,14 @@ En el corto plazo, poco. Los proyectos con financiación post-entrega son todav�
 
 Cuando empieces a evaluar emprendimientos, preguntá si existe la posibilidad de financiación post-entrega. Es una señal de que el desarrollador tiene solidez financiera — y una ventaja real para tu planificación.
 
-Si querés evaluar opciones con financiación en la zona, consultanos en SI Inmobiliaria.`,
+Si querés evaluar opciones con financiación en la zona, consultanos en SI INMOBILIARIA.`,
   },
   {
     slug: 'acopio-materiales-canje-m2-compradores',
     title: 'Acopio de materiales vs. canje de m²',
     date: '2026-03-20',
     dateDisplay: '20 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/funes-zona-residencial-arboles-aereo.webp',
     summary: 'Dos estrategias financieras de los desarrolladores que impactan en la solidez del proyecto donde invertís.',
     category: 'Educación financiera',
@@ -1613,14 +1613,14 @@ También puede ser una señal de solidez si está bien estructurado. El problema
 
 ¿El terreno fue adquirido o es aportado a cambio de unidades? ¿Cuántas unidades están comprometidas en canjes? ¿Cuántas están disponibles para venta libre?
 
-Un buen asesor inmobiliario debería poder responderte esto. Si no pueden o no quieren, también es una señal. Consultanos en SI Inmobiliaria.`,
+Un buen asesor inmobiliario debería poder responderte esto. Si no pueden o no quieren, también es una señal. Consultanos en SI INMOBILIARIA.`,
   },
   {
     slug: 'precio-m2-funes-roldan-perspectiva-2026',
     title: 'El m² en Funes y Roldán: por qué no va a bajar',
     date: '2026-03-19',
     dateDisplay: '19 de marzo de 2026',
-    source: 'SI Inmobiliaria',
+    source: 'SI INMOBILIARIA',
     image: '/blog/images/roldan-vista-aerea-panoramica.webp',
     summary: 'Los fundamentos del mercado sugieren que los precios no van a bajar. Cómo tomar una decisión inteligente en vez de esperar.',
     category: 'Mercado local',
@@ -1647,6 +1647,6 @@ No se trata de comprar a cualquier precio ni de comprar urgente. Se trata de eva
 
 En 40 años de mercado, aprendimos que las mejores decisiones inmobiliarias no las toman los que adivinan el piso del mercado — las toman los que se preparan bien y actúan cuando están listos.
 
-Si estás en ese momento, conversemos. Consultanos en SI Inmobiliaria — Funes y Roldán.`,
+Si estás en ese momento, conversemos. Consultanos en SI INMOBILIARIA — Funes y Roldán.`,
   },
 ]

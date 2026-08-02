@@ -48,7 +48,7 @@ export default function ConfianzaSection() {
         <div className="relative" style={{ aspectRatio: '4/5' }}>
           <Image
             src="/familia-flores.webp"
-            alt="Familia Flores — SI Inmobiliaria desde 1983"
+            alt="Familia Flores — SI INMOBILIARIA desde 1983"
             width={900}
             height={1125}
             priority
@@ -59,7 +59,7 @@ export default function ConfianzaSection() {
           {/* Año arriba */}
           <div className="absolute top-6 left-5 right-5 flex items-start justify-between">
             <div>
-              <p className="font-poppins text-white/70 text-[10px] font-bold tracking-[0.25em] uppercase">SI Inmobiliaria</p>
+              <p className="font-poppins text-white/70 text-[10px] font-bold tracking-[0.25em] uppercase">SI INMOBILIARIA</p>
               <p className="font-poppins text-white/50 text-[10px] font-medium tracking-[0.15em] mt-0.5" style={{ fontVariantNumeric: 'tabular-nums' }}>EST. 1983</p>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full">

@@ -15,16 +15,20 @@ export default function MetaPixel() {
   return (
     <>
       <script id="meta-pixel" dangerouslySetInnerHTML={{ __html: snippet }} />
-      <noscript>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          height="1"
-          width="1"
-          style={{ display: 'none' }}
-          alt=""
-          src={`https://www.facebook.com/tr?id=${id}&ev=PageView&noscript=1`}
-        />
-      </noscript>
+      {/*
+        El respaldo sin-JS va como HTML crudo y NO como hijos JSX.
+        Con hijos, React reconstruye el <img> como nodo real del DOM al
+        reconciliar, y el navegador lo descarga aunque el visitante SÍ tenga
+        JavaScript: eso mandaba un segundo PageView y duplicaba lo que reporta
+        la pauta. Seteado por innerHTML, el navegador deja el contenido del
+        <noscript> como texto mientras hay scripting, y solo lo interpreta como
+        markup cuando el visitante no tiene JS, que es para lo que está.
+      */}
+      <noscript
+        dangerouslySetInnerHTML={{
+          __html: `<img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=${id}&ev=PageView&noscript=1"/>`,
+        }}
+      />
       <MetaPixelSpa />
     </>
   )

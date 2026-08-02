@@ -23,7 +23,7 @@ export const revalidate = 86400
 // Raleway títulos / Poppins datos vía next/font.
 
 export const metadata: Metadata = {
-  title: '¿Cuánto cuesta construir en Funes y Roldán? Índice de Costos | SI Inmobiliaria',
+  title: '¿Cuánto cuesta construir en Funes y Roldán? Índice de Costos | SI INMOBILIARIA',
   description:
     '¿Cuánto cuesta construir en Funes? Valores por m² llave en mano y por cuenta propia, casos reales de inversión y calculadora para proyectar tu obra.',
   alternates: { canonical: 'https://siinmobiliaria.com/recursos/costos-de-construccion' },
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     description:
       'Valores por m² llave en mano y por cuenta propia, casos reales y calculadora para proyectar tu obra en Funes y Roldán.',
     url: 'https://siinmobiliaria.com/recursos/costos-de-construccion',
-    siteName: 'SI Inmobiliaria',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI Inmobiliaria' }],
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
     locale: 'es_AR',
     type: 'website',
   },

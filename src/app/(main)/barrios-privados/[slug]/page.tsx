@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`;
 
   const title = barrio.subtitulo
-    ? `${barrio.nombre} · ${barrio.subtitulo} | SI Inmobiliaria`
+    ? `${barrio.nombre} · ${barrio.subtitulo} | SI INMOBILIARIA`
     : barrio.seo.metaTitle;
   const description = barrio.contenidoSEO?.intro
     ? barrio.contenidoSEO.intro.slice(0, 155).trim()

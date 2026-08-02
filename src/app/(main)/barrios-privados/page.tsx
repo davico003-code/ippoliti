@@ -24,7 +24,7 @@ import CtaServiciosCards from "./_components/CtaServiciosCards";
 const CANONICAL = "https://siinmobiliaria.com/barrios-privados";
 
 export const metadata: Metadata = {
-  title: "Barrios cerrados de Funes | SI Inmobiliaria",
+  title: "Barrios cerrados de Funes | SI INMOBILIARIA",
   description:
     "Los 11 barrios cerrados de Funes analizados sin filtro. Premium, consolidados y en desarrollo. Conocelos con la mirada de un broker de dos generaciones.",
   keywords: [
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   ].join(", "),
   alternates: { canonical: CANONICAL },
   openGraph: {
-    title: "Barrios cerrados de Funes | SI Inmobiliaria",
+    title: "Barrios cerrados de Funes | SI INMOBILIARIA",
     description:
       "Una guía completa, escrita por brokers que viven y trabajan en la zona. Los 11 barrios cerrados de Funes analizados sin filtro.",
     url: CANONICAL,
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Barrios cerrados de Funes",
-    description: "11 barrios analizados por SI Inmobiliaria — Mat. 0621",
+    description: "11 barrios analizados por SI INMOBILIARIA — Mat. 0621",
     images: ["/og-image.jpg"],
   },
 };
