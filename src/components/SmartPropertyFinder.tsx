@@ -6,8 +6,8 @@ import {
   ArrowRight,
   Check,
   RotateCcw,
+  Search,
   SlidersHorizontal,
-  Sparkles,
   X,
 } from 'lucide-react'
 import {
@@ -19,9 +19,9 @@ import {
 } from '@/lib/property-fit'
 
 const OBJECTIVES: Array<{ value: SmartObjective; label: string; description: string }> = [
-  { value: 'vivir', label: 'Vivir', description: 'Prioriza comodidad y requisitos cotidianos.' },
-  { value: 'invertir', label: 'Invertir', description: 'Prioriza precio, liquidez y margen.' },
-  { value: 'oportunidad', label: 'Oportunidad', description: 'Busca el mejor valor contra mercado.' },
+  { value: 'vivir', label: 'Para vivir', description: 'Prioriza comodidad y requisitos cotidianos.' },
+  { value: 'invertir', label: 'Para invertir', description: 'Prioriza datos útiles para una inversión.' },
+  { value: 'oportunidad', label: 'Mejor alternativa', description: 'Prioriza el conjunto de precio y características.' },
 ]
 
 const TYPES: Array<{ value: SmartPropertyType; label: string }> = [
@@ -49,9 +49,6 @@ type Props = {
   profile: SmartProfile
   active: boolean
   resultCount: number
-  bestScore: number | null
-  exactBudgetCount: number
-  maxBudgetStretchPct: 0 | 5 | 10 | 15 | null
   onApply: (profile: SmartProfile) => void
   onClear: () => void
 }
@@ -96,9 +93,6 @@ export default function SmartPropertyFinder({
   profile,
   active,
   resultCount,
-  bestScore,
-  exactBudgetCount,
-  maxBudgetStretchPct,
   onApply,
   onClear,
 }: Props) {
@@ -183,30 +177,24 @@ export default function SmartPropertyFinder({
     setOpen(false)
   }
 
-  const priceStrategy = profile.budgetMax == null
-    ? 'Nuevas para vos primero'
-    : maxBudgetStretchPct == null || maxBudgetStretchPct === 0
-      ? `${exactBudgetCount} dentro de tu presupuesto · nuevas primero`
-      : `${exactBudgetCount} dentro de tu presupuesto · sumamos alternativas hasta +${maxBudgetStretchPct}%`
-
   return (
     <>
       <section
         className={`border-b px-3 py-3 sm:px-4 ${active ? 'border-[#CFE6D8] bg-[#F4FAF6]' : 'border-gray-100 bg-white'}`}
-        aria-label="Selector experto de propiedades"
+        aria-label="Preferencias de búsqueda"
       >
         <div className="flex min-w-0 items-center gap-3">
           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${active ? 'bg-[#17613C] text-white' : 'bg-[#EAF4EE] text-[#17613C]'}`}>
-            <Sparkles className="h-5 w-5" aria-hidden="true" />
+            <Search className="h-5 w-5" aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-extrabold text-gray-950">
-              {active ? `Tu selección SI · ${resultCount} ${resultCount === 1 ? 'opción' : 'opciones'}` : 'Que el buscador piense como vos'}
+              {active ? `Tu búsqueda · ${resultCount} ${resultCount === 1 ? 'propiedad' : 'propiedades'}` : 'Encontrá la propiedad que buscás'}
             </p>
             <p className="truncate text-[11.5px] font-medium text-gray-600">
               {active
-                ? `${smartProfileLabel(profile)}${bestScore != null ? ` · mejor coincidencia ${bestScore}%` : ''}`
-                : 'Contanos qué es imprescindible y qué aceptarías flexibilizar.'}
+                ? smartProfileLabel(profile)
+                : 'Definí zona, tipo, presupuesto y características.'}
             </p>
           </div>
           {active && (
@@ -228,12 +216,6 @@ export default function SmartPropertyFinder({
             {active ? 'Ajustar' : 'Personalizar'}
           </button>
         </div>
-        {active && (
-          <p className="mt-2 flex items-center gap-1.5 rounded-lg border border-[#DCEDE2] bg-white/80 px-2.5 py-1.5 text-[10.5px] font-bold leading-snug text-[#315C43]">
-            <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span>{priceStrategy}. Cada diferencia aparece señalada.</span>
-          </p>
-        )}
       </section>
 
       {mounted && open && createPortal(
@@ -252,18 +234,18 @@ export default function SmartPropertyFinder({
           >
             <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 sm:px-6">
               <div className="min-w-0">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#17613C]">Selector experto SI</p>
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#17613C]">Preferencias de búsqueda</p>
                 <h2 id="smart-finder-title" className="mt-1 text-balance text-[22px] font-extrabold leading-tight text-gray-950">
-                  No buscamos “algo parecido”. Buscamos lo que tiene sentido para vos.
+                  ¿Qué propiedad estás buscando?
                 </h2>
                 <p className="mt-1 text-[13px] leading-relaxed text-gray-600">
-                  Los requisitos filtran. Las preferencias ordenan. Si una opción exige una concesión, te la mostramos.
+                  Elegí los datos principales para ordenar los resultados.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Cerrar selector experto"
+                aria-label="Cerrar preferencias de búsqueda"
                 className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#17613C]/25"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -292,7 +274,7 @@ export default function SmartPropertyFinder({
                 </fieldset>
 
                 <fieldset>
-                  <legend className="mb-2.5 text-[14px] font-extrabold text-gray-950">¿Qué querés lograr?</legend>
+                  <legend className="mb-2.5 text-[14px] font-extrabold text-gray-950">¿Para qué la buscás?</legend>
                   <div className="grid gap-2 sm:grid-cols-3">
                     {OBJECTIVES.map((item) => (
                       <ChoiceButton
@@ -387,7 +369,7 @@ export default function SmartPropertyFinder({
                     ))}
                   </div>
                   <p className="mt-2 text-[11px] leading-relaxed text-gray-500">
-                    Solo lo marcamos como coincidencia cuando la publicación aporta una señal concreta. No inventamos amenities faltantes.
+                    Las características se toman de la información disponible en cada publicación.
                   </p>
                 </fieldset>
 
@@ -400,8 +382,8 @@ export default function SmartPropertyFinder({
                     className="mt-0.5 h-5 w-5 shrink-0 accent-[#17613C]"
                   />
                   <span>
-                    <span className="block text-[13px] font-extrabold text-gray-900">Mostrar oportunidades que justifiquen una pequeña concesión</span>
-                    <span className="mt-0.5 block text-[11px] leading-relaxed text-gray-600">Abrimos el precio por escalones de 5%, hasta un máximo de 15%, solamente si faltan opciones. Superficie: hasta 10% menos. Toda diferencia queda señalada.</span>
+                    <span className="block text-[13px] font-extrabold text-gray-900">Incluir alternativas cercanas</span>
+                    <span className="mt-0.5 block text-[11px] leading-relaxed text-gray-600">Si faltan resultados, también mostramos opciones con diferencias pequeñas.</span>
                   </span>
                 </label>
 
@@ -426,7 +408,7 @@ export default function SmartPropertyFinder({
                   type="submit"
                   className="ml-auto inline-flex min-h-12 flex-1 touch-manipulation items-center justify-center gap-2 rounded-xl bg-[#17613C] px-5 text-[14px] font-extrabold text-white hover:bg-[#124D30] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#17613C]/30 sm:flex-none"
                 >
-                  Armar mi selección <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  Ver resultados <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </button>
               </footer>
             </form>

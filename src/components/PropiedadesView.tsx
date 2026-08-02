@@ -98,7 +98,7 @@ type SortBy    = 'compatibilidad' | 'recientes' | 'precio-asc' | 'precio-desc' |
 // las cards; eliminado junto con su estado y los botones de la barra superior.
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
-  { value: 'compatibilidad', label: 'Mejor para mí' },
+  { value: 'compatibilidad', label: 'Orden sugerido' },
   { value: 'destacadas', label: 'Destacadas primero' },
   { value: 'recientes', label: 'Más recientes' },
   { value: 'precio-asc', label: 'Menor precio' },
@@ -1110,12 +1110,21 @@ export default function PropiedadesView({
     return list
   }, [propertiesForMap, mapBounds])
 
+  // La lógica de relevancia ordena dentro de cada grupo, pero el contrato
+  // comercial es estable: primero el stock de SI INMOBILIARIA y, después,
+  // las demás propiedades del mercado.
+  const visibleOwnProperties = useMemo(
+    () => visibleProperties.filter((property) => !isMarketProperty(property)),
+    [visibleProperties],
+  )
+  const visibleMarketProperties = useMemo(
+    () => visibleProperties.filter(isMarketProperty),
+    [visibleProperties],
+  )
+
   const availableSortOptions = smartActive
     ? SORT_OPTIONS
     : SORT_OPTIONS.filter((option) => option.value !== 'compatibilidad')
-  const bestSmartScore = smartActive && propertiesForMap.length > 0
-    ? Math.max(...propertiesForMap.map((property) => smartFits[property.id]?.score ?? 0))
-    : null
 
   // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
   // que el filtro de radio sea el único activo (sino se acumulan).
@@ -1618,9 +1627,6 @@ export default function PropiedadesView({
             profile={smartProfile}
             active={smartActive}
             resultCount={propertiesForMap.length}
-            bestScore={bestSmartScore}
-            exactBudgetCount={smartSelection.exactBudgetCount}
-            maxBudgetStretchPct={smartSelection.maxBudgetStretchPct}
             onApply={applySmartProfile}
             onClear={clearSmartProfile}
           />
@@ -1721,34 +1727,87 @@ export default function PropiedadesView({
                     para no causar CLS al swap. */}
                 <div className="hidden md:block">
                   {isDesktopViewport ? (
-                    <PropiedadesViewDesktopGrid
-                      properties={visibleProperties}
-                      selectedId={selectedId}
-                      onHover={setHoveredId}
-                      onCardClick={handleCardClick}
-                      nearbyOrigin={nearbyOrigin}
-                      fits={smartFits}
-                    />
+                    <>
+                      {visibleOwnProperties.length > 0 && (
+                        <section aria-labelledby="catalog-own-title">
+                          <div className="flex items-center justify-between px-4 pt-4">
+                            <h2 id="catalog-own-title" className="text-[13px] font-extrabold text-gray-950">Propiedades de SI INMOBILIARIA</h2>
+                            <span className="text-[11px] font-semibold tabular-nums text-gray-500">{visibleOwnProperties.length}</span>
+                          </div>
+                          <PropiedadesViewDesktopGrid
+                            properties={visibleOwnProperties}
+                            selectedId={selectedId}
+                            onHover={setHoveredId}
+                            onCardClick={handleCardClick}
+                            nearbyOrigin={nearbyOrigin}
+                          />
+                        </section>
+                      )}
+                      {visibleMarketProperties.length > 0 && (
+                        <section aria-labelledby="catalog-market-title" className="border-t border-gray-200 bg-gray-50/60">
+                          <div className="flex items-center justify-between px-4 pt-4">
+                            <h2 id="catalog-market-title" className="text-[13px] font-extrabold text-gray-800">Otras propiedades del mercado</h2>
+                            <span className="text-[11px] font-semibold tabular-nums text-gray-500">{visibleMarketProperties.length}</span>
+                          </div>
+                          <PropiedadesViewDesktopGrid
+                            properties={visibleMarketProperties}
+                            selectedId={selectedId}
+                            onHover={setHoveredId}
+                            onCardClick={handleCardClick}
+                            nearbyOrigin={nearbyOrigin}
+                            prioritizeFirst={visibleOwnProperties.length === 0}
+                          />
+                        </section>
+                      )}
+                    </>
                   ) : (
                     <PropiedadesViewDesktopGridSkeleton />
                   )}
                 </div>
                 {/* Mobile list */}
-                <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">
-                  {visibleProperties.map((p, i) => (
-                    <div key={p.id} data-property-id={p.id}>
-                      {/* Mobile: el Link navega solo, sin onClick. El prefetch
-                          ocurre cuando la card entra al viewport. */}
-                      <PropiedadCardGrid
-                        property={p}
-                        isSelected={p.id === selectedId}
-                        variant="mobile"
-                        priority={i < 2}
-                        distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
-                        fit={smartFits[p.id] ?? null}
-                      />
-                    </div>
-                  ))}
+                <div className="md:hidden pb-[100px]">
+                  {visibleOwnProperties.length > 0 && (
+                    <section aria-labelledby="catalog-own-title-mobile" className="px-4 pt-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <h2 id="catalog-own-title-mobile" className="text-[13px] font-extrabold text-gray-950">Propiedades de SI INMOBILIARIA</h2>
+                        <span className="text-[11px] font-semibold tabular-nums text-gray-500">{visibleOwnProperties.length}</span>
+                      </div>
+                      <div className="space-y-3">
+                        {visibleOwnProperties.map((p, i) => (
+                          <div key={p.id} data-property-id={p.id}>
+                            <PropiedadCardGrid
+                              property={p}
+                              isSelected={p.id === selectedId}
+                              variant="mobile"
+                              priority={i < 2}
+                              distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                  {visibleMarketProperties.length > 0 && (
+                    <section aria-labelledby="catalog-market-title-mobile" className="mt-4 border-t border-gray-200 bg-gray-50/60 px-4 pt-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <h2 id="catalog-market-title-mobile" className="text-[13px] font-extrabold text-gray-800">Otras propiedades del mercado</h2>
+                        <span className="text-[11px] font-semibold tabular-nums text-gray-500">{visibleMarketProperties.length}</span>
+                      </div>
+                      <div className="space-y-3">
+                        {visibleMarketProperties.map((p, i) => (
+                          <div key={p.id} data-property-id={p.id}>
+                            <PropiedadCardGrid
+                              property={p}
+                              isSelected={p.id === selectedId}
+                              variant="mobile"
+                              priority={visibleOwnProperties.length === 0 && i < 2}
+                              distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
                 </div>
               </>
             )}

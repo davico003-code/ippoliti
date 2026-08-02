@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, ChevronLeft, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import CardMediaButtons from '@/components/CardMediaButtons'
 import {
@@ -21,7 +21,6 @@ import {
   isMarketProperty,
 } from '@/lib/tokko'
 import { formatDistanceAR } from '@/lib/geo'
-import type { PropertyFit } from '@/lib/property-fit'
 
 const RALEWAY = "'Raleway', system-ui, sans-serif"
 const POPPINS = "'Poppins', system-ui, sans-serif"
@@ -36,7 +35,7 @@ type WindowWithIdle = Window & {
   cancelIdleCallback?: (id: number) => void
 }
 
-export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop', priority = false, distanceKm, fit }: {
+export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop', priority = false, distanceKm }: {
   property: TokkoProperty
   isSelected: boolean
   /** Si se pasa, se ejecuta antes de la navegación. Llamar e.preventDefault() para
@@ -47,8 +46,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   /** Distancia en km desde la ubicación del usuario (modo "buscar cerca").
    *  Null/undefined → no se muestra. */
   distanceKm?: number | null
-  /** Resultado explicable del selector experto. Ausente = card tradicional. */
-  fit?: PropertyFit | null
 }) {
   const router = useRouter()
   const cardRef = useRef<HTMLAnchorElement | null>(null)
@@ -239,7 +236,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
             <span className="flex flex-col items-center gap-2 px-4 text-center font-semibold text-[#17613C]">
               <ShieldCheck className="h-7 w-7" aria-hidden="true" />
-              {market ? 'Oportunidad verificada del mercado' : 'Sin foto'}
+              {market ? 'Propiedad del mercado' : 'Sin foto'}
             </span>
           </div>
         )}
@@ -290,12 +287,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
           {market && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#17613C] shadow-sm">
-              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Mercado verificado
-            </span>
-          )}
-          {!market && fit && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#17613C] shadow-sm">
-              Stock SI
+              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Del mercado
             </span>
           )}
           {operation && (
@@ -325,33 +317,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             className="absolute top-2.5 right-2.5"
           />
         )}
-        {market && property.market_discount_pct != null && (
-          <span className="absolute right-2.5 top-2.5 rounded-full bg-[#0E3F27]/95 px-3 py-1.5 text-[10.5px] font-extrabold tabular-nums text-white shadow-sm">
-            {Math.round(property.market_discount_pct)}% bajo mercado
-          </span>
-        )}
       </div>
 
       {/* Body */}
       <div style={{ padding: '8px 12px' }}>
-        {fit && (
-          <div className="mb-2 rounded-[10px] border border-[#CFE6D8] bg-[#F4FAF6] px-2.5 py-2">
-            <div className="flex min-w-0 items-start gap-2">
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#17613C] px-2 py-1 text-[10.5px] font-extrabold tabular-nums text-white">
-                <Sparkles className="h-3 w-3" aria-hidden="true" /> {fit.score}%
-              </span>
-              <p className="min-w-0 line-clamp-2 text-[11px] font-bold leading-snug text-[#174D33]">
-                {fit.reasons.length > 0 ? fit.reasons.slice(0, 2).join(' · ') : 'Coincidencia por tus criterios'}
-              </p>
-            </div>
-            {fit.caveats[0] && (
-              <p className="mt-1 flex items-center gap-1 text-[10.5px] font-semibold text-[#8A5A13]">
-                <AlertCircle className="h-3 w-3 shrink-0" aria-hidden="true" />
-                <span className="truncate">A considerar: {fit.caveats[0]}</span>
-              </p>
-            )}
-          </div>
-        )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
           <p style={{
             fontFamily: POPPINS,

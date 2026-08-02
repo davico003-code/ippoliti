@@ -37,7 +37,7 @@ function property(input: DemoInput): TokkoProperty {
     real_address: '',
     reference_code: isMarket ? `OP-DEMO${String(input.id).slice(-3)}` : `SI-DEMO${String(input.id).slice(-3)}`,
     description: isMarket
-      ? `Casa seleccionada por su relación entre precio, superficie y ubicación. La disponibilidad se reconfirma antes de coordinar una visita.`
+      ? `Propiedad del mercado presentada con la información disponible. La disponibilidad se reconfirma antes de coordinar una visita.`
       : `Propiedad del stock de SI INMOBILIARIA incluida para mostrar cómo convive con las oportunidades verificadas del mercado.`,
     description_only: '',
     rich_description: '',
