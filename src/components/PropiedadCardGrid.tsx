@@ -293,6 +293,11 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
               <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Mercado verificado
             </span>
           )}
+          {!market && fit && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#17613C] shadow-sm">
+              Stock SI
+            </span>
+          )}
           {operation && (
             <span style={{
               background: operation === 'Venta' ? '#1A5C38'
@@ -319,6 +324,11 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             size={32}
             className="absolute top-2.5 right-2.5"
           />
+        )}
+        {market && property.market_discount_pct != null && (
+          <span className="absolute right-2.5 top-2.5 rounded-full bg-[#0E3F27]/95 px-3 py-1.5 text-[10.5px] font-extrabold tabular-nums text-white shadow-sm">
+            {Math.round(property.market_discount_pct)}% bajo mercado
+          </span>
         )}
       </div>
 

@@ -50,6 +50,8 @@ type Props = {
   active: boolean
   resultCount: number
   bestScore: number | null
+  exactBudgetCount: number
+  maxBudgetStretchPct: 0 | 5 | 10 | 15 | null
   onApply: (profile: SmartProfile) => void
   onClear: () => void
 }
@@ -95,6 +97,8 @@ export default function SmartPropertyFinder({
   active,
   resultCount,
   bestScore,
+  exactBudgetCount,
+  maxBudgetStretchPct,
   onApply,
   onClear,
 }: Props) {
@@ -179,6 +183,12 @@ export default function SmartPropertyFinder({
     setOpen(false)
   }
 
+  const priceStrategy = profile.budgetMax == null
+    ? 'Nuevas para vos primero'
+    : maxBudgetStretchPct == null || maxBudgetStretchPct === 0
+      ? `${exactBudgetCount} dentro de tu presupuesto · nuevas primero`
+      : `${exactBudgetCount} dentro de tu presupuesto · sumamos alternativas hasta +${maxBudgetStretchPct}%`
+
   return (
     <>
       <section
@@ -191,7 +201,7 @@ export default function SmartPropertyFinder({
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-extrabold text-gray-950">
-              {active ? `Tu selección SI · ${resultCount} opción${resultCount === 1 ? '' : 'es'}` : 'Que el buscador piense como vos'}
+              {active ? `Tu selección SI · ${resultCount} ${resultCount === 1 ? 'opción' : 'opciones'}` : 'Que el buscador piense como vos'}
             </p>
             <p className="truncate text-[11.5px] font-medium text-gray-600">
               {active
@@ -218,6 +228,12 @@ export default function SmartPropertyFinder({
             {active ? 'Ajustar' : 'Personalizar'}
           </button>
         </div>
+        {active && (
+          <p className="mt-2 flex items-center gap-1.5 rounded-lg border border-[#DCEDE2] bg-white/80 px-2.5 py-1.5 text-[10.5px] font-bold leading-snug text-[#315C43]">
+            <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>{priceStrategy}. Cada diferencia aparece señalada.</span>
+          </p>
+        )}
       </section>
 
       {mounted && open && createPortal(
@@ -385,7 +401,7 @@ export default function SmartPropertyFinder({
                   />
                   <span>
                     <span className="block text-[13px] font-extrabold text-gray-900">Mostrar oportunidades que justifiquen una pequeña concesión</span>
-                    <span className="mt-0.5 block text-[11px] leading-relaxed text-gray-600">Hasta 10% sobre presupuesto o 10% menos superficie. La diferencia aparece siempre señalada.</span>
+                    <span className="mt-0.5 block text-[11px] leading-relaxed text-gray-600">Abrimos el precio por escalones de 5%, hasta un máximo de 15%, solamente si faltan opciones. Superficie: hasta 10% menos. Toda diferencia queda señalada.</span>
                   </span>
                 </label>
 

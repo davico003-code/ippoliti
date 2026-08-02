@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
 import { enrichCardsWithAudio, projectToCard, type PropertyCardProjection } from '@/lib/projections'
+import { getDemoCatalogProperties, isCatalogDemoEnabled } from '@/lib/demo-catalog'
 import PropiedadesView from '@/components/PropiedadesView'
 
 // Force dynamic render to avoid build-time Tokko rate-limit (403) that empties the HTML.
@@ -20,7 +21,11 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function PropiedadesPage() {
+export default async function PropiedadesPage({
+  searchParams,
+}: {
+  searchParams?: { demo?: string }
+}) {
   // Proyectamos las propiedades a card-shape antes de pasar al client.
   // Esto baja el RSC payload de la página de ~6.5 MB a ~2-3 MB porque
   // descarta description (texto largo), tags, videos, files, producer y
@@ -28,14 +33,18 @@ export default async function PropiedadesPage() {
   // de card/mapa/filtros, así que la projection es estructuralmente
   // compatible — el cast es seguro.
   let projected: PropertyCardProjection[] = []
-  try {
-    const data = await getProperties()
-    projected = (data.objects ?? []).map(sanitizeProperty).map(projectToCard)
-    // Enriquecimiento bulk de audioUrl (un solo MGET a Redis). Soft-fail si
-    // Redis cae: las cards quedan con audioUrl=null y no se muestra el play.
-    await enrichCardsWithAudio(projected)
-  } catch (err) {
-    console.error('[propiedades] Error fetching properties:', err instanceof Error ? err.message : err)
+  if (isCatalogDemoEnabled(searchParams?.demo)) {
+    projected = getDemoCatalogProperties().map(sanitizeProperty).map(projectToCard)
+  } else {
+    try {
+      const data = await getProperties()
+      projected = (data.objects ?? []).map(sanitizeProperty).map(projectToCard)
+      // Enriquecimiento bulk de audioUrl (un solo MGET a Redis). Soft-fail si
+      // Redis cae: las cards quedan con audioUrl=null y no se muestra el play.
+      await enrichCardsWithAudio(projected)
+    } catch (err) {
+      console.error('[propiedades] Error fetching properties:', err instanceof Error ? err.message : err)
+    }
   }
 
   return (

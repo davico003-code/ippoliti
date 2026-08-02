@@ -53,9 +53,10 @@ import {
   type SmartObjective,
   type SmartProfile,
   type SmartPropertyType,
-  isRelevantForProfile,
   scorePropertyFit,
+  selectAdaptiveProperties,
 } from '@/lib/property-fit'
+import { readSeenPropertyIds, rememberSeenProperty } from '@/lib/property-history'
 // Constantes del mapa desde @/lib/map-config (módulo sin leaflet): un import
 // estático de PropiedadesMap acá anularía el dynamic() de abajo y metería
 // leaflet en el First Load JS de /propiedades.
@@ -761,6 +762,7 @@ export default function PropiedadesView({
   const [locatingUser, setLocatingUser] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
   const [searchHistory, setSearchHistory] = useState<string[]>([])
+  const [seenPropertyIds, setSeenPropertyIds] = useState<Set<number>>(new Set())
   const searchWrapDesktopRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -779,6 +781,13 @@ export default function PropiedadesView({
         }
       }
     } catch { /* ignore */ }
+  }, [])
+
+  // Las propiedades ya abiertas no desaparecen: se ordenan detrás de opciones
+  // nuevas dentro del mismo escalón de precio. Se hidrata después del mount
+  // para mantener el primer HTML estable.
+  useEffect(() => {
+    setSeenPropertyIds(readSeenPropertyIds())
   }, [])
 
   // Agregar término al historial (al principio, sin duplicados, max 5)
@@ -968,8 +977,19 @@ export default function PropiedadesView({
     return Object.fromEntries(entries)
   }, [properties, smartActive, smartProfile])
 
+  const smartSelection = useMemo(() => (
+    smartActive
+      ? selectAdaptiveProperties(properties, smartProfile)
+      : { properties, exactBudgetCount: properties.length, maxBudgetStretchPct: null }
+  ), [properties, smartActive, smartProfile])
+
+  const smartSelectionIds = useMemo(
+    () => new Set(smartSelection.properties.map((property) => property.id)),
+    [smartSelection.properties],
+  )
+
   const filtered = useMemo(() => properties.filter(p => {
-    if (smartActive && !isRelevantForProfile(p, smartProfile)) return false
+    if (smartActive && !smartSelectionIds.has(p.id)) return false
     if (filters.search) {
       const q = norm(filters.search)
       // Solo incluir el barrio resuelto (no toda la lista de divisions de la ciudad)
@@ -1027,7 +1047,9 @@ export default function PropiedadesView({
   }).sort((a, b) => {
     switch (sortBy) {
       case 'compatibilidad':
-        return (smartFits[b.id]?.score ?? 0) - (smartFits[a.id]?.score ?? 0)
+        return (smartFits[a.id]?.budgetStretchPct ?? 0) - (smartFits[b.id]?.budgetStretchPct ?? 0)
+          || Number(seenPropertyIds.has(a.id)) - Number(seenPropertyIds.has(b.id))
+          || (smartFits[b.id]?.score ?? 0) - (smartFits[a.id]?.score ?? 0)
       case 'destacadas': {
         if (a.is_starred_on_web && !b.is_starred_on_web) return -1
         if (!a.is_starred_on_web && b.is_starred_on_web) return 1
@@ -1055,7 +1077,7 @@ export default function PropiedadesView({
       default:
         return 0
     }
-  }), [properties, filters, sortBy, resolvedNeighborhoods, smartActive, smartFits, smartProfile])
+  }), [properties, filters, sortBy, resolvedNeighborhoods, smartActive, smartFits, smartSelectionIds, seenPropertyIds])
 
   // Lista para el mapa: aplica filtros + cercanía. NO aplica mapBounds porque
   // el bounds se calcula desde el viewport y filtrar por bounds antes de
@@ -1156,6 +1178,7 @@ export default function PropiedadesView({
   }, [initialPropertyId])
 
   const handleCardClick = useCallback((property: TokkoProperty) => {
+    rememberSeenProperty(property.id)
     setSelectedId(property.id)
     if (property.geo_lat && property.geo_long) {
       const lat = parseFloat(property.geo_lat)
@@ -1596,6 +1619,8 @@ export default function PropiedadesView({
             active={smartActive}
             resultCount={propertiesForMap.length}
             bestScore={bestSmartScore}
+            exactBudgetCount={smartSelection.exactBudgetCount}
+            maxBudgetStretchPct={smartSelection.maxBudgetStretchPct}
             onApply={applySmartProfile}
             onClear={clearSmartProfile}
           />

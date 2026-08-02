@@ -20,6 +20,13 @@ export type PropertyFit = {
   score: number
   reasons: string[]
   caveats: string[]
+  budgetStretchPct: 0 | 5 | 10 | 15 | null
+}
+
+export type SmartSelection = {
+  properties: TokkoProperty[]
+  exactBudgetCount: number
+  maxBudgetStretchPct: 0 | 5 | 10 | 15 | null
 }
 
 export const DEFAULT_SMART_PROFILE: SmartProfile = {
@@ -109,11 +116,23 @@ function matchesNeed(property: TokkoProperty, need: SmartLifestyleNeed): boolean
   return NEED_TERMS[need].some((term) => text.includes(norm(term)))
 }
 
+function budgetStretchPct(property: TokkoProperty, profile: SmartProfile): 0 | 5 | 10 | 15 | null {
+  if (profile.budgetMax == null) return 0
+  const price = propertyPriceUsd(property)
+  if (price == null) return null
+  const ratio = price / profile.budgetMax
+  if (ratio <= 1) return 0
+  if (ratio <= 1.05) return 5
+  if (ratio <= 1.1) return 10
+  if (ratio <= 1.15) return 15
+  return null
+}
+
 /**
- * Compuerta de relevancia: evita el “catálogo infinito”. Los obligatorios se
- * cumplen; la flexibilidad solo admite una concesión chica y explícita.
+ * Obligatorios no monetarios. El presupuesto se resuelve después sobre el
+ * conjunto completo para poder abrir escalones solo cuando faltan opciones.
  */
-export function isRelevantForProfile(property: TokkoProperty, profile: SmartProfile): boolean {
+function isCoreRelevantForProfile(property: TokkoProperty, profile: SmartProfile): boolean {
   const operations = new Set((property.operations ?? []).map((item) => item.operation_type))
   if (profile.operation === 'venta' && !operations.has('Sale')) return false
   if (profile.operation === 'alquiler' && !operations.has('Rent')) return false
@@ -130,13 +149,6 @@ export function isRelevantForProfile(property: TokkoProperty, profile: SmartProf
   const bedrooms = propertyBedrooms(property)
   if (profile.bedroomsMin != null && bedrooms < profile.bedroomsMin) return false
 
-  const price = propertyPriceUsd(property)
-  if (profile.budgetMax != null) {
-    if (price == null) return false
-    const ceiling = profile.budgetMax * (profile.flexible ? 1.1 : 1.02)
-    if (price > ceiling) return false
-  }
-
   const surface = propertySurface(property)
   if (profile.surfaceMin != null) {
     if (surface == null) return false
@@ -145,6 +157,51 @@ export function isRelevantForProfile(property: TokkoProperty, profile: SmartProf
   }
 
   return true
+}
+
+/**
+ * Compuerta de relevancia: evita el “catálogo infinito”. Los obligatorios se
+ * cumplen; la flexibilidad solo admite una concesión chica y explícita.
+ */
+export function isRelevantForProfile(property: TokkoProperty, profile: SmartProfile): boolean {
+  if (!isCoreRelevantForProfile(property, profile)) return false
+  if (profile.budgetMax == null) return true
+  const stretch = budgetStretchPct(property, profile)
+  return stretch != null && (stretch === 0 || profile.flexible)
+}
+
+/**
+ * Búsqueda progresiva: empieza en el presupuesto exacto y solo abre +5%,
+ * +10% o +15% si todavía no reunió un conjunto corto y útil. Una búsqueda
+ * estricta nunca abre el presupuesto. La escala elegida se muestra en UI.
+ */
+export function selectAdaptiveProperties(
+  properties: TokkoProperty[],
+  profile: SmartProfile,
+  minimumUsefulResults = 6,
+): SmartSelection {
+  const core = properties.filter((property) => isCoreRelevantForProfile(property, profile))
+  if (profile.budgetMax == null) {
+    return { properties: core, exactBudgetCount: core.length, maxBudgetStretchPct: null }
+  }
+
+  const withTier = core.flatMap((property) => {
+    const stretch = budgetStretchPct(property, profile)
+    return stretch == null ? [] : [{ property, stretch }]
+  })
+  const exactBudgetCount = withTier.filter((item) => item.stretch === 0).length
+  const tiers: Array<0 | 5 | 10 | 15> = profile.flexible ? [0, 5, 10, 15] : [0]
+  const selectedTier = tiers.find((tier) => (
+    withTier.filter((item) => item.stretch <= tier).length >= minimumUsefulResults
+  )) ?? tiers.reduce((highestPresent, tier) => (
+    withTier.some((item) => item.stretch === tier) ? tier : highestPresent
+  ), 0 as 0 | 5 | 10 | 15)
+
+  return {
+    properties: withTier.filter((item) => item.stretch <= selectedTier).map((item) => item.property),
+    exactBudgetCount,
+    maxBudgetStretchPct: selectedTier,
+  }
 }
 
 function addCriterion(
@@ -190,14 +247,14 @@ export function scorePropertyFit(property: TokkoProperty, profile: SmartProfile)
 
   if (profile.budgetMax != null) {
     const ratio = price == null ? Number.POSITIVE_INFINITY : price / profile.budgetMax
-    const value = ratio <= 1 ? 1 : ratio <= 1.05 ? 0.82 : ratio <= 1.1 ? 0.58 : 0
+    const value = ratio <= 1 ? 1 : ratio <= 1.05 ? 0.82 : ratio <= 1.1 ? 0.64 : ratio <= 1.15 ? 0.45 : 0
     const underPct = price == null ? 0 : Math.round((1 - ratio) * 100)
     const overPct = price == null ? 0 : Math.round((ratio - 1) * 100)
     addCriterion(
       value,
       28,
       ratio <= 1 ? (underPct >= 8 ? `${underPct}% debajo de tu tope` : 'Dentro de tu presupuesto') : null,
-      ratio > 1 && ratio <= 1.1 ? `Excede ${overPct}% tu presupuesto` : null,
+      ratio > 1 && ratio <= 1.15 ? `Excede ${overPct}% tu presupuesto` : null,
       state,
     )
   }
@@ -221,11 +278,18 @@ export function scorePropertyFit(property: TokkoProperty, profile: SmartProfile)
   if (profile.objective === 'oportunidad' || profile.objective === 'invertir') {
     const discount = property.market_discount_pct ?? null
     const starred = property.is_starred_on_web
-    const value = discount != null ? Math.min(1, Math.max(0.45, discount / 35)) : starred ? 0.75 : 0.5
+    const value = discount != null ? Math.min(1, Math.max(0.25, discount / 30)) : starred ? 0.72 : 0.15
+    const marketReason = discount != null && discount >= 25
+      ? `${Math.round(discount)}% debajo del mercado · oportunidad excepcional`
+      : discount != null && discount >= 15
+        ? `${Math.round(discount)}% debajo del mercado · muy buen valor`
+        : discount != null && discount >= 8
+          ? `${Math.round(discount)}% debajo del mercado · precio competitivo`
+          : null
     addCriterion(
       value,
       profile.objective === 'oportunidad' ? 22 : 14,
-      discount != null && discount >= 20 ? `${Math.round(discount)}% debajo del mercado` : starred ? 'Destacada por SI INMOBILIARIA' : null,
+      marketReason ?? (starred ? 'Destacada por SI INMOBILIARIA' : null),
       null,
       state,
     )
@@ -242,6 +306,7 @@ export function scorePropertyFit(property: TokkoProperty, profile: SmartProfile)
     score: Math.max(1, Math.min(99, Math.round((state.earned / state.possible) * 100))),
     reasons: Array.from(new Set(state.reasons)).slice(0, 4),
     caveats: Array.from(new Set(state.caveats)).slice(0, 2),
+    budgetStretchPct: profile.budgetMax == null ? null : budgetStretchPct(property, profile),
   }
 }
 

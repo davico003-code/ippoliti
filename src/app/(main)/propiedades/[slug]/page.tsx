@@ -12,6 +12,7 @@ import PropertyGalleryHero from '@/components/property-detail/PropertyGalleryHer
 import PropertyStickyNav from '@/components/property-detail/PropertyStickyNav';
 import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody';
 import PropertyDetailSimilars from '@/components/property-detail/PropertyDetailSimilars';
+import MarketVerFicha from '@/components/MarketVerFicha';
 import {
   getPropertyById,
   getIdFromSlug,
@@ -28,6 +29,7 @@ import {
   type TokkoProperty,
 } from '@/lib/tokko';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
+import { getDemoCatalogProperty } from '@/lib/demo-catalog';
 
 export const revalidate = 21600;
 
@@ -47,7 +49,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const id = getIdFromSlug(params.slug);
-    const property = await getPropertyById(id);
+    const property = getDemoCatalogProperty(id) ?? await getPropertyById(id);
     // Override de SEO por ID (unidades de emprendimientos): title y meta custom.
     // El canonical de abajo usa el publication_title ORIGINAL (el slug no cambia).
     const seo = PROPERTY_SEO[property.id];
@@ -69,7 +71,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // consolidar los duplicados que sirve cualquier sufijo con el ID correcto.
     const canonicalUrl = `https://siinmobiliaria.com/propiedades/${generatePropertySlug(property)}`;
     return {
-      title: `${title} | SI Inmobiliaria`,
+      title: `${title} | SI INMOBILIARIA`,
       description: desc,
       alternates: { canonical: canonicalUrl },
       openGraph: {
@@ -87,7 +89,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: 'Propiedad | SI Inmobiliaria' };
+    return { title: 'Propiedad | SI INMOBILIARIA' };
   }
 }
 
@@ -98,21 +100,26 @@ export default async function PropertyPage({ params }: Props) {
   }
 
   let property: TokkoProperty;
-  try {
-    property = sanitizeProperty(await getPropertyById(id));
-  } catch (e) {
-    if (e instanceof Error && e.message.includes('not found')) {
-      // LIMITACIÓN CONOCIDA (#2 soft-404): en esta ruta el notFound() resuelve
-      // HTTP 200 (no 404) porque la respuesta hace streaming y commitea 200
-      // antes de ejecutarse. Se investigó a fondo: no hay fix de bajo riesgo en
-      // Next 14.2.35 sin romper el ISR (force-dynamic) ni meter un denylist en
-      // middleware (riesgo de 410 a un listing nuevo). Como la auditoría dio 0
-      // fichas con problemas reales de indexación, se deja documentado y NO se
-      // toca. No es la causa el <head> manual del layout (una copia de esta
-      // página en otra ruta, bajo el mismo layout, sí devuelve 404).
-      notFound();
+  const demoProperty = getDemoCatalogProperty(id);
+  if (demoProperty) {
+    property = sanitizeProperty(demoProperty);
+  } else {
+    try {
+      property = sanitizeProperty(await getPropertyById(id));
+    } catch (e) {
+      if (e instanceof Error && e.message.includes('not found')) {
+        // LIMITACIÓN CONOCIDA (#2 soft-404): en esta ruta el notFound() resuelve
+        // HTTP 200 (no 404) porque la respuesta hace streaming y commitea 200
+        // antes de ejecutarse. Se investigó a fondo: no hay fix de bajo riesgo en
+        // Next 14.2.35 sin romper el ISR (force-dynamic) ni meter un denylist en
+        // middleware (riesgo de 410 a un listing nuevo). Como la auditoría dio 0
+        // fichas con problemas reales de indexación, se deja documentado y NO se
+        // toca. No es la causa el <head> manual del layout (una copia de esta
+        // página en otra ruta, bajo el mismo layout, sí devuelve 404).
+        notFound();
+      }
+      throw e;
     }
-    throw e;
   }
 
   // #3: slug canónico derivado del ID/título, para que el JSON-LD (url +
@@ -131,6 +138,37 @@ export default async function PropertyPage({ params }: Props) {
   // si producer es null, cae al número general 5493412101694.
   const whatsappUrl = buildPropertyWhatsappUrl(property, params.slug);
   const market = isMarketProperty(property);
+
+  if (market) {
+    return (
+      <div className="min-h-screen bg-[#F5F7F4]">
+        <PropertyViewTracker propertyId={property.id} title={property.publication_title || property.address} price={price} />
+        <header className="sticky top-0 z-50 grid h-14 grid-cols-[1fr_auto_1fr] items-center border-b border-gray-200 bg-white px-4">
+          <Link
+            href="/propiedades"
+            className="flex min-h-11 touch-manipulation items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-[#17613C] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#17613C]/20"
+            aria-label="Volver a la búsqueda"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Volver a la búsqueda</span>
+            <span className="sm:hidden">Volver</span>
+          </Link>
+          <Link href="/" className="flex min-h-11 items-center justify-center" aria-label="Ir a SI INMOBILIARIA">
+            <Image
+              src="/LOGO_HORIZONTAL.png"
+              alt="SI INMOBILIARIA"
+              width={140}
+              height={28}
+              className="h-7 w-auto object-contain"
+              priority
+            />
+          </Link>
+          <div />
+        </header>
+        <MarketVerFicha property={property} whatsappUrl={whatsappUrl} />
+      </div>
+    );
+  }
 
   // ── allProperties ya NO se fetchea SSR ──
   // Los componentes que antes lo necesitaban (Similars, NearbyMap, ZillowPanel)

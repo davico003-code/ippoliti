@@ -25,7 +25,7 @@ def main() -> int:
         desktop = browser.new_context(viewport={"width": 1440, "height": 1000})
         page = desktop.new_page()
         page.on("pageerror", lambda exc: page_errors.append(str(exc)))
-        response = page.goto(BASE_URL + "/propiedades", wait_until="domcontentloaded", timeout=40_000)
+        response = page.goto(BASE_URL + "/propiedades?demo=catalogo-experto", wait_until="domcontentloaded", timeout=40_000)
         page.get_by_text("Mercado verificado", exact=True).first.wait_for(timeout=30_000)
         if not response or response.status >= 400:
             failures.append(f"listado desktop respondió {response.status if response else 0}")
@@ -37,15 +37,20 @@ def main() -> int:
         page.screenshot(path=str(SHOTS / "selector_experto_desktop.png"), full_page=True)
         page.get_by_role("button", name=re.compile("Oportunidad")).click()
         page.get_by_role("button", name="Funes", exact=True).click()
+        page.get_by_role("button", name="Roldán", exact=True).click()
         page.get_by_role("button", name="Casa", exact=True).click()
-        page.get_by_label("Presupuesto máximo").fill("260000")
+        page.get_by_label("Presupuesto máximo").fill("400000")
         page.get_by_role("button", name="Armar mi selección").click()
-        page.get_by_text("Tu selección SI · 1 opción", exact=True).wait_for(timeout=10_000)
+        page.get_by_text("Tu selección SI · 4 opciones", exact=True).wait_for(timeout=10_000)
+        page.get_by_text("Stock SI", exact=True).first.wait_for(timeout=10_000)
+        page.get_by_text(re.compile(r"3 dentro de tu presupuesto.*\+10%"), exact=False).wait_for(timeout=10_000)
         page.get_by_text(re.compile(r"\d+%"), exact=True).first.wait_for(timeout=10_000)
         page.screenshot(path=str(SHOTS / "catalogo_mercado_desktop.png"), full_page=True)
 
-        page.locator('a[href^="/propiedades/8772345678901-"]').first.click()
-        page.get_by_text("Es una propiedad de otro participante del mercado", exact=False).first.wait_for(timeout=30_000)
+        page.locator('a[href^="/propiedades/8990000001-"]').first.click()
+        page.get_by_text("Mercado verificado por SI INMOBILIARIA", exact=True).first.wait_for(timeout=30_000)
+        page.get_by_role("link", name="Consultar esta oportunidad").wait_for(timeout=30_000)
+        page.wait_for_timeout(350)  # termina el slide-in antes de la captura visual
         page.screenshot(path=str(SHOTS / "catalogo_mercado_ficha_desktop.png"), full_page=True)
         if page.get_by_text("Crear placa", exact=True).count() > 0:
             failures.append("la ficha de mercado ofrece crear placa")
@@ -53,8 +58,11 @@ def main() -> int:
         mobile = browser.new_context(viewport={"width": 390, "height": 844})
         page_mobile = mobile.new_page()
         page_mobile.on("pageerror", lambda exc: page_errors.append(str(exc)))
-        page_mobile.goto(BASE_URL + "/propiedades", wait_until="domcontentloaded", timeout=40_000)
+        page_mobile.goto(BASE_URL + "/propiedades?demo=catalogo-experto", wait_until="domcontentloaded", timeout=40_000)
         page_mobile.get_by_text("Mercado verificado", exact=True).first.wait_for(timeout=30_000)
+        # La etiqueta anterior viene del HTML del servidor; esperamos la
+        # hidratación antes de exigir una interacción React.
+        page_mobile.wait_for_timeout(1_000)
         page_mobile.get_by_role("button", name="Personalizar").click()
         page_mobile.get_by_role("heading", name=re.compile("No buscamos")).wait_for()
         page_mobile.screenshot(path=str(SHOTS / "selector_experto_mobile.png"), full_page=True)
@@ -62,8 +70,8 @@ def main() -> int:
         if modal_overflow:
             failures.append("el selector experto mobile tiene overflow horizontal")
         page_mobile.get_by_role("button", name="Cerrar selector experto").click()
-        page_mobile.locator('a[href^="/propiedades/8772345678901-"]').first.click()
-        page_mobile.wait_for_url("**/propiedades/8772345678901-*", timeout=30_000)
+        page_mobile.locator('a[href^="/propiedades/8990000001-"]').first.click()
+        page_mobile.wait_for_url("**/propiedades/8990000001-*", timeout=30_000)
         page_mobile.get_by_text("Consultar disponibilidad", exact=True).wait_for(timeout=30_000)
         page_mobile.screenshot(path=str(SHOTS / "catalogo_mercado_ficha_mobile.png"), full_page=True)
         overflow = page_mobile.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")

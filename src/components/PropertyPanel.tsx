@@ -7,6 +7,7 @@
 //
 // Content (body, sidebar, gallery, sticky nav) is shared with the full page.
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -14,7 +15,9 @@ import {
   type TokkoProperty,
   generatePropertySlug,
   buildPropertyWhatsappUrl,
+  isMarketProperty,
 } from '@/lib/tokko'
+import MarketVerFicha from './MarketVerFicha'
 import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
 import PropertyStickyNav from './property-detail/PropertyStickyNav'
 import PropertyDetailBody from './property-detail/PropertyDetailBody'
@@ -45,8 +48,11 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   const [property, setProperty] = useState<TokkoProperty | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null)
+
+  useEffect(() => setPortalTarget(document.body), [])
 
   useEffect(() => {
     // Guard de cancelación: en modo overlay se puede clickear otra card antes de
@@ -116,12 +122,14 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
     window.addEventListener('popstate', h); return () => window.removeEventListener('popstate', h)
   }, [onClose])
 
+  if (!portalTarget) return null
+
   // Loading / Error
   if (loading || error || !property) {
-    return (
-      <div className="fixed inset-0 z-[9995]">
+    return createPortal((
+      <div className="fixed inset-0 z-[12000]">
         <div className="absolute inset-0 bg-black/65" onClick={onClose} />
-        <div className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto shadow-2xl" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
+        <div className="absolute inset-y-0 left-0 right-0 mx-auto w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto shadow-2xl" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
           {loading ? (
             <div className="animate-pulse p-6 space-y-4">
               <div className="h-8 w-40 bg-gray-200 rounded" />
@@ -140,15 +148,15 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
         </div>
         <style dangerouslySetInnerHTML={{ __html: `@keyframes ppSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }` }} />
       </div>
-    )
+    ), portalTarget)
   }
 
   const slug = generatePropertySlug(property)
   // wa.me al productor asignado en Tokko; fallback al número general si no hay producer.
   const whatsappUrl = buildPropertyWhatsappUrl(property, slug)
 
-  return (
-    <div className="fixed inset-0 z-[9995]">
+  return createPortal((
+    <div className="fixed inset-0 z-[12000]">
       {/* Backdrop — cubre TODO el viewport incluyendo el header del sitio */}
       <div
         className="absolute inset-0 bg-black/65"
@@ -158,7 +166,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
 
       <div
         ref={scrollRef}
-        className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
+        className="absolute inset-y-0 left-0 right-0 mx-auto w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
         style={{ animation: 'ppSlideIn 250ms ease-out' }}
       >
         {/* Panel header sticky — barra propia, logo SI centrado, volver a la izquierda */}
@@ -180,7 +188,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
           <Link href="/" className="flex items-center justify-center" aria-label="Ir a la página principal">
             <Image
               src="/LOGO_HORIZONTAL.png"
-              alt="SI Inmobiliaria"
+              alt="SI INMOBILIARIA"
               width={140}
               height={28}
               className="object-contain"
@@ -191,45 +199,51 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
           <div />
         </div>
 
-        {/* Galería Zillow — constrained a padding del panel para no desbordar */}
-        <div className="px-4 md:px-6 pt-4 pb-2">
-          <PropertyGalleryHero property={property} />
-        </div>
+        {isMarketProperty(property) ? (
+          <MarketVerFicha property={property} whatsappUrl={whatsappUrl} />
+        ) : (
+          <>
+            {/* Galería Zillow — constrained a padding del panel para no desbordar */}
+            <div className="px-4 md:px-6 pt-4 pb-2">
+              <PropertyGalleryHero property={property} />
+            </div>
 
-        {/* Sticky nav (desktop only) — ancla al top del modal (debajo del panel header) */}
-        <PropertyStickyNav sections={SECTIONS} scrollRoot={scrollRoot} stickyTop={PANEL_HEADER_H} />
+            {/* Sticky nav (desktop only) — ancla al top del modal (debajo del panel header) */}
+            <PropertyStickyNav sections={SECTIONS} scrollRoot={scrollRoot} stickyTop={PANEL_HEADER_H} />
 
-        {/* Contenido (2 cols en desktop: body + sidebar) */}
-        <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6">
-          <div className="flex-1 min-w-0">
-            <PropertyDetailBody
-              property={property}
-              allProperties={allProperties}
-              whatsappUrl={whatsappUrl}
-              showMobileContact
-            />
-          </div>
-          <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={PANEL_HEADER_H + 16} />
-        </div>
+            {/* Contenido (2 cols en desktop: body + sidebar) */}
+            <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6">
+              <div className="flex-1 min-w-0">
+                <PropertyDetailBody
+                  property={property}
+                  allProperties={allProperties}
+                  whatsappUrl={whatsappUrl}
+                  showMobileContact
+                />
+              </div>
+              <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={PANEL_HEADER_H + 16} />
+            </div>
 
-        {/* Full-width: "Otras opciones para vos" ocupa todo el ancho del panel */}
-        <div className="px-4 md:px-6 pb-6">
-          <PropertyDetailSimilars property={property} allProperties={allProperties} />
-        </div>
+            {/* Full-width: "Otras opciones para vos" ocupa todo el ancho del panel */}
+            <div className="px-4 md:px-6 pb-6">
+              <PropertyDetailSimilars property={property} allProperties={allProperties} />
+            </div>
 
-        {/* Link "Volver al catálogo" — cierra la ficha igual que el header */}
-        <div className="px-4 md:px-6 pb-8 pt-2 border-t border-gray-100">
-          <button
-            onClick={onClose}
-            className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#0F3A23] font-bold transition-colors text-lg"
-            style={{ fontFamily: R }}
-          >
-            ← Volver al catálogo
-          </button>
-        </div>
+            {/* Link "Volver al catálogo" — cierra la ficha igual que el header */}
+            <div className="px-4 md:px-6 pb-8 pt-2 border-t border-gray-100">
+              <button
+                onClick={onClose}
+                className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#0F3A23] font-bold transition-colors text-lg"
+                style={{ fontFamily: R }}
+              >
+                ← Volver al catálogo
+              </button>
+            </div>
 
-        {/* Footer global dentro del panel (al final del scroll interno) */}
-        <Footer />
+            {/* Footer global dentro del panel (al final del scroll interno) */}
+            <Footer />
+          </>
+        )}
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
@@ -237,5 +251,5 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
         @keyframes ppSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
       ` }} />
     </div>
-  )
+  ), portalTarget)
 }

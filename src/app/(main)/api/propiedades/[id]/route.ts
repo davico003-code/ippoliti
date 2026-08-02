@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import { applyPropertySeoOverride } from '@/lib/seoOverrides'
+import { getDemoCatalogProperty } from '@/lib/demo-catalog'
 
 export async function GET(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
+  const demo = getDemoCatalogProperty(Number(params.id))
+  if (demo) return NextResponse.json(demo)
+
   // Puente Hilo (flag DATA_SOURCE=hilo): una propiedad desde el feed de Hilo.
   if ((process.env.DATA_SOURCE || '').toLowerCase() === 'hilo') {
     const base = process.env.HILO_FEED_URL || 'https://meethilo.com'
