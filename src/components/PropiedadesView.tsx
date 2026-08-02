@@ -23,6 +23,19 @@ import {
   ArrowLeft,
   RefreshCw,
 } from 'lucide-react'
+import SmartPropertyFinder from '@/components/SmartPropertyFinder'
+import MotivosFit from '@/components/MotivosFit'
+import {
+  selectAdaptiveProperties,
+  scorePropertyFit,
+  type SmartProfile,
+} from '@/lib/property-fit'
+import {
+  asistenteActivo,
+  escribirPerfilEnUrl,
+  leerPerfilDeUrl,
+  limpiarPerfilDeUrl,
+} from '@/lib/smart-profile-url'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
 import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesktopGridSkeleton'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
@@ -1015,9 +1028,42 @@ export default function PropiedadesView({
     })
   }, [filtered, nearbyOrigin])
 
-  // Lista para el listado lateral: cercanía + bounds.
+  // ── Asistente de búsqueda ────────────────────────────────────────────────
+  // El perfil vive en la URL (ver lib/smart-profile-url.ts), así que compartir
+  // el link comparte la búsqueda y el botón "atrás" del navegador funciona.
+  const smartActivo = asistenteActivo(searchParams)
+  const smartProfile = useMemo(() => leerPerfilDeUrl(searchParams), [searchParams])
+
+  const aplicarPerfil = useCallback(
+    (perfil: SmartProfile) => {
+      router.push(`${pathname}?${escribirPerfilEnUrl(searchParams, perfil).toString()}`, { scroll: false })
+    },
+    [router, pathname, searchParams],
+  )
+  const limpiarPerfil = useCallback(() => {
+    const qs = limpiarPerfilDeUrl(searchParams).toString()
+    router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [router, pathname, searchParams])
+
+  // Selección del asistente. Si con el presupuesto cargado no junta al menos 6
+  // opciones, lo estira 5/10/15% y lo avisa en pantalla, en vez de responder
+  // "no hay nada" cuando había algo un poco más arriba.
+  const smartSelection = useMemo(
+    () => (smartActivo ? selectAdaptiveProperties(propertiesForMap, smartProfile) : null),
+    [smartActivo, propertiesForMap, smartProfile],
+  )
+
+  // Lista para el listado lateral: asistente (si está activo) + bounds del mapa.
+  // El asistente se aplica ACÁ, así el contador, el mapa y el render por tandas
+  // trabajan sobre el mismo conjunto sin tener que enterarse de nada.
   const visibleProperties = useMemo(() => {
     let list = propertiesForMap
+    if (smartSelection) {
+      list = smartSelection.properties
+        .map(p => ({ p, fit: scorePropertyFit(p, smartProfile) }))
+        .sort((a, b) => b.fit.score - a.fit.score)
+        .map(x => x.p)
+    }
     if (mapBounds) {
       list = list.filter(p => {
         if (!p.geo_lat || !p.geo_long) return true
@@ -1027,7 +1073,7 @@ export default function PropiedadesView({
       })
     }
     return list
-  }, [propertiesForMap, mapBounds])
+  }, [propertiesForMap, mapBounds, smartSelection, smartProfile])
 
   // ── Render incremental de las cards ──────────────────────────────────────
   // Antes se renderizaban TODAS las propiedades filtradas (248): el HTML de
@@ -1605,6 +1651,29 @@ export default function PropiedadesView({
 
           </div>
 
+          {/* Asistente de búsqueda: la persona cuenta qué necesita y el listado
+              se reordena mostrando por qué cada propiedad le sirve. */}
+          <div className="flex-shrink-0 border-b border-gray-100 bg-white px-3 py-2">
+            <SmartPropertyFinder
+              profile={smartProfile}
+              active={smartActivo}
+              resultCount={visibleProperties.length}
+              onApply={aplicarPerfil}
+              onClear={limpiarPerfil}
+            />
+            {smartActivo && smartSelection && smartSelection.maxBudgetStretchPct
+              ? (
+                <p className="mt-1.5 px-1 text-[12px] leading-snug text-[#8a5a12]">
+                  Con tu tope había pocas opciones, así que ampliamos hasta un{' '}
+                  <b>{smartSelection.maxBudgetStretchPct}% más</b>.{' '}
+                  {smartSelection.exactBudgetCount > 0
+                    ? `${smartSelection.exactBudgetCount} entran justo en tu presupuesto.`
+                    : 'Ninguna entra justo en tu presupuesto.'}
+                </p>
+              )
+              : null}
+          </div>
+
           {/* List */}
           <div ref={listRef} className="flex-1 overflow-y-auto">
             {visibleProperties.length === 0 ? (
@@ -1658,6 +1727,7 @@ export default function PropiedadesView({
                       onHover={setHoveredId}
                       onCardClick={handleCardClick}
                       nearbyOrigin={nearbyOrigin}
+                      smartProfile={smartActivo ? smartProfile : null}
                     />
                   ) : (
                     <PropiedadesViewDesktopGridSkeleton />
@@ -1676,6 +1746,7 @@ export default function PropiedadesView({
                         priority={i < 2}
                         distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
                       />
+                      {smartActivo && <MotivosFit property={p} profile={smartProfile} />}
                     </div>
                   ))}
                 </div>
