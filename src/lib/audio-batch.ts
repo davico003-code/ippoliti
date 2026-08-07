@@ -1,13 +1,16 @@
-// Cron diario que auto-genera audio narrado (ElevenLabs) para propiedades de
-// venta nuevas. Ortogonal al opt-in manual de /admin/audio: lo que ya tiene
-// audio se saltea, lo nuevo se procesa.
+// Cron diario que auto-genera el audio narrado de las propiedades que todavía
+// no lo tienen, empezando por las últimas cargadas. Ortogonal al opt-in manual
+// de /admin/audio: lo que ya tiene audio se saltea.
+//
+// Toma venta Y alquiler: un alquiler también se beneficia del audio, y de las
+// últimas cargadas casi siempre hay algunos.
 //
 // Disparado por:
 //   - Vercel cron 0 8 * * * → POST /api/audio/cron-batch (Bearer CRON_SECRET)
 //   - Manual desde /admin/audio → POST /api/audio/cron-batch?manual=true (x-team-code)
 //
 // Circuit breakers:
-//   - AUDIO_CRON_MAX_PER_DAY (default 20): tope de audios por corrida.
+//   - AUDIO_CRON_MAX_PER_DAY (default 10): tope de audios por corrida.
 //   - AUDIO_CRON_ENABLED ('false' = dry-run): kill switch sin redeploy.
 //
 // Estado persistido en Redis:
@@ -168,17 +171,29 @@ export async function processBatch(
   // nunca, por más días que corriera el proceso.
   const data = await getProperties({ fetchAll: true })
   const total = data.objects?.length ?? 0
-  const ventas = (data.objects ?? []).filter(isSale)
-  console.log(`[audio-batch] catálogo total=${total} ventas=${ventas.length}`)
+  const candidatas = data.objects ?? []
+  console.log(`[audio-batch] catálogo total=${total}`)
 
   // 2. Detectar cuáles ya tienen audio, con UNA sola consulta.
   // Antes se preguntaba de a una: con 225 propiedades eran 225 idas y vueltas
   // a Redis antes de empezar a trabajar, comiéndose el presupuesto de 300s.
-  const urls = await getAudioUrlsBulk(ventas.map(p => p.id))
-  const sinAudio: TokkoProperty[] = ventas.filter(p => !urls[p.id])
-  const alreadyHas = ventas.length - sinAudio.length
+  const urls = await getAudioUrlsBulk(candidatas.map(p => p.id))
+
+  // Las últimas cargadas primero.
+  //
+  // El feed no viene ordenado por fecha ni por id, así que sin esto la corrida
+  // agarraba las que cayeran primero, al azar. Las propiedades recién cargadas
+  // —las que se están promocionando y donde el audio más rinde— podían quedar
+  // para el final y tardar semanas. El id de HILO es secuencial: el más alto es
+  // el último dado de alta.
+  const sinAudio: TokkoProperty[] = candidatas
+    .filter(p => !urls[p.id])
+    .sort((a, b) => b.id - a.id)
+
+  const alreadyHas = candidatas.length - sinAudio.length
+  const ventasSinAudio = sinAudio.filter(isSale).length
   console.log(
-    `[audio-batch] sinAudio=${sinAudio.length} yaTenian=${alreadyHas}`,
+    `[audio-batch] sinAudio=${sinAudio.length} (venta=${ventasSinAudio}) yaTenian=${alreadyHas}`,
   )
 
   // 3. Aplicar circuit breaker (limite diario).
@@ -272,7 +287,7 @@ export async function processBatch(
       finishedAt: new Date().toISOString(),
       trigger: options.trigger,
       dryRun: !enabled,
-      totalSale: ventas.length,
+      totalSale: candidatas.length,
       alreadyHasAudio: alreadyHas,
       generated,
       failed,
@@ -293,7 +308,7 @@ export async function processBatch(
     finishedAt: finishedAt.toISOString(),
     trigger: options.trigger,
     dryRun: !enabled,
-    totalSale: ventas.length,
+    totalSale: candidatas.length,
     alreadyHasAudio: alreadyHas,
     generated,
     failed,
@@ -304,7 +319,7 @@ export async function processBatch(
   await persistLastRun(summary)
 
   console.log(
-    `[audio-batch] done totalSale=${ventas.length} generated=${generated} failed=${failed} overLimit=${sobrantes.length} charsRun=${charsRun} charsMonth=${charsUsedMonth}`,
+    `[audio-batch] done totalSale=${candidatas.length} generated=${generated} failed=${failed} overLimit=${sobrantes.length} charsRun=${charsRun} charsMonth=${charsUsedMonth}`,
   )
 
   return {
