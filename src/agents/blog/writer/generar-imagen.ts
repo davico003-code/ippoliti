@@ -68,9 +68,9 @@ async function pedirImagenOpenAI(prompt: string): Promise<{ b64: string } | { er
     // Horizontal: el crop posterior a 1200×630 recorta poco.
     size: esDalle ? '1792x1024' : '1536x1024',
   };
-  if (esDalle) {
-    body.response_format = 'b64_json';
-  } else {
+  // gpt-image-1 devuelve siempre b64_json; dall-e-3 devuelve una URL temporal
+  // (el parámetro response_format fue retirado de la API en 2026).
+  if (!esDalle) {
     body.quality = 'medium';
   }
 
@@ -98,10 +98,16 @@ async function pedirImagenOpenAI(prompt: string): Promise<{ b64: string } | { er
       return { error: `OpenAI ${detalle}` };
     }
 
-    const data = (await res.json()) as { data?: { b64_json?: string }[] };
-    const b64 = data?.data?.[0]?.b64_json;
-    if (!b64) return { error: 'OpenAI no devolvió imagen (b64_json vacío)' };
-    return { b64 };
+    const data = (await res.json()) as { data?: { b64_json?: string; url?: string }[] };
+    const item = data?.data?.[0];
+    if (item?.b64_json) return { b64: item.b64_json };
+    if (item?.url) {
+      const img = await fetch(item.url, { signal: controller.signal });
+      if (!img.ok) return { error: `no se pudo descargar la imagen generada (HTTP ${img.status})` };
+      const buf = Buffer.from(await img.arrayBuffer());
+      return { b64: buf.toString('base64') };
+    }
+    return { error: 'OpenAI no devolvió imagen (ni b64_json ni url)' };
   } catch (err) {
     const msg = err instanceof Error && err.name === 'AbortError'
       ? `timeout a los ${TIMEOUT_MS / 1000}s`
