@@ -44,14 +44,18 @@ function getRedis(): Redis {
   });
 }
 
+// Directiva de David (07-ago-2026): que NO se note que es IA. El prompt pide
+// foto documental con imperfecciones reales y prohíbe explícitamente el look
+// de render/ilustración/HDR que delata a las imágenes generadas.
 export function construirPromptPortada(datos: DatosPortada): string {
   const escena = datos.imagen_sugerida?.trim() || datos.bajada?.trim() || datos.titulo;
   return [
-    'Fotografía editorial realista para la portada de una nota de un blog inmobiliario argentino (zona de Funes y Roldán, Gran Rosario).',
+    'Fotografía documental real tomada con cámara réflex y lente de 35 mm, luz natural de media tarde, para la portada de una nota de un blog inmobiliario argentino (zona de Funes y Roldán, Gran Rosario).',
     `Tema de la nota: "${datos.titulo}".`,
     `Escena: ${escena}.`,
-    'Estilo: foto profesional con luz natural, colores reales y composición horizontal amplia con aire para recorte apaisado. Si la escena es exterior, el contexto son barrios residenciales argentinos modernos: casas bajas, calles arboladas, cielos amplios de llanura.',
-    'No incluir: texto, letras, números, logos, marcas de agua, carteles legibles ni rostros reconocibles en primer plano.',
+    'La imagen tiene que parecer una foto genuina de fotoperiodismo, no una imagen generada: composición levemente imperfecta y natural, texturas reales, cielo con nubes verdaderas, sombras coherentes con una sola fuente de luz, colores neutros sin saturar, leve grano fotográfico.',
+    'Si la escena es exterior, el contexto son barrios residenciales argentinos verosímiles: casas bajas de ladrillo y revoque, pasto algo desparejo, calles con cordón cuneta, árboles crecidos, algún cable aéreo y autos comunes usados.',
+    'Evitar por completo: aspecto de render 3D, ilustración, CGI, HDR exagerado, simetría perfecta, superficies plásticas impecables, césped artificialmente uniforme, texto, letras, números, logos, marcas de agua, carteles legibles y rostros reconocibles en primer plano.',
   ].join(' ');
 }
 
