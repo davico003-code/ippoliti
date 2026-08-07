@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Lock, Trash2, RotateCcw, ImageUp, RefreshCw, AlertTriangle, X, Activity, Pencil } from 'lucide-react'
+import { Lock, Trash2, RotateCcw, ImageUp, RefreshCw, AlertTriangle, X, Activity, Pencil, Sparkles } from 'lucide-react'
 
 const VERDE = '#1f6b3f'
 const TEAM_KEY = 'si_team_access'
@@ -12,6 +12,7 @@ interface NotaAdminItem {
   fecha: string
   categoria: string | null
   image: string
+  override: boolean
   tipo: 'estatica' | 'dinamica'
   eliminada: boolean
   programada: boolean
@@ -59,6 +60,7 @@ export default function AdminNotasPage() {
   const [editContenido, setEditContenido] = useState('')
   const [editTitulo, setEditTitulo] = useState('')
   const [editLoading, setEditLoading] = useState(false)
+  const [genSlug, setGenSlug] = useState<string | null>(null)
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({})
 
   useEffect(() => {
@@ -249,6 +251,35 @@ export default function AdminNotasPage() {
     }
   }
 
+  // Portada generada con IA (OpenAI): tarda 15-60s, se muestra spinner en el
+  // botón de la nota. El resultado queda como override, igual que la subida
+  // manual, y se puede regenerar las veces que haga falta.
+  const generarImagen = async (slug: string) => {
+    setGenSlug(slug)
+    setWorking(true)
+    setErr(null)
+    setMsg(null)
+    try {
+      const res = await fetch('/api/admin/notas/generar-imagen', {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setErr(d.error ?? 'no se pudo generar la portada')
+        return
+      }
+      setMsg(`Portada generada con IA: ${slug}`)
+      await cargar()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'error de red')
+    } finally {
+      setGenSlug(null)
+      setWorking(false)
+    }
+  }
+
   // ── Gate ──
   if (!auth) {
     return (
@@ -285,7 +316,7 @@ export default function AdminNotasPage() {
               {items.length} notas · {items.filter(i => i.eliminada).length} eliminadas
             </p>
             <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
-              <ImageUp className="w-3.5 h-3.5" /> Portada recomendada: 1200×630 px, JPG o PNG. Se recorta y optimiza automáticamente.
+              <ImageUp className="w-3.5 h-3.5" /> Portada: subí una imagen (JPG/PNG) o generala con IA (✦). Se recorta y optimiza a 1200×630 automáticamente.
             </p>
           </div>
           <button
@@ -440,6 +471,17 @@ export default function AdminNotasPage() {
                       className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50"
                     >
                       <ImageUp className="w-4 h-4 text-gray-600" />
+                    </button>
+                    <button
+                      title="Generar portada con IA (tarda ~30s)"
+                      onClick={() => generarImagen(n.slug)}
+                      disabled={working}
+                      className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50"
+                    >
+                      <Sparkles
+                        className={`w-4 h-4 ${genSlug === n.slug ? 'animate-pulse' : ''}`}
+                        style={{ color: genSlug === n.slug ? VERDE : '#4b5563' }}
+                      />
                     </button>
                     <button
                       title="Borrar (reversible)"

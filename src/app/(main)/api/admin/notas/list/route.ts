@@ -18,6 +18,7 @@ export interface NotaAdminItem {
   fecha: string
   categoria: string | null
   image: string
+  override: boolean
   tipo: 'estatica' | 'dinamica'
   eliminada: boolean
   programada: boolean
@@ -74,6 +75,7 @@ export async function GET(req: Request) {
       fecha: b.p.date,
       categoria: b.p.category ?? null,
       image: overrides[b.p.slug] ?? b.p.image,
+      override: Boolean(overrides[b.p.slug]),
       tipo: b.tipo,
       eliminada: Boolean(redirects[b.p.slug]),
       programada: Boolean(

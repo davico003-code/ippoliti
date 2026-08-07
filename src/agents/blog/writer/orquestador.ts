@@ -4,6 +4,7 @@ import { seleccionarCTA } from '../config/ctas';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
 import { registrarActividad } from '../lib/actividad';
 import { generarNotaConRetries } from './generar-nota';
+import { generarImagenPortada } from './generar-imagen';
 import { publicarNota } from './publicador';
 import { filtrarTemasUsados } from '../lib/dedupe';
 import { TEMAS_EVERGREEN } from '../radar/temas-evergreen';
@@ -142,6 +143,28 @@ export async function ejecutarWriterDia(
   // 7. Publicar
   console.log(`[orquestador] Publicando "${resultado.nota.titulo}"`);
   const publicada = await publicarNota(resultado.nota);
+
+  // 7b. Portada única con IA (OpenAI, ver generar-imagen.ts). No crítico: si
+  //     falla, la nota queda publicada con la imagen por defecto y se puede
+  //     regenerar desde /admin/notas.
+  try {
+    const portada = await generarImagenPortada({
+      slug: publicada.slug,
+      titulo: publicada.titulo,
+      imagen_sugerida: publicada.imagen_sugerida,
+      bajada: publicada.bajada,
+      categoria: publicada.categoria,
+    });
+    if (!portada.ok) {
+      await registrarActividad({
+        tipo: 'info',
+        mensaje: `Portada IA no generada (${portada.error}). La nota salió con la imagen por defecto; se puede regenerar desde el panel.`,
+        titulo: publicada.titulo,
+      });
+    }
+  } catch (e) {
+    console.warn('[orquestador] error generando portada IA (no crítico):', e);
+  }
 
   // 8. Dedup permanente: sumar el título publicado a temasUsados (últimos 30).
   //    Esto reemplaza lo que antes hacía el webhook de aprobación y garantiza
