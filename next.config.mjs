@@ -15,7 +15,9 @@ const cspReportOnly = [
   // analytics.google.com no matchea *.google-analytics.com (dominio distinto):
   // GA4 manda /g/collect ahí y sin esta entrada quedaba como violación.
   "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org",
-  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+  // kuula.co (tours 360 de /dockgarden) y cloudflarestream (videos del
+  // desarrollador vía Brickfy) se embeben en iframes.
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://kuula.co https://*.cloudflarestream.com",
   "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.supabase.co",
   "worker-src 'self' blob:",
 ].join('; ')

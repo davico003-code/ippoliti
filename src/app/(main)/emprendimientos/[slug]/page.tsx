@@ -303,7 +303,13 @@ export default async function DevelopmentPage({ params }: Props) {
             )}
 
             {/* Units section — before description */}
-            <DevUnitsSection units={units} devName={displayName} whatsappUrl={whatsappUrl} location={dev.location?.name} />
+            <DevUnitsSection
+              units={units}
+              devName={displayName}
+              whatsappUrl={whatsappUrl}
+              location={dev.location?.name}
+              pageUrl={`https://siinmobiliaria.com/emprendimientos/${params.slug}`}
+            />
 
             {/* Description — oculto en 67178 (el Intro trae su propio lead) */}
             {!isDistrito && paragraphs.length > 0 && (

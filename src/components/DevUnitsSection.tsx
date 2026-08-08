@@ -68,11 +68,52 @@ interface Props {
   whatsappUrl: string
   variant?: 'default' | 'distrito'
   location?: string
+  /** URL absoluta de la página del emprendimiento — habilita "Enviar lista de precios". */
+  pageUrl?: string
 }
 
-export default function DevUnitsSection({ units, devName, whatsappUrl, variant = 'default', location }: Props) {
+export default function DevUnitsSection({ units, devName, whatsappUrl, variant = 'default', location, pageUrl }: Props) {
   const isDistrito = variant === 'distrito'
   const [activeTab, setActiveTab] = useState<number | null>(null)
+
+  // Link wa.me SIN número: abre WhatsApp con la lista completa de precios ya
+  // redactada y deja elegir el destinatario. Se arma desde las units vivas de
+  // Tokko, así la lista nunca queda desactualizada.
+  const priceListHref = useMemo(() => {
+    if (!pageUrl) return null
+    const rows = units
+      .map(u => {
+        const p = u.operations?.[0]?.prices?.[0]
+        return { u, price: p?.price || 0, currency: p?.currency || 'USD' }
+      })
+      .sort((a, b) => (a.price || Number.MAX_SAFE_INTEGER) - (b.price || Number.MAX_SAFE_INTEGER))
+    if (!rows.some(r => r.price > 0)) return null
+
+    // El encabezado ya nombra el emprendimiento: si el título termina en
+    // "en <emprendimiento/zona>" se recorta para que cada línea quede corta.
+    const ctx = `${devName} ${location || ''}`.toLowerCase()
+    const lines = rows.map(({ u, price, currency }) => {
+      const area = getArea(u)
+      let title = getUnitTitle(u)
+      const m = title.match(/^(.*\S)\s+en\s+(.+)$/i)
+      if (m && m[2].toLowerCase().split(/[\s,]+/).some(w => w.length > 3 && ctx.includes(w))) {
+        title = m[1]
+      }
+      const parts = [title, ...(area > 0 && !title.includes('m²') ? [`${area} m²`] : [])]
+      const precio = price > 0 ? `*${currency} ${price.toLocaleString('es-AR')}*` : 'Consultar'
+      return `▪️ ${parts.join(' · ')} — ${precio}`
+    })
+    const msg = [
+      `*Lista de precios — ${devName}*${location && !devName.toLowerCase().includes(location.toLowerCase()) ? ` (${location})` : ''}`,
+      `${rows.length} unidad${rows.length !== 1 ? 'es' : ''} en venta:`,
+      '',
+      ...lines,
+      '',
+      `Más info y fotos: ${pageUrl}`,
+      'SI INMOBILIARIA · (341) 210-1694',
+    ].join('\n')
+    return `https://wa.me/?text=${encodeURIComponent(msg)}`
+  }, [units, devName, location, pageUrl])
 
   // Build available tabs from real data
   const tabs = useMemo(() => {
@@ -108,10 +149,27 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
 
   return (
     <div className="mt-16">
-      <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>Unidades disponibles</h2>
-      <p className="text-sm text-gray-400 mb-5" style={{ fontFamily: 'Poppins, sans-serif' }}>
-        En venta · {units.length} unidad{units.length !== 1 ? 'es' : ''} · {devName}
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>Unidades disponibles</h2>
+          <p className="text-sm text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            En venta · {units.length} unidad{units.length !== 1 ? 'es' : ''} · {devName}
+          </p>
+        </div>
+        {priceListHref && (
+          <a
+            href={priceListHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#25D366] text-white text-[13px] font-bold rounded-full hover:bg-[#1ea952] transition-colors"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/>
+            </svg>
+            Enviar lista de precios
+          </a>
+        )}
+      </div>
 
       {/* Stats summary */}
       {(() => {
