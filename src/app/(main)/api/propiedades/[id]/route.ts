@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { applyPropertySeoOverride } from '@/lib/seoOverrides'
+import { ocultarPrecioOportunidad } from '@/lib/tokko'
 
 export async function GET(
   _req: Request,
@@ -14,7 +15,7 @@ export async function GET(
     if (!r.ok) return NextResponse.json({ error: 'Not found' }, { status: r.status === 404 ? 404 : 500 })
     // Override de SEO por ID (unidades de emprendimientos): el panel desktop de
     // la ficha consume esta API — sin esto mostraría el título/typos del CRM.
-    return NextResponse.json(applyPropertySeoOverride(await r.json()))
+    return NextResponse.json(applyPropertySeoOverride(ocultarPrecioOportunidad(await r.json())))
   }
 
   const apiKey = process.env.TOKKO_API_KEY
@@ -28,5 +29,5 @@ export async function GET(
   if (!res.ok) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const data = await res.json()
-  return NextResponse.json(applyPropertySeoOverride(data))
+  return NextResponse.json(applyPropertySeoOverride(ocultarPrecioOportunidad(data)))
 }

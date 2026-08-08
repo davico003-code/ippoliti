@@ -127,12 +127,12 @@ export default async function PropertyPage({ params }: Props) {
     throw e;
   }
 
-  // Defensa: si el feed alguna vez sirve una propiedad despublicada (hoy el
-  // feed de Hilo hace 404, pero deleted_at viaja en el payload), no la
-  // renderizamos como si estuviera activa.
-  if (property.deleted_at) {
-    notFound();
-  }
+  // OJO: NO usar deleted_at como señal de despublicada. El feed de Hilo trae
+  // deleted_at con fechas históricas de la migración desde Tokko en propiedades
+  // ACTIVAS (verificado 08-ago-2026: 8382331 y 7245443, ambas publicadas,
+  // traían deleted_at ≠ null y el notFound() de acá tiró abajo la ficha de San
+  // Marino en prod). La señal real de despublicada YA la da el feed: responde
+  // 404 y eso cae en el catch de arriba.
 
   // #3: slug canónico derivado del ID/título, para que el JSON-LD (url +
   // breadcrumb) apunte siempre a la forma canónica y no al slug pedido.

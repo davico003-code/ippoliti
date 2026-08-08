@@ -1,4 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ocultarPrecioOportunidad } from '@/lib/tokko'
+
+type FeedListResponse = { objects?: Array<{ id: number; web_price: boolean }> }
+
+// Las oportunidades "Consultanos" no publican monto: se fuerza web_price=false
+// también en este proxy (mismo criterio que getProperties en lib/tokko).
+function ocultarPreciosLista<T extends FeedListResponse>(data: T): T {
+  if (Array.isArray(data?.objects)) data.objects = data.objects.map(ocultarPrecioOportunidad)
+  return data
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -14,7 +24,7 @@ export async function GET(request: NextRequest) {
       next: { revalidate: 900, tags: ['tokko-properties'] },
     })
     if (!r.ok) return NextResponse.json({ error: `Hilo feed error: ${r.status}` }, { status: r.status })
-    const j = await r.json()
+    const j = ocultarPreciosLista(await r.json())
     return NextResponse.json(j, {
       headers: { 'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=86400' },
     })
@@ -41,7 +51,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: `Tokko error: ${res.status}` }, { status: res.status })
   }
 
-  const data = await res.json()
+  const data = ocultarPreciosLista(await res.json())
   return NextResponse.json(data, {
     headers: {
       // Cacheo en el edge de Vercel, consistente con list-cards/similar/nearby.
