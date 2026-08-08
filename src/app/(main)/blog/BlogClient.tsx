@@ -172,12 +172,6 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-5 md:gap-8 lg:grid-cols-[1fr_360px] lg:items-end">
             <div>
-              <p
-                className="mb-2 text-[11px] font-bold uppercase tracking-[0.22em] md:mb-4 md:text-[12px] md:tracking-[0.24em]"
-                style={{ color: GREEN }}
-              >
-                SI INMOBILIARIA · Editorial
-              </p>
               <h1 className="max-w-3xl text-[42px] font-black leading-[1.02] tracking-tight text-gray-950 md:text-6xl">
                 Blog inmobiliario
               </h1>
