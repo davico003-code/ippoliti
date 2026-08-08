@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Navbar from './Navbar'
 
-const HIDE_CHROME_PREFIXES = ['/emprendimientos/67178', '/seleccion']
+const HIDE_CHROME_PREFIXES = ['/emprendimientos/67178', '/seleccion', '/dockgarden']
 
 function shouldHideChrome(pathname: string | null): boolean {
   if (!pathname) return false

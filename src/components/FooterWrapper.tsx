@@ -11,6 +11,9 @@ export default function FooterWrapper() {
   if (pathname === '/agentes/seleccion') return null
   if (pathname?.startsWith('/seleccion/')) return null
 
+  // Landing compartible de Dock Garden: chrome propio (header + CTA de cierre).
+  if (pathname === '/dockgarden') return null
+
   // Home: usa el mismo footer blanco global (responsive) que el resto del sitio.
   // El FooterMobile propio se removió de page.tsx para no duplicar.
 
