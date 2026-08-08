@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getProperties, sanitizeProperty, type TokkoListResponse } from '@/lib/tokko'
+import { getProperties, sanitizeProperty, ocultarPrecioOportunidad, type TokkoListResponse } from '@/lib/tokko'
 import { enrichCardsWithAudio, projectToCard } from '@/lib/projections'
 
 // Devuelve TODAS las propiedades disponibles proyectadas a card-shape
@@ -26,7 +26,10 @@ async function getFreshProperties(): Promise<TokkoListResponse> {
     next: { revalidate: 300, tags: ['tokko-properties'] },
   })
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`)
-  return (await res.json()) as TokkoListResponse
+  const data = (await res.json()) as TokkoListResponse
+  // Mismo criterio que getProperties: las oportunidades "Consultanos" van sin monto.
+  data.objects = (data.objects ?? []).map(ocultarPrecioOportunidad)
+  return data
 }
 
 export async function GET() {

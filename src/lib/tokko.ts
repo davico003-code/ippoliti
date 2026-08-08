@@ -416,7 +416,10 @@ export function esOportunidadConsultanos(id: number | null | undefined): boolean
   return id != null && OPORTUNIDADES_CONSULTANOS.has(id);
 }
 
-function ocultarPrecioOportunidad<T extends Pick<TokkoProperty, 'id' | 'web_price'>>(p: T): T {
+// Exportada: las rutas que proxyean el feed de Hilo directo (sin pasar por
+// getProperties/getPropertyById) también tienen que aplicarla, o el monto se
+// filtra por la API (pasó con /api/propiedades/[id] y el panel de la ficha).
+export function ocultarPrecioOportunidad<T extends Pick<TokkoProperty, 'id' | 'web_price'>>(p: T): T {
   return esOportunidadConsultanos(p.id) ? { ...p, web_price: false } : p;
 }
 
