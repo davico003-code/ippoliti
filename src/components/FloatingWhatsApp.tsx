@@ -17,6 +17,8 @@ export default function FloatingWhatsApp() {
   if (pathname.startsWith('/seleccion/')) return null
   // Hide on Distrito Roldán (67178) — tiene su propio FAB dedicado con texto pre-cargado.
   if (pathname.startsWith('/emprendimientos/67178')) return null
+  // Hide on /dockgarden — mismo patrón: FAB propio con texto pre-cargado.
+  if (pathname === '/dockgarden') return null
   // Hide on /recursos — la propia página tiene su CTA "Hablar con un agente"
   // en el bloque verde inferior con el mismo número.
   if (pathname === '/recursos') return null

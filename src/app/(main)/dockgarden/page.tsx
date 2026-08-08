@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MapPin, MessageCircle, Phone, FileText, CheckCircle2 } from 'lucide-react'
-import { getDockGarden, unitLabel, type BrickfyUnit } from '@/lib/brickfy'
+import { getDockGarden } from '@/lib/brickfy'
 import DockGardenUnits, { DockGardenMedia } from '@/components/dockgarden/DockGardenUnits'
 
 // Landing compartible de Dock Garden (Aldea Fisherton) — versión SI del link
@@ -26,29 +26,11 @@ export const metadata: Metadata = {
     description:
       'Condominio y paseo comercial en Aldea Fisherton. Mirá precios, planos y recorridos 360° de todas las unidades.',
     url: PAGE_URL,
-    images: [{ url: 'https://brickfy-media.nyc3.cdn.digitaloceanspaces.com/VERS/portadas/c6310535-072b-46c7-9b16-3f19be6615d2.webp' }],
+    // JPEG propio 1200x630 (<300KB) servido desde nuestro dominio: WhatsApp no
+    // siempre renderiza webp de terceros, y el original traía el sello del
+    // desarrollador. Generado del cover de Brickfy recortando la franja del logo.
+    images: [{ url: 'https://siinmobiliaria.com/og-dockgarden.jpg', width: 1200, height: 630, type: 'image/jpeg', alt: 'Dock Garden — Aldea Fisherton' }],
   },
-}
-
-// Mensaje de WhatsApp con la lista de precios completa (solo disponibles),
-// mismo criterio que el botón de la página de emprendimientos.
-function buildPriceListHref(units: BrickfyUnit[]): string {
-  const rows = units
-    .filter(u => u.status === 'available' && u.price > 0)
-    .sort((a, b) => a.price - b.price)
-  const lines = rows.map(u =>
-    `▪️ ${unitLabel(u)} — ${u.typology} · ${u.coveredSurfaceM2} m² — *USD ${u.price.toLocaleString('es-AR')}*`,
-  )
-  const msg = [
-    '*Lista de precios — Dock Garden (Aldea Fisherton)*',
-    `${rows.length} unidad${rows.length !== 1 ? 'es' : ''} disponible${rows.length !== 1 ? 's' : ''}:`,
-    '',
-    ...lines,
-    '',
-    `Fotos, planos y vistas 360°: ${PAGE_URL}`,
-    'SI INMOBILIARIA · (341) 210-1694',
-  ].join('\n')
-  return `https://wa.me/?text=${encodeURIComponent(msg)}`
 }
 
 export default async function DockGardenPage() {
@@ -81,7 +63,6 @@ export default async function DockGardenPage() {
   const available = units.filter(u => u.status === 'available')
   const areas = units.map(u => u.coveredSurfaceM2).filter(a => a > 0).sort((a, b) => a - b)
   const dormsSet = Array.from(new Set(units.map(u => u.bedrooms))).sort((a, b) => a - b)
-  const priceListHref = buildPriceListHref(units)
   const videos = (project.videos || []).map(v => ({
     nombre: v.nombre,
     // El iframe de Cloudflare Stream vive en el mismo host que el thumbnail.
@@ -105,25 +86,21 @@ export default async function DockGardenPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo-si-horizontal.png" alt="SI INMOBILIARIA" className="h-8 w-auto" />
           </Link>
-          <div className="flex items-center gap-2">
-            <a href="tel:+5493412101694"
-              className="hidden items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:bg-gray-50 sm:inline-flex">
-              <Phone className="h-4 w-4" /> <span className="font-numeric">(341) 210-1694</span>
-            </a>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-[13px] font-bold text-white transition-colors hover:bg-[#1ea952]">
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </a>
-          </div>
+          {/* Único WhatsApp de la página = FAB flotante; el header queda liviano. */}
+          <a href="tel:+5493412101694"
+            className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:bg-gray-50">
+            <Phone className="h-4 w-4" /> <span className="hidden font-numeric sm:inline">(341) 210-1694</span><span className="sm:hidden">Llamar</span>
+          </a>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative h-[52vh] min-h-[380px] w-full md:h-[62vh]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* Hero compacto en mobile: la info manda, la foto acompaña. */}
+      <section className="relative h-[34vh] min-h-[240px] w-full md:h-[56vh]">
         {/* El render trae el logo del desarrollador estampado en la franja
             superior: crop anclado abajo + zoom para dejarlo fuera del encuadre
             en cualquier viewport. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={project.coverUrl} alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full scale-125 object-cover object-bottom origin-bottom" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
         <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
@@ -171,18 +148,12 @@ export default async function DockGardenPage() {
               Listado oficial del desarrollador, actualizado automáticamente
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <a href={priceListHref} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-[#1ea952]">
-              <MessageCircle className="h-4 w-4" /> Enviar lista de precios
+          {project.brochureUrl && (
+            <a href={project.brochureUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-[13px] font-bold text-gray-700 transition-colors hover:bg-gray-50">
+              <FileText className="h-4 w-4" /> Brochure PDF
             </a>
-            {project.brochureUrl && (
-              <a href={project.brochureUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-[13px] font-bold text-gray-700 transition-colors hover:bg-gray-50">
-                <FileText className="h-4 w-4" /> Brochure PDF
-              </a>
-            )}
-          </div>
+          )}
         </div>
 
         <DockGardenUnits units={units} />
@@ -208,33 +179,30 @@ export default async function DockGardenPage() {
         )}
       </div>
 
-      {/* CTA final */}
-      <section className="bg-[#1A5C38] px-4 py-14 text-center">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="mb-3 text-3xl font-black text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>
-            ¿Querés conocer Dock Garden?
-          </h2>
-          <p className="mb-7 text-white/70">
-            Coordinamos una visita al showroom, te mandamos el detalle de la financiación y te acompañamos en todo el proceso.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#1ea952]">
-              <MessageCircle className="h-5 w-5" /> Consultar por WhatsApp
-            </a>
-            <a href="tel:+5493412101694"
-              className="inline-flex items-center gap-2 rounded-xl border-2 border-white/25 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10">
-              <Phone className="h-5 w-5" /> <span className="font-numeric">(341) 210-1694</span>
-            </a>
-          </div>
-          <p className="mt-8 text-xs text-white/50">
-            SI INMOBILIARIA · David Flores · Mat. N° 0621 ·{' '}
-            <Link href="/emprendimientos" className="underline decoration-white/30 underline-offset-2 hover:text-white/80">
-              Ver más emprendimientos
-            </Link>
-          </p>
-        </div>
-      </section>
+      {/* Footer compacto — el contacto vive en el FAB de WhatsApp. */}
+      <footer className="border-t border-gray-100 bg-white px-4 py-8 text-center">
+        <p className="text-xs text-gray-400">
+          SI INMOBILIARIA · David Flores · Mat. N° 0621 ·{' '}
+          <a href="tel:+5493412101694" className="font-numeric hover:text-gray-600">(341) 210-1694</a> ·{' '}
+          <Link href="/emprendimientos" className="underline decoration-gray-300 underline-offset-2 hover:text-gray-600">
+            Ver más emprendimientos
+          </Link>
+        </p>
+      </footer>
+
+      {/* FAB WhatsApp — ÚNICO botón de WhatsApp de la página, con mensaje
+          pre-cargado (mismo patrón que Distrito Roldán; el global se oculta acá). */}
+      <a
+        href={whatsappUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Consultar por WhatsApp"
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_4px_14px_rgba(37,211,102,0.45)] transition-transform hover:scale-105 hover:bg-[#1ea952]"
+      >
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/>
+        </svg>
+      </a>
     </div>
   )
 }
