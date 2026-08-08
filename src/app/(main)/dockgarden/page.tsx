@@ -166,7 +166,8 @@ export default async function DockGardenPage() {
         <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Raleway, sans-serif' }}>Unidades y precios</h2>
-            <p className="mt-1 text-sm text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            {/* Texto en Raleway (la base del sitio); Poppins queda solo para números. */}
+            <p className="mt-1 text-sm text-gray-400">
               Listado oficial del desarrollador, actualizado automáticamente
             </p>
           </div>
