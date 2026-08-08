@@ -16,7 +16,7 @@ export default function SeccionAvancesObra() {
             </h2>
           </div>
           <p className="max-w-[62ch] text-pretty text-[15px] leading-7 text-[#345544]/75 lg:justify-self-end">
-            Seguimos el desarrollo con fotografías reales del predio. Cada actualización queda ordenada por fecha para que puedas ver la evolución del proyecto con claridad.
+            Seguimos el desarrollo con fotografías reales del predio. Deslizá para recorrer las últimas imágenes de la obra y ver cómo avanza el proyecto.
           </p>
         </div>
 
