@@ -9,6 +9,7 @@
 // desktop: 5-col grid with row-span) that unifying forced a tall 2×2 thumb
 // strip on mobile that filled the viewport.
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
@@ -72,6 +73,17 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [showAll])
+
+  // El visor se cuelga del <body>, no de acá.
+  //
+  // Cuando la ficha se abre como panel desde /propiedades, PropertyPanel la
+  // envuelve en un contenedor con `md:-translate-x-1/2`. Un `transform` en un
+  // ancestro hace que `position: fixed` se mida contra ESE contenedor y no
+  // contra la pantalla: por eso la foto quedaba encajonada entre el listado y
+  // el mapa, y la ✕ terminaba debajo del menú. Sacándolo al body, el visor
+  // vuelve a ocupar la pantalla completa en los dos casos (panel y ficha).
+  const [montado, setMontado] = useState(false)
+  useEffect(() => setMontado(true), [])
 
   if (photos.length === 0) return null
 
@@ -198,32 +210,36 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
         )}
       </div>
 
-      {/* Lightbox fullscreen — compartido entre mobile y desktop */}
-      {showAll && (
-        <div className="fixed inset-0 z-[10500] bg-black">
-          <button
-            onClick={() => setShowAll(false)}
-            aria-label="Cerrar galería"
-            className="absolute top-4 right-4 z-10 text-white bg-white/20 rounded-full w-10 h-10 flex items-center justify-center text-xl hover:bg-white/30"
-          >
-            &times;
-          </button>
-          <div className="h-full overflow-y-auto overscroll-y-contain p-4 pt-16">
-            <div className="max-w-4xl mx-auto space-y-2">
-              {photos.map((p, i) => (
-                <Image
-                  key={i}
-                  src={p}
-                  alt={`Foto ${i + 1}`}
-                  width={1200}
-                  height={800}
-                  className="w-full h-auto rounded-lg"
-                />
-              ))}
+      {/* Lightbox fullscreen — compartido entre mobile y desktop.
+          Va por portal al <body> para escapar del transform del panel. */}
+      {showAll &&
+        montado &&
+        createPortal(
+          <div className="fixed inset-0 z-[10500] bg-black">
+            <button
+              onClick={() => setShowAll(false)}
+              aria-label="Cerrar galería"
+              className="fixed top-4 right-4 z-[10510] flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-xl text-white backdrop-blur-sm hover:bg-white/30"
+            >
+              &times;
+            </button>
+            <div className="h-full overflow-y-auto overscroll-y-contain p-4 pt-16">
+              <div className="mx-auto max-w-4xl space-y-2">
+                {photos.map((p, i) => (
+                  <Image
+                    key={i}
+                    src={p}
+                    alt={`Foto ${i + 1}`}
+                    width={1200}
+                    height={800}
+                    className="h-auto w-full rounded-lg"
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   )
 }
