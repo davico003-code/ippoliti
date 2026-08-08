@@ -30,6 +30,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/recursos`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/recursos/calculadora-alquiler`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/recursos/ajuste-alquiler`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/recursos/costos-de-construccion`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/recursos/mapa-funes`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/recursos/asistente-obras`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    // Fincazul es ruta estática (no viene en el feed de Tokko, así que el mapeo
+    // de getDevelopments() de abajo nunca la incluye).
+    { url: `${BASE}/emprendimientos/fincazul`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/barrio-los-aromos-roldan`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/barrio-don-mateo-funes`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/barrio-el-molino-roldan`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
@@ -47,27 +53,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   let propertyRoutes: MetadataRoute.Sitemap = []
+  let propertyObjects: ReturnType<typeof sanitizeProperty>[] = []
   try {
     // Sin limit: trae TODO el inventario (antes {limit:100} cortaba a 100 y en
     // Hilo dejaba ~150 propiedades fuera del sitemap → sin indexar).
     const data = await getProperties()
-    propertyRoutes = (data.objects ?? []).map(p => ({
+    // Defensa: si el feed alguna vez incluye despublicadas, no las listamos.
+    propertyObjects = (data.objects ?? []).map(sanitizeProperty).filter(p => !p.deleted_at)
+    propertyRoutes = propertyObjects.map(p => ({
       url: `${BASE}/propiedades/${generatePropertySlug(p)}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }))
-  } catch {}
+  } catch (err) {
+    // Catch NO silencioso: un 403 de Tokko acá publica un sitemap sin las ~220
+    // fichas y nadie se entera. Al menos que quede en los logs de Vercel.
+    console.error('[sitemap] No se pudieron listar propiedades:', err instanceof Error ? err.message : err)
+  }
 
-  const blogRoutes: MetadataRoute.Sitemap = [
+  let blogRoutes: MetadataRoute.Sitemap = [
     { url: `${BASE}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    ...(await getAllPosts()).map(post => ({
-      url: `${BASE}/blog/${post.slug}`,
-      lastModified: new Date(post.date),
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
-    })),
   ]
+  try {
+    blogRoutes = blogRoutes.concat(
+      (await getAllPosts()).map(post => {
+        // new Date(post.date) con una fecha corrupta produce Invalid Date y el
+        // serializador del sitemap revienta con RangeError → sitemap.xml 500.
+        const d = new Date(post.date)
+        return {
+          url: `${BASE}/blog/${post.slug}`,
+          ...(isNaN(d.getTime()) ? {} : { lastModified: d }),
+          changeFrequency: 'monthly' as const,
+          priority: 0.6,
+        }
+      }),
+    )
+  } catch (err) {
+    console.error('[sitemap] No se pudieron listar posts del blog:', err instanceof Error ? err.message : err)
+  }
 
   let devRoutes: MetadataRoute.Sitemap = [
     { url: `${BASE}/emprendimientos`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
@@ -80,7 +104,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     })))
-  } catch {}
+  } catch (err) {
+    console.error('[sitemap] No se pudieron listar emprendimientos:', err instanceof Error ? err.message : err)
+  }
 
   const barriosRoutes: MetadataRoute.Sitemap = [
     {
@@ -111,17 +137,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   })
 
-  // Páginas de edificio (departamentos agrupados por dirección).
+  // Páginas de edificio (departamentos agrupados por dirección). Reusa el
+  // inventario ya fetcheado arriba en vez de pegarle a Tokko de nuevo.
   let edificioRoutes: MetadataRoute.Sitemap = []
   try {
-    const data = await getProperties()
-    edificioRoutes = detectarEdificios((data.objects ?? []).map(sanitizeProperty)).map((e) => ({
+    edificioRoutes = detectarEdificios(propertyObjects).map((e) => ({
       url: `${BASE}/edificios/${e.slug}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }))
-  } catch {}
+  } catch (err) {
+    console.error('[sitemap] No se pudieron detectar edificios:', err instanceof Error ? err.message : err)
+  }
 
   return [...staticRoutes, ...edificioRoutes, ...tasadorRoutes, ...barriosRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
 }

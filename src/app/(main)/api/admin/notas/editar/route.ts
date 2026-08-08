@@ -127,6 +127,9 @@ export async function POST(req: Request) {
     ...(body.titulo?.trim() ? { titulo: body.titulo.trim() } : {}),
     ...(body.meta_description?.trim() ? { meta_description: body.meta_description.trim() } : {}),
     ...(body.bajada?.trim() ? { bajada: body.bajada.trim() } : {}),
+    // Sello de edición: alimenta el dateModified del JSON-LD del post (señal
+    // de frescura para Google). fecha_publicacion se conserva intacta.
+    fecha_modificacion: new Date().toISOString(),
   }
 
   // Re-put en el MISMO pathname (overwrite); mismo store del blog.

@@ -19,6 +19,14 @@ export const metadata: Metadata = {
   description:
     'Emprendimientos inmobiliarios en Roldán, Funes y Rosario. Condominios, barrios abiertos y cerrados. SI INMOBILIARIA — desde 1983.',
   alternates: { canonical: 'https://siinmobiliaria.com/emprendimientos' },
+  // Sin este bloque, la página hereda el openGraph del root layout y publica
+  // og:url = https://siinmobiliaria.com (el home) en vez de su propia URL.
+  openGraph: {
+    title: 'Emprendimientos | SI INMOBILIARIA',
+    description:
+      'Emprendimientos inmobiliarios en Roldán, Funes y Rosario. Condominios, barrios abiertos y cerrados.',
+    url: 'https://siinmobiliaria.com/emprendimientos',
+  },
 }
 
 const GREEN = '#1A5C38'

@@ -1,7 +1,13 @@
 import type { MetadataRoute } from 'next'
 
-// Zonas privadas que ningún bot debe indexar.
-const DISALLOW = ['/api/', '/admin/', '/agentes/', '/recursos/si-school/', '/school', '/propiedades-hilo/']
+// Zonas privadas que ningún bot debe rastrear. OJO: solo van acá las rutas SIN
+// meta noindex propio (/api/ no tiene HTML; /admin/ son shells client-gated).
+// Las demás zonas privadas (/agentes/, /school, /recursos/si-school/,
+// /propiedades-hilo/, /fichas, /seleccion/) se protegen con robots noindex en
+// su metadata: si además estuvieran en Disallow, Google tendría prohibido
+// rastrearlas y NUNCA leería el noindex → podrían quedar indexadas "sin
+// descripción disponible" si alguien las linkea.
+const DISALLOW = ['/api/', '/admin/']
 
 // Bots de asistentes de IA (ChatGPT, Claude, Gemini, Perplexity, etc.).
 // Los habilitamos EXPLÍCITAMENTE para que nos puedan leer y citar en sus

@@ -7,6 +7,14 @@ export const metadata: Metadata = {
   title: 'Informes de Mercado Inmobiliario | SI INMOBILIARIA',
   description: 'Dólar, inflación IPC, índice de alquileres ICL y costo de construcción CAC actualizados cada semana. Datos oficiales para decidir mejor en Funes y Roldán.',
   alternates: { canonical: 'https://siinmobiliaria.com/informes' },
+  // Sin este bloque, la página hereda el openGraph del root layout y publica
+  // og:url = https://siinmobiliaria.com (el home) en vez de su propia URL.
+  openGraph: {
+    title: 'Informes de Mercado Inmobiliario | SI INMOBILIARIA',
+    description:
+      'Dólar, inflación IPC, índice de alquileres ICL y costo de construcción CAC actualizados cada semana.',
+    url: 'https://siinmobiliaria.com/informes',
+  },
 }
 
 export default function InformesPage() {

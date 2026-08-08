@@ -50,7 +50,6 @@ export default function ConfianzaDesktop() {
               src="/familia-flores.webp"
               alt="Familia Flores - SI INMOBILIARIA desde 1983"
               fill
-              priority
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="object-cover"
               style={{ objectPosition: 'center 18%' }}

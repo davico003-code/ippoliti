@@ -47,9 +47,13 @@ export default function HeroMobile() {
           media="(max-width: 734px)"
           type="image/webp"
         />
+        {/* Capeado a <768px: este hero está oculto en desktop (md:hidden) pero
+            display:none NO evita la descarga de <picture> — sin el cap,
+            desktop bajaba medium_2x (905 KB) que jamás mostraba. En >=768 no
+            matchea ningún source y cae al <img> (small, 150 KB). */}
         <source
           srcSet="/images/hero/home-architecture-medium.webp, /images/hero/home-architecture-medium_2x.webp 2x"
-          media="(min-width: 0px)"
+          media="(max-width: 767px)"
           type="image/webp"
         />
         <img

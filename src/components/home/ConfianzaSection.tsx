@@ -51,7 +51,6 @@ export default function ConfianzaSection() {
             alt="Familia Flores — SI INMOBILIARIA desde 1983"
             width={900}
             height={1125}
-            priority
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, transparent 35%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.92) 100%)' }} />
