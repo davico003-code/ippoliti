@@ -1,8 +1,8 @@
 'use client'
 
-// Grilla de fotos reales del barrio, con visor a pantalla completa al tocar una.
+// Carrusel de fotos reales del barrio, con visor a pantalla completa al tocar una.
 //
-// La grilla se renderiza en el servidor (este componente se prerenderiza como
+// El carrusel se renderiza en el servidor (este componente se prerenderiza como
 // cualquier client component), así las fotos viajan en el HTML y no hay salto
 // de layout cuando hidrata. Lo único que se difiere es el visor: su código baja
 // recién cuando alguien abre una foto, que es cuando hace falta.
@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { Expand } from 'lucide-react'
 import 'yet-another-react-lightbox/styles.css'
+import HorizontalCarousel from '@/components/HorizontalCarousel'
 
 const Lightbox = dynamic(() => import('yet-another-react-lightbox'), { ssr: false })
 
@@ -32,7 +33,7 @@ export default function GaleriaBarrio({ fotos, proyecto }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+      <HorizontalCarousel className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-3 scrollbar-none sm:gap-4">
         {fotos.map((src, i) => (
           <button
             key={src}
@@ -42,13 +43,13 @@ export default function GaleriaBarrio({ fotos, proyecto }: Props) {
               setAbierto(true)
             }}
             aria-label={`Ampliar la foto ${i + 1} de ${fotos.length}`}
-            className="group relative aspect-[4/3] overflow-hidden bg-[#345544]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B35E21] focus-visible:ring-offset-4"
+            className="group relative aspect-[4/3] h-[240px] flex-none snap-start overflow-hidden bg-[#345544]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B35E21] focus-visible:ring-offset-4 sm:h-[300px] md:h-[360px]"
           >
             <Image
               src={src}
               alt={alt(i)}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 380px"
+              sizes="(max-width: 640px) 85vw, (max-width: 1024px) 55vw, 480px"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] motion-reduce:transition-none"
             />
             <span className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F8F1E6] text-[#345544] opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
@@ -56,7 +57,7 @@ export default function GaleriaBarrio({ fotos, proyecto }: Props) {
             </span>
           </button>
         ))}
-      </div>
+      </HorizontalCarousel>
 
       {abierto && (
         <Lightbox
