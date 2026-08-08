@@ -14,6 +14,7 @@ import {
   HOOKS,
   MAX_OPORTUNIDADES,
   type Hook,
+  type Oportunidad,
 } from '@/lib/oportunidades'
 import {
   getPropertyById,
@@ -33,10 +34,71 @@ async function isAdmin(): Promise<boolean> {
   return agent?.role === 'admin'
 }
 
+// Las fotos snapshoteadas pueden ser URLs firmadas de Supabase Storage que
+// vencen a los ~7 días (JWT en ?token=). Para que el popup no quede con
+// imágenes rotas, el GET re-resuelve el snapshot cuando la firma está por
+// vencer (o ya venció) y lo persiste de vuelta en Redis.
+const REFRESH_MARGIN_MS = 24 * 60 * 60 * 1000
+
+function fotoExpira(foto: string | null): number | null {
+  if (!foto) return null
+  try {
+    const token = new URL(foto).searchParams.get('token')
+    if (!token) return null // URL pública (Tokko CDN): no vence
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf8'))
+    return typeof payload?.exp === 'number' ? payload.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+async function refrescarSnapshot(item: Oportunidad): Promise<Oportunidad | null> {
+  try {
+    const prop = sanitizeProperty(await getPropertyById(item.propertyId))
+    let pctBaja = item.pctBaja
+    if (item.precioAnterior) {
+      const anterior = Number(item.precioAnterior.replace(/[^\d]/g, ''))
+      const actual = Number(prop.operations?.[0]?.prices?.[0]?.price)
+      if (Number.isFinite(anterior) && anterior > 0 && Number.isFinite(actual) && actual > 0 && anterior > actual) {
+        pctBaja = Math.round(((anterior - actual) / anterior) * 1000) / 10
+      }
+    }
+    return {
+      ...item,
+      titulo: prop.publication_title || prop.fake_address || prop.address || item.titulo,
+      foto: getMainPhoto(prop),
+      precio: formatPrice(prop),
+      ...(item.precioAnterior ? { pctBaja } : {}),
+      href: `/propiedades/${generatePropertySlug(prop)}`,
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function GET() {
   const items = await listOportunidades()
+
+  let cambio = false
+  const frescos = await Promise.all(
+    items.map(async (item) => {
+      const exp = fotoExpira(item.foto)
+      if (exp === null || exp - Date.now() > REFRESH_MARGIN_MS) return item
+      const nuevo = await refrescarSnapshot(item)
+      if (nuevo) {
+        cambio = true
+        return nuevo
+      }
+      // No se pudo re-resolver: si la firma ya venció, mejor sin foto que rota.
+      return exp < Date.now() ? { ...item, foto: null } : item
+    }),
+  )
+  if (cambio) {
+    try { await saveOportunidades(frescos) } catch {}
+  }
+
   return NextResponse.json(
-    { items },
+    { items: frescos },
     { headers: { 'cache-control': 'public, s-maxage=60, stale-while-revalidate=300' } },
   )
 }
