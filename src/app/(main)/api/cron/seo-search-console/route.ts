@@ -102,8 +102,10 @@ export async function GET(req: Request) {
     )
   }
 
-  // Notificación: solo si hay algo que decir.
-  if (alertas.length > 0) {
+  // Notificación: solo si hay algo que decir. Con ?dry=1 se saltea el
+  // WhatsApp (para probar el circuito a mano sin hacer ruido).
+  const dry = new URL(req.url).searchParams.get('dry') === '1'
+  if (alertas.length > 0 && !dry) {
     const cuerpo = `🔍 Monitor de indexación — siinmobiliaria.com\n\n${alertas.map((a) => `• ${a}`).join('\n')}`
     try {
       await enviarWhatsAppAdmin(cuerpo)
