@@ -20,7 +20,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
-  if (!post) return { title: 'Artículo no encontrado | SI INMOBILIARIA' }
+  // Defensa: el body hace notFound() (404 real), pero por si algún día esta
+  // ruta gana un boundary de streaming que commitee 200, que quede el noindex.
+  if (!post) return { title: 'Artículo no encontrado | SI INMOBILIARIA', robots: { index: false, follow: false } }
 
   const url = `https://siinmobiliaria.com/blog/${params.slug}`
   // Imagen OG SIEMPRE absoluta: usamos la imagen curada (única por post) y, si
@@ -77,15 +79,18 @@ export default async function BlogPostPage({ params }: Props) {
   const usaImagenCurada = post.hasImageOverride || Boolean(BLOG_IMAGES[post.slug])
 
   // BlogPosting completo para rich results. Solo campos con datos reales del
-  // post (sin dateModified: BlogPost no trackea fecha de edición). El publisher
-  // referencia por @id a la entidad #organization del layout raíz.
+  // post. El publisher referencia por @id a la entidad #organization del
+  // layout raíz. datePublished usa el ISO completo cuando existe (notas
+  // dinámicas); dateModified sale de la edición vía panel (updatedAt) y cae a
+  // la fecha de publicación si la nota nunca se editó.
   const postUrl = `https://siinmobiliaria.com/blog/${post.slug}`
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.summary,
-    datePublished: post.date,
+    datePublished: post.publishAt ?? post.date,
+    dateModified: post.updatedAt ?? post.publishAt ?? post.date,
     mainEntityOfPage: { '@type': 'WebPage', '@id': postUrl },
     url: postUrl,
     inLanguage: 'es-AR',

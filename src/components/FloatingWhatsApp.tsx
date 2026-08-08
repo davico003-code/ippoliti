@@ -8,6 +8,10 @@ import { events } from '@/lib/analytics'
 export default function FloatingWhatsApp() {
   const pathname = usePathname()
 
+  // Guard defensivo (mismo criterio que ConditionalChrome/FooterWrapper):
+  // usePathname puede devolver null en edge cases del App Router.
+  if (!pathname) return null
+
   // Hide on property detail pages (they have their own sticky bar with WhatsApp)
   if (pathname.startsWith('/propiedades/') && pathname !== '/propiedades') return null
   if (pathname.startsWith('/seleccion/')) return null

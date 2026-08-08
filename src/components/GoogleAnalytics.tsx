@@ -4,6 +4,7 @@
 // renderiza null (no se envía ningún script). El ID se configura en
 // Vercel y .env.local: NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 import Script from 'next/script'
+import GoogleAnalyticsSpa from './GoogleAnalyticsSpa'
 
 export default function GoogleAnalytics() {
   const id = process.env.NEXT_PUBLIC_GA_ID
@@ -23,6 +24,7 @@ export default function GoogleAnalytics() {
           gtag('config', '${id}', { send_page_view: true, anonymize_ip: true });
         `}
       </Script>
+      <GoogleAnalyticsSpa />
     </>
   )
 }

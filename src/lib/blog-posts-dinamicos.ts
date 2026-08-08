@@ -45,6 +45,7 @@ interface NotaPublicadaBlob {
   imagen_sugerida: string;
   cta_usado: string;
   fecha_publicacion: string;
+  fecha_modificacion?: string;
   url_completa: string;
   imagen_url?: string;
   imagen_alt?: string;
@@ -128,6 +129,7 @@ function blobToBlogPost(nota: NotaPublicadaBlob): BlogPost | null {
     imagen_photographer: nota.imagen_photographer,
     imagen_photographer_url: nota.imagen_photographer_url,
     publishAt: nota.fecha_publicacion,
+    updatedAt: nota.fecha_modificacion,
   };
 }
 

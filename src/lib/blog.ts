@@ -14,6 +14,7 @@ export interface BlogPost {
   imagen_photographer?: string
   imagen_photographer_url?: string
   publishAt?: string    // ISO completo; si es futuro, la nota está programada
+  updatedAt?: string    // ISO completo; se estampa al editar la nota en el panel
   hasImageOverride?: boolean
 }
 

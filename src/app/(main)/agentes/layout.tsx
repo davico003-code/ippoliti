@@ -1,8 +1,13 @@
+import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { verifyAgentToken } from '@/lib/auth'
 import AgentShell from '@/components/seleccion/AgentShell'
 
 export const dynamic = 'force-dynamic'
+
+// Panel interno del equipo (incluye /agentes/login): nunca indexar. Este
+// noindex reemplaza al Disallow de robots.ts (ver comentario ahí).
+export const metadata: Metadata = { robots: { index: false, follow: false } }
 
 export default async function AgentesLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = cookies()

@@ -84,7 +84,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: ogDesc,
         url: canonicalUrl,
         type: 'article',
-        ...(photo ? { images: [{ url: photo, width: 800, height: 600, alt: title }] } : {}),
+        // Sin width/height hardcodeados: las fotos de Tokko no son 800x600 y
+        // declarar dimensiones falsas distorsiona el preview en WhatsApp/FB.
+        ...(photo ? { images: [{ url: photo, alt: title }] } : {}),
       },
       twitter: {
         card: 'summary_large_image',
@@ -123,6 +125,13 @@ export default async function PropertyPage({ params }: Props) {
       notFound();
     }
     throw e;
+  }
+
+  // Defensa: si el feed alguna vez sirve una propiedad despublicada (hoy el
+  // feed de Hilo hace 404, pero deleted_at viaja en el payload), no la
+  // renderizamos como si estuviera activa.
+  if (property.deleted_at) {
+    notFound();
   }
 
   // #3: slug canónico derivado del ID/título, para que el JSON-LD (url +
@@ -210,7 +219,9 @@ export default async function PropertyPage({ params }: Props) {
           longitude: currentLng,
         },
       } : {}),
-      numberOfRooms: (property.suite_amount || property.room_amount || 0) + (property.bathroom_amount || 0),
+      // Schema.org: numberOfRooms son los ambientes, NO incluye baños (esos
+      // van en numberOfBathroomsTotal; sumarlos acá duplicaba el dato).
+      numberOfRooms: property.room_amount || property.suite_amount || undefined,
       numberOfBedrooms: isMonoambiente(property) ? 0 : (property.suite_amount || property.room_amount || undefined),
       numberOfBathroomsTotal: property.bathroom_amount || undefined,
       floorSize: area ? { '@type': 'QuantitativeValue', value: area, unitCode: 'MTK' } : undefined,
