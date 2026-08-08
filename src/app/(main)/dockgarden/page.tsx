@@ -26,7 +26,10 @@ export const metadata: Metadata = {
     description:
       'Condominio y paseo comercial en Aldea Fisherton. Mirá precios, planos y recorridos 360° de todas las unidades.',
     url: PAGE_URL,
-    images: [{ url: 'https://brickfy-media.nyc3.cdn.digitaloceanspaces.com/VERS/portadas/c6310535-072b-46c7-9b16-3f19be6615d2.webp' }],
+    // JPEG propio 1200x630 (<300KB) servido desde nuestro dominio: WhatsApp no
+    // siempre renderiza webp de terceros, y el original traía el sello del
+    // desarrollador. Generado del cover de Brickfy recortando la franja del logo.
+    images: [{ url: 'https://siinmobiliaria.com/og-dockgarden.jpg', width: 1200, height: 630, type: 'image/jpeg', alt: 'Dock Garden — Aldea Fisherton' }],
   },
 }
 
