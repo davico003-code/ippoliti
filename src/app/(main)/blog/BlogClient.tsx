@@ -168,7 +168,7 @@ export default function BlogClient({ posts }: { posts: PostCard[] }) {
 
   return (
     <div className="min-h-screen bg-[#FAFBF7]">
-      <section className="border-b border-[#E8EEE7] bg-white px-4 pb-5 pt-20 md:pb-10 md:pt-36">
+      <section className="border-b border-[#E8EEE7] bg-white px-4 pb-5 pt-6 md:pb-10 md:pt-10">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-5 md:gap-8 lg:grid-cols-[1fr_360px] lg:items-end">
             <div>
