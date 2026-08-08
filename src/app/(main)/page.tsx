@@ -25,6 +25,7 @@ import {
   getLotSurface,
   isLand,
   isMonoambiente,
+  esOportunidadConsultanos,
   type TokkoProperty,
 } from '@/lib/tokko'
 
@@ -114,9 +115,20 @@ async function FeaturedPropertiesSection() {
           )}
         </div>
         <div style={{ padding: '10px 14px' }}>
+          {esOportunidadConsultanos(property.id) ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
+              <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '4px 9px', whiteSpace: 'nowrap' }}>
+                Oportunidad
+              </span>
+              <span style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 14, background: '#1A5C38', color: '#fff', borderRadius: 999, padding: '6px 15px', whiteSpace: 'nowrap' }}>
+                Consultanos →
+              </span>
+            </div>
+          ) : (
           <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
             {price}
           </p>
+          )}
           {specs.length > 0 && (
             <p style={{ fontFamily: POPPINS, fontSize: 14, color: '#1d1d1f', margin: '0 0 4px', fontWeight: 400 }}>
               {specs.map((s, i) => (

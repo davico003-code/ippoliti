@@ -403,6 +403,23 @@ export function parseStreetOnly(address: string | null | undefined): string {
   return words.join(' ')
 }
 
+// ─── Oportunidades "Consultanos" ─────────────────────────────────────────────
+// Propiedades que se publican SIN precio en toda la web por decisión comercial:
+// al leer el feed se les fuerza web_price=false (el monto no se expone) y las
+// cards/ficha muestran el CTA "Consultanos · Oportunidad" en lugar del precio.
+// Además quedan fijas al frente de "Nuestra selección" en el inicio.
+export const OPORTUNIDADES_CONSULTANOS = new Set<number>([
+  8382331, // Casa 4 dormitorios — San Marino, Funes Hills
+]);
+
+export function esOportunidadConsultanos(id: number | null | undefined): boolean {
+  return id != null && OPORTUNIDADES_CONSULTANOS.has(id);
+}
+
+function ocultarPrecioOportunidad<T extends Pick<TokkoProperty, 'id' | 'web_price'>>(p: T): T {
+  return esOportunidadConsultanos(p.id) ? { ...p, web_price: false } : p;
+}
+
 // Único lugar de verdad sobre si una propiedad publica precio. Devuelve el
 // precio formateado, o null cuando corresponde "Consultar precio": la
 // propiedad está tildada "Sin Precio" en Tokko (web_price: false — la API
@@ -883,7 +900,7 @@ async function hiloGetPropertyById(id: number): Promise<TokkoProperty> {
   });
   if (res.status === 404) throw new Error(`Property ${id} not found`);
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
-  return (await res.json()) as TokkoProperty;
+  return ocultarPrecioOportunidad((await res.json()) as TokkoProperty);
 }
 
 async function hiloGetProperties(params?: {
@@ -921,7 +938,7 @@ async function hiloGetProperties(params?: {
   const limit = params?.limit ?? total;
   return {
     meta: { limit, offset, total_count: total, next: null, previous: null },
-    objects: objects.slice(offset, offset + limit),
+    objects: objects.slice(offset, offset + limit).map(ocultarPrecioOportunidad),
   };
 }
 
@@ -1013,6 +1030,7 @@ export async function getProperties(params?: {
     firstPage.meta.limit = totalCount;
   }
 
+  firstPage.objects = firstPage.objects.map(ocultarPrecioOportunidad);
   return firstPage;
 }
 
@@ -1036,7 +1054,7 @@ export async function getPropertyById(id: number): Promise<TokkoProperty> {
         throw new Error(`Tokko API error: ${res.status} ${res.statusText}`);
       }
 
-      return res.json();
+      return ocultarPrecioOportunidad((await res.json()) as TokkoProperty);
     } catch (e) {
       if (attempt >= 2 || (e instanceof Error && e.message.includes('not found'))) throw e;
       await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
@@ -1066,5 +1084,23 @@ export async function getFeaturedProperties(limit = 6): Promise<TokkoProperty[]>
   }
 
   const source = starred.length > 0 ? starred : objects;
-  return source.slice(0, limit);
+  let featured = source.slice(0, limit);
+
+  // Las oportunidades "Consultanos" quedan SIEMPRE en la selección, al frente.
+  // Si alguna no vino en las páginas escaneadas, se busca por id (best-effort:
+  // si falla el lookup, la home sale igual sin ella).
+  const fijas: TokkoProperty[] = [];
+  for (const id of Array.from(OPORTUNIDADES_CONSULTANOS)) {
+    const enLista = objects.find((p) => p.id === id);
+    if (enLista) {
+      fijas.push(enLista);
+    } else {
+      try { fijas.push(await getPropertyById(id)); } catch {}
+    }
+  }
+  if (fijas.length > 0) {
+    const idsFijas = new Set(fijas.map((p) => p.id));
+    featured = [...fijas, ...featured.filter((p) => !idsFijas.has(p.id))].slice(0, Math.max(limit, fijas.length));
+  }
+  return featured;
 }

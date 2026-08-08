@@ -12,6 +12,7 @@ import {
   getLotSurface,
   isLand,
   getPropertyCount,
+  esOportunidadConsultanos,
   type TokkoProperty,
 } from '@/lib/tokko'
 
@@ -110,9 +111,20 @@ export default async function SeleccionCarousel() {
                 <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3" />
               </div>
               <div className="p-3.5">
+                {esOportunidadConsultanos(p.id) ? (
+                  <div className="flex items-center gap-2">
+                    <span className="font-poppins font-extrabold text-[10.5px] uppercase tracking-wider text-gray-900 rounded-md px-2 py-1 whitespace-nowrap" style={{ background: '#fbce07' }}>
+                      Oportunidad
+                    </span>
+                    <span className="font-poppins font-bold text-[14px] text-white rounded-full px-3.5 py-1.5 whitespace-nowrap" style={{ background: '#1A5C38' }}>
+                      Consultanos →
+                    </span>
+                  </div>
+                ) : (
                 <p className="font-poppins font-black text-[22px] text-gray-900 tracking-tight leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {price}
                 </p>
+                )}
                 {specs.length > 0 && (
                   <p className="font-poppins text-[13px] text-gray-700 mt-0.5 font-medium">
                     {specs.join(' · ')}

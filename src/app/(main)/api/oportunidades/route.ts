@@ -22,6 +22,7 @@ import {
   generatePropertySlug,
   getMainPhoto,
   formatPrice,
+  esOportunidadConsultanos,
 } from '@/lib/tokko'
 
 export const dynamic = 'force-dynamic'
@@ -97,8 +98,16 @@ export async function GET() {
     try { await saveOportunidades(frescos) } catch {}
   }
 
+  // Las oportunidades "Consultanos" no publican monto tampoco acá: el snapshot
+  // puede tener el precio viejo guardado, así que se enmascara en la respuesta.
+  const publicos = frescos.map((item) =>
+    esOportunidadConsultanos(item.propertyId)
+      ? { ...item, precio: 'Consultanos', precioAnterior: undefined, pctBaja: undefined }
+      : item,
+  )
+
   return NextResponse.json(
-    { items: frescos },
+    { items: publicos },
     { headers: { 'cache-control': 'public, s-maxage=60, stale-while-revalidate=300' } },
   )
 }

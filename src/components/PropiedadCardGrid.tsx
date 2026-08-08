@@ -20,6 +20,7 @@ import {
   isMonoambiente,
   propertyTypeLabelById,
   generatePropertySlug,
+  esOportunidadConsultanos,
 } from '@/lib/tokko'
 import { formatDistanceAR } from '@/lib/geo'
 
@@ -313,6 +314,16 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       {/* Body */}
       <div style={{ padding: '8px 12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+          {esOportunidadConsultanos(property.id) ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+              <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '3px 8px', whiteSpace: 'nowrap' }}>
+                Oportunidad
+              </span>
+              <span style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: isMobile ? 13 : 14, background: '#1A5C38', color: '#fff', borderRadius: 999, padding: '5px 13px', whiteSpace: 'nowrap' }}>
+                Consultanos →
+              </span>
+            </span>
+          ) : (
           <p style={{
             fontFamily: POPPINS,
             fontWeight: 800,
@@ -324,6 +335,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           }}>
             {price}
           </p>
+          )}
           <div onClick={e => e.stopPropagation()}>
             <PropertyShareButton
               propertyId={property.id}

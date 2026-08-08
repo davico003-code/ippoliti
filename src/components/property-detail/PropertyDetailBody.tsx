@@ -10,6 +10,7 @@ import {
   type TokkoProperty,
   formatPrice,
   mostrarPrecio,
+  esOportunidadConsultanos,
   buildPriceConsultWhatsappUrl,
   generatePropertySlug,
   getOperationType,
@@ -98,6 +99,7 @@ export default function PropertyDetailBody({
   // null = "Sin Precio" en Tokko → en vez del monto va un botón que pide el
   // precio por WhatsApp (mismo número/armador que "Consultar por WhatsApp").
   const tienePrecio = mostrarPrecio(property) !== null
+  const esOportunidad = esOportunidadConsultanos(property.id)
   const consultarPrecioUrl = tienePrecio
     ? null
     : buildPriceConsultWhatsappUrl(property, generatePropertySlug(property))
@@ -191,15 +193,22 @@ export default function PropertyDetailBody({
               {price}
             </span>
           ) : (
-            <a
-              href={consultarPrecioUrl!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#1A5C38] hover:bg-[#145030] text-white font-bold rounded-xl px-5 py-3 transition-colors"
-              style={{ fontFamily: P, fontSize: 17 }}
-            >
-              <MessageCircle className="w-5 h-5" /> Consultar precio
-            </a>
+            <span className="inline-flex items-center gap-2.5 flex-wrap">
+              {esOportunidad && (
+                <span className="font-bold text-[11px] uppercase tracking-wider text-gray-900 rounded-md px-2.5 py-1" style={{ fontFamily: P, background: '#fbce07' }}>
+                  Oportunidad
+                </span>
+              )}
+              <a
+                href={consultarPrecioUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#1A5C38] hover:bg-[#145030] text-white font-bold rounded-xl px-5 py-3 transition-colors"
+                style={{ fontFamily: P, fontSize: 17 }}
+              >
+                <MessageCircle className="w-5 h-5" /> {esOportunidad ? 'Consultanos' : 'Consultar precio'}
+              </a>
+            </span>
           )}
         </div>
       </section>
