@@ -11,18 +11,16 @@ let _redirCache: { map: Record<string, string>; ts: number } | null = null;
 let _imgCache: { map: Record<string, string>; ts: number } | null = null;
 const META_TTL_MS = 60_000;
 
-function isStaticBuild() {
-  return process.env.NEXT_PHASE === 'phase-production-build';
-}
-
 // Notas borradas (soft-delete): slug → URL destino del 301. Sirve de tombstone
 // (se filtra del listado público) y de fuente del redirect. NO se destruye el
 // Blob; quitar el slug del hash revierte el borrado.
 export async function getBlogRedirects(): Promise<Record<string, string>> {
   if (_redirCache && Date.now() - _redirCache.ts < META_TTL_MS) return _redirCache.map;
-  if (isStaticBuild()) return {};
   // hgetallCached: fetch cacheable (ISR-safe). El cliente @upstash/redis hacía
   // no-store → DYNAMIC_SERVER_USAGE → 500 en slugs desconocidos del blog.
+  // También corre durante el build (antes había un guard que devolvía {}): el
+  // prerender salía sin overrides ni tombstones y el blog mostraba las
+  // portadas por hash repetidas hasta 1h después de cada deploy.
   const map = await hgetallCached('blog:redirects');
   _redirCache = { map, ts: Date.now() };
   return map;
@@ -31,7 +29,6 @@ export async function getBlogRedirects(): Promise<Record<string, string>> {
 // Override manual de imagen por nota: slug → URL de imagen (Blob).
 export async function getImageOverrides(): Promise<Record<string, string>> {
   if (_imgCache && Date.now() - _imgCache.ts < META_TTL_MS) return _imgCache.map;
-  if (isStaticBuild()) return {};
   const map = await hgetallCached('blog:image_override');
   _imgCache = { map, ts: Date.now() };
   return map;
