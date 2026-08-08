@@ -118,33 +118,34 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
 
   return (
     <div>
-      {/* Filtros por dormitorios */}
+      {/* Filtros por dormitorios — etiquetas cortas y fila completa al ancho
+          (sin scroll horizontal): en mobile se ven todos los filtros de una. */}
       {dorms.length > 1 && (
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        <div className="mb-5 flex w-full gap-2 sm:max-w-md">
           <button
             onClick={() => setDormFilter(null)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+            className={`flex-1 rounded-full py-2 text-[13px] font-semibold transition-colors ${
               dormFilter === null ? 'bg-[#1A5C38] text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
             }`}
           >
-            Todas ({units.length})
+            Todas
           </button>
           {dorms.map(d => (
             <button
               key={d}
               onClick={() => setDormFilter(d)}
-              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`flex-1 rounded-full py-2 text-[13px] font-semibold transition-colors ${
                 dormFilter === d ? 'bg-[#1A5C38] text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
               }`}
             >
-              {d} dormitorio{d > 1 ? 's' : ''} ({units.filter(u => u.bedrooms === d).length})
+              {d} dorm.
             </button>
           ))}
         </div>
       )}
 
       {/* Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map(u => {
           const label = unitLabel(u)
           const reserved = u.status !== 'available'
@@ -196,32 +197,32 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
                 )}
               </button>
 
-              {/* Cuerpo */}
-              <div className="flex flex-1 flex-col p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400" style={{ fontFamily: RALEWAY }}>
-                  {label}
-                </p>
-                <p className="mt-0.5 text-[15px] font-bold text-gray-900" style={{ fontFamily: RALEWAY }}>
-                  {u.typology}
-                </p>
-                <p className="mt-1.5 font-numeric text-[26px] font-semibold leading-none text-[#0F3F26]" style={{ fontFamily: POPPINS, letterSpacing: '-0.01em' }}>
-                  USD {u.price.toLocaleString('es-AR')}
-                </p>
-
-                {/* Specs */}
-                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-gray-100 pt-3 text-xs text-gray-500">
-                  {specs.map(s => (
-                    <span key={s.v} className="font-numeric">{s.v}</span>
-                  ))}
+              {/* Cuerpo — compacto: la card entera entra en poco alto en mobile. */}
+              <div className="flex flex-1 flex-col p-3.5">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-400" style={{ fontFamily: RALEWAY }}>
+                    {label}
+                  </p>
+                  <p className="shrink-0 font-numeric text-[19px] font-semibold leading-none text-[#0F3F26]" style={{ fontFamily: POPPINS, letterSpacing: '-0.01em' }}>
+                    USD {u.price.toLocaleString('es-AR')}
+                  </p>
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+                  <p className="text-[13px] font-bold text-gray-900" style={{ fontFamily: RALEWAY }}>
+                    {u.typology}
+                  </p>
+                  <span className="text-[11px] text-gray-500">
+                    {specs.map(s => s.v).join(' · ')}
+                  </span>
                 </div>
 
                 {/* Acciones — chips livianos, sin CTA por unidad (el contacto
                     es el único FAB de WhatsApp de la página). */}
-                <div className="mt-4 flex gap-2">
+                <div className="mt-2.5 flex gap-2">
                   {u.galleryImageUrls.length > 0 && (
                     <button
                       onClick={() => setViewer({ kind: 'images', title: `${label} — Fotos`, urls: u.galleryImageUrls })}
-                      className="flex-1 rounded-lg border border-gray-200 py-2 text-[12px] font-semibold text-gray-700 transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38]"
+                      className="flex-1 rounded-lg border border-gray-200 py-1.5 text-[12px] font-semibold text-gray-700 transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38]"
                     >
                       Fotos
                     </button>
@@ -229,7 +230,7 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
                   {u.blueprintImageUrls.length > 0 && (
                     <button
                       onClick={() => setViewer({ kind: 'images', title: `${label} — Plano`, urls: u.blueprintImageUrls })}
-                      className="flex-1 rounded-lg border border-gray-200 py-2 text-[12px] font-semibold text-gray-700 transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38]"
+                      className="flex-1 rounded-lg border border-gray-200 py-1.5 text-[12px] font-semibold text-gray-700 transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38]"
                     >
                       Plano
                     </button>
@@ -237,7 +238,7 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
                   {u.virtualTours360.length > 0 && (
                     <button
                       onClick={() => setViewer({ kind: 'tour', title: `${label} — Vista 360°`, urls: u.virtualTours360 })}
-                      className="flex-1 rounded-lg bg-[#1A5C38] py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#0F3F26]"
+                      className="flex-1 rounded-lg bg-[#1A5C38] py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#0F3F26]"
                     >
                       Vista 360°
                     </button>
