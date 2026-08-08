@@ -11,9 +11,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, RefreshCw, Sparkles } from 'lucide-react'
+import { Loader2, Play, RefreshCw, Sparkles } from 'lucide-react'
 import AudioPlayer from '@/components/audio/AudioPlayer'
 import type { AudioListItem } from '../../api/admin/audio/list/route'
+import type { CronStatus, LastRunSummary } from '@/lib/audio-batch'
 
 const R = "'Raleway', system-ui, sans-serif"
 const GREEN = '#1A5C38'
@@ -297,6 +298,8 @@ function AdminPanel({
         </button>
       </div>
 
+      <CronSection teamCode={teamCode} onUnauth={onUnauth} onBatchDone={loadList} />
+
       <GenerateSection
         input={input}
         setInput={setInput}
@@ -317,6 +320,281 @@ function AdminPanel({
       />
     </div>
   )
+}
+
+// ── Sección 0 — Generación automática (cron diario) ───────────────────────
+
+function CronSection({
+  teamCode,
+  onUnauth,
+  onBatchDone,
+}: {
+  teamCode: string
+  onUnauth: () => void
+  onBatchDone: () => void
+}) {
+  const [status, setStatus] = useState<CronStatus | null>(null)
+  const [statusError, setStatusError] = useState<string | null>(null)
+  const [running, setRunning] = useState(false)
+  const [runError, setRunError] = useState<string | null>(null)
+
+  const loadStatus = useCallback(async () => {
+    setStatusError(null)
+    try {
+      const res = await fetch('/api/admin/audio/cron-status', {
+        headers: { 'x-team-code': teamCode },
+        cache: 'no-store',
+      })
+      if (res.status === 401) { onUnauth(); return }
+      if (!res.ok) { setStatusError(`Error ${res.status}`); return }
+      const data = (await res.json()) as CronStatus & { ok: true }
+      setStatus(data)
+    } catch {
+      setStatusError('Error de red')
+    }
+  }, [teamCode, onUnauth])
+
+  useEffect(() => { void loadStatus() }, [loadStatus])
+
+  const runNow = async () => {
+    setRunError(null)
+    setRunning(true)
+    try {
+      const res = await fetch('/api/audio/cron-batch?manual=true', {
+        method: 'POST',
+        headers: { 'x-team-code': teamCode },
+      })
+      if (res.status === 401) { onUnauth(); return }
+      const data = await res.json()
+      if (!res.ok) {
+        setRunError(typeof data?.error === 'string' ? data.error : `Error ${res.status}`)
+        return
+      }
+      await loadStatus()
+      onBatchDone()
+    } catch (e) {
+      setRunError(e instanceof Error ? e.message : 'Error de red')
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  return (
+    <section
+      style={{
+        background: '#fff',
+        border: '1px solid #E5E7EB',
+        borderRadius: 14,
+        padding: 22,
+        marginBottom: 28,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
+          marginBottom: 14,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: 0 }}>
+            Generación automática
+          </h2>
+          <CronStatusBadge enabled={status?.enabled ?? null} />
+        </div>
+        <button
+          type="button"
+          onClick={runNow}
+          disabled={running}
+          title="Dispara el batch a mano sin esperar al cron diario"
+          style={{
+            padding: '9px 16px',
+            background: GREEN,
+            color: '#fff',
+            border: 'none',
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: R,
+            cursor: running ? 'wait' : 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            opacity: running ? 0.7 : 1,
+          }}
+        >
+          {running
+            ? <><Loader2 size={13} className="ap-spin" /> Corriendo… (puede tardar varios minutos)</>
+            : <><Play size={13} /> Forzar corrida ahora</>}
+        </button>
+      </div>
+
+      <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 14px', lineHeight: 1.5 }}>
+        Cron diario 5 AM Argentina · genera audio para propiedades de venta nuevas (saltea las que ya tienen).
+        Tope diario controlado por <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: 4 }}>AUDIO_CRON_MAX_PER_DAY</code>,
+        kill switch en <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: 4 }}>AUDIO_CRON_ENABLED</code>.
+      </p>
+
+      {statusError && (
+        <div style={{ fontSize: 12, color: '#B91C1C', marginBottom: 10 }}>
+          No se pudo cargar el estado: {statusError}
+        </div>
+      )}
+
+      {runError && (
+        <div
+          style={{
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            color: '#B91C1C',
+            padding: 12,
+            borderRadius: 10,
+            fontSize: 13,
+            marginBottom: 12,
+          }}
+        >
+          {runError}
+        </div>
+      )}
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 10,
+        }}
+      >
+        <Metric
+          label="Tope diario"
+          value={status ? `${status.maxPerDay} audios` : '—'}
+        />
+        <Metric
+          label={`Chars mes ${status?.monthKey ?? ''}`.trim()}
+          value={status ? status.charsUsedMonth.toLocaleString('es-AR') : '—'}
+        />
+        <Metric
+          label="Última corrida"
+          value={status?.lastRun?.finishedAt ? fmtDate(status.lastRun.finishedAt) : 'Nunca'}
+        />
+        <Metric
+          label="Audios generados (última)"
+          value={status?.lastRun ? String(status.lastRun.generated) : '—'}
+          sub={lastRunSubLine(status?.lastRun)}
+        />
+      </div>
+
+      {status?.lastRun?.generatedIds && status.lastRun.generatedIds.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#6B7280',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              marginBottom: 4,
+            }}
+          >
+            IDs generados (última corrida)
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: '#4B5563',
+              fontVariantNumeric: 'tabular-nums',
+              background: '#FAFAFA',
+              border: '1px solid #E5E7EB',
+              borderRadius: 8,
+              padding: '8px 10px',
+              lineHeight: 1.5,
+              wordBreak: 'break-word',
+            }}
+          >
+            {status.lastRun.generatedIds.join(', ')}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+function CronStatusBadge({ enabled }: { enabled: boolean | null }) {
+  if (enabled === null) {
+    return (
+      <span style={{ fontSize: 11, color: '#9CA3AF' }}>cargando…</span>
+    )
+  }
+  const bg = enabled ? '#DCFCE7' : '#FEE2E2'
+  const fg = enabled ? '#166534' : '#991B1B'
+  return (
+    <span
+      style={{
+        fontSize: 11,
+        fontWeight: 600,
+        background: bg,
+        color: fg,
+        padding: '3px 9px',
+        borderRadius: 999,
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+      }}
+    >
+      {enabled ? 'Activo' : 'Pausado'}
+    </span>
+  )
+}
+
+function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div
+      style={{
+        background: '#FAFAFA',
+        border: '1px solid #E5E7EB',
+        borderRadius: 10,
+        padding: '10px 12px',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          color: '#6B7280',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 15,
+          fontWeight: 700,
+          color: '#111',
+          fontVariantNumeric: 'tabular-nums',
+          marginTop: 3,
+        }}
+      >
+        {value}
+      </div>
+      {sub && (
+        <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>{sub}</div>
+      )}
+    </div>
+  )
+}
+
+function lastRunSubLine(lastRun: LastRunSummary | null | undefined): string | undefined {
+  if (!lastRun) return undefined
+  const parts: string[] = []
+  if (lastRun.dryRun) parts.push('dry-run')
+  if (lastRun.charsUsedRun > 0) parts.push(`${lastRun.charsUsedRun.toLocaleString('es-AR')} chars`)
+  if (lastRun.failed > 0) parts.push(`${lastRun.failed} fallaron`)
+  if (lastRun.overLimit > 0) parts.push(`${lastRun.overLimit} pendientes`)
+  parts.push(`trigger: ${lastRun.trigger}`)
+  return parts.join(' · ')
 }
 
 // ── Sección 1 — Generar nuevo ──────────────────────────────────────────────
