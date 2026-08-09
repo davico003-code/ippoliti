@@ -50,7 +50,21 @@ const STYLE_GUIDE = `# Voz Editorial David Flores / SI INMOBILIARIA
 - Emojis en el cuerpo (sí moderados en cierre/CTA)
 
 ## Largo óptimo
-800-1200 palabras. Párrafos max 4 líneas. Subtítulos cada 150-200 palabras.`;
+800-1200 palabras (incluida la sección de preguntas frecuentes). Párrafos max 4 líneas. Subtítulos cada 150-200 palabras.
+
+## Formato citable (GEO — que las IA nos citen)
+Los asistentes de IA (ChatGPT, Perplexity, Gemini) citan al que responde primero
+y con datos fechados. Por eso:
+- RESPUESTA DIRECTA: las primeras 2-3 oraciones después de la bajada responden
+  la pregunta central de la nota con el dato concreto (número, rango, fecha).
+  El contexto y el desarrollo vienen DESPUÉS, nunca antes.
+- DATOS FECHADOS: cada cifra lleva su momento ("a agosto de 2026", "según el
+  ICL de julio 2026"). Un dato sin fecha no es citable.
+- PREGUNTAS FRECUENTES: antes del CTA, cerrar SIEMPRE con una sección
+  "## Preguntas frecuentes" con 3-4 preguntas en H3 (### ¿...?) formuladas
+  como las escribiría un usuario real en un buscador o una IA, cada una con
+  respuesta autocontenida de 2-4 oraciones que se entienda sola, fuera de
+  contexto (las IA levantan la respuesta suelta, no la nota entera).`;
 
 // `temasProhibidos` es parametrizable para casos editoriales puntuales (ej.:
 // la carga masiva incluye una nota sobre tokenización pedida explícitamente);

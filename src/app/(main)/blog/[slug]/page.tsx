@@ -54,6 +54,46 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+// ── FAQ → FAQPage schema (GEO) ────────────────────────────────────────────
+// Busca la sección "## Preguntas frecuentes" y arma pares pregunta (###) /
+// respuesta (párrafos siguientes). Devuelve null si no hay sección o si hay
+// menos de 2 pares (un FAQPage de 1 pregunta hace más ruido que aporte).
+function extraerFaq(content: string): Record<string, unknown> | null {
+  const bloques = content.split('\n\n').map((b) => b.trim()).filter(Boolean)
+  const inicio = bloques.findIndex((b) => /^##\s+preguntas frecuentes/i.test(b))
+  if (inicio === -1) return null
+
+  const qas: { q: string; a: string }[] = []
+  let actual: { q: string; a: string[] } | null = null
+  const cerrar = () => {
+    if (actual && actual.a.length) qas.push({ q: actual.q, a: actual.a.join(' ') })
+  }
+  for (const b of bloques.slice(inicio + 1)) {
+    // Pregunta en H3; contempla que la respuesta venga pegada en el mismo
+    // bloque (### ¿...?\nRespuesta) además del caso normal separado por \n\n.
+    const h3 = b.match(/^###\s+(.+?)(?:\n([\s\S]+))?$/)
+    if (h3) {
+      cerrar()
+      actual = { q: h3[1].trim(), a: h3[2] ? [h3[2].trim()] : [] }
+      continue
+    }
+    if (/^##\s+/.test(b)) break // arrancó otra sección: terminó la FAQ
+    if (actual) actual.a.push(b)
+  }
+  cerrar()
+
+  if (qas.length < 2) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: qas.map(({ q, a }) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: { '@type': 'Answer', text: a },
+    })),
+  }
+}
+
 export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(params.slug)
 
@@ -111,13 +151,20 @@ export default async function BlogPostPage({ params }: Props) {
     },
   }
 
+  // FAQPage (GEO): si la nota trae la sección "## Preguntas frecuentes" con
+  // preguntas en H3 (formato que el writer automático genera desde ago-2026),
+  // se emite el schema para rich results y para que las IA levanten cada
+  // respuesta suelta. Las notas sin esa sección no emiten nada.
+  const faq = extraerFaq(post.content)
+  const jsonLdNodes = faq ? [jsonLd, faq] : [jsonLd]
+
   const paragraphs = post.content.split('\n\n').filter(p => p.trim())
 
   return (
     <div className="min-h-screen bg-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdNodes) }}
       />
 
       {/* ── HERO editorial ── */}
