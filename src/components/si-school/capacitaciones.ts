@@ -21,6 +21,20 @@ export interface Capacitacion {
 
 export const CAPACITACIONES: Capacitacion[] = [
   {
+    id: 'seguimiento-clientes',
+    titulo: 'Seguimiento de contactos',
+    etiqueta: 'Nuevo',
+    imagen: '/si-school/capacitaciones/img/seguimiento-clientes.jpg',
+    src: '/si-school/capacitaciones/seguimiento-clientes.html',
+  },
+  {
+    id: 'responder-consultas',
+    titulo: 'Responder consultas y evitar el visto',
+    etiqueta: 'Nuevo',
+    imagen: '/si-school/capacitaciones/img/responder-consultas.jpg',
+    src: '/si-school/capacitaciones/responder-consultas.html',
+  },
+  {
     id: 'ia-inmobiliarias',
     titulo: 'IA para inmobiliarias',
     etiqueta: 'Nuevo',

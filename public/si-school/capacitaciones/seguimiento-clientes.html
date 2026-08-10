@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguimiento de contactos — Capacitación SI Inmobiliaria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --verde:#1A5C38;
+    --verde-oscuro:#123F26;
+    --verde-claro:#E8F0EA;
+    --arena:#F8E8C5;
+    --arena-borde:#C7902F;
+    --tinta:#1C1C1C;
+    --gris:#6B6B6B;
+    --linea:#E3E3E0;
+    --papel:#FBFAF7;
+    --wa-fondo:#ECE5DD;
+    --wa-mia:#DDF0DF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--papel);color:var(--tinta);
+    font-family:'Poppins',system-ui,sans-serif;font-weight:300;
+    font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  }
+  .hoja{max-width:920px;margin:0 auto;padding:0 28px 90px;}
+
+  /* ---------- Portada ---------- */
+  .portada{
+    position:relative;overflow:hidden;
+    background:var(--verde);color:#fff;
+    margin:0 -28px 54px;padding:70px 44px 54px;
+  }
+  .portada::before{
+    content:"";position:absolute;inset:0;
+    background:url('https://siinmobiliaria.com/images/distrito-roldan/hero-aerea.webp') center/cover no-repeat;
+    opacity:.20;
+  }
+  .portada::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(105deg,rgba(26,92,56,.95) 42%,rgba(26,92,56,.55) 100%);
+  }
+  .portada > *{position:relative;z-index:2;}
+  .marca{font-family:'Raleway',sans-serif;font-weight:800;letter-spacing:.28em;font-size:11px;text-transform:uppercase;opacity:.8;}
+  .portada h1{font-family:'Raleway',sans-serif;font-weight:800;font-size:clamp(30px,6vw,54px);line-height:1.03;margin:22px 0 16px;letter-spacing:-.02em;}
+  .portada p{max-width:48ch;font-weight:300;opacity:.92;margin:0;}
+  .meta{margin-top:34px;padding-top:18px;border-top:1px solid rgba(255,255,255,.3);display:flex;flex-wrap:wrap;gap:26px;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;}
+
+  /* ---------- Tipografía ---------- */
+  h2{font-family:'Raleway',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.01em;margin:0 0 6px;color:var(--verde-oscuro);}
+  h3{font-family:'Raleway',sans-serif;font-weight:600;font-size:18px;margin:0 0 4px;color:var(--verde-oscuro);}
+  .eyebrow{font-family:'Raleway',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--arena-borde);margin-bottom:10px;}
+  section{margin-bottom:60px;}
+  p{margin:0 0 14px;}
+  strong{font-weight:600;}
+
+  /* ---------- Regla madre ---------- */
+  .regla{background:var(--verde-claro);border-left:5px solid var(--verde);padding:26px 28px;border-radius:2px;}
+  .regla p:last-child{margin-bottom:0;}
+  .regla .frase{font-family:'Raleway',sans-serif;font-weight:800;font-size:20px;line-height:1.3;color:var(--verde-oscuro);}
+
+  /* ---------- Semáforo ---------- */
+  .semaforo{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:18px;}
+  .temp{background:#fff;border:1px solid var(--linea);border-radius:4px;padding:18px 18px 16px;border-top:4px solid var(--linea);}
+  .temp.caliente{border-top-color:#C0392B;}
+  .temp.tibio{border-top-color:#C7902F;}
+  .temp.frio{border-top-color:#3C72D4;}
+  .temp.muerto{border-top-color:#9B9B9B;}
+  .temp h3{font-size:15px;margin-bottom:6px;}
+  .temp .senal{font-size:13px;color:var(--gris);margin:0 0 10px;}
+  .temp .ritmo{font-size:13px;font-weight:500;color:var(--verde);border-top:1px solid var(--linea);padding-top:9px;}
+
+  /* ---------- Cadencia ---------- */
+  .definicion{
+    background:var(--arena);border-left:4px solid var(--arena-borde);
+    padding:18px 22px;border-radius:2px;margin:0 0 24px;
+    font-size:14.5px;color:#5C4409;
+  }
+  .definicion strong{color:#4A3607;font-weight:600;}
+  .cadencia{border-top:1px solid var(--linea);}
+  .fila{display:grid;grid-template-columns:132px 1fr;gap:22px;padding:16px 4px;border-bottom:1px solid var(--linea);align-items:baseline;}
+  .cuando{font-weight:600;font-variant-numeric:tabular-nums;color:var(--verde);font-size:14px;}
+  .que{font-weight:300;}
+  .que b{font-weight:500;}
+
+  /* ---------- Pecados ---------- */
+  .pecados{display:grid;gap:14px;}
+  .pecado{display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:start;background:#fff;border:1px solid var(--linea);padding:18px 20px;border-radius:3px;}
+  .num{font-family:'Raleway',sans-serif;font-weight:800;font-size:24px;color:var(--arena-borde);line-height:1;}
+  .pecado p{margin:2px 0 0;font-size:14px;color:var(--gris);}
+
+  /* ---------- Guion de llamada ---------- */
+  .guion{background:#fff;border:1px solid var(--linea);border-radius:4px;overflow:hidden;}
+  .guion .tramo{display:grid;grid-template-columns:120px 1fr;gap:20px;padding:16px 22px;border-bottom:1px solid var(--linea);}
+  .guion .tramo:last-child{border-bottom:none;}
+  .guion .seg{font-weight:600;font-size:12.5px;color:var(--arena-borde);letter-spacing:.06em;font-variant-numeric:tabular-nums;text-transform:uppercase;}
+  .guion .texto{font-size:14.5px;}
+  .guion .texto em{color:var(--gris);font-style:normal;font-size:13px;display:block;margin-top:4px;}
+
+  /* ---------- Tono ---------- */
+  .tono{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:20px 0 4px;}
+  .tono-col{background:#fff;border:1px solid var(--linea);border-radius:4px;padding:18px 22px 20px;}
+  .tono-col.si{border-top:4px solid var(--verde);}
+  .tono-col.no{border-top:4px solid #C0392B;}
+  .tono-col h3{font-size:14px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;}
+  .tono-col.no h3{color:#C0392B;}
+  .tono-col ul{margin:0;padding-left:18px;font-size:13.8px;color:var(--gris);}
+  .tono-col li{margin-bottom:7px;}
+  .tono-col li:last-child{margin-bottom:0;}
+
+  /* ---------- Chat simple ---------- */
+  .chat{background:var(--verde-claro);padding:20px 18px;border-radius:4px;margin:14px 0 8px;}
+  .burbuja{background:var(--wa-mia);border-radius:12px 12px 3px 12px;padding:14px 16px;font-size:14.5px;line-height:1.6;white-space:pre-line;box-shadow:0 1px 2px rgba(0,0,0,.06);}
+  .porque{font-size:13.5px;color:var(--gris);border-left:2px solid var(--arena-borde);padding-left:12px;margin:12px 0 0;}
+  .porque b{color:var(--verde-oscuro);font-weight:600;}
+
+  /* ---------- Celulares ---------- */
+  .telefonos{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:26px;margin-top:24px;}
+  .paso-tel{page-break-inside:avoid;}
+  .paso-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+  .momento{background:var(--arena);color:#6B4E12;font-weight:600;font-size:11px;letter-spacing:.05em;padding:3px 10px;border-radius:20px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .paso-tel h3{font-size:16px;margin:0;}
+  .objetivo{font-size:13px;color:var(--gris);margin:0 0 14px;}
+
+  .tel{
+    background:#141414;border-radius:30px;padding:9px;
+    box-shadow:0 8px 26px rgba(0,0,0,.16);
+    max-width:300px;margin:0 auto;
+  }
+  .tel-pantalla{background:var(--wa-fondo);border-radius:23px;overflow:hidden;}
+  .tel-barra{
+    background:var(--verde);color:#fff;
+    display:flex;align-items:center;gap:9px;
+    padding:12px 13px 11px;
+  }
+  .tel-notch{width:52px;height:4px;background:#2C2C2C;border-radius:4px;margin:0 auto 7px;}
+  .avatar{
+    width:31px;height:31px;border-radius:50%;
+    background:rgba(255,255,255,.22);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Raleway',sans-serif;font-weight:800;font-size:12px;flex:0 0 auto;
+  }
+  .tel-nombre{font-size:13px;font-weight:500;line-height:1.15;}
+  .tel-estado{font-size:10px;opacity:.75;font-weight:300;}
+  .tel-cuerpo{padding:14px 11px 16px;display:flex;flex-direction:column;gap:9px;min-height:60px;}
+  .msg{
+    max-width:88%;padding:8px 11px 6px;border-radius:9px;
+    font-size:12.6px;line-height:1.5;white-space:pre-line;
+    box-shadow:0 1px 1px rgba(0,0,0,.09);position:relative;
+  }
+  .msg.ellos{background:#fff;align-self:flex-start;border-top-left-radius:2px;}
+  .msg.yo{background:var(--wa-mia);align-self:flex-end;border-top-right-radius:2px;}
+  .hora{display:block;text-align:right;font-size:9.5px;color:#8A8A8A;margin-top:3px;font-variant-numeric:tabular-nums;}
+  .hora .tildes{color:#4FA3E3;letter-spacing:-2px;margin-left:3px;font-size:11px;}
+  .fecha-chip{align-self:center;background:rgba(255,255,255,.85);color:#67747C;font-size:9.5px;padding:3px 10px;border-radius:8px;letter-spacing:.04em;text-transform:uppercase;}
+
+  /* ---------- Fichas e imágenes ---------- */
+  .ficha{background:#fff;border:1px solid var(--linea);border-top:3px solid var(--verde);padding:0 0 22px;border-radius:3px;margin-bottom:10px;overflow:hidden;}
+  .ficha .foto{width:100%;height:200px;object-fit:cover;display:block;background:var(--verde-claro);}
+  .ficha .cuerpo{padding:20px 24px 0;}
+  .ficha p{margin-bottom:0;font-size:14px;}
+  .datos{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:6px;font-size:13.5px;color:var(--gris);}
+  .datos li::before{content:"·";color:var(--arena-borde);font-weight:700;margin-right:8px;}
+
+  /* ---------- Objeciones ---------- */
+  .obj{display:grid;gap:12px;}
+  .obj-item{background:#fff;border:1px solid var(--linea);border-radius:4px;padding:18px 20px;}
+  .obj-item .dice{font-weight:500;color:var(--verde-oscuro);font-size:14.5px;margin-bottom:8px;}
+  .obj-item .dice::before{content:"“";color:var(--arena-borde);font-family:'Raleway',sans-serif;font-weight:800;font-size:20px;margin-right:2px;}
+  .obj-item .resp{font-size:14px;margin:0;}
+  .obj-item .clave{font-size:12.5px;color:var(--gris);margin:9px 0 0;padding-top:9px;border-top:1px solid var(--linea);}
+
+  /* ---------- Cierre ---------- */
+  .cierre{background:var(--verde-oscuro);color:#fff;margin:0 -28px;padding:44px 44px 46px;}
+  .cierre h2{color:#fff;}
+  .cierre p{opacity:.92;}
+  .campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:24px 0 6px;}
+  .campo{border:1px solid rgba(255,255,255,.28);padding:12px 14px;border-radius:3px;font-size:13px;line-height:1.45;}
+  .nota{font-size:12.5px;color:var(--gris);border-top:1px solid var(--linea);padding-top:14px;margin-top:34px;}
+
+  @media (max-width:620px){
+    .fila{grid-template-columns:1fr;gap:4px;}
+    .portada{padding:48px 24px 40px;}
+    .cierre{padding:36px 24px;}
+    .guion .tramo{grid-template-columns:1fr;gap:4px;}
+  }
+  @media print{
+    body{background:#fff;font-size:11pt;}
+    .hoja{max-width:none;padding:0 10mm 10mm;}
+    .portada,.cierre{margin-left:-10mm;margin-right:-10mm;}
+    section{page-break-inside:avoid;}
+    .telefonos{grid-template-columns:repeat(2,1fr);}
+    .tel{box-shadow:none;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+<div class="hoja">
+
+  <header class="portada">
+    <div class="marca">SI Inmobiliaria · Est. 1983 · Capacitación interna</div>
+    <h1>Seguimiento de<br>contactos</h1>
+    <p>Cómo se sigue de verdad a un cliente inmobiliario: el ritmo, los mensajes exactos y tres casos completos, de Distrito Roldán a Aldea Fisherton.</p>
+    <div class="meta">
+      <span>Equipo comercial</span>
+      <span>Funes · Roldán · Rosario</span>
+      <span>Duración: 25 minutos</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Lo único que no se negocia</div>
+    <h2>La regla madre</h2>
+    <div class="regla">
+      <p class="frase">Ningún contacto se cierra sin próximo paso agendado.</p>
+      <p>Si colgás el teléfono o cerrás el chat sin fecha y sin motivo del siguiente contacto, ese lead ya está perdido. No existe “después le escribo”.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Antes de escribir, clasificá</div>
+    <h2>El semáforo del lead</h2>
+    <p>No todos se siguen al mismo ritmo. Si seguís a todos igual, sobreatendés a los que no compran y perdés a los que sí.</p>
+    <div class="semaforo">
+      <div class="temp caliente">
+        <h3>Caliente</h3>
+        <p class="senal">Pide precio, pregunta por financiación o quiere visitar.</p>
+        <div class="ritmo">Contacto cada 48 h hasta cerrar o descartar.</div>
+      </div>
+      <div class="temp tibio">
+        <h3>Tibio</h3>
+        <p class="senal">Responde, se interesa, pero no define fecha ni número.</p>
+        <div class="ritmo">Un contacto por semana, siempre con novedad.</div>
+      </div>
+      <div class="temp frio">
+        <h3>Frío</h3>
+        <p class="senal">Consultó y dejó de responder, o dijo “más adelante”.</p>
+        <div class="ritmo">Nutrición cada 30 a 60 días. Nunca se borra.</div>
+      </div>
+      <div class="temp muerto">
+        <h3>Descartado</h3>
+        <p class="senal">Compró en otro lado, no le da el presupuesto o pidió no ser contactado.</p>
+        <div class="ritmo">Se cierra en el sistema con el motivo escrito.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Se aprende de memoria</div>
+    <h2>El ritmo del seguimiento</h2>
+    <div class="definicion">
+      <p><strong>La cadencia</strong> es el ritmo con el que contactás: cada cuánto escribís, en qué momento y con qué. Es una secuencia fija que arranca sola cuando entra el contacto.</p>
+      <p style="margin-bottom:0;">Al ser fija, <strong>no depende de tu memoria ni de tus ganas de ese día.</strong> Entra un lead y ya sabés qué le toca y cuándo, tengas 5 o 40 contactos abiertos.</p>
+    </div>
+    <div class="cadencia">
+      <div class="fila"><div class="cuando">0 – 5 min</div><div class="que"><b>Respuesta inmediata</b> a la consulta. Nombre + propiedad + una pregunta que califique.</div></div>
+      <div class="fila"><div class="cuando">48 horas</div><div class="que"><b>Aporte de valor.</b> Otra opción similar, un dato del barrio, una nota nuestra.</div></div>
+      <div class="fila"><div class="cuando">Día 7</div><div class="que"><b>Novedad real.</b> Bajó un precio, entró algo nuevo, avanzó la obra, cambió la cuota.</div></div>
+      <div class="fila"><div class="cuando">Día 21</div><div class="que"><b>Check de contexto.</b> ¿Sigue en pie la búsqueda o cambió algo?</div></div>
+      <div class="fila"><div class="cuando">Cada 60 días</div><div class="que"><b>Nutrición.</b> Nota, video, informe de mercado. Sin pedir nada a cambio.</div></div>
+    </div>
+    <p class="porque" style="margin-top:18px;"><b>Regla que sostiene todo este ritmo:</b> cada mensaje tiene que traer algo nuevo. Si no tenés novedad, no escribas: buscala primero.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Errores que matan operaciones</div>
+    <h2>Los cuatro pecados</h2>
+    <div class="pecados">
+      <div class="pecado">
+        <div class="num">01</div>
+        <div><h3>“Hola, ¿alguna novedad?”</h3><p>Le pasás tu trabajo al cliente. Prohibido en todas sus variantes.</p></div>
+      </div>
+      <div class="pecado">
+        <div class="num">02</div>
+        <div><h3>Desaparecer cuando dice “lo tengo que pensar”</h3><p>Ahí no termina la venta: ahí recién empieza el seguimiento.</p></div>
+      </div>
+      <div class="pecado">
+        <div class="num">03</div>
+        <div><h3>Mandar el mismo mensaje a todos</h3><p>Si no tiene el nombre y un dato propio de esa persona, no lo mandes.</p></div>
+      </div>
+      <div class="pecado">
+        <div class="num">04</div>
+        <div><h3>Apurar la visita</h3><p>Pedirle día y hora a alguien que todavía no vio ni el plano lo espanta. La visita se ofrece abierta —“cuando tengas una mañana libre, avisame”— y recién se agenda con fecha cuando el interés ya está.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Lo que WhatsApp no reemplaza</div>
+    <h2>La primera llamada, en 30 segundos</h2>
+    <p>Al lead caliente se lo llama. El chat sirve para sostener; la llamada es la que califica de verdad. Este es el orden.</p>
+    <div class="guion">
+      <div class="tramo"><div class="seg">0 – 5 seg</div><div class="texto">“Hola Nicolás, soy Mica de SI Inmobiliaria. ¿Te agarro bien o te llamo en un rato?”<em>Pedir permiso baja la guardia y evita hablarle a alguien que está manejando.</em></div></div>
+      <div class="tramo"><div class="seg">5 – 15 seg</div><div class="texto">“Te llamo por la consulta que hiciste por Distrito Roldán. Antes de mandarte nada quiero entender bien qué estás buscando.”<em>Decís de dónde salís y para qué llamás. Sin vueltas.</em></div></div>
+      <div class="tramo"><div class="seg">15 – 25 seg</div><div class="texto">“¿Es para construir vos o como inversión? ¿Y estás mirando solo Roldán o también Funes?”<em>Dos preguntas, no cinco. Después escuchás y callate.</em></div></div>
+      <div class="tramo"><div class="seg">25 – 30 seg</div><div class="texto">“Buenísimo. Te mando ahora la info que te sirve y el jueves a las 10 te escribo para saber qué te pareció, ¿te va bien?”<em>Se cierra con fecha. Siempre. Fijate que la fecha es para volver a hablar, no para la visita.</em></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Lo más importante de toda la capacitación</div>
+    <h2>Nunca preguntes sin decir para qué</h2>
+    <p>Toda pregunta que le hacés al cliente tiene que venir con el motivo por el que se la hacés. Y ese motivo tiene que ser un beneficio para él, no para vos. Es la diferencia entre un interrogatorio y una conversación.</p>
+    <div class="tono">
+      <div class="tono-col no">
+        <h3>Pregunta sola</h3>
+        <p style="font-size:15px;margin-bottom:10px;">“¿Cuál es tu presupuesto?”</p>
+        <p style="font-size:13.5px;color:var(--gris);margin:0;">Suena a que lo estás midiendo para ver si vale tu tiempo. Contesta cualquier cosa, o no contesta.</p>
+      </div>
+      <div class="tono-col si">
+        <h3>Pregunta con contexto y beneficio</h3>
+        <p style="font-size:15px;margin-bottom:10px;">“Te pregunto hasta cuánto querés estirarte y te digo para qué: tengo dos casas que no están publicadas y no quiero mandarte fotos de cosas que después te van a decepcionar por precio. Si me lo decís, te mando solo lo que te sirve.”</p>
+        <p style="font-size:13.5px;color:var(--gris);margin:0;">Ahora responder le conviene a él.</p>
+      </div>
+    </div>
+    <p class="porque">La estructura es siempre la misma: <b>dato → “te pregunto esto y te digo para qué” → qué gana él con responder → la pregunta.</b> Si una pregunta no pasa ese filtro, no la mandes.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">La voz de SI</div>
+    <h2>Cómo escribimos</h2>
+    <p>Somos una inmobiliaria familiar, no un banco. El cliente tiene que sentir que del otro lado hay una persona, no un formulario.</p>
+    <div class="tono">
+      <div class="tono-col si">
+        <h3>Sí</h3>
+        <ul>
+          <li>Voseo y nombre de pila. Si te dijo “Nico”, decile Nico.</li>
+          <li>Frases cortas, como hablás.</li>
+          <li>“Cualquier cosa preguntame, para eso estoy.”</li>
+          <li>Reconocer lo que dijo antes de responder: “es una duda re razonable”.</li>
+          <li>Aceptar el no: “si cambió el plan está todo bien, avisame”.</li>
+        </ul>
+      </div>
+      <div class="tono-col no">
+        <h3>No</h3>
+        <ul>
+          <li>“Estimado”, “aguardo su respuesta”, “quedo a disposición”.</li>
+          <li>Párrafos largos sin respirar.</li>
+          <li>Signos de exclamación de más y emojis por todos lados.</li>
+          <li>Audios de tres minutos sin avisar.</li>
+          <li>Falsa urgencia: “última oportunidad”, “solo por hoy”.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="porque">Cercano no es descuidado. <b>Se escribe como se habla, pero sin errores de ortografía y sin abreviaturas de adolescente.</b></p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Para copiar y adaptar</div>
+    <h2>Mensajes base</h2>
+
+    <h3 style="margin-top:22px;">Primer contacto (antes de los 5 minutos)</h3>
+    <div class="chat"><div class="burbuja">Hola Martín! Soy Jere, de SI Inmobiliaria. Vi tu consulta por la casa de Funes Hills. Antes de mandarte todo el detalle contame una cosa: ¿la buscás para vivir vos o más como inversión? Así te paso lo que te sirve de verdad.</div></div>
+
+    <h3 style="margin-top:26px;">A las 48 horas</h3>
+    <div class="chat"><div class="burbuja">Martín, te dejo dos opciones más en la misma zona y en el mismo rango. La segunda todavía ni salió publicada. Miralas tranquilo y si alguna te cierra, avisame y la vemos.</div></div>
+
+    <h3 style="margin-top:26px;">Post-visita (el mismo día, no al otro)</h3>
+    <div class="chat"><div class="burbuja">Martín, gracias por el rato de hoy. Me quedé pensando en lo que dijiste del fondo chico. Tengo dos en la zona con más patio y la misma entrega. ¿Te los paso?</div></div>
+
+    <h3 style="margin-top:26px;">Al que dijo “lo tengo que pensar”</h3>
+    <div class="chat"><div class="burbuja">Martín, tranquilo, sin apuro. Solo para tenerlo claro de mi lado: ¿lo que te frena es el precio, la ubicación o el momento? Según cuál sea te acerco cosas distintas.</div></div>
+
+    <h3 style="margin-top:26px;">Reactivación fría (60 días o más)</h3>
+    <div class="chat"><div class="burbuja">Martín, ¿cómo va todo? Se cerró una operación en la zona que buscabas un 8% abajo de lo que veníamos viendo. Te lo paso por si te sirve de referencia, sin ningún compromiso.</div></div>
+
+    <h3 style="margin-top:26px;">Al propietario en seguimiento</h3>
+    <div class="chat"><div class="burbuja">Susana, este mes tuvimos 14 consultas por la propiedad y 3 visitas. Las tres coincidieron en lo mismo. Te llamo mañana a las 10 y lo charlamos, ¿te va bien?</div></div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Caso A · Comprador residencial</div>
+    <h2>Nicolás, lote para construir</h2>
+
+    <div class="ficha">
+      <img class="foto" src="https://siinmobiliaria.com/images/distrito-roldan/render-residencial.webp" alt="Render del área residencial de Distrito Roldán">
+      <div class="cuerpo">
+        <h3>De dónde sale</h3>
+        <p>Entró por el Click-to-WhatsApp de Instagram con un mensaje de tres palabras. Vive en Rosario, alquila. Nada más sabemos.</p>
+        <ul class="datos">
+          <li>Producto: lotes residenciales desde 450 m²</li>
+          <li>Financiación: 30% de anticipo y saldo en 24 cuotas fijas en dólares</li>
+          <li>Servicios: pavimento y cordón cuneta, agua potable, gas natural, red eléctrica e iluminación, forestación planificada</li>
+          <li>Entrega prevista: agosto de 2027</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="telefonos">
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Minuto 0</span><h3>Calificar antes de tirar el folleto</h3></div>
+        <p class="objetivo">Abrir conversación, no entregar información.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">N</div><div><div class="tel-nombre">Nicolás — Distrito Roldán</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="fecha-chip">Hoy</div>
+            <div class="msg ellos">Hola, quiero info de Distrito Roldán<span class="hora">10:12</span></div>
+            <div class="msg yo">Hola Nicolás! Soy Mica, de SI Inmobiliaria. Nosotros somos los que llevamos Distrito Roldán.
+
+Te mando el plano con precios en un minuto. Antes contame una cosa así te paso lo que te sirve de verdad: ¿lo pensás para hacerte la casa o más como inversión?
+
+Es que los residenciales y los comerciales sobre la Ruta 9 son dos mundos distintos.<span class="hora">10:14<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Si mandás el plano de arranque, se lo lleva y desaparece. <b>Una pregunta abre una conversación; un PDF cierra una.</b></p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Hora 2</span><h3>Ahora sí entregás, y dejás el anzuelo</h3></div>
+        <p class="objetivo">Dar criterio, sin apurar la visita.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">N</div><div><div class="tel-nombre">Nicolás — Distrito Roldán</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg ellos">Para construir, en un par de años<span class="hora">12:05</span></div>
+            <div class="msg yo">Buenísimo, entonces vamos por residencial. Acá tenés el plano con lo que está disponible y los precios al día:
+siinmobiliaria.com/distrito-roldan-precios
+
+Tres cosas para que lo mires con criterio:
+
+· Va con pavimento y cordón cuneta, agua, gas natural, luz e iluminación, y forestación planificada. No es un loteo pelado.
+· La financiación es nuestra: 30% de anticipo y el resto en 24 cuotas fijas en dólares. Fijas, no ajustables.
+· La entrega está prevista para agosto de 2027.
+
+Miralo tranquilo y cualquier cosa preguntame, para eso estoy. Si querés te paso también el recorrido 360 para que lo veas desde el celular: distritoroldan360.com<span class="hora">12:11<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Todavía no lo conocés: pedirle una visita acá lo asusta. <b>Primero que sienta que le resolvés algo; la visita se ofrece más adelante y sale sola.</b></p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Día 3</span><h3>No contestó</h3></div>
+        <p class="objetivo">Ganarte el derecho a volver a escribir, y recién acá ofrecer la visita.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">N</div><div><div class="tel-nombre">Nicolás — Distrito Roldán</div><div class="tel-estado">últ. vez hoy a las 9:40</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="fecha-chip">Miércoles</div>
+            <div class="msg yo">Nico, te paso algo que capaz te sirve más que el plano: una nota que escribimos sobre cómo se maneja el tema transporte Roldán–Rosario, horarios y qué alternativas hay de verdad.
+
+Es la duda número uno de todos los que hoy viven en Rosario y están mirando la zona.
+
+Y sin apuro: cuando tengas una mañana libre date una vuelta por el predio, aunque sea a mirar. Si querés te acompaño y lo recorremos juntos, parado ahí se entiende mucho mejor que en el plano.<span class="hora">9:52<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Le sacás la presión de la venta y aparecés siendo útil. <b>Fijate cómo se ofrece la visita: “cuando tengas una mañana libre”, no “¿el martes a las 10?”.</b></p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Post-visita</span><h3>Cerrás con un lote, no con “quedamos en contacto”</h3></div>
+        <p class="objetivo">Bajar a números concretos y agendar el próximo paso.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">N</div><div><div class="tel-nombre">Nicolás — Distrito Roldán</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg yo">Nico, gracias por el rato de hoy, la pasé bien charlando.
+
+Me quedé con dos cosas de lo que hablamos: querés orientación norte y no querés pasarte de los US$ XX.XXX.
+
+Con eso hay dos que te cierran, te los marco en el plano. En el que más te gustó la cuenta queda así: 30% de anticipo y 24 cuotas fijas de más o menos US$ XXX.
+
+Charlalo tranquilo con tu señora. El jueves a las 10 te llamo y me contás cómo lo ven, ¿te sirve?<span class="hora">19:30<span class="tildes">✓✓</span></span></div>
+            <div class="msg ellos">Dale, el jueves lo hablamos<span class="hora">20:02</span></div>
+          </div>
+        </div></div>
+        <p class="porque">Fecha, hora y motivo. <b>Nunca se cierra un contacto sin próximo paso agendado.</b></p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Día 45</span><h3>Se enfrió</h3></div>
+        <p class="objetivo">Reactivar con un hecho real y sacar la objeción verdadera.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">N</div><div><div class="tel-nombre">Nicolás — Distrito Roldán</div><div class="tel-estado">últ. vez ayer</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg yo">Nico, ¿cómo andás? Novedad del barrio: avanzó bastante la obra, te paso las fotos del mes. Y ya se vendió más del 35% de los lotes, así que con la orientación que buscabas van quedando menos.
+
+No te lo digo para apurarte, te lo digo para que lo sepas.
+
+Si el tema es el anticipo, decímelo tranquilo y vemos qué lote y qué superficie te dejan una cuota más cómoda. Y si cambió el plan también está todo bien, me avisás y te dejo de romper un tiempo.<span class="hora">11:20<span class="tildes">✓✓</span></span></div>
+            <div class="msg ellos">No, sigue en pie. Es el anticipo la verdad<span class="hora">13:47</span></div>
+          </div>
+        </div></div>
+        <p class="porque">Le das salida honesta. El que dice “cambió el plan” te libera la agenda; <b>el que dice “es la plata” te acaba de dar la objeción real para trabajar.</b></p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Caso B · Inversor comercial</div>
+    <h2>Variante: Gustavo, lote sobre Ruta 9</h2>
+
+    <div class="ficha">
+      <img class="foto" src="https://siinmobiliaria.com/images/distrito-roldan/render-comercial.webp" alt="Render del área comercial de Distrito Roldán sobre Ruta 9">
+      <div class="cuerpo">
+        <h3>De dónde sale</h3>
+        <p>Llamó a la oficina de Roldán. Tiene un corralón en la zona y quiere mudarlo o poner un local para alquilar. Con este perfil el seguimiento es más corto y mucho más numérico: no compra un estilo de vida, compra un rendimiento.</p>
+        <ul class="datos">
+          <li>Producto: lotes comerciales, superficie promedio 630 m², frente sobre Ruta Nacional 9 con dársenas de estacionamiento</li>
+          <li>Financiación: 50% de anticipo y saldo en 12 cuotas fijas en dólares</li>
+          <li>Son 21 lotes comerciales sobre 180 totales: la escasez es real y se puede decir sin exagerar</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="telefonos">
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Minuto 0</span><h3>Hablarle en su idioma desde la primera línea</h3></div>
+        <p class="objetivo">Separar uso propio de renta: cambia todo lo que le mandás después.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">G</div><div><div class="tel-nombre">Gustavo — Comercial R9</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="fecha-chip">Hoy</div>
+            <div class="msg yo">Gustavo, qué tal, soy David de SI Inmobiliaria. Me quedó anotado lo del corralón, gracias por el llamado.
+
+Una sola pregunta para no marearte con info que no te sirve: ¿lo querés para mudarte vos o para construir y alquilarlo?
+
+Si es para alquilar te armo el número de la inversión completa. Si es para vos, arrancamos mirando frente y cómo entran los camiones.<span class="hora">9:05<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Al inversor no lo calificás con presupuesto, lo calificás con destino. <b>Uso propio y renta son dos ventas distintas.</b></p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Día 1</span><h3>El número, no el folleto</h3></div>
+        <p class="objetivo">Que pueda hacer la cuenta solo, con nuestros datos.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">G</div><div><div class="tel-nombre">Gustavo — Comercial R9</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg ellos">Para renta, no me quiero mudar todavía<span class="hora">8:40</span></div>
+            <div class="msg yo">Perfecto. Te paso lo concreto de los comerciales:
+
+· Dan directo a la Ruta 9, con dársenas de estacionamiento propias. Superficie promedio 630 m².
+· Son 21 comerciales sobre 180 lotes del barrio. Más no se van a hacer.
+· Anticipo del 50% y el saldo en 12 cuotas fijas en dólares.
+· Entrega prevista agosto de 2027, con toda la infraestructura hecha.
+
+Te marqué los tres que están en el sector de más tránsito, fijate. Y cuando quieras pegarte una vuelta avisame con un día y te espero en el predio con el plano impreso, así lo miramos parados ahí.<span class="hora">9:12<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Al comprador residencial le mostrás el barrio; <b>al inversor le mostrás la ecuación y la escasez, con números verificables.</b></p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Día 4</span><h3>“Prefiero comprar algo terminado”</h3></div>
+        <p class="objetivo">No discutir. Comparar.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">G</div><div><div class="tel-nombre">Gustavo — Comercial R9</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg ellos">Lo estoy pensando, capaz me conviene comprar algo ya hecho<span class="hora">17:22</span></div>
+            <div class="msg yo">Es una duda re razonable, la escucho seguido. Te hago la comparación derecha y decidís vos:
+
+Un local ya hecho sobre Ruta 9 hoy te pide todo el capital de una y lo pagás al precio de mercado ya formado. Acá entrás con la mitad, el resto lo financiás sin interés en dólares, y la diferencia entre lo que vale el lote hoy y lo que vale el barrio terminado te queda a vos.
+
+Si querés te armo las dos columnas en una hoja y lo mirás con tu contador. Prefiero que hagas la cuenta y no que me creas a mí.<span class="hora">17:35<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Nunca defiendas el producto: <b>ofrecé la comparación y dejale el control.</b> El que te pide la hoja está más cerca que el que dice “buenísimo”.</p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Día 15</span><h3>Silencio del que ya vio todo</h3></div>
+        <p class="objetivo">Mover con movimiento del mercado, no con insistencia.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">G</div><div><div class="tel-nombre">Gustavo — Comercial R9</div><div class="tel-estado">últ. vez hoy a las 8:15</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg yo">Gustavo, dato del barrio de esta semana: se reservó uno de los comerciales. No el que mirabas vos. Quedan los otros dos del sector de tránsito fuerte.
+
+Te aviso porque en su momento me dijiste que no querías enterarte cuando ya no estuvieran.
+
+¿Lo charlamos cinco minutos por teléfono? Hoy después de las 6 o mañana temprano, como te quede mejor.<span class="hora">10:05<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">La urgencia se cuenta, no se inventa. <b>Si el hecho es real, decilo con fecha y sin adjetivos.</b> Y siempre cerrá ofreciendo dos horarios.</p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Día 60</span><h3>No compró. Igual sigue siendo cliente</h3></div>
+        <p class="objetivo">Quedar como referente para la próxima, sin pedir nada.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">G</div><div><div class="tel-nombre">Gustavo — Comercial R9</div><div class="tel-estado">últ. vez ayer</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg yo">Gustavo, ¿cómo va todo? Salió nuestro informe con los valores del m² comercial en el corredor Funes–Roldán del último semestre.
+
+Te lo mando porque sé que estás mirando la zona, más allá de si te sirve Distrito Roldán o no.
+
+Cualquier cosa que quieras chequear, escribime. Estoy a mano.<span class="hora">11:48<span class="tildes">✓✓</span></span></div>
+            <div class="msg ellos">Gracias David, justo se lo iba a preguntar a mi cuñado que está buscando también<span class="hora">14:03</span></div>
+          </div>
+        </div></div>
+        <p class="porque"><b>El que no compró hoy es el que compra en marzo, o el que te recomienda.</b> Nutrición cada 60 días, sin pedido y sin culpa.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Caso C · Comprador de alto ticket</div>
+    <h2>Ariel, casa en Aldea Fisherton</h2>
+
+    <div class="ficha">
+      <div class="cuerpo">
+        <h3>De dónde sale</h3>
+        <p>Consultó por WhatsApp por la casa de Av. Real 9191, en Country Golf Aldea Fisherton, publicada en USD 760.000. Acá cada consulta vale oro: son pocos compradores, el ciclo de decisión es largo y no hay segunda oportunidad para la primera respuesta.</p>
+        <ul class="datos">
+          <li>4 dormitorios, uno en suite con vestidor, más dormitorio de servicio</li>
+          <li>269 m² cubiertos y 47 m² de galería con parrilla, sobre lote de 1.223 m²</li>
+          <li>Resuelta casi toda en planta baja, living de doble altura con hogar, cocina con isla</li>
+          <li>12 años, muy buen estado, orientación noreste, seguridad 24 h</li>
+          <li>Tenemos 30 fotos, recorrido en video, planos y ubicación: eso es munición para el seguimiento, se dosifica, no se manda junto</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="telefonos">
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Minuto 0</span><h3>Contestá lo que preguntó, después preguntá vos</h3></div>
+        <p class="objetivo">Confirmar disponibilidad y precio, y calificar sin sonar a interrogatorio.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">A</div><div><div class="tel-nombre">Ariel — Aldea Fisherton</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="fecha-chip">Hoy</div>
+            <div class="msg ellos">Hola, sigue disponible la casa de Aldea Fisherton?<span class="hora">18:41</span></div>
+            <div class="msg yo">Hola Ariel! Soy Carolina, de SI Inmobiliaria. Sí, sigue disponible: la de Av. Real 9191, 4 dormitorios, 269 m² cubiertos sobre un lote de 1.223, en USD 760.000.
+
+Te hago una sola pregunta y te digo para qué: en Aldea hay casas muy distintas entre sí, algunas en dos plantas y ésta está resuelta casi toda en planta baja.
+
+Si me contás qué preferís, te mando solo las que te sirven y no perdés la tarde mirando fotos de casas que ya sabemos que no van.
+
+¿Cómo lo tenés pensado?<span class="hora">18:44<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Preguntó si está disponible: <b>eso se responde primero y con el precio incluido.</b> Esconder el precio para “generar la consulta” es la forma más rápida de que te dejen en visto.</p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Mismo día</span><h3>Devolvés algo hecho a medida</h3></div>
+        <p class="objetivo">Usar el dato que te dio y darle una herramienta para avanzar solo.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">A</div><div><div class="tel-nombre">Ariel — Aldea Fisherton</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg ellos">Planta baja mejor, tenemos a mi suegra viviendo con nosotros<span class="hora">21:10</span></div>
+            <div class="msg yo">Perfecto, entonces ésta te va a interesar de verdad: está resuelta casi toda en planta baja y tiene un dormitorio de servicio aparte, que para el caso de tu suegra puede funcionar muy bien.
+
+Te dejo el recorrido en video, son dos minutos y la ves por dentro sin moverte de tu casa.
+
+Te lo mando ahora para que puedas descartarla rápido si no te convence. Y si te cierra, cuando tengan una mañana libre la vemos en persona: la galería y el fondo no se entienden en cámara.<span class="hora">21:22<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Te contó de la suegra: <b>ese dato se usa, no se archiva.</b> Y el video sirve para que descarte rápido, que también es avanzar.</p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Post-visita</span><h3>“Nos gustó, pero la vemos cara”</h3></div>
+        <p class="objetivo">Convertir una frase vaga en una decisión concreta.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">A</div><div><div class="tel-nombre">Ariel — Aldea Fisherton</div><div class="tel-estado">en línea</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg ellos">Nos gustó mucho, pero la vemos cara para lo que es<span class="hora">20:15</span></div>
+            <div class="msg yo">Gracias por la sinceridad, Ariel, es lo que más me sirve.
+
+Te pregunto algo y te digo para qué: ¿el número que tenés en la cabeza está cerca de 760 o venís pensando en un techo bastante más abajo?
+
+Te lo pregunto porque son dos caminos distintos y los dos los puedo hacer hoy: si estás cerca, le acerco una propuesta formal al propietario y vemos qué contesta. Si tu techo está más abajo, no te hago perder tiempo con ésta y te muestro dos del mismo country en tu rango.
+
+Decime cuál te sirve y arranco.<span class="hora">20:31<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">No defiendas el precio ni pidas “una ofertita”. <b>Ofrecé dos caminos y que elija uno.</b> Cualquiera de los dos te deja trabajando; “lo pensamos” no.</p>
+      </div>
+
+      <div class="paso-tel">
+        <div class="paso-head"><span class="momento">Día 30</span><h3>Volvés con la respuesta a su duda, no con la propiedad</h3></div>
+        <p class="objetivo">Sostener el vínculo en un ciclo largo.</p>
+        <div class="tel"><div class="tel-notch"></div><div class="tel-pantalla">
+          <div class="tel-barra"><div class="avatar">A</div><div><div class="tel-nombre">Ariel — Aldea Fisherton</div><div class="tel-estado">últ. vez ayer</div></div></div>
+          <div class="tel-cuerpo">
+            <div class="msg yo">Ariel, ¿cómo andás? Salió nuestro informe del semestre con los valores de casas en barrios cerrados de Rosario y Funes.
+
+Te lo mando porque cuando la visitaron me dijiste que querías entender si estabas pagando de más. Esto te lo responde mejor que yo, que soy parte interesada.
+
+La de Av. Real sigue disponible. Cualquier cosa que quieras chequear, escribime que estoy a mano.<span class="hora">10:12<span class="tildes">✓✓</span></span></div>
+          </div>
+        </div></div>
+        <p class="porque">Acá la decisión tarda meses. <b>El que le resuelve la duda de fondo es el que está ahí cuando por fin decide.</b> Y admitir que sos parte interesada te vuelve más creíble, no menos.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Las cuatro que vas a escuchar siempre</div>
+    <h2>Objeciones y respuesta</h2>
+    <div class="obj">
+      <div class="obj-item">
+        <div class="dice">Está caro”</div>
+        <p class="resp">“¿Caro comparado con qué estuviste viendo? Te lo pregunto en serio, porque si hay algo mejor en la zona lo quiero conocer yo también.”</p>
+        <p class="clave">Casi nunca es el precio: es que no ve el valor. Pedile la comparación y te la va a dar.</p>
+      </div>
+      <div class="obj-item">
+        <div class="dice">Lo tengo que hablar con mi señora / mi socio”</div>
+        <p class="resp">“Perfecto, es la persona que más tiene que estar de acuerdo. ¿Querés que se lo cuente yo directamente y así no te queda a vos explicar los números? Podemos hacer una llamada de diez minutos los tres.”</p>
+        <p class="clave">Nunca dejes que tu cliente venda por vos. Pedí acceso al que decide.</p>
+      </div>
+      <div class="obj-item">
+        <div class="dice">Estoy esperando a ver cómo sigue el dólar”</div>
+        <p class="resp">“Te entiendo. Fijate que acá el saldo es en cuotas fijas en dólares, así que el que congela el precio sos vos, no el mercado. Lo que sí se mueve es la disponibilidad de lotes.”</p>
+        <p class="clave">No discutas de macroeconomía. Traelo a lo que sí controla.</p>
+      </div>
+      <div class="obj-item">
+        <div class="dice">Mandame todo por WhatsApp y lo miro”</div>
+        <p class="resp">“Te lo mando ahora. Y para no dejarlo colgado ahí: el jueves a las 10 te escribo para saber qué te pareció, aunque sea para decirme que no te sirve.”</p>
+        <p class="clave">Es la despedida amable. Aceptala, pero salí con fecha puesta.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Si te olvidás de todo lo demás</div>
+    <h2>Las siete cosas que te llevás</h2>
+    <div class="pecados" style="margin-top:20px;">
+      <div class="pecado"><div class="num">01</div><div><h3>El para qué</h3><p>Ninguna pregunta va sola. Siempre con el motivo, y el motivo tiene que ser un beneficio para el cliente.</p></div></div>
+      <div class="pecado"><div class="num">02</div><div><h3>Los cinco minutos</h3><p>La primera respuesta se contesta ya, y contestando lo que preguntó: disponibilidad y precio incluidos.</p></div></div>
+      <div class="pecado"><div class="num">03</div><div><h3>Próximo paso agendado</h3><p>Ningún contacto se cierra sin fecha, hora y motivo del siguiente contacto.</p></div></div>
+      <div class="pecado"><div class="num">04</div><div><h3>Siempre algo nuevo</h3><p>Cada mensaje trae una novedad. Si no la tenés, buscala antes de escribir.</p></div></div>
+      <div class="pecado"><div class="num">05</div><div><h3>La visita se ofrece</h3><p>Abierta primero, con fecha después. Apurarla es la forma más rápida de espantar a alguien.</p></div></div>
+      <div class="pecado"><div class="num">06</div><div><h3>El canal lo elige él</h3><p>Respondé donde te escribió. Avisá antes de llamar. Si no atiende, cambiá de canal, no de volumen.</p></div></div>
+      <div class="pecado"><div class="num">07</div><div><h3>Cargalo en el sistema</h3><p>Lo que no queda cargado no existe. La memoria se pierde; el próximo paso, no.</p></div></div>
+    </div>
+  </section>
+
+  <section class="cierre">
+    <div class="eyebrow" style="color:var(--arena);">Cómo se cierra cada contacto</div>
+    <h2>Lo que queda cargado</h2>
+    <p>Después de cada uno de estos mensajes, en el sistema tiene que quedar esto. Sin esto, el seguimiento no existe: es memoria, y la memoria se pierde.</p>
+    <div class="campos">
+      <div class="campo"><strong>Para qué lo quiere</strong><br>Vivienda, renta o reventa</div>
+      <div class="campo"><strong>Presupuesto techo</strong><br>El número real, no el que dijo primero</div>
+      <div class="campo"><strong>Quién más decide</strong><br>Pareja, socio, contador</div>
+      <div class="campo"><strong>La objeción real</strong><br>Precio, ubicación o timing</div>
+      <div class="campo"><strong>Temperatura</strong><br>Caliente, tibio, frío o descartado</div>
+      <div class="campo"><strong>Próximo contacto</strong><br>Fecha, hora y motivo</div>
+    </div>
+    <p style="margin-top:26px;"><strong>Ejercicio para cerrar la capacitación:</strong> abrí tu WhatsApp ahora y mandá el próximo paso a los cinco contactos más viejos que quedaron sin respuesta. Esto no sirve si hoy no sale un mensaje.</p>
+  </section>
+
+  
+<!-- ═══════════ AUTOEVALUACIÓN (autocorregible) ═══════════ -->
+<div id="qz" style="max-width:920px;margin:46px auto 0;width:100%;font-family:'Poppins',system-ui,sans-serif;">
+  <style>
+    #qz .qz-eyebrow{font-family:'Raleway',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:#C7902F;margin-bottom:8px;}
+    #qz .qz-title{font-family:'Raleway',sans-serif;font-weight:800;font-size:24px;color:#123F26;margin:0 0 6px;letter-spacing:-.01em;}
+    #qz .qz-sub{font-size:14px;color:#6B6B6B;margin:0 0 26px;font-weight:300;}
+    #qz .qz-card{background:#fff;border:1px solid #E3E3E0;border-radius:6px;padding:22px 24px 20px;margin-bottom:16px;}
+    #qz .qz-num{font-family:'Raleway',sans-serif;font-weight:800;font-size:11px;letter-spacing:.18em;color:#C7902F;text-transform:uppercase;margin-bottom:6px;}
+    #qz .qz-q{font-weight:500;font-size:15.5px;line-height:1.5;margin:0 0 14px;color:#1C1C1C;}
+    #qz .qz-opt{display:block;width:100%;text-align:left;background:#FAFAF8;border:1.5px solid #E3E3E0;border-radius:6px;padding:11px 14px;margin-bottom:8px;font-family:inherit;font-size:14px;font-weight:300;line-height:1.45;color:#1C1C1C;cursor:pointer;transition:border-color .15s,background .15s;}
+    #qz .qz-opt:hover{border-color:#C7902F;}
+    #qz .qz-done .qz-opt{cursor:default;opacity:.55;}
+    #qz .qz-done .qz-opt:hover{border-color:#E3E3E0;}
+    #qz .qz-done .qz-opt.qz-ok{background:#E8F0EA;border-color:#1A5C38;opacity:1;font-weight:500;}
+    #qz .qz-done .qz-opt.qz-bad{background:#FBEBE6;border-color:#B5462E;opacity:1;}
+    #qz .qz-mark{font-weight:600;margin-right:6px;}
+    #qz .qz-ok .qz-mark{color:#1A5C38;}
+    #qz .qz-bad .qz-mark{color:#B5462E;}
+    #qz .qz-why{display:none;font-size:13.5px;color:#4A5A50;background:#E8F0EA;border-left:3px solid #1A5C38;padding:10px 14px;border-radius:0 4px 4px 0;margin-top:10px;line-height:1.55;}
+    #qz .qz-done .qz-why{display:block;}
+    #qz .qz-result{display:none;background:#123F26;color:#fff;border-radius:6px;padding:24px 26px;margin-top:22px;}
+    #qz .qz-result.qz-show{display:block;}
+    #qz .qz-score{font-family:'Raleway',sans-serif;font-weight:800;font-size:26px;margin:0 0 6px;}
+    #qz .qz-msg{font-size:14px;font-weight:300;margin:0;opacity:.92;line-height:1.55;}
+    #qz .qz-retry{margin-top:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:8px 18px;font-family:'Raleway',sans-serif;font-weight:600;font-size:13px;cursor:pointer;}
+    #qz .qz-retry:hover{background:rgba(255,255,255,.24);}
+  </style>
+  <div class="qz-eyebrow">Para cerrar</div>
+  <p class="qz-title">Comprobá lo que te llevás</p>
+  <p class="qz-sub">5 preguntas. Elegí una opción en cada una: te marca al instante si está bien y por qué.</p>
+  <div id="qz-list"></div>
+  <div class="qz-result" id="qz-result">
+    <p class="qz-score" id="qz-score"></p>
+    <p class="qz-msg" id="qz-msg"></p>
+    <button type="button" class="qz-retry" id="qz-retry">Volver a intentar</button>
+  </div>
+</div>
+<script>
+(function(){
+  var QS = [{"q": "Terminás una llamada con un interesado. ¿Cuándo se puede dar por cerrado ese contacto?", "opts": ["Cuando le mandaste toda la información que pidió", "Cuando quedó agendado el próximo paso: fecha, hora y motivo", "Cuando el cliente dice que lo va a pensar", "Cuando le ofreciste la visita"], "ok": 1, "why": "La regla madre: ningún contacto se cierra sin próximo paso agendado. “Después le escribo” no existe."}, {"q": "Un lead pide precio, pregunta por financiación y quiere visitar. ¿Cómo lo seguís?", "opts": ["Es tibio: un contacto por semana", "Es caliente: le escribo todos los días hasta que responda", "Es caliente: contacto cada 48 h hasta cerrar o descartar", "Es frío: nutrición cada 30 a 60 días"], "ok": 2, "why": "Pide precio, financiación o visita = caliente. El ritmo es cada 48 horas — todos los días es acoso, una vez por semana es dejarlo enfriar."}, {"q": "Le toca contacto a un lead pero no tenés ninguna novedad para contarle. ¿Qué hacés?", "opts": ["Le escribo “Hola, ¿alguna novedad?” para no perder el ritmo", "Busco una novedad real (otra opción, un dato del barrio, un precio que bajó) y recién ahí escribo", "No escribo nada y espero a que él me escriba", "Le reenvío la ficha de la propiedad para recordarle"], "ok": 1, "why": "Cada mensaje tiene que traer algo nuevo. Si no tenés novedad, no escribas: buscala primero. Y “¿alguna novedad?” es el pecado número uno."}, {"q": "¿Cómo se ofrece la visita a alguien que recién está mostrando interés?", "opts": ["Directo con fecha: “¿el martes a las 10 te queda bien?”", "No se ofrece: se espera a que la pida él", "El mismo día de la primera consulta, para no perderlo", "Abierta: “cuando tengas una mañana libre, avisame” — la fecha se pone cuando el interés ya está"], "ok": 3, "why": "Apurar la visita espanta. Primero se ofrece abierta; recién se agenda con día y hora cuando el interés ya está instalado."}, {"q": "Necesitás saber el presupuesto del cliente. ¿Cómo lo preguntás?", "opts": ["Directo y sin vueltas: “¿cuál es tu presupuesto?”", "Con el motivo de la pregunta y qué gana él con responder", "Junto con otras dos o tres preguntas, para aprovechar el mensaje", "No se pregunta: se deduce por las propiedades que mira"], "ok": 1, "why": "Nunca preguntes sin decir para qué. La estructura es: dato → “te pregunto esto y te digo para qué” → qué gana él → la pregunta."}];
+  var list = document.getElementById('qz-list');
+  var answered = 0, correct = 0;
+  function esc(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+  function render(){
+    answered = 0; correct = 0;
+    document.getElementById('qz-result').classList.remove('qz-show');
+    list.innerHTML = '';
+    QS.forEach(function(item, qi){
+      var card = document.createElement('div');
+      card.className = 'qz-card';
+      var h = '<div class="qz-num">Pregunta ' + (qi+1) + ' de ' + QS.length + '</div>' +
+              '<p class="qz-q">' + esc(item.q) + '</p>';
+      item.opts.forEach(function(op, oi){
+        h += '<button type="button" class="qz-opt" data-oi="' + oi + '">' + esc(op) + '</button>';
+      });
+      h += '<div class="qz-why">' + esc(item.why) + '</div>';
+      card.innerHTML = h;
+      card.addEventListener('click', function(ev){
+        var btn = ev.target.closest('.qz-opt');
+        if (!btn || card.classList.contains('qz-done')) return;
+        card.classList.add('qz-done');
+        var chosen = parseInt(btn.getAttribute('data-oi'), 10);
+        var opts = card.querySelectorAll('.qz-opt');
+        opts[item.ok].classList.add('qz-ok');
+        opts[item.ok].insertAdjacentHTML('afterbegin', '<span class="qz-mark">✓</span>');
+        if (chosen === item.ok) {
+          correct++;
+        } else {
+          btn.classList.add('qz-bad');
+          btn.insertAdjacentHTML('afterbegin', '<span class="qz-mark">✗</span>');
+        }
+        answered++;
+        if (answered === QS.length) finish();
+      });
+      list.appendChild(card);
+    });
+  }
+  function finish(){
+    var r = document.getElementById('qz-result');
+    document.getElementById('qz-score').textContent = correct + ' de ' + QS.length + ' correctas';
+    var msg;
+    if (correct === QS.length) msg = 'Impecable. Esto ya lo tenés incorporado: ahora hay que verlo en tus chats.';
+    else if (correct >= QS.length - 1) msg = 'Muy bien. Repasá la que te falló y listo — la diferencia está en los detalles.';
+    else if (correct >= Math.ceil(QS.length/2)) msg = 'Vas bien, pero releé las secciones de las que te fallaron antes de aplicarlo con clientes reales.';
+    else msg = 'Volvé a leer la capacitación con calma y repetí el test. Estos conceptos son la base de todo lo demás.';
+    document.getElementById('qz-msg').textContent = msg;
+    r.classList.add('qz-show');
+    r.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  document.getElementById('qz-retry').addEventListener('click', function(){
+    render();
+    document.getElementById('qz').scrollIntoView({behavior:'smooth'});
+  });
+  render();
+})();
+</script>
+
+<p class="nota">Los montos y cuotas que aparecen como ejemplo se reemplazan siempre por los valores del masterplan vigente el día que escribís. Disponibilidad y precios actualizados: siinmobiliaria.com/distrito-roldan-precios</p>
+
+</div>
+</body>
+</html>
