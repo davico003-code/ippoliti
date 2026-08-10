@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 
 import type { Capsula } from '@/lib/si-school/types'
 import { getProgress, markCapsulaDone } from '@/lib/si-school/progress'
+import { QUIZZES } from '@/content/si-school/quizzes'
+import QuizCapsula from './QuizCapsula'
 import styles from './content.module.css'
 
 interface Props {
@@ -15,6 +17,9 @@ interface Props {
 export default function CapsulaCard({ capSlug, capsula, defaultOpen = false }: Props) {
   const [open, setOpen] = useState<boolean>(defaultOpen)
   const [done, setDone] = useState<boolean>(false)
+  const [quizComplete, setQuizComplete] = useState<boolean>(false)
+
+  const quiz = QUIZZES[`${capSlug}/${capsula.slug}`]
 
   useEffect(() => {
     const sync = () => {
@@ -29,6 +34,9 @@ export default function CapsulaCard({ capSlug, capsula, defaultOpen = false }: P
   const handleMarkDone = () => {
     markCapsulaDone(capSlug, capsula.slug)
   }
+
+  // Sin quiz definido, la cápsula se completa como siempre.
+  const puedeCompletar = !quiz || quiz.length === 0 || quizComplete
 
   return (
     <article
@@ -53,11 +61,29 @@ export default function CapsulaCard({ capSlug, capsula, defaultOpen = false }: P
               className={styles.prose}
               dangerouslySetInnerHTML={{ __html: capsula.contenidoHtml }}
             />
-            <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+
+            {quiz && quiz.length > 0 && !done && (
+              <QuizCapsula preguntas={quiz} onComplete={() => setQuizComplete(true)} />
+            )}
+
+            <div
+              style={{ display: 'flex', gap: 8, marginTop: 18, alignItems: 'center', flexWrap: 'wrap' }}
+            >
               {!done && (
-                <button type="button" className={styles.btnPrimary} onClick={handleMarkDone}>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={handleMarkDone}
+                  disabled={!puedeCompletar}
+                  style={!puedeCompletar ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
+                >
                   Marcar como leída
                 </button>
+              )}
+              {!done && !puedeCompletar && (
+                <span style={{ fontSize: 12.5, color: '#8B847A' }}>
+                  Respondé las preguntas de arriba para completarla.
+                </span>
               )}
               <button
                 type="button"
