@@ -21,7 +21,7 @@ const DISMISS_DAYS = 3
 const SHOW_DELAY_MS = 90_000
 
 // Rutas internas/flujos donde el popup no corresponde.
-const HIDE_PREFIXES = ['/emprendimientos/', '/edificios', '/tasar', '/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden']
+const HIDE_PREFIXES = ['/emprendimientos/', '/edificios', '/tasar', '/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden', '/recursos']
 
 // Pasos simplificados a un solo renglón: icono + label corto (sin descripción).
 const selectionSteps = [
