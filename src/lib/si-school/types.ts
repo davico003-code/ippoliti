@@ -43,6 +43,18 @@ export interface PreguntaComprension {
   criterio: string
 }
 
+/** Pregunta multiple choice de cierre de cápsula (autocorregible). */
+export interface QuizPregunta {
+  pregunta: string
+  opciones: string[]
+  /** Índice de la opción correcta en `opciones`. */
+  correcta: number
+  /** Valida el razonamiento cuando responde bien (1 oración). */
+  porQue: string
+  /** Lo que le tiene que quedar de la cápsula; se muestra cuando falla. */
+  recordatorio: string
+}
+
 export interface Capacidad extends CapacidadMeta {
   capsulas: Capsula[]
   casos: Caso[]
