@@ -3,6 +3,7 @@ import { getProperties, generatePropertySlug } from '@/lib/tokko'
 import { getAllPosts } from '@/lib/blog'
 import { getDevelopments, generateDevSlug } from '@/lib/developments'
 import { BARRIOS } from '@/lib/barrios'
+import { CLUSTERS, clusterUrl } from '@/lib/clusters'
 
 const BASE = 'https://siinmobiliaria.com'
 
@@ -95,5 +96,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]
 
-  return [...staticRoutes, ...barriosRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
+  // Landings por cluster (Growth OS §23): generadas desde el catálogo cerrado.
+  const clusterRoutes: MetadataRoute.Sitemap = CLUSTERS.map((c) => ({
+    url: clusterUrl(c),
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.8,
+  }))
+
+  return [...staticRoutes, ...clusterRoutes, ...barriosRoutes, ...blogRoutes, ...devRoutes, ...propertyRoutes]
 }
