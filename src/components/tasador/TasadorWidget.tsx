@@ -411,7 +411,7 @@ export default function TasadorWidget({
                     : muestras === 1 ? 'terreno relevado' : 'terrenos relevados'
                 } en ${barrioNombre}`
               : `promedio de ${esDepto ? 'departamentos' : 'terrenos'} en ${ciudad} (todavía no tenemos muestra propia de ${barrioNombre})`}
-            {!esLote && !esDepto && ` · Costo de construcción: USD ${costoM2}/m² llave en mano, actualizado por IPC`}
+            {!esLote && !esDepto && ` · Costo de construcción: USD ${costoM2}/m² llave en mano, actualizado mensualmente`}
             . Estimación orientativa: no reemplaza una tasación profesional.
           </p>
         </div>

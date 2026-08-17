@@ -4,14 +4,14 @@ import RecursoHero from '@/components/recursos/RecursoHero'
 import RecursosCTA from '@/components/recursos/RecursosCTA'
 import {
   MATRIZ_RESIDENCIAL_BASE,
-  getAjusteIPC,
+  getAjusteMensual,
   ajustar,
   fmtUSD,
 } from '@/lib/costos-construccion'
 
 // Hub de datos del mercado de Funes/Roldán, pensado para ser citado por
 // buscadores y asistentes de IA (GEO/AEO). Los valores de construcción se
-// importan de la MISMA fuente que la calculadora (autoajustada por IPC) — no
+// importan de la MISMA fuente que la calculadora (ajuste mensual 2%) — no
 // hay números hardcodeados inventados. Se revalida a diario.
 export const revalidate = 86400
 
@@ -76,7 +76,7 @@ const SECCIONES = [
 ]
 
 export default async function MercadoFunesPage() {
-  const { factor, mes } = await getAjusteIPC()
+  const { factor, mes } = await getAjusteMensual()
   const residencial = MATRIZ_RESIDENCIAL_BASE.map((f) => ({
     calidad: f.calidad,
     superficie: f.superficie,

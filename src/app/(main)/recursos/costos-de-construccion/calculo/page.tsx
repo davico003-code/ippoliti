@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { COSTOS_STYLES } from '../styles'
 import {
   getCalidadBySlug,
-  getAjusteIPC,
+  getAjusteMensual,
   ajustar,
   fmtUSD,
   formatMesAnio,
@@ -11,8 +11,8 @@ import {
 
 // Página de resultado de la calculadora de costos. Recibe el cálculo por
 // query params (?lote=&cub=&semi=&pileta=&calidad=slug), valida y recalcula
-// server-side con el mismo módulo central (valores vigentes ajustados por
-// IPC). Params inválidos o faltantes → redirect a la guía.
+// server-side con el mismo módulo central (valores vigentes con el ajuste
+// mensual del 2%). Params inválidos o faltantes → redirect a la guía.
 
 export const metadata: Metadata = {
   title: 'Mi proyección de costo de construcción | SI INMOBILIARIA',
@@ -66,7 +66,7 @@ export default async function CalculoPage({ searchParams }: Props) {
     redirect('/recursos/costos-de-construccion')
   }
 
-  const { factor, mes } = await getAjusteIPC()
+  const { factor, mes } = await getAjusteMensual()
   const tarifa = ajustar(calidad.llaveBase, factor)
   const mediaTarifa = tarifa / 2
 

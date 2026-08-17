@@ -12,8 +12,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import TasadorWidget from '@/components/tasador/TasadorWidget'
 import { BARRIOS_TASADOR, getBarrio, precioTierra, precioDepto } from '@/lib/tasador/barrios'
-import { MATRIZ_RESIDENCIAL_BASE, MES_BASE, ajustar } from '@/lib/costos-construccion'
-import { getFactorIPCSafe } from '@/lib/tasador/motor'
+import { MATRIZ_RESIDENCIAL_BASE, ajustar, getAjusteMensual } from '@/lib/costos-construccion'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -94,9 +93,9 @@ export default async function TasarPage({ params }: { params: { slug: string } }
   const esDepto = tipo === 'departamento'
   const { ppm2, fuente, muestras } = esDepto ? precioDepto(barrio) : precioTierra(barrio)
 
-  // Costos de construcción vigentes (base jun-2026 ajustada por IPC) — misma
+  // Costos de construcción vigentes (base ago-2026 + 2% mensual) — misma
   // fuente que la Calculadora de Costos de /recursos.
-  const factor = await getFactorIPCSafe(MES_BASE)
+  const { factor } = await getAjusteMensual()
   const calidades = MATRIZ_RESIDENCIAL_BASE.map((f) => ({
     slug: f.slug,
     label: f.calidad.replace('Línea ', ''),
@@ -223,7 +222,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
               que está edificado, descontando antigüedad y estado. La diferencia con una
               calculadora genérica es de dónde sacamos los números: el valor de la tierra sale de
               los terrenos que relevamos en {barrio.ciudad} y el costo de construcción es el mismo
-              que publicamos en nuestro informe de costos, ajustado por IPC todos los meses.
+              que publicamos en nuestro informe de costos, actualizado todos los meses.
             </p>
           )}
           <div className="mt-5 grid gap-4 md:grid-cols-3">

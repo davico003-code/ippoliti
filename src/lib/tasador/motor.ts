@@ -8,7 +8,7 @@
 //                  × depreciación (antigüedad) × estado
 //
 // El costo/m² NO se hardcodea acá: entra por parámetro desde
-// lib/costos-construccion (matriz Llave en Mano ajustada por IPC), así el
+// lib/costos-construccion (matriz Llave en Mano con ajuste mensual 2%), así el
 // tasador se actualiza solo cuando se actualizan los costos.
 
 export type AntiguedadId = 'estrenar' | 'hasta10' | 'de10a25' | 'mas25'
@@ -103,26 +103,6 @@ export function tasar(e: EntradaTasacion): ResultadoTasacion {
 export const fmtUSD = (n: number) =>
   'USD ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.round(n))
 
-// Ajuste IPC ISR-safe. getAjusteIPC() de lib/costos-construccion usa el cliente
-// @upstash/redis (fetch no-store): dentro del render on-demand de una página ISR
-// eso dispara DYNAMIC_SERVER_USAGE y devuelve 500 (mismo bug que tenía el blog).
-// Acá leemos la serie por REST con fetch cacheable.
-export async function getFactorIPCSafe(mesBase: string): Promise<number> {
-  const { getCached } = await import('@/lib/redis-isr')
-  try {
-    const raw = await getCached('indices:IPC', 21600)
-    if (!raw) return 1
-    const serie = JSON.parse(raw) as { date: string; value: number }[]
-    if (!Array.isArray(serie) || serie.length === 0) return 1
-    const base = serie.find((p) => p.date.slice(0, 7) === mesBase)
-    const ultimo = serie[serie.length - 1]
-    if (!base?.value || !ultimo?.value) return 1
-    if (ultimo.date.slice(0, 7) <= mesBase) return 1
-    return ultimo.value / base.value
-  } catch {
-    return 1
-  }
-}
 
 // ── Departamentos ──────────────────────────────────────────────────────────
 // Un departamento no se valúa por el método del costo (no tiene lote propio ni

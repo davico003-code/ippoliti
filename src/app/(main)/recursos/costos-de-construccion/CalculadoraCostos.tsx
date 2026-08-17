@@ -89,7 +89,7 @@ function CampoNumerico({
 }
 
 // `calidades`: valores Llave en Mano VIGENTES (base junio 2026 ajustada por
-// IPC), calculados server-side en page.tsx desde lib/costos-construccion.
+// mensual), calculados server-side en page.tsx desde lib/costos-construccion.
 // El default es la tercera opción (Línea Alta), como el HTML de referencia.
 export default function CalculadoraCostos({ calidades }: { calidades: CalidadOption[] }) {
   const [lote, setLote] = useState<Campo>({ raw: 0, display: '' })

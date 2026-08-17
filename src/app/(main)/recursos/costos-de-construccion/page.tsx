@@ -6,13 +6,13 @@ import { COSTOS_STYLES } from './styles'
 import {
   MATRIZ_RESIDENCIAL_BASE,
   MATRIZ_COMERCIAL_BASE,
-  getAjusteIPC,
+  getAjusteMensual,
   ajustar,
   fmtUSD,
   formatMesAnio,
 } from '@/lib/costos-construccion'
 
-// Los valores por m² se ajustan por IPC (cron mensual día 22 → Redis):
+// Los valores por m² se ajustan un 2% mensual acumulativo (regla ago-2026):
 // regenerar a diario alcanza de sobra y mantiene la página estática.
 export const revalidate = 86400
 
@@ -161,7 +161,7 @@ const DONUT_LEYENDA = [
 ]
 
 export default async function CostosConstruccionPage() {
-  const { factor, mes } = await getAjusteIPC()
+  const { factor, mes } = await getAjusteMensual()
   const residencial = MATRIZ_RESIDENCIAL_BASE.map((f) => ({
     ...f,
     cuentaPropia: fmtUSD(ajustar(f.cuentaPropiaBase, factor)),
