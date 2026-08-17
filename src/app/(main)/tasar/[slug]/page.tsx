@@ -11,7 +11,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import TasadorWidget from '@/components/tasador/TasadorWidget'
-import { BARRIOS_TASADOR, getBarrio, precioTierra, precioDepto } from '@/lib/tasador/barrios'
+import { BARRIOS_TASADOR, getBarrio, precioTierra, precioDepto, opcionesSelector } from '@/lib/tasador/barrios'
 import { MATRIZ_RESIDENCIAL_BASE, ajustar, getAjusteMensual } from '@/lib/costos-construccion'
 
 export const revalidate = 86400
@@ -192,6 +192,8 @@ export default async function TasarPage({ params }: { params: { slug: string } }
             ciudad={barrio.ciudad}
             ppm2Tierra={ppm2}
             fuenteTierra={fuente}
+            barrios={opcionesSelector()}
+            barrioSlug={barrio.slug}
             muestras={muestras}
             calidades={calidades}
             esLote={tipoInfo.esLote}

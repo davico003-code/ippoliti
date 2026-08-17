@@ -4668,3 +4668,37 @@ export function precioDepto(b: BarrioTasador): { ppm2: number; fuente: "curado" 
   if (b.ppm2Depto && b.muestrasDepto > 0) return { ppm2: b.ppm2Depto, fuente: "barrio", muestras: b.muestrasDepto }
   return { ppm2: PPM2_DEPTO_CIUDAD[b.ciudad] ?? 2000, fuente: "ciudad", muestras: 0 }
 }
+
+// Lista liviana para el selector de barrio del widget: cada entrada con su
+// precio YA resuelto (curado > muestra propia > paracaídas de ciudad).
+export interface OpcionBarrioSelector {
+  slug: string
+  nombre: string
+  ciudad: string
+  tierra: number
+  fuenteTierra: "curado" | "barrio" | "ciudad"
+  muestrasTierra: number
+  depto: number
+  fuenteDepto: "curado" | "barrio" | "ciudad"
+  muestrasDepto: number
+}
+
+export function opcionesSelector(): OpcionBarrioSelector[] {
+  return BARRIOS_TASADOR.map((b) => {
+    const t = precioTierra(b)
+    const d = precioDepto(b)
+    return {
+      slug: b.slug,
+      nombre: b.nombre,
+      ciudad: b.ciudad,
+      tierra: t.ppm2,
+      fuenteTierra: t.fuente,
+      muestrasTierra: t.muestras,
+      depto: d.ppm2,
+      fuenteDepto: d.fuente,
+      muestrasDepto: d.muestras,
+    }
+  }).sort((a, b) =>
+    a.ciudad === b.ciudad ? a.nombre.localeCompare(b.nombre, "es") : a.ciudad.localeCompare(b.ciudad, "es"),
+  )
+}

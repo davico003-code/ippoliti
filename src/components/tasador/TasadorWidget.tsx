@@ -21,6 +21,7 @@ import {
   type EstadoId,
 } from '@/lib/tasador/motor'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
+import type { OpcionBarrioSelector } from '@/lib/tasador/barrios'
 
 const GREEN = '#1A5C38'
 const R = "'Raleway', system-ui, sans-serif"
@@ -43,6 +44,10 @@ interface Props {
   esLote: boolean
   esDepto?: boolean
   whatsappBase: string
+  /** Catálogo completo para el selector "¿En qué barrio está?" (opcional). */
+  barrios?: OpcionBarrioSelector[]
+  /** Slug del barrio de la landing, para preseleccionar. */
+  barrioSlug?: string
 }
 
 const chipBase: React.CSSProperties = {
@@ -111,7 +116,11 @@ export default function TasadorWidget({
   esLote,
   esDepto = false,
   whatsappBase,
+  barrios = [],
+  barrioSlug = '',
 }: Props) {
+  const [barrioSel, setBarrioSel] = useState(barrioSlug)
+  const [ppm2Custom, setPpm2Custom] = useState('')
   const [lote, setLote] = useState(esLote ? 600 : 300)
   const [cubiertos, setCubiertos] = useState(esLote ? 0 : 120)
   const [calidadSlug, setCalidadSlug] = useState(calidades[1]?.slug ?? calidades[0]?.slug ?? '')
@@ -124,40 +133,53 @@ export default function TasadorWidget({
 
   const costoM2 = calidades.find((c) => c.slug === calidadSlug)?.costoM2 ?? calidades[0]?.costoM2 ?? 0
 
+  // Zona activa: la de la landing, salvo que la persona elija otro barrio.
+  const sel = barrios.find((b) => b.slug === barrioSel)
+  const esInicial = !sel || sel.slug === barrioSlug
+  const nombreZona = esInicial ? barrioNombre : sel!.nombre
+  const ciudadZona = esInicial ? ciudad : sel!.ciudad
+  const baseZona = esInicial ? ppm2Tierra : esDepto ? sel!.depto : sel!.tierra
+  const fuenteZona = esInicial ? fuenteTierra : esDepto ? sel!.fuenteDepto : sel!.fuenteTierra
+  const muestrasZona = esInicial ? muestras : esDepto ? sel!.muestrasDepto : sel!.muestrasTierra
+  // Si la persona escribió su propio valor del m², manda ese.
+  const custom = Number(ppm2Custom)
+  const ppm2Activo = custom > 0 ? custom : baseZona
+  const fuenteActiva: 'manual' | 'curado' | 'barrio' | 'ciudad' = custom > 0 ? 'manual' : fuenteZona
+
   const res = useMemo(
     () =>
       esDepto
         ? tasarDepartamento({
             cubiertosM2: cubiertos,
-            ppm2Zona: ppm2Tierra,       // en depto, ppm2Tierra trae el USD/m² cubierto de la zona
+            ppm2Zona: ppm2Activo,       // en depto, trae el USD/m² cubierto de la zona
             antiguedad,
             estado,
             amenities,
             cochera,
-            fuenteZona: fuenteTierra,
+            fuenteZona: fuenteActiva,
           })
         : tasar({
         loteM2: lote,
         cubiertosM2: esLote ? 0 : cubiertos,
-        ppm2Tierra,
+        ppm2Tierra: ppm2Activo,
         costoM2Construccion: costoM2,
         antiguedad,
         estado,
         extras,
-        fuenteTierra,
+        fuenteTierra: fuenteActiva,
       }),
-    [lote, cubiertos, ppm2Tierra, costoM2, antiguedad, estado, extras, esLote, fuenteTierra, esDepto, amenities, cochera],
+    [lote, cubiertos, ppm2Activo, costoM2, antiguedad, estado, extras, esLote, fuenteActiva, esDepto, amenities, cochera],
   )
 
   const marcar = () => {
     if (tocado) return
     setTocado(true)
-    trackEvent('tasador_uso', { barrio: barrioNombre, ciudad })
+    trackEvent('tasador_uso', { barrio: nombreZona, ciudad: ciudadZona })
   }
 
   const mensajeWsp = () => {
     const detalle = [
-      `Hola! Usé el tasador online de ${barrioNombre}.`,
+      `Hola! Usé el tasador online de ${nombreZona}.`,
       `Estimación: ${fmtUSD(res.total)}`,
       esLote ? `Lote: ${lote} m²` : esDepto ? `Cubiertos: ${cubiertos} m²` : `Lote: ${lote} m² · Cubiertos: ${cubiertos} m²`,
       !esLote && `Antigüedad: ${ANTIGUEDAD.find((a) => a.id === antiguedad)?.label}`,
@@ -170,8 +192,8 @@ export default function TasadorWidget({
   }
 
   const pedirTasacion = () => {
-    trackEvent('tasador_lead', { barrio: barrioNombre, estimacion: Math.round(res.total) })
-    trackFbEvent('Lead', { content_name: `Tasador ${barrioNombre}` })
+    trackEvent('tasador_lead', { barrio: nombreZona, estimacion: Math.round(res.total) })
+    trackFbEvent('Lead', { content_name: `Tasador ${nombreZona}` })
   }
 
   return (
@@ -196,11 +218,74 @@ export default function TasadorWidget({
             : 'Tres datos alcanzan. El valor se actualiza mientras completás.'}
         </p>
 
+        {barrios.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+              ¿En qué barrio está?
+            </label>
+            <select
+              value={barrioSel || barrioSlug}
+              onChange={(e) => {
+                setBarrioSel(e.target.value)
+                setPpm2Custom('')
+                marcar()
+              }}
+              style={{
+                width: '100%',
+                height: 46,
+                border: '1px solid #d0d0d0',
+                borderRadius: 12,
+                padding: '0 10px',
+                fontFamily: P,
+                fontSize: 15,
+                background: '#fff',
+              }}
+            >
+              {(['Funes', 'Roldán', 'Rosario'] as const).map((c) => (
+                <optgroup key={c} label={c}>
+                  {barrios.filter((b) => b.ciudad === c).map((b) => (
+                    <option key={b.slug} value={b.slug}>{b.nombre}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className={esLote || esDepto ? '' : 'grid grid-cols-2 gap-3.5'}>
           {!esDepto && <Campo label="Superficie del lote (m²)" value={lote} onChange={setLote} />}
           {!esLote && (
             <Campo label="Superficie cubierta (m²)" value={cubiertos} onChange={setCubiertos} />
           )}
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+            {esDepto ? 'Valor del m² en la zona (USD)' : 'Valor de la tierra (USD/m²)'}
+          </label>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={ppm2Custom}
+            placeholder={String(baseZona)}
+            onChange={(e) => {
+              setPpm2Custom(e.target.value)
+              marcar()
+            }}
+            style={{
+              width: '100%',
+              height: 46,
+              border: '1px solid #d0d0d0',
+              borderRadius: 12,
+              padding: '0 14px',
+              fontFamily: P,
+              fontSize: 15,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          />
+          <div style={{ fontSize: 11.5, color: '#8a8a8e', marginTop: 4 }}>
+            Precargado con nuestro valor para {nombreZona}. Si conocés el de tu cuadra, escribilo y manda el tuyo.
+          </div>
         </div>
 
         {!esLote && !esDepto && (
@@ -374,7 +459,7 @@ export default function TasadorWidget({
             {esDepto ? (
               <div className="flex justify-between">
                 <span>
-                  {cubiertos} m² × USD {ppm2Tierra}/m² de la zona
+                  {cubiertos} m² × USD {ppm2Activo}/m² de la zona
                 </span>
                 <b>{fmtUSD(res.construccion)}</b>
               </div>
@@ -382,7 +467,7 @@ export default function TasadorWidget({
               <>
                 <div className="flex justify-between">
                   <span>
-                    Tierra ({lote} m² × USD {ppm2Tierra})
+                    Tierra ({lote} m² × USD {ppm2Activo})
                   </span>
                   <b>{fmtUSD(res.tierra)}</b>
                 </div>
@@ -404,15 +489,17 @@ export default function TasadorWidget({
 
           <p style={{ marginTop: 14, fontSize: 11.5, opacity: 0.75, lineHeight: 1.5 }}>
             {esDepto ? 'Valor de referencia: ' : 'Valor de la tierra: '}
-            {fuenteTierra === 'curado'
-              ? `valor de mercado relevado por SI INMOBILIARIA (agosto 2026) para ${barrioNombre}`
-              : fuenteTierra === 'barrio'
-              ? `promedio de ${muestras} ${
+            {fuenteActiva === 'manual'
+              ? `valor del m² ingresado por vos para ${nombreZona}`
+              : fuenteActiva === 'curado'
+              ? `valor de mercado relevado por SI INMOBILIARIA (agosto 2026) para ${nombreZona}`
+              : fuenteActiva === 'barrio'
+              ? `promedio de ${muestrasZona} ${
                   esDepto
-                    ? muestras === 1 ? 'departamento relevado' : 'departamentos relevados'
-                    : muestras === 1 ? 'terreno relevado' : 'terrenos relevados'
-                } en ${barrioNombre}`
-              : `promedio de ${esDepto ? 'departamentos' : 'terrenos'} en ${ciudad} (todavía no tenemos muestra propia de ${barrioNombre})`}
+                    ? muestrasZona === 1 ? 'departamento relevado' : 'departamentos relevados'
+                    : muestrasZona === 1 ? 'terreno relevado' : 'terrenos relevados'
+                } en ${nombreZona}`
+              : `promedio de ${esDepto ? 'departamentos' : 'terrenos'} en ${ciudadZona} (todavía no tenemos muestra propia de ${nombreZona})`}
             {!esLote && !esDepto && ` · Costo de construcción: USD ${costoM2}/m² llave en mano, actualizado mensualmente`}
             . Estimación orientativa: no reemplaza una tasación profesional.
           </p>
@@ -431,7 +518,7 @@ export default function TasadorWidget({
         >
           <p style={{ fontSize: 14.5, color: '#6e6e73', marginBottom: 14, lineHeight: 1.55 }}>
             <b style={{ color: '#111' }}>Quiero recibir mi tasación precisa.</b> Un martillero
-            matriculado con 40 años en {ciudad} la hace <b style={{ color: '#111' }}>gratis y en 24 hs</b>,
+            matriculado con 40 años en {ciudadZona} la hace <b style={{ color: '#111' }}>gratis y en 24 hs</b>,
             mirando lo que ningún algoritmo ve.
           </p>
           <a
@@ -454,7 +541,7 @@ export default function TasadorWidget({
             Quiero mi tasación precisa
           </a>
           <a
-            href={`/tasaciones?tipo=${esLote ? 'Terreno' : 'Casa'}&zona=${encodeURIComponent(barrioNombre)}`}
+            href={`/tasaciones?tipo=${esLote ? 'Terreno' : 'Casa'}&zona=${encodeURIComponent(nombreZona)}`}
             onClick={pedirTasacion}
             className="flex items-center justify-center w-full"
             style={{
