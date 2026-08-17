@@ -1,5 +1,6 @@
 // AUTO-GENERADO desde OpenStreetMap (Overpass) + feed HILO — 2026-07-26
 // Barrios de Funes, Roldán y Rosario para las landings de tasación.
+//   ppm2Curado = USD/m² relevado A MANO por David (ago-2026): manda sobre todo.
 //   ppm2       = USD/m² de TIERRA (terrenos del feed). Para casas y lotes.
 //   ppm2Depto  = USD/m² CUBIERTO de departamentos comparables de la zona.
 //   null       = sin muestra propia: se usa el promedio de la ciudad.
@@ -7,6 +8,9 @@
 
 export interface BarrioTasador {
   slug: string
+  /** USD/m² relevado a mano por David (ago-2026). Pisa el promedio automático.
+   *  Al REGENERAR el archivo desde OSM/feed, conservar estos campos. */
+  ppm2Curado?: number
   nombre: string
   ciudad: "Funes" | "Roldán" | "Rosario"
   lat: number
@@ -20,8 +24,8 @@ export interface BarrioTasador {
 
 // Promedios por ciudad — fallback cuando el barrio no tiene muestra propia.
 export const PPM2_CIUDAD: Record<string, number> = {
-  "Funes": 176,
-  "Roldán": 106,
+  "Funes": 90,
+  "Roldán": 70,
   "Rosario": 400,
 }
 
@@ -227,6 +231,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "cadaques",
+    "ppm2Curado": 250,
     "nombre": "Cadaques",
     "ciudad": "Funes",
     "lat": -32.92733,
@@ -275,6 +280,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "cantegril",
+    "ppm2Curado": 200,
     "nombre": "Cantegril",
     "ciudad": "Funes",
     "lat": -32.92732,
@@ -467,6 +473,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "don-mateo",
+    "ppm2Curado": 135,
     "nombre": "Don Mateo",
     "ciudad": "Funes",
     "lat": -32.92804,
@@ -527,6 +534,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "funes-centro",
+    "ppm2Curado": 375,
     "nombre": "Funes Centro",
     "ciudad": "Funes",
     "lat": -32.91876,
@@ -539,6 +547,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "funes-city",
+    "ppm2Curado": 90,
     "nombre": "Funes City",
     "ciudad": "Funes",
     "lat": -32.90575,
@@ -563,6 +572,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "funes-lakes",
+    "ppm2Curado": 150,
     "nombre": "Funes Lakes",
     "ciudad": "Funes",
     "lat": -32.93669,
@@ -647,6 +657,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "kentucky",
+    "ppm2Curado": 200,
     "nombre": "Kentucky",
     "ciudad": "Funes",
     "lat": -32.94339,
@@ -935,6 +946,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "los-troncos",
+    "ppm2Curado": 200,
     "nombre": "Los Troncos",
     "ciudad": "Funes",
     "lat": -32.9257,
@@ -959,6 +971,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "miraflores",
+    "ppm2Curado": 220,
     "nombre": "Miraflores",
     "ciudad": "Funes",
     "lat": -32.92681,
@@ -1199,6 +1212,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "san-marino",
+    "ppm2Curado": 250,
     "nombre": "San Marino",
     "ciudad": "Funes",
     "lat": -32.92743,
@@ -1211,6 +1225,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "san-sebastian",
+    "ppm2Curado": 238,
     "nombre": "San Sebastián",
     "ciudad": "Funes",
     "lat": -32.93342,
@@ -1379,6 +1394,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "vida-club-de-campo",
+    "ppm2Curado": 130,
     "nombre": "Vida Club de Campo",
     "ciudad": "Funes",
     "lat": -32.93635,
@@ -1391,6 +1407,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "vida-crystal-lagoon",
+    "ppm2Curado": 123,
     "nombre": "Vida Crystal Lagoon",
     "ciudad": "Funes",
     "lat": -32.9055,
@@ -1403,6 +1420,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "vida-green",
+    "ppm2Curado": 120,
     "nombre": "Vida Green",
     "ciudad": "Funes",
     "lat": -32.89658,
@@ -1475,6 +1493,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "acequias-del-aire",
+    "ppm2Curado": 75,
     "nombre": "Acequias del Aire",
     "ciudad": "Roldán",
     "lat": -32.89737,
@@ -1607,6 +1626,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "bosque-azul",
+    "ppm2Curado": 65,
     "nombre": "Bosque Azul",
     "ciudad": "Roldán",
     "lat": -32.91576,
@@ -1667,6 +1687,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "cotos-de-la-alameda",
+    "ppm2Curado": 75,
     "nombre": "Cotos de la Alameda",
     "ciudad": "Roldán",
     "lat": -32.90799,
@@ -1679,6 +1700,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "cotos-de-la-alameda-ii",
+    "ppm2Curado": 75,
     "nombre": "Cotos de la Alameda II",
     "ciudad": "Roldán",
     "lat": -32.90484,
@@ -1715,6 +1737,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "distrito-roldan",
+    "ppm2Curado": 88,
     "nombre": "Distrito Roldán",
     "ciudad": "Roldán",
     "lat": -32.91138,
@@ -1727,6 +1750,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "don-quijote",
+    "ppm2Curado": 65,
     "nombre": "Don Quijote",
     "ciudad": "Roldán",
     "lat": -32.91094,
@@ -1811,6 +1835,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "el-eden",
+    "ppm2Curado": 65,
     "nombre": "El Edén",
     "ciudad": "Roldán",
     "lat": -32.91355,
@@ -1823,6 +1848,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "el-molino",
+    "ppm2Curado": 70,
     "nombre": "El Molino",
     "ciudad": "Roldán",
     "lat": -32.92674,
@@ -1871,6 +1897,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "estacion-roldan",
+    "ppm2Curado": 150,
     "nombre": "Estación Roldán",
     "ciudad": "Roldán",
     "lat": -32.90167,
@@ -1907,6 +1934,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "funes-town",
+    "ppm2Curado": 90,
     "nombre": "Funes Town",
     "ciudad": "Roldán",
     "lat": -32.90064,
@@ -1967,6 +1995,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "las-acequias",
+    "ppm2Curado": 75,
     "nombre": "Las Acequias",
     "ciudad": "Roldán",
     "lat": -32.89673,
@@ -2279,6 +2308,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "punta-chacra",
+    "ppm2Curado": 50,
     "nombre": "Punta Chacra",
     "ciudad": "Roldán",
     "lat": -32.91503,
@@ -2339,6 +2369,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "san-andres",
+    "ppm2Curado": 75,
     "nombre": "San Andrés",
     "ciudad": "Roldán",
     "lat": -32.89984,
@@ -2447,6 +2478,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "tierra-de-suenos-1",
+    "ppm2Curado": 65,
     "nombre": "Tierra de Sueños 1",
     "ciudad": "Roldán",
     "lat": -32.89342,
@@ -2459,6 +2491,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "tierra-de-suenos-2",
+    "ppm2Curado": 75,
     "nombre": "Tierra de Sueños 2",
     "ciudad": "Roldán",
     "lat": -32.93116,
@@ -2471,6 +2504,7 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
   },
   {
     "slug": "tierra-de-suenos-3",
+    "ppm2Curado": 60,
     "nombre": "Tierra de Sueños 3",
     "ciudad": "Roldán",
     "lat": -32.94758,
@@ -4622,14 +4656,15 @@ export const BARRIOS_TASADOR: BarrioTasador[] = [
 export const getBarrio = (slug: string) => BARRIOS_TASADOR.find(b => b.slug === slug)
 
 // Precio de TIERRA efectivo (casas y lotes).
-export function precioTierra(b: BarrioTasador): { ppm2: number; fuente: "barrio" | "ciudad"; muestras: number } {
+export function precioTierra(b: BarrioTasador): { ppm2: number; fuente: "curado" | "barrio" | "ciudad"; muestras: number } {
+  if (b.ppm2Curado) return { ppm2: b.ppm2Curado, fuente: "curado", muestras: 0 }
   if (b.ppm2 && b.muestras > 0) return { ppm2: b.ppm2, fuente: "barrio", muestras: b.muestras }
   return { ppm2: PPM2_CIUDAD[b.ciudad] ?? 150, fuente: "ciudad", muestras: 0 }
 }
 
 // Precio por m² CUBIERTO de departamentos (método comparativo, no del costo:
 // un depto no tiene lote propio, se valúa contra unidades similares de la zona).
-export function precioDepto(b: BarrioTasador): { ppm2: number; fuente: "barrio" | "ciudad"; muestras: number } {
+export function precioDepto(b: BarrioTasador): { ppm2: number; fuente: "curado" | "barrio" | "ciudad"; muestras: number } {
   if (b.ppm2Depto && b.muestrasDepto > 0) return { ppm2: b.ppm2Depto, fuente: "barrio", muestras: b.muestrasDepto }
   return { ppm2: PPM2_DEPTO_CIUDAD[b.ciudad] ?? 2000, fuente: "ciudad", muestras: 0 }
 }

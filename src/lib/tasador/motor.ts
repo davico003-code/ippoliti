@@ -53,7 +53,7 @@ export interface EntradaTasacion {
   antiguedad: AntiguedadId
   estado: EstadoId
   extras?: string[]
-  fuenteTierra?: 'barrio' | 'ciudad'
+  fuenteTierra?: 'curado' | 'barrio' | 'ciudad'
 }
 
 export interface ResultadoTasacion {
@@ -129,7 +129,7 @@ export interface EntradaDepto {
   estado: EstadoId
   amenities?: string
   cochera?: boolean
-  fuenteZona?: 'barrio' | 'ciudad'
+  fuenteZona?: 'curado' | 'barrio' | 'ciudad'
 }
 
 export function tasarDepartamento(e: EntradaDepto): ResultadoTasacion {

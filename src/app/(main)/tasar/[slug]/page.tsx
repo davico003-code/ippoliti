@@ -116,7 +116,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
     {
       q: `¿De dónde sale el precio del m² en ${barrio.nombre}?`,
       a:
-        fuente === 'barrio'
+        fuente !== 'ciudad'
           ? esDepto
             ? `De los departamentos en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² cubierto, calculado sobre ${muestras} ${muestras === 1 ? 'unidad' : 'unidades'}. Es un dato vivo: se mueve con la oferta real de la zona.`
             : `De terrenos reales en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² de tierra, calculado sobre ${muestras} ${muestras === 1 ? 'lote' : 'lotes'}. Es un dato vivo: se actualiza solo cuando cambia la oferta de la zona.`
@@ -180,8 +180,8 @@ export default async function TasarPage({ params }: { params: { slug: string } }
           <p className="mx-auto mt-3 max-w-[640px] text-[17px] font-medium text-[#6e6e73]">
             Estimación <b style={{ color: '#1A5C38' }}>gratis y al instante</b>, sin registrarte.{' '}
             {esDepto
-              ? `Calculada con el valor real del m² de departamentos en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad}.`
-              : `Calculada con el valor real de la tierra en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad} y el costo de construcción actualizado.`}
+              ? `Calculada con el valor real del m² de departamentos en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad}.`
+              : `Calculada con el valor real de la tierra en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad} y el costo de construcción actualizado.`}
           </p>
         </div>
 
@@ -209,7 +209,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
             <p className="max-w-[760px] text-[15.5px] leading-[1.7] text-[#374151]">
               Un departamento no se valúa por lo que costaría construirlo: se compara contra
               unidades parecidas de la misma zona. Tomamos el valor del m² cubierto que hoy piden
-              los departamentos en venta {fuente === 'barrio' ? `en ${barrio.nombre}` : `en ${barrio.ciudad}`},
+              los departamentos en venta {fuente !== 'ciudad' ? `en ${barrio.nombre}` : `en ${barrio.ciudad}`},
               lo multiplicamos por tus metros y lo ajustamos por antigüedad, estado, amenities del
               edificio y cochera. Es el mismo criterio con el que arranca una tasación profesional;
               la diferencia es que los comparables salen de propiedades que publicamos y seguimos
@@ -231,12 +231,12 @@ export default async function TasarPage({ params }: { params: { slug: string } }
                 ? {
                     n: 1,
                     t: 'El m² de tu zona',
-                    d: `Lo que hoy piden los departamentos en venta en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad}: USD ${ppm2} por m² cubierto.`,
+                    d: `Lo que hoy piden los departamentos en venta en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad}: USD ${ppm2} por m² cubierto.`,
                   }
                 : {
                     n: 1,
                     t: 'Tu tierra, a valor de la zona',
-                    d: `Los m² de tu lote por el precio real del m² en ${fuente === 'barrio' ? barrio.nombre : barrio.ciudad}: hoy USD ${ppm2}.`,
+                    d: `Los m² de tu lote por el precio real del m² en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad}: hoy USD ${ppm2}.`,
                   },
               esDepto
                 ? {

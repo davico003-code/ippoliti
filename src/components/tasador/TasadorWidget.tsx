@@ -37,7 +37,7 @@ interface Props {
   barrioNombre: string
   ciudad: string
   ppm2Tierra: number
-  fuenteTierra: 'barrio' | 'ciudad'
+  fuenteTierra: 'curado' | 'barrio' | 'ciudad'
   muestras: number
   calidades: CalidadConstruccion[]
   esLote: boolean
@@ -404,7 +404,9 @@ export default function TasadorWidget({
 
           <p style={{ marginTop: 14, fontSize: 11.5, opacity: 0.75, lineHeight: 1.5 }}>
             {esDepto ? 'Valor de referencia: ' : 'Valor de la tierra: '}
-            {fuenteTierra === 'barrio'
+            {fuenteTierra === 'curado'
+              ? `valor de mercado relevado por SI INMOBILIARIA (agosto 2026) para ${barrioNombre}`
+              : fuenteTierra === 'barrio'
               ? `promedio de ${muestras} ${
                   esDepto
                     ? muestras === 1 ? 'departamento relevado' : 'departamentos relevados'
