@@ -23,16 +23,13 @@ import {
   ArrowLeft,
   RefreshCw,
 } from 'lucide-react'
-import SmartPropertyFinder from '@/components/SmartPropertyFinder'
 import MotivosFit from '@/components/MotivosFit'
 import {
   selectAdaptiveProperties,
   scorePropertyFit,
-  type SmartProfile,
 } from '@/lib/property-fit'
 import {
   asistenteActivo,
-  escribirPerfilEnUrl,
   leerPerfilDeUrl,
   limpiarPerfilDeUrl,
 } from '@/lib/smart-profile-url'
@@ -1034,12 +1031,6 @@ export default function PropiedadesView({
   const smartActivo = asistenteActivo(searchParams)
   const smartProfile = useMemo(() => leerPerfilDeUrl(searchParams), [searchParams])
 
-  const aplicarPerfil = useCallback(
-    (perfil: SmartProfile) => {
-      router.push(`${pathname}?${escribirPerfilEnUrl(searchParams, perfil).toString()}`, { scroll: false })
-    },
-    [router, pathname, searchParams],
-  )
   const limpiarPerfil = useCallback(() => {
     const qs = limpiarPerfilDeUrl(searchParams).toString()
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
@@ -1649,31 +1640,6 @@ export default function PropiedadesView({
               {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {opLabel}
             </p>
 
-          </div>
-
-          {/* Asistente de búsqueda: la persona cuenta qué necesita y el listado
-              se reordena mostrando por qué cada propiedad le sirve. */}
-          <div className="flex-shrink-0 border-b border-gray-100 bg-white px-3 py-2">
-            <SmartPropertyFinder
-              profile={smartProfile}
-              active={smartActivo}
-              resultCount={visibleProperties.length}
-              onApply={aplicarPerfil}
-              onClear={limpiarPerfil}
-            />
-            {smartActivo && smartSelection && smartSelection.maxBudgetStretchPct
-              ? (
-                <p className="mt-1.5 px-1 text-[12px] leading-snug text-[#8a5a12]">
-                  Con tu tope había pocas opciones, así que ampliamos hasta un{' '}
-                  <b>{smartSelection.maxBudgetStretchPct}% más</b>.{' '}
-                  {smartSelection.exactBudgetCount > 0
-                    ? `${smartSelection.exactBudgetCount} ${
-                        smartSelection.exactBudgetCount === 1 ? 'entra' : 'entran'
-                      } justo en tu presupuesto.`
-                    : 'Ninguna entra justo en tu presupuesto.'}
-                </p>
-              )
-              : null}
           </div>
 
           {/* List */}
