@@ -516,6 +516,20 @@ export async function listFichas(): Promise<Array<Ficha & { stats: FichaStats }>
   return results
 }
 
+// Reemplaza las fotos del snapshot (ej. tras re-hostear en Blob) preservando
+// el TTL. Lo usa el cron de salud de fichas para auto-curar fichas externas.
+export async function actualizarFotosFicha(slug: string, fotos: string[]): Promise<boolean> {
+  const ficha = await getFicha(slug)
+  if (!ficha) return false
+  const limpias = fotos.filter(u => typeof u === 'string' && u.startsWith('https://'))
+  if (!limpias.length) return false
+  ficha.snapshot = { ...ficha.snapshot, fotos: limpias, ogImage: limpias[0] }
+  const ttl = await redis.ttl(KEY(slug))
+  const ex = ttl > 0 ? ttl : TTL_SECONDS
+  await redis.set(KEY(slug), JSON.stringify(ficha), { ex })
+  return true
+}
+
 // Soft-delete: la ficha queda en Redis pero con revokedAt seteado, y el GET
 // público devuelve 410 (not-found neutro). Preserva TTL para que se autolimpie.
 export async function revocarFicha(slug: string): Promise<boolean> {

@@ -2,9 +2,10 @@
 // verficha.casa. Flujo automático: el agente pega la URL → acá scrapeamos vía
 // el importador del portal y minteamos la ficha. Devuelve el link verficha listo.
 //
-// Las fotos se usan DIRECTO del CDN de Zonaprop (imgar.zonapropcdn.com) — su CDN
-// no restringe hotlink y así evitamos el re-host (más rápido y se ven siempre).
-// HeroGallery las renderiza unoptimized (ver isExternalCdn).
+// Las fotos se re-hostean en Vercel Blob (ver rehostFotos): Argenprop bloquea el
+// hotlink y cualquier portal puede borrar el aviso; en Blob la ficha que ya se
+// le mandó al cliente sigue con fotos. Si alguna foto no se puede subir, queda
+// la URL original y se sirve vía /api/image-proxy (HeroGallery / displayImageUrl).
 //
 // Acepta overrides manuales opcionales (titulo, precioRaw, etc.) para corregir o
 // para el fallback cuando el scraping no alcanza.
@@ -16,6 +17,7 @@ import { verifyAgentToken } from '@/lib/auth'
 import { crearFicha, crearFichaExterna, type FichaExternaInput } from '@/lib/ficha'
 import { fetchZonaprop, isZonapropUrl } from '@/lib/zonaprop'
 import { fetchArgenprop, isArgenpropUrl } from '@/lib/argenprop'
+import { rehostFotos } from '@/lib/rehost-fotos'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // el scraping vía Microlink puede tardar ~30s
@@ -184,18 +186,25 @@ export async function POST(req: NextRequest) {
     titulo = zonaFb ? `Propiedad en ${zonaFb}` : 'Propiedad'
   }
 
-  // Fotos: del scraping + adicionales manuales. Se usan directo (sin re-host).
+  // Fotos: del scraping + adicionales manuales, re-hosteadas en Blob.
   const fotosManual = Array.isArray(ov.fotos) ? (ov.fotos as unknown[]).map(String) : []
-  const fotos = [...(scraped?.fotos ?? []), ...fotosManual]
+  const fotosOrigen = [...(scraped?.fotos ?? []), ...fotosManual]
     .map(normalizePhotoUrl)
     .filter((u): u is string => !!u)
     .slice(0, MAX_FOTOS)
 
-  if (scraped && fotos.length === 0) {
+  if (scraped && fotosOrigen.length === 0) {
     return NextResponse.json(
       { error: `${portal} se leyó, pero no pude capturar una ruta válida de imagen. Reintentá con el link completo de la publicación.` },
       { status: 422 },
     )
+  }
+
+  const mes = new Date().toISOString().slice(0, 7)
+  const rehost = await rehostFotos(fotosOrigen, `fichas-externas/${mes}/${Date.now()}`)
+  const fotos = rehost.fotos
+  if (rehost.fallidas.length) {
+    console.warn(`[fichas/importar] ${rehost.fallidas.length}/${fotosOrigen.length} fotos sin re-host (quedan vía proxy):`, rehost.fallidas.slice(0, 3))
   }
 
   const manual: FichaExternaInput = {
