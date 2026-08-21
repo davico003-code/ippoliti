@@ -58,8 +58,16 @@ export async function middleware(request: NextRequest) {
     // Endpoints API permitidos en el dominio neutro (ficha white-label):
     // - /api/audio/check        → el AudioPlayer consulta si hay audio cacheado
     // - /api/colega/feedback    → feedback anónimo de colegas
+    // - /api/image-proxy        → fotos de avisos externos (Argenprop bloquea el
+    //                             hotlink; HeroGallery/OG las piden por acá). Sin
+    //                             esta excepción caían en not-found y la ficha
+    //                             compartida al cliente se veía sin fotos.
     // El resto de /api sigue cayendo en not-found para no exponer APIs branded de SI.
-    if (pathname === '/api/audio/check' || pathname === '/api/colega/feedback') {
+    if (
+      pathname === '/api/audio/check' ||
+      pathname === '/api/colega/feedback' ||
+      pathname === '/api/image-proxy'
+    ) {
       return NextResponse.next()
     }
     if (SLUG_RE.test(pathname)) {
