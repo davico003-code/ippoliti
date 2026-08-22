@@ -215,6 +215,21 @@ export default function TasacionesPage() {
 
         </div>
 
+        {/* Bloque citable: cubre explícitamente Fisherton/zona oeste de
+            Rosario, ausentes hasta ahora del título, meta y copy de esta
+            página (gap detectado en el radar GEO). */}
+        <div className="mx-auto max-w-[1100px] px-5 pt-2 pb-10">
+          <h2 className="mb-3 text-[19px] font-extrabold text-[#1d1d1f]">
+            Tasamos en Funes, Roldán y Rosario — incluida Fisherton y la zona oeste
+          </h2>
+          <p className="text-[14.5px] leading-relaxed text-[#6e6e73]">
+            La tasación la firman Susana Ippoliti (Corredora Inmobiliaria Mat. N.º 0559) y
+            David Flores (Corredor Inmobiliario Mat. N.º 0621), con comparables propios de
+            cada zona: Funes, Roldán y, en Rosario, Fisherton, zona oeste, Echesortu,
+            Pichincha y Puerto Norte. El informe llega por WhatsApp en 24 horas, sin cargo.
+          </p>
+        </div>
+
         {/* Tasadores online por zona: entrada SEO y descubrimiento interno de
             las landings /tasar/{tipo}-{barrio}. */}
         <div className="mx-auto max-w-[1100px] px-5 pb-14">
