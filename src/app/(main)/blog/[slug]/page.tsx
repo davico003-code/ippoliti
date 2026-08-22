@@ -111,7 +111,11 @@ export default async function BlogPostPage({ params }: Props) {
     .filter(p => resolveCategory(p.slug, p.category) === category)
     .slice(0, 3)
 
-  const authorName = post.author || 'SI INMOBILIARIA'
+  const isDavidFlores = post.author?.toLowerCase().includes('david flores') ?? false
+  const authorName = isDavidFlores ? 'David Flores' : post.author || 'SI INMOBILIARIA'
+  const authorUrl = isDavidFlores
+    ? 'https://siinmobiliaria.com/nosotros#david-flores'
+    : 'https://siinmobiliaria.com/nosotros'
   const heroImage = resolveBlogImage(post.slug, post.image, post.hasImageOverride)
   const minutos = readingMinutes(post.content)
   // Si la imagen viene del mapa curado, la atribución propia del post ya no
@@ -136,9 +140,12 @@ export default async function BlogPostPage({ params }: Props) {
     inLanguage: 'es-AR',
     image: [heroImage],
     author: {
-      '@type': post.author ? 'Person' : 'Organization',
+      '@type': isDavidFlores ? 'Person' : 'Organization',
+      ...(isDavidFlores
+        ? { '@id': 'https://siinmobiliaria.com/nosotros#david-flores' }
+        : { '@id': 'https://siinmobiliaria.com/#organization' }),
       name: authorName,
-      url: 'https://siinmobiliaria.com',
+      url: authorUrl,
     },
     publisher: {
       '@type': 'Organization',
@@ -221,7 +228,9 @@ export default async function BlogPostPage({ params }: Props) {
                 <User className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold text-gray-900">{authorName}</p>
+                <Link href={authorUrl.replace('https://siinmobiliaria.com', '') || '/'} className="text-sm font-bold text-gray-900 hover:text-[#1A5C38] hover:underline">
+                  {authorName}
+                </Link>
                 <p className="text-xs text-gray-400">{post.dateDisplay}</p>
               </div>
             </div>

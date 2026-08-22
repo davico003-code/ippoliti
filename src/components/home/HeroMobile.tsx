@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
@@ -41,30 +42,15 @@ export default function HeroMobile() {
   return (
     <section className="relative flex flex-col overflow-hidden" style={{ height: 276 }}>
       {/* Background image + overlay */}
-      <picture className="absolute inset-0 block h-full w-full">
-        <source
-          srcSet="/images/hero/home-architecture-small.webp, /images/hero/home-architecture-small_2x.webp 2x"
-          media="(max-width: 734px)"
-          type="image/webp"
-        />
-        {/* Capeado a <768px: este hero está oculto en desktop (md:hidden) pero
-            display:none NO evita la descarga de <picture> — sin el cap,
-            desktop bajaba medium_2x (905 KB) que jamás mostraba. En >=768 no
-            matchea ningún source y cae al <img> (small, 150 KB). */}
-        <source
-          srcSet="/images/hero/home-architecture-medium.webp, /images/hero/home-architecture-medium_2x.webp 2x"
-          media="(max-width: 767px)"
-          type="image/webp"
-        />
-        <img
-          src="/images/hero/home-architecture-small.webp"
-          alt="Terraza moderna con vista al lago en Funes y Roldán"
-          className="h-full w-full object-cover"
-          decoding="async"
-          fetchPriority="high"
-          loading="eager"
-        />
-      </picture>
+      <Image
+        src="/images/hero/home-architecture-small.webp"
+        alt="Terraza moderna con vista al lago en Funes y Roldán"
+        fill
+        priority
+        quality={72}
+        sizes="(max-width: 767px) 100vw, 1px"
+        className="object-cover"
+      />
       <div
         className="absolute inset-0"
         style={{
@@ -74,9 +60,9 @@ export default function HeroMobile() {
 
       {/* Contenido del hero (header global se encarga del navbar) */}
       <div className="flex-1 flex flex-col justify-center items-center px-5 text-white text-center relative z-10">
-        <h1 className="font-raleway font-black text-[32px] leading-[1.02] drop-shadow-lg whitespace-nowrap">
+        <h2 className="font-raleway font-black text-[32px] leading-[1.02] drop-shadow-lg whitespace-nowrap">
           Encontrá tu hogar
-        </h1>
+        </h2>
         <p className="font-poppins text-white/95 text-[14px] mt-1 drop-shadow">
           Propiedades en Funes, Roldán y Rosario
         </p>

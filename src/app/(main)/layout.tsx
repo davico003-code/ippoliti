@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Raleway, Poppins } from "next/font/google";
 import "./globals.css";
 
@@ -66,12 +66,25 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#ffffff',
+}
+
 const OFFICE_HOURS = [
   {
     "@type": "OpeningHoursSpecification",
     dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
     opens: "09:00",
     closes: "17:00",
+  },
+  {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: "Saturday",
+    opens: "09:00",
+    closes: "13:00",
   },
 ]
 
@@ -81,7 +94,7 @@ const OFFICES = [
     "@id": "https://siinmobiliaria.com/#oficina-roldan-historica",
     name: "SI INMOBILIARIA — Oficina Histórica Roldán",
     image: "https://siinmobiliaria.com/logo-si-horizontal.png",
-    telephone: "+54-341-210-1694",
+    telephone: "+54-341-341-5159",
     address: {
       "@type": "PostalAddress",
       streetAddress: "1ro de Mayo 258",
@@ -90,9 +103,9 @@ const OFFICES = [
       postalCode: "S2134",
       addressCountry: "AR",
     },
-    geo: { "@type": "GeoCoordinates", latitude: -32.8935, longitude: -60.9016 },
-    openingHoursSpecification: OFFICE_HOURS,
+    geo: { "@type": "GeoCoordinates", latitude: -32.9018631, longitude: -60.9107469 },
     url: "https://siinmobiliaria.com",
+    sameAs: "https://www.google.com/maps?cid=13179481715321306790",
     priceRange: "$$",
   },
   {
@@ -100,7 +113,7 @@ const OFFICES = [
     "@id": "https://siinmobiliaria.com/#oficina-roldan-catamarca",
     name: "SI INMOBILIARIA — Oficina Ventas Roldán",
     image: "https://siinmobiliaria.com/logo-si-horizontal.png",
-    telephone: "+54-341-210-1694",
+    telephone: "+54-341-334-0916",
     address: {
       "@type": "PostalAddress",
       streetAddress: "Catamarca 775",
@@ -109,9 +122,9 @@ const OFFICES = [
       postalCode: "S2134",
       addressCountry: "AR",
     },
-    geo: { "@type": "GeoCoordinates", latitude: -32.8940, longitude: -60.9020 },
-    openingHoursSpecification: OFFICE_HOURS,
+    geo: { "@type": "GeoCoordinates", latitude: -32.905467, longitude: -60.909775 },
     url: "https://siinmobiliaria.com",
+    sameAs: "https://www.google.com/maps?cid=3917523507085031295",
     priceRange: "$$",
   },
   {
@@ -119,7 +132,7 @@ const OFFICES = [
     "@id": "https://siinmobiliaria.com/#oficina-funes",
     name: "SI INMOBILIARIA — Oficina Funes",
     image: "https://siinmobiliaria.com/logo-si-horizontal.png",
-    telephone: "+54-341-210-1694",
+    telephone: "+54-341-334-0916",
     address: {
       "@type": "PostalAddress",
       streetAddress: "Hipólito Yrigoyen 2643",
@@ -128,9 +141,10 @@ const OFFICES = [
       postalCode: "S2132",
       addressCountry: "AR",
     },
-    geo: { "@type": "GeoCoordinates", latitude: -32.9181, longitude: -60.8270 },
+    geo: { "@type": "GeoCoordinates", latitude: -32.9263509, longitude: -60.8115424 },
     openingHoursSpecification: OFFICE_HOURS,
     url: "https://siinmobiliaria.com",
+    sameAs: "https://www.google.com/maps?cid=9299536952583055353",
     priceRange: "$$",
   },
 ]
@@ -175,7 +189,7 @@ const jsonLd = [
       postalCode: "S2132",
       addressCountry: "AR",
     },
-    location: OFFICES.map(o => ({ "@type": "Place", name: o.name, address: o.address })),
+    location: OFFICES.map(o => ({ "@id": o["@id"] })),
     areaServed: [
       { "@type": "City", name: "Roldán" },
       { "@type": "City", name: "Funes" },
@@ -192,6 +206,13 @@ const jsonLd = [
       "https://www.tiktok.com/@si.inmobiliaria",
       "https://www.facebook.com/inmobiliariaippoliti/",
     ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "consultas inmobiliarias",
+      telephone: "+54-9-341-210-1694",
+      availableLanguage: "Spanish",
+      areaServed: "AR",
+    },
   },
   ...OFFICES.map(office => ({
     "@context": "https://schema.org",
@@ -212,7 +233,6 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${raleway.variable} ${poppins.variable}${mundial ? ' mundial' : ''}`}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         {/* Favicon Edición Mundial (placeholder /favicon-mundial.png — reemplazar). */}
         {mundial && <link rel="icon" type="image/png" href="/favicon-mundial.png" />}
         {/* Preconnect a CDNs externos para que el handshake DNS+TLS ya esté

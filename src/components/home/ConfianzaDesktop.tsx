@@ -4,10 +4,10 @@ import { Clock, MapPin, Star } from 'lucide-react'
 const GREEN = '#1A5C38'
 
 const STATS = [
-  { num: '+1.500', label: 'Propiedades' },
+  { num: '1983', label: 'Desde' },
   { num: '3', label: 'Oficinas' },
-  { num: '20K+', label: 'Instagram' },
-  { num: '98%', label: 'Recomendación' },
+  { num: '2', label: 'Generaciones' },
+  { num: '2', label: 'Ciudades con oficina' },
 ]
 
 const SEDES = [
@@ -17,7 +17,7 @@ const SEDES = [
     badge: 'DESDE 1983',
     badgeRight: null,
     direccion: '1ro de Mayo 258, Roldán',
-    horario: 'Lun a Vie · 9 a 17hs',
+    horario: 'Horario vigente en Google',
     foto: '/oficina-historica.webp',
   },
   {
@@ -26,7 +26,7 @@ const SEDES = [
     badge: 'DESDE 2015',
     badgeRight: null,
     direccion: 'Catamarca 775, Roldán',
-    horario: 'Lun a Vie · 9 a 17hs',
+    horario: 'Horario vigente en Google',
     foto: '/oficina-ruta9.webp',
   },
   {
@@ -35,7 +35,7 @@ const SEDES = [
     badge: 'GALERÍA',
     badgeRight: 'NUEVO 2024',
     direccion: 'Hipólito Yrigoyen 2643, Funes',
-    horario: 'Lun a Vie · 9 a 17hs',
+    horario: 'Lun a Vie · 9 a 17hs · Sáb · 9 a 13hs',
     foto: '/oficina-funes.webp',
   },
 ]
@@ -50,7 +50,8 @@ export default function ConfianzaDesktop() {
               src="/familia-flores.webp"
               alt="Familia Flores - SI INMOBILIARIA desde 1983"
               fill
-              sizes="(min-width: 1024px) 50vw, 100vw"
+              sizes="(min-width: 1024px) 50vw, (min-width: 768px) 100vw, 1px"
+              quality={72}
               className="object-cover"
               style={{ objectPosition: 'center 18%' }}
             />

@@ -7,6 +7,7 @@ import { detectarEdificios } from '@/lib/edificios'
 import { sanitizeProperty } from '@/lib/tokko'
 import { BARRIOS_TASADOR } from '@/lib/tasador/barrios'
 import { CLUSTERS, clusterUrl } from '@/lib/clusters'
+import { tiposTasadorIndexables } from '@/lib/seo/tasador-indexing'
 
 const BASE = 'https://siinmobiliaria.com'
 
@@ -16,41 +17,41 @@ export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: BASE, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { url: `${BASE}/propiedades`, lastModified: new Date(), changeFrequency: 'hourly', priority: 0.9 },
-    { url: `${BASE}/nosotros`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE}/tasaciones`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/inmobiliaria-roldan`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/inmobiliaria-funes`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/propiedades-roldan`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE}/alquiler-roldan`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE}/hausing`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE}/informes`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${BASE}/mercado-inmobiliario-funes`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE}/guia`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${BASE}/recursos`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/recursos/calculadora-alquiler`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/recursos/ajuste-alquiler`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/recursos/costos-de-construccion`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/recursos/mapa-funes`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/recursos/asistente-obras`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: BASE, changeFrequency: 'daily', priority: 1 },
+    { url: `${BASE}/propiedades`, changeFrequency: 'hourly', priority: 0.9 },
+    { url: `${BASE}/nosotros`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE}/tasaciones`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/inmobiliaria-roldan`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/inmobiliaria-funes`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/propiedades-roldan`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/alquiler-roldan`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/hausing`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/informes`, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${BASE}/mercado-inmobiliario-funes`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/guia`, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE}/recursos`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/recursos/calculadora-alquiler`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/recursos/ajuste-alquiler`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/recursos/costos-de-construccion`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/recursos/mapa-funes`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/recursos/asistente-obras`, changeFrequency: 'monthly', priority: 0.8 },
     // Fincazul es ruta estática (no viene en el feed de Tokko, así que el mapeo
     // de getDevelopments() de abajo nunca la incluye).
-    { url: `${BASE}/emprendimientos/fincazul`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE}/barrio-los-aromos-roldan`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/barrio-don-mateo-funes`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/barrio-el-molino-roldan`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/casas-en-venta-funes`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/terrenos-funes`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/casas-en-venta-roldan`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/terrenos-roldan`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/inmobiliaria-fisherton`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/casas-en-venta-fisherton`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/departamentos-puerto-norte`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/departamentos-pichincha`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/departamentos-centro-rosario`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/departamentos-echesortu`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${BASE}/departamentos-abasto`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/emprendimientos/fincazul`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/barrio-los-aromos-roldan`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/barrio-don-mateo-funes`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/barrio-el-molino-roldan`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/casas-en-venta-funes`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/terrenos-funes`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/casas-en-venta-roldan`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/terrenos-roldan`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/inmobiliaria-fisherton`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/casas-en-venta-fisherton`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/departamentos-puerto-norte`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/departamentos-pichincha`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/departamentos-centro-rosario`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/departamentos-echesortu`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/departamentos-abasto`, changeFrequency: 'weekly', priority: 0.9 },
   ]
 
   let propertyRoutes: MetadataRoute.Sitemap = []
@@ -63,7 +64,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     propertyObjects = (data.objects ?? []).map(sanitizeProperty).filter(p => !p.deleted_at)
     propertyRoutes = propertyObjects.map(p => ({
       url: `${BASE}/propiedades/${generatePropertySlug(p)}`,
-      lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }))
@@ -74,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   let blogRoutes: MetadataRoute.Sitemap = [
-    { url: `${BASE}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${BASE}/blog`, changeFrequency: 'weekly', priority: 0.7 },
   ]
   try {
     blogRoutes = blogRoutes.concat(
@@ -95,13 +95,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   let devRoutes: MetadataRoute.Sitemap = [
-    { url: `${BASE}/emprendimientos`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/emprendimientos`, changeFrequency: 'weekly', priority: 0.8 },
   ]
   try {
     const devs = await getDevelopments()
     devRoutes = devRoutes.concat(devs.map(d => ({
       url: `${BASE}/emprendimientos/${generateDevSlug(d)}`,
-      lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     })))
@@ -112,29 +111,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const barriosRoutes: MetadataRoute.Sitemap = [
     {
       url: `${BASE}/barrios-privados`,
-      lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     ...BARRIOS.map((b) => ({
       url: `${BASE}/barrios-privados/${b.slug}`,
-      lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     })),
   ]
 
-  // Landings de tasación (/tasar/{tipo}-{barrio}). Priorizamos los barrios con
-  // negocio real: cerrados o con muestras propias de terrenos.
-  const tasadorRoutes: MetadataRoute.Sitemap = BARRIOS_TASADOR.flatMap((b) => {
-    const tipos: string[] = []
-    if (b.cerrado || b.muestras > 0) tipos.push('casa', 'lote')
-    if (b.muestrasDepto > 0 || b.ciudad === 'Rosario') tipos.push('departamento')
-    return tipos.map((tipo) => ({
-      url: `${BASE}/tasar/${tipo}-${b.slug}`,
-      lastModified: new Date(),
+  // Solo publicamos landings con referencias locales suficientes. El tasador
+  // puede resolver otras combinaciones, pero no deben competir en el índice.
+  const tasadorRoutes: MetadataRoute.Sitemap = BARRIOS_TASADOR.flatMap((barrio) => {
+    return tiposTasadorIndexables(barrio).map((tipo) => ({
+      url: `${BASE}/tasar/${tipo}-${barrio.slug}`,
       changeFrequency: 'weekly' as const,
-      priority: b.muestras > 0 || b.muestrasDepto > 0 ? 0.8 : 0.6,
+      priority: 0.8,
     }))
   })
 
@@ -144,7 +137,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     edificioRoutes = detectarEdificios(propertyObjects).map((e) => ({
       url: `${BASE}/edificios/${e.slug}`,
-      lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }))
@@ -155,7 +147,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Landings por cluster (Growth OS §23): generadas desde el catálogo cerrado.
   const clusterRoutes: MetadataRoute.Sitemap = CLUSTERS.map((c) => ({
     url: clusterUrl(c),
-    lastModified: new Date(),
     changeFrequency: 'daily',
     priority: 0.8,
   }))

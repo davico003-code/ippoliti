@@ -9,28 +9,17 @@ export const revalidate = 21600
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'RealEstateAgent',
-  name: 'SI INMOBILIARIA Funes',
-  image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
+  '@type': 'WebPage',
+  '@id': 'https://siinmobiliaria.com/inmobiliaria-funes#webpage',
+  name: 'Inmobiliaria en Funes | SI INMOBILIARIA',
   url: 'https://siinmobiliaria.com/inmobiliaria-funes',
-  telephone: '+5493412101694',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'Hipólito Yrigoyen 2643',
-    addressLocality: 'Funes',
-    addressRegion: 'Santa Fe',
-    postalCode: '2132',
-    addressCountry: 'AR',
+  about: {
+    '@type': 'Service',
+    name: 'Servicios inmobiliarios en Funes',
+    provider: { '@id': 'https://siinmobiliaria.com/#organization' },
+    areaServed: { '@type': 'City', name: 'Funes' },
   },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: -32.9147,
-    longitude: -60.8107,
-  },
-  areaServed: ['Funes', 'Funes Hills', 'Kentucky', 'Portal de Funes', 'María Eugenia', 'San Sebastián'],
-  priceRange: 'USD 50.000 - USD 1.000.000',
-  openingHours: 'Mo-Fr 09:00-18:00, Sa 09:00-13:00',
-  sameAs: ['https://www.instagram.com/inmobiliaria.si'],
+  dateModified: '2026-08-22',
 }
 
 const faqJsonLd = {
@@ -42,23 +31,23 @@ const faqJsonLd = {
       name: '¿Cuánto cuesta una casa en Funes?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Los precios de casas en Funes varían según el barrio y características. En barrios abiertos desde USD 150.000, en countries desde USD 200.000, y en Funes Hills o Kentucky desde USD 350.000. Los terrenos arrancan en USD 40.000 en loteos nuevos.',
+        text: 'El valor cambia según barrio, superficie, estado, antigüedad, servicios y comparables vigentes. Para evitar rangos desactualizados, SI INMOBILIARIA muestra el inventario publicado y analiza cada propiedad con referencias locales.',
       },
     },
     {
       '@type': 'Question',
-      name: '¿Cuáles son los mejores barrios de Funes?',
+      name: '¿Qué zonas de Funes se pueden comparar?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Los barrios más buscados de Funes son: Funes Hills (premium), Kentucky (familias), Portal de Funes (accesible), María Eugenia Residences (nuevo), San Sebastián (consolidado), y el casco urbano para quienes prefieren vida de pueblo.',
+        text: 'Funes incluye barrios abiertos, el casco urbano y barrios cerrados como Funes Hills, Kentucky, Portal de Funes, María Eugenia y San Sebastián. La comparación correcta depende del tipo de propiedad y del entorno inmediato.',
       },
     },
     {
       '@type': 'Question',
-      name: '¿Es buena inversión comprar en Funes?',
+      name: '¿Cómo evalúo una compra en Funes?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Funes ha mostrado valorización sostenida en los últimos 15 años. La demanda constante de familias que buscan calidad de vida, sumada a la cercanía con Rosario (15 min), la convierten en una de las mejores zonas para invertir en el Gran Rosario.',
+        text: 'Conviene comparar ubicación, servicios, accesos, estado, documentación, gastos y propiedades realmente competidoras. La rentabilidad o valorización futura no está garantizada y debe analizarse caso por caso.',
       },
     },
     {
@@ -66,7 +55,7 @@ const faqJsonLd = {
       name: '¿Qué colegios hay en Funes?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Funes cuenta con excelente oferta educativa: Colegio San Bartolomé, Tierra del Sur, Del Sol, Los Arrayanes, entre otros colegios privados. También escuelas públicas de nivel inicial, primario y secundario.',
+        text: 'La ciudad cuenta con instituciones públicas y privadas. Antes de decidir una mudanza conviene verificar vacantes, nivel, distancia y transporte directamente con cada institución.',
       },
     },
   ],
@@ -75,11 +64,11 @@ const faqJsonLd = {
 export const metadata: Metadata = {
   title: 'Inmobiliaria en Funes | Casas, Terrenos y Departamentos | SI INMOBILIARIA',
   description:
-    'Inmobiliaria en Funes, Santa Fe. Venta y alquiler de casas, terrenos y departamentos en los mejores barrios: Funes Hills, Kentucky, Portal de Funes. +40 años de experiencia. Tasaciones en 24hs.',
+    'Inmobiliaria en Funes con oficina local. Casas, terrenos y departamentos, inventario vigente, tasaciones profesionales y asesoramiento con más de 40 años de trayectoria.',
   keywords: 'inmobiliaria funes, casas en funes, terrenos en funes, propiedades funes, inmobiliaria funes santa fe, casas en venta funes, alquiler funes',
   openGraph: {
     title: 'Inmobiliaria en Funes | SI INMOBILIARIA',
-    description: 'Tu inmobiliaria de confianza en Funes. Casas, terrenos y departamentos en los mejores barrios. Más de 40 años de experiencia.',
+    description: 'Oficina local, inventario vigente y asesoramiento para comprar, vender o tasar propiedades en Funes.',
     url: 'https://siinmobiliaria.com/inmobiliaria-funes',
     images: ['/og-image.jpg'],
   },
@@ -89,12 +78,12 @@ export const metadata: Metadata = {
 }
 
 const BARRIOS_FUNES = [
-  { name: 'Funes Hills', desc: 'El country más exclusivo de la zona. Golf, seguridad 24hs, máxima categoría.', price: 'Desde USD 400K' },
-  { name: 'Kentucky', desc: 'Barrio cerrado familiar consolidado. Excelente comunidad y amenities.', price: 'Desde USD 250K' },
-  { name: 'Portal de Funes', desc: 'Opción accesible con seguridad. Ideal para familias jóvenes.', price: 'Desde USD 180K' },
-  { name: 'María Eugenia', desc: 'Desarrollo nuevo con diseño moderno y lotes amplios.', price: 'Desde USD 200K' },
-  { name: 'San Sebastián', desc: 'Barrio consolidado con servicios completos y buena conectividad.', price: 'Desde USD 150K' },
-  { name: 'Casco Urbano', desc: 'Vida de pueblo, comercios a pie, sin expensas.', price: 'Desde USD 120K' },
+  { name: 'Funes Hills', desc: 'Sectores residenciales con distintas etapas, tipologías y niveles de consolidación.' },
+  { name: 'Kentucky', desc: 'Barrio cerrado consolidado; cada propiedad debe compararse por sector, lote y estado.' },
+  { name: 'Portal de Funes', desc: 'Barrio cerrado con oferta de lotes y casas; verificar servicios, expensas y ubicación.' },
+  { name: 'María Eugenia', desc: 'Desarrollo residencial con lotes y viviendas de distintas características.' },
+  { name: 'San Sebastián', desc: 'Zona consolidada con propiedades que varían por antigüedad, estado y entorno.' },
+  { name: 'Casco Urbano', desc: 'Sectores abiertos cercanos a comercios y servicios, con oferta heterogénea.' },
 ]
 
 function filterByLocation(properties: TokkoProperty[], city: string): TokkoProperty[] {
@@ -132,8 +121,8 @@ export default async function InmobiliariaFunesPage() {
             Inmobiliaria en Funes
           </h1>
           <p className="text-green-100 text-xl max-w-3xl mx-auto leading-relaxed mb-8" style={{ fontFamily: 'var(--font-poppins)' }}>
-            Casas, terrenos y departamentos en los mejores barrios de Funes.
-            Más de 40 años ayudando a familias a encontrar su hogar ideal.
+            Casas, terrenos y departamentos con inventario vigente y asesoramiento de un equipo
+            que trabaja en la zona.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/propiedades?location=funes" className="px-8 py-4 bg-white text-[#1A5C38] font-bold rounded-xl hover:bg-green-50 transition-colors">
@@ -151,10 +140,10 @@ export default async function InmobiliariaFunesPage() {
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { num: properties.length + '+', label: 'Propiedades en Funes' },
+              { num: properties.length.toString(), label: 'Propiedades publicadas' },
               { num: '40+', label: 'Años de experiencia' },
-              { num: '1.500+', label: 'Familias asesoradas' },
-              { num: '24hs', label: 'Tasación express' },
+              { num: '1', label: 'Oficina en Funes' },
+              { num: '3', label: 'Oficinas en la región' },
             ].map(s => (
               <div key={s.label}>
                 <div className="text-3xl font-black text-[#1A5C38] font-numeric">{s.num}</div>
@@ -172,21 +161,21 @@ export default async function InmobiliariaFunesPage() {
             <h2 className="text-3xl font-black text-gray-900 mb-6" style={{ fontFamily: 'var(--font-raleway)' }}>¿Por qué elegir Funes para vivir?</h2>
 
             <p className="text-gray-700 leading-relaxed">
-              <strong>Funes</strong> se ha consolidado como el destino residencial preferido del Gran Rosario. Ubicada a solo 15 kilómetros del centro de Rosario por autopista, esta ciudad de 30.000 habitantes combina lo mejor de dos mundos: la tranquilidad del interior con todos los servicios de una urbe moderna.
+              <strong>Funes</strong> reúne barrios abiertos, desarrollos y barrios cerrados dentro del corredor oeste del Gran Rosario. Las diferencias entre sectores hacen que una comparación útil deba considerar servicios, accesos, entorno y tipología, además de los metros cuadrados.
             </p>
 
             <p className="text-gray-700 leading-relaxed">
-              Como <strong>inmobiliaria en Funes</strong> con más de cuatro décadas de trayectoria, en <strong>SI INMOBILIARIA</strong> conocemos cada calle, cada barrio y cada oportunidad que ofrece esta ciudad. Nuestra oficina en Funes cuenta con un equipo especializado que vive y trabaja en la zona, lo que nos permite ofrecer un asesoramiento genuino basado en experiencia real.
+              <strong>SI INMOBILIARIA</strong> tiene una oficina en Hipólito Yrigoyen 2643 y un equipo dedicado a la zona. Combinamos visitas, inventario publicado y comparables locales para explicar por qué dos propiedades aparentemente similares pueden tener valores distintos.
             </p>
 
             <h3 className="text-2xl font-bold text-gray-900 mt-10 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>Ventajas de vivir en Funes</h3>
 
             <div className="grid md:grid-cols-2 gap-6 my-8 not-prose">
               {[
-                { icon: Shield, title: 'Seguridad', text: 'Barrios cerrados con vigilancia 24hs y bajo índice de inseguridad en zonas abiertas.' },
-                { icon: School, title: 'Educación de calidad', text: 'Más de 15 instituciones educativas privadas y públicas de excelente nivel.' },
-                { icon: TreePine, title: 'Naturaleza', text: 'Calles arboladas, espacios verdes y aire puro a minutos de Rosario.' },
-                { icon: TrendingUp, title: 'Valorización', text: 'Inversión segura con crecimiento sostenido del valor inmobiliario.' },
+                { icon: Shield, title: 'Acompañamiento local', text: 'Una oficina y un equipo que recorren Funes y verifican cada propiedad.' },
+                { icon: School, title: 'Servicios', text: 'La oferta educativa, comercial y de movilidad cambia según el sector y debe verificarse.' },
+                { icon: TreePine, title: 'Entornos diversos', text: 'Barrios abiertos, zonas arboladas y urbanizaciones con perfiles distintos.' },
+                { icon: TrendingUp, title: 'Decisiones con datos', text: 'Inventario y comparables locales, sin prometer rentabilidad futura.' },
               ].map(item => (
                 <div key={item.title} className="flex gap-4 p-4 bg-green-50 rounded-xl">
                   <item.icon className="w-8 h-8 text-[#1A5C38] flex-shrink-0" />
@@ -205,7 +194,7 @@ export default async function InmobiliariaFunesPage() {
             </p>
 
             <p className="text-gray-700 leading-relaxed">
-              Actualmente, los <strong>terrenos en Funes</strong> arrancan desde USD 40.000 en loteos nuevos hasta USD 150.000 en barrios premium como Funes Hills. Las <strong>casas en Funes</strong> oscilan entre USD 150.000 (barrios abiertos) y más de USD 500.000 (countries de alta gama). La demanda se mantiene constante, especialmente de familias jóvenes provenientes de Rosario.
+              Los precios publicados cambian con el inventario y no equivalen al valor de cierre. Por eso evitamos fijar rangos estáticos: podés consultar las propiedades activas de esta página y nuestro <Link href="/mercado-inmobiliario-funes" className="font-semibold text-[#1A5C38] underline">informe de mercado de Funes</Link>, que muestra fecha, fuentes y metodología.
             </p>
 
             <h3 className="text-2xl font-bold text-gray-900 mt-10 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>Nuestros servicios inmobiliarios en Funes</h3>
@@ -214,9 +203,9 @@ export default async function InmobiliariaFunesPage() {
               {[
                 'Venta de casas, departamentos y terrenos',
                 'Alquiler tradicional y temporario',
-                'Tasaciones profesionales en 24 horas',
-                'Asesoramiento legal con estudio jurídico propio',
-                'Gestión de créditos hipotecarios',
+                'Tasaciones profesionales con comparables locales',
+                'Revisión de documentación y acompañamiento de la operación',
+                'Negociación y coordinación hasta la escritura o entrega',
                 'Administración de propiedades y alquileres',
               ].map(item => (
                 <li key={item} className="flex items-center gap-3 text-gray-700">
@@ -225,6 +214,7 @@ export default async function InmobiliariaFunesPage() {
                 </li>
               ))}
             </ul>
+            <p className="text-sm text-gray-500">Contenido y datos institucionales revisados el 22 de agosto de 2026. El inventario se actualiza desde el sistema de publicaciones.</p>
           </article>
         </div>
       </section>
@@ -235,7 +225,7 @@ export default async function InmobiliariaFunesPage() {
           <div className="text-center mb-12">
             <p className="text-[#1A5C38] text-sm font-bold tracking-widest uppercase mb-2">Conocé la zona</p>
             <h2 className="text-3xl font-black text-gray-900" style={{ fontFamily: 'var(--font-raleway)' }}>Barrios de Funes</h2>
-            <p className="text-gray-600 mt-2">Los mejores lugares para vivir en Funes</p>
+            <p className="text-gray-600 mt-2">Sectores con características y comparables diferentes</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -243,8 +233,7 @@ export default async function InmobiliariaFunesPage() {
               <div key={barrio.name} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <h3 className="font-bold text-xl text-gray-900 mb-2" style={{ fontFamily: 'var(--font-raleway)' }}>{barrio.name}</h3>
                 <p className="text-gray-600 text-sm mb-4">{barrio.desc}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#1A5C38] font-bold font-numeric">{barrio.price}</span>
+                <div className="flex items-center justify-end">
                   <Link href={`/propiedades?search=${encodeURIComponent(barrio.name)}`} className="text-[#1A5C38] text-sm font-semibold hover:underline">
                     Ver propiedades →
                   </Link>

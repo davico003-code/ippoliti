@@ -56,7 +56,14 @@ export default function TasacionesMap({ center, onPositionChange }: Props) {
           maxZoom={19}
         />
         <FlyTo center={center} />
-        <Marker position={center} icon={markerIcon} draggable eventHandlers={handlers} />
+        <Marker
+          position={center}
+          icon={markerIcon}
+          draggable
+          title="Ubicación estimada de la propiedad; podés arrastrarla"
+          alt="Ubicación estimada de la propiedad"
+          eventHandlers={handlers}
+        />
       </MapContainer>
     </div>
   )

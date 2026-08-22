@@ -17,7 +17,7 @@ export default function HeroVideo() {
 
       <div className="relative z-10 h-full flex items-start justify-center px-4 pt-[140px]">
         <div className="w-full max-w-[620px] text-center">
-          <h1
+          <h2
             className="text-white mb-3"
             style={{
               fontFamily: 'var(--font-raleway), Raleway, sans-serif',
@@ -29,7 +29,7 @@ export default function HeroVideo() {
             }}
           >
             Encontr&aacute; tu hogar
-          </h1>
+          </h2>
           <p className="mb-3 md:mb-4" style={{
             fontFamily: 'var(--font-raleway), Raleway, sans-serif',
             fontWeight: 600, fontSize: 'clamp(15px, 2vw, 17px)' as string, color: 'rgba(255,255,255,0.95)',

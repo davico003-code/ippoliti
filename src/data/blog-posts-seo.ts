@@ -329,11 +329,11 @@ La importancia de la tasaci\u00f3n profesional
 
 Una tasaci\u00f3n profesional no es un n\u00famero arbitrario. Es un an\u00e1lisis t\u00e9cnico que considera comparables recientes, ajustes por diferencias y tendencias del mercado. Un tasador con experiencia en la zona puede detectar factores de valorizaci\u00f3n que el propietario no percibe, o problemas que afectan el precio a la baja.
 
-En SI INMOBILIARIA realizamos tasaciones sin costo para propiedades en Funes y Rold\u00e1n. Las entregamos en 24 horas y las respaldamos con datos de mercado concretos.
+En SI INMOBILIARIA realizamos tasaciones profesionales para propiedades en Funes y Rold\u00e1n. Antes de comenzar confirmamos el alcance, la documentaci\u00f3n necesaria y el plazo de entrega; el an\u00e1lisis se respalda con comparables locales.
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si est\u00e1s pensando en vender tu propiedad, el primer paso es conocer su valor real. Solicit\u00e1 tu tasaci\u00f3n gratuita o visit\u00e1 nuestro cat\u00e1logo de propiedades para entender el mercado actual.`,
+Si est\u00e1s pensando en vender tu propiedad, el primer paso es construir una referencia defendible. Solicit\u00e1 una tasaci\u00f3n profesional o visit\u00e1 nuestro cat\u00e1logo de propiedades para entender el mercado publicado actual.`,
   },
   {
     slug: '5-errores-comunes-comprar-inmueble-primera-vez',

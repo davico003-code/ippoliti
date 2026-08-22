@@ -101,7 +101,7 @@ export default async function PropiedadesRoldanPage() {
         <p className="text-gray-500 mb-8 max-w-lg mx-auto">Tasamos tu propiedad y la publicamos en los principales portales inmobiliarios.</p>
         <div className="flex flex-wrap gap-4 justify-center">
           <Link href="/tasaciones" className="px-8 py-4 bg-accent-400 hover:bg-accent-500 text-white font-bold rounded-lg transition-colors">
-            Solicitá tu tasación en 24hs
+            Solicitá una tasación profesional
           </Link>
           <Link href="/inmobiliaria-roldan" className="px-8 py-4 border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-bold rounded-lg transition-colors">
             Conocer nuestras oficinas

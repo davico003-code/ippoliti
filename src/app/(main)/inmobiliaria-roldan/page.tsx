@@ -8,40 +8,44 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const revalidate = 21600
 
 const jsonLd = {
-  '@context': 'https://schema.org', '@type': 'RealEstateAgent',
-  name: 'SI INMOBILIARIA Roldán', image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
-  url: 'https://siinmobiliaria.com/inmobiliaria-roldan', telephone: '+5493412101694',
-  address: { '@type': 'PostalAddress', streetAddress: '1ro de Mayo 258', addressLocality: 'Roldán', addressRegion: 'Santa Fe', addressCountry: 'AR' },
-  geo: { '@type': 'GeoCoordinates', latitude: -32.8967, longitude: -60.9083 },
-  areaServed: ['Roldán', 'Los Aromos', 'El Molino', 'Tierra de Sueños', 'Don Mateo', 'Distrito Roldán'],
-  priceRange: 'USD 30.000 - USD 500.000', openingHours: 'Mo-Fr 09:00-18:00, Sa 09:00-13:00',
+  '@context': 'https://schema.org', '@type': 'WebPage',
+  '@id': 'https://siinmobiliaria.com/inmobiliaria-roldan#webpage',
+  name: 'Inmobiliaria en Roldán | SI INMOBILIARIA',
+  url: 'https://siinmobiliaria.com/inmobiliaria-roldan',
+  about: {
+    '@type': 'Service',
+    name: 'Servicios inmobiliarios en Roldán',
+    provider: { '@id': 'https://siinmobiliaria.com/#organization' },
+    areaServed: { '@type': 'City', name: 'Roldán' },
+  },
+  dateModified: '2026-08-22',
 }
 
 const faqJsonLd = {
   '@context': 'https://schema.org', '@type': 'FAQPage',
   mainEntity: [
-    { '@type': 'Question', name: '¿Cuánto cuesta un terreno en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Los terrenos en Roldán arrancan desde USD 25.000 en loteos nuevos. En barrios consolidados como Los Aromos o El Molino, desde USD 45.000. Los precios son 30-40% menores que en Funes, con excelente valorización.' } },
-    { '@type': 'Question', name: '¿Cuáles son los mejores barrios de Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Los barrios más buscados son: Los Aromos (premium), El Molino (consolidado), Tierra de Sueños (accesible), Don Mateo (nuevo), Distrito Roldán (moderno) y el Casco Urbano con su vida de pueblo.' } },
-    { '@type': 'Question', name: '¿Por qué invertir en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Roldán es la ciudad que más crece del Gran Rosario. Con precios 30-40% menores que Funes, valorización del 15-20% anual y dos oficinas de SI INMOBILIARIA, es la mejor oportunidad de inversión inmobiliaria de la zona.' } },
-    { '@type': 'Question', name: '¿A qué distancia está Roldán de Rosario?', acceptedAnswer: { '@type': 'Answer', text: 'Roldán está a 25 km del centro de Rosario, unos 20 minutos por autopista Rosario-Córdoba. Tiene acceso directo y transporte público frecuente.' } },
+    { '@type': 'Question', name: '¿Cuánto cuesta un terreno en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'El valor depende del barrio, los servicios, el estado dominial, la superficie y los comparables vigentes. El inventario publicado permite ver precios pedidos; una tasación profesional analiza además evidencia y condiciones de cada inmueble.' } },
+    { '@type': 'Question', name: '¿Qué zonas de Roldán se pueden comparar?', acceptedAnswer: { '@type': 'Answer', text: 'Roldán incluye el casco urbano y desarrollos como Los Aromos, El Molino, Tierra de Sueños, Don Mateo y Distrito Roldán. No son equivalentes: deben compararse propiedades de tipología, servicios y entorno similares.' } },
+    { '@type': 'Question', name: '¿Cómo evalúo una inversión en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Hay que revisar ubicación, servicios existentes y proyectados, documentación, gastos, liquidez y propiedades competidoras. La valorización futura no está garantizada y debe analizarse para cada caso.' } },
+    { '@type': 'Question', name: '¿Dónde están las oficinas de SI INMOBILIARIA en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'La oficina histórica está en Primero de Mayo 258 y la oficina comercial en Catamarca 775. Los teléfonos y horarios vigentes se muestran en los perfiles públicos de cada sucursal.' } },
   ],
 }
 
 export const metadata: Metadata = {
   title: 'Inmobiliaria en Roldán | Casas, Terrenos y Lotes | SI INMOBILIARIA',
-  description: 'Inmobiliaria en Roldán con 2 oficinas. Casas, terrenos y lotes en Los Aromos, El Molino, Tierra de Sueños, Don Mateo. +40 años. Tasaciones en 24hs.',
+  description: 'Inmobiliaria en Roldán con dos oficinas. Casas, terrenos y lotes, inventario vigente, tasaciones profesionales y más de 40 años de trayectoria local.',
   keywords: 'inmobiliaria roldan, casas en roldan, terrenos en roldan, propiedades roldan, lotes roldan',
   openGraph: { title: 'Inmobiliaria en Roldán | SI INMOBILIARIA', description: 'Tu inmobiliaria de confianza en Roldán. 2 oficinas, +40 años.', url: 'https://siinmobiliaria.com/inmobiliaria-roldan', images: ['/og-image.jpg'] },
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-roldan' },
 }
 
 const BARRIOS = [
-  { name: 'Los Aromos', desc: 'Barrio premium con lotes amplios y excelente infraestructura.', price: 'Desde USD 180K' },
-  { name: 'El Molino', desc: 'Consolidado, con servicios completos y ubicación estratégica.', price: 'Desde USD 150K' },
-  { name: 'Tierra de Sueños', desc: 'Desarrollo accesible con financiación. Ideal para primera vivienda.', price: 'Desde USD 80K' },
-  { name: 'Don Mateo', desc: 'Emprendimiento nuevo con diseño moderno y espacios verdes.', price: 'Desde USD 120K' },
-  { name: 'Distrito Roldán', desc: 'Desarrollo urbano moderno con amenities y seguridad.', price: 'Desde USD 100K' },
-  { name: 'Casco Urbano', desc: 'Vida de pueblo auténtica, comercios a pie, sin expensas.', price: 'Desde USD 90K' },
+  { name: 'Los Aromos', desc: 'Barrio con lotes y casas de distintas superficies y niveles de consolidación.' },
+  { name: 'El Molino', desc: 'Sector consolidado; verificar servicios, expensas y características de cada propiedad.' },
+  { name: 'Tierra de Sueños', desc: 'Desarrollo de gran escala con etapas y ubicaciones internas diferentes.' },
+  { name: 'Don Mateo', desc: 'Desarrollo residencial con oferta de lotes y viviendas.' },
+  { name: 'Distrito Roldán', desc: 'Desarrollo urbano cuya comparación depende de etapa, lote y servicios.' },
+  { name: 'Casco Urbano', desc: 'Sectores abiertos próximos a comercios y servicios, con oferta heterogénea.' },
 ]
 
 function filter(properties: TokkoProperty[]): TokkoProperty[] {
@@ -69,7 +73,8 @@ export default async function Page() {
           <p className="text-green-200 text-sm font-semibold tracking-widest uppercase mb-4" style={{ fontFamily: 'var(--font-poppins)' }}>2 oficinas en Roldán · Desde 1983</p>
           <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight" style={{ fontFamily: 'var(--font-raleway)' }}>Inmobiliaria en Roldán</h1>
           <p className="text-green-100 text-xl max-w-3xl mx-auto leading-relaxed mb-8" style={{ fontFamily: 'var(--font-poppins)' }}>
-            La ciudad que más crece del Gran Rosario. Casas, terrenos y lotes con precios 30-40% menores que Funes.
+            Casas, terrenos y lotes con inventario vigente y el acompañamiento de un equipo que
+            trabaja en la ciudad desde 1983.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/propiedades?location=roldan" className="px-8 py-4 bg-white text-[#1A5C38] font-bold rounded-xl hover:bg-green-50 transition-colors">Ver propiedades en Roldán</Link>
@@ -80,7 +85,7 @@ export default async function Page() {
 
       <section className="bg-gray-50 py-8 border-b">
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[{ num: properties.length + '+', label: 'Propiedades en Roldán' }, { num: '2', label: 'Oficinas en Roldán' }, { num: '40+', label: 'Años de experiencia' }, { num: '24hs', label: 'Tasación express' }].map(s => (
+          {[{ num: properties.length.toString(), label: 'Propiedades publicadas' }, { num: '2', label: 'Oficinas en Roldán' }, { num: '40+', label: 'Años de experiencia' }, { num: '2', label: 'Generaciones' }].map(s => (
             <div key={s.label}><div className="text-3xl font-black text-[#1A5C38] font-numeric">{s.num}</div><div className="text-sm text-gray-600">{s.label}</div></div>
           ))}
         </div>
@@ -89,15 +94,16 @@ export default async function Page() {
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto prose prose-lg max-w-none">
           <h2 className="text-3xl font-black text-gray-900 mb-6" style={{ fontFamily: 'var(--font-raleway)' }}>¿Por qué elegir Roldán?</h2>
-          <p className="text-gray-700">Roldán es la ciudad con mayor crecimiento demográfico del Gran Rosario. Ubicada a 25 km del centro de Rosario por autopista, ofrece terrenos amplios, barrios planificados y una calidad de vida excepcional a precios significativamente menores que Funes.</p>
-          <p className="text-gray-700">Con <strong>2 oficinas en Roldán</strong> (1ro de Mayo 258 y Catamarca 775), <strong>SI INMOBILIARIA</strong> es la referencia del mercado local. Nuestro equipo conoce cada desarrollo, cada oportunidad y cada barrio porque vivimos y trabajamos aquí desde 1983.</p>
-          <p className="text-gray-700">Los <strong>terrenos en Roldán</strong> arrancan desde USD 25.000, las casas desde USD 80.000 en barrios abiertos y desde USD 150.000 en countries. La valorización promedio es del 15-20% anual, convirtiéndola en una de las mejores plazas para invertir.</p>
+          <p className="text-gray-700">Roldán combina casco urbano, barrios abiertos y desarrollos de distintas etapas. Los valores cambian según servicios, accesos, superficie, documentación y consolidación del entorno; por eso una comparación responsable debe separar propiedades realmente equivalentes.</p>
+          <p className="text-gray-700">Con <strong>dos oficinas en Roldán</strong> —Primero de Mayo 258 y Catamarca 775—, <strong>SI INMOBILIARIA</strong> trabaja en la ciudad desde 1983. Ese conocimiento se aplica a visitas, selección de comparables y acompañamiento de cada operación.</p>
+          <p className="text-gray-700">Los precios publicados cambian con el inventario y no garantizan el valor de cierre ni una valorización futura. Esta página muestra las propiedades activas; para un inmueble concreto revisamos documentación, estado, microubicación y evidencia reciente.</p>
           <h3 className="text-2xl font-bold text-gray-900 mt-10 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>Nuestros servicios en Roldán</h3>
           <ul className="space-y-3 not-prose">
-            {['Venta de casas, departamentos, terrenos y lotes', 'Alquiler tradicional y temporario', 'Tasaciones profesionales en 24 horas', 'Asesoramiento legal con estudio jurídico propio', 'Gestión de créditos hipotecarios', 'Administración de propiedades'].map(s => (
+            {['Venta de casas, departamentos, terrenos y lotes', 'Alquiler tradicional y temporario', 'Tasaciones profesionales con comparables locales', 'Revisión de documentación y acompañamiento de la operación', 'Negociación y coordinación hasta la escritura o entrega', 'Administración de propiedades'].map(s => (
               <li key={s} className="flex items-center gap-3 text-gray-700"><CheckCircle className="w-5 h-5 text-[#1A5C38] flex-shrink-0" />{s}</li>
             ))}
           </ul>
+          <p className="text-sm text-gray-500">Contenido y datos institucionales revisados el 22 de agosto de 2026. El inventario se actualiza desde el sistema de publicaciones.</p>
         </div>
       </section>
 
@@ -111,8 +117,7 @@ export default async function Page() {
               <div key={b.name} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <h3 className="font-bold text-xl text-gray-900 mb-2" style={{ fontFamily: 'var(--font-raleway)' }}>{b.name}</h3>
                 <p className="text-gray-600 text-sm mb-4">{b.desc}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#1A5C38] font-bold font-numeric">{b.price}</span>
+                <div className="flex items-center justify-end">
                   <Link href={`/propiedades?search=${encodeURIComponent(b.name)}`} className="text-[#1A5C38] text-sm font-semibold hover:underline">Ver propiedades →</Link>
                 </div>
               </div>

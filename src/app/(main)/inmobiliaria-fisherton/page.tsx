@@ -8,40 +8,44 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const revalidate = 21600
 
 const jsonLd = {
-  '@context': 'https://schema.org', '@type': 'RealEstateAgent',
-  name: 'SI INMOBILIARIA Fisherton', image: 'https://siinmobiliaria.com/logo-si-horizontal.png',
-  url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', telephone: '+5493412101694',
-  address: { '@type': 'PostalAddress', addressLocality: 'Fisherton, Rosario', addressRegion: 'Santa Fe', addressCountry: 'AR' },
-  geo: { '@type': 'GeoCoordinates', latitude: -32.9320, longitude: -60.7080 },
-  areaServed: ['Fisherton', 'Fisherton R', 'Aldea', 'Green Village', 'Palos Verdes', 'Rosario'],
-  priceRange: 'USD 80.000 - USD 800.000',
+  '@context': 'https://schema.org', '@type': 'WebPage',
+  '@id': 'https://siinmobiliaria.com/inmobiliaria-fisherton#webpage',
+  name: 'Inmobiliaria en Fisherton | SI INMOBILIARIA',
+  url: 'https://siinmobiliaria.com/inmobiliaria-fisherton',
+  about: {
+    '@type': 'Service',
+    name: 'Servicios inmobiliarios en Fisherton',
+    provider: { '@id': 'https://siinmobiliaria.com/#organization' },
+    areaServed: { '@type': 'Place', name: 'Fisherton, Rosario' },
+  },
+  dateModified: '2026-08-22',
 }
 
 const faqJsonLd = {
   '@context': 'https://schema.org', '@type': 'FAQPage',
   mainEntity: [
-    { '@type': 'Question', name: '¿Cuánto cuesta una casa en Fisherton?', acceptedAnswer: { '@type': 'Answer', text: 'Las casas en Fisherton arrancan desde USD 150.000 en zonas residenciales abiertas. En barrios cerrados como Green Village o Palos Verdes, desde USD 300.000. Las casas premium cerca del Jockey Club superan los USD 500.000.' } },
-    { '@type': 'Question', name: '¿Por qué vivir en Fisherton?', acceptedAnswer: { '@type': 'Answer', text: 'Fisherton es el barrio residencial premium de Rosario. Combina calles arboladas, casas con jardín, cercanía al Jockey Club y Rosario Golf Club, excelentes colegios y acceso rápido a Funes por Av. Eva Perón. Es la zona preferida por familias que buscan calidad de vida sin salir de Rosario.' } },
-    { '@type': 'Question', name: '¿Qué barrios cerrados hay cerca de Fisherton?', acceptedAnswer: { '@type': 'Answer', text: 'Los principales barrios cerrados de la zona son Green Village, Palos Verdes, Aldea Fisherton y Country Fisherton. Todos ofrecen seguridad 24hs, amenities y entorno parquizado.' } },
-    { '@type': 'Question', name: '¿Fisherton está cerca de Funes?', acceptedAnswer: { '@type': 'Answer', text: 'Sí, Fisherton conecta directamente con Funes por Av. Eva Perón. En auto son 10-15 minutos. Muchas familias consideran ambas zonas al buscar propiedad.' } },
+    { '@type': 'Question', name: '¿Cuánto cuesta una casa en Fisherton?', acceptedAnswer: { '@type': 'Answer', text: 'El valor depende del sector, superficie, estado, antigüedad, terreno y comparables vigentes. El inventario publicado muestra precios pedidos; una tasación profesional verifica además documentación y microubicación.' } },
+    { '@type': 'Question', name: '¿Qué conviene revisar antes de comprar en Fisherton?', acceptedAnswer: { '@type': 'Answer', text: 'Conviene revisar accesos, servicios, estado, entorno inmediato, documentación, gastos y propiedades realmente comparables. La conveniencia depende del uso y presupuesto de cada comprador.' } },
+    { '@type': 'Question', name: '¿Qué sectores abarca la búsqueda en Fisherton?', acceptedAnswer: { '@type': 'Answer', text: 'Incluye sectores abiertos de Fisherton y desarrollos cercanos como Green Village, Palos Verdes, Aldea Fisherton y Fisherton R. Cada uno requiere comparables específicos.' } },
+    { '@type': 'Question', name: '¿SI INMOBILIARIA tiene una oficina en Fisherton?', acceptedAnswer: { '@type': 'Answer', text: 'No. SI INMOBILIARIA atiende Fisherton desde sus oficinas de Funes y Roldán y coordina visitas en la zona.' } },
   ],
 }
 
 export const metadata: Metadata = {
   title: 'Inmobiliaria en Fisherton | Casas y Propiedades | SI INMOBILIARIA',
-  description: 'Inmobiliaria en Fisherton, Rosario. Casas, departamentos y terrenos en la zona residencial premium de Rosario. Green Village, Palos Verdes, Aldea. +40 años.',
+  description: 'Casas, departamentos y terrenos en Fisherton, Rosario. Inventario vigente, tasaciones profesionales y atención desde las oficinas de SI INMOBILIARIA en Funes y Roldán.',
   keywords: 'inmobiliaria fisherton, casas en fisherton, propiedades fisherton, fisherton rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-fisherton' },
   openGraph: { title: 'Inmobiliaria en Fisherton | SI INMOBILIARIA', description: 'Propiedades en la zona residencial premium de Rosario.', url: 'https://siinmobiliaria.com/inmobiliaria-fisherton', images: ['/og-image.jpg'] },
 }
 
 const BARRIOS = [
-  { name: 'Fisherton Centro', desc: 'Calles arboladas, casas con jardín, vida de barrio residencial premium.', price: 'Desde USD 150K' },
-  { name: 'Green Village', desc: 'Country con seguridad 24hs, pileta, club house y lotes amplios.', price: 'Desde USD 300K' },
-  { name: 'Palos Verdes', desc: 'Barrio cerrado premium con entorno verde y excelente infraestructura.', price: 'Desde USD 280K' },
-  { name: 'Aldea Fisherton', desc: 'Desarrollo residencial con acceso rápido a autopista y a Funes.', price: 'Desde USD 200K' },
-  { name: 'Zona Jockey Club', desc: 'El sector más exclusivo de Fisherton. Cercanía al golf y al club.', price: 'Desde USD 400K' },
-  { name: 'Fisherton R', desc: 'Extensión residencial con lotes nuevos y emprendimientos modernos.', price: 'Desde USD 120K' },
+  { name: 'Fisherton Centro', desc: 'Sectores residenciales abiertos con casas y terrenos de distintas tipologías.' },
+  { name: 'Green Village', desc: 'Desarrollo cerrado; verificar servicios, expensas y características de cada unidad.' },
+  { name: 'Palos Verdes', desc: 'Barrio cerrado con oferta que varía por lote, estado y ubicación interna.' },
+  { name: 'Aldea Fisherton', desc: 'Desarrollo residencial con distintos sectores y niveles de consolidación.' },
+  { name: 'Zona Jockey Club', desc: 'Sector residencial cuya comparación depende del terreno, antigüedad y estado.' },
+  { name: 'Fisherton R', desc: 'Área residencial con lotes, viviendas y emprendimientos de distintas etapas.' },
 ]
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {
@@ -69,7 +73,8 @@ export default async function Page() {
           <p className="text-green-200 text-sm font-semibold tracking-widest uppercase mb-4" style={{ fontFamily: 'var(--font-poppins)' }}>Zona residencial premium de Rosario</p>
           <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight" style={{ fontFamily: 'var(--font-raleway)' }}>Inmobiliaria en Fisherton</h1>
           <p className="text-green-100 text-xl max-w-3xl mx-auto leading-relaxed mb-8" style={{ fontFamily: 'var(--font-poppins)' }}>
-            Casas con jardín, barrios cerrados y la mejor calidad de vida de Rosario. A 10 minutos de Funes.
+            Casas, departamentos y terrenos con inventario vigente y atención coordinada desde
+            nuestras oficinas de Funes y Roldán.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/propiedades?search=fisherton" className="px-8 py-4 bg-white text-[#1A5C38] font-bold rounded-xl hover:bg-green-50 transition-colors">Ver propiedades en Fisherton</Link>
@@ -80,7 +85,7 @@ export default async function Page() {
 
       <section className="bg-gray-50 py-8 border-b">
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[{ num: properties.length + '+', label: 'Propiedades' }, { num: '40+', label: 'Años' }, { num: '10 min', label: 'A Funes' }, { num: '24hs', label: 'Tasación express' }].map(s => (
+          {[{ num: properties.length.toString(), label: 'Propiedades publicadas' }, { num: '40+', label: 'Años de trayectoria' }, { num: '3', label: 'Oficinas en la región' }, { num: '2', label: 'Generaciones' }].map(s => (
             <div key={s.label}><div className="text-3xl font-black text-[#1A5C38] font-numeric">{s.num}</div><div className="text-sm text-gray-600">{s.label}</div></div>
           ))}
         </div>
@@ -89,16 +94,16 @@ export default async function Page() {
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto prose prose-lg max-w-none">
           <h2 className="text-3xl font-black text-gray-900 mb-6" style={{ fontFamily: 'var(--font-raleway)' }}>¿Por qué elegir Fisherton?</h2>
-          <p className="text-gray-700"><strong>Fisherton</strong> es el barrio residencial más tradicional y codiciado de Rosario. Ubicado en la zona noroeste de la ciudad, se caracteriza por sus calles arboladas, casas amplias con jardín y una atmósfera tranquila que contrasta con el ritmo urbano del centro.</p>
-          <p className="text-gray-700">La cercanía al <strong>Jockey Club Rosario</strong> y al <strong>Rosario Golf Club</strong>, sumada a la presencia de colegios de primer nivel, hacen de Fisherton la elección natural para familias que buscan calidad de vida sin alejarse de la ciudad.</p>
-          <p className="text-gray-700">Desde Fisherton se accede a <strong>Funes en solo 10-15 minutos</strong> por Av. Eva Perón, lo que convierte a esta zona en un puente natural entre lo urbano y lo suburbano. Muchas familias evalúan ambas opciones al momento de comprar.</p>
-          <p className="text-gray-700">En <strong>SI INMOBILIARIA</strong> trabajamos Fisherton con el mismo conocimiento de terreno que nos distingue en Funes y Roldán. Nuestros más de 40 años de trayectoria incluyen operaciones en todas las zonas premium del Gran Rosario.</p>
+          <p className="text-gray-700"><strong>Fisherton</strong> reúne sectores residenciales abiertos y desarrollos cercanos con tipologías muy distintas. El terreno, la antigüedad, el estado y el entorno inmediato influyen tanto como la superficie cubierta.</p>
+          <p className="text-gray-700">La zona se conecta con Funes y otros puntos del corredor oeste por distintos accesos. Los tiempos de viaje dependen del recorrido y del tránsito, por lo que conviene verificarlos para cada propiedad.</p>
+          <p className="text-gray-700"><strong>SI INMOBILIARIA</strong> no presenta una sucursal inexistente en Fisherton: coordinamos visitas y atención desde nuestras oficinas de Funes y Roldán, con inventario filtrado para la zona.</p>
           <h3 className="text-2xl font-bold text-gray-900 mt-10 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>Servicios en Fisherton</h3>
           <ul className="space-y-3 not-prose">
-            {['Venta de casas, departamentos y terrenos', 'Alquiler tradicional y temporario', 'Tasaciones profesionales en 24 horas', 'Asesoramiento legal integral', 'Conexión directa con mercado de Funes y Roldán'].map(s => (
+            {['Venta de casas, departamentos y terrenos', 'Alquiler tradicional y temporario', 'Tasaciones profesionales con comparables locales', 'Revisión de documentación y acompañamiento de la operación', 'Coordinación de visitas desde Funes y Roldán'].map(s => (
               <li key={s} className="flex items-center gap-3 text-gray-700"><CheckCircle className="w-5 h-5 text-[#1A5C38] flex-shrink-0" />{s}</li>
             ))}
           </ul>
+          <p className="text-sm text-gray-500">Contenido revisado el 22 de agosto de 2026. El inventario se actualiza desde el sistema de publicaciones.</p>
         </div>
       </section>
 
@@ -110,8 +115,7 @@ export default async function Page() {
               <div key={b.name} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <h3 className="font-bold text-xl text-gray-900 mb-2" style={{ fontFamily: 'var(--font-raleway)' }}>{b.name}</h3>
                 <p className="text-gray-600 text-sm mb-4">{b.desc}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#1A5C38] font-bold font-numeric">{b.price}</span>
+                <div className="flex items-center justify-end">
                   <Link href={`/propiedades?search=${encodeURIComponent(b.name)}`} className="text-[#1A5C38] text-sm font-semibold hover:underline">Ver propiedades →</Link>
                 </div>
               </div>
