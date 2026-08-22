@@ -8,10 +8,10 @@
 // the two layouts are structurally different enough (mobile: single item,
 // desktop: 5-col grid with row-span) that unifying forced a tall 2×2 thumb
 // strip on mobile that filled the viewport.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
-import { Camera, Images } from 'lucide-react'
+import { Camera, Images, X } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
 import { getAllPhotos, getOperationType, operationBadgeColor, translatePropertyType } from '@/lib/tokko'
 import LikeHeart from '@/components/feedback/LikeHeart'
@@ -24,6 +24,9 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
   const operation = getOperationType(property)
   const propType = translatePropertyType(property.type?.name)
   const address = property.fake_address || property.address
+  const propertyTitle = property.publication_title || address || 'Propiedad'
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
   // Bloqueo de scroll del body mientras el lightbox está abierto. Sin esto, al
   // llegar al final de las fotos el scroll se "cae" a la página de atrás
@@ -67,11 +70,20 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
   // ESC cierra el lightbox (antes no había handler; la ✕ ya cerraba).
   useEffect(() => {
     if (!showAll) return
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    window.requestAnimationFrame(() => closeButtonRef.current?.focus())
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setShowAll(false)
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        closeButtonRef.current?.focus()
+      }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      previousFocusRef.current?.focus()
+    }
   }, [showAll])
 
   // El visor se cuelga del <body>, no de acá.
@@ -94,78 +106,90 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
     <>
       {/* ── MOBILE: single compact hero photo (~280px) with "Ver las N fotos" badge ── */}
       <div className="md:hidden">
-        <div
-          className="relative w-full h-[280px] rounded-xl overflow-hidden cursor-pointer"
-          onClick={() => setShowAll(true)}
-        >
-          <Image
-            src={photos[0]}
-            alt={property.publication_title || address}
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
-          {operation && (
-            <span
-              className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white"
-              style={{ background: operationBadgeColor(operation) }}
-            >
-              {operation}
+        <div className="relative h-[280px] w-full overflow-hidden rounded-xl bg-gray-100">
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="group absolute inset-0 overflow-hidden text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-white"
+          >
+            <Image
+              src={photos[0]}
+              alt=""
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              sizes="100vw"
+              priority
+            />
+            <span className="sr-only">Abrir galería: {propertyTitle}. </span>
+            <span className="pointer-events-none absolute left-3 top-3 flex max-w-[calc(100%_-_4.5rem)] flex-wrap gap-2">
+              {operation && (
+                <span
+                  className="rounded-full px-3 py-1 text-[11px] font-bold uppercase text-white"
+                  style={{ background: operationBadgeColor(operation) }}
+                >
+                  {operation}
+                </span>
+              )}
+              {propType && (
+                <span
+                  className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase"
+                  style={{ color: GREEN }}
+                >
+                  {propType}
+                </span>
+              )}
             </span>
-          )}
-          {propType && (
-            <span
-              className="absolute top-3 left-[90px] px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase"
-              style={{ color: GREEN }}
-            >
-              {propType}
-            </span>
-          )}
-          {photos.length > 1 && (
-            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 bg-white/95 backdrop-blur px-3 py-2 rounded-lg text-[12px] font-semibold text-gray-800 shadow-md">
-              <Camera className="w-4 h-4" />
-              Ver las {photos.length} fotos
-            </span>
-          )}
+            {photos.length > 1 && (
+              <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-lg bg-white/95 px-3 py-2 text-[12px] font-semibold text-gray-800 shadow-md backdrop-blur">
+                <Camera className="h-4 w-4" aria-hidden="true" />
+                Ver las {photos.length} fotos
+              </span>
+            )}
+          </button>
           {/* Like discreto sobre la portada (esquina top-right libre) */}
-          <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />
+          <LikeHeart propertyId={property.id} size={34} className="absolute right-3 top-3 z-20" />
         </div>
       </div>
 
       {/* ── DESKTOP: Zillow 5-col grid (1 big + 4 thumbs 2×2) h-[440px] ── */}
       <div className="hidden md:block">
         <div className="grid grid-cols-5 grid-rows-2 gap-2 h-[440px] rounded-2xl overflow-hidden">
-          <div
-            className="relative col-span-3 row-span-2 cursor-pointer group overflow-hidden"
-            onClick={() => setShowAll(true)}
-          >
-            <Image
-              src={photos[0]}
-              alt={property.publication_title || address}
-              fill
-              className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
-              sizes="(min-width: 1024px) 60vw, 100vw"
-              priority
-            />
-            {operation && (
-              <span
-                className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white"
-                style={{ background: operationBadgeColor(operation) }}
-              >
-                {operation}
+          <div className="relative col-span-3 row-span-2 overflow-hidden bg-gray-100">
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="group absolute inset-0 overflow-hidden text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-white"
+            >
+              <Image
+                src={photos[0]}
+                alt=""
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                sizes="(min-width: 1024px) 60vw, 100vw"
+                priority
+              />
+              <span className="sr-only">Abrir galería: {propertyTitle}. </span>
+              <span className="pointer-events-none absolute left-3 top-3 flex max-w-[calc(100%_-_4.5rem)] flex-wrap gap-2">
+                {operation && (
+                  <span
+                    className="rounded-full px-3 py-1 text-[11px] font-bold uppercase text-white"
+                    style={{ background: operationBadgeColor(operation) }}
+                  >
+                    {operation}
+                  </span>
+                )}
+                {propType && (
+                  <span
+                    className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase"
+                    style={{ color: GREEN }}
+                  >
+                    {propType}
+                  </span>
+                )}
               </span>
-            )}
-            {propType && (
-              <span
-                className="absolute top-3 left-[90px] px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase"
-                style={{ color: GREEN }}
-              >
-                {propType}
-              </span>
-            )}
+            </button>
             {/* Like discreto sobre la portada (esquina top-right libre) */}
-            <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />
+            <LikeHeart propertyId={property.id} size={34} className="absolute right-3 top-3 z-20" />
           </div>
 
           {Array.from({ length: 4 }).map((_, i) => {
@@ -173,14 +197,16 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
             const isLastSlot = i === 3
             if (!photo) return <div key={i} className="col-span-1 bg-gray-100" />
             return (
-              <div
+              <button
                 key={i}
-                className="relative col-span-1 cursor-pointer group overflow-hidden"
+                type="button"
+                className="group relative col-span-1 overflow-hidden bg-gray-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-white"
                 onClick={() => setShowAll(true)}
               >
+                <span className="sr-only">Abrir galería. </span>
                 <Image
                   src={photo}
-                  alt=""
+                  alt={`${propertyTitle} — foto ${i + 2}`}
                   fill
                   className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
                   sizes="20vw"
@@ -191,7 +217,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
                     <span className="text-white text-sm font-semibold">Ver las {photos.length} fotos</span>
                   </div>
                 )}
-              </div>
+              </button>
             )
           })}
         </div>
@@ -200,8 +226,9 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
         {photos.length > 1 && !hasOverlaySlot && (
           <div className="flex justify-end mt-3">
             <button
+              type="button"
               onClick={() => setShowAll(true)}
-              className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg text-xs font-semibold text-gray-800 shadow-sm"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-800 shadow-sm hover:border-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A5C38]"
               style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
             >
               <Images className="w-3.5 h-3.5" /> Ver las {photos.length} fotos
@@ -215,13 +242,20 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
       {showAll &&
         montado &&
         createPortal(
-          <div className="fixed inset-0 z-[10500] bg-black">
+          <div
+            className="fixed inset-0 z-[10500] bg-black"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Galería de ${propertyTitle}`}
+          >
             <button
+              ref={closeButtonRef}
+              type="button"
               onClick={() => setShowAll(false)}
               aria-label="Cerrar galería"
-              className="fixed top-4 right-4 z-[10510] flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-xl text-white backdrop-blur-sm hover:bg-white/30"
+              className="fixed right-4 top-4 z-[10510] flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm hover:bg-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              &times;
+              <X className="h-6 w-6" aria-hidden="true" />
             </button>
             <div className="h-full overflow-y-auto overscroll-y-contain p-4 pt-16">
               <div className="mx-auto max-w-4xl space-y-2">
@@ -229,7 +263,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
                   <Image
                     key={i}
                     src={p}
-                    alt={`Foto ${i + 1}`}
+                    alt={`${propertyTitle} — foto ${i + 1} de ${photos.length}`}
                     width={1200}
                     height={800}
                     className="h-auto w-full rounded-lg"

@@ -65,9 +65,9 @@ export default function PropertyDetailSidebar({
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
-            style={{ background: '#25d366', color: '#fff' }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#25d366' }}
+            style={{ background: '#0B6B3A', color: '#fff' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#07572F' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#0B6B3A' }}
           >
             <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
           </a>

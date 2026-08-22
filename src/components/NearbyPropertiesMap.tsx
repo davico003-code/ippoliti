@@ -3,6 +3,7 @@
 import 'leaflet/dist/leaflet.css'
 import { useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import Link from 'next/link'
 
@@ -17,7 +18,7 @@ export interface NearbyProperty {
 
 function createPriceBubble(price: string) {
   return L.divIcon({
-    className: '',
+    className: 'nearby-price-marker',
     html: `<div style="position:relative;display:inline-block" class="price-bubble">
       <div style="
         background:#1A5C38;color:#fff;
@@ -44,14 +45,30 @@ function createPriceBubble(price: string) {
 
 function createCurrentMarker() {
   return L.divIcon({
-    className: '',
+    className: 'nearby-current-marker',
     html: `<div style="
       width:16px;height:16px;border-radius:50%;
       background:#E63946;border:3px solid white;
       box-shadow:0 2px 6px rgba(0,0,0,0.35);
-    "></div>`,
+    "><span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Ubicación de esta propiedad</span></div>`,
     iconSize: [16, 16],
     iconAnchor: [8, 8],
+  })
+}
+
+function createNearbyClusterIcon(cluster: L.MarkerCluster) {
+  const count = cluster.getChildCount()
+  return L.divIcon({
+    className: 'nearby-cluster-marker',
+    html: `<div style="
+      width:44px;height:44px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      background:#0D3620;color:#fff;border:3px solid rgba(255,255,255,.92);
+      box-shadow:0 3px 12px rgba(0,0,0,.3);
+      font-family:'Poppins',system-ui,sans-serif;font-size:13px;font-weight:800;
+    ">${count}</div>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
   })
 }
 
@@ -60,6 +77,27 @@ function SetView({ center }: { center: [number, number] }) {
   useEffect(() => {
     map.setView(center, 13)
   }, [center, map])
+  return null
+}
+
+function EnsureAccessibleMapMarkers() {
+  const map = useMap()
+
+  useEffect(() => {
+    const container = map.getContainer()
+    const labelMarkers = () => {
+      container.querySelectorAll<HTMLElement>('.leaflet-marker-icon.leaflet-interactive').forEach(marker => {
+        if (!marker.hasAttribute('aria-label') && !marker.hasAttribute('title')) {
+          marker.setAttribute('aria-label', 'Propiedad cercana en el mapa')
+        }
+      })
+    }
+    const observer = new MutationObserver(labelMarkers)
+    observer.observe(container, { childList: true, subtree: true })
+    labelMarkers()
+    return () => observer.disconnect()
+  }, [map])
+
   return null
 }
 
@@ -86,12 +124,22 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
             box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
           }
           @media (max-width: 768px) {
+            .nearby-map .nearby-price-marker,
+            .nearby-map .nearby-current-marker {
+              align-items: center;
+              display: flex !important;
+              height: 32px !important;
+              justify-content: center;
+              margin-left: -16px !important;
+              margin-top: -16px !important;
+              width: 32px !important;
+            }
             .nearby-map .leaflet-marker-icon .price-bubble > div { display: none !important; }
             .nearby-map .leaflet-marker-icon .price-bubble::after {
               content: '';
               display: block;
-              width: 12px;
-              height: 12px;
+              width: 18px;
+              height: 18px;
               border-radius: 50%;
               background: #1A5C38;
               border: 2px solid white;
@@ -114,27 +162,49 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
             maxZoom={19}
           />
           <SetView center={[lat, lng]} />
+          <EnsureAccessibleMapMarkers />
 
           {/* Current property — red dot */}
-          <Marker position={[lat, lng]} icon={createCurrentMarker()} />
+          <Marker
+            position={[lat, lng]}
+            icon={createCurrentMarker()}
+            title="Ubicación de esta propiedad"
+            alt="Ubicación de esta propiedad"
+            interactive={false}
+            keyboard={false}
+          />
 
           {/* Nearby properties — price bubbles */}
-          {nearbyProperties.map(np => (
-            <Marker key={np.id} position={[np.lat, np.lng]} icon={createPriceBubble(np.price)}>
-              <Popup>
-                <div style={{ minWidth: 180, fontFamily: 'Poppins, sans-serif' }}>
-                  <p style={{ fontWeight: 800, fontSize: 15, color: '#1A5C38', margin: '0 0 4px' }}>{np.price}</p>
-                  <p style={{ fontSize: 12, color: '#374151', margin: '0 0 10px', lineHeight: 1.4 }}>{np.title}</p>
-                  <Link
-                    href={`/propiedades/${np.slug}`}
-                    style={{ display: 'block', textAlign: 'center', background: '#1A5C38', color: 'white', fontSize: 12, fontWeight: 700, padding: '8px 14px', borderRadius: '8px', textDecoration: 'none' }}
-                  >
-                    Ver propiedad →
-                  </Link>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          <MarkerClusterGroup
+            chunkedLoading
+            maxClusterRadius={36}
+            showCoverageOnHover={false}
+            spiderfyOnMaxZoom
+            iconCreateFunction={createNearbyClusterIcon}
+          >
+            {nearbyProperties.map(np => (
+              <Marker
+                key={np.id}
+                position={[np.lat, np.lng]}
+                icon={createPriceBubble(np.price)}
+                title={`${np.title} — ${np.price}`}
+                alt={`${np.title} — ${np.price}`}
+              >
+                <Popup>
+                  <div style={{ minWidth: 180, fontFamily: 'Poppins, sans-serif' }}>
+                    <p style={{ fontWeight: 800, fontSize: 15, color: '#1A5C38', margin: '0 0 4px' }}>{np.price}</p>
+                    <p style={{ fontSize: 12, color: '#374151', margin: '0 0 10px', lineHeight: 1.4 }}>{np.title}</p>
+                    <Link
+                      href={`/propiedades/${np.slug}`}
+                      style={{ display: 'block', textAlign: 'center', background: '#1A5C38', color: 'white', fontSize: 12, fontWeight: 700, padding: '8px 14px', borderRadius: '8px', textDecoration: 'none' }}
+                    >
+                      Ver propiedad →
+                    </Link>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MarkerClusterGroup>
         </MapContainer>
       </div>
 

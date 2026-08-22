@@ -11,7 +11,7 @@ function createMainMarker() {
     html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="45" viewBox="0 0 30 42" style="filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))">
       <path d="M15 0C6.716 0 0 6.716 0 15c0 10.444 15 27 15 27S30 25.444 30 15C30 6.716 23.284 0 15 0z" fill="#1A5C38" stroke="white" stroke-width="2.5"/>
       <circle cx="15" cy="15" r="6" fill="white"/>
-    </svg>`,
+    </svg><span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Ubicación de la propiedad</span>`,
     iconSize: [32, 45],
     iconAnchor: [16, 45],
   })
@@ -97,7 +97,14 @@ export default function PropertyMap({ lat, lng, address }: Props) {
           maxZoom={19}
         />
         <SetView center={coords} />
-        <Marker position={coords} icon={createMainMarker()} />
+        <Marker
+          position={coords}
+          icon={createMainMarker()}
+          title={`Ubicación de ${address || 'la propiedad'}`}
+          alt={`Ubicación de ${address || 'la propiedad'}`}
+          interactive={false}
+          keyboard={false}
+        />
       </MapContainer>
     </div>
   )

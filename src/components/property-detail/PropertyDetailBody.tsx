@@ -5,7 +5,8 @@
 // Mobile is NOT rendered here — each parent keeps its own mobile layout.
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Phone } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight, MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Phone, ShieldCheck } from 'lucide-react'
 import {
   type TokkoProperty,
   formatPrice,
@@ -36,6 +37,7 @@ import { getAgenteRol } from '@/lib/agente-titulo'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
 import FeedbackDetalle from '../feedback/FeedbackDetalle'
+import { getPropertyLocalContext } from '@/lib/seo/property-listing'
 
 // Skeletons mientras se carga el chunk JS — evitan que la sección quede en
 // blanco hasta que llega el bundle de Leaflet (mapa) o la galería de planos.
@@ -64,7 +66,7 @@ function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string
     <div className="flex flex-col items-center text-center gap-1.5 py-3 px-2 bg-[#f9fafb] rounded-xl">
       <div style={{ color: GREEN }}>{icon}</div>
       <span style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: '#111' }}>{value}</span>
-      <span style={{ fontSize: 11, fontWeight: 500, color: '#9ca3af' }}>{label}</span>
+      <span style={{ fontSize: 11, fontWeight: 600, color: '#4b5563' }}>{label}</span>
     </div>
   )
 }
@@ -112,6 +114,9 @@ export default function PropertyDetailBody({
   const description = getDescription(property)
   const blueprints = getBlueprintPhotos(property)
   const address = property.fake_address || property.address
+  const localContext = getPropertyLocalContext(property)
+  const listingCode = property.reference_code || String(property.id)
+  const advisorName = property.producer?.name?.trim() || 'equipo de SI INMOBILIARIA'
 
   // Barrio privado (si aplica). Se carga por dynamic import para no meter el
   // dataset grande de barrios.ts en el First Load JS de la ficha.
@@ -211,6 +216,16 @@ export default function PropertyDetailBody({
             </span>
           )}
         </div>
+        <div className="mt-5 flex items-start gap-3 border-t border-gray-100 pt-4">
+          <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1A5C38]" aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-gray-900">Publicación de SI INMOBILIARIA</p>
+            <p className="mt-1 text-xs leading-relaxed text-gray-600">
+              Código <span className="font-numeric font-semibold">{listingCode}</span> · Asesor responsable: {advisorName}.
+              {' '}Disponibilidad, medidas, condiciones y documentación se confirman antes de avanzar.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* COSTOS INICIALES — solo alquiler permanente con precio + moneda válidos */}
@@ -282,7 +297,7 @@ export default function PropertyDetailBody({
           <div className="grid grid-cols-2 gap-2.5">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
-              style={{ background: '#25d366', color: '#fff' }}>
+              style={{ background: '#0B6B3A', color: '#fff' }}>
               <MessageCircle className="w-4 h-4" /> WhatsApp
             </a>
             <a href="tel:+5493412101694"
@@ -323,6 +338,37 @@ export default function PropertyDetailBody({
           </section>
         </SectionBoundary>
       )}
+
+      {/* CONTEXTO LOCAL — enlaces internos útiles para comparar y para captar
+          propietarios con una vivienda similar, sin generar landings nuevas. */}
+      <section className={CARD} aria-labelledby={`contexto-local-${property.id}`}>
+        <h2
+          id={`contexto-local-${property.id}`}
+          style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 8 }}
+        >
+          Más contexto para decidir
+        </h2>
+        <p className="max-w-[68ch] text-sm leading-relaxed text-gray-600">
+          Compará esta opción con el inventario actual{localContext.city ? ` de ${localContext.city}` : ''}.
+          {' '}Si tenés una propiedad similar, conocé también nuestro criterio de tasación antes de vender.
+        </p>
+        <nav className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap" aria-label="Enlaces relacionados con esta propiedad">
+          <Link
+            href={localContext.browseHref}
+            className="inline-flex min-h-11 items-center justify-between gap-3 rounded-xl bg-[#1A5C38] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#145030] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A5C38]"
+          >
+            {localContext.browseLabel}
+            <ArrowRight className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          </Link>
+          <Link
+            href={localContext.valuationHref}
+            className="inline-flex min-h-11 items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-[#1A5C38] transition-colors hover:border-[#1A5C38]/35 hover:bg-[#f4f8f6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A5C38]"
+          >
+            {localContext.valuationLabel}
+            <ArrowRight className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          </Link>
+        </nav>
+      </section>
 
       {/* SUPERFICIES */}
       {hasSurfaces && (

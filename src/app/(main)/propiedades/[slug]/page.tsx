@@ -20,11 +20,9 @@ import {
   getProperties,
   getIdFromSlug,
   generatePropertySlug,
-  isMonoambiente,
   formatPrice,
   mostrarPrecio,
   formatLocation,
-  getTotalSurface,
   getMainPhoto,
   getDescription,
   getBlueprintPhotos,
@@ -33,6 +31,12 @@ import {
   type TokkoProperty,
 } from '@/lib/tokko';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
+import {
+  buildListingAuthor,
+  buildPropertyEntity,
+  buildPropertyMetaDescription,
+  getStablePropertyCoverUrl,
+} from '@/lib/seo/property-listing';
 
 export const revalidate = 21600;
 
@@ -60,15 +64,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // el OG salían gritados (generateMetadata no pasa por sanitizeProperty).
     const rawTitle = seo?.title || normalizarTitulo(property.publication_title) || property.address;
     const title = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
-    // #1: el texto de Tokko trae whitespace/newlines al inicio; los tags se
-    // reemplazan por espacio (no pegar palabras), se colapsan los espacios y se
-    // trimea ANTES de cortar a 160, para no desperdiciar el límite con basura.
-    const desc = seo?.metaDescription ?? (property.description || property.description_only || '')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 160);
-    const photo = getMainPhoto(property);
+    const desc = seo?.metaDescription ?? buildPropertyMetaDescription(property, getDescription(property));
+    // El feed Hilo firma las fotos por algunos días. Metadata y JSON-LD usan
+    // una URL propia estable que redirige siempre al token vigente.
+    const photo = getMainPhoto(property) ? getStablePropertyCoverUrl(property.id) : null;
     const price = formatPrice(property);
     const loc = formatLocation(property);
     const ogDesc = `${price} - ${loc || property.address}. ${desc}`.slice(0, 200);
@@ -83,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title,
         description: ogDesc,
         url: canonicalUrl,
-        type: 'article',
+        type: 'website',
         // Sin width/height hardcodeados: las fotos de Tokko no son 800x600 y
         // declarar dimensiones falsas distorsiona el preview en WhatsApp/FB.
         ...(photo ? { images: [{ url: photo, alt: title }] } : {}),
@@ -144,8 +143,6 @@ export default async function PropertyPage({ params }: Props) {
   applyPropertySeoOverride(property);
 
   const price = formatPrice(property);
-  const area = getTotalSurface(property);
-
   // El wa.me apunta al productor asignado en Tokko (asesor real de la propiedad);
   // si producer es null, cae al número general 5493412101694.
   const whatsappUrl = buildPropertyWhatsappUrl(property, params.slug);
@@ -176,55 +173,44 @@ export default async function PropertyPage({ params }: Props) {
     edificioInfo = null;
   }
 
-  const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
-  const currentLng = property.geo_long ? parseFloat(property.geo_long) : null;
-  const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng);
   const description = getDescription(property);
 
   // JSON-LD — RealEstateListing + BreadcrumbList
-  const mainPhotoUrl = getMainPhoto(property);
+  const mainPhotoUrl = getMainPhoto(property) ? getStablePropertyCoverUrl(property.id) : null;
   const propPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0;
   const propCurrency = property.operations?.[0]?.prices?.[0]?.currency ?? 'USD';
   const propUrl = `https://siinmobiliaria.com/propiedades/${canonicalSlug}`;
   // "Sin Precio" en Tokko (web_price: false): el Offer se omite del JSON-LD
   // para no filtrar el monto que la API igual manda.
   const tienePrecio = mostrarPrecio(property) !== null;
+  const propertyEntity = buildPropertyEntity(property, propUrl, mainPhotoUrl);
   const jsonLd = [
     {
       '@context': 'https://schema.org',
       '@type': 'RealEstateListing',
+      '@id': `${propUrl}#listing`,
       name: property.publication_title || property.address,
       description,
       url: propUrl,
+      identifier: property.reference_code || String(property.id),
+      inLanguage: 'es-AR',
       image: mainPhotoUrl ? [mainPhotoUrl] : [],
+      mainEntity: propertyEntity,
+      about: { '@id': `${propUrl}#property` },
+      author: buildListingAuthor(property),
+      publisher: { '@id': 'https://siinmobiliaria.com/#organization' },
+      isPartOf: { '@id': 'https://siinmobiliaria.com/#website' },
       ...(tienePrecio ? {
         offers: {
           '@type': 'Offer',
           price: propPrice.toString(),
           priceCurrency: propCurrency,
           availability: 'https://schema.org/InStock',
+          url: propUrl,
+          seller: { '@id': 'https://siinmobiliaria.com/#organization' },
+          itemOffered: { '@id': `${propUrl}#property` },
         },
       } : {}),
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: property.real_address || property.fake_address || property.address,
-        addressLocality: property.location?.name || '',
-        addressRegion: 'Santa Fe',
-        addressCountry: 'AR',
-      },
-      ...(hasCoords ? {
-        geo: {
-          '@type': 'GeoCoordinates',
-          latitude: currentLat,
-          longitude: currentLng,
-        },
-      } : {}),
-      // Schema.org: numberOfRooms son los ambientes, NO incluye baños (esos
-      // van en numberOfBathroomsTotal; sumarlos acá duplicaba el dato).
-      numberOfRooms: property.room_amount || property.suite_amount || undefined,
-      numberOfBedrooms: isMonoambiente(property) ? 0 : (property.suite_amount || property.room_amount || undefined),
-      numberOfBathroomsTotal: property.bathroom_amount || undefined,
-      floorSize: area ? { '@type': 'QuantitativeValue', value: area, unitCode: 'MTK' } : undefined,
     },
     {
       '@context': 'https://schema.org',
