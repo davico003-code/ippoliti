@@ -13,6 +13,7 @@ import { notFound } from 'next/navigation'
 import TasadorWidget from '@/components/tasador/TasadorWidget'
 import { BARRIOS_TASADOR, getBarrio, precioTierra, precioDepto, opcionesSelector } from '@/lib/tasador/barrios'
 import { MATRIZ_RESIDENCIAL_BASE, ajustar, getAjusteMensual } from '@/lib/costos-construccion'
+import { esLandingTasadorIndexable, tiposTasadorIndexables, type TipoTasador } from '@/lib/seo/tasador-indexing'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -20,7 +21,7 @@ export const dynamicParams = true
 const BASE = 'https://siinmobiliaria.com'
 const WSP = 'https://wa.me/5493412101694'
 
-type TipoId = 'casa' | 'lote' | 'departamento'
+type TipoId = TipoTasador
 const TIPOS: Record<TipoId, { label: string; articulo: string; esLote: boolean }> = {
   casa: { label: 'casa', articulo: 'tu casa', esLote: false },
   lote: { label: 'lote', articulo: 'tu lote', esLote: true },
@@ -44,22 +45,13 @@ function resolver(slug: string) {
   return { ...parsed, barrio, tipoInfo: TIPOS[parsed.tipo] }
 }
 
-// Pre-renderizamos los que más tráfico y margen tienen (criterio Magnin: no
-// gastar en barrios sin negocio). El resto se genera on-demand vía ISR.
+// Solo pre-renderizamos combinaciones respaldadas por referencias locales.
+// Las demás siguen disponibles on-demand, pero generateMetadata las marca
+// noindex para no inflar el índice con páginas basadas solo en un promedio.
 export function generateStaticParams() {
-  const params: { slug: string }[] = []
-  for (const b of BARRIOS_TASADOR) {
-    // Casas y lotes: barrios cerrados o con muestras de tierra.
-    if (b.cerrado || b.muestras > 0) {
-      params.push({ slug: `casa-${b.slug}` }, { slug: `lote-${b.slug}` })
-    }
-    // Departamentos: donde hay mercado real de deptos (muestras propias) o es
-    // una ciudad. En Rosario el depto es la operación principal.
-    if (b.muestrasDepto > 0 || b.ciudad === 'Rosario') {
-      params.push({ slug: `departamento-${b.slug}` })
-    }
-  }
-  return params
+  return BARRIOS_TASADOR.flatMap((barrio) =>
+    tiposTasadorIndexables(barrio).map((tipo) => ({ slug: `${tipo}-${barrio.slug}` })),
+  )
 }
 
 export async function generateMetadata({
@@ -70,12 +62,12 @@ export async function generateMetadata({
   const r = resolver(params.slug)
   if (!r) return { title: 'Tasación | SI INMOBILIARIA' }
   const { barrio, tipoInfo, tipo } = r
-  const title = `¿Cuánto vale ${tipoInfo.articulo} en ${barrio.nombre}? Tasador online gratis`
+  const title = `¿Cuánto vale ${tipoInfo.articulo} en ${barrio.nombre}? Estimador online`
   const comoCalcula =
     tipo === 'departamento'
       ? 'Calculamos con el valor real del m² de departamentos en la zona.'
       : 'Calculamos con el valor real de la tierra en la zona y el costo de construcción actualizado.'
-  const description = `Tasá ${tipoInfo.articulo} en ${barrio.nombre}, ${barrio.ciudad}, gratis y al instante. ${comoCalcula} Tasación profesional sin cargo en 24 hs.`
+  const description = `Estimá el valor de ${tipoInfo.articulo} en ${barrio.nombre}, ${barrio.ciudad}, sin registrarte. ${comoCalcula} Podés solicitar una tasación profesional.`
   const url = `${BASE}/tasar/${params.slug}`
   return {
     title: `${title} | SI INMOBILIARIA`,
@@ -83,6 +75,9 @@ export async function generateMetadata({
     alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website' },
     twitter: { card: 'summary_large_image', title, description, images: ['/og-image.jpg'] },
+    robots: esLandingTasadorIndexable(barrio, tipo)
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
   }
 }
 
@@ -105,13 +100,16 @@ export default async function TasarPage({ params }: { params: { slug: string } }
 
   // Vecinos de la misma ciudad para el cross-linking interno.
   const vecinos = BARRIOS_TASADOR.filter(
-    (b) => b.ciudad === barrio.ciudad && b.slug !== barrio.slug && (b.cerrado || b.muestras > 0),
+    (b) =>
+      b.ciudad === barrio.ciudad &&
+      b.slug !== barrio.slug &&
+      esLandingTasadorIndexable(b, tipo),
   ).slice(0, 8)
 
   const faq = [
     {
       q: '¿La estimación online es una tasación oficial?',
-      a: 'No. Es un valor orientativo para que tengas una referencia seria en dos minutos. La tasación oficial la firma un martillero matriculado después de visitar la propiedad, y en SI INMOBILIARIA la hacemos sin cargo.',
+      a: 'No. Es un valor orientativo para que tengas una primera referencia. La tasación profesional requiere revisar comparables, documentación, estado y ubicación exacta, y debe intervenir un corredor inmobiliario matriculado.',
     },
     {
       q: `¿De dónde sale el precio del m² en ${barrio.nombre}?`,
@@ -130,7 +128,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
     },
     {
       q: '¿Cuánto tarda la tasación profesional?',
-      a: 'Coordinamos la visita y en 24 horas tenés el valor. La hacemos gratis: conocer bien tu propiedad es la mejor forma de ayudarte a venderla al precio justo.',
+      a: 'El plazo depende del tipo de inmueble, la documentación disponible y la cantidad de comparables útiles. Después de recibir los datos coordinamos la visita y confirmamos el alcance y el tiempo de entrega.',
     },
   ]
 
@@ -143,7 +141,6 @@ export default async function TasarPage({ params }: { params: { slug: string } }
       areaServed: { '@type': 'Place', name: `${barrio.nombre}, ${barrio.ciudad}, Santa Fe` },
       provider: { '@id': `${BASE}/#organization` },
       url: `${BASE}/tasar/${params.slug}`,
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'ARS', description: 'Tasación profesional sin cargo' },
     },
     {
       '@context': 'https://schema.org',
@@ -178,10 +175,13 @@ export default async function TasarPage({ params }: { params: { slug: string } }
             ¿Cuánto vale {tipoInfo.articulo} en {barrio.nombre}?
           </h1>
           <p className="mx-auto mt-3 max-w-[640px] text-[17px] font-medium text-[#6e6e73]">
-            Estimación <b style={{ color: '#1A5C38' }}>gratis y al instante</b>, sin registrarte.{' '}
+            Estimación orientativa <b style={{ color: '#1A5C38' }}>sin registrarte</b>.{' '}
             {esDepto
               ? `Calculada con el valor real del m² de departamentos en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad}.`
               : `Calculada con el valor real de la tierra en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad} y el costo de construcción actualizado.`}
+          </p>
+          <p className="mt-2 text-[13px] text-[#6e6e73]">
+            Referencias de mercado y costos revisadas en agosto de 2026. No reemplaza una tasación profesional.
           </p>
         </div>
 
@@ -254,7 +254,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
               {
                 n: 3,
                 t: 'El ajuste fino, con un matriculado',
-                d: 'La ubicación exacta dentro del barrio, la calidad y el momento del mercado los ajusta la tasación profesional. Esa es gratis.',
+                d: 'La ubicación exacta, la documentación, la calidad y el momento del mercado se verifican en una tasación profesional.',
               },
             ].map((p) => (
               <div key={p.n} className="rounded-2xl border border-[#e5e7eb] p-4">
@@ -292,7 +292,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
             Tasá otras propiedades en la zona
           </h2>
           <div className="flex flex-wrap gap-2">
-            {tipo !== 'lote' && (
+            {tipo !== 'lote' && esLandingTasadorIndexable(barrio, 'lote') && (
               <Link
                 href={`/tasar/lote-${barrio.slug}`}
                 className="rounded-[10px] bg-[#f5f5f7] px-3.5 py-2 text-[13.5px] font-semibold text-[#374151] hover:bg-[#e7f2eb] hover:text-[#1A5C38]"
@@ -300,7 +300,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
                 Tasar lote en {barrio.nombre}
               </Link>
             )}
-            {tipo !== 'casa' && (
+            {tipo !== 'casa' && esLandingTasadorIndexable(barrio, 'casa') && (
               <Link
                 href={`/tasar/casa-${barrio.slug}`}
                 className="rounded-[10px] bg-[#f5f5f7] px-3.5 py-2 text-[13.5px] font-semibold text-[#374151] hover:bg-[#e7f2eb] hover:text-[#1A5C38]"

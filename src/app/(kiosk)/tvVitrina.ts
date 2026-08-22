@@ -142,7 +142,7 @@ function hookFor(p: TokkoProperty): 'reveal-price' | 'guess-zone' {
 
 // ── CTAs institucionales (rotan) ─────────────────────────────────────────────
 const CTAS: Omit<CtaView, 'qr'>[] = [
-  { title: 'Tasá tu propiedad', subtitle: 'con nosotros', note: 'Tasación en 24 hs' },
+  { title: 'Tasá tu propiedad', subtitle: 'con nosotros', note: 'Análisis profesional' },
   { title: 'Vendé con SI', subtitle: 'Te acompañamos en todo', note: 'Escaneá y contactanos' },
   { title: 'Seguinos', subtitle: '@inmobiliaria.si', note: 'Todas las propiedades en Instagram' },
 ]

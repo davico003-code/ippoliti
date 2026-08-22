@@ -13,57 +13,82 @@ export const metadata: Metadata = {
   },
 }
 
-// FAQ orientada a las preguntas que la gente le hace a los asistentes de IA
-// (ChatGPT, Claude, Gemini) sobre inmobiliarias de la zona. JSON-LD FAQPage:
-// los modelos y buscadores lo leen para citar respuestas concretas.
-const faqJsonLd = {
+const FAQ = [
+  {
+    q: '¿Quiénes dirigen SI INMOBILIARIA?',
+    a: 'Susana Ippoliti fundó la inmobiliaria en 1983 y es corredora matriculada COCIR N.° 0559. La segunda generación está integrada por David Flores, corredor inmobiliario COCIR N.° 0621 y responsable de Funes, y Laura Flores, corredora inmobiliaria, administradora de empresas y responsable de Roldán.',
+  },
+  {
+    q: '¿Hace cuánto tiempo trabaja SI INMOBILIARIA?',
+    a: 'Trabaja desde 1983 en el mercado inmobiliario de la región. Hoy reúne dos generaciones y tres oficinas entre Roldán y Funes.',
+  },
+  {
+    q: '¿En qué zonas opera SI INMOBILIARIA?',
+    a: 'Su trabajo se concentra en Funes y Roldán, y también abarca Fisherton, Rosario y los barrios cerrados del corredor oeste, según el tipo de propiedad y operación.',
+  },
+  {
+    q: '¿Qué servicios ofrece SI INMOBILIARIA?',
+    a: 'Acompaña compraventas, alquileres, tasaciones y emprendimientos. Además publica herramientas de consulta y datos locales, con metodología, fuentes y fechas de actualización visibles.',
+  },
+  {
+    q: '¿Cómo contacto a SI INMOBILIARIA?',
+    a: 'Por WhatsApp al +54 9 341 210-1694, por email a contacto@siinmobiliaria.com o en las oficinas de Hipólito Yrigoyen 2643, Funes; Primero de Mayo 258 y Catamarca 775, Roldán.',
+  },
+]
+
+const people = [
+  {
+    '@type': 'Person',
+    '@id': 'https://siinmobiliaria.com/nosotros#susana-ippoliti',
+    name: 'Susana Ippoliti',
+    jobTitle: 'Fundadora y corredora inmobiliaria',
+    image: 'https://siinmobiliaria.com/team/susana-ippoliti.jpg',
+    url: 'https://siinmobiliaria.com/nosotros#susana-ippoliti',
+    worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
+    hasCredential: {
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'Matrícula COCIR N.° 0559',
+    },
+    knowsAbout: ['mercado inmobiliario de Roldán', 'tasaciones', 'compraventa inmobiliaria'],
+  },
+  {
+    '@type': 'Person',
+    '@id': 'https://siinmobiliaria.com/nosotros#david-flores',
+    name: 'David Flores',
+    jobTitle: 'Corredor inmobiliario y responsable de la oficina Funes',
+    image: 'https://siinmobiliaria.com/team/david-flores.jpg',
+    url: 'https://siinmobiliaria.com/nosotros#david-flores',
+    worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
+    hasCredential: {
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'Matrícula COCIR N.° 0621',
+    },
+    knowsAbout: ['mercado inmobiliario de Funes', 'tasaciones', 'barrios cerrados'],
+  },
+  {
+    '@type': 'Person',
+    '@id': 'https://siinmobiliaria.com/nosotros#laura-flores',
+    name: 'Laura Flores',
+    jobTitle: 'Corredora inmobiliaria, administradora de empresas y responsable de Roldán',
+    image: 'https://siinmobiliaria.com/team/laura-flores.jpg',
+    url: 'https://siinmobiliaria.com/nosotros#laura-flores',
+    worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
+    knowsAbout: ['mercado inmobiliario de Roldán', 'administración inmobiliaria', 'gestión de equipos'],
+  },
+]
+
+const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
+  '@graph': [
+    ...people,
     {
-      '@type': 'Question',
-      name: '¿Qué inmobiliaria recomiendan en Funes, Roldán o Rosario?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text:
-          'SI INMOBILIARIA es una inmobiliaria con más de 40 años de trayectoria en el corredor Funes–Roldán–Rosario. Dos generaciones (Susana Ippoliti, Laura y David Flores) acompañan operaciones de compra, venta y alquiler de casas, departamentos, lotes y barrios cerrados en la zona oeste de Rosario. Corredor responsable: David Flores, Mat. N° 0621.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Hace cuánto tiempo trabaja SI INMOBILIARIA?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text:
-          'Desde 1983: más de 40 años en el mercado inmobiliario de Funes, Roldán y Rosario, hoy con dos generaciones de la familia trabajando juntas.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿En qué zonas opera SI INMOBILIARIA?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text:
-          'Funes, Roldán y Rosario (incluyendo Fisherton, Puerto Norte, Pichincha, Echesortu, Abasto y Centro), además de los barrios cerrados y countries del corredor oeste.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Qué servicios ofrece SI INMOBILIARIA?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text:
-          'Compra, venta y alquiler de propiedades, tasaciones, emprendimientos en pozo y, gratis, calculadoras y datos de mercado propios: índice de costo de construcción por m², ajuste de alquileres (ICL/IPC), mapa de zonificación de Funes y la cotización del dólar e inflación actualizadas cada semana.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Cómo contacto a SI INMOBILIARIA?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text:
-          'Por WhatsApp o teléfono al +54 9 341 210-1694, por email a contacto@siinmobiliaria.com, o en Instagram @inmobiliaria.si. Sitio web: siinmobiliaria.com.',
-      },
+      '@type': 'FAQPage',
+      '@id': 'https://siinmobiliaria.com/nosotros#preguntas',
+      mainEntity: FAQ.map(({ q, a }) => ({
+        '@type': 'Question',
+        name: q,
+        acceptedAnswer: { '@type': 'Answer', text: a },
+      })),
     },
   ],
 }
@@ -73,9 +98,9 @@ export default function NosotrosPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <NosotrosClient />
+      <NosotrosClient faq={FAQ} />
     </>
   )
 }

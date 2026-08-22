@@ -10,7 +10,7 @@ const SEDES = [
     badge: 'DESDE 1983',
     badgeRight: null,
     direccion: '1ro de Mayo 258, Roldán',
-    horario: 'Lun a Vie · 9 a 17hs',
+    horario: 'Horario vigente en Google',
     foto: '/oficina-historica.webp',
   },
   {
@@ -19,7 +19,7 @@ const SEDES = [
     badge: 'DESDE 2015',
     badgeRight: null,
     direccion: 'Catamarca 775, Roldán',
-    horario: 'Lun a Vie · 9 a 17hs',
+    horario: 'Horario vigente en Google',
     foto: '/oficina-ruta9.webp',
   },
   {
@@ -28,16 +28,16 @@ const SEDES = [
     badge: 'GALERÍA',
     badgeRight: 'NUEVO 2024',
     direccion: 'Hipólito Yrigoyen 2643, Funes',
-    horario: 'Lun a Vie · 9 a 17hs',
+    horario: 'Lun a Vie · 9 a 17hs · Sáb · 9 a 13hs',
     foto: '/oficina-funes.webp',
   },
 ]
 
 const STATS = [
-  { num: '+1.500', label: 'Propiedades' },
+  { num: '1983', label: 'Desde' },
   { num: '3', label: 'Oficinas' },
-  { num: '20K+', label: 'Instagram' },
-  { num: '98%', label: 'Recomendación' },
+  { num: '2', label: 'Generaciones' },
+  { num: '2', label: 'Ciudades con oficina' },
 ]
 
 export default function ConfianzaSection() {
@@ -51,6 +51,8 @@ export default function ConfianzaSection() {
             alt="Familia Flores — SI INMOBILIARIA desde 1983"
             width={900}
             height={1125}
+            sizes="(max-width: 767px) 100vw, 1px"
+            quality={72}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, transparent 35%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.92) 100%)' }} />

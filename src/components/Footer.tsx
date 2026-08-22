@@ -86,7 +86,7 @@ export default function Footer() {
           {/* Columns */}
           {COLUMNS.map(col => (
             <div key={col.title}>
-              <h4
+              <p
                 style={{
                   fontFamily: RALEWAY,
                   fontSize: 13,
@@ -98,7 +98,7 @@ export default function Footer() {
                 }}
               >
                 {col.title}
-              </h4>
+              </p>
               {col.links.map(l => (
                 <a
                   key={l.label}

@@ -26,7 +26,7 @@ export default function ProyectosMosaico() {
             ? '(max-width:767px) 50vw, 300px'
             : '(max-width:767px) 100vw, 600px'
           return (
-            <Link key={item.id} href={item.href} className={`tile ${size}`} aria-label={item.title}>
+            <Link key={item.id} href={item.href} className={`tile ${size}`}>
               <div className="bg">
                 <Image src={item.image} alt={item.title} fill className="tile-img" sizes={imgSizes} />
               </div>

@@ -70,9 +70,8 @@ const historia = [
 ]
 
 const testimonios: { texto: string; nombre: string; etiqueta: string; antiguedad: string }[] = [
-  { texto: 'Vendimos nuestra casa en tiempo récord gracias al equipo de SI. Profesionales de principio a fin.', nombre: 'Familia García', etiqueta: 'Local Guide · Roldán', antiguedad: 'hace 2 meses' },
-  { texto: 'Encontramos el terreno ideal en Funes con su ayuda. Nos acompañaron en todo el proceso hasta la escritura.', nombre: 'Martín R.', etiqueta: 'Local Guide · Funes', antiguedad: 'hace 5 meses' },
-  { texto: 'Profesionales, honestos y siempre disponibles. Más de 40 años de experiencia se notan en cada detalle.', nombre: 'Carolina S.', etiqueta: 'Local Guide · Fisherton', antiguedad: 'hace 8 meses' },
+  { texto: 'La atención personalizada de David hizo que el proceso de compra fuera sencillo y agradable.', nombre: 'Antonella Campos', etiqueta: 'Reseña pública en Google', antiguedad: 'consultada en agosto de 2026' },
+  { texto: 'La experiencia y asesoramiento de Susana fueron clave para una transacción exitosa.', nombre: 'Junior Rocha', etiqueta: 'Reseña pública en Google', antiguedad: 'consultada en agosto de 2026' },
 ]
 
 const GOOGLE_AVATAR_COLORS = ['#4285F4', '#EA4335', '#34A853', '#FBBC04']
@@ -120,7 +119,7 @@ function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
     )
   }
   return (
-    <div className="inline-flex items-center gap-0.5" aria-label={`${rating} de 5 estrellas`}>
+    <div className="inline-flex items-center gap-0.5" role="img" aria-label={`${rating} de 5 estrellas`}>
       {stars}
     </div>
   )
@@ -204,9 +203,8 @@ function ReviewCard({
 }
 
 const WHATSAPP_NUMBER = '5493412101694'
-const TEL_FALLBACK = '+5493412101694'
 
-// Coordenadas verificadas contra Nominatim (OpenStreetMap) — 2026-05-11
+// Datos contrastados con los perfiles públicos de Google — 2026-08-22.
 const oficinas = [
   {
     numero: '01',
@@ -214,11 +212,11 @@ const oficinas = [
     titulo: 'ROLDÁN — HISTÓRICA',
     subtitulo: 'Primera sucursal · 40 años de trayectoria',
     dir: 'Primero de Mayo 258, Roldán',
-    horario: 'Lunes a Viernes · 9 a 17hs',
-    maps: 'https://maps.google.com/?q=Primero+de+Mayo+258+Roldan+Santa+Fe',
-    tel: TEL_FALLBACK,
-    lat: -32.9012620,
-    lng: -60.9106239,
+    horario: 'Consultá el horario vigente en Google',
+    maps: 'https://www.google.com/maps?cid=13179481715321306790',
+    tel: '+543413415159',
+    lat: -32.9018631,
+    lng: -60.9107469,
   },
   {
     numero: '02',
@@ -226,11 +224,11 @@ const oficinas = [
     titulo: 'ROLDÁN — CENTRO',
     subtitulo: 'Oficina comercial principal',
     dir: 'Catamarca 775, Roldán',
-    horario: 'Lunes a Viernes · 9 a 17hs',
-    maps: 'https://maps.google.com/?q=Catamarca+775+Roldan+Santa+Fe',
-    tel: TEL_FALLBACK,
-    lat: -32.9054168,
-    lng: -60.9097686,
+    horario: 'Consultá el horario vigente en Google',
+    maps: 'https://www.google.com/maps?cid=3917523507085031295',
+    tel: '+543413340916',
+    lat: -32.905467,
+    lng: -60.909775,
   },
   {
     numero: '03',
@@ -238,11 +236,11 @@ const oficinas = [
     titulo: 'FUNES',
     subtitulo: 'Inmobiliaria + Galería de Arte',
     dir: 'Hipólito Yrigoyen 2643, Funes',
-    horario: 'Lunes a Viernes · 9 a 17hs',
-    maps: 'https://maps.google.com/?q=Hipolito+Yrigoyen+2643+Funes+Santa+Fe',
-    tel: TEL_FALLBACK,
-    lat: -32.9263523,
-    lng: -60.8117412,
+    horario: 'Lun a Vie · 9 a 17hs · Sáb · 9 a 13hs',
+    maps: 'https://www.google.com/maps?cid=9299536952583055353',
+    tel: '+543413340916',
+    lat: -32.9263509,
+    lng: -60.8115424,
   },
 ]
 
@@ -579,7 +577,7 @@ function OficinasInteractivas() {
 /* ─────────────────────────────────────────────
    PAGE
 ───────────────────────────────────────────── */
-export default function NosotrosClient() {
+export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[] }) {
   return (
     <main className="bg-white text-gray-900">
 
@@ -637,14 +635,14 @@ export default function NosotrosClient() {
             </h1>
             <span className="block mb-8" style={{ width: 64, height: 3, background: '#1A5C38' }} />
             <p className="mb-11" style={{ color: '#4A4F4C', fontFamily: 'Raleway, sans-serif', fontSize: 17.5, lineHeight: 1.65, maxWidth: '52ch' }}>
-              Dos generaciones, <strong style={{ color: '#111213', fontWeight: 700 }}>más de 1.500 propiedades vendidas</strong> y un mismo compromiso: que cada cliente reciba el mismo cuidado que le daríamos a una persona de nuestra familia.
+              Dos generaciones, <strong style={{ color: '#111213', fontWeight: 700 }}>tres oficinas entre Roldán y Funes</strong> y un mismo compromiso: acompañar cada operación con información clara, experiencia local y atención personal.
             </p>
             {/* Stats en fila con divisores verticales finos */}
             <div className="flex flex-col gap-4 sm:flex-row sm:gap-0 sm:items-stretch">
               {[
                 { Icon: User, n: '40+ años', l: 'de trayectoria' },
-                { Icon: Home, n: '1.500+', l: 'propiedades vendidas' },
-                { Icon: Heart, n: 'Miles de', l: 'clientes satisfechos' },
+                { Icon: Home, n: '3', l: 'oficinas' },
+                { Icon: Heart, n: '2', l: 'generaciones' },
               ].map(({ Icon, n, l }, i) => (
                 <div
                   key={l}
@@ -655,7 +653,7 @@ export default function NosotrosClient() {
                   </div>
                   <div>
                     <div className="font-bold" style={{ color: '#111213', fontFamily: 'Raleway, sans-serif', fontSize: 17.5, lineHeight: 1.2 }}>{n}</div>
-                    <div style={{ color: '#8A918D', fontFamily: 'Raleway, sans-serif', fontSize: 13.5, lineHeight: 1.3 }}>{l}</div>
+                    <div style={{ color: '#5F6762', fontFamily: 'Raleway, sans-serif', fontSize: 13.5, lineHeight: 1.3 }}>{l}</div>
                   </div>
                 </div>
               ))}
@@ -700,9 +698,9 @@ export default function NosotrosClient() {
       <section style={{ backgroundColor: '#F7F8F7' }} className="px-6 pb-20 pt-6 md:px-[72px] md:pb-[110px]">
         <div className="mx-auto mb-12 flex items-center justify-center gap-4 md:mb-14">
           <span style={{ width: 44, height: 1.5, background: '#1A5C38' }} />
-          <p className="m-0 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="m-0 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
             Nuestros principios
-          </p>
+          </h2>
           <span style={{ width: 44, height: 1.5, background: '#1A5C38' }} />
         </div>
         <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-11 md:grid-cols-3 md:gap-16">
@@ -741,7 +739,11 @@ export default function NosotrosClient() {
           </div>
           <div className="grid md:grid-cols-3 gap-12">
             {direccion.map((p) => (
-              <div key={p.nombre} className="flex flex-col items-center text-center group">
+              <div
+                id={p.nombre.toLowerCase().replaceAll(' ', '-')}
+                key={p.nombre}
+                className="flex scroll-mt-28 flex-col items-center text-center group"
+              >
                 <div className="relative w-48 h-48 mb-6 rounded-full overflow-hidden ring-4 ring-gray-100 group-hover:ring-black/30 transition-all duration-300 shadow-md">
                   <Image src={p.foto} alt={p.nombre} fill className="object-cover object-top" sizes="192px" />
                 </div>
@@ -780,8 +782,8 @@ export default function NosotrosClient() {
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-gray-400 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>¿Querés ser parte del equipo?</p>
-            <a href="https://wa.me/5493412101694?text=Hola%2C%20me%20interesa%20sumarme%20al%20equipo%20de%20SI%20Inmobiliaria"
+            <p className="text-sm text-gray-600 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>¿Querés ser parte del equipo?</p>
+            <a href="https://wa.me/5493412101694?text=Hola%2C%20me%20interesa%20sumarme%20al%20equipo%20de%20SI%20INMOBILIARIA"
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium border-2 border-black text-black transition-all hover:bg-black hover:text-white"
               style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -808,9 +810,9 @@ export default function NosotrosClient() {
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10 mb-16 border-y border-white/10 py-8">
             {[
               { num: '1983', label: 'Año de fundación' },
-              { num: '1.500+', label: 'Propiedades vendidas' },
+              { num: '2', label: 'Generaciones' },
               { num: '3', label: 'Sucursales' },
-              { num: '20K+', label: 'Seguidores en Instagram' },
+              { num: '4', label: 'Zonas principales' },
             ].map((s) => (
               <div key={s.label} className="px-3 md:px-6 text-center">
                 <p className="text-4xl md:text-5xl font-bold text-white tabular-nums mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -860,49 +862,38 @@ export default function NosotrosClient() {
                 <GoogleLogo />
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <div className="flex items-center gap-3 justify-center sm:justify-start mb-1">
-                  <span className="text-4xl font-bold text-black tabular-nums" style={{ fontFamily: 'Poppins, sans-serif' }}>4,9</span>
-                  <Stars rating={5} />
-                </div>
+                <p className="text-3xl font-bold text-black" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                  Más de 100 reseñas públicas
+                </p>
                 <p className="text-sm text-neutral-600 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                  99 reseñas verificadas en Google
+                  En los tres perfiles de nuestras oficinas · datos consultados el 22 de agosto de 2026
                 </p>
                 <a
-                  href="https://www.google.com/search?q=SI+Inmobiliaria+Funes+rese%C3%B1as"
+                  href="https://www.google.com/maps?cid=9299536952583055353"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
                   style={{ color: '#1A73E8', fontFamily: 'Poppins, sans-serif' }}
                 >
-                  Ver en Google →
+                  Ver el perfil de Funes →
                 </a>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 pt-6 border-t border-neutral-100">
-              <SucursalRating sucursal="Sucursal Funes" rating={5.0} reseñas={13} href="https://www.google.com/search?q=SI+Inmobiliaria+Funes" />
-              <SucursalRating sucursal="Sucursal Roldán" rating={3.9} reseñas={86} href="https://www.google.com/search?q=SI+Inmobiliaria+Roldan" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-neutral-100">
+              <SucursalRating sucursal="Funes" rating={5.0} reseñas={13} href="https://www.google.com/maps?cid=9299536952583055353" />
+              <SucursalRating sucursal="Roldán — Histórica" rating={3.9} reseñas={87} href="https://www.google.com/maps?cid=13179481715321306790" />
+              <SucursalRating sucursal="Roldán — Catamarca" rating={3.3} reseñas={8} href="https://www.google.com/maps?cid=3917523507085031295" />
             </div>
           </div>
 
           {/* Testimonial cards */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             {testimonios.map((t, i) => (
               <ReviewCard key={i} review={t} idx={i} />
             ))}
           </div>
 
-          <div className="text-center mt-10">
-            <a
-              href="https://www.google.com/search?q=SI+Inmobiliaria+Funes+rese%C3%B1as"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
-              style={{ color: '#1A73E8', fontFamily: 'Poppins, sans-serif' }}
-            >
-              Leer las 99 reseñas en Google →
-            </a>
-          </div>
         </div>
       </section>
 
@@ -942,6 +933,23 @@ export default function NosotrosClient() {
 
       {/* OFICINAS + MAPA — interactiva, verde oscuro */}
       <OficinasInteractivas />
+
+      <section className="bg-white py-20 md:py-24" aria-labelledby="faq-nosotros">
+        <div className="mx-auto max-w-4xl px-6">
+          <p className="mb-3 text-sm uppercase tracking-widest text-neutral-500">Información verificable</p>
+          <h2 id="faq-nosotros" className="mb-8 text-3xl font-bold text-black md:text-5xl">
+            Datos claros sobre SI INMOBILIARIA
+          </h2>
+          <div>
+            {faq.map((item) => (
+              <details key={item.q} className="border-b border-neutral-200 py-4">
+                <summary className="cursor-pointer text-base font-bold text-black md:text-lg">{item.q}</summary>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 md:text-base">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* CTA FINAL — doble botón */}
       <section className="relative py-20 md:py-28 bg-neutral-50">

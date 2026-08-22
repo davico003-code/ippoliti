@@ -7,6 +7,7 @@
 // ORIENTATIVO; el cálculo con ajuste IPC vive en la página de la calculadora.
 
 import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import Link from 'next/link'
 
 const USD_M2 = 1131 // Línea Media · llaveBase
@@ -45,7 +46,7 @@ export default function ConstruirCard() {
           value={m2}
           onChange={e => setM2(Number(e.target.value))}
           aria-label="Metros a construir"
-          style={{ backgroundSize: `${fill}% 100%` }}
+          style={{ '--range-fill': `${fill}%` } as CSSProperties}
         />
       </div>
 

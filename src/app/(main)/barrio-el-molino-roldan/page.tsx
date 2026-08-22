@@ -78,7 +78,7 @@ export default function BarrioElMolinoPage() {
                 En los últimos 5 años, El Molino se consolidó como uno de los barrios con mayor desarrollo de Roldán. Las etapas nuevas se vendieron rápidamente y la ocupación es alta, lo que habla de un barrio vivo y en crecimiento. Las casas terminadas tienen muy buena reventa, y los lotes disponibles son cada vez menos — el que entra ahora, entra bien.
               </p>
               <p>
-                En SI INMOBILIARIA somos de Roldán. Nuestra primera oficina la abrimos acá en 1983. Conocemos El Molino desde sus inicios y tenemos relación directa con el desarrollador. Si querés comprar un lote, una casa, o si querés vender tu propiedad en El Molino, hablá con nosotros. Te damos una tasación sin cargo y te asesoramos con la experiencia de quien conoce cada rincón de la ciudad.
+                En SI INMOBILIARIA somos de Roldán. Nuestra primera oficina la abrimos acá en 1983. Si querés comprar un lote o una casa, o si querés vender tu propiedad en El Molino, hablá con nosotros. Coordinamos una tasación profesional y te asesoramos con experiencia local, comparables y revisión de la documentación disponible.
               </p>
             </div>
           </div>

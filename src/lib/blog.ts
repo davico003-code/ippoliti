@@ -141,13 +141,13 @@ SI INMOBILIARIA opera en Funes con el respaldo de más de 40 años de trayectori
 
 Lo que nos diferencia es simple: conocemos cada calle, cada barrio, cada desarrollo de la zona porque llevamos décadas trabajando aquí. No somos una franquicia ni una plataforma digital impersonal. Somos una familia — Susana, Laura y David — que acompaña a otras familias en las decisiones más importantes de su vida.
 
-Contamos con estudio jurídico propio para resolver cualquier tema legal de la operación, realizamos tasaciones profesionales con informe en 24 horas, y administramos alquileres con total transparencia. Nuestra oficina en Funes combina el negocio inmobiliario con un espacio cultural, creando un ambiente donde nuestros clientes se sienten cómodos y bienvenidos.
+Realizamos tasaciones profesionales con comparables locales y administramos alquileres. Nuestra oficina en Funes combina el negocio inmobiliario con un espacio cultural, creando un ambiente cercano para recibir consultas y acompañar operaciones.
 
 Cómo contactarnos
 
 Si estás buscando comprar, vender o alquilar en Funes, te invitamos a consultarnos sin compromiso. Podés escribirnos por WhatsApp al 341 210 1694, llamarnos al (341) 210-1694, o visitarnos en nuestras oficinas. Te contactamos en menos de 24 horas.
 
-También podés solicitar una tasación profesional de tu propiedad completando el formulario en nuestra sección de tasaciones. En 24 horas te enviamos el informe con el valor real de mercado.`,
+También podés solicitar una tasación profesional de tu propiedad completando el formulario en nuestra sección de tasaciones. Después de revisar el caso confirmamos el alcance, la documentación necesaria y el plazo.`,
   },
   {
     slug: 'inmobiliarias-en-roldan',
@@ -184,9 +184,9 @@ SI INMOBILIARIA: la inmobiliaria con más trayectoria en Roldán
 
 Fundada en 1983 por Susana Ippoliti, SI INMOBILIARIA es la inmobiliaria más antigua y experimentada de Roldán. Con dos oficinas en la ciudad — 1ro de Mayo 258 (administración) y Catamarca 775 (ventas) — y un equipo familiar conformado por Susana, Laura y David, ofrecemos un servicio que ninguna franquicia puede replicar: conocimiento profundo del terreno, trato personalizado y compromiso real con cada cliente.
 
-Contamos con estudio jurídico propio, tasaciones profesionales con informe en 24hs, administración de alquileres y presencia en los principales portales inmobiliarios. Más de 40 años de operaciones exitosas en Roldán nos respaldan.
+Realizamos tasaciones profesionales con comparables locales, administramos alquileres y publicamos en los principales portales inmobiliarios. Trabajamos en Roldán desde 1983.
 
-¿Querés consultar? Escribinos por WhatsApp al 341 210 1694 o visitá nuestra sección de tasaciones para solicitar una valuación profesional sin costo.`,
+¿Querés consultar? Escribinos por WhatsApp al 341 210 1694 o visitá nuestra sección de tasaciones para solicitar una valuación profesional. Antes de comenzar confirmamos alcance y plazo.`,
   },
   {
     slug: 'comprar-casa-funes-roldan',
@@ -231,7 +231,7 @@ Con más de 40 años operando en Roldán y Funes, somos la inmobiliaria que mejo
 
 Ya sea que busques tu primera casa, una inversión o cambiar a un hogar más grande, te acompañamos en todo el proceso. Consultanos por WhatsApp al 341 210 1694 o visitá nuestras oficinas en Roldán (Catamarca 775) y Funes. Te contactamos en menos de 24 horas.
 
-Si estás pensando en vender antes de comprar, podés solicitar una tasación sin costo en nuestra sección de tasaciones. En 24 horas te enviamos el valor real de tu propiedad.`,
+Si estás pensando en vender antes de comprar, podés solicitar una tasación profesional en nuestra sección de tasaciones. Revisamos el caso y te confirmamos el alcance, la documentación necesaria y el plazo.`,
   },
 ]
 

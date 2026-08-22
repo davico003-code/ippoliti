@@ -517,9 +517,9 @@ export default function TasadorWidget({
           }}
         >
           <p style={{ fontSize: 14.5, color: '#6e6e73', marginBottom: 14, lineHeight: 1.55 }}>
-            <b style={{ color: '#111' }}>Quiero recibir mi tasación precisa.</b> Un martillero
-            matriculado con 40 años en {ciudadZona} la hace <b style={{ color: '#111' }}>gratis y en 24 hs</b>,
-            mirando lo que ningún algoritmo ve.
+            <b style={{ color: '#111' }}>Quiero una tasación profesional.</b> Un corredor
+            inmobiliario matriculado revisa la ubicación, el estado, la documentación y los
+            comparables que ningún estimador automático puede verificar.
           </p>
           <a
             href={mensajeWsp()}
