@@ -55,6 +55,12 @@ export function getPropertyCity(property: TokkoProperty): PropertyCity {
 
 export function getPropertyKind(property: TokkoProperty): PropertyKind {
   const type = normalize(property.type?.name)
+  const title = normalize(property.publication_title)
+  // El adaptador Hilo puede homologar locales y salones como “House”. La
+  // intención explícita del título evita publicar esos inmuebles como casas en
+  // los datos estructurados y en los enlaces de tasación.
+  if (/^(salon|local|oficina|galpon|deposito|nave industrial|cochera)\b/.test(title)
+    || /commercial|comercial|office|oficina|warehouse|galpon|deposito/.test(type)) return 'otro'
   if (/land|terreno|lote/.test(type)) return 'terreno'
   if (/apartment|departamento|monoambiente/.test(type)) return 'departamento'
   if (/house|casa|duplex|triplex|chalet/.test(type)) return 'casa'
