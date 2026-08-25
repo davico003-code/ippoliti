@@ -606,8 +606,8 @@ const LOTES = {
   158: { frente: 16, fondo: 30, sup: 480, estado: "n" },
   159: { frente: 16, fondo: 30, sup: 480, estado: "n" },
   160: { frente: 16, fondo: 30, sup: 480, estado: "n" },
-  161: { frente: 16.6, fondo: 30, sup: 498, estado: "d", pm2: 95, precio: 47310, contado: 44820 },
-  162: { frente: 16.6, fondo: 30, sup: 498, estado: "d", pm2: 95, precio: 47310, contado: 44820 },
+  161: { frente: 16.6, fondo: 30, sup: 498, estado: "v" },
+  162: { frente: 16.6, fondo: 30, sup: 498, estado: "v" },
   163: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
   164: { frente: 16, fondo: 30, sup: 480, estado: "n" },
   165: { frente: 16, fondo: 30, sup: 480, estado: "d", pm2: 95, precio: 45600, contado: 43200 },
@@ -1344,6 +1344,64 @@ document.getElementById("fecha").textContent = CFG.actualizado || "—";
   addEventListener("load",()=>post(true));   // fuentes e imágenes ya pesan lo suyo
   [80,250,700,1500].forEach(ms=>setTimeout(()=>post(true),ms));
   new ResizeObserver(()=>post()).observe(document.body);
+})();
+
+/* ---------- datos vivos ----------
+   Los datos embebidos arriba son el arranque instantáneo, pero la fuente de
+   verdad es lo último que se publicó desde el panel del agente
+   (/agentes/plano-distrito-roldan → POST /api/plano-lotes). Acá se consulta
+   ese endpoint y, si difiere, el plano se redibuja: un cambio de estado o de
+   precio impacta en el sitio sin tocar el repo ni esperar un deploy.
+   Abierto como archivo local o sin red, el fetch falla y quedan los datos
+   embebidos: nunca rompe. */
+(async function datosVivos(){
+  let data=null;
+  try{
+    const r=await fetch("/api/plano-lotes",{cache:"no-store"});
+    if(!r.ok) return;
+    data=await r.json();
+  }catch(_){ return; }
+  if(!data || !data.lotes) return;
+
+  let cambio=false;
+  const c=data.cfg||{};
+  for(const k of ["whatsapp","proyecto","actualizado"]){
+    if(typeof c[k]==="string" && c[k] && c[k]!==CFG[k]){ CFG[k]=c[k]; cambio=true; }
+  }
+  if(c.financiacion && JSON.stringify(c.financiacion)!==JSON.stringify(CFG.financiacion)){
+    CFG.financiacion=c.financiacion; cambio=true;
+  }
+  const EST_OK=new Set(["d","n","v"]);
+  const num=v=>typeof v==="number"&&isFinite(v)&&v>=0;
+  for(const l of lots){
+    const r=data.lotes[l.n]; if(!r) continue;
+    const estado=EST_OK.has(r.estado)?r.estado:l.estado;
+    const campos={
+      estado,
+      frente:num(r.frente)?r.frente:l.frente,
+      fondo:num(r.fondo)?r.fondo:l.fondo,
+      sup:num(r.sup)?r.sup:l.sup,
+      pm2:num(r.pm2)?r.pm2:null,
+      precio:num(r.precio)?r.precio:null,
+      contado:num(r.contado)?r.contado:null
+    };
+    for(const k in campos){
+      if(l[k]!==campos[k]){ l[k]=campos[k]; cambio=true; }
+    }
+    l.fin=CFG.financiacion[l.com?"comercial":"residencial"];
+    l.conPrecio = l.estado==="d" && l.precio!=null;
+    // LOTES también, así un redibujo posterior (girar el teléfono) no revierte
+    LOTES[l.n]={frente:l.frente,fondo:l.fondo,sup:l.sup,estado:l.estado,
+                pm2:l.pm2??undefined,precio:l.precio??undefined,contado:l.contado??undefined};
+  }
+  if(!cambio) return;
+
+  document.getElementById("fecha").textContent = CFG.actualizado || "—";
+  // Mismo redibujo que al girar el teléfono: se recuperan estado y selección.
+  const abierto=sel;
+  svg=build(); bindSvg(svg); paint();
+  if(abierto!=null && byN.get(abierto)) select(abierto);
+  checkOverflow();
 })();
 </script>
 </body>
