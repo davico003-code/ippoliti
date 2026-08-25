@@ -108,7 +108,10 @@ export async function GET() {
 
   return NextResponse.json(
     { items: publicos },
-    { headers: { 'cache-control': 'public, s-maxage=60, stale-while-revalidate=300' } },
+    // 5 min de CDN: la lista solo cambia cuando un admin agrega/borra una
+    // oportunidad. s-maxage=60 era un comando Redis por PoP por minuto — con
+    // la cuota mensual de Upstash agotándose (25-ago-2026), lo bajamos.
+    { headers: { 'cache-control': 'public, s-maxage=300, stale-while-revalidate=3600' } },
   )
 }
 

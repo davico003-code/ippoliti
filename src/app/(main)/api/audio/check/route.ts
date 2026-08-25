@@ -11,6 +11,12 @@
 import { NextResponse } from 'next/server'
 import { getCachedAudioUrl } from '@/lib/audio'
 
+// Cache CDN: este endpoint se pega en CADA vista de ficha (siinmobiliaria +
+// verficha) y cada hit era un comando Redis. El audio de una propiedad cambia
+// rarísimo (generación opt-in desde /admin/audio), así que 6h de CDN + SWR
+// recortan el grueso del consumo de Upstash sin costo funcional.
+const CDN_CACHE = 'public, s-maxage=21600, stale-while-revalidate=86400'
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const raw = searchParams.get('propertyId')
@@ -19,7 +25,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'propertyId requerido' }, { status: 400 })
   }
 
-  const url = await getCachedAudioUrl(propertyId)
-  if (url) return NextResponse.json({ hasAudio: true, url })
-  return NextResponse.json({ hasAudio: false })
+  // Fail-open: si Redis está caído (p. ej. cuota mensual de Upstash agotada,
+  // 25-ago-2026) el player simplemente no se muestra; nunca 500. El error no
+  // se cachea en CDN para reintentar cuando Redis vuelva.
+  let url: string | null = null
+  try {
+    url = await getCachedAudioUrl(propertyId)
+  } catch (err) {
+    console.warn('[audio/check] Redis error (fail-open):', err)
+    return NextResponse.json({ hasAudio: false }, { headers: { 'cache-control': 'no-store' } })
+  }
+
+  if (url) return NextResponse.json({ hasAudio: true, url }, { headers: { 'cache-control': CDN_CACHE } })
+  return NextResponse.json({ hasAudio: false }, { headers: { 'cache-control': CDN_CACHE } })
 }
