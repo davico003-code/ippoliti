@@ -4,8 +4,10 @@
 // igual que /agentes/cartera.
 //
 // Qué hace: permite editar frente, fondo, superficie, precio y estado
-// (disponible / no disponible / vendido) de los 180 lotes, y descargar el plano
-// actualizado listo para reemplazar public/planos/distrito-roldan.html.
+// (disponible / no disponible / vendido) de los 180 lotes y publicarlos en el
+// sitio al instante (POST /api/plano-lotes; el plano publicado los consulta al
+// cargar). La descarga del HTML quedó como respaldo para actualizar
+// public/planos/distrito-roldan.html en el repositorio.
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
