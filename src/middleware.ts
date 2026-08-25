@@ -15,9 +15,12 @@ const redisEdge = new Redis({
   token: process.env.KV_REST_API_TOKEN!,
 })
 
-// Cache en memoria (~60s) del mapa de notas borradas (blog:redirects).
+// Cache en memoria del mapa de notas borradas (blog:redirects). 10 min: los
+// soft-deletes del blog son eventos raros, y cada expiración es un comando
+// Redis por instancia edge — con el tráfico de crawlers sobre /blog/* el TTL
+// de 60s comía cuota de Upstash (límite mensual agotado el 25-ago-2026).
 let _redirCache: { map: Record<string, string>; ts: number } | null = null
-const REDIR_TTL_MS = 60_000
+const REDIR_TTL_MS = 600_000
 
 async function getBlogRedirects(): Promise<Record<string, string>> {
   if (_redirCache && Date.now() - _redirCache.ts < REDIR_TTL_MS) return _redirCache.map

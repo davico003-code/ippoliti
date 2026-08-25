@@ -280,10 +280,9 @@ export default function MobileStickyBar({
                   setShareOpen(false)
                   setGenerandoFicha(true)
                   try {
+                    // El toast (éxito o error) lo muestra la lib — no duplicar
+                    // acá: mostraba "Link para colega copiado" aunque fallara.
                     await generarYCopiarFichaLink(propertyId)
-                    showToast('Link para colega copiado')
-                  } catch {
-                    showToast('No se pudo generar el link', { variant: 'error' })
                   } finally {
                     setGenerandoFicha(false)
                   }

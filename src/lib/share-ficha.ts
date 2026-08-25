@@ -53,7 +53,9 @@ async function copyFallback(text: string): Promise<boolean> {
   }
 }
 
-export async function generarYCopiarFichaLink(propertyId: number): Promise<void> {
+// Devuelve true si terminó con link copiado, false si falló (el toast de
+// error ya se mostró acá — el caller NO debe mostrar otro toast propio).
+export async function generarYCopiarFichaLink(propertyId: number): Promise<boolean> {
   // Path A — Safari iOS y todos los navegadores modernos: ClipboardItem con
   // Promise. La reserva del clipboard se hace dentro del user gesture; el
   // contenido se escribe cuando la promise (fetch + parse) resuelve.
@@ -68,7 +70,7 @@ export async function generarYCopiarFichaLink(propertyId: number): Promise<void>
         new ClipboardItem({ 'text/plain': blobPromise }),
       ])
       showToast('Link copiado · Vence en 60 días')
-      return
+      return true
     } catch (err) {
       // Si la write falló pero el fetch sí trajo URL, mostrar el link en el
       // toast para que el usuario lo copie manualmente. Si ni siquiera tenemos
@@ -82,7 +84,7 @@ export async function generarYCopiarFichaLink(propertyId: number): Promise<void>
       } else {
         showToast('No se pudo generar el link, probá de nuevo', { variant: 'error' })
       }
-      return
+      return false
     }
   }
 
@@ -93,10 +95,12 @@ export async function generarYCopiarFichaLink(propertyId: number): Promise<void>
     const copied = await copyFallback(url)
     if (copied) {
       showToast('Link copiado · Vence en 60 días')
-    } else {
-      showToast(`No se pudo copiar. Link: ${url}`, { variant: 'error', duration: 8000 })
+      return true
     }
+    showToast(`No se pudo copiar. Link: ${url}`, { variant: 'error', duration: 8000 })
+    return false
   } catch {
     showToast('No se pudo generar el link, probá de nuevo', { variant: 'error' })
+    return false
   }
 }
