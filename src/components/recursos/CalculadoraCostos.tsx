@@ -812,6 +812,33 @@ export default function CalculadoraCostos() {
                   ? `${honoTotalLabel} · sellado y verificación en pesos · ${tipoLabel}`
                   : `${honoTotalLabel} · ${tipoLabel} ${monedaLabel}`}
               </div>
+
+              {/* Costos + depósito — dentro del recuadro verde, más chico */}
+              <div
+                className="mt-3.5 pt-3"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.28)' }}
+              >
+                <div
+                  className="text-[11.5px] font-semibold uppercase tracking-[0.8px]"
+                  style={{ color: 'rgba(255,255,255,0.75)' }}
+                >
+                  Costos para ingresar + depósito en garantía
+                </div>
+                <div className="font-poppins font-bold text-[clamp(19px,4.5vw,24px)] tabular-nums leading-tight mt-1">
+                  Total:{' '}
+                  {moneda === 'USD'
+                    ? fmtUsd(totalUsd + alquiler)
+                    : fmtArs(totalArs + alquiler)}
+                  {moneda === 'USD' && (
+                    <span
+                      className="block font-semibold text-[13px]"
+                      style={{ color: 'rgba(255,255,255,0.8)' }}
+                    >
+                      + {fmtArs(totalArs)} en pesos
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
 
@@ -881,48 +908,6 @@ export default function CalculadoraCostos() {
                 </div>
               </div>
 
-              {/* Costos para ingresar + depósito — sobrio, un poco más chico que el total */}
-              <div className="pt-2.5 mt-2.5" style={{ borderTop: '1px solid var(--line)' }}>
-                <div
-                  className="text-[11.5px] font-semibold uppercase tracking-[0.8px]"
-                  style={{ color: 'var(--tinta-mute)' }}
-                >
-                  Costos para ingresar + depósito en garantía
-                </div>
-                <div className="flex items-baseline justify-between gap-4 mt-1">
-                  <span
-                    className="text-[12px] font-bold"
-                    style={{ color: 'var(--tinta)' }}
-                  >
-                    Total:
-                  </span>
-                  <div className="text-right">
-                    {moneda === 'USD' ? (
-                      <>
-                        <div
-                          className="font-poppins font-bold text-[16px] tabular-nums leading-tight"
-                          style={{ color: 'var(--tinta)' }}
-                        >
-                          {fmtUsd(totalUsd + alquiler)}
-                        </div>
-                        <div
-                          className="font-poppins font-semibold text-[12px] tabular-nums"
-                          style={{ color: 'var(--tinta-mute)' }}
-                        >
-                          + {fmtArs(totalArs)} en pesos
-                        </div>
-                      </>
-                    ) : (
-                      <div
-                        className="font-poppins font-bold text-[16px] tabular-nums leading-tight"
-                        style={{ color: 'var(--tinta)' }}
-                      >
-                        {fmtArs(totalArs + alquiler)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
             </div>
             {!incluirAdmin && (
               <p className="text-[12px] italic mt-3" style={{ color: 'var(--tinta-mute)' }}>

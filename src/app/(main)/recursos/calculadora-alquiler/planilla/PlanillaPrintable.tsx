@@ -184,9 +184,34 @@ html, body {
   background: var(--si-green-tint);
   border-top: 3px solid var(--si-green);
   border-bottom: 1px solid var(--si-green);
+}
+.planilla-page .total-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+}
+.planilla-page .total-row2 {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(26,92,56,0.28);
+}
+.planilla-page .total-label2 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--si-green);
+}
+.planilla-page .total-amount2 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--si-green);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1.2;
 }
 .planilla-page .total-label {
   font-family: 'Raleway', sans-serif;
@@ -263,34 +288,6 @@ html, body {
   color: var(--tinta-mute);
   font-weight: 400;
   margin-top: 1px;
-}
-
-/* Cierre del desglose: costos + depósito con el total, sobrio y un poco
-   más chico que el monto principal. */
-.planilla-page .suma-final {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 16px;
-  margin-top: 4px;
-  padding-top: 5px;
-  border-top: 1px solid var(--line);
-}
-.planilla-page .suma-final-label {
-  font-family: 'Raleway', sans-serif;
-  font-weight: 600;
-  font-size: 10px;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--tinta-mute);
-}
-.planilla-page .suma-final-total {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--tinta);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
 .planilla-page .info-grid {
@@ -682,18 +679,31 @@ export default function PlanillaPrintable() {
         </div>
 
         <div className="total">
-          <div className="total-label">Monto total al ingresar</div>
-          <div className="total-amount">
-            {moneda === 'USD' ? (
-              <>
-                {fmtUsd(totalUsd)}
-                <span className="total-amount-extra">
-                  + {fmtArs(totalArs)} en pesos
-                </span>
-              </>
-            ) : (
-              fmtArs(totalArs)
-            )}
+          <div className="total-row">
+            <div className="total-label">Monto total al ingresar</div>
+            <div className="total-amount">
+              {moneda === 'USD' ? (
+                <>
+                  {fmtUsd(totalUsd)}
+                  <span className="total-amount-extra">
+                    + {fmtArs(totalArs)} en pesos
+                  </span>
+                </>
+              ) : (
+                fmtArs(totalArs)
+              )}
+            </div>
+          </div>
+          <div className="total-row total-row2">
+            <div className="total-label2">
+              Costos para ingresar + depósito en garantía
+            </div>
+            <div className="total-amount2">
+              Total:{' '}
+              {moneda === 'USD'
+                ? `${fmtUsd(totalUsd + alquiler)} + ${fmtArs(totalArs)} en pesos`
+                : fmtArs(totalArs + alquiler)}
+            </div>
           </div>
         </div>
 
@@ -771,17 +781,6 @@ export default function PlanillaPrintable() {
             </tbody>
           </table>
 
-          <div className="suma-final">
-            <div className="suma-final-label">
-              Costos para ingresar + depósito en garantía
-            </div>
-            <div className="suma-final-total">
-              Total:{' '}
-              {moneda === 'USD'
-                ? `${fmtUsd(totalUsd + alquiler)} + ${fmtArs(totalArs)} en pesos`
-                : fmtArs(totalArs + alquiler)}
-            </div>
-          </div>
         </div>
 
         <div className="section">
