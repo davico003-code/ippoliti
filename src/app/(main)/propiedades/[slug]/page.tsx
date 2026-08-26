@@ -34,7 +34,7 @@ import {
 } from '@/lib/tokko';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
 
-export const revalidate = 21600;
+export const revalidate = 3600;
 
 interface Props {
   params: { slug: string };

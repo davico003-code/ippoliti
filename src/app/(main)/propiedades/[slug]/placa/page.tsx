@@ -13,7 +13,7 @@ import {
 } from '@/lib/tokko'
 import PlacaSelectorClient, { type PlacaPhoto } from '@/components/PlacaSelectorClient'
 
-export const revalidate = 21600
+export const revalidate = 3600
 export const dynamicParams = true
 
 export async function generateStaticParams() {
