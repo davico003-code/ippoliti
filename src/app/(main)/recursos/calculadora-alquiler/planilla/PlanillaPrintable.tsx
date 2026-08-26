@@ -308,6 +308,33 @@ html, body {
   margin-top: 3px;
   line-height: 1.3;
 }
+.planilla-page .deposito-card .deposito-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.planilla-page .deposito-card .deposito-suma {
+  text-align: right;
+  padding-left: 16px;
+  border-left: 1px solid rgba(255,255,255,0.25);
+  white-space: nowrap;
+}
+.planilla-page .deposito-card .deposito-suma-label {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600;
+  font-size: 9px;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 2px;
+}
+.planilla-page .deposito-card .deposito-suma-valor {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
 
 .planilla-page .info-grid {
   display: grid;
@@ -778,11 +805,24 @@ export default function PlanillaPrintable() {
 
         <div className="section">
           <div className="deposito-card">
-            <div className="deposito-eyebrow">Depósito de garantía</div>
-            <div className="deposito-monto">1 mes de alquiler</div>
-            <div className="deposito-sub">
-              Se entrega al ingresar al inmueble. Se devuelve al finalizar el
-              contrato.
+            <div className="deposito-main">
+              <div>
+                <div className="deposito-eyebrow">Depósito de garantía</div>
+                <div className="deposito-monto">1 mes de alquiler</div>
+                <div className="deposito-sub">
+                  Se entrega al ingresar al inmueble. Se devuelve al finalizar
+                  el contrato.
+                </div>
+              </div>
+              <div className="deposito-suma">
+                <div className="deposito-suma-label">
+                  Alquiler {fmt(c.primerMes, moneda)} + depósito{' '}
+                  {fmt(c.primerMes, moneda)}
+                </div>
+                <div className="deposito-suma-valor">
+                  {fmt(c.primerMes * 2, moneda)}
+                </div>
+              </div>
             </div>
           </div>
         </div>

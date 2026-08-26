@@ -930,7 +930,10 @@ export default function CalculadoraCostos() {
 
           {/* DEPÓSITO */}
           <section className="mb-4">
-            <DepositoCard />
+            <DepositoCard
+              alquilerFmt={alquiler > 0 ? fmt(alquiler, moneda) : undefined}
+              sumaFmt={alquiler > 0 ? fmt(alquiler * 2, moneda) : undefined}
+            />
           </section>
 
           {/* ── CTA DESCARGAR + COMPARTIR — botonera compacta dual ──────────── */}
