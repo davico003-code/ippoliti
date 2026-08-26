@@ -330,7 +330,7 @@ html, body {
 .planilla-page .deposito-card .deposito-suma-valor {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 20px;
   letter-spacing: -0.4px;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -799,6 +799,20 @@ export default function PlanillaPrintable() {
                   <td className="value">{fmt(c.admin, moneda)}</td>
                 </tr>
               )}
+              <tr>
+                <td>
+                  <div className="label" style={{ color: 'var(--usd)' }}>
+                    Depósito de garantía · 1 mes de alquiler
+                  </div>
+                  <div className="label-sub">
+                    Se entrega al ingresar al inmueble. Se devuelve al
+                    finalizar el contrato.
+                  </div>
+                </td>
+                <td className="value" style={{ color: 'var(--usd)' }}>
+                  {fmt(alquiler, moneda)}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -807,21 +821,25 @@ export default function PlanillaPrintable() {
           <div className="deposito-card">
             <div className="deposito-main">
               <div>
-                <div className="deposito-eyebrow">Depósito de garantía</div>
-                <div className="deposito-monto">1 mes de alquiler</div>
+                <div className="deposito-eyebrow">
+                  Total a juntar con depósito
+                </div>
                 <div className="deposito-sub">
-                  Se entrega al ingresar al inmueble. Se devuelve al finalizar
-                  el contrato.
+                  Monto al ingresar + depósito de garantía. El depósito se
+                  devuelve al finalizar el contrato.
                 </div>
               </div>
               <div className="deposito-suma">
-                <div className="deposito-suma-label">
-                  Alquiler {fmt(c.primerMes, moneda)} + depósito{' '}
-                  {fmt(c.primerMes, moneda)}
-                </div>
                 <div className="deposito-suma-valor">
-                  {fmt(c.primerMes * 2, moneda)}
+                  {moneda === 'USD'
+                    ? fmtUsd(totalUsd + alquiler)
+                    : fmtArs(totalArs + alquiler)}
                 </div>
+                {moneda === 'USD' && (
+                  <div className="deposito-suma-label">
+                    + {fmtArs(totalArs)} en pesos
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -880,6 +880,52 @@ export default function CalculadoraCostos() {
                   )}
                 </div>
               </div>
+
+              {/* Depósito + total a juntar — la plata que hay que tener el día 1 */}
+              <div className="flex items-baseline justify-between gap-4 pt-2.5 mt-2.5" style={{ borderTop: '1px solid var(--line)' }}>
+                <span
+                  className="text-[12px] font-semibold uppercase tracking-[0.8px]"
+                  style={{ color: 'var(--usd)' }}
+                >
+                  Depósito de garantía (1 mes)
+                  <span className="block normal-case tracking-normal text-[11px] font-medium" style={{ color: 'var(--tinta-mute)' }}>
+                    se devuelve al finalizar el contrato
+                  </span>
+                </span>
+                <span
+                  className="font-poppins font-semibold text-[15px] tabular-nums"
+                  style={{ color: 'var(--usd)' }}
+                >
+                  {fmt(alquiler, moneda)}
+                </span>
+              </div>
+              <div
+                className="flex items-baseline justify-between gap-4 rounded-xl px-4 py-3 mt-2.5"
+                style={{ background: 'var(--usd)', color: '#fff' }}
+              >
+                <span className="text-[12.5px] font-bold uppercase tracking-[0.8px]">
+                  Total a juntar con depósito
+                </span>
+                <div className="text-right">
+                  {moneda === 'USD' ? (
+                    <>
+                      <div className="font-poppins font-bold text-[19px] tabular-nums leading-tight">
+                        {fmtUsd(totalUsd + alquiler)}
+                      </div>
+                      <div
+                        className="font-poppins font-semibold text-[13px] tabular-nums"
+                        style={{ color: 'rgba(255,255,255,0.8)' }}
+                      >
+                        + {fmtArs(totalArs)} en pesos
+                      </div>
+                    </>
+                  ) : (
+                    <div className="font-poppins font-bold text-[19px] tabular-nums leading-tight">
+                      {fmtArs(totalArs + alquiler)}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             {!incluirAdmin && (
               <p className="text-[12px] italic mt-3" style={{ color: 'var(--tinta-mute)' }}>
@@ -930,10 +976,7 @@ export default function CalculadoraCostos() {
 
           {/* DEPÓSITO */}
           <section className="mb-4">
-            <DepositoCard
-              alquilerFmt={alquiler > 0 ? fmt(alquiler, moneda) : undefined}
-              sumaFmt={alquiler > 0 ? fmt(alquiler * 2, moneda) : undefined}
-            />
+            <DepositoCard alquilerFmt={alquiler > 0 ? fmt(alquiler, moneda) : undefined} />
           </section>
 
           {/* ── CTA DESCARGAR + COMPARTIR — botonera compacta dual ──────────── */}
