@@ -23,12 +23,12 @@ const fmt = (n: number, m: Moneda) => (m === 'USD' ? fmtUsd(n) : fmtArs(n))
 const WHATSAPP_NUM = '5493413415159'
 const WHATSAPP_DISPLAY = '+54 9 341 341 5159'
 
-// CSS portado de _referencias/planilla-alquiler-A4.html. Embebido como string
-// para que las reglas globales (oculta navbar/footer del sitio + estilos del
-// documento + @page A4) viajen junto al component sin depender de globals.css.
-// Layout comprimido para entrar SIEMPRE en una sola hoja A4 al imprimir
-// (Cmd+P → Guardar como PDF). Paddings, tipografías y márgenes ajustados;
-// info-grid en 3 columnas; @page con margins de 10mm/12mm.
+// Documento A4 estilo "hoja de cards": fondo verdoso muy claro, cards blancas
+// con hairlines, totales unificados en una sola banda verde. Embebido como
+// string para que las reglas globales (oculta navbar/footer del sitio +
+// estilos del documento + @page A4) viajen junto al component sin depender de
+// globals.css. Comprimido para entrar SIEMPRE en una sola hoja A4 al imprimir
+// (Cmd+P → Guardar como PDF).
 const PLANILLA_CSS = `
 /* Oculta el shell del sitio (navbar, footer, popups, scroll, whatsapp flotante).
    El layout root no se puede sobrescribir, pero podemos ocultar todo lo que no
@@ -42,17 +42,16 @@ main { padding: 0 !important; margin: 0 !important; max-width: none !important; 
   --tinta: #1C1C1E;
   --tinta-soft: #3A3A3D;
   --tinta-mute: #6E6E72;
-  --line: #D8D8D2;
-  --line-soft: #ECECE6;
-  --paper: #FFFFFF;
+  --line: #E0E6E1;
+  --paper: #F4F7F5;
+  --card: #FFFFFF;
   --si-green: #1A5C38;
-  --si-green-tint: #F1F6F3;
-  --usd: #0E4A7B;
-  --usd-dark: #073357;
+  --si-green-dark: #0F3D25;
+  --si-green-tint: #EAF2ED;
 }
 
 html, body {
-  background: #fff !important;
+  background: var(--paper) !important;
   font-family: 'Raleway', system-ui, sans-serif;
   color: var(--tinta);
   line-height: 1.3;
@@ -87,158 +86,220 @@ html, body {
   min-height: 1123px;
   background: var(--paper);
   margin: 0 auto;
-  padding: 32px 38px;
+  padding: 26px 34px 18px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 .planilla-page * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Header ─────────────────────────────────────────────────────────── */
 .planilla-page .header {
-  text-align: left;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--si-green);
-  margin-bottom: 14px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
+  margin-bottom: 16px;
 }
-.planilla-page .header-logo { height: 28px; width: auto; display: block; }
+.planilla-page .header-logo { height: 26px; width: auto; display: block; }
 .planilla-page .header-meta {
   font-family: 'Raleway', sans-serif;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--tinta-mute);
   text-align: right;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-.planilla-page .doc-title { margin-bottom: 7px; }
+/* ── Título ─────────────────────────────────────────────────────────── */
 .planilla-page .doc-eyebrow {
   font-family: 'Raleway', sans-serif;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--si-green);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 .planilla-page .doc-h1 {
   font-family: 'Raleway', sans-serif;
   font-weight: 800;
-  font-size: 19px;
+  font-size: 24px;
   color: var(--tinta);
   letter-spacing: -0.5px;
-  line-height: 1.15;
+  line-height: 1.1;
+}
+.planilla-page .doc-sub {
+  font-family: 'Raleway', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tinta-mute);
+  margin-top: 4px;
+  margin-bottom: 12px;
 }
 
-.planilla-page .hero {
-  margin-bottom: 9px;
-  padding-bottom: 7px;
-  border-bottom: 1px solid var(--line);
-}
-.planilla-page .hero-grid {
+/* ── Cards de datos (alquiler / ajuste) ─────────────────────────────── */
+.planilla-page .datos-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
-.planilla-page .hero-cell { display: flex; flex-direction: column; }
-.planilla-page .hero-label {
-  font-family: 'Raleway', sans-serif;
-  font-size: 11px;
+.planilla-page .dato-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.planilla-page .dato-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--si-green-tint);
+  color: var(--si-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: var(--tinta-mute);
-  margin-bottom: 4px;
+  font-size: 15px;
+  margin-top: 2px;
 }
-.planilla-page .hero-value {
+.planilla-page .dato-icon svg { display: block; }
+.planilla-page .dato-label {
+  font-family: 'Raleway', sans-serif;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--si-green);
+  margin-bottom: 3px;
+}
+.planilla-page .dato-valor {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 19px;
   color: var(--tinta);
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
+  line-height: 1.15;
 }
-.planilla-page .hero-value.ajuste { font-size: 14px; font-weight: 600; }
-.planilla-page .hero-value .per {
-  font-size: 13px;
+.planilla-page .dato-valor .per {
+  font-family: 'Raleway', sans-serif;
+  font-size: 11px;
   font-weight: 500;
   color: var(--tinta-mute);
-  margin-left: 4px;
+  margin-left: 6px;
+  letter-spacing: 0;
 }
-.planilla-page .hero-sub {
+.planilla-page .dato-sub {
   font-family: 'Raleway', sans-serif;
-  font-size: 12px;
-  color: var(--tinta-soft);
-  margin-top: 3px;
+  font-size: 10px;
   font-weight: 500;
+  color: var(--tinta-mute);
+  margin-top: 3px;
 }
 
-.planilla-page .total {
-  margin-bottom: 8px;
-  padding: 10px 16px;
-  background: var(--si-green-tint);
-  border-top: 3px solid var(--si-green);
-  border-bottom: 1px solid var(--si-green);
-  display: flex;
+/* ── Banda unificada de totales ─────────────────────────────────────── */
+.planilla-page .total-card {
+  background: linear-gradient(135deg, var(--si-green) 0%, var(--si-green-dark) 100%);
+  color: #fff;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
   align-items: center;
-  justify-content: space-between;
+  margin-bottom: 14px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.planilla-page .total-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(255,255,255,0.28);
 }
 .planilla-page .total-label {
   font-family: 'Raleway', sans-serif;
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 1.5px;
+  font-size: 9.5px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: var(--si-green);
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 4px;
 }
-.planilla-page .total-amount {
+.planilla-page .total-valor {
   font-family: 'Poppins', sans-serif;
   font-weight: 800;
-  font-size: 23px;
-  color: var(--si-green);
+  font-size: 24px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.5px;
-  line-height: 1.2;
+  letter-spacing: -0.6px;
+  line-height: 1.1;
 }
-.planilla-page .total-amount-extra {
-  font-size: 13px;
-  font-weight: 600;
-  margin-left: 8px;
+.planilla-page .total-sub {
+  font-family: 'Raleway', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  margin-top: 4px;
 }
 
-.planilla-page .section { margin-bottom: 8px; }
-.planilla-page .section-head {
-  margin-bottom: 4px;
-  padding-bottom: 3px;
-  border-bottom: 1px solid var(--si-green);
-}
+/* ── Secciones ──────────────────────────────────────────────────────── */
+.planilla-page .section { margin-bottom: 12px; }
 .planilla-page .section-title {
   font-family: 'Raleway', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
+  font-weight: 800;
+  font-size: 11px;
   letter-spacing: 1.8px;
   text-transform: uppercase;
   color: var(--si-green);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--si-green);
+  margin-bottom: 8px;
 }
 
-.planilla-page .tabla { width: 100%; border-collapse: collapse; }
-.planilla-page .tabla tr { border-bottom: 1px solid var(--line-soft); }
-.planilla-page .tabla tr:last-child { border-bottom: none; }
-.planilla-page .tabla td { padding: 4px 0; vertical-align: middle; }
-.planilla-page .tabla .label {
-  font-family: 'Raleway', sans-serif;
+/* ── Desglose: card con filas numeradas y montos en pill ────────────── */
+.planilla-page .desglose-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 4px 16px;
+}
+.planilla-page .fila {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid #EEF1EE;
+}
+.planilla-page .fila:last-child { border-bottom: none; }
+.planilla-page .fila-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--si-green-tint);
+  color: var(--si-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 10.5px;
+}
+.planilla-page .fila-label {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 11.5px;
   color: var(--tinta);
   line-height: 1.25;
 }
-.planilla-page .tabla .label-sub {
-  display: block;
+.planilla-page .fila-sub {
   font-family: 'Raleway', sans-serif;
   font-weight: 400;
   font-size: 9.5px;
@@ -246,210 +307,182 @@ html, body {
   margin-top: 1px;
   line-height: 1.3;
 }
-.planilla-page .tabla .value {
-  text-align: right;
+.planilla-page .fila-valor {
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--tinta);
   font-variant-numeric: tabular-nums;
+  background: var(--si-green-tint);
+  border-radius: 8px;
+  padding: 4px 12px;
   white-space: nowrap;
-  line-height: 1.2;
-}
-.planilla-page .tabla .value-sub {
-  display: block;
-  font-family: 'Raleway', sans-serif;
-  font-size: 10px;
-  color: var(--tinta-mute);
-  font-weight: 400;
-  margin-top: 1px;
 }
 
-/* Card azul del depósito — misma estética que DepositoCard de la calculadora.
-   Compacta para no romper el layout de una sola hoja A4. */
-.planilla-page .deposito-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 10px;
-  padding: 12px 16px;
-  color: #fff;
-  background: linear-gradient(135deg, var(--usd) 0%, var(--usd-dark) 100%);
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
+/* ── ¿Qué pagás cada mes? — cards ───────────────────────────────────── */
+.planilla-page .meses-grid {
+  display: grid;
+  gap: 12px;
 }
-.planilla-page .deposito-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 80% 0%, rgba(255,255,255,0.10) 0%, transparent 55%);
-  pointer-events: none;
+.planilla-page .meses-grid.tres { grid-template-columns: 1fr 1fr 1fr; }
+.planilla-page .meses-grid.dos { grid-template-columns: 1fr 1fr; }
+.planilla-page .mes-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 11px 14px;
 }
-.planilla-page .deposito-card .deposito-eyebrow {
+.planilla-page .mes-card.destacado {
+  background: var(--si-green-tint);
+  border: 1.5px solid var(--si-green);
+}
+.planilla-page .mes-label {
   font-family: 'Raleway', sans-serif;
-  font-weight: 700;
-  font-size: 9px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
-  margin-bottom: 3px;
-}
-.planilla-page .deposito-card .deposito-monto {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 19px;
-  letter-spacing: -0.4px;
-  line-height: 1.1;
-}
-.planilla-page .deposito-card .deposito-sub {
-  font-family: 'Raleway', sans-serif;
-  font-weight: 500;
+  font-weight: 800;
   font-size: 9.5px;
-  color: rgba(255,255,255,0.88);
-  margin-top: 3px;
-  line-height: 1.3;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--si-green);
 }
-.planilla-page .deposito-card .deposito-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-.planilla-page .deposito-card .deposito-suma {
-  text-align: right;
-  padding-left: 16px;
-  border-left: 1px solid rgba(255,255,255,0.25);
-  white-space: nowrap;
-}
-.planilla-page .deposito-card .deposito-suma-label {
+.planilla-page .mes-sub {
   font-family: 'Raleway', sans-serif;
-  font-weight: 600;
-  font-size: 9px;
-  color: rgba(255,255,255,0.85);
-  margin-bottom: 2px;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--tinta-mute);
+  margin-top: 1px;
 }
-.planilla-page .deposito-card .deposito-suma-valor {
+.planilla-page .mes-valor {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 17px;
-  letter-spacing: -0.4px;
-  line-height: 1.1;
+  color: var(--tinta);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.4px;
+  margin-top: 6px;
+  line-height: 1.15;
+}
+.planilla-page .mes-desc {
+  font-family: 'Raleway', sans-serif;
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--tinta-mute);
+  margin-top: 5px;
+  line-height: 1.35;
 }
 
-.planilla-page .info-grid {
+/* ── Condiciones — 3 cards con lista ────────────────────────────────── */
+.planilla-page .cond-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px 14px;
-  margin-bottom: 6px;
+  gap: 12px;
 }
-.planilla-page .info-block { border-left: 3px solid var(--si-green); padding-left: 12px; }
-.planilla-page .info-block-title {
+.planilla-page .cond-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.planilla-page .cond-head {
+  background: var(--si-green-tint);
+  padding: 7px 13px;
   font-family: 'Raleway', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 1.2px;
+  font-weight: 800;
+  font-size: 9px;
+  letter-spacing: 1.1px;
   text-transform: uppercase;
   color: var(--si-green);
-  margin-bottom: 4px;
-  line-height: 1.3;
+  line-height: 1.35;
 }
-.planilla-page .info-block-content {
+.planilla-page .cond-body {
+  padding: 8px 13px 10px;
   font-family: 'Raleway', sans-serif;
-  font-size: 10px;
-  line-height: 1.3;
+  font-size: 9.5px;
   color: var(--tinta-soft);
+  line-height: 1.35;
 }
-.planilla-page .info-block-content strong { color: var(--tinta); font-weight: 700; }
-.planilla-page .info-block-content ol {
-  list-style: none;
-  counter-reset: opcion;
-  padding: 0;
-  margin: 0;
-}
-.planilla-page .info-block-content ol li {
-  counter-increment: opcion;
-  padding-left: 18px;
+.planilla-page .cond-body strong { color: var(--tinta); font-weight: 700; }
+.planilla-page .cond-item {
   position: relative;
-  margin-bottom: 3px;
+  padding-left: 12px;
+  margin-bottom: 4px;
 }
-.planilla-page .info-block-content ol li::before {
-  content: counter(opcion) ".";
+.planilla-page .cond-item:last-child { margin-bottom: 0; }
+.planilla-page .cond-item::before {
+  content: '';
   position: absolute;
   left: 0;
+  top: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--si-green);
+}
+.planilla-page .cond-item.numerado { padding-left: 20px; }
+.planilla-page .cond-item.numerado::before {
+  content: attr(data-num);
+  width: 14px;
+  height: 14px;
   top: 0;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 11px;
+  background: var(--si-green-tint);
   color: var(--si-green);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 8.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* ── Disclaimer + footer ────────────────────────────────────────────── */
 .planilla-page .disclaimer {
-  border: 1px solid var(--tinta);
-  padding: 8px 12px;
-  margin-bottom: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 9px 14px;
+  margin-bottom: 10px;
 }
 .planilla-page .disclaimer-title {
   font-family: 'Raleway', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 1.4px;
+  font-weight: 800;
+  font-size: 9px;
+  letter-spacing: 1.3px;
   text-transform: uppercase;
-  color: var(--tinta);
-  margin-bottom: 4px;
+  color: var(--tinta-mute);
+  margin-bottom: 3px;
 }
 .planilla-page .disclaimer-text {
   font-family: 'Raleway', sans-serif;
-  font-size: 9.5px;
-  line-height: 1.3;
-  color: var(--tinta-soft);
+  font-size: 9px;
+  line-height: 1.4;
+  color: var(--tinta-mute);
 }
 
 .planilla-page .footer {
   margin-top: auto;
-  padding-top: 7px;
-  border-top: 2px solid var(--si-green);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px;
-  align-items: end;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  text-align: center;
 }
-.planilla-page .footer-logo { height: 18px; width: auto; display: block; margin-bottom: 3px; }
-.planilla-page .footer-tagline {
+.planilla-page .footer-line {
   font-family: 'Raleway', sans-serif;
-  font-size: 9px;
-  color: var(--tinta-mute);
-  font-weight: 500;
-  letter-spacing: 0.8px;
-}
-.planilla-page .footer-web {
-  font-family: 'Raleway', sans-serif;
-  font-size: 9px;
-  color: var(--tinta-soft);
-  margin-top: 3px;
-  font-weight: 500;
-}
-.planilla-page .footer-contact { text-align: right; }
-.planilla-page .footer-contact-label {
-  font-family: 'Raleway', sans-serif;
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
-  letter-spacing: 1.4px;
+  letter-spacing: 1.3px;
   text-transform: uppercase;
   color: var(--tinta-mute);
-  margin-bottom: 2px;
 }
-.planilla-page .footer-contact-value {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--si-green);
-  font-variant-numeric: tabular-nums;
-}
-.planilla-page .footer-contact-link {
+.planilla-page .footer-contact {
   font-family: 'Raleway', sans-serif;
   font-size: 9px;
-  color: var(--tinta-mute);
-  margin-top: 2px;
+  font-weight: 600;
+  color: var(--tinta-soft);
+  margin-top: 3px;
+}
+.planilla-page .footer-contact strong {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: var(--si-green);
+  font-variant-numeric: tabular-nums;
 }
 
 .planilla-fallback {
@@ -476,58 +509,41 @@ html, body {
   text-decoration: underline;
 }
 
-@page { size: A4; margin: 8mm; }
+@page { size: A4; margin: 6mm; }
 @media print {
   html, body {
     margin: 0 !important;
     padding: 0 !important;
     height: auto !important;
     overflow: visible !important;
+    background: #fff !important;
   }
   body > *:not(main):not(script) { display: none !important; }
   main > .si-page-enter { display: contents !important; }
   .no-print { display: none !important; }
   /* min-height: 0 es el fix clave — la caja deja de forzar el alto de A4 y se
-     ajusta al contenido, eliminando la página 2 fantasma. El llenado de la
-     hoja se logra con tipografía/espaciado, no forzando altura. */
+     ajusta al contenido, eliminando la página 2 fantasma. */
   .planilla-page {
     box-shadow: none;
+    width: auto !important;
     margin: 0 !important;
-    padding: 12mm 14mm !important;
+    padding: 6mm 8mm !important;
     max-height: none !important;
     min-height: 0 !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
-    line-height: 1.4 !important;
-    font-size: 12px !important;
   }
-  /* Sin margen residual debajo del último bloque (footer). */
   .planilla-page > *:last-child { margin-bottom: 0 !important; }
-  /* Evitar que un bloque se parta entre páginas. */
   .planilla-page .section,
-  .planilla-page .info-grid,
+  .planilla-page .datos-grid,
+  .planilla-page .total-card,
+  .planilla-page .cond-grid,
   .planilla-page .disclaimer,
   .planilla-page .footer {
     page-break-inside: avoid !important;
   }
-  /* Rebalanceo print: usar toda la altura útil de la hoja con tipografías
-     legibles (mínimo 11-12px) y secciones con más respiración. */
-  .planilla-page .section { margin-bottom: 14px !important; }
-  .planilla-page .section-title { font-size: 13px !important; }
-  .planilla-page .tabla .label { font-size: 12px !important; }
-  .planilla-page .tabla .label-sub { font-size: 10.5px !important; }
-  .planilla-page .tabla .value { font-size: 14px !important; line-height: 1.3 !important; }
-  .planilla-page .hero-value { font-size: 22px !important; line-height: 1.3 !important; }
-  .planilla-page .hero-value.ajuste { font-size: 16px !important; }
-  .planilla-page .hero-sub { font-size: 12px !important; }
-  .planilla-page .total { padding: 16px 20px !important; }
-  .planilla-page .total-amount { font-size: 28px !important; line-height: 1.3 !important; }
-  .planilla-page .disclaimer { padding: 12px 16px !important; }
-  .planilla-page .disclaimer-text { font-size: 11px !important; }
-  .planilla-page .info-grid { gap: 12px 20px !important; }
-  .planilla-page .info-block-content { font-size: 11px !important; }
-  /* Espacio respirable entre el último bloque y el footer (sin margin-top:auto). */
-  .planilla-page .footer { margin-top: 24px !important; padding-top: 14px !important; }
+  /* Espacio entre el último bloque y el footer (sin margin-top:auto). */
+  .planilla-page .footer { margin-top: 14px !important; }
 }
 `
 
@@ -637,37 +653,76 @@ export default function PlanillaPrintable() {
   const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, incluirAdmin, formaPago } =
     parsed
   const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago })
-  const adminLabel = c.mostrarAdmin ? ' + admin' : ''
 
-  const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
+  const tipoLabel = tipo === 'vivienda' ? 'Vivienda permanente' : 'Comercio'
   const monedaLabel = moneda === 'USD' ? 'en dólares' : 'en pesos'
-  const heroSub = `${tipoLabel} · ${meses} meses · ${monedaLabel}`
+  const docSub = `${tipoLabel} · contrato de ${meses} meses · ${monedaLabel}`
   const ajusteTitle =
     moneda === 'USD'
       ? 'Anual'
-      : `${frecuencia === 'cuatrimestral' ? 'Cuatrimestral' : 'Trimestral'} por ${indice}`
+      : `Cada ${frecuencia === 'cuatrimestral' ? '4' : '3'} meses por ${indice}`
   const ajusteSub =
     moneda === 'USD'
       ? 'Los contratos en dólares se ajustan una vez al año, pactado entre las partes.'
       : indice === 'ICL'
-        ? 'Índice oficial publicado por el BCRA.'
-        : 'Índice oficial publicado por INDEC.'
+        ? 'Índice oficial publicado por el BCRA'
+        : 'Índice oficial publicado por INDEC'
 
   const totalUsd = moneda === 'USD' ? c.totalSubMonedaContrato : 0
   const totalArs = moneda === 'USD' ? c.totalSubARS : c.totalSubMonedaContrato
+  const totalIngreso = moneda === 'USD' ? fmtUsd(totalUsd) : fmtArs(totalArs)
+  const totalConDeposito =
+    moneda === 'USD' ? fmtUsd(totalUsd + alquiler) : fmtArs(totalArs + alquiler)
+  const extraArs = moneda === 'USD' ? ` + ${fmtArs(totalArs)} en pesos` : ''
 
-  const selladoLabelSub =
+  const selladoSub =
     tipo === 'vivienda'
       ? 'Vivienda · exento en Santa Fe'
       : 'Comercio · 0,25% del total del contrato'
 
   const ajusteFinalContrato =
     moneda === 'USD'
-      ? 'ajuste anual hasta el final del contrato'
-      : `ajuste ${frecuencia} por ${indice} hasta el final del contrato`
+      ? 'ajuste anual por contrato'
+      : `ajuste ${frecuencia} por ${indice}`
 
   const mes23 = alquiler + c.honoEnMes23 + c.admin
   const mes4 = alquiler + c.admin
+  const adminDesc = c.mostrarAdmin ? ' + administración' : ''
+
+  // Filas del desglose — el depósito cierra la lista para que el total con
+  // depósito de la banda verde se lea completo en un solo lugar.
+  const filas: { label: string; sub: string; valor: string }[] = [
+    {
+      label: 'Primer mes de alquiler',
+      sub: 'Alquiler del mes en que ingresás',
+      valor: fmt(alquiler, moneda),
+    },
+    {
+      label: c.mostrarMeses23 ? 'Honorarios · 1ª cuota de 3' : 'Honorarios · totales + IVA',
+      sub: `Total honorarios ${fmt(c.honoTotal, moneda)} · alquiler × meses × 5% × IVA`,
+      valor: fmt(c.honoEnMes1, moneda),
+    },
+    { label: 'Sellado', sub: selladoSub, valor: fmtArs(c.sellado) },
+    {
+      label: 'Verificación de garantes',
+      sub: 'Pago único · chequeo de documentación',
+      valor: fmtArs(c.verificacion),
+    },
+    ...(c.mostrarAdmin
+      ? [
+          {
+            label: 'Gasto administrativo',
+            sub: '3% del alquiler + IVA · regulado por COCIR',
+            valor: fmt(c.admin, moneda),
+          },
+        ]
+      : []),
+    {
+      label: 'Depósito de garantía · 1 mes de alquiler',
+      sub: 'Se entrega al ingresar. Se devuelve al finalizar el contrato.',
+      valor: fmt(alquiler, moneda),
+    },
+  ]
 
   const fechaStr = new Date().toLocaleDateString('es-AR', {
     day: '2-digit',
@@ -686,12 +741,13 @@ export default function PlanillaPrintable() {
         >
           Imprimir / Guardar PDF
         </button>
+
         <header className="header">
-          {/* Logo cargado desde /public, mismo origen, no requiere optimization. */}
+          {/* Logo oficial en curvas (paquete de marca), mismo origen desde /public. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="header-logo"
-            src="/logo-si-horizontal.png"
+            src="/logo-si-inmobiliaria.svg"
             alt="SI INMOBILIARIA"
           />
           <div className="header-meta">
@@ -701,216 +757,146 @@ export default function PlanillaPrintable() {
           </div>
         </header>
 
-        <div className="doc-title">
-          <div className="doc-eyebrow">Estimación de costos</div>
-          <h1 className="doc-h1">Costos iniciales para alquiler permanente</h1>
-        </div>
+        <div className="doc-eyebrow">Estimación de costos</div>
+        <h1 className="doc-h1">Costos iniciales para alquilar</h1>
+        <div className="doc-sub">{docSub}</div>
 
-        <div className="hero">
-          <div className="hero-grid">
-            <div className="hero-cell">
-              <div className="hero-label">Alquiler mensual</div>
-              <div className="hero-value">
+        <div className="datos-grid">
+          <div className="dato-card">
+            <div className="dato-icon">$</div>
+            <div>
+              <div className="dato-label">Alquiler mensual</div>
+              <div className="dato-valor">
                 {fmt(alquiler, moneda)}
-                <span className="per">/ mes</span>
+                <span className="per">por mes</span>
               </div>
-              <div className="hero-sub">{heroSub}</div>
+              <div className="dato-sub">Valor base del contrato</div>
             </div>
-            <div className="hero-cell">
-              <div className="hero-label">Ajuste del alquiler</div>
-              <div className="hero-value ajuste">{ajusteTitle}</div>
-              <div className="hero-sub">{ajusteSub}</div>
+          </div>
+          <div className="dato-card">
+            <div className="dato-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+                <path d="M21 3v6h-6" />
+              </svg>
+            </div>
+            <div>
+              <div className="dato-label">Ajuste del alquiler</div>
+              <div className="dato-valor">{ajusteTitle}</div>
+              <div className="dato-sub">{ajusteSub}</div>
             </div>
           </div>
         </div>
 
-        <div className="total">
-          <div className="total-label">Monto total al ingresar</div>
-          <div className="total-amount">
-            {moneda === 'USD' ? (
-              <>
-                {fmtUsd(totalUsd)}
-                <span className="total-amount-extra">
-                  + {fmtArs(totalArs)} en pesos
-                </span>
-              </>
-            ) : (
-              fmtArs(totalArs)
-            )}
+        {/* Totales unificados: ingreso y con depósito en una sola banda */}
+        <div className="total-card">
+          <div>
+            <div className="total-label">Costos de ingreso</div>
+            <div className="total-valor">{totalIngreso}</div>
+            <div className="total-sub">
+              Alquiler + gastos iniciales{extraArs}
+            </div>
+          </div>
+          <div className="total-divider" />
+          <div>
+            <div className="total-label">Costos de ingreso + depósito</div>
+            <div className="total-valor">{totalConDeposito}</div>
+            <div className="total-sub">
+              Incluye {fmt(alquiler, moneda)} reembolsables{extraArs}
+            </div>
           </div>
         </div>
 
         <div className="section">
-          <div className="section-head">
-            <div className="section-title">Desglose del monto al ingresar</div>
-          </div>
+          <div className="section-title">Desglose del monto al ingresar</div>
           {!incluirAdmin && (
-            <div className="label-sub" style={{ fontStyle: 'italic', marginBottom: 4 }}>
+            <div className="fila-sub" style={{ fontStyle: 'italic', marginBottom: 4 }}>
               Sin gasto administrativo: SI solo confecciona el contrato.
             </div>
           )}
-          <table className="tabla">
-            <tbody>
-              <tr>
-                <td>
-                  <div className="label">Primer mes de alquiler</div>
-                  <div className="label-sub">
-                    Alquiler del mes en que ingresás
-                  </div>
-                </td>
-                <td className="value">{fmt(alquiler, moneda)}</td>
-              </tr>
-              <tr>
-                <td>
-                  <div className="label">
-                    {c.mostrarMeses23 ? 'Honorarios · 1ª cuota de 3' : 'Honorarios · totales + IVA'}
-                  </div>
-                  <div className="label-sub">
-                    Total honorarios {fmt(c.honoTotal, moneda)} · alquiler ×
-                    meses × 5% × IVA
-                  </div>
-                </td>
-                <td className="value">{fmt(c.honoEnMes1, moneda)}</td>
-              </tr>
-              <tr>
-                <td>
-                  <div className="label">Sellado</div>
-                  <div className="label-sub">{selladoLabelSub}</div>
-                </td>
-                <td className="value">{fmtArs(c.sellado)}</td>
-              </tr>
-              <tr>
-                <td>
-                  <div className="label">Verificación de garantes</div>
-                  <div className="label-sub">
-                    Pago único · chequeo de documentación
-                  </div>
-                </td>
-                <td className="value">{fmtArs(c.verificacion)}</td>
-              </tr>
-              {c.mostrarAdmin && (
-                <tr>
-                  <td>
-                    <div className="label">Gasto administrativo</div>
-                    <div className="label-sub">
-                      3% del alquiler + IVA · regulado por COCIR
-                    </div>
-                  </td>
-                  <td className="value">{fmt(c.admin, moneda)}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div className="desglose-card">
+            {filas.map((fila, i) => (
+              <div className="fila" key={fila.label}>
+                <div className="fila-num">{i + 1}</div>
+                <div>
+                  <div className="fila-label">{fila.label}</div>
+                  <div className="fila-sub">{fila.sub}</div>
+                </div>
+                <div className="fila-valor">{fila.valor}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="section">
-          <div className="deposito-card">
-            <div className="deposito-main">
-              <div>
-                <div className="deposito-eyebrow">Depósito de garantía</div>
-                <div className="deposito-monto">1 mes de alquiler</div>
-                <div className="deposito-sub">
-                  Se entrega al ingresar al inmueble. Se devuelve al finalizar
-                  el contrato.
+          <div className="section-title">¿Qué pagás cada mes?</div>
+          <div className={`meses-grid ${c.mostrarMeses23 ? 'tres' : 'dos'}`}>
+            <div className="mes-card destacado">
+              <div className="mes-label">Mes 1</div>
+              <div className="mes-sub">Día que ingresás</div>
+              <div className="mes-valor">
+                {moneda === 'USD' ? fmtUsd(totalUsd) : fmtArs(totalArs)}
+              </div>
+              <div className="mes-desc">
+                Alquiler + {c.mostrarMeses23 ? '1ª cuota de honorarios' : 'honorarios'} + sellado +
+                garantes{adminDesc}
+              </div>
+            </div>
+            {c.mostrarMeses23 && (
+              <div className="mes-card">
+                <div className="mes-label">Meses 2 y 3</div>
+                <div className="mes-sub">Cuotas restantes</div>
+                <div className="mes-valor">{fmt(mes23, moneda)}</div>
+                <div className="mes-desc">
+                  Alquiler + 2ª/3ª cuota de honorarios{adminDesc}
                 </div>
               </div>
-              <div className="deposito-suma">
-                <div className="deposito-suma-label">
-                  Alquiler {fmt(c.primerMes, moneda)} + depósito{' '}
-                  {fmt(c.primerMes, moneda)}
-                </div>
-                <div className="deposito-suma-valor">
-                  {fmt(c.primerMes * 2, moneda)}
-                </div>
+            )}
+            <div className="mes-card">
+              <div className="mes-label">
+                Desde el mes {c.mostrarMeses23 ? 4 : 2}
+              </div>
+              <div className="mes-sub">Pago habitual</div>
+              <div className="mes-valor">{fmt(mes4, moneda)}</div>
+              <div className="mes-desc">
+                Alquiler{adminDesc} · {ajusteFinalContrato}
               </div>
             </div>
           </div>
         </div>
 
         <div className="section">
-          <div className="section-head">
-            <div className="section-title">¿Qué pagás cada mes?</div>
-          </div>
-          <table className="tabla">
-            <tbody>
-              <tr>
-                <td>
-                  <div className="label">Mes 1 · día que ingresás</div>
-                  <div className="label-sub">
-                    Alquiler + {c.mostrarMeses23 ? '1ª cuota honorarios' : 'honorarios'} + sellado + garantes{adminLabel}
-                  </div>
-                </td>
-                <td className="value">
-                  {moneda === 'USD' ? fmtUsd(totalUsd) : fmtArs(totalArs)}
-                </td>
-              </tr>
-              {c.mostrarMeses23 ? (
-                <>
-                  <tr>
-                    <td>
-                      <div className="label">Mes 2 y 3</div>
-                      <div className="label-sub">
-                        Alquiler + 2ª/3ª cuota honorarios{adminLabel}
-                      </div>
-                    </td>
-                    <td className="value">{fmt(mes23, moneda)}</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="label">Mes 4 en adelante</div>
-                      <div className="label-sub">
-                        Alquiler{adminLabel} · {ajusteFinalContrato}
-                      </div>
-                    </td>
-                    <td className="value">{fmt(mes4, moneda)}</td>
-                  </tr>
-                </>
-              ) : (
-                <tr>
-                  <td>
-                    <div className="label">Mes 2 en adelante</div>
-                    <div className="label-sub">
-                      Alquiler{adminLabel} · {ajusteFinalContrato}
-                    </div>
-                  </td>
-                  <td className="value">{fmt(mes4, moneda)}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="info-grid">
-          <div className="info-block">
-            <div className="info-block-title">Garantías · Opción 1 ó 2</div>
-            <div className="info-block-content">
-              <ol>
-                <li>
-                  <strong>1 garantía propietaria</strong> + 3 últimos recibos de
-                  sueldo
-                </li>
-                <li>
+          <div className="section-title">Condiciones y gastos a tener en cuenta</div>
+          <div className="cond-grid">
+            <div className="cond-card">
+              <div className="cond-head">Garantías · Opción 1 ó 2</div>
+              <div className="cond-body">
+                <div className="cond-item numerado" data-num="1">
+                  <strong>1 garantía propietaria</strong> + 3 últimos recibos de sueldo
+                </div>
+                <div className="cond-item numerado" data-num="2">
                   <strong>4 últimos recibos de sueldo</strong>
-                </li>
-              </ol>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="info-block">
-            <div className="info-block-title">
-              Seguro requerido al ingresar
+            <div className="cond-card">
+              <div className="cond-head">Seguro requerido al ingresar</div>
+              <div className="cond-body">
+                <div className="cond-item">Incendio</div>
+                <div className="cond-item">Daños por piedras</div>
+                <div className="cond-item">
+                  Responsabilidad civil hacia vecinos (linderos)
+                </div>
+              </div>
             </div>
-            <div className="info-block-content">
-              Incendio · Daños por piedras · Responsabilidad civil hacia los
-              vecinos (linderos).
-            </div>
-          </div>
-          <div className="info-block">
-            <div className="info-block-title">
-              Gastos mensuales a cargo del inquilino
-            </div>
-            <div className="info-block-content">
-              Tasa General de Inmuebles (TGI) · Aguas Santafesinas · API · Luz ·
-              Gas · Expensas si la propiedad las paga.
+            <div className="cond-card">
+              <div className="cond-head">Gastos mensuales del inquilino</div>
+              <div className="cond-body">
+                <div className="cond-item">Tasa General de Inmuebles (TGI)</div>
+                <div className="cond-item">Aguas Santafesinas · API</div>
+                <div className="cond-item">Luz · Gas</div>
+                <div className="cond-item">Expensas si la propiedad las paga</div>
+              </div>
             </div>
           </div>
         </div>
@@ -923,32 +909,20 @@ export default function PlanillaPrintable() {
               ajuste en locaciones. El ajuste pactado con el propietario puede
               ser distinto.
             </p>
-            <p style={{ marginTop: 4 }}>
-              Te recomendamos consultarnos siempre antes de firmar el contrato.
-              Por esta misma razón, este cálculo no tiene carácter contractual.
+            <p style={{ marginTop: 3 }}>
+              Te recomendamos consultarnos antes de firmar el contrato. Por esta
+              misma razón, este cálculo no tiene carácter contractual.
             </p>
           </div>
         </div>
 
         <footer className="footer">
-          <div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="footer-logo"
-              src="/logo-si-horizontal.png"
-              alt="SI INMOBILIARIA"
-            />
-            <div className="footer-tagline">
-              Desde 1983 · Funes · Roldán · Rosario
-            </div>
-            <div className="footer-web">siinmobiliaria.com</div>
+          <div className="footer-line">
+            SI INMOBILIARIA · Desde 1983 acompañando decisiones importantes
           </div>
           <div className="footer-contact">
-            <div className="footer-contact-label">
-              Administración · WhatsApp
-            </div>
-            <div className="footer-contact-value">{WHATSAPP_DISPLAY}</div>
-            <div className="footer-contact-link">wa.me/{WHATSAPP_NUM}</div>
+            Administración · WhatsApp <strong>{WHATSAPP_DISPLAY}</strong> ·
+            wa.me/{WHATSAPP_NUM} · siinmobiliaria.com
           </div>
         </footer>
       </div>

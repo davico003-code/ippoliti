@@ -812,6 +812,33 @@ export default function CalculadoraCostos() {
                   ? `${honoTotalLabel} · sellado y verificación en pesos · ${tipoLabel}`
                   : `${honoTotalLabel} · ${tipoLabel} ${monedaLabel}`}
               </div>
+
+              {/* Costos + depósito — dentro del recuadro verde, más chico */}
+              <div
+                className="mt-3.5 pt-3"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.28)' }}
+              >
+                <div
+                  className="text-[11.5px] font-semibold uppercase tracking-[0.8px]"
+                  style={{ color: 'rgba(255,255,255,0.75)' }}
+                >
+                  Costos para ingresar + depósito en garantía
+                </div>
+                <div className="font-poppins font-bold text-[clamp(19px,4.5vw,24px)] tabular-nums leading-tight mt-1">
+                  Total:{' '}
+                  {moneda === 'USD'
+                    ? fmtUsd(totalUsd + alquiler)
+                    : fmtArs(totalArs + alquiler)}
+                  {moneda === 'USD' && (
+                    <span
+                      className="block font-semibold text-[13px]"
+                      style={{ color: 'rgba(255,255,255,0.8)' }}
+                    >
+                      + {fmtArs(totalArs)} en pesos
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
 
@@ -880,6 +907,7 @@ export default function CalculadoraCostos() {
                   )}
                 </div>
               </div>
+
             </div>
             {!incluirAdmin && (
               <p className="text-[12px] italic mt-3" style={{ color: 'var(--tinta-mute)' }}>
@@ -930,10 +958,7 @@ export default function CalculadoraCostos() {
 
           {/* DEPÓSITO */}
           <section className="mb-4">
-            <DepositoCard
-              alquilerFmt={alquiler > 0 ? fmt(alquiler, moneda) : undefined}
-              sumaFmt={alquiler > 0 ? fmt(alquiler * 2, moneda) : undefined}
-            />
+            <DepositoCard alquilerFmt={alquiler > 0 ? fmt(alquiler, moneda) : undefined} />
           </section>
 
           {/* ── CTA DESCARGAR + COMPARTIR — botonera compacta dual ──────────── */}
