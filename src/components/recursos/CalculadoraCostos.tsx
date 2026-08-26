@@ -782,66 +782,6 @@ export default function CalculadoraCostos() {
         {alquiler > 0 && (
           <div className="recursos-fadein">
 
-        {/* TOTAL — banda verde protagonista (arriba). Componente intacto. */}
-          <section
-            className="rounded-2xl p-7 mb-4 text-white shadow-md relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, var(--si-green) 0%, var(--si-green-dark) 100%)',
-            }}
-          >
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  'radial-gradient(circle at 90% 0%, rgba(255,255,255,0.10) 0%, transparent 55%)',
-              }}
-            />
-            <div className="relative">
-              <div
-                className="text-[11px] font-bold uppercase tracking-[1.6px] mb-1.5"
-                style={{ color: 'rgba(255,255,255,0.7)' }}
-              >
-                Monto total al ingresar
-              </div>
-              <TotalAmount />
-              <div
-                className="text-[13px] font-medium mt-2"
-                style={{ color: 'rgba(255,255,255,0.78)' }}
-              >
-                {moneda === 'USD'
-                  ? `${honoTotalLabel} · sellado y verificación en pesos · ${tipoLabel}`
-                  : `${honoTotalLabel} · ${tipoLabel} ${monedaLabel}`}
-              </div>
-
-              {/* Costos + depósito — dentro del recuadro verde, más chico */}
-              <div
-                className="mt-3.5 pt-3"
-                style={{ borderTop: '1px solid rgba(255,255,255,0.28)' }}
-              >
-                <div
-                  className="text-[11.5px] font-semibold uppercase tracking-[0.8px]"
-                  style={{ color: 'rgba(255,255,255,0.75)' }}
-                >
-                  Costos para ingresar + depósito en garantía
-                </div>
-                <div className="font-poppins font-bold text-[clamp(19px,4.5vw,24px)] tabular-nums leading-tight mt-1">
-                  Total:{' '}
-                  {moneda === 'USD'
-                    ? fmtUsd(totalUsd + alquiler)
-                    : fmtArs(totalArs + alquiler)}
-                  {moneda === 'USD' && (
-                    <span
-                      className="block font-semibold text-[13px]"
-                      style={{ color: 'rgba(255,255,255,0.8)' }}
-                    >
-                      + {fmtArs(totalArs)} en pesos
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* DESGLOSE — card unificada: filas + línea separadora + total al final */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
@@ -914,6 +854,75 @@ export default function CalculadoraCostos() {
                 Sin gasto administrativo: SI solo confecciona el contrato.
               </p>
             )}
+          </section>
+
+          {/* TOTALES — banda verde al cierre del desglose, mismo formato que la
+              planilla PDF: costos de ingreso | ingreso + depósito */}
+          <section
+            className="rounded-2xl p-6 md:p-7 mb-4 text-white shadow-md relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, var(--si-green) 0%, var(--si-green-dark) 100%)',
+            }}
+          >
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(circle at 90% 0%, rgba(255,255,255,0.10) 0%, transparent 55%)',
+              }}
+            />
+            <div className="relative grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-4 sm:gap-6 items-center">
+              <div>
+                <div
+                  className="text-[11px] font-bold uppercase tracking-[1.6px] mb-1.5"
+                  style={{ color: 'rgba(255,255,255,0.75)' }}
+                >
+                  Costos de ingreso
+                </div>
+                <TotalAmount />
+                <div
+                  className="text-[12px] font-medium mt-1.5"
+                  style={{ color: 'rgba(255,255,255,0.8)' }}
+                >
+                  Alquiler + gastos iniciales · {honoTotalLabel.toLowerCase()}
+                </div>
+              </div>
+              <div
+                className="hidden sm:block w-px self-stretch"
+                style={{ background: 'rgba(255,255,255,0.28)' }}
+              />
+              <div
+                className="pt-4 sm:pt-0 border-t sm:border-t-0"
+                style={{ borderColor: 'rgba(255,255,255,0.28)' }}
+              >
+                <div
+                  className="text-[11px] font-bold uppercase tracking-[1.6px] mb-1.5"
+                  style={{ color: 'rgba(255,255,255,0.75)' }}
+                >
+                  Costos de ingreso + depósito
+                </div>
+                <Flash value={`dep-${Math.round(totalArs + totalUsd + alquiler)}`}>
+                  <div
+                    className={
+                      moneda === 'USD'
+                        ? 'font-poppins font-bold text-[clamp(28px,7vw,40px)] leading-[1.05] tracking-tight tabular-nums'
+                        : 'font-poppins font-bold text-[clamp(34px,8vw,46px)] leading-none tracking-tight tabular-nums'
+                    }
+                  >
+                    {moneda === 'USD'
+                      ? fmtUsd(totalUsd + alquiler)
+                      : fmtArs(totalArs + alquiler)}
+                  </div>
+                </Flash>
+                <div
+                  className="text-[12px] font-medium mt-1.5"
+                  style={{ color: 'rgba(255,255,255,0.8)' }}
+                >
+                  Incluye {fmt(alquiler, moneda)} reembolsables
+                  {moneda === 'USD' ? ` · + ${fmtArs(totalArs)} en pesos` : ''}
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* TIMELINE */}
