@@ -179,11 +179,13 @@ html, body {
 }
 
 .planilla-page .total {
-  margin-bottom: 8px;
-  padding: 10px 16px;
-  background: var(--si-green-tint);
-  border-top: 3px solid var(--si-green);
-  border-bottom: 1px solid var(--si-green);
+  margin-bottom: 10px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--si-green) 0%, #0F3D25 100%);
+  color: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .planilla-page .total-row {
   display: flex;
@@ -192,9 +194,9 @@ html, body {
   gap: 16px;
 }
 .planilla-page .total-row2 {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(26,92,56,0.28);
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255,255,255,0.28);
 }
 .planilla-page .total-label2 {
   font-family: 'Raleway', sans-serif;
@@ -202,13 +204,13 @@ html, body {
   font-size: 10px;
   letter-spacing: 0.8px;
   text-transform: uppercase;
-  color: var(--si-green);
+  color: rgba(255,255,255,0.85);
 }
 .planilla-page .total-amount2 {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 15px;
-  color: var(--si-green);
+  color: #fff;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   line-height: 1.2;
@@ -216,16 +218,16 @@ html, body {
 .planilla-page .total-label {
   font-family: 'Raleway', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--si-green);
+  color: rgba(255,255,255,0.85);
 }
 .planilla-page .total-amount {
   font-family: 'Poppins', sans-serif;
   font-weight: 800;
   font-size: 23px;
-  color: var(--si-green);
+  color: #fff;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.5px;
   line-height: 1.2;
@@ -254,7 +256,7 @@ html, body {
 .planilla-page .tabla { width: 100%; border-collapse: collapse; }
 .planilla-page .tabla tr { border-bottom: 1px solid var(--line-soft); }
 .planilla-page .tabla tr:last-child { border-bottom: none; }
-.planilla-page .tabla td { padding: 4px 0; vertical-align: middle; }
+.planilla-page .tabla td { padding: 5px 0; vertical-align: middle; }
 .planilla-page .tabla .label {
   font-family: 'Raleway', sans-serif;
   font-weight: 600;
@@ -296,7 +298,7 @@ html, body {
   gap: 8px 14px;
   margin-bottom: 6px;
 }
-.planilla-page .info-block { border-left: 3px solid var(--si-green); padding-left: 12px; }
+.planilla-page .info-block { border-top: 2px solid var(--si-green); padding-top: 6px; }
 .planilla-page .info-block-title {
   font-family: 'Raleway', sans-serif;
   font-weight: 700;
@@ -338,7 +340,8 @@ html, body {
 }
 
 .planilla-page .disclaimer {
-  border: 1px solid var(--tinta);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   padding: 8px 12px;
   margin-bottom: 6px;
 }
@@ -348,7 +351,7 @@ html, body {
   font-size: 10px;
   letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: var(--tinta);
+  color: var(--tinta-mute);
   margin-bottom: 4px;
 }
 .planilla-page .disclaimer-text {
