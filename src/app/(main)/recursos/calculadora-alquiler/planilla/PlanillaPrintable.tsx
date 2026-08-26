@@ -47,6 +47,8 @@ main { padding: 0 !important; margin: 0 !important; max-width: none !important; 
   --paper: #FFFFFF;
   --si-green: #1A5C38;
   --si-green-tint: #F1F6F3;
+  --usd: #0E4A7B;
+  --usd-dark: #073357;
 }
 
 html, body {
@@ -261,6 +263,50 @@ html, body {
   color: var(--tinta-mute);
   font-weight: 400;
   margin-top: 1px;
+}
+
+/* Card azul del depósito — misma estética que DepositoCard de la calculadora.
+   Compacta para no romper el layout de una sola hoja A4. */
+.planilla-page .deposito-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--usd) 0%, var(--usd-dark) 100%);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.planilla-page .deposito-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 0%, rgba(255,255,255,0.10) 0%, transparent 55%);
+  pointer-events: none;
+}
+.planilla-page .deposito-card .deposito-eyebrow {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 3px;
+}
+.planilla-page .deposito-card .deposito-monto {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+}
+.planilla-page .deposito-card .deposito-sub {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 500;
+  font-size: 9.5px;
+  color: rgba(255,255,255,0.88);
+  margin-top: 3px;
+  line-height: 1.3;
 }
 
 .planilla-page .info-grid {
@@ -731,23 +777,14 @@ export default function PlanillaPrintable() {
         </div>
 
         <div className="section">
-          <div className="section-head">
-            <div className="section-title">Depósito en garantía</div>
+          <div className="deposito-card">
+            <div className="deposito-eyebrow">Depósito de garantía</div>
+            <div className="deposito-monto">1 mes de alquiler</div>
+            <div className="deposito-sub">
+              Se entrega al ingresar al inmueble. Se devuelve al finalizar el
+              contrato.
+            </div>
           </div>
-          <table className="tabla">
-            <tbody>
-              <tr>
-                <td>
-                  <div className="label">Monto del depósito</div>
-                  <div className="label-sub">
-                    Se entrega al ingresar al inmueble. Se devuelve al
-                    finalizar el contrato.
-                  </div>
-                </td>
-                <td className="value">1 mes de alquiler</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
 
         <div className="section">

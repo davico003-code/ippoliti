@@ -5,7 +5,7 @@
 export const IVA = 0.21
 export const HONORARIOS_PCT = 0.05
 export const ADMIN_PCT = 0.03
-export const VERIFICACION_ARS = 60_000
+export const VERIFICACION_ARS = 70_000
 
 export type Moneda = 'ARS' | 'USD'
 export type TipoFiscal = 'vivienda' | 'comercio'
@@ -88,7 +88,7 @@ export interface CalcularOutput {
   honoMes1Label: string    // sufijo del label en el desglose: '(1ª de 3 cuotas)' | 'totales + IVA'
   mostrarMeses23: boolean  // true en 3cuotas (hay meses 2 y 3 con cuota); false en 1pago
   sellado: number          // siempre en pesos
-  verificacion: number     // siempre en pesos (60_000)
+  verificacion: number     // siempre en pesos (VERIFICACION_ARS)
   admin: number            // misma moneda del contrato (0 si no se incluye)
   mostrarAdmin: boolean    // incluirAdmin — controla si la fila admin se muestra
   totalSubMonedaContrato: number  // monto en la moneda del contrato (USD si USD, ARS si ARS)
