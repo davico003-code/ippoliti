@@ -265,75 +265,32 @@ html, body {
   margin-top: 1px;
 }
 
-/* Card azul del depósito — misma estética que DepositoCard de la calculadora.
-   Compacta para no romper el layout de una sola hoja A4. */
-.planilla-page .deposito-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 10px;
-  padding: 12px 16px;
-  color: #fff;
-  background: linear-gradient(135deg, var(--usd) 0%, var(--usd-dark) 100%);
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
-.planilla-page .deposito-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 80% 0%, rgba(255,255,255,0.10) 0%, transparent 55%);
-  pointer-events: none;
-}
-.planilla-page .deposito-card .deposito-eyebrow {
-  font-family: 'Raleway', sans-serif;
-  font-weight: 700;
-  font-size: 9px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
-  margin-bottom: 3px;
-}
-.planilla-page .deposito-card .deposito-monto {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 19px;
-  letter-spacing: -0.4px;
-  line-height: 1.1;
-}
-.planilla-page .deposito-card .deposito-sub {
-  font-family: 'Raleway', sans-serif;
-  font-weight: 500;
-  font-size: 9.5px;
-  color: rgba(255,255,255,0.88);
-  margin-top: 3px;
-  line-height: 1.3;
-}
-.planilla-page .deposito-card .deposito-main {
+/* Cierre del desglose: costos + depósito con el total, sobrio y un poco
+   más chico que el monto principal. */
+.planilla-page .suma-final {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   gap: 16px;
+  margin-top: 4px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line);
 }
-.planilla-page .deposito-card .deposito-suma {
-  text-align: right;
-  padding-left: 16px;
-  border-left: 1px solid rgba(255,255,255,0.25);
-  white-space: nowrap;
-}
-.planilla-page .deposito-card .deposito-suma-label {
+.planilla-page .suma-final-label {
   font-family: 'Raleway', sans-serif;
   font-weight: 600;
-  font-size: 9px;
-  color: rgba(255,255,255,0.85);
-  margin-bottom: 2px;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--tinta-mute);
 }
-.planilla-page .deposito-card .deposito-suma-valor {
+.planilla-page .suma-final-total {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  font-size: 20px;
-  letter-spacing: -0.4px;
-  line-height: 1.1;
+  font-size: 14px;
+  color: var(--tinta);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .planilla-page .info-grid {
@@ -801,7 +758,7 @@ export default function PlanillaPrintable() {
               )}
               <tr>
                 <td>
-                  <div className="label" style={{ color: 'var(--usd)' }}>
+                  <div className="label">
                     Depósito de garantía · 1 mes de alquiler
                   </div>
                   <div className="label-sub">
@@ -809,38 +766,20 @@ export default function PlanillaPrintable() {
                     finalizar el contrato.
                   </div>
                 </td>
-                <td className="value" style={{ color: 'var(--usd)' }}>
-                  {fmt(alquiler, moneda)}
-                </td>
+                <td className="value">{fmt(alquiler, moneda)}</td>
               </tr>
             </tbody>
           </table>
-        </div>
 
-        <div className="section">
-          <div className="deposito-card">
-            <div className="deposito-main">
-              <div>
-                <div className="deposito-eyebrow">
-                  Total a juntar con depósito
-                </div>
-                <div className="deposito-sub">
-                  Monto al ingresar + depósito de garantía. El depósito se
-                  devuelve al finalizar el contrato.
-                </div>
-              </div>
-              <div className="deposito-suma">
-                <div className="deposito-suma-valor">
-                  {moneda === 'USD'
-                    ? fmtUsd(totalUsd + alquiler)
-                    : fmtArs(totalArs + alquiler)}
-                </div>
-                {moneda === 'USD' && (
-                  <div className="deposito-suma-label">
-                    + {fmtArs(totalArs)} en pesos
-                  </div>
-                )}
-              </div>
+          <div className="suma-final">
+            <div className="suma-final-label">
+              Costos para ingresar + depósito en garantía
+            </div>
+            <div className="suma-final-total">
+              Total:{' '}
+              {moneda === 'USD'
+                ? `${fmtUsd(totalUsd + alquiler)} + ${fmtArs(totalArs)} en pesos`
+                : fmtArs(totalArs + alquiler)}
             </div>
           </div>
         </div>
