@@ -38,6 +38,7 @@ import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesk
 import MobileFilterSheet from '@/components/MobileFilterSheet'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { trackEvent } from '@/lib/analytics'
 import { buscarZonas } from '@/lib/zonas'
 import { highlightMatch } from '@/lib/highlight'
 import { ZONAS, type Zona } from '@/lib/zonas'
@@ -788,6 +789,7 @@ export default function PropiedadesView({
   // búsquedas siguientes en la sesión la respeten sobre el default automático.
   const setViewManually = useCallback((view: 'list' | 'map') => {
     setMobileView(view)
+    if (view === 'map') trackEvent('mapa_abierto', { dispositivo: 'mobile' })
     try { sessionStorage.setItem('si_view_preference', view) } catch { /* ignore */ }
   }, [])
 
