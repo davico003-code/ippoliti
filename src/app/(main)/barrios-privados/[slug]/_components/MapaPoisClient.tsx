@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { POIS_FUNES, POI_CATEGORIA_META, type PoiCategoria } from "@/data/pois-funes";
+import { LIGHT_TILES } from '@/lib/map-tiles'
 
 const P = "var(--font-poppins), 'Poppins', system-ui, sans-serif";
 
@@ -83,8 +84,8 @@ export default function MapaPoisClient({
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        attribution={LIGHT_TILES.attribution}
+        url={LIGHT_TILES.url}
       />
       <CerrarPopupInicial />
 

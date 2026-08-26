@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import { VOYAGER_TILES } from '@/lib/map-tiles'
 
 const markerIcon = L.divIcon({
   className: '',
@@ -51,8 +52,8 @@ export default function TasacionesMap({ center, onPositionChange }: Props) {
         zoomControl={false}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={VOYAGER_TILES.url}
+          attribution={VOYAGER_TILES.attribution}
           maxZoom={19}
         />
         <FlyTo center={center} />

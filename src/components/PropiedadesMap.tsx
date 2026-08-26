@@ -18,6 +18,7 @@ import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
 import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
+import { VOYAGER_TILES } from '@/lib/map-tiles'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -684,8 +685,9 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       ) : (
         <TileLayer
           key="base"
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={VOYAGER_TILES.url}
+          attribution={VOYAGER_TILES.attribution}
+          maxNativeZoom={VOYAGER_TILES.maxNativeZoom}
           maxZoom={20}
         />
       )}

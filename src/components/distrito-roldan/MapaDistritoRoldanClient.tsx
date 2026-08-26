@@ -10,6 +10,7 @@ import 'leaflet/dist/leaflet.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { Building2, TreePine, MapPin } from 'lucide-react'
+import { LIGHT_TILES } from '@/lib/map-tiles'
 
 const MONTSERRAT = 'var(--font-montserrat), Montserrat, sans-serif'
 
@@ -137,9 +138,8 @@ export default function MapaDistritoRoldanClient() {
     }).setView(DISTRITO, 14)
     mapRef.current = map
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    L.tileLayer(LIGHT_TILES.url, {
+      attribution: LIGHT_TILES.attribution,
       maxZoom: 19,
     }).addTo(map)
 

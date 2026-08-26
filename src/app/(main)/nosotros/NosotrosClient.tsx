@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { Target, Eye, Gem, Navigation, Phone, MessageCircle, Clock, User, Home, Heart } from 'lucide-react'
 import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
+import { LIGHT_TILES } from '@/lib/map-tiles'
 
 // Liderazgo (Susana, David, Laura) ya aparece en la sección "Nuestra
 // dirección"; los excluimos del grid de agentes para no duplicar.
@@ -318,9 +319,8 @@ function OficinasMapa({
       })
       mapInstance.current = map
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      L.tileLayer(LIGHT_TILES.url, {
+        attribution: LIGHT_TILES.attribution,
         subdomains: 'abcd',
         maxZoom: 19,
       }).addTo(map)

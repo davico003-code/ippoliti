@@ -10,6 +10,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
 import { getBarriosHub, TIER_HUB_META } from "@/lib/barrios";
+import { LIGHT_TILES } from '@/lib/map-tiles'
 
 const TIER_BG: Record<string, string> = {
   premium: "#0d3d24",
@@ -59,8 +60,8 @@ export default function MapaBarriosClient() {
         scrollWheelZoom={false}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={LIGHT_TILES.url}
+          attribution={LIGHT_TILES.attribution}
         />
         <FitBounds points={points} />
         {barrios.map((b) => (

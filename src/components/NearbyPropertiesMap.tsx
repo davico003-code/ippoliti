@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import Link from 'next/link'
+import { VOYAGER_TILES } from '@/lib/map-tiles'
 
 export interface NearbyProperty {
   id: number
@@ -109,8 +110,8 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
           className="nearby-map"
         >
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url={VOYAGER_TILES.url}
+            attribution={VOYAGER_TILES.attribution}
             maxZoom={19}
           />
           <SetView center={[lat, lng]} />
