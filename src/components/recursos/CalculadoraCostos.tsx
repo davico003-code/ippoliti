@@ -11,7 +11,6 @@ import {
   type TipoFiscal as Tipo,
   type FormaPagoHonorarios,
 } from '@/lib/calculadora-alquiler'
-import DepositoCard from './shared/DepositoCard'
 import DisclaimerInfo from './shared/DisclaimerInfo'
 import CtaWhatsapp from './shared/CtaWhatsapp'
 
@@ -962,11 +961,6 @@ export default function CalculadoraCostos() {
                 <MesValor usd={mes4Usd} ars={mes4Ars} />
               </TimelineRow>
             )}
-          </section>
-
-          {/* DEPÓSITO */}
-          <section className="mb-4">
-            <DepositoCard alquilerFmt={alquiler > 0 ? fmt(alquiler, moneda) : undefined} />
           </section>
 
           {/* ── CTA DESCARGAR + COMPARTIR — botonera compacta dual ──────────── */}
