@@ -743,11 +743,11 @@ export default function PlanillaPrintable() {
         </button>
 
         <header className="header">
-          {/* Logo cargado desde /public, mismo origen, no requiere optimization. */}
+          {/* Logo oficial en curvas (paquete de marca), mismo origen desde /public. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="header-logo"
-            src="/logo-si-horizontal.png"
+            src="/logo-si-inmobiliaria.svg"
             alt="SI INMOBILIARIA"
           />
           <div className="header-meta">
