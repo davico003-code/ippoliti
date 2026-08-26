@@ -17,6 +17,8 @@ import {
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
 import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
+import { trackEvent } from '@/lib/analytics'
+import { VOYAGER_TILES } from '@/lib/map-tiles'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -545,6 +547,78 @@ function MapMoveListener({ onMove }: { onMove: () => void }) {
   return null
 }
 
+// ─── Capa satelital (Esri World Imagery) ────────────────────────────────────
+//
+// Dos vías de activación:
+// - Auto: con zoom ≥ 17 el mapa de calles ya no aporta (manzanas vacías en
+//   Funes/Roldán) y pasa solo a satelital; al alejarse a ≤ 15 vuelve a mapa.
+// - Manual: el botón fija la elección del usuario y el auto deja de decidir.
+
+const SAT_AUTO_ON = 17
+const SAT_AUTO_OFF = 15
+
+function AutoSatellite({ satellite, setSatellite, manualRef }: {
+  satellite: boolean
+  setSatellite: (v: boolean) => void
+  manualRef: React.MutableRefObject<boolean>
+}) {
+  const map = useMap()
+  useEffect(() => {
+    const handler = () => {
+      if (manualRef.current) return
+      const z = map.getZoom()
+      if (!satellite && z >= SAT_AUTO_ON) {
+        setSatellite(true)
+        trackEvent('mapa_satelite', { modo: 'auto', zoom: z })
+      } else if (satellite && z <= SAT_AUTO_OFF) {
+        setSatellite(false)
+      }
+    }
+    map.on('zoomend', handler)
+    return () => { map.off('zoomend', handler) }
+  }, [map, satellite, setSatellite, manualRef])
+  return null
+}
+
+function SatelliteToggle({ satellite, setSatellite, manualRef }: {
+  satellite: boolean
+  setSatellite: (v: boolean) => void
+  manualRef: React.MutableRefObject<boolean>
+}) {
+  const handleClick = useCallback(() => {
+    manualRef.current = true
+    const next = !satellite
+    setSatellite(next)
+    if (next) trackEvent('mapa_satelite', { modo: 'manual' })
+  }, [satellite, setSatellite, manualRef])
+
+  return (
+    <div style={{ position: 'absolute', bottom: 148, right: 10, zIndex: 1000 }}>
+      <button
+        onClick={handleClick}
+        title={satellite ? 'Ver mapa' : 'Ver satélite'}
+        aria-label={satellite ? 'Cambiar a vista mapa' : 'Cambiar a vista satelital'}
+        aria-pressed={satellite}
+        style={{
+          width: 40, height: 40,
+          background: satellite ? '#1A5C38' : 'white',
+          borderRadius: '50%',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+          border: satellite ? '1px solid #1A5C38' : '1px solid #e5e7eb',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 0.15s, border 0.15s',
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={satellite ? '#fff' : '#374151'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 22 8.5 12 15 2 8.5 12 2" />
+          <polyline points="2 15.5 12 22 22 15.5" />
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 interface Props {
   properties: TokkoProperty[]
   selectedId: number | null
@@ -564,6 +638,9 @@ interface Props {
 
 export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove, onNearbyOrigin, nearbyActive }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  const [satellite, setSatellite] = useState(false)
+  // true una vez que el usuario eligió capa a mano: el auto-switch deja de decidir
+  const satManualRef = useRef(false)
   const mapped = useMemo(() =>
     properties.filter(p => {
       if (!p.geo_lat || !p.geo_long) return false
@@ -583,12 +660,40 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       zoomControl={false}
       scrollWheelZoom
     >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        maxZoom={20}
-      />
+      {satellite ? (
+        <>
+          <TileLayer
+            key="sat"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; <a href="https://www.esri.com">Esri</a> &mdash; Maxar, Earthstar Geographics'
+            maxNativeZoom={19}
+            maxZoom={20}
+          />
+          <TileLayer
+            key="sat-places"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+            maxNativeZoom={19}
+            maxZoom={20}
+          />
+          <TileLayer
+            key="sat-roads"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}"
+            maxNativeZoom={19}
+            maxZoom={20}
+          />
+        </>
+      ) : (
+        <TileLayer
+          key="base"
+          url={VOYAGER_TILES.url}
+          attribution={VOYAGER_TILES.attribution}
+          maxNativeZoom={VOYAGER_TILES.maxNativeZoom}
+          maxZoom={20}
+        />
+      )}
       <ZoomControl position="bottomright" />
+      <AutoSatellite satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
+      <SatelliteToggle satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <InitialView />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
