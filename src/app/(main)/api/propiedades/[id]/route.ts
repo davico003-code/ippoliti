@@ -10,7 +10,7 @@ export async function GET(
   if ((process.env.DATA_SOURCE || '').toLowerCase() === 'hilo') {
     const base = process.env.HILO_FEED_URL || 'https://meethilo.com'
     const r = await fetch(`${base}/api/public/propiedades/${params.id}`, {
-      next: { revalidate: 21600, tags: ['tokko-properties', `tokko-property-${params.id}`] },
+      next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${params.id}`] },
     })
     if (!r.ok) return NextResponse.json({ error: 'Not found' }, { status: r.status === 404 ? 404 : 500 })
     // Override de SEO por ID (unidades de emprendimientos): el panel desktop de

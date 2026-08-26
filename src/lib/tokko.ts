@@ -899,7 +899,7 @@ export async function getPropertyCount(): Promise<number> {
 
 async function hiloGetPropertyById(id: number): Promise<TokkoProperty> {
   const res = await fetch(`${HILO_BASE}/api/public/propiedades/${id}`, {
-    next: { revalidate: 21600, tags: ['tokko-properties', `tokko-property-${id}`] },
+    next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${id}`] },
   });
   if (res.status === 404) throw new Error(`Property ${id} not found`);
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
@@ -1045,7 +1045,7 @@ export async function getPropertyById(id: number): Promise<TokkoProperty> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(url, {
-        next: { revalidate: 21600, tags: ['tokko-properties', `tokko-property-${id}`] },
+        next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${id}`] },
       });
 
       if (res.status === 404) {
