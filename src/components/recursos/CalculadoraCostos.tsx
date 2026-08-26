@@ -395,7 +395,6 @@ export default function CalculadoraCostos() {
   }
 
   // ── Helpers de render ──────────────────────────────────────────────────
-  const monedaLabel = moneda === 'USD' ? 'en dólares' : 'en pesos'
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
   // Sufijo de admin en el detalle del cronograma — vacío si no se incluye admin.
   const adminLabel = incluirAdmin ? ' + admin' : ''
