@@ -12,55 +12,14 @@
 
 import Link from 'next/link'
 import { ArrowLeft, Printer } from 'lucide-react'
+import {
+  agruparAlquileres,
+  caracteristicasListado,
+  precioListado,
+  type AlquilerItem,
+} from '@/lib/listado-alquileres'
 
-export interface AlquilerItem {
-  id: number
-  direccion: string
-  ubicacion: string
-  tipoId: number | null
-  foto: string | null
-  /** null → "Consultar" (web_price false o sin monto cargado) */
-  precio: number | null
-  moneda: string | null
-  dormitorios: number
-  banos: number
-  superficie: number | null
-  cocheras: number
-  referencia: string
-}
-
-// Grupos por type.id de Tokko (ver PROPERTY_TYPE_LABELS / TYPE_FILTER_GROUPS
-// en lib/tokko.ts — agrupar por id, nunca por substring del nombre).
-const GRUPOS: { label: string; ids: number[] }[] = [
-  { label: 'Casas', ids: [3, 4, 13] },
-  { label: 'Departamentos', ids: [2] },
-  { label: 'Locales y oficinas', ids: [5, 7] },
-  { label: 'Galpones y depósitos', ids: [12, 14, 24] },
-  { label: 'Cocheras', ids: [10] },
-  { label: 'Terrenos y campos', ids: [1, 9] },
-]
-
-const ES_VIVIENDA = new Set([2, 3, 4, 13])
-
-function precioFmt(item: AlquilerItem): { main: string; sub: string } {
-  if (!item.precio) return { main: 'Consultar', sub: '' }
-  const n = item.precio.toLocaleString('es-AR')
-  return item.moneda === 'USD'
-    ? { main: `USD ${n}`, sub: 'por mes' }
-    : { main: `$ ${n}`, sub: 'por mes' }
-}
-
-function caracteristicas(item: AlquilerItem): string {
-  const out: string[] = []
-  if (ES_VIVIENDA.has(item.tipoId ?? -1)) {
-    if (item.tipoId === 2 && item.dormitorios === 0) out.push('Monoambiente')
-    else if (item.dormitorios > 0) out.push(`${item.dormitorios} dorm.`)
-  }
-  if (item.banos > 0) out.push(`${item.banos} baño${item.banos > 1 ? 's' : ''}`)
-  if (item.superficie) out.push(`${Math.round(item.superficie).toLocaleString('es-AR')} m²`)
-  if (item.cocheras > 0) out.push('cochera')
-  return out.join('  ·  ')
-}
+export type { AlquilerItem }
 
 export default function ListaAlquileresSheet({
   items,
@@ -69,21 +28,7 @@ export default function ListaAlquileresSheet({
   items: AlquilerItem[]
   fecha: string
 }) {
-  // Dentro de cada grupo: ARS primero (más chico a más grande), después USD,
-  // y al final las que van sin precio publicado ("Consultar").
-  const rank = (i: AlquilerItem) => (i.precio ? (i.moneda === 'USD' ? 1 : 0) : 2)
-  const orden = (a: AlquilerItem, b: AlquilerItem) =>
-    rank(a) - rank(b) || (a.precio ?? Infinity) - (b.precio ?? Infinity)
-
-  const usados = new Set<number>()
-  const secciones: { label: string; items: AlquilerItem[] }[] = []
-  for (const g of GRUPOS) {
-    const grupo = items.filter((i) => g.ids.includes(i.tipoId ?? -1))
-    grupo.forEach((i) => usados.add(i.id))
-    if (grupo.length) secciones.push({ label: g.label, items: grupo.sort(orden) })
-  }
-  const otros = items.filter((i) => !usados.has(i.id))
-  if (otros.length) secciones.push({ label: 'Otros', items: otros.sort(orden) })
+  const secciones = agruparAlquileres(items)
 
   return (
     <div className="la-fondo">
@@ -128,7 +73,7 @@ export default function ListaAlquileresSheet({
               <span className="la-grupo-count">{s.items.length}</span>
             </div>
             {s.items.map((item) => {
-              const precio = precioFmt(item)
+              const precio = precioListado(item)
               return (
                 <article className="la-fila" key={item.id}>
                   {item.foto ? (
@@ -140,7 +85,7 @@ export default function ListaAlquileresSheet({
                   <div className="la-datos">
                     <div className="la-direccion">{item.direccion}</div>
                     <div className="la-ubicacion">{item.ubicacion}</div>
-                    <div className="la-caract">{caracteristicas(item)}</div>
+                    <div className="la-caract">{caracteristicasListado(item)}</div>
                   </div>
                   <div className="la-precio-col">
                     <div className={`la-precio${precio.main === 'Consultar' ? ' la-consultar' : ''}`}>

@@ -22,6 +22,7 @@ import {
   Clock,
   ArrowLeft,
   RefreshCw,
+  FileDown,
 } from 'lucide-react'
 import MotivosFit from '@/components/MotivosFit'
 import {
@@ -39,6 +40,7 @@ import MobileFilterSheet from '@/components/MobileFilterSheet'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { trackEvent } from '@/lib/analytics'
+import { mesAnioAR } from '@/lib/listado-alquileres'
 import { buscarZonas } from '@/lib/zonas'
 import { highlightMatch } from '@/lib/highlight'
 import { ZONAS, type Zona } from '@/lib/zonas'
@@ -1583,6 +1585,27 @@ export default function PropiedadesView({
               <X className="w-3.5 h-3.5" /> Borrar filtros
             </button>
           </>
+        )}
+        {/* Descarga del listado de alquileres en PDF — solo con el filtro
+            Alquiler activo, bien a la derecha de la fila. */}
+        {filters.operation === 'alquiler' && (
+          <a
+            href="/api/propiedades/listado-alquileres-pdf"
+            onClick={() => trackEvent('descargar_listado_alquileres')}
+            className="ml-auto flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 transition-colors hover:opacity-90"
+            style={{
+              fontFamily: "'Raleway', system-ui, sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#fff',
+              background: '#1A5C38',
+              padding: '7px 14px',
+              borderRadius: 10,
+              textDecoration: 'none',
+            }}
+          >
+            <FileDown className="w-3.5 h-3.5" /> Descargar listado · {mesAnioAR()}
+          </a>
         )}
       </div>
 
