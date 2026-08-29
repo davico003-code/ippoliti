@@ -58,6 +58,8 @@ export default function AgentShell({ agentName, agentRole, children }: Props) {
   if (pathname === '/agentes/cartera') return <>{children}</>
   // Oportunidades (gestor del popup): layout propio full-width.
   if (pathname === '/agentes/oportunidades') return <>{children}</>
+  // Lista de alquileres imprimible: hoja A4 con toolbar propio, sin shell.
+  if (pathname === '/agentes/lista-alquileres') return <>{children}</>
 
   const isActive = (href: string) => {
     if (href === '/agentes') return pathname === '/agentes'
