@@ -26,12 +26,39 @@ export function trackFbEvent(eventName: string, params?: Record<string, string |
 }
 
 // Pre-defined events
+//
+// Mapa de eventos de Meta (decidido 29-ago-2026): 'Lead' se reserva para
+// señales de COMPRA reales (WhatsApp de la ficha + tour por Meet), así las
+// campañas optimizadas a Lead aprenden de compradores y no de suscriptores.
+// Newsletter → 'CompleteRegistration'; calculadoras y tasador → 'SubmitApplication'.
 export const events = {
   clickWhatsapp: (propertyId?: number, title?: string) =>
     trackEvent('click_whatsapp', {
       property_id: String(propertyId ?? ''),
       property_title: title ?? '',
     }),
+
+  // CTA de WhatsApp de la ficha de propiedad: la señal de compra más fuerte
+  // de la web. Único click que dispara 'Lead' (junto al tour por Meet).
+  fichaWhatsappClick: (propertyId: number, title: string) => {
+    trackEvent('click_whatsapp', {
+      property_id: String(propertyId),
+      property_title: title,
+    })
+    trackFbEvent('Lead', {
+      content_name: title,
+      content_category: 'property',
+    })
+  },
+
+  // Submit EXITOSO del widget de tour virtual por Meet (fichas premium).
+  tourMeetLead: (propertyTitle: string) => {
+    trackEvent('tour_meet_lead', { property_title: propertyTitle })
+    trackFbEvent('Lead', {
+      content_name: propertyTitle,
+      content_category: 'tour',
+    })
+  },
 
   clickCall: (propertyId?: number) =>
     trackEvent('click_call', { property_id: String(propertyId ?? '') }),
@@ -60,7 +87,7 @@ export const events = {
 
   submitTasacion: () => {
     trackEvent('submit_tasacion')
-    trackFbEvent('Lead', { content_name: 'Tasación' })
+    trackFbEvent('SubmitApplication', { content_name: 'Tasación' })
   },
 
   useFilter: (filterName: string, value: string) =>
@@ -77,17 +104,17 @@ export const events = {
   calculadoraCostosDescargar: () => trackEvent('calculadora_costos_descargar'),
   calculadoraCostosWhatsapp: () => {
     trackEvent('calculadora_costos_whatsapp_click')
-    trackFbEvent('Lead', { content_name: 'Calculadora costos alquiler' })
+    trackFbEvent('SubmitApplication', { content_name: 'Calculadora costos alquiler' })
   },
 
   calculadoraAjusteView: () => trackEvent('calculadora_ajuste_view'),
   calculadoraAjusteWhatsapp: () => {
     trackEvent('calculadora_ajuste_whatsapp_click')
-    trackFbEvent('Lead', { content_name: 'Calculadora ajuste alquiler' })
+    trackFbEvent('SubmitApplication', { content_name: 'Calculadora ajuste alquiler' })
   },
 
   fichaPropiedadCalculadoraClick: () => {
     trackEvent('ficha_propiedad_calculadora_click')
-    trackFbEvent('Lead', { content_name: 'Ficha propiedad → Calculadora costos' })
+    trackFbEvent('SubmitApplication', { content_name: 'Ficha propiedad → Calculadora costos' })
   },
 }

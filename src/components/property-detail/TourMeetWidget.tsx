@@ -1,6 +1,7 @@
 'use client'
 
 import { Check, Sparkles, Video } from 'lucide-react'
+import { events } from '@/lib/analytics'
 
 const R = "'Raleway', system-ui, sans-serif"
 const GREEN = '#1A5C38'
@@ -22,6 +23,10 @@ export default function TourMeetWidget({
   const handleClick = () => {
     const text = `Hola! Me interesa la propiedad de ${propertyTitle} (${propertyUrl}). Quiero coordinar un tour virtual por Google Meet. ¿Qué horarios tienen disponibles?`
     const waUrl = `https://wa.me/${AGENT_PHONE}?text=${encodeURIComponent(text)}`
+
+    // El píxel va ANTES del fetch y del window.open: en mobile el salto a
+    // WhatsApp puede congelar el tab y un .then() posterior se pierde.
+    events.tourMeetLead(propertyTitle)
 
     // Tracking no bloqueante. keepalive permite que el fetch sobreviva al
     // navigation que dispara window.open en algunos browsers.

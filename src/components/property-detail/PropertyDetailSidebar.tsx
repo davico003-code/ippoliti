@@ -14,6 +14,7 @@ import ShareMenu from '../ShareMenu'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 import { getAgenteRol } from '@/lib/agente-titulo'
+import { events } from '@/lib/analytics'
 
 const TOUR_MEET_USD_THRESHOLD = 450_000
 
@@ -64,6 +65,7 @@ export default function PropertyDetailSidebar({
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => events.fichaWhatsappClick(property.id, propertyTitle)}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
             style={{ background: '#25d366', color: '#fff' }}
             onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}

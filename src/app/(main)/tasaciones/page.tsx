@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { LocateFixed } from 'lucide-react'
+import { trackFbEvent } from '@/lib/analytics'
 
 const TasacionesMap = dynamic(() => import('@/components/TasacionesMap'), {
   ssr: false,
@@ -87,10 +88,11 @@ export default function TasacionesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Track submission
+    // Track submission — este formulario recibe pauta paga: en Meta va como
+    // 'SubmitApplication' (los 'Lead' quedan reservados a señales de compra).
     if (typeof window !== 'undefined') {
       window.gtag?.('event', 'submit_tasacion', { method: 'whatsapp' })
-      window.fbq?.('track', 'Lead', { content_name: 'Tasación' })
+      trackFbEvent('SubmitApplication', { content_name: 'Tasación' })
     }
     const lines = [
       'Hola! Quiero tasar mi propiedad', '',

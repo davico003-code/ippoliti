@@ -193,7 +193,7 @@ export default function TasadorWidget({
 
   const pedirTasacion = () => {
     trackEvent('tasador_lead', { barrio: nombreZona, estimacion: Math.round(res.total) })
-    trackFbEvent('Lead', { content_name: `Tasador ${nombreZona}` })
+    trackFbEvent('SubmitApplication', { content_name: `Tasador ${nombreZona}` })
   }
 
   return (

@@ -36,6 +36,7 @@ import { getAgenteRol } from '@/lib/agente-titulo'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
 import FeedbackDetalle from '../feedback/FeedbackDetalle'
+import { events } from '@/lib/analytics'
 
 // Skeletons mientras se carga el chunk JS — evitan que la sección quede en
 // blanco hasta que llega el bundle de Leaflet (mapa) o la galería de planos.
@@ -281,6 +282,7 @@ export default function PropertyDetailBody({
 
           <div className="grid grid-cols-2 gap-2.5">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+              onClick={() => events.fichaWhatsappClick(property.id, property.publication_title || address)}
               className="flex items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
               style={{ background: '#25d366', color: '#fff' }}>
               <MessageCircle className="w-4 h-4" /> WhatsApp

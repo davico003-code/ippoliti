@@ -93,7 +93,7 @@ export default function NewsletterPopup() {
       setStatus('sent')
       try { window.localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch {}
       trackEvent('generate_lead', { origen: 'oportunidades_popup' })
-      trackFbEvent('Lead', { content_name: 'Oportunidades con IA popup' })
+      trackFbEvent('CompleteRegistration', { content_name: 'Oportunidades con IA popup' })
     } catch {
       setStatus('error')
     }
