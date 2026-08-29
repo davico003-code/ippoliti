@@ -509,7 +509,11 @@ html, body {
   text-decoration: underline;
 }
 
-@page { size: A4; margin: 6mm; }
+/* REGLA DE ORO: la planilla impresa entra SIEMPRE en UNA sola hoja A4.
+   @page sin márgenes + hoja de 210mm exactos (el padding vive en la hoja) y
+   spacings recortados en print para dejar colchón abajo. Verificado contando
+   páginas del PDF real (page.pdf); si se agrega contenido, volver a verificar. */
+@page { size: A4; margin: 0; }
 @media print {
   html, body {
     margin: 0 !important;
@@ -525,9 +529,9 @@ html, body {
      ajusta al contenido, eliminando la página 2 fantasma. */
   .planilla-page {
     box-shadow: none;
-    width: auto !important;
+    width: 210mm !important;
     margin: 0 !important;
-    padding: 6mm 8mm !important;
+    padding: 6mm 9mm 5mm !important;
     max-height: none !important;
     min-height: 0 !important;
     page-break-after: avoid !important;
@@ -542,8 +546,20 @@ html, body {
   .planilla-page .footer {
     page-break-inside: avoid !important;
   }
+  /* Spacings compactos para garantizar la hoja única. */
+  .planilla-page .header { margin-bottom: 10px !important; }
+  .planilla-page .doc-sub { margin-bottom: 9px !important; }
+  .planilla-page .datos-grid { margin-bottom: 9px !important; }
+  .planilla-page .dato-card { padding: 9px 14px !important; }
+  .planilla-page .total-card { padding: 11px 16px !important; margin-bottom: 10px !important; }
+  .planilla-page .section { margin-bottom: 9px !important; }
+  .planilla-page .fila { padding: 5px 0 !important; }
+  .planilla-page .mes-card { padding: 9px 12px !important; }
+  .planilla-page .cond-head { padding: 5px 12px !important; }
+  .planilla-page .cond-body { padding: 6px 12px 8px !important; }
+  .planilla-page .disclaimer { padding: 7px 12px !important; margin-bottom: 6px !important; }
   /* Espacio entre el último bloque y el footer (sin margin-top:auto). */
-  .planilla-page .footer { margin-top: 14px !important; }
+  .planilla-page .footer { margin-top: 8px !important; padding-top: 6px !important; }
 }
 `
 
