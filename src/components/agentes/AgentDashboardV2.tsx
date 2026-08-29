@@ -15,6 +15,7 @@ import {
   Megaphone,
   Newspaper,
   PieChart,
+  Printer,
   Users,
 } from 'lucide-react'
 
@@ -192,6 +193,15 @@ export default function AgentDashboardV2({
             title="Plano de lotes · Distrito Roldán"
             description="Disponibilidad, medidas y precios de los 180 lotes."
             statLabel="Actualizá y descargá el plano"
+          />
+          <PlacaCard
+            href="/agentes/lista-alquileres"
+            icon={<Printer size={22} strokeWidth={1.8} />}
+            pastel="#F2CFCF"
+            iconColor="#991B1B"
+            title="Alquileres para imprimir"
+            description="Lista A4 con foto, dirección, características y precio."
+            statLabel="Imprimila o guardala en PDF"
           />
         </div>
 
