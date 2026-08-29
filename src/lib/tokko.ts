@@ -266,6 +266,13 @@ const FALLBACK_PRODUCER_NAME = 'SI INMOBILIARIA'
 // Normaliza un teléfono crudo a formato wa.me (54 + 9 + área + número, sin
 // símbolos). Si no se puede inferir, devuelve el número general.
 export function getProducerWhatsappNumber(property: TokkoProperty): string {
+  // David (broker) no atiende consultas directas: sus propiedades rutean al
+  // WhatsApp de la Sucursal Funes (mismo número que el fallback general),
+  // aunque el CRM tenga cargado su celular personal.
+  const producerName = (property.producer?.name || '').toLowerCase()
+  if (producerName.includes('david') && producerName.includes('flores')) {
+    return FALLBACK_WA_NUMBER
+  }
   const raw = property.producer?.cellphone || property.producer?.phone || ''
   // normalizeArWhatsapp maneja el 0 de larga distancia y el 54 duplicado (antes
   // '+54 0341...' → '5490341...' con el 0 pegado = wa.me roto).
