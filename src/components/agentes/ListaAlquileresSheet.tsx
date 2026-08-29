@@ -239,9 +239,9 @@ export default function ListaAlquileresSheet({
           border-radius: 2mm; background: #edf0ee; flex-shrink: 0;
         }
         .la-datos { flex: 1; min-width: 0; }
-        .la-direccion { font-size: 13.5px; font-weight: 700; line-height: 1.25; }
-        .la-ubicacion { font-family: var(--font-poppins), sans-serif; font-size: 10.5px; color: #5c645f; margin-top: 2px; }
-        .la-caract { font-family: var(--font-poppins), sans-serif; font-size: 11px; font-weight: 500; margin-top: 6px; }
+        .la-direccion { font-size: 16px; font-weight: 700; line-height: 1.25; }
+        .la-ubicacion { font-family: var(--font-poppins), sans-serif; font-size: 11.5px; color: #5c645f; margin-top: 2px; }
+        .la-caract { font-family: var(--font-poppins), sans-serif; font-size: 13px; font-weight: 500; margin-top: 6px; }
         .la-precio-col { text-align: right; flex-shrink: 0; min-width: 30mm; }
         .la-precio {
           font-family: var(--font-poppins), sans-serif;
