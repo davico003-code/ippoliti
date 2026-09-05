@@ -133,18 +133,20 @@ function operationForView(property: TokkoProperty, operationType: OperationType 
 }
 
 /**
- * Las cards y el mapa leen la primera operación para decidir etiqueta y precio.
- * Al filtrar una propiedad mixta, priorizamos la operación elegida sin mutar la
- * ficha original ni descartar la otra operación.
+ * Las cards, el mapa y el sheet de la propiedad eligen operación con
+ * `operacionPrincipal`, que prefiere la que tiene precio cargado. Al filtrar por
+ * Venta o Alquiler una propiedad mixta, la vista tiene que mostrar SIEMPRE la
+ * operación elegida: si el alquiler vino con precio 0, antes ganaba la venta y
+ * la card decía "VENTA · USD 450.000" dentro del listado de alquileres. Por eso
+ * acá la propiedad de la vista queda solo con la operación filtrada (la ficha
+ * original no se muta; el listado sin filtro sigue viendo las dos).
  */
 function prioritizeOperationForView(property: TokkoProperty, operationType: OperationType | null): TokkoProperty {
   if (!operationType || !property.operations?.length) return property
-  const index = property.operations.findIndex(operation => operation.operation_type === operationType)
-  if (index <= 0) return property
-  const operations = property.operations.slice()
-  const [selected] = operations.splice(index, 1)
+  const selected = property.operations.find(operation => operation.operation_type === operationType)
   if (!selected) return property
-  return { ...property, operations: [selected, ...operations] }
+  if (property.operations.length === 1 && property.operations[0] === selected) return property
+  return { ...property, operations: [selected] }
 }
 
 // Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
