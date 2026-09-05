@@ -52,7 +52,7 @@ function fmtDate(iso: string): string {
 function buildWhatsAppUrl(lead: NewsletterLead): string {
   const phone = lead.whatsapp
     ? `54${lead.whatsapp.replace(/\D/g, '')}`
-    : '5493412101694'
+    : '5493413340916'
   const msg = encodeURIComponent(
     `Hola ${lead.nombre || 'qué tal'}, soy de SI INMOBILIARIA. Te escribo porque nos dejaste tus datos en el sitio. ¿En qué te podemos ayudar?`,
   )

@@ -18,7 +18,7 @@ export default function BarrioCTAFinal({
   ubicacion = 'cta-final-hub',
   slug,
 }: Props) {
-  const wa = `https://wa.me/5493412101694?text=${encodeURIComponent(waText)}`
+  const wa = `https://wa.me/5493413340916?text=${encodeURIComponent(waText)}`
   return (
     <section className="bg-brand-600 px-6 py-16 text-white md:py-24">
       <div className="mx-auto max-w-3xl text-center">

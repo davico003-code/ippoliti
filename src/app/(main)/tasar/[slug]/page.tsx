@@ -19,7 +19,7 @@ export const revalidate = 86400
 export const dynamicParams = true
 
 const BASE = 'https://siinmobiliaria.com'
-const WSP = 'https://wa.me/5493412101694'
+const WSP = 'https://wa.me/5493413340916'
 
 type TipoId = TipoTasador
 const TIPOS: Record<TipoId, { label: string; articulo: string; esLote: boolean }> = {

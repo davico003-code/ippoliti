@@ -104,7 +104,7 @@ export default async function AlquilerRoldanPage() {
         <h2 className="text-2xl font-black text-gray-900 mb-3">¿Tenés una propiedad para alquilar en Roldán?</h2>
         <p className="text-gray-500 mb-8 max-w-lg mx-auto">Administramos tu propiedad con transparencia y profesionalismo. Más de 40 años de experiencia.</p>
         <div className="flex flex-wrap gap-4 justify-center">
-          <a href="https://wa.me/5493412101694?text=Hola!%20Quiero%20consultar%20por%20administración%20de%20alquiler" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">
+          <a href="https://wa.me/5493413340916?text=Hola!%20Quiero%20consultar%20por%20administración%20de%20alquiler" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">
             Consultar por WhatsApp
           </a>
           <Link href="/tasaciones" className="px-8 py-4 border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-bold rounded-lg transition-colors">

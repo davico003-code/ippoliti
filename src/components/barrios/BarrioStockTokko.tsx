@@ -88,7 +88,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
           Trabajamos con stock que rota — si querés que te avisemos cuando entre algo, dejanos el dato.
         </p>
         <Link
-          href={`https://wa.me/5493412101694?text=${encodeURIComponent(
+          href={`https://wa.me/5493413340916?text=${encodeURIComponent(
             `Hola, quiero que me avisen cuando entren ${tipo === 'Terreno' ? 'lotes' : 'propiedades'} en ${nombre}.`,
           )}`}
           target="_blank"

@@ -171,7 +171,7 @@ export default async function ClusterLandingPage({ params }: { params: { cluster
           />
           <div className="mt-5">
             <a
-              href={`https://wa.me/5493412101694?text=${encodeURIComponent(cluster.waTexto)}`}
+              href={`https://wa.me/5493413340916?text=${encodeURIComponent(cluster.waTexto)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl"

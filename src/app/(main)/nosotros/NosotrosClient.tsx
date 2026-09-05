@@ -203,7 +203,7 @@ function ReviewCard({
   )
 }
 
-const WHATSAPP_NUMBER = '5493412101694'
+const WHATSAPP_NUMBER = '5493413340916'
 
 // Datos contrastados con los perfiles públicos de Google — 2026-08-22.
 const oficinas = [
@@ -783,7 +783,7 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
 
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>¿Querés ser parte del equipo?</p>
-            <a href="https://wa.me/5493412101694?text=Hola%2C%20me%20interesa%20sumarme%20al%20equipo%20de%20SI%20INMOBILIARIA"
+            <a href="https://wa.me/5493413340916?text=Hola%2C%20me%20interesa%20sumarme%20al%20equipo%20de%20SI%20INMOBILIARIA"
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium border-2 border-black text-black transition-all hover:bg-black hover:text-white"
               style={{ fontFamily: 'Poppins, sans-serif' }}>

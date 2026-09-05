@@ -9,7 +9,7 @@ type Props = {
   message?: string
 }
 
-const PHONE = '5493412101694'
+const PHONE = '5493413340916'
 
 export default function CtaWhatsapp({
   source,

@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
 }
 
-const WHATSAPP_ASESORIA = `https://wa.me/5493412101694?text=${encodeURIComponent(
+const WHATSAPP_ASESORIA = `https://wa.me/5493413340916?text=${encodeURIComponent(
   'Hola! Hice una proyección de costos de construcción y quiero asesoramiento.',
 )}`
 

@@ -24,7 +24,7 @@ const GREEN = '#1A5C38'
 const WA_TEXT = encodeURIComponent(
   'Hola! Quiero más información sobre Fincazul, las casas en condominio en Funes.',
 )
-const WA_URL = `https://wa.me/5493412101694?text=${WA_TEXT}`
+const WA_URL = `https://wa.me/5493413340916?text=${WA_TEXT}`
 const BASE = '/emprendimientos/fincazul'
 
 export const metadata: Metadata = {

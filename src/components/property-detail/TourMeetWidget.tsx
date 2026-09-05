@@ -4,7 +4,7 @@ import { Check, Sparkles, Video } from 'lucide-react'
 
 const R = "'Raleway', system-ui, sans-serif"
 const GREEN = '#1A5C38'
-const AGENT_PHONE = '5493412101694'
+const AGENT_PHONE = '5493413340916'
 
 interface Props {
   propertyId: number

@@ -70,7 +70,7 @@ export default async function Page() {
 
       <section className="py-12 px-4 bg-[#1A5C38] text-center text-white">
         <h2 className="text-2xl font-black mb-4">¿Buscás depto en el centro?</h2>
-        <a href="https://wa.me/5493412101694?text=Hola!%20Busco%20departamento%20en%20Centro%20Rosario" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl inline-block">WhatsApp</a>
+        <a href="https://wa.me/5493413340916?text=Hola!%20Busco%20departamento%20en%20Centro%20Rosario" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl inline-block">WhatsApp</a>
       </section>
 
       <section className="py-8 px-4 border-t"><div className="max-w-4xl mx-auto flex flex-wrap gap-3">

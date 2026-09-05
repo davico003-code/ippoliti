@@ -28,7 +28,7 @@ export default function DetallePlano({
   destacadaTitular?: string;
 }) {
   const waText = `Hola SI, ¿me pasan el plano de ${nombre}?`;
-  const waUrl = `https://wa.me/5493412101694?text=${encodeURIComponent(waText)}`;
+  const waUrl = `https://wa.me/5493413340916?text=${encodeURIComponent(waText)}`;
 
   return (
     <section id="plano" className="scroll-mt-28 bg-[#F5F8F5] py-16 md:scroll-mt-32 md:py-20">

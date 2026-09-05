@@ -56,7 +56,7 @@ export default async function SeleccionPage({ params }: Props) {
             El enlace expiró o fue eliminado. Contactanos para recibir una nueva selección.
           </p>
           <a
-            href="https://wa.me/5493412101694?text=Hola!%20Mi%20selección%20de%20propiedades%20expiró.%20¿Pueden%20enviarme%20una%20nueva?"
+            href="https://wa.me/5493413340916?text=Hola!%20Mi%20selección%20de%20propiedades%20expiró.%20¿Pueden%20enviarme%20una%20nueva?"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white font-bold rounded-full text-sm hover:bg-[#1ea952] transition-colors"

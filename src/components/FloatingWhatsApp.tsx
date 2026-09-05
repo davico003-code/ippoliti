@@ -28,7 +28,7 @@ export default function FloatingWhatsApp() {
 
   return (
     <Link
-      href="https://wa.me/5493412101694"
+      href="https://wa.me/5493413340916"
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => events.clickWhatsapp()}
