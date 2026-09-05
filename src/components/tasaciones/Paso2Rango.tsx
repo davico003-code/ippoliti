@@ -5,7 +5,6 @@
 
 import type { BarrioTasacion, ComparablesResponse, TipoTasacion } from '@/lib/tasacion/types'
 import { descripcionPartes, fmtMiles, TEXTO_TIPO, tituloComparables } from '@/lib/tasacion/formato'
-import DotPlot from './DotPlot'
 import { BarraFija, cls, IconoFlecha, TarjetaEquipo, Volver } from './ui'
 
 interface Props {
@@ -15,11 +14,6 @@ interface Props {
   onPedir: () => void
   onVolver: () => void
   tituloRef: React.RefObject<HTMLHeadingElement>
-}
-
-function valorMuestra(m: ComparablesResponse['muestras'][number], unidad: ComparablesResponse['unidad']): number {
-  if (unidad === 'usd_m2' && m.m2Lote) return m.precio / m.m2Lote
-  return m.precio
 }
 
 const CANTIDAD_F: Record<number, string> = { 1: 'Una', 2: 'Dos', 3: 'Tres' }
@@ -36,14 +30,22 @@ export default function Paso2Rango({ resultado: r, barrio, tipo, onPedir, onVolv
 
   const textoEquipo = `El número exacto depende del estado, la orientación y lo que se vendió de verdad, no lo que se pide. Un tasador del equipo lo calcula y te lo manda por WhatsApp. Sin compromiso.`
 
-  const valores = r.precios && r.precios.length >= 2 ? r.precios : Array.from(new Set([min, max, ...r.muestras.map((m) => valorMuestra(m, r.unidad))]))
-  const puntosCompletos = valores.length === r.n
-  const etiquetaPlot = `${r.n} ${t.plural} entre USD ${fmtMiles(min)} y ${fmtMiles(max)}${esM2 ? ' el m²' : ''}`
   const partes = descripcionPartes(r, tipo, barrio)
+  // n = 0: el rango sale de la referencia que relevó SI Inmobiliaria (ej. Kentucky lote),
+  // no de avisos publicados. Decir "es lo que se pide" ahí sería inventar (control en prod, 5-sep-2026).
+  const prefijo = r.n > 0 ? 'Es lo que se pide, ' : 'Es nuestra referencia, '
+  const Las = t.las[0].toUpperCase() + t.las.slice(1)
   // Hilo manda "publicadas en agosto de 2026"; si la descripción ya dice "publicadas en <barrio>",
   // repetirlo suena a error ("publicadas en Vida, publicadas entre…"). Se saca la palabra, no el dato.
-  const periodoLimpio = /publicad[ao]s/i.test(r.descripcion) ? r.periodo.replace(/^publicad[ao]s\s+/i, '') : r.periodo
+  // Lo mismo con n = 0: Hilo manda "referencia de agosto de 2026" y la descripción ya dice
+  // "según el valor de referencia que relevó…" → queda solo el mes (5-sep-2026).
+  const periodoLimpio = /publicad[ao]s/i.test(r.descripcion)
+    ? r.periodo.replace(/^publicad[ao]s\s+/i, '')
+    : /referencia/i.test(r.descripcion)
+      ? r.periodo.replace(/^referencia\s+de\s+/i, '')
+      : r.periodo
   const cuantas = (tipo === 'casa' ? CANTIDAD_F : CANTIDAD_M)[r.muestras.length] ?? String(r.muestras.length)
+  const muestraTodas = r.muestras.length === r.n
 
   return (
     <>
@@ -61,7 +63,7 @@ export default function Paso2Rango({ resultado: r, barrio, tipo, onPedir, onVolv
         {esM2 && <span className="text-[0.47em] font-semibold text-[#6B766E]">el m²</span>}
       </p>
       <p className="mt-2 text-[14px] font-medium leading-[1.4] text-[#3C4A42]">
-        Es lo que se pide,{' '}
+        {prefijo}
         {partes.map((p, i) =>
           p.fuerte ? (
             <b key={i} className="font-bold text-[#121A15]">
@@ -79,29 +81,23 @@ export default function Paso2Rango({ resultado: r, barrio, tipo, onPedir, onVolv
         .
       </p>
 
-      {/* Dot plot. Cuando el rango sale de la referencia que relevó el equipo (n = 0,
-          sin comparables del barrio) no hay puntos que dibujar: se muestra solo el rango. */}
-      {r.n > 0 && (
-      <div className="mt-5">
-        <DotPlot valores={valores} min={min} max={max} etiqueta={etiquetaPlot} />
-        <p className="mt-1 text-center text-[11.5px] font-semibold text-[#6B766E]">
-          {puntosCompletos ? (
-            <>
-              Cada punto es {t.una} de {t.esas} <span className="font-poppins">{r.n}</span> {t.plural}
-            </>
-          ) : (
-            <>
-              Entre estos valores hay <span className="font-poppins">{r.n}</span> {t.plural}; marcamos {t.las} que te mostramos abajo
-            </>
-          )}
+      {/* Una frase en vez del gráfico de puntos (5-sep-2026): en prod las marcas apiladas
+          parecían un glitch y empujaban la tarjeta del equipo debajo del botón fijo.
+          Con n = 0 (referencia de SI Inmobiliaria) no se dice nada: no hay avisos que contar. */}
+      {r.n >= 5 ? (
+        <p className="mt-2.5 text-[13.5px] font-medium leading-[1.4] text-[#6B766E]">
+          La mayoría de {t.las} <span className="font-poppins font-semibold text-[#3C4A42]">{r.n}</span> {t.plural} se pide entre estos valores.
         </p>
-      </div>
-      )}
+      ) : r.n >= 3 ? (
+        <p className="mt-2.5 text-[13.5px] font-medium leading-[1.4] text-[#6B766E]">
+          {Las} <span className="font-poppins font-semibold text-[#3C4A42]">{r.n}</span> {t.plural} {t.publicadas} están entre estos valores.
+        </p>
+      ) : null}
 
       {/* Muestras */}
       {r.muestras.length > 0 && (
         <>
-          <ul className="mt-3 grid grid-cols-3 gap-2" aria-label={`${r.muestras.length} de ${t.esas} ${r.n} ${t.plural}, tal como están ${t.publicadas}`}>
+          <ul className="mt-4 grid grid-cols-3 gap-2" aria-label={muestraTodas ? `${t.las} ${r.n} ${t.plural}, tal como están ${t.publicadas}` : `${r.muestras.length} de ${t.las} ${r.n} ${t.plural}, tal como están ${t.publicadas}`}>
             {r.muestras.map((m, i) => (
               <li key={i} className="relative overflow-hidden rounded-[14px] border-[1.5px] border-[#E1E6E1] bg-white px-2.5 pb-2.5 pt-3">
                 <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[#D7E8DD]" />
@@ -144,8 +140,18 @@ export default function Paso2Rango({ resultado: r, barrio, tipo, onPedir, onVolv
               </li>
             ))}
           </ul>
+          {/* "Tres de esas 3" sonaba a plantilla (control en prod, 5-sep-2026): si se muestran
+              todas, se dice "Las 3"; si no, "Tres de las 6". */}
           <p className="mt-2 text-center text-[12px] font-medium text-[#6B766E]">
-            {cuantas} de {t.esas} <span className="font-poppins">{r.n}</span>, tal como están {t.publicadas}. Sin direcciones.
+            {muestraTodas ? (
+              <>
+                {Las} <span className="font-poppins">{r.n}</span>, tal como están {t.publicadas}. Sin direcciones.
+              </>
+            ) : (
+              <>
+                {cuantas} de {t.las} <span className="font-poppins">{r.n}</span>, tal como están {t.publicadas}. Sin direcciones.
+              </>
+            )}
           </p>
         </>
       )}
