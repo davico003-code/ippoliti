@@ -174,7 +174,7 @@ export default function ExitPopup() {
                 <div className="text-center">
                   <p className="text-red-500 text-xs mb-2">Hubo un error, intentá de nuevo</p>
                   <a
-                    href={`https://wa.me/5493412101694?text=${whatsappText}`}
+                    href={`https://wa.me/5493413340916?text=${whatsappText}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#25D366] hover:underline"

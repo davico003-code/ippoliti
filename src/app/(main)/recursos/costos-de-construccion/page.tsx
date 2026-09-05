@@ -74,7 +74,7 @@ const jsonLd = [
 
 const CANONICAL = 'https://siinmobiliaria.com/recursos/costos-de-construccion'
 
-const WHATSAPP_CAFE = `https://wa.me/5493412101694?text=${encodeURIComponent(
+const WHATSAPP_CAFE = `https://wa.me/5493413340916?text=${encodeURIComponent(
   'Hola! Vi la guía de costos de construcción y quiero coordinar una reunión.',
 )}`
 

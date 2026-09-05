@@ -4,7 +4,7 @@ const FONT = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const GREEN_DEEP = '#0B3F2D'
 
 const WHATSAPP =
-  'https://wa.me/5493412101694?text=' +
+  'https://wa.me/5493413340916?text=' +
   encodeURIComponent('Hola SI INMOBILIARIA, tengo una consulta sobre mi operación.')
 
 export default function RecursosCTA({

@@ -86,7 +86,7 @@ export default async function HausingPage() {
             <a href="#propiedades" style={{padding:"16px 40px",background:"#22c55e",color:"#000",borderRadius:"100px",fontWeight:700,fontSize:"15px",textDecoration:"none"}}>
               Ver propiedades
             </a>
-            <a href="https://wa.me/5493412101694?text=Hola!%20Me%20interesan%20las%20propiedades%20Hausing" target="_blank" style={{padding:"16px 40px",background:"rgba(255,255,255,0.07)",color:"#fff",borderRadius:"100px",fontWeight:600,fontSize:"15px",textDecoration:"none",border:"1px solid rgba(255,255,255,0.15)"}}>
+            <a href="https://wa.me/5493413340916?text=Hola!%20Me%20interesan%20las%20propiedades%20Hausing" target="_blank" style={{padding:"16px 40px",background:"rgba(255,255,255,0.07)",color:"#fff",borderRadius:"100px",fontWeight:600,fontSize:"15px",textDecoration:"none",border:"1px solid rgba(255,255,255,0.15)"}}>
               Consultar ahora
             </a>
           </div>
@@ -269,7 +269,7 @@ export default async function HausingPage() {
             Asesoramiento sin compromiso. Te contactamos en menos de 2 horas.
           </p>
           <div className="cta-btns" style={{display:"flex",gap:"16px",justifyContent:"center"}}>
-            <a href="https://wa.me/5493412101694?text=Hola!%20Me%20interesan%20las%20propiedades%20Hausing" target="_blank"
+            <a href="https://wa.me/5493413340916?text=Hola!%20Me%20interesan%20las%20propiedades%20Hausing" target="_blank"
               style={{display:"inline-flex",alignItems:"center",gap:"12px",padding:"18px 48px",background:"#22c55e",color:"#000",borderRadius:"100px",fontWeight:700,fontSize:"16px",textDecoration:"none"}}>
               Consultar por WhatsApp
             </a>

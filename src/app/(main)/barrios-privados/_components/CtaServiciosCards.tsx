@@ -20,7 +20,7 @@ const CARDS: CardSpec[] = [
     titulo: "Visita guiada",
     desc: "Te organizamos visitas a los barrios que te interesan en una sola tarde. Ahorrate semanas de búsqueda.",
     cta: "Coordinar visita →",
-    href: "https://wa.me/5493412101694",
+    href: "https://wa.me/5493413340916",
     external: true,
     variant: "primary",
   },
@@ -29,7 +29,7 @@ const CARDS: CardSpec[] = [
     titulo: "WhatsApp directo",
     desc: "Hablá con David sobre el barrio que te interesa. Respuesta rápida y sin filtros de venta.",
     cta: "Abrir chat →",
-    href: "https://wa.me/5493412101694",
+    href: "https://wa.me/5493413340916",
     external: true,
   },
   {

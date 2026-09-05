@@ -1,7 +1,7 @@
 import { ArrowRight, MessageCircle, Phone } from 'lucide-react'
 
 const WHATSAPP_URL =
-  'https://wa.me/5493412101694?text=Hola!%20Quiero%20informaci%C3%B3n%20sobre%20Distrito%20Rold%C3%A1n'
+  'https://wa.me/5493413340916?text=Hola!%20Quiero%20informaci%C3%B3n%20sobre%20Distrito%20Rold%C3%A1n'
 
 export default function SeccionCtaFinanciacion() {
   return (

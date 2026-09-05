@@ -12,7 +12,7 @@ import DockGardenUnits, { DockGardenMedia } from '@/components/dockgarden/DockGa
 
 export const revalidate = 3600
 
-const WA_PHONE = '5493412101694'
+const WA_PHONE = '5493413340916'
 const PAGE_URL = 'https://siinmobiliaria.com/dockgarden'
 
 export const metadata: Metadata = {

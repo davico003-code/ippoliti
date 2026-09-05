@@ -93,7 +93,7 @@ export default async function CompararPage({ searchParams }: Props) {
   const whatsappText = encodeURIComponent(
     `Hola! Me interesan estas propiedades:\n\n${whatsappLines.join('\n')}\n\nLink: https://siinmobiliaria.com/comparar?ids=${ids.join(',')}`
   );
-  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`;
+  const whatsappUrl = `https://wa.me/5493413340916?text=${whatsappText}`;
 
   return (
     <div className="min-h-screen bg-gray-50">

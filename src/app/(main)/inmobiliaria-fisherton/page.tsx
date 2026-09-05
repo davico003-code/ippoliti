@@ -158,7 +158,7 @@ export default async function Page() {
           <h2 className="text-3xl font-black mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>¿Buscás propiedad en Fisherton?</h2>
           <p className="text-green-100 text-lg mb-8">Contanos qué estás buscando y te enviamos opciones.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://wa.me/5493412101694?text=Hola!%20Estoy%20buscando%20propiedad%20en%20Fisherton" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold rounded-xl transition-colors">WhatsApp</a>
+            <a href="https://wa.me/5493413340916?text=Hola!%20Estoy%20buscando%20propiedad%20en%20Fisherton" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold rounded-xl transition-colors">WhatsApp</a>
             <a href="tel:+5493412101694" className="px-8 py-4 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2"><Phone className="w-5 h-5" />(341) 210-1694</a>
           </div>
         </div>

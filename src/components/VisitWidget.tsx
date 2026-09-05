@@ -72,7 +72,7 @@ export default function VisitWidget({
   // Link de WhatsApp con el pedido pre-cargado. Se reusa en el submit y en la
   // confirmación (por si el popup se bloqueó o el cliente no llegó a enviarlo).
   const waHref = selectedDate
-    ? `https://wa.me/5493412101694?text=${encodeURIComponent(
+    ? `https://wa.me/5493413340916?text=${encodeURIComponent(
         [
           `Hola! Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
           ``,

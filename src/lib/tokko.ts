@@ -260,7 +260,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
 // la ficha mostraba "David Flores" hardcodeado y el WhatsApp iba al número
 // general; ahora cada propiedad rutea al asesor real.
 
-const FALLBACK_WA_NUMBER = '5493412101694'
+const FALLBACK_WA_NUMBER = '5493413340916'
 const FALLBACK_PRODUCER_NAME = 'SI INMOBILIARIA'
 
 // Normaliza un teléfono crudo a formato wa.me (54 + 9 + área + número, sin

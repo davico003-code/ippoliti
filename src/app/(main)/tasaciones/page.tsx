@@ -103,7 +103,7 @@ export default function TasacionesPage() {
       coords[0] !== -32.9167 && `Ubicación: https://maps.google.com/?q=${coords[0]},${coords[1]}`,
       '', '*Solicito una tasación profesional*',
     ].filter(Boolean).join('\n')
-    window.open(`https://wa.me/5493412101694?text=${encodeURIComponent(lines)}`, '_blank')
+    window.open(`https://wa.me/5493413340916?text=${encodeURIComponent(lines)}`, '_blank')
   }
 
   return (

@@ -313,7 +313,7 @@ export default async function InmobiliariaFunesPage() {
             Contanos qué estás buscando y te enviamos opciones personalizadas.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://wa.me/5493412101694?text=Hola!%20Estoy%20buscando%20propiedad%20en%20Funes" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold rounded-xl transition-colors flex items-center gap-2">
+            <a href="https://wa.me/5493413340916?text=Hola!%20Estoy%20buscando%20propiedad%20en%20Funes" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold rounded-xl transition-colors flex items-center gap-2">
               Escribinos por WhatsApp
             </a>
             <a href="tel:+5493412101694" className="px-8 py-4 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2">

@@ -71,7 +71,7 @@ export default async function Page() {
       <section className="py-12 px-4 bg-[#1A5C38] text-center text-white">
         <h2 className="text-2xl font-black mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>¿Buscás casa en Funes?</h2>
         <div className="flex flex-wrap justify-center gap-4">
-          <a href="https://wa.me/5493412101694?text=Hola!%20Busco%20casa%20en%20venta%20en%20Funes" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl">WhatsApp</a>
+          <a href="https://wa.me/5493413340916?text=Hola!%20Busco%20casa%20en%20venta%20en%20Funes" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl">WhatsApp</a>
           <Link href="/propiedades?location=funes" className="px-6 py-3 border-2 border-white text-white font-bold rounded-xl">Ver todas las propiedades</Link>
         </div>
       </section>

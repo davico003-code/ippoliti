@@ -70,7 +70,7 @@ export default function LeadsPage() {
 
   const openWhatsApp = (lead: Lead) => {
     const nombre = lead.nombre || 'usuario'
-    const phone = lead.whatsapp ? `54${lead.whatsapp.replace(/\D/g, '')}` : '5493412101694'
+    const phone = lead.whatsapp ? `54${lead.whatsapp.replace(/\D/g, '')}` : '5493413340916'
     const msg = encodeURIComponent(
       `Hola ${nombre}, soy David de SI INMOBILIARIA. Vi que descargaste la guía, ¿te puedo ayudar con algo específico?`
     )

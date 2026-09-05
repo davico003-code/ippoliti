@@ -168,7 +168,7 @@ export default async function DevelopmentPage({ params }: Props) {
   ]
 
   const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${displayName}`)
-  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
+  const whatsappUrl = `https://wa.me/5493413340916?text=${whatsappText}`
 
   const isDistrito = dev.id === 67178
 
@@ -547,7 +547,7 @@ async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes'
   }
 
   const whatsappText = encodeURIComponent(`Hola! Quiero información sobre propiedades de ${cliente.name}`)
-  const whatsappUrl = `https://wa.me/5493412101694?text=${whatsappText}`
+  const whatsappUrl = `https://wa.me/5493413340916?text=${whatsappText}`
 
   return (
     <div className="min-h-screen bg-gray-50">

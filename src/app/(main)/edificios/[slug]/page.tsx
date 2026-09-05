@@ -205,7 +205,7 @@ export default async function EdificioPage({ params }: { params: { slug: string 
             reglamento y lo que no figura en el aviso.
           </p>
           <a
-            href={`https://wa.me/5493412101694?text=${encodeURIComponent(
+            href={`https://wa.me/5493413340916?text=${encodeURIComponent(
               `Hola! Me interesan los departamentos de ${edificio.nombre} (${edificio.direccion}).`,
             )}`}
             target="_blank"
