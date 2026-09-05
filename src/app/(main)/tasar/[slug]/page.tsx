@@ -19,7 +19,6 @@ export const revalidate = 86400
 export const dynamicParams = true
 
 const BASE = 'https://siinmobiliaria.com'
-const WSP = 'https://wa.me/5493413340916'
 
 type TipoId = TipoTasador
 const TIPOS: Record<TipoId, { label: string; articulo: string; esLote: boolean }> = {
@@ -198,7 +197,6 @@ export default async function TasarPage({ params }: { params: { slug: string } }
             calidades={calidades}
             esLote={tipoInfo.esLote}
             esDepto={esDepto}
-            whatsappBase={WSP}
           />
         </div>
 

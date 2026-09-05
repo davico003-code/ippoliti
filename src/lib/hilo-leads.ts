@@ -8,6 +8,8 @@
  * lead por un problema de este push.
  */
 
+import type { TasacionLead } from '@/lib/tasacion/types'
+
 export type HiloLeadPayload = {
   name?: string | null
   email?: string | null
@@ -16,6 +18,9 @@ export type HiloLeadPayload = {
   origen?: string | null
   /** tokko_id de la propiedad consultada (si el lead viene de una ficha). */
   tokkoPropertyId?: string | number | null
+  /** Contexto del pedido de tasación (origen 'tasacion'): barrio, tipo, m²,
+   *  rango que vio la persona, nivel de comparables, utm. */
+  tasacion?: TasacionLead | null
 }
 
 /** Devuelve true si el lead quedó registrado en el inbox de Hilo. best-effort:

@@ -4,9 +4,9 @@
 // ya configurado con el precio de tierra de ESE barrio: el mismo motor sirve a
 // todas las páginas, cada una con su contexto.
 //
-// Criterio de conversión (patrón Bresson/Magnin): el valor se da GRATIS y sin
-// pedir datos. El contacto se pide recién después de que la persona vio su
-// número, para la tasación profesional.
+// Criterio de conversión (patrón Bresson/Magnin): el valor se da al instante y
+// sin pedir datos. El contacto se pide recién después de que la persona vio su
+// número, en /tasaciones (el pedido va a Hilo; no abre WhatsApp).
 
 import { useMemo, useState } from 'react'
 import {
@@ -20,7 +20,7 @@ import {
   type AntiguedadId,
   type EstadoId,
 } from '@/lib/tasador/motor'
-import { trackEvent, trackFbEvent } from '@/lib/analytics'
+import { trackEvent } from '@/lib/analytics'
 import type { OpcionBarrioSelector } from '@/lib/tasador/barrios'
 
 const GREEN = '#1A5C38'
@@ -43,7 +43,6 @@ interface Props {
   calidades: CalidadConstruccion[]
   esLote: boolean
   esDepto?: boolean
-  whatsappBase: string
   /** Catálogo completo para el selector "¿En qué barrio está?" (opcional). */
   barrios?: OpcionBarrioSelector[]
   /** Slug del barrio de la landing, para preseleccionar. */
@@ -115,7 +114,6 @@ export default function TasadorWidget({
   calidades,
   esLote,
   esDepto = false,
-  whatsappBase,
   barrios = [],
   barrioSlug = '',
 }: Props) {
@@ -177,23 +175,14 @@ export default function TasadorWidget({
     trackEvent('tasador_uso', { barrio: nombreZona, ciudad: ciudadZona })
   }
 
-  const mensajeWsp = () => {
-    const detalle = [
-      `Hola! Usé el tasador online de ${nombreZona}.`,
-      `Estimación: ${fmtUSD(res.total)}`,
-      esLote ? `Lote: ${lote} m²` : esDepto ? `Cubiertos: ${cubiertos} m²` : `Lote: ${lote} m² · Cubiertos: ${cubiertos} m²`,
-      !esLote && `Antigüedad: ${ANTIGUEDAD.find((a) => a.id === antiguedad)?.label}`,
-      !esLote && `Estado: ${ESTADO.find((e) => e.id === estado)?.label}`,
-      'Quiero mi tasación precisa.',
-    ]
-      .filter(Boolean)
-      .join('\n')
-    return `${whatsappBase}?text=${encodeURIComponent(detalle)}`
-  }
+  // El pedido de tasación se hace en /tasaciones (3 pasos, va a Hilo). Le
+  // pasamos barrio y tipo para que arranque precargado.
+  const hrefTasacion = `/tasaciones?barrio=${encodeURIComponent(barrioSel || barrioSlug || '')}&tipo=${esLote ? 'lote' : esDepto ? 'depto' : 'casa'}`
 
   const pedirTasacion = () => {
-    trackEvent('tasador_lead', { barrio: nombreZona, estimacion: Math.round(res.total) })
-    trackFbEvent('Lead', { content_name: `Tasador ${nombreZona}` })
+    // Click intermedio: NO es un Lead. El Lead lo dispara /tasaciones cuando el
+    // servidor confirma el envío.
+    trackEvent('tasador_pedir_click', { barrio: nombreZona, estimacion: Math.round(res.total) })
   }
 
   return (
@@ -522,13 +511,11 @@ export default function TasadorWidget({
             comparables que ningún estimador automático puede verificar.
           </p>
           <a
-            href={mensajeWsp()}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={hrefTasacion}
             onClick={pedirTasacion}
-            className="flex items-center justify-center gap-2 w-full"
+            className="si-tap flex items-center justify-center gap-2 w-full"
             style={{
-              background: '#25D366',
+              background: GREEN,
               color: '#fff',
               borderRadius: 12,
               fontWeight: 700,
@@ -540,25 +527,9 @@ export default function TasadorWidget({
           >
             Quiero mi tasación precisa
           </a>
-          <a
-            href={`/tasaciones?tipo=${esLote ? 'Terreno' : 'Casa'}&zona=${encodeURIComponent(nombreZona)}`}
-            onClick={pedirTasacion}
-            className="flex items-center justify-center w-full"
-            style={{
-              background: '#fff',
-              border: `2px solid ${GREEN}`,
-              color: GREEN,
-              borderRadius: 12,
-              fontWeight: 700,
-              fontSize: 15,
-              padding: '11px 22px',
-              textDecoration: 'none',
-              marginTop: 9,
-              fontFamily: R,
-            }}
-          >
-            Prefiero que me contacten
-          </a>
+          <p style={{ marginTop: 9, fontSize: 12.5, color: '#6e6e73' }}>
+            Sin compromiso. Te escribimos por WhatsApp en menos de 24 h.
+          </p>
         </div>
       </div>
     </div>

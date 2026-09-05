@@ -25,6 +25,16 @@ export function trackFbEvent(eventName: string, params?: Record<string, string |
   }
 }
 
+// Evento custom del píxel (fbq('trackCustom')): para nombres que no son
+// estándar de Meta, ej. 'TasacionRango'. Sirve para crear conversiones
+// personalizadas y públicos sin ensuciar los eventos estándar.
+export function trackFbCustomEvent(eventName: string, params?: Record<string, string | number | string[]>) {
+  if (typeof window === 'undefined') return
+  if (window.fbq) {
+    window.fbq('trackCustom', eventName, params)
+  }
+}
+
 // Pre-defined events
 export const events = {
   clickWhatsapp: (propertyId?: number, title?: string) =>

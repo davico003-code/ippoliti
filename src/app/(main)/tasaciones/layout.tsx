@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Tasaciones profesionales en Funes, Roldán y Rosario | SI INMOBILIARIA',
-  description: 'Tasaciones profesionales de propiedades en Roldán, Funes y Rosario. Completá el formulario y te contactamos.',
+  description: 'Mirá qué se pide por casas parecidas a la tuya en tu barrio de Funes, Roldán o Rosario y pedí tu tasación. Te escribimos por WhatsApp en menos de 24 h. Sin compromiso.',
   alternates: { canonical: 'https://siinmobiliaria.com/tasaciones' },
   openGraph: {
     title: 'Tasaciones profesionales | SI INMOBILIARIA',
@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 
 const faq = [
   {
-    q: '¿Qué diferencia hay entre una estimación online y una tasación profesional?',
-    a: 'La estimación online ofrece una referencia inicial. La tasación profesional incorpora visita, estado, ubicación exacta, documentación y comparables seleccionados por un corredor inmobiliario matriculado.',
+    q: '¿Qué diferencia hay entre el rango que muestra la página y una tasación profesional?',
+    a: 'El rango es lo que se pide hoy por propiedades parecidas a la tuya, en tu barrio. La tasación profesional considera el estado, la orientación, la documentación y lo que se vendió de verdad, revisado por un corredor inmobiliario matriculado.',
   },
   {
     q: '¿En qué zonas realiza tasaciones SI INMOBILIARIA?',
@@ -24,7 +24,7 @@ const faq = [
   },
   {
     q: '¿Qué información necesitan para comenzar?',
-    a: 'La dirección, el tipo de inmueble, el objetivo de la tasación y un medio de contacto. Luego confirmamos qué documentación y visita requiere el caso.',
+    a: 'El barrio, el tipo de propiedad y los metros aproximados. Para pedir la tasación alcanza con tu nombre y tu WhatsApp: te escribimos en menos de 24 h, sin compromiso.',
   },
 ]
 
