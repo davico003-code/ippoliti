@@ -76,7 +76,9 @@ export default function Paso2Rango({ resultado: r, barrio, tipo, onPedir, onVolv
         .
       </p>
 
-      {/* Dot plot */}
+      {/* Dot plot. Cuando el rango sale de la referencia que relevó el equipo (n = 0,
+          sin comparables del barrio) no hay puntos que dibujar: se muestra solo el rango. */}
+      {r.n > 0 && (
       <div className="mt-5">
         <DotPlot valores={valores} min={min} max={max} etiqueta={etiquetaPlot} />
         <p className="mt-1 text-center text-[11.5px] font-semibold text-[#6B766E]">
@@ -91,6 +93,7 @@ export default function Paso2Rango({ resultado: r, barrio, tipo, onPedir, onVolv
           )}
         </p>
       </div>
+      )}
 
       {/* Muestras */}
       {r.muestras.length > 0 && (
