@@ -15,6 +15,9 @@ export default function FloatingWhatsApp() {
   // Hide on property detail pages (they have their own sticky bar with WhatsApp)
   if (pathname.startsWith('/propiedades/') && pathname !== '/propiedades') return null
   if (pathname.startsWith('/seleccion/')) return null
+  // /tasaciones: el pedido va a Hilo, no a WhatsApp; además el CTA fijo de abajo
+  // ocupa ese lugar.
+  if (pathname.startsWith('/tasaciones')) return null
   // Hide on Distrito Roldán (67178) — tiene su propio FAB dedicado con texto pre-cargado.
   if (pathname.startsWith('/emprendimientos/67178')) return null
   // Hide on /dockgarden — mismo patrón: FAB propio con texto pre-cargado.

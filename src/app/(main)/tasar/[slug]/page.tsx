@@ -19,7 +19,6 @@ export const revalidate = 86400
 export const dynamicParams = true
 
 const BASE = 'https://siinmobiliaria.com'
-const WSP = 'https://wa.me/5493413340916'
 
 type TipoId = TipoTasador
 const TIPOS: Record<TipoId, { label: string; articulo: string; esLote: boolean }> = {
@@ -124,11 +123,11 @@ export default async function TasarPage({ params }: { params: { slug: string } }
     },
     {
       q: '¿Por qué me piden tan pocos datos?',
-      a: 'Porque el objetivo es que tengas un número enseguida, sin registrarte ni dejar tus datos. Los detalles que mueven el valor de verdad (la orientación, la calidad de las terminaciones, el estado real) los mira un tasador en la visita.',
+      a: 'Porque el objetivo es que tengas un número enseguida, sin registrarte ni dejar tus datos. Los detalles que mueven el valor de verdad (la orientación, la calidad de las terminaciones, el estado real) los revisa un tasador del equipo cuando armamos la tasación.',
     },
     {
       q: '¿Cuánto tarda la tasación profesional?',
-      a: 'El plazo depende del tipo de inmueble, la documentación disponible y la cantidad de comparables útiles. Después de recibir los datos coordinamos la visita y confirmamos el alcance y el tiempo de entrega.',
+      a: 'El plazo depende del tipo de inmueble, la documentación disponible y la cantidad de comparables útiles. Después de recibir los datos te escribimos por WhatsApp en menos de 24 h y acordamos el alcance y el tiempo de entrega.',
     },
   ]
 
@@ -198,7 +197,6 @@ export default async function TasarPage({ params }: { params: { slug: string } }
             calidades={calidades}
             esLote={tipoInfo.esLote}
             esDepto={esDepto}
-            whatsappBase={WSP}
           />
         </div>
 
