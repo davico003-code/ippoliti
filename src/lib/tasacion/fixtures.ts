@@ -6,6 +6,8 @@
 //   · Miraflores  → nivel 1 (6 casas en el barrio)
 //   · Las Tardes  → nivel 2 (8 casas en la zona)
 //   · Funes Lakes → nivel 4 (no alcanza para un rango)
+//   · Kentucky lote → n = 0: rango por la referencia que relevó SI Inmobiliaria,
+//     sin avisos publicados (el caso real de prod que se controló el 5-sep-2026)
 
 import type { BarrioTasacion, ComparablesQuery, ComparablesResponse, TipoTasacion } from './types'
 
@@ -121,6 +123,24 @@ export function mockComparables(q: ComparablesQuery): ComparablesResponse {
 
   // Escenario 4 · Funes Lakes → sin datos suficientes.
   if (barrio.slug === 'funes-lakes') return fixtureNivel4(barrio)
+
+  // Kentucky, lote → n = 0: sin avisos del barrio, el rango sale del valor de referencia
+  // que relevó SI Inmobiliaria (mismo shape que devuelve Hilo en prod). Sin gráfico ni tarjetas.
+  if (barrio.slug === 'kentucky' && q.tipo === 'lote') {
+    const m2 = q.m2Lote && q.m2Lote > 0 ? q.m2Lote : 900
+    const aMiles = (x: number) => Math.max(1000, Math.round(x / 1000) * 1000)
+    return {
+      nivel: 1,
+      ambito: 'barrio',
+      n: 0,
+      rango: { min: aMiles(170 * m2 * 0.9), max: aMiles(170 * m2 * 1.1) },
+      unidad: 'total',
+      descripcion: 'según el valor de referencia que relevó SI Inmobiliaria para Kentucky (USD 170 por m² de tierra)',
+      periodo: 'referencia de agosto de 2026',
+      muestras: [],
+      barrio: barrioRef(barrio),
+    }
+  }
 
   // Lotes: rango en USD/m² a nivel barrio.
   if (q.tipo === 'lote') {

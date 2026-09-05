@@ -50,18 +50,30 @@ export default function Paso3Pedido({
   const digitos = normalizarCelularAr(whatsapp)
   const telValido = celularArValido(digitos)
   const nombreValido = nombre.trim().length >= 2
-  const errTel = tocado && !telValido ? 'Son 10 dígitos con el código de área (341, 3476…), sin el 15.' : null
-  const errNombre = tocado && !nombreValido ? 'Contanos tu nombre.' : null
+  // Mensajes inline bajo cada campo (control en prod, 5-sep-2026): al tocar "Pedir mi
+  // tasación" con el nombre vacío solo se enfocaba el campo y, con el teclado abierto,
+  // parecía que el botón no había andado. Vacío y mal cargado dicen cosas distintas.
+  const errTel = !tocado || telValido ? null : digitos === '' ? 'Necesitamos tu WhatsApp para mandarte la tasación.' : 'Son 10 dígitos con el código de área (341, 3476…), sin el 15.'
+  const errNombre = tocado && !nombreValido ? 'Poné tu nombre para saber a quién escribirle.' : null
+
+  // Foco en el primer inválido y lo trae a la vista: con el teclado abierto el campo
+  // puede quedar tapado y el mensaje de error, fuera de pantalla.
+  const irA = (id: string) => {
+    const el = document.getElementById(id)
+    if (!el) return
+    el.focus()
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     setTocado(true)
     if (!nombreValido) {
-      document.getElementById(idNombre)?.focus()
+      irA(idNombre)
       return
     }
     if (!telValido) {
-      document.getElementById(idTel)?.focus()
+      irA(idTel)
       return
     }
     onEnviar()

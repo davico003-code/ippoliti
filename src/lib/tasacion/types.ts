@@ -43,8 +43,9 @@ export interface ComparablesResponse {
   periodo: string
   /** Máximo 3, tal como están publicadas, sin direcciones. */
   muestras: MuestraComparable[]
-  /** Opcional: los n valores (precio total o USD/m² según `unidad`) para el
-   *  dot plot. Si Hilo no lo manda, la web dibuja solo min, max y muestras. */
+  /** Opcional: los n valores (precio total o USD/m² según `unidad`). Hilo los
+   *  sigue mandando; la web ya no los dibuja (el gráfico de puntos se sacó el
+   *  5-sep-2026 porque en prod parecía un glitch). Se conserva por contrato. */
   precios?: number[]
   barrio: { id: string; nombre: string; ciudad: Ciudad; esCerrado: boolean | null } | null
 }
