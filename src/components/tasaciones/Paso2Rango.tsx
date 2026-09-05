@@ -40,6 +40,9 @@ export default function Paso2Rango({ resultado: r, barrio, tipo, onPedir, onVolv
   const puntosCompletos = valores.length === r.n
   const etiquetaPlot = `${r.n} ${t.plural} entre USD ${fmtMiles(min)} y ${fmtMiles(max)}${esM2 ? ' el m²' : ''}`
   const partes = descripcionPartes(r, tipo, barrio)
+  // Hilo manda "publicadas en agosto de 2026"; si la descripción ya dice "publicadas en <barrio>",
+  // repetirlo suena a error ("publicadas en Vida, publicadas entre…"). Se saca la palabra, no el dato.
+  const periodoLimpio = /publicad[ao]s/i.test(r.descripcion) ? r.periodo.replace(/^publicad[ao]s\s+/i, '') : r.periodo
   const cuantas = (tipo === 'casa' ? CANTIDAD_F : CANTIDAD_M)[r.muestras.length] ?? String(r.muestras.length)
 
   return (
@@ -70,7 +73,7 @@ export default function Paso2Rango({ resultado: r, barrio, tipo, onPedir, onVolv
         )}
         {r.periodo ? (
           <>
-            , <b className="font-bold text-[#121A15]">{r.periodo}</b>
+            , <b className="font-bold text-[#121A15]">{periodoLimpio}</b>
           </>
         ) : null}
         .
