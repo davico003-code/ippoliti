@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BarrioTasacion, ComparablesResponse, TipoTasacion, UtmTasacion } from '@/lib/tasacion/types'
 import { barrioMasCercano, fmtMiles, M2_FALLBACK, parseTipo, TEXTO_TIPO, cuentaTipo, normalizarCelularAr } from '@/lib/tasacion/formato'
 import { trackEvent, trackFbCustomEvent, trackFbEvent } from '@/lib/analytics'
-import Paso1Datos from './Paso1Datos'
+import Paso1Datos, { type GeoEstado } from './Paso1Datos'
 import Paso2Rango from './Paso2Rango'
 import Paso3Pedido from './Paso3Pedido'
 import PantallaListo from './PantallaListo'
@@ -53,7 +53,8 @@ function resolverBarrioInicial(barrios: BarrioTasacion[], slug?: string, zona?: 
 function barrioPorDefecto(barrios: BarrioTasacion[], tipo: TipoTasacion, ciudad: string): BarrioTasacion | null {
   const enCiudad = barrios.filter((b) => b.ciudad === ciudad && cuentaTipo(b, tipo) > 0)
   const lista = enCiudad.length ? enCiudad : barrios.filter((b) => cuentaTipo(b, tipo) > 0)
-  if (!lista.length) return barrios[0] ?? null
+  // Sin conteos (catálogo local): el primero de la ciudad, que viene ordenado por actividad.
+  if (!lista.length) return barrios.find((b) => b.ciudad === ciudad) ?? barrios[0] ?? null
   return lista.sort((a, b) => cuentaTipo(b, tipo) - cuentaTipo(a, tipo))[0]
 }
 
@@ -78,7 +79,7 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
   const [loteTocado, setLoteTocado] = useState(false)
   const [cubTocado, setCubTocado] = useState(false)
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null)
-  const [geoEstado, setGeoEstado] = useState<'idle' | 'buscando' | 'ok' | 'fallo'>('idle')
+  const [geoEstado, setGeoEstado] = useState<GeoEstado>('idle')
   const [cargando, setCargando] = useState(false)
   const [errorPaso1, setErrorPaso1] = useState<string | null>(null)
   const [resultado, setResultado] = useState<ComparablesResponse | null>(null)
@@ -89,6 +90,8 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
 
   const tituloRef = useRef<HTMLHeadingElement>(null)
   const pasoPrevio = useRef<Paso>(paso)
+  // Guardia de reentrada del envío: no depende del re-render que deshabilita el botón.
+  const enviandoRef = useRef(false)
 
   // Medición del paso 1 (una vez).
   useEffect(() => {
@@ -134,11 +137,17 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
         const p = { lat: pos.coords.latitude, lng: pos.coords.longitude }
         setGeo(p)
         const cercano = barrioMasCercano(barrios, p)
-        if (cercano) elegirBarrio(cercano)
-        setGeoEstado('ok')
+        if (cercano) {
+          elegirBarrio(cercano)
+          setGeoEstado('ok')
+        } else {
+          // A más de 25 km del barrio más cercano: no cambiamos el barrio y lo decimos.
+          setGeoEstado('fuera')
+        }
       },
-      () => setGeoEstado('fallo'), // sin error visible: seguimos sin ubicación
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
+      () => setGeoEstado('fallo'), // permiso negado o timeout: se avisa en el botón y seguimos sin ubicación
+      // En un reintento (fuera de zona / fallo) pedimos posición fresca, no la cacheada.
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: geoEstado === 'idle' ? 300000 : 0 },
     )
   }
 
@@ -177,13 +186,15 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
     if (!r || typeof r !== 'object' || !r.rango) r = { ...nivel4(), ...(r && typeof r === 'object' ? { barrio: r.barrio ?? null, periodo: r.periodo ?? '' } : {}) }
     setResultado(r)
     setCargando(false)
-    setPaso(2)
+    // Nivel 4: no hay número que mostrar → directo al pedido, sin pantalla intermedia.
+    setPaso(r.nivel === 4 ? 3 : 2)
     trackFbCustomEvent('TasacionRango', { barrio: barrio.nombre, nivel: r.nivel, n: r.n })
     trackEvent('tasacion_rango', { barrio: barrio.nombre, nivel: r.nivel, n: r.n, tipo })
   }
 
   const enviarPedido = async () => {
-    if (!barrio || !resultado) return
+    if (!barrio || !resultado || enviandoRef.current) return
+    enviandoRef.current = true
     setEnviando(true)
     setErrorEnvio(null)
     const honeypot = (document.getElementById('website') as HTMLInputElement | null)?.value ?? ''
@@ -227,8 +238,12 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
     } catch {
       setErrorEnvio('Parece que no hay conexión. Revisá internet y probá de nuevo; tus datos quedan cargados.')
       setEnviando(false)
+    } finally {
+      enviandoRef.current = false
     }
   }
+
+  const esNivel4 = resultado?.nivel === 4
 
   const resumen = barrio
     ? `${TEXTO_TIPO[tipo].singular[0].toUpperCase() + TEXTO_TIPO[tipo].singular.slice(1)} en ${barrio.nombre}${m2Lote ? ` · ${fmtMiles(m2Lote)} m²` : ''}${m2Cub ? ` · ${fmtMiles(m2Cub)} m² cub.` : ''}`
@@ -273,6 +288,8 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
         {paso === 3 && (
           <Paso3Pedido
             resumen={resumen}
+            pocosDatos={esNivel4 && barrio ? { barrio: barrio.nombre, tipo } : null}
+            textoVolver={esNivel4 ? 'Cambiar datos' : 'Volver'}
             nombre={nombre}
             whatsapp={whatsapp}
             onNombre={setNombre}
@@ -280,7 +297,7 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
             onEnviar={enviarPedido}
             enviando={enviando}
             error={errorEnvio}
-            onVolver={() => setPaso(2)}
+            onVolver={() => setPaso(esNivel4 ? 1 : 2)}
             tituloRef={tituloRef}
           />
         )}

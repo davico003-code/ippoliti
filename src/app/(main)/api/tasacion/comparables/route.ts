@@ -29,13 +29,26 @@ export async function GET(request: NextRequest) {
   const lat = numOpt(sp.get('lat'), -90, 90)
   const lng = numOpt(sp.get('lng'), -180, 180)
 
+  // m² presentes pero fuera de rango → 400 explícito. Si los descartáramos en
+  // silencio, devolveríamos un rango sin filtro de m² que parece válido.
+  const m2CubRaw = sp.get('m2Cubiertos')
+  const m2LoteRaw = sp.get('m2Lote')
+  const m2Cubiertos = numOpt(m2CubRaw, 1, 100000)
+  const m2Lote = numOpt(m2LoteRaw, 1, 10000000)
+  if (m2CubRaw?.trim() && m2Cubiertos == null) {
+    return NextResponse.json({ error: 'm2Cubiertos fuera de rango (1 a 100.000)' }, { status: 400 })
+  }
+  if (m2LoteRaw?.trim() && m2Lote == null) {
+    return NextResponse.json({ error: 'm2Lote fuera de rango (1 a 10.000.000)' }, { status: 400 })
+  }
+
   let data
   try {
     data = await obtenerComparables({
       barrioId,
       tipo,
-      m2Cubiertos: numOpt(sp.get('m2Cubiertos'), 1, 100000),
-      m2Lote: numOpt(sp.get('m2Lote'), 1, 10000000),
+      m2Cubiertos,
+      m2Lote,
       lat: lat != null && lng != null ? lat : null,
       lng: lat != null && lng != null ? lng : null,
     })

@@ -11,9 +11,9 @@ export const VERDE = '#17613C'
 export const cls = {
   h1: 'font-poppins text-[29px] font-extrabold leading-[1.12] tracking-[-0.025em] text-[#121A15]',
   h2: 'font-poppins text-[26px] font-extrabold leading-[1.15] tracking-[-0.02em] text-[#121A15]',
-  lbl: 'font-poppins text-[12px] font-semibold uppercase tracking-[0.09em] text-[#7C877F]',
+  lbl: 'font-poppins text-[12px] font-semibold uppercase tracking-[0.09em] text-[#6B766E]',
   sub: 'text-[15px] leading-[1.4] font-medium text-[#3C4A42]',
-  fine: 'text-center text-[12.5px] font-medium text-[#7C877F]',
+  fine: 'text-center text-[12.5px] font-medium text-[#6B766E]',
   cta: 'si-tap flex h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl bg-[#17613C] font-poppins text-[17px] font-semibold tracking-[-0.01em] text-white shadow-[0_10px_22px_-10px_rgba(23,97,60,0.6)] transition-colors hover:bg-[#0E4529] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none',
 }
 
@@ -97,7 +97,22 @@ export function FotoDavid({ size, className = '' }: { size: number; className?: 
   )
 }
 
-/** Tarjeta verde "¿Y la tuya?" del paso 2 (también en nivel 4). */
+/** Aviso ámbar: pocos comparables (nivel 4). Va arriba del formulario del
+ *  paso 3, sin ningún número ni cantidad. */
+export function AvisoPocosDatos({ children }: { children: ReactNode }) {
+  return (
+    <div role="status" className="mt-3.5 flex items-start gap-3 rounded-[18px] border-[1.5px] border-[#F3E2BF] bg-[#FFF7E8] px-3.5 py-3">
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-0.5 h-[22px] w-[22px] flex-none text-[#B7791F]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8v5" />
+        <path d="M12 16.5h.01" />
+      </svg>
+      <p className="text-[15px] font-medium leading-[1.45] text-[#3C4A42]">{children}</p>
+    </div>
+  )
+}
+
+/** Tarjeta verde "¿Y la tuya?" del paso 2. */
 export function TarjetaEquipo({ titulo, texto }: { titulo: string; texto: string }) {
   return (
     <section
@@ -106,7 +121,7 @@ export function TarjetaEquipo({ titulo, texto }: { titulo: string; texto: string
     >
       <FotoDavid size={54} className="border-[2.5px] border-white shadow-[0_2px_8px_rgba(18,30,22,0.15)]" />
       <div>
-        <h3 className="font-poppins text-[18px] font-semibold leading-[1.2] tracking-[-0.015em] text-[#121A15]">{titulo}</h3>
+        <p className="font-poppins text-[18px] font-semibold leading-[1.2] tracking-[-0.015em] text-[#121A15]">{titulo}</p>
         <p className="mt-1.5 text-[14.5px] font-medium leading-[1.45] text-[#3C4A42]">{texto}</p>
         <p className="mt-2 font-poppins text-[11px] font-semibold uppercase tracking-[0.08em] text-[#17613C]">
           SI Inmobiliaria · David Flores, corredor responsable · Mat. 0621
@@ -125,7 +140,7 @@ export function TarjetaConfianza() {
     >
       <FotoDavid size={60} className="border-[2.5px] border-[#D7E8DD]" />
       <div className="flex-1 min-w-0">
-        <p className="mb-0.5 font-poppins text-[11px] font-semibold uppercase tracking-[0.09em] text-[#7C877F]">Te atiende</p>
+        <p className="mb-0.5 font-poppins text-[11px] font-semibold uppercase tracking-[0.09em] text-[#6B766E]">Te atiende</p>
         <p className="font-poppins text-[16px] font-semibold leading-tight tracking-[-0.01em] text-[#121A15]">El equipo de SI Inmobiliaria</p>
         <p className="mt-0.5 text-[13.5px] font-medium text-[#3C4A42]">
           David Flores, corredor responsable · Mat. <span className="font-poppins font-semibold">0621</span>
@@ -153,7 +168,7 @@ export function Volver({ onClick, children }: { onClick: () => void; children: R
     <button
       type="button"
       onClick={onClick}
-      className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-[13.5px] font-semibold text-[#7C877F] hover:text-[#17613C]"
+      className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-[13.5px] font-semibold text-[#6B766E] hover:text-[#17613C]"
     >
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
         <path d="M15 5l-7 7 7 7" />

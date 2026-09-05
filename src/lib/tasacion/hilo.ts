@@ -4,8 +4,10 @@
 // Reglas:
 //   · HILO_TASACION_MOCK=1 → fixtures siempre (desarrollo sin Hilo).
 //   · En desarrollo, si Hilo responde 404/5xx o no responde → fixtures.
-//   · En producción, si Hilo falla → barrios vacíos / nivel 4. La página nunca rompe.
+//   · En producción, si Hilo falla → barrios del catálogo local (sin comparables:
+//     todo nivel 4, pero el pedido funciona) / nivel 4. La página nunca rompe.
 
+import { BARRIOS_TASADOR } from '@/lib/tasador/barrios'
 import { FIXTURE_BARRIOS, fixtureNivel4, mockComparables } from './fixtures'
 import type {
   BarrioTasacion,
@@ -65,6 +67,33 @@ export function slugify(s: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+const CIUDADES_SLUG = new Set(['funes', 'roldan', 'rosario'])
+
+let cacheLocales: BarrioTasacion[] | null = null
+
+/** Catálogo local (src/lib/tasador/barrios.ts: barrios reales con centroide),
+ *  sin comparables. Es la red de seguridad de producción cuando Hilo no
+ *  responde: los chips y el selector funcionan, y el pedido llega igual. Se
+ *  ordena por actividad del feed para que los chips sugeridos tengan sentido. */
+export function barriosLocales(): BarrioTasacion[] {
+  if (cacheLocales) return cacheLocales
+  cacheLocales = BARRIOS_TASADOR.filter((b) => !CIUDADES_SLUG.has(b.slug))
+    .sort((a, b) => b.muestras + b.muestrasDepto - (a.muestras + a.muestrasDepto))
+    .map((b) => ({
+      id: b.slug,
+      nombre: b.nombre,
+      slug: b.slug,
+      ciudad: b.ciudad,
+      esCerrado: b.cerrado,
+      centroide: { lat: b.lat, lng: b.lon },
+      m2Tipico: { lote: null, cubiertos: null },
+      tiene: { casas: 0, lotes: 0, deptos: 0 },
+    }))
+  return cacheLocales
+}
+
+const sinHilo = () => (esDesarrollo() ? FIXTURE_BARRIOS : barriosLocales())
+
 export async function obtenerBarrios(): Promise<BarrioTasacion[]> {
   if (esMockTasacion()) return FIXTURE_BARRIOS
   try {
@@ -74,16 +103,16 @@ export async function obtenerBarrios(): Promise<BarrioTasacion[]> {
     })
     if (!res.ok) {
       console.warn('[tasacion] barrios no-ok:', res.status)
-      if (esDesarrollo() && (res.status === 404 || res.status >= 500)) return FIXTURE_BARRIOS
-      return []
+      return sinHilo()
     }
     const data = (await res.json()) as { barrios?: unknown[] }
-    return (Array.isArray(data?.barrios) ? data.barrios : [])
+    const barrios = (Array.isArray(data?.barrios) ? data.barrios : [])
       .map(normalizarBarrio)
       .filter((x): x is BarrioTasacion => x !== null)
+    return barrios.length ? barrios : sinHilo()
   } catch (err) {
     console.warn('[tasacion] barrios error:', err)
-    return esDesarrollo() ? FIXTURE_BARRIOS : []
+    return sinHilo()
   }
 }
 

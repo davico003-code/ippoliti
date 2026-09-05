@@ -8,6 +8,17 @@ import { cuentaTipo, M2_FALLBACK, presetsM2, TEXTO_TIPO } from '@/lib/tasacion/f
 import SelectorBarrios from './SelectorBarrios'
 import { BarraFija, cls, IconoFlecha, IconoUbicacion, Spinner } from './ui'
 
+/** idle → buscando → ok (barrio elegido) | fuera (a más de 25 km) | fallo (sin permiso / timeout). */
+export type GeoEstado = 'idle' | 'buscando' | 'ok' | 'fuera' | 'fallo'
+
+const TEXTO_GEO: Record<GeoEstado, string> = {
+  idle: 'Usar mi ubicación',
+  buscando: 'Buscando…',
+  ok: 'Ubicación usada',
+  fuera: 'Estás fuera de nuestra zona',
+  fallo: 'No pudimos usar tu ubicación',
+}
+
 export interface DatosPaso1 {
   barrio: BarrioTasacion | null
   tipo: TipoTasacion
@@ -24,7 +35,7 @@ interface Props {
   onLote: (v: string) => void
   onCubiertos: (v: string) => void
   onUbicacion: () => void
-  geoEstado: 'idle' | 'buscando' | 'ok' | 'fallo'
+  geoEstado: GeoEstado
   onContinuar: () => void
   cargando: boolean
   error: string | null
@@ -58,7 +69,7 @@ function CampoM2({
         <label htmlFor={id} className="text-[15px] font-bold text-[#121A15]">
           {etiqueta}
         </label>
-        <span className="text-[12.5px] font-medium text-[#7C877F]">{ayuda}</span>
+        <span className="text-[12.5px] font-medium text-[#6B766E]">{ayuda}</span>
       </div>
       <div className="mt-[7px] flex items-center gap-[7px]">
         <div className="relative w-[126px] flex-none">
@@ -72,7 +83,7 @@ function CampoM2({
             onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
             className="h-[52px] w-full rounded-[14px] border-[1.5px] border-[#E1E6E1] bg-white pl-4 pr-10 text-center font-poppins text-[22px] font-semibold tracking-[-0.01em] text-[#121A15] focus:border-2 focus:border-[#17613C] focus:outline-none focus-visible:outline-none focus:ring-4 focus:ring-[#17613C]/10"
           />
-          <span aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-[#7C877F]">
+          <span aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-[#6B766E]">
             m²
           </span>
         </div>
@@ -122,10 +133,11 @@ export default function Paso1Datos({
 
   // Chips: los 4 barrios de la ciudad con más comparables del tipo elegido.
   // El seleccionado siempre está (aunque no sea top).
-  const sugeridos = barrios
-    .filter((b) => b.ciudad === ciudad && cuentaTipo(b, tipo) > 0)
-    .sort((a, b) => cuentaTipo(b, tipo) - cuentaTipo(a, tipo))
-    .slice(0, 4)
+  // Sin conteos (catálogo local, Hilo caído): los 4 primeros de la ciudad, que
+  // vienen ordenados por actividad.
+  const enCiudad = barrios.filter((b) => b.ciudad === ciudad)
+  const conDatos = enCiudad.filter((b) => cuentaTipo(b, tipo) > 0).sort((a, b) => cuentaTipo(b, tipo) - cuentaTipo(a, tipo))
+  const sugeridos = (conDatos.length ? conDatos : enCiudad).slice(0, 4)
   if (barrio && !sugeridos.some((b) => b.id === barrio.id)) {
     if (sugeridos.length >= 4) sugeridos.pop()
     sugeridos.unshift(barrio)
@@ -149,7 +161,7 @@ export default function Paso1Datos({
         ¿Cuánto vale {t.tuCasa} hoy?
       </h1>
       <p className={`${cls.sub} mt-2.5`}>
-        Mirá qué se pide por {t.plural} parecid{tipo === 'casa' ? 'as' : 'os'} a {tipo === 'casa' ? 'la tuya' : 'el tuyo'}, en tu barrio.
+        Mirá qué se pide por {t.plural} {t.parecidas} {t.alTuyo}, en tu barrio.
       </p>
 
       {/* Barrio */}
@@ -161,10 +173,13 @@ export default function Paso1Datos({
           type="button"
           onClick={onUbicacion}
           disabled={geoEstado === 'buscando'}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1.5 text-[12.5px] font-semibold text-[#7C877F] hover:text-[#17613C] disabled:opacity-60"
+          aria-live="polite"
+          className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1.5 text-right text-[12.5px] font-semibold hover:text-[#17613C] disabled:opacity-60 ${
+            geoEstado === 'fuera' || geoEstado === 'fallo' ? 'text-[#B7791F]' : 'text-[#6B766E]'
+          }`}
         >
           <IconoUbicacion />
-          {geoEstado === 'buscando' ? 'Buscando…' : geoEstado === 'ok' ? 'Ubicación usada' : 'Usar mi ubicación'}
+          {TEXTO_GEO[geoEstado]}
         </button>
       </div>
       <div role="group" aria-labelledby="lbl-barrio" className="mt-2 flex flex-wrap gap-2">
@@ -228,7 +243,7 @@ export default function Paso1Datos({
         />
       )}
 
-      <p className="mt-4 text-center text-[12.5px] font-medium text-[#7C877F]">
+      <p className="mt-4 text-center text-[12.5px] font-medium text-[#6B766E]">
         {tipo === 'casa' ? (
           <>
             ¿No es una casa?{' '}

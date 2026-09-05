@@ -28,7 +28,7 @@ export default function PantallaListo({ nombre, resumen, tituloRef }: Props) {
       <p className="mt-6 text-[14.5px] font-medium leading-[1.5] text-[#3C4A42]">
         Un tasador del equipo revisa lo que se vendió de verdad en tu zona y te manda el número por WhatsApp. Sin compromiso.
       </p>
-      <p className="mt-2 text-[12.5px] font-medium text-[#7C877F]">SI Inmobiliaria · desde 1983 · David Flores, corredor responsable · Mat. 0621</p>
+      <p className="mt-2 text-[12.5px] font-medium text-[#6B766E]">SI Inmobiliaria · desde 1983 · David Flores, corredor responsable · Mat. 0621</p>
       <Link
         href="/"
         className="si-tap mt-8 inline-flex h-12 items-center justify-center rounded-2xl border-[1.5px] border-[#E1E6E1] bg-white px-5 text-[15px] font-bold text-[#17613C] hover:border-[#17613C]"

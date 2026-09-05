@@ -3,13 +3,77 @@
 
 import type { BarrioTasacion, ComparablesResponse, TipoTasacion } from './types'
 
+/** Textos por tipo, con el género ya resuelto (casa es femenino; lote y depto,
+ *  masculino). Todo copy que dependa del tipo sale de acá, no de ternarios. */
 export const TEXTO_TIPO: Record<
   TipoTasacion,
-  { singular: string; plural: string; comoLaTuya: string; tuCasa: string; articulo: string }
+  {
+    singular: string
+    plural: string
+    /** "como la tuya" / "como el tuyo" */
+    comoLaTuya: string
+    /** "tu casa" / "tu lote" */
+    tuCasa: string
+    /** "una casa" / "un lote" */
+    articulo: string
+    /** "parecidas" / "parecidos" */
+    parecidas: string
+    /** "publicadas" / "publicados" */
+    publicadas: string
+    /** "a la tuya" / "al tuyo" */
+    alTuyo: string
+    /** "esas" / "esos" */
+    esas: string
+    /** "una" / "uno" */
+    una: string
+    /** "las" / "los" */
+    las: string
+    /** "¿Y la tuya?" / "¿Y el tuyo?" */
+    yLaTuya: string
+  }
 > = {
-  casa: { singular: 'casa', plural: 'casas', comoLaTuya: 'como la tuya', tuCasa: 'tu casa', articulo: 'una casa' },
-  lote: { singular: 'lote', plural: 'lotes', comoLaTuya: 'como el tuyo', tuCasa: 'tu lote', articulo: 'un lote' },
-  depto: { singular: 'depto', plural: 'deptos', comoLaTuya: 'como el tuyo', tuCasa: 'tu depto', articulo: 'un depto' },
+  casa: {
+    singular: 'casa',
+    plural: 'casas',
+    comoLaTuya: 'como la tuya',
+    tuCasa: 'tu casa',
+    articulo: 'una casa',
+    parecidas: 'parecidas',
+    publicadas: 'publicadas',
+    alTuyo: 'a la tuya',
+    esas: 'esas',
+    una: 'una',
+    las: 'las',
+    yLaTuya: '¿Y la tuya?',
+  },
+  lote: {
+    singular: 'lote',
+    plural: 'lotes',
+    comoLaTuya: 'como el tuyo',
+    tuCasa: 'tu lote',
+    articulo: 'un lote',
+    parecidas: 'parecidos',
+    publicadas: 'publicados',
+    alTuyo: 'al tuyo',
+    esas: 'esos',
+    una: 'uno',
+    las: 'los',
+    yLaTuya: '¿Y el tuyo?',
+  },
+  depto: {
+    singular: 'depto',
+    plural: 'deptos',
+    comoLaTuya: 'como el tuyo',
+    tuCasa: 'tu depto',
+    articulo: 'un depto',
+    parecidas: 'parecidos',
+    publicadas: 'publicados',
+    alTuyo: 'al tuyo',
+    esas: 'esos',
+    una: 'uno',
+    las: 'los',
+    yLaTuya: '¿Y el tuyo?',
+  },
 }
 
 export function parseTipo(v: string | null | undefined): TipoTasacion | null {
@@ -85,6 +149,35 @@ export function tituloComparables(r: ComparablesResponse, tipo: TipoTasacion, ba
       : `${Plural} ${t.comoLaTuya} en barrios ${cerrado ? 'cerrados' : 'abiertos'} de ${barrio.ciudad}`
   }
   return `${Plural} ${t.comoLaTuya} en ${barrio.nombre}`
+}
+
+export interface ParteTexto {
+  texto: string
+  /** En negrita (la cantidad con sus m², y el lugar). */
+  fuerte?: boolean
+}
+
+/** "según 6 casas de 180 a 260 m² publicadas en Miraflores" partido en piezas
+ *  para resaltar lo importante. Si Hilo manda la descripción con la forma
+ *  esperada, la partimos; si manda otra cosa, va tal cual; si no manda nada,
+ *  la componemos con n, los m² de las muestras y el ámbito. */
+export function descripcionPartes(r: ComparablesResponse, tipo: TipoTasacion, barrio: BarrioTasacion): ParteTexto[] {
+  const t = TEXTO_TIPO[tipo]
+  const d = r.descripcion.trim().replace(/[.\s]+$/, '')
+  const m = d.match(/^seg[uú]n\s+(.+?)\s+(publicad[ao]s)\s+(en|cerca de)\s+(.+)$/i)
+  if (m) {
+    return [{ texto: 'según ' }, { texto: m[1], fuerte: true }, { texto: ` ${m[2]} ${m[3]} ` }, { texto: m[4], fuerte: true }]
+  }
+  if (d) return [{ texto: d }]
+
+  const m2 = r.muestras
+    .map((x) => (tipo === 'lote' ? x.m2Lote : x.m2Cubiertos))
+    .filter((x): x is number => x != null && x > 0)
+  const conM2 = m2.length >= 2 && Math.min(...m2) !== Math.max(...m2)
+  const cantidad = `${r.n} ${t.plural}${conM2 ? ` de ${fmtMiles(Math.min(...m2))} a ${fmtMiles(Math.max(...m2))} m²` : ''}`
+  const lugar =
+    r.ambito === 'zona' ? ['cerca de', barrio.nombre] : r.ambito === 'ciudad' ? ['en', barrio.ciudad] : ['en', barrio.nombre]
+  return [{ texto: 'según ' }, { texto: cantidad, fuerte: true }, { texto: ` ${t.publicadas} ${lugar[0]} ` }, { texto: lugar[1], fuerte: true }]
 }
 
 // ── Teléfono AR (celular, sin +54 9) ────────────────────────────────────────

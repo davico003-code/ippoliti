@@ -3,11 +3,16 @@
 // Paso 3: nombre + WhatsApp. Nada más. El pedido va a Hilo; no abre WhatsApp.
 
 import { useId, useState } from 'react'
-import { celularArValido, normalizarCelularAr } from '@/lib/tasacion/formato'
-import { BarraFija, cls, IconoCheck, IconoEnviar, PillResumen, Spinner, TarjetaConfianza, Volver } from './ui'
+import type { TipoTasacion } from '@/lib/tasacion/types'
+import { celularArValido, normalizarCelularAr, TEXTO_TIPO } from '@/lib/tasacion/formato'
+import { AvisoPocosDatos, BarraFija, cls, IconoCheck, IconoEnviar, PillResumen, Spinner, TarjetaConfianza, Volver } from './ui'
 
 interface Props {
   resumen: string
+  /** Nivel 4: se llega directo desde el paso 1, sin rango. Se avisa arriba del
+   *  formulario, sin ningún número. */
+  pocosDatos?: { barrio: string; tipo: TipoTasacion } | null
+  textoVolver?: string
   nombre: string
   whatsapp: string
   onNombre: (v: string) => void
@@ -22,7 +27,20 @@ interface Props {
 const input =
   'h-[54px] w-full rounded-2xl border-[1.5px] border-[#E1E6E1] bg-white px-4 text-[16px] font-medium text-[#121A15] placeholder:text-[#A6AFAA] focus:border-2 focus:border-[#17613C] focus:outline-none focus-visible:outline-none focus:ring-4 focus:ring-[#17613C]/10 aria-[invalid=true]:border-[#C2410C]'
 
-export default function Paso3Pedido({ resumen, nombre, whatsapp, onNombre, onWhatsapp, onEnviar, enviando, error, onVolver, tituloRef }: Props) {
+export default function Paso3Pedido({
+  resumen,
+  pocosDatos,
+  textoVolver = 'Volver',
+  nombre,
+  whatsapp,
+  onNombre,
+  onWhatsapp,
+  onEnviar,
+  enviando,
+  error,
+  onVolver,
+  tituloRef,
+}: Props) {
   const idNombre = useId()
   const idTel = useId()
   const idErrTel = useId()
@@ -51,10 +69,16 @@ export default function Paso3Pedido({ resumen, nombre, whatsapp, onNombre, onWha
 
   return (
     <>
-      <Volver onClick={onVolver}>Volver</Volver>
+      <Volver onClick={onVolver}>{textoVolver}</Volver>
       <h1 ref={tituloRef} tabIndex={-1} className={`${cls.h2} outline-none focus-visible:outline-none`}>
         Pedí tu tasación
       </h1>
+      {pocosDatos && (
+        <AvisoPocosDatos>
+          Todavía no tenemos suficientes {TEXTO_TIPO[pocosDatos.tipo].plural} {TEXTO_TIPO[pocosDatos.tipo].parecidas} en{' '}
+          <b className="font-bold text-[#121A15]">{pocosDatos.barrio}</b>. Un tasador del equipo te lo calcula.
+        </AvisoPocosDatos>
+      )}
       <PillResumen texto={resumen} />
       <TarjetaConfianza />
 
@@ -105,7 +129,7 @@ export default function Paso3Pedido({ resumen, nombre, whatsapp, onNombre, onWha
             className={`${input} pl-[92px] font-poppins`}
           />
         </div>
-        <p id={idErrTel} className={`mt-1.5 text-[13px] font-medium ${errTel ? 'text-[#C2410C]' : 'text-[#7C877F]'}`}>
+        <p id={idErrTel} className={`mt-1.5 text-[13px] font-medium ${errTel ? 'text-[#C2410C]' : 'text-[#6B766E]'}`}>
           {errTel ?? 'Código de área + número, sin el 15. Ej.: 341 555 1234.'}
         </p>
 
@@ -125,7 +149,7 @@ export default function Paso3Pedido({ resumen, nombre, whatsapp, onNombre, onWha
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-center text-[12.5px] font-medium text-[#7C877F]">Tus datos se usan solo para esta tasación.</p>
+        <p className="mt-3 text-center text-[12.5px] font-medium text-[#6B766E]">Tus datos se usan solo para esta tasación.</p>
 
         {error && (
           <p role="alert" className="mt-3 rounded-xl border border-[#F3E2BF] bg-[#FFF7E8] px-3.5 py-2.5 text-[13.5px] font-medium text-[#7A5A16]">
