@@ -35,6 +35,8 @@ export default function FloatingWhatsApp() {
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => events.clickWhatsapp()}
+      // Se esconde mientras una hoja del plano de lotes está abierta (globals.css).
+      data-fab-whatsapp
       // Hidden on mobile home (FooterMobile has its own WhatsApp CTA)
       className={`si-tap fixed bottom-4 right-4 z-50 p-3 bg-[#25D366] text-white rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] transition-all hover:bg-[#128C7E] md:bottom-6 md:right-6 md:p-4 md:hover:-translate-y-1 md:hover:scale-105 flex items-center justify-center ${pathname === '/' ? 'hidden md:flex' : ''}`}
       aria-label="Contactar por WhatsApp"

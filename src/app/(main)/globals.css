@@ -373,3 +373,14 @@ div[id="nosotros"] {
     scroll-behavior: auto !important;
   }
 }
+
+/* Distrito Roldán (06-sep-2026): mientras la hoja del lote está abierta dentro
+   del plano (iframe), el botón flotante de WhatsApp de la página queda encima
+   de ella —tapaba la línea "Sin compromiso" y competía con el formulario que
+   manda la consulta al CRM—. El plano avisa por postMessage y SeccionPlanoLotes
+   prende esta clase en el body. */
+body.dr-hoja-abierta [data-fab-whatsapp] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}

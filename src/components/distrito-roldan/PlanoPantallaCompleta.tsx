@@ -14,7 +14,10 @@
 
 import { useEffect, useState } from 'react'
 
-const SRC = '/planos/distrito-roldan.html'
+// ?pantalla=completa: el plano se centra solo adentro del iframe y la hoja del
+// lote llega al borde inferior real de la pantalla (06-sep-2026). Por eso acá
+// el iframe mide como mínimo 100dvh y ya no hace falta centrarlo desde afuera.
+const SRC = '/planos/distrito-roldan.html?pantalla=completa'
 
 export default function PlanoPantallaCompleta() {
   const [alto, setAlto] = useState<number | null>(null)
@@ -49,7 +52,7 @@ export default function PlanoPantallaCompleta() {
         style={{
           display: 'block',
           width: '100%',
-          height: alto ? `${alto}px` : '420px',
+          height: alto ? `max(${alto}px, 100dvh)` : '420px',
           border: 0,
           opacity: alto ? 1 : 0,
           transition: 'opacity .25s ease',

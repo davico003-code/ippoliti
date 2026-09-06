@@ -10,6 +10,8 @@
 import type { Metadata } from 'next'
 import { Raleway, Poppins } from 'next/font/google'
 import '../(main)/globals.css'
+import MetaPixel from '@/components/MetaPixel'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 
 const raleway = Raleway({
   subsets: ['latin'],
@@ -43,6 +45,11 @@ export default function PlanoRootLayout({ children }: { children: React.ReactNod
         }}
       >
         {children}
+        {/* 06-sep-2026: el plano (iframe same-origin) dispara LoteVisto/Lead y
+            dr_lote_visto/dr_pedido en la ventana padre. Sin esto, el link que
+            se manda por WhatsApp no medía nada. Mismos componentes que (main). */}
+        <MetaPixel />
+        <GoogleAnalytics />
       </body>
     </html>
   )

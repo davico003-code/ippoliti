@@ -16,16 +16,18 @@
 
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { list, put } from '@vercel/blob'
+import { put } from '@vercel/blob'
 import { verifyAgentToken } from '@/lib/auth'
+import { leerPlanoPublicado, PLANO_BLOB_PATH, PLANO_BLOB_TOKEN } from '@/lib/distrito-roldan/plano-publicado'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const BLOB_PATH = 'plano-lotes/distrito-roldan.json'
-// El store por defecto (BLOB_READ_WRITE_TOKEN) es privado; el del blog es
-// el público y es el que ya usan capacitaciones y las notas.
-const BLOB_TOKEN = process.env.BLOG_READ_WRITE_TOKEN
+// La lectura vive en lib/distrito-roldan/plano-publicado.ts porque también
+// la usa /api/distrito-roldan/consulta (06-sep-2026) para tomar los números
+// del lote del plano vivo y no del navegador.
+const BLOB_PATH = PLANO_BLOB_PATH
+const BLOB_TOKEN = PLANO_BLOB_TOKEN
 
 const ESTADOS = new Set(['d', 'n', 'v'])
 
@@ -78,19 +80,10 @@ export async function GET() {
     // minuto y las vistas del plano no golpean Blob una por una.
     'cache-control': 'public, s-maxage=60, stale-while-revalidate=300',
   }
-  try {
-    const result = await list({ prefix: BLOB_PATH, token: BLOB_TOKEN })
-    const match = result.blobs.find((b) => b.pathname === BLOB_PATH)
-    if (!match) return NextResponse.json(vacio, { headers })
-    const res = await fetch(match.url, { cache: 'no-store' })
-    if (!res.ok) return NextResponse.json(vacio, { headers })
-    const data = await res.json()
-    return NextResponse.json(data, { headers })
-  } catch {
-    // Sin Blob (token ausente, red caída) el plano sigue con sus datos
-    // embebidos: fail-open, nunca un 500 que rompa la carga.
-    return NextResponse.json(vacio, { headers })
-  }
+  // Sin Blob (token ausente, red caída) el plano sigue con sus datos
+  // embebidos: fail-open, nunca un 500 que rompa la carga.
+  const data = await leerPlanoPublicado()
+  return NextResponse.json(data ?? vacio, { headers })
 }
 
 export async function POST(req: Request) {
