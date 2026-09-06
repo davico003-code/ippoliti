@@ -31,6 +31,12 @@ body{
 :focus-visible{outline:3px solid #1F5FBF;outline-offset:2px;border-radius:4px}
 button{font:inherit;color:inherit;touch-action:manipulation}
 
+/* ?pantalla=completa (link público /distrito-roldan-precios, 06-sep-2026): el
+   iframe ocupa al menos toda la pantalla y el plano se centra adentro. Así la
+   hoja del lote y su fondo oscuro llegan al borde inferior real de la pantalla
+   (antes el iframe medía lo justo del plano y la hoja quedaba flotando). */
+html.completa{height:100%}
+html.completa body{min-height:100%;display:flex;flex-direction:column;justify-content:center}
 .wrap{max-width:920px;margin:0 auto;padding:14px;
   padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
 @media (max-width:960px){ .wrap{padding:8px} }
@@ -225,75 +231,135 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .pie .legal{flex:1 1 260px;min-width:0}
 @media (max-width:560px){ .pie{font-size:10.5px;gap:3px 10px;margin-top:8px} }
 
-/* ---------- ficha del lote (flotante sobre el mapa) ---------- */
-.side{position:absolute;right:12px;top:12px;width:328px;z-index:38;
+/* ---------- hoja del lote ----------
+   06-sep-2026: reemplaza al "tocar lote → wa.me". En escritorio flota sobre el
+   plano (arriba a la derecha); en el celular es una hoja que sube desde abajo.
+   Tres vistas: detalle (la cuota primero), pedido (nombre + WhatsApp) y listo.
+   Paleta del plano (tierra/verde oliva); el verde de marca SI (#17613C) solo en
+   la tarjeta del equipo. */
+.scrim{position:fixed;inset:0;z-index:58;background:rgba(35,41,31,.30);opacity:0;pointer-events:none;transition:opacity .2s ease}
+.scrim.on{opacity:1;pointer-events:auto}
+@media (min-width:961px){ .scrim{display:none} }
+.side{position:absolute;right:12px;top:12px;width:352px;z-index:38;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
   box-shadow:0 2px 6px rgba(35,41,31,.14),0 18px 44px -14px rgba(35,41,31,.5);
   opacity:0;transform:translateY(-8px);pointer-events:none;
   transition:opacity .2s ease,transform .2s ease;max-height:calc(100% - 24px);overflow:auto;
-  overscroll-behavior:contain}
+  overscroll-behavior:contain;font-variant-numeric:tabular-nums}
 .side.open{opacity:1;transform:translateY(0);pointer-events:auto}
-.side h2{margin:0;padding:13px 16px;font-size:13px;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--ink-2);border-bottom:1px solid var(--line)}
-.side .body{padding:14px 16px}
-.closer{position:absolute;right:8px;top:8px;width:38px;height:38px;border-radius:10px;
-  border:1px solid var(--line);background:#fff;font-size:19px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center}
+.side .body{padding:14px 18px 16px}
+.side .handle{display:none;width:38px;height:5px;border-radius:3px;background:#CBC3B2;margin:8px auto 0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
+.row-r{display:flex;align-items:center;gap:8px}
+.closer{width:44px;height:44px;margin-right:-8px;border-radius:11px;border:1px solid var(--line);background:#fff;
+  font-size:21px;line-height:1;color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none}
 .closer:hover{background:var(--paper-2)}
-
-/* Cabecera del detalle en UNA línea: número + manzana a la izquierda y los
-   chips de estado a la derecha. Antes iban apilados y comían alto, que en el
-   celular obligaba a scrollear el panel para llegar al precio. */
-.lotline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.lotnum{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
-.lotnum b{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.back{display:inline-flex;align-items:center;gap:2px;min-height:44px;margin-left:-8px;padding:0 8px 0 4px;border:0;background:none;
+  font-size:15px;font-weight:600;color:var(--ink-2);cursor:pointer;border-radius:8px}
+.back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.lotnum{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.lotnum b{font-size:27px;font-weight:800;letter-spacing:-.03em;line-height:1;outline-offset:4px}
 .lotnum .mz{font-size:12.5px;color:var(--ink-2);font-weight:600}
-.tags{display:flex;gap:6px;flex-wrap:wrap}
-/* Medidas en una sola línea: "16,60 m × 30,00 m · 498 m²". */
-.medidas{margin:9px 0 0;font-size:13.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.medidas b{color:var(--ink);font-weight:700}
-/* Lista y contado lado a lado. */
-.precios{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
-  margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.precios .price{display:block;flex:0 1 auto}
-.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
-  border-radius:999px;padding:5px 11px;border:1px solid transparent}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;border-radius:999px;padding:5px 10px;border:1px solid transparent;white-space:nowrap}
 .tag i{width:8px;height:8px;border-radius:99px;display:block}
 .tag.t-disp{background:#EAF2DE;color:#3D5720;border-color:#C9DDAE}
 .tag.t-nodisp{background:#FAF0D6;color:#7A5C0C;border-color:#EAD5A0}
 .tag.t-vend{background:#EDEBE7;color:#575349;border-color:#D8D4CB}
-.tag.t-tipo{background:#E4EDE7;color:#2C4A38;border-color:#C2D6C9}
-dl.specs{display:grid;grid-template-columns:1fr auto;gap:9px 12px;margin:15px 0 0;font-size:14px}
-dl.specs dt{color:var(--ink-2)}
-dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
-.rule{height:1px;background:var(--line);margin:15px 0}
-.price .v{display:block;font-size:25px;font-weight:800;letter-spacing:-.02em;
-  font-variant-numeric:tabular-nums;line-height:1.1}
-.price .k{display:block;font-size:11px;color:var(--ink-2);font-weight:600;
-  text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
-.price2{text-align:right}
-.price2 .v{font-size:18px;color:var(--ink-2)}
-.fin{margin:9px 0 0;font-size:13px;color:var(--ink-2);line-height:1.45}
-.fin-nota{font-size:12.5px;opacity:.8}
-.fin b{color:var(--ink);font-variant-numeric:tabular-nums}
-.wa{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:12px;
-  min-height:48px;border-radius:12px;border:0;background:#1FA855;color:#fff;
-  font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;
-  box-shadow:0 1px 2px rgba(0,0,0,.14),0 6px 16px -6px rgba(31,168,85,.6);transition:background .14s ease}
-.wa:hover{background:#188544}
-.wa svg{width:19px;height:19px;fill:currentColor;flex:none}
-.muted{font-size:12px;color:var(--ink-2);margin:10px 0 0;line-height:1.5}
+.medidas{margin:6px 0 0;font-size:14px;color:var(--ink-2)}
+.medidas b{color:var(--ink);font-weight:700}
+.k{display:block;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
+.v{display:block;font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.05;white-space:nowrap;color:var(--ink)}
+.v small{font-size:14px;font-weight:600;color:var(--ink-2);letter-spacing:0}
+.v2{font-size:19px;color:var(--ink-2);font-weight:700}
+.der{text-align:right}
+.precios{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+.total{margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;gap:10px;white-space:nowrap}
+.total .k{margin-bottom:1px;font-size:10px}
+.total b{display:block;font-size:15px;font-weight:700;color:var(--ink)}
+.total b small{font-size:13px;font-weight:600;color:var(--ink-2)}
+.desde{margin:9px 0 0;display:flex;align-items:center;gap:7px;font-size:12.5px;line-height:1.3;color:var(--ink-2);background:var(--paper-2);border-radius:9px;padding:4px 2px 4px 10px}
+.desde b{color:var(--ink);font-weight:700}
+.desde span{min-width:0}   /* en anchos chicos (landing, panel de escritorio) envuelve a dos líneas en vez de cortarse */
+.lnk{margin-left:auto;min-height:44px;padding:0 8px;border:0;background:none;font:inherit;font-size:13px;font-weight:700;color:var(--brand);
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer;border-radius:6px;flex:none}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;margin-top:11px;border-radius:14px;border:0;
+  font:inherit;font-size:16px;font-weight:700;letter-spacing:-.005em;text-decoration:none;cursor:pointer;transition:background .14s ease,opacity .14s ease}
+.btn-p{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.14),0 8px 20px -8px rgba(47,74,58,.65)}
+.btn-p:hover{background:#26402F}
+.btn-p[disabled]{opacity:.7;cursor:progress}
+.btn-s{background:#fff;color:var(--brand);border:1.5px solid rgba(47,74,58,.35)}
+.btn-s:hover{border-color:var(--brand)}
+.btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;flex:none}
+.fine{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--ink-2);text-align:center}
+.muted{font-size:13.5px;color:var(--ink-2);margin:12px 0 0;line-height:1.5}
+.muted b{color:var(--ink)}
+/* pedido */
+.ttl{margin:4px 0 0;font-size:24px;font-weight:700;letter-spacing:-.025em;line-height:1.15;outline-offset:4px}
+.ttl.c{text-align:center;font-size:28px;margin-top:14px}
+.sub{margin:5px 0 0;font-size:14.5px;color:var(--ink-2)}
+.chip{display:inline-flex;align-items:center;gap:8px;margin:10px 0 0;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:999px;
+  padding:7px 13px 7px 10px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.chip b{color:var(--ink);font-weight:700}
+.chip i{width:9px;height:9px;border-radius:99px;background:var(--disp);box-shadow:0 0 0 2.5px #EAF2DE;flex:none}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  box-shadow:0 1px 2px rgba(35,41,31,.05),0 10px 26px -14px rgba(35,41,31,.3)}
+.team-head{padding:11px 14px 9px;border-bottom:1px solid var(--line)}
+.team-head img{display:block;height:19px;width:auto}
+.team-body{display:flex;gap:12px;align-items:center;padding:10px 14px 11px}
+.avatar{width:50px;height:50px;border-radius:999px;object-fit:cover;object-position:50% 20%;flex:none;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(23,97,60,.35)}
+.team-t{margin:0;font-size:13px;font-weight:700;color:#17613C}
+.team-s{margin:3px 0 0;font-size:14px;color:var(--ink)}
+.team-s b{font-weight:700}
+.team-m{margin:1px 0 0;font-size:12px;color:var(--ink-2)}
+.field{margin-top:10px}
+.field label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);margin-bottom:4px}
+.field input{width:100%;min-height:48px;border-radius:13px;border:1.5px solid var(--line);background:#fff;padding:0 14px;font:inherit;font-size:17px;color:var(--ink)}
+.field input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(47,74,58,.12)}
+.field input.bad{border-color:#B4441F}
+.field .input{display:flex;align-items:center;border-radius:13px;border:1.5px solid var(--line);background:#fff;padding-left:14px}
+.field .input:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px rgba(47,74,58,.12)}
+.field .input.bad{border-color:#B4441F}
+.field .input .pre{color:var(--ink-2);font-weight:600;font-size:17px;padding-right:10px;border-right:1px solid var(--line);white-space:nowrap}
+.field .input input{border:0;background:none;min-width:0;flex:1;padding-left:10px;border-radius:0}
+.field .input input:focus,.field .input input.bad{box-shadow:none;border:0}
+.err{margin:5px 0 0;font-size:13px;font-weight:600;color:#B4441F}
+.hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+.checks{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.checks li{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.checks svg{width:19px;height:19px;flex:none}
+.alerta{margin:12px 0 0;border-radius:12px;border:1px solid #F3E2BF;background:#FFF7E8;padding:10px 13px;font-size:13.5px;font-weight:600;line-height:1.45;color:#7A5A16}
+.alerta a{display:inline-block;margin-top:4px;color:#17613C;font-weight:700}
+/* listo */
+.ok{width:64px;height:64px;border-radius:999px;background:var(--disp);display:flex;align-items:center;justify-content:center;margin:2px auto 0;box-shadow:0 0 0 9px #EAF2DE}
+.ok svg{width:34px;height:34px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.lead{margin:8px 4px 0;text-align:center;font-size:15px;line-height:1.5;color:var(--ink-2)}
+.lead b{color:var(--ink)}
+.card{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px 15px;
+  box-shadow:0 1px 2px rgba(35,41,31,.05),0 10px 26px -14px rgba(35,41,31,.3)}
+.card .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.card .top b{font-size:21px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.card .top span{font-size:13px;color:var(--ink-2)}
+.card .sub2{margin:3px 0 0;font-size:13.5px;color:var(--ink-2)}
+.card .pr{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.card .pr .v{font-size:22px}
+.card .pr .v2{font-size:16px}
+.fin{margin:8px 0 0;font-size:13px;color:var(--ink-2);line-height:1.45}
+.fin b{color:var(--ink);font-weight:700}
+.lnk-back{display:block;width:100%;min-height:44px;margin-top:6px;border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--ink-2);
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
 @media (max-width:960px){
-  /* Bottom sheet: con el detalle compacto ya no necesita 78dvh. Ocupa lo que
-     mide su contenido (tope 52dvh por si el texto crece) y así el plano sigue
-     visible arriba — se puede ver dónde cae el lote elegido sin cerrar nada. */
-  .side{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;border-radius:16px 16px 0 0;
-    transform:translateY(102%);max-height:52dvh;z-index:60;
-    padding-bottom:max(8px,env(safe-area-inset-bottom))}
-  .side h2{padding:10px 16px 9px;font-size:11.5px}
-  .side .body{padding:12px 16px 4px}
-  .closer{width:34px;height:34px;top:6px;right:8px}
+  /* Bottom sheet. Es position:fixed DENTRO del iframe, o sea fija al recuadro
+     del iframe y no a la pantalla: --abajo y --vis los calcula el JS
+     (colocarHoja) midiendo qué franja del iframe está a la vista en el padre,
+     así la hoja se pega al borde inferior de esa franja también cuando el
+     iframe es más alto que la pantalla (landing). */
+  .side{position:fixed;left:0;right:0;top:auto;bottom:var(--abajo,0px);width:auto;border-radius:22px 22px 0 0;
+    transform:translateY(102%);max-height:calc(var(--vis,100dvh) - 20px);z-index:60;
+    padding-bottom:max(10px,env(safe-area-inset-bottom));transition:opacity .2s ease,transform .25s ease}
+  .side .handle{display:block}
+  .side .body{padding:6px 18px 8px}
   .side.open{transform:translateY(0)}
   .head .live{margin-left:0}
   .layers button{padding:9px 12px;font-size:13px}
@@ -390,9 +456,9 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
     <p class="swipe" id="swipe" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/></svg>
       Deslizá para recorrer el plano</p>
-    <aside class="side" id="side" aria-label="Detalle del lote">
-      <button type="button" class="closer" id="closer" aria-label="Cerrar detalle">×</button>
-      <h2>Detalle del lote</h2>
+    <div class="scrim" id="scrim"></div>
+    <aside class="side" id="side" role="dialog" aria-label="Detalle del lote">
+      <div class="handle" aria-hidden="true"></div>
       <div class="body" id="detailBody"></div>
     </aside>
   </div>
@@ -416,7 +482,10 @@ dl.specs dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabul
    comentarios ahí adentro: se pierden. Documentá acá afuera, como esto.
 
    Qué contiene CFG:
-     whatsapp     número al que van las consultas de cada lote
+     whatsapp     número de la inmobiliaria. Desde el 06-sep-2026 el plano NO lo
+                  usa para las consultas de lote (el pedido va al CRM por
+                  /api/distrito-roldan/consulta); se conserva porque el panel de
+                  agentes lo lee y escribe.
      proyecto     nombre que se muestra en el encabezado
      actualizado  mes y año de la última lista. El panel lo sella solo al
                   descargar (si hubo cambios) y también se puede escribir a mano
@@ -822,6 +891,9 @@ const BLOCKS = {"I": [1564.0, 110.0, 1745.0, 671.0], "II": [1564.0, 750.0, 1745.
    3) MOTOR
    ========================================================================== */
 const SVGNS="http://www.w3.org/2000/svg";
+/* Modo "pantalla completa" del link público (ver CSS html.completa). */
+const PANTALLA=new URLSearchParams(location.search).get("pantalla");
+if(PANTALLA==="completa") document.documentElement.classList.add("completa");
 const nf  = new Intl.NumberFormat("es-AR");
 const nf2 = new Intl.NumberFormat("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2});
 const usd = n => "US$ " + nf.format(Math.round(n));
@@ -1095,6 +1167,7 @@ function syncURL(){
   if(act.length)p.set("ver",act.join(","));
   if(F.tipo!=="all")p.set("tipo",F.tipo);
   if(sel)p.set("lote",sel);
+  if(PANTALLA)p.set("pantalla",PANTALLA);
   const q=p.toString();
   history.replaceState(null,"",q?"?"+q:location.pathname);
 }
@@ -1155,64 +1228,316 @@ if(CFG.foto){
   }));
 }
 
-/* ---------- ficha del lote ---------- */
+/* ---------- hoja del lote ----------
+   06-sep-2026: reemplaza al "tocar lote → wa.me". El WhatsApp de la
+   inmobiliaria (CFG.whatsapp) quedó bloqueado por Meta el 3-sep y cada consulta
+   moría ahí. Ahora la hoja muestra la CUOTA como número principal y el pedido
+   (nombre + WhatsApp) va por POST /api/distrito-roldan/consulta al CRM (Hilo,
+   origen 'lote_web'); el equipo le escribe a la persona. El pedido NO abre
+   WhatsApp. Todos los números salen de los datos del plano (LOTES + CFG),
+   nunca de un texto fijo. */
+const TOUR_360 = "https://distritoroldan360.com";   // el mismo del hero de la landing (TOUR_360_EXTERNO)
+const WA_CONTINGENCIA = "5493413340916";              // WhatsApp de la web; solo aparece tras dos fallos seguidos del envío
+const USD = n => "USD " + nf.format(Math.round(n));
+const nfx = new Intl.NumberFormat("es-AR",{maximumFractionDigits:2});
+const mS  = n => nfx.format(n) + " m";
+const m2S = n => nfx.format(n) + " m²";
+const esc = v => String(v).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const CHK = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#EAF2DE"/><path d="M5.5 10.2l3 3 6-6.4" fill="none" stroke="#3D5720" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const X_BTN = '<button type="button" class="closer" data-act="cerrar" aria-label="Cerrar">×</button>';
+
 let sel=null;
-const side=document.getElementById("side"), dBody=document.getElementById("detailBody");
-function waLink(l){
-  const msg=`Hola SI INMOBILIARIA, me interesa el Lote ${l.n} (Mz. ${l.mz}) de ${CFG.proyecto} — `+
-            `${m2(l.sup)}, ${med(l.frente)} de frente`+
-            (l.conPrecio ? `, lista ${usd(l.precio)}` : "")+`. ¿Sigue disponible?`;
-  return `https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent(msg)}`;
+const side=document.getElementById("side"), dBody=document.getElementById("detailBody"), scrim=document.getElementById("scrim");
+/* Estado de la hoja: qué vista se ve y lo que la persona ya tipeó (sobrevive a
+   un redibujo del plano y al ir y volver entre detalle y pedido). */
+const hoja={view:"detalle", nombre:"", wa:"", fallos:0, enviando:false};
+const MOVIL = () => window.matchMedia("(max-width: 960px)").matches;
+
+/* Financiación: entrega = precio × anticipo %; cuota = (precio − entrega) /
+   cuotas; las dos redondeadas a entero. Misma cuenta que hace el servidor. */
+function finDe(l){
+  if(!l.conPrecio) return null;
+  const f=l.fin, ent=l.precio*f.anticipoPct/100;
+  return {pct:f.anticipoPct, cuotas:f.cuotas, entrega:Math.round(ent), cuota:Math.round((l.precio-ent)/f.cuotas),
+          ahorro: l.contado!=null && l.contado<l.precio ? l.precio-l.contado : null};
 }
-function select(n){
+/* La cuota más baja entre los residenciales a la venta: el ancla "desde". */
+function cuotaMinima(){
+  let best=null;
+  for(const l of lots){
+    if(l.com||!l.conPrecio) continue;
+    const f=finDe(l);
+    if(!best||f.cuota<best.cuota) best={l,cuota:f.cuota};
+  }
+  return best;
+}
+
+function vistaDetalle(l){
+  const e=EST[l.estado], tipo=l.com?"Comercial":"Residencial";
+  const head=`<div class="row"><div class="lotnum"><b tabindex="-1" id="hoja-ttl">Lote ${l.n}</b><span class="mz">Mz. ${l.mz}</span></div>
+      <div class="row-r"><span class="tag ${e.t}"><i style="background:${e.c}"></i>${e.k}</span>${X_BTN}</div></div>
+    <p class="medidas">${mS(l.frente)} × ${mS(l.fondo)} · <b>${m2S(l.sup)}</b> · ${tipo}</p>`;
+  if(l.estado!=="d"){
+    const disp=lots.filter(o=>!o.com&&o.conPrecio).length, mn=cuotaMinima();
+    return head+`<p class="muted">Este lote figura como <b>${e.k.toLowerCase()}</b>.${disp?` Hay <b>${disp} lotes residenciales</b> a la venta${mn?`, con cuotas desde <b>${USD(mn.cuota)}</b>`:""}.`:""}</p>
+      <button type="button" class="btn btn-s" data-act="ver-disp">Ver disponibles</button>`;
+  }
+  const f=finDe(l), mn=cuotaMinima();
+  const desde=(mn && mn.l.n!==l.n)
+    ? `<p class="desde"><span>Cuota desde <b>${USD(mn.cuota)}</b> · lote ${mn.l.n}, ${nf.format(Math.round(mn.l.sup))} m²</span><button type="button" class="lnk" data-act="ver-lote" data-n="${mn.l.n}">Verlo</button></p>`
+    : "";
+  return head+(f ? `
+    <div class="precios">
+      <div><span class="k">${f.cuotas} cuotas fijas en USD</span><span class="v">${USD(f.cuota)} <small>/ mes</small></span></div>
+      <div class="der"><span class="k">Entrega (${f.pct} %)</span><span class="v v2">${USD(f.entrega)}</span></div>
+    </div>
+    <div class="total"><div><span class="k">Precio total</span><b>${USD(l.precio)}</b></div>
+      <div class="der"><span class="k">Contado, pagando todo junto</span><b>${l.contado!=null?USD(l.contado):"—"}${f.ahorro?` <small>(−${USD(f.ahorro)})</small>`:""}</b></div></div>`
+    : `<p class="muted">Consultanos el valor de este lote.</p>`)+desde+
+    `<button type="button" class="btn btn-p" data-act="consultar">Consultar por este lote</button>
+     <p class="fine">Te escribimos por WhatsApp en minutos. Sin compromiso.</p>`;
+}
+
+function vistaForm(l){
+  return `<div class="row"><button type="button" class="back" data-act="volver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Plano</button>${X_BTN}</div>
+    <h2 class="ttl" id="hoja-ttl" tabindex="-1">Dejá tu WhatsApp</h2>
+    <p class="sub">Te escribimos por el lote ${l.n} en minutos.</p>
+    <p class="chip"><i></i><span><b>Lote ${l.n}</b> · ${nf.format(Math.round(l.sup))} m²${l.conPrecio?` · ${USD(l.precio)}`:""} · Mz. ${l.mz}</span></p>
+    <div class="team">
+      <div class="team-head"><img src="/logo-si-inmobiliaria.svg" alt="SI Inmobiliaria" width="137" height="19"></div>
+      <div class="team-body"><img class="avatar" src="/team/david-flores.jpg" alt="" width="50" height="50" loading="lazy">
+        <div><p class="team-t">Te escribe el equipo de SI Inmobiliaria</p>
+        <p class="team-s">Corredor responsable: <b>David Flores</b></p>
+        <p class="team-m">Mat. COCIR 0621 · SI Inmobiliaria, desde 1983</p></div></div>
+    </div>
+    <form id="frm" novalidate>
+      <div class="field"><label for="f-nombre">Nombre</label>
+        <input id="f-nombre" name="nombre" type="text" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" maxlength="80" placeholder="¿Cómo te llamás?" aria-describedby="e-nombre" value="${esc(hoja.nombre)}">
+        <p class="err" id="e-nombre" hidden></p></div>
+      <div class="field"><label for="f-wa">WhatsApp</label>
+        <div class="input" id="wrap-wa"><span class="pre" aria-hidden="true">+54 9</span>
+          <input id="f-wa" name="whatsapp" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="send" maxlength="16" placeholder="Tu número" aria-label="WhatsApp, sin el +54 9" aria-describedby="e-wa" value="${esc(hoja.wa)}"></div>
+        <p class="err" id="e-wa" hidden></p></div>
+      <div class="hp" aria-hidden="true"><label for="f-web">Sitio web</label><input id="f-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+      <ul class="checks"><li>${CHK}Te escribimos en minutos</li><li>${CHK}Solo WhatsApp, sin llamados</li><li>${CHK}Sin compromiso</li></ul>
+      <p class="alerta" id="e-send" role="alert" hidden></p>
+      <button type="submit" class="btn btn-p" id="btn-send">Consultar por el lote ${l.n}</button>
+      <p class="fine">Solo usamos tu número para escribirte por este lote.</p>
+    </form>`;
+}
+
+function vistaListo(l){
+  const f=finDe(l), tipo=l.com?"Comercial":"Residencial";
+  return `<div class="row"><span></span>${X_BTN}</div>
+    <div class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2 class="ttl c" id="hoja-ttl" tabindex="-1">Listo, ${esc(hoja.nombre)}.</h2>
+    <p class="lead">El equipo de SI Inmobiliaria te escribe por <b>WhatsApp en minutos</b> con las condiciones y cómo seguir.</p>
+    <div class="card"><span class="k">Tu pedido</span>
+      <div class="top"><b>Lote ${l.n} · ${esc(CFG.proyecto)}</b><span>Mz. ${l.mz}</span></div>
+      <p class="sub2">${m2S(l.sup)} · ${mS(l.frente)} × ${mS(l.fondo)} · ${tipo}</p>
+      ${f ? `<div class="pr"><div><span class="k">${f.cuotas} cuotas fijas en USD</span><span class="v">${USD(f.cuota)} <small>/ mes</small></span></div>
+        <div class="der"><span class="k">Entrega (${f.pct} %)</span><span class="v v2">${USD(f.entrega)}</span></div></div>
+      <p class="fin">Precio total <b>${USD(l.precio)}</b>${l.contado!=null?` · Contado <b>${USD(l.contado)}</b>${f.ahorro?` (−${USD(f.ahorro)} pagando todo junto)`:""}`:""}</p>` : ""}
+    </div>
+    <a class="btn btn-s" href="${TOUR_360}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3.5 12h17"/></svg>Mientras, mirá el barrio en 360°</a>
+    <button type="button" class="lnk-back" data-act="cerrar">Volver al plano</button>`;
+}
+
+function render(enfocar){
+  const l=byN.get(sel); if(!l) return;
+  dBody.innerHTML = hoja.view==="form" ? vistaForm(l) : hoja.view==="listo" ? vistaListo(l) : vistaDetalle(l);
+  side.classList.add("open"); scrim.classList.add("on"); side.scrollTop=0;
+  colocarHoja();
+  if(enfocar){ const t=document.getElementById("hoja-ttl"); if(t) t.focus({preventScroll:true}); }
+}
+/* opts.mantener: redibujo del plano (datos vivos) — conserva la vista y no
+   vuelve a medir. opts.enfocar: se abrió con teclado, el foco pasa a la hoja. */
+function select(n, opts={}){
   const l=byN.get(n); if(!l) return;
   if(sel!=null && byN.get(sel)) byN.get(sel).node.classList.remove("on");
   sel=n; l.node.classList.add("on");
-  const e=EST[l.estado];
-  const f=l.fin;
-  const anticipo=l.conPrecio ? l.precio*f.anticipoPct/100 : 0;
-  const cuota=l.conPrecio ? (l.precio-anticipo)/f.cuotas : 0;
-  dBody.innerHTML=`
-    <div class="lotline">
-      <div class="lotnum"><b>Lote ${l.n}</b><span class="mz">Mz. ${l.mz}</span></div>
-      <div class="tags">
-        <span class="tag ${e.t}"><i style="background:${e.c}"></i>${e.k}</span>
-        <span class="tag t-tipo">${l.com?"Comercial":"Residencial"}</span>
-      </div>
-    </div>
-    <p class="medidas">${med(l.frente)} × ${med(l.fondo)} · <b>${m2(l.sup)}</b></p>
-    ${l.conPrecio ? `
-      <div class="precios">
-        <div class="price"><span class="k">Lista</span><span class="v">${usd(l.precio)}</span></div>
-        <div class="price price2"><span class="k">Contado</span><span class="v">${usd(l.contado)}</span></div>
-      </div>
-      <p class="fin">Anticipo ${f.anticipoPct}% <b>${usd(anticipo)}</b> + <b>${f.cuotas}</b> cuotas de <b>${usd(cuota)}</b></p>`
-      : l.estado==="d"
-        ? `<p class="fin">Consultanos el valor de este lote.</p>` : ``}
-    ${l.estado==="d"
-      ? `<a class="wa" href="${waLink(l)}" target="_blank" rel="noopener">
-           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.06 24l1.68-6.16a11.87 11.87 0 01-1.6-5.95C.15 5.33 5.5 0 12.06 0a11.8 11.8 0 018.4 3.49 11.75 11.75 0 013.48 8.4c0 6.55-5.35 11.88-11.92 11.88a11.9 11.9 0 01-5.7-1.45L.06 24zm6.6-3.8l.36.21a9.87 9.87 0 005.03 1.38c5.45 0 9.9-4.43 9.9-9.88a9.83 9.83 0 00-2.9-6.99 9.8 9.8 0 00-6.98-2.9c-5.46 0-9.9 4.43-9.9 9.88 0 1.87.52 3.7 1.52 5.28l.24.38-1 3.65 3.73-1.01zm11.4-5.55c-.08-.12-.28-.2-.58-.35-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15s-.77.96-.94 1.16c-.18.2-.35.22-.65.07a8.1 8.1 0 01-2.38-1.47 8.94 8.94 0 01-1.65-2.05c-.17-.3-.02-.46.13-.6.14-.14.3-.36.45-.53.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.62-.93-2.22-.24-.58-.49-.5-.67-.51h-.58c-.2 0-.53.07-.8.37-.28.3-1.05 1.02-1.05 2.5s1.07 2.9 1.22 3.1c.15.2 2.1 3.22 5.1 4.51.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42z"/></svg>
-           Consultar por WhatsApp</a>`
-      : `<p class="muted" style="margin-top:15px">Este lote figura como <b>${e.k.toLowerCase()}</b>. Escribinos y te mostramos alternativas equivalentes.</p>
-         <a class="wa" style="background:#5A6152;box-shadow:none" href="https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent("Hola, quiero ver lotes disponibles en "+CFG.proyecto)}" target="_blank" rel="noopener">Ver alternativas</a>`}
-    <p class="muted">Superficie según mensura oficial. Valores sujetos a modificación.</p>`;
-  side.classList.add("open");
+  if(!opts.mantener){ hoja.view="detalle"; hoja.fallos=0; }
+  render(!!opts.enfocar);
+  if(!opts.mantener){
+    medir("LoteVisto",{lote:n, precio:l.conPrecio?l.precio:0},"dr_lote_visto",false);
+    acercarLote(l);
+  }
   syncURL();
 }
 function deselect(){
-  side.classList.remove("open");
+  side.classList.remove("open"); scrim.classList.remove("on");
   if(sel!=null && byN.get(sel)) byN.get(sel).node.classList.remove("on");
-  sel=null; syncURL();
+  sel=null; hoja.view="detalle"; syncURL();
 }
-document.getElementById("closer").addEventListener("click",deselect);
+function verDisponibles(){
+  if(!LAY.d){ LAY.d=true; document.querySelector('[data-lay="d"]').setAttribute("aria-pressed","true"); }
+  deselect(); paint(); say("Los lotes a la venta, en verde claro. "+VERBO());
+}
+
+dBody.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const act=b.dataset.act;
+  if(act==="cerrar") deselect();
+  else if(act==="consultar"){ hoja.view="form"; hoja.fallos=0; render(true); }
+  else if(act==="volver"){ hoja.view="detalle"; render(true); }
+  else if(act==="ver-lote") select(+b.dataset.n,{enfocar:true});
+  else if(act==="ver-disp") verDisponibles();
+});
+dBody.addEventListener("input",e=>{
+  if(e.target.id==="f-nombre") hoja.nombre=e.target.value;
+  if(e.target.id==="f-wa"){ e.target.value=e.target.value.replace(/[^\d\s-]/g,""); hoja.wa=e.target.value; }
+});
+dBody.addEventListener("submit",e=>{ if(e.target.id==="frm"){ e.preventDefault(); enviar(); } });
+scrim.addEventListener("click",deselect);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") deselect(); });
+
+/* Celular AR: deja los 10 dígitos que van después de +54 9 (misma regla que
+   normalizarCelularAr en el servidor; tolera "+54 9 341…", "0341 15…"). */
+function normCel(raw){
+  let d=(raw||"").replace(/\D/g,"");
+  if(d.startsWith("549")) d=d.slice(3); else if(d.startsWith("54")&&d.length>10) d=d.slice(2);
+  if(d.startsWith("0")) d=d.slice(1);
+  const m = d.length===12 ? d.match(/^(\d{2,4})15(\d{6,8})$/) : null;
+  if(m) d=m[1]+m[2];
+  return d;
+}
+function paginaPadre(){
+  try{ if(window.parent!==window) return parent.location.href; }catch(_){}
+  return (window.parent!==window && document.referrer) ? document.referrer : location.href;
+}
+function utmDe(url){
+  try{
+    const p=new URL(url).searchParams, g=k=>p.get("utm_"+k)||null;
+    const u={source:g("source"),medium:g("medium"),campaign:g("campaign"),content:g("content")};
+    return (u.source||u.medium||u.campaign||u.content)?u:null;
+  }catch(_){ return null; }
+}
+
+async function enviar(){
+  if(hoja.enviando) return;                       // guardia de reentrada
+  const l=byN.get(sel); if(!l) return;
+  const inN=document.getElementById("f-nombre"), inW=document.getElementById("f-wa"), wrapW=document.getElementById("wrap-wa");
+  const eN=document.getElementById("e-nombre"), eW=document.getElementById("e-wa"), eS=document.getElementById("e-send");
+  const nombre=inN.value.trim(), cel=normCel(inW.value);
+  let primero=null;
+  const marcar=(inp,el,msg,wrap)=>{
+    el.textContent=msg; el.hidden=!msg;
+    inp.setAttribute("aria-invalid",msg?"true":"false"); (wrap||inp).classList.toggle("bad",!!msg);
+    if(msg&&!primero) primero=inp;
+  };
+  marcar(inN,eN, nombre.length<2 ? "Contanos tu nombre para saber a quién escribirle." : "");
+  marcar(inW,eW, /^[1-3]\d{9}$/.test(cel) ? "" : "Son 10 dígitos con el código de área (341, 3476…), sin el 15.", wrapW);
+  if(primero){ primero.focus(); return; }
+
+  hoja.enviando=true;
+  const btn=document.getElementById("btn-send");
+  btn.disabled=true; btn.setAttribute("aria-busy","true"); btn.textContent="Enviando…"; eS.hidden=true;
+  const pag=paginaPadre();
+  const body={ nombre, whatsapp:cel, website:document.getElementById("f-web").value,
+    lote:{ nro:l.n, tipo:l.com?"comercial":"residencial", frente:l.frente, fondo:l.fondo, sup:l.sup,
+           precio:l.conPrecio?l.precio:null, contado:l.conPrecio?l.contado:null, estado:l.estado },
+    utm:utmDe(pag), paginaUrl:pag };
+  let ok=false, msg="No pudimos registrar tu consulta. Probá de nuevo en un momento.";
+  try{
+    const r=await fetch("/api/distrito-roldan/consulta",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>null);
+    ok = r.ok && !!j && j.ok===true;
+    if(!ok && j && typeof j.error==="string") msg=j.error;
+  }catch(_){}
+  hoja.enviando=false;
+  if(ok){
+    hoja.nombre=nombre; hoja.view="listo"; hoja.fallos=0;
+    // 'Lead' SOLO con el 200 del servidor (= Hilo aceptó), nunca antes.
+    medir("Lead",{content_name:"Lote Distrito Roldán",lote:l.n},"dr_pedido",true);
+    render(true); return;
+  }
+  hoja.fallos++;
+  btn.disabled=false; btn.removeAttribute("aria-busy"); btn.textContent="Reintentar";
+  // Último recurso, tras dos fallos seguidos: el WhatsApp de la web (no el de la
+  // inmobiliaria, que está bloqueado).
+  eS.innerHTML = esc(msg) + (hoja.fallos>=2
+    ? ` <a href="https://wa.me/${WA_CONTINGENCIA}?text=${encodeURIComponent(`Hola, quiero consultar por el lote ${l.n} de ${CFG.proyecto}`)}" target="_blank" rel="noopener noreferrer">Escribinos por WhatsApp</a>`
+    : "");
+  eS.hidden=false;
+  if(eS.scrollIntoView) eS.scrollIntoView({block:"nearest"});
+}
+
+/* ---------- medición ----------
+   El plano vive en un iframe same-origin: el píxel de Meta y GA4 están en la
+   página padre, así que se disparan ahí (parent.fbq / parent.gtag). Si el
+   padre no los tiene, no pasa nada. */
+function ventanaMedicion(){
+  try{ if(window.parent!==window && (typeof parent.fbq==="function"||typeof parent.gtag==="function")) return parent; }catch(_){}
+  return window;
+}
+function medir(fbEvento, params, gaEvento, estandar){
+  const w=ventanaMedicion();
+  try{ if(typeof w.fbq==="function") w.fbq(estandar?"track":"trackCustom", fbEvento, params); }catch(_){}
+  try{ if(typeof w.gtag==="function") w.gtag("event", gaEvento, {...params, page_location: paginaPadre()}); }catch(_){}
+}
+
+/* ---------- posición de la hoja dentro del iframe ----------
+   La hoja es position:fixed DENTRO del iframe: queda fija al recuadro del
+   iframe, no a la pantalla. En la landing el iframe mide más que la pantalla y
+   "bottom:0" caía fuera de la vista. Como es same-origin, se mide qué franja
+   del iframe está a la vista en el padre y la hoja se pega al borde inferior
+   de ESA franja; se recalcula cuando el padre scrollea o cambia de tamaño
+   (teclado del celular incluido). Abierto sin iframe, la franja es la
+   pantalla entera. */
+function franjaVisible(){
+  const H=innerHeight;
+  try{
+    const fe=window.frameElement;
+    if(fe && window.parent!==window){
+      const r=fe.getBoundingClientRect();
+      const pv=parent.visualViewport, ph=pv?pv.height:parent.innerHeight, pt=pv?pv.offsetTop:0;
+      const top=Math.max(0, pt-r.top), bottom=Math.min(r.height, pt+ph-r.top);
+      if(bottom>top) return {top,bottom};
+    }
+  }catch(_){}
+  return {top:0,bottom:H};
+}
+function colocarHoja(){
+  if(!side.classList.contains("open")) return;
+  if(!MOVIL()){ side.style.removeProperty("--abajo"); side.style.removeProperty("--vis"); return; }
+  const v=franjaVisible();
+  side.style.setProperty("--abajo", Math.max(0, innerHeight-v.bottom)+"px");
+  side.style.setProperty("--vis", Math.max(260, v.bottom-v.top)+"px");
+}
+/* Si la hoja tapa el lote que se acaba de tocar y el iframe sigue más abajo de
+   la pantalla, se pide al padre que scrollee lo justo para que el lote quede
+   visible encima de la hoja. Best-effort: si no hay margen, no se hace nada. */
+function acercarLote(l){
+  if(!MOVIL()) return;
+  try{
+    const fe=window.frameElement; if(!fe || window.parent===window) return;
+    const r=fe.getBoundingClientRect(), lr=l.node.getBoundingClientRect();
+    const pv=parent.visualViewport, ph=pv?pv.height:parent.innerHeight;
+    const lotTop=r.top+lr.top, lotBot=r.top+lr.bottom;
+    const necesario = lotBot - (ph - side.offsetHeight - 12);
+    const margen = (r.top + r.height) - ph;
+    const dy=Math.min(necesario, margen, lotTop-8);
+    if(dy>2) parent.scrollBy({top:dy, behavior:"smooth"});
+  }catch(_){}
+}
+(function seguirPadre(){
+  let raf=0;
+  const upd=()=>{ if(raf) return; raf=requestAnimationFrame(()=>{ raf=0; colocarHoja(); }); };
+  window.addEventListener("resize",upd);
+  try{
+    if(window.parent===window) return;
+    parent.addEventListener("scroll",upd,{passive:true});
+    parent.addEventListener("resize",upd);
+    if(parent.visualViewport){ parent.visualViewport.addEventListener("resize",upd); parent.visualViewport.addEventListener("scroll",upd); }
+  }catch(_){}
+})();
 function bindSvg(s){
   s.addEventListener("click",e=>{
     const g=e.target.closest(".lot"); if(g && !g.classList.contains("dim")) select(+g.dataset.n);
   });
   s.addEventListener("keydown",e=>{
     const g=e.target.closest(".lot");
-    if(g && (e.key==="Enter"||e.key===" ")){e.preventDefault();select(+g.dataset.n);}
+    if(g && (e.key==="Enter"||e.key===" ")){e.preventDefault();select(+g.dataset.n,{enfocar:true});}
   });
   if(!CAN_HOVER) return;
   s.addEventListener("pointermove",e=>{
@@ -1400,7 +1725,7 @@ document.getElementById("fecha").textContent = CFG.actualizado || "—";
   // Mismo redibujo que al girar el teléfono: se recuperan estado y selección.
   const abierto=sel;
   svg=build(); bindSvg(svg); paint();
-  if(abierto!=null && byN.get(abierto)) select(abierto);
+  if(abierto!=null && byN.get(abierto)) select(abierto,{mantener:true});
   checkOverflow();
 })();
 </script>

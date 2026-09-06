@@ -40,7 +40,7 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
             <p className="mt-6 max-w-[62ch] text-[15px] leading-7 text-white/75">
               Prendé los filtros para ver qué lotes están disponibles, cuáles no y cuáles ya se vendieron.
               Pasá el mouse por cualquiera para conocer frente, fondo, superficie y precio, y tocalo para
-              consultarlo por WhatsApp.
+              ver la cuota y consultarlo: te escribe el equipo por WhatsApp.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">

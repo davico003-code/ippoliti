@@ -9,6 +9,7 @@
  */
 
 import type { TasacionLead } from '@/lib/tasacion/types'
+import type { LoteLead } from '@/lib/distrito-roldan/consulta'
 
 export type HiloLeadPayload = {
   name?: string | null
@@ -21,6 +22,9 @@ export type HiloLeadPayload = {
   /** Contexto del pedido de tasación (origen 'tasacion'): barrio, tipo, m²,
    *  rango que vio la persona, nivel de comparables, utm. */
   tasacion?: TasacionLead | null
+  /** Contexto del pedido por un lote del plano de Distrito Roldán (origen
+   *  'lote_web', 06-sep-2026): número, medidas, precio, cuota, utm, página. */
+  lote?: LoteLead | null
 }
 
 /** Devuelve true si el lead quedó registrado en el inbox de Hilo. best-effort:
