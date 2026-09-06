@@ -1,7 +1,5 @@
-import { ArrowRight, MessageCircle, Phone } from 'lucide-react'
-
-const WHATSAPP_URL =
-  'https://wa.me/5493413340916?text=Hola!%20Quiero%20informaci%C3%B3n%20sobre%20Distrito%20Rold%C3%A1n'
+import { ArrowRight, Map as MapIcon, Phone } from 'lucide-react'
+import Link from 'next/link'
 
 export default function SeccionCtaFinanciacion() {
   return (
@@ -25,16 +23,17 @@ export default function SeccionCtaFinanciacion() {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* 06-sep-2026: antes abría WhatsApp al celular del corredor y esa
+              consulta no entraba a Hilo. Ahora lleva al plano: ahí se elige el
+              lote y el pedido rota entre todos los agentes. */}
+          <Link
+            href="/distrito-roldan-precios"
             className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#B35E21] px-7 text-sm font-bold text-white transition-colors hover:bg-[#9d4f18] sm:w-auto"
           >
-            <MessageCircle className="h-5 w-5" />
-            Consultar por WhatsApp
+            <MapIcon className="h-5 w-5" aria-hidden />
+            Ver lotes y precios
             <ArrowRight className="h-4 w-4" aria-hidden />
-          </a>
+          </Link>
           <a
             href="tel:+5493412101694"
             className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-white/30 px-7 text-sm font-semibold text-white transition-colors hover:border-white/60 sm:w-auto"
