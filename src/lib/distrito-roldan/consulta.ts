@@ -39,16 +39,12 @@ export type LoteLead = {
 }
 
 /** Lo que manda el navegador. Solo se confía en nro/tipo y en los datos de
- *  contexto (utm, página); los números se pisan con el plano publicado cuando
- *  está disponible. */
+ *  contexto (utm, página): los NÚMEROS salen siempre del plano publicado; si el
+ *  plano no está o no tiene el lote, van en null (nunca los del navegador). */
 export type LoteCliente = {
   nro: number
   tipo: TipoLote
-  frente: number | null
-  fondo: number | null
-  sup: number | null
-  precio: number | null
-  contado: number | null
+  /** Respaldo si el plano publicado no tiene el lote; no aporta ningún importe. */
   estado: EstadoLote
 }
 
@@ -71,16 +67,9 @@ export function leerLoteCliente(raw: unknown): LoteCliente | null {
   const tipo = str(l.tipo, 12).toLowerCase()
   if (tipo !== 'residencial' && tipo !== 'comercial') return null
   const estado = str(l.estado, 1)
-  return {
-    nro,
-    tipo,
-    frente: numEn(l.frente, 1, 500),
-    fondo: numEn(l.fondo, 1, 500),
-    sup: numEn(l.sup, 1, 100000),
-    precio: numEn(l.precio, 1, 1e8),
-    contado: numEn(l.contado, 1, 1e8),
-    estado: estado === 'n' || estado === 'v' ? estado : 'd',
-  }
+  // Las medidas y los importes que manda el navegador se DESCARTAN a propósito
+  // (revisión 06-sep-2026): todo número sale del plano publicado.
+  return { nro, tipo, estado: estado === 'n' || estado === 'v' ? estado : 'd' }
 }
 
 export function leerUtm(raw: unknown): UtmLote | null {
@@ -112,9 +101,17 @@ export function calcularFinanciacion(precio: number | null, fin: FinanciacionTip
   }
 }
 
-/** Arma el objeto del contrato. Si el plano publicado tiene el lote, sus
- *  números mandan (precio, contado, medidas, estado y financiación por tipo);
- *  si no, quedan los del cliente ya acotados. */
+/**
+ * Arma el objeto del contrato. Los números (precio, contado, medidas y por lo
+ * tanto entrega y cuota) salen SOLO del plano publicado.
+ *
+ * Sin plano (Blob caído) o con un lote que no figura en él, van en null / 0 —
+ * NO se copian los del navegador (revisión 06-sep-2026: un POST armado a mano
+ * metía `precio: 999999` y ese número llegaba al brief que lee el agente y al
+ * título de la tarea "vio cuota USD …"). Regla de David: nunca inventar
+ * números. Hilo ya maneja el lote sin precio ("sin precio publicado").
+ * Del navegador sobreviven solo el nro, el tipo y el estado como respaldo.
+ */
 export function armarLoteLead(
   cli: LoteCliente,
   plano: PlanoPublicado | null,
@@ -130,17 +127,18 @@ export function armarLoteLead(
 
   const estado: EstadoLote = pub?.estado ?? cli.estado
   // Un lote que no está a la venta no lleva precio, esté o no en el plano.
-  const precio = estado === 'd' ? (pub ? pub.precio ?? null : cli.precio) : null
-  const contado = estado === 'd' ? (pub ? pub.contado ?? null : cli.contado) : null
+  const precio = pub && estado === 'd' ? pub.precio ?? null : null
+  const contado = pub && estado === 'd' ? pub.contado ?? null : null
   const { entrega, cuota } = calcularFinanciacion(precio, fin)
 
   return {
     emprendimiento: 'Distrito Roldan',
     developmentId: 67178,
     nro: cli.nro,
-    sup: pub?.sup ?? cli.sup ?? 0,
-    frente: pub?.frente ?? cli.frente ?? 0,
-    fondo: pub?.fondo ?? cli.fondo ?? 0,
+    // 0 = "no lo sabemos": Hilo lo convierte a null y el brief omite la medida.
+    sup: pub?.sup ?? 0,
+    frente: pub?.frente ?? 0,
+    fondo: pub?.fondo ?? 0,
     tipo: cli.tipo,
     precio,
     contado,
@@ -161,7 +159,10 @@ const m2 = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(2).replace('.',
 /** Resumen corto para el inbox de Hilo (lo lee el agente de un vistazo). */
 export function armarBriefLote(l: LoteLead): string {
   const Tipo = l.tipo === 'comercial' ? 'Comercial' : 'Residencial'
-  const partes = [`Lote ${l.nro} Distrito Roldán · ${Tipo} · ${m2(l.sup)} (${l.frente} × ${l.fondo} m)`]
+  // Las medidas solo si las trajo el plano (0 = no las sabemos): nada de
+  // "0 m² (0 × 0 m)" en el inbox del agente.
+  const medidas = l.sup > 0 ? ` · ${m2(l.sup)}${l.frente > 0 && l.fondo > 0 ? ` (${l.frente} × ${l.fondo} m)` : ''}` : ''
+  const partes = [`Lote ${l.nro} Distrito Roldán · ${Tipo}${medidas}`]
   if (l.precio != null) {
     partes.push(`USD ${miles(l.precio)}`)
     if (l.cuota != null && l.entrega != null) {

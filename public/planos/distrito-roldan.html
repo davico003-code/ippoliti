@@ -240,11 +240,11 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .scrim{position:fixed;inset:0;z-index:58;background:rgba(35,41,31,.30);opacity:0;pointer-events:none;transition:opacity .2s ease}
 .scrim.on{opacity:1;pointer-events:auto}
 @media (min-width:961px){ .scrim{display:none} }
-.side{position:absolute;right:12px;top:12px;width:352px;z-index:38;
+.side{position:absolute;right:12px;top:var(--arriba,12px);width:352px;z-index:38;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
   box-shadow:0 2px 6px rgba(35,41,31,.14),0 18px 44px -14px rgba(35,41,31,.5);
   opacity:0;transform:translateY(-8px);pointer-events:none;
-  transition:opacity .2s ease,transform .2s ease;max-height:calc(100% - 24px);overflow:auto;
+  transition:opacity .2s ease,transform .2s ease;max-height:var(--alto,calc(100% - 24px));overflow:auto;
   overscroll-behavior:contain;font-variant-numeric:tabular-nums}
 .side.open{opacity:1;transform:translateY(0);pointer-events:auto}
 .side .body{padding:14px 18px 16px}
@@ -291,6 +291,15 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .btn-s:hover{border-color:var(--brand)}
 .btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;flex:none}
 .fine{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--ink-2);text-align:center}
+/* CTA pegado al piso de la hoja: en pantallas bajas (1280×800 con el panel
+   flotante, o un celular con el teclado abierto) el formulario es más alto que
+   la hoja y el botón nacía debajo del pliegue —el resto scrollea detrás y el
+   botón queda siempre a la vista (revisión 06-sep-2026). El degradé de arriba
+   deja ver que hay contenido corriendo por atrás. */
+.cta{position:sticky;bottom:0;z-index:2;margin:14px -18px -16px;padding:2px 18px 16px;
+  background:linear-gradient(180deg,rgba(251,248,241,0) 0,var(--panel) 14px,var(--panel) 100%)}
+.cta .btn{margin-top:12px}
+.cta .alerta{margin-top:12px}
 .muted{font-size:13.5px;color:var(--ink-2);margin:12px 0 0;line-height:1.5}
 .muted b{color:var(--ink)}
 /* pedido */
@@ -360,6 +369,7 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
     padding-bottom:max(10px,env(safe-area-inset-bottom));transition:opacity .2s ease,transform .25s ease}
   .side .handle{display:block}
   .side .body{padding:6px 18px 8px}
+  .cta{margin-bottom:-8px;padding-bottom:8px}
   .side.open{transform:translateY(0)}
   .head .live{margin-left:0}
   .layers button{padding:9px 12px;font-size:13px}
@@ -1250,7 +1260,11 @@ let sel=null;
 const side=document.getElementById("side"), dBody=document.getElementById("detailBody"), scrim=document.getElementById("scrim");
 /* Estado de la hoja: qué vista se ve y lo que la persona ya tipeó (sobrevive a
    un redibujo del plano y al ir y volver entre detalle y pedido). */
-const hoja={view:"detalle", nombre:"", wa:"", fallos:0, enviando:false};
+/* `medidos`: pares lote+teléfono que YA se midieron como Lead. Hilo dedupea el
+   pedido repetido (bucket de 10 min), pero el píxel no: sin esto, cerrar la
+   hoja, reabrir el lote y volver a enviar disparaba un segundo fbq('Lead') y
+   Meta sobrecontaba (revisión 06-sep-2026). */
+const hoja={view:"detalle", nombre:"", wa:"", fallos:0, enviando:false, medidos:new Set()};
 const MOVIL = () => window.matchMedia("(max-width: 960px)").matches;
 
 /* Financiación: entrega = precio × anticipo %; cuota = (precio − entrega) /
@@ -1320,9 +1334,11 @@ function vistaForm(l){
         <p class="err" id="e-wa" hidden></p></div>
       <div class="hp" aria-hidden="true"><label for="f-web">Sitio web</label><input id="f-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
       <ul class="checks"><li>${CHK}Te escribimos en minutos</li><li>${CHK}Solo WhatsApp, sin llamados</li><li>${CHK}Sin compromiso</li></ul>
-      <p class="alerta" id="e-send" role="alert" hidden></p>
-      <button type="submit" class="btn btn-p" id="btn-send">Consultar por el lote ${l.n}</button>
-      <p class="fine">Solo usamos tu número para escribirte por este lote.</p>
+      <div class="cta">
+        <p class="alerta" id="e-send" role="alert" hidden></p>
+        <button type="submit" class="btn btn-p" id="btn-send">Consultar por el lote ${l.n}</button>
+        <p class="fine">Solo usamos tu número para escribirte por este lote.</p>
+      </div>
     </form>`;
 }
 
@@ -1343,10 +1359,19 @@ function vistaListo(l){
     <button type="button" class="lnk-back" data-act="cerrar">Volver al plano</button>`;
 }
 
+/* La hoja está fija adentro del iframe, pero el botón flotante de WhatsApp de
+   la página que nos embebe vive AFUERA y le queda encima (tapaba la letra chica
+   "Sin compromiso" y competía con el formulario). Le avisamos al padre cuándo
+   la hoja está abierta para que lo esconda; si no escucha, no pasa nada. */
+function avisarHoja(abierta){
+  try{ if(window.parent!==window) parent.postMessage({type:"plano-hoja",abierta:!!abierta},"*"); }catch(_){}
+}
+
 function render(enfocar){
   const l=byN.get(sel); if(!l) return;
   dBody.innerHTML = hoja.view==="form" ? vistaForm(l) : hoja.view==="listo" ? vistaListo(l) : vistaDetalle(l);
   side.classList.add("open"); scrim.classList.add("on"); side.scrollTop=0;
+  avisarHoja(true);
   colocarHoja();
   if(enfocar){ const t=document.getElementById("hoja-ttl"); if(t) t.focus({preventScroll:true}); }
 }
@@ -1365,7 +1390,7 @@ function select(n, opts={}){
   syncURL();
 }
 function deselect(){
-  side.classList.remove("open"); scrim.classList.remove("on");
+  side.classList.remove("open"); scrim.classList.remove("on"); avisarHoja(false);
   if(sel!=null && byN.get(sel)) byN.get(sel).node.classList.remove("on");
   sel=null; hoja.view="detalle"; syncURL();
 }
@@ -1433,9 +1458,10 @@ async function enviar(){
   const btn=document.getElementById("btn-send");
   btn.disabled=true; btn.setAttribute("aria-busy","true"); btn.textContent="Enviando…"; eS.hidden=true;
   const pag=paginaPadre();
+  // Del lote van SOLO nro, tipo y estado: los números (medidas, precio, contado)
+  // los relee el servidor del plano publicado, nunca del navegador.
   const body={ nombre, whatsapp:cel, website:document.getElementById("f-web").value,
-    lote:{ nro:l.n, tipo:l.com?"comercial":"residencial", frente:l.frente, fondo:l.fondo, sup:l.sup,
-           precio:l.conPrecio?l.precio:null, contado:l.conPrecio?l.contado:null, estado:l.estado },
+    lote:{ nro:l.n, tipo:l.com?"comercial":"residencial", estado:l.estado },
     utm:utmDe(pag), paginaUrl:pag };
   let ok=false, msg="No pudimos registrar tu consulta. Probá de nuevo en un momento.";
   try{
@@ -1447,8 +1473,13 @@ async function enviar(){
   hoja.enviando=false;
   if(ok){
     hoja.nombre=nombre; hoja.view="listo"; hoja.fallos=0;
-    // 'Lead' SOLO con el 200 del servidor (= Hilo aceptó), nunca antes.
-    medir("Lead",{content_name:"Lote Distrito Roldán",lote:l.n},"dr_pedido",true);
+    // 'Lead' SOLO con el 200 del servidor (= Hilo aceptó), nunca antes, y UNA
+    // vez por lote + teléfono (el mismo pedido repetido no es otro lead).
+    const huella=l.n+":"+cel;
+    if(!hoja.medidos.has(huella)){
+      hoja.medidos.add(huella);
+      medir("Lead",{content_name:"Lote Distrito Roldán",lote:l.n},"dr_pedido",true);
+    }
     render(true); return;
   }
   hoja.fallos++;
@@ -1499,7 +1530,26 @@ function franjaVisible(){
 }
 function colocarHoja(){
   if(!side.classList.contains("open")) return;
-  if(!MOVIL()){ side.style.removeProperty("--abajo"); side.style.removeProperty("--vis"); return; }
+  if(!MOVIL()){
+    side.style.removeProperty("--abajo"); side.style.removeProperty("--vis");
+    /* Escritorio: la hoja también se queda DENTRO de la franja visible. En una
+       pantalla baja (1280×800) el panel arrancaba arriba del plano y el botón
+       "Consultar por el lote" nacía debajo del pliegue (revisión 06-sep-2026);
+       ahora la hoja acompaña el scroll y entra entera, con su propio scroll
+       interno si el contenido no da. */
+    const cont=side.offsetParent;
+    if(!cont){ side.style.removeProperty("--arriba"); side.style.removeProperty("--alto"); return; }
+    const v=franjaVisible(), cr=cont.getBoundingClientRect(), m=12;
+    // Arriba: nunca por encima del plano ni de la franja visible (acompaña el
+    // scroll del padre). Alto: hasta el piso de la franja, con scroll interno.
+    let arriba=Math.max(cr.top+m, v.top+m);
+    arriba=Math.min(arriba, Math.max(cr.top+m, cr.bottom-m-280));
+    const alto=Math.max(280, Math.min(v.bottom-m-arriba, cont.clientHeight-2*m));
+    side.style.setProperty("--arriba", (arriba-cr.top)+"px");
+    side.style.setProperty("--alto", alto+"px");
+    return;
+  }
+  side.style.removeProperty("--arriba"); side.style.removeProperty("--alto");
   const v=franjaVisible();
   side.style.setProperty("--abajo", Math.max(0, innerHeight-v.bottom)+"px");
   side.style.setProperty("--vis", Math.max(260, v.bottom-v.top)+"px");

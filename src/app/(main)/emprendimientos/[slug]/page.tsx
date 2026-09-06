@@ -507,12 +507,15 @@ export default async function DevelopmentPage({ params }: Props) {
       {/* CTA financiación — cierre full-width, solo Distrito Roldán */}
       {isDistrito && <SeccionCtaFinanciacion />}
 
-      {/* FAB WhatsApp dedicado — solo 67178 (el global se oculta acá). */}
+      {/* FAB WhatsApp dedicado — solo 67178 (el global se oculta acá).
+          data-fab-whatsapp: se esconde mientras la hoja del lote del plano está
+          abierta (globals.css + SeccionPlanoLotes), para no taparla. */}
       {isDistrito && (
         <a
           href={whatsappUrl}
           target="_blank"
           rel="noopener"
+          data-fab-whatsapp
           aria-label="Consultar por WhatsApp"
           className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_4px_14px_rgba(37,211,102,0.45)] transition-transform hover:scale-105 hover:bg-[#1ea952]"
         >
