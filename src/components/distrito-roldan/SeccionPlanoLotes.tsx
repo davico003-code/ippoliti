@@ -19,13 +19,24 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
 
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
-      const d = e.data as { type?: string; h?: number } | null
-      if (d && d.type === 'plano-height' && typeof d.h === 'number') {
+      const d = e.data as { type?: string; h?: number; abierta?: boolean } | null
+      if (!d) return
+      if (d.type === 'plano-height' && typeof d.h === 'number') {
         setAlto(Math.max(720, Math.min(1600, d.h)))
+      }
+      // Hoja del lote abierta: el FAB de WhatsApp de esta página (que vive
+      // fuera del iframe) le quedaba encima, tapando "Sin compromiso" y
+      // compitiendo con el formulario. Se esconde por CSS mientras dure
+      // (06-sep-2026, revisión).
+      if (d.type === 'plano-hoja') {
+        document.body.classList.toggle('dr-hoja-abierta', d.abierta === true)
       }
     }
     window.addEventListener('message', onMsg)
-    return () => window.removeEventListener('message', onMsg)
+    return () => {
+      window.removeEventListener('message', onMsg)
+      document.body.classList.remove('dr-hoja-abierta')
+    }
   }, [])
 
   return (
@@ -40,7 +51,7 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
             <p className="mt-6 max-w-[62ch] text-[15px] leading-7 text-white/75">
               Prendé los filtros para ver qué lotes están disponibles, cuáles no y cuáles ya se vendieron.
               Pasá el mouse por cualquiera para conocer frente, fondo, superficie y precio, y tocalo para
-              consultarlo por WhatsApp.
+              ver la cuota y consultarlo: te escribe el equipo por WhatsApp.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">

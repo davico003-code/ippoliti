@@ -512,10 +512,13 @@ export default async function DevelopmentPage({ params }: Props) {
           no quedaba en Hilo, no rotaba entre los agentes y no se medía. Ahora
           lleva al plano, que es donde vive el pedido por lote ("Consultar por
           este lote" → Hilo → rota → aviso + tarea a 15 min). El cliente igual
-          termina hablando por WhatsApp, pero con el lote y su cuota adentro. */}
+          termina hablando por WhatsApp, pero con el lote y su cuota adentro.
+          data-fab-whatsapp: lo esconde la hoja del lote del plano cuando se abre
+          (globals.css + SeccionPlanoLotes), para no taparla. */}
       {isDistrito && (
         <Link
           href="/distrito-roldan-precios"
+          data-fab-whatsapp
           aria-label="Ver lotes y precios"
           className="fixed bottom-5 right-5 z-50 flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#B35E21] px-5 text-sm font-bold text-white shadow-[0_4px_14px_rgba(179,94,33,0.45)] transition-transform hover:scale-105 hover:bg-[#9d4f18]"
         >
