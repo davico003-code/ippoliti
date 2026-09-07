@@ -277,11 +277,6 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .total .k{margin-bottom:1px;font-size:10px}
 .total b{display:block;font-size:15px;font-weight:700;color:var(--ink)}
 .total b small{font-size:13px;font-weight:600;color:var(--ink-2)}
-.desde{margin:9px 0 0;display:flex;align-items:center;gap:7px;font-size:12.5px;line-height:1.3;color:var(--ink-2);background:var(--paper-2);border-radius:9px;padding:4px 2px 4px 10px}
-.desde b{color:var(--ink);font-weight:700}
-.desde span{min-width:0}   /* en anchos chicos (landing, panel de escritorio) envuelve a dos líneas en vez de cortarse */
-.lnk{margin-left:auto;min-height:44px;padding:0 8px;border:0;background:none;font:inherit;font-size:13px;font-weight:700;color:var(--brand);
-  text-decoration:underline;text-underline-offset:2px;cursor:pointer;border-radius:6px;flex:none}
 .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;margin-top:11px;border-radius:14px;border:0;
   font:inherit;font-size:16px;font-weight:700;letter-spacing:-.005em;text-decoration:none;cursor:pointer;transition:background .14s ease,opacity .14s ease}
 .btn-p{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.14),0 8px 20px -8px rgba(47,74,58,.65)}
@@ -1275,31 +1270,16 @@ function finDe(l){
   return {pct:f.anticipoPct, cuotas:f.cuotas, entrega:Math.round(ent), cuota:Math.round((l.precio-ent)/f.cuotas),
           ahorro: l.contado!=null && l.contado<l.precio ? l.precio-l.contado : null};
 }
-/* La cuota más baja entre los residenciales a la venta: el ancla "desde". */
-function cuotaMinima(){
-  let best=null;
-  for(const l of lots){
-    if(l.com||!l.conPrecio) continue;
-    const f=finDe(l);
-    if(!best||f.cuota<best.cuota) best={l,cuota:f.cuota};
-  }
-  return best;
-}
-
 function vistaDetalle(l){
   const e=EST[l.estado], tipo=l.com?"Comercial":"Residencial";
   const head=`<div class="row"><div class="lotnum"><b tabindex="-1" id="hoja-ttl">Lote ${l.n}</b><span class="mz">Mz. ${l.mz}</span></div>
       <div class="row-r"><span class="tag ${e.t}"><i style="background:${e.c}"></i>${e.k}</span>${X_BTN}</div></div>
     <p class="medidas">${mS(l.frente)} × ${mS(l.fondo)} · <b>${m2S(l.sup)}</b> · ${tipo}</p>`;
   if(l.estado!=="d"){
-    const disp=lots.filter(o=>!o.com&&o.conPrecio).length, mn=cuotaMinima();
-    return head+`<p class="muted">Este lote figura como <b>${e.k.toLowerCase()}</b>.${disp?` Hay <b>${disp} lotes residenciales</b> a la venta${mn?`, con cuotas desde <b>${USD(mn.cuota)}</b>`:""}.`:""}</p>
+    return head+`<p class="muted">Este lote figura como <b>${e.k.toLowerCase()}</b>. Mirá los otros lotes residenciales a la venta.</p>
       <button type="button" class="btn btn-s" data-act="ver-disp">Ver disponibles</button>`;
   }
-  const f=finDe(l), mn=cuotaMinima();
-  const desde=(mn && mn.l.n!==l.n)
-    ? `<p class="desde"><span>Cuota desde <b>${USD(mn.cuota)}</b> · lote ${mn.l.n}, ${nf.format(Math.round(mn.l.sup))} m²</span><button type="button" class="lnk" data-act="ver-lote" data-n="${mn.l.n}">Verlo</button></p>`
-    : "";
+  const f=finDe(l);
   return head+(f ? `
     <div class="precios">
       <div><span class="k">${f.cuotas} cuotas fijas en USD</span><span class="v">${USD(f.cuota)} <small>/ mes</small></span></div>
@@ -1307,7 +1287,7 @@ function vistaDetalle(l){
     </div>
     <div class="total"><div><span class="k">Precio total</span><b>${USD(l.precio)}</b></div>
       <div class="der"><span class="k">Contado, pagando todo junto</span><b>${l.contado!=null?USD(l.contado):"—"}${f.ahorro?` <small>(−${USD(f.ahorro)})</small>`:""}</b></div></div>`
-    : `<p class="muted">Consultanos el valor de este lote.</p>`)+desde+
+    : `<p class="muted">Consultanos el valor de este lote.</p>`)+
     `<button type="button" class="btn btn-p" data-act="consultar">Consultar por este lote</button>
      <p class="fine">Te escribimos por WhatsApp en minutos. Sin compromiso.</p>`;
 }
@@ -1405,7 +1385,6 @@ dBody.addEventListener("click",e=>{
   if(act==="cerrar") deselect();
   else if(act==="consultar"){ hoja.view="form"; hoja.fallos=0; render(true); }
   else if(act==="volver"){ hoja.view="detalle"; render(true); }
-  else if(act==="ver-lote") select(+b.dataset.n,{enfocar:true});
   else if(act==="ver-disp") verDisponibles();
 });
 dBody.addEventListener("input",e=>{
