@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useCallback, useEffect } from 'react'
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import { Instagram } from 'lucide-react'
 
 export interface StoryPlateMultiProps {
@@ -21,6 +21,14 @@ export interface StoryPlateMultiProps {
   btnStyle?: React.CSSProperties
   buttonLabel?: string
   disabled?: boolean
+  /**
+   * Fotos crudas de la propiedad (URL full) que acompañan a la placa en la
+   * descarga. Se bajan tal cual las tiene el CRM para que el carrusel de
+   * Instagram no sea solo la portada.
+   */
+  packPhotos?: string[]
+  /** Planos de la propiedad, si tiene. Van al final del pack. */
+  packBlueprints?: string[]
 }
 
 const W = 1080
@@ -803,6 +811,47 @@ async function drawSplitCard(
   drawFooterRow(ctx, footerY, '#fff', 'rgba(255,255,255,0.7)')
 }
 
+/**
+ * Cuántas fotos crudas acompañan a la placa. El carrusel de Instagram admite
+ * 10 slides: placa + 6 fotos + planos deja margen de sobra.
+ */
+const PACK_PHOTOS = 6
+const PACK_BLUEPRINTS = 2
+
+function extFromType(type: string): string {
+  if (type.includes('png')) return 'png'
+  if (type.includes('webp')) return 'webp'
+  if (type.includes('avif')) return 'avif'
+  return 'jpg'
+}
+
+/**
+ * Baja una imagen tal cual la sirve el CRM (sin recomprimir ni recortar). Las
+ * fotos vienen de Supabase Storage con `Access-Control-Allow-Origin: *`, así
+ * que el fetch directo alcanza. Si una falla, devolvemos null y el pack sigue
+ * con las demás: nunca queremos que una foto rota bloquee la placa.
+ */
+async function fetchRawImage(url: string): Promise<Blob | null> {
+  try {
+    const res = await fetch(url, { cache: 'no-store' })
+    if (!res.ok) return null
+    const blob = await res.blob()
+    if (!blob.type.startsWith('image/')) return null
+    return blob
+  } catch {
+    return null
+  }
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 export default function StoryPlateMulti(props: StoryPlateMultiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const previewSequenceRef = useRef(0)
@@ -828,6 +877,8 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
     disabled,
     btnStyle,
     buttonLabel,
+    packPhotos,
+    packBlueprints,
   } = props
 
   const renderPlate = useCallback(async (): Promise<HTMLCanvasElement> => {
@@ -902,6 +953,21 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
     }
   }, [renderPlate])
 
+  const packUrls = useMemo(() => {
+    const fotos = (packPhotos ?? []).slice(0, PACK_PHOTOS)
+    const planos = (packBlueprints ?? []).slice(0, PACK_BLUEPRINTS)
+    const partes = [
+      fotos.length > 0 ? `${fotos.length} ${fotos.length === 1 ? 'foto' : 'fotos'}` : null,
+      planos.length > 0 ? (planos.length === 1 ? 'plano' : `${planos.length} planos`) : null,
+    ].filter(Boolean)
+    return {
+      fotos,
+      planos,
+      total: fotos.length + planos.length,
+      label: partes.join(' + '),
+    }
+  }, [packPhotos, packBlueprints])
+
   const handleDownload = useCallback(async () => {
     if (generating || disabled) return
     setGenerating(true)
@@ -909,24 +975,64 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
       const rendered = await renderPlate()
       const blob = await new Promise<Blob | null>(resolve => rendered.toBlob(resolve, 'image/png'))
       if (!blob) return
-      const file = new File([blob], `placa-${slug}.png`, { type: 'image/png' })
+
+      // El pack va numerado para que el orden se respete tanto al guardarlo en
+      // el carrete como al abrir el zip: la placa siempre es la primera slide.
+      const items: Array<{ name: string; blob: Blob }> = [
+        { name: `01-placa-${slug}.png`, blob },
+      ]
+
+      const [fotos, planos] = await Promise.all([
+        Promise.all(packUrls.fotos.map(fetchRawImage)),
+        Promise.all(packUrls.planos.map(fetchRawImage)),
+      ])
+
+      let n = items.length
+      fotos.forEach(foto => {
+        if (!foto) return
+        n += 1
+        items.push({
+          name: `${String(n).padStart(2, '0')}-foto-${slug}.${extFromType(foto.type)}`,
+          blob: foto,
+        })
+      })
+      planos.forEach(plano => {
+        if (!plano) return
+        n += 1
+        items.push({
+          name: `${String(n).padStart(2, '0')}-plano-${slug}.${extFromType(plano.type)}`,
+          blob: plano,
+        })
+      })
+
+      const files = items.map(item => new File([item.blob], item.name, { type: item.blob.type }))
+
+      // Mobile: una sola hoja de compartir con todo. "Guardar imágenes" deja
+      // placa + fotos en el carrete, listas para armar el carrusel.
       const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean }
-      if (nav.share && nav.canShare?.({ files: [file] })) {
+      if (nav.share && nav.canShare?.({ files })) {
         try {
-          await nav.share({ files: [file], title: 'Placa Instagram' })
+          await nav.share({ files, title: 'Placa + fotos para Instagram' })
           return
         } catch { /* user cancelled or permission denied; fall through */ }
       }
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `placa-${slug}.png`
-      a.click()
-      URL.revokeObjectURL(url)
+
+      // Sin placa sola no hay nada que empaquetar.
+      if (items.length === 1) {
+        triggerDownload(blob, `placa-${slug}.png`)
+        return
+      }
+
+      // Desktop (o share sin soporte multi-archivo): un zip con todo.
+      const { default: JSZip } = await import('jszip')
+      const zip = new JSZip()
+      items.forEach(item => zip.file(item.name, item.blob))
+      const archive = await zip.generateAsync({ type: 'blob' })
+      triggerDownload(archive, `${slug}-instagram.zip`)
     } finally {
       setGenerating(false)
     }
-  }, [disabled, generating, renderPlate, slug])
+  }, [disabled, generating, packUrls, renderPlate, slug])
 
   return (
     <>
@@ -979,13 +1085,19 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
           ) : (
             <Instagram size={16} aria-hidden />
           )}
-          {buttonLabel ?? 'Descargar placa'}
+          {generating
+            ? 'Preparando pack…'
+            : packUrls.total > 0
+              ? `Descargar placa + ${packUrls.planos.length > 0 && packUrls.fotos.length === 0 ? 'plano' : 'fotos'}`
+              : (buttonLabel ?? 'Descargar placa')}
         </button>
         <p
           className="mt-2 text-center text-[11px] text-gray-400"
           style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
         >
-          PNG 1080×1920 · listo para Instagram Story
+          {packUrls.total > 0
+            ? `Placa 1080×1920 + ${packUrls.label} · listo para el carrusel`
+            : 'PNG 1080×1920 · listo para Instagram Story'}
         </p>
       </div>
     </>

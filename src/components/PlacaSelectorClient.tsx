@@ -58,6 +58,15 @@ export default function PlacaSelectorClient(props: Props) {
         ? 'bg-[#e7f2eb] text-[#1A5C38]'
         : 'bg-amber-100 text-amber-800'
 
+  // Las fotos elegidas para la portada abren el carrusel: si el chico las
+  // seleccionó es porque son las mejores. Detrás van el resto en el orden del
+  // CRM hasta completar el pack.
+  const allPhotoUrls = props.photos.map(p => p.full)
+  const packPhotos = [
+    ...selected.filter(full => allPhotoUrls.includes(full)),
+    ...allPhotoUrls.filter(full => !selected.includes(full)),
+  ]
+
   const sharedPlateProps = {
     title: props.title,
     price: props.price,
@@ -236,6 +245,8 @@ export default function PlacaSelectorClient(props: Props) {
                 {...sharedPlateProps}
                 slug={props.slug}
                 photos={previewPhotos}
+                packPhotos={packPhotos}
+                packBlueprints={props.blueprints.map(p => p.full)}
                 disabled={selected.length === 0}
                 buttonLabel="Descargar placa"
                 btnStyle={downloadBtnStyle}
