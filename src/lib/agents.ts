@@ -9,6 +9,7 @@ export const AGENTS: Agent[] = [
   { id: 'aldana',    username: 'aldana',    name: 'Aldana Ruiz',          role: 'agent' },
   { id: 'carolina',  username: 'carolina',  name: 'Carolina Echen',       role: 'agent' },
   { id: 'david',     username: 'david',     name: 'David Flores',         role: 'admin' },
+  { id: 'florencia', username: 'florencia', name: 'Florencia',            role: 'agent' },
   { id: 'gino',      username: 'gino',      name: 'Gino Pecchenino',      role: 'agent' },
   { id: 'gisela',    username: 'gisela',    name: 'Gisela Ramallo',       role: 'agent' },
   { id: 'laura',     username: 'laura',     name: 'Laura Flores',         role: 'admin' },
@@ -21,11 +22,22 @@ export const AGENTS: Agent[] = [
 ]
 
 export function findAgent(username: string, password: string): Agent | null {
-  // El password viene del entorno; sin literal de fallback (era público en el
+  const agent = AGENTS.find(a => a.username === username)
+  if (!agent || !password) return null
+
+  // Contraseña propia del agente, opcional: env `AGENT_PASS_<USERNAME>`. Sirve
+  // para dar de alta a alguien sin repartirle la clave compartida del equipo.
+  // La key se arma con el username del roster (nunca con el input del form),
+  // así el login no se puede usar para sondear variables de entorno.
+  const personal = process.env[`AGENT_PASS_${agent.username.toUpperCase()}`]
+  if (personal && password === personal) return agent
+
+  // Clave compartida del equipo. Sin literal de fallback (era público en el
   // repo). Si falta la env, no autentica a nadie (fail-closed).
-  const validPassword = process.env.AGENT_PASS
-  if (!validPassword || password !== validPassword) return null
-  return AGENTS.find(a => a.username === username) ?? null
+  const shared = process.env.AGENT_PASS
+  if (shared && password === shared) return agent
+
+  return null
 }
 
 export function getAgentById(id: string): Agent | null {
