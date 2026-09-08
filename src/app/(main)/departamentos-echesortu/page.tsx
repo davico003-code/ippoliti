@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   keywords: 'departamentos echesortu, echesortu rosario, departamentos venta echesortu',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-echesortu' },
   openGraph: {
-    images: ['/og-image.jpg'], title: 'Departamentos en Echesortu', url: 'https://siinmobiliaria.com/departamentos-echesortu' },
+    images: ['/og-image.jpg'], title: 'Departamentos en Echesortu', description: 'Vida barrial, Av. Pellegrini y buena conectividad, en el centro geográfico de Rosario.', url: 'https://siinmobiliaria.com/departamentos-echesortu' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {
