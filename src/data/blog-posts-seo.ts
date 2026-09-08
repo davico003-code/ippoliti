@@ -543,7 +543,7 @@ En Funes y Rold\u00e1n, donde las casas suelen tener jard\u00edn y patio, el esp
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si est\u00e1s por vender, empez\u00e1 con una tasaci\u00f3n profesional gratuita. En SI INMOBILIARIA te asesoramos sobre qu\u00e9 reparaciones hacer y c\u00f3mo presentar tu propiedad para obtener el mejor resultado. Visit\u00e1 nuestro sitio o escribinos al 341 210 1694.`,
+Si est\u00e1s por vender, empez\u00e1 con una tasaci\u00f3n profesional, sin compromiso. En SI INMOBILIARIA te asesoramos sobre qu\u00e9 reparaciones hacer y c\u00f3mo presentar tu propiedad para obtener el mejor resultado. Visit\u00e1 nuestro sitio o escribinos al 341 210 1694.`,
   },
   {
     slug: 'alquilar-o-comprar-2025-analisis-zona-oeste-rosario',
@@ -753,7 +753,7 @@ Preguntá cuánto tiempo llevan operando en Roldán. Preguntá en qué barrios t
 
 Qué servicios ofrece la inmobiliaria
 
-Una buena inmobiliaria en Roldán debería ofrecer: tasación profesional gratuita, publicación en los principales portales (Zonaprop, Argenprop), fotografía profesional de la propiedad, asesoramiento legal durante todo el proceso, y acompañamiento hasta la escritura.
+Una buena inmobiliaria en Roldán debería ofrecer: tasación profesional sin compromiso, publicación en los principales portales (Zonaprop, Argenprop), fotografía profesional de la propiedad, asesoramiento legal durante todo el proceso, y acompañamiento hasta la escritura.
 
 Si la inmobiliaria solo te dice "dejame las llaves y yo la muestro", es una señal de alerta. El servicio completo implica un plan de venta, marketing digital, seguimiento de consultas y una comunicación permanente con el propietario.
 

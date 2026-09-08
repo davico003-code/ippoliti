@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Tasaciones profesionales en Funes, Roldán y Rosario | SI INMOBILIARIA',
-  description: 'Mirá qué se pide por casas parecidas a la tuya en tu barrio de Funes, Roldán o Rosario y pedí tu tasación. Te escribimos por WhatsApp en menos de 24 h. Sin compromiso.',
+  title: 'Tasaciones profesionales en Funes, Roldán, Fisherton y Rosario | SI INMOBILIARIA',
+  description: 'Mirá qué se pide por casas parecidas a la tuya en tu barrio de Funes, Roldán, Fisherton o la zona oeste de Rosario, y pedí tu tasación. Te escribimos por WhatsApp en menos de 24 h. Sin compromiso.',
   alternates: { canonical: 'https://siinmobiliaria.com/tasaciones' },
   openGraph: {
-    title: 'Tasaciones profesionales | SI INMOBILIARIA',
-    description: 'Tasación de propiedades con comparables locales y revisión de un corredor inmobiliario matriculado.',
+    title: 'Tasaciones en Funes, Roldán, Fisherton y Rosario | SI INMOBILIARIA',
+    description: 'Tasación de propiedades en Funes, Roldán, Fisherton y la zona oeste de Rosario, con comparables locales y revisión de un corredor inmobiliario matriculado.',
     url: 'https://siinmobiliaria.com/tasaciones',
     // og-image.jpg regenerado como asset real 1200×630.
     images: ['/og-image.jpg'],
