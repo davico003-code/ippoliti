@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   keywords: 'departamentos pichincha, pichincha rosario, departamentos venta pichincha',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-pichincha' },
   openGraph: {
-    images: ['/og-image.jpg'], title: 'Departamentos en Pichincha', url: 'https://siinmobiliaria.com/departamentos-pichincha' },
+    images: ['/og-image.jpg'], title: 'Departamentos en Pichincha', description: 'Barrio de moda y polo gastronómico de Rosario. Desde USD 60.000.', url: 'https://siinmobiliaria.com/departamentos-pichincha' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {
