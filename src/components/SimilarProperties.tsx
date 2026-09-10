@@ -10,7 +10,7 @@ import {
   getMainPhoto,
   formatPrice,
   getTotalSurface,
-  getRoofedArea,
+  getCardArea,
   translatePropertyType,
   operationBadgeColor,
 } from '@/lib/tokko'
@@ -137,7 +137,7 @@ export default function SimilarProperties({ properties }: Props) {
           const slug = generatePropertySlug(property)
           const price = formatPrice(property)
           const area = getTotalSurface(property)
-          const roofed = getRoofedArea(property)
+          const cardArea = getCardArea(property)
           const typeName = translatePropertyType(property.type?.name)
           const op = property.operations?.[0]?.operation_type === 'Sale'
             ? 'Venta'
@@ -146,7 +146,7 @@ export default function SimilarProperties({ properties }: Props) {
               : null
           const beds = property.suite_amount || property.room_amount || 0
           const baths = property.bathroom_amount || 0
-          const sizeLabel = roofed && roofed > 0 ? `${roofed} m²` : area && area > 0 ? `${area} m²` : null
+          const sizeLabel = cardArea && cardArea > 0 ? `${Math.round(cardArea).toLocaleString('es-AR')} m²` : area && area > 0 ? `${area} m²` : null
           const specsBits: string[] = []
           if (beds > 0) specsBits.push(`${beds} dorm`)
           if (baths > 0) specsBits.push(`${baths} baño${baths > 1 ? 's' : ''}`)

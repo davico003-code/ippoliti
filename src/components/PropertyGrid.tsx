@@ -8,7 +8,7 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
-  getRoofedArea,
+  getCardArea,
   getLotSurface,
   isLand,
   translatePropertyType,
@@ -19,7 +19,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
   const slug = generatePropertySlug(property)
   const operation = getOperationType(property)
   const price = formatPrice(property)
-  const roofed = getRoofedArea(property)
+  const area = getCardArea(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
 
@@ -64,10 +64,10 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
               )
             ) : (
               <>
-                {roofed != null && roofed > 0 && (
-                  <span className="flex items-center gap-0.5"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> m² cub.</span>
+                {area != null && area > 0 && (
+                  <span className="flex items-center gap-0.5"><Home className="w-3 h-3" /><span className="font-numeric">{Math.round(area).toLocaleString('es-AR')}</span> m²</span>
                 )}
-                {lot != null && lot > 0 && lot !== roofed && (
+                {lot != null && lot > 0 && lot !== area && (
                   <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> m² lote</span>
                 )}
               </>

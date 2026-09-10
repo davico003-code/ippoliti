@@ -8,7 +8,7 @@ import {
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getCardArea,
   getLotSurface,
   isLand,
   getPropertyCount,
@@ -58,7 +58,7 @@ export default async function SeleccionCarousel() {
           const slug = generatePropertySlug(p)
           const photo = getMainPhoto(p)
           const price = formatPrice(p)
-          const roofed = getRoofedArea(p)
+          const area = getCardArea(p)
           const land = isLand(p)
           const beds = p.suite_amount ?? p.room_amount
           const baths = p.bathroom_amount
@@ -69,7 +69,7 @@ export default async function SeleccionCarousel() {
           const specs: string[] = []
           if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
           if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
-          if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
+          if (area != null && area > 0) specs.push(`${Math.round(area).toLocaleString('es-AR')} m²`)
           if (land) {
             const lot = getLotSurface(p)
             if (lot != null && lot > 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)

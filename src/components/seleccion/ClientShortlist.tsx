@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { parsePropertyLabel, getTimeLeft } from '@/lib/seleccion'
 import { displayImageUrl } from '@/lib/external-images'
+import { getCardArea } from '@/lib/tokko'
 
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
@@ -154,7 +155,7 @@ export default function ClientShortlist({
                 location: d.location?.short_location || d.location?.name || '',
                 rooms: d.suite_amount || d.room_amount || 0,
                 baths: d.bathroom_amount || 0,
-                area: parseFloat(d.roofed_surface || d.total_surface || d.surface || '0') || 0,
+                area: Math.round(getCardArea(d) ?? (parseFloat(d.surface || '0') || 0)),
                 price: pr?.price ? `${pr.currency || 'USD'} ${pr.price.toLocaleString('es-AR')}` : null,
                 isColega: false,
                 lat: coords?.lat ?? null,

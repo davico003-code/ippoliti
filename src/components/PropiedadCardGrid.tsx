@@ -14,7 +14,7 @@ import {
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getCardArea,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -62,7 +62,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
 
   const operation = getOperationType(property)
   const price = formatPrice(property)
-  const roofed = getRoofedArea(property)
+  const area = getCardArea(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
   const mono = isMonoambiente(property)
@@ -79,8 +79,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   if (!land && mono) specs.push({ num: '', label: 'Monoambiente' })
   else if (!land && beds > 0) specs.push({ num: String(beds), label: ' dorm' })
   if (!land && baths > 0) specs.push({ num: String(baths), label: ` baño${baths > 1 ? 's' : ''}` })
-  if (roofed != null && roofed > 0) specs.push({ num: roofed.toLocaleString('es-AR'), label: ' m²' })
-  if (lot != null && lot > 0 && lot !== roofed) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })
+  if (area != null && area > 0) specs.push({ num: Math.round(area).toLocaleString('es-AR'), label: ' m²' })
+  if (lot != null && lot > 0 && lot !== area) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })
   if (land && lot != null && lot > 0 && specs.length === 0) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m²' })
 
   const prev = (e: React.MouseEvent) => {

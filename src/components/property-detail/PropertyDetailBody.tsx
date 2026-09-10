@@ -16,6 +16,7 @@ import {
   getOperationType,
   getRoofedArea,
   getTotalSurface,
+  getCardArea,
   getLotSurface,
   isMonoambiente,
   formatLocation,
@@ -105,7 +106,8 @@ export default function PropertyDetailBody({
     : buildPriceConsultWhatsappUrl(property, generatePropertySlug(property))
   const operation = getOperationType(property)
   const roofedArea = getRoofedArea(property)
-  const area = getTotalSurface(property)
+  // Misma protagonista que las tarjetas: la total, salvo que venga igual al lote.
+  const area = getCardArea(property) ?? getTotalSurface(property)
   const lotSurface = getLotSurface(property)
   const location = formatLocation(property)
   const propType = translatePropertyType(property.type?.name)
@@ -144,7 +146,7 @@ export default function PropertyDetailBody({
   // Specs (icon cards)
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
   if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Superficie', value: `${area} m²` })
-  if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea} m²` })
+  if (roofedArea != null && roofedArea > 0 && roofedArea !== area) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea} m²` })
   if (isMonoambiente(property)) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Ambientes', value: 'Monoambiente' })
   else if (property.suite_amount > 0) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Dormitorios', value: property.suite_amount })
   if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: 'Baños', value: property.bathroom_amount })

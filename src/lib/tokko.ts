@@ -462,6 +462,17 @@ export function getRoofedArea(property: TokkoProperty): number | null {
   return v > 0 ? v : null;
 }
 
+// Superficie protagonista de las tarjetas: la TOTAL (cubierta + semicubierta),
+// pedido de David. Si la total vino cargada igual al lote (dato mal cargado en
+// casas viejas de Tokko: "total 695 = lote 695"), cae a la cubierta para no
+// inflar la casa con el terreno.
+export function getCardArea(property: TokkoProperty): number | null {
+  const total = parseFloat(property.total_surface);
+  const lot = parseFloat(property.surface);
+  if (total > 0 && total !== lot) return total;
+  return getRoofedArea(property);
+}
+
 export function getTotalSurface(property: TokkoProperty): number | null {
   const total = parseFloat(property.total_surface);
   if (total > 0) return total;
