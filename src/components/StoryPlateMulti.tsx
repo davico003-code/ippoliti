@@ -66,51 +66,6 @@ function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: numb
   ctx.restore()
 }
 
-function drawContain(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-  const sc = Math.min(w / img.width, h / img.height)
-  const iw = img.width * sc
-  const ih = img.height * sc
-  ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih)
-}
-
-/**
- * Conserva la foto completa cuando el formato original obligaría a recortar
- * más de 12 %. El fondo desenfocado mantiene la placa a sangre sin ocultar la
- * arquitectura; para diferencias menores usamos cover porque el recorte es
- * visualmente imperceptible.
- */
-function drawAdaptivePhoto(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-) {
-  const imageRatio = img.width / img.height
-  const frameRatio = w / h
-  const visibleRatio = Math.min(imageRatio / frameRatio, frameRatio / imageRatio)
-
-  if (visibleRatio >= 0.88) {
-    drawCover(ctx, img, x, y, w, h)
-    return
-  }
-
-  ctx.save()
-  ctx.beginPath()
-  ctx.rect(x, y, w, h)
-  ctx.clip()
-  ctx.fillStyle = '#0F2419'
-  ctx.fillRect(x, y, w, h)
-  ctx.globalAlpha = 0.72
-  ctx.filter = 'blur(24px)'
-  drawCover(ctx, img, x - 18, y - 18, w + 36, h + 36)
-  ctx.filter = 'none'
-  ctx.globalAlpha = 1
-  drawContain(ctx, img, x, y, w, h)
-  ctx.restore()
-}
-
 type BrandSegment = { text: string; numeric: boolean }
 
 function brandSegments(text: string): BrandSegment[] {
@@ -655,18 +610,30 @@ async function drawSplitCard(
 
   const bandH = FIXED_BAND_H
 
-  // Banda fija centrada en el medio del canvas. Fotos superior e inferior
-  // simétricas (785 px cada una con BAND_CENTER_Y=960 y FIXED_BAND_H=350).
-  const BAND_CENTER_Y = 960
-  const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
-  const TOP_H = BAND_TOP
+  // La banda se corre apenas según el formato de las fotos: la más apaisada gana
+  // un poco de ancho visible. El corrimiento tiene tope para que arriba y abajo
+  // sigan siendo dos mitades parejas; con dos fotos del mismo formato quedan
+  // exactamente en 785 px cada una.
+  const PHOTOS_H = H - bandH
+  const HALF_H = PHOTOS_H / 2
+  const MAX_SHIFT = 80
+  const wantedH = (img: HTMLImageElement | null) => (img ? W * img.height / img.width : HALF_H)
+  const want1 = wantedH(photo1)
+  const want2 = wantedH(photo2)
+  const TOP_H = Math.round(Math.min(
+    HALF_H + MAX_SHIFT,
+    Math.max(HALF_H - MAX_SHIFT, PHOTOS_H * want1 / (want1 + want2)),
+  ))
+  const BAND_TOP = TOP_H
   const BOT_START = BAND_TOP + bandH
   const BOT_H = H - BOT_START
 
-  if (photo1) drawAdaptivePhoto(ctx, photo1, 0, 0, W, TOP_H)
+  // Siempre a sangre: la foto llena su espacio y, si es muy ancha, se recortan
+  // los laterales. Nada de franjas desenfocadas arriba y abajo.
+  if (photo1) drawCover(ctx, photo1, 0, 0, W, TOP_H)
   else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, 0, W, TOP_H) }
 
-  if (photo2) drawAdaptivePhoto(ctx, photo2, 0, BOT_START, W, BOT_H)
+  if (photo2) drawCover(ctx, photo2, 0, BOT_START, W, BOT_H)
   else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, BOT_START, W, BOT_H) }
 
   const topShade = ctx.createLinearGradient(0, 0, 0, TOP_H * 0.18)
