@@ -569,7 +569,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
         <option>Aldana Ruiz</option><option>Carolina Echen</option><option>Gino Pecchenino</option>
         <option>Gisela Ramallo</option><option>Leticia Alexenicer</option><option>Lucia Wilson</option>
         <option>Maria Jose Espilocin</option><option>Mariana Orlate</option><option>Mauro Matteucci</option>
-        <option>Micaela Gonzalez</option><option>Julian Ruschneider</option>
+        <option>Micaela Gonzalez</option><option>Jeremías Caraballo</option><option>Florencia Acquarone</option>
       </select>
     )
     const statusChip = (label: string, tone: 'ok' | 'warn' | 'error' | 'idle' = 'idle') => {
