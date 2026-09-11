@@ -18,7 +18,6 @@ import {
   getTotalSurface,
   getLotSurface,
   isMonoambiente,
-  formatLocation,
   getDescription,
   getBlueprintPhotos,
   translatePropertyType,
@@ -27,6 +26,7 @@ import {
   translateOrientation,
   translateDisposition,
 } from '@/lib/tokko'
+import { formatUbicacion } from '@/lib/ubicacion'
 import PropertyDescription from '../PropertyDescription'
 import SectionBoundary from './SectionBoundary'
 import BarrioPanel from './BarrioPanel'
@@ -107,11 +107,12 @@ export default function PropertyDetailBody({
   const roofedArea = getRoofedArea(property)
   const area = getTotalSurface(property)
   const lotSurface = getLotSurface(property)
-  const location = formatLocation(property)
   const propType = translatePropertyType(property.type?.name)
   const description = getDescription(property)
   const blueprints = getBlueprintPhotos(property)
   const address = property.fake_address || property.address
+  // Va pegada a la dirección: sin repetir el barrio o la ciudad que ya diga.
+  const location = formatUbicacion(property, property.real_address || address)
 
   // Barrio privado (si aplica). Se carga por dynamic import para no meter el
   // dataset grande de barrios.ts en el First Load JS de la ficha.

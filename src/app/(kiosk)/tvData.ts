@@ -10,11 +10,11 @@ import {
   getRoofedArea,
   getLotSurface,
   formatPrice,
-  formatLocation,
   generatePropertySlug,
   translatePropertyType,
   type TokkoProperty,
 } from '@/lib/tokko'
+import { formatUbicacion, resolverUbicacion } from '@/lib/ubicacion'
 
 export interface Slide {
   photo: string          // foto de portada (kiosco horizontal)
@@ -53,17 +53,20 @@ function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {
   return specs.slice(0, 4)
 }
 
-// Reordena para no repetir localidad en slides consecutivos (variedad de zonas).
+// Reordena para no repetir ciudad en slides consecutivos (variedad de zonas).
+// Por ciudad y no por "barrio, ciudad": si no, "Funes" → "Funes Lakes, Funes"
+// contaban como zonas distintas y la TV encadenaba Funes tras Funes.
 function spreadByZone(list: TokkoProperty[]): TokkoProperty[] {
   const out: TokkoProperty[] = []
   const pool = [...list]
+  const ciudad = (p: TokkoProperty) => resolverUbicacion(p).ciudad ?? ''
   let lastZone = ''
   while (pool.length) {
-    let pick = pool.findIndex((p) => formatLocation(p) !== lastZone)
+    let pick = pool.findIndex((p) => ciudad(p) !== lastZone)
     if (pick === -1) pick = 0
     const [p] = pool.splice(pick, 1)
     out.push(p)
-    lastZone = formatLocation(p)
+    lastZone = ciudad(p)
   }
   return out
 }
@@ -107,7 +110,7 @@ export async function getSlides(): Promise<Slide[]> {
         photos,
         precio: formatPrice(p),
         tipo: tipoEs(p),
-        ubicacion: formatLocation(p),
+        ubicacion: formatUbicacion(p),
         titulo: p.publication_title ?? '',
         destacada: !!p.is_starred_on_web,
         specs: buildSpecs(p),

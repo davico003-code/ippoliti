@@ -500,19 +500,6 @@ export function isMonoambiente(property: TokkoProperty): boolean {
   return isApartment && property.suite_amount === 0 && (property.room_amount ?? 0) <= 1;
 }
 
-// Formato de ubicación legible: "Santa Fe | San Lorenzo | Roldan" → "Roldan, San Lorenzo"
-export function formatLocation(property: TokkoProperty): string {
-  const loc = property.location;
-  if (!loc) return property.fake_address || property.address;
-  // short_location: "Santa Fe | San Lorenzo | Roldan"
-  const parts = loc.short_location?.split('|').map((s) => s.trim()) || [];
-  if (parts.length >= 2) {
-    // Mostrar las últimas dos partes (ciudad y departamento)
-    return parts.slice(-2).reverse().join(', ');
-  }
-  return loc.name || property.fake_address || property.address;
-}
-
 // ─── Traducciones inglés → español ──────────────────────────────────────────
 
 const TYPE_ES: Record<string, string> = {

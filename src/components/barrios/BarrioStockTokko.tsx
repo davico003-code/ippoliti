@@ -6,13 +6,13 @@ import Image from 'next/image'
 import type { TokkoProperty } from '@/lib/tokko'
 import {
   formatPrice,
-  formatLocation,
   generatePropertySlug,
   getMainPhoto,
   getRoofedArea,
   getLotSurface,
   translatePropertyType,
 } from '@/lib/tokko'
+import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
 
 interface Props {
@@ -141,7 +141,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
               </div>
               <div className="space-y-1.5 p-4">
                 <p className="text-xs uppercase tracking-wide text-stone-500">
-                  {translatePropertyType(p.type?.name)} · {formatLocation(p)}
+                  {[translatePropertyType(p.type?.name), formatUbicacion(p)].filter(Boolean).join(' · ')}
                 </p>
                 <h4 className="font-raleway text-base font-semibold text-navy-700 line-clamp-2">
                   {p.publication_title}

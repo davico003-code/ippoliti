@@ -14,11 +14,11 @@ import {
   getRoofedArea,
   getLotSurface,
   formatPrice,
-  formatLocation,
   translatePropertyType,
   generatePropertySlug,
   type TokkoProperty,
 } from '@/lib/tokko'
+import { formatUbicacion } from '@/lib/ubicacion'
 
 const SITE = 'https://siinmobiliaria.com'
 const MIN_CASA = 200000
@@ -121,12 +121,14 @@ async function toView(p: TokkoProperty): Promise<PropView> {
   const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 4)
   const lat = p.geo_lat ? parseFloat(p.geo_lat) : null
   const lng = p.geo_long ? parseFloat(p.geo_long) : null
+  const barrio = barrioOf(p)
   return {
     photos,
     price: formatPrice(p),
     tipo: translatePropertyType(p.type?.name) || 'Propiedad',
-    barrio: barrioOf(p),
-    zona: formatLocation(p),
+    barrio,
+    // El kiosco muestra "barrio · zona": la zona no repite ese barrio.
+    zona: formatUbicacion(p, barrio),
     titulo: p.publication_title ?? '',
     specs: specsOf(p),
     qr: await qrFor(generatePropertySlug(p)),

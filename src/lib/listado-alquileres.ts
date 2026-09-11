@@ -8,6 +8,11 @@ import {
   getTotalSurface,
   type TokkoProperty,
 } from './tokko'
+import {
+  BARRIOS_CANONICOS,
+  normUbicacion as norm,
+  resolverUbicacion,
+} from './ubicacion'
 
 export interface AlquilerItem {
   id: number
@@ -29,53 +34,8 @@ export interface AlquilerItem {
   referencia: string
 }
 
-// ── Barrio y ciudad de verdad ───────────────────────────────────────────────
-// formatLocation() (lib/tokko) devuelve las dos últimas partes del path de
-// Tokko, que según cómo se cargó la propiedad son "ciudad, departamento"
-// ("Roldan, San Lorenzo") o "ciudad, provincia" ("Roldán, Santa Fe"): nunca
-// barrio y ciudad. Acá resolvemos el path a mano — la última parte que sea una
-// ciudad conocida del corredor manda, y lo que venga después de una ciudad es
-// el barrio.
-
-const CIUDADES: Record<string, string> = {
-  roldan: 'Roldán',
-  funes: 'Funes',
-  rosario: 'Rosario',
-  perez: 'Pérez',
-  'san lorenzo': 'San Lorenzo',
-  'granadero baigorria': 'Granadero Baigorria',
-  ibarlucea: 'Ibarlucea',
-  'villa gobernador galvez': 'Villa Gobernador Gálvez',
-  'capitan bermudez': 'Capitán Bermúdez',
-  'fray luis beltran': 'Fray Luis Beltrán',
-  'puerto general san martin': 'Puerto General San Martín',
-  'arroyo seco': 'Arroyo Seco',
-  'luis palacios': 'Luis Palacios',
-  carcarana: 'Carcarañá',
-  zavalla: 'Zavalla',
-  soldini: 'Soldini',
-  alvear: 'Alvear',
-  pinero: 'Piñero',
-  ricardone: 'Ricardone',
-  timbues: 'Timbúes',
-}
-
-// País y provincia no son ubicación útil en una lista del corredor.
-const NO_ES_LUGAR = new Set(['argentina', 'santa fe', 'provincia de santa fe'])
-
-// Barrios que en el CRM están cargados sin tilde (o con el nombre corto).
-// Sólo corrige la escritura: no inventa barrios que la propiedad no tenga.
-const BARRIOS_CANONICOS: Record<string, string> = {
-  'san sebastian': 'San Sebastián',
-  'tierra de suenos': 'Tierra de Sueños',
-  'tierra de suenos 1': 'Tierra de Sueños 1',
-  'tierra de suenos 2': 'Tierra de Sueños 2',
-  'tierra de suenos 3': 'Tierra de Sueños 3',
-  'area industrial roldan': 'Área Industrial Roldán',
-  'el charquito': 'El Charquito',
-  'funes hills san marino': 'Funes Hills San Marino',
-  'funes hills cadaques': 'Funes Hills Cadaqués',
-}
+// Barrio y ciudad salen de lib/ubicacion (resolverUbicacion), el mismo helper
+// que usan la ficha, /comparar, los barrios y los kioscos.
 
 // Barrios genéricos: sirven como dato de ubicación, no como título de la fila.
 const BARRIOS_GENERICOS = new Set([
@@ -87,41 +47,6 @@ const BARRIOS_GENERICOS = new Set([
   'zona oeste',
   'zona centro',
 ])
-
-function norm(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-export function resolverUbicacion(p: TokkoProperty): {
-  barrio: string | null
-  ciudad: string | null
-} {
-  const loc = p.location
-  const path = loc?.full_location || loc?.short_location || loc?.name || ''
-  const partes: string[] = []
-  for (const parte of path.split('|').map((s) => s.trim())) {
-    if (!parte || NO_ES_LUGAR.has(norm(parte))) continue
-    // "Santa Fe | Rosario | Rosario" → una sola Rosario.
-    if (partes.length && norm(partes[partes.length - 1]) === norm(parte)) continue
-    partes.push(parte)
-  }
-  if (!partes.length) return { barrio: null, ciudad: null }
-
-  const ultima = partes[partes.length - 1]
-  const ciudadUltima = CIUDADES[norm(ultima)]
-  // La última parte ya es una ciudad → no hay barrio cargado, y lo anterior es
-  // el departamento ("San Lorenzo" en "Santa Fe | San Lorenzo | Roldan").
-  if (ciudadUltima) return { barrio: null, ciudad: ciudadUltima }
-
-  const anterior = partes.length > 1 ? partes[partes.length - 2] : null
-  const ciudad = anterior ? CIUDADES[norm(anterior)] ?? anterior : null
-  return { barrio: BARRIOS_CANONICOS[norm(ultima)] ?? ultima, ciudad }
-}
 
 // Saca de la dirección los segmentos que sólo repiten el barrio o la ciudad,
 // que van en la línea de abajo: "Catamarca 755 - PA /Roldán" → "Catamarca 755

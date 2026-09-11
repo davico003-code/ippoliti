@@ -8,12 +8,12 @@ import {
   getOperationType,
   getRoofedArea,
   getTotalSurface,
-  formatLocation,
   getMainPhoto,
   translatePropertyType,
   generatePropertySlug,
   type TokkoProperty,
 } from '@/lib/tokko';
+import { formatUbicacion } from '@/lib/ubicacion';
 
 export const metadata: Metadata = {
   title: 'Selección de Propiedades | SI INMOBILIARIA',
@@ -131,10 +131,10 @@ export default async function CompararPage({ searchParams }: Props) {
             const operation = getOperationType(property);
             const area = getTotalSurface(property);
             const roofedArea = getRoofedArea(property);
-            const location = formatLocation(property);
             const typeName = translatePropertyType(property.type?.name);
             const slug = generatePropertySlug(property);
             const address = property.real_address || property.fake_address || property.address;
+            const location = formatUbicacion(property, address);
 
             return (
               <div key={property.id} className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
