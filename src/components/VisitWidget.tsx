@@ -13,7 +13,11 @@ interface Props {
   source?: 'mobile-sticky' | 'desktop-sidebar' | 'emprendimiento' | 'otro'
   /** Si se pasa, muestra la X de cerrar (ej. bottom-sheet mobile). */
   onClose?: () => void
+  /** WhatsApp (formato wa.me) al que va el pedido; sin esto, el número general. */
+  whatsappNumber?: string
 }
+
+const WHATSAPP_GENERAL = '5493413340916'
 
 function getNextBusinessDays(count: number): Date[] {
   const days: Date[] = []
@@ -52,6 +56,7 @@ export default function VisitWidget({
   propertyUrl,
   source = 'otro',
   onClose,
+  whatsappNumber = WHATSAPP_GENERAL,
 }: Props) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [selectedHour, setSelectedHour] = useState('')
@@ -72,7 +77,7 @@ export default function VisitWidget({
   // Link de WhatsApp con el pedido pre-cargado. Se reusa en el submit y en la
   // confirmación (por si el popup se bloqueó o el cliente no llegó a enviarlo).
   const waHref = selectedDate
-    ? `https://wa.me/5493413340916?text=${encodeURIComponent(
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
         [
           `Hola! Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
           ``,

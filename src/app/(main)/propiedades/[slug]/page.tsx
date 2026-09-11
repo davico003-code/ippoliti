@@ -29,6 +29,7 @@ import {
   getBlueprintPhotos,
   sanitizeProperty,
   buildPropertyWhatsappUrl,
+  numeroVisitaWhatsapp,
   type TokkoProperty,
 } from '@/lib/tokko';
 import { formatUbicacion } from '@/lib/ubicacion';
@@ -368,6 +369,7 @@ export default async function PropertyPage({ params }: Props) {
         title={property.publication_title || property.address}
         propertyId={property.id}
         propertyTitle={property.publication_title || property.address}
+        visitWhatsappNumber={numeroVisitaWhatsapp(property)}
       />
     </div>
   );
