@@ -8,6 +8,8 @@ import {
   getOperationType,
   generatePropertySlug,
   formatPrice,
+  getProducerCallHref,
+  getProducerPhoneDisplay,
 } from '@/lib/tokko'
 import AudioSummary from '../AudioSummary'
 import ShareMenu from '../ShareMenu'
@@ -72,11 +74,11 @@ export default function PropertyDetailSidebar({
             <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
           </a>
           <a
-            href="tel:+5493412101694"
+            href={getProducerCallHref(property)}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
             style={{ border: '1.5px solid #e5e7eb', color: '#111' }}
           >
-            <Phone className="w-5 h-5" /> Llamar <span className="font-numeric">(341) 210-1694</span>
+            <Phone className="w-5 h-5" /> Llamar <span className="font-numeric">{getProducerPhoneDisplay(property)}</span>
           </a>
 
           <div className="border-t border-gray-100 pt-4 mt-2.5">

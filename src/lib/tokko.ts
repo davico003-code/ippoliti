@@ -294,6 +294,22 @@ export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string):
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 }
 
+// Botón "Llamar" de la ficha: el MISMO número que su WhatsApp (el captador; las
+// propiedades de David → su WhatsApp), así la línea de consultas es una sola —
+// igual que en MELI y Argenprop. Antes estaba fijo al (341) 210-1694, la línea
+// de WhatsApp que Meta bloqueó el 3-sep.
+export function getProducerCallHref(property: TokkoProperty): string {
+  return `tel:+${getProducerWhatsappNumber(property)}`
+}
+
+export function getProducerPhoneDisplay(property: TokkoProperty): string {
+  const d = getProducerWhatsappNumber(property).replace(/^549/, '')
+  if (d.length !== 10) return d
+  return d.startsWith('11')
+    ? `(11) ${d.slice(2, 6)}-${d.slice(6)}`
+    : `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+}
+
 // Variante para propiedades sin precio publicado (web_price: false): mismo
 // número (productor real con fallback al general) y misma estructura de
 // mensaje que buildPropertyWhatsappUrl, pero pidiendo el precio.
