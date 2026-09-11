@@ -17,8 +17,9 @@ const AGENTES_EXTRA = [
   { id: -1, name: 'Marisa Benitez',     email: '', phone: '', cellphone: '', picture: '/team/marisa-benitez.jpg', position: '' },
   { id: -2, name: 'Sabrina Rogani',     email: '', phone: '', cellphone: '', picture: '/team/sabrina-rogani.jpg', position: '' },
   { id: -3, name: 'Eliana Rojas',       email: '', phone: '', cellphone: '', picture: '/team/eliana-rojas.jpg', position: '' },
-  { id: -4, name: 'Julian Ruschneider', email: '', phone: '', cellphone: '', picture: '/team/julian-ruschneider.jpg', position: '' },
+  { id: -6, name: 'Jeremías Caraballo', email: '', phone: '', cellphone: '', picture: '/team/jeremias-caraballo.jpg', position: '' },
   { id: -5, name: 'Claudia',            email: '', phone: '', cellphone: '', picture: '/team/claudia.jpg', position: '' },
+  { id: -7, name: 'Florencia Acquarone', email: '', phone: '', cellphone: '', picture: '/team/florencia-acquarone.jpg', position: '' },
 ]
 
 // Roster del equipo, hardcodeado. Reemplaza el fetch a /api/tokko/agents porque
