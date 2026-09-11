@@ -16,10 +16,12 @@ interface Props {
   title: string
   propertyId: number
   propertyTitle: string
+  /** WhatsApp del pedido de visita (alquileres de Roldán → Leticia); sin esto, el general. */
+  visitWhatsappNumber?: string
 }
 
 export default function MobileStickyBar({
-  whatsappUrl, slug, title, propertyId, propertyTitle,
+  whatsappUrl, slug, title, propertyId, propertyTitle, visitWhatsappNumber,
 }: Props) {
   const [shareOpen, setShareOpen] = useState(false)
   const [visitOpen, setVisitOpen] = useState(false)
@@ -340,6 +342,7 @@ export default function MobileStickyBar({
                 propertyUrl={propertyUrl}
                 source="mobile-sticky"
                 onClose={() => setVisitOpen(false)}
+                whatsappNumber={visitWhatsappNumber}
               />
             </div>
           </div>

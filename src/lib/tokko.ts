@@ -1,6 +1,7 @@
 import { normalizeArWhatsapp } from './phone'
 import { normalizarTitulo } from './titulo'
 import { corregirTipo } from './correcciones'
+import { resolverUbicacion } from './ubicacion'
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
 // del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
@@ -292,6 +293,15 @@ export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string):
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
   const text = `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+}
+
+// Pedido de visita ("Solicitar visita" del mobile): los alquileres de Roldán van
+// a la línea de la ficha — el feed de HILO ya pone ahí al agente de alquileres
+// (Leticia), pedido de David 11-sep. El resto sigue al número general (undefined).
+export function numeroVisitaWhatsapp(property: TokkoProperty): string | undefined {
+  const alquila = (property.operations ?? []).some((op) => String(op.operation_type) !== 'Sale')
+  if (!alquila || resolverUbicacion(property).ciudad !== 'Roldán') return undefined
+  return getProducerWhatsappNumber(property)
 }
 
 // Botón "Llamar" de la ficha: el MISMO número que su WhatsApp (el captador; las
