@@ -610,15 +610,25 @@ async function drawSplitCard(
 
   const bandH = FIXED_BAND_H
 
-  // Banda fija centrada en el medio del canvas. Fotos superior e inferior
-  // simétricas (785 px cada una con BAND_CENTER_Y=960 y FIXED_BAND_H=350).
-  const BAND_CENTER_Y = 960
-  const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
-  const TOP_H = BAND_TOP
+  // La banda se corre apenas según el formato de las fotos: la más apaisada gana
+  // un poco de ancho visible. El corrimiento tiene tope para que arriba y abajo
+  // sigan siendo dos mitades parejas; con dos fotos del mismo formato quedan
+  // exactamente en 785 px cada una.
+  const PHOTOS_H = H - bandH
+  const HALF_H = PHOTOS_H / 2
+  const MAX_SHIFT = 80
+  const wantedH = (img: HTMLImageElement | null) => (img ? W * img.height / img.width : HALF_H)
+  const want1 = wantedH(photo1)
+  const want2 = wantedH(photo2)
+  const TOP_H = Math.round(Math.min(
+    HALF_H + MAX_SHIFT,
+    Math.max(HALF_H - MAX_SHIFT, PHOTOS_H * want1 / (want1 + want2)),
+  ))
+  const BAND_TOP = TOP_H
   const BOT_START = BAND_TOP + bandH
   const BOT_H = H - BOT_START
 
-  // Siempre a sangre: la foto llena su mitad y, si es muy ancha, se recortan
+  // Siempre a sangre: la foto llena su espacio y, si es muy ancha, se recortan
   // los laterales. Nada de franjas desenfocadas arriba y abajo.
   if (photo1) drawCover(ctx, photo1, 0, 0, W, TOP_H)
   else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, 0, W, TOP_H) }
