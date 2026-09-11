@@ -30,6 +30,8 @@ const FOTO_TEAM: Record<string, string> = {
   'Sabrina Rogani': '/team/sabrina-rogani.jpg',
   'Eliana Rojas': '/team/eliana-rojas.jpg',
   'Julian Ruschneider': '/team/julian-ruschneider.jpg',
+  'Jeremías Caraballo': '/team/jeremias-caraballo.jpg',
+  'Florencia Acquarone': '/team/florencia-acquarone.jpg',
   'Claudia': '/team/claudia.jpg',
   'Mauro Matteucci': '/team/mauro-matteucci.jpg',
   'Gino Pecchenino': '/team/gino-pecchenino.jpg',
