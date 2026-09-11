@@ -23,7 +23,6 @@ import {
   isMonoambiente,
   formatPrice,
   mostrarPrecio,
-  formatLocation,
   getTotalSurface,
   getMainPhoto,
   getDescription,
@@ -32,6 +31,7 @@ import {
   buildPropertyWhatsappUrl,
   type TokkoProperty,
 } from '@/lib/tokko';
+import { formatUbicacion } from '@/lib/ubicacion';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
 
 export const revalidate = 3600;
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .slice(0, 160);
     const photo = getMainPhoto(property);
     const price = formatPrice(property);
-    const loc = formatLocation(property);
+    const loc = formatUbicacion(property);
     const ogDesc = `${price} - ${loc || property.address}. ${desc}`.slice(0, 200);
     // #3: canonical SIEMPRE al slug canónico del ID (no al slug pedido), para
     // consolidar los duplicados que sirve cualquier sufijo con el ID correcto.
