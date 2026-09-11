@@ -7,6 +7,7 @@ import {
   MATRIZ_RESIDENCIAL_BASE,
   MATRIZ_COMERCIAL_BASE,
   getAjusteMensual,
+  getCalidadBySlug,
   ajustar,
   fmtUSD,
   formatMesAnio,
@@ -85,70 +86,85 @@ const WHATSAPP_COMPARTIR = `https://api.whatsapp.com/send?text=${encodeURICompon
 // CSS scoped con prefijo `costos-` (mismo patrón que el índice de recursos).
 // Adaptado del HTML de referencia con los tokens del sitio.
 
+// Casos reales: lote y superficies fijos; el costo de obra sale del valor
+// Llave en Mano VIGENTE de la matriz (mismo ajuste mensual), así nunca quedan
+// desalineados de la tabla. Misma fórmula que la calculadora:
+//   obra = cub × m² + semi × m²/2 · mercado = inversión × 1,05165 (a la centena)
 const CASOS_REALES = [
   {
     calidad: 'Línea Estándar',
     barrio: 'Tierra de Sueños 3',
-    detalle: ['Lote: USD 20.000 (360 m²)', 'Construcción: 70 m² cubiertos + 20 m² semi'],
-    obra: 'Costo Obra: USD 62.400',
-    inversion: 'USD 82.400',
-    mercado: 'USD 86.700',
+    slug: 'linea-estandar',
+    lote: 20000,
+    loteSup: '360 m²',
+    cub: 70,
+    semi: 20,
+    construccion: '70 m² cubiertos + 20 m² semi',
   },
   {
     calidad: 'Línea Media',
     barrio: 'Funes City',
-    detalle: ['Lote: USD 45.000 (500 m²)', 'Construcción: 120 m² cubiertos + 30 m² semi'],
-    obra: 'Costo Obra: USD 152.685',
-    inversion: 'USD 197.685',
-    mercado: 'USD 207.900',
+    slug: 'linea-media',
+    lote: 45000,
+    loteSup: '500 m²',
+    cub: 120,
+    semi: 30,
+    construccion: '120 m² cubiertos + 30 m² semi',
   },
   {
     calidad: 'Línea Media (Country)',
     barrio: 'Vida Lagoon / Funes Lakes',
-    detalle: ['Lote: USD 80.000', 'Construcción: 130 m² cubiertos + 40 m² semi'],
-    obra: 'Costo Obra: USD 169.650',
-    inversion: 'USD 249.650',
-    mercado: 'USD 262.500',
+    slug: 'linea-media',
+    lote: 80000,
+    cub: 130,
+    semi: 40,
+    construccion: '130 m² cubiertos + 40 m² semi',
   },
   {
     calidad: 'Línea Alta',
     barrio: 'Funes Lakes / Vida Lagoon',
-    detalle: ['Lote: USD 75.000', 'Construcción: 160 m² cubiertos + 80 m² semi'],
-    obra: 'Costo Obra: USD 280.800',
-    inversion: 'USD 355.800',
-    mercado: 'USD 374.200',
+    slug: 'linea-alta',
+    lote: 75000,
+    cub: 160,
+    semi: 80,
+    construccion: '160 m² cubiertos + 80 m² semi',
   },
   {
     calidad: 'Línea Alta (Grande)',
     barrio: 'Barrio Vida',
-    detalle: ['Lote: USD 180.000', 'Construcción: 180 m² cubiertos + 60 m² semi (240 m² tot.)'],
-    obra: 'Costo Obra: USD 294.840',
-    inversion: 'USD 474.840',
-    mercado: 'USD 499.400',
+    slug: 'linea-alta',
+    lote: 180000,
+    cub: 180,
+    semi: 60,
+    construccion: '180 m² cubiertos + 60 m² semi (240 m² tot.)',
   },
   {
     calidad: 'Línea Alta (2 Plantas)',
     barrio: 'San Sebastián',
-    detalle: ['Lote: USD 200.000 (800 m²)', 'Construcción: 270 m² cub. + 80 m² semi (350 m² tot.)'],
-    obra: 'Costo Obra: USD 435.240',
-    inversion: 'USD 635.240',
-    mercado: 'USD 668.100',
+    slug: 'linea-alta',
+    lote: 200000,
+    loteSup: '800 m²',
+    cub: 270,
+    semi: 80,
+    construccion: '270 m² cub. + 80 m² semi (350 m² tot.)',
   },
   {
     calidad: 'Línea Alta',
     barrio: 'Vida Club de Campo',
-    detalle: ['Lote: USD 150.000', 'Construcción: 350 m² cub. + 100 m² semi (450 m² tot.)'],
-    obra: 'Costo Obra: USD 561.600',
-    inversion: 'USD 711.600',
-    mercado: 'USD 748.400',
+    slug: 'linea-alta',
+    lote: 150000,
+    cub: 350,
+    semi: 100,
+    construccion: '350 m² cub. + 100 m² semi (450 m² tot.)',
   },
   {
     calidad: 'Premium Country',
     barrio: 'Kentucky Club de Campo',
-    detalle: ['Lote: USD 450.000', 'Construcción: 350 m² cub. + 100 m² semi (450 m² tot.)'],
-    obra: 'Costo Obra: USD 780.000',
-    inversion: 'USD 1.230.000',
-    mercado: 'USD 1.293.500',
+    slug: 'premium-country',
+    lote: 450000,
+    cub: 350,
+    semi: 100,
+    construccion: '350 m² cub. + 100 m² semi (450 m² tot.)',
   },
 ]
 
@@ -178,6 +194,20 @@ export default async function CostosConstruccionPage() {
       value: valor,
       label: `Residencial: ${f.calidad} (${fmtUSD(valor)}/m² Llave en Mano)`,
       slug: f.slug,
+    }
+  })
+  const casos = CASOS_REALES.map((caso) => {
+    const llaveBase = getCalidadBySlug(caso.slug)?.llaveBase
+    // Slug mal escrito → que falle el build, no un caso con obra en USD 0.
+    if (!llaveBase) throw new Error(`Caso real con calidad inexistente: ${caso.slug}`)
+    const m2 = ajustar(llaveBase, factor)
+    const obra = caso.cub * m2 + caso.semi * (m2 / 2)
+    const inversion = caso.lote + obra
+    return {
+      ...caso,
+      obra: fmtUSD(obra),
+      inversion: fmtUSD(inversion),
+      mercado: fmtUSD(Math.round((inversion * 1.05165) / 100) * 100),
     }
   })
 
@@ -315,7 +345,7 @@ export default async function CostosConstruccionPage() {
                 </tr>
               </thead>
               <tbody>
-                {CASOS_REALES.map((caso, i) => (
+                {casos.map((caso, i) => (
                   <tr key={i}>
                     <td>
                       <span className="costos-td-title">{caso.calidad}</span>
@@ -323,13 +353,12 @@ export default async function CostosConstruccionPage() {
                       <span className="costos-badge-barrio">{caso.barrio}</span>
                     </td>
                     <td className="costos-td-desc">
-                      <strong>{caso.detalle[0].split(':')[0]}:</strong>
-                      {caso.detalle[0].slice(caso.detalle[0].indexOf(':') + 1)}
+                      <strong>Lote:</strong> {fmtUSD(caso.lote)}
+                      {caso.loteSup && ` (${caso.loteSup})`}
                       <br />
-                      <strong>{caso.detalle[1].split(':')[0]}:</strong>
-                      {caso.detalle[1].slice(caso.detalle[1].indexOf(':') + 1)}
+                      <strong>Construcción:</strong> {caso.construccion}
                       <br />
-                      <em>{caso.obra}</em>
+                      <em>Costo Obra: {caso.obra}</em>
                     </td>
                     <td className="costos-td-price">{caso.inversion}</td>
                     <td className="costos-td-success">{caso.mercado}</td>

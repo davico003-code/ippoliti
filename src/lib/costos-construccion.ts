@@ -3,7 +3,8 @@
 // con mes base Agosto 2026 y se ajustan automáticamente un 2% MENSUAL
 // acumulativo (regla comercial de David, 17-ago-2026 — reemplaza al ajuste por
 // IPC/INDEC que corría antes; el primer ajuste corre solo en Septiembre 2026).
-// Los CASOS REALES no se ajustan: quedan estáticos como el HTML aprobado.
+// Los CASOS REALES se calculan con estos mismos valores vigentes (lote y
+// superficies fijos en page.tsx), así acompañan el ajuste mensual de la tabla.
 
 export const MES_BASE = '2026-08'
 
