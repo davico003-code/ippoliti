@@ -12,6 +12,7 @@ import {
   mostrarPrecio,
   esOportunidadConsultanos,
   buildPriceConsultWhatsappUrl,
+  getProducerCallHref,
   generatePropertySlug,
   getOperationType,
   getRoofedArea,
@@ -286,7 +287,7 @@ export default function PropertyDetailBody({
               style={{ background: '#25d366', color: '#fff' }}>
               <MessageCircle className="w-4 h-4" /> WhatsApp
             </a>
-            <a href="tel:+5493412101694"
+            <a href={getProducerCallHref(property)}
               className="flex items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
               style={{ border: '1.5px solid #e5e7eb', color: '#111' }}>
               <Phone className="w-4 h-4" /> Llamar
