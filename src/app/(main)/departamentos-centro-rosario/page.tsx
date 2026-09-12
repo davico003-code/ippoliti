@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   keywords: 'departamentos centro rosario, departamentos venta centro rosario, departamentos rosario centro',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-centro-rosario' },
   openGraph: {
-    images: ['/og-image.jpg'], title: 'Departamentos en Centro Rosario', url: 'https://siinmobiliaria.com/departamentos-centro-rosario' },
+    images: ['/og-image.jpg'], title: 'Departamentos en Centro Rosario', description: 'Peatonal Córdoba, Plaza Pringles y Bv. Oroño. Desde USD 45.000, ideal para invertir.', url: 'https://siinmobiliaria.com/departamentos-centro-rosario' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {
