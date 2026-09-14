@@ -4,8 +4,6 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { Calendar, MessageCircle, Share2, Link2, Check, Instagram, Sparkles } from 'lucide-react'
 import VisitWidget from './VisitWidget'
-import LikeHeart from './feedback/LikeHeart'
-import { FEEDBACK_ENABLED } from './feedback/flag'
 import { showToast } from './Toast'
 import { generarYCopiarFichaLink } from '@/lib/share-ficha'
 import { events } from '@/lib/analytics'
@@ -146,12 +144,6 @@ export default function MobileStickyBar({
         </a>
 
         {/* 3. Guardar */}
-        {FEEDBACK_ENABLED && (
-          <div className="flex items-center justify-center" style={{ width: 48, height: 48, flexShrink: 0 }}>
-            <LikeHeart propertyId={propertyId} size={42} className="" />
-          </div>
-        )}
-
         {/* 4. Compartir */}
         <div className="relative" ref={shareRef} style={{ flexShrink: 0 }}>
           <button
