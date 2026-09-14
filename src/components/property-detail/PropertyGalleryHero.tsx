@@ -14,7 +14,6 @@ import Image from 'next/image'
 import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
 import { getAllPhotos, getOperationType, operationBadgeColor, translatePropertyType } from '@/lib/tokko'
-import LikeHeart from '@/components/feedback/LikeHeart'
 
 const GREEN = '#1A5C38'
 
@@ -128,8 +127,6 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
               Ver las {photos.length} fotos
             </span>
           )}
-          {/* Like discreto sobre la portada (esquina top-right libre) */}
-          <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />
         </div>
       </div>
 
@@ -164,8 +161,6 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
                 {propType}
               </span>
             )}
-            {/* Like discreto sobre la portada (esquina top-right libre) */}
-            <LikeHeart propertyId={property.id} size={34} className="absolute top-3 right-3" />
           </div>
 
           {Array.from({ length: 4 }).map((_, i) => {

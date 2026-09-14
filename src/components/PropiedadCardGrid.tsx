@@ -283,7 +283,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           </>
         )}
 
-        {/* Badge top-left — operation only (Destacada eliminado) */}
+        {/* Badges top-left — operación (color) + tipo de inmueble (blanco) */}
         <div className="absolute top-2.5 left-2.5 flex gap-1.5">
           {operation && (
             <span style={{
@@ -299,10 +299,25 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
               {operation}
             </span>
           )}
+          {typeName && (
+            <span style={{
+              background: 'rgba(255,255,255,0.9)',
+              color: '#0a0a0a',
+              fontFamily: RALEWAY,
+              fontWeight: 600,
+              fontSize: 11,
+              textTransform: 'uppercase',
+              padding: '5px 14px',
+              borderRadius: 9999,
+              backdropFilter: 'blur(2px)',
+            }}>
+              {typeName}
+            </span>
+          )}
         </div>
 
-        {/* Play + like juntos, arriba-derecha. audioUrl ya viene enriquecido en
-            el listado (string = hay audio, null = no hay). */}
+        {/* Play arriba-derecha (solo si hay audio). audioUrl ya viene enriquecido
+            en el listado (string = hay audio, null = no hay). */}
         <CardMediaButtons
           propertyId={property.id}
           audioUrl={property.audioUrl ?? null}
@@ -379,7 +394,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         }}>
-          {typeName}{typeName && address ? ' \u00B7 ' : ''}{address}
+          {address || typeName}
         </p>
 
         <p style={{
