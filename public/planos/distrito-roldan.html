@@ -1455,11 +1455,17 @@ dBody.addEventListener("click",e=>{
   }
 });
 
-/* El botón de arriba del plano: en celular es el camino principal. */
-(function(){
-  const b=document.getElementById("cta-lista"); if(!b) return;
+/* El botón de arriba del plano: en celular es el camino principal. El conteo se
+   vuelve a sellar cuando llegan los datos vivos: al cargar, `lots` todavía tiene
+   el respaldo embebido y el número puede no ser el de hoy. */
+function sincroLista(){
   const n=document.getElementById("cta-lista-n");
   if(n) n.textContent=lots.filter(l=>l.estado==="d").length;
+  if(hoja.view==="lista" && side.classList.contains("open")) render(false);
+}
+(function(){
+  const b=document.getElementById("cta-lista"); if(!b) return;
+  sincroLista();
   b.addEventListener("click",abrirLista);
 })();
 dBody.addEventListener("input",e=>{
@@ -1831,6 +1837,7 @@ document.getElementById("fecha").textContent = CFG.actualizado || "—";
   svg=build(); bindSvg(svg); paint();
   if(abierto!=null && byN.get(abierto)) select(abierto,{mantener:true});
   checkOverflow();
+  sincroLista();
 })();
 </script>
 </body>
