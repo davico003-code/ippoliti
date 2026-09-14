@@ -306,6 +306,29 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .chip b{color:var(--ink);font-weight:700}
 .chip i{width:9px;height:9px;border-radius:99px;background:var(--disp);box-shadow:0 0 0 2.5px #EAF2DE;flex:none}
 .chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Lista de lotes a la venta (celular). En un teléfono cada lote del plano mide
+   ~30 × 15 px y el dedo cubre 40-50: elegir en el mapa es imposible. La lista
+   da el mismo dato con un blanco de 100+ px de alto. El mapa sigue siendo el
+   camino en escritorio, donde sí se puede apuntar. */
+.cta-lista{display:none}
+.lista{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;cursor:pointer;transition:border-color .15s}
+.lcard:hover,.lcard:focus-visible{border-color:rgba(47,74,58,.45);outline:none}
+.lc-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.lc-top b{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.lc-top .mz{font-size:12px;color:var(--ink-2);font-weight:600;white-space:nowrap}
+.lc-num{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:3px;font-size:13.5px;color:var(--ink-2)}
+.lc-pre{font-size:16px;font-weight:700;color:var(--ink);white-space:nowrap}
+.lc-cuo{margin-top:5px;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
+.lc-cuo b{color:var(--ink);font-weight:700}
+.lc-btn{min-height:46px;margin-top:10px;font-size:14.5px}
+@media (max-width:900px){
+  .cta-lista{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:52px;margin:10px 0 0;
+    border:0;border-radius:14px;background:var(--brand);color:#fff;font:inherit;font-weight:700;font-size:15.5px;
+    letter-spacing:-.01em;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.14),0 8px 20px -8px rgba(47,74,58,.65)}
+  .cta-lista b{font-weight:800}
+}
 .team{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;
   box-shadow:0 1px 2px rgba(35,41,31,.05),0 10px 26px -14px rgba(35,41,31,.3)}
 .team-head{padding:11px 14px 9px;border-bottom:1px solid var(--line)}
@@ -442,6 +465,10 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
       <svg class="lbl-sh" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
+
+  <button type="button" class="cta-lista" id="cta-lista">
+    Ver los <b id="cta-lista-n">31</b> lotes a la venta
+  </button>
 
   <div class="mapbox" id="mapa">
     <div class="mapscroll" id="mapscroll" tabindex="0" role="region" aria-label="Plano del loteo, desplazable">
@@ -1261,6 +1288,7 @@ const side=document.getElementById("side"), dBody=document.getElementById("detai
    Meta sobrecontaba (revisión 06-sep-2026). */
 const hoja={view:"detalle", nombre:"", wa:"", fallos:0, enviando:false, medidos:new Set()};
 const MOVIL = () => window.matchMedia("(max-width: 960px)").matches;
+const ANGOSTO = () => window.matchMedia("(max-width: 900px)").matches;
 
 /* Financiación: entrega = precio × anticipo %; cuota = (precio − entrega) /
    cuotas; las dos redondeadas a entero. Misma cuenta que hace el servidor. */
@@ -1290,6 +1318,26 @@ function vistaDetalle(l){
     : `<p class="muted">Consultanos el valor de este lote.</p>`)+
     `<button type="button" class="btn btn-p" data-act="consultar">Consultar por este lote</button>
      <p class="fine">Te escribimos por WhatsApp en minutos. Sin compromiso.</p>`;
+}
+
+/* Lista de los lotes a la venta, ordenada por precio. Los datos son los mismos
+   que muestra la hoja del lote; acá sirven para elegir sin tener que acertarle
+   a un rectángulo de 30 × 15 px en el plano. */
+function vistaLista(){
+  const disp=lots.filter(l=>l.estado==="d" && (F.tipo==="all" || (l.com?1:0)===+F.tipo))
+    .sort((a,b)=>(a.precio??Infinity)-(b.precio??Infinity) || a.n-b.n);
+  const head=`<div class="row"><div class="lotnum"><b tabindex="-1" id="hoja-ttl">Lotes a la venta</b><span class="mz">${disp.length} de ${lots.length}</span></div>
+      <div class="row-r">${X_BTN}</div></div>`;
+  if(!disp.length) return head+`<p class="muted">No hay lotes a la venta con ese filtro. Probá con “Todo tipo”.</p>`;
+  return head+`<p class="medidas">Elegí el tuyo y te escribimos por WhatsApp.</p><ul class="lista">`+disp.map(l=>{
+    const f=finDe(l);
+    return `<li class="lcard" data-act="ir-lote" data-n="${l.n}" tabindex="0" role="button">
+      <div class="lc-top"><b>Lote ${l.n}</b><span class="mz">Mz. ${l.mz} · ${l.com?"Comercial":"Residencial"}</span></div>
+      <div class="lc-num"><span>${mS(l.frente)} × ${mS(l.fondo)} · ${m2S(l.sup)}</span>${l.conPrecio?`<span class="lc-pre">${USD(l.precio)}</span>`:""}</div>
+      ${f?`<div class="lc-cuo">${f.cuotas} cuotas fijas de <b>${USD(f.cuota)}</b> · entrega ${USD(f.entrega)}</div>`:""}
+      <button type="button" class="btn btn-p lc-btn" data-act="consultar-lote" data-n="${l.n}">Consultar por el lote ${l.n}</button>
+    </li>`;
+  }).join("")+`</ul>`;
 }
 
 function vistaForm(l){
@@ -1348,6 +1396,13 @@ function avisarHoja(abierta){
 }
 
 function render(enfocar){
+  if(hoja.view==="lista"){
+    dBody.innerHTML=vistaLista();
+    side.classList.add("open"); scrim.classList.add("on"); side.scrollTop=0;
+    avisarHoja(true); colocarHoja();
+    if(enfocar){ const t=document.getElementById("hoja-ttl"); if(t) t.focus({preventScroll:true}); }
+    return;
+  }
   const l=byN.get(sel); if(!l) return;
   dBody.innerHTML = hoja.view==="form" ? vistaForm(l) : hoja.view==="listo" ? vistaListo(l) : vistaDetalle(l);
   side.classList.add("open"); scrim.classList.add("on"); side.scrollTop=0;
@@ -1374,9 +1429,16 @@ function deselect(){
   if(sel!=null && byN.get(sel)) byN.get(sel).node.classList.remove("on");
   sel=null; hoja.view="detalle"; syncURL();
 }
-function verDisponibles(){
+function prenderDisponibles(){
   if(!LAY.d){ LAY.d=true; document.querySelector('[data-lay="d"]').setAttribute("aria-pressed","true"); }
-  deselect(); paint(); say("Los lotes a la venta, en verde claro. "+VERBO());
+  paint();
+}
+function verDisponibles(){
+  prenderDisponibles(); deselect(); say("Los lotes a la venta, en verde claro. "+VERBO());
+}
+function abrirLista(){
+  prenderDisponibles(); hoja.view="lista"; render(true);
+  medir("ListaLotes",{disponibles:lots.filter(l=>l.estado==="d").length},"dr_lista_lotes",false);
 }
 
 dBody.addEventListener("click",e=>{
@@ -1385,8 +1447,21 @@ dBody.addEventListener("click",e=>{
   if(act==="cerrar") deselect();
   else if(act==="consultar"){ hoja.view="form"; hoja.fallos=0; render(true); }
   else if(act==="volver"){ hoja.view="detalle"; render(true); }
-  else if(act==="ver-disp") verDisponibles();
+  else if(act==="ver-disp"){ if(ANGOSTO()) abrirLista(); else verDisponibles(); }
+  else if(act==="ir-lote"){ const n=+b.dataset.n; if(byN.has(n)) select(n,{enfocar:true}); }
+  else if(act==="consultar-lote"){
+    const n=+b.dataset.n; if(!byN.has(n)) return;
+    select(n); hoja.view="form"; hoja.fallos=0; render(true);
+  }
 });
+
+/* El botón de arriba del plano: en celular es el camino principal. */
+(function(){
+  const b=document.getElementById("cta-lista"); if(!b) return;
+  const n=document.getElementById("cta-lista-n");
+  if(n) n.textContent=lots.filter(l=>l.estado==="d").length;
+  b.addEventListener("click",abrirLista);
+})();
 dBody.addEventListener("input",e=>{
   if(e.target.id==="f-nombre") hoja.nombre=e.target.value;
   if(e.target.id==="f-wa"){ e.target.value=e.target.value.replace(/[^\d\s-]/g,""); hoja.wa=e.target.value; }
