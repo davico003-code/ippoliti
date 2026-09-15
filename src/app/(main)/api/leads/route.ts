@@ -34,21 +34,44 @@ export async function POST(request: NextRequest) {
   const whatsapp = str(body.whatsapp || body.phone)
   const origen = str(body.origen || body.source || 'web')
 
-  // Validación básica
-  if (!nombre || nombre.length < 3) {
-    return NextResponse.json({ error: 'Nombre debe tener mínimo 3 caracteres' }, { status: 400 })
+  // Validación básica. Alcanza UN dato de contacto: la consulta calificada de
+  // una propiedad pide WhatsApp y no email (15-sep-2026).
+  if (!nombre || nombre.length < 2) {
+    return NextResponse.json({ error: 'Contanos tu nombre.' }, { status: 400 })
   }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!email && !whatsapp) {
+    return NextResponse.json({ error: 'Dejanos un WhatsApp o un email.' }, { status: 400 })
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Email inválido' }, { status: 400 })
   }
+
+  // Consulta calificada de una propiedad (/consulta/[slug]): qué propiedad, cómo
+  // paga y para cuándo. El id del feed es el tokko_id salvo los 9000000xx, que
+  // son propiedades cargadas directo en Hilo y viajan por su uuid.
+  const esConsultaCalificada = origen === 'consulta_calificada'
+  const propertyIdNum = Number(body.propertyId)
+  const tokkoPropertyId = Number.isFinite(propertyIdNum) && propertyIdNum > 0 && propertyIdNum < 900_000_000 ? String(propertyIdNum) : null
+  const hiloPropertyId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str(body.hiloPropertyId)) ? str(body.hiloPropertyId) : null
+  const pageUrl = str(body.pageUrl)
+  const utm = (() => {
+    try {
+      const p = new URL(pageUrl).searchParams
+      const g = (k: string) => p.get(`utm_${k}`) || undefined
+      const u = { utm_source: g('source'), utm_medium: g('medium'), utm_campaign: g('campaign'), utm_content: g('content') }
+      return Object.values(u).some(Boolean) ? { ...u, captured_at: new Date().toISOString() } : null
+    } catch {
+      return null
+    }
+  })()
 
   // Guardar en Redis (destino de respaldo — nunca debería perderse un lead)
   let savedRedis = false
   try {
     const redis = getRedis()
     const ts = Date.now()
-    const leadKey = `lead:${origen}:${ts}:${email}`
-    const leadData = { nombre, email, whatsapp, origen, fecha: new Date().toISOString() }
+    const leadKey = `lead:${origen}:${ts}:${email || whatsapp}`
+    const leadData = { nombre, email, whatsapp, origen, fecha: new Date().toISOString(), ...(esConsultaCalificada ? { propertyId: str(body.propertyId), pago: str(body.pago), plazo: str(body.plazo) } : {}) }
 
     await redis.set(leadKey, JSON.stringify(leadData))
     await redis.lpush('leads:all', JSON.stringify(leadData))
@@ -61,12 +84,15 @@ export async function POST(request: NextRequest) {
   const isGuiaLead = origen === 'guia-comprador'
   const savedHilo = await pushLeadToHilo({
     name: nombre,
-    email,
+    email: email || null,
     phone: whatsapp,
     origen,
     message: isGuiaLead
       ? 'Lead desde Guía del Comprador 2026 — siinmobiliaria.com'
-      : `Operación: ${str(body.operation) || 'Venta'} | Tipo: ${str(body.propertyType) || 'Casa'} | Presupuesto: ${str(body.budget) || 'Sin límite'}`,
+      : esConsultaCalificada
+        ? `Consultó por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la web · Paga: ${str(body.pago) || 'no dijo'} · Plazo: ${str(body.plazo) || 'no dijo'}`
+        : `Operación: ${str(body.operation) || 'Venta'} | Tipo: ${str(body.propertyType) || 'Casa'} | Presupuesto: ${str(body.budget) || 'Sin límite'}`,
+    ...(esConsultaCalificada ? { tokkoPropertyId, hiloPropertyId, sourceUrl: pageUrl || null, attribution: utm } : {}),
   })
 
   // Si el lead NO quedó en NINGÚN destino durable, es una pérdida real: avisar al

@@ -25,6 +25,13 @@ export type HiloLeadPayload = {
   /** Contexto del pedido por un lote del plano de Distrito Roldán (origen
    *  'lote_web', 06-sep-2026): número, medidas, precio, cuota, utm, página. */
   lote?: LoteLead | null
+  /** uuid de la propiedad en Hilo (feed: hilo_id). Resuelve la ficha aunque no
+   *  tenga tokko_id — las cargadas directo en Hilo. */
+  hiloPropertyId?: string | null
+  /** URL de la página donde se hizo el pedido, con sus utm. */
+  sourceUrl?: string | null
+  /** utm_* del clic (Hilo los ata al anuncio de Meta por utm_content = ref). */
+  attribution?: Record<string, unknown> | null
 }
 
 /** Devuelve true si el lead quedó registrado en el inbox de Hilo. best-effort:
