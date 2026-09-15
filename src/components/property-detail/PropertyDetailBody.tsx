@@ -5,7 +5,7 @@
 // Mobile is NOT rendered here — each parent keeps its own mobile layout.
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Phone } from 'lucide-react'
+import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Phone, Navigation } from 'lucide-react'
 import {
   type TokkoProperty,
   formatPrice,
@@ -28,6 +28,7 @@ import {
   translateDisposition,
 } from '@/lib/tokko'
 import { formatUbicacion } from '@/lib/ubicacion'
+import { trackEvent } from '@/lib/analytics'
 import PropertyDescription from '../PropertyDescription'
 import SectionBoundary from './SectionBoundary'
 import BarrioPanel from './BarrioPanel'
@@ -142,6 +143,15 @@ export default function PropertyDetailBody({
   const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null
   const currentLng = property.geo_long ? parseFloat(property.geo_long) : null
   const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng)
+
+  // "Cómo llegar": Google Maps en modo direcciones. Con coordenadas el destino
+  // es exacto (lat,lng); sin coordenadas cae a la dirección + localidad, que
+  // Google resuelve como búsqueda. En mobile abre la app de Maps si está
+  // instalada, en desktop la web.
+  const direccionCompleta = `${property.real_address || address}${location ? `, ${location}` : ''}`
+  const comoLlegarUrl = hasCoords
+    ? `https://www.google.com/maps/dir/?api=1&destination=${currentLat},${currentLng}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${direccionCompleta}, Santa Fe, Argentina`)}`
 
   // Specs (icon cards)
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
@@ -405,11 +415,25 @@ export default function PropertyDetailBody({
               address={property.real_address || address}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: GREEN }} />
-            <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
-              {property.real_address || address}{location ? `, ${location}` : ''}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: GREEN }} />
+              <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
+                {direccionCompleta}
+              </span>
+            </div>
+            <a
+              href={comoLlegarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackEvent('como_llegar_click', { property_id: property.id, has_coords: hasCoords })}
+              className="inline-flex items-center gap-2 border-2 border-[#1A5C38] text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white font-bold rounded-xl px-4 py-2.5 text-sm transition-colors"
+              style={{ fontFamily: R }}
+              aria-label="Cómo llegar (abre Google Maps)"
+            >
+              <Navigation className="w-4 h-4" />
+              Cómo llegar
+            </a>
           </div>
         </section>
       </SectionBoundary>
