@@ -413,8 +413,9 @@ export function getOperationType(property: TokkoProperty): string {
 //   David) · resto (permutas, etc.) → violeta.
 export function operationBadgeColor(operation: string): string {
   if (operation === 'Venta') return '#1A5C38';
-  // Rojo un tono más vivo que el #991B1B anterior (pedido de David, 14-sep-2026).
-  if (operation.startsWith('Alquiler')) return '#B91C1C';
+  // Rojo franco, no bordó (David, 14-sep-2026: #991B1B y #B91C1C le seguían
+  // pareciendo bordó). Sigue por debajo del rojo de marca #F40009.
+  if (operation.startsWith('Alquiler')) return '#DC2626';
   return '#7c3aed';
 }
 
