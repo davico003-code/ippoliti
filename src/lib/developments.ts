@@ -45,8 +45,85 @@ async function hiloRichDev(unitId: number): Promise<any | null> {
   }
 }
 
+// ── Presentación fija por emprendimiento ─────────────────────────────────────
+// Los devs que nacieron EN HILO (no vinieron de Tokko) llegan en el feed como
+// `{ id, name }` pelados: sin fotos, sin tipo, sin ubicación ni estado. La grilla
+// de /emprendimientos caía al placeholder gris con el chip "Consultar". Acá se
+// completan con los mismos assets locales que ya usa la landing del dev.
+// Las rutas locales (`/images/...`) las resuelve next/image; para OG/JSON-LD hay
+// que absolutizarlas con `absoluteDevPhotoUrl`.
+const DEV_PRESENTATION: Record<number, Partial<Development>> = {
+  // Distrito Roldán — barrio abierto sobre Ruta 9 y María Auxiliadora.
+  67178: {
+    // Con acento: el slug normaliza diacríticos, así que sigue siendo
+    // 67178-distrito-roldan (la URL indexada no cambia).
+    name: 'Distrito Roldán',
+    publication_title: 'Lotes residenciales y comerciales sobre Ruta 9',
+    address: 'Ruta 9 y María Auxiliadora',
+    description:
+      'Barrio abierto con 180 lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario. Servicios subterráneos, área comercial propia y financiación 30% + 24 cuotas fijas en dólares.',
+    construction_status: 2,
+    type: { code: 'ON', id: 0, name: 'Open neighborhood' },
+    location: {
+      id: 0,
+      name: 'Roldán',
+      full_location: 'Argentina | Santa Fe | Roldán | Distrito Roldán',
+      short_location: 'Santa Fe | Roldán | Distrito Roldán',
+    },
+    geo_lat: -32.91138,
+    geo_long: -60.88838,
+    financing_details: '30% de entrega y saldo en 24 cuotas fijas en dólares',
+    photos: [
+      '/images/distrito-roldan/hero-aerea.webp',
+      '/images/distrito-roldan/render-residencial.webp',
+      '/images/distrito-roldan/render-comercial.webp',
+      '/images/distrito-roldan/obra-5.webp',
+      '/images/distrito-roldan/obra-6.webp',
+    ].map((image, order) => ({
+      image,
+      original: image,
+      thumb: image,
+      description: null,
+      is_blueprint: false,
+      is_front_cover: order === 0,
+      order,
+    })),
+  },
+}
+
+/** Fotos locales (`/images/...`) → URL absoluta para OG y JSON-LD. */
+export function absoluteDevPhotoUrl(url: string | null): string | null {
+  if (!url) return null
+  return url.startsWith('/') ? `https://siinmobiliaria.com${url}` : url
+}
+
+// Fotos de una unidad del feed → forma DevPhoto. Se usa como último recurso para
+// devs sin fotos propias ni presentación fija (p. ej. uno nuevo cargado en HILO),
+// así la grilla nunca muestra el placeholder gris.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapRawDev(d: any): Development {
+function photosFromUnit(unit: any): DevPhoto[] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const photos: any[] = Array.isArray(unit?.photos) ? unit.photos : []
+  return photos
+    .filter((p) => typeof p?.image === 'string' && !p.is_blueprint)
+    .map((p, order) => ({
+      image: p.image,
+      original: p.original ?? p.image,
+      thumb: p.thumb ?? p.image,
+      description: p.description ?? null,
+      is_blueprint: false,
+      is_front_cover: order === 0,
+      order,
+    }))
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapRawDev(d: any, fallbackUnit?: any): Development {
+  const fixed = DEV_PRESENTATION[d?.id] ?? {}
+  d = { ...d, ...fixed }
+  if (!Array.isArray(d.photos) || d.photos.length === 0) d.photos = photosFromUnit(fallbackUnit)
+  // El dev pelado tampoco trae ubicación: tomarla de la unidad.
+  if (!d.location?.name && fallbackUnit?.location?.name) d.location = fallbackUnit.location
   return {
     id: d.id,
     name: d.name ?? '',
@@ -210,10 +287,11 @@ export async function getDevelopments(): Promise<Development[]> {
       if (d?.id && d.display_on_web !== false && !unitByDev.has(d.id)) unitByDev.set(d.id, o.id)
     }
     const devs = await Promise.all(
-      Array.from(unitByDev.entries()).map(async ([devId, unitId]) => {
+      Array.from(unitByDev.values()).map(async (unitId) => {
         const rich = await hiloRichDev(unitId)
+        const unit = objs.find((o) => o.id === unitId)
         // Fallback al dev recortado del feed si la lectura rica falla.
-        return mapRawDev(rich ?? objs.find((o) => o.development?.id === devId)?.development)
+        return mapRawDev(rich ?? unit?.development, unit)
       }),
     )
     return devs
@@ -222,7 +300,7 @@ export async function getDevelopments(): Promise<Development[]> {
   const res = await fetch(url, { next: { revalidate: 3600 } })
   if (!res.ok) throw new Error(`Tokko dev API error: ${res.status}`)
   const data: DevListResponse = await res.json()
-  return data.objects ?? []
+  return (data.objects ?? []).map((d) => mapRawDev(d))
 }
 
 export async function getDevelopmentById(id: number): Promise<Development> {
@@ -232,12 +310,12 @@ export async function getDevelopmentById(id: number): Promise<Development> {
     if (!hit) throw new Error(`Development ${id} not found`)
     // Traer el development COMPLETO (con fotos/financiación) desde la unidad.
     const rich = await hiloRichDev(hit.id)
-    return mapRawDev(rich ?? hit.development)
+    return mapRawDev(rich ?? hit.development, hit)
   }
   const url = `${BASE_URL}/development/${id}/?key=${getApiKey()}&lang=es&format=json`
   const res = await fetch(url, { next: { revalidate: 3600 } })
   if (!res.ok) throw new Error(`Tokko dev API error: ${res.status}`)
-  return res.json()
+  return mapRawDev(await res.json())
 }
 
 export interface DevUnit {
