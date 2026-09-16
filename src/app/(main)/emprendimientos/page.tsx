@@ -125,19 +125,22 @@ export default async function EmprendimientosPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* ── Hero inmersivo ─────────────────────────────────────────── */}
-      <section className="relative flex min-h-[560px] items-end overflow-hidden md:min-h-[640px]">
-        <Image
-          src="/images/distrito-roldan/render-residencial.webp"
-          alt="Emprendimientos y desarrollos de SI INMOBILIARIA"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/30" />
-        <div
-          className="absolute inset-0 opacity-[0.15]"
-          style={{ backgroundImage: `linear-gradient(120deg, ${GREEN} 0%, transparent 55%)` }}
-        />
+      {/* Aérea real de Distrito Roldán con el degradado verde lateral de su
+          landing (en mobile, vertical): la foto se ve, el texto se lee a la
+          izquierda y no queda el bloque negro de antes. */}
+      <section className="relative flex min-h-[560px] items-end overflow-hidden bg-[#143125] md:min-h-[640px]">
+        <picture>
+          <source media="(max-width: 768px)" srcSet="/images/distrito-roldan/hero-aerea-mobile.webp" />
+          <Image
+            src="/images/distrito-roldan/hero-aerea.webp"
+            alt="Vista aérea de Distrito Roldán, uno de los emprendimientos de SI INMOBILIARIA"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            priority
+          />
+        </picture>
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,49,37,.88)_0%,rgba(20,49,37,.55)_45%,rgba(20,49,37,.08)_80%)] max-md:bg-[linear-gradient(0deg,rgba(20,49,37,.92)_0%,rgba(20,49,37,.55)_55%,rgba(20,49,37,.12)_100%)]" />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-14 pt-32 md:pb-20">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 backdrop-blur-md">
@@ -147,7 +150,7 @@ export default async function EmprendimientosPage() {
             </span>
           </div>
 
-          <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-white drop-shadow-xl md:text-7xl">
+          <h1 className="mt-6 max-w-3xl text-[40px] font-black leading-[0.95] tracking-tight text-white drop-shadow-xl sm:text-5xl md:text-7xl">
             Emprendimientos
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
@@ -156,7 +159,7 @@ export default async function EmprendimientosPage() {
           </p>
 
           {/* Franja de datos */}
-          <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+          <div className="mt-9 grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-4">
             <Stat value={String(cards.length)} label="Desarrollos activos" />
             <span className="hidden h-8 w-px bg-white/20 sm:block" />
             <Stat value="3" label="Zonas · Roldán · Funes · Rosario" />
@@ -192,8 +195,8 @@ export default async function EmprendimientosPage() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <p className="text-3xl font-black leading-none text-white md:text-4xl">{value}</p>
-      <p className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-white/60">{label}</p>
+      <p className="font-numeric text-2xl font-black leading-none text-white sm:text-3xl md:text-4xl">{value}</p>
+      <p className="mt-1.5 text-[10px] font-medium uppercase tracking-wider text-white/60 sm:text-[11px]">{label}</p>
     </div>
   )
 }
