@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Building2, ArrowRight, ArrowUpRight } from 'lucide-react'
+import { MapPin, Building2, ArrowRight } from 'lucide-react'
 import ShareCardButton from '@/components/ShareCardButton'
 import {
   getDevelopments,
@@ -64,7 +64,7 @@ export default async function EmprendimientosPage() {
       eyebrow: dev.publication_title && dev.publication_title !== dev.name ? dev.publication_title : undefined,
       title: dev.name,
       location: dev.location?.name || dev.fake_address || dev.address || undefined,
-      description: dev.description ? `${dev.description.replace(/<[^>]*>/g, '').slice(0, 160)}…` : undefined,
+      description: dev.description ? `${dev.description.replace(/<[^>]*>/g, '').slice(0, 260)}…` : undefined,
       chips: [translateDevType(dev.type?.name || ''), getConstructionStatus(dev.construction_status)].filter(Boolean),
       accent: GREEN,
       share: { slug, title: dev.name, path: `/emprendimientos/${slug}` },
@@ -122,8 +122,6 @@ export default async function EmprendimientosPage() {
     })
   }
 
-  const [featured, ...rest] = cards
-
   return (
     <div className="min-h-screen bg-white">
       {/* ── Hero inmersivo ─────────────────────────────────────────── */}
@@ -177,17 +175,11 @@ export default async function EmprendimientosPage() {
               <p className="text-lg text-gray-500">No hay emprendimientos disponibles actualmente.</p>
             </div>
           ) : (
-            <>
-              {featured && <FeaturedCard card={featured} />}
-
-              {rest.length > 0 && (
-                <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {rest.map(card => (
-                    <PosterCard key={card.key} card={card} />
-                  ))}
-                </div>
-              )}
-            </>
+            <div className="space-y-12 md:space-y-16">
+              {cards.map((card, i) => (
+                <RowCard key={card.key} card={card} reverse={i % 2 === 1} index={i} />
+              ))}
+            </div>
           )}
         </div>
       </section>
@@ -226,119 +218,83 @@ function Chips({ chips, accent }: { chips: string[]; accent: string }) {
   )
 }
 
-// Card destacada: formato cinematográfico ancho con el texto sobre la imagen.
-function FeaturedCard({ card }: { card: Card }) {
-  const accentText = card.accent === GOLD ? GOLD : '#4ADE80'
+// Fila alternada (zig-zag): foto a un lado, ficha de datos al otro. En mobile
+// apila foto arriba y texto abajo; desde md alterna el lado de la foto por fila.
+function RowCard({ card, reverse, index }: { card: Card; reverse: boolean; index: number }) {
+  const isGold = card.accent === GOLD
   return (
-    <div className="group relative">
-      {card.share && (
-        <div className="absolute right-4 top-4 z-20">
-          <ShareCardButton slug={card.share.slug} title={card.share.title} path={card.share.path} />
-        </div>
-      )}
-      <Link
-        href={card.href}
-        className="si-img-shimmer si-tap relative block aspect-[16/10] overflow-hidden rounded-3xl shadow-lg md:aspect-[21/9]"
-      >
-        {card.image ? (
-          <Image
-            src={card.image}
-            alt={card.title}
-            fill
-            priority
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 1024px) 100vw, 1152px"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gray-100">
-            <Building2 className="h-16 w-16 text-gray-300" />
+    <article
+      className={`group grid grid-cols-1 items-center gap-6 md:grid-cols-12 md:gap-10 ${
+        reverse ? 'md:[&>*:first-child]:order-2' : ''
+      }`}
+    >
+      {/* Foto */}
+      <div className="relative md:col-span-7">
+        {card.share && (
+          <div className="absolute right-4 top-4 z-20">
+            <ShareCardButton slug={card.share.slug} title={card.share.title} path={card.share.path} />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-
-        <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
-          <Chips chips={card.chips} accent={card.accent} />
-          {card.eyebrow && (
-            <p className="mt-4 text-sm font-semibold" style={{ color: accentText }}>
-              {card.eyebrow}
-            </p>
+        <Link
+          href={card.href}
+          aria-label={card.title}
+          className="si-img-shimmer si-tap relative block aspect-[16/10] overflow-hidden rounded-3xl bg-gray-100 shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl md:aspect-[4/3] lg:aspect-[16/10]"
+        >
+          {card.image ? (
+            <Image
+              src={card.image}
+              alt={card.title}
+              fill
+              priority={index === 0}
+              className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              sizes="(max-width: 768px) 100vw, 60vw"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <Building2 className="h-16 w-16 text-gray-300" />
+            </div>
           )}
-          <h2 className="mt-1 max-w-2xl text-3xl font-black leading-tight text-white md:text-5xl">
+          <div className="absolute left-4 top-4">
+            <Chips chips={card.chips} accent={card.accent} />
+          </div>
+        </Link>
+      </div>
+
+      {/* Ficha */}
+      <div className="md:col-span-5">
+        {card.eyebrow && (
+          <p
+            className="text-[11px] font-bold uppercase tracking-[0.2em]"
+            style={{ color: isGold ? '#8A6D2B' : GREEN }}
+          >
+            {card.eyebrow}
+          </p>
+        )}
+        <h2 className="mt-2 text-3xl font-black leading-[1.05] tracking-tight text-gray-900 md:text-4xl">
+          <Link href={card.href} className="hover:underline decoration-2 underline-offset-4">
             {card.title}
-          </h2>
-          {card.location && (
-            <div className="mt-3 flex items-center gap-1.5 text-sm text-white/75">
-              <MapPin className="h-4 w-4 flex-shrink-0" style={{ color: accentText }} />
-              <span>{card.location}</span>
-            </div>
-          )}
-          {card.description && (
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70 line-clamp-2 md:text-base">
-              {card.description}
-            </p>
-          )}
-          <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-gray-900 transition-all group-hover:gap-3">
-            Ver emprendimiento
-            <ArrowUpRight className="h-4 w-4" />
-          </span>
-        </div>
-      </Link>
-    </div>
-  )
-}
-
-// Card estándar tipo "poster": imagen vertical con overlay y datos abajo.
-function PosterCard({ card }: { card: Card }) {
-  const accentText = card.accent === GOLD ? GOLD : '#4ADE80'
-  return (
-    <div className="group relative">
-      {card.share && (
-        <div className="absolute right-3 top-3 z-20">
-          <ShareCardButton slug={card.share.slug} title={card.share.title} path={card.share.path} />
-        </div>
-      )}
-      <Link
-        href={card.href}
-        className="si-img-shimmer si-tap relative block aspect-[4/5] overflow-hidden rounded-3xl shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-xl"
-      >
-        {card.image ? (
-          <Image
-            src={card.image}
-            alt={card.title}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gray-100">
-            <Building2 className="h-14 w-14 text-gray-300" />
+          </Link>
+        </h2>
+        {card.location && (
+          <div className="mt-3 flex items-center gap-1.5 text-sm text-gray-500">
+            <MapPin className="h-4 w-4 flex-shrink-0" style={{ color: GREEN }} />
+            <span>{card.location}</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-
-        <div className="absolute left-4 right-4 top-4">
-          <Chips chips={card.chips} accent={card.accent} />
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 p-5">
-          {card.eyebrow && (
-            <p className="text-xs font-semibold" style={{ color: accentText }}>
-              {card.eyebrow}
-            </p>
-          )}
-          <h2 className="mt-0.5 text-xl font-black leading-tight text-white">{card.title}</h2>
-          {card.location && (
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-white/70">
-              <MapPin className="h-3.5 w-3.5 flex-shrink-0" style={{ color: accentText }} />
-              <span className="line-clamp-1">{card.location}</span>
-            </div>
-          )}
-          <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-white transition-all group-hover:gap-2.5">
-            Ver emprendimiento
-            <ArrowRight className="h-4 w-4" style={{ color: accentText }} />
-          </span>
-        </div>
-      </Link>
-    </div>
+        {card.description && (
+          <p className="mt-4 text-[15px] leading-relaxed text-gray-600 line-clamp-4 md:text-base">
+            {card.description}
+          </p>
+        )}
+        <Link
+          href={card.href}
+          className="si-tap mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white transition-all hover:gap-3"
+          style={{ backgroundColor: GREEN }}
+        >
+          Ver emprendimiento
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </article>
   )
 }
