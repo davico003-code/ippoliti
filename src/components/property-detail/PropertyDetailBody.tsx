@@ -408,7 +408,9 @@ export default function PropertyDetailBody({
       <SectionBoundary name="ubicacion">
         <section id="ubicacion" className={`${CARD} scroll-mt-40`}>
           <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Ubicación</h2>
-          <div className="rounded-[14px] overflow-hidden mb-3" style={{ aspectRatio: '4/3' }}>
+          {/* Sin aspect-ratio forzado: el mapa mide 280/380px fijos y el 4:3
+              dejaba ~200px en blanco debajo en desktop. */}
+          <div className="rounded-[14px] overflow-hidden mb-3">
             <PropertyMap
               lat={currentLat}
               lng={currentLng}
@@ -427,7 +429,7 @@ export default function PropertyDetailBody({
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackEvent('como_llegar_click', { property_id: property.id, has_coords: hasCoords })}
-              className="inline-flex items-center gap-2 border-2 border-[#1A5C38] text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white font-bold rounded-xl px-4 py-2.5 text-sm transition-colors"
+              className="inline-flex items-center gap-2 bg-[#1A5C38] hover:bg-[#145030] text-white font-bold rounded-xl px-4 py-2.5 text-sm transition-colors"
               style={{ fontFamily: R }}
               aria-label="Cómo llegar (abre Google Maps)"
             >
