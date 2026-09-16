@@ -10,6 +10,7 @@ import {
   getDevIdFromSlug,
   getDevAllPhotos,
   getDevMainPhoto,
+  absoluteDevPhotoUrl,
   getConstructionStatus,
   translateDevType,
   translateTag,
@@ -109,7 +110,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title: override?.title ?? `${dev.name} | SI INMOBILIARIA`,
         description: desc,
-        images: getDevMainPhoto(dev) ? [{ url: getDevMainPhoto(dev)! }] : [],
+        images: absoluteDevPhotoUrl(getDevMainPhoto(dev)) ? [{ url: absoluteDevPhotoUrl(getDevMainPhoto(dev))! }] : [],
       },
     }
   } catch {
@@ -183,7 +184,7 @@ export default async function DevelopmentPage({ params }: Props) {
           .catch(() => [] as Development[]),
       ])
 
-  const mainPhotoUrl = getDevMainPhoto(dev)
+  const mainPhotoUrl = absoluteDevPhotoUrl(getDevMainPhoto(dev))
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
