@@ -124,45 +124,30 @@ export default async function EmprendimientosPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ── Hero inmersivo ─────────────────────────────────────────── */}
-      <section className="relative flex min-h-[560px] items-end overflow-hidden md:min-h-[640px]">
-        <Image
-          src="/images/distrito-roldan/render-residencial.webp"
-          alt="Emprendimientos y desarrollos de SI INMOBILIARIA"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/30" />
-        <div
-          className="absolute inset-0 opacity-[0.15]"
-          style={{ backgroundImage: `linear-gradient(120deg, ${GREEN} 0%, transparent 55%)` }}
-        />
+      {/* ── Hero ──────────────────────────────────────────────────── */}
+      {/* Minimalista: la aérea real de Distrito Roldán, un velo verde suave y
+          solo el título con una bajada de una línea. Sin badge ni cifras. */}
+      <section className="relative flex min-h-[380px] items-end overflow-hidden bg-[#143125] md:min-h-[460px]">
+        <picture>
+          <source media="(max-width: 768px)" srcSet="/images/distrito-roldan/hero-aerea-mobile.webp" />
+          <Image
+            src="/images/distrito-roldan/hero-aerea.webp"
+            alt="Vista aérea de Distrito Roldán, uno de los emprendimientos de SI INMOBILIARIA"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            priority
+          />
+        </picture>
+        <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(20,49,37,.82)_0%,rgba(20,49,37,.35)_45%,rgba(20,49,37,.10)_100%)]" />
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-14 pt-32 md:pb-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#4ADE80]" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/90">
-              Inversión y Desarrollo
-            </span>
-          </div>
-
-          <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-white drop-shadow-xl md:text-7xl">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-10 pt-28 md:pb-14">
+          <h1 className="text-[40px] font-black leading-none tracking-tight text-white sm:text-5xl md:text-6xl">
             Emprendimientos
           </h1>
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
-            Los desarrollos que comercializamos en Roldán, Funes y Rosario. Barrios, condominios y
-            proyectos con financiación — seleccionados por SI INMOBILIARIA.
+          <p className="mt-3 max-w-xl text-base text-white/80 md:text-lg">
+            Los desarrollos que comercializamos en Roldán, Funes y Rosario.
           </p>
-
-          {/* Franja de datos */}
-          <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
-            <Stat value={String(cards.length)} label="Desarrollos activos" />
-            <span className="hidden h-8 w-px bg-white/20 sm:block" />
-            <Stat value="3" label="Zonas · Roldán · Funes · Rosario" />
-            <span className="hidden h-8 w-px bg-white/20 sm:block" />
-            <Stat value="1983" label="Trayectoria desde" />
-          </div>
         </div>
       </section>
 
@@ -188,15 +173,6 @@ export default async function EmprendimientosPage() {
 }
 
 /* ── Sub-componentes ──────────────────────────────────────────────── */
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <p className="text-3xl font-black leading-none text-white md:text-4xl">{value}</p>
-      <p className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-white/60">{label}</p>
-    </div>
-  )
-}
 
 function Chips({ chips, accent }: { chips: string[]; accent: string }) {
   return (
