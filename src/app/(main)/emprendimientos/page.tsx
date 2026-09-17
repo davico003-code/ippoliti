@@ -124,35 +124,36 @@ export default async function EmprendimientosPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ── Hero ──────────────────────────────────────────────────── */}
-      {/* Minimalista: la aérea real de Distrito Roldán, un velo verde suave y
-          solo el título con una bajada de una línea. Sin badge ni cifras. */}
-      <section className="relative flex min-h-[380px] items-end overflow-hidden bg-[#143125] md:min-h-[460px]">
-        <picture>
-          <source media="(max-width: 768px)" srcSet="/images/distrito-roldan/hero-aerea-mobile.webp" />
-          <Image
-            src="/images/distrito-roldan/hero-aerea.webp"
-            alt="Vista aérea de Distrito Roldán, uno de los emprendimientos de SI INMOBILIARIA"
-            fill
-            sizes="100vw"
-            className="object-cover object-center"
-            priority
-          />
-        </picture>
-        <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(20,49,37,.82)_0%,rgba(20,49,37,.35)_45%,rgba(20,49,37,.10)_100%)]" />
-
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-10 pt-28 md:pb-14">
-          <h1 className="text-[40px] font-black leading-none tracking-tight text-white sm:text-5xl md:text-6xl">
+      {/* ── Portada ───────────────────────────────────────────────── */}
+      {/* Tipográfica: en desktop la aérea de Distrito Roldán va recortada DENTRO
+          de las letras (bg-clip-text). El verde de fondo es el fallback mientras
+          carga la foto, así el H1 nunca queda invisible. El tamaño sale del ancho
+          del contenedor (la palabra mide ~8.3em) para que entre siempre en una
+          línea. En mobile la letra es chica para el efecto: título verde pleno, y
+          la aérea aparece enseguida en la primera fila. */}
+      <section className="bg-white px-6 pt-14 md:pt-24">
+        <div className="mx-auto max-w-6xl">
+          <h1
+            className="whitespace-nowrap pb-2 font-black leading-none tracking-tighter text-[#1A5C38] md:bg-[#1A5C38] md:bg-[url('/images/distrito-roldan/hero-aerea-titulo.webp')] md:bg-cover md:bg-center md:bg-clip-text md:pb-3 md:text-transparent"
+            style={{ fontSize: 'min(calc((100vw - 48px) / 8.3), 138px)' }}
+          >
             Emprendimientos
           </h1>
-          <p className="mt-3 max-w-xl text-base text-white/80 md:text-lg">
-            Los desarrollos que comercializamos en Roldán, Funes y Rosario.
-          </p>
+
+          <div className="mt-5 flex flex-wrap items-end justify-between gap-x-10 gap-y-4 border-t border-gray-200 pt-5 md:mt-7 md:pt-6">
+            <p className="max-w-md text-base leading-relaxed text-gray-600 md:text-lg">
+              Los desarrollos que comercializamos en Roldán, Funes y Rosario.
+            </p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#1A5C38] md:text-xs">
+              <span className="font-numeric">{cards.length}</span> desarrollos · <span className="font-numeric">3</span> zonas
+            </p>
+          </div>
+
         </div>
       </section>
 
       {/* ── Grilla de emprendimientos ──────────────────────────────── */}
-      <section className="px-6 py-16 md:py-24">
+      <section className="px-6 pb-16 pt-12 md:pb-24 md:pt-20">
         <div className="mx-auto max-w-6xl">
           {cards.length === 0 ? (
             <div className="py-20 text-center">
