@@ -48,8 +48,16 @@ export default async function ConsultaPage({ params }: Props) {
   const id = getIdFromSlug(params.slug)
   if (!Number.isFinite(id)) notFound()
   let property: TokkoProperty
+  // El feed de Hilo trae el uuid de la propiedad (hilo_id); con él Hilo la resuelve
+  // aunque no tenga tokko_id (las cargadas directo en Hilo). Se lee de la propiedad
+  // CRUDA: sanitizeProperty es una lista blanca y lo descarta — leerlo después
+  // mandaba hiloPropertyId:null y la consulta entraba a Hilo sin propiedad
+  // (16-sep-2026: el primer formulario de Aldea Fisherton fue al pool y no a su captadora).
+  let hiloId: string | null = null
   try {
-    property = sanitizeProperty(await getPropertyById(id))
+    const cruda = await getPropertyById(id)
+    hiloId = (cruda as TokkoProperty & { hilo_id?: string | null }).hilo_id ?? null
+    property = sanitizeProperty(cruda)
   } catch {
     notFound()
   }
@@ -60,9 +68,6 @@ export default async function ConsultaPage({ params }: Props) {
   const superficie = getTotalSurface(property)
   const whatsappUrl = buildPropertyWhatsappUrl(property, params.slug)
   const agente = getProducerName(property)
-  // El feed de Hilo trae el uuid de la propiedad; con él Hilo la resuelve aunque
-  // no tenga tokko_id (las cargadas directo en Hilo).
-  const hiloId = (property as TokkoProperty & { hilo_id?: string | null }).hilo_id ?? null
 
   const datos = [
     property.suite_amount ? `${property.suite_amount} dorm.` : property.room_amount ? `${property.room_amount} amb.` : null,
