@@ -1202,6 +1202,10 @@ function syncURL(){
   if(PANTALLA)p.set("pantalla",PANTALLA);
   const q=p.toString();
   history.replaceState(null,"",q?"?"+q:location.pathname);
+  /* Embebido, la URL que se comparte es la de la página padre: le pasamos el
+     estado (capas, tipo, lote) y ella lo refleja en su barra de direcciones. */
+  p.delete("pantalla");
+  try{ if(window.parent!==window) parent.postMessage({type:"plano-estado",q:p.toString()},"*"); }catch(_){}
 }
 
 /* aviso flotante al prender una capa */
