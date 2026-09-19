@@ -23,6 +23,7 @@ import {
   esOportunidadConsultanos,
 } from '@/lib/tokko'
 import { formatDistanceAR } from '@/lib/geo'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 const RALEWAY = "'Raleway', system-ui, sans-serif"
 const POPPINS = "'Poppins', system-ui, sans-serif"
@@ -59,6 +60,17 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   // Corta el shimmer del blur-up cuando la primera foto pintó (evita decenas de
   // animaciones corriendo bajo imágenes ya cargadas en grillas grandes).
   const [imgLoaded, setImgLoaded] = useState(false)
+  // Fotos montadas en la tira del carrusel. Arranca solo con la portada (no
+  // descargar 5 fotos por card en una grilla de 30); al pasar el mouse o tocar
+  // la foto se precargan la anterior y las dos siguientes, y cada cambio corre la ventana.
+  const [calentar, setCalentar] = useState(false)
+  const [montadas, setMontadas] = useState<number[]>([0])
+  useEffect(() => {
+    if (!calentar || images.length < 2) return
+    const n = images.length
+    const vecinas = [imgIdx, (imgIdx + 1) % n, (imgIdx + 2) % n, (imgIdx - 1 + n) % n]
+    setMontadas(m => vecinas.every(v => m.includes(v)) ? m : Array.from(new Set([...m, ...vecinas])))
+  }, [calentar, imgIdx, images.length])
 
   const operation = getOperationType(property)
   const price = formatPrice(property)
@@ -71,7 +83,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const beds = property.suite_amount || property.room_amount
   const baths = property.bathroom_amount
   const address = property.fake_address || property.address
-  const location = property.location?.short_location || property.location?.name || ''
+  const direccion = formatDireccionCompleta(property, address, ' | ')
   const cardHref = `/propiedades/${slug}`
 
   // Build specs: "3 dorm · 2 baños · 190 m² · 1.691 m² lote"
@@ -116,6 +128,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const swipedRef = useRef(false)
   const SWIPE_THRESHOLD = 40
   const onTouchStart = (e: React.TouchEvent) => {
+    setCalentar(true)
     touchStartX.current = e.touches[0].clientX
     swipedRef.current = false
   }
@@ -189,52 +202,48 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       href={cardHref}
       prefetch={false}
       onClick={onClick}
-      className="group si-press-lift cursor-pointer block"
+      className="group cursor-pointer block"
       style={{
-        borderRadius: 14,
-        border: isSelected ? '1px solid #1A5C38' : '1px solid #e5e7eb',
-        overflow: 'hidden',
         background: '#fff',
         textDecoration: 'none',
         color: 'inherit',
-        boxShadow: isSelected
-          ? '0 10px 25px rgba(0,0,0,0.1)'
-          : '0 1px 3px rgba(0,0,0,0.06)',
-        transition: 'box-shadow 250ms, border-color 250ms, transform 250ms cubic-bezier(0.22,1,0.36,1)',
       }}
-      onMouseEnter={e => {
-        router.prefetch(cardHref)
-        if (!isSelected) {
-          e.currentTarget.style.boxShadow = '0 14px 30px rgba(9,30,20,0.13)'
-          e.currentTarget.style.borderColor = 'var(--mundial-accent)'
-        }
-      }}
-      onMouseLeave={e => {
-        if (!isSelected) {
-          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
-          e.currentTarget.style.borderColor = '#e5e7eb'
-        }
-      }}
+      onMouseEnter={() => router.prefetch(cardHref)}
     >
       {/* Image — `group/media` acota el hover a la imagen (no a toda la card),
           así flechas y dots aparecen solo al pasar el mouse sobre la foto.
           Los handlers touch dan swipe horizontal en mobile. */}
       <div
-        className={`group/media relative w-full overflow-hidden aspect-[2/1] ${images.length === 0 ? 'bg-gray-100' : imgLoaded ? '' : 'si-img-shimmer'}`}
+        className={`group/media relative w-full overflow-hidden rounded-[14px] aspect-[16/9] ${images.length === 0 ? 'bg-gray-100' : imgLoaded ? '' : 'si-img-shimmer'}`}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
+        onMouseEnter={() => setCalentar(true)}
         onClickCapture={onClickCapture}
+        style={isSelected ? { boxShadow: '0 0 0 2px #1A5C38' } : undefined}
       >
         {images.length > 0 ? (
-          <Image
-            src={images[imgIdx]}
-            alt={address}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw"
-            priority={priority && imgIdx === 0}
-            onLoad={() => setImgLoaded(true)}
-          />
+          // Tira deslizable: la foto actual y sus vecinas ya montadas, así la
+          // flecha/swipe corre la foto al instante en vez de esperar la descarga.
+          <div
+            className="absolute inset-0 flex transition-transform duration-300 ease-out will-change-transform"
+            style={{ transform: `translateX(-${imgIdx * 100}%)` }}
+          >
+            {images.map((src, i) => (
+              <div key={src + i} className="relative h-full w-full flex-none bg-gray-100">
+                {montadas.includes(i) && (
+                  <Image
+                    src={src}
+                    alt={i === 0 ? address : `${address} — foto ${i + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw"
+                    priority={priority && i === 0}
+                    onLoad={i === 0 ? () => setImgLoaded(true) : undefined}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
             Sin foto
@@ -263,19 +272,21 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             >
               <ChevronRight className="w-4 h-4" />
             </button>
-            {/* Dots: máx 5, discretos. Mobile siempre visibles (opacity-100),
-                desktop solo en hover. Solo indican avance en la galería. */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 opacity-100 md:opacity-0 md:group-hover/media:opacity-100 transition-opacity duration-200">
+            {/* Dots: máx 5, siempre visibles (avisan que hay más fotos) con
+                sombra para que se lean sobre fotos claras. */}
+            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
               {Array.from({ length: dotCount }).map((_, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={(e) => goTo(e, dotToIndex(i))}
                   aria-label={`Ir a foto ${dotToIndex(i) + 1}`}
-                  className="w-1.5 h-1.5 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+                  className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white transition-all duration-200"
                   style={{
-                    background: i === activeDot ? 'white' : 'rgba(255,255,255,0.45)',
-                    boxShadow: i === activeDot ? '0 0 2px rgba(0,0,0,0.4)' : 'none',
+                    width: i === activeDot ? 8 : 7,
+                    height: i === activeDot ? 8 : 7,
+                    background: i === activeDot ? '#fff' : 'rgba(255,255,255,0.7)',
+                    boxShadow: '0 0 3px rgba(0,0,0,0.45)',
                   }}
                 />
               ))}
@@ -291,9 +302,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
               color: '#fff',
               fontFamily: RALEWAY,
               fontWeight: 600,
-              fontSize: 11,
-              textTransform: 'uppercase',
-              padding: '5px 14px',
+              fontSize: 12,
+              lineHeight: 1,
+              padding: '8px 14px',
               borderRadius: 9999,
             }}>
               {operation}
@@ -305,9 +316,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
               color: '#0a0a0a',
               fontFamily: RALEWAY,
               fontWeight: 600,
-              fontSize: 11,
-              textTransform: 'uppercase',
-              padding: '5px 14px',
+              fontSize: 12,
+              lineHeight: 1,
+              padding: '8px 14px',
               borderRadius: 9999,
               backdropFilter: 'blur(2px)',
             }}>
@@ -327,7 +338,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       </div>
 
       {/* Body */}
-      <div style={{ padding: '8px 12px' }}>
+      <div style={{ padding: '8px 2px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
           {esOportunidadConsultanos(property.id) ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
@@ -386,19 +397,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
 
         <p style={{
           fontFamily: RALEWAY,
-          fontWeight: 500,
-          fontSize: 13,
-          color: '#0a0a0a',
-          margin: '0 0 1px',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {address || typeName}
-        </p>
-
-        <p style={{
-          fontFamily: RALEWAY,
           fontSize: 12,
           color: '#6b7280',
           margin: 0,
@@ -406,7 +404,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         }}>
-          {location}
+          {direccion || typeName}
         </p>
 
         {distanceKm != null && Number.isFinite(distanceKm) && (
