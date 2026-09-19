@@ -32,7 +32,7 @@ const FAQ = [
   },
   {
     q: '¿Cómo contacto a SI INMOBILIARIA?',
-    a: 'Por WhatsApp al +54 9 341 210-1694, por email a contacto@siinmobiliaria.com o en las oficinas de Hipólito Yrigoyen 2643, Funes; Primero de Mayo 258 y Catamarca 775, Roldán.',
+    a: 'Por WhatsApp al +54 9 341 334-0916, por email a contacto@siinmobiliaria.com o en las oficinas de Hipólito Yrigoyen 2643, Funes; Primero de Mayo 258 y Catamarca 775, Roldán.',
   },
 ]
 

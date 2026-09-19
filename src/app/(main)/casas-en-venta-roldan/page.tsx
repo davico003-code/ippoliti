@@ -19,8 +19,10 @@ function filter(props: TokkoProperty[]): TokkoProperty[] {
   return props.filter(p => {
     const loc = `${p.location?.short_location ?? ''} ${p.location?.name ?? ''} ${p.fake_address ?? ''} ${p.address ?? ''}`.toLowerCase()
     const isRoldan = loc.includes('roldan') || loc.includes('roldán')
-    const isCasa = (p.type?.name?.toLowerCase() ?? '').includes('casa') || (p.type?.name?.toLowerCase() ?? '').includes('house')
-    const isVenta = p.operations?.[0]?.operation_type === 'Sale'
+    const tipo = p.type?.name?.toLowerCase() ?? ''
+    // 'warehouse' contiene 'house': los galpones entraban como casas.
+    const isCasa = (tipo.includes('casa') || tipo.includes('house')) && !tipo.includes('warehouse')
+    const isVenta = (p.operations ?? []).some(o => o.operation_type === 'Sale')
     return isRoldan && isCasa && isVenta
   })
 }
@@ -49,7 +51,7 @@ export default async function Page() {
               <div className="relative h-48 bg-gray-100">{photo && <Image src={photo} alt={p.publication_title || p.address} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw" />}</div>
               <div className="p-4">
                 <p className="text-xl font-black text-gray-900 font-numeric mb-1">{formatPrice(p)}</p>
-                <p className="text-sm text-gray-600 mb-1">{[beds && `${beds} dorm`, roofed && `${roofed} m²`].filter(Boolean).join(' · ')}</p>
+                <p className="text-sm text-gray-600 mb-1">{[beds && `${beds} dorm`, roofed && `${roofed.toLocaleString('es-AR')} m²`].filter(Boolean).join(' · ')}</p>
                 <p className="text-sm text-gray-500 truncate">{p.fake_address || p.address}</p>
               </div>
             </Link>

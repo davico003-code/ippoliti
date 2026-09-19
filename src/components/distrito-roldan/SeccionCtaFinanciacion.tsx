@@ -35,11 +35,11 @@ export default function SeccionCtaFinanciacion() {
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
           <a
-            href="tel:+5493412101694"
+            href="tel:+5493413340916"
             className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-white/30 px-7 text-sm font-semibold text-white transition-colors hover:border-white/60 sm:w-auto"
           >
             <Phone className="h-5 w-5" />
-            <span className="font-numeric">(341) 210-1694</span>
+            <span className="font-numeric">(341) 334-0916</span>
           </a>
         </div>
       </div>

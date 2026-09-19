@@ -70,6 +70,10 @@ async function fetchAllLeadsRaw(): Promise<NewsletterLead[]> {
   return out
 }
 
+// El popup de Oportunidades (NewsletterPopup) es hoy la captura principal y
+// guarda con origen 'oportunidades_popup': sin esto no aparecía en el panel.
+const NEWSLETTER_ORIGENES = new Set(['newsletter', 'oportunidades_popup'])
+
 /**
  * Devuelve los suscriptores del newsletter (popup "¿Encontraste lo que
  * buscabas?") ordenados del más nuevo al más viejo, deduplicados por email.
@@ -78,7 +82,7 @@ async function fetchAllLeadsRaw(): Promise<NewsletterLead[]> {
 export async function listNewsletterLeads(): Promise<NewsletterLead[]> {
   const all = await fetchAllLeadsRaw()
   // 'leads:all' ya está ordenado desc (LPUSH agrega al inicio).
-  const newsletter = all.filter(l => l.origen === 'newsletter')
+  const newsletter = all.filter(l => NEWSLETTER_ORIGENES.has(l.origen))
 
   const seen = new Set<string>()
   const dedup: NewsletterLead[] = []

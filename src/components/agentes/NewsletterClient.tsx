@@ -7,6 +7,7 @@
 // ?format=csv), refrescar, abrir WhatsApp del lead. Sin paginación: la lista
 // está topada en LIST_LIMIT (1000) del helper lib/leads.
 
+import { normalizeArWhatsapp } from '@/lib/phone'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
@@ -51,7 +52,7 @@ function fmtDate(iso: string): string {
 
 function buildWhatsAppUrl(lead: NewsletterLead): string {
   const phone = lead.whatsapp
-    ? `54${lead.whatsapp.replace(/\D/g, '')}`
+    ? normalizeArWhatsapp(lead.whatsapp)
     : '5493413340916'
   const msg = encodeURIComponent(
     `Hola ${lead.nombre || 'qué tal'}, soy de SI INMOBILIARIA. Te escribo porque nos dejaste tus datos en el sitio. ¿En qué te podemos ayudar?`,

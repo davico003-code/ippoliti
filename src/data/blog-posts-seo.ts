@@ -43,7 +43,7 @@ La aparici\u00f3n de comercios, escuelas, centros de salud y supermercados en la
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si est\u00e1s pensando en comprar un lote como inversi\u00f3n en Funes o Rold\u00e1n, lo m\u00e1s importante es tener informaci\u00f3n precisa y actualizada. En SI INMOBILIARIA conocemos cada barrio, cada calle y cada proyecto en desarrollo de la zona. Podemos orientarte hacia los lotes con mayor potencial de valorizaci\u00f3n seg\u00fan tu presupuesto y tu horizonte de inversi\u00f3n. Consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos por WhatsApp al 341 210 1694.`,
+Si est\u00e1s pensando en comprar un lote como inversi\u00f3n en Funes o Rold\u00e1n, lo m\u00e1s importante es tener informaci\u00f3n precisa y actualizada. En SI INMOBILIARIA conocemos cada barrio, cada calle y cada proyecto en desarrollo de la zona. Podemos orientarte hacia los lotes con mayor potencial de valorizaci\u00f3n seg\u00fan tu presupuesto y tu horizonte de inversi\u00f3n. Consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos por WhatsApp al 341 334 0916.`,
   },
   {
     slug: 'mercado-inmobiliario-2025-que-esta-pasando',
@@ -79,7 +79,7 @@ Mi proyecci\u00f3n para los pr\u00f3ximos 12 meses es moderadamente optimista. C
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si quer\u00e9s aprovechar el momento actual del mercado, sea para comprar tu primera casa, invertir en un lote o vender una propiedad al mejor precio, en SI INMOBILIARIA podemos ayudarte con informaci\u00f3n concreta y actualizada de la zona. Visit\u00e1 nuestro cat\u00e1logo en /propiedades o consult\u00e1 por WhatsApp al 341 210 1694.`,
+Si quer\u00e9s aprovechar el momento actual del mercado, sea para comprar tu primera casa, invertir en un lote o vender una propiedad al mejor precio, en SI INMOBILIARIA podemos ayudarte con informaci\u00f3n concreta y actualizada de la zona. Visit\u00e1 nuestro cat\u00e1logo en /propiedades o consult\u00e1 por WhatsApp al 341 334 0916.`,
   },
   {
     slug: 'funes-roldan-nuevo-eje-crecimiento-inmobiliario-gran-rosario',
@@ -155,7 +155,7 @@ La clave est\u00e1 en la selecci\u00f3n del activo, y para eso necesit\u00e1s in
 
 Consult\u00e1 con SI INMOBILIARIA
 
-En SI INMOBILIARIA analizamos cada oportunidad de inversi\u00f3n con datos concretos y conocimiento profundo de la zona. Si quer\u00e9s evaluar d\u00f3nde poner tu capital para obtener el mejor rendimiento, consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694.`,
+En SI INMOBILIARIA analizamos cada oportunidad de inversi\u00f3n con datos concretos y conocimiento profundo de la zona. Si quer\u00e9s evaluar d\u00f3nde poner tu capital para obtener el mejor rendimiento, consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 334 0916.`,
   },
   {
     slug: 'comprar-con-escritura-inmediata-inversion-segura',
@@ -189,7 +189,7 @@ En SI INMOBILIARIA contamos con estudio jur\u00eddico propio, lo que nos permite
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si est\u00e1s por comprar una propiedad en Funes o Rold\u00e1n, no te arriesgues con operaciones sin respaldo legal. Consult\u00e1 con nuestro equipo para verificar la documentaci\u00f3n y asegurar una operaci\u00f3n transparente. Visit\u00e1 nuestras propiedades disponibles o escribinos al 341 210 1694.`,
+Si est\u00e1s por comprar una propiedad en Funes o Rold\u00e1n, no te arriesgues con operaciones sin respaldo legal. Consult\u00e1 con nuestro equipo para verificar la documentaci\u00f3n y asegurar una operaci\u00f3n transparente. Visit\u00e1 nuestras propiedades disponibles o escribinos al 341 334 0916.`,
   },
   {
     slug: 'como-detectar-loteo-confiable-funes-roldan',
@@ -227,7 +227,7 @@ En SI INMOBILIARIA realizamos un due diligence completo de cada loteo antes de r
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Antes de comprar un lote en Funes o Rold\u00e1n, consult\u00e1 con nosotros. Conocemos cada emprendimiento de la zona y podemos orientarte hacia opciones seguras y con buen potencial. Visit\u00e1 nuestras propiedades o escribinos al 341 210 1694.`,
+Antes de comprar un lote en Funes o Rold\u00e1n, consult\u00e1 con nosotros. Conocemos cada emprendimiento de la zona y podemos orientarte hacia opciones seguras y con buen potencial. Visit\u00e1 nuestras propiedades o escribinos al 341 334 0916.`,
   },
   {
     slug: 'barrios-cerrados-vs-abiertos-cual-conviene',
@@ -265,7 +265,7 @@ Si ten\u00e9s familia con chicos, la seguridad de un barrio cerrado suele ser pr
 
 Consult\u00e1 con SI INMOBILIARIA
 
-En SI INMOBILIARIA conocemos cada barrio de Funes y Rold\u00e1n en detalle. Podemos ayudarte a elegir la opci\u00f3n que mejor se adapte a tu perfil y tu presupuesto. Visit\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694.`,
+En SI INMOBILIARIA conocemos cada barrio de Funes y Rold\u00e1n en detalle. Podemos ayudarte a elegir la opci\u00f3n que mejor se adapte a tu perfil y tu presupuesto. Visit\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 334 0916.`,
   },
   {
     slug: 'creditos-hipotecarios-argentina-que-tener-en-cuenta',
@@ -543,7 +543,7 @@ En Funes y Rold\u00e1n, donde las casas suelen tener jard\u00edn y patio, el esp
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si est\u00e1s por vender, empez\u00e1 con una tasaci\u00f3n profesional, sin compromiso. En SI INMOBILIARIA te asesoramos sobre qu\u00e9 reparaciones hacer y c\u00f3mo presentar tu propiedad para obtener el mejor resultado. Visit\u00e1 nuestro sitio o escribinos al 341 210 1694.`,
+Si est\u00e1s por vender, empez\u00e1 con una tasaci\u00f3n profesional, sin compromiso. En SI INMOBILIARIA te asesoramos sobre qu\u00e9 reparaciones hacer y c\u00f3mo presentar tu propiedad para obtener el mejor resultado. Visit\u00e1 nuestro sitio o escribinos al 341 334 0916.`,
   },
   {
     slug: 'alquilar-o-comprar-2025-analisis-zona-oeste-rosario',
@@ -645,7 +645,7 @@ Si ten\u00e9s ahorros en d\u00f3lares y un ingreso que te permite generar un exc
 
 Consult\u00e1 con SI INMOBILIARIA
 
-En SI INMOBILIARIA conocemos las opciones de financiamiento de cada emprendimiento de la zona y podemos ayudarte a comparar escenarios. Consult\u00e1 nuestras propiedades y emprendimientos o escribinos al 341 210 1694.`,
+En SI INMOBILIARIA conocemos las opciones de financiamiento de cada emprendimiento de la zona y podemos ayudarte a comparar escenarios. Consult\u00e1 nuestras propiedades y emprendimientos o escribinos al 341 334 0916.`,
   },
   {
     slug: 'donacion-herencia-compraventa-transferir-propiedad-argentina',
@@ -725,7 +725,7 @@ No subestimes los costos de mantenimiento. Un lote vac\u00edo genera impuestos, 
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si quer\u00e9s invertir en lotes en Funes, Rold\u00e1n o cualquier localidad de la zona, consult\u00e1 con nuestro equipo. Conocemos cada emprendimiento, cada barrio y cada oportunidad. Visit\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 210 1694. Con m\u00e1s de 40 a\u00f1os en el mercado, te aseguramos una inversi\u00f3n respaldada por experiencia y conocimiento local.`,
+Si quer\u00e9s invertir en lotes en Funes, Rold\u00e1n o cualquier localidad de la zona, consult\u00e1 con nuestro equipo. Conocemos cada emprendimiento, cada barrio y cada oportunidad. Visit\u00e1 nuestro cat\u00e1logo de propiedades o escribinos al 341 334 0916. Con m\u00e1s de 40 a\u00f1os en el mercado, te aseguramos una inversi\u00f3n respaldada por experiencia y conocimiento local.`,
   },
   {
     slug: 'inmobiliarias-roldan-como-elegir-la-mejor',
@@ -767,7 +767,7 @@ La relación personal
 
 Vender o comprar una propiedad es una de las decisiones financieras más importantes de tu vida. Necesitás trabajar con alguien en quien confíes y con quien tengas buena comunicación. Si en la primera reunión sentís que te apuran, que no te escuchan o que solo les importa cerrar — seguí buscando.
 
-En SI INMOBILIARIA recibimos a cada persona en nuestras oficinas de Roldán con la misma dedicación, ya sea que esté buscando un lote de 30 mil dólares o una casa de medio millón. Si estás evaluando opciones, pasá por Catamarca 775 o llamanos al 341 210 1694. Llevamos más de 40 años en Roldán y la mejor carta de presentación son las familias que confiaron en nosotros.`,
+En SI INMOBILIARIA recibimos a cada persona en nuestras oficinas de Roldán con la misma dedicación, ya sea que esté buscando un lote de 30 mil dólares o una casa de medio millón. Si estás evaluando opciones, pasá por Catamarca 775 o llamanos al 341 334 0916. Llevamos más de 40 años en Roldán y la mejor carta de presentación son las familias que confiaron en nosotros.`,
   },
   {
     slug: 'arquitectos-roldan-cuando-necesitas-uno-para-tu-propiedad',
@@ -891,7 +891,7 @@ El error número uno: no tener un arquitecto que dirija la obra. El arquitecto n
 
 Otro error clásico: empezar a construir sin tener todo el dinero. En Argentina, con la inflación y la volatilidad del dólar, quedarse a mitad de obra es carísimo. Si no tenés el capital completo, evaluá construir por etapas o buscá financiación antes de arrancar.
 
-En SI INMOBILIARIA vendemos lotes en los mejores barrios de Roldán y Funes, y podemos conectarte con constructoras de confianza que ya conocemos por trabajar en la zona. Consultanos en nuestras oficinas de Roldán o al 341 210 1694.`,
+En SI INMOBILIARIA vendemos lotes en los mejores barrios de Roldán y Funes, y podemos conectarte con constructoras de confianza que ya conocemos por trabajar en la zona. Consultanos en nuestras oficinas de Roldán o al 341 334 0916.`,
   },
   {
     slug: 'colegios-roldan-funes-guia-familias-que-se-mudan',
@@ -971,7 +971,7 @@ Sin embargo, muchas familias tienen un solo auto y se organizan. El que trabaja 
 
 La tendencia es positiva. Con el crecimiento de la ciudad, cada vez abren más comercios en las zonas residenciales. Algunos barrios cerrados nuevos incluso tienen mini supermercados internos o están a metros de centros comerciales de barrio.
 
-Si estás evaluando mudarte a Roldán, en SI INMOBILIARIA te mostramos propiedades teniendo en cuenta la cercanía a servicios. Sabemos que no alcanza con una casa linda — necesitás que la vida cotidiana funcione. Consultanos al 341 210 1694.`,
+Si estás evaluando mudarte a Roldán, en SI INMOBILIARIA te mostramos propiedades teniendo en cuenta la cercanía a servicios. Sabemos que no alcanza con una casa linda — necesitás que la vida cotidiana funcione. Consultanos al 341 334 0916.`,
   },
   {
     slug: 'transporte-colectivo-roldan-rosario-opciones',
@@ -1055,7 +1055,7 @@ La tendencia
 
 El crecimiento de Roldán está atrayendo cada vez más profesionales de la salud. Lo que hace 5 años era una preocupación legítima, hoy es menos problemático. Y la tendencia es claramente positiva: a medida que crece la población, crece la oferta de servicios de salud.
 
-Si la salud es una prioridad para tu familia, en SI INMOBILIARIA podemos ayudarte a encontrar propiedades cercanas a los centros de salud de la zona. Consultanos al 341 210 1694 o visitá nuestras oficinas en Roldán.`,
+Si la salud es una prioridad para tu familia, en SI INMOBILIARIA podemos ayudarte a encontrar propiedades cercanas a los centros de salud de la zona. Consultanos al 341 334 0916 o visitá nuestras oficinas en Roldán.`,
   },
   {
     slug: 'bancos-cajeros-roldan-servicios-financieros',
@@ -1297,7 +1297,7 @@ Un punto a considerar: si tu techo es de chapa y tiene más de 15 años, probabl
 
 Si pensás quedarte en la propiedad más de 5 años: sí, conviene. Si estás por vender: probablemente no convenga instalarlo ahora, pero sí destacar el potencial solar del terreno en la publicación.
 
-En SI INMOBILIARIA asesoramos a nuestros clientes sobre mejoras que aumentan el valor de la propiedad antes de vender. Consultanos al 341 210 1694.`,
+En SI INMOBILIARIA asesoramos a nuestros clientes sobre mejoras que aumentan el valor de la propiedad antes de vender. Consultanos al 341 334 0916.`,
   },
   {
     slug: 'mudarse-roldan-desde-rosario-guia-completa-2025',
@@ -1347,7 +1347,7 @@ El paso a paso para mudarte
 
 Primero: definí presupuesto y prioridades (barrio cerrado o abierto, cantidad de dormitorios, distancia al acceso de autopista). Segundo: visitá la zona varias veces, en distintos horarios y días de la semana. Tercero: asesorate con una inmobiliaria local que conozca cada barrio — acá es donde entramos nosotros.
 
-En SI INMOBILIARIA llevamos más de 40 años en Roldán. Conocemos cada calle, cada barrio, cada oportunidad. Si estás evaluando el cambio, pasá por nuestras oficinas en Catamarca 775 o llamanos al 341 210 1694. Te mostramos opciones reales y te acompañamos en todo el proceso — desde la primera visita hasta la escritura.
+En SI INMOBILIARIA llevamos más de 40 años en Roldán. Conocemos cada calle, cada barrio, cada oportunidad. Si estás evaluando el cambio, pasá por nuestras oficinas en Catamarca 775 o llamanos al 341 334 0916. Te mostramos opciones reales y te acompañamos en todo el proceso — desde la primera visita hasta la escritura.
 
 El mejor momento para mudarse es siempre ahora. Los precios en Roldán siguen subiendo, y cada año que esperás es un año que pagás más.`,
   },

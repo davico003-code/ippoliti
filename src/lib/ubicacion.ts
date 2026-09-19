@@ -140,8 +140,15 @@ export function formatDireccionCompleta(p: ConUbicacion, direccion?: string | nu
   const partes: string[] = []
   const segs = (direccion ?? '')
     .split(/\s*[,/|]\s*|\s+[-–—]\s+/)
-    .map((s) => s.trim().replace(/\.+$/, '').replace(/^barrio (cerrado|privado)\s+/i, ''))
+    .map((s) => s.replace(/\s+/g, ' ').trim().replace(/\.+$/, '').replace(/^barrio (cerrado|privado)\s+/i, ''))
     .filter(Boolean)
+    // Un número suelto es el lote/unidad de la calle anterior ("Av. Fuerza
+    // Aérea 1515 bis - 262"): sin esto quedaba "… 1515 bis | 262 | San Sebastián".
+    .reduce<string[]>((acc, s) => {
+      if (acc.length && /^(lote\s*)?\d+\s*[a-z]?$/i.test(s)) acc[acc.length - 1] += ` - ${s}`
+      else acc.push(s)
+      return acc
+    }, [])
     .filter((s) => {
       const n = normUbicacion(s)
       return !NO_ES_LUGAR.has(n) && !CIUDADES[n] && clave(s) !== ''

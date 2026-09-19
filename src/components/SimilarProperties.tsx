@@ -14,6 +14,7 @@ import {
   translatePropertyType,
   operationBadgeColor,
 } from '@/lib/tokko'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 type SortMode = 'recomendado' | 'precio' | 'dormitorios' | 'barrio'
 
@@ -146,13 +147,14 @@ export default function SimilarProperties({ properties }: Props) {
               : null
           const beds = property.suite_amount || property.room_amount || 0
           const baths = property.bathroom_amount || 0
-          const sizeLabel = roofed && roofed > 0 ? `${roofed} m²` : area && area > 0 ? `${area} m²` : null
+          const m2 = (n: number) => `${n.toLocaleString('es-AR')} m²`
+          const sizeLabel = roofed && roofed > 0 ? m2(roofed) : area && area > 0 ? m2(area) : null
           const specsBits: string[] = []
           if (beds > 0) specsBits.push(`${beds} dorm`)
           if (baths > 0) specsBits.push(`${baths} baño${baths > 1 ? 's' : ''}`)
           if (sizeLabel) specsBits.push(sizeLabel)
-          const loc = property.location?.short_location || property.location?.name || ''
           const addr = property.fake_address || property.address
+          const direccion = formatDireccionCompleta(property, addr, ' | ')
 
           return (
             <Link
@@ -202,7 +204,7 @@ export default function SimilarProperties({ properties }: Props) {
                 <div className="flex items-center gap-1.5 text-gray-500 text-xs">
                   <MapPin className="w-3 h-3 flex-shrink-0 text-[#1A5C38]" />
                   <span className="truncate">
-                    {addr}{loc ? ` · ${loc}` : ''}
+                    {direccion}
                   </span>
                 </div>
               </div>

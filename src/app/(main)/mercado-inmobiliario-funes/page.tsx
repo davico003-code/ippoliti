@@ -7,6 +7,7 @@ import {
   getAjusteMensual,
   ajustar,
   fmtUSD,
+  formatMesAnio,
 } from '@/lib/costos-construccion'
 
 // Hub de datos del mercado de Funes/Roldán, pensado para ser citado por
@@ -66,7 +67,7 @@ const SECCIONES = [
   {
     href: '/informes',
     titulo: 'Informes y mercado en vivo',
-    texto: 'Dólar (MEP/blue/oficial), inflación (IPC), ICL de alquileres y costo de construcción, con datos oficiales actualizados cada semana.',
+    texto: 'Dólar (MEP/blue/oficial), inflación (IPC) e ICL de alquileres, con datos oficiales actualizados cada semana.',
   },
   {
     href: '/recursos/calculadora-alquiler',
@@ -106,7 +107,7 @@ export default async function MercadoFunesPage() {
         name: '¿Cuánto cuesta construir por m² en Funes y Roldán?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `Una construcción de nivel medio ronda los ${fmtUSD(media.llave)}/m² llave en mano (${fmtUSD(media.cuentaPropia)}/m² por cuenta propia), y una de nivel alto unos ${fmtUSD(alta.llave)}/m² llave en mano, según valores de obra vigentes en Funes y Roldán. Los valores se ajustan por inflación y se pueden proyectar para tu lote con la calculadora de costos de construcción de SI INMOBILIARIA.`,
+          text: `Una construcción de nivel medio ronda los ${fmtUSD(media.llave)}/m² llave en mano (${fmtUSD(media.cuentaPropia)}/m² por cuenta propia), y una de nivel alto unos ${fmtUSD(alta.llave)}/m² llave en mano, según valores de obra vigentes en Funes y Roldán. Los valores se actualizan todos los meses y se pueden proyectar para tu lote con la calculadora de costos de construcción de SI INMOBILIARIA.`,
         },
       },
       {
@@ -130,7 +131,7 @@ export default async function MercadoFunesPage() {
         name: '¿Cómo está el mercado inmobiliario de Funes en 2026?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Funes y Roldán mantienen tracción sostenida como corredor de inversión del oeste de Rosario, con valores aún atractivos frente a la ciudad. SI INMOBILIARIA publica informes semanales con dólar, inflación, índice de alquileres (ICL) y costo de construcción para seguir el mercado con datos oficiales.',
+          text: 'Funes y Roldán mantienen tracción sostenida como corredor de inversión del oeste de Rosario, con valores aún atractivos frente a la ciudad. SI INMOBILIARIA publica informes semanales con dólar, inflación e índice de alquileres (ICL) para seguir el mercado con datos oficiales.',
         },
       },
     ],
@@ -159,7 +160,7 @@ export default async function MercadoFunesPage() {
             ¿Cuánto cuesta construir por m² en Funes?
           </h2>
           <p style={{ fontFamily: RALEWAY, fontSize: 15, color: MUTED, margin: '0 0 18px', lineHeight: 1.5 }}>
-            Valores de obra por nivel de terminación, en dólares por m². Actualizados a {mes} y ajustados por inflación.
+            Valores de obra por nivel de terminación, en dólares por m². Actualizados a {formatMesAnio(mes).toLowerCase()} (ajuste mensual del 2%).
           </p>
           <div style={{ overflowX: 'auto', border: `1px solid ${LINE}`, borderRadius: 14, background: '#fff' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>

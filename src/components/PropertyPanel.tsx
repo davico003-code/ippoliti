@@ -15,6 +15,8 @@ import {
   type TokkoProperty,
   generatePropertySlug,
   buildPropertyWhatsappUrl,
+  getDescription,
+  getBlueprintPhotos,
 } from '@/lib/tokko'
 import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
 import PropertyStickyNav from './property-detail/PropertyStickyNav'
@@ -27,14 +29,19 @@ const R = "'Raleway', system-ui, sans-serif"
 // Height of the sticky header INSIDE the panel (not the site header).
 const PANEL_HEADER_H = 56
 
-const SECTIONS = [
-  { id: 'overview', label: 'Resumen' },
-  { id: 'caracteristicas', label: 'Características' },
-  { id: 'descripcion', label: 'Descripción' },
-  { id: 'planos', label: 'Planos' },
-  { id: 'ubicacion', label: 'Ubicación' },
-  { id: 'similares', label: 'Similares' },
-]
+// Misma lista que la ficha (/propiedades/[slug]): cada pestaña solo si abajo
+// existe su sección; si no, quedaba un botón que no llevaba a ningún lado.
+function seccionesDe(property: TokkoProperty) {
+  return [
+    { id: 'overview', label: 'Resumen' },
+    { id: 'caracteristicas', label: 'Características' },
+    ...(property.videos && property.videos.length > 0 ? [{ id: 'video', label: 'Video' }] : []),
+    ...(getDescription(property) ? [{ id: 'descripcion', label: 'Descripción' }] : []),
+    ...(getBlueprintPhotos(property).length > 0 ? [{ id: 'planos', label: 'Planos' }] : []),
+    { id: 'ubicacion', label: 'Ubicación' },
+    { id: 'similares', label: 'Similares' },
+  ]
+}
 
 interface Props {
   propertyId: number
@@ -107,6 +114,12 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   //   coincida con el árbol React montado. Antes empujábamos /propiedades
   //   siempre y el bloque mobile SSR del slug page quedaba con URL inconsistente,
   //   filtrándose sobre el listado al cambiar a breakpoint mobile.
+  //
+  // Al cerrar se DESHACE la entrada propia con history.back() (antes se
+  // empujaba otra vez el listado: quedaba listado → ficha → listado y el
+  // botón Atrás del navegador mostraba el listado con la URL de la ficha).
+  // Si se cerró con Atrás, el navegador ya la sacó y no se hace nada.
+  const backPendienteRef = useRef(false)
   useEffect(() => {
     if (!property) return
     const slug = generatePropertySlug(property)
@@ -114,16 +127,35 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
     const targetUrl = `/propiedades/${slug}${search}`
     const originalUrl = window.location.pathname + window.location.search
     if (originalUrl === targetUrl) return
-    window.history.pushState(null, '', targetUrl)
+    if (backPendienteRef.current) {
+      // Cambió la propiedad con el panel abierto: se reemplaza la entrada.
+      backPendienteRef.current = false
+      window.history.replaceState(null, '', targetUrl)
+    } else {
+      window.history.pushState(null, '', targetUrl)
+    }
     return () => {
-      window.history.pushState(null, '', originalUrl)
+      if (window.location.pathname + window.location.search !== targetUrl) return
+      backPendienteRef.current = true
+      setTimeout(() => {
+        if (!backPendienteRef.current) return
+        backPendienteRef.current = false
+        window.history.back()
+      }, 0)
     }
   }, [property])
 
+  // Listener ESTABLE (onClose por ref): onClose llega como arrow inline y
+  // cambia en cada render. Con [onClose] de dependencia, el popstate del botón
+  // Atrás hacía que Next re-renderizara sincrónicamente, React sacaba este
+  // listener y ponía otro durante el mismo evento, y el navegador no ejecutaba
+  // ninguno: Atrás cambiaba la URL pero el panel quedaba abierto.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
   useEffect(() => {
-    const h = () => onClose()
+    const h = () => onCloseRef.current()
     window.addEventListener('popstate', h); return () => window.removeEventListener('popstate', h)
-  }, [onClose])
+  }, [])
 
   // Loading / Error
   if (loading || error || !property) {
@@ -208,11 +240,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
         {/* Sticky nav (desktop only) — ancla al top del modal (debajo del panel header).
             "Video" se inserta tras "Características" solo si la propiedad tiene recorrido. */}
         <PropertyStickyNav
-          sections={
-            property?.videos && property.videos.length > 0
-              ? [SECTIONS[0], SECTIONS[1], { id: 'video', label: 'Video' }, ...SECTIONS.slice(2)]
-              : SECTIONS
-          }
+          sections={seccionesDe(property)}
           scrollRoot={scrollRoot}
           stickyTop={PANEL_HEADER_H}
         />

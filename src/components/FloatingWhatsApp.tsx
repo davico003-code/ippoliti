@@ -37,8 +37,9 @@ export default function FloatingWhatsApp() {
       onClick={() => events.clickWhatsapp()}
       // Se esconde mientras una hoja del plano de lotes está abierta (globals.css).
       data-fab-whatsapp
-      // Hidden on mobile home (FooterMobile has its own WhatsApp CTA)
-      className={`si-tap fixed bottom-4 right-4 z-50 p-3 bg-[#25D366] text-white rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] transition-all hover:bg-[#128C7E] md:bottom-6 md:right-6 md:p-4 md:hover:-translate-y-1 md:hover:scale-105 flex items-center justify-center ${pathname === '/' ? 'hidden md:flex' : ''}`}
+      // Antes se ocultaba en la home mobile porque FooterMobile tenía su CTA de
+      // WhatsApp; ese footer se sacó en jun-2026 y la home quedó sin WhatsApp.
+      className="si-tap fixed bottom-4 right-4 z-50 p-3 bg-[#25D366] text-white rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] transition-all hover:bg-[#128C7E] md:bottom-6 md:right-6 md:p-4 md:hover:-translate-y-1 md:hover:scale-105 flex items-center justify-center"
       aria-label="Contactar por WhatsApp"
     >
       <MessageCircle className="h-7 w-7 md:h-8 md:w-8" />

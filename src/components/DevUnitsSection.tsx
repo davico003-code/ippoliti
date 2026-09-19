@@ -99,7 +99,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
       if (m && m[2].toLowerCase().split(/[\s,]+/).some(w => w.length > 3 && ctx.includes(w))) {
         title = m[1]
       }
-      const parts = [title, ...(area > 0 && !title.includes('m²') ? [`${area} m²`] : [])]
+      const parts = [title, ...(area > 0 && !title.includes('m²') ? [`${area.toLocaleString('es-AR')} m²`] : [])]
       const precio = price > 0 ? `*${currency} ${price.toLocaleString('es-AR')}*` : 'Consultar'
       return `▪️ ${parts.join(' · ')} — ${precio}`
     })
@@ -110,7 +110,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
       ...lines,
       '',
       `Más info y fotos: ${pageUrl}`,
-      'SI INMOBILIARIA · (341) 210-1694',
+      'SI INMOBILIARIA · (341) 334-0916',
     ].join('\n')
     return `https://wa.me/?text=${encodeURIComponent(msg)}`
   }, [units, devName, location, pageUrl])
@@ -246,7 +246,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
             const disponible = u.status === 1
             // Datos en fila — solo lo que viene de Tokko (sin "—" ni inventos).
             const datos: { label: string; value: string }[] = []
-            if (area > 0) datos.push({ label: 'Superficie', value: `${area} m²` })
+            if (area > 0) datos.push({ label: 'Superficie', value: `${area.toLocaleString('es-AR')} m²` })
             datos.push({ label: 'Tipo', value: comercial ? 'Comercial' : 'Residencial' })
 
             return (

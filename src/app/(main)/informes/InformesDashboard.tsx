@@ -21,8 +21,10 @@ interface InformesData {
 
 function fmtMonth(fecha: string) {
   const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-  const d = new Date(fecha)
-  return `${meses[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`
+  // Sin new Date(): 'YYYY-MM-DD' se parsea como UTC y en Argentina (UTC-3)
+  // el día 1 caía en el mes anterior.
+  const [y, m] = fecha.split('-')
+  return `${meses[Number(m) - 1]} ${y.slice(2)}`
 }
 
 function pct(a: number, b: number) { return b ? ((a - b) / b * 100) : 0 }
@@ -154,14 +156,9 @@ export default function InformesDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f8f7f4]">
-      {/* Hero */}
+      {/* Cierre del hero: el título (h1) se renderiza en el server, en page.tsx */}
       <div className="bg-[#0f0f0f] w-full">
-        <div className="max-w-5xl mx-auto px-6 py-16 md:py-20 text-center">
-          <p className="text-[#4ADE80] text-xs font-bold tracking-widest uppercase mb-4">Datos actualizados semanalmente</p>
-          <h1 className="text-white text-4xl md:text-5xl font-extrabold tracking-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>
-            Mercado inmobiliario
-          </h1>
-          <p className="text-white/50 text-base mt-3">Indicadores oficiales para Funes y Roldán</p>
+        <div className="max-w-5xl mx-auto px-6 pb-16 md:pb-20 text-center">
           {lastUpdate && (
             <p className="text-white/25 text-xs mt-3">
               Última actualización: {new Date(lastUpdate as string).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -228,7 +225,7 @@ export default function InformesDashboard() {
               <div className="mb-4">
                 <p className="text-3xl font-bold text-[#1A5C38] font-numeric">{iclLast.valor.toLocaleString('es-AR', { maximumFractionDigits: 2 })}</p>
                 {iclAnual !== null && (
-                  <p className="text-sm text-gray-500 mt-1">vs 12 meses: <span className="font-bold font-numeric text-[#1A5C38]">+{iclAnual.toFixed(1)}%</span></p>
+                  <p className="text-sm text-gray-500 mt-1">vs 12 meses: <span className="font-bold font-numeric text-[#1A5C38]">{iclAnual >= 0 ? '+' : ''}{iclAnual.toFixed(1)}%</span></p>
                 )}
               </div>
             ) : <p className="text-sm text-gray-300">Sin datos</p>}
@@ -292,7 +289,8 @@ export default function InformesDashboard() {
           </div>
         )}
 
-        {/* ── CAC ── */}
+        {/* ── CAC ── (el cron todavía no tiene fuente: sin datos no se muestra) */}
+        {cacDatos.length > 0 && (
         <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -333,6 +331,7 @@ export default function InformesDashboard() {
             </div>
           )}
         </div>
+        )}
 
         {/* Footer */}
         <p className="text-[10px] text-gray-300 text-center pt-6">

@@ -87,9 +87,9 @@ export default async function DockGardenPage() {
             <img src="/logo-si-horizontal.png" alt="SI INMOBILIARIA" className="h-8 w-auto" />
           </Link>
           {/* Único WhatsApp de la página = FAB flotante; el header queda liviano. */}
-          <a href="tel:+5493412101694"
+          <a href="tel:+5493413340916"
             className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:bg-gray-50">
-            <Phone className="h-4 w-4" /> <span className="hidden font-numeric sm:inline">(341) 210-1694</span><span className="sm:hidden">Llamar</span>
+            <Phone className="h-4 w-4" /> <span className="hidden font-numeric sm:inline">(341) 334-0916</span><span className="sm:hidden">Llamar</span>
           </a>
         </div>
       </header>
@@ -183,7 +183,7 @@ export default async function DockGardenPage() {
       <footer className="border-t border-gray-100 bg-white px-4 py-8 text-center">
         <p className="text-xs text-gray-400">
           SI INMOBILIARIA · David Flores · Mat. N° 0621 ·{' '}
-          <a href="tel:+5493412101694" className="font-numeric hover:text-gray-600">(341) 210-1694</a> ·{' '}
+          <a href="tel:+5493413340916" className="font-numeric hover:text-gray-600">(341) 334-0916</a> ·{' '}
           <Link href="/emprendimientos" className="underline decoration-gray-300 underline-offset-2 hover:text-gray-600">
             Ver más emprendimientos
           </Link>

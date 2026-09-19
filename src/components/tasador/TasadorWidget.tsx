@@ -84,11 +84,13 @@ function Campo({
       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
         {label}
       </label>
+      {/* text + solo dígitos: con type="number", "1.000" valía 1 m² y la
+          rueda del mouse cambiaba el valor sin querer. */}
       <input
-        type="number"
+        type="text"
         inputMode="numeric"
-        value={value || ''}
-        onChange={(e) => onChange(Number(e.target.value))}
+        value={value ? value.toLocaleString('es-AR') : ''}
+        onChange={(e) => onChange(Number(e.target.value.replace(/\D/g, '')) || 0)}
         style={{
           width: '100%',
           height: 46,
@@ -253,12 +255,12 @@ export default function TasadorWidget({
             {esDepto ? 'Valor del m² en la zona (USD)' : 'Valor de la tierra (USD/m²)'}
           </label>
           <input
-            type="number"
+            type="text"
             inputMode="numeric"
             value={ppm2Custom}
             placeholder={String(baseZona)}
             onChange={(e) => {
-              setPpm2Custom(e.target.value)
+              setPpm2Custom(e.target.value.replace(/\D/g, ''))
               marcar()
             }}
             style={{

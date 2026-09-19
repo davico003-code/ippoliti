@@ -26,7 +26,7 @@ function filter(props: TokkoProperty[]): TokkoProperty[] {
     const loc = `${p.location?.short_location ?? ''} ${p.location?.name ?? ''} ${p.fake_address ?? ''} ${p.address ?? ''}`.toLowerCase()
     const match = loc.includes('centro') || loc.includes('rosario centro') || loc.includes('microcentro')
     const isDpto = (p.type?.name?.toLowerCase() ?? '').match(/departamento|apartment|condo/)
-    const isVenta = p.operations?.[0]?.operation_type === 'Sale'
+    const isVenta = (p.operations ?? []).some(o => o.operation_type === 'Sale')
     return match && isDpto && isVenta
   })
 }
@@ -54,7 +54,7 @@ export default async function Page() {
         {properties.map(p => { const photo = getMainPhoto(p); const r = getRoofedArea(p); const beds = p.suite_amount || p.room_amount; const mono = isMonoambiente(p); return (
           <Link key={p.id} href={`/propiedades/${generatePropertySlug(p)}`} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all">
             <div className="relative h-48 bg-gray-100">{photo && <Image src={photo} alt={p.publication_title || p.address} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw" />}</div>
-            <div className="p-4"><p className="text-xl font-black text-gray-900 font-numeric mb-1">{formatPrice(p)}</p><p className="text-sm text-gray-600 mb-1">{[(mono ? 'Monoambiente' : beds && `${beds} amb`), r && `${r} m²`].filter(Boolean).join(' · ')}</p><p className="text-sm text-gray-500 truncate">{p.fake_address || p.address}</p></div>
+            <div className="p-4"><p className="text-xl font-black text-gray-900 font-numeric mb-1">{formatPrice(p)}</p><p className="text-sm text-gray-600 mb-1">{[(mono ? 'Monoambiente' : beds && `${beds} dorm`), r && `${r} m²`].filter(Boolean).join(' · ')}</p><p className="text-sm text-gray-500 truncate">{p.fake_address || p.address}</p></div>
           </Link>
         )})}
         {properties.length === 0 && <p className="col-span-full text-center text-gray-500 py-12">No hay departamentos disponibles. Consultanos por WhatsApp.</p>}

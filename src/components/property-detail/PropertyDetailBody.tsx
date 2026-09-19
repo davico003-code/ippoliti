@@ -26,6 +26,7 @@ import {
   translateCondition,
   translateOrientation,
   translateDisposition,
+  operacionPrincipal,
 } from '@/lib/tokko'
 import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
@@ -129,7 +130,7 @@ export default function PropertyDetailBody({
 
   // Costos iniciales — solo alquiler permanente (operation_type === 'Rent';
   // 'Sale' y 'Temporary rent' / 'Temporary' quedan fuera).
-  const op0 = property.operations?.[0]
+  const op0 = operacionPrincipal(property)
   const price0 = op0?.prices?.[0]
   const isAlquilerPermanente = op0?.operation_type === 'Rent'
   const alquilerMonto = typeof price0?.price === 'number' ? price0.price : 0
@@ -155,13 +156,13 @@ export default function PropertyDetailBody({
 
   // Specs (icon cards)
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
-  if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Superficie', value: `${area} m²` })
-  if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea} m²` })
+  if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Superficie', value: `${area.toLocaleString('es-AR')} m²` })
+  if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea.toLocaleString('es-AR')} m²` })
   if (isMonoambiente(property)) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Ambientes', value: 'Monoambiente' })
   else if (property.suite_amount > 0) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Dormitorios', value: property.suite_amount })
   if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: 'Baños', value: property.bathroom_amount })
   if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: 'Cocheras', value: property.parking_lot_amount })
-  if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface} m²` })
+  if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface.toLocaleString('es-AR')} m²` })
 
   const hasSurfaces =
     (roofedArea && roofedArea > 0) ||
@@ -341,10 +342,10 @@ export default function PropertyDetailBody({
         <section className={CARD}>
           <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Superficies</h2>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
-            {parseFloat(property.surface) > 0 && <Row label="Terreno" value={`${parseFloat(property.surface)} m²`} />}
-            {roofedArea != null && roofedArea > 0 && <Row label="Cubierta" value={`${roofedArea} m²`} />}
-            {parseFloat(property.semiroofed_surface) > 0 && <Row label="Semicubierta" value={`${parseFloat(property.semiroofed_surface)} m²`} />}
-            {parseFloat(property.total_surface) > 0 && <Row label="Total" value={`${parseFloat(property.total_surface)} m²`} />}
+            {parseFloat(property.surface) > 0 && <Row label="Terreno" value={`${(parseFloat(property.surface)).toLocaleString('es-AR')} m²`} />}
+            {roofedArea != null && roofedArea > 0 && <Row label="Cubierta" value={`${roofedArea.toLocaleString('es-AR')} m²`} />}
+            {parseFloat(property.semiroofed_surface) > 0 && <Row label="Semicubierta" value={`${(parseFloat(property.semiroofed_surface)).toLocaleString('es-AR')} m²`} />}
+            {parseFloat(property.total_surface) > 0 && <Row label="Total" value={`${(parseFloat(property.total_surface)).toLocaleString('es-AR')} m²`} />}
           </div>
         </section>
       )}

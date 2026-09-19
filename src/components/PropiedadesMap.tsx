@@ -13,6 +13,7 @@ import {
   propertyTypeLabelById,
   getTotalSurface,
   generatePropertySlug,
+  operacionPrincipal,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
 import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
@@ -110,7 +111,7 @@ function createCraneIcon() {
 function shortPrice(property: TokkoProperty): string {
   // "Sin Precio" en Tokko: la burbuja no muestra el monto
   if (property.web_price === false) return 'Consultar'
-  const op = property.operations?.[0]
+  const op = operacionPrincipal(property)
   if (!op?.prices?.[0]) return 'Consultar'
   const p = op.prices[0]
   if (!p.price || p.price === 0) return 'Consultar'

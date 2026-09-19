@@ -316,9 +316,9 @@ export default async function InmobiliariaFunesPage() {
             <a href="https://wa.me/5493413340916?text=Hola!%20Estoy%20buscando%20propiedad%20en%20Funes" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold rounded-xl transition-colors flex items-center gap-2">
               Escribinos por WhatsApp
             </a>
-            <a href="tel:+5493412101694" className="px-8 py-4 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2">
+            <a href="tel:+5493413340916" className="px-8 py-4 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2">
               <Phone className="w-5 h-5" />
-              (341) 210-1694
+              (341) 334-0916
             </a>
           </div>
         </div>
@@ -329,9 +329,9 @@ export default async function InmobiliariaFunesPage() {
         <div className="max-w-4xl mx-auto">
           <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>También te puede interesar</h3>
           <div className="flex flex-wrap gap-3">
-            <Link href="/propiedades?operation=venta&location=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Casas en venta en Funes</Link>
-            <Link href="/propiedades?type=terreno&location=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Terrenos en Funes</Link>
-            <Link href="/propiedades?operation=alquiler&location=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Alquiler en Funes</Link>
+            <Link href="/propiedades?operacion=venta&tipo=casa&ubicacion=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Casas en venta en Funes</Link>
+            <Link href="/propiedades?tipo=terreno&ubicacion=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Terrenos en Funes</Link>
+            <Link href="/propiedades?operacion=alquiler&ubicacion=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Alquiler en Funes</Link>
             <Link href="/inmobiliaria-roldan" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Inmobiliaria en Roldán</Link>
             <Link href="/guia" prefetch={false} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Guía del comprador</Link>
             <Link href="/tasaciones" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Tasaciones profesionales</Link>

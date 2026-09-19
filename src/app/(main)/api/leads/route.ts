@@ -82,6 +82,27 @@ export async function POST(request: NextRequest) {
 
   // Empujar el lead al inbox de Hilo (destino principal desde la migración).
   const isGuiaLead = origen === 'guia-comprador'
+  // Mensaje genérico con todo lo que mandó el form (landings de cluster mandan
+  // mensaje libre, zona y rango de presupuesto; antes se perdían y la
+  // operación llegaba como "Sale"/"Rent").
+  const OPERACIONES: Record<string, string> = { Sale: 'Venta', Rent: 'Alquiler' }
+  const mensajeGenerico = (() => {
+    const op = str(body.operation)
+    const zonas = Array.isArray(body.preferredZones)
+      ? body.preferredZones.map(str).filter(Boolean).join(', ')
+      : ''
+    const min = Number(body.budgetMin) || 0
+    const max = Number(body.budgetMax) || 0
+    const usd = (n: number) => `USD ${n.toLocaleString('es-AR')}`
+    const presupuesto = str(body.budget) || (min && max ? `${usd(min)} a ${usd(max)}` : max ? `hasta ${usd(max)}` : min ? `desde ${usd(min)}` : 'Sin límite')
+    return [
+      `Operación: ${OPERACIONES[op] ?? (op || 'Venta')}`,
+      `Tipo: ${str(body.propertyType) || 'Casa'}`,
+      zonas ? `Zona: ${zonas}` : '',
+      `Presupuesto: ${presupuesto}`,
+      str(body.mensaje) ? `Mensaje: ${str(body.mensaje)}` : '',
+    ].filter(Boolean).join(' | ')
+  })()
   const savedHilo = await pushLeadToHilo({
     name: nombre,
     email: email || null,
@@ -91,8 +112,10 @@ export async function POST(request: NextRequest) {
       ? 'Lead desde Guía del Comprador 2026 — siinmobiliaria.com'
       : esConsultaCalificada
         ? `Consultó por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la web · Paga: ${str(body.pago) || 'no dijo'} · Plazo: ${str(body.plazo) || 'no dijo'}`
-        : `Operación: ${str(body.operation) || 'Venta'} | Tipo: ${str(body.propertyType) || 'Casa'} | Presupuesto: ${str(body.budget) || 'Sin límite'}`,
-    ...(esConsultaCalificada ? { tokkoPropertyId, hiloPropertyId, sourceUrl: pageUrl || null, attribution: utm } : {}),
+        : mensajeGenerico,
+    ...(esConsultaCalificada
+      ? { tokkoPropertyId, hiloPropertyId, sourceUrl: pageUrl || null, attribution: utm }
+      : pageUrl ? { sourceUrl: pageUrl, attribution: utm } : {}),
   })
 
   // Si el lead NO quedó en NINGÚN destino durable, es una pérdida real: avisar al

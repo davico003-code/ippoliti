@@ -276,7 +276,10 @@ div[id="nosotros"] {
   to { opacity: 1; }
 }
 .si-page-enter {
-  animation: si-page-in 0.3s ease-out both;
+  /* backwards y no both: con fill forwards la animación queda "en efecto"
+     para siempre y Chrome mantiene el wrapper como stacking context, así los
+     modales fixed de la página no pueden quedar por encima del Navbar. */
+  animation: si-page-in 0.3s ease-out backwards;
 }
 
 /* Blur-up: shimmer detrás de las fotos que aún no cargaron. Cuando la imagen

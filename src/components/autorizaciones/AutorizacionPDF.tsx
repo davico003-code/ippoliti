@@ -364,7 +364,7 @@ export function AutorizacionPDF({ data }: Props) {
               <Text style={styles.oficinaTitle}>SI INMOBILIARIA — Oficina Funes</Text>
               <Text style={styles.oficinaLine}>Hipólito Yrigoyen 2643 · Funes, Santa Fe</Text>
               <Text style={styles.oficinaLine}>
-                Tel / WhatsApp: 341 210 1694 · siinmobiliaria.com
+                Tel / WhatsApp: 341 334 0916 · siinmobiliaria.com
               </Text>
             </View>
 

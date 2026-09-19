@@ -25,6 +25,8 @@ interface Props {
   onPriceChange: (min: string, max: string, currency: Currency) => void
   onReset: () => void
   resultCount: number
+  /** Tipologías presentes en el inventario (las mismas del filtro desktop). */
+  typeOptions?: { value: string; label: string }[]
 }
 
 const TYPE_OPTIONS = [
@@ -37,6 +39,7 @@ const TYPE_OPTIONS = [
 
 const BEDS_OPTIONS = [
   { value: 'todos', label: 'Cualquiera' },
+  { value: 'mono', label: 'Mono' },
   { value: '1', label: '1' },
   { value: '2', label: '2' },
   { value: '3', label: '3' },
@@ -81,7 +84,7 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
   )
 }
 
-export default function MobileFilterSheet({ open, onClose, filters, onChangeFilter, onPriceChange, onReset, resultCount }: Props) {
+export default function MobileFilterSheet({ open, onClose, filters, onChangeFilter, onPriceChange, onReset, resultCount, typeOptions }: Props) {
   // Estado local del precio: el usuario tipea sin que cada keystroke dispare
   // un re-filtrado. Se commitea cuando hace blur o cierra el sheet.
   const [localMin, setLocalMin] = useState(filters.priceMin)
@@ -168,7 +171,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
           <div>
             <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: '#0a0a0a', marginBottom: 12 }}>Tipo de propiedad</p>
             <div className="flex flex-wrap gap-2">
-              {TYPE_OPTIONS.map(o => (
+              {(typeOptions ?? TYPE_OPTIONS).map(o => (o.value === 'todos' ? { ...o, label: 'Todas' } : o)).map(o => (
                 <Chip key={o.value} label={o.label} active={filters.type === o.value} onClick={() => onChangeFilter('type', o.value)} />
               ))}
             </div>

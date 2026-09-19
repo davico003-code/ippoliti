@@ -180,7 +180,7 @@ export default async function EdificioPage({ params }: { params: { slug: string 
                         u.bathroom_amount > 0
                           ? `${u.bathroom_amount} baño${u.bathroom_amount > 1 ? 's' : ''}`
                           : null,
-                        cubierta ? `${cubierta} m²` : null,
+                        cubierta ? `${cubierta.toLocaleString('es-AR')} m²` : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}

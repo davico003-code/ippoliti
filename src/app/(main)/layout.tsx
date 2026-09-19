@@ -179,7 +179,7 @@ const jsonLd = [
     logo: "https://siinmobiliaria.com/logo-si-horizontal.png",
     foundingDate: "1983",
     founder: { "@type": "Person", name: "Susana Ippoliti" },
-    telephone: "+54-341-210-1694",
+    telephone: "+54-341-334-0916",
     email: "contacto@siinmobiliaria.com",
     address: {
       "@type": "PostalAddress",
@@ -209,7 +209,7 @@ const jsonLd = [
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "consultas inmobiliarias",
-      telephone: "+54-9-341-210-1694",
+      telephone: "+54-9-341-334-0916",
       availableLanguage: "Spanish",
       areaServed: "AR",
     },

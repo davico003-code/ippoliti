@@ -40,7 +40,9 @@ export default function HeroMobile() {
   }
 
   return (
-    <section className="relative flex flex-col overflow-hidden" style={{ height: 276 }}>
+    // Sin overflow-hidden: recortaba el dropdown de sugerencias al borde del
+    // hero. z-20 para que el dropdown quede por encima de las secciones de abajo.
+    <section className="relative z-20 flex flex-col" style={{ height: 276 }}>
       {/* Background image + overlay */}
       <Image
         src="/images/hero/home-architecture-small.webp"

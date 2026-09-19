@@ -16,9 +16,10 @@ export function normalizeArWhatsapp(raw: string | null | undefined): string {
   // Sacar el 0 de larga distancia (0341 → 341).
   if (d.startsWith('0')) d = d.slice(1)
   // Sacar un 15 de celular pegado justo después del código de área (2-4 díg):
-  // "341 15 5551234" → "3415551234". Heurística acotada para no romper números
-  // que legítimamente empiezan con 15 en otra posición.
-  const m = d.match(/^(\d{2,4})15(\d{6,})$/)
+  // "341 15 5551234" → "3415551234". Solo si sobran exactamente 2 dígitos (12):
+  // con 10 no se toca, porque "3415551234" también matchea área "34" + "15" +
+  // resto y quedaba "34551234" (mismo criterio que normalizarCelularAr).
+  const m = d.length === 12 ? d.match(/^(\d{2,4})15(\d{6,8})$/) : null
   if (m) d = m[1] + m[2]
   if (!d) return ''
   return `549${d}`

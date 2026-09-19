@@ -1,5 +1,6 @@
 'use client'
 
+import { normalizeArWhatsapp } from '@/lib/phone'
 import { useState, useMemo } from 'react'
 import { Lock, Download, MessageCircle, Filter, Link2 } from 'lucide-react'
 
@@ -70,7 +71,7 @@ export default function LeadsPage() {
 
   const openWhatsApp = (lead: Lead) => {
     const nombre = lead.nombre || 'usuario'
-    const phone = lead.whatsapp ? `54${lead.whatsapp.replace(/\D/g, '')}` : '5493413340916'
+    const phone = lead.whatsapp ? normalizeArWhatsapp(lead.whatsapp) : '5493413340916'
     const msg = encodeURIComponent(
       `Hola ${nombre}, soy David de SI INMOBILIARIA. Vi que descargaste la guía, ¿te puedo ayudar con algo específico?`
     )
