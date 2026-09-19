@@ -201,20 +201,6 @@ export default function OportunidadesPopup() {
     timerRef.current = window.setInterval(() => setIdx((x) => (x + 1) % items.length), ROTATE_MS)
   }
 
-  const precioNode = esBaja ? (
-    <span style={{ fontFamily: POPPINS, fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-      <s style={{ color: '#A1A1AA', fontSize: 11.5 }}>{it.precioAnterior}</s>
-      <b style={{ color: '#111' }}>{it.precio}</b>
-      {typeof it.pctBaja === 'number' && (
-        <span style={{ background: '#FBE9F0', color: '#A83C66', fontWeight: 700, fontSize: 10.5, borderRadius: 5, padding: '1px 6px' }}>
-          −{String(it.pctBaja).replace('.', ',')}%
-        </span>
-      )}
-    </span>
-  ) : (
-    <span style={{ fontFamily: POPPINS, fontSize: 12.5, color: '#111', fontWeight: 600 }}>{it.precio}</span>
-  )
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -231,50 +217,56 @@ export default function OportunidadesPopup() {
         }
       ` }} />
 
-      {/* ── Desktop: card compacta rotativa ── */}
+      {/* ── Desktop: card compacta rotativa, foto a sangre con el texto encima ── */}
       <aside
         className="si-oport-desktop"
         aria-label="Oportunidades"
         style={{
-          position: 'fixed', right: 0, bottom: 176, zIndex: 45, width: 316,
-          background: '#fff', borderRadius: 18, border: '1px solid #ECECEE',
-          boxShadow: '0 18px 50px rgba(9, 30, 20, 0.16)', overflow: 'hidden',
+          position: 'fixed', right: 20, bottom: 176, zIndex: 45, width: 264, height: 184,
+          background: GREEN, borderRadius: 16, overflow: 'hidden',
+          boxShadow: '0 18px 50px rgba(9, 30, 20, 0.22)',
           animation: 'si-oport-in .45s cubic-bezier(.22,1,.36,1)',
         }}
       >
         <button
           type="button" onClick={dismiss} aria-label="Cerrar"
-          style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,.92)', border: '1px solid #ECECEE', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ position: 'absolute', top: 8, right: 8, zIndex: 3, width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,.92)', border: 'none', cursor: 'pointer', color: '#52525B', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <X size={13} strokeWidth={2.2} />
+          <X size={12} strokeWidth={2.4} />
         </button>
 
-        <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
+        <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ position: 'absolute', inset: 0, display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
           {it.foto && (
-            <div style={{ position: 'relative', height: 118, background: '#f2f2f2' }}>
-              <Image src={it.foto} alt="" fill sizes="316px" style={{ objectFit: 'cover', display: 'block' }} />
-              <span style={{ position: 'absolute', left: 10, bottom: 10, fontFamily: POPPINS, fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: 'rgba(255,255,255,.95)', borderRadius: 999, padding: '4px 10px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
-                {meta.badge}
-              </span>
-            </div>
+            <Image src={it.foto} alt="" fill sizes="264px" style={{ objectFit: 'cover' }} />
           )}
-          <div style={{ padding: '11px 14px 12px' }}>
-            <div style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 13.5, color: '#1c1c1e', lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '34px 12px 10px', background: 'linear-gradient(to top, rgba(8,20,14,.9) 0%, rgba(8,20,14,.6) 55%, rgba(8,20,14,0) 100%)', color: '#fff' }}>
+            <span style={{ display: 'inline-block', marginBottom: 5, fontFamily: POPPINS, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: '#fff', borderRadius: 999, padding: '3px 8px' }}>
+              {meta.badge}
+            </span>
+            <div style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 12.5, lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {it.titulo}
             </div>
-            <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              {precioNode}
-              <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta} →</span>
+            <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              {esBaja ? (
+                <span style={{ fontFamily: POPPINS, fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                  <s style={{ color: 'rgba(255,255,255,.65)', fontSize: 10.5 }}>{it.precioAnterior}</s>
+                  <b style={{ whiteSpace: 'nowrap' }}>{it.precio}</b>
+                </span>
+              ) : (
+                <span style={{ fontFamily: POPPINS, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>{it.precio}</span>
+              )}
+              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 600, color: '#fff', background: GREEN, borderRadius: 999, padding: '4px 9px', whiteSpace: 'nowrap' }}>{meta.cta}</span>
             </div>
+            {items.length > 1 && <div style={{ height: 14 }} />}
           </div>
         </Link>
 
         {items.length > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 5, paddingBottom: 10 }}>
+          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 8, zIndex: 2, display: 'flex', justifyContent: 'center', gap: 5 }}>
             {items.map((x, i) => (
               <button
                 key={x.propertyId} type="button" onClick={() => goTo(i)} aria-label={`Oportunidad ${i + 1}`}
-                style={{ width: i === idx % items.length ? 16 : 6, height: 6, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
+                style={{ width: i === idx % items.length ? 14 : 5, height: 5, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? '#fff' : 'rgba(255,255,255,.4)', transition: 'width .25s, background .25s', padding: 0 }}
               />
             ))}
           </div>
