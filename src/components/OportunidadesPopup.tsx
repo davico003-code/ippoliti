@@ -217,56 +217,57 @@ export default function OportunidadesPopup() {
         }
       ` }} />
 
-      {/* ── Desktop: card compacta rotativa, foto a sangre con el texto encima ── */}
+      {/* ── Desktop: card compacta rotativa, foto enmarcada (casa entera) ── */}
       <aside
         className="si-oport-desktop"
         aria-label="Oportunidades"
         style={{
-          position: 'fixed', right: 20, bottom: 176, zIndex: 45, width: 264, height: 184,
-          background: GREEN, borderRadius: 16, overflow: 'hidden',
-          boxShadow: '0 18px 50px rgba(9, 30, 20, 0.22)',
+          position: 'fixed', right: 16, bottom: 176, zIndex: 45, width: 244,
+          background: '#fff', borderRadius: 16, border: '1px solid #ECECEE', padding: 6,
+          boxShadow: '0 16px 44px rgba(9, 30, 20, 0.16)',
           animation: 'si-oport-in .45s cubic-bezier(.22,1,.36,1)',
         }}
       >
         <button
           type="button" onClick={dismiss} aria-label="Cerrar"
-          style={{ position: 'absolute', top: 8, right: 8, zIndex: 3, width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,.92)', border: 'none', cursor: 'pointer', color: '#52525B', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ position: 'absolute', top: 11, right: 11, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,.92)', border: 'none', cursor: 'pointer', color: '#52525B', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,.12)' }}
         >
           <X size={12} strokeWidth={2.4} />
         </button>
 
-        <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ position: 'absolute', inset: 0, display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
-          {it.foto && (
-            <Image src={it.foto} alt="" fill sizes="264px" style={{ objectFit: 'cover' }} />
-          )}
-          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '34px 12px 10px', background: 'linear-gradient(to top, rgba(8,20,14,.9) 0%, rgba(8,20,14,.6) 55%, rgba(8,20,14,0) 100%)', color: '#fff' }}>
-            <span style={{ display: 'inline-block', marginBottom: 5, fontFamily: POPPINS, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: '#fff', borderRadius: 999, padding: '3px 8px' }}>
+        <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
+          <div style={{ position: 'relative', height: 132, borderRadius: 11, overflow: 'hidden', background: '#EEF2F0' }}>
+            {it.foto && (
+              <Image src={it.foto} alt="" fill sizes="232px" style={{ objectFit: 'cover', objectPosition: 'center 60%' }} />
+            )}
+            <span style={{ position: 'absolute', left: 7, top: 7, fontFamily: POPPINS, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: '#fff', borderRadius: 999, padding: '3px 8px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
               {meta.badge}
             </span>
-            <div style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 12.5, lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          </div>
+          <div style={{ padding: '8px 5px 2px' }}>
+            <div style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 12.5, color: '#1c1c1e', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {it.titulo}
             </div>
-            <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
               {esBaja ? (
-                <span style={{ fontFamily: POPPINS, fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
-                  <s style={{ color: 'rgba(255,255,255,.65)', fontSize: 10.5 }}>{it.precioAnterior}</s>
-                  <b style={{ whiteSpace: 'nowrap' }}>{it.precio}</b>
+                <span style={{ fontFamily: POPPINS, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                  <s style={{ color: '#A1A1AA', fontSize: 10.5, whiteSpace: 'nowrap' }}>{it.precioAnterior}</s>
+                  <b style={{ color: '#111', whiteSpace: 'nowrap' }}>{it.precio}</b>
                 </span>
               ) : (
-                <span style={{ fontFamily: POPPINS, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>{it.precio}</span>
+                <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: '#111', whiteSpace: 'nowrap' }}>{it.precio}</span>
               )}
-              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 600, color: '#fff', background: GREEN, borderRadius: 999, padding: '4px 9px', whiteSpace: 'nowrap' }}>{meta.cta}</span>
+              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 600, color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta} →</span>
             </div>
-            {items.length > 1 && <div style={{ height: 14 }} />}
           </div>
         </Link>
 
         {items.length > 1 && (
-          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 8, zIndex: 2, display: 'flex', justifyContent: 'center', gap: 5 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 4, padding: '6px 0 2px' }}>
             {items.map((x, i) => (
               <button
                 key={x.propertyId} type="button" onClick={() => goTo(i)} aria-label={`Oportunidad ${i + 1}`}
-                style={{ width: i === idx % items.length ? 14 : 5, height: 5, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? '#fff' : 'rgba(255,255,255,.4)', transition: 'width .25s, background .25s', padding: 0 }}
+                style={{ width: i === idx % items.length ? 14 : 5, height: 5, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
               />
             ))}
           </div>
