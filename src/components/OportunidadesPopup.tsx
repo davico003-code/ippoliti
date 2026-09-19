@@ -251,8 +251,14 @@ export default function OportunidadesPopup() {
             <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
               {esBaja ? (
                 <span style={{ fontFamily: POPPINS, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
-                  <s style={{ color: '#A1A1AA', fontSize: 10.5, whiteSpace: 'nowrap' }}>{it.precioAnterior}</s>
                   <b style={{ color: '#111', whiteSpace: 'nowrap' }}>{it.precio}</b>
+                  {typeof it.pctBaja === 'number' ? (
+                    <span style={{ background: '#FBE9F0', color: '#A83C66', fontWeight: 700, fontSize: 10, borderRadius: 5, padding: '1px 5px', whiteSpace: 'nowrap' }}>
+                      −{String(Math.round(it.pctBaja))}%
+                    </span>
+                  ) : (
+                    <s style={{ color: '#A1A1AA', fontSize: 10.5, whiteSpace: 'nowrap' }}>{it.precioAnterior}</s>
+                  )}
                 </span>
               ) : (
                 <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: '#111', whiteSpace: 'nowrap' }}>{it.precio}</span>
