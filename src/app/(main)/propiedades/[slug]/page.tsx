@@ -207,7 +207,7 @@ export default async function PropertyPage({ params }: Props) {
   const area = getTotalSurface(property);
 
   // El wa.me apunta al productor asignado en Tokko (asesor real de la propiedad);
-  // si producer es null, cae al número general 5493412101694.
+  // si producer es null, cae al número general 5493413340916.
   const whatsappUrl = buildPropertyWhatsappUrl(property, params.slug);
 
   // ── allProperties ya NO se fetchea SSR ──

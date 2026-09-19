@@ -273,7 +273,7 @@ export default async function HausingPage() {
               style={{display:"inline-flex",alignItems:"center",gap:"12px",padding:"18px 48px",background:"#22c55e",color:"#000",borderRadius:"100px",fontWeight:700,fontSize:"16px",textDecoration:"none"}}>
               Consultar por WhatsApp
             </a>
-            <a href="tel:+5493412101694"
+            <a href="tel:+5493413340916"
               style={{display:"inline-flex",alignItems:"center",gap:"12px",padding:"18px 48px",background:"rgba(255,255,255,0.07)",color:"#fff",borderRadius:"100px",fontWeight:600,fontSize:"16px",textDecoration:"none",border:"1px solid rgba(255,255,255,0.12)"}}>
               Llamar ahora
             </a>

@@ -145,7 +145,7 @@ Realizamos tasaciones profesionales con comparables locales y administramos alqu
 
 Cómo contactarnos
 
-Si estás buscando comprar, vender o alquilar en Funes, te invitamos a consultarnos sin compromiso. Podés escribirnos por WhatsApp al 341 334 0916, llamarnos al (341) 210-1694, o visitarnos en nuestras oficinas. Te contactamos en menos de 24 horas.
+Si estás buscando comprar, vender o alquilar en Funes, te invitamos a consultarnos sin compromiso. Podés escribirnos por WhatsApp al 341 334 0916, llamarnos al (341) 334-0916, o visitarnos en nuestras oficinas. Te contactamos en menos de 24 horas.
 
 También podés solicitar una tasación profesional de tu propiedad completando el formulario en nuestra sección de tasaciones. Después de revisar el caso confirmamos el alcance, la documentación necesaria y el plazo.`,
   },

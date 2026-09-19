@@ -110,7 +110,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, variant =
       ...lines,
       '',
       `Más info y fotos: ${pageUrl}`,
-      'SI INMOBILIARIA · (341) 210-1694',
+      'SI INMOBILIARIA · (341) 334-0916',
     ].join('\n')
     return `https://wa.me/?text=${encodeURIComponent(msg)}`
   }, [units, devName, location, pageUrl])

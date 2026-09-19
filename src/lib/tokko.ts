@@ -306,7 +306,7 @@ export function numeroVisitaWhatsapp(property: TokkoProperty): string | undefine
 
 // Botón "Llamar" de la ficha: el MISMO número que su WhatsApp (el captador; las
 // propiedades de David → su WhatsApp), así la línea de consultas es una sola —
-// igual que en MELI y Argenprop. Antes estaba fijo al (341) 210-1694, la línea
+// igual que en MELI y Argenprop. Antes estaba fijo al (341) 334-0916, la línea
 // de WhatsApp que Meta bloqueó el 3-sep.
 export function getProducerCallHref(property: TokkoProperty): string {
   return `tel:+${getProducerWhatsappNumber(property)}`
