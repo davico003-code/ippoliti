@@ -201,20 +201,6 @@ export default function OportunidadesPopup() {
     timerRef.current = window.setInterval(() => setIdx((x) => (x + 1) % items.length), ROTATE_MS)
   }
 
-  const precioNode = esBaja ? (
-    <span style={{ fontFamily: POPPINS, fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-      <s style={{ color: '#A1A1AA', fontSize: 11.5 }}>{it.precioAnterior}</s>
-      <b style={{ color: '#111' }}>{it.precio}</b>
-      {typeof it.pctBaja === 'number' && (
-        <span style={{ background: '#FBE9F0', color: '#A83C66', fontWeight: 700, fontSize: 10.5, borderRadius: 5, padding: '1px 6px' }}>
-          −{String(it.pctBaja).replace('.', ',')}%
-        </span>
-      )}
-    </span>
-  ) : (
-    <span style={{ fontFamily: POPPINS, fontSize: 12.5, color: '#111', fontWeight: 600 }}>{it.precio}</span>
-  )
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -231,50 +217,63 @@ export default function OportunidadesPopup() {
         }
       ` }} />
 
-      {/* ── Desktop: card compacta rotativa ── */}
+      {/* ── Desktop: card compacta rotativa, foto enmarcada (casa entera) ── */}
       <aside
         className="si-oport-desktop"
         aria-label="Oportunidades"
         style={{
-          position: 'fixed', right: 0, bottom: 176, zIndex: 45, width: 316,
-          background: '#fff', borderRadius: 18, border: '1px solid #ECECEE',
-          boxShadow: '0 18px 50px rgba(9, 30, 20, 0.16)', overflow: 'hidden',
+          position: 'fixed', right: 6, bottom: 176, zIndex: 45, width: 244,
+          background: '#fff', borderRadius: 16, border: '1px solid #ECECEE', padding: 6,
+          boxShadow: '0 16px 44px rgba(9, 30, 20, 0.16)',
           animation: 'si-oport-in .45s cubic-bezier(.22,1,.36,1)',
         }}
       >
         <button
           type="button" onClick={dismiss} aria-label="Cerrar"
-          style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,.92)', border: '1px solid #ECECEE', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ position: 'absolute', top: 11, right: 11, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,.92)', border: 'none', cursor: 'pointer', color: '#52525B', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,.12)' }}
         >
-          <X size={13} strokeWidth={2.2} />
+          <X size={12} strokeWidth={2.4} />
         </button>
 
         <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
-          {it.foto && (
-            <div style={{ position: 'relative', height: 118, background: '#f2f2f2' }}>
-              <Image src={it.foto} alt="" fill sizes="316px" style={{ objectFit: 'cover', display: 'block' }} />
-              <span style={{ position: 'absolute', left: 10, bottom: 10, fontFamily: POPPINS, fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: 'rgba(255,255,255,.95)', borderRadius: 999, padding: '4px 10px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
-                {meta.badge}
-              </span>
-            </div>
-          )}
-          <div style={{ padding: '11px 14px 12px' }}>
-            <div style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 13.5, color: '#1c1c1e', lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+          <div style={{ position: 'relative', height: 132, borderRadius: 11, overflow: 'hidden', background: '#EEF2F0' }}>
+            {it.foto && (
+              <Image src={it.foto} alt="" fill sizes="232px" style={{ objectFit: 'cover', objectPosition: 'center 60%' }} />
+            )}
+            <span style={{ position: 'absolute', left: 7, top: 7, fontFamily: POPPINS, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: '#fff', borderRadius: 999, padding: '3px 8px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
+              {meta.badge}
+            </span>
+          </div>
+          <div style={{ padding: '8px 5px 2px' }}>
+            <div style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 12.5, color: '#1c1c1e', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {it.titulo}
             </div>
-            <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              {precioNode}
-              <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta} →</span>
+            <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+              {esBaja ? (
+                <span style={{ fontFamily: POPPINS, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                  <b style={{ color: '#111', whiteSpace: 'nowrap' }}>{it.precio}</b>
+                  {typeof it.pctBaja === 'number' ? (
+                    <span style={{ background: '#FBE9F0', color: '#A83C66', fontWeight: 700, fontSize: 10, borderRadius: 5, padding: '1px 5px', whiteSpace: 'nowrap' }}>
+                      −{String(Math.round(it.pctBaja))}%
+                    </span>
+                  ) : (
+                    <s style={{ color: '#A1A1AA', fontSize: 10.5, whiteSpace: 'nowrap' }}>{it.precioAnterior}</s>
+                  )}
+                </span>
+              ) : (
+                <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: '#111', whiteSpace: 'nowrap' }}>{it.precio}</span>
+              )}
+              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 600, color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta} →</span>
             </div>
           </div>
         </Link>
 
         {items.length > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 5, paddingBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 4, padding: '6px 0 2px' }}>
             {items.map((x, i) => (
               <button
                 key={x.propertyId} type="button" onClick={() => goTo(i)} aria-label={`Oportunidad ${i + 1}`}
-                style={{ width: i === idx % items.length ? 16 : 6, height: 6, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
+                style={{ width: i === idx % items.length ? 14 : 5, height: 5, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
               />
             ))}
           </div>
