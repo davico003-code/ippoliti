@@ -26,8 +26,10 @@ import {
   isLand,
   isMonoambiente,
   esOportunidadConsultanos,
+  propertyTypeLabelById,
   type TokkoProperty,
 } from '@/lib/tokko'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
@@ -55,7 +57,8 @@ async function FeaturedPropertiesSection() {
     const beds = property.suite_amount ?? property.room_amount
     const baths = property.bathroom_amount
     const address = property.fake_address || property.address
-    const location = property.location?.short_location || property.location?.name || ''
+    const direccion = formatDireccionCompleta(property, address, ' | ')
+    const typeName = propertyTypeLabelById(property.type?.id)
     const specs: { num: string; unit: string }[] = []
     if (!land && mono) specs.push({ num: '', unit: 'Monoambiente' })
     else if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
@@ -87,16 +90,28 @@ async function FeaturedPropertiesSection() {
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
           )}
-          {operation && (
-            <span style={{
-              position: 'absolute', top: 10, left: 10,
-              background: operationBadgeColor(operation),
-              color: '#fff', fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
-              textTransform: 'uppercase', padding: '3px 10px', borderRadius: 6,
-            }}>
-              {operation}
-            </span>
-          )}
+          {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
+          <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6 }}>
+            {operation && (
+              <span style={{
+                background: operationBadgeColor(operation),
+                color: '#fff', fontFamily: RALEWAY, fontWeight: 600, fontSize: 12,
+                lineHeight: 1, padding: '8px 14px', borderRadius: 9999,
+              }}>
+                {operation}
+              </span>
+            )}
+            {typeName && (
+              <span style={{
+                background: 'rgba(255,255,255,0.9)', color: '#0a0a0a',
+                fontFamily: RALEWAY, fontWeight: 600, fontSize: 12,
+                lineHeight: 1, padding: '8px 14px', borderRadius: 9999,
+                backdropFilter: 'blur(2px)',
+              }}>
+                {typeName}
+              </span>
+            )}
+          </div>
           {destacada && (
             <span style={{
               position: 'absolute', top: 10, right: 10,
@@ -141,7 +156,7 @@ async function FeaturedPropertiesSection() {
             </p>
           )}
           <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
-            {address}{location ? `, ${location}` : ''}
+            {direccion || address}
           </p>
         </div>
       </Link>

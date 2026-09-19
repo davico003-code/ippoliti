@@ -13,14 +13,16 @@ import {
   isLand,
   getPropertyCount,
   esOportunidadConsultanos,
+  propertyTypeLabelById,
   type TokkoProperty,
 } from '@/lib/tokko'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 // Badge basado en operation_type real de Tokko
 function getBadge(p: TokkoProperty): { label: string; bg: string } {
   const op = getOperationType(p)
-  if (op.startsWith('Alquiler')) return { label: 'ALQUILER', bg: operationBadgeColor(op) }
-  return { label: 'VENTA', bg: operationBadgeColor('Venta') }
+  if (op.startsWith('Alquiler')) return { label: 'Alquiler', bg: operationBadgeColor(op) }
+  return { label: 'Venta', bg: operationBadgeColor('Venta') }
 }
 
 export default async function SeleccionCarousel() {
@@ -63,7 +65,8 @@ export default async function SeleccionCarousel() {
           const beds = p.suite_amount ?? p.room_amount
           const baths = p.bathroom_amount
           const address = p.fake_address || p.address
-          const location = p.location?.name || ''
+          const direccion = formatDireccionCompleta(p, address, ' | ')
+          const typeName = propertyTypeLabelById(p.type?.id)
           const badge = getBadge(p)
 
           const specs: string[] = []
@@ -97,14 +100,20 @@ export default async function SeleccionCarousel() {
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
                 )}
-                {badge && (
+                {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
+                <div className="absolute top-3 left-3 flex gap-1.5">
                   <span
-                    className="absolute top-3 left-3 text-white text-[11px] font-bold px-2.5 py-1 rounded-md tracking-wider font-poppins"
+                    className="text-white text-[12px] font-semibold leading-none px-3.5 py-2 rounded-full font-raleway"
                     style={{ background: badge.bg }}
                   >
                     {badge.label}
                   </span>
-                )}
+                  {typeName && (
+                    <span className="text-[12px] font-semibold leading-none px-3.5 py-2 rounded-full font-raleway text-gray-900 bg-white/90 backdrop-blur-[2px]">
+                      {typeName}
+                    </span>
+                  )}
+                </div>
                 {/* Play + like juntos, arriba-derecha. audioUrl no viene
                     enriquecido acá (home ISR) → CardMediaButtons lo resuelve
                     client-side por lote. */}
@@ -130,8 +139,8 @@ export default async function SeleccionCarousel() {
                     {specs.join(' · ')}
                   </p>
                 )}
-                <p className="font-poppins text-[12px] text-gray-500 mt-1">
-                  {address}{location ? `, ${location}` : ''}
+                <p className="font-poppins text-[12px] text-gray-500 mt-1 truncate">
+                  {direccion || address}
                 </p>
               </div>
             </Link>
