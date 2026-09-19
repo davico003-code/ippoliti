@@ -125,7 +125,7 @@ export function formatUbicacion(p: ConUbicacion, junto?: string | null): string 
  * Barrio Don Mateo - Funes."), así que se parte, se descartan provincia/ciudad
  * y lo que ya diga el barrio, y la calle con número va primero.
  */
-export function formatDireccionCompleta(p: ConUbicacion, direccion?: string | null): string {
+export function formatDireccionCompleta(p: ConUbicacion, direccion?: string | null, sep = ', '): string {
   const { barrio, ciudad } = resolverUbicacion(p)
   const clave = (s: string) =>
     normUbicacion(s).replace(/\.+$/, '').replace(/^barrio( cerrado| privado)?\b/, '').trim()
@@ -158,5 +158,5 @@ export function formatDireccionCompleta(p: ConUbicacion, direccion?: string | nu
     vistos.push(k)
     partes.push(s)
   }
-  return partes.join(', ')
+  return partes.join(sep)
 }
