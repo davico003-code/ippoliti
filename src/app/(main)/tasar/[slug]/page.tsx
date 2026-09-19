@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import TasadorWidget from '@/components/tasador/TasadorWidget'
 import { BARRIOS_TASADOR, getBarrio, precioTierra, precioDepto, opcionesSelector } from '@/lib/tasador/barrios'
-import { MATRIZ_RESIDENCIAL_BASE, ajustar, getAjusteMensual } from '@/lib/costos-construccion'
+import { MATRIZ_RESIDENCIAL_BASE, ajustar, getAjusteMensual, formatMesAnio } from '@/lib/costos-construccion'
 import { esLandingTasadorIndexable, tiposTasadorIndexables, type TipoTasador } from '@/lib/seo/tasador-indexing'
 
 export const revalidate = 86400
@@ -89,7 +89,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
 
   // Costos de construcción vigentes (base ago-2026 + 2% mensual) — misma
   // fuente que la Calculadora de Costos de /recursos.
-  const { factor } = await getAjusteMensual()
+  const { factor, mes: mesCostos } = await getAjusteMensual()
   const calidades = MATRIZ_RESIDENCIAL_BASE.map((f) => ({
     slug: f.slug,
     label: f.calidad.replace('Línea ', ''),
@@ -113,7 +113,9 @@ export default async function TasarPage({ params }: { params: { slug: string } }
     {
       q: `¿De dónde sale el precio del m² en ${barrio.nombre}?`,
       a:
-        fuente !== 'ciudad'
+        fuente === 'curado'
+          ? `Es un valor de mercado relevado por SI INMOBILIARIA para ${barrio.nombre}: hoy USD ${ppm2} por m² de tierra. Lo revisamos a mano con las operaciones y la oferta de la zona.`
+          : fuente !== 'ciudad'
           ? esDepto
             ? `De los departamentos en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² cubierto, calculado sobre ${muestras} ${muestras === 1 ? 'unidad' : 'unidades'}. Es un dato vivo: se mueve con la oferta real de la zona.`
             : `De terrenos reales en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² de tierra, calculado sobre ${muestras} ${muestras === 1 ? 'lote' : 'lotes'}. Es un dato vivo: se actualiza solo cuando cambia la oferta de la zona.`
@@ -180,7 +182,7 @@ export default async function TasarPage({ params }: { params: { slug: string } }
               : `Calculada con el valor real de la tierra en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad} y el costo de construcción actualizado.`}
           </p>
           <p className="mt-2 text-[13px] text-[#6e6e73]">
-            Referencias de mercado y costos revisadas en agosto de 2026. No reemplaza una tasación profesional.
+            Referencias de mercado revisadas en agosto de 2026 y costos de construcción actualizados a {formatMesAnio(mesCostos).toLowerCase()}. No reemplaza una tasación profesional.
           </p>
         </div>
 

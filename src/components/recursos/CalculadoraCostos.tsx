@@ -718,7 +718,7 @@ export default function CalculadoraCostos() {
                 <NumInput
                   id="cotizacion"
                   value={cotizacion}
-                  onChange={n => setCotizacion(n > 0 ? n : 1)}
+                  onChange={n => { if (n > 0) setCotizacion(n) }} // vacío mientras se edita: conserva la cotización anterior (antes saltaba a 1)
                   prefix="$"
                 />
                 <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
