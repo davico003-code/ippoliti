@@ -6,7 +6,8 @@
 // touched — mobile users navigate to /propiedades/[slug] directly.
 //
 // Content (body, sidebar, gallery, sticky nav) is shared with the full page.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -42,6 +43,14 @@ interface Props {
 }
 
 export default function PropertyPanel({ propertyId, onClose, allProperties = [] }: Props) {
+  // Se monta en <body> vía portal: dentro del árbol de /propiedades quedaba
+  // atrapado en un stacking context más bajo que el Navbar (z-50), y en
+  // ventanas >= lg la barra del sitio tapaba el header "Volver" y la barra de
+  // secciones de la ficha.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  const portal = (node: ReactNode) => (mounted ? createPortal(node, document.body) : null)
+
   const [property, setProperty] = useState<TokkoProperty | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -118,7 +127,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
 
   // Loading / Error
   if (loading || error || !property) {
-    return (
+    return portal(
       <div className="fixed inset-0 z-[9995]">
         <div className="absolute inset-0 bg-black/65" onClick={onClose} />
         <div className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto shadow-2xl" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
@@ -147,7 +156,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   // wa.me al productor asignado en Tokko; fallback al número general si no hay producer.
   const whatsappUrl = buildPropertyWhatsappUrl(property, slug)
 
-  return (
+  return portal(
     <div className="fixed inset-0 z-[9995]">
       {/* Backdrop — cubre TODO el viewport incluyendo el header del sitio */}
       <div
