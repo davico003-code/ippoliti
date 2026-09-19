@@ -23,6 +23,7 @@ import {
   esOportunidadConsultanos,
 } from '@/lib/tokko'
 import { formatDistanceAR } from '@/lib/geo'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 const RALEWAY = "'Raleway', system-ui, sans-serif"
 const POPPINS = "'Poppins', system-ui, sans-serif"
@@ -71,7 +72,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const beds = property.suite_amount || property.room_amount
   const baths = property.bathroom_amount
   const address = property.fake_address || property.address
-  const location = property.location?.short_location || property.location?.name || ''
+  const direccion = formatDireccionCompleta(property, address)
   const cardHref = `/propiedades/${slug}`
 
   // Build specs: "3 dorm · 2 baños · 190 m² · 1.691 m² lote"
@@ -189,41 +190,23 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       href={cardHref}
       prefetch={false}
       onClick={onClick}
-      className="group si-press-lift cursor-pointer block"
+      className="group cursor-pointer block"
       style={{
-        borderRadius: 14,
-        border: isSelected ? '1px solid #1A5C38' : '1px solid #e5e7eb',
-        overflow: 'hidden',
         background: '#fff',
         textDecoration: 'none',
         color: 'inherit',
-        boxShadow: isSelected
-          ? '0 10px 25px rgba(0,0,0,0.1)'
-          : '0 1px 3px rgba(0,0,0,0.06)',
-        transition: 'box-shadow 250ms, border-color 250ms, transform 250ms cubic-bezier(0.22,1,0.36,1)',
       }}
-      onMouseEnter={e => {
-        router.prefetch(cardHref)
-        if (!isSelected) {
-          e.currentTarget.style.boxShadow = '0 14px 30px rgba(9,30,20,0.13)'
-          e.currentTarget.style.borderColor = 'var(--mundial-accent)'
-        }
-      }}
-      onMouseLeave={e => {
-        if (!isSelected) {
-          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
-          e.currentTarget.style.borderColor = '#e5e7eb'
-        }
-      }}
+      onMouseEnter={() => router.prefetch(cardHref)}
     >
       {/* Image — `group/media` acota el hover a la imagen (no a toda la card),
           así flechas y dots aparecen solo al pasar el mouse sobre la foto.
           Los handlers touch dan swipe horizontal en mobile. */}
       <div
-        className={`group/media relative w-full overflow-hidden aspect-[2/1] ${images.length === 0 ? 'bg-gray-100' : imgLoaded ? '' : 'si-img-shimmer'}`}
+        className={`group/media relative w-full overflow-hidden rounded-[14px] aspect-[16/9] ${images.length === 0 ? 'bg-gray-100' : imgLoaded ? '' : 'si-img-shimmer'}`}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onClickCapture={onClickCapture}
+        style={isSelected ? { boxShadow: '0 0 0 2px #1A5C38' } : undefined}
       >
         {images.length > 0 ? (
           <Image
@@ -291,9 +274,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
               color: '#fff',
               fontFamily: RALEWAY,
               fontWeight: 600,
-              fontSize: 11,
-              textTransform: 'uppercase',
-              padding: '5px 14px',
+              fontSize: 12,
+              lineHeight: 1,
+              padding: '8px 14px',
               borderRadius: 9999,
             }}>
               {operation}
@@ -305,9 +288,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
               color: '#0a0a0a',
               fontFamily: RALEWAY,
               fontWeight: 600,
-              fontSize: 11,
-              textTransform: 'uppercase',
-              padding: '5px 14px',
+              fontSize: 12,
+              lineHeight: 1,
+              padding: '8px 14px',
               borderRadius: 9999,
               backdropFilter: 'blur(2px)',
             }}>
@@ -327,7 +310,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       </div>
 
       {/* Body */}
-      <div style={{ padding: '8px 12px' }}>
+      <div style={{ padding: '8px 2px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
           {esOportunidadConsultanos(property.id) ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
@@ -389,24 +372,12 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           fontWeight: 500,
           fontSize: 13,
           color: '#0a0a0a',
-          margin: '0 0 1px',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {address || typeName}
-        </p>
-
-        <p style={{
-          fontFamily: RALEWAY,
-          fontSize: 12,
-          color: '#6b7280',
           margin: 0,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         }}>
-          {location}
+          {direccion || typeName}
         </p>
 
         {distanceKm != null && Number.isFinite(distanceKm) && (

@@ -9,13 +9,13 @@ export default function PropiedadesViewDesktopGridSkeleton({ count = 6 }: { coun
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="rounded-[14px] border border-gray-200 overflow-hidden bg-white animate-pulse"
+          className="bg-white animate-pulse"
         >
-          {/* Imagen — aspect-[2/1] como PropiedadCardGrid */}
-          <div className="relative w-full bg-gray-200 aspect-[2/1]" />
+          {/* Imagen — aspect-[16/9] como PropiedadCardGrid */}
+          <div className="relative w-full rounded-[14px] bg-gray-200 aspect-[16/9]" />
 
-          {/* Body — 8px 12px padding, 3 líneas como la card real */}
-          <div className="px-3 py-2 space-y-2">
+          {/* Body — 8px 2px padding, 3 líneas como la card real */}
+          <div className="px-0.5 py-2 space-y-2">
             <div className="flex items-center justify-between">
               <div className="h-5 w-24 bg-gray-200 rounded" />
               <div className="h-5 w-5 bg-gray-100 rounded-full" />

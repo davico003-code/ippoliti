@@ -118,3 +118,45 @@ export function formatUbicacion(p: ConUbicacion, junto?: string | null): string 
     .filter((v): v is string => !!v && !yaDice.has(normUbicacion(v)))
     .join(', ')
 }
+
+/**
+ * "Dirección, Barrio, Ciudad" en una sola línea y sin repetir: la dirección
+ * cargada suele traer el barrio y la ciudad adentro ("Los Mistoles 3200 -
+ * Barrio Don Mateo - Funes."), así que se parte, se descartan provincia/ciudad
+ * y lo que ya diga el barrio, y la calle con número va primero.
+ */
+export function formatDireccionCompleta(p: ConUbicacion, direccion?: string | null): string {
+  const { barrio, ciudad } = resolverUbicacion(p)
+  const clave = (s: string) =>
+    normUbicacion(s).replace(/\.+$/, '').replace(/^barrio( cerrado| privado)?\b/, '').trim()
+  // "Vida Lagoon" ≈ "Vida Crystal Lagoon", "Kentucky Club de Campo" ≈ "Kentucky":
+  // si las palabras de uno están todas en el otro, es el mismo lugar.
+  // La ciudad sólo se omite si ya está tal cual ("Funes Lakes" no dice Funes).
+  const incluido = (a: string, b: string) => {
+    const enB = b.split(' ')
+    return a.split(' ').every((w) => enB.includes(w))
+  }
+  const vistos: string[] = []
+  const partes: string[] = []
+  const segs = (direccion ?? '')
+    .split(/\s*[,/|]\s*|\s+[-–—]\s+/)
+    .map((s) => s.trim().replace(/\.+$/, '').replace(/^barrio (cerrado|privado)\s+/i, ''))
+    .filter(Boolean)
+    .filter((s) => {
+      const n = normUbicacion(s)
+      return !NO_ES_LUGAR.has(n) && !CIUDADES[n] && clave(s) !== ''
+    })
+  // Calle con número adelante ("Rosario - Centro - Av. Belgrano al 900").
+  segs.sort((a, b) => Number(/\d/.test(b)) - Number(/\d/.test(a)))
+  for (const s of [...segs, barrio, ciudad]) {
+    if (!s) continue
+    const k = clave(s)
+    const repetido = s === ciudad
+      ? vistos.includes(k)
+      : vistos.some((v) => incluido(k, v) || incluido(v, k))
+    if (!k || repetido) continue
+    vistos.push(k)
+    partes.push(s)
+  }
+  return partes.join(', ')
+}
