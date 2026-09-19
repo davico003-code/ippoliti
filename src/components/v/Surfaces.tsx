@@ -13,11 +13,11 @@ export default function Surfaces({ snapshot }: { snapshot: FichaSnapshot }) {
   const s = snapshot
   const items: Item[] = []
 
-  if (s.m2cubiertos) items.push({ label: 'Cubierta', value: `${s.m2cubiertos} m²` })
-  if (s.m2semicubiertos) items.push({ label: 'Semicubierta', value: `${s.m2semicubiertos} m²` })
-  if (s.m2descubiertos) items.push({ label: 'Descubierta', value: `${s.m2descubiertos} m²` })
-  if (s.m2totales) items.push({ label: 'Total construida', value: `${s.m2totales} m²` })
-  if (s.m2terreno) items.push({ label: 'Terreno', value: `${s.m2terreno} m²` })
+  if (s.m2cubiertos) items.push({ label: 'Cubierta', value: `${s.m2cubiertos.toLocaleString('es-AR')} m²` })
+  if (s.m2semicubiertos) items.push({ label: 'Semicubierta', value: `${s.m2semicubiertos.toLocaleString('es-AR')} m²` })
+  if (s.m2descubiertos) items.push({ label: 'Descubierta', value: `${s.m2descubiertos.toLocaleString('es-AR')} m²` })
+  if (s.m2totales) items.push({ label: 'Total construida', value: `${s.m2totales.toLocaleString('es-AR')} m²` })
+  if (s.m2terreno) items.push({ label: 'Terreno', value: `${s.m2terreno.toLocaleString('es-AR')} m²` })
   if (s.frenteM) items.push({ label: 'Frente', value: `${s.frenteM} m` })
   if (s.fondoM) items.push({ label: 'Fondo', value: `${s.fondoM} m` })
 

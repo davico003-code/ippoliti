@@ -50,7 +50,7 @@ export default async function Page() {
                 <div className="relative h-48 bg-gray-100">{photo && <Image src={photo} alt={p.publication_title || p.address} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw" />}</div>
                 <div className="p-4">
                   <p className="text-xl font-black text-gray-900 font-numeric mb-1">{formatPrice(p)}</p>
-                  <p className="text-sm text-gray-600 mb-1">{[beds && `${beds} dorm`, roofed && `${roofed} m²`].filter(Boolean).join(' · ')}</p>
+                  <p className="text-sm text-gray-600 mb-1">{[beds && `${beds} dorm`, roofed && `${roofed.toLocaleString('es-AR')} m²`].filter(Boolean).join(' · ')}</p>
                   <p className="text-sm text-gray-500 truncate">{p.fake_address || p.address}</p>
                 </div>
               </Link>

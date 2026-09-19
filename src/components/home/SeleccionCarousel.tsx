@@ -72,7 +72,7 @@ export default async function SeleccionCarousel() {
           const specs: string[] = []
           if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
           if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
-          if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
+          if (roofed != null && roofed > 0) specs.push(`${roofed.toLocaleString('es-AR')} m²`)
           const lot = getLotSurface(p)
           if (lot != null && lot > 0) {
             if (land) specs.push(`${lot.toLocaleString('es-AR')} m²`)

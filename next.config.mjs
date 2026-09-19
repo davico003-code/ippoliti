@@ -7,7 +7,8 @@ const cspReportOnly = [
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
-  "form-action 'self'",
+  // El Pixel de Meta manda eventos por <form> e <iframe> ocultos a facebook.com/tr.
+  "form-action 'self' https://www.facebook.com",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.clarity.ms https://*.clarity.ms",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
@@ -17,7 +18,7 @@ const cspReportOnly = [
   "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org",
   // kuula.co (tours 360 de /dockgarden) y cloudflarestream (videos del
   // desarrollador vía Brickfy) se embeben en iframes.
-  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://kuula.co https://*.cloudflarestream.com",
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://kuula.co https://*.cloudflarestream.com https://www.facebook.com",
   "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.supabase.co",
   "worker-src 'self' blob:",
 ].join('; ')
