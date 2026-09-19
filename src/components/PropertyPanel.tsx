@@ -145,10 +145,17 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
     }
   }, [property])
 
+  // Listener ESTABLE (onClose por ref): onClose llega como arrow inline y
+  // cambia en cada render. Con [onClose] de dependencia, el popstate del botón
+  // Atrás hacía que Next re-renderizara sincrónicamente, React sacaba este
+  // listener y ponía otro durante el mismo evento, y el navegador no ejecutaba
+  // ninguno: Atrás cambiaba la URL pero el panel quedaba abierto.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
   useEffect(() => {
-    const h = () => onClose()
+    const h = () => onCloseRef.current()
     window.addEventListener('popstate', h); return () => window.removeEventListener('popstate', h)
-  }, [onClose])
+  }, [])
 
   // Loading / Error
   if (loading || error || !property) {
