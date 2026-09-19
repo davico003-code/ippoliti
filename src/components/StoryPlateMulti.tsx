@@ -1053,7 +1053,7 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
             <Instagram size={16} aria-hidden />
           )}
           {generating
-            ? 'Preparando pack…'
+            ? (packUrls.total > 0 ? 'Preparando pack…' : 'Generando placa…')
             : packUrls.total > 0
               ? `Descargar placa + ${packUrls.planos.length > 0 && packUrls.fotos.length === 0 ? 'plano' : 'fotos'}`
               : (buttonLabel ?? 'Descargar placa')}
