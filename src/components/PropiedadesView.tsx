@@ -49,6 +49,7 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
+  operacionPrincipal,
   operationBadgeColor,
   getRoofedArea,
   getLotSurface,
@@ -128,8 +129,17 @@ function operationTypeForFilter(operation: Operation): OperationType | null {
 }
 
 function operationForView(property: TokkoProperty, operationType: OperationType | null) {
-  if (!operationType) return property.operations?.[0] ?? null
+  // Sin operación elegida, la misma que muestra la card (la que tiene precio);
+  // operations[0] podía ser una venta en 0 de una propiedad que se alquila.
+  if (!operationType) return operacionPrincipal(property)
   return property.operations?.find(operation => operation.operation_type === operationType) ?? null
+}
+
+/** Precio para ordenar: el que la card muestra, o null si no se publica. */
+function precioOrden(property: TokkoProperty, operationType: OperationType | null) {
+  if (property.web_price === false) return null
+  const pr = operationForView(property, operationType)?.prices?.[0]
+  return pr && pr.price > 0 ? pr : null
 }
 
 /**
@@ -637,7 +647,7 @@ export default function PropiedadesView({
   // (Navbar, back/forward) o apertura de un link compartido. Todos los filtros
   // viajan en la query → la búsqueda es 100% compartible.
   const parseFilters = useCallback((): Filters => {
-    const op = (searchParams.get('operacion') ?? searchParams.get('op') ?? '').toLowerCase()
+    const op = (searchParams.get('operacion') ?? searchParams.get('op') ?? searchParams.get('operation') ?? '').toLowerCase()
     const beds = searchParams.get('dormitorios') ?? ''
     // Alias legacy de links internos (footer/landings): location→ubicacion,
     // type→tipo, search→q. El effect estado→URL luego reescribe al canónico.
@@ -966,6 +976,8 @@ export default function PropiedadesView({
       const minNum = filters.priceMin ? parseInt(filters.priceMin, 10) : 0
       const maxNum = filters.priceMax ? parseInt(filters.priceMax, 10) : Number.POSITIVE_INFINITY
       // Buscar el precio de la operación activa y la moneda seleccionada.
+      // Un precio oculto ("Consultar") no puede entrar por un filtro de precio.
+      if (p.web_price === false) return false
       const matchingPrice = operationForView(p, selectedOperationType)?.prices?.find(pr => pr.currency === filters.currency)
       if (!matchingPrice) return false
       if (matchingPrice.price < minNum || matchingPrice.price > maxNum) return false
@@ -984,15 +996,15 @@ export default function PropiedadesView({
         if (!a.is_starred_on_web && b.is_starred_on_web) return 1
         return 0
       }
-      case 'precio-asc': {
-        const pa = operationForView(a, selectedOperationType)?.prices?.[0]?.price ?? Infinity
-        const pb = operationForView(b, selectedOperationType)?.prices?.[0]?.price ?? Infinity
-        return pa - pb
-      }
+      case 'precio-asc':
       case 'precio-desc': {
-        const pa = operationForView(a, selectedOperationType)?.prices?.[0]?.price ?? 0
-        const pb = operationForView(b, selectedOperationType)?.prices?.[0]?.price ?? 0
-        return pb - pa
+        // Sin precio visible (oculto o 0) al final; USD antes que ARS (no se
+        // comparan monedas sin tipo de cambio); dentro de cada moneda, por monto.
+        const pa = precioOrden(a, selectedOperationType)
+        const pb = precioOrden(b, selectedOperationType)
+        if (!pa || !pb) return pa ? -1 : pb ? 1 : 0
+        if (pa.currency !== pb.currency) return pa.currency === 'USD' ? -1 : pb.currency === 'USD' ? 1 : 0
+        return sortBy === 'precio-asc' ? pa.price - pb.price : pb.price - pa.price
       }
       case 'superficie': {
         const sa = parseFloat(a.total_surface) || parseFloat(a.roofed_surface) || 0

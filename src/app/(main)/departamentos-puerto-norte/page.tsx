@@ -10,13 +10,6 @@ const ZONE = 'Puerto Norte'
 const ZONE_LOWER = 'puerto norte'
 const ZONE_SLUG = 'puerto-norte'
 
-const jsonLd = {
-  '@context': 'https://schema.org', '@type': 'RealEstateAgent',
-  name: 'SI INMOBILIARIA — Departamentos en Puerto Norte', url: `https://siinmobiliaria.com/departamentos-${ZONE_SLUG}`,
-  telephone: '+5493412101694', areaServed: [ZONE, 'Rosario'],
-  address: { '@type': 'PostalAddress', addressLocality: 'Rosario', addressRegion: 'Santa Fe', addressCountry: 'AR' },
-}
-
 const faqJsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [
   { '@type': 'Question', name: '¿Cuánto cuesta un departamento en Puerto Norte?', acceptedAnswer: { '@type': 'Answer', text: 'Los departamentos en Puerto Norte arrancan desde USD 120.000 para 1 dormitorio. Un 2 dormitorios premium con vista al río ronda los USD 200.000-350.000. El precio promedio por m² es de USD 2.300.' } },
   { '@type': 'Question', name: '¿Cuáles son los mejores edificios de Puerto Norte?', acceptedAnswer: { '@type': 'Answer', text: 'Los edificios más reconocidos son Ciudad Ribera, Forum, Dolfines Guaraní, Condominios del Alto y Maui. Todos cuentan con amenities premium: pileta, gym, seguridad 24hs y vista al río Paraná.' } },
@@ -24,7 +17,7 @@ const faqJsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
 ]}
 
 export const metadata: Metadata = {
-  title: `Departamentos en ${ZONE} | Venta y alquiler | SI INMOBILIARIA`,
+  title: `Departamentos en venta en ${ZONE} | SI INMOBILIARIA`,
   description: `Departamentos en ${ZONE}, Rosario. Torres premium con vista al río Paraná, pileta, gym, seguridad 24hs. Ciudad Ribera, Forum, Dolfines. Desde USD 120.000.`,
   keywords: `departamentos ${ZONE_LOWER}, departamentos venta ${ZONE_LOWER}, ${ZONE_LOWER} rosario`,
   alternates: { canonical: `https://siinmobiliaria.com/departamentos-${ZONE_SLUG}` },
@@ -35,9 +28,10 @@ export const metadata: Metadata = {
 function filter(props: TokkoProperty[]): TokkoProperty[] {
   return props.filter(p => {
     const loc = `${p.location?.short_location ?? ''} ${p.location?.name ?? ''} ${p.fake_address ?? ''} ${p.address ?? ''}`.toLowerCase()
-    const match = loc.includes('puerto norte') || loc.includes('puerto')
+    // Solo 'puerto norte': 'puerto' solo traía Puerto Roldán y otros barrios.
+    const match = loc.includes('puerto norte')
     const isDpto = (p.type?.name?.toLowerCase() ?? '').match(/departamento|apartment|condo/)
-    const isVenta = p.operations?.[0]?.operation_type === 'Sale'
+    const isVenta = (p.operations ?? []).some(o => o.operation_type === 'Sale')
     return match && isDpto && isVenta
   })
 }
@@ -52,7 +46,6 @@ export default async function Page() {
         { name: 'Inicio', url: 'https://siinmobiliaria.com' },
         { name: 'Departamentos en Puerto Norte', url: 'https://siinmobiliaria.com/departamentos-puerto-norte' },
       ]} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="bg-gradient-to-br from-[#1A5C38] to-[#0F3A23] text-white py-20 px-4">

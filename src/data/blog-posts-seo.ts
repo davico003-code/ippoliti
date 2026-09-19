@@ -43,7 +43,7 @@ La aparici\u00f3n de comercios, escuelas, centros de salud y supermercados en la
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si est\u00e1s pensando en comprar un lote como inversi\u00f3n en Funes o Rold\u00e1n, lo m\u00e1s importante es tener informaci\u00f3n precisa y actualizada. En SI INMOBILIARIA conocemos cada barrio, cada calle y cada proyecto en desarrollo de la zona. Podemos orientarte hacia los lotes con mayor potencial de valorizaci\u00f3n seg\u00fan tu presupuesto y tu horizonte de inversi\u00f3n. Consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos por WhatsApp al 341 210 1694.`,
+Si est\u00e1s pensando en comprar un lote como inversi\u00f3n en Funes o Rold\u00e1n, lo m\u00e1s importante es tener informaci\u00f3n precisa y actualizada. En SI INMOBILIARIA conocemos cada barrio, cada calle y cada proyecto en desarrollo de la zona. Podemos orientarte hacia los lotes con mayor potencial de valorizaci\u00f3n seg\u00fan tu presupuesto y tu horizonte de inversi\u00f3n. Consult\u00e1 nuestro cat\u00e1logo de propiedades o escribinos por WhatsApp al 341 334 0916.`,
   },
   {
     slug: 'mercado-inmobiliario-2025-que-esta-pasando',
@@ -79,7 +79,7 @@ Mi proyecci\u00f3n para los pr\u00f3ximos 12 meses es moderadamente optimista. C
 
 Consult\u00e1 con SI INMOBILIARIA
 
-Si quer\u00e9s aprovechar el momento actual del mercado, sea para comprar tu primera casa, invertir en un lote o vender una propiedad al mejor precio, en SI INMOBILIARIA podemos ayudarte con informaci\u00f3n concreta y actualizada de la zona. Visit\u00e1 nuestro cat\u00e1logo en /propiedades o consult\u00e1 por WhatsApp al 341 210 1694.`,
+Si quer\u00e9s aprovechar el momento actual del mercado, sea para comprar tu primera casa, invertir en un lote o vender una propiedad al mejor precio, en SI INMOBILIARIA podemos ayudarte con informaci\u00f3n concreta y actualizada de la zona. Visit\u00e1 nuestro cat\u00e1logo en /propiedades o consult\u00e1 por WhatsApp al 341 334 0916.`,
   },
   {
     slug: 'funes-roldan-nuevo-eje-crecimiento-inmobiliario-gran-rosario',

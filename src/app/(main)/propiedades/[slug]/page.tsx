@@ -24,6 +24,8 @@ import {
   formatPrice,
   mostrarPrecio,
   getTotalSurface,
+  getOperationType,
+  propertyTypeLabelById,
   getMainPhoto,
   getDescription,
   getBlueprintPhotos,
@@ -31,6 +33,7 @@ import {
   buildPropertyWhatsappUrl,
   numeroVisitaWhatsapp,
   type TokkoProperty,
+  operacionPrincipal,
 } from '@/lib/tokko';
 import { formatUbicacion } from '@/lib/ubicacion';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
@@ -50,6 +53,53 @@ export async function generateStaticParams() {
   return [];
 }
 
+// Calle con número de la dirección ("Los Mistoles 3200 - Don Mateo" → "Los Mistoles 3200").
+function calleDe(dir?: string | null): string {
+  return (dir ?? '')
+    .split(/\s*[,|/]\s*|\s+[-–—]\s+/)
+    .map(s => s.replace(/\s+/g, ' ').trim())
+    .find(s => /\d/.test(s)) ?? '';
+}
+
+// Varias fichas comparten el mismo título ("Departamento en venta de 2
+// dormitorios en Rosario") y Google las ve como duplicadas. Solo a esas se les
+// suma la calle (y el código si la calle también coincide); el resto no cambia.
+async function tituloUnico(property: TokkoProperty, title: string): Promise<string> {
+  let todas: TokkoProperty[] = [];
+  try {
+    todas = (await getProperties()).objects ?? [];
+  } catch {
+    return title;
+  }
+  const clave = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').trim();
+  const tituloDe = (x: TokkoProperty) =>
+    PROPERTY_SEO[x.id]?.title || normalizarTitulo(x.publication_title) || x.address || '';
+  const otras = todas.filter(x => x.id !== property.id && clave(tituloDe(x)) === clave(title));
+  if (!otras.length) return title;
+  const conCalle = (x: TokkoProperty) => {
+    const calle = calleDe(x.fake_address || x.address);
+    return calle ? `${title}, ${calle}` : title;
+  };
+  const propio = conCalle(property);
+  return otras.some(x => clave(conCalle(x)) === clave(propio))
+    ? `${propio} (Cód. ${property.id})`
+    : propio;
+}
+
+// Meta description cuando el aviso no tiene descripción cargada.
+function descripcionFallback(property: TokkoProperty): string {
+  const tipo = propertyTypeLabelById(property.type?.id);
+  const op = getOperationType(property).toLowerCase();
+  const ubic = formatUbicacion(property);
+  const sup = getTotalSurface(property);
+  const precio = mostrarPrecio(property);
+  return [
+    `${tipo === 'Otros' ? 'Propiedad' : tipo}${op ? ` en ${op}` : ''}${ubic ? ` en ${ubic}` : ''}`,
+    sup ? `${sup.toLocaleString('es-AR')} m²` : '',
+    precio ?? '',
+  ].filter(Boolean).join(' · ') + '. Consultá con SI INMOBILIARIA.';
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const id = getIdFromSlug(params.slug);
@@ -60,15 +110,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // normalizarTitulo: si el aviso se cargó TODO EN MAYÚSCULAS, el <title> y
     // el OG salían gritados (generateMetadata no pasa por sanitizeProperty).
     const rawTitle = seo?.title || normalizarTitulo(property.publication_title) || property.address;
-    const title = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
+    const tituloBase = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
+    const title = seo?.title ? tituloBase : await tituloUnico(property, tituloBase);
     // #1: el texto de Tokko trae whitespace/newlines al inicio; los tags se
     // reemplazan por espacio (no pegar palabras), se colapsan los espacios y se
     // trimea ANTES de cortar a 160, para no desperdiciar el límite con basura.
-    const desc = seo?.metaDescription ?? (property.description || property.description_only || '')
+    const desc = seo?.metaDescription ?? ((property.description || property.description_only || '')
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 160);
+      .slice(0, 160) || descripcionFallback(property));
     const photo = getMainPhoto(property);
     const price = formatPrice(property);
     const loc = formatUbicacion(property);
@@ -96,11 +147,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ...(photo ? { images: [photo] } : {}),
       },
     };
-  } catch {
+  } catch (e) {
     // La propiedad no existe / el feed falló. La ruta hace notFound() pero por
     // una limitación de Next el streaming ya commiteó HTTP 200 (soft-404). El
-    // noindex evita que Google indexe esa página de error.
-    return { title: 'Propiedad no encontrada | SI INMOBILIARIA', robots: { index: false, follow: false } };
+    // noindex evita que Google indexe esa página de error. Cuando la página
+    // termina en notFound() Next ya agrega su propio noindex: sumar el nuestro
+    // dejaba dos <meta name="robots">.
+    const esNotFound =
+      isNaN(getIdFromSlug(params.slug)) || (e instanceof Error && e.message.includes('not found'));
+    return {
+      title: 'Propiedad no encontrada | SI INMOBILIARIA',
+      ...(esNotFound ? {} : { robots: { index: false, follow: false } }),
+    };
   }
 }
 
@@ -184,8 +242,10 @@ export default async function PropertyPage({ params }: Props) {
 
   // JSON-LD — RealEstateListing + BreadcrumbList
   const mainPhotoUrl = getMainPhoto(property);
-  const propPrice = property.operations?.[0]?.prices?.[0]?.price ?? 0;
-  const propCurrency = property.operations?.[0]?.prices?.[0]?.currency ?? 'USD';
+  // La operación que muestra la ficha (operations[0] podía ser una venta en 0).
+  const opPrincipal = operacionPrincipal(property);
+  const propPrice = opPrincipal?.prices?.[0]?.price ?? 0;
+  const propCurrency = opPrincipal?.prices?.[0]?.currency ?? 'USD';
   const propUrl = `https://siinmobiliaria.com/propiedades/${canonicalSlug}`;
   // "Sin Precio" en Tokko (web_price: false): el Offer se omite del JSON-LD
   // para no filtrar el monto que la API igual manda.
@@ -201,7 +261,7 @@ export default async function PropertyPage({ params }: Props) {
       ...(tienePrecio ? {
         offers: {
           '@type': 'Offer',
-          price: propPrice.toString(),
+          price: propPrice,
           priceCurrency: propCurrency,
           availability: 'https://schema.org/InStock',
         },

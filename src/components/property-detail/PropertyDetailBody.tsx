@@ -26,6 +26,7 @@ import {
   translateCondition,
   translateOrientation,
   translateDisposition,
+  operacionPrincipal,
 } from '@/lib/tokko'
 import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
@@ -129,7 +130,7 @@ export default function PropertyDetailBody({
 
   // Costos iniciales — solo alquiler permanente (operation_type === 'Rent';
   // 'Sale' y 'Temporary rent' / 'Temporary' quedan fuera).
-  const op0 = property.operations?.[0]
+  const op0 = operacionPrincipal(property)
   const price0 = op0?.prices?.[0]
   const isAlquilerPermanente = op0?.operation_type === 'Rent'
   const alquilerMonto = typeof price0?.price === 'number' ? price0.price : 0

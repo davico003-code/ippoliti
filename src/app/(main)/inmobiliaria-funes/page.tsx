@@ -329,9 +329,9 @@ export default async function InmobiliariaFunesPage() {
         <div className="max-w-4xl mx-auto">
           <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>También te puede interesar</h3>
           <div className="flex flex-wrap gap-3">
-            <Link href="/propiedades?operation=venta&location=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Casas en venta en Funes</Link>
-            <Link href="/propiedades?type=terreno&location=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Terrenos en Funes</Link>
-            <Link href="/propiedades?operation=alquiler&location=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Alquiler en Funes</Link>
+            <Link href="/propiedades?operacion=venta&tipo=casa&ubicacion=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Casas en venta en Funes</Link>
+            <Link href="/propiedades?tipo=terreno&ubicacion=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Terrenos en Funes</Link>
+            <Link href="/propiedades?operacion=alquiler&ubicacion=funes" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Alquiler en Funes</Link>
             <Link href="/inmobiliaria-roldan" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Inmobiliaria en Roldán</Link>
             <Link href="/guia" prefetch={false} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Guía del comprador</Link>
             <Link href="/tasaciones" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors">Tasaciones profesionales</Link>

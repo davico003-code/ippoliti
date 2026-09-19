@@ -87,7 +87,7 @@ export function FotoDavid({ size, className = '' }: { size: number; className?: 
   return (
     <Image
       src="/team/david-flores.jpg"
-      alt="David Flores, corredor responsable de SI Inmobiliaria"
+      alt="David Flores, corredor responsable de SI INMOBILIARIA"
       width={size}
       height={size}
       sizes={`${size}px`}
@@ -124,7 +124,7 @@ export function TarjetaEquipo({ titulo, texto }: { titulo: string; texto: string
         <p className="font-poppins text-[18px] font-semibold leading-[1.2] tracking-[-0.015em] text-[#121A15]">{titulo}</p>
         <p className="mt-1.5 text-[14.5px] font-medium leading-[1.45] text-[#3C4A42]">{texto}</p>
         <p className="mt-2 font-poppins text-[11px] font-semibold uppercase tracking-[0.08em] text-[#17613C]">
-          SI Inmobiliaria · David Flores, corredor responsable · Mat. 0621
+          SI INMOBILIARIA · David Flores, corredor responsable · Mat. 0621
         </p>
       </div>
     </section>
@@ -141,12 +141,12 @@ export function TarjetaConfianza() {
       <FotoDavid size={60} className="border-[2.5px] border-[#D7E8DD]" />
       <div className="flex-1 min-w-0">
         <p className="mb-0.5 font-poppins text-[11px] font-semibold uppercase tracking-[0.09em] text-[#6B766E]">Te atiende</p>
-        <p className="font-poppins text-[16px] font-semibold leading-tight tracking-[-0.01em] text-[#121A15]">El equipo de SI Inmobiliaria</p>
+        <p className="font-poppins text-[16px] font-semibold leading-tight tracking-[-0.01em] text-[#121A15]">El equipo de SI INMOBILIARIA</p>
         <p className="mt-0.5 text-[13.5px] font-medium text-[#3C4A42]">
           David Flores, corredor responsable · Mat. <span className="font-poppins font-semibold">0621</span>
         </p>
         <p className="mt-1.5 border-t border-[#E1E6E1] pt-1.5 text-[13px] font-bold text-[#17613C]">
-          SI Inmobiliaria · desde <span className="font-poppins">1983</span>
+          SI INMOBILIARIA · desde <span className="font-poppins">1983</span>
         </p>
       </div>
     </section>

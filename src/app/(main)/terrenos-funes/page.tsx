@@ -21,7 +21,7 @@ function filter(props: TokkoProperty[]): TokkoProperty[] {
     const isFunes = loc.includes('funes')
     const t = (p.type?.name?.toLowerCase() ?? '')
     const isTerreno = t.includes('terreno') || t.includes('land') || t.includes('countryside')
-    const isVenta = p.operations?.[0]?.operation_type === 'Sale'
+    const isVenta = (p.operations ?? []).some(o => o.operation_type === 'Sale')
     return isFunes && isTerreno && isVenta
   })
 }

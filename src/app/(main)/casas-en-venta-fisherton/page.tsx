@@ -19,8 +19,10 @@ function filter(props: TokkoProperty[]): TokkoProperty[] {
   return props.filter(p => {
     const loc = `${p.location?.short_location ?? ''} ${p.location?.name ?? ''} ${p.fake_address ?? ''} ${p.address ?? ''}`.toLowerCase()
     const match = loc.includes('fisherton') || loc.includes('aldea')
-    const isCasa = (p.type?.name?.toLowerCase() ?? '').includes('casa') || (p.type?.name?.toLowerCase() ?? '').includes('house')
-    const isVenta = p.operations?.[0]?.operation_type === 'Sale'
+    const tipo = p.type?.name?.toLowerCase() ?? ''
+    // 'warehouse' contiene 'house': los galpones entraban como casas.
+    const isCasa = (tipo.includes('casa') || tipo.includes('house')) && !tipo.includes('warehouse')
+    const isVenta = (p.operations ?? []).some(o => o.operation_type === 'Sale')
     return match && isCasa && isVenta
   })
 }
