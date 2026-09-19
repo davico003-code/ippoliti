@@ -36,6 +36,7 @@ import {
   operacionPrincipal,
 } from '@/lib/tokko';
 import { formatUbicacion } from '@/lib/ubicacion';
+import { sinVideosCaidos } from '@/lib/videos-vivos';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
 
 export const revalidate = 3600;
@@ -170,7 +171,7 @@ export default async function PropertyPage({ params }: Props) {
 
   let property: TokkoProperty;
   try {
-    property = sanitizeProperty(await getPropertyById(id));
+    property = await sinVideosCaidos(sanitizeProperty(await getPropertyById(id)));
   } catch (e) {
     if (e instanceof Error && e.message.includes('not found')) {
       // LIMITACIÓN CONOCIDA (#2 soft-404): en esta ruta el notFound() resuelve
