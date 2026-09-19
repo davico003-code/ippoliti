@@ -716,10 +716,13 @@ export default function PropiedadesView({
     if (qs === searchParams.toString()) return
     const t = setTimeout(() => {
       internalUrlSyncRef.current = true
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+      // history.replaceState y no router.replace: la página es force-dynamic y
+      // router.replace re-renderizaba todo el listado en el server (~1 MB por
+      // cada cambio de filtro). Next 14.2 sincroniza useSearchParams igual.
+      window.history.replaceState(null, '', qs ? `${pathname}?${qs}` : pathname)
     }, 250)
     return () => clearTimeout(t)
-  }, [filters, pathname, router, searchParams])
+  }, [filters, pathname, searchParams])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [hoveredId, setHoveredId]       = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<FlyToTarget | null>(null)
@@ -1225,10 +1228,12 @@ export default function PropiedadesView({
     setSelectedId(null)
   }, [])
 
-  const selectedProperty = useMemo(
-    () => (selectedId != null ? properties.find(p => p.id === selectedId) ?? null : null),
-    [selectedId, properties]
-  )
+  // Con Venta/Alquiler filtrado, la vista previa muestra la operación elegida
+  // (igual que la card): una mixta decía "VENTA · USD 450.000" en alquileres.
+  const selectedProperty = useMemo(() => {
+    const p = selectedId != null ? properties.find(x => x.id === selectedId) : null
+    return p ? prioritizeOperationForView(p, selectedOperationType) : null
+  }, [selectedId, properties, selectedOperationType])
 
   const opLabel = filters.operation === 'venta' ? 'en venta'
     : filters.operation === 'alquiler' ? 'en alquiler' : 'disponibles'
@@ -1633,6 +1638,7 @@ export default function PropiedadesView({
         onPriceChange={updatePrice}
         onReset={() => { reset(); setMobileFiltersOpen(false) }}
         resultCount={visibleProperties.length}
+        typeOptions={typeOptions}
       />
 
       {/* ── Content ────────────────────────────────────────────────────────── */}
