@@ -64,7 +64,11 @@ async function FeaturedPropertiesSection() {
     else if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
     if (!land && baths != null && baths > 0) specs.push({ num: String(baths), unit: ` baño${baths > 1 ? 's' : ''}` })
     if (roofed != null && roofed > 0) specs.push({ num: String(roofed), unit: ' m²' })
-    if (land) { const lot = getLotSurface(property); if (lot != null && lot > 0) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m²' }) }
+    const lot = getLotSurface(property)
+    if (lot != null && lot > 0) {
+      if (land) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m²' })
+      else if (lot !== roofed) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m² lote' })
+    }
 
     return (
       <Link
