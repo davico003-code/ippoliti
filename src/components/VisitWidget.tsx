@@ -15,6 +15,8 @@ interface Props {
   onClose?: () => void
   /** WhatsApp (formato wa.me) al que va el pedido; sin esto, el número general. */
   whatsappNumber?: string
+  /** Operación de la propiedad, para etiquetar el lead (default venta). */
+  tipo?: 'venta' | 'alquiler'
 }
 
 const WHATSAPP_GENERAL = '5493413340916'
@@ -55,6 +57,7 @@ export default function VisitWidget({
   propertyTitle,
   propertyUrl,
   source = 'otro',
+  tipo = 'venta',
   onClose,
   whatsappNumber = WHATSAPP_GENERAL,
 }: Props) {
@@ -99,7 +102,7 @@ export default function VisitWidget({
     const fechaStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
 
     try {
-      await fetch('/api/agendar-visita', {
+      const res = await fetch('/api/agendar-visita', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,11 +114,16 @@ export default function VisitWidget({
           propiedad_id: propertyId,
           propiedad_titulo: propertyTitle,
           propiedad_url: propertyUrl,
-          tipo: 'venta',
+          tipo,
           source,
         }),
       })
-    } catch {}
+      // WhatsApp ya se abrió: el cliente igual llega al agente. Solo se deja
+      // rastro para no volver a perder visitas sin enterarnos.
+      if (!res.ok) console.warn('[VisitWidget] agendar-visita respondió', res.status)
+    } catch (e) {
+      console.warn('[VisitWidget] agendar-visita falló', e)
+    }
 
     setLoading(false)
     setSent(true)

@@ -75,8 +75,11 @@ export async function POST(req: Request) {
     await redis.ltrim(key, 0, ALERTS_CAP - 1)
     await redis.expire(key, FB_TTL)
     await indexProperty(propertyId)
-  } catch {
-    /* fire-and-forget */
+  } catch (e) {
+    // Si no se guardó, el form tiene que mostrar el error (antes decía
+    // "listo" y el pedido se perdía).
+    console.error('[feedback/alert] Redis:', e)
+    return NextResponse.json({ error: 'no_guardado' }, { status: 502 })
   }
 
   // Nunca devolvemos el contacto (PII).

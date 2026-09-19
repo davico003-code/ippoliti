@@ -61,7 +61,9 @@ export async function POST(request: Request) {
     ? (sourceRaw as VisitaSource)
     : 'otro'
 
-  if (!nombre || !telefono || !fecha_preferida || !horario || !Number.isFinite(propiedad_id)) {
+  // El teléfono es opcional: el VisitWidget abre WhatsApp con el agente y no
+  // lo pide. Exigirlo rebotaba con 400 TODAS las visitas desde el 04-jul.
+  if (!nombre || !fecha_preferida || !horario || !Number.isFinite(propiedad_id)) {
     return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 })
   }
 
@@ -93,7 +95,7 @@ export async function POST(request: Request) {
   // tokkoPropertyId → Hilo resuelve la ficha y lo asigna al captador.
   await pushLeadToHilo({
     name: nombre,
-    phone: telefono,
+    phone: telefono || null,
     email: email || null,
     origen: `visita-${source}`,
     tokkoPropertyId: propiedad_id,
@@ -107,7 +109,7 @@ export async function POST(request: Request) {
     `🔔 *Nueva consulta de ${tipo}*`,
     '',
     `👤 ${nombre}`,
-    `📱 ${telefono}`,
+    telefono ? `📱 ${telefono}` : '📱 sin teléfono (siguió por WhatsApp)',
     email ? `📧 ${email}` : null,
     '',
     `🏠 ${propiedad_titulo}`,

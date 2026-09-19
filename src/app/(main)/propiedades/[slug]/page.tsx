@@ -370,6 +370,12 @@ export default async function PropertyPage({ params }: Props) {
         propertyId={property.id}
         propertyTitle={property.publication_title || property.address}
         visitWhatsappNumber={numeroVisitaWhatsapp(property)}
+        visitTipo={
+          !property.operations?.some(o => o.operation_type === 'Sale') &&
+          property.operations?.some(o => o.operation_type === 'Rent')
+            ? 'alquiler'
+            : 'venta'
+        }
       />
     </div>
   );

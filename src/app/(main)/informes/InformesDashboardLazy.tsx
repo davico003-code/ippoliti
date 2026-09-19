@@ -15,7 +15,13 @@ import dynamic from 'next/dynamic'
 
 const InformesDashboard = dynamic(() => import('./InformesDashboard'), {
   ssr: false,
-  loading: () => <div className="min-h-screen bg-[#f8f7f4]" />,
+  // La franja oscura continúa el hero de page.tsx (pb-16 md:pb-20 del dashboard).
+  loading: () => (
+    <>
+      <div className="bg-[#0f0f0f] h-16 md:h-20" />
+      <div className="min-h-screen bg-[#f8f7f4]" />
+    </>
+  ),
 })
 
 export default function InformesDashboardLazy() {
