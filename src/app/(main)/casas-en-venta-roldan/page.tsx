@@ -6,6 +6,13 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
+const faqJsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [
+  { '@type': 'Question', name: '¿Cuánto cuesta una casa en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'Desde USD 80.000 en barrios abiertos hasta USD 250.000 en countries como Los Aromos o El Molino. El valor final depende de superficie, servicios y estado de la propiedad.' } },
+  { '@type': 'Question', name: '¿Qué barrios de Roldán tienen casas en venta?', acceptedAnswer: { '@type': 'Answer', text: 'Los Aromos, El Molino, Tierra de Sueños, Don Mateo y el casco urbano abierto. Cada uno con precios y niveles de consolidación distintos: los countries cerrados cotizan más que los barrios abiertos.' } },
+  { '@type': 'Question', name: '¿Por qué comprar en Roldán en vez de Funes?', acceptedAnswer: { '@type': 'Answer', text: 'Roldán ofrece casas 30-40% más baratas que Funes con calidad de vida similar: mismo corredor de la autopista, servicios consolidados y menos presión de precio por menor demanda relativa.' } },
+  { '@type': 'Question', name: '¿Qué inmobiliaria conviene en Roldán?', acceptedAnswer: { '@type': 'Answer', text: 'SI INMOBILIARIA trabaja en Roldán desde 1983, con dos oficinas en la ciudad (Primero de Mayo 258 y Catamarca 775). Ese conocimiento local es clave para tasar bien y encontrar comparables reales entre barrios.' } },
+]}
+
 export const metadata: Metadata = {
   title: 'Casas en venta en Roldán | Precios y fotos | SI INMOBILIARIA',
   description: 'Casas en venta en Roldán, Santa Fe. Los Aromos, El Molino, Tierra de Sueños, Don Mateo. Precios desde USD 80.000. SI INMOBILIARIA con 2 oficinas en Roldán.',
@@ -35,6 +42,7 @@ export default async function Page() {
         { name: 'Inicio', url: 'https://siinmobiliaria.com' },
         { name: 'Casas en venta en Roldán', url: 'https://siinmobiliaria.com/casas-en-venta-roldan' },
       ]} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <section className="bg-gradient-to-br from-[#1A5C38] to-[#0F3A23] text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight" style={{ fontFamily: 'var(--font-raleway)' }}>Casas en venta en Roldán</h1>
@@ -65,6 +73,8 @@ export default async function Page() {
           <p>Con <strong>2 oficinas en Roldán</strong>, SI INMOBILIARIA es la referencia del mercado local. Te acompañamos desde la búsqueda hasta la escritura.</p>
         </div>
       </section>
+
+      <section className="py-12 px-4 bg-gray-50"><div className="max-w-3xl mx-auto"><h2 className="text-2xl font-black text-gray-900 text-center mb-8" style={{ fontFamily: 'var(--font-raleway)' }}>Preguntas frecuentes</h2><div className="space-y-4">{faqJsonLd.mainEntity.map((f, i) => (<details key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 group"><summary className="font-bold text-gray-900 cursor-pointer list-none flex items-center justify-between">{f.name}<span className="text-[#1A5C38] group-open:rotate-180 transition-transform">&#9660;</span></summary><p className="mt-4 text-gray-600">{f.acceptedAnswer.text}</p></details>))}</div></div></section>
 
       <section className="py-12 px-4 bg-[#1A5C38] text-center text-white">
         <h2 className="text-2xl font-black mb-4" style={{ fontFamily: 'var(--font-raleway)' }}>¿Buscás casa en Roldán?</h2>
