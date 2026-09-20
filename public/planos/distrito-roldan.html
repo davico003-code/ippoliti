@@ -332,10 +332,13 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .lc-cuo b{color:var(--ink);font-weight:700}
 .lc-btn{min-height:46px;margin-top:10px;font-size:14.5px}
 @media (max-width:900px){
-  .cta-lista{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:52px;margin:10px 0 0;
-    border:0;border-radius:14px;background:var(--brand);color:#fff;font:inherit;font-weight:700;font-size:15.5px;
-    letter-spacing:-.01em;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.14),0 8px 20px -8px rgba(47,74,58,.65)}
-  .cta-lista b{font-weight:800}
+  /* Discreto, de la familia de las píldoras de la barra: no compite con el plano. */
+  .cta-lista{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;margin:0 0 9px;
+    border:1.5px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font:inherit;font-weight:600;
+    font-size:13.5px;letter-spacing:-.005em;cursor:pointer;box-shadow:0 1px 2px rgba(35,41,31,.05)}
+  .cta-lista:active{background:#F8F9F7}
+  .cta-lista i{width:9px;height:9px;border-radius:999px;background:var(--disp);box-shadow:0 0 0 2.5px #EAF2DE;flex:none}
+  .cta-lista svg{width:15px;height:15px;fill:none;stroke:var(--ink-2);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 }
 .team{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;
   box-shadow:0 1px 2px rgba(35,41,31,.05),0 10px 26px -14px rgba(35,41,31,.3)}
@@ -483,7 +486,8 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
   </div>
 
   <button type="button" class="cta-lista" id="cta-lista">
-    Ver los <b id="cta-lista-n">31</b> lotes a la venta
+    <i></i>Ver lista de lotes a la venta
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
   </button>
 
   <div class="mapbox" id="mapa">
@@ -1479,12 +1483,9 @@ dBody.addEventListener("click",e=>{
   }
 });
 
-/* El botón de arriba del plano: en celular es el camino principal. El conteo se
-   vuelve a sellar cuando llegan los datos vivos: al cargar, `lots` todavía tiene
-   el respaldo embebido y el número puede no ser el de hoy. */
+/* El botón de arriba del plano: en celular es el camino principal. Cuando
+   llegan los datos vivos, la lista abierta se vuelve a dibujar. */
 function sincroLista(){
-  const n=document.getElementById("cta-lista-n");
-  if(n) n.textContent=lots.filter(l=>l.estado==="d").length;
   if(hoja.view==="lista" && side.classList.contains("open")) render(false);
 }
 (function(){
