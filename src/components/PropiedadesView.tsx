@@ -1250,7 +1250,7 @@ export default function PropiedadesView({
   ].filter(Boolean).length
 
   return (
-    <div className="h-[100dvh] md:h-[calc(100dvh-var(--header-height))] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
+    <div className="h-[100dvh] md:h-[calc(100dvh-61px)] lg:h-[calc(100dvh-var(--header-height))] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
       <h1 className="sr-only">Propiedades en venta y alquiler en Funes, Roldán y Rosario</h1>
 
       {/* ── Mobile Filter Bar (shared between list and map views) ────────── */}

@@ -64,7 +64,7 @@ export default function PropertyDetailZillowDesktopPanel({
   if (state.kind === 'loading' || state.kind === 'idle') {
     return (
       <div className="hidden md:block">
-        <div className="h-[100dvh] md:h-[calc(100dvh-var(--header-height))] flex items-stretch border-t border-gray-200">
+        <div className="h-[100dvh] md:h-[calc(100dvh-61px)] lg:h-[calc(100dvh-var(--header-height))] flex items-stretch border-t border-gray-200">
           {/* Skeleton lateral (listado) */}
           <div className="w-full md:w-[48%] border-r border-gray-200 p-4 overflow-hidden">
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
