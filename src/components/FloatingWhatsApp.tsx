@@ -18,8 +18,10 @@ export default function FloatingWhatsApp() {
   // /tasaciones: el pedido va a Hilo, no a WhatsApp; además el CTA fijo de abajo
   // ocupa ese lugar.
   if (pathname.startsWith('/tasaciones')) return null
-  // Hide on Distrito Roldán (67178) — tiene su propio FAB dedicado con texto pre-cargado.
-  if (pathname.startsWith('/emprendimientos/67178')) return null
+  // Hide en las landings de emprendimiento del CRM (/emprendimientos/{id}-slug):
+  // cada una trae su FAB con el mensaje del emprendimiento ya escrito. Las
+  // páginas propias (fincazul, clientes manuales) no empiezan con ID y lo conservan.
+  if (/^\/emprendimientos\/\d+-/.test(pathname)) return null
   // Hide on /dockgarden — mismo patrón: FAB propio con texto pre-cargado.
   if (pathname === '/dockgarden') return null
   // Hide on /recursos — la propia página tiene su CTA "Hablar con un agente"

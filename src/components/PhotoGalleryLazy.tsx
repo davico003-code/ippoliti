@@ -16,7 +16,7 @@ const PhotoGallery = dynamic(() => import('@/components/PhotoGallery'), {
 interface Props {
   photos: string[]
   alt: string
-  variant?: 'default' | 'distrito'
+  variant?: 'default' | 'distrito' | 'mosaico'
 }
 
 export default function PhotoGalleryLazy(props: Props) {
