@@ -100,11 +100,20 @@ export default function DevUnitsSection({ filas, devName, whatsappUrl, location,
                 {g.items.map(f => (
                   <li
                     key={f.id}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2.5 py-4 md:grid-cols-[minmax(0,1fr)_96px_150px_auto]"
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 py-3.5 md:grid-cols-[minmax(0,1fr)_96px_150px_236px] md:py-4"
                   >
-                    <div className="min-w-0">
+                    {/* En celular esta celda ocupa las dos filas: a la derecha quedan
+                        el precio arriba y el plano abajo. */}
+                    <div className="row-span-2 min-w-0 md:row-span-1">
                       <p className="flex flex-wrap items-center gap-x-2 text-[15px] font-bold leading-snug text-gray-900 md:text-base">
-                        <span>{conCifras(f.etiqueta)}</span>
+                        {f.href ? (
+                          <Link href={f.href} className="underline-offset-4 hover:underline">
+                            {conCifras(f.etiqueta)}
+                            <ArrowRight className="ml-1 inline h-4 w-4 text-[#1A5C38] md:hidden" aria-hidden />
+                          </Link>
+                        ) : (
+                          <span>{conCifras(f.etiqueta)}</span>
+                        )}
                         {f.reservada && (
                           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
                             Reservada
@@ -129,21 +138,22 @@ export default function DevUnitsSection({ filas, devName, whatsappUrl, location,
                     </p>
 
                     {(f.planos.length > 0 || f.href) && (
-                      <div className="col-span-2 flex gap-2 md:col-span-1 md:justify-end">
+                      <div className="col-start-2 flex justify-end gap-2 md:col-start-auto">
                         {f.planos.length > 0 && (
                           <button
                             type="button"
                             onClick={() => setViewer({ kind: 'images', title: `${f.etiqueta} — Plano`, urls: f.planos })}
-                            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-gray-300 px-4 text-sm font-bold text-gray-700 transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38] md:flex-none"
+                            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-gray-300 px-4 text-sm font-bold text-gray-700 transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38]"
                           >
                             <MapIcon className="h-4 w-4" aria-hidden />
                             Plano
                           </button>
                         )}
+                        {/* En celular la ficha se abre desde el nombre de la unidad. */}
                         {f.href && (
                           <Link
                             href={f.href}
-                            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#1A5C38] px-4 text-sm font-bold text-white transition-colors hover:bg-[#145030] md:flex-none"
+                            className="hidden min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#1A5C38] px-4 text-sm font-bold text-white transition-colors hover:bg-[#145030] md:inline-flex"
                           >
                             Ver unidad
                             <ArrowRight className="h-4 w-4" aria-hidden />
