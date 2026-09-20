@@ -215,9 +215,16 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .res-foto{display:none}
 .v-foto .res-foto,.v-mixta .res-foto{display:block}
 .res-foto text{paint-order:stroke;stroke:rgba(10,32,32,.55);stroke-width:3px;stroke-linejoin:round}
-/* combinada: los lotes translúcidos dejan ver el terreno */
+/* combinada: los lotes translúcidos dejan ver el terreno. La capa prendida
+   (.cap) va casi plena y la foto se atenúa con un velo, así el color se lee
+   de un vistazo; con todo apagado queda como antes. */
 .v-mixta .lot rect.f{opacity:.42}
 .v-mixta .lot:hover rect.f,.v-mixta .lot.on rect.f{opacity:.62}
+.v-mixta.con-capas .lot rect.f{opacity:.22}
+.v-mixta.con-capas .lot.cap rect.f{opacity:.8}
+.v-mixta.con-capas .lot.cap:hover rect.f,.v-mixta.con-capas .lot.cap.on rect.f{opacity:1}
+.foto-velo{opacity:0;transition:opacity .25s ease;pointer-events:none}
+.v-mixta.con-capas .foto-velo{opacity:.38}
 .v-mixta .lot rect.o{stroke:rgba(255,255,255,.92);stroke-width:1.6}
 .v-mixta .lot text{stroke:rgba(12,20,8,.72);stroke-width:3px}
 
@@ -1052,7 +1059,9 @@ function build(){
     const img=el("image",{x:0,y:0,width:f.w,height:f.h,
       transform:`matrix(${f.m.join(",")})`,preserveAspectRatio:"none"});
     img.setAttribute("href",f.src);
-    g.appendChild(img); stage.appendChild(g);
+    g.appendChild(img);
+    g.appendChild(el("rect",{class:"foto-velo",x:fb.x,y:fb.y,width:fb.w,height:fb.h,fill:"#0E160B"}));
+    stage.appendChild(g);
   }
 
   /* Dibujo de base: terreno, calzadas, reservorio y arbolado. Se oculta en modo foto. */
@@ -1080,9 +1089,9 @@ function build(){
   /* reservorio */
   const rg=el("g",{});
   rg.appendChild(el("rect",{x:RES.x,y:RES.y,width:RES.w,height:RES.h,rx:8,fill:"url(#gw)",filter:"url(#sh)"}));
-  // La brújula cae siempre sobre la misma esquina del reservorio (abajo a la
-  // izquierda del bloque), así que el rótulo se corre hacia el lado opuesto.
-  const rx=RES.x+RES.w/2+42, ry=RES.y+RES.h/2-30;
+  // Centrado en el bloque. Con el plano girado (celular) la brújula tapa esa
+  // esquina del reservorio, así que ahí el rótulo se corre hacia el lado opuesto.
+  const rx=RES.x+RES.w/2+(ROT?42:0), ry=RES.y+RES.h/2-(ROT?30:0);
   const rt=el("text",{x:rx,y:ry+7,fill:"rgba(255,255,255,.94)","font-size":19,
     "font-weight":700,"letter-spacing":"0.14em","text-anchor":"middle",...derecho(rx,ry)});
   rt.textContent="RESERVORIO"; rg.appendChild(rt);
@@ -1128,15 +1137,15 @@ function build(){
     rf.appendChild(el("rect",{x:RES.x,y:RES.y,width:RES.w,height:RES.h,rx:8,
       fill:"#2E6B6B","fill-opacity":".34",
       stroke:"rgba(255,255,255,.9)","stroke-width":3,"stroke-dasharray":"14 9"}));
-    const fx=RES.x+RES.w/2+42, fy=RES.y+RES.h/2-30;   // corrido, la brújula cae en esa esquina
+    const fx=RES.x+RES.w/2, fy=RES.y+RES.h/2;   // centrado: con el encuadre de la foto la brújula no lo toca
     /* Las dos líneas se contrarrotan juntas, como un bloque: si cada una girara
        sobre su propio eje, con el plano de costado terminarían una encima de la
        otra en vez de quedar apiladas. */
     const rot=el("g",derecho(fx,fy)); rf.appendChild(rot);
-    const t1=el("text",{x:fx,y:fy-4,"text-anchor":"middle","font-size":19,"font-weight":700,
+    const t1=el("text",{x:fx,y:fy-4,"text-anchor":"middle","font-size":23,"font-weight":700,
       "letter-spacing":"0.14em",fill:"#fff"});
     t1.textContent="RESERVORIO"; rot.appendChild(t1);
-    const t2=el("text",{x:fx,y:fy+20,"text-anchor":"middle","font-size":13,"font-weight":600,
+    const t2=el("text",{x:fx,y:fy+23,"text-anchor":"middle","font-size":15,"font-weight":600,
       "letter-spacing":"0.06em",fill:"rgba(255,255,255,.82)"});
     t2.textContent="a ejecutar"; rot.appendChild(t2);
     stage.appendChild(rf);
@@ -1183,11 +1192,13 @@ function paint(){
     const on=LAY[l.estado];
     l.face.setAttribute("fill", on ? EST[l.estado].g : baseFill(l));
     l.node.classList.toggle("lit", on && l.estado==="d");
+    l.node.classList.toggle("cap", on);
     const v=visible(l); l.node.classList.toggle("dim",!v); if(v) shown++;
   }
   const c={d:0,n:0,v:0}; for(const l of lots) c[l.estado]++;
   document.querySelectorAll("[data-lay]").forEach(b=>{ b.querySelector("b").textContent=c[b.dataset.lay]; });
   const act=Object.keys(LAY).filter(k=>LAY[k]);
+  box.classList.toggle("con-capas", act.length>0);
   document.getElementById("live").textContent =
     act.length ? act.map(k=>`${c[k]} ${EST[k].k.toLowerCase()}s`).join(" · ")
                : `${shown} lotes en el plano`;
