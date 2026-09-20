@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#EDE7DA">
+<meta name="theme-color" content="#F4F5F3">
 <title>Distrito Roldán — Plano interactivo de lotes | SI INMOBILIARIA</title>
 <meta name="description" content="Plano interactivo de Distrito Roldán: 180 lotes en Ruta 9 y María Auxiliadora, Roldán. Consultá disponibilidad, medidas, superficie y precio de cada lote.">
 <style>
@@ -12,11 +12,11 @@
    SI INMOBILIARIA · David Flores (Mat. 0621)
    ============================================================ */
 :root{
-  --paper:#EDE7DA; --paper-2:#E3DCCC;
+  --paper:#F4F5F3; --paper-2:#E8EAE6;
   --ink:#23291F; --ink-2:#5A6152; --line:rgba(35,41,31,.14);
   --disp:#6B8F3C; --nodisp:#C79A2E; --vend:#9A9689;
   --brand:#2F4A3A;
-  --panel:#FBF8F1; --shadow:0 1px 2px rgba(35,41,31,.10), 0 8px 24px -8px rgba(35,41,31,.22);
+  --panel:#FFFFFF; --shadow:0 1px 2px rgba(35,41,31,.10), 0 8px 24px -8px rgba(35,41,31,.22);
   --r:14px;
 }
 *{box-sizing:border-box}
@@ -51,7 +51,7 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 
 /* ---------- barra de filtros ---------- */
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
-  background:linear-gradient(180deg,#FDFBF6,var(--panel));
+  background:var(--panel);
   border:1px solid var(--line);border-radius:18px;
   padding:9px;margin-bottom:14px;
   box-shadow:0 1px 2px rgba(35,41,31,.05), 0 10px 26px -14px rgba(35,41,31,.3)}
@@ -59,14 +59,14 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 /* capas de estado: píldoras que se encienden con su color */
 .layers{display:flex;gap:7px;flex-wrap:wrap}
 .layers button{
-  --c:#B4AEA0; --tint:#F3F0E8;
+  --c:#AEB3AB; --tint:#F1F2F0;
   display:inline-flex;align-items:center;gap:7px;
   min-height:36px;padding:7px 12px 7px 10px;
   border:1.5px solid var(--line);background:#fff;border-radius:999px;
   font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;letter-spacing:-.005em;
   transition:border-color .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease;
   box-shadow:0 1px 1px rgba(35,41,31,.04)}
-.layers button:hover{border-color:#CBC3B2;background:#FDFCF9;color:var(--ink)}
+.layers button:hover{border-color:#C6CBC3;background:#F8F9F7;color:var(--ink)}
 .layers i{
   width:11px;height:11px;border-radius:999px;display:block;flex:none;
   background:transparent;box-shadow:inset 0 0 0 2px var(--c);
@@ -85,10 +85,10 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .layers button[aria-pressed="true"] b{background:#fff;color:var(--ink)}
 .layers button[data-lay="d"]{--c:#6B8F3C; --tint:#EDF3E2}
 .layers button[data-lay="n"]{--c:#C79A2E; --tint:#FAF2DE}
-.layers button[data-lay="v"]{--c:#9A9689; --tint:#F0EEEA}
+.layers button[data-lay="v"]{--c:#9A9689; --tint:#EEEFED}
 
 /* segmento de tipo */
-.seg{display:inline-flex;background:#EFEBE1;border-radius:999px;padding:3px;gap:2px;
+.seg{display:inline-flex;background:#ECEEEB;border-radius:999px;padding:3px;gap:2px;
   max-width:100%;overflow-x:auto;scrollbar-width:none;
   box-shadow:inset 0 1px 2px rgba(35,41,31,.06)}
 .seg::-webkit-scrollbar{display:none}
@@ -109,7 +109,7 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .linkish{border:1.5px solid var(--line);background:#fff;border-radius:999px;
   padding:7px 14px;min-height:36px;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
   transition:background .18s ease,border-color .18s ease,color .18s ease}
-.linkish:hover{background:var(--paper-2);border-color:#CBC3B2;color:var(--ink)}
+.linkish:hover{background:var(--paper-2);border-color:#C6CBC3;color:var(--ink)}
 
 /* ---------- mapa ----------
    Sin zoom: el plano nunca baja de --minplano de ancho, y si no entra
@@ -133,7 +133,7 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .lot text{fill:#fff;font-weight:700;pointer-events:none;paint-order:stroke;
   stroke:rgba(18,26,14,.38);stroke-width:2.4px;stroke-linejoin:round}
 .lot.lit rect.f{filter:url(#glow)}
-.lot.lit rect.o{stroke:#F2FFD6;stroke-width:2.2}
+.lot.lit rect.o{stroke:#fff;stroke-width:2.6}
 .lot.lit text{stroke:rgba(40,60,14,.55)}
 .lot.dim{opacity:.26;pointer-events:none}
 .lot:focus{outline:none}
@@ -145,7 +145,7 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
    a la derecha en escritorio. No intercepta toques, así que no tapa lotes. */
 .compass{position:absolute;left:12px;bottom:12px;z-index:32;pointer-events:none;
   width:58px;height:58px;border-radius:999px;
-  background:rgba(253,251,246,.94);border:1.5px solid rgba(35,41,31,.22);
+  background:rgba(255,255,255,.95);border:1.5px solid rgba(35,41,31,.22);
   box-shadow:0 1px 2px rgba(35,41,31,.12),0 6px 16px -8px rgba(35,41,31,.5);
   display:flex;align-items:center;justify-content:center}
 .compass .needle{display:block;width:34px;height:34px;transform:rotate(90deg)}
@@ -227,6 +227,7 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .v-mixta.con-capas .foto-velo{opacity:.38}
 .v-mixta .lot rect.o{stroke:rgba(255,255,255,.92);stroke-width:1.6}
 .v-mixta .lot text{stroke:rgba(12,20,8,.72);stroke-width:3px}
+.v-mixta .lot.lit rect.o{stroke:#fff;stroke-width:3}
 
 /* pie: fecha de actualización + descargo */
 .pie{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 12px;
@@ -255,7 +256,7 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
   overscroll-behavior:contain;font-variant-numeric:tabular-nums}
 .side.open{opacity:1;transform:translateY(0);pointer-events:auto}
 .side .body{padding:14px 18px 16px}
-.side .handle{display:none;width:38px;height:5px;border-radius:3px;background:#CBC3B2;margin:8px auto 0}
+.side .handle{display:none;width:38px;height:5px;border-radius:3px;background:#C6CBC3;margin:8px auto 0}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
 .row-r{display:flex;align-items:center;gap:8px}
 .closer{width:44px;height:44px;margin-right:-8px;border-radius:11px;border:1px solid var(--line);background:#fff;
@@ -427,8 +428,16 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
   .lbl{display:none}
   .lbl-sh{display:inline;white-space:nowrap;font-weight:600}
   .layers i{width:9px;height:9px;box-shadow:inset 0 0 0 2px var(--c)}
-  .layers b{font-size:11.5px;min-width:0;padding:0;background:transparent;font-weight:800}
-  .layers button[aria-pressed="true"] b{background:transparent}
+  /* La palabra entera y sin el total: el ancho se reparte según el texto
+     ("No disponibles" necesita más que "Vendidos"). */
+  .layers{gap:6px}
+  .layers button{flex:1 1 auto}
+  .layers b{display:none}
+}
+@media (max-width:350px){
+  /* pantallas muy angostas: las tres palabras siguen en un renglón */
+  .layers{gap:4px}
+  .layers button{padding:6px 6px;gap:4px;font-size:10.5px}
 }
 }
 @media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
@@ -449,9 +458,9 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 
   <div class="bar">
     <div class="layers" role="group" aria-label="Marcar lotes por estado">
-      <button type="button" data-lay="d" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>disponibles</span><span class="lbl-sh">Disp.</span><b></b></button>
-      <button type="button" data-lay="n" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>no disponibles</span><span class="lbl-sh">No disp.</span><b></b></button>
-      <button type="button" data-lay="v" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>vendidos</span><span class="lbl-sh">Vend.</span><b></b></button>
+      <button type="button" data-lay="d" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>disponibles</span><span class="lbl-sh">Disponibles</span><b></b></button>
+      <button type="button" data-lay="n" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>no disponibles</span><span class="lbl-sh">No disponibles</span><b></b></button>
+      <button type="button" data-lay="v" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>vendidos</span><span class="lbl-sh">Vendidos</span><b></b></button>
     </div>
     <div class="seg vista" id="vista" role="group" aria-label="Vista del plano" hidden>
       <button type="button" data-vista="plano" aria-pressed="true">Plano</button>
@@ -1066,21 +1075,21 @@ function build(){
 
   /* Dibujo de base: terreno, calzadas, reservorio y arbolado. Se oculta en modo foto. */
   const base=el("g",{class:"base"}); stage.appendChild(base);
-  base.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#E8E2D4"}));
+  base.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#ECEEEA"}));
 
   /* calzadas: gris algo más marcado, con línea de eje */
   const roads=el("g",{}); base.appendChild(roads);
   const RD=[[460,110,79,1279],[1306,110,78,1279],[1505,110,59,1279],
             [135,351,1610,79],[135,671,1610,79],[135,991,1610,77],[95,1389,1690,58],[95,52,1690,58]];
   for(const [x,y,w,h] of RD){
-    roads.appendChild(el("rect",{x,y,width:w,height:h,fill:"#C9C4B8"}));
+    roads.appendChild(el("rect",{x,y,width:w,height:h,fill:"#CDD0CA"}));
     const hz=w>h;
     roads.appendChild(el("line",{x1:hz?x+10:x+w/2,y1:hz?y+h/2:y+10,x2:hz?x+w-10:x+w/2,y2:hz?y+h/2:y+h-10,
-      stroke:"#F5F2E9","stroke-width":3,"stroke-dasharray":"18 13","stroke-linecap":"round",opacity:".95"}));
+      stroke:"#FFFFFF","stroke-width":3,"stroke-dasharray":"18 13","stroke-linecap":"round",opacity:".95"}));
   }
   const r9c=R9.x+R9.w/2;
-  base.appendChild(el("rect",{x:R9.x,y:VB.y,width:R9.w,height:VB.h,fill:"#BFB9AC"}));
-  base.appendChild(el("line",{x1:r9c,y1:VB.y+16,x2:r9c,y2:VB.y+VB.h-16,stroke:"#F5F2E9",
+  base.appendChild(el("rect",{x:R9.x,y:VB.y,width:R9.w,height:VB.h,fill:"#C3C6C0"}));
+  base.appendChild(el("line",{x1:r9c,y1:VB.y+16,x2:r9c,y2:VB.y+VB.h-16,stroke:"#FFFFFF",
     "stroke-width":3,"stroke-dasharray":"20 15","stroke-linecap":"round",opacity:".95"}));
   const r9=el("text",{x:r9c,y:750,fill:"#57534A","font-size":15,"font-weight":700,"letter-spacing":"0.18em",
     "text-anchor":"middle",transform:`rotate(90 ${r9c} 750)`}); r9.textContent="RUTA NACIONAL N.º 9";
@@ -1260,7 +1269,7 @@ const vista=document.getElementById("vista");
 const AVISO={
   plano:null,
   foto:"Vista aérea del predio y su entorno.",
-  mixta:"Los lotes translúcidos sobre el terreno."
+  mixta:"Los lotes sobre la foto aérea."
 };
 if(CFG.foto){
   vista.hidden=false;
