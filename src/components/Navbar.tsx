@@ -147,7 +147,7 @@ export default function Navbar() {
   const hideOnMobile = isPropiedades
 
   return (
-    <div className={hideOnMobile ? 'hidden lg:block' : 'contents'}>
+    <div className={hideOnMobile ? 'hidden md:block' : 'contents'}>
       {/* ── Desktop nav (lg+) ── */}
       <nav
         className="hidden md:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"

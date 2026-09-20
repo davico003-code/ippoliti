@@ -35,6 +35,7 @@ import {
   limpiarPerfilDeUrl,
 } from '@/lib/smart-profile-url'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
 import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesktopGridSkeleton'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
 import PropertyShareButton from '@/components/PropertyShareButton'
@@ -1249,7 +1250,7 @@ export default function PropiedadesView({
   ].filter(Boolean).length
 
   return (
-    <div className="h-[100dvh] lg:h-[calc(100dvh-var(--header-height))] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
+    <div className="h-[100dvh] md:h-[calc(100dvh-var(--header-height))] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
       <h1 className="sr-only">Propiedades en venta y alquiler en Funes, Roldán y Rosario</h1>
 
       {/* ── Mobile Filter Bar (shared between list and map views) ────────── */}
@@ -2016,10 +2017,10 @@ export default function PropiedadesView({
                 })()}
               </p>
               <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: '#0a0a0a', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {propertyTypeLabelById(selectedProperty.type?.id)}{selectedProperty.type?.name && (selectedProperty.fake_address || selectedProperty.address) ? ' · ' : ''}{selectedProperty.fake_address || selectedProperty.address}
+                {propertyTypeLabelById(selectedProperty.type?.id)}
               </p>
               <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, color: '#6b7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {selectedProperty.location?.short_location || selectedProperty.location?.name || ''}
+                {formatDireccionCompleta(selectedProperty, selectedProperty.fake_address || selectedProperty.address, ' | ')}
               </p>
             </div>
           </Link>
