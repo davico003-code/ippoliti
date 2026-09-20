@@ -78,13 +78,13 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
           </div>
         </div>
 
-        <div className="mt-10 overflow-hidden border border-white/20 bg-[#F8F1E6] p-1 sm:p-2">
+        <div className="mt-10 overflow-hidden border border-white/20 bg-[#F4F5F3] p-1 sm:p-2">
           <iframe
             src={SRC}
             title="Plano interactivo de lotes — Distrito Roldán"
             loading="lazy"
             className="block w-full border-0"
-            style={{ height: alto, background: '#F8F1E6' }}
+            style={{ height: alto, background: '#F4F5F3' }}
           />
         </div>
       </div>

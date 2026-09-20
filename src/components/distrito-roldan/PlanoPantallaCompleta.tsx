@@ -72,7 +72,7 @@ export default function PlanoPantallaCompleta() {
         // direcciones se esconde al scrollear y con vh el plano quedaba cortado.
         minHeight: '100dvh',
         width: '100%',
-        background: '#EDE7DA',
+        background: '#F4F5F3',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
