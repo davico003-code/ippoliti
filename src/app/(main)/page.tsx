@@ -266,11 +266,9 @@ export default async function Home() {
       <div className="hidden md:block">
         <style dangerouslySetInnerHTML={{ __html: `
           @media (hover: hover) {
-            .prop-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.08) !important; }
-            .prop-card:hover .prop-card-img { transform: scale(1.05); }
+            .prop-card:hover .prop-card-img { transform: scale(1.03); }
           }
           .prop-card-img { transition: transform 400ms ease-out; }
-          .prop-card { transition: box-shadow 300ms, transform 300ms; }
           .home-section { padding: 32px 24px; }
           .nosotros-grid { gap: 56px; }
           @media (max-width: 1024px) {
