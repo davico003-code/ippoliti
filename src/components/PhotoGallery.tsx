@@ -8,11 +8,17 @@ import 'yet-another-react-lightbox/styles.css'
 interface Props {
   photos: string[]
   alt: string
-  variant?: 'default' | 'distrito'
+  /** 'mosaico': foto grande + 4 chicas a todo el ancho, con "+N fotos" que
+   *  abre el visor (landing de emprendimientos). */
+  variant?: 'default' | 'distrito' | 'mosaico'
 }
+
+// Cuántas fotos entran en el mosaico; el resto se ve desde el visor.
+const MOSAICO_MAX = 5
 
 export default function PhotoGallery({ photos, alt, variant = 'default' }: Props) {
   const isDistrito = variant === 'distrito'
+  const isMosaico = variant === 'mosaico'
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
@@ -35,6 +41,39 @@ export default function PhotoGallery({ photos, alt, variant = 'default' }: Props
 
   return (
     <>
+      {isMosaico ? (
+        <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4 md:grid-rows-2 md:gap-2">
+          {photos.slice(0, MOSAICO_MAX).map((photo, i) => {
+            const resto = photos.length - MOSAICO_MAX
+            const esUltima = i === MOSAICO_MAX - 1 && resto > 0
+            return (
+              <button
+                key={i}
+                onClick={() => handleOpen(i)}
+                aria-label={esUltima ? `Ver las ${photos.length} fotos` : `Ver foto ${i + 1}`}
+                className={`group relative cursor-pointer overflow-hidden bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38] ${
+                  i === 0
+                    ? 'col-span-2 aspect-[16/10] md:row-span-2 md:aspect-auto md:min-h-[520px]'
+                    : 'aspect-[4/3] md:aspect-auto md:min-h-[256px]'
+                }`}
+              >
+                <Image
+                  src={photo}
+                  alt={`${alt} - Foto ${i + 1}`}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes={i === 0 ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 25vw'}
+                />
+                {esUltima && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-base font-bold text-white md:text-lg">
+                    <span className="font-numeric">+{resto}</span>&nbsp;fotos
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      ) : (
       <div
         className={
           isDistrito
@@ -61,6 +100,7 @@ export default function PhotoGallery({ photos, alt, variant = 'default' }: Props
           </button>
         ))}
       </div>
+      )}
 
       {/* Mobile TikTok-style viewer */}
       {open && isMobile && (
