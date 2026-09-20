@@ -17,6 +17,8 @@ import {
   type Development,
   type DevUnit,
 } from '@/lib/developments'
+import { getDockGarden } from '@/lib/brickfy'
+import { filasDesdeBrickfy, filasDesdeCrm, type UnidadFila } from '@/lib/unidadesFilas'
 import EmprendimientoFunnel from '@/components/emprendimiento/EmprendimientoFunnel'
 import BotonVolver from '@/components/BotonVolver'
 import HeroAerea from '@/components/distrito-roldan/HeroAerea'
@@ -89,12 +91,20 @@ const DEV_LANDING: Record<
     ubicacion?: string
     /** og:image en JPEG 1200x630 (WhatsApp no renderiza bien webp). */
     og?: string
+    /** Lista de precios viva del desarrollador (Brickfy) en vez de las unidades del CRM. */
+    listaDesarrollador?: () => Promise<UnidadFila[] | null>
     fotosLimpias?: Record<string, string>
   }
 > = {
   // Dock Garden — Aldea Fisherton
   67173: {
     og: '/og-dockgarden.jpg',
+    // Brickfy tiene todas las unidades reales con torre, piso, plano y precio
+    // al día; el CRM solo una parte. Misma fuente que /dockgarden.
+    listaDesarrollador: async () => {
+      const data = await getDockGarden()
+      return data ? filasDesdeBrickfy(data.units) : null
+    },
     hero: '/images/dockgarden/render-frente.webp',
     proyecto: '/images/dockgarden/render-amenities.webp',
     ubicacion: '/images/dockgarden/aerea-fisherton.webp',
@@ -224,6 +234,19 @@ export default async function DevelopmentPage({ params }: Props) {
           .catch(() => [] as Development[]),
       ])
 
+  // Lista de precios: la del desarrollador si el emprendimiento la tiene (y
+  // responde); si no, las unidades del CRM. Cuando una fila del desarrollador
+  // coincide en dormitorios y precio con una unidad del CRM, hereda su ficha.
+  const filasCrm = filasDesdeCrm(units, `${displayName} ${dev.location?.name || ''}`)
+  const filasDev = (await landing?.listaDesarrollador?.().catch(() => null)) ?? null
+  const fichasLibres = [...filasCrm]
+  const filas: UnidadFila[] = filasDev?.length
+    ? filasDev.map(f => {
+        const i = fichasLibres.findIndex(c => c.dorms === f.dorms && c.precio === f.precio && c.precio > 0)
+        return i >= 0 ? { ...f, href: fichasLibres.splice(i, 1)[0].href } : f
+      })
+    : filasCrm
+
   const mainPhotoUrl = landing?.og
     ? `https://siinmobiliaria.com${landing.og}`
     : absoluteDevPhotoUrl(getDevMainPhoto(dev))
@@ -278,7 +301,7 @@ export default async function DevelopmentPage({ params }: Props) {
           lineas={paragraphs}
           photos={photos}
           media={{ hero: landing?.hero ?? mainPhoto, proyecto: landing?.proyecto, ubicacion: landing?.ubicacion }}
-          units={units}
+          filas={filas}
           otherDevs={otherDevs}
           whatsappUrl={whatsappUrl}
         />

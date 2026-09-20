@@ -10,7 +10,6 @@
 // No hay columna lateral: el contacto vive en el cierre y en el FAB, que lleva
 // el mensaje precargado del emprendimiento (un solo WhatsApp persistente).
 
-import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, CalendarCheck, CheckCircle2, MapPin, MessageCircle, Phone } from 'lucide-react'
@@ -20,9 +19,9 @@ import {
   translateDevType,
   translateTag,
   type Development,
-  type DevUnit,
 } from '@/lib/developments'
 import { estructurarDescripcion } from '@/lib/devDescripcion'
+import type { UnidadFila } from '@/lib/unidadesFilas'
 import DevUnitsSection from '@/components/DevUnitsSection'
 import PhotoGalleryLazy from '@/components/PhotoGalleryLazy'
 import PropertyMapLazy from '@/components/PropertyMapLazy'
@@ -30,6 +29,7 @@ import NearbyPlacesLazy from '@/components/NearbyPlacesLazy'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
 import WhatsAppCta from './WhatsAppCta'
+import { conCifras } from './conCifras'
 
 export interface FunnelMedia {
   /** Hero a pantalla. */
@@ -51,7 +51,8 @@ interface Props {
   lineas: string[]
   photos: string[]
   media: FunnelMedia
-  units: DevUnit[]
+  /** Filas de la lista de precios (CRM o lista viva del desarrollador). */
+  filas: UnidadFila[]
   otherDevs: Development[]
   whatsappUrl: string
 }
@@ -59,15 +60,6 @@ interface Props {
 const CONTAINER = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12'
 const EYEBROW = 'text-[13px] font-bold uppercase tracking-[0.14em] text-[#1A5C38]'
 const H2 = 'text-balance text-[clamp(28px,3.6vw,48px)] font-black leading-[1.05] tracking-[-0.02em] text-gray-900'
-
-// Regla de marca: Raleway para texto, Poppins solo para cifras. El copy del CRM
-// mezcla ambos ("Entrega 20% y saldo en 36 cuotas"), así que se envuelve cada
-// cifra en vez de pasar toda la línea a Poppins.
-function conCifras(texto: string): ReactNode[] {
-  return texto.split(/(\d[\d.,]*\s?(?:%|m²)?)/g).map((parte, i) =>
-    i % 2 === 1 ? <span key={i} className="font-numeric">{parte}</span> : parte,
-  )
-}
 
 function rango(valores: number[], sufijo: string): string | null {
   const v = valores.filter(n => n > 0).sort((a, b) => a - b)
@@ -78,22 +70,16 @@ function rango(valores: number[], sufijo: string): string | null {
 }
 
 export default function EmprendimientoFunnel({
-  dev, slug, displayName, typeName, status, locationName, lineas, photos, media, units, otherDevs, whatsappUrl,
+  dev, slug, displayName, typeName, status, locationName, lineas, photos, media, filas, otherDevs, whatsappUrl,
 }: Props) {
   const desc = estructurarDescripcion(lineas)
   const pageUrl = `https://siinmobiliaria.com/emprendimientos/${slug}`
 
-  // Datos clave derivados de las unidades vivas (nunca hardcodeados).
-  const precios = units
-    .map(u => u.operations?.[0]?.prices?.[0])
-    .filter((p): p is { price: number; currency: string } => !!p && p.price > 0)
-    .sort((a, b) => a.price - b.price)
-  const desde = precios[0] ? `${precios[0].currency || 'USD'} ${precios[0].price.toLocaleString('es-AR')}` : null
-  const dormitorios = rango(units.map(u => u.suite_amount || u.room_amount || 0), 'dorm.')
-  const superficies = rango(
-    units.map(u => parseFloat(u.roofed_surface || u.total_surface || u.surface || '0') || 0),
-    'm²',
-  )
+  // Datos clave derivados de la lista de precios viva (nunca hardcodeados).
+  const masBarata = filas.filter(f => f.precio > 0).sort((a, b) => a.precio - b.precio)[0]
+  const desde = masBarata ? `${masBarata.moneda} ${masBarata.precio.toLocaleString('es-AR')}` : null
+  const dormitorios = rango(filas.map(f => f.dorms), 'dorm.')
+  const superficies = rango(filas.map(f => f.m2), 'm²')
 
   const datos = [
     desde ? { label: 'Desde', value: desde } : { label: 'Tipología', value: typeName },
@@ -294,15 +280,15 @@ export default function EmprendimientoFunnel({
         <div className="mx-auto w-full max-w-[1100px] px-5 sm:px-8">
           <p className={EYEBROW}>Disponibilidad</p>
           <h2 className={`${H2} mt-3`}>Unidades y precios</h2>
-          {units.length > 0 && (
-            <p className="mb-8 mt-3 text-base text-gray-500">
-              <span className="font-numeric">{units.length}</span> unidad{units.length !== 1 ? 'es' : ''} en venta, con
+          {filas.length > 0 && (
+            <p className="mb-9 mt-3 text-base text-gray-500">
+              <span className="font-numeric">{filas.length}</span> unidad{filas.length !== 1 ? 'es' : ''} en venta, con
               precios actualizados.
             </p>
           )}
-          <div className={units.length === 0 ? 'mt-8' : ''}>
+          <div className={filas.length === 0 ? 'mt-8' : ''}>
             <DevUnitsSection
-              units={units}
+              filas={filas}
               devName={displayName}
               whatsappUrl={whatsappUrl}
               location={dev.location?.name}
