@@ -74,20 +74,23 @@ async function FeaturedPropertiesSection() {
       <Link
         key={property.id}
         href={`/propiedades/${slug}`}
-        className="prop-card block overflow-hidden flex-shrink-0 snap-start rounded-xl bg-white border-0"
+        className="prop-card block flex-shrink-0 snap-start bg-white border-0"
         style={{
           textDecoration: 'none',
           position: 'relative',
           width: 'clamp(300px, 88vw, 380px)',
           minWidth: 300,
-          border: destacada ? '2px solid #75AADB' : undefined,
-          boxShadow: destacada
-            ? '0 0 0 4px rgba(117,170,219,0.22), 0 10px 28px rgba(117,170,219,0.35)'
-            : '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
-          transition: 'box-shadow 200ms',
         }}
       >
-        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+        {/* Sin recuadro, como /propiedades: foto con las 4 esquinas redondeadas
+            sobre blanco. El destaque de día de partido va en la foto. */}
+        <div
+          className="relative w-full bg-gray-100 overflow-hidden rounded-[14px]"
+          style={{
+            aspectRatio: '16 / 9',
+            boxShadow: destacada ? '0 0 0 2px #75AADB, 0 0 0 6px rgba(117,170,219,0.22)' : undefined,
+          }}
+        >
           {photo ? (
             <Image src={photo} alt={property.publication_title || address} fill
               className="object-cover prop-card-img" sizes="340px" />
@@ -133,7 +136,7 @@ async function FeaturedPropertiesSection() {
             <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5" />
           )}
         </div>
-        <div style={{ padding: '10px 14px' }}>
+        <div style={{ padding: '10px 2px 4px' }}>
           {esOportunidadConsultanos(property.id) ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
               <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '4px 9px', whiteSpace: 'nowrap' }}>

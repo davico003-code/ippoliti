@@ -83,11 +83,11 @@ export default async function SeleccionCarousel() {
             <Link
               key={p.id}
               href={`/propiedades/${slug}`}
-              className="min-w-[82%] snap-start rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100 block"
+              className="min-w-[82%] snap-start bg-white block"
               style={{ textDecoration: 'none' }}
             >
               <div
-                className="relative aspect-video bg-gray-100"
+                className="relative aspect-video bg-gray-100 rounded-[14px] overflow-hidden"
               >
                 {photo ? (
                   <Image
@@ -120,7 +120,7 @@ export default async function SeleccionCarousel() {
                     client-side por lote. */}
                 <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3" />
               </div>
-              <div className="p-3.5">
+              <div className="px-0.5 pt-2.5 pb-1">
                 {esOportunidadConsultanos(p.id) ? (
                   <div className="flex items-center gap-2">
                     <span className="font-poppins font-extrabold text-[10.5px] uppercase tracking-wider text-gray-900 rounded-md px-2 py-1 whitespace-nowrap" style={{ background: '#fbce07' }}>

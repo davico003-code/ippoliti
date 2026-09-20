@@ -173,19 +173,22 @@ export default function SimilarProperties({ properties }: Props) {
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   />
                 )}
-                {op && (
-                  <span
-                    className="absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[10px] font-bold rounded text-white uppercase tracking-wide"
-                    style={{ background: operationBadgeColor(op) }}
-                  >
-                    {op}
-                  </span>
-                )}
-                {typeName && (
-                  <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[10px] font-bold rounded bg-white/95 text-[#1A5C38] uppercase tracking-wide">
-                    {typeName}
-                  </span>
-                )}
+                {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
+                <div className="absolute top-2.5 left-2.5 flex gap-1.5">
+                  {op && (
+                    <span
+                      className="px-3.5 py-2 text-[12px] font-semibold leading-none rounded-full text-white font-raleway"
+                      style={{ background: operationBadgeColor(op) }}
+                    >
+                      {op}
+                    </span>
+                  )}
+                  {typeName && (
+                    <span className="px-3.5 py-2 text-[12px] font-semibold leading-none rounded-full bg-white/90 text-gray-900 font-raleway backdrop-blur-[2px]">
+                      {typeName}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Info — debajo de la foto */}

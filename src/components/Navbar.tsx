@@ -147,10 +147,12 @@ export default function Navbar() {
   const hideOnMobile = isPropiedades
 
   return (
-    <div className={hideOnMobile ? 'hidden lg:block' : 'contents'}>
-      {/* ── Desktop nav (lg+) ── */}
+    <div className={hideOnMobile ? 'hidden md:block' : 'contents'}>
+      {/* ── Desktop nav (lg+) ── Debajo de 1024px los 8 links + logo centrado no
+          entran (el logo se encimaba con "Emprendimientos"): ahí va la barra
+          con hamburguesa. */}
       <nav
-        className="hidden md:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
+        className="hidden lg:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
           background: transparent ? 'transparent' : '#fff',
           borderBottom: transparent ? '1px solid transparent' : '1px solid #eee',
@@ -212,7 +214,7 @@ export default function Navbar() {
 
       {/* ── Mobile nav (<lg) ── */}
       <nav
-        className="md:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+        className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="relative flex items-center justify-between px-4 py-2.5">
@@ -248,7 +250,7 @@ export default function Navbar() {
 
       {/* ── Mobile drawer ── */}
       {isOpen && (
-        <div className="md:hidden fixed inset-0 z-[101]">
+        <div className="lg:hidden fixed inset-0 z-[9990]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
           <div
             className="absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl"

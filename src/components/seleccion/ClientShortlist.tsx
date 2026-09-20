@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { parsePropertyLabel, getTimeLeft } from '@/lib/seleccion'
 import { displayImageUrl } from '@/lib/external-images'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
@@ -151,7 +152,7 @@ export default function ClientShortlist({
               info: {
                 title: d.publication_title || d.address || d.fake_address || parsePropertyLabel(p.url),
                 image: cover?.image || cover?.thumb || null,
-                location: d.location?.short_location || d.location?.name || '',
+                location: formatDireccionCompleta(d, d.fake_address || d.address, ' | '),
                 rooms: d.suite_amount || d.room_amount || 0,
                 baths: d.bathroom_amount || 0,
                 area: parseFloat(d.roofed_surface || d.total_surface || d.surface || '0') || 0,
