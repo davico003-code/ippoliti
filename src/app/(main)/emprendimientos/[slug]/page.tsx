@@ -83,12 +83,19 @@ const DEV_SEO: Record<
 // logo estampado del desarrollador (renders nuevos o el mismo render recortado).
 const DEV_LANDING: Record<
   number,
-  { hero: string; heroMobile?: string; proyecto?: string; ubicacion?: string; fotosLimpias?: Record<string, string> }
+  {
+    hero: string
+    proyecto?: string
+    ubicacion?: string
+    /** og:image en JPEG 1200x630 (WhatsApp no renderiza bien webp). */
+    og?: string
+    fotosLimpias?: Record<string, string>
+  }
 > = {
   // Dock Garden — Aldea Fisherton
   67173: {
+    og: '/og-dockgarden.jpg',
     hero: '/images/dockgarden/render-frente.webp',
-    heroMobile: '/images/dockgarden/render-frente-mobile.webp',
     proyecto: '/images/dockgarden/render-amenities.webp',
     ubicacion: '/images/dockgarden/aerea-fisherton.webp',
     fotosLimpias: {
@@ -111,6 +118,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const id = getDevIdFromSlug(params.slug)
     const dev = await getDevelopmentById(id)
     const override = DEV_SEO[dev.id]
+    const ogLimpia = DEV_LANDING[dev.id]?.og
+    const ogImage = ogLimpia ? `https://siinmobiliaria.com${ogLimpia}` : absoluteDevPhotoUrl(getDevMainPhoto(dev))
     const desc =
       override?.description ??
       (dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title)
@@ -124,7 +133,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title: override?.title ?? `${dev.name} | SI INMOBILIARIA`,
         description: desc,
-        images: absoluteDevPhotoUrl(getDevMainPhoto(dev)) ? [{ url: absoluteDevPhotoUrl(getDevMainPhoto(dev))! }] : [],
+        images: ogImage ? [{ url: ogImage }] : [],
       },
     }
   } catch {
@@ -168,11 +177,21 @@ export default async function DevelopmentPage({ params }: Props) {
   // por su versión limpia. Las que no están en el mapa pasan tal cual, así una
   // foto nueva cargada en el CRM aparece sola.
   const landing = DEV_LANDING[dev.id]
-  const photos = getDevAllPhotos(dev).map(url => {
+  const fotosCrm = getDevAllPhotos(dev).map(url => {
     const limpia = Object.entries(landing?.fotosLimpias ?? {}).find(([hash]) => url.includes(hash))
     return limpia ? limpia[1] : url
   })
-  const mainPhoto = photos[0] || null
+  // La galería abre con lo que todavía no se vio: las imágenes que ya ocupan el
+  // hero, "El proyecto" y "Ubicación" pasan al final (siguen en el visor).
+  const yaVistas = new Set([landing?.hero, landing?.proyecto, landing?.ubicacion].filter(Boolean))
+  const photos = landing
+    ? [
+        ...fotosCrm.filter(f => !yaVistas.has(f) && f.startsWith('/')),
+        ...fotosCrm.filter(f => !yaVistas.has(f) && !f.startsWith('/')),
+        ...fotosCrm.filter(f => yaVistas.has(f)),
+      ]
+    : fotosCrm
+  const mainPhoto = fotosCrm[0] || null
   const status = getConstructionStatus(dev.construction_status)
   const typeName = translateDevType(dev.type?.name || '')
   const locationName = dev.location?.full_location?.split('|').slice(-2).map(s => s.trim()).reverse().join(', ') || dev.location?.name || dev.address
@@ -205,7 +224,9 @@ export default async function DevelopmentPage({ params }: Props) {
           .catch(() => [] as Development[]),
       ])
 
-  const mainPhotoUrl = absoluteDevPhotoUrl(getDevMainPhoto(dev))
+  const mainPhotoUrl = landing?.og
+    ? `https://siinmobiliaria.com${landing.og}`
+    : absoluteDevPhotoUrl(getDevMainPhoto(dev))
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
@@ -256,7 +277,7 @@ export default async function DevelopmentPage({ params }: Props) {
           locationName={locationName}
           lineas={paragraphs}
           photos={photos}
-          media={{ hero: landing?.hero ?? mainPhoto, heroMobile: landing?.heroMobile, proyecto: landing?.proyecto, ubicacion: landing?.ubicacion }}
+          media={{ hero: landing?.hero ?? mainPhoto, proyecto: landing?.proyecto, ubicacion: landing?.ubicacion }}
           units={units}
           otherDevs={otherDevs}
           whatsappUrl={whatsappUrl}

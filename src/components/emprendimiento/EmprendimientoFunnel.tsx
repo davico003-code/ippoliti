@@ -32,9 +32,8 @@ import VisitWidget from '@/components/VisitWidget'
 import WhatsAppCta from './WhatsAppCta'
 
 export interface FunnelMedia {
-  /** Hero a pantalla (desktop) y su recorte vertical para celular. */
+  /** Hero a pantalla. */
   hero?: string | null
-  heroMobile?: string
   /** Imagen que acompaña "El proyecto". */
   proyecto?: string
   /** Aérea real de la zona, para "Ubicación". */
@@ -103,6 +102,15 @@ export default function EmprendimientoFunnel({
     { label: 'Financiación', value: dev.financing_details || 'Consultar' },
   ]
 
+  // "Dock Garden - Aldea Fisherton" → marca + bajada. Si la bajada ya está en
+  // la ubicación ("Aldea Fisherton, Rosario") no se repite.
+  const [marca, ...restoNombre] = displayName.split(' - ')
+  const bajadaNombre = restoNombre.join(' - ')
+  const subtitulo =
+    !bajadaNombre || locationName.toLowerCase().includes(bajadaNombre.toLowerCase())
+      ? locationName
+      : `${bajadaNombre} · ${locationName}`
+
   const heroSrc = media.hero ?? photos[0] ?? null
   const fotoProyecto = media.proyecto ?? photos[1] ?? null
   const tags = (dev.tags || []).filter(t => t.name !== 'Venta directa' && t.name !== 'Direct sale')
@@ -119,16 +127,18 @@ export default function EmprendimientoFunnel({
   return (
     <>
       {/* ── 1. Hero ─────────────────────────────────────────────── */}
-      <section className="relative isolate flex min-h-[78svh] w-full items-end overflow-hidden bg-[#0f2a1c] md:min-h-[88vh]">
+      {/* En celular la imagen va arriba y el texto abajo sobre fondo sólido: con
+          el texto encima, el título tapaba el edificio. Desde md es un hero a
+          pantalla con el texto sobre el degradado. */}
+      <section className="relative isolate flex w-full flex-col overflow-hidden bg-[#0f2a1c] md:min-h-[88vh] md:justify-end">
         {heroSrc && (
-          <picture>
-            {media.heroMobile && <source media="(max-width: 768px)" srcSet={media.heroMobile} />}
+          <div className="relative aspect-[4/3] w-full md:absolute md:inset-0 md:aspect-auto">
             <Image src={heroSrc} alt={displayName} fill priority sizes="100vw" className="object-cover" />
-          </picture>
+            <div className="absolute inset-0 bg-[linear-gradient(0deg,#0f2a1c_0%,rgba(15,42,28,0)_30%)] md:bg-[linear-gradient(0deg,rgba(8,24,16,.9)_0%,rgba(8,24,16,.5)_38%,rgba(8,24,16,.05)_70%)]" />
+          </div>
         )}
-        <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(8,24,16,.9)_0%,rgba(8,24,16,.5)_38%,rgba(8,24,16,.05)_70%)]" />
 
-        <div className={`${CONTAINER} relative z-[1] pb-10 pt-40 md:pb-16`}>
+        <div className={`${CONTAINER} relative z-[1] pb-10 ${heroSrc ? 'pt-2' : 'pt-16'} md:pb-16 md:pt-40`}>
           <div className="mb-5 flex flex-wrap gap-2">
             <span className="rounded-full bg-[#1A5C38] px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
               {typeName}
@@ -137,15 +147,19 @@ export default function EmprendimientoFunnel({
               {status}
             </span>
           </div>
-          <h1 className="max-w-[16ch] text-balance text-[clamp(40px,6.4vw,88px)] font-black leading-[0.98] tracking-[-0.03em] text-white">
-            {displayName}
+          {/* El H1 lleva el nombre completo, pero solo la marca va en grande: el
+              título entero a ese tamaño tapaba el edificio del render. */}
+          <h1 className="text-white">
+            <span className="block text-balance text-[clamp(44px,6vw,84px)] font-black leading-[0.98] tracking-[-0.03em]">
+              {marca}
+            </span>
+            <span className="mt-4 flex items-center gap-2 text-base font-medium text-white/85 md:text-lg">
+              <MapPin className="h-5 w-5 shrink-0" aria-hidden />
+              {subtitulo}
+            </span>
           </h1>
-          <p className="mt-5 flex items-center gap-2 text-base font-medium text-white/85 md:text-lg">
-            <MapPin className="h-5 w-5 shrink-0" aria-hidden />
-            {locationName}
-          </p>
           {desde && (
-            <p className="mt-6 text-lg text-white/85 md:text-xl">
+            <p className="mt-4 text-lg text-white/85 md:text-xl">
               Unidades desde{' '}
               <span className="font-numeric text-2xl font-bold text-white md:text-3xl">{desde}</span>
             </p>
@@ -196,7 +210,7 @@ export default function EmprendimientoFunnel({
             <div className="flex items-center px-5 py-14 sm:px-8 md:py-20 lg:justify-end lg:px-12">
               <div className="w-full max-w-[600px]">
                 <p className={EYEBROW}>El proyecto</p>
-                <h2 className={`${H2} mt-3`}>Sobre {displayName.split(' - ')[0]}</h2>
+                <h2 className={`${H2} mt-3`}>Sobre {marca}</h2>
                 <div className="mt-6 space-y-4">
                   {desc.presentacion.map((p, i) => (
                     <p key={i} className={`text-pretty leading-relaxed ${i === 0 ? 'text-lg text-gray-800 md:text-xl' : 'text-base text-gray-600 md:text-[17px]'}`}>
@@ -346,9 +360,9 @@ export default function EmprendimientoFunnel({
             <h2 className={`${H2} mt-3`}>Todo resuelto, sin salir</h2>
 
             {desc.amenities.length > 0 && (
-              <ul className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {desc.amenities.map((a, i) => (
-                  <li key={i} className="flex items-start gap-3 bg-white p-6 text-[17px] font-semibold leading-snug text-gray-900">
+                  <li key={i} className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-6 text-[17px] font-semibold leading-snug text-gray-900">
                     <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#1A5C38]" aria-hidden />
                     {a.replace(/\.$/, '')}
                   </li>
@@ -407,10 +421,10 @@ export default function EmprendimientoFunnel({
 
       {/* ── 8. Contacto: el cierre del funnel ───────────────────── */}
       <section id="contacto" className="scroll-mt-20 border-t border-gray-200 bg-white py-14 md:py-20">
-        <div className={`${CONTAINER} grid gap-10 lg:grid-cols-2 lg:gap-16`}>
-          <div>
+        <div className={`${CONTAINER} grid gap-10 lg:grid-cols-2 lg:gap-x-16 lg:gap-y-8`}>
+          <div className="lg:col-start-1">
             <p className={EYEBROW}>Próximo paso</p>
-            <h2 className={`${H2} mt-3`}>Conocé {displayName.split(' - ')[0]} en persona</h2>
+            <h2 className={`${H2} mt-3`}>Conocé {marca} en persona</h2>
             <div className="mt-5 max-w-[60ch] space-y-3">
               {(desc.cierre.length > 0
                 ? desc.cierre
@@ -439,7 +453,18 @@ export default function EmprendimientoFunnel({
               </a>
             </div>
 
-            <div className="mt-8 flex items-center gap-3">
+          </div>
+
+          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-full lg:max-w-[520px] lg:justify-self-end">
+            <VisitWidget
+              propertyId={dev.id}
+              propertyTitle={displayName}
+              propertyUrl={pageUrl}
+              source="emprendimiento"
+            />
+          </div>
+          <div className="lg:col-start-1">
+            <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1A5C38] text-sm font-bold text-white">
                 DF
               </div>
@@ -455,15 +480,6 @@ export default function EmprendimientoFunnel({
             <div className="max-w-sm">
               <ShareButtons slug={`emprendimientos/${slug}`} title={displayName} />
             </div>
-          </div>
-
-          <div className="lg:justify-self-end lg:w-full lg:max-w-[520px]">
-            <VisitWidget
-              propertyId={dev.id}
-              propertyTitle={displayName}
-              propertyUrl={pageUrl}
-              source="emprendimiento"
-            />
           </div>
         </div>
       </section>

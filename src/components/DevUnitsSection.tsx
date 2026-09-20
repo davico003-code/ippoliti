@@ -54,6 +54,15 @@ function getUnitTitle(u: DevUnit): string {
   return translateType(u.type?.name || 'Unidad')
 }
 
+// La página ya nombra el emprendimiento: si el título termina en
+// "en <emprendimiento/zona>" se recorta para que cada fila quede corta.
+function getShortTitle(u: DevUnit, ctx: string): string {
+  const title = getUnitTitle(u)
+  const m = title.match(/^(.*\S)\s+en\s+(.+)$/i)
+  if (m && m[2].toLowerCase().split(/[\s,]+/).some(w => w.length > 3 && ctx.includes(w))) return m[1]
+  return title
+}
+
 interface Props {
   units: DevUnit[]
   devName: string
@@ -72,6 +81,8 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, location,
   // Link wa.me SIN número: abre WhatsApp con la lista completa de precios ya
   // redactada y deja elegir el destinatario. Se arma desde las units vivas de
   // Tokko, así la lista nunca queda desactualizada.
+  const ctx = `${devName} ${location || ''}`.toLowerCase()
+
   const priceListHref = useMemo(() => {
     if (!pageUrl) return null
     const rows = units
@@ -82,16 +93,9 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, location,
       .sort((a, b) => (a.price || Number.MAX_SAFE_INTEGER) - (b.price || Number.MAX_SAFE_INTEGER))
     if (!rows.some(r => r.price > 0)) return null
 
-    // El encabezado ya nombra el emprendimiento: si el título termina en
-    // "en <emprendimiento/zona>" se recorta para que cada línea quede corta.
-    const ctx = `${devName} ${location || ''}`.toLowerCase()
     const lines = rows.map(({ u, price, currency }) => {
       const area = getArea(u)
-      let title = getUnitTitle(u)
-      const m = title.match(/^(.*\S)\s+en\s+(.+)$/i)
-      if (m && m[2].toLowerCase().split(/[\s,]+/).some(w => w.length > 3 && ctx.includes(w))) {
-        title = m[1]
-      }
+      const title = getShortTitle(u, ctx)
       const parts = [title, ...(area > 0 && !title.includes('m²') ? [`${area.toLocaleString('es-AR')} m²`] : [])]
       const precio = price > 0 ? `*${currency} ${price.toLocaleString('es-AR')}*` : 'Consultar'
       return `▪️ ${parts.join(' · ')} — ${precio}`
@@ -106,7 +110,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, location,
       'SI INMOBILIARIA · (341) 334-0916',
     ].join('\n')
     return `https://wa.me/?text=${encodeURIComponent(msg)}`
-  }, [units, devName, location, pageUrl])
+  }, [units, devName, location, pageUrl, ctx])
 
   // Build available tabs from real data
   const tabs = useMemo(() => {
@@ -199,7 +203,7 @@ export default function DevUnitsSection({ units, devName, whatsappUrl, location,
 
                 <div className="min-w-0 flex-1">
                   <p className="text-[15px] font-bold leading-snug text-gray-900 sm:truncate sm:text-base">
-                    {getUnitTitle(u)}
+                    {getShortTitle(u, ctx)}
                   </p>
                   <p className="mt-1 text-sm text-gray-500 font-numeric">
                     {specs.join(' · ') || translateType(u.type?.name || 'Unidad')}
