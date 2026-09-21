@@ -51,6 +51,7 @@ import {
   formatPrice,
   getOperationType,
   operacionPrincipal,
+  priorizarOperacion,
   operationBadgeColor,
   getRoofedArea,
   getLotSurface,
@@ -141,26 +142,6 @@ function precioOrden(property: TokkoProperty, operationType: OperationType | nul
   if (property.web_price === false) return null
   const pr = operationForView(property, operationType)?.prices?.[0]
   return pr && pr.price > 0 ? pr : null
-}
-
-/**
- * Las cards, el mapa y el sheet de la propiedad eligen operación con
- * `operacionPrincipal`, que prefiere la que tiene precio cargado. Al filtrar por
- * Venta o Alquiler una propiedad mixta, la vista tiene que mostrar SIEMPRE la
- * operación elegida: si el alquiler vino con precio 0, antes ganaba la venta y
- * la card decía "VENTA · USD 450.000" dentro del listado de alquileres. Por eso
- * acá la operación filtrada pasa al frente (la card muestra los dos valores,
- * con el filtrado como principal); si vino SIN precio, la vista queda solo con
- * ella para que la otra no le gane. La ficha original no se muta.
- */
-function prioritizeOperationForView(property: TokkoProperty, operationType: OperationType | null): TokkoProperty {
-  if (!operationType || !property.operations?.length) return property
-  const selected = property.operations.find(operation => operation.operation_type === operationType)
-  if (!selected) return property
-  if (property.operations.length === 1 && property.operations[0] === selected) return property
-  const conPrecio = (selected.prices ?? []).some(p => p.price > 0)
-  if (!conPrecio) return { ...property, operations: [selected] }
-  return { ...property, operations: [selected, ...property.operations.filter(op => op !== selected)] }
 }
 
 // Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
@@ -1025,7 +1006,7 @@ export default function PropiedadesView({
       default:
         return 0
     }
-  }).map(property => prioritizeOperationForView(property, selectedOperationType)), [
+  }).map(property => priorizarOperacion(property, selectedOperationType)), [
     properties,
     filters,
     sortBy,
@@ -1236,7 +1217,7 @@ export default function PropiedadesView({
   // (igual que la card): una mixta decía "VENTA · USD 450.000" en alquileres.
   const selectedProperty = useMemo(() => {
     const p = selectedId != null ? properties.find(x => x.id === selectedId) : null
-    return p ? prioritizeOperationForView(p, selectedOperationType) : null
+    return p ? priorizarOperacion(p, selectedOperationType) : null
   }, [selectedId, properties, selectedOperationType])
 
   const opLabel = filters.operation === 'venta' ? 'en venta'
@@ -1944,7 +1925,7 @@ export default function PropiedadesView({
           style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', maxWidth: 'calc(100vw - 24px)' }}
         >
           <Link
-            href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
+            href={`/propiedades/${generatePropertySlug(selectedProperty)}${selectedOperationType === 'Rent' ? '?operacion=alquiler' : ''}`}
             className="relative block bg-white rounded-2xl shadow-2xl overflow-hidden"
             style={{ border: '1px solid #e5e7eb' }}
           >

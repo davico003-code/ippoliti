@@ -30,6 +30,7 @@ import {
   translateDisposition,
   operacionPrincipal,
 } from '@/lib/tokko'
+import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
 import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
 import PropertyDescription from '../PropertyDescription'
@@ -84,7 +85,7 @@ function Row({ label, value, numeric = true }: { label: string; value: string; n
 }
 
 export default function PropertyDetailBody({
-  property,
+  property: propertyOriginal,
   // Compat: PropertyPanel todavía pasa allProperties. Lo aceptamos pero
   // no lo usamos — el mapa de "otras propiedades cercanas" ahora vive
   // en NearbyPropertiesMapClient que fetchea su propia data del endpoint.
@@ -99,6 +100,10 @@ export default function PropertyDetailBody({
   /** If true, render a mobile-only contact card after the title (used inside the modal). */
   showMobileContact?: boolean
 }) {
+  // Mixta vista desde una búsqueda de alquiler (?operacion=alquiler): el
+  // alquiler pasa al frente → precio principal + costos de ingreso + planilla.
+  const property = usePropiedadConFoco(propertyOriginal)
+
   // Derived
   const price = formatPrice(property)
   // null = "Sin Precio" en Tokko → en vez del monto va un botón que pide el

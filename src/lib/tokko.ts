@@ -395,6 +395,29 @@ export function operacionPrincipal(
   return ops.find((op) => (op.prices ?? []).some((p) => p.price > 0)) ?? ops[0];
 }
 
+/**
+ * Pone al frente la operación que el visitante está buscando (filtro Venta /
+ * Alquiler del listado, o `?operacion=` en la ficha). Las cards, el mapa, el
+ * sheet y la ficha eligen operación con `operacionPrincipal`, que prefiere la
+ * que tiene precio cargado: con la buscada primero, una propiedad mixta se
+ * comporta como una de ESA operación (precio principal, cartel, costos de
+ * ingreso) y la otra queda de secundaria. Si la buscada vino SIN precio, la
+ * vista queda solo con ella para que la otra no le gane ("VENTA · USD 450.000"
+ * dentro del listado de alquileres). La propiedad original no se muta.
+ */
+export function priorizarOperacion<T extends Pick<TokkoProperty, 'operations'>>(
+  property: T,
+  operationType: TokkoOperation['operation_type'] | null,
+): T {
+  if (!operationType || !property.operations?.length) return property;
+  const selected = property.operations.find((op) => op.operation_type === operationType);
+  if (!selected) return property;
+  if (property.operations[0] === selected && property.operations.length === 1) return property;
+  const conPrecio = (selected.prices ?? []).some((p) => p.price > 0);
+  if (!conPrecio) return { ...property, operations: [selected] };
+  return { ...property, operations: [selected, ...property.operations.filter((op) => op !== selected)] };
+}
+
 export function getOperationType(property: TokkoProperty): string {
   const op = operacionPrincipal(property);
   if (!op) return '';
