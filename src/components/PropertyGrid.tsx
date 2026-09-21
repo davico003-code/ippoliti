@@ -12,6 +12,7 @@ import {
   getLotSurface,
   isLand,
   translatePropertyType,
+  tituloVisible,
 } from '@/lib/tokko'
 
 function PropertyCard({ property }: { property: TokkoProperty }) {
@@ -30,7 +31,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
           {photo ? (
             <Image
               src={photo}
-              alt={property.publication_title || property.address}
+              alt={tituloVisible(property) || property.address}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -55,7 +56,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
             </p>
           )}
           <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1.5 group-hover:text-brand-700 transition-colors">
-            {property.publication_title || property.address}
+            {tituloVisible(property) || property.address}
           </h3>
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-1.5">
             {land ? (
@@ -84,7 +85,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
             <PropertyShareButton
               propertyId={property.id}
               slug={slug}
-              title={property.publication_title || property.address || ''}
+              title={tituloVisible(property) || property.address || ''}
               priceLabel={price}
               inline
               size={36}

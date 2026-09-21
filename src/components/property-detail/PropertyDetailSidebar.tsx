@@ -11,6 +11,7 @@ import {
   formatPrice,
   getProducerCallHref,
   getProducerPhoneDisplay,
+  tituloVisible,
 } from '@/lib/tokko'
 import AudioSummary from '../AudioSummary'
 import VisitWidget from '../VisitWidget'
@@ -48,7 +49,7 @@ export default function PropertyDetailSidebar({
   const isVenta = operation === 'Venta'
   const usdPrice = getUsdPrice(property)
   const isPremiumSale = isVenta && usdPrice >= TOUR_MEET_USD_THRESHOLD
-  const propertyTitle = property.publication_title || address
+  const propertyTitle = tituloVisible(property) || address
   const propertyUrl = `https://siinmobiliaria.com/propiedades/${slug}`
 
   return (

@@ -60,6 +60,7 @@ import {
   propertyTypeLabelById,
   generatePropertySlug,
   TYPE_FILTER_GROUPS,
+  tituloVisible,
 } from '@/lib/tokko'
 import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } from '@/lib/geo'
 // Constantes del mapa desde @/lib/map-config (módulo sin leaflet): un import
@@ -1934,7 +1935,7 @@ export default function PropiedadesView({
               {(() => {
                 const photo = getMainPhoto(selectedProperty)
                 return photo ? (
-                  <Image src={photo} alt={selectedProperty.publication_title || selectedProperty.address}
+                  <Image src={photo} alt={tituloVisible(selectedProperty) || selectedProperty.address}
                     fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -1969,7 +1970,7 @@ export default function PropiedadesView({
               <PropertyShareButton
                 propertyId={selectedProperty.id}
                 slug={generatePropertySlug(selectedProperty)}
-                title={selectedProperty.publication_title || selectedProperty.address || ''}
+                title={tituloVisible(selectedProperty) || selectedProperty.address || ''}
                 priceLabel={formatPrice(selectedProperty)}
                 top={10}
                 right={48}

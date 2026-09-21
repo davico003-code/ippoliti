@@ -36,6 +36,8 @@ export interface TokkoOperation {
   operation_id: number;
   operation_type: 'Sale' | 'Rent';
   prices: TokkoPrice[];
+  /** Título del aviso de ESTA operación (feed de HILO, solo en venta+alquiler). */
+  title?: string | null;
 }
 
 export interface TokkoPropertyType {
@@ -194,6 +196,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
     operations: (p.operations ?? []).map((op) => ({
       operation_id: op.operation_id,
       operation_type: op.operation_type,
+      ...(op.title ? { title: normalizarTitulo(op.title) } : {}),
       prices: (op.prices ?? []).map((pr) => ({
         currency: pr.currency,
         is_promotional: pr.is_promotional,
@@ -508,6 +511,49 @@ function operacionEnEspanol(type: TokkoOperation['operation_type']): string {
   const raw = String(type).toLowerCase();
   if (raw.includes('temporary') || raw.includes('vacation')) return 'Alquiler temporario';
   return String(type);
+}
+
+/**
+ * Reescribe la operación dentro de un título ("… en alquiler …" → "… en venta
+ * …"). Espejo de `tituloParaOperacion` de HILO: es el respaldo para cuando el
+ * feed todavía no trae `operations[].title`.
+ */
+function tituloParaOperacion(title: string, operationType: TokkoOperation['operation_type']): string {
+  const target = operationType === 'Rent' ? 'en alquiler' : 'en venta';
+  const patrones: RegExp[] = [
+    /\ben\s+venta\s+y\s+alquiler\b/i,
+    /\ben\s+venta\s+o\s+permuta\b/i,
+    /\ba\s+la\s+venta\b/i,
+    /\ben\s+venta\b/i,
+    /\ben\s+alquiler\b/i,
+  ];
+  for (const re of patrones) {
+    if (re.test(title)) return title.replace(re, target);
+  }
+  return title;
+}
+
+/**
+ * El título que se MUESTRA de una propiedad. Las que están en venta y alquiler
+ * aparecen una sola vez en la web, pero cada operación tiene su título (David,
+ * 21-sep-2026): se muestra el de la operación principal, que es la que el
+ * visitante está mirando si vino de un filtro (`priorizarOperacion`).
+ *
+ * OJO: es solo para mostrar. El slug/URL sigue saliendo de `publication_title`.
+ */
+export function tituloVisible(
+  property: Pick<TokkoProperty, 'publication_title' | 'operations'>,
+): string {
+  const base = property.publication_title ?? '';
+  const op = operacionPrincipal(property);
+  if (!op) return base;
+  if (op.title?.trim()) return op.title.trim();
+  const tipos = new Set(
+    (property.operations ?? [])
+      .filter((o) => (o.prices?.[0]?.price ?? 0) > 0)
+      .map((o) => o.operation_type),
+  );
+  return tipos.size > 1 ? tituloParaOperacion(base, op.operation_type) : base;
 }
 
 /**

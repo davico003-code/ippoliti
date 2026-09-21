@@ -105,6 +105,8 @@ export function applyPropertySeoOverride<
   const seo = PROPERTY_SEO[property.id]
   if (!seo) return property
   property.publication_title = seo.title
+  // El override manda también sobre los títulos por operación del feed.
+  for (const op of (property as { operations?: { title?: string | null }[] }).operations ?? []) delete op.title
   // La descripción del emprendimiento viene anidada en el payload de la unidad.
   const dev = (property as { development?: { description?: string } }).development
   for (const [pattern, replacement] of seo.bodyFixes ?? []) {
