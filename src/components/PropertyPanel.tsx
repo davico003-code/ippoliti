@@ -24,6 +24,7 @@ import PropertyDetailBody from './property-detail/PropertyDetailBody'
 import PropertyDetailSidebar from './property-detail/PropertyDetailSidebar'
 import PropertyDetailSimilars from './property-detail/PropertyDetailSimilars'
 import Footer from './Footer'
+import ShareMenu from './ShareMenu'
 
 const R = "'Raleway', system-ui, sans-serif"
 // Height of the sticky header INSIDE the panel (not the site header).
@@ -202,7 +203,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
         className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
         style={{ animation: 'ppSlideIn 250ms ease-out' }}
       >
-        {/* Panel header sticky — barra propia, logo SI centrado, volver a la izquierda */}
+        {/* Panel header sticky — volver a la izquierda, logo SI centrado, compartir a la derecha */}
         <div
           className="sticky top-0 z-40 bg-white border-b border-gray-200 grid grid-cols-3 items-center px-5"
           style={{ height: PANEL_HEADER_H }}
@@ -229,7 +230,15 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
               priority
             />
           </Link>
-          <div />
+          <div className="flex justify-end">
+            <ShareMenu
+              variant="header"
+              propertyId={property.id}
+              slug={slug}
+              title={property.publication_title || property.fake_address || property.address}
+              placaHref={`/propiedades/${slug}/placa`}
+            />
+          </div>
         </div>
 
         {/* Galería Zillow — constrained a padding del panel para no desbordar */}
