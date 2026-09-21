@@ -1,15 +1,17 @@
 'use client'
 
-// Reemplaza ShareButtons en el sidebar de /propiedades/[slug]. Un único botón
-// "Compartir" que abre un dropdown con 4 opciones:
+// Botón "Compartir" de la ficha. Vive en el header del panel (variant="header",
+// a la derecha del logo); variant="sidebar" es el bloque ancho con título.
+// Abre un dropdown con 4 opciones:
 //   1. WhatsApp (texto público con link siinmobiliaria.com)
 //   2. Copiar link público
 //   3. Placa Instagram (si hay placaHref)
 //   4. Generar link para colega → POST /api/ficha/crear + copia clipboard + toast
 //
 // El dropdown se PORTALIZA a document.body (position:fixed) para no quedar
-// cortado por el overflow del sidebar. Se reposiciona con el botón y se cierra
-// al scrollear/resize.
+// cortado por el overflow del contenedor. Se reposiciona con el botón y se
+// cierra al scrollear/resize. Su z-index va POR ENCIMA del PropertyPanel
+// (z-[9995]): con 1000 el menú abría detrás del panel y no se veía.
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -23,18 +25,21 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-import { generarYCopiarFichaLink } from '@/lib/share-ficha'
+import { copiarTexto, generarYCopiarFichaLink } from '@/lib/share-ficha'
+import { showToast } from './Toast'
 
 interface Props {
   propertyId: number
   slug: string
   title: string
   placaHref?: string
+  variant?: 'sidebar' | 'header'
 }
 
 const R = "'Raleway', system-ui, sans-serif"
+const MENU_W_HEADER = 270
 
-export default function ShareMenu({ propertyId, slug, title, placaHref }: Props) {
+export default function ShareMenu({ propertyId, slug, title, placaHref, variant = 'sidebar' }: Props) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [generando, setGenerando] = useState(false)
@@ -47,7 +52,16 @@ export default function ShareMenu({ propertyId, slug, title, placaHref }: Props)
 
   const abrir = () => {
     const r = btnRef.current?.getBoundingClientRect()
-    if (r) setCoords({ top: r.bottom + 6, left: r.left, width: r.width })
+    if (r) {
+      if (variant === 'header') {
+        // Alineado al borde derecho del botón, sin salirse del viewport.
+        const width = Math.min(MENU_W_HEADER, window.innerWidth - 16)
+        const left = Math.min(Math.max(8, r.right - width), window.innerWidth - width - 8)
+        setCoords({ top: r.bottom + 8, left, width })
+      } else {
+        setCoords({ top: r.bottom + 6, left: r.left, width: r.width })
+      }
+    }
     setOpen(o => !o)
   }
 
@@ -71,12 +85,13 @@ export default function ShareMenu({ propertyId, slug, title, placaHref }: Props)
   }, [open])
 
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(url)
+    if (await copiarTexto(url)) {
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // ignore
+      showToast('Link copiado')
+      setTimeout(() => { setCopied(false); setOpen(false) }, 1200)
+    } else {
+      showToast(`No se pudo copiar. Link: ${url}`, { variant: 'error', duration: 8000 })
+      setOpen(false)
     }
   }
 
@@ -97,37 +112,58 @@ export default function ShareMenu({ propertyId, slug, title, placaHref }: Props)
     textDecoration: 'none',
   }
 
-  return (
-    <div className="mt-6 pt-6 border-t border-gray-100">
-      <p className="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wide">
-        Compartir propiedad
-      </p>
+  const boton = variant === 'header' ? (
+    <button
+      ref={btnRef}
+      type="button"
+      onClick={abrir}
+      aria-label="Compartir propiedad"
+      aria-haspopup="menu"
+      aria-expanded={open}
+      className="inline-flex items-center gap-2 h-9 px-3 sm:px-4 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold transition-colors"
+      style={{ fontFamily: R }}
+    >
+      <Share2 size={16} />
+      <span className="hidden sm:inline">Compartir</span>
+    </button>
+  ) : (
+    <button
+      ref={btnRef}
+      type="button"
+      onClick={abrir}
+      aria-haspopup="menu"
+      aria-expanded={open}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        padding: '12px 18px',
+        background: '#F3F4F6',
+        color: '#1f2937',
+        border: 'none',
+        borderRadius: 14,
+        fontSize: 14,
+        fontWeight: 600,
+        fontFamily: R,
+        cursor: 'pointer',
+      }}
+    >
+      <Share2 size={16} />
+      Compartir
+    </button>
+  )
 
-      <button
-        ref={btnRef}
-        type="button"
-        onClick={abrir}
-        aria-expanded={open}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          padding: '12px 18px',
-          background: '#F3F4F6',
-          color: '#1f2937',
-          border: 'none',
-          borderRadius: 14,
-          fontSize: 14,
-          fontWeight: 600,
-          fontFamily: R,
-          cursor: 'pointer',
-        }}
-      >
-        <Share2 size={16} />
-        Compartir
-      </button>
+  return (
+    <div className={variant === 'header' ? 'flex items-center' : 'mt-6 pt-6 border-t border-gray-100'}>
+      {variant === 'sidebar' && (
+        <p className="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wide">
+          Compartir propiedad
+        </p>
+      )}
+
+      {boton}
 
       {open && coords && typeof document !== 'undefined' && createPortal(
         <div
@@ -143,7 +179,7 @@ export default function ShareMenu({ propertyId, slug, title, placaHref }: Props)
             borderRadius: 14,
             overflow: 'hidden',
             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-            zIndex: 1000,
+            zIndex: 10000,
           }}
         >
           <a

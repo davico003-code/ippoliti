@@ -1,6 +1,7 @@
 'use client'
 
-// Shared sticky right column for desktop: WhatsApp + Call + Agent + Share + Visit.
+// Shared sticky right column for desktop: WhatsApp + Call + Agent + Visit.
+// (Compartir vive en el header del panel — ver PropertyPanel.)
 import type { CSSProperties } from 'react'
 import { MessageCircle, Phone } from 'lucide-react'
 import {
@@ -12,7 +13,6 @@ import {
   getProducerPhoneDisplay,
 } from '@/lib/tokko'
 import AudioSummary from '../AudioSummary'
-import ShareMenu from '../ShareMenu'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 import { getAgenteRol } from '@/lib/agente-titulo'
@@ -131,13 +131,6 @@ export default function PropertyDetailSidebar({
               })()}
             </div>
           </div>
-
-          <ShareMenu
-            propertyId={property.id}
-            slug={slug}
-            title={property.publication_title || address}
-            placaHref={`/propiedades/${slug}/placa`}
-          />
         </div>
 
         {operation?.toLowerCase().includes('venta') && (
