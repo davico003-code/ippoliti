@@ -13,7 +13,7 @@ import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
-import { getAllPhotos, getOperationType, operationBadgeColor, translatePropertyType } from '@/lib/tokko'
+import { getAllPhotos, getOperationType, operationBadgeColor, preciosPorOperacion, translatePropertyType } from '@/lib/tokko'
 
 const GREEN = '#1A5C38'
 
@@ -21,6 +21,9 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
   const photos = getAllPhotos(property)
   const [showAll, setShowAll] = useState(false)
   const operation = getOperationType(property)
+  // Venta Y alquiler a la vez → un cartel por operación (igual que el cuerpo de la ficha).
+  const precios = preciosPorOperacion(property)
+  const operaciones = precios.length > 1 ? precios.map(p => p.operacion) : operation ? [operation] : []
   const propType = translatePropertyType(property.type?.name)
   const address = property.fake_address || property.address
 
@@ -89,6 +92,29 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
   const thumbs = photos.slice(1, 5)
   const hasOverlaySlot = photos.length > 5
 
+  // Carteles sobre la foto principal (mobile y desktop comparten el bloque).
+  const badges = (
+    <div className="absolute top-3 left-3 flex gap-1.5">
+      {operaciones.map(op => (
+        <span
+          key={op}
+          className="px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white"
+          style={{ background: operationBadgeColor(op) }}
+        >
+          {op}
+        </span>
+      ))}
+      {propType && (
+        <span
+          className="px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase"
+          style={{ color: GREEN }}
+        >
+          {propType}
+        </span>
+      )}
+    </div>
+  )
+
   return (
     <>
       {/* ── MOBILE: single compact hero photo (~280px) with "Ver las N fotos" badge ── */}
@@ -105,22 +131,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
             sizes="100vw"
             priority
           />
-          {operation && (
-            <span
-              className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white"
-              style={{ background: operationBadgeColor(operation) }}
-            >
-              {operation}
-            </span>
-          )}
-          {propType && (
-            <span
-              className="absolute top-3 left-[90px] px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase"
-              style={{ color: GREEN }}
-            >
-              {propType}
-            </span>
-          )}
+          {badges}
           {photos.length > 1 && (
             <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 bg-white/95 backdrop-blur px-3 py-2 rounded-lg text-[12px] font-semibold text-gray-800 shadow-md">
               <Camera className="w-4 h-4" />
@@ -145,22 +156,7 @@ export default function PropertyGalleryHero({ property }: { property: TokkoPrope
               sizes="(min-width: 1024px) 60vw, 100vw"
               priority
             />
-            {operation && (
-              <span
-                className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase text-white"
-                style={{ background: operationBadgeColor(operation) }}
-              >
-                {operation}
-              </span>
-            )}
-            {propType && (
-              <span
-                className="absolute top-3 left-[90px] px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase"
-                style={{ color: GREEN }}
-              >
-                {propType}
-              </span>
-            )}
+            {badges}
           </div>
 
           {Array.from({ length: 4 }).map((_, i) => {

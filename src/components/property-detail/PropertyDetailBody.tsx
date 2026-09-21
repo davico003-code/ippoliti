@@ -10,6 +10,8 @@ import {
   type TokkoProperty,
   formatPrice,
   mostrarPrecio,
+  preciosPorOperacion,
+  operationBadgeColor,
   esOportunidadConsultanos,
   buildPriceConsultWhatsappUrl,
   getProducerCallHref,
@@ -107,6 +109,9 @@ export default function PropertyDetailBody({
     ? null
     : buildPriceConsultWhatsappUrl(property, generatePropertySlug(property))
   const operation = getOperationType(property)
+  // Venta Y alquiler a la vez: se muestran los dos valores, cada uno con su cartel.
+  const precios = preciosPorOperacion(property)
+  const dobleOperacion = precios.length > 1
   const roofedArea = getRoofedArea(property)
   const area = getTotalSurface(property)
   const lotSurface = getLotSurface(property)
@@ -186,7 +191,11 @@ export default function PropertyDetailBody({
           {property.publication_title || address}
         </h1>
         <div className="flex gap-2 mb-3">
-          {operation && (
+          {dobleOperacion ? (
+            precios.map(({ operacion }) => (
+              <span key={operacion} className="px-3 py-1 text-white text-[11px] font-bold rounded-full uppercase tracking-wide" style={{ background: operationBadgeColor(operacion) }}>{operacion}</span>
+            ))
+          ) : operation && (
             <span className="px-3 py-1 bg-[#1A5C38] text-white text-[11px] font-bold rounded-full uppercase tracking-wide">{operation}</span>
           )}
           {propType && (
@@ -199,6 +208,18 @@ export default function PropertyDetailBody({
             {property.real_address || address}{location ? `, ${location}` : ''}
           </span>
         </div>
+        {dobleOperacion ? (
+          <div className="flex flex-wrap gap-x-10 gap-y-4">
+            {precios.map(({ operacion, precio }) => (
+              <div key={operacion}>
+                <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">{operacion}</span>
+                <span style={{ fontFamily: P, fontWeight: 800, fontSize: 28, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
+                  {precio}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
         <div>
           <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
           {tienePrecio ? (
@@ -224,6 +245,7 @@ export default function PropertyDetailBody({
             </span>
           )}
         </div>
+        )}
       </section>
 
       {/* COSTOS INICIALES — solo alquiler permanente con precio + moneda válidos */}

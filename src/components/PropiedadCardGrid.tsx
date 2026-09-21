@@ -14,6 +14,7 @@ import {
   formatPrice,
   getOperationType,
   operationBadgeColor,
+  preciosPorOperacion,
   getRoofedArea,
   getLotSurface,
   isLand,
@@ -74,6 +75,11 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
 
   const operation = getOperationType(property)
   const price = formatPrice(property)
+  // Venta Y alquiler a la vez: el segundo valor va en una línea chica bajo el
+  // precio, y la foto lleva un cartel por operación.
+  const precios = preciosPorOperacion(property)
+  const otrosPrecios = precios.slice(1)
+  const operaciones = precios.length > 1 ? precios.map(p => p.operacion) : operation ? [operation] : []
   const roofed = getRoofedArea(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
@@ -295,9 +301,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         )}
 
         {/* Badges top-left — operación (color) + tipo de inmueble (blanco) */}
-        <div className="absolute top-2.5 left-2.5 flex gap-1.5">
-          {operation && (
-            <span style={{
+        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5" style={{ right: 48 }}>
+          {operaciones.map(operation => (
+            <span key={operation} style={{
               background: operationBadgeColor(operation),
               color: '#fff',
               fontFamily: RALEWAY,
@@ -309,7 +315,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             }}>
               {operation}
             </span>
-          )}
+          ))}
           {typeName && (
             <span style={{
               background: 'rgba(255,255,255,0.9)',
@@ -375,6 +381,19 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             />
           </div>
         </div>
+
+        {!esOportunidadConsultanos(property.id) && otrosPrecios.map(({ operacion, precio }) => (
+          <p key={operacion} style={{
+            fontFamily: RALEWAY,
+            fontSize: 13,
+            color: '#4b5563',
+            margin: '0 0 3px',
+            lineHeight: 1.3,
+          }}>
+            {operacion}{' '}
+            <span style={{ fontFamily: POPPINS, fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#0a0a0a' }}>{precio}</span>
+          </p>
+        ))}
 
         {specs.length > 0 && (
           <p style={{
