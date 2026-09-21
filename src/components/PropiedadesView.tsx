@@ -149,15 +149,18 @@ function precioOrden(property: TokkoProperty, operationType: OperationType | nul
  * Venta o Alquiler una propiedad mixta, la vista tiene que mostrar SIEMPRE la
  * operación elegida: si el alquiler vino con precio 0, antes ganaba la venta y
  * la card decía "VENTA · USD 450.000" dentro del listado de alquileres. Por eso
- * acá la propiedad de la vista queda solo con la operación filtrada (la ficha
- * original no se muta; el listado sin filtro sigue viendo las dos).
+ * acá la operación filtrada pasa al frente (la card muestra los dos valores,
+ * con el filtrado como principal); si vino SIN precio, la vista queda solo con
+ * ella para que la otra no le gane. La ficha original no se muta.
  */
 function prioritizeOperationForView(property: TokkoProperty, operationType: OperationType | null): TokkoProperty {
   if (!operationType || !property.operations?.length) return property
   const selected = property.operations.find(operation => operation.operation_type === operationType)
   if (!selected) return property
   if (property.operations.length === 1 && property.operations[0] === selected) return property
-  return { ...property, operations: [selected] }
+  const conPrecio = (selected.prices ?? []).some(p => p.price > 0)
+  if (!conPrecio) return { ...property, operations: [selected] }
+  return { ...property, operations: [selected, ...property.operations.filter(op => op !== selected)] }
 }
 
 // Util: solo dígitos del input crudo (descarta puntos, comas, espacios).

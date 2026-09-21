@@ -398,12 +398,7 @@ export function operacionPrincipal(
 export function getOperationType(property: TokkoProperty): string {
   const op = operacionPrincipal(property);
   if (!op) return '';
-  const type = op.operation_type;
-  if (type === 'Sale') return 'Venta';
-  if (type === 'Rent') return 'Alquiler';
-  const raw = String(type).toLowerCase();
-  if (raw.includes('temporary') || raw.includes('vacation')) return 'Alquiler temporario';
-  return String(type);
+  return operacionEnEspanol(op.operation_type);
 }
 
 // Color canónico del badge de operación. Fuente única de verdad: antes esta
@@ -482,6 +477,46 @@ export function formatPrice(
   property: Pick<TokkoProperty, 'operations' | 'web_price'>,
 ): string {
   return mostrarPrecio(property) ?? 'Consultar precio';
+}
+
+function operacionEnEspanol(type: TokkoOperation['operation_type']): string {
+  if (type === 'Sale') return 'Venta';
+  if (type === 'Rent') return 'Alquiler';
+  const raw = String(type).toLowerCase();
+  if (raw.includes('temporary') || raw.includes('vacation')) return 'Alquiler temporario';
+  return String(type);
+}
+
+/**
+ * Todas las operaciones publicadas CON precio, para las propiedades que están
+ * en venta y alquiler a la vez: la ficha y la card muestran los dos valores
+ * (pedido de David, 21-sep-2026). La primera es siempre la misma que eligen
+ * `operacionPrincipal`/`mostrarPrecio`, así el precio grande no cambia. Vacío
+ * cuando la propiedad no publica precio ("Sin Precio" / oportunidad).
+ */
+export function preciosPorOperacion(
+  property: Pick<TokkoProperty, 'operations' | 'web_price'>,
+): { operacion: string; precio: string }[] {
+  if (property.web_price === false) return [];
+  const principal = operacionPrincipal(property);
+  const ops = (property.operations ?? []).filter((op) => (op.prices?.[0]?.price ?? 0) > 0);
+  const vistas = new Set<string>();
+  return ops
+    .sort((a, b) => (a === principal ? -1 : b === principal ? 1 : 0))
+    .filter((op) => {
+      // Una sola línea por tipo de operación (el feed puede repetirlas).
+      if (vistas.has(op.operation_type)) return false;
+      vistas.add(op.operation_type);
+      return true;
+    })
+    .map((op) => {
+      const p = op.prices[0];
+      const suffix = op.operation_type === 'Rent' ? ' /mes' : '';
+      return {
+        operacion: operacionEnEspanol(op.operation_type),
+        precio: `${p.currency} ${p.price.toLocaleString('es-AR')}${suffix}`,
+      };
+    });
 }
 
 // Superficie cubierta principal (en m²), parseando el string de la API
