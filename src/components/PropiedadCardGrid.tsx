@@ -90,7 +90,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const baths = property.bathroom_amount
   const address = property.fake_address || property.address
   const direccion = formatDireccionCompleta(property, address, ' | ')
-  const cardHref = `/propiedades/${slug}`
+  // Mixta (venta + alquiler) listada como alquiler: el foco viaja en el link
+  // para que la ficha mobile muestre los costos de ingreso y la planilla.
+  const focoAlquiler = precios.length > 1 && precios[0].operacion === 'Alquiler'
+  const cardHref = `/propiedades/${slug}${focoAlquiler ? '?operacion=alquiler' : ''}`
 
   // Build specs: "3 dorm · 2 baños · 190 m² · 1.691 m² lote"
   const specs: { num: string; label: string }[] = []
