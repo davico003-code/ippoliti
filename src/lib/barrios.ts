@@ -985,7 +985,7 @@ export const BARRIOS: Barrio[] = [
     tier: "Consolidado",
     estado: "consolidado",
     zona: "funes",
-    subtitulo: "El consolidado de la zona sur de Funes",
+    subtitulo: "Barrio consolidado, acceso directo por autopista y zona comercial frente al barrio (Calmo)",
     ubicacion: {
       direccionIngreso: "H. Yrigoyen, Funes",
       referencia:
@@ -1026,7 +1026,7 @@ export const BARRIOS: Barrio[] = [
       "Cámaras internas y perimetrales con monitoreo digital",
     ],
     miradaBroker: {
-      titular: "El consolidado discreto de la zona sur — y vecino del futuro Aguadas Lakes.",
+      titular: "Barrio consolidado, salida directa a la autopista y vecino del futuro Aguadas Lakes.",
       parrafo:
         "Aguadas es de esos barrios que no hacen ruido pero acumulan valor. Masterplan prolijo de 234 lotes con SUM, sauna, jacuzzi y canchas de tenis y fútbol, servicios completos con cableado subterráneo, y doble acceso que te pone en la autopista en un minuto. El dato que miro como broker: al lado se desarrolla Aguadas Lakes, y cuando un sector recibe un proyecto de esa escala, los barrios consolidados linderos son los primeros en capitalizarlo.",
     },
@@ -1428,7 +1428,7 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
   },
   "aguadas": {
     sigla: "AG",
-    descripcion: "El consolidado discreto de la zona sur, vecino del futuro Aguadas Lakes.",
+    descripcion: "Consolidado, con acceso directo por autopista y la zona comercial Calmo enfrente.",
     datos: ["234 lotes", "800 m² típico", "SUM y Mini Market"],
     amenities: [],
     lat: -32.9394, lng: -60.8117,
