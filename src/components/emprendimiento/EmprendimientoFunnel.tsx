@@ -3,6 +3,7 @@
 //   2. Datos clave → califica rápido (precio, tipologías, superficie, plan)
 //   3. Proyecto    → interés
 //   4. Galería     → deseo
+//   4b. Avances    → confianza (la obra existe y avanza)
 //   5. Unidades    → lista de precios simple
 //   6. Financiación→ saca la objeción del pago
 //   7. Amenities / Ubicación → refuerzo
@@ -38,6 +39,8 @@ export interface FunnelMedia {
   proyecto?: string
   /** Aérea real de la zona, para "Ubicación". */
   ubicacion?: string
+  /** Fotos reales de la obra con el mes de la tanda. */
+  avances?: { fecha: string; fotos: string[] }
 }
 
 interface Props {
@@ -272,6 +275,24 @@ export default function EmprendimientoFunnel({
               />
             </div>
           </div>
+        </section>
+      )}
+
+      {/* ── 4b. Avances de obra ─────────────────────────────────── */}
+      {media.avances && media.avances.fotos.length > 0 && (
+        <section id="avances" className="bg-gray-50 py-14 md:py-20">
+          <div className={`${CONTAINER} mb-8 flex flex-wrap items-end justify-between gap-4`}>
+            <div>
+              <p className={EYEBROW}>Avances de obra</p>
+              <h2 className={`${H2} mt-3`}>Así avanza la obra</h2>
+            </div>
+            <p className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-800">
+              <CalendarCheck className="h-4 w-4 text-[#1A5C38]" aria-hidden />
+              {/* Un solo hijo: el gap del flex separaba el texto del año. */}
+              <span>{conCifras(media.avances.fecha)}</span>
+            </p>
+          </div>
+          <PhotoGalleryLazy photos={media.avances.fotos} alt={`${displayName} — obra ${media.avances.fecha}`} variant="mosaico" />
         </section>
       )}
 

@@ -94,6 +94,8 @@ const DEV_LANDING: Record<
     /** Lista de precios viva del desarrollador (Brickfy) en vez de las unidades del CRM. */
     listaDesarrollador?: () => Promise<UnidadFila[] | null>
     fotosLimpias?: Record<string, string>
+    /** Última tanda de fotos reales de la obra (la más nueva reemplaza a la anterior). */
+    avances?: { fecha: string; fotos: string[] }
   }
 > = {
   // Dock Garden — Aldea Fisherton
@@ -108,6 +110,10 @@ const DEV_LANDING: Record<
     hero: '/images/dockgarden/render-frente.webp',
     proyecto: '/images/dockgarden/render-amenities.webp',
     ubicacion: '/images/dockgarden/aerea-fisherton.webp',
+    avances: {
+      fecha: 'Septiembre 2026',
+      fotos: Array.from({ length: 7 }, (_, i) => `/images/dockgarden/obra-2026-09/${String(i + 1).padStart(2, '0')}.webp`),
+    },
     fotosLimpias: {
       '67173_9377506084': '/images/dockgarden/render-frente.webp',
       '67173_2866677624': '/images/dockgarden/render-amenities.webp',
@@ -300,7 +306,7 @@ export default async function DevelopmentPage({ params }: Props) {
           locationName={locationName}
           lineas={paragraphs}
           photos={photos}
-          media={{ hero: landing?.hero ?? mainPhoto, proyecto: landing?.proyecto, ubicacion: landing?.ubicacion }}
+          media={{ hero: landing?.hero ?? mainPhoto, proyecto: landing?.proyecto, ubicacion: landing?.ubicacion, avances: landing?.avances }}
           filas={filas}
           otherDevs={otherDevs}
           whatsappUrl={whatsappUrl}
