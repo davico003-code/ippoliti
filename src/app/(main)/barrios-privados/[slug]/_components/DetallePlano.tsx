@@ -16,6 +16,7 @@ export default function DetallePlano({
   slug,
   nombre,
   planoUrl,
+  planoLoteoUrl,
   previewUrl,
   destacada,
   destacadaTitular,
@@ -23,6 +24,7 @@ export default function DetallePlano({
   slug: string;
   nombre: string;
   planoUrl: string | null;
+  planoLoteoUrl?: string | null;
   previewUrl: string | null;
   destacada?: string | null;
   destacadaTitular?: string;
@@ -90,6 +92,18 @@ export default function DetallePlano({
                     Pedirlo por WhatsApp
                   </Link>
                 </div>
+                {planoLoteoUrl && (
+                  <a
+                    href={planoLoteoUrl}
+                    download
+                    onClick={() => trackEvent("barrios_descarga_plano", { slug, kind: "pdf-loteo" })}
+                    className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1A5C38] underline-offset-4 hover:underline"
+                    style={{ fontFamily: P }}
+                  >
+                    <FileText size={15} strokeWidth={2} aria-hidden />
+                    Plano de loteo con medidas y numeración de lotes (PDF)
+                  </a>
+                )}
               </div>
             </div>
           ) : (

@@ -15,7 +15,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BARRIOS, getBarrioBySlug, getBarriosHub } from "@/lib/barrios";
 import { buildBarrioFaqs } from "@/lib/barrios/faq";
-import { getPlanoUrl } from "@/lib/barrios/planos";
+import { getPlanoLoteoUrl, getPlanoUrl } from "@/lib/barrios/planos";
 import { getBarrioFotos, getPlanoPreviewUrl } from "@/lib/barrios/fotos";
 
 import BarrioStockTokko from "@/components/barrios/BarrioStockTokko";
@@ -94,6 +94,7 @@ export default function BarrioPage({ params }: Props) {
   const portada = fotos[0] ?? null;
   const galeria = fotos.slice(1);
   const planoUrl = getPlanoUrl(barrio.slug);
+  const planoLoteoUrl = getPlanoLoteoUrl(barrio.slug);
   const planoPreview = getPlanoPreviewUrl(barrio.slug);
 
   // Coordenadas verificadas Google Places (HUB_DATA); fallback a la ficha.
@@ -198,6 +199,7 @@ export default function BarrioPage({ params }: Props) {
         slug={barrio.slug}
         nombre={barrio.nombre}
         planoUrl={planoUrl}
+        planoLoteoUrl={planoLoteoUrl}
         previewUrl={planoPreview}
         destacada={galeria[0] ?? portada}
         destacadaTitular={barrio.miradaBroker.titular}
