@@ -21,7 +21,8 @@ import ConditionalChrome from "@/components/ConditionalChrome";
 import FooterWrapper from "@/components/FooterWrapper";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import OportunidadesPopup from "@/components/OportunidadesPopup";
-import NewsletterPopup from "@/components/NewsletterPopup";
+// NewsletterPopup ("Oportunidades con IA", modal a los 90s) retirado a pedido de
+// David (22-sep-2026). El componente queda en src/components por si se revive.
 import MetaPixel from "@/components/MetaPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import TawkTo from "@/components/TawkTo";
@@ -254,7 +255,6 @@ export default function RootLayout({
           <FooterWrapper />
           <FloatingWhatsApp />
           <OportunidadesPopup />
-          <NewsletterPopup />
           <PopupManager />
           <MetaPixel />
           <GoogleAnalytics />
