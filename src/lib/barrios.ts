@@ -985,7 +985,7 @@ export const BARRIOS: Barrio[] = [
     tier: "Consolidado",
     estado: "consolidado",
     zona: "funes",
-    subtitulo: "El consolidado de la zona sur de Funes",
+    subtitulo: "Barrio consolidado, acceso directo por autopista y zona comercial frente al barrio (Calmo)",
     ubicacion: {
       direccionIngreso: "H. Yrigoyen, Funes",
       referencia:
