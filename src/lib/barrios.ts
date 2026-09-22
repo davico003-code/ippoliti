@@ -1026,9 +1026,9 @@ export const BARRIOS: Barrio[] = [
       "Cámaras internas y perimetrales con monitoreo digital",
     ],
     miradaBroker: {
-      titular: "Barrio consolidado, salida directa a la autopista y vecino del futuro Aguadas Lakes.",
+      titular: "Barrio consolidado, entrada directa desde la autopista y vecino del futuro Aguadas Lakes.",
       parrafo:
-        "Aguadas es de esos barrios que no hacen ruido pero acumulan valor. Masterplan prolijo de 234 lotes con SUM, sauna, jacuzzi y canchas de tenis y fútbol, servicios completos con cableado subterráneo, y doble acceso que te pone en la autopista en un minuto. El dato que miro como broker: al lado se desarrolla Aguadas Lakes, y cuando un sector recibe un proyecto de esa escala, los barrios consolidados linderos son los primeros en capitalizarlo.",
+        "Aguadas es de esos barrios que no hacen ruido pero acumulan valor. Masterplan prolijo de 234 lotes con SUM, sauna, jacuzzi y canchas de tenis y fútbol, servicios completos con cableado subterráneo, y doble acceso, uno con entrada directa desde la autopista. El dato que miro como broker: al lado se desarrolla Aguadas Lakes, y cuando un sector recibe un proyecto de esa escala, los barrios consolidados linderos son los primeros en capitalizarlo.",
     },
     perfilComprador: [
       "Familias que buscan un consolidado con amenities completos sin ticket premium",
