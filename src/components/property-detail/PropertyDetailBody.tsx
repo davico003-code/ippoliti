@@ -29,6 +29,7 @@ import {
   translateOrientation,
   translateDisposition,
   operacionPrincipal,
+  tituloVisible,
 } from '@/lib/tokko'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
 import { formatUbicacion } from '@/lib/ubicacion'
@@ -193,7 +194,7 @@ export default function PropertyDetailBody({
       {/* OVERVIEW — title + location + price + badges */}
       <section id="overview" className={`${CARD} scroll-mt-40`}>
         <h1 style={{ fontFamily: R, fontWeight: 800, fontSize: 28, color: '#111', lineHeight: 1.2, marginBottom: 8 }}>
-          {property.publication_title || address}
+          {tituloVisible(property) || address}
         </h1>
         <div className="flex gap-2 mb-3">
           {dobleOperacion ? (

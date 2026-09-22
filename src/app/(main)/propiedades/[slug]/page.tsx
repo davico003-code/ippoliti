@@ -34,6 +34,7 @@ import {
   numeroVisitaWhatsapp,
   type TokkoProperty,
   operacionPrincipal,
+  tituloVisible,
 } from '@/lib/tokko';
 import { formatUbicacion } from '@/lib/ubicacion';
 import { sinVideosCaidos } from '@/lib/videos-vivos';
@@ -110,7 +111,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const seo = PROPERTY_SEO[property.id];
     // normalizarTitulo: si el aviso se cargó TODO EN MAYÚSCULAS, el <title> y
     // el OG salían gritados (generateMetadata no pasa por sanitizeProperty).
-    const rawTitle = seo?.title || normalizarTitulo(property.publication_title) || property.address;
+    const rawTitle = seo?.title || normalizarTitulo(tituloVisible(property)) || property.address;
     const tituloBase = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
     const title = seo?.title ? tituloBase : await tituloUnico(property, tituloBase);
     // #1: el texto de Tokko trae whitespace/newlines al inicio; los tags se
@@ -255,7 +256,7 @@ export default async function PropertyPage({ params }: Props) {
     {
       '@context': 'https://schema.org',
       '@type': 'RealEstateListing',
-      name: property.publication_title || property.address,
+      name: tituloVisible(property) || property.address,
       description,
       url: propUrl,
       image: mainPhotoUrl ? [mainPhotoUrl] : [],
@@ -294,7 +295,7 @@ export default async function PropertyPage({ params }: Props) {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://siinmobiliaria.com' },
         { '@type': 'ListItem', position: 2, name: 'Propiedades', item: 'https://siinmobiliaria.com/propiedades' },
-        { '@type': 'ListItem', position: 3, name: property.publication_title || property.address, item: propUrl },
+        { '@type': 'ListItem', position: 3, name: tituloVisible(property) || property.address, item: propUrl },
       ],
     },
   ];
@@ -302,7 +303,7 @@ export default async function PropertyPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <PropertyViewTracker propertyId={property.id} title={property.publication_title || property.address} price={price} />
+      <PropertyViewTracker propertyId={property.id} title={tituloVisible(property) || property.address} price={price} />
 
       {/* ════════════════════════════════════════════
           MOBILE LAYOUT (md:hidden)
@@ -349,7 +350,7 @@ export default async function PropertyPage({ params }: Props) {
         <div className="px-4 pb-2">
           <AudioSummary
             propertyId={property.id}
-            title={property.publication_title || property.address}
+            title={tituloVisible(property) || property.address}
           />
         </div>
 
@@ -427,9 +428,9 @@ export default async function PropertyPage({ params }: Props) {
       <MobileStickyBar
         whatsappUrl={whatsappUrl}
         slug={canonicalSlug}
-        title={property.publication_title || property.address}
+        title={tituloVisible(property) || property.address}
         propertyId={property.id}
-        propertyTitle={property.publication_title || property.address}
+        propertyTitle={tituloVisible(property) || property.address}
         visitWhatsappNumber={numeroVisitaWhatsapp(property)}
         visitTipo={
           !property.operations?.some(o => o.operation_type === 'Sale') &&

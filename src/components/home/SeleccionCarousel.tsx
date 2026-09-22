@@ -15,6 +15,7 @@ import {
   esOportunidadConsultanos,
   propertyTypeLabelById,
   type TokkoProperty,
+  tituloVisible,
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 
@@ -92,7 +93,7 @@ export default async function SeleccionCarousel() {
                 {photo ? (
                   <Image
                     src={photo}
-                    alt={p.publication_title || address}
+                    alt={tituloVisible(p) || address}
                     fill
                     className="object-cover"
                     sizes="82vw"

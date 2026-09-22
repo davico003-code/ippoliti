@@ -17,6 +17,7 @@ import {
   buildPropertyWhatsappUrl,
   getDescription,
   getBlueprintPhotos,
+  tituloVisible,
 } from '@/lib/tokko'
 import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
 import PropertyStickyNav from './property-detail/PropertyStickyNav'
@@ -235,7 +236,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
               variant="header"
               propertyId={property.id}
               slug={slug}
-              title={property.publication_title || property.fake_address || property.address}
+              title={tituloVisible(property) || property.fake_address || property.address}
               placaHref={`/propiedades/${slug}/placa`}
             />
           </div>

@@ -14,6 +14,7 @@ import {
   getTotalSurface,
   generatePropertySlug,
   operacionPrincipal,
+  tituloVisible,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
 import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
@@ -753,7 +754,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                     <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
                       <img
                         src={photo}
-                        alt={property.publication_title || property.address}
+                        alt={tituloVisible(property) || property.address}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                       />
                       {typeName && (
@@ -769,7 +770,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                       <PropertyShareButton
                         propertyId={property.id}
                         slug={generatePropertySlug(property)}
-                        title={property.publication_title || property.address || ''}
+                        title={tituloVisible(property) || property.address || ''}
                         priceLabel={fullPrice}
                         top={8}
                         right={8}
@@ -787,7 +788,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                     </span>
                   </div>
                   <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.3, margin: '0 0 8px' }}>
-                    {property.publication_title || property.address}
+                    {tituloVisible(property) || property.address}
                   </h3>
                   <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#4b5563', marginBottom: '12px' }}>
                     {area != null && area > 0 && (

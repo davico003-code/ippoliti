@@ -14,7 +14,7 @@ import Image from 'next/image'
 import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
-import { getAllPhotos, getOperationType, operationBadgeColor, preciosPorOperacion, translatePropertyType } from '@/lib/tokko'
+import { getAllPhotos, getOperationType, operationBadgeColor, preciosPorOperacion, tituloVisible, translatePropertyType } from '@/lib/tokko'
 
 const GREEN = '#1A5C38'
 
@@ -128,7 +128,7 @@ export default function PropertyGalleryHero({ property: propertyOriginal }: { pr
         >
           <Image
             src={photos[0]}
-            alt={property.publication_title || address}
+            alt={tituloVisible(property) || address}
             fill
             className="object-cover"
             sizes="100vw"
@@ -153,7 +153,7 @@ export default function PropertyGalleryHero({ property: propertyOriginal }: { pr
           >
             <Image
               src={photos[0]}
-              alt={property.publication_title || address}
+              alt={tituloVisible(property) || address}
               fill
               className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
               sizes="(min-width: 1024px) 60vw, 100vw"

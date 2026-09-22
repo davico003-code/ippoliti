@@ -13,6 +13,7 @@ import {
   getRoofedArea,
   translatePropertyType,
   operationBadgeColor,
+  tituloVisible,
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 
@@ -167,7 +168,7 @@ export default function SimilarProperties({ properties }: Props) {
                 {photo && (
                   <Image
                     src={photo}
-                    alt={property.publication_title || addr}
+                    alt={tituloVisible(property) || addr}
                     fill
                     className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -202,7 +203,7 @@ export default function SimilarProperties({ properties }: Props) {
                   </p>
                 )}
                 <h3 className="text-gray-900 text-sm font-semibold line-clamp-2 leading-snug mb-2 font-raleway">
-                  {property.publication_title || addr}
+                  {tituloVisible(property) || addr}
                 </h3>
                 <div className="flex items-center gap-1.5 text-gray-500 text-xs">
                   <MapPin className="w-3 h-3 flex-shrink-0 text-[#1A5C38]" />
