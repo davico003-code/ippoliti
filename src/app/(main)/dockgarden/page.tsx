@@ -97,11 +97,10 @@ export default async function DockGardenPage() {
       {/* Hero */}
       {/* Hero compacto en mobile: la info manda, la foto acompaña. */}
       <section className="relative h-[34vh] min-h-[240px] w-full md:h-[56vh]">
-        {/* El render trae el logo del desarrollador estampado en la franja
-            superior: crop anclado abajo + zoom para dejarlo fuera del encuadre
-            en cualquier viewport. */}
+        {/* Render propio sin sello: todas las imágenes de Brickfy (portada y
+            galería) traen el logo del desarrollador estampado. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={project.coverUrl} alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full scale-125 object-cover object-bottom origin-bottom" />
+        <img src="/images/dockgarden/render-frente.webp" alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
         <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
           <div className="mx-auto max-w-6xl">
