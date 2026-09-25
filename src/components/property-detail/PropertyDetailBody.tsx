@@ -32,7 +32,7 @@ import {
   tituloVisible,
   esTemporario,
 } from '@/lib/tokko'
-import { leerCondicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
+import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
 import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondiciones'
 import DisponibilidadTemporada from '../temporarios/DisponibilidadTemporada'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
@@ -136,7 +136,11 @@ export default function PropertyDetailBody({
   // descripción salen como precios y condiciones; el resto queda de descripción.
   const temporario = esTemporario(property) && !dobleOperacion
   const condTemp = temporario
-    ? leerCondicionesTemporario(descripcionCompleta, tienePrecio ? montoOperacion(operacionPrincipal(property)) : null)
+    ? condicionesTemporario(
+        descripcionCompleta,
+        operacionPrincipal(property)?.temporada,
+        tienePrecio ? montoOperacion(operacionPrincipal(property)) : null,
+      )
     : null
   const description = condTemp ? condTemp.descripcion : descripcionCompleta
   const blueprints = getBlueprintPhotos(property)

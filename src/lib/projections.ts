@@ -11,6 +11,7 @@
 
 import { getAudioUrlsBulk } from './audio'
 import type { TokkoProperty } from './tokko'
+import type { TemporadaFeed } from './temporarios'
 
 function isStaticBuild() {
   return process.env.NEXT_PHASE === 'phase-production-build'
@@ -35,6 +36,7 @@ export interface PropertyCardProjection {
       price: number
       currency: string
     }>
+    temporada?: TemporadaFeed | null
   }>
 
   // "Sin Precio" en Tokko: si es false, formatPrice/mostrarPrecio muestran
@@ -125,6 +127,8 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
       : null,
     operations: (p.operations ?? []).map(op => ({
       operation_type: op.operation_type,
+      // Temporario: período del precio (quincena/mes) para la tarjeta del listado.
+      ...(op.temporada ? { temporada: op.temporada } : {}),
       prices: (op.prices ?? []).map(pr => ({
         price: pr.price,
         currency: pr.currency,

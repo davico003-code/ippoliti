@@ -9,7 +9,7 @@ import {
   getDescription,
   type TokkoProperty,
 } from './tokko'
-import { leerCondicionesTemporario, type CondicionesTemporario } from './temporarios'
+import { condicionesTemporario, type CondicionesTemporario } from './temporarios'
 
 export type Temporario = { property: TokkoProperty; condiciones: CondicionesTemporario }
 
@@ -35,7 +35,7 @@ export async function cargarTemporarios(limite = 60): Promise<Temporario[]> {
     const pr = op?.prices?.[0]
     const precioFeed =
       property.web_price !== false && pr && pr.price > 0 ? `${pr.currency} ${pr.price.toLocaleString('es-AR')}` : null
-    return { property, condiciones: leerCondicionesTemporario(getDescription(property), precioFeed) }
+    return { property, condiciones: condicionesTemporario(getDescription(property), op?.temporada, precioFeed) }
   })
 }
 
