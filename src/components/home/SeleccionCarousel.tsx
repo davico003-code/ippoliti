@@ -111,7 +111,7 @@ export default async function SeleccionCarousel() {
                     {badge.label}
                   </span>
                   {typeName && (
-                    <span className="text-[12px] font-semibold leading-none px-3.5 py-2 rounded-full font-raleway text-gray-900 bg-white/90 backdrop-blur-[2px]">
+                    <span className="text-[12px] font-semibold leading-none px-3.5 py-2 rounded-full font-raleway text-gray-900 bg-white/[0.94]">
                       {typeName}
                     </span>
                   )}
