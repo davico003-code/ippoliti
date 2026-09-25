@@ -8,6 +8,7 @@ import { CAPACIDADES_META } from '@/content/si-school/capacidades'
 import CapacidadSidebar from './CapacidadSidebar'
 import LevelCard from './LevelCard'
 import CapacitacionesPanel from './CapacitacionesPanel'
+import { CAPACITACIONES } from './capacitaciones'
 import styles from './si-school.module.css'
 
 interface Props {
@@ -100,7 +101,7 @@ export default function SiSchoolShell({
           onClick={() => setDrawer('mentor')}
           aria-label="Abrir capacitaciones"
         >
-          Capacitaciones
+          Capacitaciones · {CAPACITACIONES.length}
         </button>
       </div>
 
