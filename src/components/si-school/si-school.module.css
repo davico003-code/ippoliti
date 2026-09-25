@@ -473,3 +473,144 @@
   cursor: pointer;
   font-family: var(--font-ui);
 }
+
+/* ── Capacitaciones (columna derecha) ────────────────────────────── */
+.capsHead {
+  padding: 4px 2px 14px;
+}
+.capsTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.capsTitle {
+  font-family: var(--font-titles);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0;
+}
+.capsCount {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--si-green);
+  background: var(--si-green-tint);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+}
+.capsSub {
+  font-family: var(--font-titles);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-soft);
+  margin: 4px 0 0;
+}
+.capsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.capsCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 9px 30px 9px 9px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.capsCard:hover,
+.capsCard:focus-visible {
+  border-color: var(--si-green);
+  box-shadow: 0 4px 14px rgba(26, 92, 56, 0.1);
+  outline: none;
+}
+.capsCard:active {
+  transform: scale(0.99);
+}
+.capsThumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 92px;
+  height: 69px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--si-green-tint);
+}
+.capsThumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.capsNum {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: var(--si-green);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+.capsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.capsTag {
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #F40009;
+  border-radius: 5px;
+  padding: 2px 6px;
+}
+.capsCardTitle {
+  font-family: var(--font-titles);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+}
+.capsBajada {
+  font-family: var(--font-titles);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.capsOpen {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-faint);
+  text-decoration: none;
+  padding: 2px;
+}
+.capsOpen:hover {
+  color: var(--si-green);
+}

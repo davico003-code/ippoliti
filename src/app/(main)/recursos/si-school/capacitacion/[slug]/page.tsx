@@ -5,7 +5,7 @@
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { verifyAgentToken } from '@/lib/auth'
-import { CAPACITACIONES } from '@/components/si-school/capacitaciones'
+import { CAPACITACIONES, numeroCapacitacion } from '@/components/si-school/capacitaciones'
 import CapacitacionVista from './CapacitacionVista'
 
 export const dynamic = 'force-dynamic'
@@ -22,5 +22,5 @@ export default async function CapacitacionPage({ params }: { params: { slug: str
   const token = cookies().get('si_agent_token')?.value
   const agent = token ? await verifyAgentToken(token) : null
 
-  return <CapacitacionVista id={cap.id} titulo={cap.titulo} isAgent={!!agent} />
+  return <CapacitacionVista id={cap.id} titulo={`${numeroCapacitacion(cap.id)} · ${cap.titulo}`} isAgent={!!agent} />
 }
