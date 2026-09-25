@@ -95,23 +95,26 @@ export default async function DockGardenPage() {
       </header>
 
       {/* Hero */}
-      {/* Hero compacto en mobile: la info manda, la foto acompaña. */}
-      <section className="relative h-[34vh] min-h-[240px] w-full md:h-[56vh]">
-        {/* Render propio sin sello: todas las imágenes de Brickfy (portada y
-            galería) traen el logo del desarrollador estampado. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/dockgarden/render-frente.webp" alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full object-cover object-[center_70%]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-        <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
+      {/* Mobile: foto 16:9 limpia y el título debajo (encima tapaba los
+          edificios). Desde md: hero a pantalla con el texto sobre la foto. */}
+      <section className="relative w-full bg-white md:h-[56vh]">
+        <div className="relative aspect-[16/9] w-full md:absolute md:inset-0 md:aspect-auto">
+          {/* Render propio sin sello: todas las imágenes de Brickfy (portada y
+              galería) traen el logo del desarrollador estampado. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/dockgarden/render-frente.webp" alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 hidden bg-gradient-to-t from-black/80 via-black/30 to-black/10 md:block" />
+        </div>
+        <div className="relative px-4 pb-2 pt-5 sm:px-6 md:absolute md:inset-x-0 md:bottom-0 md:p-10">
           <div className="mx-auto max-w-6xl">
             <div className="mb-3 flex flex-wrap gap-2">
               <span className="rounded-full bg-[#1A5C38] px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Condominio + Paseo comercial</span>
-              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#1A5C38]">{project.status}</span>
+              <span className="rounded-full border border-[#1A5C38]/20 bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#1A5C38] md:border-transparent">{project.status}</span>
             </div>
-            <h1 className="mb-2 text-4xl font-black text-white drop-shadow-md md:text-5xl" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            <h1 className="mb-2 text-4xl font-black text-gray-900 md:text-5xl md:text-white md:drop-shadow-md" style={{ fontFamily: 'Raleway, sans-serif' }}>
               Dock Garden
             </h1>
-            <div className="flex items-center gap-2 text-white/80">
+            <div className="flex items-center gap-2 text-gray-500 md:text-white/80">
               <MapPin className="h-4 w-4 shrink-0" />
               <span className="text-sm font-medium">{project.location}</span>
             </div>
