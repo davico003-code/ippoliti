@@ -30,7 +30,10 @@ import {
   translateDisposition,
   operacionPrincipal,
   tituloVisible,
+  esTemporario,
 } from '@/lib/tokko'
+import { leerCondicionesTemporario, tieneCondiciones } from '@/lib/temporarios'
+import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondiciones'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
 import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
@@ -65,6 +68,11 @@ const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
 const GREEN = '#1A5C38'
 const CARD = 'bg-white rounded-2xl p-6 shadow-sm border border-gray-100'
+
+function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | null {
+  const p = op?.prices?.[0]
+  return p && p.price > 0 ? `${p.currency} ${p.price.toLocaleString('es-AR')}` : null
+}
 
 function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
@@ -122,7 +130,14 @@ export default function PropertyDetailBody({
   const area = getTotalSurface(property)
   const lotSurface = getLotSurface(property)
   const propType = translatePropertyType(property.type?.name)
-  const description = getDescription(property)
+  const descripcionCompleta = getDescription(property)
+  // Temporario: los renglones "Quincena: / Mes: / Depósito: …" de la
+  // descripción salen como precios y condiciones; el resto queda de descripción.
+  const temporario = esTemporario(property) && !dobleOperacion
+  const condTemp = temporario
+    ? leerCondicionesTemporario(descripcionCompleta, tienePrecio ? montoOperacion(operacionPrincipal(property)) : null)
+    : null
+  const description = condTemp ? condTemp.descripcion : descripcionCompleta
   const blueprints = getBlueprintPhotos(property)
   const address = property.fake_address || property.address
   // Va pegada a la dirección: sin repetir el barrio o la ciudad que ya diga.
@@ -228,7 +243,9 @@ export default function PropertyDetailBody({
         ) : (
         <div>
           <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
-          {tienePrecio ? (
+          {tienePrecio && condTemp && condTemp.precios.length > 0 ? (
+            <TemporarioPrecios precios={condTemp.precios} />
+          ) : tienePrecio ? (
             <span style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
               {price}
             </span>
@@ -253,6 +270,9 @@ export default function PropertyDetailBody({
         </div>
         )}
       </section>
+
+      {/* CONDICIONES — solo alquiler temporario que las tenga cargadas */}
+      {condTemp && tieneCondiciones(condTemp) && <TemporarioCondiciones condiciones={condTemp} />}
 
       {/* COSTOS INICIALES — solo alquiler permanente con precio + moneda válidos */}
       {showCostosIngreso && (

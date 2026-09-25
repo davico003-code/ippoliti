@@ -434,7 +434,7 @@ export default async function PropertyPage({ params }: Props) {
         visitWhatsappNumber={numeroVisitaWhatsapp(property)}
         visitTipo={
           !property.operations?.some(o => o.operation_type === 'Sale') &&
-          property.operations?.some(o => o.operation_type === 'Rent')
+          property.operations?.some(o => o.operation_type === 'Rent' || o.operation_type === 'Temporary rent')
             ? 'alquiler'
             : 'venta'
         }

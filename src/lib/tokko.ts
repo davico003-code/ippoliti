@@ -1,3 +1,4 @@
+import { leerCondicionesTemporario, type PrecioTemporario } from './temporarios';
 import { normalizeArWhatsapp } from './phone'
 import { normalizarTitulo } from './titulo'
 import { corregirTipo } from './correcciones'
@@ -34,7 +35,8 @@ export interface TokkoPrice {
 
 export interface TokkoOperation {
   operation_id: number;
-  operation_type: 'Sale' | 'Rent';
+  /** 'Temporary rent' = alquiler temporario (feed de HILO desde 24-sep-2026). */
+  operation_type: 'Sale' | 'Rent' | 'Temporary rent';
   prices: TokkoPrice[];
   /** Título del aviso de ESTA operación (feed de HILO, solo en venta+alquiler). */
   title?: string | null;
@@ -483,8 +485,29 @@ export function ocultarPrecioOportunidad<T extends Pick<TokkoProperty, 'id' | 'w
 // precio formateado, o null cuando corresponde "Consultar precio": la
 // propiedad está tildada "Sin Precio" en Tokko (web_price: false — la API
 // igual manda el monto en operations, NO exponerlo) o no tiene precio cargado.
+type ConDescripcion = Partial<Pick<TokkoProperty, 'description' | 'description_only' | 'rich_description'>>;
+
+export function esTemporario(property: Pick<TokkoProperty, 'operations'>): boolean {
+  return operacionPrincipal(property)?.operation_type === 'Temporary rent';
+}
+
+/**
+ * Precios del temporario ("ARS 900.000 / quincena", "ARS 1.500.000 / mes"):
+ * salen de los renglones "Quincena:" / "Mes:" de la descripción (ver
+ * lib/temporarios.ts); sin ellos, el precio de la operación, tomado por mes.
+ */
+export function preciosTemporario(
+  property: Pick<TokkoProperty, 'operations' | 'web_price'> & ConDescripcion,
+): PrecioTemporario[] {
+  if (property.web_price === false) return [];
+  const op = (property.operations ?? []).find((o) => o.operation_type === 'Temporary rent');
+  const p = op?.prices?.[0];
+  const precioFeed = p && p.price > 0 ? `${p.currency} ${p.price.toLocaleString('es-AR')}` : null;
+  return leerCondicionesTemporario(getDescription(property), precioFeed).precios;
+}
+
 export function mostrarPrecio(
-  property: Pick<TokkoProperty, 'operations' | 'web_price'>,
+  property: Pick<TokkoProperty, 'operations' | 'web_price'> & ConDescripcion,
 ): string | null {
   if (property.web_price === false) return null;
   // Misma operación que elige getOperationType, para que el precio y el cartel
@@ -494,13 +517,21 @@ export function mostrarPrecio(
   if (!op.prices || op.prices.length === 0) return null;
   const p = op.prices[0];
   if (!p.price || p.price === 0) return null;
+  if (op.operation_type === 'Temporary rent') {
+    // La lista liviana del feed no trae descripción: sin ella no se sabe si el
+    // monto es por quincena o por mes, así que va sin período (no inventarlo).
+    const conTexto = Boolean(property.description || property.description_only || property.rich_description);
+    const t = conTexto ? preciosTemporario(property)[0] : null;
+    if (t) return `${t.texto} / ${t.periodo}`;
+    return `${p.currency} ${p.price.toLocaleString('es-AR')}`;
+  }
   const formatted = p.price.toLocaleString('es-AR');
   const suffix = op.operation_type === 'Rent' ? '/mes' : '';
   return `${p.currency} ${formatted}${suffix ? ' ' + suffix : ''}`;
 }
 
 export function formatPrice(
-  property: Pick<TokkoProperty, 'operations' | 'web_price'>,
+  property: Pick<TokkoProperty, 'operations' | 'web_price'> & ConDescripcion,
 ): string {
   return mostrarPrecio(property) ?? 'Consultar precio';
 }
@@ -508,6 +539,7 @@ export function formatPrice(
 function operacionEnEspanol(type: TokkoOperation['operation_type']): string {
   if (type === 'Sale') return 'Venta';
   if (type === 'Rent') return 'Alquiler';
+  if (type === 'Temporary rent') return 'Alquiler temporario';
   const raw = String(type).toLowerCase();
   if (raw.includes('temporary') || raw.includes('vacation')) return 'Alquiler temporario';
   return String(type);
@@ -519,7 +551,8 @@ function operacionEnEspanol(type: TokkoOperation['operation_type']): string {
  * feed todavía no trae `operations[].title`.
  */
 function tituloParaOperacion(title: string, operationType: TokkoOperation['operation_type']): string {
-  const target = operationType === 'Rent' ? 'en alquiler' : 'en venta';
+  const target =
+    operationType === 'Rent' ? 'en alquiler' : operationType === 'Temporary rent' ? 'en alquiler temporario' : 'en venta';
   const patrones: RegExp[] = [
     /\ben\s+venta\s+y\s+alquiler\b/i,
     /\ben\s+venta\s+o\s+permuta\b/i,
@@ -580,7 +613,7 @@ export function preciosPorOperacion(
     })
     .map((op) => {
       const p = op.prices[0];
-      const suffix = op.operation_type === 'Rent' ? ' /mes' : '';
+      const suffix = op.operation_type === 'Rent' || op.operation_type === 'Temporary rent' ? ' /mes' : '';
       return {
         operacion: operacionEnEspanol(op.operation_type),
         precio: `${p.currency} ${p.price.toLocaleString('es-AR')}${suffix}`,
@@ -939,7 +972,9 @@ const BOILERPLATE = [
 ];
 
 // Devuelve la descripción limpia (texto plano, sin HTML, sin boilerplate)
-export function getDescription(property: TokkoProperty): string {
+export function getDescription(
+  property: Partial<Pick<TokkoProperty, 'description' | 'description_only' | 'rich_description'>>,
+): string {
   const raw = property.description || property.description_only || property.rich_description || '';
   // Muchas descripciones vienen como HTML (<p>, <div>, <br>, <li>). Eliminar los
   // tags a secas dejaba TODO pegado en un bloque denso: primero convertimos los
@@ -1033,7 +1068,7 @@ async function hiloGetPropertyById(id: number): Promise<TokkoProperty> {
 }
 
 async function hiloGetProperties(params?: {
-  operation?: 'Sale' | 'Rent';
+  operation?: TokkoOperation['operation_type'];
   typeId?: number;
   limit?: number;
   offset?: number;
@@ -1072,7 +1107,7 @@ async function hiloGetProperties(params?: {
 }
 
 export async function getProperties(params?: {
-  operation?: 'Sale' | 'Rent';
+  operation?: TokkoOperation['operation_type'];
   typeId?: number;
   limit?: number;
   offset?: number;
@@ -1089,7 +1124,7 @@ export async function getProperties(params?: {
     url.searchParams.set('offset', String(offset));
 
     if (params?.operation) {
-      const opId = params.operation === 'Sale' ? 1 : 2;
+      const opId = params.operation === 'Sale' ? 1 : params.operation === 'Rent' ? 2 : 3;
       url.searchParams.set('operation_types', `[${opId}]`);
     }
 
