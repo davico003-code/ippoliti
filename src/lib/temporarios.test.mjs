@@ -15,6 +15,8 @@ Salida – 10 h
 Disponible: enero y febrero
 Incluye: luz, gas, wifi, ropa blanca y limpieza de salida
 Alquilado: dic 2da, enero completo
+No incluye: blanquería, limpieza diaria
+No se permite: música a alto volumen, eventos masivos y mascotas
 Capacidad: 6 personas
 Comodidades: pileta climatizada, parrilla, wifi
 
@@ -78,4 +80,12 @@ test('capacidad y comodidades (escritas primero, después las cargadas, sin repe
   const tags = [{ name: 'Barbecue' }, { name: 'Air Conditioning' }, { name: 'Water' }, { name: 'WiFi' }]
   assert.deepEqual(comodidadesTemporario(c, tags, 1), ['Pileta climatizada', 'Parrilla', 'Wifi', 'Aire acondicionado', 'Cochera'])
   assert.deepEqual(comodidadesTemporario({ comodidades: [] }, [{ name: 'Pool' }]), ['Pileta'])
+})
+
+test('lo que no incluye y lo que no se permite', () => {
+  const c = leerCondicionesTemporario(DESCRIPCION)
+  assert.deepEqual(c.noIncluye, ['Blanquería', 'Limpieza diaria'])
+  assert.deepEqual(c.noPermitido, ['Música a alto volumen', 'Eventos masivos', 'Mascotas'])
+  assert.deepEqual(c.incluye, ['Luz', 'Gas', 'Wifi', 'Ropa blanca', 'Limpieza de salida']) // "No incluye" no se mezcla
+  assert.deepEqual(leerCondicionesTemporario('Prohibido: fiestas').noPermitido, ['Fiestas'])
 })

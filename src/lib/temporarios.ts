@@ -14,6 +14,8 @@
 //   Salida: 10 h
 //   Disponible: enero y febrero
 //   Incluye: luz, gas, wifi, ropa blanca, limpieza de salida
+//   No incluye: blanquería, limpieza diaria
+//   No se permite: música a alto volumen, eventos masivos, mascotas
 //   Capacidad: 6 personas
 //   Comodidades: pileta, parrilla, aire acondicionado, wifi
 //   Alquilado: dic 2da, enero completo
@@ -47,6 +49,10 @@ export type CondicionesTemporario = {
   salida: string | null
   disponible: string | null
   incluye: string[]
+  /** Lo que NO incluye el alquiler (renglón "No incluye:"). */
+  noIncluye: string[]
+  /** Reglas de la casa: lo que no se permite (renglón "No se permite:"). */
+  noPermitido: string[]
   /** Para cuántas personas ("6"), del renglón "Capacidad:" / "Personas:". */
   personas: string | null
   /** Comodidades de la casa del renglón "Comodidades:" (se suman a las cargadas). */
@@ -58,7 +64,9 @@ export type CondicionesTemporario = {
 }
 
 type Campo =
-  | Exclude<keyof CondicionesTemporario, 'precios' | 'incluye' | 'descripcion' | 'alquiladas' | 'personas' | 'comodidades'>
+  | Exclude<keyof CondicionesTemporario, 'precios' | 'incluye' | 'descripcion' | 'alquiladas' | 'personas' | 'comodidades' | 'noIncluye' | 'noPermitido'>
+  | 'noIncluye'
+  | 'noPermitido'
   | 'personas'
   | 'comodidades'
   | 'quincena'
@@ -78,6 +86,8 @@ const ETIQUETAS: { campo: Campo; re: RegExp }[] = [
   { campo: 'salida', re: /^(salida|check[\s-]?out|egreso|horario de (salida|egreso))$/ },
   { campo: 'disponible', re: /^(disponible|disponibilidad|fechas( disponibles)?|temporada)$/ },
   { campo: 'incluye', re: /^(incluye|servicios incluidos|que incluye)$/ },
+  { campo: 'noIncluye', re: /^(no incluye|no incluido|no incluidos|no esta incluido|no estan incluidos)$/ },
+  { campo: 'noPermitido', re: /^(no se permite|no se permiten|no esta permitido|prohibido|prohibidos|reglas|reglas de la casa|normas|normas de la casa)$/ },
   { campo: 'personas', re: /^(capacidad|personas|huespedes|cantidad de personas|capacidad maxima)$/ },
   { campo: 'comodidades', re: /^(comodidades|la casa tiene|cuenta con|equipamiento)$/ },
   { campo: 'alquiladas', re: /^(alquilad[oa]s?|ocupad[oa]s?|reservad[oa]s?|no disponible)$/ },
@@ -151,6 +161,8 @@ export function leerCondicionesTemporario(descripcion: string, precioFeed?: stri
     salida: null,
     disponible: null,
     incluye: [],
+    noIncluye: [],
+    noPermitido: [],
     personas: null,
     comodidades: [],
     alquiladas: [],
@@ -175,6 +187,8 @@ export function leerCondicionesTemporario(descripcion: string, precioFeed?: stri
       case 'mes': mes = formatearMonto(valor); break
       case 'deposito': out.deposito = formatearMonto(valor); break
       case 'incluye': out.incluye.push(...lista(valor)); break
+      case 'noIncluye': out.noIncluye.push(...lista(valor)); break
+      case 'noPermitido': out.noPermitido.push(...lista(valor)); break
       case 'personas': out.personas = valor.match(/\d+/)?.[0] ?? valor; break
       case 'comodidades': out.comodidades.push(...lista(valor)); break
       case 'alquiladas': out.alquiladas = Array.from(new Set([...out.alquiladas, ...leerAlquiladas(valor)])); break
@@ -194,7 +208,7 @@ export function leerCondicionesTemporario(descripcion: string, precioFeed?: stri
 export function tieneCondiciones(c: CondicionesTemporario): boolean {
   return Boolean(
     c.deposito || c.sena || c.formaPago || c.estadiaMinima || c.entrada || c.salida || c.disponible || c.personas ||
-      c.incluye.length || c.comodidades.length,
+      c.incluye.length || c.comodidades.length || c.noIncluye.length || c.noPermitido.length,
   )
 }
 

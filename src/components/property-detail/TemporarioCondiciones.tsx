@@ -1,7 +1,7 @@
 // Ficha de un alquiler temporario: los valores por quincena / mes y las
 // condiciones (depósito y pago · estadía y horarios · qué incluye), cada cosa en
 // su renglón. Los datos salen de la descripción cargada en HILO (lib/temporarios).
-import { CalendarDays, Check, Clock, Wallet } from 'lucide-react'
+import { Ban, CalendarDays, Check, Clock, Wallet, X } from 'lucide-react'
 import type { CondicionesTemporario } from '@/lib/temporarios'
 
 const R = "'Raleway', system-ui, sans-serif"
@@ -111,6 +111,34 @@ export default function TemporarioCondiciones({
                 style={{ color: GREEN }}
               >
                 <Check className="w-3.5 h-3.5" aria-hidden />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {c.noIncluye.length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-2 text-[13px] font-bold uppercase tracking-wide text-gray-500">No incluye</h3>
+          <ul className="flex flex-wrap gap-2">
+            {c.noIncluye.map((item) => (
+              <li key={item} className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-[13px] font-semibold text-gray-600">
+                <X className="w-3.5 h-3.5" aria-hidden />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {c.noPermitido.length > 0 && (
+        <div className="mt-6 rounded-xl border border-red-100 bg-red-50/60 p-4">
+          <h3 className="mb-2 flex items-center gap-2 text-[13px] font-bold uppercase tracking-wide text-red-700">
+            <Ban className="w-4 h-4" aria-hidden /> No se permite
+          </h3>
+          <ul className="space-y-1.5">
+            {c.noPermitido.map((item) => (
+              <li key={item} className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <Ban className="w-3.5 h-3.5 flex-shrink-0 text-red-600" aria-hidden />
                 {item}
               </li>
             ))}
