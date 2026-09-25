@@ -2,18 +2,8 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Bed, Bath, CalendarDays, Clock } from 'lucide-react'
-import {
-  getProperties,
-  getPropertyById,
-  sanitizeProperty,
-  generatePropertySlug,
-  getMainPhoto,
-  getDescription,
-  translatePropertyType,
-  tituloVisible,
-  type TokkoProperty,
-} from '@/lib/tokko'
-import { leerCondicionesTemporario, type CondicionesTemporario } from '@/lib/temporarios'
+import { generatePropertySlug, getMainPhoto, translatePropertyType, tituloVisible } from '@/lib/tokko'
+import { cargarTemporarios, type Temporario } from '@/lib/temporarios-data'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 3600
@@ -35,36 +25,6 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'SI INMOBILIARIA',
   },
-}
-
-type Temporario = { property: TokkoProperty; condiciones: CondicionesTemporario }
-
-async function cargarTemporarios(): Promise<Temporario[]> {
-  let lista: TokkoProperty[] = []
-  try {
-    const data = await getProperties({ operation: 'Temporary rent', limit: 60 })
-    lista = data.objects ?? []
-  } catch {
-    return []
-  }
-  // La lista del feed viene sin descripción, y de ella salen los precios por
-  // quincena/mes y las condiciones: se trae la ficha de cada una (son pocas).
-  const fichas = await Promise.all(
-    lista.map(async (p) => {
-      try {
-        return sanitizeProperty(await getPropertyById(p.id))
-      } catch {
-        return sanitizeProperty(p)
-      }
-    }),
-  )
-  return fichas.map((property) => {
-    const op = property.operations?.find((o) => o.operation_type === 'Temporary rent')
-    const pr = op?.prices?.[0]
-    const precioFeed =
-      property.web_price !== false && pr && pr.price > 0 ? `${pr.currency} ${pr.price.toLocaleString('es-AR')}` : null
-    return { property, condiciones: leerCondicionesTemporario(getDescription(property), precioFeed) }
-  })
 }
 
 function TarjetaTemporario({ property, condiciones: c }: Temporario) {
