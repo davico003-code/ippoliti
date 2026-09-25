@@ -303,8 +303,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           </>
         )}
 
-        {/* Badges top-left — operación (color) + tipo de inmueble (blanco) */}
-        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5" style={{ right: 48 }}>
+        {/* Badges top-left — operación (color) + tipo de inmueble (blanco).
+            z-10 + capa propia: la tira de fotos se mueve con transform y en
+            iOS Safari tapaba/despintaba los badges al pasar de foto. */}
+        <div className="absolute top-2.5 left-2.5 z-10 flex flex-wrap gap-1.5" style={{ right: 48, transform: 'translateZ(0)' }}>
           {operaciones.map(operation => (
             <span key={operation} style={{
               background: operationBadgeColor(operation),
@@ -321,7 +323,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           ))}
           {typeName && (
             <span style={{
-              background: 'rgba(255,255,255,0.9)',
+              background: 'rgba(255,255,255,0.94)',
               color: '#0a0a0a',
               fontFamily: RALEWAY,
               fontWeight: 600,
@@ -329,7 +331,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
               lineHeight: 1,
               padding: '8px 14px',
               borderRadius: 9999,
-              backdropFilter: 'blur(2px)',
             }}>
               {typeName}
             </span>
@@ -342,7 +343,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           propertyId={property.id}
           audioUrl={property.audioUrl ?? null}
           size={32}
-          className="absolute top-2.5 right-2.5"
+          className="absolute top-2.5 right-2.5 z-10"
         />
       </div>
 
