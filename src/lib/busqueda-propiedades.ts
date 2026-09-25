@@ -361,7 +361,11 @@ export function construirIndice(props: Prop[]): Indice {
     const loc = p.location as (Prop['location'] & { full_location?: string }) | null
     // Tokko cuelga Roldán del departamento San Lorenzo ("Santa Fe | San Lorenzo |
     // Roldan"): sin esto, "terreno san lorenzo" traía los lotes de Roldán.
-    const sinDepto = (s?: string | null) => (s ?? '').replace(/\|\s*San Lorenzo\s*\|\s*(?=Rold)/i, '| ')
+    // El país y la provincia tampoco: están en todos los avisos y "santa fe"
+    // (la calle) traía el inventario entero.
+    const sinDepto = (s?: string | null) => (s ?? '')
+      .replace(/\|\s*San Lorenzo\s*\|\s*(?=Rold)/i, '| ')
+      .replace(/^\s*(Argentina\s*\|\s*)?Santa Fe\s*(\||$)/i, '')
     const ubicacion = [loc?.name, sinDepto(loc?.short_location), sinDepto(loc?.full_location), p.development?.name]
       .filter(Boolean).join(' | ')
     const fuentes = [p.publication_title, p.address, p.fake_address, ubicacion].filter(Boolean).join(' | ')
@@ -849,6 +853,13 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
       // "funes hils", "funes nrte": una letra de error por palabra de 4+.
       return conTypo && w.length >= 4 && t.length >= 4 && !/\d/.test(w + t) && distancia(t, w, 1) <= 1
     })
+  // ¿Arranca una altura de calle en `j`? "2526", "al 2500".
+  const esAltura = (j: number) => /^\d{3,5}$/.test(toks[j] ?? '') ||
+    (toks[j] === 'al' && /^\d{3,5}$/.test(toks[j + 1] ?? ''))
+  // Localidad seguida de altura que además es calle del inventario ("san lorenzo
+  // 2526"): la calle. Si ninguna dirección la nombra ("alvear 1200"), la localidad.
+  const esCalle = (frase: string, j: number) => esAltura(j) && !!indice?.entradas.some(e =>
+    ` ${palabras(`${e.p.address ?? ''} ${e.p.fake_address ?? ''}`).join(' ')} `.includes(` ${frase} `))
   // ¿Hay un negador justo antes (saltando relleno)? "que no sea en barrio cerrado".
   const negadoEn = (i: number) => {
     for (let k = i - 1, saltos = 0; k >= 0 && saltos < 4; k--, saltos++) {
@@ -864,9 +875,18 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
   const porPosicion: Termino[] = []
   for (let i = 0; i < toks.length; i++) {
     let hecho = false
+    // "santa fe 2568", "calle santa fe": la calle de Rosario, no la provincia
+    // (que como relleno no filtra nada).
+    if (matchFrase(['santa', 'fe'], i) && (esAltura(i + 2) || ['calle', 'av', 'avenida', 'avda'].includes(toks[i - 1] ?? ''))) {
+      usados.add(i); usados.add(i + 1)
+      porPosicion.push({ crudo: 'santa fe', mostrar: 'Santa Fe', variantes: [{ ws: ['santa', 'fe'] }], pos: i, fin: i + 1, parcial: false })
+      continue
+    }
     for (const [frase, nombre] of Array.from(CIUDADES_FRASE.entries())) {
       const ws = frase.split(' ')
       if (!matchFrase(ws, i)) continue
+      // "san lorenzo 2526": con altura detrás es la calle, no la localidad.
+      if (esCalle(frase, i + ws.length)) continue
       ws.forEach((_, k) => usados.add(i + k))
       const c = frase === 'puerto gral san martin' ? 'puerto general san martin' : frase
       const t: Termino = { crudo: nombre, variantes: [{ ws: [], soloCiudad: c }], pos: i, fin: i + ws.length - 1, parcial: false }
@@ -1008,6 +1028,16 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
       out.suaves.push('comercial')
       continue
     }
+    // "lote 229", "lote 058": el número de lote de la dirección (una casa en
+    // Kentucky también es "Lote 229"), no el tipo terreno.
+    const nroLote = toks[i + 1] ?? ''
+    if (indice && (t === 'lote' || t === 'lotes') && /^\d{1,4}$/.test(nroLote) &&
+      indice.entradas.some(e => e.texto.includes(` lote ${nroLote}${esParcial(nroLote, i + 1) ? '' : ' '}`))) {
+      usados.add(i + 1)
+      const f: Termino = { crudo: `lote ${nroLote}`, variantes: [{ ws: ['lote', nroLote] }], pos: i, fin: i + 1, parcial: esParcial(nroLote, i + 1) }
+      if (negado) out.excluir.push(f); else porPosicion.push(f)
+      continue
+    }
     const tipo: TipoClave | undefined = PALABRA_TIPO[t] ?? (!parcial ? corregir(t, PALABRA_TIPO) : unicoPrefijo(t, PALABRA_TIPO, 4))
     if (tipo) {
       // Sin stock de ese tipo y la palabra también es nombre de lugar ("chacra
@@ -1064,7 +1094,9 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     // Código de aviso: "sla7272337", "7272337", "sho 8098748", o a medio tipear.
     if (indice) {
       const sig = toks[i + 1] ?? ''
-      const junto = /^[a-z]{2,4}$/.test(t) && /^\d+$/.test(sig) && (codigoLetras.has(t) || sig.length >= 4) ? t + sig : null
+      // Solo con las letras de un código real: "san juan 2050" o "av real 9191"
+      // son calle + altura, no el código JUAN2050.
+      const junto = codigoLetras.has(t) && /^\d+$/.test(sig) ? t + sig : null
       if (junto) {
         usados.add(i + 1)
         if (indice.porId.has(junto)) out.codigo = junto
@@ -1078,8 +1110,10 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
         else out.codigoBuscado = t
         continue
       }
+      // Altura de calle: detrás de un nombre ("dorrego 1409") o de "al"
+      // ("cordoba al 9000" no es el prefijo de los códigos 9000…).
       const trasPalabra = !!prev && /^[a-z]+$/.test(prev) && !['codigo', 'cod', 'ref', 'referencia', 'id', 'aviso'].includes(prev) &&
-        !RELLENO.has(prev) && t.length <= 5
+        (!RELLENO.has(prev) || prev === 'al') && t.length <= 5
       if (/^\d{4,}$/.test(t) && !trasPalabra) {
         if (indice.porId.has(t)) { out.codigo = t; continue }
         if (esCodigoOPrefijo(indice, t) && (parcial || t.length >= 5)) { out.codigoPrefijo = t; continue }
@@ -1097,7 +1131,7 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     const ciudadPref = parcial && t.length >= 3 ? Array.from(CIUDADES.keys()).find(c => c.startsWith(t) && c !== t) : undefined
     const ciudadTypo = !CIUDADES.has(t) && !ciudadPref && t.length >= 5 && !(indice?.vocab.has(t))
       ? Array.from(CIUDADES.keys()).find(c => distancia(t, c, 1) <= 1 || fonetica(t) === fonetica(c)) : undefined
-    if (CIUDADES.has(t) || ciudadPref || ciudadTypo) {
+    if ((CIUDADES.has(t) || ciudadPref || ciudadTypo) && !esCalle(t, i + 1)) {
       const c = CIUDADES.has(t) ? t : (ciudadPref ?? ciudadTypo)!
       nuevo = { crudo: CIUDADES.get(c)!, variantes: [{ ws: [], soloCiudad: c }], pos: i, fin: i, parcial: false }
       if (!CIUDADES.has(t)) nuevo.variantes.push({ ws: [t] })
