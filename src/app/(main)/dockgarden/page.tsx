@@ -100,7 +100,7 @@ export default async function DockGardenPage() {
         {/* Render propio sin sello: todas las imágenes de Brickfy (portada y
             galería) traen el logo del desarrollador estampado. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/dockgarden/render-frente.webp" alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full object-cover" />
+        <img src="/images/dockgarden/render-frente.webp" alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full object-cover object-[center_70%]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
         <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
           <div className="mx-auto max-w-6xl">

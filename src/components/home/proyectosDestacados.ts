@@ -36,7 +36,7 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
     location: 'Aldea Fisherton',
     pago: 'Entrega 20% + 36 cuotas fijas en USD',
     href: '/emprendimientos/67173-dockgarden-aldea-fisherton',
-    image: 'https://static.tokkobroker.com/dev_pictures/67173_93775060846060385394324593876733363454956168345677306486130087037249128718036.jpg',
+    image: '/images/dockgarden/render-frente.webp', // render propio: la de Tokko trae el logo estampado
     videoUrl: '/videos/proyectos/dockgarden',
   },
   {
