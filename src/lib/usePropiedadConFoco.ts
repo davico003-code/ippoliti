@@ -10,6 +10,7 @@ function focoDeLaUrl(): Foco {
   const op = (sp.get('operacion') ?? sp.get('op') ?? '').toLowerCase()
   if (op === 'alquiler') return 'Rent'
   if (op === 'venta') return 'Sale'
+  if (op === 'temporario' || op === 'temporal') return 'Temporary rent'
   return null
 }
 

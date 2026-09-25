@@ -53,7 +53,7 @@ function Tarjeta({ property, condiciones: c, paleta }: Temporario & { paleta: Pa
 
   return (
     <Link
-      href={`/propiedades/${generatePropertySlug(property)}`}
+      href={`/propiedades/${generatePropertySlug(property)}?operacion=temporario`}
       className="group flex-shrink-0 snap-start w-[84vw] max-w-[350px] md:w-[330px] bg-white rounded-2xl overflow-hidden flex flex-col"
       style={{ boxShadow: '0 1px 3px rgba(47,36,24,0.08), 0 8px 24px rgba(47,36,24,0.08)', textDecoration: 'none' }}
     >

@@ -248,3 +248,70 @@ export function comodidadesTemporario(
     return true
   })
 }
+
+/**
+ * Datos del temporario que manda HILO en el feed (operations[].temporada, desde
+ * 26-sep-2026): se cargan en la carga de Hilo con chips, no escritos a mano.
+ */
+export type TemporadaFeed = {
+  moneda?: string | null
+  precio_quincena?: number | null
+  precio_mes?: number | null
+  capacidad?: number | null
+  estadia_minima?: string | null
+  entrada?: string | null
+  salida?: string | null
+  deposito?: number | null
+  sena?: string | null
+  forma_pago?: string | null
+  incluye?: string[]
+  no_incluye?: string[]
+  no_permitido?: string[]
+  alquiladas?: string[]
+  /** Comodidades tildadas en la carga de Hilo, con su nombre visible. */
+  comodidades?: string[]
+}
+
+function montoFeed(moneda: string | null | undefined, n: number | null | undefined): string | null {
+  if (n == null || !Number.isFinite(n) || n <= 0) return null
+  return `${moneda === 'USD' ? 'USD' : 'ARS'} ${Math.round(n).toLocaleString('es-AR')}`
+}
+
+/**
+ * Condiciones del temporario: lo estructurado de HILO manda; los renglones
+ * "Etiqueta: valor" de la descripción quedan de respaldo (avisos cargados antes)
+ * y siempre se sacan de la descripción visible.
+ */
+export function condicionesTemporario(
+  descripcion: string,
+  feed: TemporadaFeed | null | undefined,
+  precioFeed?: string | null,
+): CondicionesTemporario {
+  const texto = leerCondicionesTemporario(descripcion, feed ? null : precioFeed)
+  if (!feed) return texto
+  const precios: PrecioTemporario[] = []
+  const q = montoFeed(feed.moneda, feed.precio_quincena)
+  const m = montoFeed(feed.moneda, feed.precio_mes)
+  if (q) precios.push({ periodo: 'quincena', texto: q })
+  if (m) precios.push({ periodo: 'mes', texto: m })
+  const validas = new Set<string>(MESES_TEMPORADA.flatMap((x) => [`${x.clave}-1`, `${x.clave}-2`]))
+  const alquiladas = (feed.alquiladas ?? []).filter((k): k is QuincenaClave => validas.has(k))
+  const lista = (xs: string[] | undefined, respaldo: string[]) => (xs && xs.length ? xs : respaldo)
+  return {
+    precios: precios.length ? precios : texto.precios,
+    deposito: montoFeed(feed.moneda, feed.deposito) ?? texto.deposito,
+    sena: feed.sena ?? texto.sena,
+    formaPago: feed.forma_pago ?? texto.formaPago,
+    estadiaMinima: feed.estadia_minima ?? texto.estadiaMinima,
+    entrada: feed.entrada ?? texto.entrada,
+    salida: feed.salida ?? texto.salida,
+    disponible: texto.disponible,
+    incluye: lista(feed.incluye, texto.incluye),
+    noIncluye: lista(feed.no_incluye, texto.noIncluye),
+    noPermitido: lista(feed.no_permitido, texto.noPermitido),
+    personas: feed.capacidad ? String(feed.capacidad) : texto.personas,
+    comodidades: lista(feed.comodidades, texto.comodidades),
+    alquiladas: alquiladas.length || feed.alquiladas ? alquiladas : texto.alquiladas,
+    descripcion: texto.descripcion,
+  }
+}
