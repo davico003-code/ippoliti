@@ -618,7 +618,11 @@ export function preciosPorOperacion(
     })
     .map((op) => {
       const p = op.prices[0];
-      const suffix = op.operation_type === 'Rent' || op.operation_type === 'Temporary rent' ? ' /mes' : '';
+      // Temporario de HILO: el precio de la operación es por quincena.
+      const suffix =
+        op.operation_type === 'Temporary rent'
+          ? op.temporada ? ' / quincena' : ''
+          : op.operation_type === 'Rent' ? ' /mes' : '';
       return {
         operacion: operacionEnEspanol(op.operation_type),
         precio: `${p.currency} ${p.price.toLocaleString('es-AR')}${suffix}`,

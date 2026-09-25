@@ -30,7 +30,6 @@ import {
   translateDisposition,
   operacionPrincipal,
   tituloVisible,
-  esTemporario,
 } from '@/lib/tokko'
 import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
 import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondiciones'
@@ -134,13 +133,11 @@ export default function PropertyDetailBody({
   const descripcionCompleta = getDescription(property)
   // Temporario: los renglones "Quincena: / Mes: / Depósito: …" de la
   // descripción salen como precios y condiciones; el resto queda de descripción.
-  const temporario = esTemporario(property) && !dobleOperacion
-  const condTemp = temporario
-    ? condicionesTemporario(
-        descripcionCompleta,
-        operacionPrincipal(property)?.temporada,
-        tienePrecio ? montoOperacion(operacionPrincipal(property)) : null,
-      )
+  // Venta + temporario (David, 26-sep): el temporario puede no ser la
+  // operación principal; sus condiciones y quincenas se muestran igual.
+  const opTemporaria = (property.operations ?? []).find((o) => o.operation_type === 'Temporary rent') ?? null
+  const condTemp = opTemporaria
+    ? condicionesTemporario(descripcionCompleta, opTemporaria.temporada, tienePrecio ? montoOperacion(opTemporaria) : null)
     : null
   const description = condTemp ? condTemp.descripcion : descripcionCompleta
   const blueprints = getBlueprintPhotos(property)
@@ -236,14 +233,27 @@ export default function PropertyDetailBody({
         </div>
         {dobleOperacion ? (
           <div className="flex flex-wrap gap-x-10 gap-y-4">
-            {precios.map(({ operacion, precio }) => (
-              <div key={operacion}>
-                <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">{operacion}</span>
-                <span style={{ fontFamily: P, fontWeight: 800, fontSize: 28, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
-                  {precio}
-                </span>
+            {precios.map(({ operacion, precio }) => {
+              const mes = operacion === 'Alquiler temporario' ? condTemp?.precios.find((x) => x.periodo === 'mes') : undefined
+              return (
+                <div key={operacion}>
+                  <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">{operacion}</span>
+                  <span style={{ fontFamily: P, fontWeight: 800, fontSize: 28, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
+                    {precio}
+                  </span>
+                  {mes && (
+                    <span className="block mt-1 text-sm font-semibold text-gray-600" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                      {mes.texto} / mes
+                    </span>
+                  )}
+                </div>
+              )
+            })}
+            {condTemp && (
+              <div className="basis-full max-w-md">
+                <DisponibilidadTemporada alquiladas={condTemp.alquiladas} tamano="md" />
               </div>
-            ))}
+            )}
           </div>
         ) : (
         <div>

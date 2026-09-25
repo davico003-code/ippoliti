@@ -37,7 +37,7 @@ function TarjetaTemporario({ property, condiciones: c }: Temporario) {
 
   return (
     <li className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-shadow">
-      <Link href={`/propiedades/${generatePropertySlug(property)}`} className="flex flex-col h-full">
+      <Link href={`/propiedades/${generatePropertySlug(property)}?operacion=temporario`} className="flex flex-col h-full">
         <div className="relative h-48 bg-gray-100">
           {foto && (
             <Image src={foto} alt={titulo} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
