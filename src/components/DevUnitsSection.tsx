@@ -37,7 +37,7 @@ export default function DevUnitsSection({ filas, devName, whatsappUrl, location,
     if (!pageUrl || !filas.some(f => f.precio > 0)) return null
     const lines = filas.slice().sort(porPrecio).map(f => {
       const parts = [f.etiqueta, ...(f.m2 > 0 && !f.etiqueta.includes('m²') ? [`${f.m2.toLocaleString('es-AR')} m²`] : [])]
-      return `▪️ ${parts.join(' · ')} — ${f.precio > 0 ? `*${formatPrecio(f)}*` : 'Consultar'}`
+      return `▪️ ${parts.join(' · ')} — ${f.precio > 0 ? `*${formatPrecio(f)}*${f.preferencial ? ' (valor preferencial)' : ''}` : 'Consultar'}`
     })
     const msg = [
       `*Lista de precios — ${devName}*${location && !devName.toLowerCase().includes(location.toLowerCase()) ? ` (${location})` : ''}`,
@@ -133,9 +133,16 @@ export default function DevUnitsSection({ filas, devName, whatsappUrl, location,
                       {f.m2 > 0 ? `${f.m2.toLocaleString('es-AR')} m²` : '—'}
                     </p>
 
-                    <p className="text-right text-lg font-bold text-[#1A5C38] font-numeric md:text-xl">
-                      {formatPrecio(f)}
-                    </p>
+                    <div className="text-right">
+                      {f.preferencial && f.precio > 0 && (
+                        <p className="text-[11px] font-bold uppercase tracking-wide text-[#F40009]">
+                          Valor preferencial
+                        </p>
+                      )}
+                      <p className="text-lg font-bold text-[#1A5C38] font-numeric md:text-xl">
+                        {formatPrecio(f)}
+                      </p>
+                    </div>
 
                     {(f.planos.length > 0 || f.href) && (
                       <div className="col-start-2 flex justify-end gap-2 md:col-start-auto">

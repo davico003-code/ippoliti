@@ -18,6 +18,8 @@ export interface UnidadFila {
   /** Ficha propia de la unidad, si existe. */
   href?: string
   reservada?: boolean
+  /** Precio especial de SI (lista del desarrollador → PRECIOS_PREFERENCIALES). */
+  preferencial?: boolean
 }
 
 const TYPE_MAP: Record<string, string> = {
@@ -91,5 +93,6 @@ export function filasDesdeBrickfy(units: BrickfyUnit[]): UnidadFila[] {
       moneda: 'USD',
       planos: u.blueprintImageUrls || [],
       reservada: u.status === 'reserved',
+      preferencial: u.preferencial,
     }))
 }

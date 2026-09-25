@@ -116,9 +116,16 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-400" style={{ fontFamily: RALEWAY }}>
                     {label}
                   </p>
-                  <p className="shrink-0 font-numeric text-[19px] font-semibold leading-none text-[#0F3F26]" style={{ fontFamily: POPPINS, letterSpacing: '-0.01em' }}>
-                    USD {u.price.toLocaleString('es-AR')}
-                  </p>
+                  <div className="shrink-0 text-right">
+                    {u.preferencial && (
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#F40009]" style={{ fontFamily: RALEWAY }}>
+                        Valor preferencial
+                      </p>
+                    )}
+                    <p className="font-numeric text-[19px] font-semibold leading-none text-[#0F3F26]" style={{ fontFamily: POPPINS, letterSpacing: '-0.01em' }}>
+                      USD {u.price.toLocaleString('es-AR')}
+                    </p>
+                  </div>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
                   <p className="text-[13px] font-bold text-gray-900" style={{ fontFamily: RALEWAY }}>
