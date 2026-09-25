@@ -76,6 +76,14 @@ export const CAPACITACIONES: Capacitacion[] = [
     imagen: '/si-school/capacitaciones/img/instrumentos-operacion.jpg',
     src: '/si-school/capacitaciones/instrumentos-operacion.html',
   },
+  {
+    id: 'auditar-lote-scit',
+    titulo: 'Auditar un lote en el SCIT',
+    bajada: 'Titular, plano, partida y VEP antes de tomar una propiedad',
+    etiqueta: 'Nuevo',
+    imagen: '/si-school/capacitaciones/img/auditar-lote-scit.jpg',
+    src: '/si-school/capacitaciones/auditar-lote-scit.html',
+  },
 ]
 
 /** Número de la capacitación con dos dígitos ("01"), según su orden. */
