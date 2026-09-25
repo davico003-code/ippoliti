@@ -139,12 +139,6 @@ function operationForView(property: TokkoProperty, operationType: OperationType 
   return property.operations?.find(operation => operation.operation_type === operationType) ?? null
 }
 
-/** La card muestra un alquiler (su operación principal no es una venta). */
-function esAlquilerOp(property: TokkoProperty) {
-  const op = operacionPrincipal(property)?.operation_type
-  return op === 'Rent' || op === 'Temporary rent'
-}
-
 /** Precio para ordenar: el que la card muestra, o null si no se publica. */
 function precioOrden(property: TokkoProperty, operationType: OperationType | null) {
   if (property.web_price === false) return null
@@ -968,27 +962,10 @@ export default function PropiedadesView({
     }
     return true
   }).sort((a, b) => {
-    // Con búsqueda escrita y sin orden elegido: primero lo que mejor responde,
-    // o el orden que se pidió con palabras ("barato", "lo más caro", "novedades").
+    // Con búsqueda escrita y sin orden elegido: el orden del buscador (lo que
+    // mejor responde, o por precio si se pidió "barato" / "lo más caro").
     if (resultadoBusqueda && sortBy === 'destacadas') {
-      const orden = resultadoBusqueda.orden
-      if (orden === 'recientes') return (Number(b.id) || 0) - (Number(a.id) || 0)
-      if (orden === 'barato' || orden === 'caro') {
-        const pa = precioOrden(a, operacionVista)
-        const pb = precioOrden(b, operacionVista)
-        if (!pa || !pb) return pa ? -1 : pb ? 1 : 0
-        // Sin operación elegida, ventas antes que alquileres (no se compara un
-        // precio de venta con uno mensual); en venta USD primero, en alquiler pesos.
-        const ra = operacionVista ? 0 : esAlquilerOp(a) ? 1 : 0
-        const rb = operacionVista ? 0 : esAlquilerOp(b) ? 1 : 0
-        if (ra !== rb) return ra - rb
-        if (pa.currency !== pb.currency) {
-          const primero = (operacionVista === 'Rent' || ra === 1) ? 'ARS' : 'USD'
-          return pa.currency === primero ? -1 : 1
-        }
-        return orden === 'barato' ? pa.price - pb.price : pb.price - pa.price
-      }
-      return (resultadoBusqueda.score.get(b.id) ?? 0) - (resultadoBusqueda.score.get(a.id) ?? 0)
+      return (resultadoBusqueda.rango.get(a.id) ?? 1e9) - (resultadoBusqueda.rango.get(b.id) ?? 1e9)
     }
     switch (sortBy) {
       case 'destacadas': {

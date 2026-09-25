@@ -104,7 +104,7 @@ type TipoClave = 'casa' | 'departamento' | 'ph' | 'terreno' | 'quinta' | 'oficin
   'campo' | 'cochera' | 'galpon'
 interface TipoDef { ids: number[]; singular: string; plural: string; parecido?: TipoClave[]; titulo: string[] }
 const TIPOS: Record<TipoClave, TipoDef> = {
-  casa: { ids: [3, 13, 4], singular: 'Casa', plural: 'Casas', parecido: ['ph', 'departamento'], titulo: ['casa', 'casas', 'chalet'] },
+  casa: { ids: [3, 13, 4], singular: 'Casa', plural: 'Casas', parecido: ['ph'], titulo: ['casa', 'casas', 'chalet'] },
   departamento: { ids: [2], singular: 'Departamento', plural: 'Departamentos', parecido: ['ph'], titulo: ['departamento', 'departamentos', 'depto', 'monoambiente'] },
   ph: { ids: [13], singular: 'PH', plural: 'PH', parecido: ['departamento', 'casa'], titulo: ['ph'] },
   terreno: { ids: [1], singular: 'Terreno', plural: 'Terrenos', parecido: ['campo'], titulo: ['lote', 'lotes', 'terreno', 'terrenos'] },
@@ -150,7 +150,7 @@ for (const w of ['alq', 'alqs', 'alquiler', 'alquileres', 'alquilar', 'alquilo',
   'renta', 'rentar', 'arriendo', 'arrendar', 'alquilando', 'anual'])
   PALABRA_OP[w] = 'Rent'
 const TEMPORARIO = new Set(['temporario', 'temporaria', 'temporarios', 'temporal', 'temporada', 'vacaciones', 'verano',
-  'quincena', 'quincenas', 'finde', 'veraneo'])
+  'quincena', 'quincenas', 'veraneo'])
 
 // Palabras de relleno: no filtran ni se informan como ignoradas.
 const RELLENO = new Set([
@@ -196,7 +196,13 @@ const SUAVES = new Set([
   'banos', 'planta', 'plantas', 'baja', 'alta', 'piso', 'pisos', 'permuta', 'permutas', 'comercial', 'comerciales',
   'edificio', 'estudiante', 'estudiantes', 'facultad', 'universidad', 'personas', 'autos', 'auto', 'cubierta',
   'cubierto', 'cubiertos', 'cubiertas', 'semicubierta', 'fondo', 'dependencia', 'servicio', 'cocina', 'living',
-  'comedor', 'cochera', 'cocheras', 'garage', 'garaje', 'vivienda', 'compra', 'hijos',
+  'comedor', 'cochera', 'cocheras', 'garage', 'garaje', 'vivienda', 'compra', 'hijos', 'lista', 'listo', 'habitar',
+  'sola', 'solo', 'salida', 'calles', 'material', 'espaciosa', 'espacioso', 'acepta', 'aceptan', 'contado',
+  'mensual', 'mensuales', 'expensas', 'bajas', 'escalera', 'refaccionar', 'refaccionada', 'remodelar',
+  'remodelada', 'remodelado', 'climatizada', 'climatizado', 'minimalista', 'estado', 'buen', 'gran', 'enorme',
+  'chiquito', 'chiquita', 'mucho', 'amplitud', 'luminosidad', 'orientacion', 'renta', 'rentabilidad',
+  'inquilino', 'alquilado', 'alquilada', 'habitable', 'dueno', 'propietario', 'cuadra', 'cuadras', 'metros',
+  'nuevito', 'estrenado', 'rio', 'lago', 'laguna', 'golf', 'club', 'house', 'casco', 'arboles', 'verdes',
 ])
 
 const BARATO = new Set(['barato', 'barata', 'baratos', 'baratas', 'economico', 'economica', 'economicos',
@@ -220,8 +226,15 @@ const CIUDADES = new Map<string, string>([
   ['perez', 'Pérez'], ['baigorria', 'Baigorria'], ['zavalla', 'Zavalla'], ['soldini', 'Soldini'],
   ['alvear', 'Alvear'],
 ])
-const LOCALIDADES = ['funes', 'roldan', 'rosario', 'san lorenzo', 'ibarlucea', 'perez', 'baigorria', 'zavalla',
-  'soldini', 'alvear', 'granadero baigorria', 'capitan bermudez', 'pueblo esther', 'villa gobernador galvez']
+// Localidades de varias palabras: se buscan como ciudad, no como palabras sueltas.
+const CIUDADES_FRASE = new Map<string, string>([
+  ['san lorenzo', 'San Lorenzo'], ['villa gobernador galvez', 'Villa Gobernador Gálvez'],
+  ['granadero baigorria', 'Granadero Baigorria'], ['capitan bermudez', 'Capitán Bermúdez'],
+  ['pueblo esther', 'Pueblo Esther'], ['puerto general san martin', 'Puerto General San Martín'],
+  ['puerto gral san martin', 'Puerto General San Martín'],
+])
+const LOCALIDADES = ['funes', 'roldan', 'rosario', 'ibarlucea', 'perez', 'baigorria', 'zavalla', 'soldini', 'alvear',
+  ...Array.from(CIUDADES_FRASE.keys())]
 
 const NUMEROS: Record<string, number> = {
   un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7,
@@ -291,6 +304,8 @@ export interface Indice {
   porId: Map<string, Entrada>
   tiposConStock: Set<TipoClave>
   frasesLugar: Set<string>
+  /** Palabra normalizada → cómo se escribe en los avisos ("cordoba" → "córdoba"). */
+  forma: Map<string, string>
 }
 
 const CERRADO_TEXTO = /\b(countries|country|b\.? ?cerrado|barrio cerrado|barrio privado|barrios? cerrados?|club de campo|lagoon|golf)\b/
@@ -303,6 +318,10 @@ const ZONAS_CERRADAS: string[] = ZONAS
     'comarca', 'alameda', 'aromos', 'glorietas', 'pellegrini', 'carlos pellegrini', 'green', 'lakes', 'aldea',
     'aldea funes', 'tierra de suenos', 'tierra de suenos 1', 'tds 1', 'tds1'].includes(f))
 
+// Barrios cerrados que el catálogo de zonas no nombra como en los avisos.
+const CERRADOS_EXTRA = ['puerto roldan', 'los molinos', 'el molino', 'don mateo', 'funes lakes', 'cotos de la alameda',
+  'aurea', 'kentucky', 'palos verdes', 'aldea fisherton', 'country golf', 'miraflores', 'san sebastian', 'vida']
+
 const NO_LUGAR = new Set(['santa', 'fe', 'argentina', 'countries', 'cerrado', 'b', 'barrio', 'abierto', 'de', 'la',
   'las', 'los', 'del', 'el', 'y', 'en', 'zona', 'centro', ...Array.from(CIUDADES.keys()), 'san', 'lorenzo'])
 
@@ -313,14 +332,15 @@ function num(v: unknown): number | null {
 
 function ciudadDe(texto: string): string | null {
   // La última localidad nombrada ("Santa Fe | Rosario | Fisherton" → rosario;
-  // "Santa Fe | San Lorenzo" → san lorenzo, no Rosario por el título).
+  // "Santa Fe | San Lorenzo" → san lorenzo, no Rosario por el título; "San
+  // Lorenzo | Puerto Gral San Martin" → Puerto General San Martín).
   let mejor: string | null = null
   let pos = -1
   for (const c of LOCALIDADES) {
     const i = texto.lastIndexOf(` ${c} `)
-    if (i > pos) { pos = i; mejor = c }
+    if (i > pos || (i === pos && i >= 0 && mejor && c.length > mejor.length)) { pos = i; mejor = c }
   }
-  return mejor
+  return mejor === 'puerto gral san martin' ? 'puerto general san martin' : mejor
 }
 
 export function construirIndice(props: Prop[]): Indice {
@@ -329,6 +349,14 @@ export function construirIndice(props: Prop[]): Indice {
   const porId = new Map<string, Entrada>()
   const tiposConStock = new Set<TipoClave>()
   const frasesLugar = new Set<string>()
+  const forma = new Map<string, string>()
+  const anotarForma = (txt: string | null | undefined) => {
+    for (const w of (txt ?? '').toLowerCase().split(/[^a-záéíóúüñ0-9]+/)) {
+      if (!w) continue
+      const k = normalizar(w)
+      if (k !== w && !forma.has(k)) forma.set(k, w)
+    }
+  }
   const entradas = props.map(p => {
     const loc = p.location as (Prop['location'] & { full_location?: string }) | null
     // Tokko cuelga Roldán del departamento San Lorenzo ("Santa Fe | San Lorenzo |
@@ -337,18 +365,27 @@ export function construirIndice(props: Prop[]): Indice {
     const ubicacion = [loc?.name, sinDepto(loc?.short_location), sinDepto(loc?.full_location), p.development?.name]
       .filter(Boolean).join(' | ')
     const fuentes = [p.publication_title, p.address, p.fake_address, ubicacion].filter(Boolean).join(' | ')
+    anotarForma(fuentes)
     const lista = palabras(fuentes)
     const texto = ` ${lista.join(' ')} `
     lista.forEach(w => vocab.add(w))
-    const ubicLista = palabras(ubicacion)
+    // Las localidades de varias palabras no cuentan como barrio: "martin" no es
+    // Puerto General San Martín, "lorenzo" no es San Lorenzo.
+    let ubicN = ` ${palabras(ubicacion).join(' ')} `
+    for (const f of Array.from(CIUDADES_FRASE.keys())) ubicN = ubicN.split(` ${f} `).join(' _localidad_ ')
+    const ubicLista = ubicN.trim().split(' ').filter(Boolean)
     ubicLista.forEach(w => { if (!NO_LUGAR.has(w) && !/^\d+$/.test(w)) vocabLugar.add(w) })
     const tituloLista = palabras(p.publication_title ?? '')
     const lugarLista = [...ubicLista, ...tituloLista]
     for (const n of [loc?.name, p.development?.name]) {
       // "Barrio Vida" → "vida" (texto normal); "Area Industrial Roldán" → "area
-      // industrial" (la ciudad va aparte).
-      const k = palabras(n ?? '').filter(w => !CIUDADES.has(w)).join(' ').replace(/^(barrio|b) /, '')
-      if (k.includes(' ')) frasesLugar.add(k)
+      // industrial" (la ciudad va aparte); "Puerto Roldán", "Haras de Funes" y
+      // "Funes Town" quedan enteros (sin la ciudad no son nada).
+      const ws = palabras(n ?? '').join(' ').replace(/^(barrio|b) /, '').split(' ').filter(Boolean)
+      const sinCiudad = ws.filter(w => !CIUDADES.has(w))
+      const util = sinCiudad.length >= 2 && !['de', 'del'].includes(sinCiudad[sinCiudad.length - 1])
+      if (util) frasesLugar.add(sinCiudad.join(' '))
+      else if (ws.length >= 2) frasesLugar.add(ws.join(' '))
     }
 
     const tipos = new Set<TipoClave>(CLAVES_TIPO.filter(k => TIPOS[k].ids.includes(p.type?.id ?? -1)))
@@ -359,8 +396,10 @@ export function construirIndice(props: Prop[]): Indice {
     tiposTitulo.forEach(t => tiposConStock.add(t))
 
     const abierto = /\b(barrio abierto|abierto)\b/.test(texto)
-    const ubicN = ` ${ubicLista.join(' ')} `
-    const cerrado = !abierto && (CERRADO_TEXTO.test(texto) || ZONAS_CERRADAS.some(f => ubicN.includes(` ${f} `)))
+    // El barrio a veces está solo en el título ("Lote en Funes Lakes").
+    const lugarN = ` ${[...ubicLista, ...tituloLista].join(' ')} `
+    const cerrado = !abierto && (CERRADO_TEXTO.test(texto) || ZONAS_CERRADAS.some(f => lugarN.includes(` ${f} `)) ||
+      CERRADOS_EXTRA.some(f => lugarN.includes(` ${f} `)))
 
     // Dormitorios: los que dice el título y los de suite_amount (la card muestra
     // uno y el título a veces otro: la persona puede estar buscando cualquiera).
@@ -381,7 +420,7 @@ export function construirIndice(props: Prop[]): Indice {
     const alturas = palabras([p.publication_title, p.address, p.fake_address].join(' '))
       .filter(w => /^\d{3,5}$/.test(w)).map(Number)
     const esLote = p.type?.id === 1 || p.type?.id === 9
-    const codigo = normalizar(p.reference_code ?? '')
+    const codigo = normalizar(p.reference_code ?? '').replace(/[^a-z0-9]/g, '')
     const e: Entrada = {
       p, texto, palabras: new Set(lista), lista, lugar: ` ${lugarLista.join(' ')} `, ubicacion: ` ${ubicLista.join(' ')} `,
       lugarPalabras: new Set(lugarLista),
@@ -396,7 +435,7 @@ export function construirIndice(props: Prop[]): Indice {
     if (codigo) porId.set(codigo, e)
     return e
   })
-  return { entradas, vocab, vocabLugar, porId, tiposConStock, frasesLugar }
+  return { entradas, vocab, vocabLugar, porId, tiposConStock, frasesLugar, forma }
 }
 
 // Operaciones que el aviso realmente ofrece: una venta "en 0" junto a un
@@ -420,6 +459,8 @@ interface Variante {
   soloCiudad?: string
   /** Calle + altura: la altura tiene que estar pegada a ESA calle. */
   altura?: number
+  /** Solo en la ubicación del aviso (barrio), no en título ni dirección. */
+  soloUbicacion?: boolean
 }
 
 interface Termino {
@@ -429,8 +470,13 @@ interface Termino {
   mostrar?: string
   /** La entrada cumple si contiene CUALQUIERA de las variantes (OR). */
   variantes: Variante[]
-  /** Posición en la consulta (para unir frases vecinas). */
+  /** Posición en la consulta (para unir frases vecinas) y última palabra. */
   pos: number
+  fin?: number
+  /** "barrio X": solo en la ubicación del aviso (ni título ni calle). */
+  soloUbicacion?: boolean
+  /** Término armado con "o": varias opciones. */
+  union?: boolean
   /** Última palabra a medio escribir: acepta prefijo. */
   parcial: boolean
   /** Variantes que salen de un alias de zona: solo frase exacta. */
@@ -461,6 +507,10 @@ export interface Interpretacion {
   banos: number | null
   cocheras: number | null
   mono: boolean
+  noMono: boolean
+  sinCochera: boolean
+  /** Características negadas ("sin pileta"): van al final, no se excluyen. */
+  suavesNegadas: string[]
   precio: { min?: number; max?: number; moneda: Moneda | null } | null
   moneda: Moneda | null
   superficie: { min?: number; max?: number; aprox?: number } | null
@@ -477,6 +527,8 @@ export interface Interpretacion {
   ignoradas: string[]
   /** Tokens de la consulta ya limpia (para frases con relleno: "lisandro de la torre"). */
   toks: string[]
+  /** Palabra normalizada → como la escribió la persona (con sus tildes). */
+  originales: Map<string, string>
   vacia: boolean
 }
 
@@ -511,11 +563,15 @@ const monedaDe = (t: string | undefined): Moneda | null => {
 export function interpretar(query: string, indice?: Indice): Interpretacion {
   const out: Interpretacion = {
     tipos: [], excluirTipos: [], operacion: null, temporario: false, excluirOp: null, dorms: null,
-    ambientes: null, banos: null, cocheras: null, mono: false, precio: null, moneda: null, superficie: null,
+    ambientes: null, banos: null, cocheras: null, mono: false, noMono: false, sinCochera: false, suavesNegadas: [],
+    precio: null, moneda: null, superficie: null,
     cerrado: false, noCerrado: false, abiertoEscrito: false, orden: null, codigo: null, codigoPrefijo: null,
-    codigoBuscado: null, terminos: [], excluir: [], suaves: [], ignoradas: [], toks: [], vacia: true,
+    codigoBuscado: null, terminos: [], excluir: [], suaves: [], ignoradas: [], toks: [], originales: new Map(), vacia: true,
   }
   const parcialFinal = !/\s$/.test(query)
+  for (const w of query.toLowerCase().split(/[^a-záéíóúüñ0-9]+/)) {
+    if (w && normalizar(w) !== w) out.originales.set(normalizar(w), w)
+  }
   let s = ` ${normalizar(query)
     .replace(/[“”"'`´¿?¡!]/g, ' ')
     .replace(/\bp\s?\.\s?h\b\.?/g, ' ph ')
@@ -524,18 +580,24 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     .replace(/\bp\s?\/\s?/g, ' para ')
     .replace(/\bn\s?[°º]\s?(?=\d)/g, ' ')} `
   for (const [re, rep] of ABREVIATURAS) s = s.replace(re, ` ${rep} `)
+  s = s.replace(/,(?=\s*[a-z])/g, ' o ')
+    .replace(/(\d+(?:[.,]\d+)?)\s*por\s*(\d+(?:[.,]\d+)?)/g, '$1x$2')
+    .replace(/\bmedia\s+hectarea\b/g, '0,5 hectareas')
   if (!s.trim()) return out
   out.vacia = false
 
   // Saludos y frases hechas que la corrección de typos convertía en barrios
   // ("buenas tardes" → Las Tardes).
   s = s.replace(/\b(buen[oa]s?\s+(dias|tardes|noches)|buen dia)\b/g, ' ')
+    .replace(/\bfin(es)? de semana\b/g, ' ')
+    .replace(/\b(codigo|cod|ref|referencia|id|aviso)\s*[:#nº°.]*\s*([a-z]{0,4})\s*-?\s*(\d+)/g, ' $1 #$2$3 ')
     .replace(/\bque no sea\b/g, ' no ').replace(/\bpero no\b/g, ' no ').replace(/\bfuera de\b/g, ' fuera ')
 
   // Montos: formatos argentinos y palabras.
   s = s
     .replace(/(\d{1,3}(?:\.\d{3})+),\d{2}\b/g, '$1')            // 150.000,00
     .replace(/(\d)\s*\.-/g, '$1')                                // 150.000.-
+    .replace(/(\d)\.(?=\s|$)/g, '$1')                            // "150." 
     .replace(/(usd|u\$s|u\$d|us\$|ars)(?=\d)/g, '$1 ')           // usd90k
     .replace(/(\d)(usd|dolares|dls|pesos|ars)\b/g, '$1 $2')      // 150000usd
     .replace(/\bmedio palo\b/g, ' 500 mil ')
@@ -543,19 +605,37 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     .replace(/\b(un|1)\s+(palo|millon)\b/g, ' 1 millones ')
     .replace(/(\d+(?:[.,]\d+)?)\s*palos?\s+verdes\b/g, '$1 millones usd')
     .replace(/(\d|mil|k|lucas|millones)\s*verdes\b/g, '$1 usd')
+  // "N m" al final, a medio escribir: con contexto de plata es "mil"; en un
+  // terreno, metros; si es muy chico todavía no es nada.
+  if (parcialFinal) {
+    s = s.replace(/\b(hasta|desde|usd|u\$s|menos de|mas de|entre)\s*(\d+)\s*m\s*$/, '$1 $2 mil ')
+      .replace(/(\d+)\s*m\s*$/, (m, n) => (Number(n) < 100 ? ` ${n} ` : `${n} m2 `))
+  }
+  s = s
     .replace(/\b(usd|u\$s|u\$d|us\$|\$|hasta|desde|de|menos de|mas de)\s*(\d+(?:[.,]\d+)?)\s*m\b(?!2)/g,
       (m, pre, n) => (parseFloat(n.replace(',', '.')) <= 50 ? `${pre} ${n} millones` : m))
   s = s.replace(new RegExp(String.raw`\b(${Object.keys(CENTENAS).join('|')})(\s+(?:y\s+)?(?:${Object.keys(CENTENAS).join('|')}))?\s+(mil|lucas)\b`, 'g'),
     (_m, a, b) => ` ${CENTENAS[a] + (b ? CENTENAS[b.trim().replace(/^y\s+/, '')] ?? 0 : 0)} mil `)
-  // "hasta 150 m" mientras se escribe "mil": no es superficie todavía.
-  if (parcialFinal) s = s.replace(/\b(hasta|desde|usd|u\$s|menos de|mas de)\s*(\d+)\s*m\s*$/, '$1 $2 mil ')
 
+  if (/\b(terreno|terrenos|lote|lotes|campo|campos|chacra|quinta|hectar\w*)\b/.test(s)) {
+    s = s.replace(/(\d+(?:[.,]\d+)?)\s*(ha|has)\b/g, '$1 hectareas')
+  }
   // Unidades con typo o a medio escribir detrás de un número: "dormitoris",
   // "3 do", "habitacines", "2 ba", "200 mi" → forma canónica.
-  s = s.replace(/(\d+|un|uno|una|dos|tres|cuatro|cinco|seis)\s+([a-z]{2,})/g, (m, n, w) => {
+  s = s.replace(/(\d+|un|uno|una|dos|tres|cuatro|cinco|seis)\s+([a-z]{1,})\b(?=\s*$|\s)/g, (m, n, w, off: number) => {
     if (/^dorr/.test(w)) return m // Dorrego
+    const valor = NUMEROS[n] ?? Number(n)
+    const alFinal = off + m.length >= s.trimEnd().length
+    // Número grande: la unidad es plata o metros ("200 d" → dólares, "200 met").
+    if (valor >= 20) {
+      for (const u of ['dolares', 'mil', 'millones', 'metros', 'pesos']) {
+        if ((w.length >= 2 || (alFinal && w === 'd')) && u.startsWith(w) && !(u === 'millones' && w.length < 4)) return `${n} ${u}`
+      }
+      return m
+    }
+    if (w.length === 1 && !alFinal) return m
     for (const [u, canon, min] of UNIDADES_PREFIJO) {
-      if (w.length >= min && u.startsWith(w)) {
+      if ((w.length >= min || (alFinal && w.length >= 1 && canon === 'dormitorios')) && u.startsWith(w)) {
         if ((canon === 'mil' || canon === 'millones') && !/^\d/.test(n)) return m
         return `${n} ${canon}`
       }
@@ -567,17 +647,33 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     }
     return m
   })
-  s = s.replace(/\b(mono[a-z]*)\b/g, (m, w) => (w === 'mono' || w.startsWith('monoam') || distancia(w, 'monoambiente', 2) <= 2 ? 'monoambiente' : m))
+  s = s.replace(/\b(mono[a-z]*)\b/g, (m, w) => (w === 'mono' || 'monoambientes'.startsWith(w) || distancia(w, 'monoambiente', 2) <= 2 ? 'monoambiente' : m))
 
   const quitar = (re: RegExp, fn: (m: string[]) => string | void) => {
     s = s.replace(re, (...args) => {
       const queda = fn(args.slice(0, -2) as string[])
-      return typeof queda === 'string' ? ` ${queda} ` : ' '
+      return typeof queda === 'string' ? ` ${queda} ` : ' | '
     })
   }
   const rentish = /\b(alq\w*|renta\w*|arriend\w*|temporari\w*|temporada)\b/.test(s)
   const esDeLote = /\b(lote|lotes|terreno|terrenos|parcela|parcelas)\b/.test(s)
 
+  // "casa 200", "depto alquiler 500": un número de 2-3 cifras pegado a un tipo u
+  // operación (no a un lote: "lote 626" es el número de lote) es el presupuesto.
+  const NO_UNIDAD = String.raw`(?=\s*$|\s+(?!(?:mil|k|lucas|m2|mts|metros|dorm|dormitorios|ambientes|amb|banos|x|de\s+[a-z]+|al|y|a|o)\b))`
+  s = s.replace(new RegExp(String.raw`\b(casa|casas|depto|deptos|departamento|departamentos|dpto|ph|galpon|galpones|local|locales|oficina|alquiler|alquilar|venta|comprar|funes|roldan|rosario)\s+(?:de\s+)?(\d{2,4})` + NO_UNIDAD, 'g'),
+    (m, w, n) => {
+      const v = Number(n)
+      // 4 cifras: se está tipeando un monto ("casa 2000" → "casa 200000").
+      if (v >= 1000) return ` ${w} `
+      return v >= 10 ? ` ${w} hasta ${n} ` : m
+    })
+  // "terreno 1000", "lote de 600": metros. Salvo que sea el número de un lote
+  // que existe ("lote 626").
+  s = s.replace(new RegExp(String.raw`\b(terreno|terrenos|lote|lotes)\s+(de\s+)?(\d{3,5})` + NO_UNIDAD, 'g'), (m, w, de, n) => {
+    if (!de && indice && indice.entradas.some(e => e.texto.includes(` ${w.replace(/s$/, '')} ${n} `))) return m
+    return ` ${w} ${n} m2 `
+  })
   // Superficie: rangos, "20x50", "1000 m2", "2 hectareas". "20 metros de frente"
   // es una medida lineal: no filtra.
   quitar(new RegExp(String.raw`\b\d+(?:[.,]\d+)?\s*${U_SUP}?\s*(?:de\s+)?(?:frente|fondo)\b`, 'g'), () => undefined)
@@ -615,12 +711,12 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
   quitar(new RegExp(String.raw`\b(mas de|minimo|min|desde|al menos|hasta|maximo|max)?\s*` + N_DORM +
     String.raw`\s*(\+|o mas)?\s*${U_DORM}\b(\s*o mas|\s*\+)?`, 'g'), m => {
     const n = aNum(m[2])
-    if (!(n >= 0 && n < 20)) return
+    if (!(n >= 0 && n < 20)) return m[0]
     const pre = m[1] ?? ''
     if (/mas de/.test(pre)) out.dorms = { min: n + 1, max: 99 }
     else if (/minimo|min|desde|al menos/.test(pre) || m[3] || m[4]) out.dorms = { min: n, max: 99 }
     else if (/hasta|max/.test(pre)) out.dorms = { min: 0, max: n }
-    else out.dorms = { min: n, max: n }
+    else out.dorms = { min: n, max: n >= 4 ? 99 : n }
   })
   quitar(new RegExp(String.raw`\b(?:entre|de)?\s*${N_DORM}\s*(?:o|a|y|-|\/)\s*${N_DORM}\s*${U_AMB}\b`, 'g'), m => {
     out.ambientes = rango(aNum(m[1]), aNum(m[2]))
@@ -642,7 +738,11 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
   // característica que el listado no puede verificar.
   quitar(new RegExp(String.raw`\b${N_DORM}\s*(plantas|planta|pisos|personas|persona|hijos|chicos|pers)\b`, 'g'),
     m => { out.suaves.push(m[2]) })
-  quitar(/\bmonoambientes?\b/g, () => { out.mono = true; if (!out.tipos.includes('departamento')) out.tipos.push('departamento') })
+  quitar(/\b((?:no|sin|ni|excepto|salvo)\s+(?:ser\s+|sea\s+|un\s+|una\s+)?)?monoambientes?\b/g, m => {
+    if (m[1]) { out.noMono = true; return }
+    out.mono = true
+    if (!out.tipos.includes('departamento')) out.tipos.push('departamento')
+  })
 
   // Precio.
   const setPrecio = (min?: number, max?: number, mon?: Moneda | null) => {
@@ -662,10 +762,7 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     if (v < 1000) return v * 1000
     return v
   }
-  // "casa 200", "depto alquiler 500": un número de 2-3 cifras pegado a un tipo u
-  // operación (no a un lote: "lote 626" es el número de lote) es el presupuesto.
-  s = s.replace(/\b(casa|casas|depto|deptos|departamento|departamentos|dpto|ph|galpon|galpones|local|locales|oficina|alquiler|alquilar|venta|comprar)\s+(\d{2,3})(?=\s*$|\s+(?!(?:mil|k|lucas|m2|mts|metros|dorm|dormitorios|ambientes|amb|banos|x)\b))/g,
-    (_m, w, n) => `${w} hasta ${n} `)
+  if (parcialFinal) s = s.replace(/\bentre\s+\S+(\s+(y|a))?\s*$/, ' ')
   // Rangos: "entre 100 y 150 mil", "de 100 a 200 mil", "100-150k", "de 100k a 150k".
   quitar(new RegExp(String.raw`\b(entre|de|desde)?\s*` + MON_PRE + NUM + MULT + MON + String.raw`\s*(?:y|a|al|-|hasta)\s*` + MON_PRE + NUM + MULT + MON + String.raw`(?=\s|$)`, 'g'), m => {
     const [, pre, mA, nA, multA, monA, mB, nB, multB, monB] = m
@@ -684,7 +781,7 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     const multComun = multB ?? multA
     const a = implicito(parseMonto(nA, multA ?? (aCrudo < 1000 ? multB : undefined)), multA ?? (aCrudo < 1000 ? multB : undefined))
     const b = implicito(parseMonto(nB, multComun), multComun)
-    if (a == null || b == null) return
+    if (a == null || b == null || b < a) return
     setPrecio(Math.min(a, b), Math.max(a, b), marca)
   })
   quitar(new RegExp(String.raw`\b(hasta|menos de|max|maximo|tope|no mas de|por debajo de|debajo de|presupuesto de|presupuesto|desde|mas de|minimo|min|arriba de|a partir de|por encima de)\s*(?:de\s*)?` + MON_PRE + NUM + MULT + MON + String.raw`(?=\s|$)`, 'g'), m => {
@@ -696,6 +793,9 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     if (!conSeparador) v = implicito(v, mult)
     if (v == null || !(v > 0)) return
     if (rentish && !mult && !conSeparador && crudo >= 1000 && crudo < 10_000) v = crudo // "alquiler hasta 1500 (dólares)"
+    // "casa hasta 2000" sin moneda ni "mil": se está tipeando "200000".
+    else if (!rentish && !mult && !conSeparador && !marca && crudo >= 1000 && crudo < 10_000) return
+    if (rentish && !mult && marca === 'USD' && crudo < 1000) v = crudo // "alquiler hasta 500 dólares"
     if (/desde|mas de|minimo|min|arriba|a partir|encima/.test(cmp)) setPrecio(v, undefined, marca)
     else setPrecio(undefined, v, marca)
   })
@@ -710,7 +810,7 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     // resuelve el paso de códigos; nunca son plata.
     if (!mult && !conMarca && /^\d{4,}$/.test(n) && ((indice && esCodigoOPrefijo(indice, n)) || n.length >= 7)) return n
     if (conMarca || mult) {
-      const v = conSeparador ? crudo : implicito(crudo, mult)
+      const v = conSeparador ? crudo : rentish && marca === 'USD' && !mult && crudo < 1000 ? crudo : implicito(crudo, mult)
       if (v != null && v > 0) setPrecio(undefined, v, marca)
       return
     }
@@ -728,7 +828,14 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
   const esperaMonto = /\b(hasta|desde|menos|entre|presupuesto|tope|maximo|minimo|max|min)\b/.test(s)
   if (!out.precio && monedaSola && !esperaMonto) out.moneda = monedaSola
 
-  const toks = s.split(/[^a-z0-9]+/).filter(Boolean)
+  // Lo que se sacó (dormitorios, precio…) deja un corte: "casa con 3
+  // dormitorios funes" → "funes" no es "con funes".
+  const toks: string[] = []
+  const inicioTramo = new Set<number>()
+  for (const tramo of s.split('|')) {
+    if (toks.length) inicioTramo.add(toks.length)
+    toks.push(...tramo.split(/[^a-z0-9]+/).filter(Boolean))
+  }
   out.toks = toks
   const ultimoOriginal = palabras(query).at(-1)
   const esParcial = (t: string, i: number) => parcialFinal && i === toks.length - 1 && t === ultimoOriginal
@@ -757,17 +864,33 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
   const porPosicion: Termino[] = []
   for (let i = 0; i < toks.length; i++) {
     let hecho = false
+    for (const [frase, nombre] of Array.from(CIUDADES_FRASE.entries())) {
+      const ws = frase.split(' ')
+      if (!matchFrase(ws, i)) continue
+      ws.forEach((_, k) => usados.add(i + k))
+      const c = frase === 'puerto gral san martin' ? 'puerto general san martin' : frase
+      const t: Termino = { crudo: nombre, variantes: [{ ws: [], soloCiudad: c }], pos: i, fin: i + ws.length - 1, parcial: false }
+      if (negadoEn(i)) out.excluir.push(t); else porPosicion.push(t)
+      hecho = true
+      break
+    }
+    if (hecho) continue
     for (const fz of frasesZona) {
       if (fz.palabras.length < 2 || !matchFrase(fz.palabras, i, true)) continue
       // "centro rosario", "tds roldan": si sacando la ciudad queda el NOMBRE de
       // otra zona (o una sigla), la ciudad se usa como ciudad. "funes lakes"
       // ("lakes" es solo un alias) queda entero.
       const resto = fz.palabras.filter(w => !CIUDADES.has(w))
+      // …salvo que sea el alias de una zona con la ciudad en su nombre ("centro
+      // funes" = Funes Centro).
+      const zonaConCiudad = fz.zonas.some(z => palabras(z.nombre).some(w => CIUDADES.has(w) && fz.palabras.includes(w)))
+      const restoZona = frasesZona.find(f => f.palabras.join(' ') === resto.join(' '))
+      const restoSigla = resto.length === 1 && esSigla(resto[0]) && !!zonaDeUnaPalabra(resto[0], frasesZona)
       if (!fz.esNombre && resto.length && resto.length < fz.palabras.length &&
-        (frasesZona.some(f => f.palabras.join(' ') === resto.join(' ') && (f.esNombre || f.expande)) ||
-          (resto.length === 1 && zonaDeUnaPalabra(resto[0], frasesZona)))) continue
+        (restoSigla || (!zonaConCiudad && restoZona && (restoZona.esNombre || restoZona.expande)))) continue
       fz.palabras.forEach((_, k) => usados.add(i + k))
       const t = terminoZona(fz, toks.slice(i, i + fz.palabras.length).join(' '), i)
+      t.fin = i + fz.palabras.length - 1
       if (negadoEn(i)) out.excluir.push(t); else porPosicion.push(t)
       hecho = true
       break
@@ -778,7 +901,7 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
       if (f.length < largo || f.some((_, k) => usados.has(i + k))) continue
       if (!indice.frasesLugar.has(f.join(' '))) continue
       f.forEach((_, k) => usados.add(i + k))
-      const t: Termino = { crudo: f.join(' '), variantes: [{ ws: f }], pos: i, parcial: false }
+      const t: Termino = { crudo: f.join(' '), variantes: [{ ws: f }], pos: i, fin: i + largo - 1, parcial: false }
       if (negadoEn(i)) out.excluir.push(t); else porPosicion.push(t)
       break
     }
@@ -810,38 +933,72 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
   }
 
   const vistos = new Set<string>()
-  let union = false
   const tiposDebiles: TipoClave[] = []
+  // Conector de unión justo antes (saltando relleno): "casa o depto", "casas y
+  // departamentos", "pichincha, echesortu o abasto" (la coma ya es "o").
+  const unionAntes = (i: number, conY: boolean) => {
+    for (let k = i - 1; k >= 0 && k >= i - 3; k--) {
+      if (toks[k] === 'o' || toks[k] === 'u') return true
+      if (conY && (toks[k] === 'y' || toks[k] === 'e')) return true
+      if (!['en', 'de', 'la', 'las', 'los', 'el', 'del', 'un', 'una'].includes(toks[k])) return false
+    }
+    return false
+  }
   const esLugarPrefijo = (t: string) => {
     if (!indice || t.length < 3) return false
     let hay = false
     indice.vocabLugar.forEach(w => { if (!hay && w.startsWith(t)) hay = true })
     return hay
   }
+  // Prefijo de una palabra de tipo/operación que NO es también el comienzo de
+  // otra palabra común ("com" puede ser comercial o cómodo: no es "comprar").
+  const ambiguo = (t: string) => esPrefijoDe(t, SUAVES) || esPrefijoDe(t, TIPO_DEBIL) || esPrefijoDe(t, RELLENO)
+  const unicoPrefijo = <T,>(t: string, dic: Record<string, T>, min: number): T | undefined => {
+    if (t.length < min || ambiguo(t)) return undefined
+    const cands = unicos(Object.keys(dic).filter(w => w.startsWith(t)).map(w => dic[w]))
+    return cands.length === 1 ? cands[0] : undefined
+  }
+  const codigoLetras = new Set<string>()
+  indice?.porId.forEach((_, k) => { const m = k.match(/^([a-z]{2,4})\d/); if (m) codigoLetras.add(m[1]) })
+
   for (let i = 0; i < toks.length; i++) {
     if (usados.has(i)) continue
     const t = toks[i]
     const parcial = esParcial(t, i)
-    const prev = toks[i - 1]
+    const prev = inicioTramo.has(i) ? undefined : toks[i - 1]
     const negado = negadoEn(i)
 
-    if (t === 'o' || t === 'u') { union = true; continue }
+    if (t === 'o' || t === 'u' || t === 'y' || t === 'e') continue
     if (NEGADORES.has(t)) continue
     // Una letra suelta no dice nada (y a medio tipear, menos).
     if (t.length === 1 && !/\d/.test(t)) continue
-    // "zona 7": aquí "zona" es parte del nombre.
-    if (t === 'zona' && /^\d+$/.test(toks[i + 1] ?? '')) {
-      porPosicion.push({ crudo: t, variantes: [{ ws: [t] }], pos: i, parcial })
+    // "zona 7", "ruta 34", "km 12": la palabra es parte del nombre.
+    if (['zona', 'ruta', 'km'].includes(t) && /^\d+$/.test(toks[i + 1] ?? '')) {
+      porPosicion.push({ crudo: `${t} ${toks[i + 1]}`, variantes: [{ ws: [t, toks[i + 1]] }], pos: i, fin: i + 1, parcial: esParcial(toks[i + 1], i + 1) })
+      usados.add(i + 1)
       continue
     }
     if (CENTRICO.has(t)) {
-      porPosicion.push({ crudo: 'centro', variantes: [{ ws: ['centro'] }], pos: i, parcial: false, soloLugar: true })
+      porPosicion.push({ crudo: 'centro', variantes: [{ ws: ['centro'] }], pos: i, fin: i, parcial: false, soloLugar: true })
       continue
     }
-    // "barrio ce…", "countr…", "priva…": anticipa el filtro de barrio cerrado.
-    if (parcial && t.length >= 3 && ['cerrado', 'country', 'privado', 'countries'].some(w => w.startsWith(t)) &&
-      (prev === 'barrio' || t.length >= 4)) {
+    // "barrio ce…", "countr…", "barrio ab…": anticipa el filtro de barrio cerrado/abierto.
+    if (parcial && ['cerrado', 'country', 'privado', 'countries'].some(w => w.startsWith(t)) &&
+      ((prev === 'barrio' && t.length >= 2) || (t.length >= 3 && 'country'.startsWith(t)) || t.length >= 4)) {
       if (negado) out.noCerrado = true; else out.cerrado = true
+      continue
+    }
+    if (parcial && prev === 'barrio' && t.length >= 2 && 'abierto'.startsWith(t)) {
+      out.noCerrado = true
+      out.abiertoEscrito = true
+      continue
+    }
+
+    // Negar una característica: "sin cochera" (hay dato), "sin pileta" (va al
+    // final), "no temporario".
+    if (negado && ['cochera', 'cocheras', 'garage', 'garaje', 'estacionamiento'].includes(t)) { out.sinCochera = true; continue }
+    if (negado && (SUAVES.has(t) || TEMPORARIO.has(t) || ['estrenar', 'reciclar', 'construccion', 'pozo'].includes(t))) {
+      out.suavesNegadas.push(t)
       continue
     }
 
@@ -851,37 +1008,28 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
       out.suaves.push('comercial')
       continue
     }
-    let tipo: TipoClave | undefined = PALABRA_TIPO[t] ?? (!parcial ? corregir(t, PALABRA_TIPO) : undefined)
-    if (!tipo && parcial && t.length >= 4) {
-      const cands = unicos(Object.keys(PALABRA_TIPO).filter(w => w.startsWith(t)).map(w => PALABRA_TIPO[w]))
-      if (cands.length === 1) tipo = cands[0]
-    }
+    const tipo: TipoClave | undefined = PALABRA_TIPO[t] ?? (!parcial ? corregir(t, PALABRA_TIPO) : unicoPrefijo(t, PALABRA_TIPO, 4))
     if (tipo) {
       // Sin stock de ese tipo y la palabra también es nombre de lugar ("chacra
       // los raigales", "punta chacra"): se busca como texto.
       if (indice && !indice.tiposConStock.has(tipo) && TIPO_O_LUGAR.has(t) && indice.vocab.has(t)) {
-        porPosicion.push({ crudo: t, variantes: [{ ws: [t] }], pos: i, parcial })
+        porPosicion.push({ crudo: t, variantes: [{ ws: [t] }], pos: i, fin: i, parcial })
         continue
       }
       if (negado) { out.excluirTipos.push(tipo); continue }
-      // Un segundo tipo detrás de "con/para/en/mi…" es una característica o un
-      // destino ("casa con terreno", "terreno para construir mi casa", "galpón
-      // con oficina"), no otro tipo que se suma.
-      const esRasgo = ['con', 'sin', 'para', 'mi', 'su', 'tu', 'de', 'en', 'y', 'e', 'construir'].includes(prev ?? '') &&
-        (out.tipos.length > 0 || prev === 'con' || prev === 'sin')
+      // Un segundo tipo sin "o/y/," es una característica o un destino ("casa
+      // con terreno", "terreno para construir mi casa", "casa 3 dorm lote 1000
+      // m2", "galpón con oficina"), no otro tipo que se suma.
+      const trasCon = ['con', 'sin', 'para'].includes(prev ?? '') || ['con', 'sin', 'para'].includes(toks[i - 2] ?? '')
+      const esRasgo = trasCon || (out.tipos.length > 0 && !out.tipos.includes(tipo) && !unionAntes(i, true))
       if (esRasgo) { out.suaves.push(t); continue }
       if (!out.tipos.includes(tipo)) out.tipos.push(tipo)
-      union = false
       continue
     }
 
-    // Operación.
-    let op: 'Sale' | 'Rent' | undefined = PALABRA_OP[t] ?? (!parcial && !RELLENO.has(t) && !SUAVES.has(t) ? corregir(t, PALABRA_OP) : undefined)
-    if (!op && parcial && t.length >= 3) {
-      const cands = unicos(Object.keys(PALABRA_OP).filter(w => w.startsWith(t)).map(w => PALABRA_OP[w]))
-      if (cands.length === 1) op = cands[0]
-    }
-    if (op && (t === 'compra' && prev === 'a')) op = undefined // "alquiler con opción a compra"
+    // Operación. "con renta" es un depto en venta con inquilino, no un alquiler.
+    const op: 'Sale' | 'Rent' | undefined = PALABRA_OP[t] ?? (!parcial && !RELLENO.has(t) && !SUAVES.has(t) ? corregir(t, PALABRA_OP) : unicoPrefijo(t, PALABRA_OP, 3))
+    if (op && ((t === 'compra' && prev === 'a') || prev === 'con')) { out.suaves.push(t); continue }
     if (op) {
       if (negado) { out.excluirOp = op; continue }
       out.operacion = out.operacion && out.operacion !== op ? null : op
@@ -892,35 +1040,50 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     if (CARO.has(t)) { out.orden = negado ? 'barato' : 'caro'; continue }
     if (RECIENTES.has(t)) { out.orden = 'recientes'; continue }
     if (RELLENO.has(t)) continue
-    if (prev === 'con' || prev === 'sin' || (negado && prev === 'sin')) { out.suaves.push(t); continue }
-    if (SUAVES.has(t) && !(parcial && esLugarPrefijo(t))) {
+    if (prev === 'con' || prev === 'sin') { out.suaves.push(t); continue }
+    // Un adjetivo a medio escribir es lugar solo detrás de "en/barrio" o de una
+    // ciudad ("casa en agua…" → Aguadas; "casa nueva" es una casa nueva).
+    const pideLugar = ['en', 'barrio', 'zona'].includes(prev ?? '') || CIUDADES.has(prev ?? '')
+    if (SUAVES.has(t) && !(parcial && pideLugar && esLugarPrefijo(t))) {
       // Puede ser parte de un nombre ("tierra nueva", "vida jardin"): se decide
       // al unir frases; si no forma ninguna, solo ordena.
-      porPosicion.push({ crudo: t, variantes: [{ ws: [t] }], pos: i, parcial, suave: true })
+      porPosicion.push({ crudo: t, variantes: [{ ws: [t] }], pos: i, fin: i, parcial, suave: true })
       continue
     }
     // La palabra que se está tipeando y que empieza como un relleno o una
-    // característica ("pil" → pileta, "hast" → hasta, "bus" → busco) todavía
-    // no filtra: si no, la lista se achica y vuelve a crecer al completarla.
-    const prefijoDeClave = Object.keys(PALABRA_TIPO).some(w => w.startsWith(t)) || Object.keys(PALABRA_OP).some(w => w.startsWith(t))
-    if (parcial && !/\d/.test(t) && !esLugarPrefijo(t) && !prefijoDeClave && (esPrefijoDe(t, RELLENO) || esPrefijoDe(t, SUAVES) ||
-      esPrefijoDe(t, BARATO) || esPrefijoDe(t, NEGADORES) || esPrefijoDe(t, TEMPORARIO))) continue
+    // característica ("pil" → pileta, "hast" → hasta, "bus" → busco, "co" →
+    // con) todavía no filtra: si no, la lista se achica y vuelve a crecer.
+    if (parcial && !/\d/.test(t)) {
+      const deRelleno = esPrefijoDe(t, RELLENO) || esPrefijoDe(t, NEGADORES)
+      const deSuave = esPrefijoDe(t, SUAVES) || esPrefijoDe(t, BARATO) || esPrefijoDe(t, TEMPORARIO)
+      const deClave = t.length >= 3 && (Object.keys(PALABRA_TIPO).some(w => w.startsWith(t) && !TIPO_DEBIL.has(w)) ||
+        Object.keys(PALABRA_OP).some(w => w.startsWith(t)))
+      if ((deRelleno && t.length <= 3) || ((deRelleno || deSuave) && !(pideLugar && esLugarPrefijo(t)) && !deClave)) continue
+    }
 
     // Código de aviso: "sla7272337", "7272337", "sho 8098748", o a medio tipear.
     if (indice) {
-      const junto = /^[a-z]{2,4}$/.test(t) && /^\d{4,}$/.test(toks[i + 1] ?? '') ? t + toks[i + 1] : null
-      if (junto && (esCodigoOPrefijo(indice, junto) || /^(sla|sho|sap|sbu|sst|sof|sga)$/.test(t))) {
+      const sig = toks[i + 1] ?? ''
+      const junto = /^[a-z]{2,4}$/.test(t) && /^\d+$/.test(sig) && (codigoLetras.has(t) || sig.length >= 4) ? t + sig : null
+      if (junto) {
         usados.add(i + 1)
         if (indice.porId.has(junto)) out.codigo = junto
-        else if (esCodigoOPrefijo(indice, junto)) out.codigoPrefijo = junto
+        else if (esCodigoOPrefijo(indice, junto) || (esParcial(sig, i + 1) && codigoLetras.has(t))) out.codigoPrefijo = junto
         else out.codigoBuscado = junto
         continue
       }
-      if (/^([a-z]{2,4}\d{4,}|\d{4,})$/.test(t)) {
+      if (/^[a-z]{2,4}\d+$/.test(t) && codigoLetras.has(t.replace(/\d+$/, ''))) {
+        if (indice.porId.has(t)) out.codigo = t
+        else if (esCodigoOPrefijo(indice, t) || parcial) out.codigoPrefijo = t
+        else out.codigoBuscado = t
+        continue
+      }
+      const trasPalabra = !!prev && /^[a-z]+$/.test(prev) && !['codigo', 'cod', 'ref', 'referencia', 'id', 'aviso'].includes(prev) &&
+        !RELLENO.has(prev) && t.length <= 5
+      if (/^\d{4,}$/.test(t) && !trasPalabra) {
         if (indice.porId.has(t)) { out.codigo = t; continue }
-        if (esCodigoOPrefijo(indice, t) && (parcial || /^[a-z]/.test(t) || t.length >= 5)) { out.codigoPrefijo = t; continue }
-        if ((['codigo', 'cod', 'ref', 'referencia', 'id', 'aviso'].includes(prev ?? '') && t.length >= 5) ||
-          t.length >= 7 || /^[a-z]{2,4}\d{5,}$/.test(t)) {
+        if (esCodigoOPrefijo(indice, t) && (parcial || t.length >= 5)) { out.codigoPrefijo = t; continue }
+        if ((['codigo', 'cod', 'ref', 'referencia', 'id', 'aviso'].includes(prev ?? '') && t.length >= 5) || t.length >= 7) {
           out.codigoBuscado = t
           continue
         }
@@ -932,41 +1095,61 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
 
     let nuevo: Termino
     const ciudadPref = parcial && t.length >= 3 ? Array.from(CIUDADES.keys()).find(c => c.startsWith(t) && c !== t) : undefined
-    if (CIUDADES.has(t) || ciudadPref) {
-      const c = CIUDADES.has(t) ? t : ciudadPref!
-      nuevo = { crudo: CIUDADES.get(c)!, variantes: [{ ws: [], soloCiudad: c }], pos: i, parcial: false }
+    const ciudadTypo = !CIUDADES.has(t) && !ciudadPref && t.length >= 5 && !(indice?.vocab.has(t))
+      ? Array.from(CIUDADES.keys()).find(c => distancia(t, c, 1) <= 1 || fonetica(t) === fonetica(c)) : undefined
+    if (CIUDADES.has(t) || ciudadPref || ciudadTypo) {
+      const c = CIUDADES.has(t) ? t : (ciudadPref ?? ciudadTypo)!
+      nuevo = { crudo: CIUDADES.get(c)!, variantes: [{ ws: [], soloCiudad: c }], pos: i, fin: i, parcial: false }
       if (!CIUDADES.has(t)) nuevo.variantes.push({ ws: [t] })
     } else {
       // Alias de zona de una palabra ("kcc", "tds", "tds1", "microcentro", "lasexta").
       const fz = zonaDeUnaPalabra(t, frasesZona)
-      nuevo = fz ? terminoZona(fz, t, i) : { crudo: t, variantes: [{ ws: [t] }], pos: i, parcial }
+      nuevo = fz ? terminoZona(fz, t, i) : { crudo: t, variantes: [{ ws: [t] }], pos: i, fin: i, parcial }
       if (/^\d{1,2}$/.test(t)) nuevo.numeroSuelto = true
     }
-    if (['barrio', 'barrios'].includes(prev ?? '') || (prev === 'en' && toks[i - 2] === 'barrio')) nuevo.soloLugar = true
-    if (negado) { out.excluir.push(nuevo); union = false; continue }
-    const ant = porPosicion.at(-1)
-    // Ciudades: se suman entre sí aunque no haya "o" ("funes roldan").
-    const ambasCiudad = ant && ant.variantes.every(v => v.soloCiudad) && nuevo.variantes.some(v => v.soloCiudad)
-    if ((union || ambasCiudad) && ant && !ant.suave) {
-      ant.variantes.push(...nuevo.variantes)
-      ant.crudo = `${ant.crudo} o ${nuevo.crudo}`
-      ant.parcial = ant.parcial || nuevo.parcial
-      ant.deZona = ant.deZona && nuevo.deZona
-    } else {
-      porPosicion.push(nuevo)
+    // "barrio martin", "barrio parque": el barrio, no la calle ni el título.
+    if (['barrio', 'barrios'].includes(prev ?? '') || (prev === 'en' && toks[i - 2] === 'barrio')) {
+      nuevo.soloLugar = true
+      nuevo.soloUbicacion = true
     }
-    union = false
+    if (negado) { out.excluir.push(nuevo); continue }
+    porPosicion.push(nuevo)
   }
   if (!out.tipos.length && tiposDebiles.length) out.tipos.push('local')
   porPosicion.sort((a, b) => a.pos - b.pos)
-  out.terminos = porPosicion
+
+  // Uniones: ciudades entre sí siempre ("funes roldan"); lugares con "o", "y" o
+  // coma ("pichincha, echesortu o abasto", "fisherton o funes hills"); el resto
+  // solo con "o".
+  const esLugarT = (t: Termino) => !!(t.deZona || t.soloLugar || t.variantes.some(v => v.soloCiudad) ||
+    (indice && t.variantes.length === 1 && t.variantes[0].ws.length === 1 && indice.vocabLugar.has(t.variantes[0].ws[0])))
+  const unidos: Termino[] = []
+  for (const t of porPosicion) {
+    const ant = unidos[unidos.length - 1]
+    const ambasCiudad = ant && ant.variantes.every(v => v.soloCiudad) && t.variantes.every(v => v.soloCiudad)
+    const unir = ant && !ant.suave && !t.suave && !ant.numeroSuelto && !t.numeroSuelto &&
+      (ambasCiudad || unionAntes(t.pos, esLugarT(ant) && esLugarT(t)))
+    if (unir) {
+      ant.variantes.push(...t.variantes)
+      ant.crudo = `${ant.mostrar ?? ant.crudo} o ${t.mostrar ?? t.crudo}`
+      ant.mostrar = undefined
+      ant.parcial = ant.parcial || t.parcial
+      ant.deZona = ant.deZona && t.deZona
+      ant.soloLugar = ant.soloLugar && t.soloLugar
+      ant.fin = t.fin
+      ant.union = true
+    } else {
+      unidos.push(t)
+    }
+  }
+  out.terminos = unidos
 
   // La palabra que se está tipeando puede ser el comienzo de un tipo u
   // operación ("depa", "alqu", "terr"): vale como texto O como tipo.
   const ult = out.terminos.at(-1)
   if (ult && ult.parcial && !ult.suave && ult.variantes.length === 1 && ult.variantes[0].ws.length === 1) {
     const pref = ult.variantes[0].ws[0]
-    if (pref.length >= 3 && !/\d/.test(pref)) {
+    if (pref.length >= 3 && !/\d/.test(pref) && !ambiguo(pref)) {
       const tiposPref = unicos(Object.keys(PALABRA_TIPO).filter(w => w.startsWith(pref)).map(w => PALABRA_TIPO[w]))
       const opsPref = unicos(Object.keys(PALABRA_OP).filter(w => w.startsWith(pref)).map(w => PALABRA_OP[w]))
       if (tiposPref.length) ult.prefijoTipos = tiposPref
@@ -974,6 +1157,17 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     }
   }
 
+  // "lote en tierra de…": la frase sigue abierta, el término anterior también
+  // está a medio escribir.
+  if (parcialFinal && ['de', 'del', 'la', 'las', 'los', 'el'].includes(toks[toks.length - 1] ?? '')) {
+    const ult2 = out.terminos[out.terminos.length - 1]
+    if (ult2 && (ult2.fin ?? ult2.pos) >= toks.length - 3) ult2.parcial = true
+  }
+  // "monoambiente o 1 dormitorio": de 0 a 1 dormitorios.
+  if (out.mono && out.dorms) {
+    out.dorms = { min: 0, max: Math.max(1, out.dorms.max) }
+    out.mono = false
+  }
   // "2 ambientes" es jerga de departamento.
   if (out.ambientes && !out.tipos.length) out.tipos.push('departamento', 'ph')
   return out
@@ -1082,7 +1276,7 @@ function construirFrasesZona(): FraseZona[] {
     // resto dentro de esa ciudad ("norte" en Roldán), en cualquier orden.
     const ciudadEn = ws.find(w => CIUDADES.has(w))
     const resto = ws.filter(w => !CIUDADES.has(w))
-    if (ciudadEn && resto.length) variantes.set(`${resto.join(' ')}@${ciudadEn}`, { ws: resto, ciudad: ciudadEn })
+    if (ciudadEn && resto.length) variantes.set(`${resto.join(' ')}@${ciudadEn}`, { ws: resto, ciudad: ciudadEn, soloUbicacion: true })
     out.push({
       mostrar: original.get(frase) ?? frase, palabras: ws, nombre: zonas[0].nombre, variantes: Array.from(variantes.values()), expande,
       esNombre: nombres.has(frase), zonas,
@@ -1202,6 +1396,15 @@ function puntajeVariante(e: Entrada, v: Variante, t: Termino): number {
   if (v.soloCiudad) return e.ciudad === v.soloCiudad ? 4 : 0
   if (v.ciudad && e.ciudad && e.ciudad !== v.ciudad) return 0
   const ws = v.ws
+  if (v.soloUbicacion || t.soloUbicacion) {
+    const frase = ws.join(' ')
+    if (e.ubicacion.includes(` ${frase} `)) return 5
+    if (t.parcial && e.ubicacion.includes(` ${frase}`)) return 4
+    // Typo en un barrio escrito con "barrio" adelante ("barrio martn").
+    if (ws.length === 1 && !t.sinTypos && tolerancia(ws[0].length) &&
+      e.ubicacion.trim().split(' ').some(x => x.length >= 4 && distancia(ws[0], x, tolerancia(ws[0].length)) <= tolerancia(ws[0].length))) return 1.5
+    return 0
+  }
   if (v.altura != null) {
     // Calle + altura: la altura (misma cuadra) tiene que venir detrás de esa calle.
     for (let i = 0; i < e.lista.length; i++) {
@@ -1256,20 +1459,29 @@ function puntajeTermino(e: Entrada, t: Termino): number {
 
 /** Peso de un término cuando hay que quedarse con parte: un lugar puntual pesa
  *  más que una ciudad, y una ciudad más que una palabra suelta. */
+const GENERICOS = new Set(['norte', 'sur', 'este', 'oeste', 'centro', 'zona', 'barrio'])
 function pesoTermino(t: Termino, indice?: Indice): number {
+  if (t.variantes.every(v => v.ws.length === 1 && GENERICOS.has(v.ws[0]))) return 0.9
   if (t.deZona || t.soloLugar) return 1.3
   // Un barrio con nombre propio ("aurea", "aldea", "kentucky") pesa más que la
   // ciudad: "aurea funes" muestra Aurea (que está en Roldán) y lo avisa.
   const w = t.variantes.length === 1 && t.variantes[0].ws.length === 1 ? t.variantes[0].ws[0] : ''
-  if (w.length >= 5 && indice?.vocabLugar.has(w)) {
-    const n = indice.entradas.filter(e => e.ubicacion.includes(` ${w} `)).length
-    if (n > 0 && n <= 15) return 1.3
-  }
+  if (w.length >= 5 && indice?.vocabLugar.has(w)) return 1.3
   if (t.variantes.some(v => v.soloCiudad)) return 1.2
   return 1
 }
 
 function esAlquiler(op: string) { return op === 'Rent' || op === 'Temporary rent' }
+
+/** El precio que muestra la card para la operación pedida (o la principal). */
+function precioPara(e: Entrada, op: 'Sale' | 'Rent' | null): { price: number; currency: string; op: string } | null {
+  if (e.p.web_price === false) return null
+  const ops = (e.p.operations ?? []).filter(o => e.ops.has(o.operation_type))
+  const elegida = (op ? ops.find(o => o.operation_type === op || (op === 'Rent' && esAlquiler(o.operation_type))) : null) ??
+    ops.find(o => (o.prices ?? []).some(pr => pr.price > 0))
+  const pr = elegida?.prices?.find(x => x.price > 0)
+  return elegida && pr ? { price: pr.price, currency: pr.currency, op: elegida.operation_type } : null
+}
 function tieneOp(e: Entrada, op: 'Sale' | 'Rent', temporario = false): boolean {
   if (temporario) return e.ops.has('Temporary rent')
   return op === 'Rent' ? e.ops.has('Rent') || e.ops.has('Temporary rent') : e.ops.has('Sale')
@@ -1318,7 +1530,11 @@ function evaluar(e: Entrada, it: Interpretacion, flojas: Set<Llave>, ctx: Contex
   if (it.excluirTipos.length && it.excluirTipos.some(k => e.tipos.has(k))) return no
   if (it.tipos.length && !flojas.has('tipos')) {
     let s = cumpleTipos(e, it.tipos)
-    if (!s && flojas.has('tiposParecidos')) s = cumpleTipos(e, it.tipos.flatMap(k => TIPOS[k].parecido ?? [])) ? 0.5 : 0
+    if (!s && flojas.has('tiposParecidos')) {
+      s = cumpleTipos(e, it.tipos.flatMap(k => TIPOS[k].parecido ?? [])) ? 0.5 : 0
+      // Un campo no es un lote de country: solo tierra de verdad (media hectárea o más).
+      if (s && it.tipos.every(k => k === 'campo') && (e.supLote ?? 0) < 5000) s = 0
+    }
     if (!s) return no
     score += s
   }
@@ -1349,6 +1565,8 @@ function evaluar(e: Entrada, it: Interpretacion, flojas: Set<Llave>, ctx: Contex
   for (const t of it.excluir) if (puntajeTermino(e, t) >= 3) return no
 
   if (it.noCerrado && e.cerrado) return no
+  if (it.noMono && e.mono) return no
+  if (it.sinCochera && (e.cocheras ?? 0) > 0) return no
   if (it.cerrado && !flojas.has('cerrado')) {
     if (!e.cerrado) return no
     score += 1
@@ -1363,7 +1581,8 @@ function evaluar(e: Entrada, it: Interpretacion, flojas: Set<Llave>, ctx: Contex
       const { min, max } = it.dorms
       const dentro = e.dorms.filter(d => d >= min - ancho && d <= max + ancho)
       if (!dentro.length) return no
-      score += dentro.some(d => d >= min && d <= max) ? 3 : 1
+      // Mejor si card y título dicen lo mismo que se pidió.
+      score += e.dorms.every(d => d >= min && d <= max) ? 3.5 : dentro.some(d => d >= min && d <= max) ? 2.5 : 1
     }
     if (it.ambientes) {
       const { min, max } = it.ambientes
@@ -1389,8 +1608,10 @@ function evaluar(e: Entrada, it: Interpretacion, flojas: Set<Llave>, ctx: Contex
     // Terrenos (o "casa con lote de 1000 m2"): la del lote. Construidos: la
     // cubierta/total.
     const pideLote = it.suaves.some(w => ['lote', 'lotes', 'terreno', 'terrenos'].includes(w))
+    const pideCubierta = it.suaves.some(w => /^cubiert/.test(w))
     const quiereLote = pideLote || (it.tipos.length ? it.tipos.every(k => k === 'terreno' || k === 'campo') : e.supLote != null && !e.supCubierta.length)
-    const sups = quiereLote ? (e.supLote != null ? [e.supLote] : []) : e.supCubierta.length ? e.supCubierta : e.supLote != null ? [e.supLote] : []
+    const cubierta = pideCubierta && num(e.p.roofed_surface) != null ? [num(e.p.roofed_surface)!] : e.supCubierta
+    const sups = quiereLote ? (e.supLote != null ? [e.supLote] : []) : cubierta.length ? cubierta : e.supLote != null ? [e.supLote] : []
     const ok = sups.some(v => {
       if (min != null && max != null) return v >= min * (ancho ? 0.85 : 1) && v <= max * (ancho ? 1.15 : 1)
       if (min != null) return v >= min * (ancho ? 0.85 : 1)
@@ -1419,11 +1640,20 @@ function evaluar(e: Entrada, it: Interpretacion, flojas: Set<Llave>, ctx: Contex
     if (!ok) return no
     score += 1
   }
-  // Suaves: suman si aparecen, no filtran.
+  // Suaves: suman si aparecen, no filtran. Las negadas ("sin pileta") restan.
   for (const w of it.suaves) {
-    if (e.titulo.has(w) || puntajePalabra(e, w, false, true) >= 3) score += 1.5
+    if ((e.titulo.has(w) || puntajePalabra(e, w, false, true) >= 3) && !e.ubicacion.includes(` ${w} `)) score += 1.5
     if ((w === 'cochera' || w === 'cocheras' || w === 'garage' || w === 'garaje') && (e.cocheras ?? 0) > 0) score += 1
+    // "grande", "mucho terreno": las más grandes primero; "chico": al revés.
+    const sup = e.supLote ?? e.supCubierta[0] ?? null
+    if (sup && ['grande', 'grandes', 'amplio', 'amplia', 'enorme', 'gran', 'mucho'].includes(w)) score += Math.log10(sup) / 2
+    if (sup && ['chico', 'chica', 'chiquito', 'chiquita', 'pequeno', 'pequena'].includes(w)) score -= Math.log10(sup) / 2
   }
+  for (const w of it.suavesNegadas) if (e.titulo.has(w) || puntajePalabra(e, w, false, true) >= 3) score -= 2
+  // Sin tipo escrito, primero vivienda (no cocheras ni galpones); sin
+  // operación, primero ventas.
+  if (!it.tipos.length) score += e.tipos.has('casa') || e.tipos.has('departamento') || e.tipos.has('ph') ? 0.8 : e.tipos.has('terreno') ? 0.4 : 0
+  if (!op && !it.orden) score += e.ops.has('Sale') ? 0.4 : 0
   if (e.p.is_starred_on_web) score += 0.3
   return { ok: true, score, terminosOk }
 }
@@ -1434,6 +1664,8 @@ export interface Resultado {
   /** ids en orden de relevancia. */
   ids: number[]
   score: Map<number, number>
+  /** Posición de cada id en el orden final (relevancia, o precio si se pidió). */
+  rango: Map<number, number>
   interpretacion: Interpretacion
   /** True si hubo que aflojar algo para no dejar la lista vacía. */
   aproximado: boolean
@@ -1448,9 +1680,17 @@ export interface Resultado {
 
 function escalera(it: Interpretacion): Llave[][] {
   const tipoPrimero = it.tipos.length > 0 && it.tipos.every(k => TIPOS_DUROS.includes(k))
-  return [
+  const lugar: Llave[][] = [
     // "san martin roldan": como barrio no hay, como calle sí.
     ['lugarComoCalle'],
+    ['terminosParcial'],
+    // Un barrio sin nada de lo pedido → su ciudad ("casa en Funes City" → casas en Funes).
+    ['terminosACiudad'],
+    // Un galpón en Kentucky no existe: quien busca un galpón quiere galpones, así
+    // que antes de soltar el tipo se suelta el lugar.
+    ['terminos'],
+  ]
+  return [
     ['precioAncho', 'superficieAncha'],
     ['dormsAncho'],
     ['banos', 'cocheras'],
@@ -1458,14 +1698,11 @@ function escalera(it: Interpretacion): Llave[][] {
     ['temporario'],
     ['precio', 'moneda'],
     ['cerrado'],
+    // Local/galpón/terreno: mejor el mismo tipo en otro lado que otro tipo acá.
+    ...(tipoPrimero ? lugar : []),
     ['tiposParecidos'],
     ['dorms'],
-    ['terminosParcial'],
-    // Un barrio sin nada de lo pedido → su ciudad ("casa en Funes City" → casas en Funes).
-    ['terminosACiudad'],
-    // Un galpón en Kentucky no existe: quien busca un galpón quiere galpones, así
-    // que antes de soltar el tipo se suelta el lugar.
-    ['terminos'],
+    ...(tipoPrimero ? [] : lugar),
     // Terreno/galpón/local: el tipo pesa más que la operación; vivienda, al revés.
     ...(tipoPrimero ? [['operacion'], ['tipos']] as Llave[][] : [['tipos'], ['operacion']] as Llave[][]),
   ]
@@ -1478,35 +1715,22 @@ function escalera(it: Interpretacion): Llave[][] {
 function afinarTerminos(indice: Indice, it: Interpretacion) {
   const hayFrase = (f: string, prefijo = false) =>
     indice.entradas.some(e => e.texto.includes(prefijo ? ` ${f}` : ` ${f} `))
-  const simple = (t: Termino) => !t.deZona && t.variantes.length === 1 &&
+  const simple = (t: Termino) => !t.deZona && !t.union && t.variantes.length === 1 &&
     t.variantes[0].ws.length === 1 && !t.variantes[0].soloCiudad && t.variantes[0].altura == null
+  const finDe = (t: Termino) => t.fin ?? t.pos
   // "vida" (alias que se expande a los tres Vida) + "jardin" = "Vida Jardín".
   for (let i = 0; i + 1 < it.terminos.length; i++) {
     const a = it.terminos[i]
     const b = it.terminos[i + 1]
-    if (!a.deZona || a.crudo.includes(' ') || !simple(b) || b.pos !== a.pos + 1) continue
+    if (!a.deZona || a.union || a.crudo.includes(' ') || !simple(b) || b.pos !== finDe(a) + 1) continue
     const frase = `${a.crudo} ${b.variantes[0].ws[0]}`
     if (hayFrase(frase) || (b.parcial && hayFrase(frase, true))) {
-      it.terminos.splice(i, 2, { crudo: frase, variantes: [{ ws: frase.split(' ') }], pos: a.pos, parcial: b.parcial })
+      it.terminos.splice(i, 2, { crudo: frase, variantes: [{ ws: frase.split(' ') }], pos: a.pos, fin: finDe(b), parcial: b.parcial })
     }
   }
-  const esNumero = (t: Termino) => simple(t) && /^\d{2,5}$/.test(t.variantes[0].ws[0])
   const out: Termino[] = []
   for (let i = 0; i < it.terminos.length; i++) {
     const t = it.terminos[i]
-    // Calle + altura ("pellegrini 2632", "san juan al 2000", "san sebastian 1409").
-    const sig0 = it.terminos[i + 1]
-    if (sig0 && esNumero(sig0) && !t.variantes.some(v => v.soloCiudad) && !esNumero(t) &&
-      it.toks.slice(t.pos + t.crudo.split(' ').length, sig0.pos).every(w => ['al', 'n', 'nro', 'numero', 'altura'].includes(w))) {
-      const calle = t.deZona ? t.crudo.split(' ') : t.variantes[0].ws
-      const altura = Number(sig0.variantes[0].ws[0])
-      const cand: Termino = { crudo: `${t.crudo} ${sig0.crudo}`, variantes: [{ ws: calle, altura }], pos: t.pos, parcial: sig0.parcial }
-      if (indice.entradas.some(e => puntajeVariante(e, cand.variantes[0], cand) > 0)) {
-        out.push(cand)
-        i++
-        continue
-      }
-    }
     if (!simple(t)) { out.push(t); continue }
     // Frase con lo que haya entre medio en la consulta ("lisandro de la torre").
     let fin = i
@@ -1514,7 +1738,7 @@ function afinarTerminos(indice: Indice, it: Interpretacion) {
     for (let j = i + 1; j < it.terminos.length && j - i <= 3; j++) {
       const sig = it.terminos[j]
       if (!simple(sig)) break
-      const entre = it.toks.slice(it.terminos[j - 1].pos + 1, sig.pos)
+      const entre = it.toks.slice(finDe(it.terminos[j - 1]) + 1, sig.pos)
       if (entre.some(w => !['de', 'del', 'la', 'las', 'los', 'el'].includes(w)) || entre.length > 2) break
       const cands = [[...frase, sig.variantes[0].ws[0]], [...frase, ...entre, sig.variantes[0].ws[0]]]
       const ok = cands.find(c => hayFrase(c.join(' ')) || (sig.parcial && hayFrase(c.join(' '), true)))
@@ -1524,7 +1748,7 @@ function afinarTerminos(indice: Indice, it: Interpretacion) {
     }
     if (fin > i) {
       const ts = it.terminos.slice(i, fin + 1)
-      const f: Termino = { crudo: frase.join(' '), variantes: [{ ws: frase }], pos: t.pos, parcial: ts[ts.length - 1].parcial }
+      const f: Termino = { crudo: frase.join(' '), variantes: [{ ws: frase }], pos: t.pos, fin: finDe(ts[ts.length - 1]), parcial: ts[ts.length - 1].parcial }
       // Si esa frase es el nombre de un lugar ("tierra nueva", "san lorenzo"), se
       // busca como lugar: no la calle del mismo nombre.
       if (indice.entradas.some(e => e.ubicacion.includes(` ${f.crudo} `))) f.soloLugar = true
@@ -1536,14 +1760,45 @@ function afinarTerminos(indice: Indice, it: Interpretacion) {
     const sig = it.terminos[i + 1]
     if (sig && simple(sig) && indice.vocab.has(frase[0] + sig.variantes[0].ws[0])) {
       const junto = frase[0] + sig.variantes[0].ws[0]
-      out.push({ crudo: `${t.crudo} ${sig.crudo}`, variantes: [{ ws: [junto] }, { ws: [frase[0], sig.variantes[0].ws[0]] }], pos: t.pos, parcial: sig.parcial })
+      out.push({ crudo: `${t.crudo} ${sig.crudo}`, variantes: [{ ws: [junto] }, { ws: [frase[0], sig.variantes[0].ws[0]] }], pos: t.pos, fin: finDe(sig), parcial: sig.parcial })
       i++
       continue
     }
     out.push(t)
   }
+
+  // Calle + altura ("pellegrini 2632", "san martin 700", "san juan al 2000"):
+  // la altura tiene que estar pegada a ESA calle. Si esa altura no existe, se
+  // busca la calle y se avisa ("cordoba 1500" no es el pasaje 1519).
+  const esNumero = (t: Termino) => simple(t) && /^\d{2,5}$/.test(t.variantes[0].ws[0])
+  const conAltura: Termino[] = []
+  for (let i = 0; i < out.length; i++) {
+    const t = out[i]
+    const sig = out[i + 1]
+    const pegado = sig && it.toks.slice(finDe(t) + 1, sig.pos).every(w => ['al', 'n', 'nro', 'numero', 'altura'].includes(w))
+    if (sig && pegado && esNumero(sig) && !esNumero(t) && !t.union && !t.variantes.some(v => v.soloCiudad) &&
+      (t.deZona || t.variantes.length === 1)) {
+      const calle = t.deZona ? t.crudo.split(' ') : t.variantes[0].ws
+      const altura = Number(sig.variantes[0].ws[0])
+      const cand: Termino = { crudo: `${t.crudo} ${sig.crudo}`, variantes: [{ ws: calle, altura }], pos: t.pos, fin: finDe(sig), parcial: sig.parcial }
+      if (indice.entradas.some(e => puntajeVariante(e, cand.variantes[0], cand) > 0)) {
+        conAltura.push(cand)
+        i++
+        continue
+      }
+      if (String(altura).length >= 3) {
+        // La calle sí, esa altura no (y si se está tipeando, todavía no se dice nada).
+        conAltura.push({ ...t, soloLugar: false, deZona: false, variantes: [{ ws: calle }] })
+        if (!sig.parcial) it.ignoradas.push(`${capitalizar(t.crudo)} ${altura}`)
+        i++
+        continue
+      }
+    }
+    conAltura.push(t)
+  }
+
   // Partidas: "tierranueva" → "tierra nueva", "funescity" → "funes city".
-  for (const t of out) {
+  for (const t of conAltura) {
     if (!simple(t)) continue
     const w = t.variantes[0].ws[0]
     if (w.length < 7 || indice.vocab.has(w)) continue
@@ -1553,9 +1808,13 @@ function afinarTerminos(indice: Indice, it: Interpretacion) {
       if (indice.vocab.has(a) && indice.vocab.has(b) && hayFrase(`${a} ${b}`)) { t.variantes.push({ ws: [a, b] }); t.suave = false; break }
     }
   }
+  // Sinónimos: un tríplex también es un dúplex para quien busca varias plantas.
+  for (const t of conAltura) {
+    if (simple(t) && t.variantes[0].ws[0] === 'triplex') t.variantes.push({ ws: ['duplex'] })
+  }
   // Lo que no formó frase: suaves ordenan, números chicos sueltos ("familia de 4")
   // no filtran.
-  it.terminos = out.filter(t => {
+  it.terminos = conAltura.filter(t => {
     if (t.suave && simple(t)) { it.suaves.push(t.variantes[0].ws[0]); return false }
     if (t.numeroSuelto && simple(t)) { it.suaves.push(t.crudo); return false }
     return true
@@ -1563,12 +1822,21 @@ function afinarTerminos(indice: Indice, it: Interpretacion) {
   // Un nombre de barrio que también es calle ("martin", "belgrano", "centro"):
   // se busca como lugar. La calle se busca con altura ("san martin 700").
   for (const t of it.terminos) {
-    if (!simple(t) || t.parcial || t.soloLugar) continue
+    if (!simple(t) || t.soloLugar) continue
     const w = t.variantes[0].ws[0]
     if (/\d/.test(w) || !indice.vocabLugar.has(w)) continue
     const enUbicacion = indice.entradas.filter(e => e.lugarPalabras.has(w)).length
     const enCalle = indice.entradas.filter(e => e.palabras.has(w) && !e.lugarPalabras.has(w)).length
     if (enUbicacion && enCalle) t.soloLugar = true
+  }
+  // Una frase que es una localidad ("san lorenzo") se busca como ciudad.
+  for (const t of it.terminos) {
+    if (t.variantes.length !== 1 || t.variantes[0].altura != null) continue
+    const f = t.variantes[0].ws.join(' ')
+    if (CIUDADES_FRASE.has(f)) {
+      t.variantes = [{ ws: [], soloCiudad: f === 'puerto gral san martin' ? 'puerto general san martin' : f }]
+      t.crudo = CIUDADES_FRASE.get(f)!
+    }
   }
 }
 
@@ -1583,8 +1851,22 @@ export function buscar(indice: Indice, query: string): Resultado | null {
   const r = buscarInterno(indice, query)
   if (!r || !/\S$/.test(query)) return r
   // La última palabra está a medio escribir: si con ella la lista se vacía o hay
-  // que aflojar algo, se muestra lo que ya estaba escrito (sin ella). Evita el
-  // parpadeo "casa hasta" → vacío → "casa hasta 200 mil" → bien.
+  // que aflojar algo, se muestra lo que ya estaba escrito. Evita el parpadeo
+  // "casa hasta" → vacío → "casa hasta 200 mil" → bien.
+  const malo = r.aproximado || !r.ids.length
+  const q = query.trim()
+  // Frase abierta ("lote en tierra de…"): lo de antes de la frase.
+  if (malo && /\s(de|del|la|las|los|el)$/.test(q)) {
+    const antes = q.split(/\s+/).slice(0, -2).join(' ')
+    if (!antes) return null
+    const estable = buscar(indice, `${antes} `)
+    if (estable && estable.ids.length) return estable
+  }
+  // Una o dos letras sueltas al final ("lote en tierra de s"): todavía nada.
+  if (malo && /(^|\s)[a-z]{1,2}$/i.test(q)) {
+    const sin = q.replace(/\S+$/, '').trimEnd()
+    return sin ? buscar(indice, sin) : null
+  }
   const it = r.interpretacion
   const ult = it.terminos.find(t => t.parcial)
   const ultimaPalabra = palabras(query).at(-1) ?? ''
@@ -1593,12 +1875,12 @@ export function buscar(indice: Indice, query: string): Resultado | null {
   const ultimaIgnorada = ultimaPalabra.length < 4 && !indice.vocab.has(ultimaPalabra) && it.ignoradas.length > 0 &&
     normalizar(it.ignoradas[it.ignoradas.length - 1]) === ultimaPalabra
   // Un número al final se está tipeando ("casa 20" → "casa 200 mil").
-  const numeroEnCurso = /^\d+$/.test(ultimaPalabra)
+  const numeroEnCurso = /\d$/.test(ultimaPalabra) && ultimaPalabra.length <= 6 && !it.codigo && !it.codigoPrefijo && !it.codigoBuscado
   const enProceso = (ult && !completa(indice, ult)) || ultimaIgnorada || numeroEnCurso
-  if (enProceso && (r.aproximado || !r.ids.length || ultimaIgnorada)) {
-    const sin = query.replace(/\S+$/, '')
-    if (!sin.trim()) return null
-    const estable = buscarInterno(indice, sin)
+  if (enProceso && (malo || ultimaIgnorada)) {
+    const sin = q.replace(/\S+$/, '').trimEnd()
+    if (!sin) return null
+    const estable = buscar(indice, sin)
     if (estable && (estable.ids.length || !r.ids.length)) return estable
   }
   return r
@@ -1647,20 +1929,24 @@ function buscarInterno(indice: Indice, query: string): Resultado | null {
         const alt = terminoZona(fam, sinNumero, t.pos)
         if (indice.entradas.some(e => puntajeTermino(e, alt) > 0)) {
           conocidos.push(alt)
-          it.ignoradas.push(esSigla(indice, sinNumero) ? t.crudo.toUpperCase() : capitalizar(t.crudo))
+          it.ignoradas.push(esSigla(sinNumero) ? t.crudo.toUpperCase() : capitalizar(t.crudo))
           continue
         }
       }
     }
     // A medio escribir, corta y sin coincidencias: todavía no es nada.
     if (t.parcial && t.crudo.length < 4) continue
-    it.ignoradas.push(esSigla(indice, t.crudo) ? t.crudo.toUpperCase() : t.crudo)
+    it.ignoradas.push(esSigla(t.crudo) ? t.crudo.toUpperCase() : t.crudo)
   }
   it.terminos = conocidos
+  MOSTRAR = { indice, originales: it.originales }
+  it.ignoradas = it.ignoradas.map(w => (/[A-ZÁÉÍÓÚÑ]/.test(w) && /[áéíóúñ]/i.test(w) ? w
+    : esSigla(normalizar(w).replace(/\s+/g, '')) ? w.toUpperCase()
+      : capitalizar(normalizar(w).split(' ').map(x => it.originales.get(x) ?? x).join(' '))))
 
   // Código pedido que no existe: vacío, con el aviso (no se toma como precio).
   if (it.codigoBuscado) {
-    return { ids: [], score: new Map(), interpretacion: it, aproximado: false, aflojado: [], etiquetas: [`Código ${it.codigoBuscado.toUpperCase()}`], orden: null }
+    return { ids: [], score: new Map(), rango: new Map(), interpretacion: it, aproximado: false, aflojado: [], etiquetas: [`Código ${it.codigoBuscado.toUpperCase()}`], orden: null }
   }
 
   const sinRestricciones = () => !it.codigo && !it.codigoPrefijo && !it.tipos.length && !it.operacion &&
@@ -1669,8 +1955,12 @@ function buscarInterno(indice: Indice, query: string): Resultado | null {
   // Solo características ("pileta", "golf"): ahí sí filtran, porque es todo lo
   // que se pidió ("pileta" y "piscina" son lo mismo).
   if (sinRestricciones() && it.suaves.length) {
-    const ws = unicos(it.suaves.map(w => (w === 'piscina' ? 'pileta' : w)))
-    const ts: Termino[] = ws.map((w, k) => ({ crudo: w, variantes: w === 'pileta' ? [{ ws: ['pileta'] }, { ws: ['piscina'] }] : [{ ws: [w] }], pos: 900 + k, parcial: false, sinTypos: true }))
+    const ws = unicos(it.suaves.filter(w => !/^\d+$/.test(w)).map(w => (w === 'piscina' ? 'pileta' : w)))
+    const raiz = (w: string) => (w.length >= 8 ? w.slice(0, w.length - 3) : w)
+    const ts: Termino[] = ws.map((w, k) => ({
+      crudo: w, pos: 900 + k, parcial: false, sinTypos: true,
+      variantes: w === 'pileta' ? [{ ws: ['pileta'] }, { ws: ['piscina'] }] : unicos([w, raiz(w)]).map(x => ({ ws: [x] })),
+    }))
     const existen = ts.filter(t => indice.entradas.some(e => puntajeTermino(e, t) > 0))
     if (existen.length) { it.terminos = existen; it.suaves = [] }
   }
@@ -1678,7 +1968,7 @@ function buscarInterno(indice: Indice, query: string): Resultado | null {
   // no se encontró, en vez de mostrar todo como si se hubiera entendido. Si
   // además se entendió un orden ("lo más barato que hay"), se ordena todo.
   if (sinRestricciones() && it.ignoradas.length && !it.orden) {
-    return { ids: [], score: new Map(), interpretacion: it, aproximado: false, aflojado: [], etiquetas: [], orden: null }
+    return { ids: [], score: new Map(), rango: new Map(), interpretacion: it, aproximado: false, aflojado: [], etiquetas: [], orden: null }
   }
 
   // Ciudad dominante de cada término (para caer del barrio a su ciudad).
@@ -1730,12 +2020,6 @@ function buscarInterno(indice: Indice, query: string): Resultado | null {
     const d = describirFloja(it, k, flojas, hitsE, ctx)
     if (d) aflojado.push(d)
   })
-  // Frase completa tal cual en el aviso ("las acequias" antes que "Acequias del
-  // Aire"): suma para el orden.
-  const fraseQ = it.toks.filter(w => !/^\d+$/.test(w)).join(' ')
-  if (fraseQ.includes(' ')) {
-    for (const h of hits) if (indice.porId.get(String(h.id))!.texto.includes(` ${fraseQ} `)) h.score += 4
-  }
   // No hay campos: los terrenos más grandes primero.
   if (flojas.has('tiposParecidos') && it.tipos.includes('campo')) {
     for (const h of hits) h.score += Math.log10(indice.porId.get(String(h.id))!.supLote ?? 1)
@@ -1744,11 +2028,38 @@ function buscarInterno(indice: Indice, query: string): Resultado | null {
   // Se soltó el tope de precio: lo más cercano al presupuesto primero.
   const orden = it.orden ?? (flojas.has('precio') && it.precio?.max != null ? 'barato'
     : flojas.has('precio') && it.precio?.min != null ? 'caro' : null)
+  if (orden === 'recientes') hits.sort((a, b) => b.id - a.id)
+  if (orden === 'barato' || orden === 'caro') {
+    // Por precio, sin mezclar peras con manzanas: ventas antes que alquileres
+    // (salvo que se haya pedido alquiler), vivienda antes que cocheras o locales
+    // (salvo que se haya pedido un tipo), dólares antes que pesos en venta y
+    // pesos antes que dólares en alquiler. Sin precio publicado, al final.
+    const clave = (h: Hit) => {
+      const e = indice.porId.get(String(h.id))!
+      const pr = precioPara(e, it.operacion)
+      const alquiler = pr ? esAlquiler(pr.op) : false
+      const vivienda = e.tipos.has('casa') || e.tipos.has('departamento') || e.tipos.has('ph')
+      return {
+        grupo: (it.operacion ? 0 : alquiler ? 2 : 0) + (it.tipos.length ? 0 : vivienda ? 0 : 1),
+        moneda: pr ? (pr.currency === (alquiler ? 'ARS' : 'USD') ? 0 : 1) : 2,
+        precio: pr?.price ?? 0,
+      }
+    }
+    const k = new Map(hits.map(h => [h.id, clave(h)]))
+    hits.sort((a, b) => {
+      const ka = k.get(a.id)!
+      const kb = k.get(b.id)!
+      if (ka.grupo !== kb.grupo) return ka.grupo - kb.grupo
+      if (ka.moneda !== kb.moneda) return ka.moneda - kb.moneda
+      return orden === 'barato' ? ka.precio - kb.precio : kb.precio - ka.precio
+    })
+  }
   return {
     ids: hits.map(h => h.id),
     score: new Map(hits.map(h => [h.id, h.score])),
+    rango: new Map(hits.map((h, i) => [h.id, i])),
     interpretacion: it,
-    aproximado: flojas.size > 0 && hits.length > 0,
+    aproximado: Array.from(flojas).some(k => k !== 'lugarComoCalle') && hits.length > 0,
     aflojado: unicos(aflojado),
     etiquetas: etiquetas(it, indice),
     orden,
@@ -1768,7 +2079,7 @@ function aplica(it: Interpretacion, k: Llave, ctx: Contexto): boolean {
     case 'temporario': return it.temporario
     case 'terminosParcial': return it.terminos.length > 1
     case 'terminosACiudad': return it.terminos.some(t => ctx.ciudadDeTermino.has(t))
-    case 'terminos': return it.tipos.length > 0 && it.terminos.length > 0
+    case 'terminos': return (it.tipos.length > 0 || !!it.operacion) && it.terminos.length > 0
     case 'tiposParecidos': return it.tipos.some(k => TIPOS[k].parecido?.length)
     case 'tipos': return it.tipos.length > 0
     case 'operacion': return !!it.operacion
@@ -1787,6 +2098,7 @@ function textoPrecio(p: NonNullable<Interpretacion['precio']>): string {
 
 function textoRango(r: Rango, uno: string, varios: string): string {
   const u = (n: number) => (n === 1 ? uno : varios)
+  if (r.min === 0 && r.max === 1 && uno === 'dormitorio') return 'monoambiente o 1 dormitorio'
   if (r.min === r.max) return `${r.min} ${u(r.min)}`
   if (r.max >= 99) return `${r.min}+ ${varios}`
   if (r.min <= 0) return `hasta ${r.max} ${u(r.max)}`
@@ -1811,10 +2123,10 @@ const MENORES = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'o', 'e', '
 function capitalizar(s: string): string {
   return s.split(' ').map((w, i) => (i > 0 && MENORES.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(' ')
 }
+function primeraMayuscula(s: string): string { return s.charAt(0).toUpperCase() + s.slice(1) }
 
-/** "kcc", "tds": siglas (no palabras de los avisos) → en mayúsculas. */
-function esSigla(indice: Indice, w: string): boolean {
-  void indice
+/** "kcc", "tds": siglas (sin vocales) → en mayúsculas. */
+function esSigla(w: string): boolean {
   return /^[b-df-hj-np-tv-z]{2,4}\d?$/.test(w) && !RELLENO.has(w)
 }
 
@@ -1822,32 +2134,67 @@ function textoTipos(ks: TipoClave[]) {
   return ks.map(k => TIPOS[k].plural.toLowerCase()).join(' o ').replace(/\bph\b/g, 'PH')
 }
 
-function nombreTermino(indice: Indice | null, t: Termino): string {
-  if (t.mostrar) return t.mostrar
-  if (t.variantes.every(v => v.soloCiudad)) return t.crudo
-  if (indice && esSigla(indice, t.crudo)) return t.crudo.toUpperCase()
-  return /^\d+$/.test(t.crudo) ? t.crudo : capitalizar(t.crudo)
+// Cómo mostrar una palabra: como la escribió la persona (si tenía tildes), como
+// aparece en los avisos, o corregida si tenía un error ("rosairo" → Rosario).
+let MOSTRAR: { indice: Indice; originales: Map<string, string> } | null = null
+function palabraVisible(w: string): string {
+  if (!MOSTRAR || /^\d+$/.test(w) || MENORES.has(w)) return w
+  const { indice, originales } = MOSTRAR
+  if (originales.has(w)) return originales.get(w)!
+  if (indice.vocab.has(w)) return indice.forma.get(w) ?? w
+  // Error de tipeo: la palabra del inventario más parecida (si hay una sola clara).
+  const tol = tolerancia(w.length)
+  if (tol) {
+    let mejor: string | null = null
+    let mejorD = tol + 1
+    indice.vocab.forEach(x => {
+      if (x.length < 4 || /\d/.test(x) || Math.abs(x.length - w.length) > tol) return
+      const d = distancia(w, x, tol)
+      if (d < mejorD) { mejorD = d; mejor = x }
+    })
+    if (mejor) return indice.forma.get(mejor) ?? mejor
+  }
+  return w
 }
 
+function nombreTermino(t: Termino): string {
+  if (t.mostrar) return t.mostrar
+  if (t.variantes.every(v => v.soloCiudad)) return t.crudo
+  if (esSigla(t.crudo)) return t.crudo.toUpperCase()
+  if (/^\d+$/.test(t.crudo)) return t.crudo
+  return capitalizar(t.crudo.split(' ').map(palabraVisible).join(' '))
+}
+
+const esTerminoDeLugar = (t: Termino) => !!(t.deZona || t.soloLugar || t.variantes.some(v => v.soloCiudad))
+
 function describirFloja(it: Interpretacion, k: Llave, flojas: Set<Llave>, hits: Entrada[], ctx: Contexto): string | null {
-  const nombre = (t: Termino) => `«${nombreTermino(null, t)}»`
+  const nombre = (t: Termino) => `«${nombreTermino(t)}»`
+  const ciudad = (c: string) => CIUDADES.get(c) ?? CIUDADES_FRASE.get(c) ?? capitalizar(c)
   switch (k) {
     case 'lugarComoCalle': return null
-    case 'precioAncho':
-      return flojas.has('precio') || !it.precio ? null : `precio ${textoPrecio(it.precio)} ±15%`
+    case 'precioAncho': {
+      if (flojas.has('precio') || !it.precio) return null
+      const p = it.precio
+      return `precio un poco más flexible (${textoPrecio({ ...p, min: p.min != null ? p.min * 0.85 : undefined, max: p.max != null ? p.max * 1.15 : undefined })})`
+    }
     case 'superficieAncha':
-      return flojas.has('superficie') || !it.superficie ? null : `superficie aproximada a ${textoSuperficie(it.superficie).replace('~', '')}`
-    case 'dormsAncho':
-      return flojas.has('dorms') ? null : `${textoDorms(it)} ±1`
-    case 'banos': return `sin el filtro de ${it.banos} baño${it.banos === 1 ? '' : 's'}`
-    case 'cocheras': return `sin el filtro de ${it.cocheras} cochera${it.cocheras === 1 ? '' : 's'}`
+      return flojas.has('superficie') || !it.superficie ? null : `superficie aproximada (${textoSuperficie(it.superficie).replace('~', 'alrededor de ')})`
+    case 'dormsAncho': {
+      if (flojas.has('dorms')) return null
+      if (it.mono) return 'monoambientes o de 1 dormitorio'
+      if (it.dorms) return `${Math.max(0, it.dorms.min - 1)} a ${Math.min(99, it.dorms.max + 1)} dormitorios`.replace(/^0 a /, 'hasta ')
+      if (it.ambientes) return `${Math.max(1, it.ambientes.min - 1)} a ${it.ambientes.max + 1} ambientes`
+      return null
+    }
+    case 'banos': return `con menos de ${it.banos} baño${it.banos === 1 ? '' : 's'}`
+    case 'cocheras': return `con menos de ${it.cocheras} cochera${it.cocheras === 1 ? '' : 's'}`
     case 'precio': return it.precio ? `sin el filtro de precio (${textoPrecio(it.precio)})` : null
     case 'moneda': return it.moneda ? `también en ${it.moneda === 'ARS' ? 'dólares' : 'pesos'}` : null
-    case 'superficie': return it.superficie ? `sin el filtro de superficie (${textoSuperficie(it.superficie)})` : null
+    case 'superficie': return it.superficie ? `sin el filtro de superficie (${textoSuperficie(it.superficie).replace('~', 'alrededor de ')})` : null
     case 'dorms': return textoDorms(it) ? `sin el filtro de ${textoDorms(it)}` : null
-    case 'cerrado': return 'no solo en barrio cerrado'
-    case 'temporario': return 'no hay temporarios: mostramos alquileres'
-    case 'tiposParecidos': return flojas.has('tipos') ? null : `similares a ${textoTipos(it.tipos)}`
+    case 'cerrado': return 'también fuera de barrio cerrado'
+    case 'temporario': return 'alquileres comunes (no hay temporarios)'
+    case 'tiposParecidos': return flojas.has('tipos') ? null : `parecidos a ${textoTipos(it.tipos)}`
     case 'terminosParcial': case 'terminosACiudad': {
       if (flojas.has('terminos') || (k === 'terminosParcial' && flojas.has('terminosACiudad'))) return null
       // Las palabras que no cumplen todos los resultados.
@@ -1857,16 +2204,21 @@ function describirFloja(it: Interpretacion, k: Llave, flojas: Set<Llave>, hits: 
       const conCiudad = (t: Termino) => {
         const c = ctx.ciudadDeTermino.get(t)
         return flojas.has('terminosACiudad') && c && hits.every(e => e.ciudad === c)
-          ? `fuera de ${nombre(t)} (mostramos ${CIUDADES.get(c) ?? capitalizar(c)})` : null
+          ? `en ${ciudad(c)}, fuera de ${nombre(t)}` : null
       }
       if (ninguno.length === faltan.length) {
-        return faltan.map(t => conCiudad(t) ?? `sin ${nombre(t)}`).join(' · ')
+        return faltan.map(t => conCiudad(t) ?? (esTerminoDeLugar(t) ? `fuera de ${nombre(t)}` : `sin ${nombre(t)}`)).join(' · ')
       }
-      return `algunos sin ${faltan.map(nombre).join(' o sin ')}`
+      return `coinciden con ${faltan.map(nombre).join(' o con ')}, no con todo`
     }
-    case 'terminos': return `fuera de ${it.terminos.map(nombre).join(', ')}`
+    case 'terminos': {
+      const lugares = it.terminos.filter(esTerminoDeLugar)
+      const otros = it.terminos.filter(t => !esTerminoDeLugar(t))
+      return [lugares.length ? `fuera de ${lugares.map(nombre).join(', ')}` : '', otros.length ? `sin ${otros.map(nombre).join(', ')}` : '']
+        .filter(Boolean).join(' · ')
+    }
     case 'tipos': return `otros tipos además de ${textoTipos(it.tipos)}`
-    case 'operacion': return it.operacion === 'Rent' ? 'también en venta' : 'también en alquiler'
+    case 'operacion': return it.operacion === 'Rent' ? 'en venta (no hay en alquiler)' : 'en alquiler (no hay en venta)'
   }
 }
 
@@ -1874,7 +2226,7 @@ function etiquetas(it: Interpretacion, indice: Indice): string[] {
   const out: string[] = []
   if (it.codigo) return [`Código ${it.codigo.toUpperCase()}`]
   if (it.codigoPrefijo) out.push(`Código ${it.codigoPrefijo.toUpperCase()}…`)
-  if (it.tipos.length) out.push(capitalizar(textoTipos(it.tipos)))
+  if (it.tipos.length) out.push(primeraMayuscula(textoTipos(it.tipos)))
   if (it.excluirTipos.length) out.push(`Sin ${textoTipos(it.excluirTipos)}`)
   if (it.operacion) out.push(it.temporario ? 'Alquiler temporario' : it.operacion === 'Rent' ? 'Alquiler' : 'Venta')
   if (it.excluirOp) out.push(it.excluirOp === 'Rent' ? 'Sin alquileres' : 'Sin ventas')
@@ -1882,17 +2234,19 @@ function etiquetas(it: Interpretacion, indice: Indice): string[] {
     // La palabra a medio escribir todavía no es algo "entendido", salvo que ya
     // sea una palabra completa ("casa en funes" sin espacio final).
     if (t.parcial && !completa(indice, t)) continue
-    out.push(nombreTermino(indice, t))
+    out.push(nombreTermino(t))
   }
-  for (const t of it.excluir) out.push(`Fuera de ${nombreTermino(indice, t)}`)
+  for (const t of it.excluir) out.push(`${esTerminoDeLugar(t) ? 'Fuera de' : 'Sin'} ${nombreTermino(t)}`)
   if (it.cerrado) out.push('Barrio cerrado')
   if (it.noCerrado) out.push(it.abiertoEscrito ? 'Barrio abierto' : 'Fuera de barrio cerrado')
   const d = textoDorms(it)
-  if (d) out.push(d)
+  if (d) out.push(primeraMayuscula(d))
+  if (it.noMono) out.push('Sin monoambientes')
   if (it.banos) out.push(`${it.banos}+ baño${it.banos === 1 ? '' : 's'}`)
   if (it.cocheras) out.push(`${it.cocheras}+ cochera${it.cocheras === 1 ? '' : 's'}`)
-  if (it.superficie) out.push(textoSuperficie(it.superficie))
-  if (it.precio) out.push(textoPrecio(it.precio))
+  if (it.sinCochera) out.push('Sin cochera')
+  if (it.superficie) out.push(primeraMayuscula(textoSuperficie(it.superficie)))
+  if (it.precio) out.push(primeraMayuscula(textoPrecio(it.precio)))
   if (it.moneda) out.push(it.moneda === 'ARS' ? 'En pesos' : 'En dólares')
   if (it.orden === 'barato') out.push('Más baratas primero')
   if (it.orden === 'caro') out.push('Más caras primero')
