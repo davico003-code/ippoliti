@@ -528,6 +528,36 @@ function ZonaFlyTo({ zona, properties }: { zona: Zona; properties: TokkoProperty
   return null
 }
 
+// ─── Encuadre por búsqueda ──────────────────────────────────────────────────
+//
+// Al escribir en el buscador el mapa acompaña: cuando la persona deja de tipear
+// (600 ms) encuadra los resultados. Si la búsqueda se borra no se mueve, y la
+// primera búsqueda de la URL la cubre ZonaFlyTo/InitialView.
+
+function EncuadreBusqueda({ busqueda, properties }: { busqueda: string; properties: TokkoProperty[] }) {
+  const map = useMap()
+  const propsRef = useRef(properties)
+  propsRef.current = properties
+  const primera = useRef(true)
+  useEffect(() => {
+    if (primera.current) { primera.current = false; return }
+    if (!busqueda.trim()) return
+    let limpiar: (() => void) | undefined
+    const t = setTimeout(() => {
+      const coords = propsRef.current
+        .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
+        .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng))
+      if (!coords.length) return
+      limpiar = whenMapSized(map, () => {
+        if (coords.length === 1) map.flyTo(coords[0]!, 15, { duration: 0.8 })
+        else map.flyToBounds(L.latLngBounds(coords), { padding: [50, 50], maxZoom: 15, duration: 0.8 })
+      })
+    }, 600)
+    return () => { clearTimeout(t); limpiar?.() }
+  }, [map, busqueda])
+  return null
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 // ─── Map move listener (clears mobile preview on drag) ──────────────────────
@@ -636,9 +666,11 @@ interface Props {
   onNearbyOrigin?: (lat: number, lng: number) => void
   /** Si true, el botón "Centrar" muestra estado activo (modo cercanía). */
   nearbyActive?: boolean
+  /** Texto buscado: al cambiar, el mapa encuadra los resultados. */
+  busqueda?: string
 }
 
-export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove, onNearbyOrigin, nearbyActive }: Props) {
+export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove, onNearbyOrigin, nearbyActive, busqueda }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const [satellite, setSatellite] = useState(false)
   // true una vez que el usuario eligió capa a mano: el auto-switch deja de decidir
@@ -702,6 +734,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       <LocateButton onNearbyOrigin={onNearbyOrigin} nearbyActive={nearbyActive} />
       {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
       {activeZona && <ZonaFlyTo zona={activeZona} properties={mapped} />}
+      <EncuadreBusqueda busqueda={busqueda ?? ''} properties={mapped} />
       {onMapMove && <MapMoveListener onMove={onMapMove} />}
 
       {/* Legend — hidden on mobile */}
