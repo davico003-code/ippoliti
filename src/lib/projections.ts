@@ -48,6 +48,8 @@ export interface PropertyCardProjection {
   suite_amount: number
   room_amount: number
   bathroom_amount: number
+  /** Cocheras: el buscador entiende "casa con 2 cocheras". */
+  parking_lot_amount: number | null
   roofed_surface: string
   total_surface: string
   surface: string
@@ -136,6 +138,7 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
     suite_amount: p.suite_amount,
     room_amount: p.room_amount,
     bathroom_amount: p.bathroom_amount,
+    parking_lot_amount: p.parking_lot_amount ?? null,
     roofed_surface: p.roofed_surface,
     total_surface: p.total_surface,
     surface: p.surface,
