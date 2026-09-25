@@ -207,7 +207,8 @@ export default function PropertyShareButton({
             borderRadius: 12,
             boxShadow: '0 10px 30px rgba(0,0,0,0.13)',
             padding: '5px 0',
-            zIndex: 200,
+            // Por encima de la card del mapa mobile (z 9998) y del sheet (10001).
+            zIndex: 10050,
             fontFamily: R,
           }}
         >
