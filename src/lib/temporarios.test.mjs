@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { leerCondicionesTemporario, formatearMonto, tieneCondiciones } from './temporarios.ts'
+import { leerCondicionesTemporario, formatearMonto, tieneCondiciones, leerAlquiladas, comodidadesTemporario } from './temporarios.ts'
 
 const DESCRIPCION = `Hermosa casa con pileta en Funes, ideal para el verano.
 
@@ -14,6 +14,9 @@ Check-in: 14 h
 Salida – 10 h
 Disponible: enero y febrero
 Incluye: luz, gas, wifi, ropa blanca y limpieza de salida
+Alquilado: dic 2da, enero completo
+Capacidad: 6 personas
+Comodidades: pileta climatizada, parrilla, wifi
 
 Ubicación: a 3 cuadras de la plaza.`
 
@@ -57,4 +60,22 @@ test('formatea montos y respeta texto que no es monto', () => {
   assert.equal(formatearMonto('1500000'), 'ARS 1.500.000')
   assert.equal(formatearMonto('a convenir'), 'a convenir')
   assert.equal(formatearMonto('un mes de alquiler'), 'un mes de alquiler')
+})
+
+test('lee las quincenas alquiladas de la temporada', () => {
+  assert.deepEqual(leerCondicionesTemporario(DESCRIPCION).alquiladas, ['dic-2', 'ene-1', 'ene-2'])
+  assert.deepEqual(leerAlquiladas('febrero 1ra quincena'), ['feb-1'])
+  assert.deepEqual(leerAlquiladas('Dic. segunda; feb'), ['dic-2', 'feb-1', 'feb-2'])
+  assert.deepEqual(leerAlquiladas('primera de enero y 2° de diciembre'), ['dic-2', 'ene-1'])
+  assert.deepEqual(leerAlquiladas('marzo'), [])
+  assert.doesNotMatch(leerCondicionesTemporario(DESCRIPCION).descripcion, /Alquilado/)
+})
+
+test('capacidad y comodidades (escritas primero, después las cargadas, sin repetir)', () => {
+  const c = leerCondicionesTemporario(DESCRIPCION)
+  assert.equal(c.personas, '6')
+  assert.deepEqual(c.comodidades, ['Pileta climatizada', 'Parrilla', 'Wifi'])
+  const tags = [{ name: 'Barbecue' }, { name: 'Air Conditioning' }, { name: 'Water' }, { name: 'WiFi' }]
+  assert.deepEqual(comodidadesTemporario(c, tags, 1), ['Pileta climatizada', 'Parrilla', 'Wifi', 'Aire acondicionado', 'Cochera'])
+  assert.deepEqual(comodidadesTemporario({ comodidades: [] }, [{ name: 'Pool' }]), ['Pileta'])
 })

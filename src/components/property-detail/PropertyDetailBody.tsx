@@ -32,8 +32,9 @@ import {
   tituloVisible,
   esTemporario,
 } from '@/lib/tokko'
-import { leerCondicionesTemporario, tieneCondiciones } from '@/lib/temporarios'
+import { leerCondicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
 import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondiciones'
+import DisponibilidadTemporada from '../temporarios/DisponibilidadTemporada'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
 import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
@@ -244,7 +245,12 @@ export default function PropertyDetailBody({
         <div>
           <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
           {tienePrecio && condTemp && condTemp.precios.length > 0 ? (
-            <TemporarioPrecios precios={condTemp.precios} />
+            <div className="space-y-4">
+              <TemporarioPrecios precios={condTemp.precios} />
+              <div className="max-w-md">
+                <DisponibilidadTemporada alquiladas={condTemp.alquiladas} tamano="md" />
+              </div>
+            </div>
           ) : tienePrecio ? (
             <span style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
               {price}
@@ -272,7 +278,12 @@ export default function PropertyDetailBody({
       </section>
 
       {/* CONDICIONES — solo alquiler temporario que las tenga cargadas */}
-      {condTemp && tieneCondiciones(condTemp) && <TemporarioCondiciones condiciones={condTemp} />}
+      {condTemp && tieneCondiciones(condTemp) && (
+        <TemporarioCondiciones
+          condiciones={condTemp}
+          comodidades={comodidadesTemporario(condTemp, property.tags ?? [], property.parking_lot_amount || 0)}
+        />
+      )}
 
       {/* COSTOS INICIALES — solo alquiler permanente con precio + moneda válidos */}
       {showCostosIngreso && (

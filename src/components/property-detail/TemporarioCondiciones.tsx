@@ -47,7 +47,14 @@ export function TemporarioPrecios({ precios }: { precios: CondicionesTemporario[
   )
 }
 
-export default function TemporarioCondiciones({ condiciones: c }: { condiciones: CondicionesTemporario }) {
+export default function TemporarioCondiciones({
+  condiciones: c,
+  comodidades = c.comodidades,
+}: {
+  condiciones: CondicionesTemporario
+  /** Comodidades a mostrar (las escritas + las cargadas: comodidadesTemporario). */
+  comodidades?: string[]
+}) {
   return (
     <section id="condiciones" className={`${CARD} scroll-mt-40`}>
       <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>
@@ -67,6 +74,7 @@ export default function TemporarioCondiciones({ condiciones: c }: { condiciones:
           icon={<Clock className="w-4 h-4" aria-hidden />}
           titulo="Estadía y horarios"
           filas={[
+            ['Capacidad', c.personas ? `Hasta ${c.personas} persona${c.personas === '1' ? '' : 's'}` : null],
             ['Estadía mínima', c.estadiaMinima],
             ['Entrada', c.entrada],
             ['Salida', c.salida],
@@ -80,6 +88,18 @@ export default function TemporarioCondiciones({ condiciones: c }: { condiciones:
           />
         )}
       </div>
+      {comodidades.length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-2 text-[13px] font-bold uppercase tracking-wide text-gray-500">Comodidades de la casa</h3>
+          <ul className="flex flex-wrap gap-2">
+            {comodidades.map((item) => (
+              <li key={item} className="rounded-full bg-[#F5F1EA] px-3 py-1 text-[13px] font-semibold text-[#44403C]">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {c.incluye.length > 0 && (
         <div className="mt-6">
           <h3 className="mb-2 text-[13px] font-bold uppercase tracking-wide text-gray-500">Qué incluye</h3>
