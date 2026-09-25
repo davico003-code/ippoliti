@@ -30,7 +30,7 @@ export interface PropertyCardProjection {
   location: { name: string; short_location: string } | null
 
   operations: Array<{
-    operation_type: 'Sale' | 'Rent'
+    operation_type: 'Sale' | 'Rent' | 'Temporary rent'
     prices: Array<{
       price: number
       currency: string

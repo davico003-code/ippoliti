@@ -145,7 +145,9 @@ export default function SimilarProperties({ properties }: Props) {
             ? 'Venta'
             : property.operations?.[0]?.operation_type === 'Rent'
               ? 'Alquiler'
-              : null
+              : property.operations?.[0]?.operation_type === 'Temporary rent'
+                ? 'Temporario'
+                : null
           const beds = property.suite_amount || property.room_amount || 0
           const baths = property.bathroom_amount || 0
           const m2 = (n: number) => `${n.toLocaleString('es-AR')} m²`

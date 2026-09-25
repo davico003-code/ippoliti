@@ -25,6 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/inmobiliaria-funes`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/propiedades-roldan`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/alquiler-roldan`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/alquileres-temporarios`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE}/hausing`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/informes`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE}/mercado-inmobiliario-funes`, changeFrequency: 'weekly', priority: 0.8 },
