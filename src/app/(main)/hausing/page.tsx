@@ -1,296 +1,539 @@
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
-import { Shield, Waves, Key, PenTool, DollarSign, TreePine } from "lucide-react"
-import { getPropertyById, formatPrice, getAllPhotos, getTotalSurface } from "@/lib/tokko"
+import { ArrowRight, ArrowUpRight, MessageCircle, Phone } from "lucide-react"
+import { getPropertyById, formatPrice, generatePropertySlug } from "@/lib/tokko"
 import type { TokkoProperty } from "@/lib/tokko"
-import HausingAnimations from "@/components/HausingAnimations"
+import {
+  HAUSING_PROPERTY_IDS,
+  HAUSING_BARRIOS,
+  ESTANDAR_HAUSING,
+  fichaDe,
+  ordenBarrio,
+  precioVentaUsd,
+  type FichaHausing,
+  type HausingBarrio,
+} from "@/lib/hausing"
+import HausingWhatsLink from "@/components/hausing/HausingWhatsLink"
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd"
+
+// "Colección Hausing" — oscuro premium con la paleta SI (verde profundo casi
+// negro + blanco; #00754A en botones). Todo lo que se ve de cada casa sale de
+// su ficha en HILO (lib/hausing.ts). Las animaciones son CSS puro y terminan
+// visibles: la versión anterior escondía todo con JS y en prod quedaba negra.
 
 export const metadata: Metadata = {
-  title: 'Hausing — Casas de Diseño en Funes | SI INMOBILIARIA',
-  description: 'Casas de diseño arquitectónico en barrios cerrados de Funes. Pileta, seguridad 24hs, financiación en USD. Llave en mano.',
-  alternates: { canonical: 'https://siinmobiliaria.com/hausing' },
+  title: "Hausing — Casas de autor en los barrios más exclusivos de Funes | SI INMOBILIARIA",
+  description:
+    "Colección de casas Hausing en Kentucky, Funes Hills Cadaqués, Vida y Don Mateo. Pileta propia, losa radiante y aberturas con DVH. Fichas técnicas y visitas privadas con SI INMOBILIARIA.",
+  alternates: { canonical: "https://siinmobiliaria.com/hausing" },
   openGraph: {
-    title: 'Hausing — Casas de Diseño en Funes',
-    description: 'Casas premium en los barrios más exclusivos de Funes. Desde SI INMOBILIARIA.',
-    url: 'https://siinmobiliaria.com/hausing',
-    images: ['/og-image.jpg'],
+    title: "Colección Hausing — Casas de autor en Funes",
+    description: "Residencias Hausing en los barrios más exclusivos de Funes. Presentadas por SI INMOBILIARIA.",
+    url: "https://siinmobiliaria.com/hausing",
+    images: ["/og-image.jpg"],
   },
 }
 
 export const revalidate = 21600
 
-const PROPERTY_IDS = [7865564, 7867761, 7868679, 7875941, 7879685, 7872050]
+const PALABRAS = ["Cero", "Una", "Dos", "Tres", "Cuatro", "Cinco", "Seis", "Siete", "Ocho", "Nueve", "Diez"]
+const nf = (n: number) => n.toLocaleString("es-AR")
+
+interface Residencia {
+  property: TokkoProperty
+  ficha: FichaHausing
+  numero: number
+  slug: string
+  titulo: string
+}
 
 export default async function HausingPage() {
-  const properties = (await Promise.all(
-    PROPERTY_IDS.map(id => getPropertyById(id).catch(() => null))
-  )).filter(Boolean) as TokkoProperty[]
+  const properties = (
+    await Promise.all(HAUSING_PROPERTY_IDS.map(id => getPropertyById(id).catch(() => null)))
+  ).filter(Boolean) as TokkoProperty[]
+
+  // Orden: jerarquía del barrio y, dentro del barrio, precio de mayor a menor.
+  const residencias: Residencia[] = properties
+    .map(property => ({ property, ficha: fichaDe(property) }))
+    .sort(
+      (a, b) =>
+        ordenBarrio(a.ficha.barrio) - ordenBarrio(b.ficha.barrio) ||
+        (precioVentaUsd(b.property) ?? 0) - (precioVentaUsd(a.property) ?? 0),
+    )
+    .map((r, i) => ({
+      ...r,
+      numero: i + 1,
+      slug: generatePropertySlug(r.property),
+      titulo: r.property.publication_title || r.property.address,
+    }))
+
+  const barriosConCasas = HAUSING_BARRIOS.map(b => ({
+    barrio: b,
+    casas: residencias.filter(r => r.ficha.barrio?.key === b.key),
+  })).filter(x => x.casas.length > 0)
+
+  const construidas = residencias.map(r => r.ficha.construida).filter((n): n is number => !!n)
+  const promedio = construidas.length
+    ? Math.round(construidas.reduce((a, b) => a + b, 0) / construidas.length / 10) * 10
+    : null
+  const precios = residencias.map(r => precioVentaUsd(r.property)).filter((n): n is number => !!n)
+  const desde = precios.length ? Math.min(...precios) : null
+
+  const n = residencias.length
+  const palabra = PALABRAS[n] ?? String(n)
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Colección Hausing — Casas en Funes",
+    itemListElement: residencias.map((r, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `https://siinmobiliaria.com/propiedades/${r.slug}`,
+      name: r.titulo,
+    })),
+  }
 
   return (
-    <div style={{background:"#000",minHeight:"100vh",color:"#fff",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif",overflowX:"hidden"}}>
-      <HausingAnimations />
-      <style dangerouslySetInnerHTML={{ __html: `
-        .prop-card:hover .prop-img { transform: scale(1.05); }
-        .prop-card:hover .prop-arrow { transform: translateX(6px); }
-        .prop-img { transition: transform 0.7s cubic-bezier(0.16,1,0.3,1); }
-        .prop-arrow { transition: transform 0.3s ease; }
-        @media (max-width: 768px) {
-          .hausing-logo { height: 26px !important; }
-          .hero-title { font-size: clamp(42px, 10vw, 80px) !important; }
-          .prop-grid { grid-template-columns: 1fr !important; }
-          .prop-inner { flex-direction: column !important; min-height: auto !important; }
-          .prop-img-wrap { width: 100% !important; height: 280px !important; order: 0 !important; }
-          .prop-content { padding: 32px 24px !important; order: 1 !important; }
-          .stats-grid { grid-template-columns: repeat(2,1fr) !important; gap: 32px !important; }
-          .attr-grid { grid-template-columns: repeat(2,1fr) !important; }
-          .cta-btns { flex-direction: column !important; align-items: stretch !important; }
-          .hero-btns { flex-direction: column !important; align-items: center !important; }
-        }
-      ` }} />
+    <div className="hz">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Inicio", url: "https://siinmobiliaria.com" },
+          { name: "Hausing", url: "https://siinmobiliaria.com/hausing" },
+        ]}
+      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      {/* NAV */}
-      <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,padding:"20px 40px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)",backdropFilter:"blur(20px)"}}>
-        <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/hausing-logo.svg" alt="Hausing" className="hausing-logo" style={{height:"30px",width:"auto",display:"block",filter:"brightness(0) invert(1)"}} />
-        </div>
-        <Link href="/" style={{color:"rgba(255,255,255,0.6)",fontSize:"13px",textDecoration:"none",display:"flex",alignItems:"center",gap:"6px"}}>
-          &larr; SI INMOBILIARIA
-        </Link>
-      </nav>
-
-      {/* HERO — parallax */}
-      <section data-anim="parallax" style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:"0 24px",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",inset:0}}>
-          <div data-parallax-glow style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:"600px",height:"600px",background:"radial-gradient(ellipse, rgba(34,197,94,0.15) 0%, transparent 70%)",borderRadius:"50%"}} />
-        </div>
-
-        <div data-parallax-content style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",alignItems:"center"}}>
-          <div data-anim="fade-up" data-delay="100" style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 20px",border:"1px solid rgba(255,255,255,0.12)",borderRadius:"100px",marginBottom:"40px",fontSize:"12px",color:"rgba(255,255,255,0.6)",letterSpacing:"0.12em",textTransform:"uppercase"}}>
-            <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#22c55e"}} />
-            Dise&ntilde;o &middot; Calidad &middot; Exclusividad
+      {/* ───────────── HERO ───────────── */}
+      <section className="hz-hero relative overflow-hidden">
+        <div className="relative mx-auto grid max-w-[1240px] items-center gap-10 px-4 pb-14 pt-16 sm:px-6 lg:min-h-[calc(100svh-80px)] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-20">
+          {/* Video: fondo a sangre en celular, marco vertical en desktop */}
+          <div className="absolute inset-0 lg:relative lg:inset-auto lg:order-2 lg:flex lg:justify-end">
+            <div className="hz-hero-frame relative h-full w-full overflow-hidden lg:aspect-[3/4] lg:h-auto lg:w-[min(100%,56vh)] lg:rounded-[28px]">
+              <video
+                className="absolute inset-0 h-full w-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                poster="/images/hausing/hero-poster.jpg"
+                aria-hidden="true"
+              >
+                <source src="/videos/proyectos/hausing.webm" type="video/webm" />
+                <source src="/videos/proyectos/hausing.mp4" type="video/mp4" />
+              </video>
+              <div className="absolute inset-0 bg-gradient-to-b from-[#07120C]/70 via-[#07120C]/55 to-[#07120C] lg:hidden" />
+              <div className="absolute inset-0 hidden rounded-[28px] ring-1 ring-inset ring-white/10 lg:block" />
+            </div>
           </div>
 
-          <h1 data-anim="fade-up" data-delay="200" className="hero-title" style={{fontSize:"clamp(52px,8vw,96px)",fontWeight:900,lineHeight:1.0,margin:"0 0 32px",letterSpacing:"-3px"}}>
-            Vivir bien<br/>
-            <span style={{background:"linear-gradient(135deg,#86efac,#22c55e,#16a34a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>empieza aqu&iacute;.</span>
-          </h1>
-
-          <p data-anim="fade-up" data-delay="350" style={{fontSize:"clamp(16px,2vw,20px)",color:"rgba(255,255,255,0.5)",maxWidth:"560px",margin:"0 auto 48px",lineHeight:1.7}}>
-            Casas de dise&ntilde;o arquitect&oacute;nico en los barrios cerrados m&aacute;s exclusivos de Funes.
-            Pileta, terminaciones premium y financiaci&oacute;n en d&oacute;lares.
-          </p>
-
-          <div data-anim="fade-up" data-delay="500" className="hero-btns" style={{display:"flex",gap:"16px",justifyContent:"center"}}>
-            <a href="#propiedades" style={{padding:"16px 40px",background:"#22c55e",color:"#000",borderRadius:"100px",fontWeight:700,fontSize:"15px",textDecoration:"none"}}>
-              Ver propiedades
-            </a>
-            <a href="https://wa.me/5493413340916?text=Hola!%20Me%20interesan%20las%20propiedades%20Hausing" target="_blank" style={{padding:"16px 40px",background:"rgba(255,255,255,0.07)",color:"#fff",borderRadius:"100px",fontWeight:600,fontSize:"15px",textDecoration:"none",border:"1px solid rgba(255,255,255,0.15)"}}>
-              Consultar ahora
-            </a>
-          </div>
-        </div>
-
-        <div style={{position:"absolute",bottom:"40px",left:"50%",transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:"8px"}}>
-          <div style={{width:"1px",height:"50px",background:"linear-gradient(to bottom,rgba(255,255,255,0.4),transparent)"}} />
-        </div>
-      </section>
-
-      {/* ATRIBUTOS — stagger + hover */}
-      <section style={{padding:"80px 24px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
-        <div style={{maxWidth:"1000px",margin:"0 auto"}}>
-          <div className="attr-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"2px"}}>
-            {([
-              [Shield, "Seguridad 24hs", "Barrios cerrados con control de acceso permanente y per\u00edmetro vigilado."],
-              [Waves, "Pileta privada", "Cada propiedad incluye pileta de dise\u00f1o integrada al paisajismo exterior."],
-              [Key, "Llave en mano", "Entrega inmediata. Obra terminada, lista para habitar sin obra pendiente."],
-              [PenTool, "Arquitectura de autor", "Dise\u00f1o contempor\u00e1neo con materiales de primera: hormig\u00f3n, vidrio, madera."],
-              [DollarSign, "Financiaci\u00f3n en USD", "Condiciones personalizadas en d\u00f3lares. Cuotas fijas, sin ajustes sorpresa."],
-              [TreePine, "Espacios verdes", "Grandes lotes en barrios arbolados a 15 min de Rosario por autopista."],
-            ] as const).map(([Icon, title, desc], i) => (
-              <div key={i} data-anim="attr-card" data-index={i} style={{padding:"32px 28px",border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",borderRadius:"4px",cursor:"default"}}>
-                <div style={{marginBottom:"16px"}}><Icon size={24} color="#22c55e" strokeWidth={1.5} /></div>
-                <div style={{fontSize:"15px",fontWeight:700,color:"#fff",marginBottom:"8px"}}>{title}</div>
-                <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",lineHeight:1.6}}>{desc}</div>
-              </div>
-            ))}
+          <div className="relative z-10 flex flex-col items-start pt-[12vh] lg:pt-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/hausing-logo.svg"
+              alt="Hausing"
+              className="hz-rise h-7 w-auto brightness-0 invert sm:h-8"
+            />
+            <p className="hz-rise hz-eyebrow mt-10" style={{ "--d": "80ms" } as React.CSSProperties}>
+              <span className="hz-eyebrow-line" /> Colección privada · Funes
+            </p>
+            <h1
+              className="hz-rise mt-5 max-w-[620px] text-[40px] font-light leading-[1.05] tracking-[-0.02em] text-white [text-wrap:balance] sm:text-[56px] lg:text-[54px] xl:text-[66px]"
+              style={{ "--d": "160ms" } as React.CSSProperties}
+            >
+              Casas <span className="font-semibold">de autor</span> en los barrios más exclusivos de Funes.
+            </h1>
+            <p
+              className="hz-rise mt-6 max-w-[480px] text-[16px] leading-relaxed text-white/65 sm:text-[17px]"
+              style={{ "--d": "240ms" } as React.CSSProperties}
+            >
+              {n > 0 ? `${palabra} residencias` : "Residencias"} construidas por Hausing en Kentucky, Cadaqués, Vida y
+              Don Mateo. Cada una sobre su lote, con su propio diseño. Ninguna se repite.
+            </p>
+            <div
+              className="hz-rise mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row"
+              style={{ "--d": "320ms" } as React.CSSProperties}
+            >
+              <a href="#coleccion" className="hz-btn hz-btn-light">
+                Ver la colección <ArrowRight className="h-4 w-4" />
+              </a>
+              <HausingWhatsLink
+                mensaje="Hola! Quiero coordinar una visita privada a las casas Hausing."
+                className="hz-btn hz-btn-ghost"
+              >
+                Coordinar visita privada
+              </HausingWhatsLink>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* STATS — count-up */}
-      <section style={{padding:"100px 24px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
-        <div style={{maxWidth:"900px",margin:"0 auto"}}>
-          <div className="stats-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"48px",textAlign:"center"}}>
+      {/* ───────────── CIFRAS (en vivo) ───────────── */}
+      {n > 0 && (
+        <section className="border-y border-white/[0.08] bg-[#0A1811]">
+          <dl className="mx-auto grid max-w-[1240px] grid-cols-2 px-4 sm:px-6 lg:grid-cols-4">
             {[
-              ["6","Casas disponibles","exclusivas"],
-              ["280+","m\u00b2 promedio","por propiedad"],
-              ["3\u20134","dormitorios","en suite disponible"],
-              ["5","barrios premium","en Funes"],
-            ].map(([n,l,s]) => (
-              <div key={l} data-anim="fade-up">
-                <div data-anim="count-up" data-target={n} style={{fontSize:"56px",fontWeight:900,color:"#22c55e",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>&nbsp;</div>
-                <div style={{color:"#fff",marginTop:"8px",fontSize:"14px",fontWeight:600}}>{l}</div>
-                <div style={{color:"rgba(255,255,255,0.35)",fontSize:"12px",marginTop:"2px"}}>{s}</div>
+              [String(n), n === 1 ? "residencia disponible" : "residencias disponibles"],
+              [String(barriosConCasas.length), "barrios de primer nivel"],
+              ...(promedio ? [[`${nf(promedio)} m²`, "construidos en promedio"]] : []),
+              ...(desde ? [[`USD ${nf(Math.round(desde / 1000))}K`, "valor desde"]] : []),
+            ].map(([valor, label], i) => (
+              <div
+                key={label}
+                className={`hz-stat py-8 lg:py-10 ${i % 2 === 1 ? "pl-5 sm:pl-8" : ""} ${i > 1 ? "border-t border-white/[0.08] lg:border-t-0" : ""} ${i > 0 ? "lg:pl-10" : ""}`}
+              >
+                <dd className="font-numeric text-[30px] font-light leading-none text-white sm:text-[40px]">{valor}</dd>
+                <dt className="mt-3 text-[12px] uppercase tracking-[0.14em] text-white/45">{label}</dt>
               </div>
             ))}
+          </dl>
+        </section>
+      )}
+
+      {/* ───────────── LOS BARRIOS ───────────── */}
+      {barriosConCasas.length > 0 && (
+        <section className="mx-auto max-w-[1240px] px-4 py-20 sm:px-6 lg:py-28">
+          <div className="hz-reveal max-w-[640px]">
+            <p className="hz-eyebrow">
+              <span className="hz-eyebrow-line" /> Dónde construye Hausing
+            </p>
+            <h2 className="mt-5 text-[32px] font-light leading-[1.1] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[44px]">
+              No se compra solo una casa. <span className="inline-block font-semibold">Se entra a un barrio.</span>
+            </h2>
+            <p className="mt-5 text-[16px] leading-relaxed text-white/60">
+              Cada casa de la colección está en uno de los barrios más buscados del corredor de Funes. Esto es lo que
+              los hace únicos.
+            </p>
           </div>
-        </div>
-      </section>
 
-      {/* PROPIEDADES — stagger cards */}
-      <section id="propiedades" style={{padding:"80px 0",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
-        <div style={{maxWidth:"1200px",margin:"0 auto",padding:"0 24px"}}>
-          <div data-anim="fade-up" style={{textAlign:"center",marginBottom:"72px"}}>
-            <p style={{color:"#22c55e",fontWeight:600,letterSpacing:"0.15em",fontSize:"11px",marginBottom:"16px",textTransform:"uppercase"}}>Portafolio exclusivo</p>
-            <h2 style={{fontSize:"clamp(32px,5vw,56px)",fontWeight:900,margin:0,letterSpacing:"-1.5px"}}>Eleg&iacute; tu pr&oacute;ximo hogar.</h2>
-          </div>
-
-          <div className="prop-grid" style={{display:"flex",flexDirection:"column",gap:"3px"}}>
-            {properties.map((property, i) => {
-              const photos = getAllPhotos(property)
-              const photo = photos[0]
-              const price = formatPrice(property)
-              const area = getTotalSurface(property)
-              const titleText = property.publication_title || ""
-              const descText = (property.description || property.description_only || "").replace(/<[^>]*>/g, "")
-              const roomsFromTitle = titleText.match(/(\d+)\s*(?:dormitorios?|dorms?)/i)?.[1]
-              const roomsFromDesc = descText.match(/(\d+)\s*(?:dormitorios?|dorms?)/i)?.[1]
-              const rooms = roomsFromTitle ? parseInt(roomsFromTitle) :
-                roomsFromDesc ? parseInt(roomsFromDesc) :
-                (property.suite_amount > 0 ? property.suite_amount : 0)
-              const baths = property.bathroom_amount || 0
-              const fullText = `${titleText} ${descText}`
-              const hasPileta = (property.tags || []).some(t =>
-                /pool|pileta|piscina|swimming/i.test(t.name)
-              ) || /pileta|piscina|swimming\s*pool/i.test(fullText)
-              const title = property.publication_title || property.address
-              const barrio = title.includes(" en ") ? title.split(" en ").slice(1).join(" en ") : property.fake_address || ""
-              const slug = `${property.id}-${(property.publication_title||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"")}`
-              const isLeft = i % 2 === 0
-
+          {/* Celular: carrusel horizontal (4 tarjetas apiladas alejaban demasiado las casas) */}
+          <div className="hz-reveal -mx-4 mt-12 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
+            {barriosConCasas.map(({ barrio, casas }) => {
+              const foto = barrio.foto ?? casas[0].ficha.fotos[0] ?? null
               return (
-                <Link key={property.id} href={`/propiedades/${slug}`}
-                  data-anim="stagger-card" data-index={i}
-                  className="prop-card"
-                  style={{display:"block",textDecoration:"none",borderRadius: i===0?"16px 16px 0 0": i===properties.length-1?"0 0 16px 16px":"0",overflow:"hidden"}}>
-                  <div className="prop-inner" style={{display:"flex",minHeight:"480px"}}>
-                    {/* Imagen */}
-                    <div className="prop-img-wrap" style={{position:"relative",width:"50%",overflow:"hidden",order:isLeft?0:1,flexShrink:0}}>
-                      {photo ? (
-                        <Image src={photo} alt={title} fill className="prop-img"
-                          style={{objectFit:"cover"}} sizes="(max-width:768px) 100vw, 50vw" />
-                      ) : (
-                        <div style={{width:"100%",height:"100%",background:"#111"}} />
-                      )}
-                      <div style={{position:"absolute",inset:0,background:isLeft?"linear-gradient(to right,transparent 60%,rgba(0,0,0,0.6))":"linear-gradient(to left,transparent 60%,rgba(0,0,0,0.6))"}} />
-                      <div style={{position:"absolute",top:"20px",left:"20px",display:"flex",gap:"8px"}}>
-                        <span style={{padding:"5px 12px",background:"rgba(0,0,0,0.7)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:"100px",fontSize:"11px",fontWeight:600,color:"#22c55e",backdropFilter:"blur(10px)"}}>
-                          HAUSING
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Contenido */}
-                    <div className="prop-content" style={{flex:1,background:"#0a0a0a",padding:"52px 48px",display:"flex",flexDirection:"column",justifyContent:"center",order:isLeft?1:0}}>
-                      <p style={{fontSize:"11px",color:"#22c55e",fontWeight:700,letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:"16px"}}>
-                        {barrio}
+                <div key={barrio.key} className="group relative flex w-[80%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl bg-[#0C1C14] ring-1 ring-white/[0.08] sm:w-auto">
+                  <a href={`#barrio-${barrio.key}`} className="relative block aspect-[4/5] overflow-hidden" aria-label={`Ver las casas en ${barrio.nombre}`}>
+                    {foto && (
+                      <Image
+                        src={foto}
+                        alt={barrio.nombre}
+                        fill
+                        sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw"
+                        className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#07120C] via-[#07120C]/35 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-5">
+                      <p className="font-numeric text-[12px] tracking-[0.12em] text-[#8FD1AE]">
+                        {casas.length} {casas.length === 1 ? "RESIDENCIA" : "RESIDENCIAS"}
                       </p>
-                      <h3 style={{fontSize:"clamp(22px,2.5vw,30px)",fontWeight:900,color:"#fff",margin:"0 0 20px",lineHeight:1.2,letterSpacing:"-0.5px"}}>
-                        {title.replace(/ en .+$/, "")}
-                      </h3>
-
-                      <div style={{display:"flex",gap:"24px",marginBottom:"36px",flexWrap:"wrap"}}>
-                        {area && area > 0 && (
-                          <div>
-                            <div style={{fontSize:"26px",fontWeight:900,color:"#fff",lineHeight:1}}>
-                              {area}<span style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",fontWeight:400}}> m&sup2;</span>
-                            </div>
-                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>SUPERFICIE</div>
-                          </div>
-                        )}
-                        {rooms > 0 && (
-                          <div>
-                            <div style={{fontSize:"26px",fontWeight:900,color:"#fff",lineHeight:1}}>
-                              {rooms}<span style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",fontWeight:400}}> dorm</span>
-                            </div>
-                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>DORMITORIOS</div>
-                          </div>
-                        )}
-                        {baths > 0 && (
-                          <div>
-                            <div style={{fontSize:"26px",fontWeight:900,color:"#fff",lineHeight:1}}>
-                              {baths}<span style={{fontSize:"13px",color:"rgba(255,255,255,0.35)",fontWeight:400}}> ba&ntilde;os</span>
-                            </div>
-                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"4px",letterSpacing:"0.08em"}}>BA&Ntilde;OS</div>
-                          </div>
-                        )}
-                        {hasPileta && (
-                          <div>
-                            <div style={{display:"flex",alignItems:"center",gap:"8px",lineHeight:1}}>
-                              <div style={{width:"8px",height:"8px",borderRadius:"50%",background:"#22c55e",flexShrink:0}} />
-                              <span style={{fontSize:"13px",fontWeight:700,color:"#22c55e",letterSpacing:"0.08em"}}>PILETA</span>
-                            </div>
-                            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"8px",letterSpacing:"0.08em"}}>INCLUIDA</div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",paddingTop:"28px",borderTop:"1px solid rgba(255,255,255,0.07)"}}>
-                        <div>
-                          <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginBottom:"6px",letterSpacing:"0.08em"}}>PRECIO</div>
-                          <div style={{fontSize:"28px",fontWeight:900,color:"#22c55e"}}>{price}</div>
-                        </div>
-                        <div style={{display:"flex",alignItems:"center",gap:"8px",color:"rgba(255,255,255,0.6)",fontSize:"14px",fontWeight:600}}>
-                          Ver propiedad
-                          <span className="prop-arrow" style={{fontSize:"18px"}}>&rarr;</span>
-                        </div>
-                      </div>
+                      <h3 className="mt-2 text-[22px] font-semibold leading-tight text-white">{barrio.nombre}</h3>
+                      <ul className="mt-3 flex flex-wrap gap-1.5">
+                        {barrio.credenciales.map(c => (
+                          <li key={c} className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/85 backdrop-blur-sm">
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
+                  </a>
+                  <div className="flex flex-1 flex-col justify-between gap-4 p-5 pt-4">
+                    <p className="text-[14px] leading-relaxed text-white/60">{barrio.frase}</p>
+                    <Link href={barrio.href} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white/80 transition-colors hover:text-white">
+                      Conocé el barrio <ArrowUpRight className="h-3.5 w-3.5" />
+                    </Link>
                   </div>
-                </Link>
+                </div>
               )
             })}
           </div>
+        </section>
+      )}
+
+      {/* ───────────── LA COLECCIÓN ───────────── */}
+      <section id="coleccion" className="scroll-mt-20 border-t border-white/[0.08] py-20 lg:py-28">
+        <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
+          <div className="hz-reveal max-w-[640px]">
+            <p className="hz-eyebrow">
+              <span className="hz-eyebrow-line" /> La colección
+            </p>
+            <h2 className="mt-5 text-[32px] font-light leading-[1.1] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[44px]">
+              {n === 1 ? (
+                <>Una casa. <span className="font-semibold">Única.</span></>
+              ) : (
+                <>
+                  {palabra} casas. <span className="font-semibold">Ninguna igual.</span>
+                </>
+              )}
+            </h2>
+          </div>
+
+          {n === 0 ? (
+            <div className="mt-12 rounded-2xl p-8 text-white/70 ring-1 ring-white/10">
+              Estamos actualizando la colección.{" "}
+              <HausingWhatsLink mensaje="Hola! Quiero información sobre las casas Hausing." className="font-semibold text-white underline">
+                Escribinos por WhatsApp
+              </HausingWhatsLink>{" "}
+              y te contamos qué hay disponible.
+            </div>
+          ) : (
+            <div className="mt-14 flex flex-col gap-20 lg:gap-28">
+              {residencias.map((r, i) => (
+                <ResidenciaCard
+                  key={r.property.id}
+                  r={r}
+                  invertida={i % 2 === 1}
+                  anclaBarrio={
+                    r.ficha.barrio && residencias.findIndex(x => x.ficha.barrio?.key === r.ficha.barrio?.key) === i
+                      ? r.ficha.barrio.key
+                      : null
+                  }
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section data-anim="fade-up" style={{padding:"120px 24px",textAlign:"center",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
-        <div style={{maxWidth:"700px",margin:"0 auto"}}>
-          <div style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"8px 20px",border:"1px solid rgba(34,197,94,0.3)",borderRadius:"100px",marginBottom:"32px",fontSize:"12px",color:"#22c55e",letterSpacing:"0.12em",textTransform:"uppercase"}}>
-            Atenci&oacute;n personalizada
+      {/* ───────────── EL ESTÁNDAR HAUSING ───────────── */}
+      <section className="bg-[#1A5C38]">
+        <div className="mx-auto max-w-[1240px] px-4 py-20 sm:px-6 lg:py-24">
+          <div className="hz-reveal grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+            <div>
+              <p className="hz-eyebrow !text-white/70">
+                <span className="hz-eyebrow-line !bg-white/50" /> El estándar Hausing
+              </p>
+              <h2 className="mt-5 text-[32px] font-light leading-[1.1] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[40px]">
+                Cambian el barrio, el lote y el diseño. <span className="font-semibold">Esto no cambia.</span>
+              </h2>
+              <p className="mt-5 max-w-[420px] text-[16px] leading-relaxed text-white/70">
+                Lo que tienen todas las casas de la colección, sin excepción.
+              </p>
+            </div>
+            <ul className="grid gap-px overflow-hidden rounded-2xl bg-white/15 sm:grid-cols-2">
+              {ESTANDAR_HAUSING.map((e, i) => (
+                <li key={e.titulo} className="bg-[#1A5C38] p-6">
+                  <span className="font-numeric text-[12px] tracking-[0.12em] text-white/50">{String(i + 1).padStart(2, "0")}</span>
+                  <p className="mt-2 text-[17px] font-semibold text-white">{e.titulo}</p>
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-white/70">{e.detalle}</p>
+                </li>
+              ))}
+            </ul>
           </div>
-          <h2 style={{fontSize:"clamp(36px,6vw,68px)",fontWeight:900,margin:"0 0 24px",letterSpacing:"-2px",lineHeight:1}}>
-            Tu casa Hausing<br/>te est&aacute; esperando.
-          </h2>
-          <p style={{color:"rgba(255,255,255,0.45)",fontSize:"18px",marginBottom:"48px",lineHeight:1.6}}>
-            Asesoramiento sin compromiso. Te contactamos en menos de 2 horas.
+        </div>
+      </section>
+
+      {/* ───────────── VISITA PRIVADA ───────────── */}
+      <section className="hz-cierre relative overflow-hidden">
+        <div className="hz-reveal relative mx-auto max-w-[760px] px-4 py-24 text-center sm:px-6 lg:py-32">
+          <p className="hz-eyebrow justify-center">
+            <span className="hz-eyebrow-line" /> Visita privada <span className="hz-eyebrow-line" />
           </p>
-          <div className="cta-btns" style={{display:"flex",gap:"16px",justifyContent:"center"}}>
-            <a href="https://wa.me/5493413340916?text=Hola!%20Me%20interesan%20las%20propiedades%20Hausing" target="_blank"
-              style={{display:"inline-flex",alignItems:"center",gap:"12px",padding:"18px 48px",background:"#22c55e",color:"#000",borderRadius:"100px",fontWeight:700,fontSize:"16px",textDecoration:"none"}}>
-              Consultar por WhatsApp
+          <h2 className="mt-6 text-[36px] font-light leading-[1.05] tracking-[-0.02em] text-white [text-wrap:balance] sm:text-[56px]">
+            Conocé tu próxima casa <span className="font-semibold">en persona.</span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-[520px] text-[16px] leading-relaxed text-white/60 sm:text-[17px]">
+            Coordinamos la visita en el horario que te quede cómodo, con un asesor de SI INMOBILIARIA que conoce cada
+            casa y cada barrio.
+          </p>
+          <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+            <HausingWhatsLink
+              mensaje="Hola! Quiero coordinar una visita privada a las casas Hausing."
+              className="hz-btn hz-btn-green"
+            >
+              <MessageCircle className="h-4 w-4" /> Coordinar por WhatsApp
+            </HausingWhatsLink>
+            <a href="tel:+5493413340916" className="hz-btn hz-btn-ghost">
+              <Phone className="h-4 w-4" /> <span className="font-numeric">341 334-0916</span>
             </a>
-            <a href="tel:+5493413340916"
-              style={{display:"inline-flex",alignItems:"center",gap:"12px",padding:"18px 48px",background:"rgba(255,255,255,0.07)",color:"#fff",borderRadius:"100px",fontWeight:600,fontSize:"16px",textDecoration:"none",border:"1px solid rgba(255,255,255,0.12)"}}>
-              Llamar ahora
-            </a>
+          </div>
+        </div>
+        <div className="relative border-t border-white/[0.08]">
+          <div className="mx-auto flex max-w-[1240px] flex-col items-center justify-between gap-3 px-4 py-6 text-[13px] text-white/45 sm:flex-row sm:px-6">
+            <span>Hausing construye · SI INMOBILIARIA comercializa</span>
+            <Link href="/propiedades" className="inline-flex items-center gap-1.5 transition-colors hover:text-white">
+              Ver todas las propiedades <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
       </section>
-
-      {/* FOOTER */}
-      <div style={{padding:"32px 40px",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"16px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
-          <div style={{width:"24px",height:"24px",background:"#fff",borderRadius:"6px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{color:"#000",fontWeight:900,fontSize:"11px"}}>H</span>
-          </div>
-          <span style={{color:"rgba(255,255,255,0.4)",fontSize:"13px"}}>Hausing &times; SI INMOBILIARIA &middot; Desde 1983</span>
-        </div>
-        <Link href="/propiedades" style={{color:"rgba(255,255,255,0.4)",fontSize:"13px",textDecoration:"none"}}>Ver todas las propiedades &rarr;</Link>
-      </div>
     </div>
   )
 }
+
+function ResidenciaCard({
+  r,
+  invertida,
+  anclaBarrio,
+}: {
+  r: Residencia
+  invertida: boolean
+  anclaBarrio: HausingBarrio["key"] | null
+}) {
+  const { ficha, property, numero, slug, titulo } = r
+  const [principal, ...resto] = ficha.fotos
+  const miniaturas = resto.slice(0, 2)
+  const precio = formatPrice(property)
+  const barrio = ficha.barrio
+
+  const specs: [string, string][] = [
+    ...(ficha.lote
+      ? [["Lote", `${nf(ficha.lote)} m²${ficha.loteMedidas ? ` · ${ficha.loteMedidas}` : ""}`] as [string, string]]
+      : []),
+    ...(ficha.cubierta ? [["Cubierta", `${nf(ficha.cubierta)} m²`] as [string, string]] : []),
+    ...(ficha.construida ? [["Total construida", `${nf(ficha.construida)} m²`] as [string, string]] : []),
+    ...(ficha.dormitorios ? [["Dormitorios", String(ficha.dormitorios)] as [string, string]] : []),
+    ...(ficha.banos ? [["Baños", String(ficha.banos)] as [string, string]] : []),
+    ...(ficha.plantas ? [["Plantas", String(ficha.plantas)] as [string, string]] : []),
+    ...(ficha.orientacion ? [["Orientación", ficha.orientacion] as [string, string]] : []),
+    ...(ficha.piscina ? [["Pileta", ficha.piscina] as [string, string]] : []),
+  ]
+
+  const estadoColor =
+    ficha.estado?.tipo === "inmediata" ? "#34C77B" : ficha.estado?.tipo === "obra" ? "#fbce07" : "#FFFFFF"
+
+  return (
+    <article
+      id={anclaBarrio ? `barrio-${anclaBarrio}` : `residencia-${property.id}`}
+      className="hz-reveal grid scroll-mt-24 items-center gap-8 lg:grid-cols-12 lg:gap-14"
+    >
+      {/* Fotos */}
+      <div className={`lg:col-span-7 ${invertida ? "lg:order-2" : ""}`}>
+        <Link href={`/propiedades/${slug}`} className="group block">
+          <div className="relative aspect-[16/11] overflow-hidden rounded-2xl bg-[#0C1C14]">
+            {principal && (
+              <Image
+                src={principal}
+                alt={titulo}
+                fill
+                sizes="(max-width:1024px) 100vw, 58vw"
+                className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.03]"
+              />
+            )}
+            <span className="absolute left-4 top-4 rounded-full bg-[#07120C]/70 px-3 py-1.5 text-[11px] font-semibold tracking-[0.14em] text-white backdrop-blur-md">
+              HAUSING
+            </span>
+          </div>
+        </Link>
+        {miniaturas.length === 2 && (
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {miniaturas.map(src => (
+              <div key={src} className="relative aspect-[16/10] overflow-hidden rounded-xl bg-[#0C1C14]">
+                <Image src={src} alt="" fill sizes="(max-width:1024px) 50vw, 29vw" className="object-cover" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Ficha */}
+      <div className={`lg:col-span-5 ${invertida ? "lg:order-1" : ""}`}>
+        <div className="flex items-center justify-between gap-4">
+          <span className="font-numeric text-[15px] font-light tracking-[0.12em] text-[#8FD1AE]">
+            N° {String(numero).padStart(2, "0")}
+          </span>
+          {ficha.estado && (
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-medium text-white/85 ring-1 ring-white/15">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: estadoColor }} />
+              {ficha.estado.label}
+            </span>
+          )}
+        </div>
+
+        {barrio && (
+          <p className="mt-6 text-[12px] font-semibold uppercase tracking-[0.16em] text-white/50">{barrio.nombre}</p>
+        )}
+        <h3 className="mt-2 text-[34px] font-light leading-[1.05] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[40px]">
+          {ficha.identificador || titulo}
+        </h3>
+
+        {specs.length > 0 && (
+          <dl className="mt-7 grid grid-cols-2 border-t border-white/[0.09]">
+            {specs.map(([k, v], i) => (
+              <div
+                key={k}
+                className={`border-b border-white/[0.09] py-3.5 ${i % 2 === 1 ? "pl-4" : "pr-4"}`}
+              >
+                <dt className="text-[11px] uppercase tracking-[0.12em] text-white/40">{k}</dt>
+                <dd className="font-numeric mt-1 text-[15px] text-white">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {barrio && (
+          <div className="mt-6 rounded-xl bg-white/[0.035] p-4 ring-1 ring-white/[0.07]">
+            <p className="text-[13px] leading-relaxed text-white/65">
+              <span className="font-semibold text-white">El barrio.</span> {barrio.frase}
+            </p>
+            <Link
+              href={barrio.href}
+              className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-[#8FD1AE] transition-colors hover:text-white"
+            >
+              Conocé {barrio.nombre} <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
+
+        <div className="mt-7 flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">Valor</p>
+            <p className="font-numeric mt-1 text-[28px] font-light leading-none text-white">{precio}</p>
+          </div>
+          <div className="flex w-full gap-2 sm:w-auto">
+            <HausingWhatsLink
+              mensaje={`Hola! Me interesa la casa Hausing ${ficha.identificador ? `${ficha.identificador} ` : ""}${barrio ? `en ${barrio.nombre}` : ""}. ¿Podemos coordinar una visita?`}
+              propertyId={property.id}
+              titulo={titulo}
+              className="hz-icon-btn shrink-0"
+            >
+              <MessageCircle className="h-[18px] w-[18px]" />
+              <span className="sr-only">Consultar por WhatsApp</span>
+            </HausingWhatsLink>
+            <Link href={`/propiedades/${slug}`} className="hz-btn hz-btn-light flex-1 !py-3 sm:flex-none">
+              Ver la casa <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+const CSS = `
+.hz { background:#07120C; color:#fff; overflow-x:clip; }
+.hz-hero { background:
+  radial-gradient(60% 55% at 78% 40%, rgba(26,92,56,.38) 0%, rgba(7,18,12,0) 70%),
+  radial-gradient(40% 40% at 10% 100%, rgba(0,117,74,.14) 0%, rgba(7,18,12,0) 70%),
+  #07120C; }
+.hz-cierre { background:
+  radial-gradient(50% 60% at 50% 0%, rgba(26,92,56,.35) 0%, rgba(7,18,12,0) 70%),
+  #07120C; }
+.hz-hero-frame { box-shadow: 0 40px 120px -30px rgba(0,0,0,.8); }
+.hz-eyebrow { display:flex; align-items:center; gap:12px; font-size:12px; font-weight:600;
+  letter-spacing:.2em; text-transform:uppercase; color:#8FD1AE; }
+.hz-eyebrow-line { display:inline-block; width:28px; height:1px; background:#8FD1AE; opacity:.7; }
+.hz-btn { display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  padding:15px 26px; border-radius:999px; font-size:15px; font-weight:600;
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .25s ease; }
+.hz-btn:active { transform: scale(.98); }
+.hz-btn-light { background:#fff; color:#07120C; }
+.hz-btn-light:hover { background:#E6F2EB; }
+.hz-btn-green { background:#00754A; color:#fff; }
+.hz-btn-green:hover { background:#1A5C38; }
+.hz-btn-ghost { color:#fff; border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.04); }
+.hz-btn-ghost:hover { border-color:rgba(255,255,255,.5); background:rgba(255,255,255,.08); }
+.hz-icon-btn { display:inline-flex; align-items:center; justify-content:center; width:46px; height:46px;
+  border-radius:999px; color:#fff; border:1px solid rgba(255,255,255,.22); transition:border-color .25s ease, background-color .25s ease; }
+.hz-icon-btn:hover { border-color:rgba(255,255,255,.5); background:rgba(255,255,255,.08); }
+@keyframes hzRise { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .hz-rise { animation: hzRise .9s cubic-bezier(.16,1,.3,1) both; animation-delay: var(--d, 0ms); }
+  @supports (animation-timeline: view()) {
+    .hz-reveal { animation: hzRise linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+  }
+}
+`
