@@ -483,16 +483,7 @@ function ResidenciaCard({
   )
 }
 
-function datosConTierra(f: FichaBarrio): (DatoBarrio & { destacado?: boolean })[] {
-  return [
-    ...f.datos,
-    ...(f.valorTierra
-      ? [{ valor: `USD ${nf(f.valorTierra)}`, unidad: "/m²", label: "Valor de la tierra", destacado: true }]
-      : []),
-  ]
-}
-
-// Valores largos ("USD 200 /m²", "800–1.400 m²") ocupan dos columnas para no cortarse.
+// Valores largos ("800–1.400 m²") van en cuerpo más chico para no cortarse en la grilla 2×2.
 function largo(d: DatoBarrio): boolean {
   return d.valor.length + (d.unidad?.length ?? 0) > 8
 }
@@ -541,7 +532,7 @@ function Satelite({ lat, lon, z = 16 }: { lat: number; lon: number; z?: number }
 // Ficha del barrio completa (primera casa de cada barrio): bloque verde SI a sangre.
 function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }) {
   const [principal, ...extras] = f.fotos
-  const datos = datosConTierra(f)
+  const datos = f.datos
   return (
     <div className="border-t border-white/10 bg-[#111111]">
       <div className="grid lg:grid-cols-2">
@@ -579,14 +570,16 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
           </div>
 
           {datos.length > 0 && (
-            <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-8 border-t border-white/15 pt-8 sm:grid-cols-3">
+            <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-8 border-t border-white/15 pt-8">
               {datos.map(d => (
-                <div key={d.label} className={largo(d) ? "sm:col-span-2" : ""}>
-                  <dd className="font-numeric whitespace-nowrap text-[30px] font-extralight leading-none tracking-[-0.02em] sm:text-[42px]">
+                <div key={d.label}>
+                  <dd
+                    className={`font-numeric whitespace-nowrap font-extralight leading-none tracking-[-0.02em] ${largo(d) ? "text-[24px] sm:text-[30px]" : "text-[30px] sm:text-[42px]"}`}
+                  >
                     {d.valor}
                     {d.unidad && <span className="ml-1 text-[15px] font-light text-white/60">{d.unidad}</span>}
                   </dd>
-                  <dt className={`hz-label mt-3 ${d.destacado ? "text-[#fbce07]" : "text-white/60"}`}>{d.label}</dt>
+                  <dt className="hz-label mt-3 text-white/60">{d.label}</dt>
                 </div>
               ))}
             </dl>
@@ -633,7 +626,7 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
 
 // Segunda/tercera casa del mismo barrio: franja verde con otra foto y los datos clave.
 function BarrioCompacto({ barrio, f, foto }: { barrio: HausingBarrio; f: FichaBarrio; foto?: string }) {
-  const datos = datosConTierra(f).slice(0, 4)
+  const datos = f.datos.slice(0, 4)
   return (
     <div className="border-t border-white/10 bg-[#111111]">
       <div className="mx-auto flex max-w-[1440px] flex-col sm:flex-row">
@@ -659,7 +652,7 @@ function BarrioCompacto({ barrio, f, foto }: { barrio: HausingBarrio; f: FichaBa
                   {d.valor}
                   {d.unidad && <span className="ml-1 text-[13px] text-white/60">{d.unidad}</span>}
                 </dd>
-                <dt className={`hz-label mt-2.5 ${d.destacado ? "text-[#fbce07]" : "text-white/60"}`}>{d.label}</dt>
+                <dt className="hz-label mt-2.5 text-white/60">{d.label}</dt>
               </div>
             ))}
           </dl>

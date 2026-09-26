@@ -10,7 +10,7 @@
 import type { TokkoProperty } from './tokko'
 import { getAllPhotos, getLotSurface, getRoofedArea, getTotalSurface } from './tokko'
 import { getBarrioBySlug } from './barrios'
-import { getBarrio as getBarrioTasador, precioTierra } from './tasador/barrios'
+import { getBarrio as getBarrioTasador } from './tasador/barrios'
 
 export const HAUSING_PROPERTY_IDS = [7872050, 7875941, 7868679, 7865564, 7867761, 7879685]
 
@@ -23,11 +23,11 @@ export interface HausingBarrio {
   foto: string | null
   credenciales: string[]
   frase: string
-  // Slug en lib/barrios.ts (datos duros + editorial) y en el tasador (valor de la tierra)
+  // Slug en lib/barrios.ts (datos duros + editorial) y en el tasador (coordenadas)
   slugBarrio: string | null
   slugTasador: string
   // Barrios que no están en lib/barrios (Don Mateo): datos de su landing y de la ficha
-  fallback?: Omit<FichaBarrio, 'valorTierra' | 'coordenadas'>
+  fallback?: Omit<FichaBarrio, 'coordenadas'>
 }
 
 // Orden = jerarquía con la que se presentan (y se numeran) las residencias.
@@ -218,8 +218,8 @@ export function ordenBarrio(b: HausingBarrio | null): number {
 }
 
 // ─── Ficha del barrio (datos duros) ─────────────────────────────────────────
-// Se arma desde nuestra propia base: lib/barrios.ts (+ editorial) y el valor de
-// la tierra relevado por David en el tasador (ppm2Curado, ago-2026).
+// Se arma desde nuestra propia base: lib/barrios.ts (+ editorial); del tasador
+// solo se toman las coordenadas (vista satelital de los barrios sin fotos).
 
 export interface DatoBarrio {
   valor: string
@@ -234,7 +234,6 @@ export interface FichaBarrio {
   infraestructura: string[]
   mirada: string
   fotos: string[]
-  valorTierra: number | null
   // Coordenadas (tasador) para la vista satelital cuando no hay fotos propias
   coordenadas: { lat: number; lon: number } | null
 }
@@ -250,12 +249,10 @@ const nfAR = (n: number) => n.toLocaleString('es-AR')
 
 export function fichaBarrio(b: HausingBarrio): FichaBarrio | null {
   const tas = getBarrioTasador(b.slugTasador)
-  // Solo el valor relevado a mano: el promedio automático de la ciudad no es dato del barrio.
-  const tierra = tas && precioTierra(tas).fuente !== 'ciudad' ? precioTierra(tas).ppm2 : null
 
   const coordenadas = tas ? { lat: tas.lat, lon: tas.lon } : null
 
-  if (!b.slugBarrio) return b.fallback ? { ...b.fallback, valorTierra: tierra, coordenadas } : null
+  if (!b.slugBarrio) return b.fallback ? { ...b.fallback, coordenadas } : null
   const x = getBarrioBySlug(b.slugBarrio)
   if (!x) return null
 
@@ -285,7 +282,6 @@ export function fichaBarrio(b: HausingBarrio): FichaBarrio | null {
     infraestructura,
     mirada: x.miradaBroker?.parrafo || b.frase,
     fotos: FOTOS_BARRIO[x.slug] ?? [],
-    valorTierra: tierra,
     coordenadas,
   }
 }
