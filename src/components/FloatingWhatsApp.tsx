@@ -24,6 +24,8 @@ export default function FloatingWhatsApp() {
   if (/^\/emprendimientos\/\d+-/.test(pathname)) return null
   // Hide on /dockgarden — mismo patrón: FAB propio con texto pre-cargado.
   if (pathname === '/dockgarden') return null
+  // Fisherton Work trae su FAB con el mensaje del emprendimiento ya escrito.
+  if (pathname === '/emprendimientos/fisherton-work') return null
   // Hide on /recursos — la propia página tiene su CTA "Hablar con un agente"
   // en el bloque verde inferior con el mismo número.
   if (pathname === '/recursos') return null
