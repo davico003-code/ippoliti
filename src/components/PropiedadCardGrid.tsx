@@ -15,7 +15,7 @@ import {
   getOperationType,
   operationBadgeColor,
   preciosPorOperacion,
-  getRoofedArea,
+  getSuperficieCubiertaTotal,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -80,7 +80,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const precios = preciosPorOperacion(property)
   const otrosPrecios = precios.slice(1)
   const operaciones = precios.length > 1 ? precios.map(p => p.operacion) : operation ? [operation] : []
-  const roofed = getRoofedArea(property)
+  const roofed = getSuperficieCubiertaTotal(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
   const mono = isMonoambiente(property)

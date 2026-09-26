@@ -23,7 +23,7 @@ import {
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getSuperficieCubiertaTotal,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -53,7 +53,7 @@ async function FeaturedPropertiesSection() {
     const photo = getMainPhoto(property)
     const price = formatPrice(property)
     const operation = getOperationType(property)
-    const roofed = getRoofedArea(property)
+    const roofed = getSuperficieCubiertaTotal(property)
     const land = isLand(property)
     const mono = isMonoambiente(property)
     const beds = property.suite_amount ?? property.room_amount

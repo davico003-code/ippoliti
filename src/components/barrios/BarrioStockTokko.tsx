@@ -8,7 +8,7 @@ import {
   formatPrice,
   generatePropertySlug,
   getMainPhoto,
-  getRoofedArea,
+  getSuperficieCubiertaTotal,
   getLotSurface,
   translatePropertyType,
 } from '@/lib/tokko'
@@ -117,7 +117,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
           const photo = getMainPhoto(p)
           const url = `/propiedades/${generatePropertySlug(p)}`
           const lot = getLotSurface(p)
-          const roofed = getRoofedArea(p)
+          const roofed = getSuperficieCubiertaTotal(p)
           return (
             <Link
               key={p.id}
@@ -151,7 +151,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
                 </p>
                 <div className="flex gap-3 text-xs text-stone-600 font-numeric tabular-nums">
                   {lot ? <span>{lot} m² lote</span> : null}
-                  {roofed ? <span>· {roofed} m² cub.</span> : null}
+                  {roofed ? <span>· {roofed} m²</span> : null}
                 </div>
               </div>
             </Link>

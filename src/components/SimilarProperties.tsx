@@ -10,7 +10,7 @@ import {
   getMainPhoto,
   formatPrice,
   getTotalSurface,
-  getRoofedArea,
+  getSuperficieCubiertaTotal,
   translatePropertyType,
   operationBadgeColor,
   tituloVisible,
@@ -139,7 +139,7 @@ export default function SimilarProperties({ properties }: Props) {
           const slug = generatePropertySlug(property)
           const price = formatPrice(property)
           const area = getTotalSurface(property)
-          const roofed = getRoofedArea(property)
+          const roofed = getSuperficieCubiertaTotal(property)
           const typeName = translatePropertyType(property.type?.name)
           const op = property.operations?.[0]?.operation_type === 'Sale'
             ? 'Venta'

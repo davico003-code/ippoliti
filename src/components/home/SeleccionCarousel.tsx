@@ -8,7 +8,7 @@ import {
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getSuperficieCubiertaTotal,
   getLotSurface,
   isLand,
   getPropertyCount,
@@ -61,7 +61,7 @@ export default async function SeleccionCarousel() {
           const slug = generatePropertySlug(p)
           const photo = getMainPhoto(p)
           const price = formatPrice(p)
-          const roofed = getRoofedArea(p)
+          const roofed = getSuperficieCubiertaTotal(p)
           const land = isLand(p)
           const beds = p.suite_amount ?? p.room_amount
           const baths = p.bathroom_amount

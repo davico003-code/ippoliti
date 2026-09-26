@@ -636,6 +636,16 @@ export function getRoofedArea(property: TokkoProperty): number | null {
   return v > 0 ? v : null;
 }
 
+// Superficie que muestran las tarjetas: cubierta + semicubierta. Solo la
+// cubierta "parece muy poco" y no atrae (David, 26-sep). No usamos total_surface
+// porque en muchas cargas trae el lote. Redondeada: 169 + 60,5 → 230.
+export function getSuperficieCubiertaTotal(property: TokkoProperty): number | null {
+  const roofed = getRoofedArea(property);
+  if (roofed == null) return null;
+  const semi = parseFloat(property.semiroofed_surface);
+  return Math.round(roofed + (semi > 0 ? semi : 0));
+}
+
 export function getTotalSurface(property: TokkoProperty): number | null {
   const total = parseFloat(property.total_surface);
   if (total > 0) return total;
