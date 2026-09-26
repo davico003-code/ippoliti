@@ -1,10 +1,10 @@
 'use client'
 
 // Modal que muestra una capacitación dentro de un <iframe> aislado (lo sirve
-// /api/capacitaciones/[id], gateado). Lo usa la sección destacada de
+// /api/capacitaciones/[id]). Lo usa la sección destacada de
 // Capacitaciones en la home de SI School.
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { numeroCapacitacion, type Capacitacion } from './capacitaciones'
 
 const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
@@ -12,13 +12,6 @@ const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
 export const paginaCapacitacion = (id: string) => `/recursos/si-school/capacitacion/${id}`
 
 export default function VisorCapacitacion({ cap, onClose }: { cap: Capacitacion; onClose: () => void }) {
-  // Clave de equipo con la que se entró (la usa el iframe para autorizarse en
-  // la API; los agentes logueados ya pasan por su cookie).
-  const [tc, setTc] = useState<string | null>(null)
-  useEffect(() => {
-    setTc(window.localStorage.getItem('si_team_access'))
-  }, [])
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -32,7 +25,7 @@ export default function VisorCapacitacion({ cap, onClose }: { cap: Capacitacion;
     }
   }, [onClose])
 
-  const src = `/api/capacitaciones/${cap.id}${tc ? `?tc=${encodeURIComponent(tc)}` : ''}`
+  const src = `/api/capacitaciones/${cap.id}`
 
   return (
     <div

@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-import TeamCodeGate from '@/components/si-school/TeamCodeGate'
 import SiSchoolShell from '@/components/si-school/SiSchoolShell'
 import CapsulaCard from '@/components/si-school/CapsulaCard'
 import CasoCard from '@/components/si-school/CasoCard'
@@ -28,13 +27,11 @@ const TOTAL_CAPSULAS: Record<string, number> = {
 
 export default function CapacidadView({ capacidad }: Props) {
   return (
-    <TeamCodeGate>
-      {() => (
+    <>
         <SiSchoolShell activeCapacidadSlug={capacidad.slug}>
           <CapacidadBody cap={capacidad} />
         </SiSchoolShell>
-      )}
-    </TeamCodeGate>
+      </>
   )
 }
 

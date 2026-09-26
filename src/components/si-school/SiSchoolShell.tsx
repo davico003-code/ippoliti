@@ -56,6 +56,10 @@ export default function SiSchoolShell({
         <div className={styles.topbarBrand}>
           SI<span>·</span>School
         </div>
+        {/* En la home (Capacitaciones arriba) el topbar va limpio: sin el buscador
+            deshabilitado ni el nivel del programa, que siguen en las internas. */}
+        {!soloCentro && (
+          <>
         <input
           type="search"
           className={styles.topbarSearch}
@@ -74,6 +78,8 @@ export default function SiSchoolShell({
             SI
           </span>
         </div>
+          </>
+        )}
       </header>
 
       {soloCentro ? (

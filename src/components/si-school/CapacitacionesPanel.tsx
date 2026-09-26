@@ -2,9 +2,9 @@
 
 // Columna derecha de SI School: lista numerada de "Capacitaciones". Cada placa
 // abre su HTML embebido en un modal con <iframe> aislado (lo sirve
-// /api/capacitaciones/[id], gateado). El contenido vive en ./capacitaciones.
+// /api/capacitaciones/[id]). El contenido vive en ./capacitaciones.
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import styles from './si-school.module.css'
 import { CAPACITACIONES, numeroCapacitacion } from './capacitaciones'
 
@@ -12,16 +12,10 @@ const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
 
 export default function CapacitacionesPanel() {
   const [openId, setOpenId] = useState<string | null>(null)
-  const [tc, setTc] = useState<string | null>(null)
   const activa = CAPACITACIONES.find((c) => c.id === openId) || null
 
-  // Clave de equipo con la que se entró a SI School (la usa el iframe para
-  // autorizarse en la API; los agentes logueados ya pasan por su cookie).
-  useEffect(() => {
-    setTc(typeof window !== 'undefined' ? window.localStorage.getItem('si_team_access') : null)
-  }, [])
 
-  const apiSrc = (id: string) => `/api/capacitaciones/${id}${tc ? `?tc=${encodeURIComponent(tc)}` : ''}`
+  const apiSrc = (id: string) => `/api/capacitaciones/${id}`
   const pageHref = (id: string) => `/recursos/si-school/capacitacion/${id}`
 
   return (

@@ -1,12 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import TeamCodeGate from '@/components/si-school/TeamCodeGate'
 
 const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
 
-function Vista({ id, titulo, tc }: { id: string; titulo: string; tc?: string }) {
-  const src = `/api/capacitaciones/${id}${tc ? `?tc=${encodeURIComponent(tc)}` : ''}`
+function Vista({ id, titulo }: { id: string; titulo: string }) {
+  const src = `/api/capacitaciones/${id}`
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
       <div style={{ flexShrink: 0, padding: '10px 16px', borderBottom: '1px solid #e3ebe5', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -25,8 +24,7 @@ function Vista({ id, titulo, tc }: { id: string; titulo: string; tc?: string }) 
   )
 }
 
-export default function CapacitacionVista({ id, titulo, isAgent }: { id: string; titulo: string; isAgent: boolean }) {
-  // Agente logueado → directo. Si no (3ro con el link) → gate por clave de equipo.
-  if (isAgent) return <Vista id={id} titulo={titulo} />
-  return <TeamCodeGate>{({ teamCode }) => <Vista id={id} titulo={titulo} tc={teamCode} />}</TeamCodeGate>
+// Acceso libre: SI School ya no pide clave (pedido de David, 26-sep-2026).
+export default function CapacitacionVista({ id, titulo }: { id: string; titulo: string }) {
+  return <Vista id={id} titulo={titulo} />
 }

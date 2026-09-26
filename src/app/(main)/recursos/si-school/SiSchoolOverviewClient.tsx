@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-import TeamCodeGate from '@/components/si-school/TeamCodeGate'
 import SiSchoolShell from '@/components/si-school/SiSchoolShell'
 import CapacitacionesDestacadas from '@/components/si-school/CapacitacionesDestacadas'
 import LevelCard from '@/components/si-school/LevelCard'
@@ -38,8 +37,7 @@ interface Props {
 
 export default function SiSchoolOverviewClient({ capacidades }: Props) {
   return (
-    <TeamCodeGate>
-      {() => (
+    <>
         <SiSchoolShell soloCentro>
           {/* Arriba y destacadas: las Capacitaciones, que todo el equipo tiene que ver. */}
           <CapacitacionesDestacadas />
@@ -52,8 +50,7 @@ export default function SiSchoolOverviewClient({ capacidades }: Props) {
             <Overview capacidades={capacidades} />
           </section>
         </SiSchoolShell>
-      )}
-    </TeamCodeGate>
+      </>
   )
 }
 
