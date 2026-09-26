@@ -8,9 +8,9 @@
 // estado de obra) se lee de la ficha publicada — nada de números a mano.
 
 import type { TokkoProperty } from './tokko'
-import { getAllPhotos, getLotSurface, getRoofedArea, getTotalSurface, generatePropertySlug, getMainPhoto, formatPrice } from './tokko'
-import { BARRIOS, type Barrio } from './barrios'
-import { propertyMatchesBarrio } from './tokko/barrio-matcher'
+import { getAllPhotos, getLotSurface, getRoofedArea, getTotalSurface } from './tokko'
+import { getBarrioBySlug } from './barrios'
+import { getBarrio as getBarrioTasador, precioTierra } from './tasador/barrios'
 
 export const HAUSING_PROPERTY_IDS = [7872050, 7875941, 7868679, 7865564, 7867761, 7879685]
 
@@ -23,6 +23,11 @@ export interface HausingBarrio {
   foto: string | null
   credenciales: string[]
   frase: string
+  // Slug en lib/barrios.ts (datos duros + editorial) y en el tasador (valor de la tierra)
+  slugBarrio: string | null
+  slugTasador: string
+  // Barrios que no están en lib/barrios (Don Mateo): datos de su landing y de la ficha
+  fallback?: Omit<FichaBarrio, 'valorTierra' | 'coordenadas'>
 }
 
 // Orden = jerarquía con la que se presentan (y se numeran) las residencias.
@@ -35,6 +40,8 @@ export const HAUSING_BARRIOS: HausingBarrio[] = [
     foto: '/barrios/kentucky/05.webp',
     credenciales: ['Golf de 18 hoyos', '242 hectáreas', 'Lago de 7 ha'],
     frase: 'El único del corredor con golf de 18 hoyos dentro del perímetro, entre arboledas de medio siglo.',
+    slugBarrio: 'kentucky',
+    slugTasador: 'kentucky',
   },
   {
     key: 'cadaques',
@@ -43,6 +50,8 @@ export const HAUSING_BARRIOS: HausingBarrio[] = [
     foto: '/barrios/funes-hills-cadaques/01.webp',
     credenciales: ['Tierras altas', 'Boulevard forestado', 'Club House'],
     frase: 'Tierras altas y un boulevard central forestado: un barrio maduro, con los árboles ya crecidos.',
+    slugBarrio: 'funes-hills-cadaques',
+    slugTasador: 'cadaques',
   },
   {
     key: 'vida',
@@ -51,6 +60,8 @@ export const HAUSING_BARRIOS: HausingBarrio[] = [
     foto: '/barrios/vida-barrio-cerrado/01.webp',
     credenciales: ['35 hectáreas', 'Laguna', 'Centro comercial propio'],
     frase: 'Club House, laguna y un centro comercial propio en el ingreso. Todo a mano, sin salir del barrio.',
+    slugBarrio: 'vida-barrio-cerrado',
+    slugTasador: 'vida',
   },
   {
     key: 'don-mateo',
@@ -59,6 +70,21 @@ export const HAUSING_BARRIOS: HausingBarrio[] = [
     foto: null,
     credenciales: ['Calles de 20 m', 'Espacios verdes forestados', 'Av. Fuerza Aérea'],
     frase: 'Calles anchas, verde forestado y salida directa a Rosario por Av. Fuerza Aérea.',
+    slugBarrio: null,
+    slugTasador: 'don-mateo',
+    fallback: {
+      tier: 'Barrio residencial',
+      datos: [
+        { valor: '+850', label: 'Lotes' },
+        { valor: '500', unidad: 'm²', label: 'Lotes desde' },
+        { valor: '20', unidad: 'm', label: 'Ancho de calles' },
+        { valor: '<20', unidad: 'min', label: 'A Rosario centro' },
+      ],
+      amenities: ['Espacios verdes forestados', 'Calles asfaltadas', 'Alumbrado público'],
+      infraestructura: ['Agua corriente', 'Gas natural', 'Electricidad', 'Cloacas', 'Pavimento'],
+      mirada: 'Sobre Av. Fuerza Aérea, a pocos minutos de Rosario y próximo a Cantegril. Todavía tiene oferta de terrenos, algo cada vez más raro en Funes.',
+      fotos: [],
+    },
   },
 ]
 
@@ -191,139 +217,75 @@ export function ordenBarrio(b: HausingBarrio | null): number {
   return i === -1 ? HAUSING_BARRIOS.length : i
 }
 
-// ─── Combinador "Elegí el barrio. Hausing pone la casa." ─────────────────────
-// Cruza los 15 barrios de lib/barrios.ts con los lotes que hay HOY en venta en
-// el feed de HILO y con las casas de la colección (qué casa entra en qué lote,
-// según la superficie del lote sobre el que se construyó).
+// ─── Ficha del barrio (datos duros) ─────────────────────────────────────────
+// Se arma desde nuestra propia base: lib/barrios.ts (+ editorial) y el valor de
+// la tierra relevado por David en el tasador (ppm2Curado, ago-2026).
 
-
-export interface LoteCombinador {
-  id: number
-  titulo: string
-  superficie: number | null
-  precio: number | null
-  slug: string
-  foto: string | null
+export interface DatoBarrio {
+  valor: string
+  unidad?: string
+  label: string
 }
 
-export interface BarrioCombinador {
-  slug: string
-  nombre: string
+export interface FichaBarrio {
   tier: string
-  foto: string
-  href: string
-  datos: string[]
-  frase: string
-  loteDesde: number | null
-  loteHasta: number | null
-  lotes: LoteCombinador[]
-  // Casa de la colección que YA está en este barrio (si hay)
-  casaAqui: number | null
+  datos: DatoBarrio[]
+  amenities: string[]
+  infraestructura: string[]
+  mirada: string
+  fotos: string[]
+  valorTierra: number | null
+  // Coordenadas (tasador) para la vista satelital cuando no hay fotos propias
+  coordenadas: { lat: number; lon: number } | null
 }
 
-export interface CasaCombinador {
-  id: number
-  numero: number
-  identificador: string
-  barrio: string
-  foto: string | null
-  lote: number | null
-  construida: number | null
-  dormitorios: number | null
-  precio: string
+// Fotos del barrio (/public/barrios/{slug}): la primera es la principal.
+const FOTOS_BARRIO: Record<string, string[]> = {
+  kentucky: ['/barrios/kentucky/05.webp', '/barrios/kentucky/01.webp', '/barrios/kentucky/03.webp'],
+  'funes-hills-cadaques': ['/barrios/funes-hills-cadaques/01.webp', '/barrios/funes-hills-cadaques/02.webp', '/barrios/funes-hills-cadaques/04.webp'],
+  'vida-barrio-cerrado': ['/barrios/vida-barrio-cerrado/01.webp', '/barrios/vida-barrio-cerrado/03.webp', '/barrios/vida-barrio-cerrado/04.webp'],
 }
 
-// Foto de portada por barrio (01.webp salvo que otra sea mejor).
-const FOTO_BARRIO: Record<string, string> = { kentucky: '/barrios/kentucky/05.webp' }
+const nfAR = (n: number) => n.toLocaleString('es-AR')
 
-// Puente entre los barrios de la colección y los slugs de lib/barrios.
-const SLUG_DE_KEY: Record<HausingBarrioKey, string | null> = {
-  kentucky: 'kentucky',
-  cadaques: 'funes-hills-cadaques',
-  vida: 'vida-barrio-cerrado',
-  'don-mateo': null,
-}
+export function fichaBarrio(b: HausingBarrio): FichaBarrio | null {
+  const tas = getBarrioTasador(b.slugTasador)
+  // Solo el valor relevado a mano: el promedio automático de la ciudad no es dato del barrio.
+  const tierra = tas && precioTierra(tas).fuente !== 'ciudad' ? precioTierra(tas).ppm2 : null
 
-function datosBarrio(b: Barrio): string[] {
-  const d = b.datosDuros
-  const out: string[] = []
-  if (d.hectareasTotales) out.push(`${d.hectareasTotales.toLocaleString('es-AR')} ha`)
+  const coordenadas = tas ? { lat: tas.lat, lon: tas.lon } : null
+
+  if (!b.slugBarrio) return b.fallback ? { ...b.fallback, valorTierra: tierra, coordenadas } : null
+  const x = getBarrioBySlug(b.slugBarrio)
+  if (!x) return null
+
+  const d = x.datosDuros
+  const datos: DatoBarrio[] = []
+  if (d.hectareasTotales) datos.push({ valor: nfAR(d.hectareasTotales), unidad: 'ha', label: 'Superficie total' })
+  if (d.cantidadLotes) datos.push({ valor: nfAR(d.cantidadLotes), label: 'Lotes' })
   if (d.medidaLoteDesde) {
-    out.push(
+    datos.push(
       d.medidaLoteHasta && d.medidaLoteHasta !== d.medidaLoteDesde
-        ? `Lotes ${d.medidaLoteDesde.toLocaleString('es-AR')}–${d.medidaLoteHasta.toLocaleString('es-AR')} m²`
-        : `Lotes ${d.medidaLoteDesde.toLocaleString('es-AR')} m²`,
+        ? { valor: `${nfAR(d.medidaLoteDesde)}–${nfAR(d.medidaLoteHasta)}`, unidad: 'm²', label: 'Medida de lotes' }
+        : { valor: nfAR(d.medidaLoteDesde), unidad: 'm²', label: 'Lote típico' },
     )
   }
-  for (const a of b.amenities) {
-    if (out.length >= 4) break
-    if (/seguridad|vigilancia/i.test(a.label)) continue
-    // "Deportes náuticos sin motor (kayak, …)" → "Deportes náuticos sin motor"
-    const label = a.label.replace(/\s*\(.*\)\s*/, '').trim()
-    if (label.length > 30) continue
-    out.push(label)
+  const min = x.distanciaRosario?.match(/\d+/)?.[0] ?? (x.ubicacion.distanciaCentroRosarioMin ? String(x.ubicacion.distanciaCentroRosarioMin) : null)
+  if (min) datos.push({ valor: min, unidad: 'min', label: 'A Rosario' })
+
+  const amenities = (x.amenitiesEditorial?.length ? x.amenitiesEditorial : x.amenities.map(a => a.label))
+    .filter(a => !/seguridad/i.test(a))
+    .slice(0, 8)
+  const infraestructura = [...x.seguridad, ...x.infraestructura].slice(0, 6)
+
+  return {
+    tier: x.tier,
+    datos,
+    amenities,
+    infraestructura,
+    mirada: x.miradaBroker?.parrafo || b.frase,
+    fotos: FOTOS_BARRIO[x.slug] ?? [],
+    valorTierra: tierra,
+    coordenadas,
   }
-  return out
-}
-
-function esLote(p: TokkoProperty): boolean {
-  const t = (p.type?.name ?? '').toLowerCase()
-  return t === 'land' || t === 'terreno'
-}
-
-export function armarCombinador(
-  feed: TokkoProperty[],
-  residencias: { property: TokkoProperty; ficha: FichaHausing; numero: number }[],
-): { barrios: BarrioCombinador[]; casas: CasaCombinador[] } {
-  const casas: CasaCombinador[] = residencias.map(r => ({
-    id: r.property.id,
-    numero: r.numero,
-    identificador: r.ficha.identificador,
-    barrio: r.ficha.barrio?.nombre ?? '',
-    foto: r.ficha.fotos[0] ?? null,
-    lote: r.ficha.lote,
-    construida: r.ficha.construida ? Math.round(r.ficha.construida) : null,
-    dormitorios: r.ficha.dormitorios,
-    precio: formatPrice(r.property),
-  }))
-
-  const barrios = BARRIOS.map(b => {
-    const lotes: LoteCombinador[] = feed
-      .filter(p => esLote(p) && propertyMatchesBarrio(p, b))
-      .filter(p => (p.operations || []).some(o => o.operation_type === 'Sale'))
-      .map(p => ({
-        id: p.id,
-        titulo: p.publication_title || p.address,
-        superficie: getLotSurface(p),
-        precio: precioVentaUsd(p),
-        slug: generatePropertySlug(p),
-        foto: getMainPhoto(p),
-      }))
-      .sort((x, y) => (x.precio ?? Infinity) - (y.precio ?? Infinity))
-
-    const key = (Object.keys(SLUG_DE_KEY) as HausingBarrioKey[]).find(k => SLUG_DE_KEY[k] === b.slug)
-    const casaAqui = key ? residencias.find(r => r.ficha.barrio?.key === key)?.property.id ?? null : null
-
-    return {
-      slug: b.slug,
-      nombre: b.nombre,
-      tier: b.tier,
-      foto: FOTO_BARRIO[b.slug] ?? `/barrios/${b.slug}/01.webp`,
-      href: `/barrios-privados/${b.slug}`,
-      datos: datosBarrio(b),
-      frase: b.miradaBroker.titular,
-      loteDesde: b.datosDuros.medidaLoteDesde ?? null,
-      loteHasta: b.datosDuros.medidaLoteHasta ?? null,
-      lotes,
-      casaAqui,
-    }
-  })
-
-  // Primero los barrios donde hoy se puede combinar (hay lotes), después los que
-  // ya tienen una casa Hausing, después el resto. Dentro, Premium primero.
-  const peso = (x: BarrioCombinador) => (x.lotes.length ? 0 : x.casaAqui ? 1 : 2)
-  const tierPeso = (t: string) => (t === 'Premium' ? 0 : t.startsWith('Consolidado') ? 1 : 2)
-  barrios.sort((a, b) => peso(a) - peso(b) || tierPeso(a.tier) - tierPeso(b.tier) || b.lotes.length - a.lotes.length)
-
-  return { barrios, casas }
 }

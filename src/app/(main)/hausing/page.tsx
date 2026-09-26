@@ -1,22 +1,33 @@
-import type { Metadata } from "next"
-import Image from "next/image"
-import Link from "next/link"
-import { ArrowRight, ArrowUpRight, MessageCircle, Phone } from "lucide-react"
-import { getProperties, getPropertyById, formatPrice, generatePropertySlug } from "@/lib/tokko"
-import type { TokkoProperty } from "@/lib/tokko"
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
+import {
+  getPropertyById,
+  formatPrice,
+  generatePropertySlug,
+} from "@/lib/tokko";
+import type { TokkoProperty } from "@/lib/tokko";
 import {
   HAUSING_PROPERTY_IDS,
   ESTANDAR_HAUSING,
-  armarCombinador,
+  fichaBarrio,
   fichaDe,
   ordenBarrio,
   precioVentaUsd,
+  type DatoBarrio,
+  type FichaBarrio,
   type FichaHausing,
   type HausingBarrio,
-} from "@/lib/hausing"
-import HausingWhatsLink from "@/components/hausing/HausingWhatsLink"
-import Combinador from "@/components/hausing/Combinador"
-import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd"
+} from "@/lib/hausing";
+import HausingWhatsLink from "@/components/hausing/HausingWhatsLink";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 // "Colección Hausing" — oscuro premium con la paleta SI (verde profundo casi
 // negro + blanco; #00754A en botones). Todo lo que se ve de cada casa sale de
@@ -24,41 +35,55 @@ import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd"
 // visibles: la versión anterior escondía todo con JS y en prod quedaba negra.
 
 export const metadata: Metadata = {
-  title: "Hausing — Casas de autor en los barrios más exclusivos de Funes | SI INMOBILIARIA",
+  title:
+    "Hausing — Casas de autor en los barrios más exclusivos de Funes | SI INMOBILIARIA",
   description:
     "Colección de casas Hausing en Kentucky, Funes Hills Cadaqués, Vida y Don Mateo. Pileta propia, losa radiante y aberturas con DVH. Fichas técnicas y visitas privadas con SI INMOBILIARIA.",
   alternates: { canonical: "https://siinmobiliaria.com/hausing" },
   openGraph: {
     title: "Colección Hausing — Casas de autor en Funes",
-    description: "Residencias Hausing en los barrios más exclusivos de Funes. Presentadas por SI INMOBILIARIA.",
+    description:
+      "Residencias Hausing en los barrios más exclusivos de Funes. Presentadas por SI INMOBILIARIA.",
     url: "https://siinmobiliaria.com/hausing",
     images: ["/og-image.jpg"],
   },
-}
+};
 
-export const revalidate = 21600
+export const revalidate = 21600;
 
-const PALABRAS = ["Cero", "Una", "Dos", "Tres", "Cuatro", "Cinco", "Seis", "Siete", "Ocho", "Nueve", "Diez"]
-const nf = (n: number) => n.toLocaleString("es-AR")
+const PALABRAS = [
+  "Cero",
+  "Una",
+  "Dos",
+  "Tres",
+  "Cuatro",
+  "Cinco",
+  "Seis",
+  "Siete",
+  "Ocho",
+  "Nueve",
+  "Diez",
+];
+const nf = (n: number) => n.toLocaleString("es-AR");
 
 interface Residencia {
-  property: TokkoProperty
-  ficha: FichaHausing
-  numero: number
-  slug: string
-  titulo: string
+  property: TokkoProperty;
+  ficha: FichaHausing;
+  numero: number;
+  slug: string;
+  titulo: string;
 }
 
 export default async function HausingPage() {
-  const [fetched, feed] = await Promise.all([
-    Promise.all(HAUSING_PROPERTY_IDS.map(id => getPropertyById(id).catch(() => null))),
-    getProperties({ limit: 1000 }).catch(() => null),
-  ])
-  const properties = fetched.filter(Boolean) as TokkoProperty[]
+  const properties = (
+    await Promise.all(
+      HAUSING_PROPERTY_IDS.map((id) => getPropertyById(id).catch(() => null)),
+    )
+  ).filter(Boolean) as TokkoProperty[];
 
   // Orden: jerarquía del barrio y, dentro del barrio, precio de mayor a menor.
   const residencias: Residencia[] = properties
-    .map(property => ({ property, ficha: fichaDe(property) }))
+    .map((property) => ({ property, ficha: fichaDe(property) }))
     .sort(
       (a, b) =>
         ordenBarrio(a.ficha.barrio) - ordenBarrio(b.ficha.barrio) ||
@@ -69,21 +94,27 @@ export default async function HausingPage() {
       numero: i + 1,
       slug: generatePropertySlug(r.property),
       titulo: r.property.publication_title || r.property.address,
-    }))
+    }));
 
-  const construidas = residencias.map(r => r.ficha.construida).filter((n): n is number => !!n)
+  const construidas = residencias
+    .map((r) => r.ficha.construida)
+    .filter((n): n is number => !!n);
   const promedio = construidas.length
-    ? Math.round(construidas.reduce((a, b) => a + b, 0) / construidas.length / 10) * 10
-    : null
-  const precios = residencias.map(r => precioVentaUsd(r.property)).filter((n): n is number => !!n)
-  const desde = precios.length ? Math.min(...precios) : null
+    ? Math.round(
+        construidas.reduce((a, b) => a + b, 0) / construidas.length / 10,
+      ) * 10
+    : null;
+  const precios = residencias
+    .map((r) => precioVentaUsd(r.property))
+    .filter((n): n is number => !!n);
+  const desde = precios.length ? Math.min(...precios) : null;
 
-  const combinador = armarCombinador(feed?.objects ?? [], residencias)
-  const lotesTotales = combinador.barrios.reduce((a, b) => a + b.lotes.length, 0)
-  const barriosConLotes = combinador.barrios.filter(b => b.lotes.length).length
+  const barriosDistintos = new Set(
+    residencias.map((r) => r.ficha.barrio?.key).filter(Boolean),
+  ).size;
 
-  const n = residencias.length
-  const palabra = PALABRAS[n] ?? String(n)
+  const n = residencias.length;
+  const palabra = PALABRAS[n] ?? String(n);
 
   const itemListJsonLd = {
     "@context": "https://schema.org",
@@ -95,7 +126,7 @@ export default async function HausingPage() {
       url: `https://siinmobiliaria.com/propiedades/${r.slug}`,
       name: r.titulo,
     })),
-  }
+  };
 
   return (
     <div className="hz">
@@ -105,7 +136,10 @@ export default async function HausingPage() {
           { name: "Hausing", url: "https://siinmobiliaria.com/hausing" },
         ]}
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* ───────────── HERO ───────────── */}
@@ -124,7 +158,10 @@ export default async function HausingPage() {
                 poster="/images/hausing/hero-poster.jpg"
                 aria-hidden="true"
               >
-                <source src="/videos/proyectos/hausing.webm" type="video/webm" />
+                <source
+                  src="/videos/proyectos/hausing.webm"
+                  type="video/webm"
+                />
                 <source src="/videos/proyectos/hausing.mp4" type="video/mp4" />
               </video>
               <div className="absolute inset-0 bg-gradient-to-b from-[#07120C]/70 via-[#07120C]/55 to-[#07120C] lg:hidden" />
@@ -139,32 +176,40 @@ export default async function HausingPage() {
               alt="Hausing"
               className="hz-rise h-7 w-auto brightness-0 invert sm:h-8"
             />
-            <p className="hz-rise hz-eyebrow mt-10" style={{ "--d": "80ms" } as React.CSSProperties}>
+            <p
+              className="hz-rise hz-eyebrow mt-10"
+              style={{ "--d": "80ms" } as React.CSSProperties}
+            >
               <span className="hz-eyebrow-line" /> Colección privada · Funes
             </p>
             <h1
               className="hz-rise mt-5 max-w-[620px] text-[40px] font-light leading-[1.05] tracking-[-0.02em] text-white [text-wrap:balance] sm:text-[56px] lg:text-[54px] xl:text-[66px]"
               style={{ "--d": "160ms" } as React.CSSProperties}
             >
-              Casas <span className="font-semibold">de autor</span> en los barrios más exclusivos de Funes.
+              Casas <span className="font-semibold">de autor</span> en los
+              barrios más exclusivos de Funes.
             </h1>
             <p
               className="hz-rise mt-6 max-w-[480px] text-[16px] leading-relaxed text-white/65 sm:text-[17px]"
               style={{ "--d": "240ms" } as React.CSSProperties}
             >
-              {n > 0 ? `${palabra} residencias` : "Residencias"} construidas por Hausing en Kentucky, Cadaqués, Vida y
-              Don Mateo. Cada una sobre su lote, con su propio diseño. Ninguna se repite.
+              {n > 0 ? `${palabra} residencias` : "Residencias"} construidas por
+              Hausing en Kentucky, Cadaqués, Vida y Don Mateo. Cada una sobre su
+              lote, con su propio diseño. Ninguna se repite.
             </p>
             <div
               className="hz-rise mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row"
               style={{ "--d": "320ms" } as React.CSSProperties}
             >
-              <a href="#combinar" className="hz-btn hz-btn-light">
-                Elegí tu barrio <ArrowRight className="h-4 w-4" />
+              <a href="#coleccion" className="hz-btn hz-btn-light">
+                Ver la colección <ArrowRight className="h-4 w-4" />
               </a>
-              <a href="#coleccion" className="hz-btn hz-btn-ghost">
-                Ver la colección
-              </a>
+              <HausingWhatsLink
+                mensaje="Hola! Quiero coordinar una visita privada a las casas Hausing."
+                className="hz-btn hz-btn-ghost"
+              >
+                Coordinar visita privada
+              </HausingWhatsLink>
             </div>
           </div>
         </div>
@@ -175,51 +220,39 @@ export default async function HausingPage() {
         <section className="border-y border-white/[0.08] bg-[#0A1811]">
           <dl className="mx-auto grid max-w-[1240px] grid-cols-2 px-4 sm:px-6 lg:grid-cols-4">
             {[
-              [String(n), n === 1 ? "residencia disponible" : "residencias disponibles"],
-              lotesTotales > 0
-                ? [String(lotesTotales), "lotes para combinar"]
-                : [String(combinador.barrios.length), "barrios para elegir"],
-              ...(promedio ? [[`${nf(promedio)} m²`, "construidos en promedio"]] : []),
-              ...(desde ? [[`USD ${nf(Math.round(desde / 1000))}K`, "valor desde"]] : []),
+              [
+                String(n),
+                n === 1 ? "residencia disponible" : "residencias disponibles",
+              ],
+              [String(barriosDistintos), "barrios de primer nivel"],
+              ...(promedio
+                ? [[`${nf(promedio)} m²`, "construidos en promedio"]]
+                : []),
+              ...(desde
+                ? [[`USD ${nf(Math.round(desde / 1000))}K`, "valor desde"]]
+                : []),
             ].map(([valor, label], i) => (
               <div
                 key={label}
                 className={`hz-stat py-8 lg:py-10 ${i % 2 === 1 ? "pl-5 sm:pl-8" : ""} ${i > 1 ? "border-t border-white/[0.08] lg:border-t-0" : ""} ${i > 0 ? "lg:pl-10" : ""}`}
               >
-                <dd className="font-numeric text-[30px] font-light leading-none text-white sm:text-[40px]">{valor}</dd>
-                <dt className="mt-3 text-[12px] uppercase tracking-[0.14em] text-white/45">{label}</dt>
+                <dd className="font-numeric text-[30px] font-light leading-none text-white sm:text-[40px]">
+                  {valor}
+                </dd>
+                <dt className="mt-3 text-[12px] uppercase tracking-[0.14em] text-white/45">
+                  {label}
+                </dt>
               </div>
             ))}
           </dl>
         </section>
       )}
 
-      {/* ───────────── COMBINADOR: BARRIO × CASA ───────────── */}
-      {combinador.barrios.length > 0 && combinador.casas.length > 0 && (
-        <section id="combinar" className="mx-auto max-w-[1240px] scroll-mt-20 px-4 py-20 sm:px-6 lg:py-28">
-          <div className="hz-reveal grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-            <div className="max-w-[680px]">
-              <p className="hz-eyebrow">
-                <span className="hz-eyebrow-line" /> Tu combinación
-              </p>
-              <h2 className="mt-5 text-[32px] font-light leading-[1.1] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[48px]">
-                Elegí el barrio. <span className="font-semibold">Hausing pone la casa.</span>
-              </h2>
-            </div>
-            <p className="text-[16px] leading-relaxed text-white/60">
-              Cruzamos los {combinador.barrios.length} barrios cerrados de Funes que analizamos con los
-              {lotesTotales > 0 ? ` ${lotesTotales} lotes que tenemos hoy en venta en ${barriosConLotes} de ellos` : ' lotes que tenemos en venta'} y
-              con las casas de la colección. Elegí dónde querés vivir y mirá qué casa entra en tu lote.
-            </p>
-          </div>
-          <div className="hz-reveal mt-10">
-            <Combinador barrios={combinador.barrios} casas={combinador.casas} />
-          </div>
-        </section>
-      )}
-
       {/* ───────────── LA COLECCIÓN ───────────── */}
-      <section id="coleccion" className="scroll-mt-20 border-t border-white/[0.08] py-20 lg:py-28">
+      <section
+        id="coleccion"
+        className="scroll-mt-20 border-t border-white/[0.08] py-20 lg:py-28"
+      >
         <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
           <div className="hz-reveal max-w-[640px]">
             <p className="hz-eyebrow">
@@ -227,10 +260,13 @@ export default async function HausingPage() {
             </p>
             <h2 className="mt-5 text-[32px] font-light leading-[1.1] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[44px]">
               {n === 1 ? (
-                <>Una casa. <span className="font-semibold">Única.</span></>
+                <>
+                  Una casa. <span className="font-semibold">Única.</span>
+                </>
               ) : (
                 <>
-                  {palabra} casas. <span className="font-semibold">Ninguna igual.</span>
+                  {palabra} casas.{" "}
+                  <span className="font-semibold">Ninguna igual.</span>
                 </>
               )}
             </h2>
@@ -239,7 +275,10 @@ export default async function HausingPage() {
           {n === 0 ? (
             <div className="mt-12 rounded-2xl p-8 text-white/70 ring-1 ring-white/10">
               Estamos actualizando la colección.{" "}
-              <HausingWhatsLink mensaje="Hola! Quiero información sobre las casas Hausing." className="font-semibold text-white underline">
+              <HausingWhatsLink
+                mensaje="Hola! Quiero información sobre las casas Hausing."
+                className="font-semibold text-white underline"
+              >
                 Escribinos por WhatsApp
               </HausingWhatsLink>{" "}
               y te contamos qué hay disponible.
@@ -252,7 +291,10 @@ export default async function HausingPage() {
                   r={r}
                   invertida={i % 2 === 1}
                   anclaBarrio={
-                    r.ficha.barrio && residencias.findIndex(x => x.ficha.barrio?.key === r.ficha.barrio?.key) === i
+                    r.ficha.barrio &&
+                    residencias.findIndex(
+                      (x) => x.ficha.barrio?.key === r.ficha.barrio?.key,
+                    ) === i
                       ? r.ficha.barrio.key
                       : null
                   }
@@ -269,10 +311,12 @@ export default async function HausingPage() {
           <div className="hz-reveal grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
             <div>
               <p className="hz-eyebrow !text-white/70">
-                <span className="hz-eyebrow-line !bg-white/50" /> El estándar Hausing
+                <span className="hz-eyebrow-line !bg-white/50" /> El estándar
+                Hausing
               </p>
               <h2 className="mt-5 text-[32px] font-light leading-[1.1] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[40px]">
-                Cambian el barrio, el lote y el diseño. <span className="font-semibold">Esto no cambia.</span>
+                Cambian el barrio, el lote y el diseño.{" "}
+                <span className="font-semibold">Esto no cambia.</span>
               </h2>
               <p className="mt-5 max-w-[420px] text-[16px] leading-relaxed text-white/70">
                 Lo que tienen todas las casas de la colección, sin excepción.
@@ -281,9 +325,15 @@ export default async function HausingPage() {
             <ul className="grid gap-px overflow-hidden rounded-2xl bg-white/15 sm:grid-cols-2">
               {ESTANDAR_HAUSING.map((e, i) => (
                 <li key={e.titulo} className="bg-[#1A5C38] p-6">
-                  <span className="font-numeric text-[12px] tracking-[0.12em] text-white/50">{String(i + 1).padStart(2, "0")}</span>
-                  <p className="mt-2 text-[17px] font-semibold text-white">{e.titulo}</p>
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-white/70">{e.detalle}</p>
+                  <span className="font-numeric text-[12px] tracking-[0.12em] text-white/50">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <p className="mt-2 text-[17px] font-semibold text-white">
+                    {e.titulo}
+                  </p>
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-white/70">
+                    {e.detalle}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -295,14 +345,16 @@ export default async function HausingPage() {
       <section className="hz-cierre relative overflow-hidden">
         <div className="hz-reveal relative mx-auto max-w-[760px] px-4 py-24 text-center sm:px-6 lg:py-32">
           <p className="hz-eyebrow justify-center">
-            <span className="hz-eyebrow-line" /> Visita privada <span className="hz-eyebrow-line" />
+            <span className="hz-eyebrow-line" /> Visita privada{" "}
+            <span className="hz-eyebrow-line" />
           </p>
           <h2 className="mt-6 text-[36px] font-light leading-[1.05] tracking-[-0.02em] text-white [text-wrap:balance] sm:text-[56px]">
-            Conocé tu próxima casa <span className="font-semibold">en persona.</span>
+            Conocé tu próxima casa{" "}
+            <span className="font-semibold">en persona.</span>
           </h2>
           <p className="mx-auto mt-6 max-w-[520px] text-[16px] leading-relaxed text-white/60 sm:text-[17px]">
-            Coordinamos la visita en el horario que te quede cómodo, con un asesor de SI INMOBILIARIA que conoce cada
-            casa y cada barrio.
+            Coordinamos la visita en el horario que te quede cómodo, con un
+            asesor de SI INMOBILIARIA que conoce cada casa y cada barrio.
           </p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             <HausingWhatsLink
@@ -312,21 +364,25 @@ export default async function HausingPage() {
               <MessageCircle className="h-4 w-4" /> Coordinar por WhatsApp
             </HausingWhatsLink>
             <a href="tel:+5493413340916" className="hz-btn hz-btn-ghost">
-              <Phone className="h-4 w-4" /> <span className="font-numeric">341 334-0916</span>
+              <Phone className="h-4 w-4" />{" "}
+              <span className="font-numeric">341 334-0916</span>
             </a>
           </div>
         </div>
         <div className="relative border-t border-white/[0.08]">
           <div className="mx-auto flex max-w-[1240px] flex-col items-center justify-between gap-3 px-4 py-6 text-[13px] text-white/45 sm:flex-row sm:px-6">
             <span>Hausing construye · SI INMOBILIARIA comercializa</span>
-            <Link href="/propiedades" className="inline-flex items-center gap-1.5 transition-colors hover:text-white">
+            <Link
+              href="/propiedades"
+              className="inline-flex items-center gap-1.5 transition-colors hover:text-white"
+            >
               Ver todas las propiedades <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }
 
 function ResidenciaCard({
@@ -334,138 +390,458 @@ function ResidenciaCard({
   invertida,
   anclaBarrio,
 }: {
-  r: Residencia
-  invertida: boolean
-  anclaBarrio: HausingBarrio["key"] | null
+  r: Residencia;
+  invertida: boolean;
+  anclaBarrio: HausingBarrio["key"] | null;
 }) {
-  const { ficha, property, numero, slug, titulo } = r
-  const [principal, ...resto] = ficha.fotos
-  const miniaturas = resto.slice(0, 2)
-  const precio = formatPrice(property)
-  const barrio = ficha.barrio
+  const { ficha, property, numero, slug, titulo } = r;
+  const [principal, ...resto] = ficha.fotos;
+  const miniaturas = resto.slice(0, 2);
+  const precio = formatPrice(property);
+  const barrio = ficha.barrio;
+  const fichaB = barrio ? fichaBarrio(barrio) : null;
 
   const specs: [string, string][] = [
     ...(ficha.lote
-      ? [["Lote", `${nf(ficha.lote)} m²${ficha.loteMedidas ? ` · ${ficha.loteMedidas}` : ""}`] as [string, string]]
+      ? [
+          [
+            "Lote",
+            `${nf(ficha.lote)} m²${ficha.loteMedidas ? ` · ${ficha.loteMedidas}` : ""}`,
+          ] as [string, string],
+        ]
       : []),
-    ...(ficha.cubierta ? [["Cubierta", `${nf(ficha.cubierta)} m²`] as [string, string]] : []),
-    ...(ficha.construida ? [["Total construida", `${nf(ficha.construida)} m²`] as [string, string]] : []),
-    ...(ficha.dormitorios ? [["Dormitorios", String(ficha.dormitorios)] as [string, string]] : []),
-    ...(ficha.banos ? [["Baños", String(ficha.banos)] as [string, string]] : []),
-    ...(ficha.plantas ? [["Plantas", String(ficha.plantas)] as [string, string]] : []),
-    ...(ficha.orientacion ? [["Orientación", ficha.orientacion] as [string, string]] : []),
+    ...(ficha.cubierta
+      ? [["Cubierta", `${nf(ficha.cubierta)} m²`] as [string, string]]
+      : []),
+    ...(ficha.construida
+      ? [["Total construida", `${nf(ficha.construida)} m²`] as [string, string]]
+      : []),
+    ...(ficha.dormitorios
+      ? [["Dormitorios", String(ficha.dormitorios)] as [string, string]]
+      : []),
+    ...(ficha.banos
+      ? [["Baños", String(ficha.banos)] as [string, string]]
+      : []),
+    ...(ficha.plantas
+      ? [["Plantas", String(ficha.plantas)] as [string, string]]
+      : []),
+    ...(ficha.orientacion
+      ? [["Orientación", ficha.orientacion] as [string, string]]
+      : []),
     ...(ficha.piscina ? [["Pileta", ficha.piscina] as [string, string]] : []),
-  ]
+  ];
 
   const estadoColor =
-    ficha.estado?.tipo === "inmediata" ? "#34C77B" : ficha.estado?.tipo === "obra" ? "#fbce07" : "#FFFFFF"
+    ficha.estado?.tipo === "inmediata"
+      ? "#34C77B"
+      : ficha.estado?.tipo === "obra"
+        ? "#fbce07"
+        : "#FFFFFF";
 
   return (
     <article
       id={anclaBarrio ? `barrio-${anclaBarrio}` : `residencia-${property.id}`}
-      className="hz-reveal grid scroll-mt-24 items-center gap-8 lg:grid-cols-12 lg:gap-14"
+      className="scroll-mt-24"
     >
-      {/* Fotos */}
-      <div className={`lg:col-span-7 ${invertida ? "lg:order-2" : ""}`}>
-        <Link href={`/propiedades/${slug}`} className="group block">
-          <div className="relative aspect-[16/11] overflow-hidden rounded-2xl bg-[#0C1C14]">
-            {principal && (
-              <Image
-                src={principal}
-                alt={titulo}
-                fill
-                sizes="(max-width:1024px) 100vw, 58vw"
-                className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.03]"
-              />
-            )}
-            <span className="absolute left-4 top-4 rounded-full bg-[#07120C]/70 px-3 py-1.5 text-[11px] font-semibold tracking-[0.14em] text-white backdrop-blur-md">
-              HAUSING
+      <div className="hz-reveal grid items-center gap-8 lg:grid-cols-12 lg:gap-14">
+        {/* Fotos */}
+        <div className={`lg:col-span-7 ${invertida ? "lg:order-2" : ""}`}>
+          <Link href={`/propiedades/${slug}`} className="group block">
+            <div className="relative aspect-[16/11] overflow-hidden rounded-2xl bg-[#0C1C14]">
+              {principal && (
+                <Image
+                  src={principal}
+                  alt={titulo}
+                  fill
+                  sizes="(max-width:1024px) 100vw, 58vw"
+                  className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.03]"
+                />
+              )}
+              <span className="absolute left-4 top-4 rounded-full bg-[#07120C]/70 px-3 py-1.5 text-[11px] font-semibold tracking-[0.14em] text-white backdrop-blur-md">
+                HAUSING
+              </span>
+            </div>
+          </Link>
+          {miniaturas.length === 2 && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {miniaturas.map((src) => (
+                <div
+                  key={src}
+                  className="relative aspect-[16/10] overflow-hidden rounded-xl bg-[#0C1C14]"
+                >
+                  <Image
+                    src={src}
+                    alt=""
+                    fill
+                    sizes="(max-width:1024px) 50vw, 29vw"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Ficha */}
+        <div className={`lg:col-span-5 ${invertida ? "lg:order-1" : ""}`}>
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-numeric text-[15px] font-light tracking-[0.12em] text-[#8FD1AE]">
+              N° {String(numero).padStart(2, "0")}
             </span>
+            {ficha.estado && (
+              <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-medium text-white/85 ring-1 ring-white/15">
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: estadoColor }}
+                />
+                {ficha.estado.label}
+              </span>
+            )}
           </div>
-        </Link>
-        {miniaturas.length === 2 && (
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {miniaturas.map(src => (
-              <div key={src} className="relative aspect-[16/10] overflow-hidden rounded-xl bg-[#0C1C14]">
-                <Image src={src} alt="" fill sizes="(max-width:1024px) 50vw, 29vw" className="object-cover" />
+
+          {barrio && (
+            <p className="mt-6 text-[12px] font-semibold uppercase tracking-[0.16em] text-white/50">
+              {barrio.nombre}
+            </p>
+          )}
+          <h3 className="mt-2 text-[34px] font-light leading-[1.05] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[40px]">
+            {ficha.identificador || titulo}
+          </h3>
+
+          {specs.length > 0 && (
+            <dl className="mt-7 grid grid-cols-2 border-t border-white/[0.09]">
+              {specs.map(([k, v], i) => (
+                <div
+                  key={k}
+                  className={`border-b border-white/[0.09] py-3.5 ${i % 2 === 1 ? "pl-4" : "pr-4"}`}
+                >
+                  <dt className="text-[11px] uppercase tracking-[0.12em] text-white/40">
+                    {k}
+                  </dt>
+                  <dd className="font-numeric mt-1 text-[15px] text-white">
+                    {v}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <div className="mt-7 flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">
+                Valor
+              </p>
+              <p className="font-numeric mt-1 text-[28px] font-light leading-none text-white">
+                {precio}
+              </p>
+            </div>
+            <div className="flex w-full gap-2 sm:w-auto">
+              <HausingWhatsLink
+                mensaje={`Hola! Me interesa la casa Hausing ${ficha.identificador ? `${ficha.identificador} ` : ""}${barrio ? `en ${barrio.nombre}` : ""}. ¿Podemos coordinar una visita?`}
+                propertyId={property.id}
+                titulo={titulo}
+                className="hz-icon-btn shrink-0"
+              >
+                <MessageCircle className="h-[18px] w-[18px]" />
+                <span className="sr-only">Consultar por WhatsApp</span>
+              </HausingWhatsLink>
+              <Link
+                href={`/propiedades/${slug}`}
+                className="hz-btn hz-btn-light flex-1 !py-3 sm:flex-none"
+              >
+                Ver la casa <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {barrio &&
+        fichaB &&
+        (anclaBarrio ? (
+          <BarrioCompleto barrio={barrio} f={fichaB} />
+        ) : (
+          <BarrioCompacto
+            barrio={barrio}
+            f={fichaB}
+            foto={fichaB.fotos[(numero - 1) % Math.max(fichaB.fotos.length, 1)]}
+          />
+        ))}
+    </article>
+  );
+}
+
+function datosConTierra(
+  f: FichaBarrio,
+): (DatoBarrio & { destacado?: boolean })[] {
+  return [
+    ...f.datos,
+    ...(f.valorTierra
+      ? [
+          {
+            valor: `USD ${nf(f.valorTierra)}`,
+            unidad: "/m²",
+            label: "Valor de la tierra",
+            destacado: true,
+          },
+        ]
+      : []),
+  ];
+}
+
+// Dos oraciones de la mirada del broker: el párrafo completo vive en la guía del barrio.
+function resumen(txt: string): string {
+  const oraciones = txt.split(/(?<=[.!?])\s+/);
+  return oraciones.slice(0, 2).join(" ");
+}
+
+// Vista satelital real del barrio (Esri World Imagery, la misma del mapa de
+// /propiedades) para los barrios sin fotos propias. Mosaico de 5×5 tiles
+// centrado en las coordenadas del tasador.
+function Satelite({ lat, lon, z = 16 }: { lat: number; lon: number; z?: number }) {
+  const n = 2 ** z
+  const xt = ((lon + 180) / 360) * n
+  const r = (lat * Math.PI) / 180
+  const yt = ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n
+  const x0 = Math.floor(xt) - 2
+  const y0 = Math.floor(yt) - 2
+  const tiles: { x: number; y: number }[] = []
+  for (let dy = 0; dy < 5; dy++) for (let dx = 0; dx < 5; dx++) tiles.push({ x: x0 + dx, y: y0 + dy })
+  return (
+    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div
+        className="absolute grid grid-cols-5"
+        style={{ width: 1280, left: `calc(50% - ${(xt - x0) * 256}px)`, top: `calc(50% - ${(yt - y0) * 256}px)` }}
+      >
+        {tiles.map(t => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`${t.x}-${t.y}`}
+            src={`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${t.y}/${t.x}`}
+            alt=""
+            width={256}
+            height={256}
+            loading="lazy"
+            className="block h-[256px] w-[256px]"
+          />
+        ))}
+      </div>
+      <span className="absolute bottom-2 right-3 text-[9px] text-white/40">Imagen satelital: Esri</span>
+    </div>
+  )
+}
+
+// Que la última celda ocupe el hueco de la grilla (2 columnas en celular, 3 en desktop).
+function ultimaCelda(i: number, total: number): string {
+  if (i !== total - 1) return ""
+  const movil = total % 2 === 1 ? "col-span-2" : ""
+  const desk = total % 3 === 2 ? "sm:col-span-2" : total % 3 === 1 ? "sm:col-span-3" : "sm:col-span-1"
+  return `${movil} ${desk}`
+}
+
+function BarrioCompleto({
+  barrio,
+  f,
+}: {
+  barrio: HausingBarrio;
+  f: FichaBarrio;
+}) {
+  const [principal, ...extras] = f.fotos;
+  const datos = datosConTierra(f);
+  return (
+    <div className="hz-reveal mt-8 grid overflow-hidden rounded-3xl bg-[#0C1C14] ring-1 ring-white/[0.08] lg:grid-cols-[0.9fr_1.1fr]">
+      {/* Foto del barrio */}
+      <div className="relative min-h-[280px] bg-[#0A1811]">
+        {principal ? (
+          <Image src={principal} alt={`${barrio.nombre}, Funes`} fill sizes="(max-width:1024px) 100vw, 45vw" className="object-cover" />
+        ) : (
+          f.coordenadas && <Satelite lat={f.coordenadas.lat} lon={f.coordenadas.lon} />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07120C] via-[#07120C]/35 to-transparent" />
+        {extras.length > 0 && (
+          <div className="absolute right-4 top-4 hidden flex-col gap-2 sm:flex">
+            {extras.slice(0, 2).map((src) => (
+              <div
+                key={src}
+                className="relative h-16 w-24 overflow-hidden rounded-lg ring-1 ring-white/25"
+              >
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
               </div>
             ))}
           </div>
         )}
+        <div className="absolute inset-x-0 bottom-0 p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8FD1AE] [text-shadow:0_1px_8px_rgba(0,0,0,.6)]">
+            El barrio de esta casa
+          </p>
+          <h4 className="mt-2 text-[28px] font-semibold leading-tight text-white">
+            {barrio.nombre}
+          </h4>
+          <p className="mt-1 text-[13px] text-white/70">{f.tier} · Funes</p>
+        </div>
       </div>
 
-      {/* Ficha */}
-      <div className={`lg:col-span-5 ${invertida ? "lg:order-1" : ""}`}>
-        <div className="flex items-center justify-between gap-4">
-          <span className="font-numeric text-[15px] font-light tracking-[0.12em] text-[#8FD1AE]">
-            N° {String(numero).padStart(2, "0")}
-          </span>
-          {ficha.estado && (
-            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-medium text-white/85 ring-1 ring-white/15">
-              <span className="h-1.5 w-1.5 rounded-full" style={{ background: estadoColor }} />
-              {ficha.estado.label}
-            </span>
-          )}
+      {/* Datos duros */}
+      <div className="p-6 sm:p-8">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-white/50">
+            Ficha del barrio
+          </p>
+          <p className="text-[11px] text-white/35">
+            Datos relevados por SI INMOBILIARIA
+          </p>
         </div>
 
-        {barrio && (
-          <p className="mt-6 text-[12px] font-semibold uppercase tracking-[0.16em] text-white/50">{barrio.nombre}</p>
-        )}
-        <h3 className="mt-2 text-[34px] font-light leading-[1.05] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[40px]">
-          {ficha.identificador || titulo}
-        </h3>
-
-        {specs.length > 0 && (
-          <dl className="mt-7 grid grid-cols-2 border-t border-white/[0.09]">
-            {specs.map(([k, v], i) => (
-              <div
-                key={k}
-                className={`border-b border-white/[0.09] py-3.5 ${i % 2 === 1 ? "pl-4" : "pr-4"}`}
-              >
-                <dt className="text-[11px] uppercase tracking-[0.12em] text-white/40">{k}</dt>
-                <dd className="font-numeric mt-1 text-[15px] text-white">{v}</dd>
+        {datos.length > 0 && (
+          <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-white/[0.08] sm:grid-cols-3">
+            {datos.map((d, i) => (
+              <div key={d.label} className={`bg-[#0C1C14] p-4 ${ultimaCelda(i, datos.length)}`}>
+                <dd
+                  className={`font-numeric text-[22px] font-light leading-none sm:text-[24px] ${d.destacado ? "text-[#8FD1AE]" : "text-white"}`}
+                >
+                  {d.valor}
+                  {d.unidad && (
+                    <span className="ml-1 text-[13px] text-white/45">
+                      {d.unidad}
+                    </span>
+                  )}
+                </dd>
+                <dt className="mt-2 text-[10px] uppercase tracking-[0.12em] text-white/40">
+                  {d.label}
+                </dt>
               </div>
             ))}
           </dl>
         )}
 
-        {barrio && (
-          <div className="mt-6 rounded-xl bg-white/[0.035] p-4 ring-1 ring-white/[0.07]">
-            <p className="text-[13px] leading-relaxed text-white/65">
-              <span className="font-semibold text-white">El barrio.</span> {barrio.frase}
+        {f.amenities.length > 0 && (
+          <div className="mt-6">
+            <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">
+              Amenities
             </p>
-            <Link
-              href={barrio.href}
-              className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-[#8FD1AE] transition-colors hover:text-white"
-            >
-              Conocé {barrio.nombre} <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
+            <ul className="mt-2.5 flex flex-wrap gap-1.5">
+              {f.amenities.map((a) => (
+                <li
+                  key={a}
+                  className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[12px] text-white/80 ring-1 ring-white/[0.08]"
+                >
+                  {a}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
-        <div className="mt-7 flex flex-wrap items-end justify-between gap-5">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">Valor</p>
-            <p className="font-numeric mt-1 text-[28px] font-light leading-none text-white">{precio}</p>
+        {f.infraestructura.length > 0 && (
+          <div className="mt-6">
+            <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">
+              Infraestructura y seguridad
+            </p>
+            <ul className="mt-2.5 grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+              {f.infraestructura.map((x) => (
+                <li
+                  key={x}
+                  className="flex items-start gap-2 text-[13px] leading-snug text-white/75"
+                >
+                  <Check
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#8FD1AE]"
+                    strokeWidth={2.5}
+                  />
+                  {x}
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="flex w-full gap-2 sm:w-auto">
-            <HausingWhatsLink
-              mensaje={`Hola! Me interesa la casa Hausing ${ficha.identificador ? `${ficha.identificador} ` : ""}${barrio ? `en ${barrio.nombre}` : ""}. ¿Podemos coordinar una visita?`}
-              propertyId={property.id}
-              titulo={titulo}
-              className="hz-icon-btn shrink-0"
-            >
-              <MessageCircle className="h-[18px] w-[18px]" />
-              <span className="sr-only">Consultar por WhatsApp</span>
-            </HausingWhatsLink>
-            <Link href={`/propiedades/${slug}`} className="hz-btn hz-btn-light flex-1 !py-3 sm:flex-none">
-              Ver la casa <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
+        )}
+
+        {f.mirada && (
+          <blockquote className="mt-6 border-l-2 border-[#00754A] pl-4 text-[14px] leading-relaxed text-white/65">
+            {resumen(f.mirada)}
+            <footer className="mt-1.5 text-[11px] uppercase tracking-[0.12em] text-white/35">
+              La mirada del broker
+            </footer>
+          </blockquote>
+        )}
+
+        <Link
+          href={barrio.href}
+          className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-white/80 transition-colors hover:text-white"
+        >
+          Ver la guía completa de {barrio.nombre}{" "}
+          <ArrowUpRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
-    </article>
-  )
+    </div>
+  );
+}
+
+// Segunda/tercera casa del mismo barrio: foto distinta + datos clave, sin repetir el bloque entero.
+function BarrioCompacto({
+  barrio,
+  f,
+  foto,
+}: {
+  barrio: HausingBarrio;
+  f: FichaBarrio;
+  foto?: string;
+}) {
+  const datos = datosConTierra(f).slice(0, 4);
+  return (
+    <div className="hz-reveal mt-8 flex flex-col overflow-hidden rounded-2xl bg-[#0C1C14] ring-1 ring-white/[0.08] sm:flex-row">
+      {foto && (
+        <div className="relative h-40 shrink-0 sm:h-auto sm:w-56">
+          <Image
+            src={foto}
+            alt={`${barrio.nombre}, Funes`}
+            fill
+            sizes="(max-width:640px) 100vw, 224px"
+            className="object-cover"
+          />
+        </div>
+      )}
+      <div className="flex flex-1 flex-col justify-center gap-4 p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-[15px] font-semibold text-white">
+            <span className="mr-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8FD1AE]">
+              El barrio
+            </span>
+            {barrio.nombre}
+          </p>
+          <a
+            href={`#barrio-${barrio.key}`}
+            className="text-[12px] font-semibold text-white/55 transition-colors hover:text-white"
+          >
+            Ficha completa ↑
+          </a>
+        </div>
+        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {datos.map((d) => (
+            <div key={d.label}>
+              <dd
+                className={`font-numeric text-[18px] font-light leading-none ${d.destacado ? "text-[#8FD1AE]" : "text-white"}`}
+              >
+                {d.valor}
+                {d.unidad && (
+                  <span className="ml-1 text-[12px] text-white/45">
+                    {d.unidad}
+                  </span>
+                )}
+              </dd>
+              <dt className="mt-1.5 text-[10px] uppercase tracking-[0.12em] text-white/40">
+                {d.label}
+              </dt>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
 }
 
 const CSS = `
@@ -503,4 +879,4 @@ const CSS = `
     .hz-reveal { animation: hzRise linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
   }
 }
-`
+`;
