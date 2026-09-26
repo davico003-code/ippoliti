@@ -92,18 +92,50 @@ function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoPro
   return { standalone, devGroups }
 }
 
-function createCraneIcon() {
+// Chapa del emprendimiento: cuadradito blanco con edificio + nombre + "desde".
+// Más ancha y de dos renglones que las burbujas de precio, así no se confunden.
+function escapeHtml(s: string) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
+}
+
+function createDevPill(name: string, minPrice: string) {
+  const label = name.length > 24 ? name.slice(0, 23).trimEnd() + '…' : name
+  const sub = minPrice === 'Consultar' ? 'Consultar precio' : `desde ${minPrice}`
+  const html = `
+    <div style="position:relative;display:inline-block;cursor:pointer;">
+      <div style="
+        display:inline-flex;align-items:center;gap:7px;
+        background:#1A5C38;color:#fff;
+        padding:4px 11px 4px 4px;border-radius:10px;
+        border:2px solid rgba(255,255,255,0.95);
+        box-shadow:0 2px 8px rgba(0,0,0,0.3);
+        white-space:nowrap;
+      ">
+        <span style="
+          width:26px;height:26px;border-radius:7px;background:#fff;
+          display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+        "><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
+        <span style="display:flex;flex-direction:column;line-height:1.15;">
+          <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:12px;">${escapeHtml(label)}</span>
+          <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:11px;opacity:0.88;">${escapeHtml(sub)}</span>
+        </span>
+      </div>
+      <div style="
+        width:0;height:0;margin:0 auto;
+        border-left:6px solid transparent;
+        border-right:6px solid transparent;
+        border-top:6px solid #1A5C38;
+      "></div>
+    </div>`
+
+  const w = Math.max(Math.max(label.length * 7.2, sub.length * 6.4) + 54, 90)
+
   return L.divIcon({
     className: '',
-    html: `<div style="
-      background:#1A5C38;color:white;
-      width:32px;height:32px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white;
-    "><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-6 7 6v12"/><path d="M9 20v-6h6v6"/><path d="M12 2v6"/><path d="M8 8h8"/></svg></div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -18],
+    html,
+    iconSize: [w, 44],
+    iconAnchor: [w / 2, 44],
+    popupAnchor: [0, -46],
   })
 }
 
@@ -651,8 +683,8 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
   [properties])
 
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
+  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, createDevPill(g.devName, g.minPrice)])), [devGroups])
 
-  const craneIcon = useMemo(() => createCraneIcon(), [])
 
   return (
     <MapContainer
@@ -711,8 +743,8 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           <span style={{ color: '#666' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 20V8l7-6 7 6v12"/></svg>
+          <div style={{ width: 22, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', paddingLeft: 2 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: '#fff' }} />
           </div>
           <span style={{ color: '#666' }}>Emprendimiento</span>
         </div>
@@ -827,7 +859,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
         <Marker
           key={`dev-${g.devId}`}
           position={[g.lat, g.lng]}
-          icon={craneIcon}
+          icon={devIcons.get(g.devId)!}
           zIndexOffset={500}
         >
           <Popup maxWidth={260} className="ippoliti-popup">
