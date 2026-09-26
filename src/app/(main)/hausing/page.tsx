@@ -2,12 +2,12 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, ArrowUpRight, MessageCircle, Phone } from "lucide-react"
-import { getPropertyById, formatPrice, generatePropertySlug } from "@/lib/tokko"
+import { getProperties, getPropertyById, formatPrice, generatePropertySlug } from "@/lib/tokko"
 import type { TokkoProperty } from "@/lib/tokko"
 import {
   HAUSING_PROPERTY_IDS,
-  HAUSING_BARRIOS,
   ESTANDAR_HAUSING,
+  armarCombinador,
   fichaDe,
   ordenBarrio,
   precioVentaUsd,
@@ -15,6 +15,7 @@ import {
   type HausingBarrio,
 } from "@/lib/hausing"
 import HausingWhatsLink from "@/components/hausing/HausingWhatsLink"
+import Combinador from "@/components/hausing/Combinador"
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd"
 
 // "Colección Hausing" — oscuro premium con la paleta SI (verde profundo casi
@@ -49,9 +50,11 @@ interface Residencia {
 }
 
 export default async function HausingPage() {
-  const properties = (
-    await Promise.all(HAUSING_PROPERTY_IDS.map(id => getPropertyById(id).catch(() => null)))
-  ).filter(Boolean) as TokkoProperty[]
+  const [fetched, feed] = await Promise.all([
+    Promise.all(HAUSING_PROPERTY_IDS.map(id => getPropertyById(id).catch(() => null))),
+    getProperties({ limit: 1000 }).catch(() => null),
+  ])
+  const properties = fetched.filter(Boolean) as TokkoProperty[]
 
   // Orden: jerarquía del barrio y, dentro del barrio, precio de mayor a menor.
   const residencias: Residencia[] = properties
@@ -68,17 +71,16 @@ export default async function HausingPage() {
       titulo: r.property.publication_title || r.property.address,
     }))
 
-  const barriosConCasas = HAUSING_BARRIOS.map(b => ({
-    barrio: b,
-    casas: residencias.filter(r => r.ficha.barrio?.key === b.key),
-  })).filter(x => x.casas.length > 0)
-
   const construidas = residencias.map(r => r.ficha.construida).filter((n): n is number => !!n)
   const promedio = construidas.length
     ? Math.round(construidas.reduce((a, b) => a + b, 0) / construidas.length / 10) * 10
     : null
   const precios = residencias.map(r => precioVentaUsd(r.property)).filter((n): n is number => !!n)
   const desde = precios.length ? Math.min(...precios) : null
+
+  const combinador = armarCombinador(feed?.objects ?? [], residencias)
+  const lotesTotales = combinador.barrios.reduce((a, b) => a + b.lotes.length, 0)
+  const barriosConLotes = combinador.barrios.filter(b => b.lotes.length).length
 
   const n = residencias.length
   const palabra = PALABRAS[n] ?? String(n)
@@ -157,15 +159,12 @@ export default async function HausingPage() {
               className="hz-rise mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row"
               style={{ "--d": "320ms" } as React.CSSProperties}
             >
-              <a href="#coleccion" className="hz-btn hz-btn-light">
-                Ver la colección <ArrowRight className="h-4 w-4" />
+              <a href="#combinar" className="hz-btn hz-btn-light">
+                Elegí tu barrio <ArrowRight className="h-4 w-4" />
               </a>
-              <HausingWhatsLink
-                mensaje="Hola! Quiero coordinar una visita privada a las casas Hausing."
-                className="hz-btn hz-btn-ghost"
-              >
-                Coordinar visita privada
-              </HausingWhatsLink>
+              <a href="#coleccion" className="hz-btn hz-btn-ghost">
+                Ver la colección
+              </a>
             </div>
           </div>
         </div>
@@ -177,7 +176,9 @@ export default async function HausingPage() {
           <dl className="mx-auto grid max-w-[1240px] grid-cols-2 px-4 sm:px-6 lg:grid-cols-4">
             {[
               [String(n), n === 1 ? "residencia disponible" : "residencias disponibles"],
-              [String(barriosConCasas.length), "barrios de primer nivel"],
+              lotesTotales > 0
+                ? [String(lotesTotales), "lotes para combinar"]
+                : [String(combinador.barrios.length), "barrios para elegir"],
               ...(promedio ? [[`${nf(promedio)} m²`, "construidos en promedio"]] : []),
               ...(desde ? [[`USD ${nf(Math.round(desde / 1000))}K`, "valor desde"]] : []),
             ].map(([valor, label], i) => (
@@ -193,62 +194,26 @@ export default async function HausingPage() {
         </section>
       )}
 
-      {/* ───────────── LOS BARRIOS ───────────── */}
-      {barriosConCasas.length > 0 && (
-        <section className="mx-auto max-w-[1240px] px-4 py-20 sm:px-6 lg:py-28">
-          <div className="hz-reveal max-w-[640px]">
-            <p className="hz-eyebrow">
-              <span className="hz-eyebrow-line" /> Dónde construye Hausing
-            </p>
-            <h2 className="mt-5 text-[32px] font-light leading-[1.1] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[44px]">
-              No se compra solo una casa. <span className="inline-block font-semibold">Se entra a un barrio.</span>
-            </h2>
-            <p className="mt-5 text-[16px] leading-relaxed text-white/60">
-              Cada casa de la colección está en uno de los barrios más buscados del corredor de Funes. Esto es lo que
-              los hace únicos.
+      {/* ───────────── COMBINADOR: BARRIO × CASA ───────────── */}
+      {combinador.barrios.length > 0 && combinador.casas.length > 0 && (
+        <section id="combinar" className="mx-auto max-w-[1240px] scroll-mt-20 px-4 py-20 sm:px-6 lg:py-28">
+          <div className="hz-reveal grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+            <div className="max-w-[680px]">
+              <p className="hz-eyebrow">
+                <span className="hz-eyebrow-line" /> Tu combinación
+              </p>
+              <h2 className="mt-5 text-[32px] font-light leading-[1.1] tracking-[-0.015em] text-white [text-wrap:balance] sm:text-[48px]">
+                Elegí el barrio. <span className="font-semibold">Hausing pone la casa.</span>
+              </h2>
+            </div>
+            <p className="text-[16px] leading-relaxed text-white/60">
+              Cruzamos los {combinador.barrios.length} barrios cerrados de Funes que analizamos con los
+              {lotesTotales > 0 ? ` ${lotesTotales} lotes que tenemos hoy en venta en ${barriosConLotes} de ellos` : ' lotes que tenemos en venta'} y
+              con las casas de la colección. Elegí dónde querés vivir y mirá qué casa entra en tu lote.
             </p>
           </div>
-
-          {/* Celular: carrusel horizontal (4 tarjetas apiladas alejaban demasiado las casas) */}
-          <div className="hz-reveal -mx-4 mt-12 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
-            {barriosConCasas.map(({ barrio, casas }) => {
-              const foto = barrio.foto ?? casas[0].ficha.fotos[0] ?? null
-              return (
-                <div key={barrio.key} className="group relative flex w-[80%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl bg-[#0C1C14] ring-1 ring-white/[0.08] sm:w-auto">
-                  <a href={`#barrio-${barrio.key}`} className="relative block aspect-[4/5] overflow-hidden" aria-label={`Ver las casas en ${barrio.nombre}`}>
-                    {foto && (
-                      <Image
-                        src={foto}
-                        alt={barrio.nombre}
-                        fill
-                        sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw"
-                        className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#07120C] via-[#07120C]/35 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-5">
-                      <p className="font-numeric text-[12px] tracking-[0.12em] text-[#8FD1AE]">
-                        {casas.length} {casas.length === 1 ? "RESIDENCIA" : "RESIDENCIAS"}
-                      </p>
-                      <h3 className="mt-2 text-[22px] font-semibold leading-tight text-white">{barrio.nombre}</h3>
-                      <ul className="mt-3 flex flex-wrap gap-1.5">
-                        {barrio.credenciales.map(c => (
-                          <li key={c} className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/85 backdrop-blur-sm">
-                            {c}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </a>
-                  <div className="flex flex-1 flex-col justify-between gap-4 p-5 pt-4">
-                    <p className="text-[14px] leading-relaxed text-white/60">{barrio.frase}</p>
-                    <Link href={barrio.href} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white/80 transition-colors hover:text-white">
-                      Conocé el barrio <ArrowUpRight className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              )
-            })}
+          <div className="hz-reveal mt-10">
+            <Combinador barrios={combinador.barrios} casas={combinador.casas} />
           </div>
         </section>
       )}
@@ -529,6 +494,8 @@ const CSS = `
 .hz-icon-btn { display:inline-flex; align-items:center; justify-content:center; width:46px; height:46px;
   border-radius:999px; color:#fff; border:1px solid rgba(255,255,255,.22); transition:border-color .25s ease, background-color .25s ease; }
 .hz-icon-btn:hover { border-color:rgba(255,255,255,.5); background:rgba(255,255,255,.08); }
+@keyframes hzFade { from { opacity:0; } to { opacity:1; } }
+.hz-fade { animation: hzFade .6s ease both; }
 @keyframes hzRise { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: no-preference) {
   .hz-rise { animation: hzRise .9s cubic-bezier(.16,1,.3,1) both; animation-delay: var(--d, 0ms); }

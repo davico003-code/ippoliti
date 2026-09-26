@@ -8,7 +8,9 @@
 // estado de obra) se lee de la ficha publicada — nada de números a mano.
 
 import type { TokkoProperty } from './tokko'
-import { getAllPhotos, getLotSurface, getRoofedArea, getTotalSurface } from './tokko'
+import { getAllPhotos, getLotSurface, getRoofedArea, getTotalSurface, generatePropertySlug, getMainPhoto, formatPrice } from './tokko'
+import { BARRIOS, type Barrio } from './barrios'
+import { propertyMatchesBarrio } from './tokko/barrio-matcher'
 
 export const HAUSING_PROPERTY_IDS = [7872050, 7875941, 7868679, 7865564, 7867761, 7879685]
 
@@ -187,4 +189,141 @@ export function precioVentaUsd(p: TokkoProperty): number | null {
 export function ordenBarrio(b: HausingBarrio | null): number {
   const i = b ? HAUSING_BARRIOS.findIndex(x => x.key === b.key) : -1
   return i === -1 ? HAUSING_BARRIOS.length : i
+}
+
+// ─── Combinador "Elegí el barrio. Hausing pone la casa." ─────────────────────
+// Cruza los 15 barrios de lib/barrios.ts con los lotes que hay HOY en venta en
+// el feed de HILO y con las casas de la colección (qué casa entra en qué lote,
+// según la superficie del lote sobre el que se construyó).
+
+
+export interface LoteCombinador {
+  id: number
+  titulo: string
+  superficie: number | null
+  precio: number | null
+  slug: string
+  foto: string | null
+}
+
+export interface BarrioCombinador {
+  slug: string
+  nombre: string
+  tier: string
+  foto: string
+  href: string
+  datos: string[]
+  frase: string
+  loteDesde: number | null
+  loteHasta: number | null
+  lotes: LoteCombinador[]
+  // Casa de la colección que YA está en este barrio (si hay)
+  casaAqui: number | null
+}
+
+export interface CasaCombinador {
+  id: number
+  numero: number
+  identificador: string
+  barrio: string
+  foto: string | null
+  lote: number | null
+  construida: number | null
+  dormitorios: number | null
+  precio: string
+}
+
+// Foto de portada por barrio (01.webp salvo que otra sea mejor).
+const FOTO_BARRIO: Record<string, string> = { kentucky: '/barrios/kentucky/05.webp' }
+
+// Puente entre los barrios de la colección y los slugs de lib/barrios.
+const SLUG_DE_KEY: Record<HausingBarrioKey, string | null> = {
+  kentucky: 'kentucky',
+  cadaques: 'funes-hills-cadaques',
+  vida: 'vida-barrio-cerrado',
+  'don-mateo': null,
+}
+
+function datosBarrio(b: Barrio): string[] {
+  const d = b.datosDuros
+  const out: string[] = []
+  if (d.hectareasTotales) out.push(`${d.hectareasTotales.toLocaleString('es-AR')} ha`)
+  if (d.medidaLoteDesde) {
+    out.push(
+      d.medidaLoteHasta && d.medidaLoteHasta !== d.medidaLoteDesde
+        ? `Lotes ${d.medidaLoteDesde.toLocaleString('es-AR')}–${d.medidaLoteHasta.toLocaleString('es-AR')} m²`
+        : `Lotes ${d.medidaLoteDesde.toLocaleString('es-AR')} m²`,
+    )
+  }
+  for (const a of b.amenities) {
+    if (out.length >= 4) break
+    if (/seguridad|vigilancia/i.test(a.label)) continue
+    // "Deportes náuticos sin motor (kayak, …)" → "Deportes náuticos sin motor"
+    const label = a.label.replace(/\s*\(.*\)\s*/, '').trim()
+    if (label.length > 30) continue
+    out.push(label)
+  }
+  return out
+}
+
+function esLote(p: TokkoProperty): boolean {
+  const t = (p.type?.name ?? '').toLowerCase()
+  return t === 'land' || t === 'terreno'
+}
+
+export function armarCombinador(
+  feed: TokkoProperty[],
+  residencias: { property: TokkoProperty; ficha: FichaHausing; numero: number }[],
+): { barrios: BarrioCombinador[]; casas: CasaCombinador[] } {
+  const casas: CasaCombinador[] = residencias.map(r => ({
+    id: r.property.id,
+    numero: r.numero,
+    identificador: r.ficha.identificador,
+    barrio: r.ficha.barrio?.nombre ?? '',
+    foto: r.ficha.fotos[0] ?? null,
+    lote: r.ficha.lote,
+    construida: r.ficha.construida ? Math.round(r.ficha.construida) : null,
+    dormitorios: r.ficha.dormitorios,
+    precio: formatPrice(r.property),
+  }))
+
+  const barrios = BARRIOS.map(b => {
+    const lotes: LoteCombinador[] = feed
+      .filter(p => esLote(p) && propertyMatchesBarrio(p, b))
+      .filter(p => (p.operations || []).some(o => o.operation_type === 'Sale'))
+      .map(p => ({
+        id: p.id,
+        titulo: p.publication_title || p.address,
+        superficie: getLotSurface(p),
+        precio: precioVentaUsd(p),
+        slug: generatePropertySlug(p),
+        foto: getMainPhoto(p),
+      }))
+      .sort((x, y) => (x.precio ?? Infinity) - (y.precio ?? Infinity))
+
+    const key = (Object.keys(SLUG_DE_KEY) as HausingBarrioKey[]).find(k => SLUG_DE_KEY[k] === b.slug)
+    const casaAqui = key ? residencias.find(r => r.ficha.barrio?.key === key)?.property.id ?? null : null
+
+    return {
+      slug: b.slug,
+      nombre: b.nombre,
+      tier: b.tier,
+      foto: FOTO_BARRIO[b.slug] ?? `/barrios/${b.slug}/01.webp`,
+      href: `/barrios-privados/${b.slug}`,
+      datos: datosBarrio(b),
+      frase: b.miradaBroker.titular,
+      loteDesde: b.datosDuros.medidaLoteDesde ?? null,
+      loteHasta: b.datosDuros.medidaLoteHasta ?? null,
+      lotes,
+      casaAqui,
+    }
+  })
+
+  // Primero los barrios donde hoy se puede combinar (hay lotes), después los que
+  // ya tienen una casa Hausing, después el resto. Dentro, Premium primero.
+  const peso = (x: BarrioCombinador) => (x.lotes.length ? 0 : x.casaAqui ? 1 : 2)
+  const tierPeso = (t: string) => (t === 'Premium' ? 0 : t.startsWith('Consolidado') ? 1 : 2)
+  barrios.sort((a, b) => peso(a) - peso(b) || tierPeso(a.tier) - tierPeso(b.tier) || b.lotes.length - a.lotes.length)
+
+  return { barrios, casas }
 }
