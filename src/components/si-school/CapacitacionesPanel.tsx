@@ -1,22 +1,22 @@
 'use client'
 
 // Columna derecha de SI School: lista numerada de "Capacitaciones". Cada placa
-// abre su HTML embebido en un modal con <iframe> aislado (lo sirve
+// abre su HTML embebido a pantalla completa en un <iframe> aislado (lo sirve
 // /api/capacitaciones/[id]). El contenido vive en ./capacitaciones.
 
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import styles from './si-school.module.css'
-import { CAPACITACIONES, numeroCapacitacion } from './capacitaciones'
+import { CAPACITACIONES } from './capacitaciones'
+import VisorCapacitacion, { paginaCapacitacion } from './VisorCapacitacion'
 
 const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
 
 export default function CapacitacionesPanel() {
   const [openId, setOpenId] = useState<string | null>(null)
   const activa = CAPACITACIONES.find((c) => c.id === openId) || null
+  const cerrar = useCallback(() => setOpenId(null), [])
 
 
-  const apiSrc = (id: string) => `/api/capacitaciones/${id}`
-  const pageHref = (id: string) => `/recursos/si-school/capacitacion/${id}`
 
   return (
     <aside className={styles.mentor} aria-label="Capacitaciones">
@@ -57,7 +57,7 @@ export default function CapacitacionesPanel() {
                 {c.bajada && <span className={styles.capsBajada}>{c.bajada}</span>}
               </span>
               <a
-                href={pageHref(c.id)}
+                href={paginaCapacitacion(c.id)}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
@@ -72,69 +72,7 @@ export default function CapacitacionesPanel() {
         </div>
       )}
 
-      {activa && (
-        <div
-          onClick={(e) => { if (e.target === e.currentTarget) setOpenId(null) }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'rgba(0,0,0,0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 16,
-              width: '100%',
-              maxWidth: 820,
-              height: '88vh',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              boxShadow: '0 20px 60px rgba(0,0,0,.3)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid #ececec' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                <span style={{ flexShrink: 0, fontFamily: POPPINS, fontSize: 11.5, fontWeight: 700, color: '#fff', background: '#1A5C38', borderRadius: 6, padding: '3px 6px', fontVariantNumeric: 'tabular-nums' }}>
-                  {numeroCapacitacion(activa.id)}
-                </span>
-                <span style={{ fontFamily: POPPINS, fontSize: 14, fontWeight: 600, color: '#27272A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {activa.titulo}
-                </span>
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-                <a
-                  href={pageHref(activa.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontFamily: POPPINS, fontSize: 12.5, fontWeight: 600, color: '#1A5C38', textDecoration: 'none', whiteSpace: 'nowrap' }}
-                >
-                  Abrir en página ↗
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setOpenId(null)}
-                  aria-label="Cerrar"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1, color: '#71717A', padding: 4 }}
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            <iframe
-              src={apiSrc(activa.id)}
-              title={activa.titulo}
-              style={{ flex: 1, width: '100%', border: 'none', display: 'block' }}
-            />
-          </div>
-        </div>
-      )}
+      {activa && <VisorCapacitacion cap={activa} onClose={cerrar} />}
     </aside>
   )
 }

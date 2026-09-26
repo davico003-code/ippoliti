@@ -32,9 +32,9 @@ const STEPS: { eyebrow: string; titulo: string; cuerpo: string }[] = [
   },
   {
     eyebrow: 'Paso 5 de 5',
-    titulo: 'Mentor David · a la derecha',
+    titulo: 'Capacitaciones · a la derecha',
     cuerpo:
-      'A la derecha vas a ver al Mentor David. Por ahora está en modo demo — su versión interactiva llega en la Fase 2. Tus respuestas a los casos quedan guardadas y las va a evaluar cuando se active.',
+      'A la derecha tenés las capacitaciones del equipo, numeradas. Tocá cualquiera y se abre a pantalla completa. En el celular están en el botón verde "Capacitaciones", abajo.',
   },
 ]
 

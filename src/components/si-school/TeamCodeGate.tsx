@@ -28,38 +28,72 @@ async function validarCodigo(code: string): Promise<Validacion> {
   }
 }
 
+// Sesión de agente (cookie JWT del panel). Si la hay, SI School deja pasar
+// sin clave de equipo: la API de capacitaciones ya acepta esa cookie.
+async function haySesionAgente(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/agentes/me', { cache: 'no-store' })
+    if (!res.ok) return false
+    const data = (await res.json()) as { agent?: unknown }
+    return !!data.agent
+  } catch {
+    return false
+  }
+}
+
 interface Props {
+  /** teamCode llega vacío si se entró por sesión de agente (permitirAgente). */
   children: (ctx: { teamCode: string; onLogout: () => void }) => ReactNode
+  /** Deja pasar a un agente logueado sin pedir la clave de equipo. */
+  permitirAgente?: boolean
   /** Copy de la pantalla de acceso (default: SI School). */
   eyebrow?: string
   title?: string
   subtitle?: string
 }
 
-export default function TeamCodeGate({ children, eyebrow, title, subtitle }: Props) {
+export default function TeamCodeGate({ children, permitirAgente = false, eyebrow, title, subtitle }: Props) {
   const [teamCode, setTeamCode] = useState<string | null>(null)
   const [checking, setChecking] = useState(true)
   const [vencida, setVencida] = useState(false)
+  const [agente, setAgente] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const guardado = window.localStorage.getItem(STORAGE_KEY)
+    let vivo = true
+    if (!guardado) {
+      if (!permitirAgente) {
+        setChecking(false)
+        return
+      }
+      void haySesionAgente().then((ok) => {
+        if (!vivo) return
+        setAgente(ok)
+        setChecking(false)
+      })
+      return () => {
+        vivo = false
+      }
+    }
     setTeamCode(guardado)
     setChecking(false)
-    if (!guardado) return
     // No frena la carga: se entra con la guardada y, si el server la rechaza,
-    // se vuelve a pedir. Un error de red no la borra.
-    let vivo = true
-    void validarCodigo(guardado).then((r) => {
+    // se vuelve a pedir (salvo que haya sesión de agente). Un error de red no
+    // la borra.
+    void validarCodigo(guardado).then(async (r) => {
       if (!vivo || r !== 'invalido') return
       window.localStorage.removeItem(STORAGE_KEY)
+      const ok = permitirAgente && (await haySesionAgente())
+      if (!vivo) return
+      setAgente(ok)
       setTeamCode(null)
-      setVencida(true)
+      setVencida(!ok)
     })
     return () => {
       vivo = false
     }
-  }, [])
+  }, [permitirAgente])
 
   const onAuth = useCallback((code: string) => {
     window.localStorage.setItem(STORAGE_KEY, code)
@@ -79,7 +113,7 @@ export default function TeamCodeGate({ children, eyebrow, title, subtitle }: Pro
     )
   }
 
-  if (!teamCode) {
+  if (!teamCode && !agente) {
     return (
       <AccessGate
         onAuth={onAuth}
@@ -90,7 +124,7 @@ export default function TeamCodeGate({ children, eyebrow, title, subtitle }: Pro
     )
   }
 
-  return <>{children({ teamCode, onLogout })}</>
+  return <>{children({ teamCode: teamCode ?? '', onLogout })}</>
 }
 
 function AccessGate({

@@ -7,7 +7,9 @@ const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
 function Vista({ id, titulo }: { id: string; titulo: string }) {
   const src = `/api/capacitaciones/${id}`
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+    // Fijo a pantalla completa: con height 100vh debajo del Navbar sticky la
+    // presentación quedaba cortada abajo y con los flotantes encima.
+    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', flexDirection: 'column', background: '#fff' }}>
       <div style={{ flexShrink: 0, padding: '10px 16px', borderBottom: '1px solid #e3ebe5', display: 'flex', alignItems: 'center', gap: 14 }}>
         <Link
           href="/recursos/si-school"
