@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-import TeamCodeGate from '@/components/si-school/TeamCodeGate'
 import SiSchoolShell from '@/components/si-school/SiSchoolShell'
 import { getDiasActivo, getLevel, getProgress, resetProgress } from '@/lib/si-school/progress'
 import type { AgentProgress, CapacidadMeta, Level } from '@/lib/si-school/types'
@@ -25,13 +24,11 @@ interface Props {
 
 export default function ProgresoView({ capacidades }: Props) {
   return (
-    <TeamCodeGate permitirAgente>
-      {() => (
+    <>
         <SiSchoolShell>
           <ProgresoBody capacidades={capacidades} />
         </SiSchoolShell>
-      )}
-    </TeamCodeGate>
+      </>
   )
 }
 

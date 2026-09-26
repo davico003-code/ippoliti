@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-import TeamCodeGate from '@/components/si-school/TeamCodeGate'
 import SiSchoolShell from '@/components/si-school/SiSchoolShell'
-import WelcomeTour from '@/components/si-school/WelcomeTour'
+import CapacitacionesDestacadas from '@/components/si-school/CapacitacionesDestacadas'
+import LevelCard from '@/components/si-school/LevelCard'
 import MentorWelcomeCard from '@/components/si-school/MentorWelcomeCard'
 import type { CapacidadMeta } from '@/lib/si-school/types'
 import { getProgress, initProgress } from '@/lib/si-school/progress'
@@ -37,14 +37,20 @@ interface Props {
 
 export default function SiSchoolOverviewClient({ capacidades }: Props) {
   return (
-    <TeamCodeGate permitirAgente>
-      {() => (
-        <SiSchoolShell>
-          <Overview capacidades={capacidades} />
-          <WelcomeTour />
+    <>
+        <SiSchoolShell soloCentro>
+          {/* Arriba y destacadas: las Capacitaciones, que todo el equipo tiene que ver. */}
+          <CapacitacionesDestacadas />
+          {/* Abajo: el programa SI School, el ABC para los que arrancan (sin cambios). */}
+          <section className={shell.schoolAbajo} aria-label="SI School">
+            <div className={shell.schoolAbajoEyebrow}>SI School · El ABC inmobiliario para los que arrancan</div>
+            <div style={{ paddingBottom: 12 }}>
+              <LevelCard />
+            </div>
+            <Overview capacidades={capacidades} />
+          </section>
         </SiSchoolShell>
-      )}
-    </TeamCodeGate>
+      </>
   )
 }
 
@@ -78,7 +84,7 @@ function Overview({ capacidades }: { capacidades: CapacidadMeta[] }) {
     <>
       <header className={styles.overviewHero}>
         <div className={styles.eyebrow}>SI School · Sistema operativo del agente</div>
-        <h1 className={styles.h1}>Vas a aprender a operar como agente SI</h1>
+        <h2 className={styles.h1}>Vas a aprender a operar como agente SI</h2>
         <p className={styles.lead}>
           Seis capacidades. Una por mes, más o menos. Cápsulas cortas para leer entre llamado y
           llamado, casos reales del mercado de Funes y Roldán, y el Mentor David al lado tuyo

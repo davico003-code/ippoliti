@@ -1,6 +1,6 @@
 // Sirve y guarda las presentaciones de Capacitaciones (SI School).
 //
-// GET  → devuelve el HTML: la versión editada (Vercel Blob) si existe, si no
+// GET  → (acceso libre, SI School no pide clave) devuelve el HTML: la versión editada (Vercel Blob) si existe, si no
 //        el archivo estático de public/. Para admins inyecta un editor inline
 //        (editar texto / borrar bloques / guardar).
 // POST → guarda el HTML editado en Blob (solo admin). El cliente manda el
@@ -26,16 +26,6 @@ async function isAdmin(): Promise<boolean> {
   if (!token) return false
   const agent = await verifyAgentToken(token)
   return agent?.role === 'admin'
-}
-
-// Acceso de VISTA: agente logueado (cookie JWT) abre directo; un 3ro con el
-// link tiene que pasar la clave de equipo por ?tc= (igual al SI_TEAM_CODE).
-async function canView(req: Request): Promise<boolean> {
-  const token = cookies().get('si_agent_token')?.value
-  if (token && (await verifyAgentToken(token))) return true
-  const tc = new URL(req.url).searchParams.get('tc')
-  const expected = process.env.SI_TEAM_CODE
-  return !!expected && !!tc && tc === expected
 }
 
 async function readEdited(id: string): Promise<string | null> {
@@ -105,26 +95,9 @@ function editorHtml(id: string): string {
 </script>`
 }
 
-const SIN_ACCESO_HTML = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sin acceso</title></head>
-<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#FAFAF9;font-family:system-ui,sans-serif;padding:24px;box-sizing:border-box">
-<div style="max-width:360px;text-align:center;color:#1A1A1A">
-<p style="font-size:18px;font-weight:700;margin:0 0 8px">No pudimos abrir la capacitación</p>
-<p style="font-size:14px;color:#5A5A55;line-height:1.5;margin:0 0 20px">La clave del equipo cambió o venció. Volvé a SI School y entrá con la clave nueva.</p>
-<a href="/recursos/si-school" target="_top" style="display:inline-block;background:#1A5C38;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 20px;border-radius:10px">Ir a SI School</a>
-<p style="font-size:12px;color:#8B847A;margin:16px 0 0">Si no tenés la clave, hablá con David.</p>
-</div></body></html>`
-
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   const cap = CAPACITACIONES.find((c) => c.id === params.slug)
   if (!cap) return NextResponse.json({ error: 'No encontrada' }, { status: 404 })
-
-  if (!(await canView(req))) {
-    // Se ve dentro del iframe: mensaje legible en vez de un JSON.
-    return new Response(SIN_ACCESO_HTML, {
-      status: 401,
-      headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' },
-    })
-  }
 
   // Base: versión editada (Blob) o el estático de public/.
   let html = await readEdited(cap.id)

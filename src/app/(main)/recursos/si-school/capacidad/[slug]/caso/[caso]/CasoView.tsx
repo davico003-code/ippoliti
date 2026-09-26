@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import TeamCodeGate from '@/components/si-school/TeamCodeGate'
 import SiSchoolShell from '@/components/si-school/SiSchoolShell'
 import {
   getCasoDraft,
@@ -25,13 +24,11 @@ const AUTOSAVE_MS = 5000
 
 export default function CasoView({ capSlug, capRomano, capTitulo, caso }: Props) {
   return (
-    <TeamCodeGate permitirAgente>
-      {() => (
+    <>
         <SiSchoolShell activeCapacidadSlug={capSlug}>
           <CasoBody capSlug={capSlug} capRomano={capRomano} capTitulo={capTitulo} caso={caso} />
         </SiSchoolShell>
-      )}
-    </TeamCodeGate>
+      </>
   )
 }
 
