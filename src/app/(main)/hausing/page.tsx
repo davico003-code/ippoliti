@@ -20,7 +20,8 @@ import HausingWhatsLink from "@/components/hausing/HausingWhatsLink"
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd"
 
 // "Colección Hausing" — editorial de lujo: negro puro + blanco, verde SI profundo
-// (#1A5C38) como color de marca en las fichas de barrio, fotos a sangre y
+// (#1A5C38) solo como detalle (líneas finas, números del estándar), fichas de
+// barrio en grafito, fotos a sangre y
 // tipografía Raleway muy fina a gran escala (números en Poppins).
 // Todo lo que se ve de cada casa sale de su ficha en HILO y los datos de cada
 // barrio de nuestra base (lib/hausing.ts). Animaciones CSS puras que terminan
@@ -295,7 +296,7 @@ export default async function HausingPage() {
                 key={e.titulo}
                 className="border-b border-black/10 py-8 sm:odd:pr-8 sm:even:pl-8 lg:px-8 lg:[&:nth-child(3n+1)]:pl-0 lg:[&:nth-child(3n)]:pr-0 lg:[&:not(:nth-child(3n+1))]:border-l"
               >
-                <span className="font-numeric text-[44px] font-extralight leading-none text-[#1A5C38]">{dos(i + 1)}</span>
+                <span className="font-numeric text-[44px] font-extralight leading-none text-black/25">{dos(i + 1)}</span>
                 <p className="mt-5 text-[19px] font-semibold">{e.titulo}</p>
                 <p className="mt-2 text-[15px] leading-relaxed text-black/55">{e.detalle}</p>
               </li>
@@ -542,10 +543,10 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
   const [principal, ...extras] = f.fotos
   const datos = datosConTierra(f)
   return (
-    <div className="bg-[#1A5C38]">
+    <div className="border-t border-white/10 bg-[#111111]">
       <div className="grid lg:grid-cols-2">
         {/* Foto del barrio */}
-        <div className="relative min-h-[360px] overflow-hidden bg-[#123F27] lg:min-h-[760px]">
+        <div className="relative min-h-[360px] overflow-hidden bg-[#0A0A0A] lg:min-h-[760px]">
           {principal ? (
             <Image src={principal} alt={`${barrio.nombre}, Funes`} fill sizes="(max-width:1024px) 100vw, 50vw" className="object-cover" />
           ) : (
@@ -562,7 +563,7 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
             </div>
           )}
           <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10">
-            <p className="hz-label text-white/80">El barrio de esta casa</p>
+            <p className="hz-label flex items-center gap-3 text-white/85"><span className="hz-acento" />El barrio de esta casa</p>
             <h4 className="mt-3 text-[40px] font-light leading-none tracking-[-0.02em] text-white sm:text-[56px]">
               {barrio.nombre}
             </h4>
@@ -573,12 +574,12 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
         {/* Datos duros */}
         <div className="hz-reveal px-5 py-12 text-white sm:px-10 lg:px-14 lg:py-16">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="hz-label text-white/70">Ficha del barrio</p>
+            <p className="hz-label flex items-center gap-3 text-white/70"><span className="hz-acento" />Ficha del barrio</p>
             <p className="text-[11px] text-white/55">Datos relevados por SI INMOBILIARIA</p>
           </div>
 
           {datos.length > 0 && (
-            <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-8 border-t border-white/25 pt-8 sm:grid-cols-3">
+            <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-8 border-t border-white/15 pt-8 sm:grid-cols-3">
               {datos.map(d => (
                 <div key={d.label} className={largo(d) ? "sm:col-span-2" : ""}>
                   <dd className="font-numeric whitespace-nowrap text-[30px] font-extralight leading-none tracking-[-0.02em] sm:text-[42px]">
@@ -592,7 +593,7 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
           )}
 
           {f.amenities.length > 0 && (
-            <div className="mt-10 border-t border-white/25 pt-8">
+            <div className="mt-10 border-t border-white/15 pt-8">
               <p className="hz-label text-white/60">Amenities</p>
               <p className="mt-4 text-[16px] font-light leading-[1.9] text-white/90">
                 {f.amenities.join("  ·  ")}
@@ -601,7 +602,7 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
           )}
 
           {f.infraestructura.length > 0 && (
-            <div className="mt-8 border-t border-white/25 pt-8">
+            <div className="mt-8 border-t border-white/15 pt-8">
               <p className="hz-label text-white/60">Infraestructura y seguridad</p>
               <p className="mt-4 text-[16px] font-light leading-[1.9] text-white/90">
                 {f.infraestructura.join("  ·  ")}
@@ -610,7 +611,7 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
           )}
 
           {f.mirada && (
-            <figure className="mt-10 border-t border-white/25 pt-8">
+            <figure className="mt-10 border-t border-white/15 pt-8">
               <p className="text-[19px] font-light italic leading-relaxed text-white [text-wrap:pretty] sm:text-[21px]">
                 “{resumen(f.mirada)}”
               </p>
@@ -634,7 +635,7 @@ function BarrioCompleto({ barrio, f }: { barrio: HausingBarrio; f: FichaBarrio }
 function BarrioCompacto({ barrio, f, foto }: { barrio: HausingBarrio; f: FichaBarrio; foto?: string }) {
   const datos = datosConTierra(f).slice(0, 4)
   return (
-    <div className="bg-[#1A5C38]">
+    <div className="border-t border-white/10 bg-[#111111]">
       <div className="mx-auto flex max-w-[1440px] flex-col sm:flex-row">
         {foto && (
           <div className="relative h-48 shrink-0 sm:h-auto sm:w-[34%]">
@@ -644,14 +645,14 @@ function BarrioCompacto({ barrio, f, foto }: { barrio: HausingBarrio; f: FichaBa
         <div className="flex flex-1 flex-col justify-center gap-7 px-5 py-10 text-white sm:px-10">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <p className="text-[22px] font-light">
-              <span className="hz-label mr-3 text-white/65">El barrio</span>
+              <span className="hz-label mr-3 inline-flex items-center gap-3 text-white/60"><span className="hz-acento" />El barrio</span>
               {barrio.nombre}
             </p>
             <a href={`#barrio-${barrio.key}`} className="hz-label text-white/70 transition-colors hover:text-white">
               Ficha completa ↑
             </a>
           </div>
-          <dl className="grid grid-cols-2 gap-6 border-t border-white/25 pt-6 sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-6 border-t border-white/15 pt-6 sm:grid-cols-4">
             {datos.map(d => (
               <div key={d.label}>
                 <dd className="font-numeric whitespace-nowrap text-[24px] font-extralight leading-none">
@@ -675,7 +676,8 @@ const CSS = `
   padding:16px 28px; font-size:14px; font-weight:600; letter-spacing:.04em;
   transition: background-color .3s ease, color .3s ease, border-color .3s ease; }
 .hz-btn-light { background:#fff; color:#000; }
-.hz-btn-light:hover { background:#1A5C38; color:#fff; }
+.hz-btn-light:hover { background:#E8E8E8; color:#000; }
+.hz-acento { display:inline-block; width:28px; height:2px; background:#00754A; }
 .hz-btn-glass { color:#fff; border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.25);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .hz-btn-glass:hover { background:#fff; color:#000; border-color:#fff; }
