@@ -5,8 +5,9 @@
 // comercial (vendedor motivado / permuta / negociable / bajó el precio).
 //
 // Desktop: card compacta abajo a la derecha, arriba de la burbuja de WhatsApp.
-// Mobile: "smart peek" lateral que no pisa mapa, compartir ni acciones fijas.
-// Cerrable → no reaparece por 3 días (localStorage).
+// Mobile: pastilla a la derecha que se puede arrastrar (se pega al borde más
+// cercano y recuerda dónde la dejaron); al tocarla se agranda en una ficha.
+// Cerrar (X) → no vuelve a aparecer nunca más en ese navegador (localStorage).
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
@@ -18,14 +19,19 @@ const GREEN = '#1A5C38'
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 
-const DISMISS_KEY = 'si_oportunidades_dismiss'
-const DISMISS_DAYS = 3
+// Cierre definitivo: una vez cerrado no vuelve (clave nueva, sin vencimiento).
+const DISMISS_KEY = 'si_oportunidades_cerrado'
 const SHOW_DELAY_MS = 5000
 const ROTATE_MS = 11000
-// Si la persona se va (cierra, cambia de pestaña o de app) y vuelve después de
-// este tiempo, el popup reaparece aunque lo haya cerrado antes.
-const LASTSEEN_KEY = 'si_oportunidades_lastseen'
-const AWAY_RESET_MS = 10 * 60 * 1000
+// Posición de la pastilla mobile que eligió la persona al arrastrarla.
+const POS_KEY = 'si_oportunidades_pos'
+const PEEK_H = 46
+const PEEK_MARGIN = 10
+const DRAG_THRESHOLD = 6
+
+type PeekPos = { side: 'left' | 'right'; yPct: number }
+const DEFAULT_POS: PeekPos = { side: 'right', yPct: 52 }
+const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max)
 
 // Rutas internas/flujos donde el popup no corresponde.
 // /dockgarden: landing de venta compartida por WhatsApp — sin distracciones.
@@ -57,27 +63,19 @@ export default function OportunidadesPopup() {
   const [mobileExpanded, setMobileExpanded] = useState(false)
   const [idx, setIdx] = useState(0)
   const timerRef = useRef<number | null>(null)
-
-  // Refs espejo para leer el estado actual dentro de listeners (visibility/focus).
-  const itemsRef = useRef<Item[]>([])
-  const visibleRef = useRef(false)
-  useEffect(() => { itemsRef.current = items }, [items])
-  useEffect(() => { visibleRef.current = visible }, [visible])
+  const [peekPos, setPeekPos] = useState<PeekPos>(DEFAULT_POS)
+  const [dragXY, setDragXY] = useState<{ x: number; y: number } | null>(null)
+  const dragRef = useRef<{ startX: number; startY: number; offX: number; offY: number; w: number; moved: boolean } | null>(null)
+  const justDraggedRef = useRef(false)
+  const sheetRef = useRef<HTMLElement | null>(null)
 
   const enRutaOculta = useCallback(
     () => HIDE_PREFIXES.some((p) => pathname?.startsWith(p)),
     [pathname],
   )
 
-  const marcarVisto = useCallback(() => {
-    try { window.localStorage.setItem(LASTSEEN_KEY, String(Date.now())) } catch {}
-  }, [])
-
   const dismissActivo = useCallback(() => {
-    try {
-      const dismissed = Number(window.localStorage.getItem(DISMISS_KEY) || 0)
-      return Date.now() - dismissed < DISMISS_DAYS * 24 * 60 * 60 * 1000
-    } catch { return false }
+    try { return window.localStorage.getItem(DISMISS_KEY) === '1' } catch { return false }
   }, [])
 
   const cargarItems = useCallback(async (): Promise<Item[]> => {
@@ -89,19 +87,16 @@ export default function OportunidadesPopup() {
     } catch { return [] }
   }, [])
 
-  // Montaje: si vuelve tras estar +10 min afuera (cerró la pestaña y reabrió),
-  // se limpia el "cerrado por 3 días" para que reaparezca. Luego, flujo normal.
+  // Montaje: si ya lo cerró alguna vez, no se muestra más.
   useEffect(() => {
     if (enRutaOculta()) return
+    if (dismissActivo()) return
     try {
-      const lastSeen = Number(window.localStorage.getItem(LASTSEEN_KEY) || 0)
-      if (lastSeen && Date.now() - lastSeen > AWAY_RESET_MS) {
-        window.localStorage.removeItem(DISMISS_KEY)
+      const saved = JSON.parse(window.localStorage.getItem(POS_KEY) || 'null') as PeekPos | null
+      if (saved && (saved.side === 'left' || saved.side === 'right') && typeof saved.yPct === 'number') {
+        setPeekPos({ side: saved.side, yPct: clamp(saved.yPct, 10, 82) })
       }
     } catch {}
-    marcarVisto()
-
-    if (dismissActivo()) return
 
     let alive = true
     let removeMobileScroll: (() => void) | null = null
@@ -135,52 +130,22 @@ export default function OportunidadesPopup() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Reaparición al volver: marcamos cuándo se fue (hidden/blur/pagehide) y, al
-  // volver a la pestaña (visible/focus), si pasó +10 min, mostramos de nuevo
-  // aunque lo hubiera cerrado.
-  useEffect(() => {
-    const alSalir = () => marcarVisto()
-
-    const alVolver = async () => {
-      if (document.visibilityState !== 'visible') return
-      if (enRutaOculta() || visibleRef.current) { marcarVisto(); return }
-      let lastSeen = 0
-      try { lastSeen = Number(window.localStorage.getItem(LASTSEEN_KEY) || 0) } catch {}
-      const afuera = Date.now() - lastSeen
-      marcarVisto()
-      if (!lastSeen || afuera <= AWAY_RESET_MS) return
-      try { window.localStorage.removeItem(DISMISS_KEY) } catch {}
-      let list = itemsRef.current
-      if (!list.length) {
-        list = await cargarItems()
-        if (list.length) setItems(list)
-      }
-      if (list.length) { setIdx(0); setVisible(true) }
-    }
-
-    const onVisibility = () => {
-      if (document.visibilityState === 'hidden') alSalir()
-      else alVolver()
-    }
-
-    document.addEventListener('visibilitychange', onVisibility)
-    window.addEventListener('pagehide', alSalir)
-    window.addEventListener('blur', alSalir)
-    window.addEventListener('focus', alVolver)
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
-      window.removeEventListener('pagehide', alSalir)
-      window.removeEventListener('blur', alSalir)
-      window.removeEventListener('focus', alVolver)
-    }
-  }, [enRutaOculta, marcarVisto, cargarItems])
-
   // Rotación automática entre oportunidades.
   useEffect(() => {
     if (!visible || items.length <= 1) return
     timerRef.current = window.setInterval(() => setIdx((i) => (i + 1) % items.length), ROTATE_MS)
     return () => { if (timerRef.current) window.clearInterval(timerRef.current) }
   }, [visible, items.length])
+
+  // Ficha abierta: tocar afuera la vuelve a achicar a pastilla (no la cierra).
+  useEffect(() => {
+    if (!mobileExpanded) return
+    const onDown = (e: PointerEvent) => {
+      if (sheetRef.current && !sheetRef.current.contains(e.target as Node)) setMobileExpanded(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [mobileExpanded])
 
   if (!visible || items.length === 0) return null
   if (HIDE_PREFIXES.some((p) => pathname?.startsWith(p))) return null
@@ -189,11 +154,63 @@ export default function OportunidadesPopup() {
   const meta = HOOK_META[it.hook] ?? HOOK_META.negociable
   const esBaja = it.hook === 'bajo-precio' && it.precioAnterior
   const compactMobile = pathname === '/propiedades'
+  const peekW = compactMobile ? PEEK_H : 134
 
+  // Cierre definitivo (X): no vuelve a aparecer.
   const dismiss = () => {
     setVisible(false)
     setMobileExpanded(false)
-    try { window.localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch {}
+    try { window.localStorage.setItem(DISMISS_KEY, '1') } catch {}
+  }
+
+  // Tocar la oportunidad: se oculta mientras navega, sin marcarla como cerrada.
+  const ocultar = () => {
+    setVisible(false)
+    setMobileExpanded(false)
+  }
+
+  // ── Arrastre de la pastilla mobile ──
+  const onPeekPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    dragRef.current = { startX: e.clientX, startY: e.clientY, offX: e.clientX - r.left, offY: e.clientY - r.top, w: r.width, moved: false }
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+  }
+
+  const onPeekPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = dragRef.current
+    if (!d) return
+    if (!d.moved && Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_THRESHOLD) return
+    d.moved = true
+    setDragXY({
+      x: clamp(e.clientX - d.offX, 4, window.innerWidth - d.w - 4),
+      y: clamp(e.clientY - d.offY, 64, window.innerHeight - PEEK_H - 12),
+    })
+  }
+
+  const onPeekPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = dragRef.current
+    dragRef.current = null
+    if (!d?.moved) return
+    justDraggedRef.current = true
+    const x = clamp(e.clientX - d.offX, 4, window.innerWidth - d.w - 4)
+    const y = clamp(e.clientY - d.offY, 64, window.innerHeight - PEEK_H - 12)
+    const next: PeekPos = {
+      side: x + d.w / 2 < window.innerWidth / 2 ? 'left' : 'right',
+      yPct: clamp((y / window.innerHeight) * 100, 10, 82),
+    }
+    setPeekPos(next)
+    setDragXY(null)
+    try { window.localStorage.setItem(POS_KEY, JSON.stringify(next)) } catch {}
+  }
+
+  const onPeekPointerCancel = () => {
+    dragRef.current = null
+    setDragXY(null)
+  }
+
+  const onPeekClick = () => {
+    if (justDraggedRef.current) { justDraggedRef.current = false; return }
+    setMobileExpanded(true)
   }
 
   const goTo = (i: number) => {
@@ -207,7 +224,8 @@ export default function OportunidadesPopup() {
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes si-oport-in { from { opacity: 0; transform: translateY(18px) scale(.97) } to { opacity: 1; transform: none } }
         @keyframes si-oport-swap { from { opacity: 0; transform: translateX(10px) } to { opacity: 1; transform: none } }
-        @keyframes si-oport-peek { 0% { transform: translateX(-12px); opacity: 0 } 100% { transform: translateX(0); opacity: 1 } }
+        @keyframes si-oport-peek-l { 0% { transform: translateX(-12px); opacity: 0 } 100% { transform: translateX(0); opacity: 1 } }
+        @keyframes si-oport-peek-r { 0% { transform: translateX(12px); opacity: 0 } 100% { transform: translateX(0); opacity: 1 } }
         @keyframes si-oport-sheet { from { opacity: 0; transform: translateY(12px) scale(.98) } to { opacity: 1; transform: none } }
         .si-oport-desktop { display: block; }
         .si-oport-peek, .si-oport-sheet { display: none; }
@@ -236,7 +254,7 @@ export default function OportunidadesPopup() {
           <X size={12} strokeWidth={2.4} />
         </button>
 
-        <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
+        <Link key={it.propertyId} href={it.href} onClick={ocultar} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
           <div style={{ position: 'relative', height: 132, borderRadius: 11, overflow: 'hidden', background: '#EEF2F0' }}>
             {it.foto && (
               <Image src={it.foto} alt="" fill sizes="232px" style={{ objectFit: 'cover', objectPosition: 'center 60%' }} />
@@ -281,32 +299,46 @@ export default function OportunidadesPopup() {
         )}
       </aside>
 
-      {/* ── Mobile: acceso lateral + ficha bajo demanda, sin tapar mapa/share ── */}
+      {/* ── Mobile: pastilla arrastrable + ficha bajo demanda ── */}
       {!mobileExpanded && (
         <button
           type="button"
           className="si-oport-peek"
-          aria-label="Ver oportunidad destacada"
-          onClick={() => setMobileExpanded(true)}
+          aria-label="Ver oportunidad destacada (se puede arrastrar)"
+          onClick={onPeekClick}
+          onPointerDown={onPeekPointerDown}
+          onPointerMove={onPeekPointerMove}
+          onPointerUp={onPeekPointerUp}
+          onPointerCancel={onPeekPointerCancel}
           style={{
             position: 'fixed',
-            left: 10,
-            top: compactMobile ? '44%' : '52%',
+            left: dragXY
+              ? dragXY.x
+              : peekPos.side === 'left'
+                ? PEEK_MARGIN
+                : `calc(100% - ${peekW}px - ${PEEK_MARGIN}px)`,
+            top: dragXY ? dragXY.y : `${peekPos.yPct}%`,
+            transition: dragXY ? 'none' : 'left .28s cubic-bezier(.22,1,.36,1), top .28s cubic-bezier(.22,1,.36,1)',
             zIndex: 44,
-            width: compactMobile ? 46 : 134,
-            height: 46,
+            width: peekW,
+            height: PEEK_H,
+            flexDirection: peekPos.side === 'right' ? 'row-reverse' : 'row',
             borderRadius: 999,
             border: '1px solid rgba(26,92,56,.16)',
             background: '#FFFFFF',
             color: GREEN,
             boxShadow: '0 12px 30px rgba(9, 30, 20, 0.16)',
-            padding: compactMobile ? 0 : '5px 10px 5px 5px',
-            cursor: 'pointer',
-            animation: 'si-oport-peek .42s cubic-bezier(.22,1,.36,1)',
+            padding: compactMobile ? 0 : peekPos.side === 'right' ? '5px 5px 5px 12px' : '5px 12px 5px 5px',
+            cursor: dragXY ? 'grabbing' : 'grab',
+            animation: `si-oport-peek-${peekPos.side === 'right' ? 'r' : 'l'} .42s cubic-bezier(.22,1,.36,1)`,
             alignItems: 'center',
             justifyContent: compactMobile ? 'center' : 'flex-start',
             gap: 8,
-            touchAction: 'manipulation',
+            // Sin gestos del navegador sobre la pastilla: el dedo la arrastra.
+            touchAction: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none',
           }}
         >
           {it.foto ? (
@@ -317,7 +349,7 @@ export default function OportunidadesPopup() {
             <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#EEF2F0', flexShrink: 0 }} />
           )}
           {!compactMobile && (
-            <span style={{ display: 'flex', minWidth: 0, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.05 }}>
+            <span style={{ display: 'flex', minWidth: 0, flexDirection: 'column', alignItems: peekPos.side === 'right' ? 'flex-end' : 'flex-start', lineHeight: 1.05 }}>
               <span style={{ fontFamily: POPPINS, fontSize: 9.5, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
                 Oportunidad
               </span>
@@ -331,6 +363,7 @@ export default function OportunidadesPopup() {
 
       {mobileExpanded && (
         <aside
+          ref={sheetRef}
           className="si-oport-sheet"
           aria-label="Oportunidad destacada"
           style={{
@@ -351,14 +384,14 @@ export default function OportunidadesPopup() {
         >
           <button
             type="button"
-            onClick={() => setMobileExpanded(false)}
-            aria-label="Minimizar oportunidad"
+            onClick={dismiss}
+            aria-label="Cerrar oportunidades"
             style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,.94)', border: '1px solid #ECECEE', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <X size={15} strokeWidth={2.2} />
           </button>
 
-          <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0,1fr)', gap: 12, padding: 10, minHeight: 98, textDecoration: 'none', animation: 'si-oport-swap .28s ease' }}>
+          <Link key={it.propertyId} href={it.href} onClick={ocultar} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0,1fr)', gap: 12, padding: 10, minHeight: 98, textDecoration: 'none', animation: 'si-oport-swap .28s ease' }}>
             {it.foto ? (
               <span style={{ position: 'relative', width: 96, height: 82, borderRadius: 12, overflow: 'hidden', background: '#EEF2F0' }}>
                 <Image src={it.foto} alt="" fill sizes="96px" style={{ objectFit: 'cover' }} />
