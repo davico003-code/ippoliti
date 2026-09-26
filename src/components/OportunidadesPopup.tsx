@@ -29,7 +29,8 @@ const AWAY_RESET_MS = 10 * 60 * 1000
 
 // Rutas internas/flujos donde el popup no corresponde.
 // /dockgarden: landing de venta compartida por WhatsApp — sin distracciones.
-const HIDE_PREFIXES = ['/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden']
+// /recursos/si-school: la card tapaba la columna de capacitaciones.
+const HIDE_PREFIXES = ['/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden', '/recursos/si-school']
 
 const HOOK_META: Record<string, { badge: string; cta: string; color: string; bg: string }> = {
   motivado: { badge: 'Vendedor motivado', cta: 'Pasá a conocerla', color: '#B5562F', bg: '#FCEBE3' },

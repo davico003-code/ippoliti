@@ -25,7 +25,7 @@ const AUTOSAVE_MS = 5000
 
 export default function CasoView({ capSlug, capRomano, capTitulo, caso }: Props) {
   return (
-    <TeamCodeGate>
+    <TeamCodeGate permitirAgente>
       {() => (
         <SiSchoolShell activeCapacidadSlug={capSlug}>
           <CasoBody capSlug={capSlug} capRomano={capRomano} capTitulo={capTitulo} caso={caso} />

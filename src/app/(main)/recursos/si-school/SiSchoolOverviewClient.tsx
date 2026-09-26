@@ -37,7 +37,7 @@ interface Props {
 
 export default function SiSchoolOverviewClient({ capacidades }: Props) {
   return (
-    <TeamCodeGate>
+    <TeamCodeGate permitirAgente>
       {() => (
         <SiSchoolShell>
           <Overview capacidades={capacidades} />

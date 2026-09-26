@@ -27,6 +27,9 @@ export default function FloatingWhatsApp() {
   // Hide on /recursos — la propia página tiene su CTA "Hablar con un agente"
   // en el bloque verde inferior con el mismo número.
   if (pathname === '/recursos') return null
+  // Hide en SI School (herramienta interna): se montaba sobre el botón
+  // "Capacitaciones" del celular y sobre la columna de capacitaciones.
+  if (pathname.startsWith('/recursos/si-school')) return null
   // Hide on /propiedades — se superpone al control de zoom del mapa y los
   // filtros ya saturan la vista. Estricto: /propiedades/[id] sí lo conserva.
   if (pathname === '/propiedades') return null
