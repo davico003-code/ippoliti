@@ -614,3 +614,244 @@
 .capsOpen:hover {
   color: var(--si-green);
 }
+
+/* ── Home: Capacitaciones destacadas arriba, SI School abajo ─────── */
+.centerFull {
+  padding: 28px 40px 80px;
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 720px) {
+  .centerFull {
+    padding: 20px 16px 60px;
+  }
+}
+.dest {
+  margin-bottom: 56px;
+}
+.destHead {
+  margin-bottom: 18px;
+}
+.destEyebrow {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--si-green);
+  margin-bottom: 6px;
+}
+.destTitulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-titles);
+  font-size: clamp(28px, 3.4vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+.destCount {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--si-green);
+  background: var(--si-green-tint);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.destSub {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.destUltima {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  width: 100%;
+  padding: 0;
+  margin-bottom: 18px;
+  text-align: left;
+  font: inherit;
+  color: #fff;
+  background: var(--si-green);
+  border: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.destUltima:hover,
+.destUltima:focus-visible {
+  box-shadow: 0 16px 40px rgba(26, 92, 56, 0.28);
+  outline: none;
+}
+.destUltima:active {
+  transform: scale(0.995);
+}
+.destUltimaFoto {
+  display: block;
+  height: 280px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.destUltimaFoto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.destUltimaBody {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 30px;
+}
+.destUltimaLabel {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+.destUltimaTitulo {
+  font-family: var(--font-titles);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.destUltimaBajada {
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.85);
+}
+.destUltimaCta {
+  align-self: flex-start;
+  margin-top: 8px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--si-green);
+  background: #fff;
+  border-radius: 999px;
+  padding: 9px 16px;
+}
+@media (max-width: 720px) {
+  .destUltima {
+    grid-template-columns: 1fr;
+  }
+  .destUltimaFoto {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+  .destUltimaBody {
+    padding: 18px 18px 20px;
+  }
+}
+
+.destGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.destCard {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.destCard:hover,
+.destCard:focus-visible {
+  border-color: var(--si-green);
+  box-shadow: 0 6px 18px rgba(26, 92, 56, 0.12);
+  outline: none;
+}
+.destCard:active {
+  transform: scale(0.99);
+}
+.destCardFoto {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--si-green-tint);
+}
+.destCardFoto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.destCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px 14px;
+}
+.destCardTitulo {
+  font-family: var(--font-titles);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+}
+.destCardBajada {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-soft);
+}
+/* Celular: tarjeta en fila (foto chica a la izquierda). */
+@media (max-width: 640px) {
+  .destGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .destCard {
+    flex-direction: row;
+    align-items: center;
+  }
+  .destCardFoto {
+    flex-shrink: 0;
+    width: 112px;
+    aspect-ratio: 4 / 3;
+    margin: 8px 0 8px 8px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .destCardBody {
+    padding: 10px 12px;
+  }
+}
+
+/* Separador hacia el programa SI School (más abajo, más tranquilo). */
+.schoolAbajo {
+  border-top: 1px solid var(--line);
+  padding-top: 36px;
+}
+.schoolAbajoEyebrow {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+}

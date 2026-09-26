@@ -17,11 +17,14 @@ interface Props {
   // Se mantiene por compatibilidad con las páginas que aún lo pasan; el chat
   // mock de David se reemplazó por el panel de Capacitaciones.
   mentorThread?: { rol: 'mentor' | 'self'; texto: string }[]
+  /** Home: sin columnas laterales, el contenido usa todo el ancho. */
+  soloCentro?: boolean
 }
 
 export default function SiSchoolShell({
   children,
   activeCapacidadSlug,
+  soloCentro = false,
 }: Props) {
   const [levelNumber, setLevelNumber] = useState<number>(1)
   const [levelName, setLevelName] = useState<string>('Iniciado')
@@ -73,6 +76,10 @@ export default function SiSchoolShell({
         </div>
       </header>
 
+      {soloCentro ? (
+        <main className={styles.centerFull}>{children}</main>
+      ) : (
+        <>
       {/* Shell de 3 columnas */}
       <div className={styles.shell}>
         <CapacidadSidebar capacidades={capacidades} activeSlug={activeCapacidadSlug} />
@@ -127,6 +134,8 @@ export default function SiSchoolShell({
             )}
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   )
