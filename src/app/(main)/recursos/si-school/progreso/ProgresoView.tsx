@@ -25,7 +25,7 @@ interface Props {
 
 export default function ProgresoView({ capacidades }: Props) {
   return (
-    <TeamCodeGate>
+    <TeamCodeGate permitirAgente>
       {() => (
         <SiSchoolShell>
           <ProgresoBody capacidades={capacidades} />

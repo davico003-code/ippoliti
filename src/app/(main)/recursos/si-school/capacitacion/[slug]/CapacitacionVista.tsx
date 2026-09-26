@@ -8,7 +8,9 @@ const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
 function Vista({ id, titulo, tc }: { id: string; titulo: string; tc?: string }) {
   const src = `/api/capacitaciones/${id}${tc ? `?tc=${encodeURIComponent(tc)}` : ''}`
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+    // Fijo a pantalla completa: con height 100vh debajo del Navbar sticky la
+    // presentación quedaba cortada abajo y con los flotantes encima.
+    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', flexDirection: 'column', background: '#fff' }}>
       <div style={{ flexShrink: 0, padding: '10px 16px', borderBottom: '1px solid #e3ebe5', display: 'flex', alignItems: 'center', gap: 14 }}>
         <Link
           href="/recursos/si-school"
@@ -28,5 +30,9 @@ function Vista({ id, titulo, tc }: { id: string; titulo: string; tc?: string }) 
 export default function CapacitacionVista({ id, titulo, isAgent }: { id: string; titulo: string; isAgent: boolean }) {
   // Agente logueado → directo. Si no (3ro con el link) → gate por clave de equipo.
   if (isAgent) return <Vista id={id} titulo={titulo} />
-  return <TeamCodeGate>{({ teamCode }) => <Vista id={id} titulo={titulo} tc={teamCode} />}</TeamCodeGate>
+  return (
+    <TeamCodeGate permitirAgente>
+      {({ teamCode }) => <Vista id={id} titulo={titulo} tc={teamCode || undefined} />}
+    </TeamCodeGate>
+  )
 }

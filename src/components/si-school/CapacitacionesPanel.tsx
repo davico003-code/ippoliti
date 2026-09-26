@@ -1,10 +1,11 @@
 'use client'
 
 // Columna derecha de SI School: lista numerada de "Capacitaciones". Cada placa
-// abre su HTML embebido en un modal con <iframe> aislado (lo sirve
+// abre su HTML embebido a pantalla completa en un <iframe> aislado (lo sirve
 // /api/capacitaciones/[id], gateado). El contenido vive en ./capacitaciones.
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import styles from './si-school.module.css'
 import { CAPACITACIONES, numeroCapacitacion } from './capacitaciones'
 
@@ -14,6 +15,7 @@ export default function CapacitacionesPanel() {
   const [openId, setOpenId] = useState<string | null>(null)
   const [tc, setTc] = useState<string | null>(null)
   const activa = CAPACITACIONES.find((c) => c.id === openId) || null
+  const cerrar = useCallback(() => setOpenId(null), [])
 
   // Clave de equipo con la que se entró a SI School (la usa el iframe para
   // autorizarse en la API; los agentes logueados ya pasan por su cookie).
@@ -79,68 +81,77 @@ export default function CapacitacionesPanel() {
       )}
 
       {activa && (
-        <div
-          onClick={(e) => { if (e.target === e.currentTarget) setOpenId(null) }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'rgba(0,0,0,0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 16,
-              width: '100%',
-              maxWidth: 820,
-              height: '88vh',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              boxShadow: '0 20px 60px rgba(0,0,0,.3)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid #ececec' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                <span style={{ flexShrink: 0, fontFamily: POPPINS, fontSize: 11.5, fontWeight: 700, color: '#fff', background: '#1A5C38', borderRadius: 6, padding: '3px 6px', fontVariantNumeric: 'tabular-nums' }}>
-                  {numeroCapacitacion(activa.id)}
-                </span>
-                <span style={{ fontFamily: POPPINS, fontSize: 14, fontWeight: 600, color: '#27272A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {activa.titulo}
-                </span>
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-                <a
-                  href={pageHref(activa.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontFamily: POPPINS, fontSize: 12.5, fontWeight: 600, color: '#1A5C38', textDecoration: 'none', whiteSpace: 'nowrap' }}
-                >
-                  Abrir en página ↗
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setOpenId(null)}
-                  aria-label="Cerrar"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1, color: '#71717A', padding: 4 }}
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            <iframe
-              src={apiSrc(activa.id)}
-              title={activa.titulo}
-              style={{ flex: 1, width: '100%', border: 'none', display: 'block' }}
-            />
-          </div>
-        </div>
+        <VisorCapacitacion
+          numero={numeroCapacitacion(activa.id)}
+          titulo={activa.titulo}
+          src={apiSrc(activa.id)}
+          pageHref={pageHref(activa.id)}
+          onClose={cerrar}
+        />
       )}
     </aside>
+  )
+}
+
+// Visor a pantalla completa. Va por portal a <body>: la columna derecha es
+// sticky (crea su propio contexto de apilado) y un modal adentro quedaba
+// debajo del Navbar, con la barra de título y el cerrar tapados.
+function VisorCapacitacion({
+  numero,
+  titulo,
+  src,
+  pageHref,
+  onClose,
+}: {
+  numero: string
+  titulo: string
+  src: string
+  pageHref: string
+  onClose: () => void
+}) {
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onClose])
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={titulo}
+      style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#0d2f1d', display: 'flex', flexDirection: 'column' }}
+    >
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 12px 10px 16px', background: '#fff', borderBottom: '1px solid #ececec' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <span style={{ flexShrink: 0, fontFamily: POPPINS, fontSize: 12, fontWeight: 700, color: '#fff', background: '#1A5C38', borderRadius: 6, padding: '4px 7px', fontVariantNumeric: 'tabular-nums' }}>
+            {numero}
+          </span>
+          <span style={{ fontFamily: 'var(--font-raleway), Raleway, system-ui, sans-serif', fontSize: 15, fontWeight: 700, color: '#18181B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {titulo}
+          </span>
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <a
+            href={pageHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.visorLink}
+          >
+            Abrir en página ↗
+          </a>
+          <button type="button" onClick={onClose} className={styles.visorCerrar}>
+            Cerrar ✕
+          </button>
+        </div>
+      </div>
+      <iframe src={src} title={titulo} allow="fullscreen" style={{ flex: 1, width: '100%', border: 'none', display: 'block' }} />
+    </div>,
+    document.body,
   )
 }

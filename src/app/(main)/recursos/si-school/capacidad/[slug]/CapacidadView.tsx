@@ -28,7 +28,7 @@ const TOTAL_CAPSULAS: Record<string, number> = {
 
 export default function CapacidadView({ capacidad }: Props) {
   return (
-    <TeamCodeGate>
+    <TeamCodeGate permitirAgente>
       {() => (
         <SiSchoolShell activeCapacidadSlug={capacidad.slug}>
           <CapacidadBody cap={capacidad} />
