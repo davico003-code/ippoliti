@@ -51,6 +51,7 @@ export interface PropertyCardProjection {
   room_amount: number
   bathroom_amount: number
   roofed_surface: string
+  semiroofed_surface: string
   total_surface: string
   surface: string
 
@@ -141,6 +142,7 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
     room_amount: p.room_amount,
     bathroom_amount: p.bathroom_amount,
     roofed_surface: p.roofed_surface,
+    semiroofed_surface: p.semiroofed_surface,
     total_surface: p.total_surface,
     surface: p.surface,
     photos: pickCardPhotos(p),
