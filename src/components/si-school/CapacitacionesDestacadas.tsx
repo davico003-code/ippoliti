@@ -2,7 +2,7 @@
 
 // Sección protagonista de la home: las Capacitaciones del equipo (aparte del
 // programa SI School, que es el ABC para los que arrancan y va más abajo).
-// La última cargada va grande arriba; todas en grilla, en su orden (01, 02…).
+// La marcada `destacada` (o la última cargada) va grande arriba; todas en grilla, en su orden (01, 02…).
 
 import { useCallback, useState } from 'react'
 import { CAPACITACIONES, numeroCapacitacion } from './capacitaciones'
@@ -13,7 +13,7 @@ export default function CapacitacionesDestacadas() {
   const [openId, setOpenId] = useState<string | null>(null)
   const cerrar = useCallback(() => setOpenId(null), [])
   const activa = CAPACITACIONES.find((c) => c.id === openId) || null
-  const ultima = CAPACITACIONES[CAPACITACIONES.length - 1]
+  const ultima = CAPACITACIONES.find((c) => c.destacada) ?? CAPACITACIONES[CAPACITACIONES.length - 1]
 
   if (!ultima) return null
 
@@ -36,7 +36,7 @@ export default function CapacitacionesDestacadas() {
           )}
         </span>
         <span className={styles.destUltimaBody}>
-          <span className={styles.destUltimaLabel}>Última capacitación · {numeroCapacitacion(ultima.id)}</span>
+          <span className={styles.destUltimaLabel}>{ultima.destacada ? 'Capacitación destacada' : 'Última capacitación'} · {numeroCapacitacion(ultima.id)}</span>
           <span className={styles.destUltimaTitulo}>{ultima.titulo}</span>
           {ultima.bajada && <span className={styles.destUltimaBajada}>{ultima.bajada}</span>}
           <span className={styles.destUltimaCta}>Ver capacitación →</span>
