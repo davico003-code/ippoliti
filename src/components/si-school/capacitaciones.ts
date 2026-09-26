@@ -21,6 +21,8 @@ export interface Capacitacion {
   imagen?: string
   /** URL del HTML a embeber (archivo en public/). */
   src: string
+  /** La que va grande arriba en la home. Si ninguna la tiene, va la última. */
+  destacada?: boolean
 }
 
 export const CAPACITACIONES: Capacitacion[] = [
@@ -70,6 +72,7 @@ export const CAPACITACIONES: Capacitacion[] = [
   },
   {
     id: 'instrumentos-operacion',
+    destacada: true,
     titulo: 'Elegir el instrumento correcto',
     bajada: 'Reserva, seña, boleto, escritura y poderes, con casos reales',
     etiqueta: 'Nuevo',
