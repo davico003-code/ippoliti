@@ -49,8 +49,6 @@ export default function HeroMobile() {
         poster="/images/hero/portada-viva-mobile.webp"
         video="/videos/portada-viva-mobile.mp4"
         sizes="(max-width: 767px) 100vw, 1px"
-        radio={26}
-        margen={10}
         velo="radial-gradient(80% 60% at 50% 45%, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.3) 100%)"
       />
 
