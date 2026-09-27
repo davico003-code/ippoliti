@@ -92,8 +92,8 @@ function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoPro
   return { standalone, devGroups }
 }
 
-// Marcador del emprendimiento. Lejos es una burbuja más (misma caja que las de
-// precio) con una grúa y el "desde"; desde zoom 15 se transforma en la pastilla
+// Marcador del emprendimiento. Lejos es un círculo verde con grúa (discreto);
+// desde zoom 15 se transforma en la pastilla
 // negra con el nombre (amarillo solo como detalle).
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
@@ -112,35 +112,22 @@ function nombreMapa(name: string) {
   return hit ? DEV_NOMBRE_MAPA[hit] : name
 }
 
-function createDevBubble(minPrice: string) {
-  const label = minPrice === 'Consultar' ? 'Consultar' : `desde ${minPrice}`
-  // Misma caja que createPriceBubble: 11px, padding 4/8, radio 6, borde blanco 2px.
-  const html = `
-    <div style="position:relative;display:inline-block;cursor:pointer;">
-      <div style="
-        display:inline-flex;align-items:center;gap:4px;
-        background:#1A5C38;color:#fff;
-        font-family:'Poppins',system-ui,sans-serif;
-        font-weight:700;font-size:11px;line-height:1.2;
-        padding:4px 8px 4px 6px;border-radius:6px;
-        border:2px solid rgba(255,255,255,0.9);
-        box-shadow:0 2px 8px rgba(0,0,0,0.25);
-        white-space:nowrap;
-      "><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>${escapeHtml(label)}</div>
-      <div style="
-        width:0;height:0;margin:0 auto;
-        border-left:6px solid transparent;
-        border-right:6px solid transparent;
-        border-top:6px solid #1A5C38;
-      "></div>
-    </div>`
-  const w = Math.max(label.length * 7 + 38, 70)
+// Lejos: círculo verde oscuro con grúa, mismo verde que los clusters y más
+// chico, para que acompañe sin distraer. Sin precio ni nombre.
+function createDevCircle() {
   return L.divIcon({
     className: '',
-    html,
-    iconSize: [w, 34],
-    iconAnchor: [w / 2, 34],
-    popupAnchor: [0, -36],
+    html: `<div style="
+      background:#0D3620;color:#fff;
+      width:32px;height:32px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      border:2.5px solid rgba(255,255,255,0.9);
+      box-shadow:0 2px 8px rgba(0,0,0,0.25);
+      cursor:pointer;box-sizing:border-box;
+    "><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18],
   })
 }
 
@@ -743,7 +730,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
   const devCerca = zoom >= DEV_ZOOM_CERCA
-  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, devCerca ? createDevPill(g.devName) : createDevBubble(g.minPrice)])), [devGroups, devCerca])
+  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, devCerca ? createDevPill(g.devName) : createDevCircle()])), [devGroups, devCerca])
 
 
   return (
@@ -804,8 +791,8 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           <span style={{ color: '#666' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
+          <div style={{ width: 14, height: 14, background: '#0D3620', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
           </div>
           <span style={{ color: '#666' }}>Emprendimiento</span>
         </div>
