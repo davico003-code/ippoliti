@@ -28,6 +28,9 @@ export function VideoVivo({
   useEffect(() => {
     const v = ref.current
     if (!v || typeof IntersectionObserver === 'undefined') return
+    // React no siempre refleja `muted` al hidratar; sin él el navegador
+    // bloquea el autoplay. Lo fijamos a mano antes de reproducir.
+    v.muted = true
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) v.play().catch(() => {})
@@ -40,7 +43,10 @@ export function VideoVivo({
   }, [])
 
   return (
-    <div className={`relative overflow-hidden bg-black ${className}`}>
+    // Posición: la define quien lo usa (hoy siempre `absolute inset-0` dentro
+    // de un marco con aspect-ratio). Si se sumara `relative` acá, le gana a
+    // `absolute` en la cascada de Tailwind y el video queda con alto 0.
+    <div className={`overflow-hidden bg-black ${className || 'relative'}`}>
       <video
         ref={ref}
         className="absolute inset-0 h-full w-full object-cover"
