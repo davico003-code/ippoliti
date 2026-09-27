@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { Clock, MapPin, Star } from 'lucide-react'
+import EncabezadoSeccion from './EncabezadoSeccion'
 
 const GREEN = '#1A5C38'
 
@@ -63,7 +64,7 @@ export default function ConfianzaDesktop() {
           <div className="relative flex flex-col justify-center overflow-hidden px-10 py-16 text-white lg:px-16 lg:py-20">
             <div className="absolute left-[-90px] top-1/2 h-[320px] w-[320px] -translate-y-1/2 rounded-full bg-black/70 blur-3xl" />
             <div className="relative">
-              <p className="font-poppins text-[12px] font-bold uppercase tracking-[0.25em] text-white/80">
+              <p className="font-raleway text-[12px] font-bold uppercase tracking-[0.25em] text-white/80">
                 SI INMOBILIARIA · EST. 1983
               </p>
 
@@ -76,7 +77,7 @@ export default function ConfianzaDesktop() {
 
               <div className="mt-9 flex items-center gap-3">
                 <div className="h-px w-10 bg-white/40" />
-                <p className="font-poppins text-[12px] font-semibold uppercase tracking-[0.2em] text-white/80">
+                <p className="font-raleway text-[12px] font-semibold uppercase tracking-[0.2em] text-white/80">
                   Susana Ippoliti · Fundadora
                 </p>
               </div>
@@ -85,24 +86,17 @@ export default function ConfianzaDesktop() {
         </div>
       </section>
 
-      <section className="bg-white py-14">
-        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_minmax(390px,0.72fr)] items-center gap-14 px-8">
+      <section className="bg-white py-20">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-[minmax(0,1fr)_minmax(390px,0.72fr)] items-center gap-14 px-6">
           <div className="text-left">
-            <p className="font-poppins text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: GREEN }}>
-              Dos generaciones
-            </p>
-            <h2 className="font-poppins mt-3 text-[44px] font-black leading-[1.06] text-gray-900">
-              No vendemos casas.<br />
-              <span className="italic" style={{ color: GREEN }}>Acompañamos historias.</span>
-            </h2>
-            <p className="font-poppins mt-5 max-w-[660px] text-[16px] leading-relaxed text-gray-600">
-              Empezamos en 1983 cuando Susana abrió la primera oficina en Roldán. Hoy somos un equipo
-              en tres sedes, pero seguimos pensándonos como un estudio: pocos clientes a la vez,
-              mucha cabeza puesta en cada uno.
-            </p>
+            <EncabezadoSeccion
+              eyebrow="Dos generaciones"
+              titulo={<>No vendemos casas.<br /><span style={{ color: GREEN }}>Acompañamos historias.</span></>}
+              bajada="Empezamos en 1983 cuando Susana abrió la primera oficina en Roldán. Hoy somos un equipo en tres sedes, pero seguimos pensándonos como un estudio: pocos clientes a la vez, mucha cabeza puesta en cada uno."
+            />
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-5 shadow-[0_18px_45px_rgba(17,24,39,0.06)]">
+          <div className="revela rounded-2xl border border-gray-200 bg-gray-50/80 p-5 shadow-[0_18px_45px_rgba(17,24,39,0.06)]">
             <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
               {STATS.map((s, i) => (
                 <div
@@ -116,7 +110,7 @@ export default function ConfianzaDesktop() {
                   <p className="font-poppins text-[34px] font-bold leading-none" style={{ color: GREEN, fontVariantNumeric: 'tabular-nums' }}>
                     {s.num}
                   </p>
-                  <p className="font-poppins mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-500">
+                  <p className="font-raleway mt-3 text-[10.5px] font-bold uppercase tracking-[0.16em] text-gray-500">
                     {s.label}
                   </p>
                 </div>
@@ -126,18 +120,11 @@ export default function ConfianzaDesktop() {
         </div>
       </section>
 
-      <section className="bg-white pb-20">
-        <div className="mx-auto max-w-7xl px-8">
-          <div className="mb-10 text-center">
-            <p className="font-poppins text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: GREEN }}>
-              Nuestras sedes
-            </p>
-            <h3 className="font-poppins mt-2 text-[36px] font-black leading-tight text-gray-900">
-              Tres lugares para encontrarnos.
-            </h3>
-          </div>
+      <section className="bg-white pb-24">
+        <div className="mx-auto max-w-[1200px] px-6">
+          <EncabezadoSeccion eyebrow="Nuestras sedes" titulo="Tres lugares para encontrarnos." nivel="h3" className="mb-8" />
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="revela grid grid-cols-1 gap-6 md:grid-cols-3">
             {SEDES.map(sede => (
               <div key={sede.nombre} className="group overflow-hidden rounded-2xl border border-gray-200">
                 <div className="relative aspect-[4/3] overflow-hidden">
@@ -163,16 +150,16 @@ export default function ConfianzaDesktop() {
                   )}
 
                   <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <p className="font-poppins text-[22px] font-black leading-tight">{sede.nombre}</p>
-                    <p className="font-poppins mt-0.5 text-[12px] font-medium opacity-90">{sede.subtitulo}</p>
+                    <p className="font-raleway text-[22px] font-extrabold leading-tight">{sede.nombre}</p>
+                    <p className="font-raleway mt-0.5 text-[12px] font-medium opacity-90">{sede.subtitulo}</p>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-5">
-                  <p className="font-poppins flex items-start gap-2 text-[13px] text-gray-700">
+                  <p className="font-raleway flex items-start gap-2 text-[13px] text-gray-700">
                     <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: GREEN }} />
                     <span>{sede.direccion}</span>
                   </p>
-                  <p className="font-poppins mt-2 flex items-center gap-2 text-[12px] text-gray-500">
+                  <p className="font-raleway mt-2 flex items-center gap-2 text-[12px] text-gray-500">
                     <Clock className="h-3 w-3 shrink-0" />
                     {sede.horario}
                   </p>

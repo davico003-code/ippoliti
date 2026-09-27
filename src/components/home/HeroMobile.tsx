@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import PortadaViva from './PortadaViva'
+import CiudadRotativa from './CiudadRotativa'
 import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
@@ -42,35 +43,32 @@ export default function HeroMobile() {
   return (
     // Sin overflow-hidden: recortaba el dropdown de sugerencias al borde del
     // hero. z-20 para que el dropdown quede por encima de las secciones de abajo.
-    <section className="relative z-20 flex flex-col" style={{ height: 276 }}>
-      {/* Background image + overlay */}
-      <Image
-        src="/images/hero/home-architecture-small.webp"
-        alt="Terraza moderna con vista al lago en Funes y Roldán"
-        fill
-        priority
-        quality={72}
+    <section className="relative z-20 flex flex-col" style={{ height: 330 }}>
+      {/* Portada viva (foto → video) + velo */}
+      <PortadaViva
+        poster="/images/hero/portada-viva-mobile.webp"
+        video="/videos/portada-viva-mobile.mp4"
         sizes="(max-width: 767px) 100vw, 1px"
-        className="object-cover"
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.15) 100%)',
-        }}
+        radio={26}
+        margen={10}
+        velo="radial-gradient(80% 60% at 50% 45%, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.3) 100%)"
       />
 
       {/* Contenido del hero (header global se encarga del navbar) */}
-      <div className="flex-1 flex flex-col justify-center items-center px-5 text-white text-center relative z-10">
-        <h2 className="font-raleway font-black text-[32px] leading-[1.02] drop-shadow-lg whitespace-nowrap">
-          Encontrá tu hogar
+      <div data-portada-contenido className="flex-1 flex flex-col justify-center items-center px-5 text-white text-center relative z-10">
+        <h2 className="font-raleway font-black text-[36px] leading-[1.02] tracking-[-0.03em] drop-shadow-lg whitespace-nowrap">
+          {['Encontrá', 'tu', 'hogar'].map((w, i) => (
+            <span key={w} className="portada-in inline-block" style={{ ['--d' as string]: `${100 + i * 100}ms`, marginRight: i < 2 ? '0.22em' : 0 }}>
+              {w}
+            </span>
+          ))}
         </h2>
-        <p className="font-poppins text-white/95 text-[14px] mt-1 drop-shadow">
-          Propiedades en Funes, Roldán y Rosario
+        <p className="portada-in font-raleway font-semibold text-white/95 text-[15px] mt-1.5 drop-shadow" style={{ ['--d' as string]: '450ms' }}>
+          Propiedades en <CiudadRotativa />
         </p>
 
         {/* Searchbar pill unificado */}
-        <div className="w-full mt-3 relative mx-auto" style={{ maxWidth: 460 }} ref={wrapperRef}>
+        <div className="portada-in w-full mt-4 relative mx-auto" style={{ maxWidth: 460, ['--d' as string]: '600ms' }} ref={wrapperRef}>
           <form
             onSubmit={submit}
             className="bg-white shadow-xl flex items-center"

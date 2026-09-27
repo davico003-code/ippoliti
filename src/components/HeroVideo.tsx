@@ -2,44 +2,56 @@
 
 import HeroSearch from './HeroSearch'
 import HeroVideoDesktop from './home/HeroVideoDesktop'
+import CiudadRotativa from './home/CiudadRotativa'
 
 export default function HeroVideo() {
   return (
     <section
-      className="hero-video-section relative w-full h-[547px] md:-mt-[77px] md:pt-[77px]"
+      className="hero-video-section relative w-full md:-mt-[77px] md:pt-[77px]"
+      style={{ height: 'clamp(560px, 80svh, 780px)' }}
     >
       <HeroVideoDesktop />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/30 to-black/45" />
       <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-[120px] bg-gradient-to-b from-black/60 to-transparent pointer-events-none"
-      />
-
-      <div className="relative z-10 h-full flex items-start justify-center px-4 pt-[140px]">
-        <div className="w-full max-w-[620px] text-center">
+        data-portada-contenido
+        className="relative z-10 h-full flex items-start justify-center px-4"
+        style={{ paddingTop: 'clamp(120px, 22svh, 200px)', willChange: 'transform, opacity' }}
+      >
+        <div className="w-full max-w-[720px] text-center">
           <h2
-            className="text-white mb-3"
+            className="text-white mb-4"
             style={{
               fontFamily: 'var(--font-raleway), Raleway, sans-serif',
               fontWeight: 800,
-              fontSize: 'clamp(38px, 7vw, 56px)',
+              fontSize: 'clamp(44px, 6.4vw, 84px)',
               lineHeight: 1,
-              letterSpacing: '-0.03em',
-              textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
+              letterSpacing: '-0.04em',
+              textShadow: '0 2px 24px rgba(0,0,0,0.35)',
             }}
           >
-            Encontr&aacute; tu hogar
+            {['Encontrá', 'tu', 'hogar'].map((w, i) => (
+              <span key={w} className="portada-in inline-block" style={{ ['--d' as string]: `${120 + i * 110}ms`, marginRight: i < 2 ? '0.24em' : 0 }}>
+                {w}
+              </span>
+            ))}
           </h2>
-          <p className="mb-3 md:mb-4" style={{
+          <p className="portada-in mb-6" style={{
+            ['--d' as string]: '520ms',
             fontFamily: 'var(--font-raleway), Raleway, sans-serif',
-            fontWeight: 600, fontSize: 'clamp(15px, 2vw, 17px)' as string, color: 'rgba(255,255,255,0.95)',
-            textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
+            fontWeight: 600, fontSize: 'clamp(17px, 1.6vw, 21px)', color: 'rgba(255,255,255,0.96)',
+            textShadow: '0 2px 12px rgba(0,0,0,0.5)',
           }}>
-            Propiedades en Funes, Rold&aacute;n y Rosario
+            Propiedades en <CiudadRotativa />
           </p>
-          <HeroSearch />
+          <div className="portada-in portada-buscador" style={{ ['--d' as string]: '680ms' }}>
+            <HeroSearch />
+          </div>
         </div>
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .portada-buscador form { box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 18px 50px -12px rgba(0,0,0,.45) !important; transition: box-shadow 300ms ease, transform 300ms cubic-bezier(.2,.7,.2,1); }
+        .portada-buscador form:focus-within { transform: scale(1.015); box-shadow: 0 0 0 4px rgba(255,255,255,.28), 0 24px 60px -12px rgba(0,0,0,.5) !important; }
+      ` }} />
     </section>
   )
 }
