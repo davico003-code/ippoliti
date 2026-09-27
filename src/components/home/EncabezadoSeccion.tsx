@@ -50,7 +50,7 @@ export default function EncabezadoSeccion({ eyebrow, titulo, bajada, nivel = 'h2
             fontWeight: 600,
             fontSize: 'clamp(15px, 1.2vw, 17px)',
             lineHeight: 1.5,
-            color: '#6b7280',
+            color: '#5b6170',
             margin: '10px 0 0',
             maxWidth: 620,
           }}
