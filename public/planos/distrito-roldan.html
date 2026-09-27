@@ -1167,7 +1167,13 @@ function build(){
     // La colectora se rotula más abajo que la ruta: a la altura de María
     // Auxiliadora está el cartel de ingreso.
     const cx=1769, rx9=1871, yc=750, ycc=1120;
-    const tc=el("text",{x:cx,y:ycc,"text-anchor":"middle","font-size":17,transform:`rotate(90 ${cx} ${ycc})`,dy:"6"});
+    /* La colectora es angosta y en la foto se perdía entre los árboles: va
+       marcada con una franja de asfalto y bordes claros a todo lo alto. */
+    const fb=VBF||VB;
+    rg.appendChild(el("rect",{x:1755,y:fb.y,width:28,height:fb.h,fill:"#4F5452","fill-opacity":".82"}));
+    for(const bx of [1755,1783]) rg.appendChild(el("line",{x1:bx,y1:fb.y,x2:bx,y2:fb.y+fb.h,
+      stroke:"#F4F2EA","stroke-width":2.4,opacity:".85"}));
+    const tc=el("text",{x:cx,y:ycc,"text-anchor":"middle","font-size":19,transform:`rotate(90 ${cx} ${ycc})`,dy:"6.8"});
     tc.textContent="COLECTORA"; rg.appendChild(tc);
     const tr=el("text",{x:rx9,y:yc,"text-anchor":"middle","font-size":25,transform:`rotate(90 ${rx9} ${yc})`,dy:"8.5"});
     tr.textContent="RUTA NACIONAL N.º 9"; rg.appendChild(tr);
