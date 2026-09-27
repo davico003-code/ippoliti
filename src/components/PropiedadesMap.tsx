@@ -99,43 +99,43 @@ function escapeHtml(s: string) {
 }
 
 function createDevPill(name: string, minPrice: string) {
-  const label = name.length > 24 ? name.slice(0, 23).trimEnd() + '…' : name
+  const label = name.length > 18 ? name.slice(0, 17).trimEnd() + '…' : name
   const sub = minPrice === 'Consultar' ? 'Consultar precio' : `desde ${minPrice}`
   const html = `
     <div style="position:relative;display:inline-block;cursor:pointer;">
       <div style="
-        display:inline-flex;align-items:center;gap:7px;
+        display:inline-flex;align-items:center;gap:5px;
         background:#1A5C38;color:#fff;
-        padding:4px 11px 4px 4px;border-radius:10px;
+        padding:3px 8px 3px 3px;border-radius:7px;
         border:2px solid rgba(255,255,255,0.95);
-        box-shadow:0 2px 8px rgba(0,0,0,0.3);
+        box-shadow:0 2px 6px rgba(0,0,0,0.25);
         white-space:nowrap;
       ">
         <span style="
-          width:26px;height:26px;border-radius:7px;background:#fff;
+          width:18px;height:18px;border-radius:5px;background:#fff;
           display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
-        "><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
-        <span style="display:flex;flex-direction:column;line-height:1.15;">
-          <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:12px;">${escapeHtml(label)}</span>
-          <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:11px;opacity:0.88;">${escapeHtml(sub)}</span>
+        "><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
+        <span style="display:flex;flex-direction:column;line-height:1.1;">
+          <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:11px;">${escapeHtml(label)}</span>
+          <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:10px;opacity:0.88;">${escapeHtml(sub)}</span>
         </span>
       </div>
       <div style="
         width:0;height:0;margin:0 auto;
-        border-left:6px solid transparent;
-        border-right:6px solid transparent;
-        border-top:6px solid #1A5C38;
+        border-left:5px solid transparent;
+        border-right:5px solid transparent;
+        border-top:5px solid #1A5C38;
       "></div>
     </div>`
 
-  const w = Math.max(Math.max(label.length * 7.2, sub.length * 6.4) + 54, 90)
+  const w = Math.max(Math.max(label.length * 6.6, sub.length * 5.8) + 36, 72)
 
   return L.divIcon({
     className: '',
     html,
-    iconSize: [w, 44],
-    iconAnchor: [w / 2, 44],
-    popupAnchor: [0, -46],
+    iconSize: [w, 34],
+    iconAnchor: [w / 2, 34],
+    popupAnchor: [0, -36],
   })
 }
 
