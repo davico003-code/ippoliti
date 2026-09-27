@@ -93,50 +93,71 @@ function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoPro
 }
 
 // Chapa del emprendimiento: cuadradito blanco con edificio + nombre + "desde".
-// Más ancha y de dos renglones que las burbujas de precio, así no se confunden.
+// Lejos queda chica (≈34 px, a la par de las burbujas de precio); desde zoom 15
+// crece un poco para destacarse cuando el usuario ya está mirando la zona.
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
 }
 
-function createDevPill(name: string, minPrice: string) {
-  const label = name.length > 18 ? name.slice(0, 17).trimEnd() + '…' : name
+const DEV_ZOOM_CERCA = 15
+
+function createDevPill(name: string, minPrice: string, cerca: boolean) {
+  const max = cerca ? 24 : 18
+  const label = name.length > max ? name.slice(0, max - 1).trimEnd() + '…' : name
   const sub = minPrice === 'Consultar' ? 'Consultar precio' : `desde ${minPrice}`
+  const t = cerca
+    ? { gap: 6, pad: '3px 10px 3px 3px', radius: 8, box: 22, boxRadius: 6, svg: 13, name: 12, sub: 11, tail: 6, shadow: '0 3px 10px rgba(0,0,0,0.3)' }
+    : { gap: 5, pad: '3px 8px 3px 3px', radius: 7, box: 18, boxRadius: 5, svg: 11, name: 11, sub: 10, tail: 5, shadow: '0 2px 6px rgba(0,0,0,0.25)' }
   const html = `
     <div style="position:relative;display:inline-block;cursor:pointer;">
       <div style="
-        display:inline-flex;align-items:center;gap:5px;
+        display:inline-flex;align-items:center;gap:${t.gap}px;
         background:#1A5C38;color:#fff;
-        padding:3px 8px 3px 3px;border-radius:7px;
+        padding:${t.pad};border-radius:${t.radius}px;
         border:2px solid rgba(255,255,255,0.95);
-        box-shadow:0 2px 6px rgba(0,0,0,0.25);
+        box-shadow:${t.shadow};
         white-space:nowrap;
       ">
         <span style="
-          width:18px;height:18px;border-radius:5px;background:#fff;
+          width:${t.box}px;height:${t.box}px;border-radius:${t.boxRadius}px;background:#fff;
           display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
-        "><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
+        "><svg xmlns="http://www.w3.org/2000/svg" width="${t.svg}" height="${t.svg}" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
         <span style="display:flex;flex-direction:column;line-height:1.1;">
-          <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:11px;">${escapeHtml(label)}</span>
-          <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:10px;opacity:0.88;">${escapeHtml(sub)}</span>
+          <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:${t.name}px;">${escapeHtml(label)}</span>
+          <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:${t.sub}px;opacity:0.88;">${escapeHtml(sub)}</span>
         </span>
       </div>
       <div style="
         width:0;height:0;margin:0 auto;
-        border-left:5px solid transparent;
-        border-right:5px solid transparent;
-        border-top:5px solid #1A5C38;
+        border-left:${t.tail}px solid transparent;
+        border-right:${t.tail}px solid transparent;
+        border-top:${t.tail}px solid #1A5C38;
       "></div>
     </div>`
 
-  const w = Math.max(Math.max(label.length * 6.6, sub.length * 5.8) + 36, 72)
+  const w = cerca
+    ? Math.max(Math.max(label.length * 7.2, sub.length * 6.4) + 44, 90)
+    : Math.max(Math.max(label.length * 6.6, sub.length * 5.8) + 36, 72)
+  const h = cerca ? 42 : 34
 
   return L.divIcon({
     className: '',
     html,
-    iconSize: [w, 34],
-    iconAnchor: [w / 2, 34],
-    popupAnchor: [0, -36],
+    iconSize: [w, h],
+    iconAnchor: [w / 2, h],
+    popupAnchor: [0, -h - 2],
   })
+}
+
+function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
+  const map = useMap()
+  useEffect(() => {
+    const handler = () => onZoom(map.getZoom())
+    handler()
+    map.on('zoomend', handler)
+    return () => { map.off('zoomend', handler) }
+  }, [map, onZoom])
+  return null
 }
 
 // ─── Short price label for map bubbles ────────────────────────────────────────
@@ -683,7 +704,9 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
   [properties])
 
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
-  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, createDevPill(g.devName, g.minPrice)])), [devGroups])
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM)
+  const devCerca = zoom >= DEV_ZOOM_CERCA
+  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, createDevPill(g.devName, g.minPrice, devCerca)])), [devGroups, devCerca])
 
 
   return (
@@ -731,6 +754,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       <InitialView />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
+      <ZoomWatcher onZoom={setZoom} />
       <LocateButton onNearbyOrigin={onNearbyOrigin} nearbyActive={nearbyActive} />
       {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
       {activeZona && <ZonaFlyTo zona={activeZona} properties={mapped} />}
@@ -860,7 +884,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           key={`dev-${g.devId}`}
           position={[g.lat, g.lng]}
           icon={devIcons.get(g.devId)!}
-          zIndexOffset={500}
+          zIndexOffset={devCerca ? 500 : 0}
         >
           <Popup maxWidth={260} className="ippoliti-popup">
             <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
