@@ -80,9 +80,43 @@ export function CalleYEventos() {
           id="eventos-titulo"
           eyebrow="Cartelería y eventos"
           titulo="También en la calle, y en persona."
-          bajada="Diseñamos la cartelería de cada lote y proyecto con nuestra identidad, y organizamos eventos en la galería de arte PARED de nuestra oficina de Funes para presentar proyectos a clientes e invitados."
+          bajada="Cada desarrollo que comercializamos tiene su cartelería en la obra y en la ruta, y cada lote su cartel con nuestra identidad. Además organizamos eventos en la galería de arte PARED de nuestra oficina de Funes para presentar proyectos a clientes e invitados."
         />
-        <div className="mt-10 grid gap-4 md:grid-cols-[1fr_1fr_1.1fr] md:gap-5">
+
+        {/* Cartelería de desarrollos, colocada */}
+        <div className="mt-10 grid gap-4 md:grid-cols-[2fr_1fr] md:gap-5">
+          <figure className="m-0">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-[18px] shadow-md">
+              <Image
+                src="/como-trabajamos/cartel-obra-dockgarden.webp"
+                alt="Cartel de Dock Garden y cerco de obra en Aldea Fisherton, con SI INMOBILIARIA como comercializadora"
+                fill
+                sizes="(max-width: 768px) 100vw, 760px"
+                className="object-cover"
+              />
+            </div>
+            <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
+              Dock Garden · cartel y cerco de obra en Aldea Fisherton
+            </figcaption>
+          </figure>
+          <figure className="m-0 flex flex-col">
+            <div className="relative aspect-[3/4] overflow-hidden rounded-[18px] shadow-md md:aspect-auto md:flex-1">
+              <Image
+                src="/como-trabajamos/cartel-ruta-distrito-roldan.webp"
+                alt="Cartel de Distrito Roldán en la ruta, con SI INMOBILIARIA como comercializadora"
+                fill
+                sizes="(max-width: 768px) 100vw, 380px"
+                className="object-cover"
+                style={{ objectPosition: 'center 52%' }}
+              />
+            </div>
+            <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
+              Distrito Roldán · cartel en ruta
+            </figcaption>
+          </figure>
+        </div>
+
+        <div className="mt-5 grid gap-4 md:mt-6 md:grid-cols-[1fr_1fr_1.1fr] md:gap-5">
           {[
             { src: '/como-trabajamos/cartel-lotes-ruta9.webp', alt: 'Cartel de SI INMOBILIARIA de venta de lotes con plano sobre Ruta 9', txt: 'Cartel de obra con plano de lotes' },
             { src: '/como-trabajamos/cartel-vende-lotes.webp', alt: 'Cartel de SI INMOBILIARIA "Vende lotes"', txt: 'Cartel de venta en el terreno' },
