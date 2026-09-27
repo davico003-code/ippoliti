@@ -116,7 +116,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [agent, setAgent] = useState<{ name: string; foto?: string | null } | null>(null)
   const isPropiedades = pathname.startsWith('/propiedades')
-  const isHome = pathname === '/'
+  const isHome = pathname === '/' || pathname === '/preview-home'
   const isBarriosHub = pathname === '/barrios-privados'
   // Navbar transparente sobre el hero inmersivo (home + hub de barrios).
   const overHero = isHome || isBarriosHub
