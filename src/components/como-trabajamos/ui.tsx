@@ -167,12 +167,14 @@ export function Capitulo({ numero, nombre, frase, oscuro = false }: { numero: st
           style={{ fontSize: 'clamp(2.6rem, 7.4vw, 7rem)', lineHeight: 1.0, letterSpacing: '-0.045em' }}
         >
           {palabras.map((p, i) => {
-            const ini = 22 + (i / n) * 30
+            // Se enciende entre el 14% y el ~50% del recorrido: la frase queda
+            // completa justo cuando está centrada en la pantalla.
+            const ini = 14 + (i / n) * 28
             return (
               <span
                 key={i}
                 className="ct-palabra"
-                style={{ ['--ini' as string]: `${ini.toFixed(1)}%`, ['--fin' as string]: `${(ini + 9).toFixed(1)}%` } as React.CSSProperties}
+                style={{ ['--ini' as string]: `${ini.toFixed(1)}%`, ['--fin' as string]: `${(ini + 8).toFixed(1)}%` } as React.CSSProperties}
               >
                 {p}
                 {i < n - 1 ? ' ' : ''}

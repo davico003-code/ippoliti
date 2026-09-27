@@ -249,11 +249,11 @@ export default function ComoTrabajamosPage() {
           </p>
           <h1
             className="ct-in ct-in-1 mt-5 max-w-[15ch] font-extrabold"
-            style={{ fontSize: 'clamp(2.9rem, 7.2vw, 6.4rem)', lineHeight: 0.98, letterSpacing: '-0.045em' }}
+            style={{ fontSize: 'clamp(2.9rem, 7.2vw, 6.4rem)', lineHeight: 0.98, letterSpacing: '-0.045em', textShadow: '0 2px 24px rgba(0,0,0,.25)' }}
           >
             Así trabajamos con <span style={{ color: MENTA }}>tu propiedad.</span>
           </h1>
-          <p className="ct-in ct-in-2 mt-6 max-w-[36rem] text-[17px] font-medium leading-[1.6] md:text-[19px]" style={{ color: 'rgba(255,255,255,.86)' }}>
+          <p className="ct-in ct-in-2 mt-6 max-w-[36rem] text-[17px] font-medium leading-[1.6] md:text-[19px]" style={{ color: 'rgba(255,255,255,.9)', textShadow: '0 1px 14px rgba(0,0,0,.45)' }}>
             Drone, videotours, redes, prensa y pauta paga, tecnología propia y un equipo que te cuenta cómo va, con datos. Todo lo
             que vas a ver es trabajo real, hecho por nosotros.
           </p>
