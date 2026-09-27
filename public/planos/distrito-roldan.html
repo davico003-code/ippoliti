@@ -171,10 +171,14 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 
 /* ---------- aviso flotante ---------- */
 /* Logo de la desarrolladora sobre la foto, abajo al centro. */
-.marca-dev{display:none;position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:31;
-  width:170px;height:auto;pointer-events:none;filter:drop-shadow(0 1px 6px rgba(0,0,0,.55))}
+/* Una sombra difusa detrás (mancha oscura que se desvanece) para que el logo
+   se lea sobre cualquier parte de la foto. */
+.marca-dev{display:none;position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:31;
+  padding:14px 34px;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(8,14,8,.62),rgba(8,14,8,.38) 55%,rgba(8,14,8,0))}
+.marca-dev img{display:block;width:170px;height:auto;filter:drop-shadow(0 1px 4px rgba(0,0,0,.6))}
 .v-foto .marca-dev,.v-mixta .marca-dev{display:block}
-@media (max-width:640px){ .marca-dev{width:118px;bottom:12px} }
+@media (max-width:640px){ .marca-dev{bottom:4px;padding:10px 24px} .marca-dev img{width:118px} }
 /* Selector de vista flotando sobre el mapa. */
 .vista{position:absolute;right:12px;top:12px;z-index:35;display:inline-flex;gap:2px;padding:3px;
   background:rgba(255,255,255,.94);border-radius:999px;box-shadow:0 4px 16px rgba(20,28,16,.22);
@@ -529,8 +533,8 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
       <button type="button" data-vista="plano" aria-pressed="false">Plano</button>
     </div>
     <!-- Desarrolladora: logo blanco sobre la foto, abajo al centro (solo en las vistas con foto). -->
-    <img class="marca-dev" src="/images/distrito-roldan/brand/logo-transatlantica-blanco.webp"
-      alt="Grupo Transatlántica" width="640" height="162" decoding="async">
+    <div class="marca-dev"><img src="/images/distrito-roldan/brand/logo-transatlantica-blanco.webp"
+      alt="Grupo Transatlántica" width="640" height="162" decoding="async"></div>
     <div class="compass" id="compass" aria-hidden="true">
       <span class="needle">
         <svg viewBox="0 0 40 40"><path d="M20 5 L27 30 L20 26 Z" fill="#B4441F"/>
