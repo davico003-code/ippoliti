@@ -112,8 +112,9 @@ export const EMPRENDIMIENTOS = [
 ]
 
 /* ── Informes reales entregados a desarrolladores ──
-   Se muestran como libro: la tapa nítida y las páginas en miniatura, sin
-   que se pueda leer el contenido (es confidencial del desarrollador). */
+   Se muestran como libro (tapa + páginas en abanico) y, al lado, cuatro
+   páginas reales legibles que se abren en grande (David, 27-sep: "que se
+   vea que no son chamuyos"). */
 export const INFORMES = [
   {
     proyecto: 'Dock Garden',
@@ -124,6 +125,12 @@ export const INFORMES = [
     formato: 'a4' as const,
     tapa: `${P}/informes/dockgarden-mercado-tapa.webp`,
     paginas: [`${P}/informes/dockgarden-mercado-p4.webp`, `${P}/informes/dockgarden-mercado-p5.webp`, `${P}/informes/dockgarden-mercado-p8.webp`],
+    muestras: [
+      { src: `${P}/informes/paginas/dockgarden-mercado-3.webp`, ancho: 1100, alto: 1556, etiqueta: 'Objetivo y primeros comparables' },
+      { src: `${P}/informes/paginas/dockgarden-mercado-4.webp`, ancho: 1100, alto: 1556, etiqueta: 'Fichas de comparables' },
+      { src: `${P}/informes/paginas/dockgarden-mercado-8.webp`, ancho: 1100, alto: 1556, etiqueta: 'Tabla de comparables y mapa' },
+      { src: `${P}/informes/paginas/dockgarden-mercado-9.webp`, ancho: 1100, alto: 1556, etiqueta: 'Conclusión y precio sugerido' },
+    ],
   },
   {
     proyecto: 'Distrito Roldán',
@@ -134,6 +141,12 @@ export const INFORMES = [
     formato: 'slide' as const,
     tapa: `${P}/informes/distrito-plan-tapa.webp`,
     paginas: [`${P}/informes/distrito-plan-p04.webp`, `${P}/informes/distrito-plan-p05.webp`, `${P}/informes/distrito-plan-p09.webp`],
+    muestras: [
+      { src: `${P}/informes/paginas/distrito-plan-04.webp`, ancho: 1600, alto: 900, etiqueta: 'Línea de tiempo comercial' },
+      { src: `${P}/informes/paginas/distrito-plan-06.webp`, ancho: 1600, alto: 900, etiqueta: 'Comparación con la competencia' },
+      { src: `${P}/informes/paginas/distrito-plan-08.webp`, ancho: 1600, alto: 900, etiqueta: 'Propuesta concreta' },
+      { src: `${P}/informes/paginas/distrito-plan-09.webp`, ancho: 1600, alto: 900, etiqueta: 'Lógica del movimiento' },
+    ],
   },
   {
     proyecto: 'Distrito Roldán',
@@ -144,6 +157,12 @@ export const INFORMES = [
     formato: 'a4' as const,
     tapa: `${P}/informes/distrito-q1-tapa.webp`,
     paginas: [`${P}/informes/distrito-q1-p2.webp`, `${P}/informes/distrito-q1-p3.webp`, `${P}/informes/distrito-q1-p7.webp`],
+    muestras: [
+      { src: `${P}/informes/paginas/distrito-q1-2.webp`, ancho: 1100, alto: 1556, etiqueta: 'Estado actual y velocidad de venta' },
+      { src: `${P}/informes/paginas/distrito-q1-4.webp`, ancho: 1100, alto: 1556, etiqueta: 'Costo de construcción vs. lote' },
+      { src: `${P}/informes/paginas/distrito-q1-6.webp`, ancho: 1100, alto: 1556, etiqueta: 'Competencia y ventajas' },
+      { src: `${P}/informes/paginas/distrito-q1-8.webp`, ancho: 1100, alto: 1556, etiqueta: 'Plan de comercialización' },
+    ],
   },
 ]
 

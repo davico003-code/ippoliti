@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { VideoVivo } from './Medios'
 import MapaUbicacion from './MapaUbicacion'
+import PaginasInforme from './PaginasInforme'
 import { AGENTES, BARRIOS, DIRECCION, EMPRENDIMIENTOS, INFORMES, OFICINAS, PRENSA } from './datos'
 import { ACENTO, BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, VERDE_SUAVE, conNumeros } from './ui'
 
@@ -388,26 +389,29 @@ export function Desarrolladores() {
         <h3 className="mb-0 mt-16 text-[24px] font-extrabold md:mt-20 md:text-[30px]" style={{ letterSpacing: '-0.025em' }}>
           Informes reales que entregamos a los desarrolladores
         </h3>
-        <p className="mt-2 max-w-[44rem] text-[15.5px] leading-[1.6]" style={{ color: TEXTO }}>
-          Análisis de mercado antes del lanzamiento, planes de acción y reportes trimestrales del avance comercial. Mostramos las
-          tapas: el contenido es confidencial de cada desarrollador.
+        <p className="mt-2 max-w-[46rem] text-[15.5px] leading-[1.6]" style={{ color: TEXTO }}>
+          Análisis de mercado antes del lanzamiento, planes de acción y reportes del avance comercial. Estas son páginas reales:
+          tocá cualquiera para verla en grande.
         </p>
-        <ul className="m-0 mt-8 grid list-none gap-8 p-0 md:grid-cols-3 md:gap-6">
+        <ul className="m-0 mt-10 grid list-none gap-12 p-0 md:gap-16">
           {INFORMES.map((inf) => (
-            <li key={inf.tapa} className="flex flex-col">
-              <Libro informe={inf} />
-              <div className="mt-2 text-center md:mt-4">
-                <p className="m-0 text-[11.5px] font-bold uppercase tracking-[0.18em]" style={{ color: ACENTO }}>
-                  {inf.proyecto} · {inf.tipo}
-                </p>
-                <p className="mt-1.5 text-[17px] font-extrabold leading-snug">{inf.titulo}</p>
-                <p className="mt-0.5 text-[13px] font-semibold" style={{ color: GRIS }}>
-                  {inf.fecha}
-                </p>
-                <p className="mx-auto mt-2 max-w-[30ch] text-[14px] leading-[1.55]" style={{ color: TEXTO }}>
-                  {inf.detalle}
-                </p>
+            <li key={inf.tapa} className="grid items-center gap-6 rounded-[24px] bg-white p-5 md:p-8 lg:grid-cols-[320px_1fr] lg:gap-10" style={{ border: `1px solid ${BORDE}` }}>
+              <div>
+                <Libro informe={inf} />
+                <div className="mt-2 text-center">
+                  <p className="m-0 text-[11.5px] font-bold uppercase tracking-[0.18em]" style={{ color: ACENTO }}>
+                    {inf.proyecto} · {inf.tipo}
+                  </p>
+                  <p className="mt-1.5 text-[18px] font-extrabold leading-snug">{inf.titulo}</p>
+                  <p className="mt-0.5 text-[13px] font-semibold" style={{ color: GRIS }}>
+                    {conNumeros(inf.fecha)}
+                  </p>
+                  <p className="mx-auto mt-2 max-w-[34ch] text-[14px] leading-[1.55]" style={{ color: TEXTO }}>
+                    {inf.detalle}
+                  </p>
+                </div>
               </div>
+              <PaginasInforme paginas={inf.muestras} titulo={`${inf.proyecto} · ${inf.tipo}`} />
             </li>
           ))}
         </ul>
