@@ -35,11 +35,12 @@ const SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imag
 const SAT_ATTR = '&copy; <a href="https://www.esri.com">Esri</a> &mdash; Maxar, Earthstar Geographics'
 const SAT_REF_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'
 
-/** Tramo más largo de cada avenida: ahí va la etiqueta con el nombre. */
-function tramoLargo(lineas: [number, number][][]): [number, number][] {
-  const largo = (l: [number, number][]) =>
-    l.reduce((acc, p, i) => (i ? acc + Math.hypot(p[0] - l[i - 1][0], p[1] - l[i - 1][1]) : 0), 0)
-  return lineas.reduce((a, b) => (largo(b) > largo(a) ? b : a))
+/** Dónde va la etiqueta de cada avenida: en un tramo despejado, lejos del Centro. */
+const ETIQUETAS: Record<'R' | 'F' | 'G' | 'Y', [number, number]> = {
+  R: [-32.9163, -60.8455],
+  F: [-32.9304, -60.8560],
+  G: [-32.9480, -60.8195],
+  Y: [-32.9005, -60.8090],
 }
 
 const FUNES_BOUNDS = L.latLngBounds([-32.951, -60.868], [-32.894, -60.765])
@@ -212,8 +213,8 @@ export default function MapaComercial({
             (Object.keys(AVENIDAS) as (keyof typeof AVENIDAS)[]).map((k) => {
               const dim = zonaActiva !== null && zonaActiva !== k
               const activa = zonaActiva === k
-              const principal = tramoLargo(AVENIDAS[k])
-              return AVENIDAS[k].map((linea, i) => (
+              return [
+                ...AVENIDAS[k].map((linea, i) => (
                 <Polyline
                   key={`${k}-${i}-${satelite ? 's' : 'p'}`}
                   positions={linea}
@@ -225,14 +226,22 @@ export default function MapaComercial({
                     lineCap: 'round',
                     lineJoin: 'round',
                   }}
-                >
-                  {linea === principal && !dim && (
+                />
+                )),
+                !dim && (
+                  <CircleMarker
+                    key={`${k}-label-${satelite ? 's' : 'p'}`}
+                    center={ETIQUETAS[k]}
+                    radius={0}
+                    interactive={false}
+                    pathOptions={{ opacity: 0, fillOpacity: 0 }}
+                  >
                     <Tooltip permanent direction="center" className="acm-avlabel" opacity={1}>
                       <span style={{ ['--c' as string]: ZONAS[k].color }}>{ZONAS[k].corto}</span>
                     </Tooltip>
-                  )}
-                </Polyline>
-              ))
+                  </CircleMarker>
+                ),
+              ]
             })}
 
           {POLOS.map((p) => {
