@@ -14,6 +14,7 @@ interface LinkItem {
   cliente: string
   creadoEn: string
   usadoEn?: string
+  visitas?: number
   url: string
 }
 
@@ -71,7 +72,7 @@ export default function GeneradorLinks() {
   }
 
   const mensaje = (l: LinkItem) =>
-    `Hola ${l.cliente.split(' ')[0]}, ¿cómo estás? Te comparto cómo trabajamos en SI INMOBILIARIA con cada propiedad. El link es personal y se abre una sola vez: ${l.url}`
+    `Hola ${l.cliente.split(' ')[0]}, ¿cómo estás? Te comparto cómo trabajamos en SI INMOBILIARIA con cada propiedad. Es un link personal, para abrir desde tu celular o computadora: ${l.url}`
 
   return (
     <main className="mx-auto max-w-[760px] px-4 py-8 font-raleway md:py-12">
@@ -80,9 +81,9 @@ export default function GeneradorLinks() {
       </Link>
       <h1 className="mt-4 text-[28px] font-extrabold tracking-tight text-neutral-900">Presentación &quot;Cómo trabajamos&quot;</h1>
       <p className="mt-2 text-[15px] leading-relaxed text-neutral-600">
-        Generá un link personal para cada cliente. Se abre <strong>una sola vez</strong>, en el primer dispositivo, y queda
-        disponible ahí por 7 días. Si no lo abre, vence a los 14 días. En la TV de la oficina se ve directo con tu sesión de
-        agente.
+        Generá un link personal para cada cliente: <strong>el link es la clave</strong>, no hay contraseña que pasar. Se
+        abre solo en el primer dispositivo (no se puede compartir) y el cliente la puede ver <strong>2 veces en 48 horas</strong>.
+        Si no lo abre, vence a los 3 días. En la TV de la oficina se ve directo con tu sesión de agente.
       </p>
 
       <Link
@@ -150,7 +151,7 @@ export default function GeneradorLinks() {
               </span>
               {l.usadoEn ? (
                 <span className="rounded-full bg-green-50 px-3 py-1 text-[12.5px] font-bold" style={{ color: GREEN }}>
-                  Abierto {fecha(l.usadoEn)}
+                  Abierto {fecha(l.usadoEn)} · {l.visitas ?? 1} de 2 visitas
                 </span>
               ) : (
                 <button type="button" onClick={() => copiar(l.url)} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1 text-[12.5px] font-bold text-neutral-700">

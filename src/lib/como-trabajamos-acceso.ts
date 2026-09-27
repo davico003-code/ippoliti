@@ -1,9 +1,12 @@
-// Acceso privado a /como-trabajamos: links de un solo uso.
+// Acceso privado a /como-trabajamos: links personales y de un solo dispositivo.
 //
-// - Un agente logueado genera un link para un cliente (queda en Redis 14 días).
+// - Un agente logueado genera un link para un cliente (vence a los 3 días si
+//   no se abre).
 // - La primera vez que se abre y se toca "Ver presentación" el link se canjea
-//   (atómico, SET NX) y el dispositivo recibe una cookie firmada por 7 días.
-//   Después el mismo link ya no abre en ningún otro dispositivo.
+//   (atómico, SET NX) y ese dispositivo recibe una cookie firmada. El mismo
+//   link ya no abre en ningún otro dispositivo: no se puede compartir.
+// - Cada cliente tiene 2 visitas, dentro de 48 horas. Recargar o navegar en
+//   la misma media hora cuenta como la misma visita.
 // - El canje es por POST desde un botón: las vistas previas de WhatsApp y los
 //   bots hacen GET y no queman el link.
 // - Los agentes logueados (y la TV de la oficina con sesión de agente) ven la
@@ -16,8 +19,11 @@ import { redis } from '@/lib/redis'
 const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET || '')
 
 export const COOKIE_ACCESO = 'si_ct_acceso'
-export const DURACION_LINK_S = 60 * 60 * 24 * 14 // el link sin usar vence a los 14 días
-export const DURACION_SESION_S = 60 * 60 * 24 * 7 // una vez abierto, 7 días en ese dispositivo
+export const DURACION_LINK_S = 60 * 60 * 24 * 3 // el link sin abrir vence a los 3 días
+export const DURACION_SESION_S = 60 * 60 * 48 // una vez abierto, 48 horas en ese dispositivo
+export const MAX_VISITAS = 2
+const VENTANA_VISITA_MS = 30 * 60 * 1000 // recargas dentro de 30 min = la misma visita
+const RETENCION_S = 60 * 60 * 24 * 7 // cuánto guardamos el registro para el panel del agente
 
 export interface LinkPresentacion {
   token: string
@@ -26,11 +32,18 @@ export interface LinkPresentacion {
   agenteNombre: string
   creadoEn: string
   usadoEn?: string
+  visitas?: number
 }
 
 const kLink = (t: string) => `ct:link:${t}`
 const kUso = (t: string) => `ct:uso:${t}`
 const kAgente = (id: string) => `ct:links:${id}`
+const kVisitas = (t: string) => `ct:visitas:${t}`
+
+interface RegistroVisitas {
+  n: number
+  ultima: number
+}
 
 export async function crearLink(cliente: string, agente: { id: string; name: string }): Promise<LinkPresentacion> {
   const link: LinkPresentacion = {
@@ -56,9 +69,10 @@ export async function leerLink(token: string): Promise<{ link: LinkPresentacion 
 export async function canjearLink(token: string): Promise<{ ok: true; jwt: string } | { ok: false; motivo: 'invalido' | 'usado' }> {
   const { link } = await leerLink(token)
   if (!link) return { ok: false, motivo: 'invalido' }
-  const primero = await redis.set(kUso(token), new Date().toISOString(), { nx: true, ex: DURACION_LINK_S })
+  const primero = await redis.set(kUso(token), new Date().toISOString(), { nx: true, ex: RETENCION_S })
   if (primero !== 'OK') return { ok: false, motivo: 'usado' }
-  await redis.set(kLink(token), { ...link, usadoEn: new Date().toISOString() }, { ex: DURACION_LINK_S })
+  await redis.set(kLink(token), { ...link, usadoEn: new Date().toISOString() }, { ex: RETENCION_S })
+  await redis.set(kVisitas(token), { n: 1, ultima: Date.now() } satisfies RegistroVisitas, { ex: RETENCION_S })
   const jwt = await new SignJWT({ t: token, cliente: link.cliente, agente: link.agenteNombre })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime(`${DURACION_SESION_S}s`)
@@ -66,21 +80,46 @@ export async function canjearLink(token: string): Promise<{ ok: true; jwt: strin
   return { ok: true, jwt }
 }
 
-export async function verificarSesion(jwt: string | undefined): Promise<{ cliente: string; agente: string } | null> {
-  if (!jwt) return null
+export type EstadoSesion =
+  | { ok: true; cliente: string; agente: string; visita: number }
+  | { ok: false; motivo: 'sin-sesion' }
+  | { ok: false; motivo: 'agotado'; agente: string }
+
+/**
+ * Valida la cookie y registra la visita. Las cargas dentro de 30 minutos de la
+ * última cuentan como la misma visita; pasado eso se abre una nueva, hasta 2.
+ */
+export async function verificarSesion(jwt: string | undefined): Promise<EstadoSesion> {
+  if (!jwt) return { ok: false, motivo: 'sin-sesion' }
+  let payload
   try {
-    const { payload } = await jwtVerify(jwt, SECRET)
-    return { cliente: String(payload.cliente ?? ''), agente: String(payload.agente ?? '') }
+    payload = (await jwtVerify(jwt, SECRET)).payload
   } catch {
-    return null
+    return { ok: false, motivo: 'sin-sesion' }
   }
+  const token = String(payload.t ?? '')
+  const cliente = String(payload.cliente ?? '')
+  const agente = String(payload.agente ?? '')
+  const reg = (await redis.get<RegistroVisitas>(kVisitas(token))) ?? { n: 1, ultima: 0 }
+  const ahora = Date.now()
+  if (ahora - reg.ultima <= VENTANA_VISITA_MS) {
+    await redis.set(kVisitas(token), { ...reg, ultima: ahora }, { ex: RETENCION_S })
+    return { ok: true, cliente, agente, visita: reg.n }
+  }
+  if (reg.n >= MAX_VISITAS) return { ok: false, motivo: 'agotado', agente }
+  const nuevo = { n: reg.n + 1, ultima: ahora }
+  await redis.set(kVisitas(token), nuevo, { ex: RETENCION_S })
+  return { ok: true, cliente, agente, visita: nuevo.n }
 }
 
 export async function linksDelAgente(agenteId: string): Promise<LinkPresentacion[]> {
   const tokens = await redis.lrange<string>(kAgente(agenteId), 0, 29)
   if (!tokens.length) return []
-  const res = await Promise.all(tokens.map((t) => leerLink(t)))
-  return res
-    .map((r) => r.link)
-    .filter((l): l is LinkPresentacion => Boolean(l))
+  const res = await Promise.all(
+    tokens.map(async (t) => {
+      const [{ link }, v] = await Promise.all([leerLink(t), redis.get<RegistroVisitas>(kVisitas(t))])
+      return link ? ({ ...link, visitas: v?.n ?? 0 } as LinkPresentacion) : null
+    }),
+  )
+  return res.filter((l): l is LinkPresentacion => Boolean(l))
 }
