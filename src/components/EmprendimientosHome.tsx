@@ -7,8 +7,8 @@ import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
 
 export default function EmprendimientosHome() {
   return (
-    <section style={{ background: '#F5F5F7', padding: '64px 0 72px', overflow: 'hidden' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+    <section className="[--pad:24px] lg:[--pad:40px]" style={{ background: '#F5F5F7', padding: '64px 0 72px', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 var(--pad)' }}>
         <EncabezadoSeccion
           eyebrow="Emprendimientos"
           titulo="Proyectos destacados"
