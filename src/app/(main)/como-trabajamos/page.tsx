@@ -237,6 +237,8 @@ export default function ComoTrabajamosPage() {
               'linear-gradient(90deg, rgba(6,20,12,.82) 0%, rgba(6,20,12,.5) 42%, rgba(6,20,12,.08) 75%), linear-gradient(0deg, rgba(6,20,12,.92) 0%, rgba(6,20,12,0) 42%)',
           }}
         />
+        {/* En el celular el texto ocupa todo el ancho: velo parejo para que se lea. */}
+        <div aria-hidden className="absolute inset-0 -z-10 md:hidden" style={{ background: 'rgba(6,20,12,.42)' }} />
 
         <Contenedor className="flex flex-1 flex-col justify-end pb-10 pt-24 md:pb-14 md:pt-32">
           <p className="m-0 text-[12px] font-bold uppercase tracking-[0.28em]" style={{ color: MENTA }}>
