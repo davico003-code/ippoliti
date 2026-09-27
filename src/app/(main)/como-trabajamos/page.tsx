@@ -28,7 +28,7 @@ import { VideoVivo } from '@/components/como-trabajamos/Medios'
 import { Vendidas } from '@/components/como-trabajamos/Resultados'
 import { Aereas, EquipoTecnico, Fotografia, Reels, Videotours } from '@/components/como-trabajamos/Produccion'
 import { CharlasQueSi, ContenidoIA, EmailMarketing, PortalesYPauta, Redes } from '@/components/como-trabajamos/Difusion'
-import { CalleYEventos, Desarrolladores, Equipo, Hilo, InformeReal, Oficinas, Prensa, RedDeContactos } from '@/components/como-trabajamos/Respaldo'
+import { CalleYEventos, Desarrolladores, Equipo, Hilo, InformeReal, Oficinas, Prensa } from '@/components/como-trabajamos/Respaldo'
 import {
   ACENTO,
   BotonTasar,
@@ -387,7 +387,6 @@ export default function ComoTrabajamosPage() {
       {/* ── RESPALDO ────────────────────────────── */}
       <Capitulo numero="04" nombre="Respaldo" frase="Detrás, cuatro décadas de trabajo en la zona." oscuro />
       <Desarrolladores />
-      <RedDeContactos />
       <Equipo />
       <Oficinas />
 

@@ -3,13 +3,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, Clapperboard, Drone, Mic, Smartphone, Video } from 'lucide-react'
+import { ArrowUpRight, Clapperboard, Drone, Glasses, Laptop, Mic, Smartphone, Video } from 'lucide-react'
 import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
 import { ShortYoutube, VideoVivo } from './Medios'
 import { AEREAS, CANAL_YOUTUBE, EQUIPOS, FOTOS, SHORTS, VIDEOTOURS } from './datos'
 import { BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, conNumeros } from './ui'
 
-const ICONOS = { drone: Drone, video: Video, celular: Smartphone, mic: Mic }
+const ICONOS = { drone: Drone, video: Video, celular: Smartphone, mic: Mic, laptop: Laptop, lentes: Glasses }
 
 export function Fotografia() {
   return (
@@ -99,7 +99,7 @@ export function EquipoTecnico() {
             id="equipo-tecnico-titulo"
             eyebrow="Equipo de marketing y producción"
             titulo="Con qué relevamos cada propiedad."
-            bajada="Tenemos un equipo propio de marketing y producción audiovisual. Salimos a relevar con equipo profesional, no con el celular del bolsillo."
+            bajada="Tenemos un equipo propio de marketing y producción audiovisual. Grabamos con equipo profesional y editamos en MacBook Pro con programas avanzados de edición de video."
           />
           <div className="relative mt-8 aspect-[4/5] w-full max-w-[340px] overflow-hidden rounded-[22px]">
             <VideoVivo
@@ -119,13 +119,13 @@ export function EquipoTecnico() {
             const Icon = ICONOS[e.icono]
             return (
               <li key={e.nombre} className="ct-rev overflow-hidden rounded-[20px]" style={{ background: FONDO, border: `1px solid ${BORDE}` }}>
-                <span className="relative block aspect-[16/10]" style={{ background: e.oscura ? '#000' : '#fff' }}>
+                <span className="relative block aspect-[4/3]" style={{ background: e.oscura ? '#000' : '#fff' }}>
                   <Image
                     src={e.foto}
                     alt={e.nombre}
                     fill
-                    sizes="(max-width: 640px) 100vw, 320px"
-                    className={e.oscura ? 'object-cover' : 'object-contain p-5'}
+                    sizes="(max-width: 640px) 100vw, 360px"
+                    className={e.oscura ? 'object-cover' : 'object-contain p-2'}
                   />
                 </span>
                 <span className="block p-6 pt-5">
@@ -145,8 +145,8 @@ export function EquipoTecnico() {
               Del relevamiento a la publicación
             </p>
             <p className="mt-2 text-[16px] font-semibold leading-[1.6]">
-              Fotos, video horizontal para YouTube, reels verticales, tomas aéreas y la voz del agente contando la propiedad: todo
-              sale de una misma visita, coordinada con vos.
+              Fotos, video horizontal para YouTube, reels verticales, tomas aéreas, primera persona con Ray-Ban Meta y la voz del
+              agente contando la propiedad: todo sale de una misma visita, coordinada con vos, y se edita en nuestro equipo.
             </p>
           </li>
         </ul>
