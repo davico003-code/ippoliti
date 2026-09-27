@@ -98,27 +98,39 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
 }
 
+// De lejos el emprendimiento es un puntito discreto; recién al acercarse al
+// barrio (zoom >= DEV_CHAPA_ZOOM) aparece la chapa con nombre y "desde".
+const DEV_CHAPA_ZOOM = 14
+
+function createDevDot() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width:12px;height:12px;border-radius:50%;
+      background:#1A5C38;border:2px solid #fff;
+      box-shadow:0 1px 3px rgba(0,0,0,0.3);cursor:pointer;
+    "></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+    popupAnchor: [0, -8],
+  })
+}
+
 function createDevPill(name: string, minPrice: string) {
   const label = name.length > 18 ? name.slice(0, 17).trimEnd() + '…' : name
   const sub = minPrice === 'Consultar' ? 'Consultar precio' : `desde ${minPrice}`
   const html = `
     <div style="position:relative;display:inline-block;cursor:pointer;">
       <div style="
-        display:inline-flex;align-items:center;gap:5px;
+        display:flex;flex-direction:column;line-height:1.1;
         background:#1A5C38;color:#fff;
-        padding:3px 8px 3px 3px;border-radius:7px;
+        padding:3px 8px;border-radius:7px;
         border:2px solid rgba(255,255,255,0.95);
         box-shadow:0 2px 6px rgba(0,0,0,0.25);
         white-space:nowrap;
       ">
-        <span style="
-          width:18px;height:18px;border-radius:5px;background:#fff;
-          display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
-        "><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
-        <span style="display:flex;flex-direction:column;line-height:1.1;">
-          <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:11px;">${escapeHtml(label)}</span>
-          <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:10px;opacity:0.88;">${escapeHtml(sub)}</span>
-        </span>
+        <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:11px;">${escapeHtml(label)}</span>
+        <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:10px;opacity:0.88;">${escapeHtml(sub)}</span>
       </div>
       <div style="
         width:0;height:0;margin:0 auto;
@@ -128,7 +140,7 @@ function createDevPill(name: string, minPrice: string) {
       "></div>
     </div>`
 
-  const w = Math.max(Math.max(label.length * 6.6, sub.length * 5.8) + 36, 72)
+  const w = Math.max(Math.max(label.length * 6.6, sub.length * 5.8) + 20, 60)
 
   return L.divIcon({
     className: '',
@@ -137,6 +149,17 @@ function createDevPill(name: string, minPrice: string) {
     iconAnchor: [w / 2, 34],
     popupAnchor: [0, -36],
   })
+}
+
+function DevZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
+  const map = useMap()
+  useEffect(() => {
+    const handler = () => onZoom(map.getZoom())
+    handler()
+    map.on('zoomend', handler)
+    return () => { map.off('zoomend', handler) }
+  }, [map, onZoom])
+  return null
 }
 
 // ─── Short price label for map bubbles ────────────────────────────────────────
@@ -684,6 +707,9 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
 
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
   const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, createDevPill(g.devName, g.minPrice)])), [devGroups])
+  const devDot = useMemo(() => createDevDot(), [])
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM)
+  const devChapa = zoom >= DEV_CHAPA_ZOOM
 
 
   return (
@@ -743,9 +769,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           <span style={{ color: '#666' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 22, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', paddingLeft: 2 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: '#fff' }} />
-          </div>
+          <div style={{ width: 10, height: 10, background: '#1A5C38', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.3)', margin: '0 2px' }} />
           <span style={{ color: '#666' }}>Emprendimiento</span>
         </div>
       </div>
@@ -854,13 +878,14 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
         })}
       </MarkerClusterGroup>
 
+      <DevZoomWatcher onZoom={setZoom} />
       {/* Development markers — outside cluster group */}
       {devGroups.map(g => (
         <Marker
           key={`dev-${g.devId}`}
           position={[g.lat, g.lng]}
-          icon={devIcons.get(g.devId)!}
-          zIndexOffset={500}
+          icon={devChapa ? devIcons.get(g.devId)! : devDot}
+          zIndexOffset={devChapa ? 500 : 0}
         >
           <Popup maxWidth={260} className="ippoliti-popup">
             <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
