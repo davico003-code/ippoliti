@@ -19,6 +19,8 @@ interface Props {
   location?: string
   /** URL absoluta de la página del emprendimiento — habilita "Enviar lista de precios". */
   pageUrl?: string
+  /** Teléfono que firma la lista de precios compartida; sin esto, el general. */
+  telefonoLabel?: string
 }
 
 const porPrecio = (a: UnidadFila, b: UnidadFila) =>
@@ -27,7 +29,7 @@ const porPrecio = (a: UnidadFila, b: UnidadFila) =>
 const formatPrecio = (f: UnidadFila) =>
   f.precio > 0 ? `${f.moneda} ${f.precio.toLocaleString('es-AR')}` : 'Consultar'
 
-export default function DevUnitsSection({ filas, devName, whatsappUrl, location, pageUrl }: Props) {
+export default function DevUnitsSection({ filas, devName, whatsappUrl, location, pageUrl, telefonoLabel = '(341) 334-0916' }: Props) {
   const [viewer, setViewer] = useState<Viewer | null>(null)
 
   // Link wa.me SIN número: abre WhatsApp con la lista completa de precios ya
@@ -46,10 +48,10 @@ export default function DevUnitsSection({ filas, devName, whatsappUrl, location,
       ...lines,
       '',
       `Más info y fotos: ${pageUrl}`,
-      'SI INMOBILIARIA · (341) 334-0916',
+      `SI INMOBILIARIA · ${telefonoLabel}`,
     ].join('\n')
     return `https://wa.me/?text=${encodeURIComponent(msg)}`
-  }, [filas, devName, location, pageUrl])
+  }, [filas, devName, location, pageUrl, telefonoLabel])
 
   // Un grupo por cantidad de dormitorios, cada uno de menor a mayor precio.
   const grupos = useMemo(() => {

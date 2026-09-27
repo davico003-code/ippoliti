@@ -80,6 +80,14 @@ const DEV_SEO: Record<
   },
 }
 
+// Contacto propio por emprendimiento (keyed por ID de Tokko). Sin entrada, el
+// número general. 26-sep-2026 (David): la pauta de Dock Garden manda a esta
+// landing y sus consultas las atiende Carolina Echen.
+type DevContacto = { whatsapp: string; telefono: string; telefonoLabel: string }
+const DEV_CONTACTO: Record<number, DevContacto> = {
+  67173: { whatsapp: '5493416422945', telefono: '+5493416422945', telefonoLabel: '(341) 642-2945' },
+}
+
 // Imágenes propias de la landing por emprendimiento (keyed por ID de Tokko).
 // fotosLimpias: fragmento del nombre del archivo en el CRM → versión sin el
 // logo estampado del desarrollador (renders nuevos o el mismo render recortado).
@@ -225,7 +233,8 @@ export default async function DevelopmentPage({ params }: Props) {
   ]
 
   const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${displayName}`)
-  const whatsappUrl = `https://wa.me/5493413340916?text=${whatsappText}`
+  const contacto = DEV_CONTACTO[dev.id]
+  const whatsappUrl = `https://wa.me/${contacto?.whatsapp ?? '5493413340916'}?text=${whatsappText}`
 
   const isDistrito = dev.id === 67178
 
@@ -310,6 +319,7 @@ export default async function DevelopmentPage({ params }: Props) {
           filas={filas}
           otherDevs={otherDevs}
           whatsappUrl={whatsappUrl}
+          contacto={contacto}
         />
       )}
 
