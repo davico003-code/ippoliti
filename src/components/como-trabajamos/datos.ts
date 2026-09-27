@@ -20,7 +20,6 @@ export const FOTOS = [
   { src: `${P}/vida-galeria.webp`, alt: 'Galería con techo de madera en barrio Vida', lugar: 'Vida · Funes', href: '/propiedades/7868679-casa-en-venta-de-3-dormitorios-con-pileta-en-vida-barrio-cerrado-funes' },
   { src: `${P}/san-sebastian-pileta.webp`, alt: 'Pileta en San Sebastián, Funes', lugar: 'San Sebastián · Funes', href: '/propiedades/8424243-casa-en-venta-3-dormitorios-en-funes-san-sebastian-barrio-privado' },
   { src: `${P}/puerto-roldan-living.webp`, alt: 'Living luminoso en Puerto Roldán', lugar: 'Puerto Roldán', href: '/propiedades/900000552-casa-en-barrio-cerrado-puerto-roldan' },
-  { src: `${P}/kentucky-fachada.webp`, alt: 'Fachada de casa nueva en Kentucky, Funes', lugar: 'Kentucky · Funes', href: '/propiedades/7872050-casa-en-venta-de-4-dormitorios-en-kentucky-club-de-campo-funes' },
 ]
 
 /* ── Drone ── */

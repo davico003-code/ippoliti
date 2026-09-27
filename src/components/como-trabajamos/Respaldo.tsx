@@ -32,7 +32,7 @@ export function Prensa() {
         />
         <ul className="m-0 mt-10 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-4 md:gap-5">
           {PRENSA.map((n) => (
-            <li key={n.href}>
+            <li key={n.href} className="ct-rev">
               <a
                 href={n.href}
                 target="_blank"
@@ -89,7 +89,7 @@ export function CalleYEventos() {
                 alt="Cartel de Dock Garden y cerco de obra en Aldea Fisherton, con SI INMOBILIARIA como comercializadora"
                 fill
                 sizes="(max-width: 768px) 100vw, 760px"
-                className="object-cover"
+                className="ct-zoom object-cover"
               />
             </div>
             <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
@@ -260,7 +260,7 @@ export function Hilo() {
 
         <div className="mt-12 grid gap-14 md:gap-20">
           {HILO_PANTALLAS.map((p, i) => (
-            <div key={p.paso} className="grid items-center gap-7 lg:grid-cols-[1fr_1.35fr] lg:gap-12">
+            <div key={p.paso} className="ct-rev grid items-center gap-7 lg:grid-cols-[1fr_1.35fr] lg:gap-12">
               <div className={i % 2 ? 'lg:order-2' : ''}>
                 <p className="m-0 text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: INDIGO }}>
                   {p.paso}
@@ -279,7 +279,7 @@ export function Hilo() {
 
         <ul className="m-0 mt-16 grid list-none grid-cols-1 gap-3 p-0 md:mt-20 md:grid-cols-3 md:gap-4">
           {HILO_PARA_EL_DUENO.map(({ Icon, t, d }) => (
-            <li key={t} className="rounded-[18px] p-6" style={{ background: '#F4F4FB', border: '1px solid rgba(33,30,120,.08)' }}>
+            <li key={t} className="ct-rev rounded-[18px] p-6" style={{ background: '#F4F4FB', border: '1px solid rgba(33,30,120,.08)' }}>
               <Icon size={22} strokeWidth={1.8} style={{ color: INDIGO }} aria-hidden />
               <p className="mt-3 text-[16.5px] font-extrabold leading-tight">{t}</p>
               <p className="mt-1.5 text-[14px] leading-[1.55]" style={{ color: GRIS }}>
@@ -304,7 +304,7 @@ export function InformeReal() {
   return (
     <div className="grid gap-4 md:grid-cols-2 md:gap-5">
       {bloques.map((b) => (
-        <div key={b.src} className="overflow-hidden rounded-[16px] bg-white shadow-lg" style={{ border: `1px solid ${BORDE}` }}>
+        <div key={b.src} className="ct-rev overflow-hidden rounded-[16px] bg-white shadow-lg" style={{ border: `1px solid ${BORDE}` }}>
           <Image src={b.src} alt={b.alt} width={770} height={340} sizes="(max-width: 768px) 100vw, 560px" className="h-auto w-full" />
         </div>
       ))}
@@ -342,7 +342,7 @@ function Libro({ informe }: { informe: (typeof INFORMES)[number] }) {
 
 export function Desarrolladores() {
   return (
-    <section className="py-16 md:py-24" style={{ background: FONDO }} aria-labelledby="desarrolladores-titulo">
+    <section className="bg-white py-16 md:py-24" aria-labelledby="desarrolladores-titulo">
       <Contenedor>
         <Encabezado
           id="desarrolladores-titulo"
@@ -353,7 +353,7 @@ export function Desarrolladores() {
 
         <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-2 md:gap-5">
           {EMPRENDIMIENTOS.map((e) => (
-            <li key={e.nombre}>
+            <li key={e.nombre} className="ct-rev">
               <Link
                 href={e.href}
                 className="group block h-full overflow-hidden rounded-[22px] bg-white transition-shadow duration-200 hover:shadow-lg"
@@ -395,7 +395,7 @@ export function Desarrolladores() {
         </p>
         <ul className="m-0 mt-10 grid list-none gap-12 p-0 md:gap-16">
           {INFORMES.map((inf) => (
-            <li key={inf.tapa} className="grid items-center gap-6 rounded-[24px] bg-white p-5 md:p-8 lg:grid-cols-[320px_1fr] lg:gap-10" style={{ border: `1px solid ${BORDE}` }}>
+            <li key={inf.tapa} className="grid items-center gap-6 rounded-[24px] p-5 md:p-8 lg:grid-cols-[320px_1fr] lg:gap-10" style={{ background: FONDO, border: `1px solid ${BORDE}` }}>
               <div>
                 <Libro informe={inf} />
                 <div className="mt-2 text-center">
@@ -485,7 +485,7 @@ export function Equipo() {
 
         <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-3 md:gap-5">
           {DIRECCION.map((p) => (
-            <li key={p.nombre} className="overflow-hidden rounded-[22px]" style={{ background: FONDO }}>
+            <li key={p.nombre} className="ct-rev overflow-hidden rounded-[22px]" style={{ background: FONDO }}>
               <span className="relative block aspect-[4/5]">
                 <Image src={p.foto} alt={p.nombre} fill sizes="(max-width: 768px) 100vw, 380px" className="object-cover" style={{ objectPosition: 'center 20%' }} />
               </span>
@@ -504,7 +504,7 @@ export function Equipo() {
 
         <ul className="m-0 mt-5 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 md:gap-4">
           {AGENTES.map((a) => (
-            <li key={a.nombre}>
+            <li key={a.nombre} className="ct-rev">
               <span className="relative block aspect-[3/4] overflow-hidden rounded-[16px] bg-neutral-200">
                 <Image src={a.foto} alt={a.nombre} fill sizes="(max-width: 640px) 50vw, 150px" className="object-cover" style={{ objectPosition: 'center 22%' }} />
               </span>
@@ -550,7 +550,7 @@ export function Oficinas() {
 
         <figure className="relative m-0 mt-10 overflow-hidden rounded-[24px] shadow-xl">
           <div className="relative aspect-[16/10] md:aspect-[2000/858]">
-            <Image src="/como-trabajamos/oficina/fachada.webp" alt="Fachada de la oficina de SI INMOBILIARIA en Hipólito Yrigoyen 2643, Funes" fill sizes="(max-width: 1200px) 100vw, 1120px" className="object-cover" />
+            <Image src="/como-trabajamos/oficina/fachada.webp" alt="Fachada de la oficina de SI INMOBILIARIA en Hipólito Yrigoyen 2643, Funes" fill sizes="(max-width: 1200px) 100vw, 1120px" className="ct-zoom object-cover" />
           </div>
           <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(6,20,12,.78) 0%, rgba(6,20,12,0) 50%)' }} />
           <figcaption className="absolute bottom-0 left-0 right-0 flex flex-wrap items-end justify-between gap-3 p-5 text-white md:p-8">
@@ -571,7 +571,7 @@ export function Oficinas() {
             { src: '/como-trabajamos/oficina/sala-reuniones.webp', alt: 'Sala de reuniones de la oficina de Funes con vista al jardín', txt: 'Sala de reuniones para firmar con tranquilidad' },
             { src: '/como-trabajamos/oficina/sala-equipo.webp', alt: 'Espacio de trabajo del equipo en la oficina de Funes', txt: 'El espacio donde trabaja el equipo' },
           ].map((f) => (
-            <figure key={f.src} className="m-0">
+            <figure key={f.src} className="ct-rev m-0">
               <div className="relative aspect-[4/3] overflow-hidden rounded-[20px]">
                 <Image src={f.src} alt={f.alt} fill sizes="(max-width: 768px) 100vw, 560px" className="object-cover" />
               </div>

@@ -11,8 +11,8 @@ import { LIGHT_TILES } from '@/lib/map-tiles'
 
 const PUNTOS = [
   { lat: -32.9263509, lng: -60.8115424, nombre: 'SI INMOBILIARIA · Funes', tipo: 'principal' as const },
-  { lat: -32.9018631, lng: -60.9107469, nombre: 'Roldán · casa matriz', tipo: 'oficina' as const },
-  { lat: -32.905467, lng: -60.909775, nombre: 'Roldán · sede comercial', tipo: 'oficina' as const },
+  // Las dos de Roldán están a 400 m: un solo pin para que no se pisen.
+  { lat: -32.9036, lng: -60.9102, nombre: 'Roldán · 2 oficinas', tipo: 'oficina' as const },
   { lat: -32.9468, lng: -60.6393, nombre: 'Rosario', tipo: 'referencia' as const },
 ]
 
@@ -61,5 +61,5 @@ export default function MapaUbicacion({ className = '' }: { className?: string }
     }
   }, [])
 
-  return <div ref={ref} className={className} role="img" aria-label="Mapa con la oficina de Funes, las dos oficinas de Roldán y Rosario como referencia" />
+  return <div ref={ref} className={className} role="img" aria-label="Mapa con la oficina de Funes, las oficinas de Roldán y Rosario como referencia" />
 }
