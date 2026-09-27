@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import PropertyPanel from './PropertyPanel'
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
@@ -44,6 +44,7 @@ import { trackEvent } from '@/lib/analytics'
 import { mesAnioAR } from '@/lib/listado-alquileres'
 import { buscarZonas } from '@/lib/zonas'
 import { highlightMatch } from '@/lib/highlight'
+import { construirIndice, buscar } from '@/lib/busqueda-propiedades'
 import { ZONAS, type Zona } from '@/lib/zonas'
 import {
   type TokkoProperty,
@@ -901,41 +902,23 @@ export default function PropiedadesView({
   // Normaliza texto: lowercase + NFD sin tildes (para que "roldan" matchee "Roldán")
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
-  // Resolver el barrio real de cada propiedad (NO usar divisions en bruto porque
-  // Tokko pone TODOS los barrios de la ciudad en divisions[], no solo el de la
-  // propiedad). Match del fake_address contra cada division individual.
-  const resolvedNeighborhoods = useMemo(() => {
-    const map: Record<number, string> = {}
-    for (const p of properties) {
-      const addrText = p.fake_address || p.address || ''
-      const divs = [...(p.location?.divisions ?? [])].sort((a, b) => b.name.length - a.name.length)
-      const match = divs.find(d => {
-        const escaped = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        return new RegExp(`\\b${escaped}\\b`, 'i').test(addrText)
-      })
-      map[p.id] = match?.name ?? ''
-    }
-    return map
-  }, [properties])
+  // Buscador: interpreta lo que se tipea (tipo, lugar, operación, dormitorios,
+  // precio, typos, alias de barrios…) — ver lib/busqueda-propiedades. El índice
+  // se arma una vez por inventario; la consulta usa el valor diferido para que
+  // el input no se trabe mientras la lista se re-renderiza en el celular.
+  const indiceBusqueda = useMemo(() => construirIndice(properties), [properties])
+  const busquedaDiferida = useDeferredValue(filters.search)
+  const resultadoBusqueda = useMemo(
+    () => buscar(indiceBusqueda, busquedaDiferida),
+    [indiceBusqueda, busquedaDiferida],
+  )
 
   const selectedOperationType = operationTypeForFilter(filters.operation)
+  // Operación con la que se muestra el precio de la card: la del toggle o, si
+  // no hay, la que se escribió ("alquiler funes" en una casa que también se vende).
+  const operacionVista: OperationType | null = selectedOperationType ?? resultadoBusqueda?.interpretacion.operacion ?? null
   const filtered = useMemo(() => properties.filter(p => {
-    if (filters.search) {
-      const q = norm(filters.search)
-      // Solo incluir el barrio resuelto (no toda la lista de divisions de la ciudad)
-      const neighborhood = resolvedNeighborhoods[p.id] ?? ''
-      const development = p.development?.name ?? ''
-      const haystack = norm([
-        p.publication_title,
-        p.address,
-        p.fake_address,
-        p.location?.short_location,
-        p.location?.name,
-        neighborhood,
-        development,
-      ].filter(Boolean).join(' '))
-      if (!haystack.includes(q)) return false
-    }
+    if (resultadoBusqueda && !resultadoBusqueda.score.has(p.id)) return false
     if (selectedOperationType && !p.operations?.some(operation => operation.operation_type === selectedOperationType)) {
       return false
     }
@@ -979,6 +962,11 @@ export default function PropiedadesView({
     }
     return true
   }).sort((a, b) => {
+    // Con búsqueda escrita y sin orden elegido: el orden del buscador (lo que
+    // mejor responde, o por precio si se pidió "barato" / "lo más caro").
+    if (resultadoBusqueda && sortBy === 'destacadas') {
+      return (resultadoBusqueda.rango.get(a.id) ?? 1e9) - (resultadoBusqueda.rango.get(b.id) ?? 1e9)
+    }
     switch (sortBy) {
       case 'destacadas': {
         if (a.is_starred_on_web && !b.is_starred_on_web) return -1
@@ -1007,12 +995,13 @@ export default function PropiedadesView({
       default:
         return 0
     }
-  }).map(property => priorizarOperacion(property, selectedOperationType)), [
+  }).map(property => priorizarOperacion(property, operacionVista)), [
     properties,
     filters,
     sortBy,
-    resolvedNeighborhoods,
+    resultadoBusqueda,
     selectedOperationType,
+    operacionVista,
   ])
 
   // Lista para el mapa: aplica filtros + cercanía. NO aplica mapBounds porque
@@ -1031,6 +1020,29 @@ export default function PropiedadesView({
       return da - db
     })
   }, [filtered, nearbyOrigin])
+
+  // Filtros de la barra (toggle, tipología, dormitorios, ubicación, precio).
+  // Si la búsqueda escrita tiene resultados pero estos filtros la dejan en cero,
+  // el estado vacío ofrece quitarlos en vez de decir "Sin resultados".
+  const filtrosUiActivos = filters.operation !== 'todos' || filters.type !== 'todos' ||
+    filters.beds !== 'todos' || filters.location !== 'todos' || !!filters.priceMin || !!filters.priceMax
+  const quitarFiltrosUi = useCallback(() => {
+    setFilters(prev => ({ ...DEFAULTS, search: prev.search }))
+    setMapBounds(null)
+  }, [])
+
+  // Una búsqueda nueva manda sobre "Buscar en esta zona": si no, escribir
+  // "funes" con el mapa parado en Rosario daba cero.
+  useEffect(() => { setMapBounds(null) }, [filters.search])
+
+  // Escribir "alquiler …" con el toggle en Venta (o al revés) mueve el toggle:
+  // lo último que la persona dijo es lo que quiere, sin un toque extra.
+  const operacionEscrita = resultadoBusqueda?.interpretacion.operacion ?? null
+  useEffect(() => {
+    if (!operacionEscrita || filters.operation === 'todos') return
+    const quiere: Operation = operacionEscrita === 'Rent' ? 'alquiler' : 'venta'
+    if (filters.operation !== quiere) updateOperation(quiere)
+  }, [operacionEscrita, filters.operation, updateOperation])
 
   // ── Asistente de búsqueda ────────────────────────────────────────────────
   // El perfil vive en la URL (ver lib/smart-profile-url.ts), así que compartir
@@ -1270,8 +1282,8 @@ export default function PropiedadesView({
                   ;(e.currentTarget as HTMLInputElement).blur()
                 }
               }}
-              className="w-full h-11 pl-10 pr-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 placeholder:text-gray-400"
-              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16, border: '1.5px solid #e5e7eb' }}
+              className="w-full h-11 pl-10 pr-3 rounded-xl bg-gray-50 border-[1.5px] border-gray-200 outline-none focus:outline-none focus:bg-white focus:border-gray-400 transition-colors placeholder:text-gray-400"
+              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16 }}
             />
             {/* Autocomplete dropdown */}
             {searchSuggestions && (
@@ -1444,8 +1456,8 @@ export default function PropiedadesView({
                 ;(e.currentTarget as HTMLInputElement).blur()
               }
             }}
-            className="w-full h-10 pl-8 pr-9 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all placeholder:text-gray-400"
-            style={{ border: '1.5px solid #d1d5db', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
+            className="w-full h-10 pl-8 pr-9 rounded-xl bg-white border-[1.5px] border-gray-300 outline-none focus:outline-none focus:border-gray-500 transition-colors placeholder:text-gray-400"
+            style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
           />
           <button
             type="button"
@@ -1668,13 +1680,42 @@ export default function PropiedadesView({
 
             <p className="text-[12px] text-gray-500 flex-1 text-center truncate">
               <span className="font-bold text-gray-900 font-numeric">{visibleProperties.length}</span>
-              {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {opLabel}
+              {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {visibleProperties.length === 1 && opLabel === 'disponibles' ? 'disponible' : opLabel}
             </p>
 
           </div>
 
           {/* List */}
           <div ref={listRef} className="flex-1 overflow-y-auto">
+            {/* Lo que entendió el buscador (etiquetas) + botón para limpiar. Sin
+                aclaraciones de texto (lo que se aflojó no se explica). */}
+            {resultadoBusqueda && filters.search.trim() && visibleProperties.length > 0 && (
+              <div className="px-3 md:px-4 pt-2.5 pb-2 border-b border-gray-100" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {resultadoBusqueda.etiquetas.map(et => (
+                    <span key={et} className="text-[12px] font-medium text-gray-800 bg-gray-100 rounded-full px-2.5 py-1 leading-none">
+                      {et}
+                    </span>
+                  ))}
+                  {/* Contador (solo celular) + Limpiar juntos a la derecha: si no
+                      entran en la fila, bajan como una sola pieza. */}
+                  <span className="ml-auto inline-flex items-center gap-2 whitespace-nowrap">
+                    <span className="md:hidden text-[12px] text-gray-500">
+                      <span className="font-numeric font-semibold text-gray-900">{visibleProperties.length}</span>
+                      {' '}resultado{visibleProperties.length !== 1 ? 's' : ''}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => set('search', '')}
+                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-gray-500 hover:text-gray-900 rounded-full px-2 py-1 -mr-2 transition-colors"
+                      aria-label="Limpiar búsqueda"
+                    >
+                      <X className="w-3.5 h-3.5" /> Limpiar
+                    </button>
+                  </span>
+                </div>
+              </div>
+            )}
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
@@ -1692,6 +1733,30 @@ export default function PropiedadesView({
                     >
                       Ver todas las propiedades
                     </button>
+                  </>
+                ) : resultadoBusqueda && filtrosUiActivos && resultadoBusqueda.ids.length > 0 ? (
+                  <>
+                    <p className="text-gray-700 font-semibold text-sm mb-1">
+                      Con los filtros de arriba no queda ninguna
+                    </p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                      «{filters.search.trim()}» tiene {resultadoBusqueda.ids.length} propiedad{resultadoBusqueda.ids.length !== 1 ? 'es' : ''} si los quitás.
+                    </p>
+                    <button
+                      onClick={quitarFiltrosUi}
+                      className="bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors mb-2"
+                    >
+                      Ver las {resultadoBusqueda.ids.length}
+                    </button>
+                  </>
+                ) : resultadoBusqueda && resultadoBusqueda.ids.length === 0 ? (
+                  <>
+                    <p className="text-gray-700 font-semibold text-sm mb-1">
+                      No encontramos «{filters.search.trim()}»
+                    </p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                      Probá con un barrio, una ciudad, una calle o un tipo de propiedad.
+                    </p>
                   </>
                 ) : (filters.priceMin || filters.priceMax) ? (
                   <>
@@ -1796,6 +1861,7 @@ export default function PropiedadesView({
               onMapMove={closeBottomSheet}
               onNearbyOrigin={handleNearbyOrigin}
               nearbyActive={nearbyOrigin != null}
+              busqueda={busquedaDiferida}
             />
           )}
           {/* Chip "modo cercanía" — cerrable, sobre el mapa, no tapa el contador. */}
