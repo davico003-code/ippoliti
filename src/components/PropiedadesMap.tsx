@@ -92,56 +92,49 @@ function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoPro
   return { standalone, devGroups }
 }
 
-// Chapa del emprendimiento: cuadradito blanco con edificio + nombre + "desde".
-// Más ancha y de dos renglones que las burbujas de precio, así no se confunden.
+// Marcador del emprendimiento. Lejos es una burbuja más (misma caja que las de
+// precio) con una grúa y el "desde"; desde zoom 15 se transforma en la pastilla
+// negra con el nombre (amarillo solo como detalle).
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
 }
 
-// De lejos el emprendimiento es un puntito discreto; recién al acercarse al
-// barrio (zoom >= DEV_CHAPA_ZOOM) aparece la chapa con nombre y "desde".
-const DEV_CHAPA_ZOOM = 14
+const DEV_ZOOM_CERCA = 15
 
-function createDevDot() {
-  return L.divIcon({
-    className: '',
-    html: `<div style="
-      width:12px;height:12px;border-radius:50%;
-      background:#1A5C38;border:2px solid #fff;
-      box-shadow:0 1px 3px rgba(0,0,0,0.3);cursor:pointer;
-    "></div>`,
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
-    popupAnchor: [0, -8],
-  })
+// Nombre corto para el mapa cuando el cargado en el CRM es largo.
+const DEV_NOMBRE_MAPA: Record<string, string> = {
+  dockgarden: 'Dock Garden',
 }
 
-function createDevPill(name: string, minPrice: string) {
-  const label = name.length > 18 ? name.slice(0, 17).trimEnd() + '…' : name
-  const sub = minPrice === 'Consultar' ? 'Consultar precio' : `desde ${minPrice}`
+function nombreMapa(name: string) {
+  const clave = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')
+  const hit = Object.keys(DEV_NOMBRE_MAPA).find(k => clave.startsWith(k))
+  return hit ? DEV_NOMBRE_MAPA[hit] : name
+}
+
+function createDevBubble(minPrice: string) {
+  const label = minPrice === 'Consultar' ? 'Consultar' : `desde ${minPrice}`
+  // Misma caja que createPriceBubble: 11px, padding 4/8, radio 6, borde blanco 2px.
   const html = `
     <div style="position:relative;display:inline-block;cursor:pointer;">
       <div style="
-        display:flex;flex-direction:column;line-height:1.1;
+        display:inline-flex;align-items:center;gap:4px;
         background:#1A5C38;color:#fff;
-        padding:3px 8px;border-radius:7px;
-        border:2px solid rgba(255,255,255,0.95);
-        box-shadow:0 2px 6px rgba(0,0,0,0.25);
+        font-family:'Poppins',system-ui,sans-serif;
+        font-weight:700;font-size:11px;line-height:1.2;
+        padding:4px 8px 4px 6px;border-radius:6px;
+        border:2px solid rgba(255,255,255,0.9);
+        box-shadow:0 2px 8px rgba(0,0,0,0.25);
         white-space:nowrap;
-      ">
-        <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:11px;">${escapeHtml(label)}</span>
-        <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:10px;opacity:0.88;">${escapeHtml(sub)}</span>
-      </div>
+      "><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>${escapeHtml(label)}</div>
       <div style="
         width:0;height:0;margin:0 auto;
-        border-left:5px solid transparent;
-        border-right:5px solid transparent;
-        border-top:5px solid #1A5C38;
+        border-left:6px solid transparent;
+        border-right:6px solid transparent;
+        border-top:6px solid #1A5C38;
       "></div>
     </div>`
-
-  const w = Math.max(Math.max(label.length * 6.6, sub.length * 5.8) + 20, 60)
-
+  const w = Math.max(label.length * 7 + 38, 70)
   return L.divIcon({
     className: '',
     html,
@@ -151,7 +144,49 @@ function createDevPill(name: string, minPrice: string) {
   })
 }
 
-function DevZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
+function createDevPill(rawName: string) {
+  const name = nombreMapa(rawName)
+  const label = name.length > 24 ? name.slice(0, 23).trimEnd() + '…' : name
+  const t = { gap: 6, pad: '4px 11px 4px 4px', font: 12, dot: 20, svg: 12, tail: 6, shadow: '0 2px 8px rgba(0,0,0,0.3)' }
+  const html = `
+    <div style="position:relative;display:inline-block;cursor:pointer;">
+      <div style="
+        display:inline-flex;align-items:center;gap:${t.gap}px;
+        background:#111;color:#fff;
+        font-family:'Raleway',system-ui,sans-serif;
+        font-weight:700;font-size:${t.font}px;line-height:1.2;
+        padding:${t.pad};border-radius:999px;
+        border:2px solid rgba(255,255,255,0.95);
+        box-shadow:${t.shadow};
+        white-space:nowrap;
+      ">
+        <span style="
+          width:${t.dot}px;height:${t.dot}px;border-radius:50%;background:#fbce07;
+          display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+        "><svg xmlns="http://www.w3.org/2000/svg" width="${t.svg}" height="${t.svg}" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
+        ${escapeHtml(label)}
+      </div>
+      <div style="
+        width:0;height:0;margin:0 auto;
+        border-left:${t.tail}px solid transparent;
+        border-right:${t.tail}px solid transparent;
+        border-top:${t.tail}px solid #111;
+      "></div>
+    </div>`
+
+  const w = Math.max(label.length * 7.2 + 44, 70)
+  const h = 36
+
+  return L.divIcon({
+    className: '',
+    html,
+    iconSize: [w, h],
+    iconAnchor: [w / 2, h],
+    popupAnchor: [0, -h - 2],
+  })
+}
+
+function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
   const map = useMap()
   useEffect(() => {
     const handler = () => onZoom(map.getZoom())
@@ -706,10 +741,9 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
   [properties])
 
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
-  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, createDevPill(g.devName, g.minPrice)])), [devGroups])
-  const devDot = useMemo(() => createDevDot(), [])
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
-  const devChapa = zoom >= DEV_CHAPA_ZOOM
+  const devCerca = zoom >= DEV_ZOOM_CERCA
+  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, devCerca ? createDevPill(g.devName) : createDevBubble(g.minPrice)])), [devGroups, devCerca])
 
 
   return (
@@ -757,6 +791,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       <InitialView />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
+      <ZoomWatcher onZoom={setZoom} />
       <LocateButton onNearbyOrigin={onNearbyOrigin} nearbyActive={nearbyActive} />
       {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
       {activeZona && <ZonaFlyTo zona={activeZona} properties={mapped} />}
@@ -769,7 +804,9 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           <span style={{ color: '#666' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 10, height: 10, background: '#1A5C38', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.3)', margin: '0 2px' }} />
+          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
+          </div>
           <span style={{ color: '#666' }}>Emprendimiento</span>
         </div>
       </div>
@@ -878,14 +915,13 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
         })}
       </MarkerClusterGroup>
 
-      <DevZoomWatcher onZoom={setZoom} />
       {/* Development markers — outside cluster group */}
       {devGroups.map(g => (
         <Marker
           key={`dev-${g.devId}`}
           position={[g.lat, g.lng]}
-          icon={devChapa ? devIcons.get(g.devId)! : devDot}
-          zIndexOffset={devChapa ? 500 : 0}
+          icon={devIcons.get(g.devId)!}
+          zIndexOffset={devCerca ? 500 : 0}
         >
           <Popup maxWidth={260} className="ippoliti-popup">
             <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
