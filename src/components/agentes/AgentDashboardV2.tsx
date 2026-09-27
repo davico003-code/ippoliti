@@ -13,6 +13,7 @@ import {
   LogOut,
   Mail,
   Megaphone,
+  MonitorPlay,
   Newspaper,
   PieChart,
   Printer,
@@ -193,6 +194,15 @@ export default function AgentDashboardV2({
             title="Plano de lotes · Distrito Roldán"
             description="Disponibilidad, medidas y precios de los 180 lotes."
             statLabel="Actualizá y descargá el plano"
+          />
+          <PlacaCard
+            href="/agentes/presentacion"
+            icon={<MonitorPlay size={22} strokeWidth={1.8} />}
+            pastel="#CFE6D8"
+            iconColor="#1A5C38"
+            title="Presentación Cómo trabajamos"
+            description="Links personales de un solo uso para mandar a propietarios."
+            statLabel="Generá un link para tu cliente"
           />
           <PlacaCard
             href="/agentes/lista-alquileres"

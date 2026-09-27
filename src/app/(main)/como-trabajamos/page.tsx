@@ -10,6 +10,9 @@
 // los videos y los botones de WhatsApp son client.
 
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
+import { getAgentFromCookies } from '@/lib/auth'
+import { COOKIE_ACCESO, leerLink, verificarSesion } from '@/lib/como-trabajamos-acceso'
 import {
   Camera,
   Drone,
@@ -199,9 +202,74 @@ const jsonLd = {
    PÁGINA
 ───────────────────────────────────────────── */
 
-export default function ComoTrabajamosPage() {
+export const dynamic = 'force-dynamic'
+
+type SP = Record<string, string | string[] | undefined>
+
+/**
+ * Acceso privado (ver lib/como-trabajamos-acceso.ts): agentes logueados
+ * pasan directo; los clientes entran con un link de un solo uso que deja
+ * una cookie por 7 días en su dispositivo. Sin acceso, la pantalla de portero.
+ */
+export default async function ComoTrabajamosPage({ searchParams }: { searchParams: SP }) {
+  const agente = await getAgentFromCookies()
+  if (agente) return <Presentacion />
+  const sesion = await verificarSesion(cookies().get(COOKIE_ACCESO)?.value)
+  if (sesion) return <Presentacion para={sesion} />
+
+  const k = typeof searchParams.k === 'string' ? searchParams.k : ''
+  if (!k) return <Portero estado="privada" />
+  const { link, usado } = await leerLink(k).catch(() => ({ link: null, usado: false }))
+  if (!link) return <Portero estado="invalido" />
+  if (usado) return <Portero estado="usado" agente={link.agenteNombre} />
+  return <Portero estado="listo" token={k} cliente={link.cliente} agente={link.agenteNombre} />
+}
+
+function Portero({ estado, token, cliente, agente }: { estado: 'privada' | 'listo' | 'usado' | 'invalido'; token?: string; cliente?: string; agente?: string }) {
+  const textos = {
+    privada: { t: 'Esta presentación es privada.', d: 'Pedile el link a tu agente de SI INMOBILIARIA.' },
+    listo: { t: cliente ? `${cliente}, esta presentación es para vos.` : 'Tu presentación está lista.', d: `Te la envió ${agente}. El link es personal y se abre una sola vez, en este dispositivo.` },
+    usado: { t: 'Este link ya fue abierto.', d: `Los links son personales y de un solo uso. Pedile uno nuevo a ${agente ?? 'tu agente'}.` },
+    invalido: { t: 'Este link no es válido o venció.', d: 'Pedile un link nuevo a tu agente de SI INMOBILIARIA.' },
+  }[estado]
+  return (
+    <main className="flex min-h-[80svh] items-center justify-center px-4 py-20 font-raleway text-white" style={{ background: '#0B1510' }}>
+      <div className="w-full max-w-[520px] text-center">
+        <p className="m-0 text-[12px] font-bold uppercase tracking-[0.28em]" style={{ color: MENTA }}>
+          SI INMOBILIARIA · Cómo trabajamos
+        </p>
+        <h1 className="mt-5 text-[30px] font-extrabold leading-[1.1] md:text-[40px]" style={{ letterSpacing: '-0.035em' }}>
+          {textos.t}
+        </h1>
+        <p className="mt-4 text-[16px] leading-[1.6]" style={{ color: 'rgba(255,255,255,.75)' }}>
+          {textos.d}
+        </p>
+        {estado === 'listo' && token && (
+          <form method="post" action="/api/como-trabajamos/canjear" className="mt-8">
+            <input type="hidden" name="k" value={token} />
+            <button type="submit" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full px-8 text-[16px] font-bold text-white" style={{ background: ACENTO }}>
+              Ver presentación
+            </button>
+          </form>
+        )}
+        {estado !== 'listo' && (
+          <div className="mt-8 flex justify-center">
+            <WhatsappBoton ubicacion={`portero-${estado}`}>Escribinos por WhatsApp</WhatsappBoton>
+          </div>
+        )}
+      </div>
+    </main>
+  )
+}
+
+function Presentacion({ para }: { para?: { cliente: string; agente: string } }) {
   return (
     <main className="ct-tv bg-white font-raleway" style={{ color: TINTA }}>
+      {para && (
+        <div className="px-4 py-2 text-center text-[12.5px] font-semibold text-white" style={{ background: '#0B1510' }}>
+          Presentación privada para <strong>{para.cliente}</strong> · te la envió {para.agente}
+        </div>
+      )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* En el televisor de la oficina (pantallas muy anchas) todo se agranda
           para leerse a distancia. */}
