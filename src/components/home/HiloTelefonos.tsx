@@ -1,3 +1,6 @@
+// En pausa (27-sep): David pidió no mostrar HILO en la home todavía. No se
+// importa en ningún lado; queda listo para sumarlo después de Emprendimientos.
+
 // HILO en la home: dos iPhones en 3D con la app real (Hoy + Asistente IA),
 // al estilo de las presentaciones de producto. Todo es HTML + CSS: sin
 // imágenes pesadas, sin librerías 3D y sin JavaScript. Los teléfonos giran y

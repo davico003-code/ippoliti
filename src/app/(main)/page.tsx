@@ -15,7 +15,6 @@ import ConfianzaSection from '@/components/home/ConfianzaSection'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import TemporariosHome from '@/components/home/TemporariosHome'
-import HiloTelefonos from '@/components/home/HiloTelefonos'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
 import { esTemporadaVerano } from '@/lib/temporarios-data'
 import {
@@ -263,7 +262,6 @@ export default async function Home() {
         <SeleccionCarousel />
         {!verano && <TemporariosHome />}
         <ProyectosCarousel />
-        <HiloTelefonos idTitulo="hilo-titulo-m" />
         <GuiaSection />
         <ConfianzaSection />
         {/* Footer: lo provee FooterWrapper (footer blanco global, responsive). */}
@@ -289,7 +287,6 @@ export default async function Home() {
         <FeaturedPropertiesSection />
         {!verano && <TemporariosHome />}
         <EmprendimientosHome />
-        <HiloTelefonos />
         <GuiaDesktop />
         <ConfianzaDesktop />
       </div>
