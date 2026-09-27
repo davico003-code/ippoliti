@@ -36,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/recursos/costos-de-construccion`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/recursos/mapa-funes`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/recursos/asistente-obras`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/recursos/analisis-comercial`, changeFrequency: 'monthly', priority: 0.8 },
     // Fincazul es ruta estática (no viene en el feed de Tokko, así que el mapeo
     // de getDevelopments() de abajo nunca la incluye).
     { url: `${BASE}/emprendimientos/fincazul`, changeFrequency: 'weekly', priority: 0.8 },
