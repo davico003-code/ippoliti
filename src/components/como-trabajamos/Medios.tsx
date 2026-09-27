@@ -1,0 +1,113 @@
+'use client'
+
+// Medios de /como-trabajamos que necesitan estado:
+// - VideoVivo: video propio mudo en loop que arranca recién al entrar en
+//   pantalla (preload none + IntersectionObserver) para no bajar MB de más.
+//   Con `conSonido` suma un botón para activar el audio (placas con voz).
+// - ShortYoutube: póster vertical de un Short y, al tocar, el iframe.
+
+import { useEffect, useRef, useState } from 'react'
+import { Play, Volume2, VolumeX } from 'lucide-react'
+
+export function VideoVivo({
+  src,
+  poster,
+  etiqueta,
+  conSonido = false,
+  className = '',
+}: {
+  src: string
+  poster: string
+  etiqueta: string
+  conSonido?: boolean
+  className?: string
+}) {
+  const ref = useRef<HTMLVideoElement>(null)
+  const [mudo, setMudo] = useState(true)
+
+  useEffect(() => {
+    const v = ref.current
+    if (!v || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) v.play().catch(() => {})
+        else v.pause()
+      },
+      { threshold: 0.25 },
+    )
+    io.observe(v)
+    return () => io.disconnect()
+  }, [])
+
+  return (
+    <div className={`relative overflow-hidden bg-black ${className}`}>
+      <video
+        ref={ref}
+        className="absolute inset-0 h-full w-full object-cover"
+        src={src}
+        poster={poster}
+        muted={mudo}
+        loop
+        playsInline
+        preload="none"
+        aria-label={etiqueta}
+      />
+      {conSonido && (
+        <button
+          type="button"
+          onClick={() => {
+            const v = ref.current
+            setMudo((m) => !m)
+            if (v) {
+              v.muted = !mudo
+              v.play().catch(() => {})
+            }
+          }}
+          aria-label={mudo ? 'Activar sonido' : 'Silenciar'}
+          className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full text-white"
+          style={{ background: 'rgba(14,53,33,.78)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+        >
+          {mudo ? <VolumeX size={19} aria-hidden /> : <Volume2 size={19} aria-hidden />}
+        </button>
+      )}
+    </div>
+  )
+}
+
+export function ShortYoutube({ id, titulo }: { id: string; titulo: string }) {
+  const [activo, setActivo] = useState(false)
+  if (activo) {
+    return (
+      <div className="relative aspect-[9/16] w-full overflow-hidden rounded-[18px] bg-black">
+        <iframe
+          src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1`}
+          title={titulo}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 h-full w-full border-0"
+        />
+      </div>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => setActivo(true)}
+      aria-label={`Reproducir: ${titulo}`}
+      className="group relative block aspect-[9/16] w-full cursor-pointer overflow-hidden rounded-[18px] border-0 bg-black p-0 text-left"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`}
+        alt=""
+        loading="lazy"
+        className="absolute inset-0 h-full w-full scale-[1.02] object-cover transition-transform duration-300 group-hover:scale-[1.07]"
+      />
+      <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,0) 45%)' }} />
+      <span className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-xl">
+        <Play size={20} fill="#1A5C38" stroke="#1A5C38" aria-hidden style={{ marginLeft: 3 }} />
+      </span>
+      <span className="absolute bottom-3 left-3 right-3 text-[13px] font-bold leading-snug text-white">{titulo}</span>
+    </button>
+  )
+}
