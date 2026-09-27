@@ -116,6 +116,9 @@ export default function GeneradorLinks() {
         </div>
         {error && <p className="mt-2 text-[14px] font-semibold text-red-700">{error}</p>}
         <p className="mt-2 text-[12.5px] text-neutral-500">El nombre aparece en la presentación: &quot;Presentación privada para …&quot;.</p>
+        <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[12.5px] font-semibold text-amber-900">
+          No abras el link vos para probarlo: se gasta y al cliente ya no le abre. Para verla, usá &quot;Abrir la presentación&quot;.
+        </p>
       </form>
 
       {nuevo && (

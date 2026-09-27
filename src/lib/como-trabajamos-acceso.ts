@@ -100,16 +100,38 @@ export async function verificarSesion(jwt: string | undefined): Promise<EstadoSe
   const token = String(payload.t ?? '')
   const cliente = String(payload.cliente ?? '')
   const agente = String(payload.agente ?? '')
-  const reg = (await redis.get<RegistroVisitas>(kVisitas(token))) ?? { n: 1, ultima: 0 }
-  const ahora = Date.now()
-  if (ahora - reg.ultima <= VENTANA_VISITA_MS) {
-    await redis.set(kVisitas(token), { ...reg, ultima: ahora }, { ex: RETENCION_S })
-    return { ok: true, cliente, agente, visita: reg.n }
+  try {
+    const reg = (await redis.get<RegistroVisitas>(kVisitas(token))) ?? { n: 1, ultima: 0 }
+    const ahora = Date.now()
+    if (ahora - reg.ultima <= VENTANA_VISITA_MS) {
+      await redis.set(kVisitas(token), { ...reg, ultima: ahora }, { ex: RETENCION_S })
+      return { ok: true, cliente, agente, visita: reg.n }
+    }
+    if (reg.n >= MAX_VISITAS) return { ok: false, motivo: 'agotado', agente }
+    const nuevo = { n: reg.n + 1, ultima: ahora }
+    await redis.set(kVisitas(token), nuevo, { ex: RETENCION_S })
+    return { ok: true, cliente, agente, visita: nuevo.n }
+  } catch {
+    // Si Redis no responde, una cookie firmada y vigente alcanza: el cliente
+    // no tiene por qué pagar una caída nuestra.
+    return { ok: true, cliente, agente, visita: 1 }
   }
-  if (reg.n >= MAX_VISITAS) return { ok: false, motivo: 'agotado', agente }
-  const nuevo = { n: reg.n + 1, ultima: ahora }
-  await redis.set(kVisitas(token), nuevo, { ex: RETENCION_S })
-  return { ok: true, cliente, agente, visita: nuevo.n }
+}
+
+/** Token del link al que corresponde una cookie de acceso (sin contar visita). */
+export async function tokenDeSesion(jwt: string | undefined): Promise<string | null> {
+  if (!jwt) return null
+  try {
+    return String((await jwtVerify(jwt, SECRET)).payload.t ?? '') || null
+  } catch {
+    return null
+  }
+}
+
+/** URL pública del link, siempre en el dominio canónico (sin www ni previews raros). */
+export function urlDelLink(origen: string, token: string): string {
+  const base = origen.replace('://www.', '://')
+  return `${base}/como-trabajamos?k=${token}`
 }
 
 export async function linksDelAgente(agenteId: string): Promise<LinkPresentacion[]> {

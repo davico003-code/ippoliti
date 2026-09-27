@@ -27,6 +27,7 @@ import {
   Users,
 } from 'lucide-react'
 import WhatsappBoton from '@/components/como-trabajamos/WhatsappBoton'
+import BotonCanje from '@/components/como-trabajamos/BotonCanje'
 import { VideoVivo } from '@/components/como-trabajamos/Medios'
 import { Vendidas } from '@/components/como-trabajamos/Resultados'
 import { Aereas, EquipoTecnico, Fotografia, Reels, Videotours } from '@/components/como-trabajamos/Produccion'
@@ -220,18 +221,23 @@ export default async function ComoTrabajamosPage({ searchParams }: { searchParam
 
   const k = typeof searchParams.k === 'string' ? searchParams.k : ''
   if (!k) return <Portero estado="privada" />
+  if (searchParams.e) return <Portero estado="error" token={k} />
   const { link, usado } = await leerLink(k).catch(() => ({ link: null, usado: false }))
   if (!link) return <Portero estado="invalido" />
   if (usado) return <Portero estado="usado" agente={link.agenteNombre} />
   return <Portero estado="listo" token={k} cliente={link.cliente} agente={link.agenteNombre} />
 }
 
-function Portero({ estado, token, cliente, agente }: { estado: 'privada' | 'listo' | 'usado' | 'invalido' | 'agotado'; token?: string; cliente?: string; agente?: string }) {
+function Portero({ estado, token, cliente, agente }: { estado: 'privada' | 'listo' | 'usado' | 'invalido' | 'agotado' | 'error'; token?: string; cliente?: string; agente?: string }) {
   const textos = {
     privada: { t: 'Esta presentación es privada.', d: 'Pedile el link a tu agente de SI INMOBILIARIA.' },
     listo: { t: cliente ? `${cliente}, esta presentación es para vos.` : 'Tu presentación está lista.', d: `Te la envió ${agente}. Es personal: se abre en este dispositivo y la podés ver 2 veces en las próximas 48 horas.` },
-    usado: { t: 'Este link ya fue abierto.', d: `Los links son personales y de un solo uso. Pedile uno nuevo a ${agente ?? 'tu agente'}.` },
+    usado: {
+      t: 'Este link ya fue abierto.',
+      d: `Si lo abriste vos, volvé a entrar desde el mismo celular y la misma app donde lo abriste la primera vez (por ejemplo, tocándolo en el chat de WhatsApp). Si no, pedile uno nuevo a ${agente ?? 'tu agente'}.`,
+    },
     invalido: { t: 'Este link no es válido o venció.', d: 'Pedile un link nuevo a tu agente de SI INMOBILIARIA.' },
+    error: { t: 'No pudimos abrir la presentación.', d: 'Fue un problema nuestro, no del link. Probá de nuevo en un momento.' },
     agotado: { t: 'Ya viste esta presentación.', d: `Tu acceso era para 2 visitas. Si querés volver a verla, pedile un link nuevo a ${agente ?? 'tu agente'}.` },
   }[estado]
   return (
@@ -246,15 +252,8 @@ function Portero({ estado, token, cliente, agente }: { estado: 'privada' | 'list
         <p className="mt-4 text-[16px] leading-[1.6]" style={{ color: 'rgba(255,255,255,.75)' }}>
           {textos.d}
         </p>
-        {estado === 'listo' && token && (
-          <form method="post" action="/api/como-trabajamos/canjear" className="mt-8">
-            <input type="hidden" name="k" value={token} />
-            <button type="submit" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full px-8 text-[16px] font-bold text-white" style={{ background: ACENTO }}>
-              Ver presentación
-            </button>
-          </form>
-        )}
-        {estado !== 'listo' && (
+        {(estado === 'listo' || estado === 'error') && token && <BotonCanje token={token} texto={estado === 'error' ? 'Probar de nuevo' : 'Ver presentación'} />}
+        {estado !== 'listo' && estado !== 'error' && (
           <div className="mt-8 flex justify-center">
             <WhatsappBoton ubicacion={`portero-${estado}`}>Escribinos por WhatsApp</WhatsappBoton>
           </div>
