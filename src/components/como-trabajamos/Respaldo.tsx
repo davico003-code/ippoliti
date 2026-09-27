@@ -5,22 +5,18 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowUpRight,
-  Bell,
   Building2,
   FileChartColumn,
   GraduationCap,
   Handshake,
   Inbox,
-  LayoutGrid,
   MapPin,
-  Megaphone,
-  Radar,
   Sparkles,
   Users,
 } from 'lucide-react'
-import HiloTelefonos from '@/components/home/HiloTelefonos'
 import { VideoVivo } from './Medios'
-import { AGENTES, BARRIOS, DIRECCION, EMPRENDIMIENTOS, OFICINAS, PRENSA } from './datos'
+import MapaUbicacion from './MapaUbicacion'
+import { AGENTES, BARRIOS, DIRECCION, EMPRENDIMIENTOS, INFORMES, OFICINAS, PRENSA } from './datos'
 import { ACENTO, BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, VERDE_SUAVE, conNumeros } from './ui'
 
 export function Prensa() {
@@ -80,11 +76,11 @@ export function CalleYEventos() {
           id="eventos-titulo"
           eyebrow="Cartelería y eventos"
           titulo="También en la calle, y en persona."
-          bajada="Cada desarrollo que comercializamos tiene su cartelería en la obra y en la ruta, y cada lote su cartel con nuestra identidad. Además organizamos eventos en la galería de arte PARED de nuestra oficina de Funes para presentar proyectos a clientes e invitados."
+          bajada="Cada desarrollo que comercializamos tiene su cartelería en la obra y en la ruta, y cada lote su cartel con nuestra identidad. Además presentamos los proyectos con eventos de lanzamiento para clientes, inversores e invitados."
         />
 
         {/* Cartelería de desarrollos, colocada */}
-        <div className="mt-10 grid gap-4 md:grid-cols-[2fr_1fr] md:gap-5">
+        <div className="mt-10 grid gap-4 md:grid-cols-[2fr_1fr_1fr] md:gap-5">
           <figure className="m-0">
             <div className="relative aspect-[3/2] overflow-hidden rounded-[18px] shadow-md">
               <Image
@@ -114,41 +110,74 @@ export function CalleYEventos() {
               Distrito Roldán · cartel en ruta
             </figcaption>
           </figure>
+          <figure className="m-0 flex flex-col">
+            <div className="relative aspect-[3/4] overflow-hidden rounded-[18px] shadow-md md:aspect-auto md:flex-1">
+              <Image
+                src="/como-trabajamos/cartel-distrito-roldan-obra.webp"
+                alt="Carteles de Distrito Roldán en el terreno, con SI INMOBILIARIA como comercializadora"
+                fill
+                sizes="(max-width: 768px) 100vw, 380px"
+                className="object-cover"
+                style={{ objectPosition: 'center 60%' }}
+              />
+            </div>
+            <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
+              Distrito Roldán · carteles en el terreno
+            </figcaption>
+          </figure>
         </div>
 
-        <div className="mt-5 grid gap-4 md:mt-6 md:grid-cols-[1fr_1fr_1.1fr] md:gap-5">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 md:mt-6 md:gap-5">
           {[
             { src: '/como-trabajamos/cartel-lotes-ruta9.webp', alt: 'Cartel de SI INMOBILIARIA de venta de lotes con plano sobre Ruta 9', txt: 'Cartel de obra con plano de lotes' },
             { src: '/como-trabajamos/cartel-vende-lotes.webp', alt: 'Cartel de SI INMOBILIARIA "Vende lotes"', txt: 'Cartel de venta en el terreno' },
           ].map((c) => (
             <figure key={c.src} className="m-0">
-              <div className="relative aspect-square overflow-hidden rounded-[18px] bg-white shadow-md">
-                <Image src={c.src} alt={c.alt} fill sizes="(max-width: 768px) 100vw, 360px" className="object-contain" />
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] bg-white shadow-md">
+                <Image src={c.src} alt={c.alt} fill sizes="(max-width: 640px) 100vw, 560px" className="object-contain p-3" />
               </div>
               <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
                 {c.txt}
               </figcaption>
             </figure>
           ))}
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { v: 'evento-pared', txt: 'Evento en PARED' },
-              { v: 'galeria-pared', txt: 'Galería PARED, Funes' },
-            ].map((e) => (
-              <figure key={e.v} className="m-0">
-                <div className="relative aspect-[9/16] overflow-hidden rounded-[18px] shadow-md">
-                  <VideoVivo
-                    src={`/como-trabajamos/video/${e.v}.mp4`}
-                    poster={`/como-trabajamos/video/${e.v}.webp`}
-                    etiqueta={e.txt}
-                    className="absolute inset-0"
-                  />
-                </div>
-                <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
-                  {e.txt}
-                </figcaption>
-              </figure>
-            ))}
+        </div>
+
+        {/* Evento de lanzamiento: el video va grande, protagonista */}
+        <div className="mt-12 grid items-center gap-8 md:mt-16 md:grid-cols-[minmax(0,400px)_1fr] md:gap-14">
+          <div className="relative mx-auto aspect-[9/16] w-full max-w-[400px] overflow-hidden rounded-[24px] shadow-2xl">
+            <VideoVivo
+              src="/como-trabajamos/video/evento-pared.mp4"
+              poster="/como-trabajamos/video/evento-pared.webp"
+              etiqueta="Evento de lanzamiento organizado por SI INMOBILIARIA"
+              className="absolute inset-0"
+            />
+            <Chip className="absolute left-3 top-3">Evento de lanzamiento</Chip>
+          </div>
+          <div>
+            <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: ACENTO }}>
+              Eventos exclusivos
+            </p>
+            <h3 className="mt-2.5 text-[26px] font-extrabold leading-tight md:text-[34px]" style={{ letterSpacing: '-0.03em' }}>
+              Cada proyecto se presenta con un evento de lanzamiento.
+            </h3>
+            <p className="mt-4 text-[16px] leading-[1.65] md:text-[17px]" style={{ color: TEXTO }}>
+              Invitamos a nuestra base de clientes, inversores y colegas a conocer el proyecto en persona: la propuesta, los
+              números y el equipo que lo vende.
+            </p>
+            <figure className="m-0 mt-7 flex items-center gap-4">
+              <div className="relative aspect-[9/16] w-[120px] shrink-0 overflow-hidden rounded-[16px] shadow-md md:w-[140px]">
+                <VideoVivo
+                  src="/como-trabajamos/video/galeria-pared.mp4"
+                  poster="/como-trabajamos/video/galeria-pared.webp"
+                  etiqueta="Galería de arte de la oficina de Funes"
+                  className="absolute inset-0"
+                />
+              </div>
+              <figcaption className="text-[14px] font-semibold leading-[1.55]" style={{ color: GRIS }}>
+                Los eventos se hacen en nuestra oficina de Funes, que además es galería de arte.
+              </figcaption>
+            </figure>
           </div>
         </div>
       </Contenedor>
@@ -175,79 +204,61 @@ function Pantalla({ src, alt, ancho, alto, url = 'meethilo.com', className = '' 
 
 const INDIGO = '#211E78'
 
-// Pasos del proceso donde HILO usa IA, con la pantalla real cuando la hay.
-const IA_CON_PANTALLA = [
+// HILO visto desde el dueño: solo lo que le sirve a su venta (David, 27-sep:
+// "de HILO no hace falta mostrar todo"). Pantallas reales, sin datos de
+// clientes ni internos.
+const HILO_PANTALLAS = [
   {
-    paso: 'Tasación',
-    titulo: 'Subís el material y HILO arma la tasación.',
+    paso: 'Mercado local, todos los días',
+    titulo: 'Sabemos cuánto vale el metro cuadrado en cada barrio.',
     texto:
-      'Fotos, plano y capturas de avisos de la zona: HILO los lee, arma los comparables y prepara el informe de tasación. El tasador revisa, ajusta y firma.',
-    src: '/como-trabajamos/hilo/tasacion.webp',
-    alt: 'Pantalla real de HILO: nueva tasación en tres pasos',
-    ancho: 1204,
-    alto: 989,
-  },
-  {
-    paso: 'Mercado',
-    titulo: 'Más de 3.000 avisos leídos, barrio por barrio.',
-    texto:
-      'HILO recorre Zonaprop, Argenprop y Mercado Libre y calcula el valor del metro cuadrado de cada barrio cerrado, su tendencia y los avisos duplicados. Con eso tasamos y ponemos precio.',
+      'HILO lee todos los días más de 3.000 avisos de Zonaprop, Argenprop y Mercado Libre y calcula el valor del metro cuadrado de cada barrio y hacia dónde va. Tu precio se define con esos datos, no a ojo.',
     src: '/como-trabajamos/hilo/mercado.webp',
     alt: 'Pantalla real de HILO: mercado por barrio con valor del metro cuadrado y tendencia',
     ancho: 1204,
     alto: 989,
   },
   {
-    paso: 'Contenido',
-    titulo: 'Un posteo nuevo para Instagram, todos los días.',
+    paso: 'Valores y mapa de cierres',
+    titulo: 'A cuánto se vende de verdad, no a cuánto se publica.',
     texto:
-      'Cada mañana HILO propone un carrusel con datos del mercado, novedades de la ciudad o propiedades. El equipo lo revisa, lo aprueba y lo publica.',
-    src: '/como-trabajamos/hilo/contenido.webp',
-    alt: 'Pantalla real de HILO: ideas para Instagram con placas generadas',
+      'Registramos cada venta de la zona, las nuestras y las de colegas, con su valor y su ubicación en el mapa. Es la referencia más firme para poner el precio justo y negociar.',
+    src: '/como-trabajamos/hilo/cierres.webp',
+    alt: 'Pantalla real de HILO: cierres de venta por mes y mapa de cierres en Funes, Roldán y Rosario',
+    ancho: 1165,
+    alto: 650,
+  },
+  {
+    paso: 'Tasación',
+    titulo: 'Una tasación armada con datos, revisada por un corredor.',
+    texto:
+      'Fotos, plano y comparables reales de la zona: HILO los ordena y prepara el informe de tasación. El corredor matriculado revisa, ajusta y firma.',
+    src: '/como-trabajamos/hilo/tasacion.webp',
+    alt: 'Pantalla real de HILO: nueva tasación en tres pasos',
     ancho: 1204,
     alto: 989,
   },
-  {
-    paso: 'Inventario',
-    titulo: 'Cada propiedad, con la calidad de su aviso.',
-    texto: 'El inventario completo en una pantalla: la foto, el precio, el agente responsable y un puntaje de qué tan completo está el aviso para los portales.',
-    src: '/como-trabajamos/hilo-propiedades.webp',
-    alt: 'Pantalla real de HILO: inventario de propiedades con la calidad de cada aviso',
-    ancho: 1800,
-    alto: 910,
-  },
 ]
 
-const IA_SIN_PANTALLA = [
-  { Icon: Inbox, t: 'Recepcionista en WhatsApp', d: 'Fuera de horario, HILO responde al instante, entiende qué busca el interesado y le deja el caso listo al agente.' },
-  { Icon: Sparkles, t: 'Respuestas y precalificación', d: 'En horario, HILO le propone al agente la respuesta y le dice qué busca el cliente y con qué presupuesto. El agente revisa y envía.' },
-  { Icon: Bell, t: 'Aviso de cliente molesto', d: 'Si alguien se molesta en la conversación, el agente recibe un aviso en el momento.' },
-  { Icon: LayoutGrid, t: 'Carga por voz y fotos', d: 'El agente dicta los datos o sube fotos y plano; HILO completa la ficha y sugiere título, descripción y precio frente a comparables.' },
-  { Icon: Megaphone, t: 'Pauta con IA', d: 'Escribe los anuncios de Meta con los datos reales de la propiedad, pensados para cada tipo de comprador.' },
-  { Icon: Handshake, t: 'Visitas con devolución', d: 'Registra la visita acordada en el chat. Después, el agente cuenta en un audio cómo fue y HILO lo ordena: qué gustó y qué frenó.' },
-  { Icon: Radar, t: 'Oportunidades', d: 'Detecta propiedades con buen precio para nuestros compradores e inversores.' },
-  { Icon: FileChartColumn, t: 'Informe al dueño', d: 'Junta la difusión, las consultas, las visitas y el mercado en el informe que recibís.' },
+const HILO_PARA_EL_DUENO = [
+  { Icon: Inbox, t: 'Cada consulta, atendida al instante', d: 'Las consultas por tu propiedad se responden enseguida, también fuera de horario, y el agente sabe qué busca cada interesado antes de llamarlo.' },
+  { Icon: Handshake, t: 'La devolución de cada visita', d: 'Después de cada visita el agente registra qué gustó y qué frenó. Esa opinión te llega en el informe.' },
+  { Icon: FileChartColumn, t: 'Tu informe, con datos reales', d: 'Difusión, consultas, visitas y mercado en un informe claro, con el plan para el período que sigue.' },
 ]
 
 export function Hilo() {
   return (
-    <section aria-labelledby="hilo-extra-titulo">
-      <HiloTelefonos idTitulo="hilo-como-trabajamos" />
-      <Contenedor className="pb-16 pt-6 md:pb-24">
+    <section className="py-16 md:py-24" aria-labelledby="hilo-titulo">
+      <Contenedor>
         <Encabezado
-          id="hilo-extra-titulo"
-          eyebrow="HILO por dentro"
-          titulo="Un CRM con inteligencia artificial integrada a cada paso."
-          bajada="HILO es el sistema con el que trabaja todo el equipo, desarrollado por nosotros. La IA hace el trabajo pesado en cada etapa de la venta; las decisiones las toma siempre una persona. Estas son pantallas reales."
+          id="hilo-titulo"
+          eyebrow="HILO · tecnología propia"
+          titulo="Datos del mercado local para vender mejor tu propiedad."
+          bajada="HILO es el sistema con inteligencia artificial que desarrollamos para el equipo. Esto es lo que hace por tu venta. Son pantallas reales."
         />
 
-        <div className="mt-8 flex flex-wrap items-center gap-3 rounded-[18px] px-5 py-4 text-white" style={{ background: INDIGO }}>
-          <Sparkles size={20} aria-hidden />
-          <p className="m-0 text-[15.5px] font-bold">La IA propone, el agente revisa y decide. Nada sale sin que lo apruebe una persona.</p>
-        </div>
-
         <div className="mt-12 grid gap-14 md:gap-20">
-          {IA_CON_PANTALLA.map((p, i) => (
+          {HILO_PANTALLAS.map((p, i) => (
             <div key={p.paso} className="grid items-center gap-7 lg:grid-cols-[1fr_1.35fr] lg:gap-12">
               <div className={i % 2 ? 'lg:order-2' : ''}>
                 <p className="m-0 text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: INDIGO }}>
@@ -257,7 +268,7 @@ export function Hilo() {
                   {conNumeros(p.titulo)}
                 </h3>
                 <p className="mt-3 text-[16px] leading-[1.65]" style={{ color: TEXTO }}>
-                  {p.texto}
+                  {conNumeros(p.texto)}
                 </p>
               </div>
               <Pantalla src={p.src} alt={p.alt} ancho={p.ancho} alto={p.alto} className={i % 2 ? 'lg:order-1' : ''} />
@@ -265,15 +276,12 @@ export function Hilo() {
           ))}
         </div>
 
-        <h3 className="mb-0 mt-16 text-[22px] font-extrabold md:mt-20 md:text-[26px]" style={{ letterSpacing: '-0.02em' }}>
-          Y además, en cada consulta y cada visita:
-        </h3>
-        <ul className="m-0 mt-6 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
-          {IA_SIN_PANTALLA.map(({ Icon, t, d }) => (
-            <li key={t} className="rounded-[18px] p-5" style={{ background: '#F4F4FB', border: '1px solid rgba(33,30,120,.08)' }}>
-              <Icon size={21} strokeWidth={1.8} style={{ color: INDIGO }} aria-hidden />
-              <p className="mt-3 text-[15.5px] font-extrabold leading-tight">{t}</p>
-              <p className="mt-1.5 text-[13.5px] leading-[1.5]" style={{ color: GRIS }}>
+        <ul className="m-0 mt-16 grid list-none grid-cols-1 gap-3 p-0 md:mt-20 md:grid-cols-3 md:gap-4">
+          {HILO_PARA_EL_DUENO.map(({ Icon, t, d }) => (
+            <li key={t} className="rounded-[18px] p-6" style={{ background: '#F4F4FB', border: '1px solid rgba(33,30,120,.08)' }}>
+              <Icon size={22} strokeWidth={1.8} style={{ color: INDIGO }} aria-hidden />
+              <p className="mt-3 text-[16.5px] font-extrabold leading-tight">{t}</p>
+              <p className="mt-1.5 text-[14px] leading-[1.55]" style={{ color: GRIS }}>
                 {d}
               </p>
             </li>
@@ -303,50 +311,113 @@ export function InformeReal() {
   )
 }
 
+/** Un informe como libro: tapa nítida adelante y páginas en miniatura atrás. */
+function Libro({ informe }: { informe: (typeof INFORMES)[number] }) {
+  const slide = informe.formato === 'slide'
+  const ancho = slide ? 'w-[86%]' : 'w-[62%]'
+  const aspecto = slide ? 'aspect-[16/9]' : 'aspect-[1/1.414]'
+  return (
+    <div className="relative mx-auto flex h-[300px] w-full max-w-[360px] items-center justify-center md:h-[330px]" aria-hidden>
+      {informe.paginas.map((src, i) => (
+        <div
+          key={src}
+          className={`absolute ${ancho} ${aspecto} overflow-hidden rounded-[6px] bg-white shadow-lg`}
+          style={{ transform: `translate(${(i + 1) * 16}px, ${-(i + 1) * 8}px) rotate(${(i + 1) * 3.2}deg)`, zIndex: 3 - i, border: '1px solid rgba(17,18,19,.08)' }}
+        >
+          <Image src={src} alt="" fill sizes="220px" className="object-cover object-top" style={{ filter: 'blur(0.6px)' }} />
+        </div>
+      ))}
+      <div
+        className={`absolute ${ancho} ${aspecto} overflow-hidden rounded-[6px] bg-white`}
+        style={{ zIndex: 10, transform: 'rotate(-2deg)', boxShadow: '0 22px 44px -12px rgba(0,0,0,.45)', border: '1px solid rgba(17,18,19,.1)' }}
+      >
+        <Image src={informe.tapa} alt="" fill sizes="280px" className="object-cover object-top" />
+        {/* Lomo del libro */}
+        <span className="absolute inset-y-0 left-0 w-[10px]" style={{ background: 'linear-gradient(90deg, rgba(0,0,0,.22), rgba(0,0,0,0))' }} />
+      </div>
+    </div>
+  )
+}
+
 export function Desarrolladores() {
   return (
     <section className="py-16 md:py-24" style={{ background: FONDO }} aria-labelledby="desarrolladores-titulo">
       <Contenedor>
         <Encabezado
           id="desarrolladores-titulo"
-          eyebrow="Inversores, desarrolladores y constructores"
-          titulo="Acompañamos proyectos desde el lanzamiento."
-          bajada="Asesoramos a desarrolladores y constructores en el producto, el precio y la estrategia de venta, y comercializamos sus proyectos. A los inversores les mostramos números: rentabilidad, valor del metro cuadrado y oportunidades reales."
+          eyebrow="Desarrolladores e inversores"
+          titulo="Detrás de cada emprendimiento, un análisis."
+          bajada="Asesoramos a los desarrolladores en producto, precio y estrategia de venta antes de lanzar, y les reportamos el avance comercial con datos durante toda la comercialización."
         />
-        <ul className="m-0 mt-10 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3 md:gap-5">
+
+        <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-2 md:gap-5">
           {EMPRENDIMIENTOS.map((e) => (
             <li key={e.nombre}>
               <Link
                 href={e.href}
-                className="group block h-full overflow-hidden rounded-[20px] bg-white transition-shadow duration-200 hover:shadow-lg"
+                className="group block h-full overflow-hidden rounded-[22px] bg-white transition-shadow duration-200 hover:shadow-lg"
                 style={{ border: `1px solid ${BORDE}`, color: TINTA, textDecoration: 'none' }}
               >
-                <span className="relative block aspect-[16/10]">
-                  <Image src={e.img} alt={`${e.nombre}: ${e.tipo}`} fill sizes="(max-width: 640px) 100vw, 380px" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                  {e.render && <Chip className="absolute left-3 top-3">Render del proyecto</Chip>}
+                <span className="relative block aspect-[16/9]">
+                  <Image src={e.img} alt={`${e.nombre}: ${e.tipo}`} fill sizes="(max-width: 768px) 100vw, 580px" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
                 </span>
-                <span className="block p-5">
+                <span className="block p-6">
                   <span className="flex items-center justify-between gap-2">
-                    <span className="text-[19px] font-extrabold leading-tight">{e.nombre}</span>
-                    <ArrowUpRight size={18} aria-hidden style={{ color: VERDE }} />
+                    <span className="text-[24px] font-extrabold leading-tight" style={{ letterSpacing: '-0.02em' }}>
+                      {e.nombre}
+                    </span>
+                    <ArrowUpRight size={20} aria-hidden style={{ color: VERDE }} />
                   </span>
-                  <span className="mt-1 block text-[13.5px] font-semibold" style={{ color: GRIS }}>
-                    {e.tipo}
+                  <span className="mt-1 block text-[14px] font-semibold" style={{ color: GRIS }}>
+                    {e.tipo} · Desarrolla {e.desarrolla}
                   </span>
-                  <span className="mt-3 block rounded-[12px] px-3 py-2 text-[13.5px] font-bold" style={{ background: VERDE_SUAVE, color: VERDE }}>
+                  <span className="mt-4 block rounded-[12px] px-4 py-3 text-[14.5px] font-bold" style={{ background: VERDE_SUAVE, color: VERDE }}>
                     {conNumeros(e.dato)}
+                    {e.fuente && (
+                      <span className="mt-0.5 block text-[12px] font-semibold" style={{ color: ACENTO }}>
+                        {e.fuente}
+                      </span>
+                    )}
                   </span>
                 </span>
               </Link>
             </li>
           ))}
         </ul>
-        <ul className="m-0 mt-8 grid list-none gap-3 p-0 md:grid-cols-4">
+
+        <h3 className="mb-0 mt-16 text-[24px] font-extrabold md:mt-20 md:text-[30px]" style={{ letterSpacing: '-0.025em' }}>
+          Informes reales que entregamos a los desarrolladores
+        </h3>
+        <p className="mt-2 max-w-[44rem] text-[15.5px] leading-[1.6]" style={{ color: TEXTO }}>
+          Análisis de mercado antes del lanzamiento, planes de acción y reportes trimestrales del avance comercial. Mostramos las
+          tapas: el contenido es confidencial de cada desarrollador.
+        </p>
+        <ul className="m-0 mt-8 grid list-none gap-8 p-0 md:grid-cols-3 md:gap-6">
+          {INFORMES.map((inf) => (
+            <li key={inf.tapa} className="flex flex-col">
+              <Libro informe={inf} />
+              <div className="mt-2 text-center md:mt-4">
+                <p className="m-0 text-[11.5px] font-bold uppercase tracking-[0.18em]" style={{ color: ACENTO }}>
+                  {inf.proyecto} · {inf.tipo}
+                </p>
+                <p className="mt-1.5 text-[17px] font-extrabold leading-snug">{inf.titulo}</p>
+                <p className="mt-0.5 text-[13px] font-semibold" style={{ color: GRIS }}>
+                  {inf.fecha}
+                </p>
+                <p className="mx-auto mt-2 max-w-[30ch] text-[14px] leading-[1.55]" style={{ color: TEXTO }}>
+                  {inf.detalle}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <ul className="m-0 mt-14 grid list-none gap-3 p-0 md:grid-cols-4">
           {[
-            ['Estrategia de lanzamiento', 'Precio, etapas, formas de pago y público al que apuntar.'],
-            ['Comercialización', 'Equipo de venta, difusión, pauta, cartelería y eventos.'],
-            ['Informes de mercado', 'Costo de construcción, valor del m² y comparables de la zona.'],
-            ['Inversores', 'Rentabilidad estimada y oportunidades detectadas con datos.'],
+            ['Estudio de mercado', 'Comparables reales, valor del m² y a quién le vendemos, antes de fijar precios.'],
+            ['Estrategia de lanzamiento', 'Precio, etapas, formas de pago y condiciones comerciales.'],
+            ['Comercialización', 'Equipo de venta, difusión, pauta, cartelería y eventos de lanzamiento.'],
+            ['Reporte de avance', 'Cada trimestre: ventas, ritmo, competencia y el plan para lo que sigue.'],
           ].map(([t, d]) => (
             <li key={t} className="rounded-[18px] bg-white p-5" style={{ border: `1px solid ${BORDE}` }}>
               <Building2 size={19} strokeWidth={1.8} style={{ color: VERDE }} aria-hidden />
@@ -461,31 +532,87 @@ export function Equipo() {
 }
 
 export function Oficinas() {
+  const funes = OFICINAS[0]
+  const roldan = OFICINAS.slice(1)
   return (
     <section className="py-16 md:py-24" style={{ background: FONDO }} aria-labelledby="oficinas-titulo">
       <Contenedor>
         <Encabezado
           id="oficinas-titulo"
-          eyebrow="Tres oficinas"
-          titulo="Siempre cerca, en Funes y en Roldán."
-          bajada="Te esperamos en cualquiera de las tres. La de Funes, además, es una galería de arte donde organizamos presentaciones y eventos."
+          eyebrow="Nuestra oficina de Funes"
+          titulo="Un lugar a la altura de tu propiedad."
+          bajada="Sobre Hipólito Yrigoyen, la avenida principal de Funes: en el centro del corredor oeste, entre Rosario, Roldán y los barrios cerrados. Es inmobiliaria y galería de arte a la vez."
         />
-        <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-3 md:gap-5">
-          {OFICINAS.map((o) => (
-            <li key={o.direccion} className="overflow-hidden rounded-[20px] bg-white" style={{ border: `1px solid ${BORDE}` }}>
-              <span className="relative block aspect-[4/3]">
-                <Image src={o.foto} alt={`Oficina de SI INMOBILIARIA en ${o.direccion}`} fill sizes="(max-width: 768px) 100vw, 380px" className="object-cover" />
+
+        <figure className="relative m-0 mt-10 overflow-hidden rounded-[24px] shadow-xl">
+          <div className="relative aspect-[16/10] md:aspect-[2000/858]">
+            <Image src="/como-trabajamos/oficina/fachada.webp" alt="Fachada de la oficina de SI INMOBILIARIA en Hipólito Yrigoyen 2643, Funes" fill sizes="(max-width: 1200px) 100vw, 1120px" className="object-cover" />
+          </div>
+          <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(6,20,12,.78) 0%, rgba(6,20,12,0) 50%)' }} />
+          <figcaption className="absolute bottom-0 left-0 right-0 flex flex-wrap items-end justify-between gap-3 p-5 text-white md:p-8">
+            <span>
+              <span className="block text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: MENTA }}>
+                Funes
               </span>
-              <span className="flex gap-3 p-5">
+              <span className="mt-1 block text-[22px] font-extrabold md:text-[30px]">{conNumeros(funes.direccion)}</span>
+            </span>
+            <span className="text-[13.5px] font-semibold" style={{ color: 'rgba(255,255,255,.85)' }}>
+              Lunes a viernes {conNumeros('9 a 17')} · sábados {conNumeros('9 a 13')}
+            </span>
+          </figcaption>
+        </figure>
+
+        <div className="mt-4 grid gap-4 md:mt-5 md:grid-cols-2 md:gap-5">
+          {[
+            { src: '/como-trabajamos/oficina/sala-reuniones.webp', alt: 'Sala de reuniones de la oficina de Funes con vista al jardín', txt: 'Sala de reuniones para firmar con tranquilidad' },
+            { src: '/como-trabajamos/oficina/sala-equipo.webp', alt: 'Espacio de trabajo del equipo en la oficina de Funes', txt: 'El espacio donde trabaja el equipo' },
+          ].map((f) => (
+            <figure key={f.src} className="m-0">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[20px]">
+                <Image src={f.src} alt={f.alt} fill sizes="(max-width: 768px) 100vw, 560px" className="object-cover" />
+              </div>
+              <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
+                {f.txt}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+
+        <div className="mt-10 grid items-stretch gap-5 md:mt-12 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
+          <ul className="m-0 grid list-none content-start gap-3 p-0">
+            {[
+              { t: 'Ubicación estratégica', d: 'Sobre la avenida principal de Funes, a mano desde Rosario, Roldán y los barrios cerrados del corredor.' },
+              { t: 'Inmobiliaria y galería de arte', d: 'La galería PARED funciona dentro de la oficina: ahí presentamos proyectos y hacemos eventos.' },
+              { t: 'Pensada para recibir', d: 'Sala de reuniones para tasar, negociar y firmar con comodidad, fuera del ruido de un local tradicional.' },
+              { t: 'Tres oficinas, una sola forma de trabajar', d: 'Funes y dos en Roldán, conectadas por HILO: cualquier oficina sabe cómo va tu propiedad.' },
+            ].map((x) => (
+              <li key={x.t} className="flex gap-3 rounded-[18px] bg-white p-5" style={{ border: `1px solid ${BORDE}` }}>
                 <MapPin size={20} strokeWidth={1.8} className="mt-0.5 shrink-0" style={{ color: ACENTO }} aria-hidden />
                 <span>
-                  <span className="block text-[16.5px] font-extrabold">{o.nombre}</span>
-                  <span className="block text-[14.5px] font-semibold" style={{ color: TEXTO }}>
-                    {conNumeros(o.direccion)}
+                  <span className="block text-[16px] font-extrabold">{x.t}</span>
+                  <span className="mt-0.5 block text-[14px] leading-[1.55]" style={{ color: TEXTO }}>
+                    {x.d}
                   </span>
-                  <span className="block text-[13px]" style={{ color: GRIS }}>
-                    {conNumeros(o.nota)}
-                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <MapaUbicacion className="min-h-[360px] w-full overflow-hidden rounded-[20px] lg:min-h-full" />
+        </div>
+
+        <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-2 md:gap-5">
+          {roldan.map((o) => (
+            <li key={o.direccion} className="grid grid-cols-[120px_1fr] overflow-hidden rounded-[18px] bg-white md:grid-cols-[160px_1fr]" style={{ border: `1px solid ${BORDE}` }}>
+              <span className="relative block min-h-[120px]">
+                <Image src={o.foto} alt={`Oficina de SI INMOBILIARIA en ${o.direccion}, Roldán`} fill sizes="160px" className="object-cover" />
+              </span>
+              <span className="block p-4 md:p-5">
+                <span className="block text-[16px] font-extrabold">{o.nombre}</span>
+                <span className="block text-[14px] font-semibold" style={{ color: TEXTO }}>
+                  {conNumeros(o.direccion)}
+                </span>
+                <span className="mt-0.5 block text-[13px]" style={{ color: GRIS }}>
+                  {conNumeros(o.nota)}
                 </span>
               </span>
             </li>

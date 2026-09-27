@@ -7,7 +7,7 @@ import { ArrowUpRight, Clapperboard, Drone, Mic, Smartphone, Video } from 'lucid
 import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
 import { ShortYoutube, VideoVivo } from './Medios'
 import { AEREAS, CANAL_YOUTUBE, EQUIPOS, FOTOS, SHORTS, VIDEOTOURS } from './datos'
-import { BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, VERDE, VERDE_OSCURO, conNumeros } from './ui'
+import { BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, conNumeros } from './ui'
 
 const ICONOS = { drone: Drone, video: Video, celular: Smartphone, mic: Mic }
 
@@ -118,14 +118,25 @@ export function EquipoTecnico() {
           {EQUIPOS.map((e) => {
             const Icon = ICONOS[e.icono]
             return (
-              <li key={e.nombre} className="rounded-[20px] p-6" style={{ background: FONDO, border: `1px solid ${BORDE}` }}>
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white" style={{ border: `1px solid ${BORDE}` }}>
-                  <Icon size={22} strokeWidth={1.7} style={{ color: VERDE }} aria-hidden />
+              <li key={e.nombre} className="overflow-hidden rounded-[20px]" style={{ background: FONDO, border: `1px solid ${BORDE}` }}>
+                <span className="relative block aspect-[16/10]" style={{ background: e.oscura ? '#000' : '#fff' }}>
+                  <Image
+                    src={e.foto}
+                    alt={e.nombre}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 320px"
+                    className={e.oscura ? 'object-cover' : 'object-contain p-5'}
+                  />
                 </span>
-                <h3 className="mt-4 text-[19px] font-extrabold leading-tight">{conNumeros(e.nombre)}</h3>
-                <p className="mt-2 text-[14.5px] leading-[1.6]" style={{ color: TEXTO }}>
-                  {e.uso}
-                </p>
+                <span className="block p-6 pt-5">
+                  <span className="flex items-center gap-2">
+                    <Icon size={18} strokeWidth={1.8} style={{ color: VERDE }} aria-hidden />
+                    <h3 className="m-0 text-[19px] font-extrabold leading-tight">{conNumeros(e.nombre)}</h3>
+                  </span>
+                  <p className="mt-2 text-[14.5px] leading-[1.6]" style={{ color: TEXTO }}>
+                    {e.uso}
+                  </p>
+                </span>
               </li>
             )
           })}
@@ -144,10 +155,34 @@ export function EquipoTecnico() {
   )
 }
 
+/** Logo de YouTube (ícono rojo + palabra), para identificar el canal. */
+export function LogoYoutube({ className = '' }: { className?: string }) {
+  return (
+    <a
+      href={CANAL_YOUTUBE}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Canal de YouTube de SI INMOBILIARIA"
+      className={`inline-flex items-center gap-2 ${className}`}
+      style={{ textDecoration: 'none', color: TINTA }}
+    >
+      <svg width="44" height="31" viewBox="0 0 28 20" aria-hidden>
+        <path
+          d="M27.4 3.1A3.5 3.5 0 0 0 25 .6C22.8 0 14 0 14 0S5.2 0 3 .6A3.5 3.5 0 0 0 .6 3.1C0 5.3 0 10 0 10s0 4.7.6 6.9A3.5 3.5 0 0 0 3 19.4C5.2 20 14 20 14 20s8.8 0 11-.6a3.5 3.5 0 0 0 2.4-2.5C28 14.7 28 10 28 10s0-4.7-.6-6.9Z"
+          fill="#FF0000"
+        />
+        <path d="M11.2 14.3 18.5 10l-7.3-4.3v8.6Z" fill="#fff" />
+      </svg>
+      <span className="text-[22px] font-extrabold tracking-[-0.03em]">YouTube</span>
+    </a>
+  )
+}
+
 export function Videotours() {
   return (
     <section className="py-16 md:py-24" style={{ background: FONDO }} aria-labelledby="videotours-titulo">
       <Contenedor>
+        <LogoYoutube className="mb-5" />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <Encabezado
             id="videotours-titulo"
@@ -185,10 +220,42 @@ export function Videotours() {
   )
 }
 
+/** Logo de Instagram (glifo con el degradé de la marca + palabra). */
+export function LogoInstagram({ className = '', claro = false }: { className?: string; claro?: boolean }) {
+  return (
+    <a
+      href="https://www.instagram.com/inmobiliaria.si"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Instagram de SI INMOBILIARIA"
+      className={`inline-flex items-center gap-2.5 ${className}`}
+      style={{ textDecoration: 'none', color: claro ? '#fff' : TINTA }}
+    >
+      <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden>
+        <defs>
+          <radialGradient id="ig-grad" cx="30%" cy="107%" r="150%">
+            <stop offset="0%" stopColor="#fdf497" />
+            <stop offset="5%" stopColor="#fdf497" />
+            <stop offset="45%" stopColor="#fd5949" />
+            <stop offset="60%" stopColor="#d6249f" />
+            <stop offset="90%" stopColor="#285AEB" />
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="24" height="24" rx="6.5" fill="url(#ig-grad)" />
+        <rect x="5" y="5" width="14" height="14" rx="4.2" fill="none" stroke="#fff" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="3.4" fill="none" stroke="#fff" strokeWidth="1.8" />
+        <circle cx="16.6" cy="7.4" r="1.05" fill="#fff" />
+      </svg>
+      <span className="text-[22px] font-extrabold tracking-[-0.03em]">Instagram</span>
+    </a>
+  )
+}
+
 export function Reels() {
   return (
     <section className="py-16 md:py-24" aria-labelledby="reels-titulo">
       <Contenedor>
+        <LogoInstagram className="mb-5" />
         <Encabezado
           id="reels-titulo"
           eyebrow="Reels y shorts"

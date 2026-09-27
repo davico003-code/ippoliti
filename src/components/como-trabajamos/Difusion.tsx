@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Heart, Mail, Megaphone, MessageCircle, Mic, Send, Sparkles } from 'lucide-react'
 import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
 import { VideoVivo } from './Medios'
+import { LogoYoutube } from './Produccion'
 import { CHARLAS_INVITADOS, CHARLA_DESTACADA, CANAL_YOUTUBE, FOTOS, REDES, RELEVADO } from './datos'
 import { ACENTO, BORDE, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, VERDE_SUAVE, conNumeros } from './ui'
 
@@ -115,6 +116,7 @@ export function CharlasQueSi() {
           className="aspect-video w-full overflow-hidden rounded-[22px] shadow-xl"
         />
         <div>
+          <LogoYoutube className="mb-5" />
           <Encabezado
             id="charlas-titulo"
             eyebrow="Charlas Que Sí"
@@ -311,6 +313,9 @@ export function EmailMarketing() {
     <section className="py-16 md:py-24" style={{ background: FONDO }} aria-labelledby="email-titulo">
       <Contenedor className="grid items-center gap-10 lg:grid-cols-[1fr_1.2fr] lg:gap-14">
         <div>
+          <span className="mb-5 inline-flex items-center rounded-[12px] px-4 py-2.5" style={{ background: '#1B45C8' }}>
+            <Image src="/como-trabajamos/logo-emblue-blanco.webp" alt="emBlue" width={120} height={29} className="h-[26px] w-auto" />
+          </span>
           <Encabezado
             id="email-titulo"
             eyebrow="Email marketing con emBlue"
