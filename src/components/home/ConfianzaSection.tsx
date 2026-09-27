@@ -12,7 +12,7 @@ const SEDES = [
     badgeRight: null,
     direccion: '1ro de Mayo 258, Roldán',
     horario: 'Horario vigente en Google',
-    foto: '/oficina-historica.webp',
+    foto: '/images/sedes/historica.webp',
   },
   {
     nombre: 'Oficina Ventas',
@@ -21,7 +21,7 @@ const SEDES = [
     badgeRight: null,
     direccion: 'Catamarca 775, Roldán',
     horario: 'Horario vigente en Google',
-    foto: '/oficina-ruta9.webp',
+    foto: '/images/sedes/ventas.webp',
   },
   {
     nombre: 'Oficina Funes',
@@ -30,7 +30,7 @@ const SEDES = [
     badgeRight: 'NUEVO 2024',
     direccion: 'Hipólito Yrigoyen 2643, Funes',
     horario: 'Lun a Vie · 9 a 17hs · Sáb · 9 a 13hs',
-    foto: '/oficina-funes.webp',
+    foto: '/images/sedes/funes.webp',
   },
 ]
 
@@ -113,11 +113,11 @@ export default function ConfianzaSection() {
       <section className="px-5 pt-4 pb-7 bg-white">
         <EncabezadoSeccion eyebrow="Nuestras sedes" titulo="Tres lugares para encontrarnos." nivel="h3" />
 
-        <div className="mt-5 -mx-5 px-5 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
+        <div className="mt-5 -mx-5 px-5 scroll-pl-5 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
           {SEDES.map(sede => (
-            <div key={sede.nombre} className="min-w-[78%] snap-start rounded-2xl overflow-hidden border border-gray-200">
+            <div key={sede.nombre} className="min-w-[88%] snap-start rounded-2xl overflow-hidden border border-gray-200">
               <div className="relative" style={{ aspectRatio: '4/3' }}>
-                <Image src={sede.foto} alt={`${sede.nombre} — ${sede.direccion}`} fill className="object-cover" sizes="78vw" />
+                <Image src={sede.foto} alt={`${sede.nombre} — ${sede.direccion}`} fill className="object-cover" sizes="88vw" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                 <span className="absolute top-3 left-3 bg-white/15 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wider font-poppins border border-white/20" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {sede.badge}
@@ -128,7 +128,7 @@ export default function ConfianzaSection() {
                   </span>
                 )}
                 <div className="absolute bottom-3 left-3 right-3 text-white">
-                  <p className="font-raleway font-black text-[18px] leading-tight">{sede.nombre}</p>
+                  <p className="font-raleway font-black text-[21px] leading-tight">{sede.nombre}</p>
                   <p className="font-raleway text-[11px] opacity-90 font-medium mt-0.5">{sede.subtitulo}</p>
                 </div>
               </div>

@@ -23,8 +23,8 @@ export default function ProyectosMosaico() {
           const size = SIZES[i] ?? 'sm'
           const isSm = size === 'sm'
           const imgSizes = isSm
-            ? '(max-width:767px) 50vw, 300px'
-            : '(max-width:767px) 100vw, 600px'
+            ? '(max-width:767px) 50vw, 380px'
+            : '(max-width:767px) 100vw, 760px'
           return (
             <Link key={item.id} href={item.href} className={`tile ${size}`}>
               <div className="bg">
@@ -53,7 +53,7 @@ export default function ProyectosMosaico() {
 
       <style dangerouslySetInnerHTML={{ __html: `
         .proj-bento{ --green:#1A5C38; }
-        .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:198px; gap:14px; margin-top:20px; }
+        .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:250px; gap:14px; margin-top:20px; }
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
         .proj-bento .wide{ grid-column:span 2; }
 
@@ -64,7 +64,7 @@ export default function ProyectosMosaico() {
         .proj-bento .ov{ position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.16) 52%,rgba(0,0,0,.05) 100%); }
         .proj-bento .pbadge{ position:absolute; top:14px; left:14px; z-index:2; background:rgba(255,255,255,.16); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.3); color:#fff; font:600 10.5px ${P}; text-transform:uppercase; letter-spacing:.5px; padding:6px 12px; border-radius:9999px; }
         .proj-bento .pc{ position:absolute; left:0; right:0; bottom:0; z-index:2; padding:18px 20px; color:#fff; }
-        .proj-bento .pc h3{ font:700 21px ${R}; letter-spacing:-.01em; line-height:1.1; margin:0; }
+        .proj-bento .pc h3{ font:700 24px ${R}; letter-spacing:-.01em; line-height:1.1; margin:0; }
         .proj-bento .big h3{ font-size:30px; }
         .proj-bento .wide h3{ font-size:21px; }
         .proj-bento .sm h3{ font-size:19px; }
@@ -77,8 +77,8 @@ export default function ProyectosMosaico() {
         @media(max-width:767px){
           .proj-bento .bento{ grid-template-columns:1fr 1fr; grid-auto-rows:auto; gap:12px; }
           .proj-bento .tile{ grid-column:auto; grid-row:auto; }
-          .proj-bento .big{ grid-column:1 / -1; aspect-ratio:4/3; }
-          .proj-bento .wide{ grid-column:1 / -1; aspect-ratio:16/9; }
+          .proj-bento .big{ grid-column:1 / -1; aspect-ratio:1/1; }
+          .proj-bento .wide{ grid-column:1 / -1; aspect-ratio:4/3; }
           .proj-bento .sm{ grid-column:span 1; aspect-ratio:3/4; }
           .proj-bento .big h3{ font-size:26px; }
           .proj-bento .pc .go{ display:none; }

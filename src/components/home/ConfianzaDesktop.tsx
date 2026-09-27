@@ -19,7 +19,7 @@ const SEDES = [
     badgeRight: null,
     direccion: '1ro de Mayo 258, Roldán',
     horario: 'Horario vigente en Google',
-    foto: '/oficina-historica.webp',
+    foto: '/images/sedes/historica.webp',
   },
   {
     nombre: 'Oficina Ventas',
@@ -28,7 +28,7 @@ const SEDES = [
     badgeRight: null,
     direccion: 'Catamarca 775, Roldán',
     horario: 'Horario vigente en Google',
-    foto: '/oficina-ruta9.webp',
+    foto: '/images/sedes/ventas.webp',
   },
   {
     nombre: 'Oficina Funes',
@@ -37,7 +37,7 @@ const SEDES = [
     badgeRight: 'NUEVO 2024',
     direccion: 'Hipólito Yrigoyen 2643, Funes',
     horario: 'Lun a Vie · 9 a 17hs · Sáb · 9 a 13hs',
-    foto: '/oficina-funes.webp',
+    foto: '/images/sedes/funes.webp',
   },
 ]
 
@@ -127,7 +127,7 @@ export default function ConfianzaDesktop() {
           <div className="revela grid grid-cols-1 gap-6 md:grid-cols-3">
             {SEDES.map(sede => (
               <div key={sede.nombre} className="group overflow-hidden rounded-2xl border border-gray-200">
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="relative aspect-square overflow-hidden">
                   <Image
                     src={sede.foto}
                     alt={`${sede.nombre} - ${sede.direccion}`}
@@ -150,8 +150,8 @@ export default function ConfianzaDesktop() {
                   )}
 
                   <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <p className="font-raleway text-[22px] font-extrabold leading-tight">{sede.nombre}</p>
-                    <p className="font-raleway mt-0.5 text-[12px] font-medium opacity-90">{sede.subtitulo}</p>
+                    <p className="font-raleway text-[26px] font-extrabold leading-tight">{sede.nombre}</p>
+                    <p className="font-raleway mt-0.5 text-[14px] font-medium opacity-90">{sede.subtitulo}</p>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-5">
