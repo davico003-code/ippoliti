@@ -16,7 +16,16 @@ const MapaComercial = dynamic(() => import('./MapaComercial'), {
   loading: () => <div className="ac-map-skel" aria-hidden />,
 })
 
-const fmt = (n: number) => Math.round(n).toLocaleString('es-AR')
+// Formato fijo (sin toLocale*): servidor y navegador tienen que generar
+// exactamente el mismo texto, si no React tira error de hidratación.
+const fmt = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+/** "2026-09-27T21:25:00-03:00" → "27 de septiembre de 2026" (fecha tal cual la escribió el informe). */
+function fechaLarga(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
+  if (!m) return iso
+  return `${Number(m[3])} de ${MESES[Number(m[2]) - 1]} de ${m[1]}`
+}
 
 function Icono({ k, size = 22 }: { k: string; size?: number }) {
   return (
@@ -35,7 +44,7 @@ function Icono({ k, size = 22 }: { k: string; size?: number }) {
   )
 }
 
-function Spark() {
+function Spark({ hoy }: { hoy: number }) {
   const W = 300
   const H = 56
   const pts: [number, number][] = []
@@ -47,7 +56,6 @@ function Spark() {
   const X = (y: number) => ((y - 2010) / 25) * W
   const Y = (v: number) => H - 4 - ((v - mn) / (mx - mn)) * (H - 10)
   const d = pts.map(([y, v], i) => `${i ? 'L' : 'M'}${X(y).toFixed(1)} ${Y(v).toFixed(1)}`).join('')
-  const hoy = new Date().getFullYear()
   const vHoy = pts.find(([y]) => y === hoy)?.[1] ?? pts[16][1]
   return (
     <svg className="ac-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden>
@@ -68,11 +76,7 @@ export default function AnalisisComercial({ informe }: { informe: Informe }) {
     requestAnimationFrame(() => mapaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }, [])
 
-  const fecha = new Date(informe.generado).toLocaleDateString('es-AR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  const fecha = fechaLarga(informe.generado)
 
   return (
     <div className="ac">
@@ -101,7 +105,7 @@ export default function AnalisisComercial({ informe }: { informe: Informe }) {
               {fmt(n.habitantesHoy)} → {fmt(n.habitantes2030)}
             </b>
             <span>habitantes hoy y proyectados a {POBLACION.anioProyeccion}</span>
-            <Spark />
+            <Spark hoy={Number(informe.generado.slice(0, 4))} />
           </div>
           <div className="ac-st">
             <b>{fmt(n.relevados)}</b>
