@@ -69,7 +69,7 @@ export default function PaginasInforme({ paginas, titulo }: { paginas: Pagina[];
           role="dialog"
           aria-modal="true"
           aria-label={`${titulo}: ${actual.etiqueta}`}
-          className="fixed inset-0 z-[10000] flex flex-col bg-black/90 p-3 md:p-6"
+          className="fixed inset-0 z-[2147483000] flex flex-col bg-black/90 p-3 md:p-6"
           onClick={cerrar}
         >
           <div className="flex items-center justify-between gap-3 pb-3 text-white" onClick={(e) => e.stopPropagation()}>
