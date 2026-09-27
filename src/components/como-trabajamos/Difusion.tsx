@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Heart, Mail, Megaphone, MessageCircle, Mic, Send, Sparkles } from 'lucide-react'
 import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
 import { VideoVivo } from './Medios'
+import { LogoYoutube } from './Produccion'
 import { CHARLAS_INVITADOS, CHARLA_DESTACADA, CANAL_YOUTUBE, FOTOS, REDES, RELEVADO } from './datos'
 import { ACENTO, BORDE, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, VERDE_SUAVE, conNumeros } from './ui'
 
@@ -115,6 +116,7 @@ export function CharlasQueSi() {
           className="aspect-video w-full overflow-hidden rounded-[22px] shadow-xl"
         />
         <div>
+          <LogoYoutube className="mb-5" />
           <Encabezado
             id="charlas-titulo"
             eyebrow="Charlas Que Sí"

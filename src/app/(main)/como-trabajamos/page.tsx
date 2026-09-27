@@ -10,7 +10,6 @@
 // los videos y los botones de WhatsApp son client.
 
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import {
   Camera,
   Drone,
@@ -25,13 +24,13 @@ import {
   Users,
 } from 'lucide-react'
 import WhatsappBoton from '@/components/como-trabajamos/WhatsappBoton'
+import { VideoVivo } from '@/components/como-trabajamos/Medios'
 import { Aereas, EquipoTecnico, Fotografia, Reels, Videotours } from '@/components/como-trabajamos/Produccion'
 import { CharlasQueSi, ContenidoIA, EmailMarketing, PortalesYPauta, Redes } from '@/components/como-trabajamos/Difusion'
 import { CalleYEventos, Desarrolladores, Equipo, Hilo, InformeReal, Oficinas, Prensa, RedDeContactos } from '@/components/como-trabajamos/Respaldo'
 import {
   ACENTO,
   BotonTasar,
-  Chip,
   Contenedor,
   Encabezado,
   FONDO,
@@ -205,79 +204,81 @@ export default function ComoTrabajamosPage() {
           para leerse a distancia. */}
       <style dangerouslySetInnerHTML={{ __html: '@media (min-width: 1800px) { .ct-tv { zoom: 1.2; } }' }} />
 
-      {/* ── PORTADA ─────────────────────────────── */}
-      <section className="relative overflow-hidden" style={{ background: VERDE_OSCURO }}>
+      {/* ── PORTADA ───────────────────────────────
+          Video de pantalla completa con tomas reales de nuestro drone
+          (lagunas, jacarandás de Funes, club de campo, barrios cerrados).
+          Horizontal en desktop/TV, recorte vertical en el celular: cada uno
+          solo se descarga si se ve (VideoVivo con preload none). */}
+      <section
+        className="relative isolate flex flex-col overflow-hidden text-white"
+        style={{ background: '#08170F', minHeight: 'min(100svh, 980px)' }}
+      >
+        <div className="absolute inset-0 -z-10 hidden md:block">
+          <VideoVivo
+            src="/como-trabajamos/video/portada-drone.mp4"
+            poster="/como-trabajamos/video/portada-drone.webp"
+            etiqueta="Tomas aéreas con drone de Funes, Roldán y barrios cerrados, filmadas por SI INMOBILIARIA"
+            className="absolute inset-0"
+          />
+        </div>
+        <div className="absolute inset-0 -z-10 md:hidden">
+          <VideoVivo
+            src="/como-trabajamos/video/portada-drone-vertical.mp4"
+            poster="/como-trabajamos/video/portada-drone-vertical.webp"
+            etiqueta="Tomas aéreas con drone de Funes, Roldán y barrios cerrados, filmadas por SI INMOBILIARIA"
+            className="absolute inset-0"
+          />
+        </div>
         <div
           aria-hidden
-          className="absolute inset-0"
+          className="absolute inset-0 -z-10"
           style={{
             background:
-              'radial-gradient(70% 80% at 0% 100%, rgba(0,117,74,.45) 0%, rgba(0,117,74,0) 70%), radial-gradient(50% 60% at 100% 0%, rgba(26,92,56,.6) 0%, rgba(26,92,56,0) 70%)',
+              'linear-gradient(90deg, rgba(6,20,12,.82) 0%, rgba(6,20,12,.5) 42%, rgba(6,20,12,.08) 75%), linear-gradient(0deg, rgba(6,20,12,.92) 0%, rgba(6,20,12,0) 42%)',
           }}
         />
-        <Contenedor className="relative grid items-center gap-10 py-14 md:py-20 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-24">
-          <div className="text-white">
-            <p className="m-0 text-[12px] font-bold uppercase tracking-[0.24em]" style={{ color: MENTA }}>
-              Para propietarios
-            </p>
-            <h1 className="mt-4 font-extrabold" style={{ fontSize: 'clamp(2.3rem, 5vw, 4.1rem)', lineHeight: 1.03, letterSpacing: '-0.035em' }}>
-              Así trabajamos con tu propiedad.
-            </h1>
-            <p className="mt-6 max-w-[34rem] text-[17px] font-medium leading-[1.65] md:text-[18px]" style={{ color: 'rgba(255,255,255,.82)' }}>
-              Producción profesional con drone y videotours, difusión en portales, redes, prensa y pauta paga, tecnología propia y un
-              equipo que te cuenta cómo va, con datos. Todo lo que ves en esta página es trabajo real, hecho por nosotros.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <BotonTasar />
-              <WhatsappBoton ubicacion="portada" />
-            </div>
+
+        <Contenedor className="flex flex-1 flex-col justify-end pb-10 pt-24 md:pb-14 md:pt-32">
+          <p className="m-0 text-[12px] font-bold uppercase tracking-[0.28em]" style={{ color: MENTA }}>
+            SI INMOBILIARIA · Para propietarios
+          </p>
+          <h1
+            className="mt-5 max-w-[15ch] font-extrabold"
+            style={{ fontSize: 'clamp(2.9rem, 7.2vw, 6.4rem)', lineHeight: 0.98, letterSpacing: '-0.045em' }}
+          >
+            Así trabajamos con <span style={{ color: MENTA }}>tu propiedad.</span>
+          </h1>
+          <p className="mt-6 max-w-[36rem] text-[17px] font-medium leading-[1.6] md:text-[19px]" style={{ color: 'rgba(255,255,255,.86)' }}>
+            Drone, videotours, redes, prensa y pauta paga, tecnología propia y un equipo que te cuenta cómo va, con datos. Todo lo
+            que vas a ver es trabajo real, hecho por nosotros.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <BotonTasar />
+            <WhatsappBoton ubicacion="portada" />
           </div>
 
-          <div className="relative mx-auto w-full max-w-[460px] lg:max-w-none">
-            <div className="relative ml-auto aspect-[4/5] w-[86%] overflow-hidden rounded-[26px] shadow-2xl">
-              <Image
-                src="/casa-cadaques-openhouse.webp"
-                alt="Casa fotografiada por el equipo de SI INMOBILIARIA al atardecer"
-                fill
-                priority
-                sizes="(max-width: 1024px) 80vw, 460px"
-                className="object-cover"
-                style={{ objectPosition: 'center 62%' }}
-              />
-              <Chip className="absolute right-3 top-3">
-                <Camera size={14} aria-hidden /> Foto profesional
-              </Chip>
-            </div>
-            <div className="absolute bottom-[-18px] left-0 aspect-[4/3] w-[52%] overflow-hidden rounded-[20px] border-4 shadow-2xl" style={{ borderColor: VERDE_OSCURO }}>
-              <Image
-                src="/como-trabajamos/ruta9-aerea-cenital.webp"
-                alt="Toma cenital con drone de una casa con pileta y cancha de tenis"
-                fill
-                sizes="(max-width: 1024px) 45vw, 260px"
-                className="object-cover"
-              />
-              <Chip className="absolute bottom-2 left-2">
-                <Drone size={13} aria-hidden /> Drone
-              </Chip>
-            </div>
-          </div>
+          <dl
+            className="m-0 mt-12 grid grid-cols-2 gap-x-4 gap-y-5 rounded-[22px] px-5 py-6 sm:grid-cols-3 lg:grid-cols-6 md:mt-16 md:px-8"
+            style={{
+              background: 'rgba(255,255,255,.08)',
+              border: '1px solid rgba(255,255,255,.14)',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+            }}
+          >
+            {NUMEROS.map((s) => (
+              <div key={s.l} className="flex flex-col-reverse">
+                <dt className="mt-1.5 text-[12.5px] font-semibold leading-snug" style={{ color: 'rgba(255,255,255,.7)' }}>
+                  {s.l}
+                </dt>
+                <dd className="m-0 font-numeric text-[28px] font-bold leading-none text-white md:text-[34px]">{s.n}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="m-0 mt-4 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: 'rgba(255,255,255,.6)' }}>
+            <Drone size={14} aria-hidden /> Tomas reales de nuestro drone en Funes, Roldán y la zona
+          </p>
         </Contenedor>
-
-        {/* Números */}
-        <div className="relative border-t" style={{ borderColor: 'rgba(255,255,255,.12)' }}>
-          <Contenedor>
-            <dl className="m-0 grid grid-cols-2 gap-x-4 gap-y-6 py-8 sm:grid-cols-3 lg:grid-cols-6 md:py-10">
-              {NUMEROS.map((s) => (
-                <div key={s.l} className="flex flex-col-reverse">
-                  <dt className="mt-1.5 text-[12.5px] font-semibold leading-snug" style={{ color: 'rgba(255,255,255,.62)' }}>
-                    {s.l}
-                  </dt>
-                  <dd className="m-0 font-numeric text-[30px] font-bold leading-none text-white md:text-[34px]">{s.n}</dd>
-                </div>
-              ))}
-            </dl>
-          </Contenedor>
-        </div>
       </section>
 
       {/* ── EL MÉTODO ───────────────────────────── */}

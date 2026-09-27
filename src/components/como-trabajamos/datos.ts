@@ -31,11 +31,13 @@ export const AEREAS = [
 ]
 
 /* ── Equipo técnico ── */
+// Fotos: imágenes oficiales de producto (DJI y el newsroom de Apple), a
+// pedido de David; se reemplazan por fotos propias cuando las haya.
 export const EQUIPOS = [
-  { nombre: 'DJI Mavic 4 Pro', uso: 'Drone para tomas aéreas: el terreno, el barrio, los accesos y el entorno desde arriba.', icono: 'drone' },
-  { nombre: 'DJI Osmo Pocket 4P', uso: 'Cámara estabilizada para recorridos fluidos por dentro de la casa, sin saltos.', icono: 'video' },
-  { nombre: 'iPhone 17 Pro', uso: 'Reels y videos verticales en 4K, pensados para Instagram, TikTok y YouTube Shorts.', icono: 'celular' },
-  { nombre: 'DJI Mic 2', uso: 'Micrófonos inalámbricos: el agente cuenta la propiedad con audio limpio.', icono: 'mic' },
+  { nombre: 'DJI Mavic 4 Pro', uso: 'Drone para tomas aéreas: el terreno, el barrio, los accesos y el entorno desde arriba.', icono: 'drone', foto: `${P}/equipos/dji-mavic-4-pro.webp`, oscura: false },
+  { nombre: 'DJI Osmo Pocket 4P', uso: 'Cámara estabilizada para recorridos fluidos por dentro de la casa, sin saltos.', icono: 'video', foto: `${P}/equipos/dji-osmo-pocket-4p.webp`, oscura: false },
+  { nombre: 'iPhone 17 Pro', uso: 'Reels y videos verticales en 4K, pensados para Instagram, TikTok y YouTube Shorts.', icono: 'celular', foto: `${P}/equipos/iphone-17-pro.webp`, oscura: true },
+  { nombre: 'DJI Mic 2', uso: 'Micrófonos inalámbricos: el agente cuenta la propiedad con audio limpio.', icono: 'mic', foto: `${P}/equipos/dji-mic-2.webp`, oscura: false },
 ] as const
 
 /* ── YouTube ── */
