@@ -235,18 +235,19 @@ export const VENDIDAS: {
 /* ── Muro de propiedades publicadas (portadas reales, para el mockup de HILO) ── */
 export const MURO = Array.from({ length: 19 }, (_, i) => `${P}/muro/${String(i + 1).padStart(2, '0')}.webp`)
 
-/* ── Colegas de Funes y Roldán con los que hacemos negocios (lista de David, 27-sep) ── */
+/* ── Colegas de Funes y Roldán con los que hacemos negocios (lista de David, 27-sep).
+   Logos de sus sitios / perfiles de portales; el de Rodriguez Tuttobene sale del cartel compartido. ── */
 export const COLEGAS = [
-  { inmobiliaria: 'Rodriguez Tuttobene', personas: 'Javier Rodriguez y Antonela Tuttobene' },
-  { inmobiliaria: 'Colautti Propiedades', personas: 'Mariano Colautti' },
-  { inmobiliaria: 'Comini Propiedades', personas: 'Cintia Comini' },
-  { inmobiliaria: 'Amaro Propiedades', personas: 'Edgardo Amaro' },
-  { inmobiliaria: 'Ramírez Loy Propiedades', personas: 'Ramírez Loy' },
-  { inmobiliaria: 'Dunod', personas: 'Gaspar Gariboldi' },
-  { inmobiliaria: 'Skygarden', personas: 'Juan Cano' },
-  { inmobiliaria: 'Cichitti Propiedades', personas: 'Sofía Cichitti' },
-  { inmobiliaria: 'Olbox', personas: 'Juan Olbinsky' },
-  { inmobiliaria: 'JyC Asociados', personas: 'Emiliana Herrera' },
-  { inmobiliaria: 'Funes Inmobiliaria', personas: 'Máximo Juaneu' },
-  { inmobiliaria: 'Fernández Pool Inmobiliaria', personas: 'Valeria Guevara y Viviana Pool' },
-]
+  { inmobiliaria: 'Rodriguez Tuttobene', personas: 'Javier Rodriguez y Antonela Tuttobene', logo: 'rodriguez-tuttobene' },
+  { inmobiliaria: 'Colautti Propiedades', personas: 'Mariano Colautti', logo: 'colautti' },
+  { inmobiliaria: 'Comini Propiedades', personas: 'Cintia Comini', logo: 'comini' },
+  { inmobiliaria: 'Amaro Propiedades', personas: 'Edgardo Amaro', logo: 'amaro' },
+  { inmobiliaria: 'Ramírez Loy Propiedades', personas: 'Ramírez Loy', logo: 'ramirez-loy' },
+  { inmobiliaria: 'Dunod', personas: 'Gaspar Gariboldi', logo: 'dunod' },
+  { inmobiliaria: 'Skygarden', personas: 'Juan Cano', logo: 'skygarden' },
+  { inmobiliaria: 'Cicchitti Propiedades', personas: 'Sofía Cicchitti', logo: 'cicchitti' },
+  { inmobiliaria: 'Grupo Olbox', personas: 'Juan Olbinsky', logo: 'olbox' },
+  { inmobiliaria: 'JC & Asociados', personas: 'Emiliana Herrera', logo: 'jyc-asociados' },
+  { inmobiliaria: 'Funes Inmobiliaria', personas: 'Máximo Juaneu', logo: 'funes-inmobiliaria' },
+  { inmobiliaria: 'Fernández Pool Inmobiliaria', personas: 'Valeria Guevara y Viviana Pool', logo: 'fernandez-pool' },
+].map((c) => ({ ...c, logo: `${P}/colegas/${c.logo}.webp` }))
