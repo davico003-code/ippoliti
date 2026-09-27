@@ -89,14 +89,62 @@ export const PRENSA = [
   { medio: 'InfoFunes', fecha: 'ago 2024', titulo: 'De Roldán a Funes: Susana Ippoliti Inmobiliaria expande sus negocios con nueva marca', img: `${P}/prensa/infofunes-nueva-marca.webp`, href: 'https://infofunes.com.ar/noticias/de-roldan-a-funes-susana-ippoliti-inmobiliaria-expande-sus-negocios-con-nueva-marca' },
 ]
 
-/* ── Emprendimientos (desarrolladores y constructores) ── */
+/* ── Emprendimientos que asesoramos (solo estos dos: David, 27-sep) ── */
 export const EMPRENDIMIENTOS = [
-  { nombre: 'Distrito Roldán', tipo: 'Barrio abierto · lotes y locales', dato: 'Más del 35% de los lotes vendidos a tres meses del inicio de obra', img: `${P}/prensa/roldanense-distrito-35.webp`, href: '/emprendimientos/67178-distrito-roldan' },
-  { nombre: 'Dock Garden', tipo: 'Viviendas y paseo comercial · Aldea Fisherton', dato: 'Obra en marcha frente al Rosario Golf', img: '/images/dockgarden/obra-2026-09/01.webp', href: '/emprendimientos/67173-dockgarden-aldea-fisherton' },
-  { nombre: 'Hausing', tipo: 'Casas de constructora en barrios cerrados', dato: 'House tours en video de cada casa', img: `${P}/kentucky-fachada.webp`, href: '/hausing' },
-  { nombre: 'Fisherton Work', tipo: 'Oficinas y showroom · Fisherton', dato: 'Masterplan interactivo con 43 unidades', img: '/emprendimientos/fisherton-work/render-conjunto.webp', href: '/emprendimientos/fisherton-work', render: true },
-  { nombre: 'Fincazul', tipo: 'Loteo', dato: 'Avances de obra documentados con drone', img: '/emprendimientos/fincazul/actual-1.jpg', href: '/emprendimientos/fincazul' },
-  { nombre: 'Aurea', tipo: 'Barrio privado · Roldán', dato: 'Lotes desde 500 m²', img: '/aurea-portada.jpg', href: '/propiedades/7296792-lotes-en-venta-desde-500m2-barrio-privado-aurea-en-roldan' },
+  {
+    nombre: 'Distrito Roldán',
+    desarrolla: 'Grupo Transatlántica',
+    tipo: 'Barrio abierto · lotes y locales · Roldán',
+    dato: 'Más del 35% de los lotes vendidos a tres meses del inicio de obra',
+    fuente: 'El Roldanense, junio 2026',
+    img: `${P}/prensa/roldanense-distrito-35.webp`,
+    href: '/emprendimientos/67178-distrito-roldan',
+  },
+  {
+    nombre: 'Dock Garden',
+    desarrolla: 'VERS Desarrollos',
+    tipo: 'Condominio y paseo comercial · Aldea Fisherton',
+    dato: 'Análisis de mercado previo al lanzamiento y comercialización de las unidades',
+    fuente: '',
+    img: '/images/dockgarden/obra-2026-09/01.webp',
+    href: '/emprendimientos/67173-dockgarden-aldea-fisherton',
+  },
+]
+
+/* ── Informes reales entregados a desarrolladores ──
+   Se muestran como libro: la tapa nítida y las páginas en miniatura, sin
+   que se pueda leer el contenido (es confidencial del desarrollador). */
+export const INFORMES = [
+  {
+    proyecto: 'Dock Garden',
+    tipo: 'Análisis de mercado',
+    titulo: 'Condominios en pozo en Fisherton',
+    fecha: 'Julio 2025',
+    detalle: 'Comparables reales, precio por m² y posicionamiento para definir la estrategia comercial antes del lanzamiento.',
+    formato: 'a4' as const,
+    tapa: `${P}/informes/dockgarden-mercado-tapa.webp`,
+    paginas: [`${P}/informes/dockgarden-mercado-p4.webp`, `${P}/informes/dockgarden-mercado-p5.webp`, `${P}/informes/dockgarden-mercado-p8.webp`],
+  },
+  {
+    proyecto: 'Distrito Roldán',
+    tipo: 'Análisis comercial y plan de acción',
+    titulo: 'Línea de tiempo, competencia y propuesta',
+    fecha: 'Cuarto trimestre 2025',
+    detalle: 'Cómo venía la venta, contra quién competía el proyecto y qué condiciones proponíamos cambiar.',
+    formato: 'slide' as const,
+    tapa: `${P}/informes/distrito-plan-tapa.webp`,
+    paginas: [`${P}/informes/distrito-plan-p04.webp`, `${P}/informes/distrito-plan-p05.webp`, `${P}/informes/distrito-plan-p09.webp`],
+  },
+  {
+    proyecto: 'Distrito Roldán',
+    tipo: 'Avance comercial',
+    titulo: 'Informe estratégico de evolución comercial',
+    fecha: 'Primer trimestre 2026',
+    detalle: 'Estado de las ventas, ritmo de absorción, contexto del mercado y plan de comercialización para el período.',
+    formato: 'a4' as const,
+    tapa: `${P}/informes/distrito-q1-tapa.webp`,
+    paginas: [`${P}/informes/distrito-q1-p2.webp`, `${P}/informes/distrito-q1-p3.webp`, `${P}/informes/distrito-q1-p7.webp`],
+  },
 ]
 
 /* ── Equipo (roster público de /nosotros) ── */

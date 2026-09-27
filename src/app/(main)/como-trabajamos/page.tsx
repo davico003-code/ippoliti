@@ -162,7 +162,7 @@ const FAQ = [
   },
   {
     q: '¿Trabajan con desarrolladores e inversores?',
-    a: 'Sí. Asesoramos y comercializamos emprendimientos como Distrito Roldán, Dock Garden y Fisherton Work, y acompañamos a inversores con análisis de rentabilidad y oportunidades del mercado local.',
+    a: 'Sí. Asesoramos y comercializamos emprendimientos como Distrito Roldán y Dock Garden: estudio de mercado antes del lanzamiento, estrategia de precio y reportes periódicos del avance comercial. También acompañamos a inversores con análisis del mercado local.',
   },
   {
     q: '¿En qué zonas trabajan?',

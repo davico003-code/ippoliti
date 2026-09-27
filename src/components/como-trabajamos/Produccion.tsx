@@ -220,10 +220,42 @@ export function Videotours() {
   )
 }
 
+/** Logo de Instagram (glifo con el degradé de la marca + palabra). */
+export function LogoInstagram({ className = '', claro = false }: { className?: string; claro?: boolean }) {
+  return (
+    <a
+      href="https://www.instagram.com/inmobiliaria.si"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Instagram de SI INMOBILIARIA"
+      className={`inline-flex items-center gap-2.5 ${className}`}
+      style={{ textDecoration: 'none', color: claro ? '#fff' : TINTA }}
+    >
+      <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden>
+        <defs>
+          <radialGradient id="ig-grad" cx="30%" cy="107%" r="150%">
+            <stop offset="0%" stopColor="#fdf497" />
+            <stop offset="5%" stopColor="#fdf497" />
+            <stop offset="45%" stopColor="#fd5949" />
+            <stop offset="60%" stopColor="#d6249f" />
+            <stop offset="90%" stopColor="#285AEB" />
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="24" height="24" rx="6.5" fill="url(#ig-grad)" />
+        <rect x="5" y="5" width="14" height="14" rx="4.2" fill="none" stroke="#fff" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="3.4" fill="none" stroke="#fff" strokeWidth="1.8" />
+        <circle cx="16.6" cy="7.4" r="1.05" fill="#fff" />
+      </svg>
+      <span className="text-[22px] font-extrabold tracking-[-0.03em]">Instagram</span>
+    </a>
+  )
+}
+
 export function Reels() {
   return (
     <section className="py-16 md:py-24" aria-labelledby="reels-titulo">
       <Contenedor>
+        <LogoInstagram className="mb-5" />
         <Encabezado
           id="reels-titulo"
           eyebrow="Reels y shorts"
