@@ -38,7 +38,9 @@ const BLOQUES: Bloque[] = [
 
 export default function SeccionRenders() {
   return (
-    <section className="bg-white px-6 py-20 md:py-28">
+    // id="barrio": destino de "El barrio" en el menú del hero. Vive acá y no en
+    // la galería de fotos, que se oculta cuando no hay fotos reales nuevas.
+    <section id="barrio" className="bg-white px-6 py-20 md:py-28">
       <div className="mx-auto max-w-[1180px]">
         {BLOQUES.map((b, i) => (
           <div

@@ -1,9 +1,10 @@
 import { ArrowRight, Map as MapIcon, Phone } from 'lucide-react'
 import Link from 'next/link'
+import { FinanciacionTarjetas } from './FinanciacionLineas'
 
 export default function SeccionCtaFinanciacion() {
   return (
-    <section className="relative overflow-hidden bg-[#345544] px-6 py-20 text-white md:py-28">
+    <section data-sin-fab className="relative overflow-hidden bg-[#345544] px-6 py-20 text-white md:py-28">
       <div aria-hidden className="absolute -bottom-20 -right-16 h-80 w-80 text-white/[0.06]">
         <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" strokeWidth="5">
           <path d="M98 101C57 94 30 65 24 24c41 6 70 33 74 77Z" />
@@ -15,11 +16,15 @@ export default function SeccionCtaFinanciacion() {
         <div className="max-w-[760px]">
           <p className="text-sm font-semibold text-[#BB8D3F]">Financiación propia</p>
           <h2 className="mt-4 text-balance text-[clamp(36px,5vw,64px)] font-bold leading-[1.04] tracking-[-0.03em] text-[#F8F1E6]">
-            Entrega del 30% y saldo en 24 cuotas fijas en dólares.
+            Pagalo en cuotas fijas en dólares.
           </h2>
           <p className="mt-6 max-w-[58ch] text-base leading-7 text-white/75">
-            Consultanos por disponibilidad, precios y alternativas para elegir el lote que mejor se ajuste a tu proyecto.
+            Cada tipo de lote tiene su plan. Consultanos por disponibilidad, precios y alternativas para elegir el
+            lote que mejor se ajuste a tu proyecto.
           </p>
+          <div className="mt-9">
+            <FinanciacionTarjetas />
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">

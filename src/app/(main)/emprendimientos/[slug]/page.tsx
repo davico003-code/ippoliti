@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, MessageCircle, Map as MapIcon } from 'lucide-react'
+import { ArrowLeft, MessageCircle } from 'lucide-react'
 import {
   getDevelopments,
   getDevelopmentById,
@@ -34,6 +34,7 @@ import SeccionAvancesObra from '@/components/distrito-roldan/SeccionAvancesObra'
 import SeccionUbicacion from '@/components/distrito-roldan/SeccionUbicacion'
 import SeccionServicios from '@/components/distrito-roldan/SeccionServicios'
 import SeccionCtaFinanciacion from '@/components/distrito-roldan/SeccionCtaFinanciacion'
+import FabLotes from '@/components/distrito-roldan/FabLotes'
 import { getClienteFormatted } from '@/lib/clientes'
 import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug, getMainPhoto, translatePropertyType, getTotalSurface } from '@/lib/tokko'
 export const revalidate = 21600
@@ -76,7 +77,7 @@ const DEV_SEO: Record<
   67178: {
     title: 'Distrito Roldán | Lotes Residenciales y Comerciales en Roldán, Ruta 9',
     description:
-      'Distrito Roldán: barrio abierto con 180 lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario. Financiación 30% + 24 cuotas fijas en dólares.',
+      'Distrito Roldán: barrio abierto con 180 lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario. Residenciales con 30% + 24 cuotas fijas en dólares.',
   },
 }
 
@@ -330,25 +331,9 @@ export default async function DevelopmentPage({ params }: Props) {
       {/* CTA financiación — cierre full-width, solo Distrito Roldán */}
       {isDistrito && <SeccionCtaFinanciacion />}
 
-      {/* FAB dedicado — solo 67178 (el global se oculta acá).
-          06-sep-2026: antes abría WhatsApp al celular del corredor. Esa consulta
-          no quedaba en Hilo, no rotaba entre los agentes y no se medía. Ahora
-          lleva al plano, que es donde vive el pedido por lote ("Consultar por
-          este lote" → Hilo → rota → aviso + tarea a 15 min). El cliente igual
-          termina hablando por WhatsApp, pero con el lote y su cuota adentro.
-          data-fab-whatsapp: lo esconde la hoja del lote del plano cuando se abre
-          (globals.css + SeccionPlanoLotes), para no taparla. */}
-      {isDistrito && (
-        <Link
-          href="/distrito-roldan-precios"
-          data-fab-whatsapp
-          aria-label="Ver lotes y precios"
-          className="fixed bottom-5 right-5 z-50 flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#B35E21] px-5 text-sm font-bold text-white shadow-[0_4px_14px_rgba(179,94,33,0.45)] transition-transform hover:scale-105 hover:bg-[#9d4f18]"
-        >
-          <MapIcon className="h-5 w-5" aria-hidden />
-          Ver lotes y precios
-        </Link>
-      )}
+      {/* FAB dedicado — solo 67178 (el global se oculta acá). Lleva al plano
+          y se esconde donde repite otro botón o tapa contenido (FabLotes). */}
+      {isDistrito && <FabLotes href="/distrito-roldan-precios" />}
     </div>
   )
 }

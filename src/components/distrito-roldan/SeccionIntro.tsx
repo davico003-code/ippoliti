@@ -1,8 +1,5 @@
-const DATOS = [
-  { numero: '159', label: 'Lotes residenciales', detalle: 'Desde 450 m²' },
-  { numero: '21', label: 'Lotes comerciales', detalle: 'Promedio 630 m²' },
-  { numero: '180', label: 'Lotes totales', detalle: 'Barrio abierto' },
-]
+import DisponibilidadVivo from './DisponibilidadVivo'
+import FinanciacionLineas from './FinanciacionLineas'
 
 export default function SeccionIntro() {
   return (
@@ -32,23 +29,12 @@ export default function SeccionIntro() {
               Calles amplias, forestación planificada y servicios subterráneos acompañan un trazado pensado
               para crecer con el entorno.
             </p>
-            <p className="mt-6 font-semibold text-[#345544]">Entrega del 30% y saldo en 24 cuotas fijas en dólares.</p>
+            <FinanciacionLineas className="mt-6 space-y-1 font-semibold text-[#345544]" />
           </div>
         </div>
 
-        <div className="mt-14 grid border-y border-[#345544]/20 sm:grid-cols-3">
-          {DATOS.map((dato, index) => (
-            <div
-              key={dato.label}
-              className={`py-7 sm:px-7 sm:py-9 ${index > 0 ? 'border-t border-[#345544]/20 sm:border-l sm:border-t-0' : ''}`}
-            >
-              <p className="text-[clamp(42px,5vw,66px)] font-medium leading-none tracking-[-0.04em] text-[#345544]">
-                {dato.numero}
-              </p>
-              <p className="mt-3 font-semibold text-[#345544]">{dato.label}</p>
-              <p className="mt-1 text-sm text-[#345544]/[0.65]">{dato.detalle}</p>
-            </div>
-          ))}
+        <div className="mt-14">
+          <DisponibilidadVivo />
         </div>
       </div>
     </section>

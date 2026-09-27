@@ -2,7 +2,7 @@
 
 // Mapa interactivo de Distrito Roldán (slug 67178).
 // Leaflet crudo (imperativo) para la animación de rutas, React state solo para
-// botones/banner. Réplica 1:1 de ~/Downloads/mapa-distrito-preview.html.
+// botones con km y minutos. Réplica 1:1 de ~/Downloads/mapa-distrito-preview.html.
 // Se monta vía dynamic(ssr:false) desde MapaDistritoRoldan.tsx — por eso es
 // seguro importar leaflet a tope (nunca corre en SSR).
 
@@ -120,12 +120,10 @@ export default function MapaDistritoRoldanClient() {
   const lineRef = useRef<L.Polyline | null>(null)
   const destMarkerRef = useRef<L.Marker | null>(null)
   const animFrameRef = useRef<number | null>(null)
-  const countFrameRef = useRef<number | null>(null)
   const routeCacheRef = useRef<Partial<Record<DestKey, [number, number][]>>>({})
 
   const [activeDest, setActiveDest] = useState<DestKey | null>(null)
   const [loadingDest, setLoadingDest] = useState<DestKey | null>(null)
-  const [banner, setBanner] = useState<{ nombre: string; km: number; min: number } | null>(null)
 
   // Inicialización del mapa (una sola vez).
   useEffect(() => {
@@ -180,7 +178,6 @@ export default function MapaDistritoRoldanClient() {
       timeouts.forEach(clearTimeout)
       if (ro) ro.disconnect()
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
-      if (countFrameRef.current) cancelAnimationFrame(countFrameRef.current)
       map.remove()
       mapRef.current = null
     }
@@ -191,10 +188,6 @@ export default function MapaDistritoRoldanClient() {
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current)
       animFrameRef.current = null
-    }
-    if (countFrameRef.current) {
-      cancelAnimationFrame(countFrameRef.current)
-      countFrameRef.current = null
     }
     const map = mapRef.current
     if (lineRef.current && map) {
@@ -238,7 +231,6 @@ export default function MapaDistritoRoldanClient() {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduceMotion) {
       line.setLatLngs(ruta)
-      setBanner({ nombre: d.nombre, km: d.km, min: d.min })
       return
     }
 
@@ -252,18 +244,6 @@ export default function MapaDistritoRoldanClient() {
       if (t < 1) animFrameRef.current = requestAnimationFrame(step)
     }
     animFrameRef.current = requestAnimationFrame(step)
-
-    // Count-up del banner (km / min).
-    setBanner({ nombre: d.nombre, km: 0, min: 0 })
-    let c0: number | null = null
-    const countUp = (ts: number) => {
-      if (c0 === null) c0 = ts
-      const t = Math.min(1, (ts - c0) / 1300)
-      const ease = 1 - Math.pow(1 - t, 3)
-      setBanner({ nombre: d.nombre, km: Math.round(d.km * ease), min: Math.round(d.min * ease) })
-      if (t < 1) countFrameRef.current = requestAnimationFrame(countUp)
-    }
-    countFrameRef.current = requestAnimationFrame(countUp)
   }, [])
 
   const animar = useCallback(
@@ -346,49 +326,19 @@ export default function MapaDistritoRoldanClient() {
                   {DESTINOS[key].nombre}
                 </span>
               </span>
+              {/* Km y minutos a la vista: antes aparecían recién al tocar, en un
+                  cartel que mientras tanto dejaba un hueco vacío abajo. */}
+              <span className="flex-shrink-0 text-right [font-variant-numeric:tabular-nums]" style={{ lineHeight: 1.15 }}>
+                <span className="block" style={{ fontSize: 15, fontWeight: 700 }}>
+                  {DESTINOS[key].km} km
+                </span>
+                <span className="block" style={{ fontSize: 11, fontWeight: 500, opacity: 0.7 }}>
+                  {DESTINOS[key].min} min en auto
+                </span>
+              </span>
             </button>
           )
         })}
-      </div>
-
-      {/* Banner */}
-      <div
-        className="dr-banner mt-3.5 flex items-center justify-around gap-4 border border-[#345544]/[0.15] bg-white px-[22px] py-[18px] transition-[opacity,transform] duration-[350ms]"
-        style={{
-          opacity: banner ? 1 : 0,
-          transform: banner ? 'translateY(0)' : 'translateY(4px)',
-          pointerEvents: banner ? 'auto' : 'none',
-        }}
-        aria-hidden={!banner}
-      >
-        <div className="dr-stat flex flex-col gap-1 text-center">
-          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#345544', letterSpacing: '0.12em', fontWeight: 600, opacity: 0.65 }}>
-            Destino
-          </span>
-          <span style={{ fontFamily: MONTSERRAT, fontWeight: 600, fontSize: 18, color: '#345544', letterSpacing: '-0.01em' }}>
-            {banner?.nombre ?? '—'}
-          </span>
-        </div>
-        <div className="dr-sep h-9 w-px bg-[#345544]/[0.15]" />
-        <div className="dr-stat flex flex-col gap-1 text-center">
-          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#345544', letterSpacing: '0.12em', fontWeight: 600, opacity: 0.65 }}>
-            Distancia
-          </span>
-          <span style={{ fontFamily: MONTSERRAT, fontWeight: 600, fontSize: 26, color: '#345544', letterSpacing: '-0.01em' }}>
-            {banner?.km ?? 0}
-            <small style={{ fontSize: 13, fontWeight: 400, color: '#345544', opacity: 0.7, marginLeft: 3 }}>km</small>
-          </span>
-        </div>
-        <div className="dr-sep h-9 w-px bg-[#345544]/[0.15]" />
-        <div className="dr-stat flex flex-col gap-1 text-center">
-          <span className="dr-label uppercase" style={{ fontSize: 10, color: '#345544', letterSpacing: '0.12em', fontWeight: 600, opacity: 0.65 }}>
-            Tiempo
-          </span>
-          <span style={{ fontFamily: MONTSERRAT, fontWeight: 600, fontSize: 26, color: '#345544', letterSpacing: '-0.01em' }}>
-            {banner?.min ?? 0}
-            <small style={{ fontSize: 13, fontWeight: 400, color: '#345544', opacity: 0.7, marginLeft: 3 }}>min en auto</small>
-          </span>
-        </div>
       </div>
 
       <style jsx global>{`
@@ -453,25 +403,9 @@ export default function MapaDistritoRoldanClient() {
         }
         @media (prefers-reduced-motion: reduce) {
           .dr-btn,
-          .dr-banner,
           .dr-pulse {
             animation: none !important;
             transition: none !important;
-          }
-        }
-        @media (max-width: 640px) {
-          .dr-banner {
-            flex-direction: column;
-            align-items: stretch;
-          }
-          .dr-sep {
-            width: 100% !important;
-            height: 1px !important;
-          }
-          .dr-stat {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
           }
         }
       `}</style>
