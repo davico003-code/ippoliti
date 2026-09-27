@@ -91,6 +91,11 @@ const collectionJsonLd = {
     },
     {
       '@type': 'WebPage',
+      name: 'Análisis comercial de Funes',
+      url: 'https://siinmobiliaria.com/recursos/analisis-comercial',
+    },
+    {
+      '@type': 'WebPage',
       name: 'Índices y mercado en vivo',
       url: 'https://siinmobiliaria.com/informes',
     },
@@ -228,6 +233,8 @@ const STYLES = `
 interface CardData {
   href: string
   title: string
+  /** Ocupa el ancho completo del bento (placa 2564x716). */
+  wide?: boolean
   image: {
     src: string
     alt: string
@@ -281,6 +288,16 @@ const CARDS: CardData[] = [
       sizes: '(max-width: 760px) calc(100vw - 28px), calc((min(100vw - 40px, 1282px) - 20px) / 2)',
     },
   },
+  {
+    href: '/recursos/analisis-comercial',
+    title: '¿Qué negocio le falta a Funes?',
+    wide: true,
+    image: {
+      src: '/recursos/placa-analisis.webp',
+      alt: 'Análisis comercial de Funes: qué negocio le falta a la ciudad',
+      sizes: 'min(100vw - 40px, 1282px)',
+    },
+  },
 ]
 
 export default function RecursosIndexPage() {
@@ -309,7 +326,7 @@ export default function RecursosIndexPage() {
               </p>
               <div className="rr-stats">
                 <div>
-                  <div className="rr-stat-value">5</div>
+                  <div className="rr-stat-value">6</div>
                   <div className="rr-stat-label">herramientas</div>
                 </div>
                 <div>
@@ -326,7 +343,7 @@ export default function RecursosIndexPage() {
             <div className="rr-bento" aria-label="Herramientas y guías">
               <ResourceCard card={feature} featured priority />
               {rest.map((card) => (
-                <ResourceCard key={card.href} card={card} />
+                <ResourceCard key={card.href} card={card} featured={card.wide} />
               ))}
             </div>
           </section>
