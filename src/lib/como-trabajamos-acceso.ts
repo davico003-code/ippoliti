@@ -145,3 +145,9 @@ export async function linksDelAgente(agenteId: string): Promise<LinkPresentacion
   )
   return res.filter((l): l is LinkPresentacion => Boolean(l))
 }
+
+/** Visitas usadas de un link (0 si nunca se abrió). */
+export async function visitasDe(token: string): Promise<number> {
+  const v = await redis.get<RegistroVisitas>(kVisitas(token))
+  return v?.n ?? 0
+}
