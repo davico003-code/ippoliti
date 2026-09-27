@@ -1,5 +1,5 @@
 // Fisherton Work — parque logístico y comercial en Fisherton, Rosario.
-// Desarrollan NM Capital y Provectta; comercializa SI INMOBILIARIA.
+// Desarrollan NM Capital y Proyectta; comercializa SI INMOBILIARIA.
 // No está en el feed de HILO, así que la landing es estática y estos datos son
 // la fuente: lotes calcados del plano oficial del desarrollador
 // (public/emprendimientos/fisherton-work/masterplan-oficial.jpg), en el mismo

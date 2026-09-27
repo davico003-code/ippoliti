@@ -1,5 +1,5 @@
 // Landing de Fisherton Work — parque logístico y comercial en Fisherton,
-// Rosario (NM Capital + Provectta). No está en el feed de HILO: ruta estática
+// Rosario (NM Capital + Proyectta). No está en el feed de HILO: ruta estática
 // propia (le gana al [slug] dinámico), mismo patrón que Fincazul. Datos de
 // lotes y constantes en src/lib/fisherton-work.ts; assets en
 // public/emprendimientos/fisherton-work.
@@ -139,7 +139,7 @@ const FAQ = [
   },
   {
     q: '¿Quién desarrolla el proyecto?',
-    a: 'Fisherton Work es un desarrollo de NM Capital y Provectta. SI INMOBILIARIA lo comercializa y te acompaña en toda la operación.',
+    a: 'Fisherton Work es un desarrollo de NM Capital y Proyectta. SI INMOBILIARIA lo comercializa y te acompaña en toda la operación.',
   },
   {
     q: '¿Cuánto cuesta y hay financiación?',
@@ -412,7 +412,7 @@ export default function FishertonWorkPage() {
           <div className="flex flex-col justify-center p-8 text-white md:p-12" style={{ background: GREEN }}>
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">El respaldo</p>
             <p className="mt-3 text-2xl font-black leading-snug md:text-3xl">
-              Desarrollan NM Capital y Provectta. Comercializa SI INMOBILIARIA.
+              Desarrollan NM Capital y Proyectta. Comercializa SI INMOBILIARIA.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-white/75">
               Te acompañamos desde la elección del lote hasta la escritura, con más de <span className="font-numeric">40</span>{' '}
