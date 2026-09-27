@@ -11,15 +11,14 @@ import {
   Handshake,
   Inbox,
   MapPin,
-  Sparkles,
   Users,
 } from 'lucide-react'
 import { VideoVivo } from './Medios'
 import MapaUbicacion from './MapaUbicacion'
-import PaginasInforme from './PaginasInforme'
+import RedRelaciones, { RELACIONES } from './Red'
 import { MuroHilo } from './Resultados'
 import { AGENTES, BARRIOS, DIRECCION, EMPRENDIMIENTOS, INFORMES, OFICINAS, PRENSA } from './datos'
-import { ACENTO, BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, VERDE_SUAVE, conNumeros } from './ui'
+import { ACENTO, BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_SUAVE, conNumeros } from './ui'
 
 export function Prensa() {
   return (
@@ -165,21 +164,8 @@ export function CalleYEventos() {
             </h3>
             <p className="mt-4 text-[16px] leading-[1.65] md:text-[17px]" style={{ color: TEXTO }}>
               Invitamos a nuestra base de clientes, inversores y colegas a conocer el proyecto en persona: la propuesta, los
-              números y el equipo que lo vende.
+              números y el equipo que lo vende. Los hacemos en nuestra oficina de Funes, que además es galería de arte.
             </p>
-            <figure className="m-0 mt-7 flex items-center gap-4">
-              <div className="relative aspect-[9/16] w-[120px] shrink-0 overflow-hidden rounded-[16px] shadow-md md:w-[140px]">
-                <VideoVivo
-                  src="/como-trabajamos/video/galeria-pared.mp4"
-                  poster="/como-trabajamos/video/galeria-pared.webp"
-                  etiqueta="Galería de arte de la oficina de Funes"
-                  className="absolute inset-0"
-                />
-              </div>
-              <figcaption className="text-[14px] font-semibold leading-[1.55]" style={{ color: GRIS }}>
-                Los eventos se hacen en nuestra oficina de Funes, que además es galería de arte.
-              </figcaption>
-            </figure>
           </div>
         </div>
       </Contenedor>
@@ -395,8 +381,8 @@ export function Desarrolladores() {
           Informes reales que entregamos a los desarrolladores
         </h3>
         <p className="mt-2 max-w-[46rem] text-[15.5px] leading-[1.6]" style={{ color: TEXTO }}>
-          Análisis de mercado antes del lanzamiento, planes de acción y reportes del avance comercial. Estas son páginas reales:
-          tocá cualquiera para verla en grande.
+          Análisis de mercado antes del lanzamiento, planes de acción y reportes del avance comercial. Estas son páginas reales,
+          en miniatura: el detalle es confidencial de cada desarrollador.
         </p>
         <ul className="m-0 mt-10 grid list-none gap-12 p-0 md:gap-16">
           {INFORMES.map((inf) => (
@@ -416,7 +402,21 @@ export function Desarrolladores() {
                   </p>
                 </div>
               </div>
-              <PaginasInforme paginas={inf.muestras} titulo={`${inf.proyecto} · ${inf.tipo}`} />
+              <ul className={`m-0 grid list-none gap-3 p-0 ${inf.formato === 'slide' ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'}`}>
+                {inf.muestras.map((pg) => (
+                  <li key={pg.src}>
+                    <span
+                      className="relative block overflow-hidden rounded-[8px] bg-white shadow-md"
+                      style={{ aspectRatio: `${pg.ancho} / ${pg.alto}`, border: '1px solid rgba(17,18,19,.1)' }}
+                    >
+                      <Image src={pg.src} alt={`${inf.proyecto}: ${pg.etiqueta}`} fill sizes="(max-width: 640px) 45vw, 200px" className="object-cover object-top" />
+                    </span>
+                    <span className="mt-1.5 block text-[12.5px] font-bold leading-snug" style={{ color: TEXTO }}>
+                      {pg.etiqueta}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>
@@ -442,64 +442,42 @@ export function Desarrolladores() {
   )
 }
 
-export function RedDeContactos() {
-  return (
-    <section className="relative overflow-hidden text-white" style={{ background: VERDE_OSCURO }} aria-labelledby="red-titulo">
-      <Image src="/como-trabajamos/drone-roldan.webp" alt="" fill sizes="100vw" className="object-cover opacity-25" />
-      <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(14,53,33,.96) 0%, rgba(14,53,33,.82) 55%, rgba(14,53,33,.6) 100%)' }} />
-      <Contenedor className="relative grid gap-10 py-16 md:py-24 lg:grid-cols-[1fr_1fr] lg:gap-16">
-        <Encabezado
-          id="red-titulo"
-          oscuro
-          eyebrow="Red de contactos"
-          titulo="Cuatro décadas de relaciones en la zona."
-          bajada="Desde 1983 construimos una base de clientes, inversores, desarrolladores y colegas muy amplia, con fuerte presencia en el segmento ABC1 de Funes, Roldán y Rosario. Cuando entra una propiedad, lo primero que hacemos es ofrecérsela a quienes ya nos pidieron algo así."
-        />
-        <div>
-          <p className="m-0 text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: MENTA }}>
-            Barrios donde trabajamos
-          </p>
-          <ul className="m-0 mt-4 flex list-none flex-wrap gap-2 p-0">
-            {BARRIOS.map((b) => (
-              <li key={b} className="rounded-full px-3.5 py-1.5 text-[13.5px] font-bold" style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.14)' }}>
-                {b}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-6">
-            <LinkFlecha href="/barrios-privados" claro>
-              Ver los barrios cerrados
-            </LinkFlecha>
-          </div>
-        </div>
-      </Contenedor>
-    </section>
-  )
-}
-
 export function Equipo() {
   return (
-    <section className="py-16 md:py-24" aria-labelledby="equipo-titulo">
+    <section className="overflow-hidden py-16 text-white md:py-24" style={{ background: '#0B1510' }} aria-labelledby="equipo-titulo">
       <Contenedor>
         <Encabezado
           id="equipo-titulo"
+          oscuro
           eyebrow="El equipo"
-          titulo={<><span className="font-numeric">19</span> personas que conocen el mercado.</>}
-          bajada="Corredores matriculados y agentes que viven y trabajan en la zona. Saben qué se vende en cada barrio, a cuánto y en cuánto tiempo, y se capacitan todo el tiempo en SI School, nuestra escuela interna."
+          titulo="Una red de relaciones personales."
+          bajada="19 personas que viven y trabajan en la zona. Cada una trae su propia red: propietarios que ya confiaron en nosotros, compradores, inversores, desarrolladores, colegas y escribanías. Desde 1983, con fuerte presencia en el segmento ABC1 de Funes, Roldán y Rosario. Cuando entra tu propiedad, la ofrecemos primero dentro de esa red."
         />
 
-        <ul className="m-0 mt-10 grid list-none gap-4 p-0 md:grid-cols-3 md:gap-5">
+        <div className="mt-10 md:mt-14">
+          <RedRelaciones />
+        </div>
+
+        <ul className="m-0 mt-8 flex list-none flex-wrap justify-center gap-2 p-0 md:hidden">
+          {RELACIONES.map((r) => (
+            <li key={r} className="rounded-full px-3 py-1.5 text-[12.5px] font-bold" style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(159,217,185,.3)' }}>
+              {r}
+            </li>
+          ))}
+        </ul>
+
+        <ul className="m-0 mt-12 grid list-none gap-4 p-0 md:grid-cols-3">
           {DIRECCION.map((p) => (
-            <li key={p.nombre} className="ct-rev overflow-hidden rounded-[22px]" style={{ background: FONDO }}>
-              <span className="relative block aspect-[4/5]">
-                <Image src={p.foto} alt={p.nombre} fill sizes="(max-width: 768px) 100vw, 380px" className="object-cover" style={{ objectPosition: 'center 20%' }} />
+            <li key={p.nombre} className="ct-rev flex items-center gap-4 rounded-[18px] p-4" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)' }}>
+              <span className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-full">
+                <Image src={p.foto} alt={p.nombre} fill sizes="64px" className="object-cover" style={{ objectPosition: 'center 22%' }} />
               </span>
-              <span className="block p-5">
-                <span className="block text-[20px] font-extrabold leading-tight">{p.nombre}</span>
-                <span className="mt-0.5 block text-[14px] font-bold" style={{ color: VERDE }}>
+              <span>
+                <span className="block text-[16.5px] font-extrabold leading-tight">{p.nombre}</span>
+                <span className="block text-[13px] font-bold" style={{ color: MENTA }}>
                   {p.cargo}
                 </span>
-                <span className="mt-1.5 block text-[13.5px] leading-[1.5]" style={{ color: GRIS }}>
+                <span className="mt-0.5 block text-[12.5px] leading-[1.45]" style={{ color: 'rgba(255,255,255,.65)' }}>
                   {conNumeros(p.detalle)}
                 </span>
               </span>
@@ -507,33 +485,28 @@ export function Equipo() {
           ))}
         </ul>
 
-        <ul className="m-0 mt-5 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 md:gap-4">
-          {AGENTES.map((a) => (
-            <li key={a.nombre} className="ct-rev">
-              <span className="relative block aspect-[3/4] overflow-hidden rounded-[16px] bg-neutral-200">
-                <Image src={a.foto} alt={a.nombre} fill sizes="(max-width: 640px) 50vw, 150px" className="object-cover" style={{ objectPosition: 'center 22%' }} />
-              </span>
-              <span className="mt-2 block text-[13.5px] font-bold leading-tight">{a.nombre}</span>
-            </li>
-          ))}
-        </ul>
+        <p className="mx-auto mt-6 max-w-[60rem] text-center text-[13px] leading-[1.7]" style={{ color: 'rgba(255,255,255,.6)' }}>
+          {AGENTES.map((a) => a.nombre).join(' · ')}
+        </p>
 
-        <div className="mt-8 grid gap-3 md:grid-cols-3 md:gap-4">
+        <div className="mt-10 grid gap-3 md:grid-cols-3 md:gap-4">
           {[
             { Icon: Users, t: 'Un agente responsable', d: 'Tu propiedad tiene un agente con nombre, apellido y celular.' },
-            { Icon: Sparkles, t: 'Marketing y producción propios', d: 'Fotos, video, drone, redes y pauta los hace nuestro equipo.' },
+            { Icon: MapPin, t: 'Barrio por barrio', d: `Trabajamos en ${BARRIOS.slice(0, 6).join(', ')} y muchos más.` },
             { Icon: GraduationCap, t: 'Capacitación continua', d: 'SI School: tasación, negociación, documentación y atención, con evaluaciones.' },
           ].map(({ Icon, t, d }) => (
-            <div key={t} className="flex gap-4 rounded-[18px] p-5" style={{ background: FONDO }}>
-              <Icon size={24} strokeWidth={1.7} className="shrink-0" style={{ color: VERDE }} aria-hidden />
-              <p className="m-0 text-[14.5px] leading-[1.55]" style={{ color: TEXTO }}>
-                <strong style={{ color: TINTA }}>{t}.</strong> {d}
+            <div key={t} className="flex gap-4 rounded-[18px] p-5" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)' }}>
+              <Icon size={24} strokeWidth={1.7} className="shrink-0" style={{ color: MENTA }} aria-hidden />
+              <p className="m-0 text-[14.5px] leading-[1.55]" style={{ color: 'rgba(255,255,255,.75)' }}>
+                <strong className="text-white">{t}.</strong> {d}
               </p>
             </div>
           ))}
         </div>
         <div className="mt-5">
-          <LinkFlecha href="/nosotros">Conocé nuestra historia</LinkFlecha>
+          <LinkFlecha href="/nosotros" claro>
+            Conocé nuestra historia
+          </LinkFlecha>
         </div>
       </Contenedor>
     </section>
