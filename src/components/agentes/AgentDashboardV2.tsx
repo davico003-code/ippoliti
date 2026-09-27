@@ -1,10 +1,12 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
+  ArrowUpRight,
   Calculator,
   ChevronDown,
   FileText,
@@ -13,7 +15,6 @@ import {
   LogOut,
   Mail,
   Megaphone,
-  MonitorPlay,
   Newspaper,
   PieChart,
   Printer,
@@ -25,18 +26,10 @@ import FeedbackPropiedadesTable from './FeedbackPropiedadesTable'
 import type { PanelRow } from '@/lib/feedback-admin'
 
 // ── Design tokens ──────────────────────────────────────────────────────
+// Paleta oficial SI: blanco/gris claro + verde; nada de crema/beige.
 const GREEN = '#1A5C38'
 const GREEN_DARK = '#143E27'
-const GOLD = '#B8935A'
-const GOLD_TINT = '#F5EFE3'
-const BG = '#FAFAFA'
-const LINE = '#E4E4E7'
-const TEXT = '#09090B'
-const TEXT_MUTED = '#52525B'
-const TEXT_SOFT = '#71717A'
-
-const RALEWAY = 'var(--font-raleway), Raleway, system-ui, sans-serif'
-const POPPINS = 'var(--font-poppins), Poppins, system-ui, sans-serif'
+const GREEN_BRIGHT = '#00754A'
 
 // Total de cápsulas por capacidad para calcular progreso real desde
 // localStorage. Mantener en sync con TOTAL_CAPSULAS_PER_CAP de si-school.
@@ -49,6 +42,15 @@ const TOTAL_CAPSULAS_PER_CAP: Record<string, number> = {
   'capacidad-06': 6,
 }
 const TOTAL_CAPACIDADES = 6
+
+// Fotos del equipo que existen en /public/team (slug = nombre sin tildes).
+const TEAM_FOTOS = new Set([
+  'aldana-ruiz', 'carolina-echen', 'claudia', 'david-flores', 'eliana-rojas',
+  'florencia-acquarone', 'gino-pecchenino', 'gisela-ramallo', 'jeremias-caraballo',
+  'julian-ruschneider', 'laura-flores', 'leticia-alexenicer', 'lucia-wilson',
+  'maria-jose-espilocin', 'mariana-orlate', 'marisa-benitez', 'mauro-matteucci',
+  'micaela-gonzalez', 'sabrina-rogani', 'susana-ippoliti',
+])
 
 // TODO Fase 2: leer progreso real de SI School por agente desde Redis,
 //              clientes/autorizaciones scope por agente, y métricas reales
@@ -92,7 +94,6 @@ export default function AgentDashboardV2({
   feedbackPropiedades = [],
 }: Props) {
   const firstName = agentName.split(' ')[0]
-  const initials = getInitials(agentName)
   const isAdmin = agentRole === 'admin'
 
   // SI School progress local del usuario.
@@ -118,132 +119,76 @@ export default function AgentDashboardV2({
   }, [])
 
   return (
-    <div style={{ background: BG, minHeight: '100vh', color: TEXT, fontFamily: RALEWAY }}>
-      <AgentHeader name={agentName} initials={initials} role={isAdmin ? 'Administrador' : 'Agente'} />
+    <div className="min-h-screen bg-[#F5F5F7] font-raleway text-[#09090B]">
+      <AgentHeader name={agentName} role={isAdmin ? 'Administrador' : 'Agente'} />
 
-      <main style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(24px, 4vw, 48px) clamp(18px, 4vw, 32px) 80px' }}>
-        {/* Saludo */}
-        <header style={{ marginBottom: 32 }}>
-          <h1
-            style={{
-              fontFamily: RALEWAY,
-              fontWeight: 700,
-              fontSize: 'clamp(26px, 4vw, 34px)',
-              letterSpacing: '-0.02em',
-              margin: '0 0 6px',
-              color: TEXT,
-            }}
-          >
-            Buen día, {firstName}
-          </h1>
-          <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 15, color: TEXT_MUTED, margin: 0 }}>
-            Estas son las herramientas que tenés disponibles hoy.
-          </p>
-        </header>
+      <main className="mx-auto max-w-[1240px] px-4 pb-20 pt-5 sm:px-6 md:pt-8 lg:px-8">
+        <Portada
+          firstName={firstName}
+          clientesEnCartera={clientesEnCartera}
+          autorizacionesEsteMes={autorizacionesEsteMes}
+          capsCompletas={capsCompletas}
+        />
 
         {/* Herramientas */}
         <SectionTitle sub="Lo que usás cada día">Tus herramientas</SectionTitle>
-        <div className="agent-tool-grid agent-tool-grid-4" style={{ marginBottom: 16 }}>
-          <PlacaCard
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+          <ToolCard
             href="/agentes/seleccion"
-            icon={<Users size={22} strokeWidth={1.8} />}
-            pastel="#C8D9D2"
-            iconColor={GREEN}
+            img="/como-trabajamos/kentucky-pileta.webp"
+            icon={<Users size={18} strokeWidth={2} />}
             title="Seguimiento de Clientes"
             description="Cartera, conversaciones, visitas y notas."
-            statLabel={`${clientesEnCartera} en tu cartera`}
+            stat={<><span className="font-poppins font-semibold">{clientesEnCartera}</span> en tu cartera</>}
+            priority
           />
-          <PlacaCard
+          <ToolCard
             href="/recursos/si-school"
-            icon={<GraduationCap size={22} strokeWidth={1.8} />}
-            pastel="#EEDDBD"
-            iconColor="#9A7B16"
+            img="/como-trabajamos/charla-colegas-rodaje.webp"
+            icon={<GraduationCap size={18} strokeWidth={2} />}
             title="SI School"
-            description="Onboarding del agente SI."
-            footerNode={
-              <ProgressBar
-                done={capsCompletas}
-                total={TOTAL_CAPACIDADES}
-                label={`${capsCompletas} de ${TOTAL_CAPACIDADES} capacidades`}
-              />
-            }
+            description="Onboarding y capacitaciones del agente SI."
+            footer={<ProgressBar done={capsCompletas} total={TOTAL_CAPACIDADES} />}
+            priority
           />
-          <PlacaCard
+          <ToolCard
             href="/recursos/autorizaciones"
-            icon={<FileText size={22} strokeWidth={1.8} />}
-            pastel="#F4D2C7"
-            iconColor="#B5562F"
+            img="/como-trabajamos/vendidas/casa-funes-lakes-3-dorm.webp"
+            icon={<FileText size={18} strokeWidth={2} />}
             title="Autorización de Venta Digital"
             description="Acuerdos para firmar a distancia."
-            statLabel={`${autorizacionesEsteMes} acuerdos este mes`}
+            stat={<><span className="font-poppins font-semibold">{autorizacionesEsteMes}</span> acuerdos este mes</>}
+            priority
           />
-          <PlacaCard
+          <ToolCard
             href="/agentes/comisiones"
-            icon={<Calculator size={22} strokeWidth={1.8} />}
-            pastel="#C7D8F4"
-            iconColor="#2B5C9B"
+            img="/como-trabajamos/hilo/cierres.webp"
+            imgPosition="left top"
+            icon={<Calculator size={18} strokeWidth={2} />}
             title="Calculadora de comisiones"
             description="Ventas, alquileres y tus objetivos."
-            statLabel="Simulá cuánto cobrás"
+            stat="Simulá cuánto cobrás"
           />
-          <PlacaCard
+          <ToolCard
             href="/agentes/plano-distrito-roldan"
-            icon={<LandPlot size={22} strokeWidth={1.8} />}
-            pastel="#D5E3C2"
-            iconColor="#4A6B24"
+            img="/planos/distrito-roldan-aerea.webp"
+            icon={<LandPlot size={18} strokeWidth={2} />}
             title="Plano de lotes · Distrito Roldán"
             description="Disponibilidad, medidas y precios de los 180 lotes."
-            statLabel="Actualizá y descargá el plano"
+            stat="Actualizá y descargá el plano"
           />
-          <PlacaCard
-            href="/agentes/presentacion"
-            icon={<MonitorPlay size={22} strokeWidth={1.8} />}
-            pastel="#CFE6D8"
-            iconColor="#1A5C38"
-            title="Presentación Cómo trabajamos"
-            description="Links personales de un solo uso para mandar a propietarios."
-            statLabel="Generá un link para tu cliente"
-          />
-          <PlacaCard
+          <ToolCard
             href="/agentes/lista-alquileres"
-            icon={<Printer size={22} strokeWidth={1.8} />}
-            pastel="#F2CFCF"
-            iconColor="#991B1B"
+            img="/como-trabajamos/puerto-roldan-living.webp"
+            icon={<Printer size={18} strokeWidth={2} />}
             title="Alquileres para imprimir"
             description="Lista A4 con foto, dirección, características y precio."
-            statLabel="Imprimila o guardala en PDF"
+            stat="Imprimila o guardala en PDF"
           />
         </div>
 
-        {/* Análisis de cartera — card ancha */}
-        <WideCard
-          icon={<PieChart size={22} strokeWidth={1.8} />}
-          pastel="#C8D9D2"
-          iconColor={GREEN}
-          title="Análisis de cartera"
-          description="Rendimiento y evolución de tu cartera de clientes y propiedades."
-          action={
-            <Link
-              href="/agentes/cartera"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 7,
-                background: GREEN,
-                color: '#fff',
-                fontFamily: POPPINS,
-                fontWeight: 600,
-                fontSize: 13,
-                padding: '10px 18px',
-                borderRadius: 10,
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Ver análisis <ArrowRight size={15} strokeWidth={2.2} />
-            </Link>
-          }
-        />
+        <AnalisisCartera />
+
         {isAdmin && (
           <AdminSection
             clientesGlobal={clientesEnCartera}
@@ -264,7 +209,7 @@ export default function AgentDashboardV2({
 }
 
 // ── Header ──────────────────────────────────────────────────────────────
-function AgentHeader({ name, initials, role }: { name: string; initials: string; role: string }) {
+function AgentHeader({ name, role }: { name: string; role: string }) {
   const router = useRouter()
   const handleLogout = async () => {
     await fetch('/api/agentes/logout', { method: 'POST' }).catch(() => {})
@@ -273,431 +218,326 @@ function AgentHeader({ name, initials, role }: { name: string; initials: string;
   }
 
   return (
-    <header
-      style={{
-        background: '#fff',
-        borderBottom: `1px solid ${LINE}`,
-        padding: '13px clamp(18px, 4vw, 32px)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 20,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1180,
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: POPPINS,
-            fontWeight: 600,
-            fontSize: 11,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: TEXT_SOFT,
-          }}
-        >
-          Panel de agentes
-        </span>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '4px 6px',
-              borderRadius: 999,
-            }}
+    <header className="sticky top-0 z-20 border-b border-black/[0.06] bg-white/85 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2.5">
+          <span
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-extrabold tracking-wide text-white"
+            style={{ background: GREEN }}
           >
-            <span
-              aria-hidden
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DARK} 100%)`,
-                color: '#fff',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: POPPINS,
-                fontWeight: 600,
-                fontSize: 12,
-                flexShrink: 0,
-              }}
-            >
-              {initials}
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-              <span style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 13, color: TEXT, whiteSpace: 'nowrap' }}>{name}</span>
-              <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 11, color: TEXT_SOFT }}>{role}</span>
+            SI
+          </span>
+          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#71717A]">
+            Panel de agentes
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2.5 rounded-full px-1.5 py-1">
+            <Avatar name={name} size={32} />
+            <div className="hidden flex-col leading-tight sm:flex">
+              <span className="whitespace-nowrap text-[13px] font-semibold text-[#09090B]">{name}</span>
+              <span className="text-[11px] text-[#71717A]">{role}</span>
             </div>
           </div>
 
-          <span aria-hidden style={{ width: 1, height: 24, background: LINE, margin: '0 6px' }} />
+          <span aria-hidden className="mx-1.5 h-6 w-px bg-black/10" />
 
           <button
             type="button"
             onClick={handleLogout}
             title="Cerrar sesión"
             aria-label="Cerrar sesión"
-            className="agent-logout-btn"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 34,
-              height: 34,
-              borderRadius: '50%',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: TEXT_SOFT,
-              transition: 'background 0.15s, color 0.15s',
-            }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#71717A] transition-colors hover:bg-[#F40009]/10 hover:text-[#C0392B]"
           >
             <LogOut size={16} strokeWidth={1.8} />
           </button>
         </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        .agent-logout-btn:hover {
-          background: rgba(224, 90, 90, 0.1);
-          color: #C0563E;
-        }
-        .agent-placa-card:hover {
-          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
-          transform: translateY(-2px);
-        }
-        .agent-tool-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 12px;
-        }
-        @media (min-width: 640px) {
-          .agent-tool-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (min-width: 768px) {
-          .agent-tool-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (min-width: 1024px) {
-          .agent-tool-grid-4 { grid-template-columns: repeat(4, 1fr); }
-        }
-      ` }} />
     </header>
   )
 }
 
+// ── Portada: foto de la oficina + saludo + indicadores del día ──────────
+function Portada({
+  firstName,
+  clientesEnCartera,
+  autorizacionesEsteMes,
+  capsCompletas,
+}: {
+  firstName: string
+  clientesEnCartera: number
+  autorizacionesEsteMes: number
+  capsCompletas: number
+}) {
+  // Saludo y fecha en hora local del navegador (el server corre en UTC):
+  // se calculan después de montar para no romper la hidratación.
+  const [saludo, setSaludo] = useState('Hola')
+  const [fecha, setFecha] = useState('')
+  useEffect(() => {
+    const now = new Date()
+    const h = now.getHours()
+    setSaludo(h < 6 ? 'Buenas noches' : h < 13 ? 'Buen día' : h < 20 ? 'Buenas tardes' : 'Buenas noches')
+    const f = now.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
+    setFecha(f.charAt(0).toUpperCase() + f.slice(1))
+  }, [])
+
+  const indicadores = [
+    { valor: String(clientesEnCartera), label: 'clientes en cartera' },
+    { valor: String(autorizacionesEsteMes), label: 'acuerdos este mes' },
+    { valor: `${capsCompletas}/${TOTAL_CAPACIDADES}`, label: 'SI School' },
+  ]
+
+  return (
+    <section className="relative mb-10 overflow-hidden rounded-[24px] bg-[#0F2A1C] md:mb-12 md:rounded-[28px]">
+      <Image
+        src="/images/hero/oficina-portada.webp"
+        alt="Oficina de SI INMOBILIARIA en Funes"
+        fill
+        priority
+        sizes="(min-width: 1240px) 1240px, 100vw"
+        className="object-cover object-[center_40%]"
+      />
+      {/* Velo: oscuro a la izquierda (texto) y abajo (celular), la foto respira a la derecha */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(8,24,16,0.88) 0%, rgba(8,24,16,0.62) 45%, rgba(8,24,16,0.12) 100%), linear-gradient(0deg, rgba(8,24,16,0.55) 0%, rgba(8,24,16,0) 55%)',
+        }}
+      />
+
+      <div className="relative flex min-h-[280px] flex-col justify-end gap-5 p-5 sm:p-8 md:min-h-[340px] md:p-10 lg:p-12">
+        <div>
+          <p className="mb-2 min-h-[18px] text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70">
+            {fecha}
+          </p>
+          <h1 className="m-0 text-[32px] font-extrabold leading-[1.05] tracking-[-0.02em] text-white sm:text-[40px] md:text-[48px]">
+            {saludo}, {firstName}
+          </h1>
+          <p className="mt-3 max-w-[440px] text-[15px] leading-relaxed text-white/80">
+            Todo lo que necesitás para vender y alquilar, en un solo lugar.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-2.5">
+          {indicadores.map((i) => (
+            <div
+              key={i.label}
+              className="flex flex-col gap-1 rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 text-white backdrop-blur-md sm:flex-row sm:items-baseline sm:gap-2 sm:px-4"
+            >
+              <span className="font-poppins text-[20px] font-semibold leading-none">{i.valor}</span>
+              <span className="text-[11.5px] leading-tight text-white/75 sm:text-[12.5px]">{i.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ── Section title ───────────────────────────────────────────────────────
-// Título de sección con sub-label opcional, chip opcional y línea divisoria
-// que ocupa el ancho restante (look del mockup).
 function SectionTitle({ children, sub, chip }: { children: React.ReactNode; sub?: string; chip?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '0 0 16px' }}>
-      <h2 style={{ fontFamily: RALEWAY, fontSize: 17, fontWeight: 700, color: TEXT, margin: 0, whiteSpace: 'nowrap' }}>
-        {children}
-      </h2>
-      {sub && (
-        <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 12.5, color: TEXT_SOFT, whiteSpace: 'nowrap' }}>
-          {sub}
-        </span>
-      )}
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+      <div>
+        {sub && (
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: GREEN_BRIGHT }}>
+            {sub}
+          </p>
+        )}
+        <h2 className="m-0 text-[22px] font-extrabold tracking-[-0.01em] text-[#09090B] md:text-[26px]">{children}</h2>
+      </div>
       {chip && (
-        <span style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: GREEN, background: 'rgba(26,92,56,0.08)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>
+        <span
+          className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]"
+          style={{ color: GREEN, background: 'rgba(26,92,56,0.08)' }}
+        >
           {chip}
         </span>
       )}
-      <span style={{ flex: 1, height: 1, background: LINE }} />
     </div>
   )
 }
 
-// ── Placa card ──────────────────────────────────────────────────────────
-interface PlacaProps {
-  href?: string
-  comingSoon?: boolean
+// ── Tool card: foto real arriba, texto abajo ────────────────────────────
+function ToolCard({
+  href,
+  img,
+  imgPosition = 'center',
+  icon,
+  title,
+  description,
+  stat,
+  footer,
+  priority,
+}: {
+  href: string
+  img: string
+  imgPosition?: string
   icon: React.ReactNode
-  /** Color del badge del ícono (pastel). */
-  pastel?: string
-  /** Color del ícono dentro del badge (tono oscuro del pastel). */
-  iconColor?: string
   title: string
   description: string
-  statLabel?: string
-  footerNode?: React.ReactNode
+  stat?: React.ReactNode
+  footer?: React.ReactNode
+  priority?: boolean
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex h-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_0_0_1px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-12px_rgba(15,23,42,0.22),0_0_0_1px_rgba(15,23,42,0.05)]"
+    >
+      <div className="relative aspect-[2/1] overflow-hidden bg-[#E8E8ED] sm:aspect-[16/10]">
+        <Image
+          src={img}
+          alt=""
+          fill
+          priority={priority}
+          sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+          style={{ objectPosition: imgPosition }}
+        />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+        <span
+          className="absolute left-3.5 top-3.5 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 shadow-sm backdrop-blur"
+          style={{ color: GREEN }}
+        >
+          {icon}
+        </span>
+        <span className="absolute right-3.5 top-3.5 inline-flex h-9 w-9 translate-y-1 items-center justify-center rounded-full bg-white text-[#09090B] opacity-0 shadow-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          <ArrowUpRight size={17} strokeWidth={2} />
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-1.5 p-5">
+        <h3 className="m-0 text-[17px] font-bold leading-snug text-[#09090B]">{title}</h3>
+        <p className="m-0 text-[13.5px] leading-relaxed text-[#52525B]">{description}</p>
+        <div className="mt-auto pt-3">
+          {footer ?? (
+            <div className="flex items-center justify-between gap-2 border-t border-black/[0.06] pt-3">
+              <span className="text-[13px] text-[#3F3F46]">{stat}</span>
+              <ArrowRight
+                size={16}
+                strokeWidth={2}
+                className="shrink-0 text-[#A1A1AA] transition-transform duration-300 group-hover:translate-x-0.5"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+// ── Análisis de cartera: banda ancha con captura de HILO ─────────────────
+function AnalisisCartera() {
+  return (
+    <Link
+      href="/agentes/cartera"
+      className="group mt-5 grid overflow-hidden rounded-[20px] text-white transition-shadow duration-300 hover:shadow-[0_18px_40px_-12px_rgba(20,62,39,0.45)] md:grid-cols-[1fr_1.1fr]"
+      style={{ background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DARK} 100%)` }}
+    >
+      <div className="flex flex-col justify-center gap-3 p-6 sm:p-8 md:p-10">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20">
+          <PieChart size={20} strokeWidth={1.9} />
+        </span>
+        <h3 className="m-0 text-[22px] font-extrabold tracking-[-0.01em] md:text-[26px]">Análisis de cartera</h3>
+        <p className="m-0 max-w-[380px] text-[14px] leading-relaxed text-white/80">
+          Rendimiento y evolución de tu cartera de clientes y propiedades.
+        </p>
+        <span className="mt-2 inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[13px] font-bold text-[#143E27] transition-transform duration-300 group-hover:translate-x-1">
+          Ver análisis <ArrowRight size={15} strokeWidth={2.2} />
+        </span>
+      </div>
+      <div className="relative hidden min-h-[240px] md:block">
+        <div className="absolute bottom-0 left-4 right-0 top-8 overflow-hidden rounded-tl-[14px] shadow-[0_20px_50px_rgba(0,0,0,0.35)] transition-transform duration-500 group-hover:-translate-y-1">
+          <Image
+            src="/como-trabajamos/hilo/mercado.webp"
+            alt=""
+            fill
+            sizes="620px"
+            className="object-cover object-left-top"
+          />
+        </div>
+      </div>
+    </Link>
+  )
 }
 
 // ── Feedback · Calculadora de Construcción ────────────────────────────
 // Contadores de las caritas (Redis feedback:costos:*), visibles para todos
-// los usuarios del panel. Mismo lenguaje visual que los stats de admin.
+// los usuarios del panel.
 function FeedbackCostosSection({ data }: { data: { up: number; mid: number; down: number } }) {
   const total = data.up + data.mid + data.down
   const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0)
   const filas = [
-    { emoji: '😄', label: 'Me sirvió', valor: data.up, color: GREEN },
+    { emoji: '😄', label: 'Me sirvió', valor: data.up, color: GREEN_BRIGHT },
     { emoji: '😐', label: 'Más o menos', valor: data.mid, color: '#A1A1AA' },
     { emoji: '😞', label: 'No me sirvió', valor: data.down, color: '#E08585' },
   ]
 
   return (
-    <section aria-label="Feedback de la calculadora de construcción" style={{ marginTop: 40 }}>
-      <SectionTitle>Feedback · Calculadora de Construcción</SectionTitle>
-      <div
-        style={{
-          background: '#fff',
-          border: `1px solid ${LINE}`,
-          borderRadius: 12,
-          padding: '12px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          flexWrap: 'wrap',
-          fontFamily: POPPINS,
-        }}
-      >
+    <section aria-label="Feedback de la calculadora de construcción" className="mt-14">
+      <SectionTitle sub="Lo que opinan los usuarios">Calculadora de Construcción</SectionTitle>
+      <div className="rounded-[20px] bg-white p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.05)] sm:p-6">
         {total === 0 ? (
-          <p style={{ fontWeight: 300, fontSize: 13, color: TEXT_SOFT, margin: 0 }}>
-            Sin respuestas todavía
-          </p>
+          <p className="m-0 text-[13px] text-[#71717A]">Sin respuestas todavía</p>
         ) : (
-          <>
-            <span style={{ fontWeight: 600, fontSize: 14, color: TEXT, whiteSpace: 'nowrap' }}>
-              {total} <span style={{ fontWeight: 300, fontSize: 12, color: TEXT_SOFT }}>respuestas</span>
-            </span>
-            {filas.map((f) => (
-              <span key={f.label} title={f.label} style={{ fontWeight: 500, fontSize: 13.5, color: TEXT, whiteSpace: 'nowrap' }}>
-                {f.emoji} {f.valor}
-                <span style={{ fontSize: 12, color: f.color, marginLeft: 5 }}>{pct(f.valor)}%</span>
-              </span>
-            ))}
-            <div
-              role="img"
-              aria-label={`Proporción: ${pct(data.up)}% positivos, ${pct(data.mid)}% neutros, ${pct(data.down)}% negativos`}
-              style={{ display: 'flex', height: 6, borderRadius: 99, overflow: 'hidden', background: LINE, flex: 1, minWidth: 120 }}
-            >
-              {filas.map(
-                (f) =>
-                  f.valor > 0 && (
-                    <div key={f.label} style={{ width: `${(f.valor / total) * 100}%`, background: f.color }} />
-                  ),
-              )}
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
+            <div className="shrink-0">
+              <div className="font-poppins text-[34px] font-semibold leading-none tracking-[-0.02em]">{total}</div>
+              <div className="mt-1 text-[12.5px] text-[#71717A]">respuestas</div>
             </div>
-          </>
+            <div className="flex flex-1 flex-col gap-3">
+              <div
+                role="img"
+                aria-label={`Proporción: ${pct(data.up)}% positivos, ${pct(data.mid)}% neutros, ${pct(data.down)}% negativos`}
+                className="flex h-2.5 overflow-hidden rounded-full bg-[#E4E4E7]"
+              >
+                {filas.map(
+                  (f) =>
+                    f.valor > 0 && <div key={f.label} style={{ width: `${(f.valor / total) * 100}%`, background: f.color }} />,
+                )}
+              </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
+                {filas.map((f) => (
+                  <span key={f.label} className="inline-flex items-center gap-2 text-[13px] text-[#3F3F46]">
+                    <span aria-hidden>{f.emoji}</span>
+                    {f.label}
+                    <span className="font-poppins font-semibold text-[#09090B]">{f.valor}</span>
+                    <span className="font-poppins text-[12px]" style={{ color: f.color }}>
+                      {pct(f.valor)}%
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </section>
   )
 }
 
-function PlacaCard({
-  href,
-  comingSoon,
-  icon,
-  pastel,
-  iconColor,
-  title,
-  description,
-  statLabel,
-  footerNode,
-}: PlacaProps) {
-  const isLink = !comingSoon && !!href
-  const baseStyle: React.CSSProperties = {
-    background: '#fff',
-    border: comingSoon ? `1.5px dashed #d8d2c6` : `1px solid ${LINE}`,
-    borderRadius: 16,
-    padding: 18,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
-    position: 'relative',
-    transition: 'box-shadow 0.18s ease, transform 0.18s ease',
-    color: TEXT,
-    textDecoration: 'none',
-    cursor: comingSoon ? 'default' : 'pointer',
-    height: '100%',
-  }
-
-  const content = (
-    <>
-      {comingSoon && (
-        <span
-          style={{
-            position: 'absolute',
-            top: 14,
-            right: 14,
-            background: GOLD_TINT,
-            color: '#6B5230',
-            fontFamily: POPPINS,
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            padding: '4px 10px',
-            borderRadius: 999,
-          }}
-        >
-          Próximamente
-        </span>
-      )}
-      {/* Badge del ícono */}
-      <span
-        style={{
-          width: 42,
-          height: 42,
-          borderRadius: 12,
-          background: comingSoon ? '#EEEAE2' : pastel ?? '#EEF2F0',
-          color: comingSoon ? '#9a958a' : iconColor ?? GREEN,
-          flexShrink: 0,
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {icon}
-      </span>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
-        <h3 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, margin: 0, color: comingSoon ? '#9a958a' : '#1c1c1e', lineHeight: 1.25 }}>
-          {title}
-        </h3>
-        <p
-          style={{
-            fontFamily: POPPINS,
-            fontWeight: 300,
-            fontSize: 12.5,
-            lineHeight: 1.45,
-            color: comingSoon ? '#9a958a' : TEXT_MUTED,
-            margin: 0,
-          }}
-        >
-          {description}
-        </p>
-      </div>
-
-      {footerNode ? (
-        <div>{footerNode}</div>
-      ) : statLabel ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <span
-            style={{
-              fontFamily: POPPINS,
-              fontWeight: 500,
-              fontSize: 12,
-              color: comingSoon ? '#9a958a' : '#3a3a3a',
-              letterSpacing: '0.02em',
-            }}
-          >
-            {statLabel}
-          </span>
-          {isLink && <ArrowRight size={16} strokeWidth={2} color={TEXT_SOFT} style={{ flexShrink: 0 }} />}
-        </div>
-      ) : null}
-    </>
-  )
-
-  if (comingSoon || !href) {
-    return (
-      <div style={baseStyle} aria-disabled={comingSoon}>
-        {content}
-      </div>
-    )
-  }
-  return (
-    <Link href={href} style={baseStyle} className="agent-placa-card">
-      {content}
-    </Link>
-  )
-}
-
-// ── Wide card (ancha: badge + texto + acción a la derecha) ────────────────
-function WideCard({
-  icon,
-  pastel,
-  iconColor,
-  title,
-  description,
-  action,
-}: {
-  icon: React.ReactNode
-  pastel: string
-  iconColor: string
-  title: string
-  description: string
-  action: React.ReactNode
-}) {
-  return (
-    <div
-      style={{
-        background: '#fff',
-        border: `1px solid ${LINE}`,
-        borderRadius: 16,
-        padding: 18,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-        flexWrap: 'wrap',
-      }}
-    >
-      <span
-        style={{
-          width: 42,
-          height: 42,
-          borderRadius: 12,
-          background: pastel,
-          color: iconColor,
-          flexShrink: 0,
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {icon}
-      </span>
-      <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-        <h3 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, margin: '0 0 2px', color: '#1c1c1e' }}>
-          {title}
-        </h3>
-        <p style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 12.5, lineHeight: 1.45, color: TEXT_MUTED, margin: 0 }}>
-          {description}
-        </p>
-      </div>
-      <div style={{ flexShrink: 0 }}>{action}</div>
-    </div>
-  )
-}
-
 // ── Progress bar ────────────────────────────────────────────────────────
-function ProgressBar({ done, total, label }: { done: number; total: number; label: string }) {
+function ProgressBar({ done, total }: { done: number; total: number }) {
   const pct = total > 0 ? Math.min(1, done / total) : 0
   return (
-    <div style={{ marginTop: 4 }}>
-      <div
-        style={{
-          height: 5,
-          background: 'rgba(0,0,0,0.08)',
-          borderRadius: 3,
-          overflow: 'hidden',
-          marginBottom: 6,
-        }}
-      >
+    <div className="border-t border-black/[0.06] pt-3">
+      <div className="mb-2 flex items-center justify-between text-[13px] text-[#3F3F46]">
+        <span>
+          <span className="font-poppins font-semibold">{done}</span> de{' '}
+          <span className="font-poppins font-semibold">{total}</span> capacidades
+        </span>
+        <span className="font-poppins text-[12px] text-[#71717A]">{Math.round(pct * 100)}%</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-[#E4E4E7]">
         <div
-          style={{
-            height: '100%',
-            width: `${Math.round(pct * 100)}%`,
-            background: 'linear-gradient(90deg, #B8935A, #caa468)',
-            transition: 'width 0.3s ease',
-          }}
+          className="h-full rounded-full transition-[width] duration-500"
+          style={{ width: `${Math.round(pct * 100)}%`, background: `linear-gradient(90deg, ${GREEN}, ${GREEN_BRIGHT})` }}
         />
       </div>
-      <div style={{ fontFamily: POPPINS, fontWeight: 500, fontSize: 12, color: '#3a3a3a' }}>{label}</div>
     </div>
   )
 }
@@ -718,15 +558,12 @@ function AdminSection({
   const agentesActivos = ADMIN_MOCK_AGENTS.length
   const completos = ADMIN_MOCK_AGENTS.filter((a) => a.capacidadesDone >= TOTAL_CAPACIDADES).length
 
-  // Un color de acento por stat, en sync con las tarjetas de "Tus herramientas"
-  // (Autorizaciones ↔ coral de Autorización de Venta Digital, Con SI School
-  // completo ↔ dorado de SI School) para que el panel se lea como un sistema.
   const stats = useMemo(
     () => [
-      { label: 'Agentes activos', value: String(agentesActivos), color: GREEN },
-      { label: 'Clientes en cartera', value: String(clientesGlobal), color: '#2B5C9B' },
-      { label: 'Autorizaciones este mes', value: String(autorizacionesMes), color: '#B5562F' },
-      { label: 'Con SI School completo', value: `${completos}/${agentesActivos}`, color: GOLD },
+      { label: 'Agentes activos', value: String(agentesActivos) },
+      { label: 'Clientes en cartera', value: String(clientesGlobal) },
+      { label: 'Autorizaciones este mes', value: String(autorizacionesMes) },
+      { label: 'Con SI School completo', value: `${completos}/${agentesActivos}` },
     ],
     [agentesActivos, clientesGlobal, autorizacionesMes, completos],
   )
@@ -736,70 +573,91 @@ function AdminSection({
     : `${newsletterTotal} suscriptos`
 
   return (
-    <section aria-label="Administración" style={{ marginTop: 40 }}>
-      <SectionTitle chip="Solo administrador">Administración</SectionTitle>
+    <section aria-label="Administración" className="mt-14">
+      <SectionTitle sub="Vista del equipo" chip="Solo administrador">Administración</SectionTitle>
 
-      {/* Stats sueltas */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-          gap: 12,
-          marginBottom: 16,
-        }}
-      >
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         {stats.map((s) => (
-          <div
-            key={s.label}
-            style={{
-              background: '#fff',
-              border: `1px solid ${LINE}`,
-              borderLeft: `3px solid ${s.color}`,
-              borderRadius: 14,
-              padding: '16px 18px 16px 15px',
-            }}
-          >
-            <div style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 28, color: TEXT, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
+          <div key={s.label} className="rounded-[18px] bg-white p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.05)]">
+            <div className="font-poppins text-[30px] font-semibold leading-none tracking-[-0.02em] text-[#09090B]">
               {s.value}
             </div>
-            <div style={{ marginTop: 6, fontFamily: POPPINS, fontWeight: 300, fontSize: 12, color: TEXT_SOFT }}>
-              {s.label}
-            </div>
+            <div className="mt-2 text-[12.5px] text-[#71717A]">{s.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Newsletter + Notas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 }}>
-        <PlacaCard
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:gap-4">
+        <AdminCard
           href="/agentes/newsletter"
-          icon={<Mail size={22} strokeWidth={1.8} />}
-          pastel="#D8D5F2"
-          iconColor="#5B46A8"
+          img="/newsletter-placa.jpg"
+          icon={<Mail size={16} strokeWidth={2} />}
           title="Suscriptores Newsletter"
           description="Leads del popup de la web."
-          statLabel={newsletterStat}
+          stat={newsletterStat}
         />
-        <PlacaCard
+        <AdminCard
           href="/admin/notas"
-          icon={<Newspaper size={22} strokeWidth={1.8} />}
-          pastel="#CBE2DC"
-          iconColor={GREEN}
+          img="/como-trabajamos/informes/paginas/distrito-q1-4.webp"
+          icon={<Newspaper size={16} strokeWidth={2} />}
           title="Notas del Blog"
           description="Editá, subí portada o borrá notas."
-          statLabel="Editar · portada · borrar"
+          stat="Editar · portada · borrar"
         />
-        <PlacaCard
+        <AdminCard
           href="/agentes/oportunidades"
-          icon={<Megaphone size={22} strokeWidth={1.8} />}
-          pastel="#FCEBE3"
-          iconColor="#B5562F"
+          img="/oportunidades-ia-v3.webp"
+          icon={<Megaphone size={16} strokeWidth={2} />}
           title="Oportunidades"
           description="Popup del sitio: vendedor motivado, permuta, negociable."
-          statLabel="Gestionar popup"
+          stat="Gestionar popup"
         />
       </div>
     </section>
+  )
+}
+
+function AdminCard({
+  href,
+  img,
+  icon,
+  title,
+  description,
+  stat,
+}: {
+  href: string
+  img: string
+  icon: React.ReactNode
+  title: string
+  description: string
+  stat: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-stretch gap-4 overflow-hidden rounded-[18px] bg-white p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-12px_rgba(15,23,42,0.2),0_0_0_1px_rgba(15,23,42,0.05)]"
+    >
+      <div className="relative w-[88px] shrink-0 overflow-hidden rounded-[12px] bg-[#E8E8ED]">
+        <Image
+          src={img}
+          alt=""
+          fill
+          sizes="88px"
+          className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.06]"
+        />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1 py-1 pr-1">
+        <div className="flex items-center gap-2" style={{ color: GREEN }}>
+          {icon}
+          <h3 className="m-0 truncate text-[15px] font-bold text-[#09090B]">{title}</h3>
+        </div>
+        <p className="m-0 text-[12.5px] leading-snug text-[#52525B]">{description}</p>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">
+          <span className="truncate text-[12.5px] font-semibold text-[#3F3F46]">{stat}</span>
+          <ArrowRight size={15} strokeWidth={2} className="shrink-0 text-[#A1A1AA] transition-transform duration-300 group-hover:translate-x-0.5" />
+        </div>
+      </div>
+    </Link>
   )
 }
 
@@ -809,69 +667,71 @@ function EquipoSection() {
   const agents = ADMIN_MOCK_AGENTS
 
   return (
-    <section aria-label="Equipo" style={{ marginTop: 40 }}>
-      <div style={{ background: '#fff', border: `1px solid ${LINE}`, borderRadius: 16, padding: '4px 6px' }}>
+    <section aria-label="Equipo" className="mt-14">
+      <div className="overflow-hidden rounded-[20px] bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.05)]">
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '8px 12px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '12px 12px',
-            textAlign: 'left',
-          }}
+          className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-3 bg-transparent p-5 text-left sm:p-6"
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 16, color: TEXT }}>Equipo</span>
-            <span style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 12.5, color: TEXT_SOFT }}>Progreso en SI School</span>
-            <span style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: GREEN, background: 'rgba(26,92,56,0.08)', borderRadius: 999, padding: '3px 9px' }}>
-              Solo administrador
+          <span className="flex flex-col gap-1">
+            <span className="flex flex-wrap items-center gap-2.5">
+              <span className="text-[18px] font-extrabold text-[#09090B]">Equipo</span>
+              <span
+                className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em]"
+                style={{ color: GREEN, background: 'rgba(26,92,56,0.08)' }}
+              >
+                Solo administrador
+              </span>
             </span>
+            <span className="text-[13px] text-[#71717A]">Progreso en SI School</span>
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-            <span style={{ fontFamily: POPPINS, fontSize: 12.5, color: TEXT_SOFT }}>{agents.length} agentes</span>
-            <ChevronDown size={18} color={TEXT_SOFT} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+          <span className="flex items-center gap-3">
+            {/* Caras apiladas del equipo */}
+            <span className="flex -space-x-2.5">
+              {agents.slice(0, 6).map((ag) => (
+                <span key={ag.id} className="rounded-full ring-2 ring-white">
+                  <Avatar name={ag.name} size={32} />
+                </span>
+              ))}
+            </span>
+            <span className="font-poppins text-[12.5px] text-[#71717A]">{agents.length}</span>
+            <ChevronDown
+              size={18}
+              className="text-[#71717A] transition-transform duration-200"
+              style={{ transform: open ? 'rotate(180deg)' : 'none' }}
+            />
           </span>
         </button>
 
         {open && (
-          <div style={{ padding: '0 12px 12px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="px-5 pb-5 sm:px-6">
+            <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
               {agents.map((ag) => {
                 const pct = ag.capacidadesDone / TOTAL_CAPACIDADES
                 const completed = ag.capacidadesDone >= TOTAL_CAPACIDADES
                 return (
-                  <div key={ag.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, padding: '10px 4px', borderTop: `1px solid ${LINE}` }}>
-                    <span
-                      aria-hidden
-                      style={{
-                        width: 36, height: 36, borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DARK} 100%)`,
-                        color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: POPPINS, fontWeight: 600, fontSize: 12, flexShrink: 0,
-                      }}
-                    >
-                      {getInitials(ag.name)}
-                    </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: RALEWAY, fontWeight: 600, fontSize: 14, color: TEXT }}>{ag.name}</div>
-                      <div style={{ fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT }}>
-                        Matrícula {ag.matricula} · {ag.clientes} clientes activos
+                  <div key={ag.id} className="flex items-center gap-3.5 border-t border-black/[0.06] py-3">
+                    <Avatar name={ag.name} size={40} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[14px] font-semibold text-[#09090B]">{ag.name}</div>
+                      <div className="text-[11.5px] text-[#71717A]">
+                        Matrícula <span className="font-poppins">{ag.matricula}</span> ·{' '}
+                        <span className="font-poppins">{ag.clientes}</span> clientes
                       </div>
                     </div>
-                    <div style={{ width: 'clamp(140px, 20vw, 200px)', flexShrink: 0 }}>
-                      <div style={{ height: 4, background: '#F4F4F5', borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
-                        <div style={{ height: '100%', width: `${Math.round(pct * 100)}%`, background: completed ? '#2A8B5A' : GOLD, transition: 'width 0.3s ease' }} />
+                    <div className="w-[88px] shrink-0 sm:w-[120px]">
+                      <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-[#F4F4F5]">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${Math.round(pct * 100)}%`, background: completed ? GREEN_BRIGHT : GREEN }}
+                        />
                       </div>
-                      <div style={{ fontFamily: POPPINS, fontWeight: 500, fontSize: 11.5, color: completed ? '#2A8B5A' : TEXT_MUTED, textAlign: 'right' }}>
+                      <div
+                        className="text-right font-poppins text-[11.5px] font-medium"
+                        style={{ color: completed ? GREEN_BRIGHT : '#52525B' }}
+                      >
                         {ag.capacidadesDone}/{TOTAL_CAPACIDADES}
                       </div>
                     </div>
@@ -879,7 +739,7 @@ function EquipoSection() {
                 )
               })}
             </div>
-            <p style={{ marginTop: 14, fontFamily: POPPINS, fontWeight: 300, fontSize: 11.5, color: TEXT_SOFT, fontStyle: 'italic' }}>
+            <p className="mt-4 text-[11.5px] italic text-[#71717A]">
               Datos de demostración — la sincronización por agente llega en Fase 2.
             </p>
           </div>
@@ -889,7 +749,47 @@ function EquipoSection() {
   )
 }
 
+// ── Avatar: foto del equipo si existe, si no iniciales ───────────────────
+function Avatar({ name, size }: { name: string; size: number }) {
+  const slug = toSlug(name)
+  if (TEAM_FOTOS.has(slug)) {
+    return (
+      <Image
+        src={`/team/${slug}.jpg`}
+        alt=""
+        width={size}
+        height={size}
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: size, height: size }}
+      />
+    )
+  }
+  return (
+    <span
+      aria-hidden
+      className="inline-flex shrink-0 items-center justify-center rounded-full font-poppins font-semibold text-white"
+      style={{
+        width: size,
+        height: size,
+        fontSize: Math.round(size * 0.36),
+        background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DARK} 100%)`,
+      }}
+    >
+      {getInitials(name)}
+    </span>
+  )
+}
+
 // ── Utils ───────────────────────────────────────────────────────────────
+function toSlug(fullName: string): string {
+  return fullName
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+}
+
 function getInitials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/)
   if (parts.length === 0) return 'SI'
