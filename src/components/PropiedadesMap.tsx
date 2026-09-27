@@ -101,7 +101,19 @@ function escapeHtml(s: string) {
 
 const DEV_ZOOM_CERCA = 15
 
-function createDevPill(name: string, cerca: boolean) {
+// Nombre corto para el mapa cuando el cargado en el CRM es largo.
+const DEV_NOMBRE_MAPA: Record<string, string> = {
+  dockgarden: 'Dock Garden',
+}
+
+function nombreMapa(name: string) {
+  const clave = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')
+  const hit = Object.keys(DEV_NOMBRE_MAPA).find(k => clave.startsWith(k))
+  return hit ? DEV_NOMBRE_MAPA[hit] : name
+}
+
+function createDevPill(rawName: string, cerca: boolean) {
+  const name = nombreMapa(rawName)
   const max = cerca ? 24 : 18
   const label = name.length > max ? name.slice(0, max - 1).trimEnd() + '…' : name
   const t = cerca
