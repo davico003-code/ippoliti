@@ -476,25 +476,22 @@ export function Equipo() {
                 fill
                 sizes="(max-width: 1200px) 100vw, 1120px"
                 className="ct-zoom object-cover"
-                style={{ objectPosition: 'center 55%' }}
+                style={{ objectPosition: 'center 62%' }}
               />
             </div>
-            <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(11,21,16,.95) 0%, rgba(11,21,16,.35) 40%, rgba(11,21,16,0) 65%)' }} />
-            <figcaption className="absolute inset-x-0 bottom-0 p-5 md:p-8">
-              <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: MENTA }}>
-                Colegas
-              </p>
-              <h3 className="mt-2 max-w-[22ch] text-[26px] font-extrabold leading-[1.05] md:text-[40px]" style={{ letterSpacing: '-0.035em' }}>
-                Trabajamos en red con los colegas de la zona.
-              </h3>
-              <p className="mt-2 text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,.7)' }}>
-                Encuentro con colegas de Funes y Roldán.
-              </p>
+            <figcaption className="absolute bottom-3 right-3 rounded-full bg-black/55 px-3 py-1 text-[12px] font-semibold text-white md:bottom-4 md:right-4">
+              Encuentro con colegas de Funes y Roldán
             </figcaption>
           </figure>
 
           <div className="grid items-start gap-8 p-5 md:p-8 lg:grid-cols-[1fr_1fr] lg:gap-12">
             <div>
+              <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: MENTA }}>
+                Colegas
+              </p>
+              <h3 className="mb-4 mt-2 text-[26px] font-extrabold leading-[1.05] md:text-[38px]" style={{ letterSpacing: '-0.035em' }}>
+                Trabajamos en red con los colegas de la zona.
+              </h3>
               <p className="m-0 text-[15.5px] leading-[1.65] md:text-[16.5px]" style={{ color: 'rgba(255,255,255,.8)' }}>
                 Con las inmobiliarias de Funes y Roldán no competimos: trabajamos en red. Hacemos rondas de negocios, compartimos
                 propiedades para que la tuya llegue también a sus compradores y mantenemos una camaradería de años. Más ojos y más
