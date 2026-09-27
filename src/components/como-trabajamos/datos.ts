@@ -236,7 +236,7 @@ export const VENDIDAS: {
 export const MURO = Array.from({ length: 19 }, (_, i) => `${P}/muro/${String(i + 1).padStart(2, '0')}.webp`)
 
 /* ── Colegas de Funes y Roldán con los que hacemos negocios (lista de David, 27-sep).
-   Logos de sus sitios / perfiles de portales; el de Rodriguez Tuttobene sale del cartel compartido. ── */
+   Logos de sus sitios / perfiles de portales; el de Rodriguez Tuttobene sale del SVG del cartel compartido. ── */
 export const COLEGAS = [
   { inmobiliaria: 'Rodriguez Tuttobene', personas: 'Javier Rodriguez y Antonela Tuttobene', logo: 'rodriguez-tuttobene' },
   { inmobiliaria: 'Colautti Propiedades', personas: 'Mariano Colautti', logo: 'colautti' },
