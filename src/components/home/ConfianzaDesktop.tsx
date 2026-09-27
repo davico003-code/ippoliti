@@ -87,7 +87,7 @@ export default function ConfianzaDesktop() {
       </section>
 
       <section className="bg-white py-20">
-        <div className="mx-auto grid max-w-[1200px] grid-cols-[minmax(0,1fr)_minmax(390px,0.72fr)] items-center gap-14 px-6">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_minmax(390px,0.72fr)] items-center gap-14 px-6 lg:px-10">
           <div className="text-left">
             <EncabezadoSeccion
               eyebrow="Dos generaciones"
@@ -121,7 +121,7 @@ export default function ConfianzaDesktop() {
       </section>
 
       <section className="bg-white pb-24">
-        <div className="mx-auto max-w-[1200px] px-6">
+        <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
           <EncabezadoSeccion eyebrow="Nuestras sedes" titulo="Tres lugares para encontrarnos." nivel="h3" className="mb-8" />
 
           <div className="revela grid grid-cols-1 gap-6 md:grid-cols-3">

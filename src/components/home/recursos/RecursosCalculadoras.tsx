@@ -38,7 +38,8 @@ export default function RecursosCalculadoras() {
       <style dangerouslySetInnerHTML={{ __html: `
         .r4{ --green:#1A5C38; --green-dark:#0F3F26; --paper:#F5F5F7; --ink:#1a1a1a; --appmuted:#6b7280;
              background:var(--paper); padding:64px 0 56px; }
-        .r4 .r4wrap{ max-width:1200px; margin:0 auto; padding:0 24px; }
+        .r4 .r4wrap{ max-width:1440px; margin:0 auto; padding:0 24px; }
+        @media(min-width:1024px){ .r4 .r4wrap{ padding:0 40px; } }
         .r4 .r4head{ margin:0 0 30px; }
         .r4 .trio{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; align-items:stretch; }
 

@@ -36,8 +36,9 @@ import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
-// Margen izquierdo del carrusel = el del contenido (1200 px con 24 px adentro).
-const CARRUSEL_IZQ = 'max(24px, calc((100vw - 1200px) / 2 + 24px))'
+// Margen izquierdo del carrusel = el del contenido de la home (1440 px con
+// --pad adentro: 24 px en tablet, 40 px en compu).
+const CARRUSEL_IZQ = 'max(var(--pad), calc((100vw - 1440px) / 2 + var(--pad)))'
 
 // ─── Featured Properties Section ─────────────────────────────────────────────
 
@@ -84,7 +85,7 @@ async function FeaturedPropertiesSection() {
           textDecoration: 'none',
           position: 'relative',
           // Más grandes y a todo el ancho: se ven ~2,5 tarjetas por pantalla.
-          width: 'clamp(320px, calc((100vw - 190px) / 2.6), 620px)',
+          width: 'clamp(320px, calc((100vw - 110px) / 2.6), 640px)',
           minWidth: 320,
         }}
       >
@@ -177,8 +178,8 @@ async function FeaturedPropertiesSection() {
   }
 
   return (
-    <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-[1200px] mx-auto px-6 pt-14">
+    <section className="home-section bg-white [--pad:24px] lg:[--pad:40px]" style={{ padding: 0 }}>
+      <div className="max-w-[1440px] mx-auto px-[var(--pad)] pt-14">
         <EncabezadoSeccion
           eyebrow="Propiedades"
           titulo="Nuestra selección"

@@ -23,8 +23,8 @@ export default function ProyectosMosaico() {
           const size = SIZES[i] ?? 'sm'
           const isSm = size === 'sm'
           const imgSizes = isSm
-            ? '(max-width:767px) 50vw, 380px'
-            : '(max-width:767px) 100vw, 760px'
+            ? '(max-width:767px) 50vw, 440px'
+            : '(max-width:767px) 100vw, 900px'
           return (
             <Link key={item.id} href={item.href} className={`tile ${size}`}>
               <div className="bg">
@@ -53,7 +53,7 @@ export default function ProyectosMosaico() {
 
       <style dangerouslySetInnerHTML={{ __html: `
         .proj-bento{ --green:#1A5C38; }
-        .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:250px; gap:14px; margin-top:20px; }
+        .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:270px; gap:14px; margin-top:20px; }
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
         .proj-bento .wide{ grid-column:span 2; }
 
