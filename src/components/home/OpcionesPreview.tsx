@@ -4,12 +4,11 @@ import { useEffect, useState } from 'react'
 
 // Selector para comparar variantes de diseño SOLO en previews de Vercel y en
 // local: nunca aparece en siinmobiliaria.com. Guarda la elección en la URL
-// (?efecto=…&sedes=…) para poder compartir el link y la aplica en
-// <html data-efecto / data-sedes>. Se retira cuando se elige la versión final.
+// (?sedes=…) para poder compartir el link y la aplica en
+// <html data-sedes>. Se retira cuando se elige la versión final.
 
 const GRUPOS = [
-  { clave: 'efecto', titulo: 'Portada al bajar', opciones: [['actual', 'Actual'], ['a', 'A · Profundidad'], ['b', 'B · Desenfoque'], ['c', 'C · Acercar']], def: 'a' },
-  { clave: 'sedes', titulo: 'Oficinas', opciones: [['0', 'Actual'], ['1', '1 · Línea de tiempo'], ['2', '2 · Tarjetas']], def: '1' },
+  { clave: 'sedes', titulo: 'Oficinas', opciones: [['0', 'Actual'], ['3', '3 · Mapa'], ['4', '4 · Editorial'], ['5', '5 · Lista']], def: '3' },
 ] as const
 
 export default function OpcionesPreview() {

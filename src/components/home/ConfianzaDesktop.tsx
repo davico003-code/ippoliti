@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import { Clock, MapPin, Star } from 'lucide-react'
 import EncabezadoSeccion from './EncabezadoSeccion'
-import SedesModernas from './SedesModernas'
+import SedesMapa from './sedes/SedesMapa'
+import SedesEditorial from './sedes/SedesEditorial'
+import SedesLista from './sedes/SedesLista'
 
 const GREEN = '#1A5C38'
 
@@ -87,8 +89,6 @@ export default function ConfianzaDesktop() {
         </div>
       </section>
 
-      {/* Opción de oficinas elegida en el preview (ver OpcionesPreview). */}
-      <div className="sedes-op sedes-op-0">
       <section className="bg-white py-20">
         <div className="mx-auto grid max-w-[1200px] grid-cols-[minmax(0,1fr)_minmax(390px,0.72fr)] items-center gap-14 px-6">
           <div className="text-left">
@@ -123,6 +123,8 @@ export default function ConfianzaDesktop() {
         </div>
       </section>
 
+      {/* Opción de oficinas elegida en el preview (ver OpcionesPreview). */}
+      <div className="sedes-op sedes-op-0">
       <section className="bg-white pb-24">
         <div className="mx-auto max-w-[1200px] px-6">
           <EncabezadoSeccion eyebrow="Nuestras sedes" titulo="Tres lugares para encontrarnos." nivel="h3" className="mb-8" />
@@ -173,8 +175,9 @@ export default function ConfianzaDesktop() {
         </div>
       </section>
       </div>
-      <div className="sedes-op sedes-op-1"><SedesModernas variante="linea" /></div>
-      <div className="sedes-op sedes-op-2"><SedesModernas variante="tarjetas" /></div>
+      <div className="sedes-op sedes-op-3"><SedesMapa /></div>
+      <div className="sedes-op sedes-op-4"><SedesEditorial /></div>
+      <div className="sedes-op sedes-op-5"><SedesLista /></div>
     </>
   )
 }

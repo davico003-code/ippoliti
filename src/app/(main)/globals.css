@@ -416,7 +416,8 @@ body.dr-hoja-abierta [data-fab-whatsapp] {
 
 /* Opciones de oficinas para comparar en el preview (OpcionesPreview). */
 .sedes-op { display: none; }
-html:not([data-sedes]) .sedes-op-1,
+html:not([data-sedes]) .sedes-op-3,
 html[data-sedes="0"] .sedes-op-0,
-html[data-sedes="1"] .sedes-op-1,
-html[data-sedes="2"] .sedes-op-2 { display: block; }
+html[data-sedes="3"] .sedes-op-3,
+html[data-sedes="4"] .sedes-op-4,
+html[data-sedes="5"] .sedes-op-5 { display: block; }

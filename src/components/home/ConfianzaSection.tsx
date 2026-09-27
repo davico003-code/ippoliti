@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import { MapPin, Clock } from 'lucide-react'
 import EncabezadoSeccion from './EncabezadoSeccion'
-import SedesModernas from './SedesModernas'
+import SedesMapa from './sedes/SedesMapa'
+import SedesEditorial from './sedes/SedesEditorial'
+import SedesLista from './sedes/SedesLista'
 
 const GREEN = '#1A5C38'
 
@@ -86,7 +88,6 @@ export default function ConfianzaSection() {
         </div>
       </section>
 
-      <div className="sedes-op sedes-op-0">
       {/* 2. Bloque introductorio */}
       <section className="px-5 pt-10 pb-7 bg-white">
         <EncabezadoSeccion
@@ -111,6 +112,7 @@ export default function ConfianzaSection() {
         </div>
       </section>
 
+      <div className="sedes-op sedes-op-0">
       {/* 4. Las 3 oficinas */}
       <section className="px-5 pt-4 pb-7 bg-white">
         <EncabezadoSeccion eyebrow="Nuestras sedes" titulo="Tres lugares para encontrarnos." nivel="h3" />
@@ -150,8 +152,9 @@ export default function ConfianzaSection() {
       </section>
 
       </div>
-      <div className="sedes-op sedes-op-1"><SedesModernas variante="linea" /></div>
-      <div className="sedes-op sedes-op-2"><SedesModernas variante="tarjetas" /></div>
+      <div className="sedes-op sedes-op-3"><SedesMapa /></div>
+      <div className="sedes-op sedes-op-4"><SedesEditorial /></div>
+      <div className="sedes-op sedes-op-5"><SedesLista /></div>
     </>
   )
 }
