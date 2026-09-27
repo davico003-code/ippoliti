@@ -15,6 +15,7 @@ import ConfianzaSection from '@/components/home/ConfianzaSection'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import TemporariosHome from '@/components/home/TemporariosHome'
+import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
 import { esTemporadaVerano } from '@/lib/temporarios-data'
 import {
   getFeaturedProperties,
@@ -174,16 +175,13 @@ async function FeaturedPropertiesSection() {
 
   return (
     <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-4 md:pt-5 md:pb-6">
-        {/* Header row */}
-        <div className="flex items-end justify-between">
-          <h2 className="text-2xl md:text-3xl tracking-tight" style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111827', lineHeight: 1.2, margin: 0 }}>
-            Nuestra selección
-          </h2>
-        </div>
-        <p className="text-sm text-gray-500 mb-2 mt-0.5" style={{ fontFamily: RALEWAY }}>
-          Elegidas con criterio, no por algoritmo.
-        </p>
+      <div className="max-w-[1200px] mx-auto px-6 pt-14 pb-12">
+        <EncabezadoSeccion
+          eyebrow="Propiedades"
+          titulo="Nuestra selección"
+          bajada="Elegidas con criterio, no por algoritmo."
+          className="mb-7"
+        />
 
         {/* Carousel — fallback al CTA si no hay properties */}
         {properties.length > 0 ? (

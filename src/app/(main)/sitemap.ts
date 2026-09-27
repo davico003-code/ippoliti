@@ -39,6 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fincazul es ruta estática (no viene en el feed de Tokko, así que el mapeo
     // de getDevelopments() de abajo nunca la incluye).
     { url: `${BASE}/emprendimientos/fincazul`, changeFrequency: 'weekly', priority: 0.8 },
+    // Fisherton Work: mismo caso que Fincazul (ruta estática, no está en HILO).
+    { url: `${BASE}/emprendimientos/fisherton-work`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/barrio-los-aromos-roldan`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/barrio-don-mateo-funes`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/barrio-el-molino-roldan`, changeFrequency: 'monthly', priority: 0.7 },

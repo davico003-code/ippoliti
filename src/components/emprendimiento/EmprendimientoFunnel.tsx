@@ -58,6 +58,8 @@ interface Props {
   filas: UnidadFila[]
   otherDevs: Development[]
   whatsappUrl: string
+  /** Contacto propio del emprendimiento (WhatsApp, teléfono); sin esto, el general. */
+  contacto?: { whatsapp: string; telefono: string; telefonoLabel: string }
 }
 
 const CONTAINER = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12'
@@ -73,7 +75,7 @@ function rango(valores: number[], sufijo: string): string | null {
 }
 
 export default function EmprendimientoFunnel({
-  dev, slug, displayName, typeName, status, locationName, lineas, photos, media, filas, otherDevs, whatsappUrl,
+  dev, slug, displayName, typeName, status, locationName, lineas, photos, media, filas, otherDevs, whatsappUrl, contacto,
 }: Props) {
   const desc = estructurarDescripcion(lineas)
   const pageUrl = `https://siinmobiliaria.com/emprendimientos/${slug}`
@@ -314,6 +316,7 @@ export default function EmprendimientoFunnel({
               whatsappUrl={whatsappUrl}
               location={dev.location?.name}
               pageUrl={pageUrl}
+              telefonoLabel={contacto?.telefonoLabel}
             />
           </div>
         </div>
@@ -452,11 +455,11 @@ export default function EmprendimientoFunnel({
                 Consultar por WhatsApp
               </WhatsAppCta>
               <a
-                href="tel:+5493413340916"
+                href={`tel:${contacto?.telefono ?? '+5493413340916'}`}
                 className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border-2 border-gray-200 px-7 text-[15px] font-bold text-gray-700 transition-colors hover:bg-gray-50"
               >
                 <Phone className="h-5 w-5" aria-hidden />
-                <span className="font-numeric">(341) 334-0916</span>
+                <span className="font-numeric">{contacto?.telefonoLabel ?? '(341) 334-0916'}</span>
               </a>
             </div>
 
@@ -468,6 +471,7 @@ export default function EmprendimientoFunnel({
               propertyTitle={displayName}
               propertyUrl={pageUrl}
               source="emprendimiento"
+              whatsappNumber={contacto?.whatsapp}
             />
           </div>
           <div className="lg:col-start-1">

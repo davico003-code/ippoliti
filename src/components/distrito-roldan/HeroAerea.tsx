@@ -20,7 +20,7 @@ interface Props {
 
 export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }: Props) {
   return (
-    <section id="inicio" className="relative isolate min-h-[680px] w-full overflow-hidden bg-[#345544] md:min-h-[760px]">
+    <section id="inicio" data-sin-fab className="relative isolate min-h-[680px] w-full overflow-hidden bg-[#345544] md:min-h-[760px]">
       <picture>
         <source media="(max-width: 768px)" srcSet="/images/distrito-roldan/hero-aerea-mobile.webp" />
         <Image
@@ -67,7 +67,10 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
             <MapPin className="h-4 w-4 text-[#BB8D3F]" aria-hidden />
             Ruta 9 y María Auxiliadora, Roldán
           </p>
+          {/* El nombre va dentro del H1 (oculto a la vista) para que el título
+              principal de la página diga qué es: el visible es el eslogan. */}
           <h1 className="max-w-[12ch] text-balance text-[clamp(44px,6vw,84px)] font-extrabold leading-[0.98] tracking-[-0.035em] text-[#F8F1E6]">
+            <span className="sr-only">{titulo}: </span>
             Un barrio abierto a vos
           </h1>
           <p className="mt-7 max-w-[55ch] text-pretty text-base leading-7 text-white/[0.88] md:text-lg md:leading-8">
@@ -92,7 +95,6 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
               Recorrer en 360°
             </a>
           </div>
-          <span className="sr-only">{titulo}</span>
         </div>
       </div>
     </section>

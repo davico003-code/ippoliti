@@ -9,6 +9,11 @@
 //   ficha:{slug}             → JSON Ficha (TTL 60d)
 //   ficha:{slug}:stats       → JSON FichaStats (TTL 60d, mismo que ficha)
 //   fichas:all               → SET con slugs vivos (sin TTL, cleanup lazy)
+//   fichas:prop:{propertyId} → SET con los slugs de UNA propiedad (TTL 60d,
+//                              se renueva con cada ficha). Lo lee Hilo para la
+//                              tarjeta "Feedback" de la ficha interna.
+//   ficha:{slug}:compartida  → contador de toques en "Compartir" dentro de la
+//                              ficha (colega → su cliente). TTL 60d.
 
 import { customAlphabet } from 'nanoid'
 import { redis } from './redis'
@@ -37,6 +42,8 @@ const TTL_SECONDS = 60 * 24 * 60 * 60 // 60d
 const SET_KEY = 'fichas:all'
 const KEY = (slug: string) => `ficha:${slug}`
 const STATS_KEY = (slug: string) => `ficha:${slug}:stats`
+const PROP_KEY = (propertyId: number) => `fichas:prop:${propertyId}`
+const SHARES_KEY = (slug: string) => `ficha:${slug}:compartida`
 
 // Alfabeto sin caracteres ambiguos (sin 0, O, l, I, 1)
 const slugGen = customAlphabet('abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', 8)
@@ -314,6 +321,7 @@ export async function crearFicha(input: {
   await redis.set(KEY(slug), JSON.stringify(ficha), { ex: TTL_SECONDS })
   await redis.set(STATS_KEY(slug), JSON.stringify(initialStats), { ex: TTL_SECONDS })
   await redis.sadd(SET_KEY, slug)
+  await indexarFichaPorPropiedad(input.propertyId, slug)
 
   // El audio narrado YA NO se precachea automáticamente al crear la ficha.
   // Pasamos a opt-in: la generación se dispara desde /admin/audio para evitar
@@ -554,6 +562,31 @@ export const BOT_UA_RE =
 export function isLikelyBot(userAgent: string | null | undefined): boolean {
   if (!userAgent) return false
   return BOT_UA_RE.test(userAgent)
+}
+
+// Índice propiedad → slugs (para que Hilo cuente cuántas veces se compartió
+// una propiedad sin recorrer todas las fichas). Los slugs vencidos quedan en
+// el SET hasta que expire: el lector los descarta porque ya no tienen stats.
+export async function indexarFichaPorPropiedad(propertyId: number, slug: string): Promise<void> {
+  if (!propertyId || propertyId <= 0) return
+  try {
+    await redis.sadd(PROP_KEY(propertyId), slug)
+    await redis.expire(PROP_KEY(propertyId), TTL_SECONDS)
+  } catch {
+    // El índice es para métricas: nunca rompe la creación de la ficha.
+  }
+}
+
+// Toque en "Compartir" dentro de la ficha. Un mismo dispositivo (IP) cuenta
+// una vez cada 10 min por ficha, para que abrir y cerrar el menú no infle.
+export async function trackShare(slug: string, ip: string): Promise<boolean> {
+  const ttl = await redis.ttl(KEY(slug))
+  if (ttl <= 0) return false
+  const dedupe = await redis.set(`ficha:${slug}:compartida:ip:${(ip || 'unknown').slice(0, 64)}`, 1, { nx: true, ex: 600 })
+  if (dedupe === null) return false
+  const n = await redis.incr(SHARES_KEY(slug))
+  if (n === 1) await redis.expire(SHARES_KEY(slug), ttl)
+  return true
 }
 
 // Tracking de view: incrementa contador, anota IP (cap 50). Preserva TTL.

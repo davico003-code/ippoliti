@@ -254,7 +254,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
             <FeedbackColega slug={params.slug} />
 
             {/* Sección 8: CTA compartir */}
-            <ShareCTA url={url} />
+            <ShareCTA url={url} slug={params.slug} />
           </>
         )}
 
@@ -278,7 +278,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
 
       {!isEmbedded && (
         /* FAB — mobile only (CSS media query oculta en ≥768px) */
-        <FloatingShareButton url={url} />
+        <FloatingShareButton url={url} slug={params.slug} />
       )}
 
       <style dangerouslySetInnerHTML={{ __html: `

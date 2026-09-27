@@ -50,6 +50,16 @@ export interface BrickfyUnit {
   fullBathrooms: number
   toilets: number
   status: 'available' | 'reserved' | string
+  /** Precio pisado por SI con valor preferencial (ver PRECIOS_PREFERENCIALES). */
+  preferencial?: boolean
+}
+
+// Precios que SI comercializa a valor preferencial, distinto del que publica
+// VERS en Brickfy. Pisan el precio de la API y marcan la unidad. Si una unidad
+// deja de ser preferencial, borrarla de acá y vuelve al precio de Brickfy.
+const PRECIOS_PREFERENCIALES: Record<string, number> = {
+  'DOCK_GARDEN-2-4-3': 375000, // Torre 2 · Piso 4+5 Dúplex · Unidad 3 (3D)
+  'DOCK_GARDEN-2-1-1': 340000, // Torre 2 · Piso 1 · Unidad 1 (3D)
 }
 
 export interface DockGardenData {
@@ -67,7 +77,9 @@ export async function getDockGarden(): Promise<DockGardenData | null> {
     })
     if (!res.ok) return null
     const data = await res.json()
-    const units: BrickfyUnit[] = data?.units?.items ?? []
+    const units: BrickfyUnit[] = (data?.units?.items ?? []).map((u: BrickfyUnit) =>
+      u.id in PRECIOS_PREFERENCIALES ? { ...u, price: PRECIOS_PREFERENCIALES[u.id], preferencial: true } : u,
+    )
     if (!data?.project || units.length === 0) return null
     return { project: data.project, units }
   } catch {

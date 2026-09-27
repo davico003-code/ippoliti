@@ -1,4 +1,4 @@
-import { leerCondicionesTemporario, type PrecioTemporario } from './temporarios';
+import { condicionesTemporario, type PrecioTemporario, type TemporadaFeed } from './temporarios';
 import { normalizeArWhatsapp } from './phone'
 import { normalizarTitulo } from './titulo'
 import { corregirTipo } from './correcciones'
@@ -40,6 +40,8 @@ export interface TokkoOperation {
   prices: TokkoPrice[];
   /** Título del aviso de ESTA operación (feed de HILO, solo en venta+alquiler). */
   title?: string | null;
+  /** Solo 'Temporary rent': valores y condiciones cargados en HILO (26-sep-2026). */
+  temporada?: TemporadaFeed | null;
 }
 
 export interface TokkoPropertyType {
@@ -199,6 +201,8 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
       operation_id: op.operation_id,
       operation_type: op.operation_type,
       ...(op.title ? { title: normalizarTitulo(op.title) } : {}),
+      // Temporario: valores y condiciones de HILO (no perderlos al sanear).
+      ...(op.temporada ? { temporada: op.temporada } : {}),
       prices: (op.prices ?? []).map((pr) => ({
         currency: pr.currency,
         is_promotional: pr.is_promotional,
@@ -503,7 +507,7 @@ export function preciosTemporario(
   const op = (property.operations ?? []).find((o) => o.operation_type === 'Temporary rent');
   const p = op?.prices?.[0];
   const precioFeed = p && p.price > 0 ? `${p.currency} ${p.price.toLocaleString('es-AR')}` : null;
-  return leerCondicionesTemporario(getDescription(property), precioFeed).precios;
+  return condicionesTemporario(getDescription(property), op?.temporada, precioFeed).precios;
 }
 
 export function mostrarPrecio(
@@ -520,7 +524,8 @@ export function mostrarPrecio(
   if (op.operation_type === 'Temporary rent') {
     // La lista liviana del feed no trae descripción: sin ella no se sabe si el
     // monto es por quincena o por mes, así que va sin período (no inventarlo).
-    const conTexto = Boolean(property.description || property.description_only || property.rich_description);
+    // Desde que HILO manda `temporada` (también en la lista liviana) el período es seguro.
+    const conTexto = Boolean(op.temporada || property.description || property.description_only || property.rich_description);
     const t = conTexto ? preciosTemporario(property)[0] : null;
     if (t) return `${t.texto} / ${t.periodo}`;
     return `${p.currency} ${p.price.toLocaleString('es-AR')}`;
@@ -613,7 +618,11 @@ export function preciosPorOperacion(
     })
     .map((op) => {
       const p = op.prices[0];
-      const suffix = op.operation_type === 'Rent' || op.operation_type === 'Temporary rent' ? ' /mes' : '';
+      // Temporario de HILO: el precio de la operación es por quincena.
+      const suffix =
+        op.operation_type === 'Temporary rent'
+          ? op.temporada ? ' / quincena' : ''
+          : op.operation_type === 'Rent' ? ' /mes' : '';
       return {
         operacion: operacionEnEspanol(op.operation_type),
         precio: `${p.currency} ${p.price.toLocaleString('es-AR')}${suffix}`,

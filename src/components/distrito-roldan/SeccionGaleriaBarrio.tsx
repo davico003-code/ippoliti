@@ -22,7 +22,7 @@ export default function SeccionGaleriaBarrio({ fotos: todas, proyecto }: Props) 
   if (!fotos.length) return null
 
   return (
-    <section id="barrio" className="bg-white px-6 py-20 md:py-28">
+    <section id="fotos-barrio" className="bg-white px-6 py-20 md:py-28">
       <div className="mx-auto max-w-[1180px]">
         <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
           <div>

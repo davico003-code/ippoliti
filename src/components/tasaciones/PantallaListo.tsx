@@ -26,7 +26,7 @@ export default function PantallaListo({ nombre, resumen, tituloRef }: Props) {
       </p>
       <PillResumen texto={resumen} />
       <p className="mt-6 text-[14.5px] font-medium leading-[1.5] text-[#3C4A42]">
-        Un tasador del equipo revisa lo que se vendió de verdad en tu zona y te manda el número por WhatsApp. Sin compromiso.
+        Un tasador del equipo revisa lo que se vendió de verdad en tu barrio y te escribe por WhatsApp para darte el valor real. Sin compromiso.
       </p>
       <p className="mt-2 text-[12.5px] font-medium text-[#6B766E]">SI INMOBILIARIA · desde 1983 · David Flores, corredor responsable · Mat. 0621</p>
       <Link

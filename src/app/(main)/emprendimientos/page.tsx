@@ -72,6 +72,19 @@ export default async function EmprendimientosPage() {
   }
 
   cards.push({
+    key: 'fisherton-work',
+    href: '/emprendimientos/fisherton-work',
+    image: '/emprendimientos/fisherton-work/render-conjunto.webp',
+    eyebrow: 'Parque logístico y comercial · Rosario',
+    title: 'Fisherton Work',
+    location: 'Av. Hernán Pujato 7880, Fisherton · Rosario',
+    description:
+      '43 unidades 4 en 1: showroom, depósito, oficina y 5 cocheras propias sobre lotes desde 400 m². A 300 m de Av. Jorge Newbery y 700 m de Circunvalación. Lotes unificables.',
+    chips: ['Locales y depósitos', 'Lanzamiento'],
+    accent: GREEN,
+  })
+
+  cards.push({
     key: 'fincazul',
     href: '/emprendimientos/fincazul',
     image: '/emprendimientos/fincazul/portada.jpg',

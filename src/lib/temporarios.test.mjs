@@ -89,3 +89,26 @@ test('lo que no incluye y lo que no se permite', () => {
   assert.deepEqual(c.incluye, ['Luz', 'Gas', 'Wifi', 'Ropa blanca', 'Limpieza de salida']) // "No incluye" no se mezcla
   assert.deepEqual(leerCondicionesTemporario('Prohibido: fiestas').noPermitido, ['Fiestas'])
 })
+
+test('los datos estructurados de Hilo mandan; la descripción es respaldo', async () => {
+  const { condicionesTemporario } = await import('./temporarios.ts')
+  const feed = {
+    moneda: 'ARS', precio_quincena: 800000, precio_mes: 1400000, capacidad: 4,
+    estadia_minima: '1 semana', incluye: ['Luz'], no_incluye: [], no_permitido: ['Fumar adentro'], alquiladas: ['feb-2'],
+  }
+  const c = condicionesTemporario(DESCRIPCION, feed)
+  assert.deepEqual(c.precios, [
+    { periodo: 'quincena', texto: 'ARS 800.000' },
+    { periodo: 'mes', texto: 'ARS 1.400.000' },
+  ])
+  assert.equal(c.personas, '4')
+  assert.equal(c.estadiaMinima, '1 semana')
+  assert.deepEqual(c.incluye, ['Luz'])
+  assert.deepEqual(c.noIncluye, ['Blanquería', 'Limpieza diaria']) // vacío en Hilo → respaldo del texto
+  assert.deepEqual(c.noPermitido, ['Fumar adentro'])
+  assert.deepEqual(c.alquiladas, ['feb-2'])
+  assert.equal(c.deposito, 'ARS 300.000') // no vino en Hilo → del texto
+  assert.doesNotMatch(c.descripcion, /Quincena:/)
+  // Sin temporada en el feed: igual que antes.
+  assert.deepEqual(condicionesTemporario(DESCRIPCION, null).precios[0], { periodo: 'quincena', texto: 'ARS 900.000' })
+})

@@ -6,10 +6,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Check, Copy, MessageCircle, Share2 } from 'lucide-react'
+import { contarCompartida } from './contar-compartida'
 
 const BLUE = '#2563EB'
 
-export default function ShareCTA({ url }: { url: string }) {
+export default function ShareCTA({ url, slug }: { url: string; slug?: string }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -24,6 +25,7 @@ export default function ShareCTA({ url }: { url: string }) {
   }, [open])
 
   const copy = async () => {
+    contarCompartida(slug)
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
@@ -117,7 +119,10 @@ export default function ShareCTA({ url }: { url: string }) {
               rel="noopener noreferrer"
               role="menuitem"
               style={menuItem}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                contarCompartida(slug)
+                setOpen(false)
+              }}
             >
               <MessageCircle size={15} color="#25D366" />
               Compartir por WhatsApp

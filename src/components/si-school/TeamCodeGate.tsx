@@ -5,28 +5,95 @@
 // (que ya requiere SI_TEAM_CODE) y guarda en localStorage la key compartida
 // `si_team_access`. Así, si el agente ya entró por autorizaciones, no le
 // vuelve a pedir el código.
+//
+// La clave guardada se re-valida en segundo plano: si el equipo cambió la
+// clave, antes el agente entraba igual con la vieja y después cada
+// capacitación le daba {"error":"Unauthorized"}. Ahora se la vuelve a pedir.
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 
 const STORAGE_KEY = 'si_team_access'
 
+type Validacion = 'ok' | 'invalido' | 'error'
+
+async function validarCodigo(code: string): Promise<Validacion> {
+  try {
+    const res = await fetch('/api/autorizaciones/listar?status=all&limit=1', {
+      headers: { 'x-team-code': code },
+    })
+    if (res.status === 401) return 'invalido'
+    return res.ok ? 'ok' : 'error'
+  } catch {
+    return 'error'
+  }
+}
+
+// Sesión de agente (cookie JWT del panel). Si la hay, SI School deja pasar
+// sin clave de equipo: la API de capacitaciones ya acepta esa cookie.
+async function haySesionAgente(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/agentes/me', { cache: 'no-store' })
+    if (!res.ok) return false
+    const data = (await res.json()) as { agent?: unknown }
+    return !!data.agent
+  } catch {
+    return false
+  }
+}
+
 interface Props {
+  /** teamCode llega vacío si se entró por sesión de agente (permitirAgente). */
   children: (ctx: { teamCode: string; onLogout: () => void }) => ReactNode
+  /** Deja pasar a un agente logueado sin pedir la clave de equipo. */
+  permitirAgente?: boolean
   /** Copy de la pantalla de acceso (default: SI School). */
   eyebrow?: string
   title?: string
   subtitle?: string
 }
 
-export default function TeamCodeGate({ children, eyebrow, title, subtitle }: Props) {
+export default function TeamCodeGate({ children, permitirAgente = false, eyebrow, title, subtitle }: Props) {
   const [teamCode, setTeamCode] = useState<string | null>(null)
   const [checking, setChecking] = useState(true)
+  const [vencida, setVencida] = useState(false)
+  const [agente, setAgente] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    setTeamCode(window.localStorage.getItem(STORAGE_KEY))
+    const guardado = window.localStorage.getItem(STORAGE_KEY)
+    let vivo = true
+    if (!guardado) {
+      if (!permitirAgente) {
+        setChecking(false)
+        return
+      }
+      void haySesionAgente().then((ok) => {
+        if (!vivo) return
+        setAgente(ok)
+        setChecking(false)
+      })
+      return () => {
+        vivo = false
+      }
+    }
+    setTeamCode(guardado)
     setChecking(false)
-  }, [])
+    // No frena la carga: se entra con la guardada y, si el server la rechaza,
+    // se vuelve a pedir (salvo que haya sesión de agente). Un error de red no
+    // la borra.
+    void validarCodigo(guardado).then(async (r) => {
+      if (!vivo || r !== 'invalido') return
+      window.localStorage.removeItem(STORAGE_KEY)
+      const ok = permitirAgente && (await haySesionAgente())
+      if (!vivo) return
+      setAgente(ok)
+      setTeamCode(null)
+      setVencida(!ok)
+    })
+    return () => {
+      vivo = false
+    }
+  }, [permitirAgente])
 
   const onAuth = useCallback((code: string) => {
     window.localStorage.setItem(STORAGE_KEY, code)
@@ -46,9 +113,18 @@ export default function TeamCodeGate({ children, eyebrow, title, subtitle }: Pro
     )
   }
 
-  if (!teamCode) return <AccessGate onAuth={onAuth} eyebrow={eyebrow} title={title} subtitle={subtitle} />
+  if (!teamCode && !agente) {
+    return (
+      <AccessGate
+        onAuth={onAuth}
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={vencida ? 'La clave del equipo cambió. Ingresá la nueva para seguir.' : subtitle}
+      />
+    )
+  }
 
-  return <>{children({ teamCode, onLogout })}</>
+  return <>{children({ teamCode: teamCode ?? '', onLogout })}</>
 }
 
 function AccessGate({
@@ -70,24 +146,11 @@ function AccessGate({
     if (!code.trim()) return
     setSubmitting(true)
     setError(null)
-    try {
-      const res = await fetch('/api/autorizaciones/listar?status=all&limit=1', {
-        headers: { 'x-team-code': code.trim() },
-      })
-      if (res.status === 401) {
-        setError('Código incorrecto')
-        return
-      }
-      if (!res.ok) {
-        setError(`Error ${res.status}`)
-        return
-      }
-      onAuth(code.trim())
-    } catch {
-      setError('Error de red')
-    } finally {
-      setSubmitting(false)
-    }
+    const r = await validarCodigo(code.trim())
+    setSubmitting(false)
+    if (r === 'invalido') setError('Código incorrecto')
+    else if (r === 'error') setError('No se pudo validar. Probá de nuevo.')
+    else onAuth(code.trim())
   }
 
   return (
