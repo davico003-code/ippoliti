@@ -152,7 +152,7 @@ export default function Paso3Pedido({
         </div>
 
         <ul className="mt-4 space-y-2">
-          {['Te escribimos por WhatsApp en menos de 24 h', 'No te llamamos', 'Sin compromiso'].map((txt) => (
+          {['Te escribe un tasador del equipo en menos de 24 h', 'Con lo que se vendió de verdad en tu barrio', 'Sin compromiso'].map((txt) => (
             <li key={txt} className="flex items-start gap-2.5 text-[14.5px] font-semibold leading-[1.35] text-[#3C4A42]">
               <span className="mt-px flex-none text-[#17613C]">
                 <IconoCheck />

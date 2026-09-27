@@ -3,7 +3,7 @@ import { Redis } from '@upstash/redis'
 import { pushLeadToHilo } from '@/lib/hilo-leads'
 import { rateLimit } from '@/lib/feedback'
 import { esMockTasacion, TIPOS_TASACION } from '@/lib/tasacion/hilo'
-import { celularArValido, fmtMiles, normalizarCelularAr, TEXTO_TIPO } from '@/lib/tasacion/formato'
+import { celularArValido, fmtMiles, normalizarCelularAr, parsePlazo, PLAZOS_VENTA, TEXTO_TIPO } from '@/lib/tasacion/formato'
 import type { NivelComparables, TasacionLead, TipoTasacion, UtmTasacion } from '@/lib/tasacion/types'
 
 // POST /api/tasacion/solicitud — el pedido de tasación de la web.
@@ -73,6 +73,7 @@ function leerTasacion(raw: unknown): TasacionLead | null {
     lng: lat != null && lng != null ? lng : null,
     utm: utm && (utm.source || utm.medium || utm.campaign || utm.content) ? utm : null,
     paginaUrl: /^https?:\/\//.test(paginaUrl) ? paginaUrl : 'https://siinmobiliaria.com/tasaciones',
+    plazo: parsePlazo(t.plazo),
   }
 }
 
@@ -86,9 +87,11 @@ function armarBrief(t: TasacionLead): string {
   if (t.rangoVisto) {
     const unidad = t.tipo === 'lote' && t.rangoVisto.max < 5000 ? '/m²' : ''
     partes.push(`vio USD ${fmtMiles(t.rangoVisto.min)}–${fmtMiles(t.rangoVisto.max)}${unidad} (nivel ${t.nivel}, ${t.n} comparables)`)
-  } else {
+  } else if (!t.plazo) {
     partes.push('sin rango (nivel 4: pocos comparables)')
   }
+  const plazo = PLAZOS_VENTA.find((p) => p.v === t.plazo)
+  if (plazo) partes.push(plazo.brief)
   if (t.utm?.source) partes.push(`origen ${t.utm.source}${t.utm.campaign ? ` / ${t.utm.campaign}` : ''}`)
   return partes.join(' · ')
 }

@@ -1,7 +1,7 @@
 // Helpers puros (sirven en cliente y servidor) para la página de tasación:
 // textos por tipo, formato de números, presets de m², teléfono AR.
 
-import type { BarrioTasacion, ComparablesResponse, TipoTasacion } from './types'
+import type { BarrioTasacion, ComparablesResponse, PlazoVenta, TipoTasacion } from './types'
 
 /** Textos por tipo, con el género ya resuelto (casa es femenino; lote y depto,
  *  masculino). Todo copy que dependa del tipo sale de acá, no de ternarios. */
@@ -74,6 +74,17 @@ export const TEXTO_TIPO: Record<
     las: 'los',
     yLaTuya: '¿Y el tuyo?',
   },
+}
+
+/** Opciones de "¿Cuándo pensás vender?", en el orden en que se muestran. */
+export const PLAZOS_VENTA: { v: PlazoVenta; label: string; brief: string }[] = [
+  { v: 'ya', label: 'Lo antes posible', brief: 'quiere vender lo antes posible' },
+  { v: 'meses', label: 'En los próximos meses', brief: 'piensa vender en los próximos meses' },
+  { v: 'averiguo', label: 'Solo quiero saber cuánto vale', brief: 'solo quiere saber cuánto vale' },
+]
+
+export function parsePlazo(v: unknown): PlazoVenta | null {
+  return v === 'ya' || v === 'meses' || v === 'averiguo' ? v : null
 }
 
 export function parseTipo(v: string | null | undefined): TipoTasacion | null {
