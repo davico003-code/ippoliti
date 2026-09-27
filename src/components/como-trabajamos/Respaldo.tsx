@@ -17,7 +17,7 @@ import { VideoVivo } from './Medios'
 import MapaUbicacion from './MapaUbicacion'
 import RedRelaciones, { RELACIONES } from './Red'
 import { MuroHilo } from './Resultados'
-import { AGENTES, BARRIOS, DIRECCION, EMPRENDIMIENTOS, INFORMES, OFICINAS, PRENSA } from './datos'
+import { AGENTES, BARRIOS, COLEGAS, DIRECCION, EMPRENDIMIENTOS, INFORMES, OFICINAS, PRENSA } from './datos'
 import { ACENTO, BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_SUAVE, conNumeros } from './ui'
 
 export function Prensa() {
@@ -130,12 +130,12 @@ export function CalleYEventos() {
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 md:mt-6 md:gap-5">
           {[
-            { src: '/como-trabajamos/cartel-lotes-ruta9.webp', alt: 'Cartel de SI INMOBILIARIA de venta de lotes con plano sobre Ruta 9', txt: 'Cartel de obra con plano de lotes' },
-            { src: '/como-trabajamos/cartel-vende-lotes.webp', alt: 'Cartel de SI INMOBILIARIA "Vende lotes"', txt: 'Cartel de venta en el terreno' },
+            { src: '/como-trabajamos/cartel-marca-acceso-funes.webp', alt: 'Cartel de SI INMOBILIARIA en el acceso a Funes', txt: 'Cartel de marca en el acceso a Funes' },
+            { src: '/como-trabajamos/cartel-4-lotes-funes.webp', alt: 'Cartel de 4 lotes en venta de SI INMOBILIARIA y Rodriguez Tuttobene en Funes', txt: 'Lotes en Funes, comercializados junto con Rodriguez Tuttobene' },
           ].map((c) => (
             <figure key={c.src} className="m-0">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] bg-white shadow-md">
-                <Image src={c.src} alt={c.alt} fill sizes="(max-width: 640px) 100vw, 560px" className="object-contain p-3" />
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] shadow-md">
+                <Image src={c.src} alt={c.alt} fill sizes="(max-width: 640px) 100vw, 560px" className="object-cover" />
               </div>
               <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
                 {c.txt}
@@ -465,6 +465,93 @@ export function Equipo() {
             </li>
           ))}
         </ul>
+
+        {/* Colegas: trabajo en red, rondas de negocios y camaradería */}
+        <div className="mt-14 overflow-hidden rounded-[24px] md:mt-20" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(159,217,185,.18)' }}>
+          <figure className="relative m-0">
+            <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]">
+              <Image
+                src="/como-trabajamos/encuentro-colegas.webp"
+                alt="Encuentro de SI INMOBILIARIA con colegas inmobiliarios de Funes y Roldán"
+                fill
+                sizes="(max-width: 1200px) 100vw, 1120px"
+                className="ct-zoom object-cover"
+                style={{ objectPosition: 'center 62%' }}
+              />
+            </div>
+            <figcaption className="absolute bottom-3 right-3 rounded-full bg-black/55 px-3 py-1 text-[12px] font-semibold text-white md:bottom-4 md:right-4">
+              Encuentro con colegas de Funes y Roldán
+            </figcaption>
+          </figure>
+
+          <div className="grid items-start gap-8 p-5 md:p-8 lg:grid-cols-[1fr_1fr] lg:gap-12">
+            <div>
+              <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: MENTA }}>
+                Colegas
+              </p>
+              <h3 className="mb-4 mt-2 text-[26px] font-extrabold leading-[1.05] md:text-[38px]" style={{ letterSpacing: '-0.035em' }}>
+                Trabajamos en red con los colegas de la zona.
+              </h3>
+              <p className="m-0 text-[15.5px] leading-[1.65] md:text-[16.5px]" style={{ color: 'rgba(255,255,255,.8)' }}>
+                Con las inmobiliarias de Funes y Roldán no competimos: trabajamos en red. Hacemos rondas de negocios, compartimos
+                propiedades para que la tuya llegue también a sus compradores y mantenemos una camaradería de años. Más ojos y más
+                compradores para tu propiedad.
+              </p>
+              <ul className="m-0 mt-5 grid list-none gap-2.5 p-0">
+                {[
+                  'Rondas de negocios: nos juntamos a cruzar propiedades y compradores.',
+                  'Co-comercialización: como los lotes de Funes que vendemos junto con Rodriguez Tuttobene.',
+                  'Fichas para colegas: les pasamos la propiedad lista para ofrecer a sus clientes.',
+                  'Charlas Que Sí: conversamos en cámara con colegas y referentes del mercado.',
+                ].map((t) => (
+                  <li key={t} className="flex gap-2.5 text-[14.5px] leading-[1.55]" style={{ color: 'rgba(255,255,255,.85)' }}>
+                    <span aria-hidden className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: MENTA }} />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <figure className="ct-rev m-0">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[14px]">
+                  <Image src="/como-trabajamos/reunion-colegas.webp" alt="Ronda de negocios con colegas en la sala de reuniones de SI INMOBILIARIA" fill sizes="(max-width: 1024px) 50vw, 280px" className="object-cover" style={{ objectPosition: 'center 40%' }} />
+                </div>
+                <figcaption className="mt-2 text-[12.5px] font-semibold" style={{ color: 'rgba(255,255,255,.6)' }}>
+                  Ronda de negocios en nuestra sala.
+                </figcaption>
+              </figure>
+              <figure className="ct-rev m-0">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[14px]">
+                  <Image src="/como-trabajamos/charla-colegas-rodaje.webp" alt="Grabación de Charlas Que Sí con un colega" fill sizes="(max-width: 1024px) 50vw, 280px" className="object-cover" style={{ objectPosition: '40% center' }} />
+                </div>
+                <figcaption className="mt-2 text-[12.5px] font-semibold" style={{ color: 'rgba(255,255,255,.6)' }}>
+                  Grabando Charlas Que Sí.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <div className="px-5 pb-6 md:px-8 md:pb-8">
+          <p className="m-0 text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: MENTA }}>
+            Algunos colegas con los que trabajamos
+          </p>
+          <ul className="m-0 mt-4 grid list-none grid-cols-2 gap-x-4 gap-y-7 rounded-[18px] bg-white p-6 sm:grid-cols-3 md:p-8 lg:grid-cols-6">
+            {COLEGAS.map((c) => (
+              <li key={c.inmobiliaria} className="ct-rev flex flex-col items-center text-center">
+                <span className="relative block h-[40px] w-[110px]">
+                  <Image src={c.logo} alt={`Logo de ${c.inmobiliaria}`} fill sizes="110px" className="object-contain" />
+                </span>
+                <span className="mt-3 block text-[12.5px] font-extrabold leading-tight" style={{ color: TINTA }}>
+                  {c.inmobiliaria}
+                </span>
+                <span className="mt-0.5 block text-[11.5px] leading-snug" style={{ color: GRIS }}>
+                  {c.personas}
+                </span>
+              </li>
+            ))}
+          </ul>
+          </div>
+        </div>
 
         <ul className="m-0 mt-12 grid list-none gap-4 p-0 md:grid-cols-3">
           {DIRECCION.map((p) => (

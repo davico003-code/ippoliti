@@ -30,15 +30,15 @@ export const AEREAS = [
 ]
 
 /* ── Equipo técnico ── */
-// Fotos: imágenes oficiales de producto (DJI, newsroom de Apple y de Meta), a
+// Fotos: imágenes oficiales de producto (DJI, tienda de Apple y newsroom de Meta), a
 // pedido de David; se reemplazan por fotos propias cuando las haya.
 export const EQUIPOS = [
   { nombre: 'DJI Mavic 4 Pro', uso: 'Drone para tomas aéreas: el terreno, el barrio, los accesos y el entorno desde arriba.', icono: 'drone', foto: `${P}/equipos/dji-mavic-4-pro.webp`, oscura: false },
   { nombre: 'DJI Osmo Pocket 4P', uso: 'Cámara estabilizada para recorridos fluidos por dentro de la casa, sin saltos.', icono: 'video', foto: `${P}/equipos/dji-osmo-pocket-4p.webp`, oscura: false },
   { nombre: 'Ray-Ban Meta', uso: 'Anteojos con cámara para grabar en primera persona: la visita y el recorrido contados como un vlog.', icono: 'lentes', foto: `${P}/equipos/ray-ban-meta.webp`, oscura: false },
   { nombre: 'DJI Mic 2', uso: 'Micrófonos inalámbricos: el agente cuenta la propiedad con audio limpio.', icono: 'mic', foto: `${P}/equipos/dji-mic-2.webp`, oscura: false },
-  { nombre: 'iPhone 17 Pro', uso: 'Reels y videos verticales en 4K, pensados para Instagram, TikTok y YouTube Shorts.', icono: 'celular', foto: `${P}/equipos/iphone-17-pro.webp`, oscura: true },
-  { nombre: 'MacBook Pro', uso: 'Edición en computadoras MacBook Pro con programas profesionales de edición de video, color y sonido.', icono: 'laptop', foto: `${P}/equipos/macbook-pro.webp`, oscura: true },
+  { nombre: 'iPhone 17 Pro', uso: 'Reels y videos verticales en 4K, pensados para Instagram, TikTok y YouTube Shorts.', icono: 'celular', foto: `${P}/equipos/iphone-17-pro.webp`, oscura: false },
+  { nombre: 'MacBook Pro', uso: 'Edición en computadoras MacBook Pro con programas profesionales de edición de video, color y sonido.', icono: 'laptop', foto: `${P}/equipos/macbook-pro.webp`, oscura: false },
 ] as const
 
 /* ── YouTube ── */
@@ -234,3 +234,20 @@ export const VENDIDAS: {
 
 /* ── Muro de propiedades publicadas (portadas reales, para el mockup de HILO) ── */
 export const MURO = Array.from({ length: 19 }, (_, i) => `${P}/muro/${String(i + 1).padStart(2, '0')}.webp`)
+
+/* ── Colegas de Funes y Roldán con los que hacemos negocios (lista de David, 27-sep).
+   Logos de sus sitios / perfiles de portales; el de Rodriguez Tuttobene sale del cartel compartido. ── */
+export const COLEGAS = [
+  { inmobiliaria: 'Rodriguez Tuttobene', personas: 'Javier Rodriguez y Antonela Tuttobene', logo: 'rodriguez-tuttobene' },
+  { inmobiliaria: 'Colautti Propiedades', personas: 'Mariano Colautti', logo: 'colautti' },
+  { inmobiliaria: 'Comini Propiedades', personas: 'Cintia Comini', logo: 'comini' },
+  { inmobiliaria: 'Amaro Propiedades', personas: 'Edgardo Amaro', logo: 'amaro' },
+  { inmobiliaria: 'Ramírez Loy Propiedades', personas: 'Ramírez Loy', logo: 'ramirez-loy' },
+  { inmobiliaria: 'Dunod', personas: 'Gaspar Gariboldi', logo: 'dunod' },
+  { inmobiliaria: 'Skygarden', personas: 'Juan Cano', logo: 'skygarden' },
+  { inmobiliaria: 'Cicchitti Propiedades', personas: 'Sofía Cicchitti', logo: 'cicchitti' },
+  { inmobiliaria: 'Grupo Olbox', personas: 'Juan Olbinsky', logo: 'olbox' },
+  { inmobiliaria: 'JC & Asociados', personas: 'Emiliana Herrera', logo: 'jyc-asociados' },
+  { inmobiliaria: 'Funes Inmobiliaria', personas: 'Máximo Juaneu', logo: 'funes-inmobiliaria' },
+  { inmobiliaria: 'Fernández Pool Inmobiliaria', personas: 'Valeria Guevara y Viviana Pool', logo: 'fernandez-pool' },
+].map((c) => ({ ...c, logo: `${P}/colegas/${c.logo}.webp` }))
