@@ -170,6 +170,15 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
   stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- aviso flotante ---------- */
+/* Logo de la desarrolladora sobre la foto, abajo al centro. */
+/* Una sombra difusa detrás (mancha oscura que se desvanece) para que el logo
+   se lea sobre cualquier parte de la foto. */
+.marca-dev{display:none;position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:31;
+  padding:14px 34px;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(8,14,8,.62),rgba(8,14,8,.38) 55%,rgba(8,14,8,0))}
+.marca-dev img{display:block;width:170px;height:auto;filter:drop-shadow(0 1px 4px rgba(0,0,0,.6))}
+.v-foto .marca-dev,.v-mixta .marca-dev{display:block}
+@media (max-width:640px){ .marca-dev{bottom:4px;padding:10px 24px} .marca-dev img{width:118px} }
 /* Selector de vista flotando sobre el mapa. */
 .vista{position:absolute;right:12px;top:12px;z-index:35;display:inline-flex;gap:2px;padding:3px;
   background:rgba(255,255,255,.94);border-radius:999px;box-shadow:0 4px 16px rgba(20,28,16,.22);
@@ -523,6 +532,9 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
       <button type="button" data-vista="foto" aria-pressed="false">Foto</button>
       <button type="button" data-vista="plano" aria-pressed="false">Plano</button>
     </div>
+    <!-- Desarrolladora: logo blanco sobre la foto, abajo al centro (solo en las vistas con foto). -->
+    <div class="marca-dev"><img src="/images/distrito-roldan/brand/logo-transatlantica-blanco.webp"
+      alt="Grupo Transatlántica" width="640" height="162" decoding="async"></div>
     <div class="compass" id="compass" aria-hidden="true">
       <span class="needle">
         <svg viewBox="0 0 40 40"><path d="M20 5 L27 30 L20 26 Z" fill="#B4441F"/>
@@ -1107,14 +1119,15 @@ function build(){
   /* Calles terminadas sobre la foto (solo en Combinada): asfalto con cordón y
      línea de eje donde hoy hay tierra, para ver cómo va a quedar el barrio.
      Las calzadas salen de los huecos entre manzanas: San Pedro y María Teresa
-     mueren en la segunda calle; María Auxiliadora y Don Bosco llegan a la
-     colectora (x 1757–1781 en la foto), que corre pegada a los comerciales. */
+     mueren en la segunda calle; Don Bosco llega a la colectora (x 1757–1781
+     en la foto), que corre pegada a los comerciales, y María Auxiliadora la
+     cruza y sale a Ruta 9 (x 1849): por ahí se entra y se sale del barrio. */
   {
     const cg=el("g",{class:"calles-foto","aria-hidden":"true"});
     const CZ=[
       [460,52,79,1395],[1306,52,78,1395],[1505,52,59,1395],     // transversales
       [95,52,1664,58],[95,1389,1664,58],                        // borde de arriba y Don Bosco
-      [135,351,1249,79],[135,671,1624,79],[135,991,1249,77]     // San Pedro, María Auxiliadora, María Teresa
+      [135,351,1249,79],[135,671,1714,79],[135,991,1249,77]     // San Pedro, María Auxiliadora (cruza la colectora hasta Ruta 9), María Teresa
     ];
     // Cordón: cada calzada un poco más ancha, en claro; el asfalto encima lo
     // tapa por dentro y en los cruces, así el borde queda solo afuera.
@@ -1144,7 +1157,9 @@ function build(){
     stage.appendChild(cg);
     // Van en su propio grupo, sin la transparencia de las calles.
     const ig=el("g",{class:"ingresos-foto","aria-hidden":"true"});
-    for(const [ix,iy] of [[1636,710],[298,710]]){
+    // El de Ruta 9 va sobre el cruce de la colectora, pegado a la ruta: se
+    // entra directo desde ahí.
+    for(const [ix,iy] of [[1724,710],[298,710]]){
       // Sin contrarrotar: en el celular (plano girado) el cartel sigue la calle,
       // como los nombres; derecho lo dejaba atravesado encima de los lotes.
       const w=250, g=el("g",{class:"ingreso"});
@@ -1178,6 +1193,8 @@ function build(){
     const tr=el("text",{x:rx9,y:yc,"text-anchor":"middle","font-size":25,transform:`rotate(90 ${rx9} ${yc})`,dy:"8.5"});
     tr.textContent="RUTA NACIONAL N.º 9"; rg.appendChild(tr);
     stage.appendChild(rg);
+    // Los carteles de ingreso van por encima de la colectora: el de Ruta 9 la cruza.
+    stage.appendChild(stage.querySelector(".ingresos-foto"));
   }
 
   /* Dibujo de base: terreno, calzadas, reservorio y arbolado. Se oculta en modo foto. */

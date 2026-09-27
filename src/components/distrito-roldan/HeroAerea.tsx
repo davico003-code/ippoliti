@@ -95,6 +95,30 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
               Recorrer en 360°
             </a>
           </div>
+
+          {/* Quién lo hace: desarrolladora y constructora, con sus logos en blanco. */}
+          <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-white/[0.18] pt-6">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-white/[0.75]">Un desarrollo de</span>
+              <Image
+                src="/images/distrito-roldan/brand/logo-transatlantica-blanco.webp"
+                alt="Grupo Transatlántica"
+                width={640}
+                height={162}
+                className="h-9 w-auto sm:h-10"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-white/[0.75]">Construye</span>
+              <Image
+                src="/images/distrito-roldan/brand/logo-edeca-blanco.webp"
+                alt="EDECA"
+                width={480}
+                height={80}
+                className="h-[18px] w-auto sm:h-5"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
