@@ -7,7 +7,7 @@
 
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo, useState } from 'react'
-import { Circle, CircleMarker, MapContainer, Polyline, Popup, Rectangle, TileLayer, useMap } from 'react-leaflet'
+import { Circle, CircleMarker, MapContainer, Polyline, Popup, Rectangle, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { LIGHT_TILES } from '@/lib/map-tiles'
 import data from '@/data/analisis-comercial/comercios.json'
@@ -30,6 +30,18 @@ export type FiltroMapa =
   | { tipo: 'zona'; zona: ZonaKey }
 
 const ITEMS = data.items as unknown as Comercio[]
+// Satelital: misma capa Esri que usa /propiedades, más la capa de calles y nombres.
+const SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+const SAT_ATTR = '&copy; <a href="https://www.esri.com">Esri</a> &mdash; Maxar, Earthstar Geographics'
+const SAT_REF_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'
+
+/** Tramo más largo de cada avenida: ahí va la etiqueta con el nombre. */
+function tramoLargo(lineas: [number, number][][]): [number, number][] {
+  const largo = (l: [number, number][]) =>
+    l.reduce((acc, p, i) => (i ? acc + Math.hypot(p[0] - l[i - 1][0], p[1] - l[i - 1][1]) : 0), 0)
+  return lineas.reduce((a, b) => (largo(b) > largo(a) ? b : a))
+}
+
 const FUNES_BOUNDS = L.latLngBounds([-32.951, -60.868], [-32.894, -60.765])
 
 function Encuadre({ puntos, clave }: { puntos: [number, number][]; clave: string }) {
@@ -66,6 +78,8 @@ export default function MapaComercial({
   const [rubro, setRubro] = useState<string | null>(null)
   const [soloLibres, setSoloLibres] = useState(false)
   const [q, setQ] = useState('')
+  const [satelite, setSatelite] = useState(false)
+  const [avenidas, setAvenidas] = useState(true)
 
   // Al llegar un filtro nuevo desde el informe, limpiar los filtros locales.
   const claveFiltro =
@@ -178,34 +192,56 @@ export default function MapaComercial({
           style={{ height: '100%', width: '100%' }}
           attributionControl
         >
-          <TileLayer url={LIGHT_TILES.url} attribution={LIGHT_TILES.attribution} maxNativeZoom={LIGHT_TILES.maxNativeZoom} maxZoom={19} />
+          {satelite ? (
+            <>
+              <TileLayer key="sat" url={SAT_URL} attribution={SAT_ATTR} maxNativeZoom={19} maxZoom={19} />
+              <TileLayer key="sat-ref" url={SAT_REF_URL} maxNativeZoom={19} maxZoom={19} opacity={0.75} />
+            </>
+          ) : (
+            <TileLayer
+              key="plano"
+              url={LIGHT_TILES.url}
+              attribution={LIGHT_TILES.attribution}
+              maxNativeZoom={LIGHT_TILES.maxNativeZoom}
+              maxZoom={19}
+            />
+          )}
           <Encuadre puntos={puntosEncuadre} clave={claveFiltro} />
 
-          {(Object.keys(AVENIDAS) as (keyof typeof AVENIDAS)[]).map((k) => {
-            const dim = zonaActiva !== null && zonaActiva !== k
-            return AVENIDAS[k].map((linea, i) => (
-              <Polyline
-                key={`${k}-${i}`}
-                positions={linea}
-                interactive={false}
-                pathOptions={{
-                  color: ZONAS[k].color,
-                  weight: zonaActiva === k ? 16 : 12,
-                  opacity: dim ? 0.08 : 0.28,
-                  lineCap: 'round',
-                  lineJoin: 'round',
-                }}
-              />
-            ))
-          })}
+          {avenidas &&
+            (Object.keys(AVENIDAS) as (keyof typeof AVENIDAS)[]).map((k) => {
+              const dim = zonaActiva !== null && zonaActiva !== k
+              const activa = zonaActiva === k
+              const principal = tramoLargo(AVENIDAS[k])
+              return AVENIDAS[k].map((linea, i) => (
+                <Polyline
+                  key={`${k}-${i}-${satelite ? 's' : 'p'}`}
+                  positions={linea}
+                  interactive={false}
+                  pathOptions={{
+                    color: ZONAS[k].color,
+                    weight: activa ? 16 : satelite ? 8 : 12,
+                    opacity: dim ? (satelite ? 0.2 : 0.08) : satelite ? 0.85 : 0.28,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                  }}
+                >
+                  {linea === principal && !dim && (
+                    <Tooltip permanent direction="center" className="acm-avlabel" opacity={1}>
+                      <span style={{ ['--c' as string]: ZONAS[k].color }}>{ZONAS[k].corto}</span>
+                    </Tooltip>
+                  )}
+                </Polyline>
+              ))
+            })}
 
           {POLOS.map((p) => {
             const dim = zonaActiva !== null && zonaActiva !== p.k
             const opts = {
               color: ZONAS[p.k].color,
-              weight: 1.5,
-              opacity: dim ? 0.2 : 0.7,
-              fillOpacity: dim ? 0.03 : 0.1,
+              weight: satelite ? 2.5 : 1.5,
+              opacity: dim ? 0.2 : satelite ? 1 : 0.7,
+              fillOpacity: dim ? 0.03 : satelite ? 0.18 : 0.1,
               dashArray: '4 4',
             }
             return p.k === 'V' ? (
@@ -247,6 +283,25 @@ export default function MapaComercial({
             )
           })}
         </MapContainer>
+
+        <div className="acm-layers" role="group" aria-label="Capas del mapa">
+          <div className="acm-seg">
+            <button type="button" aria-pressed={!satelite} className={!satelite ? 'is-on' : ''} onClick={() => setSatelite(false)}>
+              Plano
+            </button>
+            <button type="button" aria-pressed={satelite} className={satelite ? 'is-on' : ''} onClick={() => setSatelite(true)}>
+              Satélite
+            </button>
+          </div>
+          <button
+            type="button"
+            className={`acm-avtoggle ${avenidas ? 'is-on' : ''}`}
+            aria-pressed={avenidas}
+            onClick={() => setAvenidas((v) => !v)}
+          >
+            <i /> Avenidas
+          </button>
+        </div>
 
         <div className="acm-count" aria-live="polite">
           {visibles.length.toLocaleString('es-AR')} {visibles.length === 1 ? 'comercio' : 'comercios'}
@@ -301,6 +356,17 @@ const MAP_STYLES = `
 .acm-chip.is-on{background:#111;border-color:#111;color:#fff}
 .acm-chip.is-on svg{color:#fff}.acm-chip.is-on small{color:#CFCFCF}
 .acm-map{position:relative;height:clamp(460px,70vh,680px);border-radius:22px;overflow:hidden;border:1px solid #E8E8E6;isolation:isolate}
+.acm-layers{position:absolute;right:12px;top:12px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.acm-seg{display:flex;background:#fff;border-radius:999px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.14)}
+.acm-seg button{border:0;background:none;border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;font-weight:700;color:#444;cursor:pointer}
+.acm-seg button.is-on{background:#111;color:#fff}
+.acm-avtoggle{display:inline-flex;align-items:center;gap:8px;border:0;background:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;font-weight:700;color:#444;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.14)}
+.acm-avtoggle i{width:30px;height:18px;border-radius:999px;background:#D6D6D2;position:relative;transition:background .15s}
+.acm-avtoggle i::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .15s}
+.acm-avtoggle.is-on i{background:#1A5C38}.acm-avtoggle.is-on i::after{transform:translateX(12px)}
+.acm .leaflet-tooltip.acm-avlabel{background:none;border:0;box-shadow:none;padding:0}
+.acm .leaflet-tooltip.acm-avlabel::before{display:none}
+.acm-avlabel span{display:inline-block;background:#fff;color:#111;border:2px solid var(--c);border-radius:999px;padding:3px 10px;font-family:var(--font-raleway),Raleway,system-ui,sans-serif;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .acm-count{position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(255,255,255,.95);border:1px solid #E8E8E6;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.08);pointer-events:none;font-variant-numeric:tabular-nums}
 .acm .leaflet-control-zoom{margin:12px 0 0 12px;border:0!important;box-shadow:0 4px 14px rgba(0,0,0,.12)!important;border-radius:12px!important;overflow:hidden}
 .acm .leaflet-popup-content-wrapper{border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14)}

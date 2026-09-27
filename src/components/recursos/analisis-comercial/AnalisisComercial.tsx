@@ -219,7 +219,7 @@ export default function AnalisisComercial({ informe }: { informe: Informe }) {
       <section ref={mapaRef} className="ac-mapsec" aria-label="Mapa de comercios de Funes">
         <div className="ac-sh">
           <h2>El mapa</h2>
-          <p>Cada punto es un comercio relevado sobre las avenidas y polos. Filtrá por rubro o tocá un punto para ver qué es.</p>
+          <p>Cada punto es un comercio relevado sobre las avenidas y polos. Cambiá entre plano y vista satelital, prendé o apagá las avenidas, filtrá por rubro o tocá un punto para ver qué es.</p>
         </div>
         <MapaComercial filtro={filtro} onFiltro={setFiltro} />
       </section>
