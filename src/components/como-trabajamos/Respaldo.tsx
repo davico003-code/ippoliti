@@ -5,20 +5,15 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowUpRight,
-  Bell,
   Building2,
   FileChartColumn,
   GraduationCap,
   Handshake,
   Inbox,
-  LayoutGrid,
   MapPin,
-  Megaphone,
-  Radar,
   Sparkles,
   Users,
 } from 'lucide-react'
-import HiloTelefonos from '@/components/home/HiloTelefonos'
 import { VideoVivo } from './Medios'
 import { AGENTES, BARRIOS, DIRECCION, EMPRENDIMIENTOS, OFICINAS, PRENSA } from './datos'
 import { ACENTO, BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, VERDE_SUAVE, conNumeros } from './ui'
@@ -175,79 +170,61 @@ function Pantalla({ src, alt, ancho, alto, url = 'meethilo.com', className = '' 
 
 const INDIGO = '#211E78'
 
-// Pasos del proceso donde HILO usa IA, con la pantalla real cuando la hay.
-const IA_CON_PANTALLA = [
+// HILO visto desde el dueño: solo lo que le sirve a su venta (David, 27-sep:
+// "de HILO no hace falta mostrar todo"). Pantallas reales, sin datos de
+// clientes ni internos.
+const HILO_PANTALLAS = [
   {
-    paso: 'Tasación',
-    titulo: 'Subís el material y HILO arma la tasación.',
+    paso: 'Mercado local, todos los días',
+    titulo: 'Sabemos cuánto vale el metro cuadrado en cada barrio.',
     texto:
-      'Fotos, plano y capturas de avisos de la zona: HILO los lee, arma los comparables y prepara el informe de tasación. El tasador revisa, ajusta y firma.',
-    src: '/como-trabajamos/hilo/tasacion.webp',
-    alt: 'Pantalla real de HILO: nueva tasación en tres pasos',
-    ancho: 1204,
-    alto: 989,
-  },
-  {
-    paso: 'Mercado',
-    titulo: 'Más de 3.000 avisos leídos, barrio por barrio.',
-    texto:
-      'HILO recorre Zonaprop, Argenprop y Mercado Libre y calcula el valor del metro cuadrado de cada barrio cerrado, su tendencia y los avisos duplicados. Con eso tasamos y ponemos precio.',
+      'HILO lee todos los días más de 3.000 avisos de Zonaprop, Argenprop y Mercado Libre y calcula el valor del metro cuadrado de cada barrio y hacia dónde va. Tu precio se define con esos datos, no a ojo.',
     src: '/como-trabajamos/hilo/mercado.webp',
     alt: 'Pantalla real de HILO: mercado por barrio con valor del metro cuadrado y tendencia',
     ancho: 1204,
     alto: 989,
   },
   {
-    paso: 'Contenido',
-    titulo: 'Un posteo nuevo para Instagram, todos los días.',
+    paso: 'Valores y mapa de cierres',
+    titulo: 'A cuánto se vende de verdad, no a cuánto se publica.',
     texto:
-      'Cada mañana HILO propone un carrusel con datos del mercado, novedades de la ciudad o propiedades. El equipo lo revisa, lo aprueba y lo publica.',
-    src: '/como-trabajamos/hilo/contenido.webp',
-    alt: 'Pantalla real de HILO: ideas para Instagram con placas generadas',
+      'Registramos cada venta de la zona, las nuestras y las de colegas, con su valor y su ubicación en el mapa. Es la referencia más firme para poner el precio justo y negociar.',
+    src: '/como-trabajamos/hilo/cierres.webp',
+    alt: 'Pantalla real de HILO: cierres de venta por mes y mapa de cierres en Funes, Roldán y Rosario',
+    ancho: 1165,
+    alto: 650,
+  },
+  {
+    paso: 'Tasación',
+    titulo: 'Una tasación armada con datos, revisada por un corredor.',
+    texto:
+      'Fotos, plano y comparables reales de la zona: HILO los ordena y prepara el informe de tasación. El corredor matriculado revisa, ajusta y firma.',
+    src: '/como-trabajamos/hilo/tasacion.webp',
+    alt: 'Pantalla real de HILO: nueva tasación en tres pasos',
     ancho: 1204,
     alto: 989,
   },
-  {
-    paso: 'Inventario',
-    titulo: 'Cada propiedad, con la calidad de su aviso.',
-    texto: 'El inventario completo en una pantalla: la foto, el precio, el agente responsable y un puntaje de qué tan completo está el aviso para los portales.',
-    src: '/como-trabajamos/hilo-propiedades.webp',
-    alt: 'Pantalla real de HILO: inventario de propiedades con la calidad de cada aviso',
-    ancho: 1800,
-    alto: 910,
-  },
 ]
 
-const IA_SIN_PANTALLA = [
-  { Icon: Inbox, t: 'Recepcionista en WhatsApp', d: 'Fuera de horario, HILO responde al instante, entiende qué busca el interesado y le deja el caso listo al agente.' },
-  { Icon: Sparkles, t: 'Respuestas y precalificación', d: 'En horario, HILO le propone al agente la respuesta y le dice qué busca el cliente y con qué presupuesto. El agente revisa y envía.' },
-  { Icon: Bell, t: 'Aviso de cliente molesto', d: 'Si alguien se molesta en la conversación, el agente recibe un aviso en el momento.' },
-  { Icon: LayoutGrid, t: 'Carga por voz y fotos', d: 'El agente dicta los datos o sube fotos y plano; HILO completa la ficha y sugiere título, descripción y precio frente a comparables.' },
-  { Icon: Megaphone, t: 'Pauta con IA', d: 'Escribe los anuncios de Meta con los datos reales de la propiedad, pensados para cada tipo de comprador.' },
-  { Icon: Handshake, t: 'Visitas con devolución', d: 'Registra la visita acordada en el chat. Después, el agente cuenta en un audio cómo fue y HILO lo ordena: qué gustó y qué frenó.' },
-  { Icon: Radar, t: 'Oportunidades', d: 'Detecta propiedades con buen precio para nuestros compradores e inversores.' },
-  { Icon: FileChartColumn, t: 'Informe al dueño', d: 'Junta la difusión, las consultas, las visitas y el mercado en el informe que recibís.' },
+const HILO_PARA_EL_DUENO = [
+  { Icon: Inbox, t: 'Cada consulta, atendida al instante', d: 'Las consultas por tu propiedad se responden enseguida, también fuera de horario, y el agente sabe qué busca cada interesado antes de llamarlo.' },
+  { Icon: Handshake, t: 'La devolución de cada visita', d: 'Después de cada visita el agente registra qué gustó y qué frenó. Esa opinión te llega en el informe.' },
+  { Icon: FileChartColumn, t: 'Tu informe, con datos reales', d: 'Difusión, consultas, visitas y mercado en un informe claro, con el plan para el período que sigue.' },
 ]
 
 export function Hilo() {
   return (
-    <section aria-labelledby="hilo-extra-titulo">
-      <HiloTelefonos idTitulo="hilo-como-trabajamos" />
-      <Contenedor className="pb-16 pt-6 md:pb-24">
+    <section className="py-16 md:py-24" aria-labelledby="hilo-titulo">
+      <Contenedor>
         <Encabezado
-          id="hilo-extra-titulo"
-          eyebrow="HILO por dentro"
-          titulo="Un CRM con inteligencia artificial integrada a cada paso."
-          bajada="HILO es el sistema con el que trabaja todo el equipo, desarrollado por nosotros. La IA hace el trabajo pesado en cada etapa de la venta; las decisiones las toma siempre una persona. Estas son pantallas reales."
+          id="hilo-titulo"
+          eyebrow="HILO · tecnología propia"
+          titulo="Datos del mercado local para vender mejor tu propiedad."
+          bajada="HILO es el sistema con inteligencia artificial que desarrollamos para el equipo. Esto es lo que hace por tu venta. Son pantallas reales."
         />
 
-        <div className="mt-8 flex flex-wrap items-center gap-3 rounded-[18px] px-5 py-4 text-white" style={{ background: INDIGO }}>
-          <Sparkles size={20} aria-hidden />
-          <p className="m-0 text-[15.5px] font-bold">La IA propone, el agente revisa y decide. Nada sale sin que lo apruebe una persona.</p>
-        </div>
-
         <div className="mt-12 grid gap-14 md:gap-20">
-          {IA_CON_PANTALLA.map((p, i) => (
+          {HILO_PANTALLAS.map((p, i) => (
             <div key={p.paso} className="grid items-center gap-7 lg:grid-cols-[1fr_1.35fr] lg:gap-12">
               <div className={i % 2 ? 'lg:order-2' : ''}>
                 <p className="m-0 text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: INDIGO }}>
@@ -257,7 +234,7 @@ export function Hilo() {
                   {conNumeros(p.titulo)}
                 </h3>
                 <p className="mt-3 text-[16px] leading-[1.65]" style={{ color: TEXTO }}>
-                  {p.texto}
+                  {conNumeros(p.texto)}
                 </p>
               </div>
               <Pantalla src={p.src} alt={p.alt} ancho={p.ancho} alto={p.alto} className={i % 2 ? 'lg:order-1' : ''} />
@@ -265,15 +242,12 @@ export function Hilo() {
           ))}
         </div>
 
-        <h3 className="mb-0 mt-16 text-[22px] font-extrabold md:mt-20 md:text-[26px]" style={{ letterSpacing: '-0.02em' }}>
-          Y además, en cada consulta y cada visita:
-        </h3>
-        <ul className="m-0 mt-6 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
-          {IA_SIN_PANTALLA.map(({ Icon, t, d }) => (
-            <li key={t} className="rounded-[18px] p-5" style={{ background: '#F4F4FB', border: '1px solid rgba(33,30,120,.08)' }}>
-              <Icon size={21} strokeWidth={1.8} style={{ color: INDIGO }} aria-hidden />
-              <p className="mt-3 text-[15.5px] font-extrabold leading-tight">{t}</p>
-              <p className="mt-1.5 text-[13.5px] leading-[1.5]" style={{ color: GRIS }}>
+        <ul className="m-0 mt-16 grid list-none grid-cols-1 gap-3 p-0 md:mt-20 md:grid-cols-3 md:gap-4">
+          {HILO_PARA_EL_DUENO.map(({ Icon, t, d }) => (
+            <li key={t} className="rounded-[18px] p-6" style={{ background: '#F4F4FB', border: '1px solid rgba(33,30,120,.08)' }}>
+              <Icon size={22} strokeWidth={1.8} style={{ color: INDIGO }} aria-hidden />
+              <p className="mt-3 text-[16.5px] font-extrabold leading-tight">{t}</p>
+              <p className="mt-1.5 text-[14px] leading-[1.55]" style={{ color: GRIS }}>
                 {d}
               </p>
             </li>
