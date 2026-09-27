@@ -170,7 +170,23 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
   stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- aviso flotante ---------- */
-.toast{position:absolute;left:50%;top:14px;z-index:36;transform:translate(-50%,-14px);
+/* Selector de vista flotando sobre el mapa. */
+.vista{position:absolute;right:12px;top:12px;z-index:35;display:inline-flex;gap:2px;padding:3px;
+  background:rgba(255,255,255,.94);border-radius:999px;box-shadow:0 4px 16px rgba(20,28,16,.22);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.vista[hidden]{display:none}
+.vista button{border:0;background:transparent;border-radius:999px;padding:7px 14px;min-height:32px;
+  font:inherit;font-size:12.5px;font-weight:700;color:#4A5143;cursor:pointer;white-space:nowrap}
+.vista button:hover{color:var(--ink)}
+.vista button[aria-pressed="true"]{background:#2F4A2C;color:#fff}
+.vista button:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.vista .lbl-sh{display:none}
+@media (max-width:640px){
+  .vista{right:8px;top:8px}
+  .vista button{padding:6px 11px;min-height:30px;font-size:12px}
+  .vista .lbl{display:none}.vista .lbl-sh{display:inline}
+}
+.toast{position:absolute;left:50%;top:62px;z-index:36;transform:translate(-50%,-14px);
   background:rgba(28,34,24,.94);color:#fff;border-radius:999px;padding:11px 20px;
   font-size:14px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.2),0 14px 30px -12px rgba(0,0,0,.5);
   opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;
@@ -211,17 +227,20 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .v-foto .street,.v-foto .mzplate,.v-mixta .street,.v-mixta .mzplate{display:none}
 /* foto sola: el terreno tal cual, sin lotes encima */
 .v-foto .lot{opacity:0;pointer-events:none}
-/* el reservorio se marca solo cuando se ve la foto */
-.res-foto{display:none}
-.v-foto .res-foto,.v-mixta .res-foto{display:block}
+/* Lo proyectado (reservorio y calles terminadas) va solo con los lotes: la
+   foto sola muestra el terreno tal cual está hoy. */
+.res-foto,.calles-foto{display:none}
+.v-mixta .res-foto,.v-mixta .calles-foto{display:block}
+.calles-foto text{fill:rgba(255,255,255,.92);font-size:21px;font-weight:800;letter-spacing:.07em;
+  paint-order:stroke;stroke:rgba(20,24,22,.55);stroke-width:3px;stroke-linejoin:round}
 .res-foto text{paint-order:stroke;stroke:rgba(10,32,32,.55);stroke-width:3px;stroke-linejoin:round}
 /* combinada: los lotes translúcidos dejan ver el terreno. La capa prendida
    (.cap) va casi plena y la foto se atenúa con un velo, así el color se lee
    de un vistazo; con todo apagado queda como antes. */
-.v-mixta .lot rect.f{opacity:.42}
-.v-mixta .lot:hover rect.f,.v-mixta .lot.on rect.f{opacity:.62}
-.v-mixta.con-capas .lot rect.f{opacity:.22}
-.v-mixta.con-capas .lot.cap rect.f{opacity:.8}
+.v-mixta .lot rect.f{opacity:.56}
+.v-mixta .lot:hover rect.f,.v-mixta .lot.on rect.f{opacity:.74}
+.v-mixta.con-capas .lot rect.f{opacity:.3}
+.v-mixta.con-capas .lot.cap rect.f{opacity:.86}
 .v-mixta.con-capas .lot.cap:hover rect.f,.v-mixta.con-capas .lot.cap.on rect.f{opacity:1}
 .foto-velo{opacity:0;transition:opacity .25s ease;pointer-events:none}
 .v-mixta.con-capas .foto-velo{opacity:.38}
@@ -465,12 +484,6 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
       <button type="button" data-lay="n" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>no disponibles</span><span class="lbl-sh">No disponibles</span><b></b></button>
       <button type="button" data-lay="v" aria-pressed="false"><i></i><span class="lbl"><span class="lg">Lotes </span>vendidos</span><span class="lbl-sh">Vendidos</span><b></b></button>
     </div>
-    <div class="seg vista" id="vista" role="group" aria-label="Vista del plano" hidden>
-      <button type="button" data-vista="plano" aria-pressed="true">Plano</button>
-      <button type="button" data-vista="foto" aria-pressed="false">Foto</button>
-      <button type="button" data-vista="mixta" aria-pressed="false">
-        <span class="lbl">Combinada</span><span class="lbl-sh">Ambas</span></button>
-    </div>
     <div class="seg" role="group" aria-label="Filtrar por tipo">
       <button type="button" data-tipo="all" aria-pressed="true"><span class="lbl">Todo tipo</span><span class="lbl-sh">Todos</span></button>
       <button type="button" data-tipo="0" aria-pressed="false"><span class="lbl">Residencial</span><span class="lbl-sh">Resid.</span></button>
@@ -496,6 +509,13 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
     </div>
     <div class="tip" id="tip" role="tooltip" aria-hidden="true"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <!-- Vistas: sobre la foto misma, arriba a la derecha (antes en la barra). -->
+    <div class="vista" id="vista" role="group" aria-label="Vista del plano" hidden>
+      <button type="button" data-vista="mixta" aria-pressed="true">
+        <span class="lbl">Combinada</span><span class="lbl-sh">Ambas</span></button>
+      <button type="button" data-vista="foto" aria-pressed="false">Foto</button>
+      <button type="button" data-vista="plano" aria-pressed="false">Plano</button>
+    </div>
     <div class="compass" id="compass" aria-hidden="true">
       <span class="needle">
         <svg viewBox="0 0 40 40"><path d="M20 5 L27 30 L20 26 Z" fill="#B4441F"/>
@@ -1077,6 +1097,42 @@ function build(){
     stage.appendChild(g);
   }
 
+  /* Calles terminadas sobre la foto (solo en Combinada): asfalto con cordón y
+     línea de eje donde hoy hay tierra, para ver cómo va a quedar el barrio.
+     Las calzadas salen de los huecos entre manzanas: San Pedro y María Teresa
+     mueren en la segunda calle; María Auxiliadora y Don Bosco llegan a Ruta 9. */
+  {
+    const cg=el("g",{class:"calles-foto","aria-hidden":"true"});
+    const CZ=[
+      [460,52,79,1395],[1306,52,78,1395],[1505,52,59,1395],     // transversales
+      [95,52,1677,58],[95,1389,1677,58],                        // borde de arriba y Don Bosco
+      [135,351,1249,79],[135,671,1637,79],[135,991,1249,77]     // San Pedro, María Auxiliadora, María Teresa
+    ];
+    // Cordón: cada calzada un poco más ancha, en claro; el asfalto encima lo
+    // tapa por dentro y en los cruces, así el borde queda solo afuera.
+    for(const [x,y,w,h] of CZ) cg.appendChild(el("rect",{x:x-4,y:y-4,width:w+8,height:h+8,fill:"#E2E0D8"}));
+    for(const [x,y,w,h] of CZ) cg.appendChild(el("rect",{x,y,width:w,height:h,fill:"#595E5C"}));
+    for(const [x,y,w,h] of CZ){
+      const hz=w>h;
+      cg.appendChild(el("line",{x1:hz?x+14:x+w/2,y1:hz?y+h/2:y+14,x2:hz?x+w-14:x+w/2,y2:hz?y+h/2:y+h-14,
+        stroke:"#F4F2EA","stroke-width":2.6,"stroke-dasharray":"18 14","stroke-linecap":"round",opacity:".85"}));
+    }
+    // Los cruces van lisos: sin la línea de eje atravesándolos.
+    for(const a of CZ) for(const b of CZ){
+      if(!(a[2]<a[3] && b[2]>b[3])) continue;               // a vertical, b horizontal
+      const x0=Math.max(a[0],b[0]), x1=Math.min(a[0]+a[2],b[0]+b[2]);
+      const y0=Math.max(a[1],b[1]), y1=Math.min(a[1]+a[3],b[1]+b[3]);
+      if(x1>x0 && y1>y0) cg.appendChild(el("rect",{x:x0,y:y0,width:x1-x0,height:y1-y0,fill:"#595E5C"}));
+    }
+    // Nombres sobre un tramo liso de asfalto, para que la línea de eje no los cruce.
+    for(const c of CALLES){
+      const w=c.t.length*13.5+28;
+      cg.appendChild(el("rect",{x:c.x-w/2,y:c.y-15,width:w,height:30,fill:"#595E5C"}));
+      const t=el("text",{x:c.x,y:c.y+7,"text-anchor":"middle"}); t.textContent=c.t; cg.appendChild(t);
+    }
+    stage.appendChild(cg);
+  }
+
   /* Dibujo de base: terreno, calzadas, reservorio y arbolado. Se oculta en modo foto. */
   const base=el("g",{class:"base"}); stage.appendChild(base);
   base.appendChild(el("rect",{x:VB.x,y:VB.y,width:VB.w,height:VB.h,fill:"#ECEEEA"}));
@@ -1275,17 +1331,18 @@ const AVISO={
   foto:"Vista aérea del predio y su entorno.",
   mixta:"Los lotes sobre la foto aérea."
 };
+function setVista(v,avisar){
+  if(!CFG.foto || !["plano","foto","mixta"].includes(v)) v="plano";
+  vista.querySelectorAll("[data-vista]").forEach(o=>o.setAttribute("aria-pressed",String(o.dataset.vista===v)));
+  box.classList.remove("v-foto","v-mixta");
+  if(v!=="plano") box.classList.add("v-"+v);
+  svg.setAttribute("viewBox", encuadre(v!=="plano"));
+  if(avisar && AVISO[v]) say(AVISO[v]);
+  if(v==="foto") { hideTip(); deselect(); }   // sin lotes no hay nada que consultar
+}
 if(CFG.foto){
   vista.hidden=false;
-  vista.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>{
-    const v=b.dataset.vista;
-    document.querySelectorAll("[data-vista]").forEach(o=>o.setAttribute("aria-pressed",String(o===b)));
-    box.classList.remove("v-foto","v-mixta");
-    if(v!=="plano") box.classList.add("v-"+v);
-    svg.setAttribute("viewBox", encuadre(v!=="plano"));
-    if(AVISO[v]) say(AVISO[v]);
-    if(v==="foto") { hideTip(); deselect(); }   // sin lotes no hay nada que consultar
-  }));
+  vista.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>setVista(b.dataset.vista,true)));
 }
 
 /* ---------- hoja del lote ----------
@@ -1777,6 +1834,9 @@ document.getElementById("fecha").textContent = CFG.actualizado || "—";
 
 (function init(){
   const p=new URLSearchParams(location.search);
+  /* Arranca en Combinada (los lotes sobre la foto, 27-sep-2026); ?vista=plano
+     o ?vista=foto abren en otra. Sin foto cargada queda el plano. */
+  setVista(p.get("vista")||"mixta",false);
   if(p.get("ver")) p.get("ver").split(",").forEach(k=>{
     const b=document.querySelector(`[data-lay="${k}"]`); if(b&&!LAY[k]){LAY[k]=true;b.setAttribute("aria-pressed","true");}
   });
