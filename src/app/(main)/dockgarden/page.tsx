@@ -14,6 +14,8 @@ export const revalidate = 3600
 
 const WA_PHONE = '5493413340916'
 const PAGE_URL = 'https://siinmobiliaria.com/dockgarden'
+// Brickfy informa 2029; la entrega estimada real es 2028 (David, 26-sep-2026).
+const ENTREGA_ESTIMADA = '2028'
 
 export const metadata: Metadata = {
   title: 'Dock Garden — Unidades, precios y vistas 360° | SI INMOBILIARIA',
@@ -74,7 +76,7 @@ export default async function DockGardenPage() {
     { label: 'Unidades disponibles', value: String(available.length) },
     { label: 'Dormitorios', value: dormsSet.join(' y ') },
     ...(areas.length > 0 ? [{ label: 'Superficies', value: `${areas[0]} a ${areas[areas.length - 1]} m²` }] : []),
-    { label: 'Entrega estimada', value: project.deliveryDate },
+    { label: 'Entrega estimada', value: ENTREGA_ESTIMADA },
   ]
 
   return (
