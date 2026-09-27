@@ -75,7 +75,7 @@ export function CalleYEventos() {
           id="eventos-titulo"
           eyebrow="Cartelería y eventos"
           titulo="También en la calle, y en persona."
-          bajada="Cada desarrollo que comercializamos tiene su cartelería en la obra y en la ruta, y cada lote su cartel con nuestra identidad. Además organizamos eventos en la galería de arte PARED de nuestra oficina de Funes para presentar proyectos a clientes e invitados."
+          bajada="Cada desarrollo que comercializamos tiene su cartelería en la obra y en la ruta, y cada lote su cartel con nuestra identidad. Además presentamos los proyectos con eventos de lanzamiento para clientes, inversores e invitados."
         />
 
         {/* Cartelería de desarrollos, colocada */}
@@ -111,39 +111,57 @@ export function CalleYEventos() {
           </figure>
         </div>
 
-        <div className="mt-5 grid gap-4 md:mt-6 md:grid-cols-[1fr_1fr_1.1fr] md:gap-5">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 md:mt-6 md:gap-5">
           {[
             { src: '/como-trabajamos/cartel-lotes-ruta9.webp', alt: 'Cartel de SI INMOBILIARIA de venta de lotes con plano sobre Ruta 9', txt: 'Cartel de obra con plano de lotes' },
             { src: '/como-trabajamos/cartel-vende-lotes.webp', alt: 'Cartel de SI INMOBILIARIA "Vende lotes"', txt: 'Cartel de venta en el terreno' },
           ].map((c) => (
             <figure key={c.src} className="m-0">
-              <div className="relative aspect-square overflow-hidden rounded-[18px] bg-white shadow-md">
-                <Image src={c.src} alt={c.alt} fill sizes="(max-width: 768px) 100vw, 360px" className="object-contain" />
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] bg-white shadow-md">
+                <Image src={c.src} alt={c.alt} fill sizes="(max-width: 640px) 100vw, 560px" className="object-contain p-3" />
               </div>
               <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
                 {c.txt}
               </figcaption>
             </figure>
           ))}
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { v: 'evento-pared', txt: 'Evento en PARED' },
-              { v: 'galeria-pared', txt: 'Galería PARED, Funes' },
-            ].map((e) => (
-              <figure key={e.v} className="m-0">
-                <div className="relative aspect-[9/16] overflow-hidden rounded-[18px] shadow-md">
-                  <VideoVivo
-                    src={`/como-trabajamos/video/${e.v}.mp4`}
-                    poster={`/como-trabajamos/video/${e.v}.webp`}
-                    etiqueta={e.txt}
-                    className="absolute inset-0"
-                  />
-                </div>
-                <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
-                  {e.txt}
-                </figcaption>
-              </figure>
-            ))}
+        </div>
+
+        {/* Evento de lanzamiento: el video va grande, protagonista */}
+        <div className="mt-12 grid items-center gap-8 md:mt-16 md:grid-cols-[minmax(0,400px)_1fr] md:gap-14">
+          <div className="relative mx-auto aspect-[9/16] w-full max-w-[400px] overflow-hidden rounded-[24px] shadow-2xl">
+            <VideoVivo
+              src="/como-trabajamos/video/evento-pared.mp4"
+              poster="/como-trabajamos/video/evento-pared.webp"
+              etiqueta="Evento de lanzamiento organizado por SI INMOBILIARIA"
+              className="absolute inset-0"
+            />
+            <Chip className="absolute left-3 top-3">Evento de lanzamiento</Chip>
+          </div>
+          <div>
+            <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: ACENTO }}>
+              Eventos exclusivos
+            </p>
+            <h3 className="mt-2.5 text-[26px] font-extrabold leading-tight md:text-[34px]" style={{ letterSpacing: '-0.03em' }}>
+              Cada proyecto se presenta con un evento de lanzamiento.
+            </h3>
+            <p className="mt-4 text-[16px] leading-[1.65] md:text-[17px]" style={{ color: TEXTO }}>
+              Invitamos a nuestra base de clientes, inversores y colegas a conocer el proyecto en persona: la propuesta, los
+              números y el equipo que lo vende.
+            </p>
+            <figure className="m-0 mt-7 flex items-center gap-4">
+              <div className="relative aspect-[9/16] w-[120px] shrink-0 overflow-hidden rounded-[16px] shadow-md md:w-[140px]">
+                <VideoVivo
+                  src="/como-trabajamos/video/galeria-pared.mp4"
+                  poster="/como-trabajamos/video/galeria-pared.webp"
+                  etiqueta="Galería de arte de la oficina de Funes"
+                  className="absolute inset-0"
+                />
+              </div>
+              <figcaption className="text-[14px] font-semibold leading-[1.55]" style={{ color: GRIS }}>
+                Los eventos se hacen en nuestra oficina de Funes, que además es galería de arte.
+              </figcaption>
+            </figure>
           </div>
         </div>
       </Contenedor>
