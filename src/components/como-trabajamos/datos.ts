@@ -234,3 +234,19 @@ export const VENDIDAS: {
 
 /* ── Muro de propiedades publicadas (portadas reales, para el mockup de HILO) ── */
 export const MURO = Array.from({ length: 19 }, (_, i) => `${P}/muro/${String(i + 1).padStart(2, '0')}.webp`)
+
+/* ── Colegas de Funes y Roldán con los que hacemos negocios (lista de David, 27-sep) ── */
+export const COLEGAS = [
+  { inmobiliaria: 'Rodriguez Tuttobene', personas: 'Javier Rodriguez y Anto Tuttobene' },
+  { inmobiliaria: 'Colautti Propiedades', personas: 'Mariano Colautti' },
+  { inmobiliaria: 'Comini Propiedades', personas: 'Cintia Comini' },
+  { inmobiliaria: 'Amaro Propiedades', personas: 'Edgardo Amaro' },
+  { inmobiliaria: 'Ramírez Loy Propiedades', personas: 'Ramírez Loy' },
+  { inmobiliaria: 'Dunod', personas: 'Gaspar Gariboldi' },
+  { inmobiliaria: 'Skygarden', personas: 'Juan Cano' },
+  { inmobiliaria: 'Cichitti Propiedades', personas: 'Sofía Cichitti' },
+  { inmobiliaria: 'Olbox', personas: 'Juan Olbinsky' },
+  { inmobiliaria: 'JyC Asociados', personas: 'Emiliana Hereres' },
+  { inmobiliaria: 'Funes Inmobiliaria', personas: 'Máximo Juaneu' },
+  { inmobiliaria: 'Fernández Pool Inmobiliaria', personas: 'Valeria Guevara y Viviana Pool' },
+]

@@ -17,7 +17,7 @@ import { VideoVivo } from './Medios'
 import MapaUbicacion from './MapaUbicacion'
 import RedRelaciones, { RELACIONES } from './Red'
 import { MuroHilo } from './Resultados'
-import { AGENTES, BARRIOS, DIRECCION, EMPRENDIMIENTOS, INFORMES, OFICINAS, PRENSA } from './datos'
+import { AGENTES, BARRIOS, COLEGAS, DIRECCION, EMPRENDIMIENTOS, INFORMES, OFICINAS, PRENSA } from './datos'
 import { ACENTO, BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_SUAVE, conNumeros } from './ui'
 
 export function Prensa() {
@@ -467,39 +467,73 @@ export function Equipo() {
         </ul>
 
         {/* Colegas: negocios en conjunto, con ejemplos reales */}
-        <div className="mt-14 grid items-center gap-8 rounded-[24px] p-5 md:mt-20 md:p-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(159,217,185,.18)' }}>
-          <figure className="ct-rev m-0">
-            <div className="relative aspect-[16/9] overflow-hidden rounded-[16px]">
-              <Image src="/como-trabajamos/charla-colegas-rodaje.webp" alt="Grabación de Charlas Que Sí con un colega en la sala de reuniones de SI INMOBILIARIA" fill sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+        <div className="mt-14 rounded-[24px] p-5 md:mt-20 md:p-8" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(159,217,185,.18)' }}>
+          <div className="grid items-start gap-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12">
+            <div className="grid grid-cols-2 gap-3">
+              <figure className="ct-rev col-span-2 m-0">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-[16px]">
+                  <Image src="/como-trabajamos/encuentro-colegas.webp" alt="Encuentro de SI INMOBILIARIA con colegas inmobiliarios de Funes y Roldán" fill sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
+                </div>
+                <figcaption className="mt-2 text-[12.5px] font-semibold" style={{ color: 'rgba(255,255,255,.6)' }}>
+                  Encuentro con colegas de Funes y Roldán.
+                </figcaption>
+              </figure>
+              <figure className="ct-rev m-0">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[14px]">
+                  <Image src="/como-trabajamos/reunion-colegas.webp" alt="Reunión con colegas en la sala de reuniones de SI INMOBILIARIA" fill sizes="(max-width: 1024px) 50vw, 300px" className="object-cover" style={{ objectPosition: 'center 40%' }} />
+                </div>
+                <figcaption className="mt-2 text-[12.5px] font-semibold" style={{ color: 'rgba(255,255,255,.6)' }}>
+                  Reunión de trabajo en nuestra sala.
+                </figcaption>
+              </figure>
+              <figure className="ct-rev m-0">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[14px]">
+                  <Image src="/como-trabajamos/charla-colegas-rodaje.webp" alt="Grabación de Charlas Que Sí con un colega" fill sizes="(max-width: 1024px) 50vw, 300px" className="object-cover" />
+                </div>
+                <figcaption className="mt-2 text-[12.5px] font-semibold" style={{ color: 'rgba(255,255,255,.6)' }}>
+                  Grabando Charlas Que Sí.
+                </figcaption>
+              </figure>
             </div>
-            <figcaption className="mt-2.5 text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,.6)' }}>
-              Grabando Charlas Que Sí con colegas, en nuestra oficina de Funes.
-            </figcaption>
-          </figure>
-          <div>
-            <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: MENTA }}>
-              Colegas
-            </p>
-            <h3 className="mt-2.5 text-[24px] font-extrabold leading-tight md:text-[32px]" style={{ letterSpacing: '-0.03em' }}>
-              Hacemos negocios con colegas, no contra ellos.
-            </h3>
-            <p className="mt-3.5 text-[15.5px] leading-[1.65]" style={{ color: 'rgba(255,255,255,.78)' }}>
-              Tenemos relación real con las inmobiliarias de la zona. Compartimos propiedades para que la tuya llegue también a sus
-              compradores, y cuando el cliente es de un colega, cerramos la operación juntos.
-            </p>
-            <ul className="m-0 mt-5 grid list-none gap-2.5 p-0">
-              {[
-                'Co-comercializamos: como los lotes de Funes que vendemos junto con Rodriguez Tuttobene.',
-                'Fichas para colegas: les pasamos la propiedad lista para ofrecer a sus clientes.',
-                'Charlas Que Sí: conversamos en cámara con colegas y referentes del mercado.',
-              ].map((t) => (
-                <li key={t} className="flex gap-2.5 text-[14.5px] leading-[1.55]" style={{ color: 'rgba(255,255,255,.85)' }}>
-                  <span aria-hidden className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: MENTA }} />
-                  {t}
-                </li>
-              ))}
-            </ul>
+            <div>
+              <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: MENTA }}>
+                Colegas
+              </p>
+              <h3 className="mt-2.5 text-[24px] font-extrabold leading-tight md:text-[32px]" style={{ letterSpacing: '-0.03em' }}>
+                Hacemos negocios con colegas, no contra ellos.
+              </h3>
+              <p className="mt-3.5 text-[15.5px] leading-[1.65]" style={{ color: 'rgba(255,255,255,.78)' }}>
+                Tenemos relación real con las inmobiliarias de Funes y Roldán. Compartimos propiedades para que la tuya llegue
+                también a sus compradores, y cuando el cliente es de un colega, cerramos la operación juntos.
+              </p>
+              <ul className="m-0 mt-5 grid list-none gap-2.5 p-0">
+                {[
+                  'Co-comercializamos: como los lotes de Funes que vendemos junto con Rodriguez Tuttobene.',
+                  'Fichas para colegas: les pasamos la propiedad lista para ofrecer a sus clientes.',
+                  'Charlas Que Sí: conversamos en cámara con colegas y referentes del mercado.',
+                ].map((t) => (
+                  <li key={t} className="flex gap-2.5 text-[14.5px] leading-[1.55]" style={{ color: 'rgba(255,255,255,.85)' }}>
+                    <span aria-hidden className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: MENTA }} />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
+
+          <p className="m-0 mt-10 text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: MENTA }}>
+            Algunos colegas con los que trabajamos
+          </p>
+          <ul className="m-0 mt-4 grid list-none grid-cols-1 gap-2.5 p-0 sm:grid-cols-2 lg:grid-cols-4">
+            {COLEGAS.map((c) => (
+              <li key={c.inmobiliaria} className="ct-rev rounded-[14px] px-4 py-3" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)' }}>
+                <span className="block text-[15px] font-extrabold leading-tight">{c.inmobiliaria}</span>
+                <span className="mt-0.5 block text-[13px]" style={{ color: 'rgba(255,255,255,.65)' }}>
+                  {c.personas}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <ul className="m-0 mt-12 grid list-none gap-4 p-0 md:grid-cols-3">
