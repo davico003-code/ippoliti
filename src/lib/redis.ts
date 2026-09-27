@@ -137,6 +137,8 @@ export async function incrementViewCount(token: string) {
   const current = await getReacciones(token)
   const meta = current._meta || { viewCount: 0 }
   meta.viewCount = (meta.viewCount || 0) + 1
+  // Cuándo la abrió por última vez: Hilo lo muestra en "Seguimientos" del Inicio.
+  meta.lastView = new Date().toISOString()
   current._meta = meta
 
   const ttl = await redis.ttl(`reacciones:${token}`)
