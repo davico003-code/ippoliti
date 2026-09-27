@@ -535,17 +535,17 @@ export function Equipo() {
           <p className="m-0 text-[12px] font-bold uppercase tracking-[0.2em]" style={{ color: MENTA }}>
             Algunos colegas con los que trabajamos
           </p>
-          <ul className="m-0 mt-4 grid list-none grid-cols-1 gap-2.5 p-0 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="m-0 mt-4 grid list-none grid-cols-2 gap-x-4 gap-y-7 rounded-[18px] bg-white p-6 sm:grid-cols-3 md:p-8 lg:grid-cols-6">
             {COLEGAS.map((c) => (
-              <li key={c.inmobiliaria} className="ct-rev overflow-hidden rounded-[14px]" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)' }}>
-                <span className="relative block h-[84px] bg-white">
-                  <Image src={c.logo} alt={`Logo de ${c.inmobiliaria}`} fill sizes="260px" className="object-contain px-5 py-3" />
+              <li key={c.inmobiliaria} className="ct-rev flex flex-col items-center text-center">
+                <span className="relative block h-[40px] w-[110px]">
+                  <Image src={c.logo} alt={`Logo de ${c.inmobiliaria}`} fill sizes="110px" className="object-contain" />
                 </span>
-                <span className="block px-4 py-3">
-                  <span className="block text-[15px] font-extrabold leading-tight">{c.inmobiliaria}</span>
-                  <span className="mt-0.5 block text-[13px]" style={{ color: 'rgba(255,255,255,.65)' }}>
-                    {c.personas}
-                  </span>
+                <span className="mt-3 block text-[12.5px] font-extrabold leading-tight" style={{ color: TINTA }}>
+                  {c.inmobiliaria}
+                </span>
+                <span className="mt-0.5 block text-[11.5px] leading-snug" style={{ color: GRIS }}>
+                  {c.personas}
                 </span>
               </li>
             ))}
