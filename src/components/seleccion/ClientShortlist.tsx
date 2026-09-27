@@ -66,6 +66,16 @@ function logoDePortal(url: string): PortalLogo | null {
   }
 }
 
+/** Ficha de NUESTRA web (propiedad propia): se abre entera en otra pestaña. */
+function esFichaPropia(url: string): boolean {
+  try {
+    const u = new URL(url)
+    return u.hostname.toLowerCase().endsWith('siinmobiliaria.com') && u.pathname.startsWith('/propiedad')
+  } catch {
+    return false
+  }
+}
+
 function previewUrlInterna(url: string): string | null {
   try {
     const u = new URL(url, typeof window !== 'undefined' ? window.location.origin : 'https://siinmobiliaria.com')
@@ -335,7 +345,12 @@ export default function ClientShortlist({
           </div>
           {info?.price && <div className="mt-2 text-[15px] font-extrabold text-[#1A5C38]">{info.price}</div>}
           {isValidNote(prop.note) && <p className="mt-1.5 text-[12.5px] italic leading-[1.4] text-[#5B6B62]">&ldquo;{prop.note}&rdquo;</p>}
-          <button type="button" onClick={() => setPreviewPropId(prop.id)}
+          <button type="button" onClick={() => {
+              // Las nuestras no tienen vista embebida: antes mostraban "Vista
+              // interna no disponible". Ahora abren su ficha de la web.
+              if (!previewUrlInterna(prop.url) && esFichaPropia(prop.url)) window.open(prop.url, '_blank', 'noopener')
+              else setPreviewPropId(prop.id)
+            }}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-[13px] font-extrabold transition active:scale-[0.98]"
             style={{ borderColor: '#B8C8E6', background: '#F1F6FF', color: '#244A86' }}>
             <ExternalLinkIcon /> Ver ficha
