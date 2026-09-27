@@ -359,6 +359,14 @@ div[id="nosotros"] {
   outline-offset: 2px;
   border-radius: 3px;
 }
+/* Los campos de texto matchean :focus-visible también al tocarlos con el mouse
+   o el dedo, así que la regla de arriba les dibujaba un recuadro verde al
+   escribir. Los que declaran outline-none (buscadores) ya tienen su propio
+   indicador —el cursor y la pastilla— y no lo muestran. */
+input.outline-none:focus-visible,
+textarea.outline-none:focus-visible {
+  outline: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .si-skip-link { transition: none; }
 }
