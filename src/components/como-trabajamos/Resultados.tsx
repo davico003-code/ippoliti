@@ -3,41 +3,80 @@
 
 import Image from 'next/image'
 import { MURO, VENDIDAS } from './datos'
-import { BORDE, Contenedor, Encabezado, FONDO, GRIS, TEXTO, TINTA } from './ui'
+import { CircleCheck, MapPin } from 'lucide-react'
+import { Contenedor, Encabezado, TINTA, conNumeros } from './ui'
 
-const ROJO = '#F40009'
+/** Sello "VENDIDA" en el mismo estilo de las placas de Instagram. */
+function Sello({ grande = false }: { grande?: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-[10px] font-extrabold uppercase text-white ${grande ? 'px-4 py-2 text-[20px] md:text-[28px]' : 'px-2.5 py-1 text-[12px] md:text-[13px]'}`}
+      style={{ background: '#1A5C38', letterSpacing: '0.06em', boxShadow: '0 8px 24px rgba(0,0,0,.3)' }}
+    >
+      <CircleCheck size={grande ? 26 : 15} strokeWidth={2.4} aria-hidden />
+      Vendida
+    </span>
+  )
+}
 
 export function Vendidas() {
   return (
-    <section className="py-16 md:py-24" style={{ background: FONDO }} aria-labelledby="vendidas-titulo">
+    <section className="py-16 md:py-24" style={{ background: '#0B1510' }} aria-labelledby="vendidas-titulo">
       <Contenedor>
         <Encabezado
           id="vendidas-titulo"
+          oscuro
           eyebrow="Resultados"
           titulo="Propiedades que ya vendimos."
-          bajada="Algunas de las ventas que cerramos en el último año, con la foto original de su publicación. Cada una pasó por el mismo método que vas a ver en esta presentación."
+          bajada="Casas y lotes en los barrios cerrados, clubes de campo y desarrollos más buscados de la zona. Cada una pasó por el mismo método que vas a ver en esta presentación."
         />
-        <ul className="m-0 mt-10 grid list-none grid-cols-2 gap-3 p-0 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
+        <ul className="m-0 mt-10 grid list-none auto-rows-[235px] grid-cols-2 gap-3 p-0 sm:auto-rows-[240px] md:gap-4 lg:auto-rows-[250px] lg:grid-cols-4">
           {VENDIDAS.map((v) => (
-            <li key={v.slug} className="ct-rev overflow-hidden rounded-[18px] bg-white" style={{ border: `1px solid ${BORDE}` }}>
-              <span className="relative block aspect-[4/3]">
-                <Image src={v.foto} alt={`${v.tipo} vendida en ${v.zona}`} fill sizes="(max-width: 768px) 50vw, 290px" className="object-cover" />
-                <span
-                  className="absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em] text-white md:left-3 md:top-3 md:px-3 md:text-[12px]"
-                  style={{ background: ROJO, boxShadow: '0 6px 16px rgba(244,0,9,.35)' }}
-                >
-                  Vendida
-                </span>
+            <li
+              key={v.foto}
+              className={`ct-rev group relative overflow-hidden rounded-[18px] ${v.destacada ? 'col-span-2 row-span-2' : ''}`}
+            >
+              <Image
+                src={v.foto}
+                alt={`${v.titulo} vendida en ${v.zona}`}
+                fill
+                sizes={v.destacada ? '(max-width: 1024px) 100vw, 600px' : '(max-width: 1024px) 50vw, 300px'}
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+              />
+              <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(8,14,11,.92) 0%, rgba(8,14,11,.45) 38%, rgba(8,14,11,0) 62%)' }} />
+              <span
+                className={`absolute right-2.5 top-2.5 max-w-[calc(100%-20px)] items-center gap-1 truncate rounded-full bg-white px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-[0.08em] md:right-3 md:top-3 md:text-[11.5px] ${v.destacada ? 'inline-flex' : 'hidden sm:inline-flex'}`}
+                style={{ color: TINTA }}
+              >
+                <MapPin size={12} strokeWidth={2.4} style={{ color: '#1A5C38' }} aria-hidden className="shrink-0" />
+                <span className="truncate">{v.zona}</span>
               </span>
-              <span className="block p-3.5 md:p-4">
-                <span className="block text-[14px] font-extrabold leading-snug md:text-[15.5px]" style={{ color: TINTA }}>
-                  {v.tipo}
+              {v.nota && (
+                <span className="absolute left-2.5 top-2.5 rounded-full bg-black/55 px-2 py-0.5 text-[10.5px] font-bold text-white md:left-3 md:top-3">{v.nota}</span>
+              )}
+              <span className={`absolute inset-x-0 bottom-0 block ${v.destacada ? 'p-5 md:p-7' : 'p-3 md:p-4'}`}>
+                <Sello grande={v.destacada} />
+                <span
+                  className={`mt-2 block font-extrabold leading-tight text-white ${v.destacada ? 'text-[22px] md:text-[32px]' : 'text-[14.5px] md:text-[16px]'}`}
+                  style={{ letterSpacing: '-0.02em' }}
+                >
+                  {v.titulo}
                 </span>
-                <span className="mt-0.5 block text-[12.5px] font-semibold md:text-[13.5px]" style={{ color: TEXTO }}>
-                  {v.zona}
-                </span>
-                <span className="mt-1 block text-[12px] font-semibold md:text-[12.5px]" style={{ color: GRIS }}>
-                  Vendida en {v.fecha.toLowerCase()}
+                {!v.destacada && (
+                  <span className="mt-0.5 flex items-center gap-1 text-[11.5px] font-semibold text-white/80 sm:hidden">
+                    <MapPin size={11} strokeWidth={2.4} aria-hidden className="shrink-0" />
+                    {v.zona}
+                  </span>
+                )}
+                <span className="mt-2 flex flex-wrap gap-1.5">
+                  {v.specs.map((sp) => (
+                    <span
+                      key={sp}
+                      className={`rounded-full border border-white/35 font-semibold text-white/90 ${v.destacada ? 'px-3 py-1 text-[13px] md:text-[14.5px]' : 'px-2 py-0.5 text-[11px] md:text-[12px]'}`}
+                    >
+                      {conNumeros(sp)}
+                    </span>
+                  ))}
                 </span>
               </span>
             </li>

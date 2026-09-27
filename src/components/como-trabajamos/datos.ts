@@ -202,24 +202,33 @@ export const BARRIOS = [
   'Don Mateo', 'La Finca', 'Puerto Roldán', 'Los Aromos', 'El Molino', 'Aldea Fisherton', 'Country Golf', 'Cotos de la Alameda',
 ]
 
-/* ── Vendidas recientemente ──
-   Ventas PROPIAS reales (cierres de HILO/Tokko con vendido_por = nosotros,
-   solo operaciones de venta), con la foto original de la publicación. Sin
-   montos. Relevado en septiembre de 2026. */
-export const VENDIDAS = [
-  { slug: 'casa-loft-pileta-las-acequias', tipo: 'Casa con pileta', zona: 'Las Acequias, Roldán', fecha: 'Abril 2026' },
-  { slug: 'casa-pileta-don-mateo', tipo: 'Casa con pileta', zona: 'Don Mateo, Funes', fecha: 'Febrero 2026' },
-  { slug: 'casa-piscina-ruta-9-roldan', tipo: 'Casa de 3 dormitorios con piscina', zona: 'Ruta 9, Roldán', fecha: 'Octubre 2025' },
-  { slug: 'casa-pileta-punta-chacra', tipo: 'Casa con pileta', zona: 'Punta Chacra, Roldán', fecha: 'Octubre 2025' },
-  { slug: 'casa-a-estrenar-las-acequias', tipo: 'Casa a estrenar con piscina', zona: 'Las Acequias, Roldán', fecha: 'Junio 2025' },
-  { slug: 'depto-tierra-nueva-fisherton', tipo: 'Departamento', zona: 'Tierra Nueva, Fisherton', fecha: 'Abril 2026' },
-  { slug: 'casa-funes-city', tipo: 'Casa de 2 dormitorios', zona: 'Funes City, Funes', fecha: 'Febrero 2026' },
-  { slug: 'casa-pileta-acequias-del-aire', tipo: 'Casa con pileta', zona: 'Acequias del Aire, Roldán', fecha: 'Marzo 2026' },
-  { slug: 'depto-aldea-fisherton', tipo: 'Departamento de 90 m²', zona: 'Aldea, Fisherton', fecha: 'Julio 2025' },
-  { slug: 'local-vidriera-funes', tipo: 'Local con vidriera', zona: 'Funes', fecha: 'Febrero 2026' },
-  { slug: 'terreno-tierra-de-suenos-3', tipo: 'Terreno escriturado', zona: 'Tierra de Sueños 3, Roldán', fecha: 'Junio 2026' },
-  { slug: 'quincho-pileta-roldan', tipo: 'Quincho con pileta', zona: 'Roldán', fecha: 'Julio 2025' },
-].map((v) => ({ ...v, foto: `${P}/vendidas/${v.slug}.webp` }))
+/* ── Vendidas ──
+   Ventas propias de mayor nivel (barrios cerrados, clubes de campo y
+   desarrollos), elegidas por David el 27-sep. Fotos limpias recortadas de
+   las placas de "VENDIDO" de Instagram y de las publicaciones; un solo
+   diseño para todas. Sin montos ni fechas. */
+export const VENDIDAS: {
+  foto: string
+  titulo: string
+  zona: string
+  specs: string[]
+  destacada?: boolean
+  nota?: string
+}[] = [
+  { foto: `${P}/vendidas/casa-san-sebastian-4-dorm.webp`, titulo: 'Casa de 4 dormitorios', zona: 'San Sebastián · Funes', specs: ['4 dormitorios', '3 baños', '330 m² cubiertos'], destacada: true },
+  { foto: `${P}/vendidas/casa-funes-lakes-3-dorm.webp`, titulo: 'Casa de 3 dormitorios', zona: 'Funes Lakes', specs: ['230 m²', 'Lote de 600 m²'], nota: 'Render del proyecto' },
+  { foto: `${P}/vendidas/casa-san-sebastian-3-dorm.webp`, titulo: 'Casa de 3 dormitorios', zona: 'San Sebastián · Funes', specs: ['332 m² cubiertos', '4 baños'] },
+  { foto: `${P}/vendidas/lote-funes-lakes-laguna.webp`, titulo: 'Lote frente a la laguna', zona: 'Funes Lakes', specs: ['500 m²'] },
+  { foto: `${P}/vendidas/lotes-vida-lagoon.webp`, titulo: 'Lotes', zona: 'Vida Lagoon · Funes', specs: ['Barrio con laguna cristalina'] },
+  { foto: `${P}/vendidas/lotes-vida-club-de-campo.webp`, titulo: 'Lotes', zona: 'Vida Club de Campo · Funes', specs: ['Club de campo'] },
+  { foto: `${P}/vendidas/casa-pileta-cotos-de-la-alameda.webp`, titulo: 'Casa con pileta y parque', zona: 'Cotos de la Alameda · Roldán', specs: ['Pileta', 'Quincho'] },
+  { foto: `${P}/vendidas/lote-vida-jardin.webp`, titulo: 'Lote', zona: 'Vida Jardín · Funes', specs: ['804 m²'] },
+  { foto: `${P}/vendidas/casa-funes-saldias.webp`, titulo: 'Casa a estrenar', zona: 'Funes centro', specs: ['3 dormitorios', '3 baños'] },
+  { foto: '/images/dockgarden/obra-2026-09/01.webp', titulo: 'Departamento en pozo', zona: 'Dock Garden · Fisherton', specs: ['3 dormitorios'] },
+  { foto: `${P}/vendidas/depto-tierra-nueva-fisherton.webp`, titulo: 'Departamento', zona: 'Tierra Nueva · Fisherton', specs: ['1 dormitorio'] },
+  { foto: `${P}/vendidas/lote-funes-lakes.webp`, titulo: 'Lote', zona: 'Funes Lakes', specs: ['500 m²'] },
+  { foto: `${P}/vendidas/casa-funes-city.webp`, titulo: 'Casa', zona: 'Funes City · Funes', specs: ['2 dormitorios'] },
+]
 
 /* ── Muro de propiedades publicadas (portadas reales, para el mockup de HILO) ── */
 export const MURO = Array.from({ length: 19 }, (_, i) => `${P}/muro/${String(i + 1).padStart(2, '0')}.webp`)
