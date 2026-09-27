@@ -215,7 +215,8 @@ export default async function ComoTrabajamosPage({ searchParams }: { searchParam
   const agente = await getAgentFromCookies()
   if (agente) return <Presentacion />
   const sesion = await verificarSesion(cookies().get(COOKIE_ACCESO)?.value)
-  if (sesion) return <Presentacion para={sesion} />
+  if (sesion.ok) return <Presentacion para={sesion} />
+  if (sesion.motivo === 'agotado') return <Portero estado="agotado" agente={sesion.agente} />
 
   const k = typeof searchParams.k === 'string' ? searchParams.k : ''
   if (!k) return <Portero estado="privada" />
@@ -225,12 +226,13 @@ export default async function ComoTrabajamosPage({ searchParams }: { searchParam
   return <Portero estado="listo" token={k} cliente={link.cliente} agente={link.agenteNombre} />
 }
 
-function Portero({ estado, token, cliente, agente }: { estado: 'privada' | 'listo' | 'usado' | 'invalido'; token?: string; cliente?: string; agente?: string }) {
+function Portero({ estado, token, cliente, agente }: { estado: 'privada' | 'listo' | 'usado' | 'invalido' | 'agotado'; token?: string; cliente?: string; agente?: string }) {
   const textos = {
     privada: { t: 'Esta presentación es privada.', d: 'Pedile el link a tu agente de SI INMOBILIARIA.' },
-    listo: { t: cliente ? `${cliente}, esta presentación es para vos.` : 'Tu presentación está lista.', d: `Te la envió ${agente}. El link es personal y se abre una sola vez, en este dispositivo.` },
+    listo: { t: cliente ? `${cliente}, esta presentación es para vos.` : 'Tu presentación está lista.', d: `Te la envió ${agente}. Es personal: se abre en este dispositivo y la podés ver 2 veces en las próximas 48 horas.` },
     usado: { t: 'Este link ya fue abierto.', d: `Los links son personales y de un solo uso. Pedile uno nuevo a ${agente ?? 'tu agente'}.` },
     invalido: { t: 'Este link no es válido o venció.', d: 'Pedile un link nuevo a tu agente de SI INMOBILIARIA.' },
+    agotado: { t: 'Ya viste esta presentación.', d: `Tu acceso era para 2 visitas. Si querés volver a verla, pedile un link nuevo a ${agente ?? 'tu agente'}.` },
   }[estado]
   return (
     <main className="flex min-h-[80svh] items-center justify-center px-4 py-20 font-raleway text-white" style={{ background: '#0B1510' }}>
@@ -262,12 +264,12 @@ function Portero({ estado, token, cliente, agente }: { estado: 'privada' | 'list
   )
 }
 
-function Presentacion({ para }: { para?: { cliente: string; agente: string } }) {
+function Presentacion({ para }: { para?: { cliente: string; agente: string; visita: number } }) {
   return (
     <main className="ct-tv bg-white font-raleway" style={{ color: TINTA }}>
       {para && (
         <div className="px-4 py-2 text-center text-[12.5px] font-semibold text-white" style={{ background: '#0B1510' }}>
-          Presentación privada para <strong>{para.cliente}</strong> · te la envió {para.agente}
+          Presentación privada para <strong>{para.cliente}</strong> · te la envió {para.agente} · visita {para.visita} de 2
         </div>
       )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
