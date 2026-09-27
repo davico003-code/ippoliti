@@ -170,6 +170,11 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
   stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- aviso flotante ---------- */
+/* Logo de la desarrolladora sobre la foto, abajo al centro. */
+.marca-dev{display:none;position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:31;
+  width:170px;height:auto;pointer-events:none;filter:drop-shadow(0 1px 6px rgba(0,0,0,.55))}
+.v-foto .marca-dev,.v-mixta .marca-dev{display:block}
+@media (max-width:640px){ .marca-dev{width:118px;bottom:12px} }
 /* Selector de vista flotando sobre el mapa. */
 .vista{position:absolute;right:12px;top:12px;z-index:35;display:inline-flex;gap:2px;padding:3px;
   background:rgba(255,255,255,.94);border-radius:999px;box-shadow:0 4px 16px rgba(20,28,16,.22);
@@ -523,6 +528,9 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
       <button type="button" data-vista="foto" aria-pressed="false">Foto</button>
       <button type="button" data-vista="plano" aria-pressed="false">Plano</button>
     </div>
+    <!-- Desarrolladora: logo blanco sobre la foto, abajo al centro (solo en las vistas con foto). -->
+    <img class="marca-dev" src="/images/distrito-roldan/brand/logo-transatlantica-blanco.webp"
+      alt="Grupo Transatlántica" width="640" height="162" decoding="async">
     <div class="compass" id="compass" aria-hidden="true">
       <span class="needle">
         <svg viewBox="0 0 40 40"><path d="M20 5 L27 30 L20 26 Z" fill="#B4441F"/>
@@ -1145,7 +1153,9 @@ function build(){
     stage.appendChild(cg);
     // Van en su propio grupo, sin la transparencia de las calles.
     const ig=el("g",{class:"ingresos-foto","aria-hidden":"true"});
-    for(const [ix,iy] of [[1636,710],[298,710]]){
+    // El de Ruta 9 va sobre el cruce de la colectora, pegado a la ruta: se
+    // entra directo desde ahí.
+    for(const [ix,iy] of [[1724,710],[298,710]]){
       // Sin contrarrotar: en el celular (plano girado) el cartel sigue la calle,
       // como los nombres; derecho lo dejaba atravesado encima de los lotes.
       const w=250, g=el("g",{class:"ingreso"});
@@ -1179,6 +1189,8 @@ function build(){
     const tr=el("text",{x:rx9,y:yc,"text-anchor":"middle","font-size":25,transform:`rotate(90 ${rx9} ${yc})`,dy:"8.5"});
     tr.textContent="RUTA NACIONAL N.º 9"; rg.appendChild(tr);
     stage.appendChild(rg);
+    // Los carteles de ingreso van por encima de la colectora: el de Ruta 9 la cruza.
+    stage.appendChild(stage.querySelector(".ingresos-foto"));
   }
 
   /* Dibujo de base: terreno, calzadas, reservorio y arbolado. Se oculta en modo foto. */
