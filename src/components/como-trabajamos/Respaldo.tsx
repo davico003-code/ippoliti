@@ -17,6 +17,7 @@ import {
 import { VideoVivo } from './Medios'
 import MapaUbicacion from './MapaUbicacion'
 import PaginasInforme from './PaginasInforme'
+import { MuroHilo } from './Resultados'
 import { AGENTES, BARRIOS, DIRECCION, EMPRENDIMIENTOS, INFORMES, OFICINAS, PRENSA } from './datos'
 import { ACENTO, BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, VERDE_SUAVE, conNumeros } from './ui'
 
@@ -258,7 +259,11 @@ export function Hilo() {
           bajada="HILO es el sistema con inteligencia artificial que desarrollamos para el equipo. Esto es lo que hace por tu venta. Son pantallas reales."
         />
 
-        <div className="mt-12 grid gap-14 md:gap-20">
+        <div className="mt-10">
+          <MuroHilo />
+        </div>
+
+        <div className="mt-14 grid gap-14 md:mt-20 md:gap-20">
           {HILO_PANTALLAS.map((p, i) => (
             <div key={p.paso} className="ct-rev grid items-center gap-7 lg:grid-cols-[1fr_1.35fr] lg:gap-12">
               <div className={i % 2 ? 'lg:order-2' : ''}>

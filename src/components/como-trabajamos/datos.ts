@@ -201,3 +201,25 @@ export const BARRIOS = [
   'Kentucky', 'Funes Hills', 'San Sebastián', 'Cadaqués', 'Vida', 'Aguadas', 'Funes Lakes', 'Haras de Funes',
   'Don Mateo', 'La Finca', 'Puerto Roldán', 'Los Aromos', 'El Molino', 'Aldea Fisherton', 'Country Golf', 'Cotos de la Alameda',
 ]
+
+/* ── Vendidas recientemente ──
+   Ventas PROPIAS reales (cierres de HILO/Tokko con vendido_por = nosotros,
+   solo operaciones de venta), con la foto original de la publicación. Sin
+   montos. Relevado en septiembre de 2026. */
+export const VENDIDAS = [
+  { slug: 'casa-loft-pileta-las-acequias', tipo: 'Casa con pileta', zona: 'Las Acequias, Roldán', fecha: 'Abril 2026' },
+  { slug: 'casa-pileta-don-mateo', tipo: 'Casa con pileta', zona: 'Don Mateo, Funes', fecha: 'Febrero 2026' },
+  { slug: 'casa-piscina-ruta-9-roldan', tipo: 'Casa de 3 dormitorios con piscina', zona: 'Ruta 9, Roldán', fecha: 'Octubre 2025' },
+  { slug: 'casa-pileta-punta-chacra', tipo: 'Casa con pileta', zona: 'Punta Chacra, Roldán', fecha: 'Octubre 2025' },
+  { slug: 'casa-a-estrenar-las-acequias', tipo: 'Casa a estrenar con piscina', zona: 'Las Acequias, Roldán', fecha: 'Junio 2025' },
+  { slug: 'depto-tierra-nueva-fisherton', tipo: 'Departamento', zona: 'Tierra Nueva, Fisherton', fecha: 'Abril 2026' },
+  { slug: 'casa-funes-city', tipo: 'Casa de 2 dormitorios', zona: 'Funes City, Funes', fecha: 'Febrero 2026' },
+  { slug: 'casa-pileta-acequias-del-aire', tipo: 'Casa con pileta', zona: 'Acequias del Aire, Roldán', fecha: 'Marzo 2026' },
+  { slug: 'depto-aldea-fisherton', tipo: 'Departamento de 90 m²', zona: 'Aldea, Fisherton', fecha: 'Julio 2025' },
+  { slug: 'local-vidriera-funes', tipo: 'Local con vidriera', zona: 'Funes', fecha: 'Febrero 2026' },
+  { slug: 'terreno-tierra-de-suenos-3', tipo: 'Terreno escriturado', zona: 'Tierra de Sueños 3, Roldán', fecha: 'Junio 2026' },
+  { slug: 'quincho-pileta-roldan', tipo: 'Quincho con pileta', zona: 'Roldán', fecha: 'Julio 2025' },
+].map((v) => ({ ...v, foto: `${P}/vendidas/${v.slug}.webp` }))
+
+/* ── Muro de propiedades publicadas (portadas reales, para el mockup de HILO) ── */
+export const MURO = Array.from({ length: 19 }, (_, i) => `${P}/muro/${String(i + 1).padStart(2, '0')}.webp`)

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import WhatsappBoton from '@/components/como-trabajamos/WhatsappBoton'
 import { VideoVivo } from '@/components/como-trabajamos/Medios'
+import { Vendidas } from '@/components/como-trabajamos/Resultados'
 import { Aereas, EquipoTecnico, Fotografia, Reels, Videotours } from '@/components/como-trabajamos/Produccion'
 import { CharlasQueSi, ContenidoIA, EmailMarketing, PortalesYPauta, Redes } from '@/components/como-trabajamos/Difusion'
 import { CalleYEventos, Desarrolladores, Equipo, Hilo, InformeReal, Oficinas, Prensa, RedDeContactos } from '@/components/como-trabajamos/Respaldo'
@@ -328,6 +329,9 @@ export default function ComoTrabajamosPage() {
           </ol>
         </Contenedor>
       </section>
+
+      {/* ── RESULTADOS: ventas propias reales ───── */}
+      <Vendidas />
 
       {/* ── PRODUCCIÓN ──────────────────────────── */}
       <Capitulo numero="01" nombre="Producción" frase="Primero, que tu propiedad se vea increíble." />
