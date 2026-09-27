@@ -32,15 +32,30 @@ export default function PortadaViva({ poster, video, sizes, radio, margen, velo 
   const [src, setSrc] = useState<string | null>(null)
   const [vivo, setVivo] = useState(false)
 
-  // El video se asigna recién en el cliente y solo si el usuario no pidió
-  // menos movimiento ni ahorro de datos.
+  // El video se asigna recién en el cliente, cuando la página ya terminó de
+  // cargar y el navegador está libre: nunca compite con la foto (LCP) ni con
+  // las fotos de las propiedades. Tampoco baja si se pidió menos movimiento o
+  // ahorro de datos.
   useEffect(() => {
     const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const ahorro = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData
     // Desktop y mobile montan su propia portada (una oculta por CSS): solo
     // la visible baja el video.
     const visible = (cuadro.current?.getClientRects().length ?? 0) > 0
-    if (!quieto && !ahorro && visible) setSrc(video)
+    if (quieto || ahorro || !visible) return
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }
+    let cancelado = false
+    const arrancar = () => {
+      const go = () => { if (!cancelado) setSrc(video) }
+      if (w.requestIdleCallback) w.requestIdleCallback(go, { timeout: 2000 })
+      else setTimeout(go, 300)
+    }
+    if (document.readyState === 'complete') arrancar()
+    else window.addEventListener('load', arrancar, { once: true })
+    return () => {
+      cancelado = true
+      window.removeEventListener('load', arrancar)
+    }
   }, [video])
 
   // Pausa fuera de pantalla (batería) y retoma al volver.

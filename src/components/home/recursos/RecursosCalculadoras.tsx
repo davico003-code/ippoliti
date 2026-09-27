@@ -7,6 +7,7 @@
 import ConstruirCard from './ConstruirCard'
 import AlquilarCard from './AlquilarCard'
 import ComprarCard from './ComprarCard'
+import EncabezadoSeccion from '../EncabezadoSeccion'
 
 const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const P = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
@@ -15,12 +16,14 @@ export default function RecursosCalculadoras() {
   return (
     <section className="r4">
       <div className="r4wrap">
-        <div className="r4head">
-          <h2>Antes de dar el paso, hacé los números.</h2>
-          <p>Herramientas gratis para construir, alquilar o comprar con criterio.</p>
-        </div>
+        <EncabezadoSeccion
+          eyebrow="Herramientas gratis"
+          titulo="Antes de dar el paso, hacé los números."
+          bajada="Para construir, alquilar o comprar con criterio."
+          className="r4head"
+        />
 
-        <div className="trio">
+        <div className="trio revela">
           <ConstruirCard />
           <AlquilarCard />
           <ComprarCard />
@@ -33,12 +36,10 @@ export default function RecursosCalculadoras() {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .r4{ --green:#1A5C38; --green-dark:#0F3F26; --paper:#FAF7F2; --ink:#1a1a1a; --appmuted:#6b7280;
-             background:var(--paper); padding:60px 0 50px; }
+        .r4{ --green:#1A5C38; --green-dark:#0F3F26; --paper:#F5F5F7; --ink:#1a1a1a; --appmuted:#6b7280;
+             background:var(--paper); padding:64px 0 56px; }
         .r4 .r4wrap{ max-width:1200px; margin:0 auto; padding:0 24px; }
-        .r4 .r4head{ text-align:center; max-width:680px; margin:0 auto 34px; }
-        .r4 .r4head h2{ font:800 clamp(26px,3vw,34px) ${R}; color:#111827; letter-spacing:-.01em; margin:0; }
-        .r4 .r4head p{ font:400 16px ${P}; color:var(--appmuted); margin:8px 0 0; }
+        .r4 .r4head{ margin:0 0 30px; }
         .r4 .trio{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; align-items:stretch; }
 
         .r4 .card{ position:relative; background:#fff; border-radius:26px; padding:30px 26px; display:flex; flex-direction:column; box-shadow:0 2px 4px rgba(0,0,0,.03), 0 20px 50px -18px rgba(15,63,38,.18); overflow:hidden; transition:transform .4s cubic-bezier(.2,.7,.2,1), box-shadow .4s; }

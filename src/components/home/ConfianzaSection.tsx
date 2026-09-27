@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { MapPin, Clock } from 'lucide-react'
+import EncabezadoSeccion from './EncabezadoSeccion'
 
 const GREEN = '#1A5C38'
 
@@ -60,7 +61,7 @@ export default function ConfianzaSection() {
           {/* Año arriba */}
           <div className="absolute top-6 left-5 right-5 flex items-start justify-between">
             <div>
-              <p className="font-poppins text-white/70 text-[10px] font-bold tracking-[0.25em] uppercase">SI INMOBILIARIA</p>
+              <p className="font-raleway text-white/70 text-[10px] font-bold tracking-[0.25em] uppercase">SI INMOBILIARIA</p>
               <p className="font-poppins text-white/50 text-[10px] font-medium tracking-[0.15em] mt-0.5" style={{ fontVariantNumeric: 'tabular-nums' }}>EST. 1983</p>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full">
@@ -76,7 +77,7 @@ export default function ConfianzaSection() {
             </p>
             <div className="mt-5 flex items-center gap-3">
               <div className="w-8 h-px bg-white/40" />
-              <p className="font-poppins text-white/80 text-[11px] font-semibold tracking-[0.15em] uppercase">
+              <p className="font-raleway text-white/80 text-[11px] font-semibold tracking-[0.15em] uppercase">
                 Susana Ippoliti · Fundadora
               </p>
             </div>
@@ -85,17 +86,12 @@ export default function ConfianzaSection() {
       </section>
 
       {/* 2. Bloque introductorio */}
-      <section className="px-5 pt-9 pb-7 bg-white">
-        <p className="font-poppins text-[12px] font-bold tracking-[0.15em] uppercase" style={{ color: GREEN }}>
-          Dos generaciones
-        </p>
-        <h2 className="font-raleway font-black text-[28px] leading-[1.05] mt-2 text-gray-900">
-          No vendemos casas.<br />
-          <span className="italic" style={{ color: GREEN }}>Acompañamos historias.</span>
-        </h2>
-        <p className="font-poppins text-gray-600 text-[14px] mt-4 leading-relaxed">
-          Empezamos en 1983 cuando Susana abrió la primera oficina en Roldán. Hoy somos un equipo en tres sedes, pero seguimos pensándonos como un estudio: pocos clientes a la vez, mucha cabeza puesta en cada uno.
-        </p>
+      <section className="px-5 pt-10 pb-7 bg-white">
+        <EncabezadoSeccion
+          eyebrow="Dos generaciones"
+          titulo={<>No vendemos casas.<br /><span style={{ color: GREEN }}>Acompañamos historias.</span></>}
+          bajada="Empezamos en 1983 cuando Susana abrió la primera oficina en Roldán. Hoy somos un equipo en tres sedes, pero seguimos pensándonos como un estudio: pocos clientes a la vez, mucha cabeza puesta en cada uno."
+        />
       </section>
 
       {/* 3. Stats */}
@@ -106,7 +102,7 @@ export default function ConfianzaSection() {
               {i > 0 && <div className="w-px h-9 bg-gray-200" />}
               <div>
                 <p className="font-poppins font-bold text-[19px] leading-none" style={{ color: GREEN, fontVariantNumeric: 'tabular-nums' }}>{s.num}</p>
-                <p className="font-poppins text-gray-500 text-[9px] font-semibold tracking-[0.1em] uppercase mt-1.5">{s.label}</p>
+                <p className="font-raleway text-gray-500 text-[9.5px] font-bold tracking-[0.1em] uppercase mt-1.5">{s.label}</p>
               </div>
             </div>
           ))}
@@ -115,12 +111,7 @@ export default function ConfianzaSection() {
 
       {/* 4. Las 3 oficinas */}
       <section className="px-5 pt-4 pb-7 bg-white">
-        <p className="font-poppins text-[12px] font-bold tracking-[0.15em] uppercase" style={{ color: GREEN }}>
-          Nuestras sedes
-        </p>
-        <h3 className="font-raleway font-black text-[22px] leading-tight mt-1 text-gray-900">
-          Tres lugares para encontrarnos.
-        </h3>
+        <EncabezadoSeccion eyebrow="Nuestras sedes" titulo="Tres lugares para encontrarnos." nivel="h3" />
 
         <div className="mt-5 -mx-5 px-5 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
           {SEDES.map(sede => (
@@ -138,15 +129,15 @@ export default function ConfianzaSection() {
                 )}
                 <div className="absolute bottom-3 left-3 right-3 text-white">
                   <p className="font-raleway font-black text-[18px] leading-tight">{sede.nombre}</p>
-                  <p className="font-poppins text-[11px] opacity-90 font-medium mt-0.5">{sede.subtitulo}</p>
+                  <p className="font-raleway text-[11px] opacity-90 font-medium mt-0.5">{sede.subtitulo}</p>
                 </div>
               </div>
               <div className="p-3.5 bg-gray-50">
-                <p className="font-poppins text-gray-700 text-[12px] flex items-start gap-1.5">
+                <p className="font-raleway text-gray-700 text-[12px] flex items-start gap-1.5">
                   <MapPin className="w-3 h-3 mt-0.5 shrink-0" style={{ color: GREEN }} />
                   <span>{sede.direccion}</span>
                 </p>
-                <p className="font-poppins text-gray-500 text-[11px] mt-1.5 flex items-center gap-1.5">
+                <p className="font-raleway text-gray-500 text-[11px] mt-1.5 flex items-center gap-1.5">
                   <Clock className="w-3 h-3 shrink-0" />
                   {sede.horario}
                 </p>
