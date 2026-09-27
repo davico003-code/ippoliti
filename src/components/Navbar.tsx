@@ -78,7 +78,7 @@ function IngresarButton({ agent, onClick }: IngresarButtonProps) {
 const LEFT_ITEMS = [
   { href: '/propiedades?op=venta', label: 'Comprar' },
   { href: '/propiedades?op=alquiler', label: 'Alquilar' },
-  { href: '/tasaciones', label: 'Vender' },
+  { href: '/como-trabajamos', label: 'Vender' },
   { href: '/emprendimientos', label: 'Emprendimientos' },
 ]
 

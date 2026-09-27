@@ -31,6 +31,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: 'Guía del Comprador', href: '/guia' },
       { label: 'Blog', href: '/blog' },
       { label: 'Nosotros', href: '/nosotros' },
+      { label: 'Cómo trabajamos', href: '/como-trabajamos' },
     ],
   },
   {
