@@ -229,8 +229,15 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .v-foto .lot{opacity:0;pointer-events:none}
 /* Lo proyectado (reservorio y calles terminadas) va solo con los lotes: la
    foto sola muestra el terreno tal cual está hoy. */
-.res-foto,.calles-foto{display:none}
-.v-mixta .res-foto,.v-mixta .calles-foto{display:block}
+.res-foto,.calles-foto,.rutas-foto,.ingresos-foto{display:none}
+.v-mixta .res-foto,.v-mixta .calles-foto,.v-mixta .ingresos-foto{display:block}
+/* Calles simuladas un poco translúcidas: se adivina el terreno de abajo. */
+.calles-foto{opacity:.8}
+/* Ruta 9 y la colectora existen hoy: se rotulan en las dos vistas con foto. */
+.v-foto .rutas-foto,.v-mixta .rutas-foto{display:block}
+.rutas-foto text{fill:#fff;font-weight:800;letter-spacing:.16em;
+  paint-order:stroke;stroke:rgba(15,20,14,.7);stroke-width:4px;stroke-linejoin:round}
+.ingreso text{fill:#fff;font-size:21px;font-weight:800;letter-spacing:.03em}
 .calles-foto text{fill:rgba(255,255,255,.92);font-size:21px;font-weight:800;letter-spacing:.07em;
   paint-order:stroke;stroke:rgba(20,24,22,.55);stroke-width:3px;stroke-linejoin:round}
 .res-foto text{paint-order:stroke;stroke:rgba(10,32,32,.55);stroke-width:3px;stroke-linejoin:round}
@@ -1100,13 +1107,14 @@ function build(){
   /* Calles terminadas sobre la foto (solo en Combinada): asfalto con cordón y
      línea de eje donde hoy hay tierra, para ver cómo va a quedar el barrio.
      Las calzadas salen de los huecos entre manzanas: San Pedro y María Teresa
-     mueren en la segunda calle; María Auxiliadora y Don Bosco llegan a Ruta 9. */
+     mueren en la segunda calle; María Auxiliadora y Don Bosco llegan a la
+     colectora (x 1757–1781 en la foto), que corre pegada a los comerciales. */
   {
     const cg=el("g",{class:"calles-foto","aria-hidden":"true"});
     const CZ=[
       [460,52,79,1395],[1306,52,78,1395],[1505,52,59,1395],     // transversales
-      [95,52,1677,58],[95,1389,1677,58],                        // borde de arriba y Don Bosco
-      [135,351,1249,79],[135,671,1637,79],[135,991,1249,77]     // San Pedro, María Auxiliadora, María Teresa
+      [95,52,1664,58],[95,1389,1664,58],                        // borde de arriba y Don Bosco
+      [135,351,1249,79],[135,671,1624,79],[135,991,1249,77]     // San Pedro, María Auxiliadora, María Teresa
     ];
     // Cordón: cada calzada un poco más ancha, en claro; el asfalto encima lo
     // tapa por dentro y en los cruces, así el borde queda solo afuera.
@@ -1130,7 +1138,40 @@ function build(){
       cg.appendChild(el("rect",{x:c.x-w/2,y:c.y-15,width:w,height:30,fill:"#595E5C"}));
       const t=el("text",{x:c.x,y:c.y+7,"text-anchor":"middle"}); t.textContent=c.t; cg.appendChild(t);
     }
+    /* Ingresos: María Auxiliadora es la única calle que entra y sale del
+       barrio, por los dos extremos (desde la colectora de Ruta 9 y del lado
+       oeste). Indicación de David, 27-sep-2026. */
     stage.appendChild(cg);
+    // Van en su propio grupo, sin la transparencia de las calles.
+    const ig=el("g",{class:"ingresos-foto","aria-hidden":"true"});
+    for(const [ix,iy] of [[1636,710],[298,710]]){
+      // Sin contrarrotar: en el celular (plano girado) el cartel sigue la calle,
+      // como los nombres; derecho lo dejaba atravesado encima de los lotes.
+      const w=250, g=el("g",{class:"ingreso"});
+      g.appendChild(el("rect",{x:ix-w/2,y:iy-22,width:w,height:44,rx:22,fill:"#B35E21",
+        stroke:"#fff","stroke-width":3,filter:"url(#sh)"}));
+      // flecha doble (entra y sale)
+      const ax=ix-w/2+18;
+      g.appendChild(el("path",{d:`M${ax} ${iy} h30 M${ax} ${iy} l8 -7 M${ax} ${iy} l8 7 M${ax+30} ${iy} l-8 -7 M${ax+30} ${iy} l-8 7`,
+        stroke:"#fff","stroke-width":3.4,"stroke-linecap":"round","stroke-linejoin":"round",fill:"none"}));
+      const t=el("text",{x:ax+42,y:iy+7.5}); t.textContent="Ingreso y egreso"; g.appendChild(t);
+      ig.appendChild(g);
+    }
+    stage.appendChild(ig);
+  }
+
+  /* Rótulos de lo que ya existe en la foto: la colectora frente a los
+     comerciales y Ruta 9 más afuera. Medidos sobre la foto calzada. */
+  {
+    const rg=el("g",{class:"rutas-foto","aria-hidden":"true"});
+    // La colectora se rotula más abajo que la ruta: a la altura de María
+    // Auxiliadora está el cartel de ingreso.
+    const cx=1769, rx9=1871, yc=750, ycc=1120;
+    const tc=el("text",{x:cx,y:ycc,"text-anchor":"middle","font-size":17,transform:`rotate(90 ${cx} ${ycc})`,dy:"6"});
+    tc.textContent="COLECTORA"; rg.appendChild(tc);
+    const tr=el("text",{x:rx9,y:yc,"text-anchor":"middle","font-size":25,transform:`rotate(90 ${rx9} ${yc})`,dy:"8.5"});
+    tr.textContent="RUTA NACIONAL N.º 9"; rg.appendChild(tr);
+    stage.appendChild(rg);
   }
 
   /* Dibujo de base: terreno, calzadas, reservorio y arbolado. Se oculta en modo foto. */
