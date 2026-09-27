@@ -1,6 +1,9 @@
-// /como-trabajamos — landing para propietarios: qué hace SI INMOBILIARIA con
-// una propiedad desde la tasación hasta la escritura. "Vender" del menú
-// apunta acá y desde acá se va al tasador de /tasaciones.
+// /como-trabajamos — presentación para propietarios: qué hace SI INMOBILIARIA
+// con una propiedad desde la tasación hasta la escritura. El equipo la muestra
+// en el televisor de la oficina o la manda por link.
+//
+// LINK PRIVADO (por ahora): no está en el menú, el footer ni el sitemap, y
+// lleva noindex. Solo la ve quien recibe el link.
 //
 // Todo lo que se muestra es material real (fotos, videos, notas, cifras
 // públicas); ver components/como-trabajamos/datos.ts. Página estática: solo
@@ -20,12 +23,11 @@ import {
   ShieldCheck,
   Signature,
   Users,
-  ArrowRight,
 } from 'lucide-react'
 import WhatsappBoton from '@/components/como-trabajamos/WhatsappBoton'
 import { Aereas, EquipoTecnico, Fotografia, Reels, Videotours } from '@/components/como-trabajamos/Produccion'
 import { CharlasQueSi, ContenidoIA, EmailMarketing, PortalesYPauta, Redes } from '@/components/como-trabajamos/Difusion'
-import { CalleYEventos, Desarrolladores, Equipo, Hilo, Oficinas, Prensa, RedDeContactos } from '@/components/como-trabajamos/Respaldo'
+import { CalleYEventos, Desarrolladores, Equipo, Hilo, InformeReal, Oficinas, Prensa, RedDeContactos } from '@/components/como-trabajamos/Respaldo'
 import {
   ACENTO,
   BotonTasar,
@@ -50,6 +52,7 @@ export const metadata: Metadata = {
   description:
     'Fotos profesionales, drone, videotours, reels, pauta en Instagram y Facebook, portales, email marketing, prensa local, tecnología propia e informes al propietario. Así vende SI INMOBILIARIA en Funes, Roldán y Rosario.',
   alternates: { canonical: URL },
+  robots: { index: false, follow: false },
   openGraph: {
     title: 'Cómo trabajamos con tu propiedad | SI INMOBILIARIA',
     description:
@@ -129,7 +132,6 @@ const INFORME = [
   { titulo: 'Plan de acción', texto: 'Qué hacemos en el próximo período.' },
 ]
 
-const PORTALES_INFORME = ['/portal-logos/si-inmobiliaria.png', '/portal-logos/zonaprop.jpg', '/portal-logos/argenprop.jpg', '/portal-logos/mercadolibre.png', '/portal-logos/meta.jpg']
 
 const COMPROMISOS = [
   { Icon: ShieldCheck, titulo: 'Te decimos el precio real', texto: 'Aunque no sea el número que querés escuchar. Una tasación inflada solo hace perder tiempo.' },
@@ -197,8 +199,11 @@ const jsonLd = {
 
 export default function ComoTrabajamosPage() {
   return (
-    <main className="bg-white font-raleway" style={{ color: TINTA }}>
+    <main className="ct-tv bg-white font-raleway" style={{ color: TINTA }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {/* En el televisor de la oficina (pantallas muy anchas) todo se agranda
+          para leerse a distancia. */}
+      <style dangerouslySetInnerHTML={{ __html: '@media (min-width: 1800px) { .ct-tv { zoom: 1.2; } }' }} />
 
       {/* ── PORTADA ─────────────────────────────── */}
       <section className="relative overflow-hidden" style={{ background: VERDE_OSCURO }}>
@@ -338,15 +343,15 @@ export default function ComoTrabajamosPage() {
       <Hilo />
 
       <section className="py-16 md:py-24" style={{ background: FONDO }} aria-labelledby="informe-titulo">
-        <Contenedor className="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
-          <div>
+        <Contenedor>
+          <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:gap-14">
             <Encabezado
               id="informe-titulo"
               eyebrow="Informe al propietario"
               titulo="Nunca te vas a quedar preguntando cómo va."
-              bajada="Todas las consultas, visitas y respuestas quedan registradas en HILO. Con eso armamos el informe que recibís: datos reales de la gestión de tu propiedad."
+              bajada="Todas las consultas, visitas y respuestas quedan registradas en HILO. Con eso armamos el informe que recibís: datos reales de la gestión de tu propiedad. Abajo, bloques de un informe real de este mes."
             />
-            <ul className="m-0 mt-8 grid list-none gap-x-6 gap-y-4 p-0 sm:grid-cols-2">
+            <ul className="m-0 grid list-none content-end gap-x-6 gap-y-4 p-0 sm:grid-cols-2">
               {INFORME.map((it) => (
                 <li key={it.titulo} className="flex gap-3">
                   <span aria-hidden className="mt-[7px] h-2 w-2 shrink-0 rounded-full" style={{ background: ACENTO }} />
@@ -360,74 +365,9 @@ export default function ComoTrabajamosPage() {
               ))}
             </ul>
           </div>
-
-          <figure className="m-0">
-            <div className="overflow-hidden rounded-[22px] bg-white shadow-xl" style={{ border: '1px solid rgba(17,18,19,.06)' }}>
-              <div className="relative h-[150px] md:h-[170px]">
-                <Image src="/como-trabajamos/cadaques-pileta.webp" alt="" fill sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
-                <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(14,53,33,.92) 0%, rgba(14,53,33,.55) 60%, rgba(14,53,33,.2) 100%)' }} />
-                <div className="absolute inset-0 flex flex-col justify-end p-5 text-white md:p-6">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: MENTA }}>
-                    Informe al propietario
-                  </span>
-                  <span className="mt-1 text-[20px] font-extrabold leading-tight md:text-[22px]">Así va tu propiedad</span>
-                </div>
-              </div>
-              <div className="grid gap-4 p-5 md:p-6">
-                <div>
-                  <p className="m-0 text-[12px] font-bold uppercase tracking-[0.14em]" style={{ color: GRIS }}>
-                    Difusión activa
-                  </p>
-                  <div className="mt-2.5 flex flex-wrap gap-2">
-                    {PORTALES_INFORME.map((logo) => (
-                      <span key={logo} className="relative h-9 w-9 overflow-hidden rounded-[10px] bg-white" style={{ border: '1px solid rgba(17,18,19,.08)' }}>
-                        <Image src={logo} alt="" fill sizes="36px" className="object-contain p-0.5" />
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="m-0 text-[12px] font-bold uppercase tracking-[0.14em]" style={{ color: GRIS }}>
-                    Consultas por canal
-                  </p>
-                  <div className="mt-3 grid gap-2" aria-hidden>
-                    {[
-                      { l: 'Portales', w: '86%' },
-                      { l: 'Instagram y Facebook', w: '64%' },
-                      { l: 'Web SI', w: '48%' },
-                    ].map((b) => (
-                      <div key={b.l} className="grid grid-cols-[120px_1fr] items-center gap-3 text-[12.5px] font-semibold md:grid-cols-[150px_1fr]" style={{ color: TEXTO }}>
-                        <span>{b.l}</span>
-                        <span className="h-2.5 rounded-full" style={{ background: VERDE_SUAVE }}>
-                          <span className="block h-full rounded-full" style={{ width: b.w, background: ACENTO }} />
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-[14px] p-4" style={{ background: VERDE_SUAVE }}>
-                  <p className="m-0 text-[12px] font-bold uppercase tracking-[0.14em]" style={{ color: VERDE }}>
-                    Qué dicen los interesados
-                  </p>
-                  <p className="mt-1.5 text-[14px] font-semibold italic leading-snug" style={{ color: '#2b3a31' }}>
-                    “Les encantó el jardín y la luz del living. Preguntaron por la distancia al colegio.”
-                  </p>
-                </div>
-                <div className="flex items-center justify-between gap-3 rounded-[14px] p-4 text-white" style={{ background: VERDE }}>
-                  <span>
-                    <span className="block text-[12px] font-bold uppercase tracking-[0.14em]" style={{ color: MENTA }}>
-                      Próximo paso
-                    </span>
-                    <span className="block text-[14.5px] font-bold">Plan de acción del próximo período</span>
-                  </span>
-                  <ArrowRight size={18} aria-hidden />
-                </div>
-              </div>
-            </div>
-            <figcaption className="mt-3 text-center text-[12.5px] font-semibold" style={{ color: GRIS }}>
-              Ejemplo ilustrativo del formato del informe.
-            </figcaption>
-          </figure>
+          <div className="mt-10">
+            <InformeReal />
+          </div>
         </Contenedor>
       </section>
 

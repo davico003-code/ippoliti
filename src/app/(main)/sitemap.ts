@@ -20,7 +20,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: BASE, changeFrequency: 'daily', priority: 1 },
     { url: `${BASE}/propiedades`, changeFrequency: 'hourly', priority: 0.9 },
     { url: `${BASE}/nosotros`, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE}/como-trabajamos`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/tasaciones`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/inmobiliaria-roldan`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/inmobiliaria-funes`, changeFrequency: 'monthly', priority: 0.8 },
