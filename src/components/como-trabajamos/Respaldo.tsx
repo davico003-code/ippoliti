@@ -130,12 +130,12 @@ export function CalleYEventos() {
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 md:mt-6 md:gap-5">
           {[
-            { src: '/como-trabajamos/cartel-lotes-ruta9.webp', alt: 'Cartel de SI INMOBILIARIA de venta de lotes con plano sobre Ruta 9', txt: 'Cartel de obra con plano de lotes' },
-            { src: '/como-trabajamos/cartel-vende-lotes.webp', alt: 'Cartel de SI INMOBILIARIA "Vende lotes"', txt: 'Cartel de venta en el terreno' },
+            { src: '/como-trabajamos/cartel-marca-acceso-funes.webp', alt: 'Cartel de SI INMOBILIARIA en el acceso a Funes', txt: 'Cartel de marca en el acceso a Funes' },
+            { src: '/como-trabajamos/cartel-4-lotes-funes.webp', alt: 'Cartel de 4 lotes en venta de SI INMOBILIARIA y Rodriguez Tuttobene en Funes', txt: 'Lotes en Funes, comercializados junto con Rodriguez Tuttobene' },
           ].map((c) => (
             <figure key={c.src} className="m-0">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] bg-white shadow-md">
-                <Image src={c.src} alt={c.alt} fill sizes="(max-width: 640px) 100vw, 560px" className="object-contain p-3" />
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] shadow-md">
+                <Image src={c.src} alt={c.alt} fill sizes="(max-width: 640px) 100vw, 560px" className="object-cover" />
               </div>
               <figcaption className="mt-2.5 text-[13.5px] font-bold" style={{ color: TEXTO }}>
                 {c.txt}
@@ -465,6 +465,42 @@ export function Equipo() {
             </li>
           ))}
         </ul>
+
+        {/* Colegas: negocios en conjunto, con ejemplos reales */}
+        <div className="mt-14 grid items-center gap-8 rounded-[24px] p-5 md:mt-20 md:p-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(159,217,185,.18)' }}>
+          <figure className="ct-rev m-0">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-[16px]">
+              <Image src="/como-trabajamos/charla-colegas-rodaje.webp" alt="Grabación de Charlas Que Sí con un colega en la sala de reuniones de SI INMOBILIARIA" fill sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+            </div>
+            <figcaption className="mt-2.5 text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,.6)' }}>
+              Grabando Charlas Que Sí con colegas, en nuestra oficina de Funes.
+            </figcaption>
+          </figure>
+          <div>
+            <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: MENTA }}>
+              Colegas
+            </p>
+            <h3 className="mt-2.5 text-[24px] font-extrabold leading-tight md:text-[32px]" style={{ letterSpacing: '-0.03em' }}>
+              Hacemos negocios con colegas, no contra ellos.
+            </h3>
+            <p className="mt-3.5 text-[15.5px] leading-[1.65]" style={{ color: 'rgba(255,255,255,.78)' }}>
+              Tenemos relación real con las inmobiliarias de la zona. Compartimos propiedades para que la tuya llegue también a sus
+              compradores, y cuando el cliente es de un colega, cerramos la operación juntos.
+            </p>
+            <ul className="m-0 mt-5 grid list-none gap-2.5 p-0">
+              {[
+                'Co-comercializamos: como los lotes de Funes que vendemos junto con Rodriguez Tuttobene.',
+                'Fichas para colegas: les pasamos la propiedad lista para ofrecer a sus clientes.',
+                'Charlas Que Sí: conversamos en cámara con colegas y referentes del mercado.',
+              ].map((t) => (
+                <li key={t} className="flex gap-2.5 text-[14.5px] leading-[1.55]" style={{ color: 'rgba(255,255,255,.85)' }}>
+                  <span aria-hidden className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: MENTA }} />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
         <ul className="m-0 mt-12 grid list-none gap-4 p-0 md:grid-cols-3">
           {DIRECCION.map((p) => (
