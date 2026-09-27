@@ -30,13 +30,15 @@ export const AEREAS = [
 ]
 
 /* ── Equipo técnico ── */
-// Fotos: imágenes oficiales de producto (DJI y el newsroom de Apple), a
+// Fotos: imágenes oficiales de producto (DJI, newsroom de Apple y de Meta), a
 // pedido de David; se reemplazan por fotos propias cuando las haya.
 export const EQUIPOS = [
   { nombre: 'DJI Mavic 4 Pro', uso: 'Drone para tomas aéreas: el terreno, el barrio, los accesos y el entorno desde arriba.', icono: 'drone', foto: `${P}/equipos/dji-mavic-4-pro.webp`, oscura: false },
   { nombre: 'DJI Osmo Pocket 4P', uso: 'Cámara estabilizada para recorridos fluidos por dentro de la casa, sin saltos.', icono: 'video', foto: `${P}/equipos/dji-osmo-pocket-4p.webp`, oscura: false },
-  { nombre: 'iPhone 17 Pro', uso: 'Reels y videos verticales en 4K, pensados para Instagram, TikTok y YouTube Shorts.', icono: 'celular', foto: `${P}/equipos/iphone-17-pro.webp`, oscura: true },
+  { nombre: 'Ray-Ban Meta', uso: 'Anteojos con cámara para grabar en primera persona: la visita y el recorrido contados como un vlog.', icono: 'lentes', foto: `${P}/equipos/ray-ban-meta.webp`, oscura: false },
   { nombre: 'DJI Mic 2', uso: 'Micrófonos inalámbricos: el agente cuenta la propiedad con audio limpio.', icono: 'mic', foto: `${P}/equipos/dji-mic-2.webp`, oscura: false },
+  { nombre: 'iPhone 17 Pro', uso: 'Reels y videos verticales en 4K, pensados para Instagram, TikTok y YouTube Shorts.', icono: 'celular', foto: `${P}/equipos/iphone-17-pro.webp`, oscura: true },
+  { nombre: 'MacBook Pro', uso: 'Edición en computadoras MacBook Pro con programas profesionales de edición de video, color y sonido.', icono: 'laptop', foto: `${P}/equipos/macbook-pro.webp`, oscura: true },
 ] as const
 
 /* ── YouTube ── */
