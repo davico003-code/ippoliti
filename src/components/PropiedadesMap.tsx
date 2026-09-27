@@ -92,53 +92,49 @@ function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoPro
   return { standalone, devGroups }
 }
 
-// Chapa del emprendimiento: cuadradito blanco con edificio + nombre + "desde".
-// Lejos queda chica (≈34 px, a la par de las burbujas de precio); desde zoom 15
-// crece un poco para destacarse cuando el usuario ya está mirando la zona.
+// Pastilla negra con el nombre del emprendimiento: se distingue de las burbujas
+// verdes de precio sin competir con ellas (amarillo solo como detalle). Lejos
+// queda chica; desde zoom 15 crece un poco para destacarse al mirar la zona.
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
 }
 
 const DEV_ZOOM_CERCA = 15
 
-function createDevPill(name: string, minPrice: string, cerca: boolean) {
+function createDevPill(name: string, cerca: boolean) {
   const max = cerca ? 24 : 18
   const label = name.length > max ? name.slice(0, max - 1).trimEnd() + '…' : name
-  const sub = minPrice === 'Consultar' ? 'Consultar precio' : `desde ${minPrice}`
   const t = cerca
-    ? { gap: 6, pad: '3px 10px 3px 3px', radius: 8, box: 22, boxRadius: 6, svg: 13, name: 12, sub: 11, tail: 6, shadow: '0 3px 10px rgba(0,0,0,0.3)' }
-    : { gap: 5, pad: '3px 8px 3px 3px', radius: 7, box: 18, boxRadius: 5, svg: 11, name: 11, sub: 10, tail: 5, shadow: '0 2px 6px rgba(0,0,0,0.25)' }
+    ? { gap: 6, pad: '4px 11px 4px 4px', font: 12, dot: 20, svg: 12, tail: 6, shadow: '0 2px 8px rgba(0,0,0,0.3)' }
+    : { gap: 5, pad: '3px 9px 3px 3px', font: 11, dot: 16, svg: 10, tail: 5, shadow: '0 1px 5px rgba(0,0,0,0.25)' }
   const html = `
     <div style="position:relative;display:inline-block;cursor:pointer;">
       <div style="
         display:inline-flex;align-items:center;gap:${t.gap}px;
-        background:#1A5C38;color:#fff;
-        padding:${t.pad};border-radius:${t.radius}px;
+        background:#111;color:#fff;
+        font-family:'Raleway',system-ui,sans-serif;
+        font-weight:700;font-size:${t.font}px;line-height:1.2;
+        padding:${t.pad};border-radius:999px;
         border:2px solid rgba(255,255,255,0.95);
         box-shadow:${t.shadow};
         white-space:nowrap;
       ">
         <span style="
-          width:${t.box}px;height:${t.box}px;border-radius:${t.boxRadius}px;background:#fff;
+          width:${t.dot}px;height:${t.dot}px;border-radius:50%;background:#fbce07;
           display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
-        "><svg xmlns="http://www.w3.org/2000/svg" width="${t.svg}" height="${t.svg}" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
-        <span style="display:flex;flex-direction:column;line-height:1.1;">
-          <span style="font-family:'Raleway',system-ui,sans-serif;font-weight:700;font-size:${t.name}px;">${escapeHtml(label)}</span>
-          <span style="font-family:'Poppins',system-ui,sans-serif;font-weight:500;font-size:${t.sub}px;opacity:0.88;">${escapeHtml(sub)}</span>
-        </span>
+        "><svg xmlns="http://www.w3.org/2000/svg" width="${t.svg}" height="${t.svg}" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
+        ${escapeHtml(label)}
       </div>
       <div style="
         width:0;height:0;margin:0 auto;
         border-left:${t.tail}px solid transparent;
         border-right:${t.tail}px solid transparent;
-        border-top:${t.tail}px solid #1A5C38;
+        border-top:${t.tail}px solid #111;
       "></div>
     </div>`
 
-  const w = cerca
-    ? Math.max(Math.max(label.length * 7.2, sub.length * 6.4) + 44, 90)
-    : Math.max(Math.max(label.length * 6.6, sub.length * 5.8) + 36, 72)
-  const h = cerca ? 42 : 34
+  const w = Math.max(label.length * (cerca ? 7.2 : 6.6) + (cerca ? 44 : 36), 70)
+  const h = cerca ? 36 : 30
 
   return L.divIcon({
     className: '',
@@ -706,7 +702,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
   const devCerca = zoom >= DEV_ZOOM_CERCA
-  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, createDevPill(g.devName, g.minPrice, devCerca)])), [devGroups, devCerca])
+  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, createDevPill(g.devName, devCerca)])), [devGroups, devCerca])
 
 
   return (
@@ -767,8 +763,8 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           <span style={{ color: '#666' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 22, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', paddingLeft: 2 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: '#fff' }} />
+          <div style={{ width: 22, height: 14, background: '#111', borderRadius: 999, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', paddingLeft: 2 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbce07' }} />
           </div>
           <span style={{ color: '#666' }}>Emprendimiento</span>
         </div>
