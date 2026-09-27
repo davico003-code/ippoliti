@@ -11,6 +11,9 @@
 // cliente acotados).
 
 import { list } from '@vercel/blob'
+// La financiación (tipo, defaults y cuenta) vive en financiacion.ts, sin red,
+// para que también la use la landing en el navegador.
+import type { FinanciacionTipo } from './financiacion'
 
 export const PLANO_BLOB_PATH = 'plano-lotes/distrito-roldan.json'
 // El store por defecto (BLOB_READ_WRITE_TOKEN) es privado; el del blog es
@@ -29,8 +32,6 @@ export type LotePublicado = {
   contado?: number
 }
 
-export type FinanciacionTipo = { anticipoPct: number; cuotas: number; contadoTxt?: string }
-
 export type PlanoPublicado = {
   cfg: {
     whatsapp?: string
@@ -40,13 +41,6 @@ export type PlanoPublicado = {
   } & Record<string, unknown>
   lotes: Record<string, LotePublicado>
   guardadoEl?: string
-}
-
-/** Mismos valores que el CFG embebido en public/planos/distrito-roldan.html.
- *  Se usan solo si el Blob no publicó una financiación. */
-export const FINANCIACION_DEFAULT: Record<'residencial' | 'comercial', FinanciacionTipo> = {
-  residencial: { anticipoPct: 30, cuotas: 24 },
-  comercial: { anticipoPct: 50, cuotas: 12 },
 }
 
 export async function leerPlanoPublicado(): Promise<PlanoPublicado | null> {

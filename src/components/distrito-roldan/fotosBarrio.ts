@@ -5,11 +5,20 @@
 // y no tiene forma de marcar cuál es cuál. La sección "El barrio hoy" promete
 // imágenes reales, así que mostrar ahí un render sería vender humo.
 //
+// 26-sep-2026: desde que la web lee de HILO, la galería llega con los archivos
+// propios de la landing (/images/distrito-roldan/…), no con los del CRM viejo,
+// y el set de abajo ya no los reconocía: "Fotos del barrio" abría con la aérea
+// del hero y los dos renders. Ahora también se descartan por nombre de archivo
+// (render*, hero-aerea*, galeria-comercial*) y se sacan las fotos que ya
+// muestra Avances de obra, para no repetirlas.
+//
 // Cómo se mantiene: la lista es de RENDERS, no de fotos. Una foto nueva que se
 // suba al CRM entra sola como foto real —que es el caso habitual, fotos de
 // drone del avance—. Solo hay que tocar este archivo si algún día se carga un
 // render nuevo. Los renders del proyecto ya tienen su propia sección
 // (SeccionRenders), con archivos propios en public/images/distrito-roldan/.
+
+import { AVANCES_FOTOS } from './avancesObra'
 
 /** Identificador de cada render dentro de la galería del CRM (67178). */
 const RENDERS = new Set([
@@ -22,6 +31,9 @@ const RENDERS = new Set([
   '67178_9349230733317212684039504219410259634438945752555073092622618050535036274817',
 ])
 
+/** Archivos propios de la landing que son renders o imágenes ilustrativas. */
+const RENDER_POR_NOMBRE = /^(render|hero-aerea|galeria-comercial)/i
+
 /** Nombre del archivo sin extensión, que es lo que identifica a la foto. */
 function idDeFoto(url: string): string {
   const archivo = url.split('/').pop() ?? ''
@@ -33,5 +45,9 @@ function idDeFoto(url: string): string {
  * CRM, aparecen acá sin tocar nada.
  */
 export function soloFotosDelBarrio(fotos: string[]): string[] {
-  return fotos.filter((url) => !RENDERS.has(idDeFoto(url)))
+  const enAvances = new Set(AVANCES_FOTOS.map((f) => f.src))
+  return fotos.filter((url) => {
+    const id = idDeFoto(url)
+    return !RENDERS.has(id) && !RENDER_POR_NOMBRE.test(id) && !enAvances.has(url)
+  })
 }

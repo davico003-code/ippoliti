@@ -40,7 +40,7 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
   }, [])
 
   return (
-    <section id="plano" className="bg-[#345544] px-4 py-20 text-white sm:px-6 md:py-28">
+    <section id="plano" data-sin-fab className="bg-[#345544] px-4 py-20 text-white sm:px-6 md:py-28">
       <div className="mx-auto max-w-[1180px]">
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="max-w-2xl">
