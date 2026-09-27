@@ -25,12 +25,15 @@ import {
 } from 'lucide-react'
 import WhatsappBoton from '@/components/como-trabajamos/WhatsappBoton'
 import { VideoVivo } from '@/components/como-trabajamos/Medios'
+import { Vendidas } from '@/components/como-trabajamos/Resultados'
 import { Aereas, EquipoTecnico, Fotografia, Reels, Videotours } from '@/components/como-trabajamos/Produccion'
 import { CharlasQueSi, ContenidoIA, EmailMarketing, PortalesYPauta, Redes } from '@/components/como-trabajamos/Difusion'
 import { CalleYEventos, Desarrolladores, Equipo, Hilo, InformeReal, Oficinas, Prensa, RedDeContactos } from '@/components/como-trabajamos/Respaldo'
 import {
   ACENTO,
   BotonTasar,
+  Capitulo,
+  EstilosMovimiento,
   Contenedor,
   Encabezado,
   FONDO,
@@ -203,6 +206,7 @@ export default function ComoTrabajamosPage() {
       {/* En el televisor de la oficina (pantallas muy anchas) todo se agranda
           para leerse a distancia. */}
       <style dangerouslySetInnerHTML={{ __html: '@media (min-width: 1800px) { .ct-tv { zoom: 1.2; } }' }} />
+      <EstilosMovimiento />
 
       {/* ── PORTADA ───────────────────────────────
           Video de pantalla completa con tomas reales de nuestro drone
@@ -241,26 +245,26 @@ export default function ComoTrabajamosPage() {
         <div aria-hidden className="absolute inset-0 -z-10 md:hidden" style={{ background: 'rgba(6,20,12,.42)' }} />
 
         <Contenedor className="flex flex-1 flex-col justify-end pb-10 pt-24 md:pb-14 md:pt-32">
-          <p className="m-0 text-[12px] font-bold uppercase tracking-[0.28em]" style={{ color: MENTA }}>
+          <p className="ct-in m-0 text-[12px] font-bold uppercase tracking-[0.28em]" style={{ color: MENTA }}>
             SI INMOBILIARIA · Para propietarios
           </p>
           <h1
-            className="mt-5 max-w-[15ch] font-extrabold"
-            style={{ fontSize: 'clamp(2.9rem, 7.2vw, 6.4rem)', lineHeight: 0.98, letterSpacing: '-0.045em' }}
+            className="ct-in ct-in-1 mt-5 max-w-[15ch] font-extrabold"
+            style={{ fontSize: 'clamp(2.9rem, 7.2vw, 6.4rem)', lineHeight: 0.98, letterSpacing: '-0.045em', textShadow: '0 2px 24px rgba(0,0,0,.25)' }}
           >
             Así trabajamos con <span style={{ color: MENTA }}>tu propiedad.</span>
           </h1>
-          <p className="mt-6 max-w-[36rem] text-[17px] font-medium leading-[1.6] md:text-[19px]" style={{ color: 'rgba(255,255,255,.86)' }}>
+          <p className="ct-in ct-in-2 mt-6 max-w-[36rem] text-[17px] font-medium leading-[1.6] md:text-[19px]" style={{ color: 'rgba(255,255,255,.9)', textShadow: '0 1px 14px rgba(0,0,0,.45)' }}>
             Drone, videotours, redes, prensa y pauta paga, tecnología propia y un equipo que te cuenta cómo va, con datos. Todo lo
             que vas a ver es trabajo real, hecho por nosotros.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="ct-in ct-in-3 mt-8 flex flex-col gap-3 sm:flex-row">
             <BotonTasar />
             <WhatsappBoton ubicacion="portada" />
           </div>
 
           <dl
-            className="m-0 mt-12 grid grid-cols-2 gap-x-4 gap-y-5 rounded-[22px] px-5 py-6 sm:grid-cols-3 lg:grid-cols-6 md:mt-16 md:px-8"
+            className="ct-in ct-in-4 m-0 mt-12 grid grid-cols-2 gap-x-4 gap-y-5 rounded-[22px] px-5 py-6 sm:grid-cols-3 lg:grid-cols-6 md:mt-16 md:px-8"
             style={{
               background: 'rgba(255,255,255,.08)',
               border: '1px solid rgba(255,255,255,.14)',
@@ -296,7 +300,7 @@ export default function ComoTrabajamosPage() {
           </div>
           <ol className="relative m-0 list-none p-0">
             {PASOS.map(({ Icon, titulo, texto, detalle }, i) => (
-              <li key={titulo} className="relative grid grid-cols-[52px_1fr] gap-4 pb-9 last:pb-0 md:grid-cols-[64px_1fr] md:gap-6">
+              <li key={titulo} className="ct-rev relative grid grid-cols-[52px_1fr] gap-4 pb-9 last:pb-0 md:grid-cols-[64px_1fr] md:gap-6">
                 {i < PASOS.length - 1 && (
                   <span aria-hidden className="absolute bottom-[4px] left-[25px] top-[56px] w-px md:left-[31px] md:top-[68px]" style={{ background: 'rgba(26,92,56,.22)' }} />
                 )}
@@ -326,7 +330,11 @@ export default function ComoTrabajamosPage() {
         </Contenedor>
       </section>
 
+      {/* ── RESULTADOS: ventas propias reales ───── */}
+      <Vendidas />
+
       {/* ── PRODUCCIÓN ──────────────────────────── */}
+      <Capitulo numero="01" nombre="Producción" frase="Primero, que tu propiedad se vea increíble." />
       <Fotografia />
       <Aereas />
       <EquipoTecnico />
@@ -334,6 +342,7 @@ export default function ComoTrabajamosPage() {
       <Reels />
 
       {/* ── DIFUSIÓN ────────────────────────────── */}
+      <Capitulo numero="02" nombre="Difusión" frase="Después, que la vea la gente correcta." />
       <Redes />
       <CharlasQueSi />
       <ContenidoIA />
@@ -343,6 +352,7 @@ export default function ComoTrabajamosPage() {
       <CalleYEventos />
 
       {/* ── TECNOLOGÍA Y SEGUIMIENTO ────────────── */}
+      <Capitulo numero="03" nombre="Datos" frase="Y cada decisión, tomada con datos reales." />
       <Hilo />
 
       <section className="py-16 md:py-24" style={{ background: FONDO }} aria-labelledby="informe-titulo">
@@ -375,6 +385,7 @@ export default function ComoTrabajamosPage() {
       </section>
 
       {/* ── RESPALDO ────────────────────────────── */}
+      <Capitulo numero="04" nombre="Respaldo" frase="Detrás, cuatro décadas de trabajo en la zona." oscuro />
       <Desarrolladores />
       <RedDeContactos />
       <Equipo />
@@ -386,7 +397,7 @@ export default function ComoTrabajamosPage() {
           <Encabezado id="compromisos-titulo" oscuro eyebrow="Nuestros compromisos" titulo="Lo que podés esperar de nosotros, siempre." />
           <ul className="m-0 mt-10 grid list-none gap-8 p-0 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
             {COMPROMISOS.map(({ Icon, titulo, texto }) => (
-              <li key={titulo}>
+              <li key={titulo} className="ct-rev">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: 'rgba(159,217,185,.14)' }}>
                   <Icon size={22} strokeWidth={1.7} style={{ color: MENTA }} aria-hidden />
                 </span>

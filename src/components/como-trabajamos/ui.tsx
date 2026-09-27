@@ -43,7 +43,7 @@ export function Encabezado({
   className?: string
 }) {
   return (
-    <header className={`${centrado ? 'mx-auto text-center' : ''} max-w-[46rem] ${className}`}>
+    <header className={`ct-rev ${centrado ? 'mx-auto text-center' : ''} max-w-[46rem] ${className}`}>
       <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: oscuro ? MENTA : ACENTO }}>
         {eyebrow}
       </p>
@@ -103,5 +103,86 @@ export function LinkFlecha({ href, children, externo = false, claro = false }: {
     <Link href={href} className={cls} style={estilo}>
       {children} <ArrowRight size={17} aria-hidden />
     </Link>
+  )
+}
+
+/**
+ * Movimiento de la presentación, estilo Apple, solo con CSS:
+ * - .ct-rev: aparece subiendo al entrar en pantalla.
+ * - .ct-zoom: la foto se acerca levemente al entrar (de 1.14 a 1).
+ * - .ct-palabra: en los capítulos, cada palabra se "enciende" al scrollear.
+ * - .ct-in: entrada de la portada al cargar.
+ * Scroll-driven animations nativas: si el navegador no las soporta o se pidió
+ * menos movimiento, todo queda quieto y visible.
+ */
+export function EstilosMovimiento() {
+  return (
+    <style
+      dangerouslySetInnerHTML={{
+        __html: `
+@keyframes ctRev { from { opacity: 0; transform: translate3d(0, 44px, 0) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes ctZoom { from { transform: scale(1.14); } to { transform: scale(1); } }
+@keyframes ctPalabra { from { opacity: .16; } to { opacity: 1; } }
+@keyframes ctIn { from { opacity: 0; transform: translate3d(0, 30px, 0); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.ct-capitulo { view-timeline-name: --ct-cap; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ct-rev { animation: ctRev linear both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+    .ct-zoom { animation: ctZoom linear both; animation-timeline: view(); animation-range: entry 0% cover 50%; }
+    .ct-palabra { animation: ctPalabra linear both; animation-timeline: --ct-cap; animation-range: cover var(--ini) cover var(--fin); }
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ct-in { animation: ctIn 1s cubic-bezier(.2,.7,.2,1) both; }
+  .ct-in-1 { animation-delay: .1s; } .ct-in-2 { animation-delay: .25s; } .ct-in-3 { animation-delay: .4s; } .ct-in-4 { animation-delay: .6s; }
+}
+`,
+      }}
+    />
+  )
+}
+
+/**
+ * Capítulo: una frase grande a pantalla completa que se ilumina palabra por
+ * palabra mientras se scrollea (como las páginas de producto de Apple).
+ */
+export function Capitulo({ numero, nombre, frase, oscuro = false }: { numero: string; nombre: string; frase: string; oscuro?: boolean }) {
+  const palabras = frase.split(' ')
+  const n = palabras.length
+  return (
+    <section
+      className="ct-capitulo flex min-h-[70svh] items-center py-24 md:min-h-[88svh] md:py-32"
+      style={{ background: oscuro ? '#08170F' : '#fff', color: oscuro ? '#fff' : TINTA }}
+      aria-label={`${nombre}: ${frase}`}
+    >
+      <Contenedor>
+        <p className="m-0 flex items-center gap-3 text-[12px] font-bold uppercase tracking-[0.3em]" style={{ color: oscuro ? MENTA : ACENTO }}>
+          <span className="font-numeric">{numero}</span>
+          <span aria-hidden className="h-px w-10" style={{ background: 'currentColor' }} />
+          {nombre}
+        </p>
+        <p
+          aria-hidden
+          className="m-0 mt-6 max-w-[18ch] font-extrabold"
+          style={{ fontSize: 'clamp(2.6rem, 7.4vw, 7rem)', lineHeight: 1.0, letterSpacing: '-0.045em' }}
+        >
+          {palabras.map((p, i) => {
+            // Se enciende entre el 14% y el ~50% del recorrido: la frase queda
+            // completa justo cuando está centrada en la pantalla.
+            const ini = 14 + (i / n) * 28
+            return (
+              <span
+                key={i}
+                className="ct-palabra"
+                style={{ ['--ini' as string]: `${ini.toFixed(1)}%`, ['--fin' as string]: `${(ini + 8).toFixed(1)}%` } as React.CSSProperties}
+              >
+                {p}
+                {i < n - 1 ? ' ' : ''}
+              </span>
+            )
+          })}
+        </p>
+      </Contenedor>
+    </section>
   )
 }

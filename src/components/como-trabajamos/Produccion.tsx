@@ -24,7 +24,7 @@ export function Fotografia() {
 
         <ul className="m-0 mt-10 grid list-none grid-cols-2 gap-2.5 p-0 md:grid-cols-4 md:gap-3.5" style={{ gridAutoFlow: 'dense' }}>
           {FOTOS.map((f, i) => (
-            <li key={f.src} className={f.ancho ? 'col-span-2' : ''}>
+            <li key={f.src} className={`ct-rev ${f.ancho ? 'col-span-2' : ''}`}>
               <Link
                 href={f.href}
                 className="group relative block overflow-hidden rounded-[16px] md:rounded-[20px]"
@@ -55,13 +55,13 @@ export function Fotografia() {
 export function Aereas() {
   return (
     <section className="relative overflow-hidden text-white" style={{ background: VERDE_OSCURO }} aria-labelledby="drone-titulo">
-      <div className="relative h-[340px] w-full md:h-[560px]">
+      <div className="relative h-[340px] w-full overflow-hidden md:h-[560px]">
         <Image
           src="/como-trabajamos/drone-golf-funes.webp"
           alt="Toma aérea con drone de un club de campo con cancha de golf en Funes"
           fill
           sizes="100vw"
-          className="object-cover"
+          className="ct-zoom object-cover"
         />
         <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(0deg, #0E3521 0%, rgba(14,53,33,.35) 45%, rgba(14,53,33,.1) 100%)' }} />
         <Contenedor className="absolute inset-x-0 bottom-0 pb-8 md:pb-14">
@@ -77,7 +77,7 @@ export function Aereas() {
       <Contenedor className="pb-16 pt-6 md:pb-24">
         <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3 md:gap-4">
           {AEREAS.map((a) => (
-            <li key={a.src} className="relative aspect-[4/3] overflow-hidden rounded-[18px]">
+            <li key={a.src} className="ct-rev relative aspect-[4/3] overflow-hidden rounded-[18px]">
               <Image src={a.src} alt={a.alt} fill sizes="(max-width: 768px) 100vw, 380px" className="object-cover" />
               <Chip className="absolute bottom-3 left-3">
                 <Drone size={13} aria-hidden /> {a.lugar}
@@ -118,7 +118,7 @@ export function EquipoTecnico() {
           {EQUIPOS.map((e) => {
             const Icon = ICONOS[e.icono]
             return (
-              <li key={e.nombre} className="overflow-hidden rounded-[20px]" style={{ background: FONDO, border: `1px solid ${BORDE}` }}>
+              <li key={e.nombre} className="ct-rev overflow-hidden rounded-[20px]" style={{ background: FONDO, border: `1px solid ${BORDE}` }}>
                 <span className="relative block aspect-[16/10]" style={{ background: e.oscura ? '#000' : '#fff' }}>
                   <Image
                     src={e.foto}
@@ -197,7 +197,7 @@ export function Videotours() {
 
         <ul className="m-0 mt-10 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3 md:gap-5">
           {VIDEOTOURS.map((v) => (
-            <li key={v.id}>
+            <li key={v.id} className="ct-rev">
               <YoutubeEmbed
                 videoId={v.id}
                 title={v.titulo}

@@ -32,7 +32,7 @@ export function Redes() {
           />
           <ul className="m-0 mt-9 grid list-none gap-3 p-0 sm:grid-cols-2">
             {REDES.map((r) => (
-              <li key={r.usuario}>
+              <li key={r.usuario} className="ct-rev">
                 <a
                   href={r.href}
                   target="_blank"
@@ -62,7 +62,7 @@ export function Redes() {
           href="https://www.instagram.com/inmobiliaria.si"
           target="_blank"
           rel="noopener noreferrer"
-          className="mx-auto block w-full max-w-[400px] overflow-hidden rounded-[28px] bg-white p-4 shadow-2xl"
+          className="ct-rev mx-auto block w-full max-w-[400px] overflow-hidden rounded-[28px] bg-white p-4 shadow-2xl"
           style={{ color: TINTA, textDecoration: 'none' }}
           aria-label="Ver el perfil de Instagram @inmobiliaria.si"
         >
@@ -157,7 +157,7 @@ export function ContenidoIA() {
             { src: 'placa-voz-los-robles', txt: 'Los Robles 210, Funes' },
             { src: 'placa-voz-vida-058', txt: 'Lote 058, barrio Vida' },
           ].map((p) => (
-            <figure key={p.src} className="m-0">
+            <figure key={p.src} className="ct-rev m-0">
               <div className="relative mx-auto aspect-[9/16] w-[210px] overflow-hidden rounded-[26px] border-[5px] shadow-xl md:w-[220px]" style={{ borderColor: TINTA }}>
                 <VideoVivo
                   src={`/como-trabajamos/video/${p.src}.mp4`}
@@ -226,7 +226,7 @@ export function PortalesYPauta() {
 
         <ul className="m-0 mt-10 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-5 md:gap-4">
           {PORTALES.map((p) => (
-            <li key={p.nombre} className="flex flex-col items-center gap-3 rounded-[18px] px-3 py-6 text-center" style={{ background: FONDO }}>
+            <li key={p.nombre} className="ct-rev flex flex-col items-center gap-3 rounded-[18px] px-3 py-6 text-center" style={{ background: FONDO }}>
               <span className="relative h-14 w-14 overflow-hidden rounded-[14px] bg-white shadow-sm">
                 <Image src={p.logo} alt={`Logo de ${p.nombre}`} fill sizes="56px" className="object-contain p-1" />
               </span>
@@ -242,7 +242,7 @@ export function PortalesYPauta() {
 
         <div className="mt-12 grid items-center gap-10 lg:grid-cols-[minmax(0,400px)_1fr] lg:gap-16">
           {/* Maqueta del anuncio (formato real de nuestra pauta) */}
-          <figure className="m-0">
+          <figure className="ct-rev m-0">
             <div className="mx-auto w-full max-w-[380px] overflow-hidden rounded-[22px] bg-white shadow-2xl" style={{ border: `1px solid ${BORDE}` }}>
               <div className="flex items-center gap-2.5 px-4 py-3">
                 <span className="relative h-8 w-8 overflow-hidden rounded-full" style={{ border: `1px solid ${BORDE}` }}>
@@ -335,7 +335,7 @@ export function EmailMarketing() {
             { src: '/como-trabajamos/mail-nuevo-ingreso.webp', alt: 'Email de nuevo ingreso con una casa en Cadaqués', label: 'Nuevo ingreso', alto: 2173 },
             { src: '/como-trabajamos/mail-seleccion.webp', alt: 'Email con la selección de la semana', label: 'Selección de la semana', alto: 3587 },
           ].map((m) => (
-            <figure key={m.src} className="m-0">
+            <figure key={m.src} className="ct-rev m-0">
               <div className="relative h-[380px] overflow-hidden rounded-[18px] shadow-xl md:h-[520px]" style={{ background: '#0c1a13' }}>
                 <Image src={m.src} alt={m.alt} width={900} height={m.alto} sizes="(max-width: 1024px) 50vw, 330px" className="h-auto w-full" />
                 <span aria-hidden className="absolute inset-x-0 bottom-0 h-20" style={{ background: 'linear-gradient(0deg, #0c1a13 0%, rgba(12,26,19,0) 100%)' }} />
