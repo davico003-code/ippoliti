@@ -17,6 +17,7 @@ import {
   type HausingBarrio,
 } from "@/lib/hausing"
 import HausingWhatsLink from "@/components/hausing/HausingWhatsLink"
+import HausingGaleria from "@/components/hausing/HausingGaleria"
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd"
 
 // "Colección Hausing" — editorial de lujo: negro puro + blanco, verde SI profundo
@@ -356,7 +357,6 @@ function ResidenciaCard({
 }) {
   const { ficha, property, numero, slug, titulo } = r
   const principal = ficha.fotos[0]
-  const interiores = ficha.fotos.slice(2, 4)
   const precio = formatPrice(property)
   const barrio = ficha.barrio
   const fichaB = barrio ? fichaBarrio(barrio) : null
@@ -455,16 +455,10 @@ function ResidenciaCard({
           </div>
         </div>
 
-        {interiores.length > 0 && (
-          <div className="hz-reveal grid grid-cols-2 gap-3 lg:col-span-7 lg:gap-4">
-            {interiores.map(src => (
-              <div
-                key={src}
-                className={`relative overflow-hidden bg-white/5 ${interiores.length === 1 ? "col-span-2 aspect-[16/10]" : "aspect-[3/4]"}`}
-              >
-                <Image src={src} alt="" fill sizes="(max-width:1024px) 50vw, 30vw" className="object-cover" />
-              </div>
-            ))}
+        {ficha.fotos.length > 1 && (
+          <div className="hz-reveal lg:col-span-7">
+            <p className="hz-label mb-6 text-white/45">Galería</p>
+            <HausingGaleria fotos={ficha.fotos} titulo={ficha.identificador || titulo} id={property.id} />
           </div>
         )}
       </div>
@@ -675,6 +669,8 @@ const CSS = `
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .hz-btn-glass:hover { background:#fff; color:#000; border-color:#fff; }
 @keyframes hzRise { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:none; } }
+@keyframes hzFotoIn { from { opacity:0; } to { opacity:1; } }
+.hz-foto-in { animation: hzFotoIn .35s ease both; }
 @keyframes hzKen { from { transform:scale(1.12); } to { transform:scale(1); } }
 @media (prefers-reduced-motion: no-preference) {
   .hz-rise { animation: hzRise 1.1s cubic-bezier(.16,1,.3,1) both; animation-delay: var(--d, 0ms); }

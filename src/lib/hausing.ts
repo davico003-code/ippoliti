@@ -11,6 +11,7 @@ import type { TokkoProperty } from './tokko'
 import { getAllPhotos, getLotSurface, getRoofedArea, getTotalSurface } from './tokko'
 import { getBarrioBySlug } from './barrios'
 import { getBarrio as getBarrioTasador } from './tasador/barrios'
+import FOTOS_PRO from './hausing-fotos.json'
 
 export const HAUSING_PROPERTY_IDS = [7872050, 7875941, 7868679, 7865564, 7867761, 7879685]
 
@@ -37,7 +38,7 @@ export const HAUSING_BARRIOS: HausingBarrio[] = [
     key: 'kentucky',
     nombre: 'Kentucky Club de Campo',
     href: '/barrios-privados/kentucky',
-    foto: '/barrios/kentucky/05.webp',
+    foto: '/images/hausing/barrios/kentucky-05.webp',
     credenciales: ['Golf de 18 hoyos', '242 hectáreas', 'Lago de 7 ha'],
     frase: 'El único del corredor con golf de 18 hoyos dentro del perímetro, entre arboledas de medio siglo.',
     slugBarrio: 'kentucky',
@@ -47,7 +48,7 @@ export const HAUSING_BARRIOS: HausingBarrio[] = [
     key: 'cadaques',
     nombre: 'Funes Hills Cadaqués',
     href: '/barrios-privados/funes-hills-cadaques',
-    foto: '/barrios/funes-hills-cadaques/01.webp',
+    foto: '/images/hausing/barrios/funes-hills-cadaques-01.webp',
     credenciales: ['Tierras altas', 'Boulevard forestado', 'Club House'],
     frase: 'Tierras altas y un boulevard central forestado: un barrio maduro, con los árboles ya crecidos.',
     slugBarrio: 'funes-hills-cadaques',
@@ -57,7 +58,7 @@ export const HAUSING_BARRIOS: HausingBarrio[] = [
     key: 'vida',
     nombre: 'Vida Barrio Cerrado',
     href: '/barrios-privados/vida-barrio-cerrado',
-    foto: '/barrios/vida-barrio-cerrado/01.webp',
+    foto: '/images/hausing/barrios/vida-barrio-cerrado-01.webp',
     credenciales: ['35 hectáreas', 'Laguna', 'Centro comercial propio'],
     frase: 'Club House, laguna y un centro comercial propio en el ingreso. Todo a mano, sin salir del barrio.',
     slugBarrio: 'vida-barrio-cerrado',
@@ -97,6 +98,22 @@ export const ESTANDAR_HAUSING: { titulo: string; detalle: string }[] = [
   { titulo: 'Galería con parrillero', detalle: 'La vida afuera, semicubierta y equipada para recibir.' },
   { titulo: 'Suite principal con vestidor', detalle: 'Dormitorio principal con baño propio y vestidor.' },
 ]
+
+// Fotos retocadas para la landing (color de arquitectura en todas; las que se
+// ven a pantalla completa, además, mejoradas con Higgsfield). Viven en Vercel
+// Blob y NO tocan la publicación en HILO. La clave es la ruta del archivo en el
+// storage de HILO (sin el token firmado): si Hausing suma una foto nueva, se
+// muestra la original hasta el próximo procesado (scripts de la sesión).
+const PRO = FOTOS_PRO as Record<string, { url: string }>
+
+export function fotoPro(url: string): string {
+  try {
+    const clave = decodeURIComponent(new URL(url).pathname).replace(/^.*\/object\/(sign|public)\//, '')
+    return PRO[clave]?.url ?? url
+  } catch {
+    return url
+  }
+}
 
 function norm(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -191,7 +208,7 @@ export function fichaDe(p: TokkoProperty): FichaHausing {
     barrio: barrioDe(p),
     identificador: lote ? `Lote ${lote}` : calle,
     estado: estadoDe(p),
-    fotos: getAllPhotos(p),
+    fotos: getAllPhotos(p).map(fotoPro),
     dormitorios: dorm ? parseInt(dorm, 10) : null,
     banos: p.bathroom_amount > 0 ? p.bathroom_amount : null,
     plantas: plantasTxt ? NUM_PALABRA[plantasTxt] : null,
@@ -239,10 +256,12 @@ export interface FichaBarrio {
 }
 
 // Fotos del barrio (/public/barrios/{slug}): la primera es la principal.
+// Copias retocadas (mismo color que las casas) solo para esta landing: las
+// originales de /public/barrios siguen sirviendo a /barrios-privados sin cambios.
 const FOTOS_BARRIO: Record<string, string[]> = {
-  kentucky: ['/barrios/kentucky/05.webp', '/barrios/kentucky/01.webp', '/barrios/kentucky/03.webp'],
-  'funes-hills-cadaques': ['/barrios/funes-hills-cadaques/01.webp', '/barrios/funes-hills-cadaques/02.webp', '/barrios/funes-hills-cadaques/04.webp'],
-  'vida-barrio-cerrado': ['/barrios/vida-barrio-cerrado/01.webp', '/barrios/vida-barrio-cerrado/03.webp', '/barrios/vida-barrio-cerrado/04.webp'],
+  kentucky: ['05', '01', '03'].map(n => `/images/hausing/barrios/kentucky-${n}.webp`),
+  'funes-hills-cadaques': ['01', '02', '04'].map(n => `/images/hausing/barrios/funes-hills-cadaques-${n}.webp`),
+  'vida-barrio-cerrado': ['01', '03', '04'].map(n => `/images/hausing/barrios/vida-barrio-cerrado-${n}.webp`),
 }
 
 const nfAR = (n: number) => n.toLocaleString('es-AR')
