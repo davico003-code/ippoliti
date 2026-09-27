@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Clock, MapPin, Star } from 'lucide-react'
 import EncabezadoSeccion from './EncabezadoSeccion'
+import SedesModernas from './SedesModernas'
 
 const GREEN = '#1A5C38'
 
@@ -86,6 +87,8 @@ export default function ConfianzaDesktop() {
         </div>
       </section>
 
+      {/* Opción de oficinas elegida en el preview (ver OpcionesPreview). */}
+      <div className="sedes-op sedes-op-0">
       <section className="bg-white py-20">
         <div className="mx-auto grid max-w-[1200px] grid-cols-[minmax(0,1fr)_minmax(390px,0.72fr)] items-center gap-14 px-6">
           <div className="text-left">
@@ -169,6 +172,9 @@ export default function ConfianzaDesktop() {
           </div>
         </div>
       </section>
+      </div>
+      <div className="sedes-op sedes-op-1"><SedesModernas variante="linea" /></div>
+      <div className="sedes-op sedes-op-2"><SedesModernas variante="tarjetas" /></div>
     </>
   )
 }

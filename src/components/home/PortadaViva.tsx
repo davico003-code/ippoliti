@@ -28,6 +28,7 @@ type Props = {
 export default function PortadaViva({ poster, video, sizes, radio, margen, velo }: Props) {
   const cuadro = useRef<HTMLDivElement>(null)
   const capa = useRef<HTMLDivElement>(null)
+  const oscuro = useRef<HTMLDivElement>(null)
   const vid = useRef<HTMLVideoElement>(null)
   const [src, setSrc] = useState<string | null>(null)
   const [vivo, setVivo] = useState(false)
@@ -86,19 +87,38 @@ export default function PortadaViva({ poster, video, sizes, radio, margen, velo 
       el.style.clipPath = p > 0
         ? `inset(0px ${t * margen}px ${t * margen}px ${t * margen}px round 0px 0px ${t * radio}px ${t * radio}px)`
         : ''
-      if (capa.current) capa.current.style.transform = `translate3d(0, ${p * 18}%, 0)`
+      // Efecto al bajar (en el preview se elige con el selector de opciones):
+      //   actual → la foto baja un poco y el texto se desvanece
+      //   a      → profundidad: la foto va más lento y se oscurece; texto entero
+      //   b      → desenfoque tipo iPhone; texto entero
+      //   c      → la foto se acerca, como entrar a la galería; texto entero
+      const ef = document.documentElement.dataset.efecto || 'a'
+      const c = capa.current
+      if (c) {
+        if (ef === 'c') c.style.transform = `translate3d(0, ${p * 6}%, 0) scale(${1 + p * 0.22})`
+        else c.style.transform = `translate3d(0, ${p * (ef === 'a' ? 30 : ef === 'b' ? 10 : 18)}%, 0)`
+        c.style.filter = ef === 'b' && p > 0.005 ? `blur(${(p * 14).toFixed(1)}px) brightness(${(1 - p * 0.3).toFixed(3)})` : ''
+      }
+      if (oscuro.current) oscuro.current.style.opacity = String(ef === 'a' ? p * 0.5 : ef === 'c' ? p * 0.3 : 0)
       if (contenido) {
-        contenido.style.transform = p > 0 ? `translate3d(0, ${-p * 90}px, 0)` : ''
-        contenido.style.opacity = String(Math.max(0, 1 - p * 1.8))
+        if (ef === 'actual') {
+          contenido.style.transform = p > 0 ? `translate3d(0, ${-p * 90}px, 0)` : ''
+          contenido.style.opacity = String(Math.max(0, 1 - p * 1.8))
+        } else {
+          contenido.style.transform = p > 0 ? `translate3d(0, ${-p * 40}px, 0)` : ''
+          contenido.style.opacity = ''
+        }
       }
     }
     const pedir = () => { if (!raf) raf = requestAnimationFrame(pintar) }
     pintar()
     window.addEventListener('scroll', pedir, { passive: true })
     window.addEventListener('resize', pedir)
+    window.addEventListener('si-opciones', pedir)
     return () => {
       window.removeEventListener('scroll', pedir)
       window.removeEventListener('resize', pedir)
+      window.removeEventListener('si-opciones', pedir)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [radio, margen])
@@ -125,6 +145,7 @@ export default function PortadaViva({ poster, video, sizes, radio, margen, velo 
         </div>
       </div>
       <div className="absolute inset-0" style={{ background: velo }} />
+      <div ref={oscuro} className="absolute inset-0 bg-black" style={{ opacity: 0 }} />
       <style dangerouslySetInnerHTML={{ __html: `
         .portada-respira { animation: portadaRespira 2600ms cubic-bezier(.16,1,.3,1) both; transform-origin: 50% 60%; }
         @keyframes portadaRespira { from { transform: scale(1.07); } to { transform: scale(1); } }

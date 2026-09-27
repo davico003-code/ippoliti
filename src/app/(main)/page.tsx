@@ -16,6 +16,7 @@ import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import TemporariosHome from '@/components/home/TemporariosHome'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
+import OpcionesPreview from '@/components/home/OpcionesPreview'
 import { esTemporadaVerano } from '@/lib/temporarios-data'
 import {
   getFeaturedProperties,
@@ -254,6 +255,7 @@ export default async function Home() {
   const verano = esTemporadaVerano()
   return (
     <>
+      <OpcionesPreview />
       <h1 className="sr-only">Propiedades y servicios inmobiliarios en Funes, Roldán y Rosario</h1>
       {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
       <div className="md:hidden">
