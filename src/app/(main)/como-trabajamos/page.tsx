@@ -399,9 +399,6 @@ function Presentacion({ para }: { para?: { cliente: string; agente: string; visi
         </Contenedor>
       </section>
 
-      {/* ── RESULTADOS: ventas propias reales ───── */}
-      <Vendidas />
-
       {/* ── PRODUCCIÓN ──────────────────────────── */}
       <Capitulo numero="01" nombre="Producción" frase="Primero, que tu propiedad se vea increíble." />
       <Fotografia />
@@ -478,6 +475,10 @@ function Presentacion({ para }: { para?: { cliente: string; agente: string; visi
           </ul>
         </Contenedor>
       </section>
+
+      {/* ── RESULTADOS: ventas propias reales, cierran el recorrido ── */}
+      <Capitulo numero="05" nombre="Resultados" frase="Y así termina: con tu propiedad vendida." />
+      <Vendidas />
 
       {/* ── PREGUNTAS ───────────────────────────── */}
       <section className="py-16 md:py-24" aria-labelledby="faq-como-trabajamos">
