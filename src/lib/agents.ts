@@ -9,7 +9,7 @@ export const AGENTS: Agent[] = [
   { id: 'aldana',    username: 'aldana',    name: 'Aldana Ruiz',          role: 'agent' },
   { id: 'carolina',  username: 'carolina',  name: 'Carolina Echen',       role: 'agent' },
   { id: 'david',     username: 'david',     name: 'David Flores',         role: 'admin' },
-  { id: 'florencia', username: 'florencia', name: 'Florencia',            role: 'agent' },
+  { id: 'florencia', username: 'florencia', name: 'Florencia Acquarone',  role: 'agent' },
   { id: 'gino',      username: 'gino',      name: 'Gino Pecchenino',      role: 'agent' },
   { id: 'gisela',    username: 'gisela',    name: 'Gisela Ramallo',       role: 'agent' },
   { id: 'laura',     username: 'laura',     name: 'Laura Flores',         role: 'admin' },
