@@ -30,7 +30,7 @@ export function Vendidas() {
           titulo="Propiedades que ya vendimos."
           bajada="Casas y lotes en los barrios cerrados, clubes de campo y desarrollos más buscados de la zona. Cada una pasó por el mismo método que vas a ver en esta presentación."
         />
-        <ul className="m-0 mt-10 grid list-none auto-rows-[210px] grid-cols-2 gap-3 p-0 sm:auto-rows-[240px] md:gap-4 lg:auto-rows-[250px] lg:grid-cols-4">
+        <ul className="m-0 mt-10 grid list-none auto-rows-[235px] grid-cols-2 gap-3 p-0 sm:auto-rows-[240px] md:gap-4 lg:auto-rows-[250px] lg:grid-cols-4">
           {VENDIDAS.map((v) => (
             <li
               key={v.foto}
@@ -45,7 +45,7 @@ export function Vendidas() {
               />
               <span aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(0deg, rgba(8,14,11,.92) 0%, rgba(8,14,11,.45) 38%, rgba(8,14,11,0) 62%)' }} />
               <span
-                className="absolute right-2.5 top-2.5 inline-flex max-w-[calc(100%-20px)] items-center gap-1 truncate rounded-full bg-white px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-[0.08em] md:right-3 md:top-3 md:text-[11.5px]"
+                className={`absolute right-2.5 top-2.5 max-w-[calc(100%-20px)] items-center gap-1 truncate rounded-full bg-white px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-[0.08em] md:right-3 md:top-3 md:text-[11.5px] ${v.destacada ? 'inline-flex' : 'hidden sm:inline-flex'}`}
                 style={{ color: TINTA }}
               >
                 <MapPin size={12} strokeWidth={2.4} style={{ color: '#1A5C38' }} aria-hidden className="shrink-0" />
@@ -62,6 +62,12 @@ export function Vendidas() {
                 >
                   {v.titulo}
                 </span>
+                {!v.destacada && (
+                  <span className="mt-0.5 flex items-center gap-1 text-[11.5px] font-semibold text-white/80 sm:hidden">
+                    <MapPin size={11} strokeWidth={2.4} aria-hidden className="shrink-0" />
+                    {v.zona}
+                  </span>
+                )}
                 <span className="mt-2 flex flex-wrap gap-1.5">
                   {v.specs.map((sp) => (
                     <span
