@@ -1680,15 +1680,15 @@ export default function PropiedadesView({
 
             <p className="text-[12px] text-gray-500 flex-1 text-center truncate">
               <span className="font-bold text-gray-900 font-numeric">{visibleProperties.length}</span>
-              {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {opLabel}
+              {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {visibleProperties.length === 1 && opLabel === 'disponibles' ? 'disponible' : opLabel}
             </p>
 
           </div>
 
           {/* List */}
           <div ref={listRef} className="flex-1 overflow-y-auto">
-            {/* Lo que entendió el buscador: confirma al instante que la búsqueda
-                se interpretó bien, y avisa si hubo que flexibilizar algo. */}
+            {/* Lo que entendió el buscador (etiquetas) + botón para limpiar. Sin
+                aclaraciones de texto (lo que se aflojó no se explica). */}
             {resultadoBusqueda && filters.search.trim() && visibleProperties.length > 0 && (
               <div className="px-3 md:px-4 pt-2.5 pb-2 border-b border-gray-100" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -1697,22 +1697,23 @@ export default function PropiedadesView({
                       {et}
                     </span>
                   ))}
-                  <span className="md:hidden text-[12px] text-gray-500 ml-auto whitespace-nowrap">
-                    <span className="font-numeric font-semibold text-gray-900">{visibleProperties.length}</span>
-                    {' '}resultado{visibleProperties.length !== 1 ? 's' : ''}
+                  {/* Contador (solo celular) + Limpiar juntos a la derecha: si no
+                      entran en la fila, bajan como una sola pieza. */}
+                  <span className="ml-auto inline-flex items-center gap-2 whitespace-nowrap">
+                    <span className="md:hidden text-[12px] text-gray-500">
+                      <span className="font-numeric font-semibold text-gray-900">{visibleProperties.length}</span>
+                      {' '}resultado{visibleProperties.length !== 1 ? 's' : ''}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => set('search', '')}
+                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-gray-500 hover:text-gray-900 rounded-full px-2 py-1 -mr-2 transition-colors"
+                      aria-label="Limpiar búsqueda"
+                    >
+                      <X className="w-3.5 h-3.5" /> Limpiar
+                    </button>
                   </span>
                 </div>
-                {resultadoBusqueda.aproximado && (
-                  <p className="text-[12px] text-gray-500 mt-1.5 leading-snug">
-                    No hay exactamente eso. Te mostramos lo más parecido
-                    {resultadoBusqueda.aflojado.length > 0 && <>: {resultadoBusqueda.aflojado.join(' · ')}</>}.
-                  </p>
-                )}
-                {resultadoBusqueda.interpretacion.ignoradas.length > 0 && (
-                  <p className="text-[12px] text-gray-500 mt-1.5 leading-snug">
-                    No encontramos {resultadoBusqueda.interpretacion.ignoradas.map(w => `«${w}»`).join(', ')} en nuestras propiedades.
-                  </p>
-                )}
               </div>
             )}
             {visibleProperties.length === 0 ? (
