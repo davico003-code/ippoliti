@@ -2216,8 +2216,16 @@ function describirFloja(it: Interpretacion, k: Llave, flojas: Set<Llave>, hits: 
     case 'dormsAncho': {
       if (flojas.has('dorms')) return null
       if (it.mono) return 'monoambientes o de 1 dormitorio'
-      if (it.dorms) return `${Math.max(0, it.dorms.min - 1)} a ${Math.min(99, it.dorms.max + 1)} dormitorios`.replace(/^0 a /, 'hasta ')
-      if (it.ambientes) return `${Math.max(1, it.ambientes.min - 1)} a ${it.ambientes.max + 1} ambientes`
+      // Sin tope ("5 dormitorios" = 5 o más): "4 o más", nunca "4 a 99".
+      if (it.dorms) {
+        const min = Math.max(0, it.dorms.min - 1)
+        if (it.dorms.max >= 99) return min <= 0 ? null : `${min} o más dormitorios`
+        return `${min} a ${it.dorms.max + 1} dormitorios`.replace(/^0 a /, 'hasta ')
+      }
+      if (it.ambientes) {
+        const min = Math.max(1, it.ambientes.min - 1)
+        return it.ambientes.max >= 99 ? `${min} o más ambientes` : `${min} a ${it.ambientes.max + 1} ambientes`
+      }
       return null
     }
     case 'banos': return `con menos de ${it.banos} baño${it.banos === 1 ? '' : 's'}`
