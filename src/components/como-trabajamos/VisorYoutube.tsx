@@ -8,7 +8,7 @@
 //   explícito donde YouTube todavía lo respeta.
 // - Maximizar: el botón de pantalla completa del propio reproductor.
 // - Cerrar: la X, Esc, tocar afuera o cuando el video termina.
-// - CapaVisor se monta en un portal sobre <body>: los .ct-rev de la página
+// - Se monta en un portal sobre <body>: los .ct-rev de la página
 //   llevan transform y romperían el position:fixed del visor.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -18,9 +18,9 @@ import { X } from 'lucide-react'
 /**
  * Capa oscura a pantalla completa con el contenido centrado y la X arriba a la
  * derecha. Cierra con Esc o tocando afuera y bloquea el scroll de la página
- * mientras está abierta. La usan el visor de YouTube y el tour 360°.
+ * mientras está abierta.
  */
-export function CapaVisor({ etiqueta, onCerrar, children }: { etiqueta: string; onCerrar: () => void; children: React.ReactNode }) {
+function CapaVisor({ etiqueta, onCerrar, children }: { etiqueta: string; onCerrar: () => void; children: React.ReactNode }) {
   const cerrar = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
