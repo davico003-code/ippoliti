@@ -8,15 +8,19 @@
 //   explícito donde YouTube todavía lo respeta.
 // - Maximizar: el botón de pantalla completa del propio reproductor.
 // - Cerrar: la X, Esc, tocar afuera o cuando el video termina.
-// - Se monta en un portal sobre <body>: los .ct-rev de la página llevan
-//   transform y romperían el position:fixed del visor.
+// - CapaVisor se monta en un portal sobre <body>: los .ct-rev de la página
+//   llevan transform y romperían el position:fixed del visor.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
-function Visor({ id, titulo, vertical, onCerrar }: { id: string; titulo: string; vertical: boolean; onCerrar: () => void }) {
-  const iframe = useRef<HTMLIFrameElement>(null)
+/**
+ * Capa oscura a pantalla completa con el contenido centrado y la X arriba a la
+ * derecha. Cierra con Esc o tocando afuera y bloquea el scroll de la página
+ * mientras está abierta. La usan el visor de YouTube y el tour 360°.
+ */
+export function CapaVisor({ etiqueta, onCerrar, children }: { etiqueta: string; onCerrar: () => void; children: React.ReactNode }) {
   const cerrar = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -27,8 +31,46 @@ function Visor({ id, titulo, vertical, onCerrar }: { id: string; titulo: string;
     const alTeclear = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onCerrar()
     }
-    // Cuando el video termina (estado 0 de la API del iframe) volvemos solos a
-    // la presentación.
+    window.addEventListener('keydown', alTeclear)
+    return () => {
+      document.body.style.overflow = overflow
+      window.removeEventListener('keydown', alTeclear)
+      previo?.focus?.()
+    }
+  }, [onCerrar])
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={etiqueta}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8"
+      style={{ background: 'rgba(4,12,8,.86)', backdropFilter: 'blur(6px)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCerrar()
+      }}
+    >
+      {children}
+      <button
+        ref={cerrar}
+        type="button"
+        onClick={onCerrar}
+        aria-label="Cerrar y volver a la presentación"
+        className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25 md:right-6 md:top-6"
+      >
+        <X size={22} aria-hidden />
+      </button>
+    </div>,
+    document.body,
+  )
+}
+
+function Visor({ id, titulo, vertical, onCerrar }: { id: string; titulo: string; vertical: boolean; onCerrar: () => void }) {
+  const iframe = useRef<HTMLIFrameElement>(null)
+
+  // Cuando el video termina (estado 0 de la API del iframe) volvemos solos a
+  // la presentación.
+  useEffect(() => {
     const alMensaje = (e: MessageEvent) => {
       if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(e.origin)) return
       try {
@@ -39,14 +81,8 @@ function Visor({ id, titulo, vertical, onCerrar }: { id: string; titulo: string;
         // Mensaje que no es de la API: se ignora.
       }
     }
-    window.addEventListener('keydown', alTeclear)
     window.addEventListener('message', alMensaje)
-    return () => {
-      document.body.style.overflow = overflow
-      window.removeEventListener('keydown', alTeclear)
-      window.removeEventListener('message', alMensaje)
-      previo?.focus?.()
-    }
+    return () => window.removeEventListener('message', alMensaje)
   }, [onCerrar])
 
   const escuchar = () => iframe.current?.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*')
@@ -54,16 +90,7 @@ function Visor({ id, titulo, vertical, onCerrar }: { id: string; titulo: string;
   const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1', vq: 'hd1080', iv_load_policy: '3', enablejsapi: '1' })
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={titulo}
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8"
-      style={{ background: 'rgba(4,12,8,.86)', backdropFilter: 'blur(6px)' }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onCerrar()
-      }}
-    >
+    <CapaVisor etiqueta={titulo} onCerrar={onCerrar}>
       <figure className="m-0 flex flex-col items-center">
         <div
           className="relative overflow-hidden rounded-[18px] bg-black shadow-2xl"
@@ -85,16 +112,7 @@ function Visor({ id, titulo, vertical, onCerrar }: { id: string; titulo: string;
         </div>
         <figcaption className="mt-3 max-w-full truncate text-center text-[14px] font-bold text-white/85">{titulo}</figcaption>
       </figure>
-      <button
-        ref={cerrar}
-        type="button"
-        onClick={onCerrar}
-        aria-label="Cerrar el video y volver a la presentación"
-        className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25 md:right-6 md:top-6"
-      >
-        <X size={22} aria-hidden />
-      </button>
-    </div>
+    </CapaVisor>
   )
 }
 
@@ -127,7 +145,7 @@ export default function VisorYoutube({
       >
         {children}
       </button>
-      {abierto && createPortal(<Visor id={id} titulo={titulo} vertical={vertical} onCerrar={cerrar} />, document.body)}
+      {abierto && <Visor id={id} titulo={titulo} vertical={vertical} onCerrar={cerrar} />}
     </>
   )
 }

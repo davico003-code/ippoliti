@@ -11,9 +11,11 @@ import {
   Handshake,
   Inbox,
   MapPin,
+  Orbit,
   Users,
 } from 'lucide-react'
 import { VideoVivo } from './Medios'
+import BotonTour360 from './Tour360'
 import MapaUbicacion from './MapaUbicacion'
 import RedRelaciones, { RELACIONES } from './Red'
 import { MuroHilo } from './Resultados'
@@ -376,6 +378,46 @@ export function Desarrolladores() {
             </li>
           ))}
         </ul>
+
+        {/* Tecnología para vender desarrollos: el tour 360° de Distrito Roldán.
+            Clip grabado del tour real y botón para recorrerlo en vivo sin
+            salir de la presentación. */}
+        <div className="ct-rev mt-16 grid items-center gap-8 overflow-hidden rounded-[24px] p-5 md:mt-20 md:p-8 lg:grid-cols-[1.35fr_1fr] lg:gap-12" style={{ background: '#0B1510' }}>
+          <div className="relative aspect-video w-full overflow-hidden rounded-[16px]">
+            <VideoVivo
+              src="/como-trabajamos/video/distrito-roldan-360.mp4"
+              poster="/como-trabajamos/video/distrito-roldan-360.webp"
+              etiqueta="Recorrido por el tour 360° de Distrito Roldán: masterplan con los lotes, vista aérea 360° y el barrio proyectado"
+              className="absolute inset-0"
+            />
+            <Chip className="absolute left-3 top-3">
+              <Orbit size={13} aria-hidden /> distritoroldan360.com
+            </Chip>
+          </div>
+          <div className="text-white">
+            <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: MENTA }}>
+              Tecnología para desarrollos
+            </p>
+            <h3 className="mb-0 mt-2.5 text-[26px] font-extrabold leading-[1.1] md:text-[34px]" style={{ letterSpacing: '-0.03em' }}>
+              El barrio terminado, antes de que exista.
+            </h3>
+            <p className="mt-3 text-[15.5px] leading-[1.6] text-white/75">
+              Para Distrito Roldán armamos un tour 360° que el cliente recorre desde el celular: cada lote con su disponibilidad
+              sobre la foto aérea, vistas 360° con drone del entorno y la vista proyectada del barrio ya construido.
+            </p>
+            <ul className="m-0 mt-5 grid list-none gap-2 p-0 text-[14.5px] font-semibold text-white/90">
+              {['Masterplan interactivo con lotes disponibles y vendidos', 'Vistas aéreas 360° desde cada punto del barrio', 'Vista proyectada del barrio terminado'].map((t) => (
+                <li key={t} className="flex items-start gap-2.5">
+                  <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: MENTA }} />
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-7">
+              <BotonTour360>Recorrer el tour 360°</BotonTour360>
+            </div>
+          </div>
+        </div>
 
         <h3 className="mb-0 mt-16 text-[24px] font-extrabold md:mt-20 md:text-[30px]" style={{ letterSpacing: '-0.025em' }}>
           Informes reales que entregamos a los desarrolladores
