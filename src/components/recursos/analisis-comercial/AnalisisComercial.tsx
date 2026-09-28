@@ -82,6 +82,15 @@ export default function AnalisisComercial({ informe }: { informe: Informe }) {
     <div className="ac">
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
+      {/* ── Mapa ── */}
+      <section ref={mapaRef} className="ac-mapsec" aria-label="Mapa de comercios de Funes">
+        <div className="ac-sh">
+          <h2>Los comercios de Funes, avenida por avenida</h2>
+          <p>Cada punto es un comercio relevado sobre las avenidas y polos. Más abajo está el informe del mes con lo que falta y lo que sobra. Cambiá entre plano y vista satelital, prendé o apagá las avenidas, filtrá por rubro o tocá un punto para ver qué es.</p>
+        </div>
+        <MapaComercial filtro={filtro} onFiltro={setFiltro} />
+      </section>
+
       {/* ── Hero del informe ── */}
       <section className="ac-hero">
         <div>
@@ -217,15 +226,6 @@ export default function AnalisisComercial({ informe }: { informe: Informe }) {
             </button>
           ))}
         </div>
-      </section>
-
-      {/* ── Mapa ── */}
-      <section ref={mapaRef} className="ac-mapsec" aria-label="Mapa de comercios de Funes">
-        <div className="ac-sh">
-          <h2>El mapa</h2>
-          <p>Cada punto es un comercio relevado sobre las avenidas y polos. Cambiá entre plano y vista satelital, prendé o apagá las avenidas, filtrá por rubro o tocá un punto para ver qué es.</p>
-        </div>
-        <MapaComercial filtro={filtro} onFiltro={setFiltro} />
       </section>
 
       {/* ── Lo que viene / verificar ── */}
