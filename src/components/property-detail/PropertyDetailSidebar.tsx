@@ -14,6 +14,7 @@ import {
   tituloVisible,
 } from '@/lib/tokko'
 import AudioSummary from '../AudioSummary'
+import { events } from '@/lib/analytics'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 import { getAgenteRol } from '@/lib/agente-titulo'
@@ -67,6 +68,7 @@ export default function PropertyDetailSidebar({
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => events.contactoPropiedad(property.id, propertyTitle, 'whatsapp')}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
             style={{ background: '#25d366', color: '#fff' }}
             onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}
@@ -76,6 +78,7 @@ export default function PropertyDetailSidebar({
           </a>
           <a
             href={getProducerCallHref(property)}
+            onClick={() => events.contactoPropiedad(property.id, propertyTitle, 'llamada')}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
             style={{ border: '1.5px solid #e5e7eb', color: '#111' }}
           >

@@ -131,7 +131,7 @@ export default function MobileStickyBar({
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Contactar por WhatsApp"
-          onClick={() => events.clickWhatsapp(undefined, title)}
+          onClick={() => events.contactoPropiedad(propertyId, propertyTitle, 'whatsapp')}
           className="flex items-center justify-center"
           style={{
             width: 48, height: 48,

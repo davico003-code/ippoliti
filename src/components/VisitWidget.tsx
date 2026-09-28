@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { Calendar, Check, ChevronLeft, ChevronRight, Clock, MessageCircle, X } from 'lucide-react'
+import { events } from '@/lib/analytics'
 
 interface Props {
   propertyId: number
@@ -97,6 +98,7 @@ export default function VisitWidget({
     // `await fetch`, iOS Safari lo bloquea y el flujo principal de leads mobile
     // no abre WhatsApp. El registro de la visita se hace en background.
     if (waHref) window.open(waHref, '_blank')
+    if (propertyId) events.contactoPropiedad(propertyId, propertyTitle, 'visita')
 
     setLoading(true)
     const fechaStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
