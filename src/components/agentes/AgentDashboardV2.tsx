@@ -135,7 +135,7 @@ export default function AgentDashboardV2({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
           <ToolCard
             href="/agentes/seleccion"
-            img="/como-trabajamos/kentucky-pileta.webp"
+            img="/images/agentes/clientes.webp"
             icon={<Users size={18} strokeWidth={2} />}
             title="Seguimiento de Clientes"
             description="Cartera, conversaciones, visitas y notas."
@@ -144,7 +144,7 @@ export default function AgentDashboardV2({
           />
           <ToolCard
             href="/recursos/si-school"
-            img="/como-trabajamos/charla-colegas-rodaje.webp"
+            img="/images/agentes/school.webp"
             icon={<GraduationCap size={18} strokeWidth={2} />}
             title="SI School"
             description="Onboarding y capacitaciones del agente SI."
@@ -153,7 +153,7 @@ export default function AgentDashboardV2({
           />
           <ToolCard
             href="/recursos/autorizaciones"
-            img="/como-trabajamos/vendidas/casa-funes-lakes-3-dorm.webp"
+            img="/images/agentes/autorizacion.webp"
             icon={<FileText size={18} strokeWidth={2} />}
             title="Autorización de Venta Digital"
             description="Acuerdos para firmar a distancia."
@@ -162,8 +162,7 @@ export default function AgentDashboardV2({
           />
           <ToolCard
             href="/agentes/comisiones"
-            img="/como-trabajamos/hilo/cierres.webp"
-            imgPosition="left top"
+            img="/images/agentes/comisiones.webp"
             icon={<Calculator size={18} strokeWidth={2} />}
             title="Calculadora de comisiones"
             description="Ventas, alquileres y tus objetivos."
@@ -171,7 +170,7 @@ export default function AgentDashboardV2({
           />
           <ToolCard
             href="/agentes/plano-distrito-roldan"
-            img="/planos/distrito-roldan-aerea.webp"
+            img="/images/agentes/plano.webp"
             icon={<LandPlot size={18} strokeWidth={2} />}
             title="Plano de lotes · Distrito Roldán"
             description="Disponibilidad, medidas y precios de los 180 lotes."
@@ -179,7 +178,7 @@ export default function AgentDashboardV2({
           />
           <ToolCard
             href="/agentes/lista-alquileres"
-            img="/como-trabajamos/puerto-roldan-living.webp"
+            img="/images/agentes/alquileres.webp"
             icon={<Printer size={18} strokeWidth={2} />}
             title="Alquileres para imprimir"
             description="Lista A4 con foto, dirección, características y precio."
@@ -361,11 +360,10 @@ function SectionTitle({ children, sub, chip }: { children: React.ReactNode; sub?
   )
 }
 
-// ── Tool card: foto real arriba, texto abajo ────────────────────────────
+// ── Tool card: foto ilustrativa arriba, texto abajo ─────────────────────
 function ToolCard({
   href,
   img,
-  imgPosition = 'center',
   icon,
   title,
   description,
@@ -375,7 +373,6 @@ function ToolCard({
 }: {
   href: string
   img: string
-  imgPosition?: string
   icon: React.ReactNode
   title: string
   description: string
@@ -396,7 +393,6 @@ function ToolCard({
           priority={priority}
           sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-          style={{ objectPosition: imgPosition }}
         />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
         <span
@@ -430,7 +426,7 @@ function ToolCard({
   )
 }
 
-// ── Análisis de cartera: banda ancha con captura de HILO ─────────────────
+// ── Análisis de cartera: banda ancha verde con foto ──────────────────────
 function AnalisisCartera() {
   return (
     <Link
@@ -450,16 +446,16 @@ function AnalisisCartera() {
           Ver análisis <ArrowRight size={15} strokeWidth={2.2} />
         </span>
       </div>
-      <div className="relative hidden min-h-[240px] md:block">
-        <div className="absolute bottom-0 left-4 right-0 top-8 overflow-hidden rounded-tl-[14px] shadow-[0_20px_50px_rgba(0,0,0,0.35)] transition-transform duration-500 group-hover:-translate-y-1">
-          <Image
-            src="/como-trabajamos/hilo/mercado.webp"
-            alt=""
-            fill
-            sizes="620px"
-            className="object-cover object-left-top"
-          />
-        </div>
+      <div className="relative hidden min-h-[260px] overflow-hidden md:block">
+        <Image
+          src="/images/agentes/cartera.webp"
+          alt=""
+          fill
+          sizes="620px"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+        />
+        {/* Funde la foto con el verde de la banda */}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#1A5C38] via-[#1A5C38]/20 to-transparent" />
       </div>
     </Link>
   )
@@ -590,7 +586,7 @@ function AdminSection({
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:gap-4">
         <AdminCard
           href="/agentes/newsletter"
-          img="/newsletter-placa.jpg"
+          img="/images/agentes/newsletter.webp"
           icon={<Mail size={16} strokeWidth={2} />}
           title="Suscriptores Newsletter"
           description="Leads del popup de la web."
@@ -598,7 +594,7 @@ function AdminSection({
         />
         <AdminCard
           href="/admin/notas"
-          img="/como-trabajamos/informes/paginas/distrito-q1-4.webp"
+          img="/images/agentes/blog.webp"
           icon={<Newspaper size={16} strokeWidth={2} />}
           title="Notas del Blog"
           description="Editá, subí portada o borrá notas."
@@ -606,7 +602,7 @@ function AdminSection({
         />
         <AdminCard
           href="/agentes/oportunidades"
-          img="/oportunidades-ia-v3.webp"
+          img="/images/agentes/oportunidades.webp"
           icon={<Megaphone size={16} strokeWidth={2} />}
           title="Oportunidades"
           description="Popup del sitio: vendedor motivado, permuta, negociable."
@@ -643,7 +639,7 @@ function AdminCard({
           alt=""
           fill
           sizes="88px"
-          className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.06]"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
         />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1 py-1 pr-1">
