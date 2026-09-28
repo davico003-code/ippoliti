@@ -98,11 +98,6 @@ export default function RecursosCalculadoras() {
         .r4 .checklist li{ display:flex; align-items:center; gap:12px; font:500 15px/1.3 ${R}; color:var(--ink); }
         .r4 .cmark{ flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--green-dark); display:flex; align-items:center; justify-content:center; }
 
-        .r4 .libro{ position:absolute; right:22px; bottom:-10px; z-index:2; width:128px; height:168px; background:#fff; border-radius:3px 6px 6px 3px; box-shadow:inset 3px 0 0 #e7e9e8, 0 18px 36px -12px rgba(0,0,0,.4); transform:rotate(5deg); padding:14px 12px 10px; display:flex; flex-direction:column; text-align:center; }
-        .r4 .libro .lt{ font:800 13px/1.12 ${R}; color:var(--ink); letter-spacing:-.01em; text-transform:uppercase; }
-        .r4 .libro .lf{ position:relative; flex:1; margin-top:8px; border-radius:2px; overflow:hidden; }
-        .r4 .libro .la{ font:600 9px ${R}; color:var(--ink); margin-top:7px; }
-        .r4 .libro .lm{ font:800 6.5px ${R}; letter-spacing:.16em; color:var(--green); margin-top:3px; }
 
         .r4 .cta{ margin-top:auto; display:flex; align-items:center; justify-content:center; gap:10px; min-height:54px; border-radius:14px; background:var(--green-dark); color:#fff; font:600 16px ${R}; text-decoration:none; transition:background .25s; }
         .r4 .body > .cta{ margin-top:auto; }
@@ -122,10 +117,6 @@ export default function RecursosCalculadoras() {
           .r4 .trio{ grid-template-columns:1fr; gap:20px; }
           .r4 .foto{ height:210px; }
           .r4 .body{ padding:24px 20px 22px; }
-          .r4 .libro{ width:94px; height:124px; right:16px; bottom:-22px; padding:10px 9px 8px; }
-          .r4 .libro .lt{ font-size:10.5px; }
-          .r4 .libro .la{ font-size:7.5px; margin-top:5px; }
-          .r4 .libro .lm{ font-size:5.5px; margin-top:2px; }
           .r4 .split .mitad{ padding:0 14px; }
           .r4 .trust{ border-radius:20px; padding:6px 18px; flex-direction:column; }
           .r4 .trust li{ justify-content:flex-start; padding:12px 2px; font-size:15px; }
