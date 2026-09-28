@@ -56,7 +56,7 @@ export default function HeroMobile() {
       <div data-portada-contenido className="flex-1 flex flex-col justify-center items-center px-5 text-white text-center relative z-10">
         <h2 className="font-raleway font-black text-[36px] leading-[1.02] tracking-[-0.03em] drop-shadow-lg whitespace-nowrap">
           {['Encontrá', 'tu', 'hogar'].map((w, i) => (
-            <span key={w} className="portada-in inline-block" style={{ ['--d' as string]: `${100 + i * 100}ms`, marginRight: i < 2 ? '0.22em' : 0 }}>
+            <span key={w} className="portada-in portada-palabra inline-block" style={{ ['--d' as string]: `${100 + i * 100}ms`, ['--sep' as string]: '0.22em' }}>
               {w}
             </span>
           ))}

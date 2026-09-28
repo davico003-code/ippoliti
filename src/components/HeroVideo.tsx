@@ -22,14 +22,14 @@ export default function HeroVideo() {
             style={{
               fontFamily: 'var(--font-raleway), Raleway, sans-serif',
               fontWeight: 800,
-              fontSize: 'clamp(44px, 6.4vw, 84px)',
+              fontSize: 'clamp(40px, 5.2vw, 68px)',
               lineHeight: 1,
               letterSpacing: '-0.04em',
               textShadow: '0 2px 24px rgba(0,0,0,0.35)',
             }}
           >
             {['Encontrá', 'tu', 'hogar'].map((w, i) => (
-              <span key={w} className="portada-in inline-block" style={{ ['--d' as string]: `${120 + i * 110}ms`, marginRight: i < 2 ? '0.24em' : 0 }}>
+              <span key={w} className="portada-in portada-palabra inline-block" style={{ ['--d' as string]: `${120 + i * 110}ms`, ['--sep' as string]: '0.24em' }}>
                 {w}
               </span>
             ))}

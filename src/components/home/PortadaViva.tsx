@@ -125,6 +125,11 @@ export default function PortadaViva({ poster, video, sizes, velo }: Props) {
         .portada-respira { animation: portadaRespira 2600ms cubic-bezier(.16,1,.3,1) both; transform-origin: 50% 60%; }
         @keyframes portadaRespira { from { transform: scale(1.07); } to { transform: scale(1); } }
         .portada-in { animation: portadaIn 1100ms cubic-bezier(.16,1,.3,1) var(--d) both; }
+        /* Safari recorta al borde de la caja mientras corre el blur: sin este
+           aire se cortaba la "g" de "hogar" y la sombra dibujaba recuadros.
+           El margen negativo devuelve el espacio, así no cambia el layout. */
+        .portada-palabra { padding: .3em .35em .4em; margin: -.3em calc(var(--sep, .24em) - .35em) -.4em -.35em; }
+        .portada-palabra:last-child { margin-right: -.35em; }
         @keyframes portadaIn { from { opacity: 0; transform: translate3d(0, 26px, 0); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
         @media (prefers-reduced-motion: reduce) { .portada-respira, .portada-in { animation: none; } }
       ` }} />
