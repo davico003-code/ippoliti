@@ -1,6 +1,6 @@
 // Card "Comprar" (Sección 4) — checklist de aprendizajes de la guía. Estática.
-// La tapa de la guía (.libro) se arma en HTML/CSS sobre la foto, con una foto
-// de casa adentro: no hay imagen de la tapa y así queda nítida a cualquier tamaño.
+// La tapa de la guía (.libro) se arma en HTML/CSS sobre la foto, con la foto
+// de David (autor): no hay imagen de la tapa y así queda nítida a cualquier tamaño.
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -19,10 +19,10 @@ export default function ComprarCard() {
       <CardFoto src="/images/herramientas/comprar.webp" alt="Pareja mirando casas en una tablet" minutos={10} foco="25% 35%">
         <div className="libro" aria-hidden>
           <span className="lt">Guía para comprar tu casa</span>
-          <span className="ls">Decisiones informadas.</span>
           <span className="lf">
-            <Image src="/images/hero/home-architecture-small.webp" alt="" fill sizes="120px" style={{ objectFit: 'cover' }} />
+            <Image src="/team/david-flores.jpg" alt="" fill sizes="130px" style={{ objectFit: 'cover', objectPosition: 'center 20%' }} />
           </span>
+          <span className="la">por David Flores</span>
           <span className="lm">SI INMOBILIARIA</span>
         </div>
       </CardFoto>

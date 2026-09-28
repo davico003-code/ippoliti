@@ -18,7 +18,7 @@ export default function ConstruirCard() {
 
   return (
     <div className="card">
-      <CardFoto src="/images/herramientas/construir.webp" alt="Casa moderna en construcción" minutos={1} foco="center 40%" />
+      <CardFoto src="/images/herramientas/construir-obra.webp" alt="Arquitecto y clienta frente a una casa en construcción" minutos={1} foco="center 55%" />
 
       <div className="body">
         <p className="eyebrow">

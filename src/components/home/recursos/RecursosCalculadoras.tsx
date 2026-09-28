@@ -3,7 +3,8 @@
 // Responsive: grid de 3 en ≥900px, apiladas en mobile. Compartida por
 // GuiaDesktop y GuiaSection. Todo el CSS está scopeado bajo `.r4` para no
 // filtrar las clases genéricas (.card, .body, .cta…) al resto de la home.
-// Fotos: Unsplash (licencia libre), en public/images/herramientas.
+// Fotos en public/images/herramientas: construir generada con IA; alquilar y
+// comprar de Unsplash (licencia libre).
 
 import ConstruirCard from './ConstruirCard'
 import AlquilarCard from './AlquilarCard'
@@ -99,9 +100,9 @@ export default function RecursosCalculadoras() {
 
         .r4 .libro{ position:absolute; right:22px; bottom:-10px; z-index:2; width:128px; height:168px; background:#fff; border-radius:3px 6px 6px 3px; box-shadow:inset 3px 0 0 #e7e9e8, 0 18px 36px -12px rgba(0,0,0,.4); transform:rotate(5deg); padding:14px 12px 10px; display:flex; flex-direction:column; text-align:center; }
         .r4 .libro .lt{ font:800 13px/1.12 ${R}; color:var(--ink); letter-spacing:-.01em; text-transform:uppercase; }
-        .r4 .libro .ls{ font:500 8px ${R}; color:var(--muted); margin-top:5px; }
         .r4 .libro .lf{ position:relative; flex:1; margin-top:8px; border-radius:2px; overflow:hidden; }
-        .r4 .libro .lm{ font:800 6.5px ${R}; letter-spacing:.16em; color:var(--green); margin-top:7px; }
+        .r4 .libro .la{ font:600 9px ${R}; color:var(--ink); margin-top:7px; }
+        .r4 .libro .lm{ font:800 6.5px ${R}; letter-spacing:.16em; color:var(--green); margin-top:3px; }
 
         .r4 .cta{ margin-top:auto; display:flex; align-items:center; justify-content:center; gap:10px; min-height:54px; border-radius:14px; background:var(--green-dark); color:#fff; font:600 16px ${R}; text-decoration:none; transition:background .25s; }
         .r4 .body > .cta{ margin-top:auto; }
@@ -123,8 +124,8 @@ export default function RecursosCalculadoras() {
           .r4 .body{ padding:24px 20px 22px; }
           .r4 .libro{ width:94px; height:124px; right:16px; bottom:-22px; padding:10px 9px 8px; }
           .r4 .libro .lt{ font-size:10.5px; }
-          .r4 .libro .ls{ font-size:7px; }
-          .r4 .libro .lm{ font-size:5.5px; margin-top:5px; }
+          .r4 .libro .la{ font-size:7.5px; margin-top:5px; }
+          .r4 .libro .lm{ font-size:5.5px; margin-top:2px; }
           .r4 .split .mitad{ padding:0 14px; }
           .r4 .trust{ border-radius:20px; padding:6px 18px; flex-direction:column; }
           .r4 .trust li{ justify-content:flex-start; padding:12px 2px; font-size:15px; }
