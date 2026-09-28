@@ -450,8 +450,8 @@ export function Equipo() {
           id="equipo-titulo"
           oscuro
           eyebrow="El equipo"
-          titulo="Una red de relaciones personales."
-          bajada="19 personas que viven y trabajan en la zona. Cada una trae su propia red: propietarios que ya confiaron en nosotros, compradores, inversores, desarrolladores, colegas y escribanías. Desde 1983, con fuerte presencia en el segmento ABC1 de Funes, Roldán y Rosario. Cuando entra tu propiedad, la ofrecemos primero dentro de esa red."
+          titulo="Un grupo humano de valor."
+          bajada="Detrás de cada venta hay personas que conocen el barrio, a los vecinos y a los clientes por su nombre."
         />
 
         <div className="mt-10 md:mt-14">
