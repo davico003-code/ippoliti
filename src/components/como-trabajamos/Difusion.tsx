@@ -3,7 +3,7 @@
 
 import Image from 'next/image'
 import { Heart, Mail, Megaphone, MessageCircle, Mic, Send, Sparkles } from 'lucide-react'
-import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
+import VisorYoutube, { BotonPlay, PosterYoutube } from './VisorYoutube'
 import { VideoVivo } from './Medios'
 import { LogoYoutube } from './Produccion'
 import { CHARLAS_INVITADOS, CHARLA_DESTACADA, CANAL_YOUTUBE, FOTOS, REDES, RELEVADO } from './datos'
@@ -109,12 +109,11 @@ export function CharlasQueSi() {
   return (
     <section className="py-16 md:py-24" aria-labelledby="charlas-titulo">
       <Contenedor className="grid items-center gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-14">
-        <YoutubeEmbed
-          videoId={CHARLA_DESTACADA.id}
-          title={CHARLA_DESTACADA.titulo}
-          poster={`https://i.ytimg.com/vi/${CHARLA_DESTACADA.id}/hqdefault.jpg`}
-          className="aspect-video w-full overflow-hidden rounded-[22px] shadow-xl"
-        />
+        <VisorYoutube id={CHARLA_DESTACADA.id} titulo={CHARLA_DESTACADA.titulo} className="aspect-video overflow-hidden rounded-[22px] shadow-xl">
+          <PosterYoutube id={CHARLA_DESTACADA.id} />
+          <span aria-hidden className="absolute inset-0 bg-black/15 transition-colors group-hover:bg-black/25" />
+          <BotonPlay />
+        </VisorYoutube>
         <div>
           <LogoYoutube className="mb-5" />
           <Encabezado

@@ -4,7 +4,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, Clapperboard, Drone, Glasses, Laptop, Mic, Smartphone, Video } from 'lucide-react'
-import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
+import VisorYoutube, { BotonPlay, PosterYoutube } from './VisorYoutube'
 import { ShortYoutube, VideoVivo } from './Medios'
 import { AEREAS, CANAL_YOUTUBE, EQUIPOS, FOTOS, SHORTS, VIDEOTOURS } from './datos'
 import { BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, conNumeros } from './ui'
@@ -75,10 +75,19 @@ export function Aereas() {
         </Contenedor>
       </div>
       <Contenedor className="pb-16 pt-6 md:pb-24">
-        <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3 md:gap-4">
+        <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-6 md:gap-4">
           {AEREAS.map((a) => (
-            <li key={a.src} className="ct-rev relative aspect-[4/3] overflow-hidden rounded-[18px]">
-              <Image src={a.src} alt={a.alt} fill sizes="(max-width: 768px) 100vw, 380px" className="object-cover" />
+            <li
+              key={a.src}
+              className={`ct-rev relative aspect-[4/3] overflow-hidden rounded-[18px] ${'destacada' in a ? 'md:col-span-3' : 'md:col-span-2'}`}
+            >
+              <Image
+                src={a.src}
+                alt={a.alt}
+                fill
+                sizes={'destacada' in a ? '(max-width: 768px) 100vw, 600px' : '(max-width: 768px) 100vw, 380px'}
+                className="object-cover"
+              />
               <Chip className="absolute bottom-3 left-3">
                 <Drone size={13} aria-hidden /> {a.lugar}
               </Chip>
@@ -198,12 +207,11 @@ export function Videotours() {
         <ul className="m-0 mt-10 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3 md:gap-5">
           {VIDEOTOURS.map((v) => (
             <li key={v.id} className="ct-rev">
-              <YoutubeEmbed
-                videoId={v.id}
-                title={v.titulo}
-                poster={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
-                className="aspect-video w-full overflow-hidden rounded-[18px]"
-              />
+              <VisorYoutube id={v.id} titulo={v.titulo} className="aspect-video overflow-hidden rounded-[18px]">
+                <PosterYoutube id={v.id} />
+                <span aria-hidden className="absolute inset-0 bg-black/15 transition-colors group-hover:bg-black/25" />
+                <BotonPlay />
+              </VisorYoutube>
               <p className="mt-2.5 flex items-baseline justify-between gap-3 text-[14.5px] font-bold leading-snug">
                 {v.titulo}
                 {v.dur && (
