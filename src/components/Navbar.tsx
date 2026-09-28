@@ -22,6 +22,13 @@ type IngresarButtonProps = {
 }
 
 function IngresarButton({ agent, onClick }: IngresarButtonProps) {
+  const pathname = usePathname()
+  // /agentes es 100% dinámico (consulta clientes, autorizaciones, feedback):
+  // la navegación tarda 1-3 s y sin respuesta visual parecía que el toque no
+  // había entrado, y se volvía a tocar. Marcamos "abriendo" al instante con un
+  // aro girando hasta que cambia la ruta.
+  const [abriendo, setAbriendo] = useState(false)
+  useEffect(() => { setAbriendo(false) }, [pathname])
   const isAuthed = !!agent
   // Solo si está logueado y tiene foto curada/Tokko mostramos su avatar, y más
   // grande que el círculo de iniciales (48 vs 40). Sin foto → iniciales; sin
@@ -31,10 +38,15 @@ function IngresarButton({ agent, onClick }: IngresarButtonProps) {
   return (
     <Link
       href="/agentes"
-      onClick={onClick}
+      onClick={e => {
+        if (!e.metaKey && !e.ctrlKey && !e.shiftKey && pathname !== '/agentes') setAbriendo(true)
+        onClick?.()
+      }}
+      aria-busy={abriendo}
       aria-label={isAuthed ? `Cuenta de ${agent!.name}` : 'Ingresar'}
-      className="inline-flex items-center justify-center overflow-hidden transition-transform duration-200 hover:scale-105"
+      className="relative inline-flex items-center justify-center overflow-hidden transition-transform duration-200 hover:scale-105 active:scale-95"
       style={{
+        touchAction: 'manipulation',
         width: size,
         height: size,
         // El avatar con foto es más grande (48 vs 40). Con margen vertical
@@ -70,6 +82,13 @@ function IngresarButton({ agent, onClick }: IngresarButtonProps) {
         </span>
       ) : (
         <User size={18} strokeWidth={2} color="#fff" />
+      )}
+      {abriendo && (
+        <span
+          aria-hidden
+          className="absolute inset-0 rounded-full animate-spin"
+          style={{ background: 'rgba(0,0,0,0.25)', border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff' }}
+        />
       )}
     </Link>
   )
