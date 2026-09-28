@@ -27,6 +27,7 @@ import {
   Users,
 } from 'lucide-react'
 import WhatsappBoton from '@/components/como-trabajamos/WhatsappBoton'
+import PantallaCompleta from '@/components/como-trabajamos/PantallaCompleta'
 import BotonCanje from '@/components/como-trabajamos/BotonCanje'
 import { VideoVivo } from '@/components/como-trabajamos/Medios'
 import { Vendidas } from '@/components/como-trabajamos/Resultados'
@@ -276,6 +277,7 @@ function Presentacion({ para }: { para?: { cliente: string; agente: string; visi
           para leerse a distancia. */}
       <style dangerouslySetInnerHTML={{ __html: '@media (min-width: 1800px) { .ct-tv { zoom: 1.2; } }' }} />
       <EstilosMovimiento />
+      <PantallaCompleta />
 
       {/* ── PORTADA ───────────────────────────────
           Video de pantalla completa con tomas reales de nuestro drone
