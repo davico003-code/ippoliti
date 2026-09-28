@@ -163,7 +163,7 @@ export default function AgentDashboardV2({
           />
           <ToolCard
             href="/agentes/presentacion"
-            img="/images/sedes/ventas.webp"
+            img="/images/agentes/presentacion-tv.webp"
             icon={<MonitorPlay size={18} strokeWidth={2} />}
             title="Presentación “Cómo trabajamos”"
             description="Link personal para el dueño: 2 visitas en 48 h."
@@ -179,7 +179,7 @@ export default function AgentDashboardV2({
           />
           <ToolCard
             href="/agentes/plano-distrito-roldan"
-            img="/images/agentes/plano.webp"
+            img="/images/agentes/distrito-roldan-cartel.webp"
             icon={<LandPlot size={18} strokeWidth={2} />}
             title="Plano de lotes · Distrito Roldán"
             description="Disponibilidad, medidas y precios de los 180 lotes."
