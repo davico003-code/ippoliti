@@ -43,6 +43,22 @@ export const events = {
       property_title: title ?? '',
     }),
 
+  /**
+   * Consulta REAL por una propiedad (WhatsApp, llamada o pedido de visita desde
+   * la ficha) → evento Contact del píxel con content_ids = home_listing_id del
+   * catálogo de Meta. Es la señal limpia de comprador: la pauta de catálogo
+   * optimiza a esto (el Lead del píxel mezcla newsletter, tasador y calculadoras).
+   */
+  contactoPropiedad: (propertyId: number, title: string, canal: 'whatsapp' | 'llamada' | 'visita') => {
+    trackEvent('contacto_propiedad', { property_id: String(propertyId), property_title: title, canal })
+    trackFbEvent('Contact', {
+      content_ids: [String(propertyId)],
+      content_name: title,
+      content_type: 'home_listing',
+      content_category: canal,
+    })
+  },
+
   clickCall: (propertyId?: number) =>
     trackEvent('click_call', { property_id: String(propertyId ?? '') }),
 

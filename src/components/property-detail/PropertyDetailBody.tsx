@@ -36,7 +36,7 @@ import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondicione
 import DisponibilidadTemporada from '../temporarios/DisponibilidadTemporada'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
 import { formatUbicacion } from '@/lib/ubicacion'
-import { trackEvent } from '@/lib/analytics'
+import { trackEvent, events } from '@/lib/analytics'
 import PropertyDescription from '../PropertyDescription'
 import SectionBoundary from './SectionBoundary'
 import BarrioPanel from './BarrioPanel'
@@ -142,6 +142,7 @@ export default function PropertyDetailBody({
   const description = condTemp ? condTemp.descripcion : descripcionCompleta
   const blueprints = getBlueprintPhotos(property)
   const address = property.fake_address || property.address
+  const tituloContacto = tituloVisible(property) || address
   // Va pegada a la dirección: sin repetir el barrio o la ciudad que ya diga.
   const location = formatUbicacion(property, property.real_address || address)
 
@@ -367,11 +368,13 @@ export default function PropertyDetailBody({
 
           <div className="grid grid-cols-2 gap-2.5">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+              onClick={() => events.contactoPropiedad(property.id, tituloContacto, 'whatsapp')}
               className="flex items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
               style={{ background: '#25d366', color: '#fff' }}>
               <MessageCircle className="w-4 h-4" /> WhatsApp
             </a>
             <a href={getProducerCallHref(property)}
+              onClick={() => events.contactoPropiedad(property.id, tituloContacto, 'llamada')}
               className="flex items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
               style={{ border: '1.5px solid #e5e7eb', color: '#111' }}>
               <Phone className="w-4 h-4" /> Llamar
