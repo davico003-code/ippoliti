@@ -15,6 +15,7 @@ import {
   LogOut,
   Mail,
   Megaphone,
+  MonitorPlay,
   Newspaper,
   PieChart,
   Printer,
@@ -159,6 +160,14 @@ export default function AgentDashboardV2({
             description="Acuerdos para firmar a distancia."
             stat={<><span className="font-poppins font-semibold">{autorizacionesEsteMes}</span> acuerdos este mes</>}
             priority
+          />
+          <ToolCard
+            href="/agentes/presentacion"
+            img="/images/sedes/ventas.webp"
+            icon={<MonitorPlay size={18} strokeWidth={2} />}
+            title="Presentación “Cómo trabajamos”"
+            description="Link personal para el dueño: 2 visitas en 48 h."
+            stat="Generá y mandá el link"
           />
           <ToolCard
             href="/agentes/comisiones"
