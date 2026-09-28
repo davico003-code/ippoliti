@@ -1,25 +1,14 @@
 'use client'
 
-// C — Slider de valuación "la joya" (diseño v4 FINAL). "¿Está bien valuada?".
-// Rango simétrico ±15% alrededor del precio publicado, thumb en "Justa". Número
-// grande verde en Poppins tabular. Al bajar del publicado se despliega (animado)
-// el bloque de objeciones. AUTO-GUARDA en onChange (debounce). Data PRIVADA.
-//
-// Specs (_referencias/feedback/feedback-SI-v4-final.html, sección C):
-//   barra dorada · h3 centrado · sub · readout verde 30px + label dinámico con %
-//   track gradiente salmón→verde · thumb 30px blanco borde verde · pub-mark
-//   objeción dashed con chips (relleno verde activo) + "✓ ¡Gracias!…"
+// C — Slider de valuación, versión compacta. "¿Está bien valuada?" con el
+// valor a la derecha y un slider fino debajo. Rango simétrico ±15% alrededor
+// del precio publicado, arranca en "Justa". Al bajar del publicado se
+// despliegan (animado) las objeciones. AUTO-GUARDA en onChange (debounce).
+// Data PRIVADA.
 
 import { useEffect, useRef, useState } from 'react'
 
-const POPPINS = "'Poppins', system-ui, sans-serif"
-const RALEWAY = "'Raleway', system-ui, sans-serif"
 const VERDE = '#1A5C38'
-const VERDE_OSCURO = '#0F3F26'
-const DORADO = '#B8935A'
-const LINEA = '#E9E3DA'
-const GRIS = '#7C8488'
-const CARBON = '#24292B'
 const ROJO = '#C0563E'
 
 const RANGE_PCT = 15 // ±15% alrededor del publicado
@@ -59,7 +48,6 @@ export default function ValuationSlider({
       : 0
   const [pct, setPct] = useState(initialPct)
   const [objeciones, setObjeciones] = useState<string[]>(initialObjeciones)
-  const [showThanks, setShowThanks] = useState(initialObjeciones.length > 0)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const valor = roundNice(publishedPrice * (1 + pct / 100))
@@ -96,10 +84,7 @@ export default function ValuationSlider({
     const next = Number(e.target.value)
     setPct(next)
     const nextObj = next < 0 ? objeciones : []
-    if (next >= 0 && objeciones.length > 0) {
-      setObjeciones([])
-      setShowThanks(false)
-    }
+    if (next >= 0 && objeciones.length > 0) setObjeciones([])
     save(next, nextObj)
   }
 
@@ -108,57 +93,42 @@ export default function ValuationSlider({
       ? objeciones.filter((o) => o !== choice)
       : [...objeciones, choice]
     setObjeciones(next)
-    if (next.length > 0) setShowThanks(true)
     save(pct, next)
   }
 
-  // Label dinámico del readout
-  let lblText = 'Justo el precio publicado'
-  let lblColor: string = VERDE
+  let lblText = 'Justo el publicado'
+  let lblColor = 'text-gray-400'
   if (pct < 0) {
-    lblText = `${Math.abs(pct)}% por debajo · la ves cara`
-    lblColor = ROJO
+    lblText = `${Math.abs(pct)}% menos · la ves cara`
+    lblColor = 'text-[#C0563E]'
   } else if (pct > 0) {
     lblText = `+${pct}% · la ves barata`
-    lblColor = DORADO
+    lblColor = 'text-[#1A5C38]'
   }
 
-  return (
-    <div
-      style={{
-        background: '#fff',
-        borderRadius: 16,
-        border: `1px solid ${LINEA}`,
-        boxShadow: '0 2px 14px rgba(36,41,43,.07)',
-        padding: '20px 18px',
-      }}
-    >
-      <div style={{ height: 3, width: 46, background: DORADO, borderRadius: 2, margin: '0 auto 16px' }} />
-      <h3 style={{ fontFamily: RALEWAY, textAlign: 'center', fontSize: 16, fontWeight: 700, color: VERDE_OSCURO }}>
-        ¿Está bien valuada?
-      </h3>
-      <p style={{ textAlign: 'center', fontSize: 12, color: GRIS, marginTop: 4, marginBottom: 22 }}>
-        Movela hasta lo que vos pagarías
-      </p>
+  // Relleno del track desde el centro ("Justa") hasta el thumb.
+  const thumbPos = ((pct + RANGE_PCT) / (RANGE_PCT * 2)) * 100
+  const fillColor = pct < 0 ? ROJO : VERDE
+  const lo = Math.min(50, thumbPos)
+  const hi = Math.max(50, thumbPos)
+  const track = `linear-gradient(90deg, #E5E7EB ${lo}%, ${fillColor} ${lo}%, ${fillColor} ${hi}%, #E5E7EB ${hi}%)`
 
-      <div style={{ textAlign: 'center', marginBottom: 6 }}>
-        <div
-          style={{
-            fontFamily: POPPINS,
-            fontWeight: 700,
-            fontSize: 30,
-            fontVariantNumeric: 'tabular-nums',
-            color: VERDE,
-          }}
-        >
-          {currency} {valor.toLocaleString('es-AR')}
+  return (
+    <div className="py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[13px] font-semibold text-[#24292B]">¿Está bien valuada?</p>
+          <p className="mt-0.5 text-[11.5px] text-gray-400">Movela hasta lo que pagarías</p>
         </div>
-        <div style={{ fontSize: 12, fontWeight: 500, marginTop: 2, minHeight: 18, color: lblColor }}>
-          {lblText}
+        <div className="text-right">
+          <p className="font-numeric text-[14px] font-semibold tabular-nums text-[#24292B]">
+            {currency} {valor.toLocaleString('es-AR')}
+          </p>
+          <p className={`mt-0.5 text-[11px] ${lblColor}`}>{lblText}</p>
         </div>
       </div>
 
-      <div style={{ padding: '10px 6px 0' }}>
+      <div className="mt-3">
         <input
           type="range"
           className="si-valuation-slider"
@@ -168,35 +138,22 @@ export default function ValuationSlider({
           value={pct}
           onChange={onSlide}
           aria-label="Ajustar valuación percibida"
+          aria-valuetext={`${currency} ${valor.toLocaleString('es-AR')}`}
+          style={{ background: track }}
         />
-        <div className="flex justify-between" style={{ fontSize: 10.5, color: GRIS, marginTop: 10 }}>
-          <span>− La veo cara</span>
+        <div className="mt-1 flex justify-between text-[10px] text-gray-400">
+          <span>La veo cara</span>
           <span>Justa</span>
-          <span>Vale más +</span>
-        </div>
-        <div style={{ textAlign: 'center', fontSize: 11, color: GRIS, marginTop: 14 }}>
-          Precio publicado:{' '}
-          <b style={{ color: CARBON, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {currency} {publishedPrice.toLocaleString('es-AR')}
-          </b>
+          <span>Vale más</span>
         </div>
       </div>
 
       <div
-        style={{
-          marginTop: showObjection ? 22 : 0,
-          paddingTop: showObjection ? 18 : 0,
-          borderTop: showObjection ? `1px dashed ${LINEA}` : 'none',
-          opacity: showObjection ? 1 : 0,
-          maxHeight: showObjection ? 260 : 0,
-          overflow: 'hidden',
-          transition: 'opacity 0.4s, max-height 0.4s',
-        }}
+        className="overflow-hidden transition-all duration-300"
+        style={{ maxHeight: showObjection ? 160 : 0, opacity: showObjection ? 1 : 0 }}
       >
-        <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 500, marginBottom: 13 }}>
-          ¿Qué te frena del precio?
-        </p>
-        <div className="flex flex-wrap justify-center" style={{ gap: 9 }}>
+        <p className="mt-3 text-[12px] text-gray-500">¿Qué te frena del precio?</p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
           {OBJECTIONS.map((o) => {
             const active = objeciones.includes(o.choice)
             return (
@@ -204,37 +161,22 @@ export default function ValuationSlider({
                 key={o.choice}
                 type="button"
                 aria-pressed={active}
+                tabIndex={showObjection ? 0 : -1}
                 onClick={() => toggleObjecion(o.choice)}
-                className="cursor-pointer"
-                style={{
-                  border: `1.5px solid ${active ? VERDE : LINEA}`,
-                  background: active ? VERDE : '#fff',
-                  color: active ? '#fff' : CARBON,
-                  fontWeight: active ? 500 : 400,
-                  borderRadius: 22,
-                  padding: '8px 16px',
-                  fontSize: 12.5,
-                  transition: '0.15s',
-                }}
+                className={`rounded-full border px-2.5 py-1 text-[11.5px] leading-none transition-colors ${
+                  active
+                    ? 'border-[#1A5C38] bg-[#1A5C38] font-medium text-white'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
               >
                 {o.label}
               </button>
             )
           })}
         </div>
-        <div
-          style={{
-            textAlign: 'center',
-            fontSize: 12.5,
-            color: VERDE,
-            marginTop: 16,
-            opacity: showThanks ? 1 : 0,
-            height: showThanks ? 'auto' : 0,
-            transition: 'opacity 0.3s',
-          }}
-        >
-          ✓ ¡Gracias! Nos ayuda a ajustar con el dueño.
-        </div>
+        {objeciones.length > 0 && (
+          <p className="mt-2 text-[11.5px] text-[#1A5C38]">✓ Gracias, nos ayuda a ajustar con el dueño.</p>
+        )}
       </div>
 
       <style jsx>{`
@@ -242,33 +184,38 @@ export default function ValuationSlider({
           -webkit-appearance: none;
           appearance: none;
           width: 100%;
-          height: 6px;
-          border-radius: 6px;
-          background: linear-gradient(90deg, #e8c7b8, #cfe3d6, #bfe0cc);
+          height: 3px;
+          border-radius: 3px;
           outline: none;
+          cursor: pointer;
         }
         .si-valuation-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 30px;
-          height: 30px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           background: #fff;
-          border: 4px solid ${VERDE};
+          border: 2px solid ${fillColor};
           cursor: grab;
-          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+          transition: transform 0.15s;
         }
         .si-valuation-slider::-webkit-slider-thumb:active {
           cursor: grabbing;
+          transform: scale(1.12);
         }
         .si-valuation-slider::-moz-range-thumb {
-          width: 30px;
-          height: 30px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           background: #fff;
-          border: 4px solid ${VERDE};
+          border: 2px solid ${fillColor};
           cursor: grab;
-          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+        }
+        .si-valuation-slider:focus-visible::-webkit-slider-thumb {
+          box-shadow: 0 0 0 4px rgba(26, 92, 56, 0.2);
         }
       `}</style>
     </div>

@@ -1,10 +1,9 @@
 'use client'
 
-// Wrapper del feedback de la ficha de detalle: apila los 3 paneles del diseño
-// v4 FINAL (B caritas · C slider de valuación · D avisame si baja), sin título
-// envolvente. Una sola inyección en PropertyDetailBody (compartido mobile +
-// desktop). Hace UN fetch de estado inicial para restaurar lo respondido. Todo
-// detrás del flag.
+// Wrapper del feedback de la ficha de detalle: UNA tarjeta compacta con tres
+// filas (caritas · valuación · avisame si baja) separadas por líneas finas.
+// Una sola inyección en PropertyDetailBody (compartido mobile + desktop). Hace
+// UN fetch de estado inicial para restaurar lo respondido. Todo detrás del flag.
 
 import { useEffect, useState } from 'react'
 import { FEEDBACK_ENABLED } from './flag'
@@ -60,21 +59,33 @@ export default function FeedbackDetalle({
   const currentValuacion = valuacionActual ?? estado.valuation
 
   return (
-    <div className="space-y-4">
-      <ReactFaces propertyId={propertyId} initialChoice={estado.react} />
+    <section
+      aria-label="Tu opinión sobre esta propiedad"
+      className="rounded-2xl border border-gray-200 bg-white px-4 sm:px-5"
+    >
+      <div className="flex items-baseline justify-between pt-3.5">
+        <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-gray-400">
+          Tu opinión
+        </span>
+        <span className="text-[10.5px] text-gray-400">Anónima · 2 segundos</span>
+      </div>
 
-      {hasPrice && (
-        <ValuationSlider
-          propertyId={propertyId}
-          publishedPrice={publishedPrice}
-          currency={currency}
-          initialValor={estado.valuation}
-          initialObjeciones={estado.objeciones}
-          onValuationChange={setValuacionActual}
-        />
-      )}
+      <div className="divide-y divide-gray-100">
+        <ReactFaces propertyId={propertyId} initialChoice={estado.react} />
 
-      <AvisameSiBaja propertyId={propertyId} valuacion={currentValuacion} />
-    </div>
+        {hasPrice && (
+          <ValuationSlider
+            propertyId={propertyId}
+            publishedPrice={publishedPrice}
+            currency={currency}
+            initialValor={estado.valuation}
+            initialObjeciones={estado.objeciones}
+            onValuationChange={setValuacionActual}
+          />
+        )}
+
+        <AvisameSiBaja propertyId={propertyId} valuacion={currentValuacion} />
+      </div>
+    </section>
   )
 }

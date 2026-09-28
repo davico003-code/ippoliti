@@ -1,21 +1,10 @@
 'use client'
 
-// B — 4 caritas en la ficha (diseño v4 FINAL): tira segmentada unida bajo el
-// título "¿Qué te pareció?". 😍 Me encanta · 🤔 Lo dudo · 💸 La veo cara ·
-// 🙈 No es para mí. Un tap resalta la elegida (cambia). Auto-guarda.
-//
-// Specs (_referencias/feedback/…, .panel + .react-strip):
-//   panel blanco r16 borde #E9E3DA · h3 centrado Raleway 16/700 #0F3F26
-//   strip: flex, 1 borde, divididos por línea, emoji 21px, label 9.5px #7C8488
-//   activa: fondo #F2EFE9
+// B — caritas de la ficha, versión compacta: fila "¿Qué te pareció?" + 4
+// pastillas chicas (emoji + texto). Un tap resalta la elegida (cambia).
+// Auto-guarda. Vive dentro de la tarjeta de FeedbackDetalle.
 
 import { useState } from 'react'
-
-const POPPINS = "'Poppins', system-ui, sans-serif"
-const RALEWAY = "'Raleway', system-ui, sans-serif"
-const LINEA = '#E9E3DA'
-const GRIS = '#7C8488'
-const VERDE_OSCURO = '#0F3F26'
 
 const FACES = [
   { choice: 'encanta', emoji: '😍', label: 'Me encanta' },
@@ -46,61 +35,27 @@ export default function ReactFaces({
   }
 
   return (
-    <div
-      style={{
-        background: '#fff',
-        borderRadius: 16,
-        border: `1px solid ${LINEA}`,
-        boxShadow: '0 2px 14px rgba(36,41,43,.07)',
-        padding: '20px 18px',
-      }}
-    >
-      <h3
-        style={{
-          fontFamily: RALEWAY,
-          textAlign: 'center',
-          fontSize: 16,
-          fontWeight: 700,
-          color: VERDE_OSCURO,
-        }}
-      >
-        ¿Qué te pareció?
-      </h3>
-
-      <div
-        className="flex"
-        style={{ marginTop: 14, border: `1px solid ${LINEA}`, borderRadius: 12, overflow: 'hidden' }}
-      >
-        {FACES.map((f, i) => {
+    <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <p className="text-[13px] font-semibold text-[#24292B]">¿Qué te pareció?</p>
+      <div className="flex flex-wrap gap-1.5">
+        {FACES.map((f) => {
           const active = selected === f.choice
           return (
             <button
               key={f.choice}
               type="button"
               aria-pressed={active}
-              aria-label={f.label}
               onClick={() => pick(f.choice)}
-              className="flex-1 cursor-pointer border-0"
-              style={{
-                background: active ? '#F2EFE9' : '#fff',
-                padding: '13px 4px',
-                fontSize: 21,
-                borderRight: i < FACES.length - 1 ? `1px solid ${LINEA}` : 'none',
-                transition: '0.15s',
-              }}
+              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[12px] leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38]/40 ${
+                active
+                  ? 'border-[#1A5C38] bg-[#1A5C38]/[0.06] font-semibold text-[#1A5C38]'
+                  : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:text-[#24292B]'
+              }`}
             >
-              {f.emoji}
-              <span
-                style={{
-                  display: 'block',
-                  fontFamily: POPPINS,
-                  fontSize: 9.5,
-                  color: GRIS,
-                  marginTop: 5,
-                }}
-              >
-                {f.label}
+              <span aria-hidden className="text-[13px]">
+                {f.emoji}
               </span>
+              {f.label}
             </button>
           )
         })}
