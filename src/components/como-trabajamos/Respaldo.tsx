@@ -377,25 +377,6 @@ export function Desarrolladores() {
           ))}
         </ul>
 
-        {/* Tecnología para vender desarrollos: clip grabado del tour 360° de
-            Distrito Roldán (distritoroldan360.com), sin más texto. */}
-        <div className="ct-rev mt-16 overflow-hidden rounded-[24px] p-5 md:mt-20 md:p-8" style={{ background: '#0B1510' }}>
-          <p className="m-0 text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: MENTA }}>
-            Tecnología para desarrollos
-          </p>
-          <h3 className="mb-0 mt-2.5 text-[26px] font-extrabold leading-[1.1] text-white md:text-[34px]" style={{ letterSpacing: '-0.03em' }}>
-            El barrio terminado, antes de que exista.
-          </h3>
-          <div className="relative mt-6 aspect-video w-full overflow-hidden rounded-[16px] md:mt-8">
-            <VideoVivo
-              src="/como-trabajamos/video/distrito-roldan-360.mp4"
-              poster="/como-trabajamos/video/distrito-roldan-360.webp"
-              etiqueta="Recorrido por el tour 360° de Distrito Roldán: masterplan con los lotes, vista aérea 360° y el barrio proyectado"
-              className="absolute inset-0"
-            />
-          </div>
-        </div>
-
         <h3 className="mb-0 mt-16 text-[24px] font-extrabold md:mt-20 md:text-[30px]" style={{ letterSpacing: '-0.025em' }}>
           Informes reales que entregamos a los desarrolladores
         </h3>
