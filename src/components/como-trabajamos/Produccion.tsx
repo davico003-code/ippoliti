@@ -79,24 +79,30 @@ export function Aereas() {
             cada toma se agranda levemente. El hover va en un div interno: el
             .ct-rev del <li> anima transform y le ganaría al scale. */}
         <ul className="m-0 mx-auto grid max-w-[1000px] list-none grid-cols-2 gap-3 p-0 md:grid-cols-12 md:gap-4">
-          {AEREAS.map((a) => (
-            <li key={a.src} className={`ct-rev relative hover:z-10 ${'destacada' in a ? 'col-span-2 md:col-span-6' : 'md:col-span-3'}`}>
-              <div
-                className={`relative overflow-hidden rounded-[18px] transition duration-300 ease-out hover:scale-[1.05] hover:shadow-2xl ${'destacada' in a ? 'aspect-[3/2]' : 'aspect-[4/3]'}`}
-              >
-                <Image
-                  src={a.src}
-                  alt={a.alt}
-                  fill
-                  sizes={'destacada' in a ? '(max-width: 768px) 100vw, 500px' : '(max-width: 768px) 50vw, 250px'}
-                  className="object-cover"
-                />
-                <Chip className="absolute bottom-3 left-3">
-                  <Drone size={13} aria-hidden /> {a.lugar}
-                </Chip>
-              </div>
-            </li>
-          ))}
+          {AEREAS.map((a, i) => {
+            const grande = a.ancho === 6
+            // En el celular: las casas y la primera de las chicas a todo el
+            // ancho; el resto de a dos.
+            const movil = i < 3 ? 'col-span-2' : 'col-span-1'
+            return (
+              <li key={a.src} className={`ct-rev relative hover:z-10 ${movil} ${grande ? 'md:col-span-6' : 'md:col-span-4'}`}>
+                <div
+                  className={`relative overflow-hidden rounded-[18px] transition duration-300 ease-out hover:scale-[1.05] hover:shadow-2xl ${grande ? 'aspect-[3/2]' : 'aspect-[4/3]'}`}
+                >
+                  <Image
+                    src={a.src}
+                    alt={a.alt}
+                    fill
+                    sizes={grande ? '(max-width: 768px) 100vw, 500px' : '(max-width: 768px) 100vw, 330px'}
+                    className="object-cover"
+                  />
+                  <Chip className="absolute bottom-3 left-3">
+                    <Drone size={13} aria-hidden /> {a.lugar}
+                  </Chip>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       </Contenedor>
     </section>
