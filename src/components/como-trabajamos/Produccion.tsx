@@ -78,9 +78,9 @@ export function Aereas() {
         {/* Un poco más chicas que el ancho del contenedor; al pasar el mouse
             cada toma se agranda levemente. El hover va en un div interno: el
             .ct-rev del <li> anima transform y le ganaría al scale. */}
-        <ul className="m-0 mx-auto grid max-w-[1000px] list-none gap-3 p-0 md:grid-cols-6 md:gap-4">
+        <ul className="m-0 mx-auto grid max-w-[1000px] list-none grid-cols-2 gap-3 p-0 md:grid-cols-12 md:gap-4">
           {AEREAS.map((a) => (
-            <li key={a.src} className={`ct-rev relative hover:z-10 ${'destacada' in a ? 'md:col-span-3' : 'md:col-span-2'}`}>
+            <li key={a.src} className={`ct-rev relative hover:z-10 ${'destacada' in a ? 'col-span-2 md:col-span-6' : 'md:col-span-3'}`}>
               <div
                 className={`relative overflow-hidden rounded-[18px] transition duration-300 ease-out hover:scale-[1.05] hover:shadow-2xl ${'destacada' in a ? 'aspect-[3/2]' : 'aspect-[4/3]'}`}
               >
@@ -88,7 +88,7 @@ export function Aereas() {
                   src={a.src}
                   alt={a.alt}
                   fill
-                  sizes={'destacada' in a ? '(max-width: 768px) 100vw, 500px' : '(max-width: 768px) 100vw, 330px'}
+                  sizes={'destacada' in a ? '(max-width: 768px) 100vw, 500px' : '(max-width: 768px) 50vw, 250px'}
                   className="object-cover"
                 />
                 <Chip className="absolute bottom-3 left-3">
