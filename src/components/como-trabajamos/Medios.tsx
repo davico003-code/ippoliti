@@ -4,10 +4,11 @@
 // - VideoVivo: video propio mudo en loop que arranca recién al entrar en
 //   pantalla (preload none + IntersectionObserver) para no bajar MB de más.
 //   Con `conSonido` suma un botón para activar el audio (placas con voz).
-// - ShortYoutube: póster vertical de un Short y, al tocar, el iframe.
+// - ShortYoutube: póster vertical de un Short; al tocar se abre en el visor.
 
 import { useEffect, useRef, useState } from 'react'
 import { Play, Volume2, VolumeX } from 'lucide-react'
+import VisorYoutube from './VisorYoutube'
 
 export function VideoVivo({
   src,
@@ -81,27 +82,8 @@ export function VideoVivo({
 }
 
 export function ShortYoutube({ id, titulo }: { id: string; titulo: string }) {
-  const [activo, setActivo] = useState(false)
-  if (activo) {
-    return (
-      <div className="relative aspect-[9/16] w-full overflow-hidden rounded-[18px] bg-black">
-        <iframe
-          src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1`}
-          title={titulo}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="absolute inset-0 h-full w-full border-0"
-        />
-      </div>
-    )
-  }
   return (
-    <button
-      type="button"
-      onClick={() => setActivo(true)}
-      aria-label={`Reproducir: ${titulo}`}
-      className="group relative block aspect-[9/16] w-full cursor-pointer overflow-hidden rounded-[18px] border-0 bg-black p-0 text-left"
-    >
+    <VisorYoutube id={id} titulo={titulo} vertical className="aspect-[9/16] rounded-[18px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`}
@@ -114,6 +96,6 @@ export function ShortYoutube({ id, titulo }: { id: string; titulo: string }) {
         <Play size={20} fill="#1A5C38" stroke="#1A5C38" aria-hidden style={{ marginLeft: 3 }} />
       </span>
       <span className="absolute bottom-3 left-3 right-3 text-[13px] font-bold leading-snug text-white">{titulo}</span>
-    </button>
+    </VisorYoutube>
   )
 }

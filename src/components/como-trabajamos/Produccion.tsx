@@ -4,7 +4,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, Clapperboard, Drone, Glasses, Laptop, Mic, Smartphone, Video } from 'lucide-react'
-import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
+import VisorYoutube, { BotonPlay, PosterYoutube } from './VisorYoutube'
 import { ShortYoutube, VideoVivo } from './Medios'
 import { AEREAS, CANAL_YOUTUBE, EQUIPOS, FOTOS, SHORTS, VIDEOTOURS } from './datos'
 import { BORDE, Chip, Contenedor, Encabezado, FONDO, GRIS, LinkFlecha, MENTA, TEXTO, TINTA, VERDE, VERDE_OSCURO, conNumeros } from './ui'
@@ -75,15 +75,34 @@ export function Aereas() {
         </Contenedor>
       </div>
       <Contenedor className="pb-16 pt-6 md:pb-24">
-        <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3 md:gap-4">
-          {AEREAS.map((a) => (
-            <li key={a.src} className="ct-rev relative aspect-[4/3] overflow-hidden rounded-[18px]">
-              <Image src={a.src} alt={a.alt} fill sizes="(max-width: 768px) 100vw, 380px" className="object-cover" />
-              <Chip className="absolute bottom-3 left-3">
-                <Drone size={13} aria-hidden /> {a.lugar}
-              </Chip>
-            </li>
-          ))}
+        {/* Un poco más chicas que el ancho del contenedor; al pasar el mouse
+            cada toma se agranda levemente. El hover va en un div interno: el
+            .ct-rev del <li> anima transform y le ganaría al scale. */}
+        <ul className="m-0 mx-auto grid max-w-[1000px] list-none grid-cols-2 gap-3 p-0 md:grid-cols-12 md:gap-4">
+          {AEREAS.map((a, i) => {
+            const grande = a.ancho === 6
+            // En el celular: las casas y la primera de las chicas a todo el
+            // ancho; el resto de a dos.
+            const movil = i < 3 ? 'col-span-2' : 'col-span-1'
+            return (
+              <li key={a.src} className={`ct-rev relative hover:z-10 ${movil} ${grande ? 'md:col-span-6' : 'md:col-span-4'}`}>
+                <div
+                  className={`relative overflow-hidden rounded-[18px] transition duration-300 ease-out hover:scale-[1.05] hover:shadow-2xl ${grande ? 'aspect-[3/2]' : 'aspect-[4/3]'}`}
+                >
+                  <Image
+                    src={a.src}
+                    alt={a.alt}
+                    fill
+                    sizes={grande ? '(max-width: 768px) 100vw, 500px' : '(max-width: 768px) 100vw, 330px'}
+                    className="object-cover"
+                  />
+                  <Chip className="absolute bottom-3 left-3">
+                    <Drone size={13} aria-hidden /> {a.lugar}
+                  </Chip>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       </Contenedor>
     </section>
@@ -198,12 +217,11 @@ export function Videotours() {
         <ul className="m-0 mt-10 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3 md:gap-5">
           {VIDEOTOURS.map((v) => (
             <li key={v.id} className="ct-rev">
-              <YoutubeEmbed
-                videoId={v.id}
-                title={v.titulo}
-                poster={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
-                className="aspect-video w-full overflow-hidden rounded-[18px]"
-              />
+              <VisorYoutube id={v.id} titulo={v.titulo} className="aspect-video overflow-hidden rounded-[18px]">
+                <PosterYoutube id={v.id} />
+                <span aria-hidden className="absolute inset-0 bg-black/15 transition-colors group-hover:bg-black/25" />
+                <BotonPlay />
+              </VisorYoutube>
               <p className="mt-2.5 flex items-baseline justify-between gap-3 text-[14.5px] font-bold leading-snug">
                 {v.titulo}
                 {v.dur && (

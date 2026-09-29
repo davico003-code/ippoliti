@@ -23,11 +23,18 @@ export const FOTOS = [
 ]
 
 /* ── Drone ── */
+// Tres filas: las dos casas voladas con drone para su publicación (sacadas de
+// HILO), después tres tomas y al final dos, elegidas por David. `ancho` es la
+// cantidad de columnas (de 12) que ocupa cada una en desktop.
 export const AEREAS = [
-  { src: `${P}/ruta9-aerea-cenital.webp`, alt: 'Toma cenital con drone de una casa con cancha de tenis y pileta en Funes', lugar: 'Casa sobre Ruta 9 · Funes' },
-  { src: '/barrios/kentucky/hero-cover.webp', alt: 'Vista aérea de Kentucky Club de Campo', lugar: 'Kentucky Club de Campo' },
-  { src: '/barrios/san-sebastian/hero-cover.webp', alt: 'Vista aérea del club house de San Sebastián', lugar: 'San Sebastián · Funes' },
-]
+  { src: `${P}/drone-casa-aldea-golf.webp`, alt: 'Toma aérea con drone de una casa con pileta y parque en Country Golf Aldea Fisherton', lugar: 'Country Golf Aldea Fisherton', ancho: 6 },
+  { src: `${P}/drone-casa-kentucky.webp`, alt: 'Toma aérea con drone de una casa moderna con pileta y parque en Kentucky Club de Campo', lugar: 'Kentucky Club de Campo · Funes', ancho: 6 },
+  { src: `${P}/ruta9-aerea-cenital.webp`, alt: 'Toma cenital con drone de una casa con cancha de tenis y pileta en Funes', lugar: 'Casa sobre Ruta 9 · Funes', ancho: 4 },
+  { src: '/barrios/san-sebastian/03.webp', alt: 'Toma aérea con drone del parque, las piletas y la cancha de San Sebastián, Funes', lugar: 'San Sebastián · Funes', ancho: 4 },
+  { src: '/barrios/aguadas/04.webp', alt: 'Toma cenital con drone de la cancha de tenis de Aguadas, Funes', lugar: 'Aguadas · Funes', ancho: 4 },
+  { src: '/barrios/funes-lakes/02.webp', alt: 'Toma aérea con drone de un canal de Funes Lakes con el cielo reflejado', lugar: 'Funes Lakes', ancho: 6 },
+  { src: '/barrios/aguadas/02.webp', alt: 'Toma aérea con drone del club house y la pileta de Aguadas, Funes', lugar: 'Aguadas · Funes', ancho: 6 },
+] as const
 
 /* ── Equipo técnico ── */
 // Fotos: imágenes oficiales de producto (DJI, tienda de Apple y newsroom de Meta), a
