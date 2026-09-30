@@ -103,6 +103,8 @@ export interface Ficha {
   createdAt: string            // ISO
   expiresAt: string            // ISO (createdAt + 60d)
   revokedAt: string | null     // ISO si fue revocada manualmente
+  /** 'no_disponible' = Hilo la revocó porque la propiedad se vendió/bajó: la página lo dice (30-sep-2026). */
+  revokedReason?: 'no_disponible' | null
   generadoDesde: {
     ip: string
     userAgent: string
