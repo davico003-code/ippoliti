@@ -59,7 +59,7 @@ function createCurrentMarker() {
 function SetView({ center }: { center: [number, number] }) {
   const map = useMap()
   useEffect(() => {
-    map.setView(center, 13)
+    map.setView(center, 15)
   }, [center, map])
   return null
 }
@@ -103,7 +103,7 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
         ` }} />
         <MapContainer
           center={[lat, lng]}
-          zoom={13}
+          zoom={15}
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={false}
           zoomControl
