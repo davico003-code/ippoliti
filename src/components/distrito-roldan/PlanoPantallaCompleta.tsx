@@ -13,6 +13,7 @@
 // con aire arriba y abajo, en vez de pegado al techo con un hueco de papel.
 
 import { useEffect, useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 
 // ?pantalla=completa: el plano se centra solo adentro del iframe y la hoja del
 // lote llega al borde inferior real de la pantalla (06-sep-2026). Por eso acá
@@ -65,6 +66,19 @@ export default function PlanoPantallaCompleta() {
     return () => window.removeEventListener('message', onMsg)
   }, [])
 
+  // Volver: si se llegó desde el sitio, vuelve a esa página; si el link se
+  // abrió directo (WhatsApp), lleva a la página del emprendimiento.
+  const volver = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    let desdeElSitio = false
+    try {
+      desdeElSitio = !!document.referrer && new URL(document.referrer).origin === window.location.origin
+    } catch {}
+    if (desdeElSitio && window.history.length > 1) {
+      e.preventDefault()
+      window.history.back()
+    }
+  }
+
   return (
     <main
       style={{
@@ -72,15 +86,50 @@ export default function PlanoPantallaCompleta() {
         // direcciones se esconde al scrollear y con vh el plano quedaba cortado.
         minHeight: '100dvh',
         width: '100%',
-        background: '#F4F5F3',
+        position: 'relative',
+        background: '#FFFFFF',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
+      {/* Solo en computadora: en el celular está el volver del navegador y el
+          botón le taparía el título al plano. */}
+      {/* En computadora el ancho del plano sale del alto de la pantalla (el plano
+          mide ~1.23 de ancho por 1 de alto, más ~110 px de encabezado y filtros):
+          bajando un poco entra entero, y en pantallas grandes crece hasta 1480. */}
+      <style>{`.dr-volver{display:none}.dr-volver:hover{background:#F3F4F2}@media (min-width:961px){.dr-volver{display:inline-flex}.dr-plano{max-width:clamp(961px,calc((100dvh - 110px) * 1.23 + 112px),1480px)}}`}</style>
+      <a
+        href="/emprendimientos/distrito-roldan"
+        onClick={volver}
+        className="dr-volver"
+        style={{
+          position: 'fixed',
+          top: 18,
+          left: 24,
+          zIndex: 10,
+          alignItems: 'center',
+          gap: 6,
+          height: 40,
+          padding: '0 16px 0 12px',
+          borderRadius: 999,
+          border: '1px solid rgba(35,41,31,.14)',
+          background: '#FFFFFF',
+          boxShadow: '0 1px 2px rgba(35,41,31,.08)',
+          color: '#23291F',
+          fontSize: 14,
+          fontWeight: 600,
+          textDecoration: 'none',
+          fontFamily: 'var(--font-raleway), system-ui, sans-serif',
+        }}
+      >
+        <ArrowLeft size={18} aria-hidden />
+        Volver
+      </a>
       <iframe
         src={src ?? undefined}
         title="Plano interactivo de lotes — Distrito Roldán"
+        className="dr-plano"
         style={{
           display: 'block',
           width: '100%',
