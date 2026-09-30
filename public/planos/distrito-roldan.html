@@ -40,6 +40,15 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .wrap{max-width:920px;margin:0 auto;padding:14px;
   padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
 @media (max-width:960px){ .wrap{padding:8px} }
+/* Link público en computadora (29-sep-2026, pedido de David): fondo blanco
+   y aire alrededor del plano. El ancho lo decide la página que lo embebe
+   (PlanoPantallaCompleta), que sí conoce el alto de la pantalla; adentro del
+   iframe 100vh es el alto del iframe. El margen de arriba deja lugar al botón
+   Volver de la página. */
+@media (min-width:961px){
+  html.completa body{background:#fff}
+  html.completa .wrap{max-width:none;padding:60px 56px 56px}
+}
 
 /* ---------- encabezado ---------- */
 .head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;margin:2px 2px 12px}
