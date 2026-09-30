@@ -31,11 +31,46 @@ import FeedbackColega from '@/components/neutral/FeedbackColega'
 
 const NEUTRAL_DOMAIN = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
 
+// Revocada a secas (baja manual de SI) = 404 genérico. Revocada por Hilo con
+// motivo 'no_disponible' (la propiedad se vendió o el colega la bajó) = la
+// página lo dice, sin fotos ni precio: el cliente que guardó el link no tiene
+// que seguir viendo una casa que ya no se vende (30-sep-2026).
 const getFichaCached = cache(async (slug: string) => {
   const f = await getFicha(slug)
-  if (!f || f.revokedAt) return null
+  if (!f) return null
+  if (f.revokedAt && f.revokedReason !== 'no_disponible') return null
   return f
 })
+
+function NoDisponible({ titulo, zona }: { titulo: string; zona: string }) {
+  return (
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '60px 24px',
+        position: 'relative',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div style={{ textAlign: 'center', maxWidth: 480 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#9A9A9A', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+          {[titulo, zona].filter(Boolean).join(' · ')}
+        </p>
+        <h1 style={{ fontSize: 22, fontWeight: 600, color: '#1A1A1A', margin: '12px 0 0', letterSpacing: '-0.01em' }}>
+          Esta propiedad ya no está disponible
+        </h1>
+        <p style={{ fontSize: 14, color: '#6B6B6B', marginTop: 12, lineHeight: 1.6 }}>
+          Se vendió o se retiró de la venta. Si te interesa algo parecido, consultá con quien te envió esta ficha.
+        </p>
+      </div>
+      <footer style={{ position: 'absolute', bottom: 24, fontSize: 12, color: '#9A9A9A' }}>{NEUTRAL_DOMAIN}</footer>
+    </main>
+  )
+}
 
 interface Props {
   params: { slug: string }
@@ -60,6 +95,7 @@ function stripSI(s: string): string {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ficha = await getFichaCached(params.slug)
+  if (ficha?.revokedAt) return { title: 'Propiedad ya no disponible', robots: { index: false, follow: false } }
 
   if (!ficha) {
     return {
@@ -115,6 +151,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
 
   const s = ficha.snapshot
   const url = `https://${NEUTRAL_DOMAIN}/${params.slug}`
+  if (ficha.revokedAt) return <NoDisponible titulo={s.tituloGenerico} zona={s.zonaCompleta || s.zonaAprox || ''} />
 
   // Tracking — fire-after-await, ignorando errores. Misma regla de bots que
   // el endpoint /api/ficha/[slug] (compartido vía isLikelyBot del lib).
