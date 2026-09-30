@@ -338,6 +338,11 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
 .btn-s:hover{border-color:var(--brand)}
 .btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;flex:none}
 .fine{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--ink-2);text-align:center}
+/* Segunda opción (30-sep-2026): además del pedido, WhatsApp directo. Discreto,
+   en el verde del plano, para que el botón principal siga siendo el pedido. */
+.wa-dir{display:inline-flex;align-items:center;gap:6px;min-height:32px;color:var(--disp);font-weight:700;text-decoration:none}
+.wa-dir:hover{text-decoration:underline}
+.wa-dir svg{width:14px;height:14px;fill:var(--disp);flex:none}
 /* CTA pegado al piso de la hoja: en pantallas bajas (1280×800 con el panel
    flotante, o un celular con el teclado abierto) el formulario es más alto que
    la hoja y el botón nacía debajo del pliegue —el resto scrollea detrás y el
@@ -364,17 +369,30 @@ html.completa body{min-height:100%;display:flex;flex-direction:column;justify-co
    da el mismo dato con un blanco de 100+ px de alto. El mapa sigue siendo el
    camino en escritorio, donde sí se puede apuntar. */
 .cta-lista{display:none}
-.lista{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
-.lcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;cursor:pointer;transition:border-color .15s}
-.lcard:hover,.lcard:focus-visible{border-color:rgba(47,74,58,.45);outline:none}
-.lc-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.lc-top b{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
-.lc-top .mz{font-size:12px;color:var(--ink-2);font-weight:600;white-space:nowrap}
-.lc-num{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:3px;font-size:13.5px;color:var(--ink-2)}
-.lc-pre{font-size:16px;font-weight:700;color:var(--ink);white-space:nowrap}
-.lc-cuo{margin-top:5px;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
-.lc-cuo b{color:var(--ink);font-weight:700}
-.lc-btn{min-height:46px;margin-top:10px;font-size:14.5px}
+/* Lista de precios (29/30-sep-2026, pedido de David): un lote por fila, sin
+   tarjetas ni botones grandes. Arriba el lote (número, m², medidas y hacia dónde
+   da el frente); abajo los cuatro montos con su título, alineados en columnas
+   para comparar de un vistazo. Tocar la fila abre el lote; el ícono de WhatsApp,
+   chico y en el verde del plano, abre el chat directo. */
+.lista{list-style:none;margin:6px 0 0;padding:0}
+.lrow{padding:11px 2px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-variant-numeric:tabular-nums}
+.lrow:last-child{border-bottom:0}
+.lrow:hover,.lrow:focus-visible{background:#F8F9F7;outline:none}
+.lr-top{display:flex;align-items:center;gap:7px;min-height:30px}
+.lr-n{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.01em;white-space:nowrap}
+.lr-m2{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap}
+.lr-dim{flex:1 1 auto;min-width:0;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr-wa{flex:none;width:36px;height:36px;margin:-3px -4px -3px 0;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center}
+.lr-wa span{width:28px;height:28px;border-radius:999px;background:#EDF3E2;display:inline-flex;align-items:center;justify-content:center;
+  transition:background .15s ease}
+.lr-wa svg{width:15px;height:15px;fill:var(--disp)}
+.lr-wa:hover span{background:#DFEACD}
+.lr-pr{display:grid;grid-template-columns:repeat(4,minmax(0,auto));justify-content:space-between;gap:6px;margin-top:6px}
+.lr-pr span{display:block;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+.lr-pr b{display:block;margin-top:1px;font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap}
+.lr-pr .ct b{font-weight:800;color:#3D5720}
+.lista-nota{margin:8px 2px 0;font-size:11.5px;line-height:1.45;color:var(--ink-2)}
 @media (max-width:900px){
   /* Discreto, de la familia de las píldoras de la barra: no compite con el plano. */
   .cta-lista{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;margin:0 0 9px;
@@ -1429,6 +1447,10 @@ if(CFG.foto){
 const TOUR_360 = "https://distritoroldan360.com";   // el mismo del hero de la landing (TOUR_360_EXTERNO)
 const WA_CONTINGENCIA = "5493413340916";              // WhatsApp de la web; solo aparece tras dos fallos seguidos del envío
 const USD = n => "USD " + nf.format(Math.round(n));
+/* Ícono de la lista (30-sep-2026, pedido de David): abre WhatsApp directo con
+   el lote ya escrito, sin pasar por el formulario. */
+const waLote = l => `https://wa.me/${WA_CONTINGENCIA}?text=${encodeURIComponent(`Hola, quiero consultar por el lote ${l.n} de ${CFG.proyecto}`)}`;
+const WA_ICO=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35M12.05 21.5h-.01a9.4 9.4 0 0 1-4.8-1.31l-.34-.2-3.57.93.95-3.48-.22-.36a9.4 9.4 0 0 1-1.44-5.01c0-5.2 4.23-9.43 9.44-9.43a9.37 9.37 0 0 1 6.67 2.77 9.37 9.37 0 0 1 2.76 6.67c0 5.2-4.23 9.43-9.44 9.43m8.03-17.46A11.28 11.28 0 0 0 12.05.72C5.8.72.7 5.8.7 12.07c0 2 .52 3.95 1.52 5.67L.6 23.62l6.02-1.58a11.32 11.32 0 0 0 5.42 1.38h.01c6.25 0 11.34-5.09 11.35-11.35 0-3.03-1.18-5.88-3.32-8.02"/></svg>`;
 const nfx = new Intl.NumberFormat("es-AR",{maximumFractionDigits:2});
 const mS  = n => nfx.format(n) + " m";
 const m2S = n => nfx.format(n) + " m²";
@@ -1475,27 +1497,48 @@ function vistaDetalle(l){
       <div class="der"><span class="k">Contado, pagando todo junto</span><b>${l.contado!=null?USD(l.contado):"—"}${f.ahorro?` <small>(−${USD(f.ahorro)})</small>`:""}</b></div></div>`
     : `<p class="muted">Consultanos el valor de este lote.</p>`)+
     `<button type="button" class="btn btn-p" data-act="consultar">Consultar por este lote</button>
-     <p class="fine">Te escribimos por WhatsApp en minutos. Sin compromiso.</p>`;
+     <p class="fine">Te escribimos por WhatsApp en minutos. Sin compromiso.</p>
+     <p class="fine"><a class="wa-dir" data-act="wa-lote" data-n="${l.n}" href="${waLote(l)}" target="_blank" rel="noopener noreferrer">${WA_ICO}o escribinos vos directo</a></p>`;
 }
 
 /* Lista de los lotes a la venta, ordenada por precio. Los datos son los mismos
    que muestra la hoja del lote; acá sirven para elegir sin tener que acertarle
    a un rectángulo de 30 × 15 px en el plano. */
+/* Orientación: hacia dónde da el frente del lote. El frente es el lado corto
+   que toca la calle, o sea el borde de la manzana. El Norte apunta a Ruta 9
+   (la derecha del plano en escritorio): derecha N, izquierda S, arriba O,
+   abajo E. Los lotes que tocan calle por los dos lados cortos (los
+   comerciales de Ruta 9) muestran las dos. */
+const BB_MZ={};
+for(const l of lots){ const b=BB_MZ[l.mz]||(BB_MZ[l.mz]={x0:1e9,y0:1e9,x1:-1e9,y1:-1e9});
+  b.x0=Math.min(b.x0,l.x); b.y0=Math.min(b.y0,l.y); b.x1=Math.max(b.x1,l.x+l.w); b.y1=Math.max(b.y1,l.y+l.h); }
+function orientacion(l){
+  const b=BB_MZ[l.mz], t=3, o=[];
+  if(l.w>l.h){ if(Math.abs(l.x+l.w-b.x1)<t) o.push("N"); if(Math.abs(l.x-b.x0)<t) o.push("S"); }
+  else { if(Math.abs(l.y-b.y0)<t) o.push("O"); if(Math.abs(l.y+l.h-b.y1)<t) o.push("E"); }
+  return o.join("/");
+}
 function vistaLista(){
   const disp=lots.filter(l=>l.estado==="d" && (F.tipo==="all" || (l.com?1:0)===+F.tipo))
     .sort((a,b)=>(a.precio??Infinity)-(b.precio??Infinity) || a.n-b.n);
   const head=`<div class="row"><div class="lotnum"><b tabindex="-1" id="hoja-ttl">Lotes a la venta</b><span class="mz">${disp.length} de ${lots.length}</span></div>
       <div class="row-r">${X_BTN}</div></div>`;
   if(!disp.length) return head+`<p class="muted">No hay lotes a la venta con ese filtro. Probá con “Todo tipo”.</p>`;
-  return head+`<p class="medidas">Elegí el tuyo y te escribimos por WhatsApp.</p><ul class="lista">`+disp.map(l=>{
-    const f=finDe(l);
-    return `<li class="lcard" data-act="ir-lote" data-n="${l.n}" tabindex="0" role="button">
-      <div class="lc-top"><b>Lote ${l.n}</b><span class="mz">Mz. ${l.mz} · ${l.com?"Comercial":"Residencial"}</span></div>
-      <div class="lc-num"><span>${mS(l.frente)} × ${mS(l.fondo)} · ${m2S(l.sup)}</span>${l.conPrecio?`<span class="lc-pre">${USD(l.precio)}</span>`:""}</div>
-      ${f?`<div class="lc-cuo">${f.cuotas} cuotas fijas de <b>${USD(f.cuota)}</b> · entrega ${USD(f.entrega)}</div>`:""}
-      <button type="button" class="btn btn-p lc-btn" data-act="consultar-lote" data-n="${l.n}">Consultar por el lote ${l.n}</button>
+  const OR={E:"al Este",O:"al Oeste",N:"al Norte",S:"al Sur","N/S":"doble frente"};
+  const $=v=>v==null?"—":nf.format(Math.round(v));
+  return head+`<p class="medidas">Valores en USD. Tocá un lote para verlo en el plano, o el ícono para escribirnos por WhatsApp.</p><ul class="lista">`+disp.map(l=>{
+    const f=finDe(l), o=OR[orientacion(l)];
+    return `<li class="lrow" data-act="ir-lote" data-n="${l.n}" tabindex="0" role="button" aria-label="Lote ${l.n}">
+      <div class="lr-top"><span class="lr-n">Lote ${l.n}</span><span class="lr-m2">${m2S(l.sup)}</span>
+        <span class="lr-dim">${nfx.format(l.frente)}×${nfx.format(l.fondo)} m${o?` · ${o}`:""}</span>
+        <a class="lr-wa" data-act="wa-lote" data-n="${l.n}" href="${waLote(l)}" target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp por el lote ${l.n}"><span>${WA_ICO}</span></a></div>
+      <div class="lr-pr"><div class="ct"><span>Contado</span><b>${$(l.contado)}</b></div>
+        <div><span>Financiado</span><b>${$(l.conPrecio?l.precio:null)}</b></div>
+        <div><span>Entrega</span><b>${$(f&&f.entrega)}</b></div>
+        <div><span>${f?f.cuotas:""} cuotas de</span><b>${$(f&&f.cuota)}</b></div></div>
     </li>`;
-  }).join("")+`</ul>`;
+  }).join("")+`</ul>
+    <p class="lista-nota">Financiado: precio total en cuotas fijas en USD. “Al Este” / “al Oeste”: hacia dónde da el frente del lote.</p>`;
 }
 
 function vistaForm(l){
@@ -1607,6 +1650,7 @@ dBody.addEventListener("click",e=>{
   else if(act==="volver"){ hoja.view="detalle"; render(true); }
   else if(act==="ver-disp"){ if(ANGOSTO()) abrirLista(); else verDisponibles(); }
   else if(act==="ir-lote"){ const n=+b.dataset.n; if(byN.has(n)) select(n,{enfocar:true}); }
+  else if(act==="wa-lote"){ medir("Contact",{lote:+b.dataset.n},"dr_whatsapp_lista",true); }
   else if(act==="consultar-lote"){
     const n=+b.dataset.n; if(!byN.has(n)) return;
     select(n); hoja.view="form"; hoja.fallos=0; render(true);
