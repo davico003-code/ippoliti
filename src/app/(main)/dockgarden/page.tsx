@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, MessageCircle, Phone, FileText, CheckCircle2 } from 'lucide-react'
 import { getDockGarden } from '@/lib/brickfy'
@@ -101,8 +102,16 @@ export default async function DockGardenPage() {
         <div className="relative aspect-[16/9] w-full md:absolute md:inset-0 md:aspect-auto">
           {/* Render propio sin sello: todas las imágenes de Brickfy (portada y
               galería) traen el logo del desarrollador estampado. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/dockgarden/render-frente.webp" alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full object-cover" />
+          {/* next/image: el archivo pesa 456 KB y un <img> lo bajaba entero
+              también en el celular; así cada pantalla recibe su tamaño. */}
+          <Image
+            src="/images/dockgarden/render-frente.webp"
+            alt="Dock Garden — Aldea Fisherton"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
           <div className="absolute inset-0 hidden bg-gradient-to-t from-black/80 via-black/30 to-black/10 md:block" />
         </div>
         <div className="relative px-4 pb-2 pt-5 sm:px-6 md:absolute md:inset-x-0 md:bottom-0 md:p-10">

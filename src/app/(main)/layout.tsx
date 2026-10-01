@@ -236,14 +236,10 @@ export default function RootLayout({
       <head>
         {/* Favicon Edición Mundial (placeholder /favicon-mundial.png — reemplazar). */}
         {mundial && <link rel="icon" type="image/png" href="/favicon-mundial.png" />}
-        {/* Preconnect a CDNs externos para que el handshake DNS+TLS ya esté
-            hecho cuando el navegador pida las imágenes optimizadas por
-            next/image. crossOrigin="anonymous" es lo correcto para imágenes
-            servidas como recurso público (sin credenciales). */}
-        <link rel="preconnect" href="https://static.tokkobroker.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://static.tokkobroker.com" />
-        <link rel="preconnect" href="https://cdn.tokkobroker.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://cdn.tokkobroker.com" />
+        {/* Sin preconnect a CDNs de fotos: las imágenes salen todas por
+            /_next/image (mismo origen). Los que había apuntaban a Tokko, que la
+            web ya no usa (cdn.tokkobroker.com ni resuelve): eran dos conexiones
+            tiradas en cada página. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

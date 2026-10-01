@@ -178,9 +178,12 @@ export default function Navbar() {
           boxShadow: transparent ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
         }}
       >
-        <div className="relative mx-auto flex items-center" style={{ maxWidth: 1400, padding: '18px 40px' }}>
+        {/* Entre 1024 y ~1065 px (iPad apaisado, ventanas chicas) el logo
+            centrado se encimaba con "Barrios cerrados": hasta xl va más
+            ajustado (menos margen lateral y menos separación entre links). */}
+        <div className="relative mx-auto flex items-center px-6 xl:px-10 py-[18px]" style={{ maxWidth: 1400 }}>
           {/* Left menu */}
-          <div className="flex items-center gap-5 xl:gap-8">
+          <div className="flex items-center gap-4 xl:gap-8">
             {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
@@ -224,7 +227,7 @@ export default function Navbar() {
           </Link>
 
           {/* Right menu + CTA */}
-          <div className="ml-auto flex items-center gap-5 xl:gap-8">
+          <div className="ml-auto flex items-center gap-4 xl:gap-8">
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
             <IngresarButton agent={agent} />
           </div>
