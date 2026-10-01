@@ -1,3 +1,11 @@
+// Este loading vive en el grupo (listado) A PROPÓSITO, junto al page.tsx del
+// listado. Next corta el prefetch de un <Link> en el primer segmento con
+// loading.tsx que difiera de la ruta actual. Cuando el listado colgaba directo
+// de /propiedades, desde una ficha (/propiedades/[slug]) el segmento que
+// difería era la página misma, sin loading propio: cada link a /propiedades
+// (botón "Mapa", Comprar, Alquilar, footer) bajaba el listado ENTERO (~1 MB,
+// 113 KB comprimido) en cada visita a una ficha. Con el grupo, el prefetch
+// trae solo este esqueleto. La URL no cambia (los grupos no la tocan).
 export default function Loading() {
   return (
     <div className="min-h-screen bg-gray-50 animate-pulse">
