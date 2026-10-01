@@ -17,7 +17,7 @@ import { detectarEdificios, edificioDe, desdeTexto } from '@/lib/edificios';
 import PropertyDetailSimilars from '@/components/property-detail/PropertyDetailSimilars';
 import {
   getPropertyById,
-  getProperties,
+  getPropertiesEstable,
   getIdFromSlug,
   generatePropertySlug,
   isMonoambiente,
@@ -69,7 +69,7 @@ function calleDe(dir?: string | null): string {
 async function tituloUnico(property: TokkoProperty, title: string): Promise<string> {
   let todas: TokkoProperty[] = [];
   try {
-    todas = (await getProperties()).objects ?? [];
+    todas = (await getPropertiesEstable()).objects ?? [];
   } catch {
     return title;
   }
@@ -218,11 +218,14 @@ export default async function PropertyPage({ params }: Props) {
   // de la ficha mobile.
 
   // ¿La unidad pertenece a un edificio con más departamentos publicados?
-  // getProperties() está cacheado y compartido; acá solo derivamos el dato
+  // El listado está cacheado y compartido; acá solo derivamos el dato
   // resuelto (nombre, slug, cuántas otras) — el array no viaja al cliente.
+  // getPropertiesEstable y NO getProperties: con el listado "vivo" la ficha
+  // quedaba atada a su tag y cada edición de CUALQUIER propiedad en HILO
+  // regeneraba todas las fichas (ver CACHE_TAG_LISTA en lib/tokko).
   let edificioInfo: { nombre: string; slug: string; otras: number; desde: string | null } | null = null;
   try {
-    const todas = await getProperties();
+    const todas = await getPropertiesEstable();
     const eds = detectarEdificios((todas.objects ?? []).map(sanitizeProperty));
     const ed = edificioDe(property, eds);
     if (ed && ed.unidades.length > 1) {
