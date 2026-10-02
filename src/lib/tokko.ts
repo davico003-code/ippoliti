@@ -1042,6 +1042,23 @@ function isHiloSource(): boolean {
 }
 const HILO_BASE = process.env.HILO_FEED_URL || 'https://meethilo.com';
 
+// ─── Tags del Data Cache ─────────────────────────────────────────────────────
+// 'tokko-properties' es el tag del LISTADO: cae con cada edición en HILO
+// (/api/revalidate) para que home, listado y landings muestren el cambio al
+// instante. El DETALLE de una propiedad ya no lo lleva: antes sí, y cada
+// edición de UNA propiedad invalidaba las ~265 fichas juntas — la siguiente
+// visita a cada una esperaba la regeneración (~1,7 s en vez de ~0,3 s).
+// Ahora una ficha cae solo con su propio tag `tokko-property-{id}` (HILO manda
+// el id en cada edición) o con CACHE_TAG_DETALLE, que usan los refrescos manuales
+// "de todo" (panel de agentes / admin).
+export const CACHE_TAG_LISTA = 'tokko-properties';
+export const CACHE_TAG_DETALLE = 'tokko-property-detail';
+// Listado en una entrada de cache aparte, para lo que la FICHA deriva de las
+// demás propiedades (título único, banner del edificio). Se renueva sola cada
+// hora; no cae con cada edición.
+export const CACHE_TAG_LISTA_ESTABLE = 'tokko-properties-estable';
+export const cacheTagPropiedad = (id: number | string) => `tokko-property-${id}`;
+
 export async function getPropertyCount(): Promise<number> {
   if (isHiloSource()) {
     const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=1`, {
@@ -1069,7 +1086,7 @@ export async function getPropertyCount(): Promise<number> {
 
 async function hiloGetPropertyById(id: number): Promise<TokkoProperty> {
   const res = await fetch(`${HILO_BASE}/api/public/propiedades/${id}`, {
-    next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${id}`] },
+    next: { revalidate: 3600, tags: [CACHE_TAG_DETALLE, cacheTagPropiedad(id)] },
   });
   if (res.status === 404) throw new Error(`Property ${id} not found`);
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
@@ -1082,16 +1099,22 @@ async function hiloGetProperties(params?: {
   limit?: number;
   offset?: number;
   fetchAll?: boolean;
-}): Promise<TokkoListResponse> {
+}, estable = false): Promise<TokkoListResponse> {
   // El feed HILO no filtra server-side, así que SIEMPRE traemos el feed completo
   // (UNA sola entry de cache reutilizada por todos los callers) y filtramos +
   // paginamos acá. Ignoramos fetchAll para el fetch upstream: filtrar/paginar
   // sobre un subconjunto truncado daría total_count mentiroso y perdería
   // propiedades (p.ej. filtrar Rent sobre los primeros 50 del feed).
   const UPSTREAM_CAP = 1000;
-  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${UPSTREAM_CAP}`, {
-    next: { revalidate: 3600, tags: ['tokko-properties'] },
-  });
+  // `estable`: mismo feed, otra entrada del Data Cache (el header entra en la
+  // clave de cache de Next; el feed lo ignora) con un tag que no cae en cada
+  // edición. Ver CACHE_TAG_LISTA_ESTABLE.
+  const res = await fetch(
+    `${HILO_BASE}/api/public/propiedades?limit=${UPSTREAM_CAP}`,
+    estable
+      ? { headers: { 'x-si-cache': 'estable' }, next: { revalidate: 3600, tags: [CACHE_TAG_LISTA_ESTABLE] } }
+      : { next: { revalidate: 3600, tags: [CACHE_TAG_LISTA] } },
+  );
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
   const data = (await res.json()) as TokkoListResponse;
   let objects = data.objects ?? [];
@@ -1113,6 +1136,18 @@ async function hiloGetProperties(params?: {
     meta: { limit, offset, total_count: total, next: null, previous: null },
     objects: objects.slice(offset, offset + limit).map(ocultarPrecioOportunidad),
   };
+}
+
+/**
+ * El listado completo desde una entrada de cache que NO se invalida con cada
+ * edición en HILO (se renueva sola cada hora). Es para lo que una ficha deriva
+ * de las OTRAS propiedades: si usara getProperties(), la ficha quedaría atada
+ * al tag del listado y cada edición de cualquier propiedad la regeneraría.
+ * Para listados que tienen que mostrar el cambio al instante: getProperties().
+ */
+export async function getPropertiesEstable(): Promise<TokkoListResponse> {
+  if (isHiloSource()) return hiloGetProperties(undefined, true);
+  return getProperties();
 }
 
 export async function getProperties(params?: {
@@ -1215,7 +1250,7 @@ export async function getPropertyById(id: number): Promise<TokkoProperty> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(url, {
-        next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${id}`] },
+        next: { revalidate: 3600, tags: [CACHE_TAG_DETALLE, cacheTagPropiedad(id)] },
       });
 
       if (res.status === 404) {
