@@ -72,6 +72,19 @@ export default async function EmprendimientosPage() {
   }
 
   cards.push({
+    key: 'tierra-nueva',
+    href: '/emprendimientos/tierra-nueva',
+    image: '/emprendimientos/tierra-nueva/card.webp',
+    eyebrow: 'Departamentos en cuotas · Fisherton',
+    title: 'Tierra Nueva — Condos 22, 23 y 24',
+    location: 'Casacuberta, Alippi y Parravicini · Fisherton, Rosario',
+    description:
+      'Departamentos de 1 y 2 dormitorios con cochera, pileta, SUM y parrilla. 36 cuotas fijas en dólares sin anticipo, en un barrio con más de 500 unidades ya entregadas.',
+    chips: ['Departamentos', 'En construcción'],
+    accent: GREEN,
+  })
+
+  cards.push({
     key: 'fisherton-work',
     href: '/emprendimientos/fisherton-work',
     image: '/emprendimientos/fisherton-work/render-conjunto.webp',
@@ -134,6 +147,19 @@ export default async function EmprendimientosPage() {
       accent: GREEN,
     })
   }
+
+  // Orden comercial: primero los que empujamos (Distrito Roldán, Tierra Nueva,
+  // Hausing, Dockgarden); Aurea y Fincazul al final. El resto conserva su orden.
+  const PRIMEROS = ['distrito-roldan', 'tierra-nueva', 'hausing', 'dockgarden']
+  const ULTIMOS = ['aurea', 'fincazul']
+  const rango = (c: Card) => {
+    const id = c.href.split('/').pop() ?? ''
+    const p = PRIMEROS.findIndex((k) => c.key === k || id.includes(k))
+    if (p >= 0) return p
+    const u = ULTIMOS.indexOf(c.key)
+    return u >= 0 ? 1000 + u : 100
+  }
+  cards.sort((a, b) => rango(a) - rango(b))
 
   return (
     <div className="min-h-screen bg-white">

@@ -42,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/emprendimientos/fincazul`, changeFrequency: 'weekly', priority: 0.8 },
     // Fisherton Work: mismo caso que Fincazul (ruta estática, no está en HILO).
     { url: `${BASE}/emprendimientos/fisherton-work`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/emprendimientos/tierra-nueva`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/barrio-los-aromos-roldan`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/barrio-don-mateo-funes`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/barrio-el-molino-roldan`, changeFrequency: 'monthly', priority: 0.7 },
