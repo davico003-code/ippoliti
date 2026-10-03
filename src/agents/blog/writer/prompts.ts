@@ -89,7 +89,7 @@ Devolvé SOLO un JSON válido (sin markdown fences, sin texto adicional) con est
   "contenido_markdown": "string (800-1200 palabras, markdown)",
   "keywords": ["string", "string", "..."],
   "categoria": "mercado" | "inversion" | "guias" | "barrios" | "coyuntura",
-  "imagen_sugerida": "string (descripción para buscar en Pexels/Unsplash)",
+  "imagen_sugerida": "string (qué foto REAL de Funes/Roldán/Rosario ilustra la nota: lugar, barrio, obra o tipo de casa concreto)",
   "cta_usado": "web" | "instagram" | "whatsapp"
 }
 

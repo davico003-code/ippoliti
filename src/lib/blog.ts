@@ -16,6 +16,7 @@ export interface BlogPost {
   publishAt?: string    // ISO completo; si es futuro, la nota está programada
   updatedAt?: string    // ISO completo; se estampa al editar la nota en el panel
   hasImageOverride?: boolean
+  imageCredit?: string  // "Foto: InfoFunes" etc. cuando la portada no es propia
 }
 
 export const posts: BlogPost[] = [
@@ -243,7 +244,7 @@ function yaPublicada(p: BlogPost): boolean {
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | undefined> {
-  const { getPostsDinamicos, getBlogRedirects, getImageOverrides } =
+  const { getPostsDinamicos, getBlogRedirects, getImageOverrides, getImageCredits } =
     await import('./blog-posts-dinamicos');
   // Borrada (soft-delete): el middleware ya hace 301; defensa en profundidad.
   const redirects = await getBlogRedirects();
@@ -253,9 +254,9 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | undefined>
     (await getPostsDinamicos()).find(p => p.slug === slug);
   // Programada con fecha futura: tratarla como inexistente (igual que borrada)
   if (!local || !yaPublicada(local)) return undefined;
-  const overrides = await getImageOverrides();
+  const [overrides, creditos] = await Promise.all([getImageOverrides(), getImageCredits()]);
   return overrides[slug]
-    ? { ...local, image: overrides[slug], hasImageOverride: true }
+    ? { ...local, image: overrides[slug], hasImageOverride: true, imageCredit: creditos[slug] }
     : local;
 }
 
