@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { CalendarCheck, MapPin } from 'lucide-react'
 import { CALLES_BARRIO, CONDOS, LOTES_BARRIO, TN_BASE, VERDE_BARRIO, type CondoId } from '@/lib/tierra-nueva'
 import WaCta from './WaCta'
+import Num from './Num'
 
 const GREEN = '#1A5C38'
 
@@ -81,7 +82,11 @@ export default function PlanoBarrio() {
                         : 'pointer-events-none fill-gray-400 text-[7.5px] font-semibold'
                     }
                   >
-                    {nuevo ? l.nombre.replace('Condo ', '') : l.nombre}
+                    {nuevo ? (
+                      <tspan className="font-numeric">{l.nombre.replace('Condo ', '')}</tspan>
+                    ) : (
+                      l.nombre.split(/(\d+)/).map((p, k) => (k % 2 ? <tspan key={k} className="font-numeric">{p}</tspan> : p))
+                    )}
                   </text>
                 )}
               </g>
@@ -91,7 +96,7 @@ export default function PlanoBarrio() {
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-2 pb-1 pt-2 text-xs text-gray-500">
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-sm border-2 border-[#1A5C38] bg-[#7FD1A3]" /> Condos 22, 23 y 24 (en venta)
+            <span className="h-3 w-3 rounded-sm border-2 border-[#1A5C38] bg-[#7FD1A3]" /> <Num>Condos 22, 23 y 24 (en venta)</Num>
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="h-3 w-3 rounded-sm border border-gray-300 bg-white" /> Otros condos del barrio
@@ -138,13 +143,13 @@ export default function PlanoBarrio() {
             </h3>
             <p className="mt-2 flex items-start gap-2 text-sm text-gray-600">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#1A5C38]" />
-              {condo.calle} · {condo.manzana}, {condo.lote}
+              <Num>{`${condo.calle} · ${condo.manzana}, ${condo.lote}`}</Num>
             </p>
             <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-600">
               <CalendarCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#1A5C38]" />
               {condo.entrega ? (
                 <span>
-                  Entrega estimada: <strong className="text-gray-900">{condo.entrega}</strong>
+                  Entrega estimada: <strong className="text-gray-900"><Num>{condo.entrega}</Num></strong>
                 </span>
               ) : (
                 'Entrega: consultá la fecha estimada'

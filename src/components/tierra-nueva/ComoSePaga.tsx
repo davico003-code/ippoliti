@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { Banknote, CalendarRange, Layers } from 'lucide-react'
 import { TN_PRECIOS, cuotaMensual, usd } from '@/lib/tierra-nueva'
 import WaCta from './WaCta'
+import Num from './Num'
 
 const OPCIONES = [
   { id: 1, label: '1 dormitorio', precios: TN_PRECIOS.unDorm },
@@ -34,7 +35,7 @@ export default function ComoSePaga() {
               sel === o.id ? 'bg-[#1A5C38] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            {o.label}
+            <Num>{o.label}</Num>
           </button>
         ))}
       </div>

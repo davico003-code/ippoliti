@@ -3,6 +3,7 @@
 import { MessageCircle } from 'lucide-react'
 import { trackEvent } from '@/lib/analytics'
 import { tnWhatsappUrl } from '@/lib/tierra-nueva'
+import Num from './Num'
 
 // CTA de WhatsApp de la landing de Tierra Nueva: mensaje ya escrito y evento
 // GA4 con el lugar de la página desde donde se clickeó.
@@ -45,7 +46,7 @@ export default function WaCta({
       onClick={onClick}
       className={`inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-7 py-3.5 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 ${className}`}
     >
-      <MessageCircle className="h-4 w-4" /> {label}
+      <MessageCircle className="h-4 w-4" /> <Num>{label}</Num>
     </a>
   )
 }

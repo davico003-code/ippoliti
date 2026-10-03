@@ -38,6 +38,7 @@ import PlantasEdificio from '@/components/tierra-nueva/PlantasEdificio'
 import Tipologias from '@/components/tierra-nueva/Tipologias'
 import WaCta from '@/components/tierra-nueva/WaCta'
 import { TN_BASE, TN_GEO, TN_PRECIOS, TN_URL, cuotaMensual, usd } from '@/lib/tierra-nueva'
+import Num from '@/components/tierra-nueva/Num'
 
 const GREEN = '#1A5C38'
 
@@ -253,7 +254,7 @@ export default function TierraNuevaPage() {
             {STATS.map((s, i) => (
               <div key={s.l} className={`bg-[#0E120F]/70 px-4 py-4 backdrop-blur-md md:px-5 ${i === 4 ? 'col-span-2 sm:col-span-1' : ''}`}>
                 <dd className="font-numeric text-xl font-bold md:text-2xl">{s.v}</dd>
-                <dt className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white/55">{s.l}</dt>
+                <dt className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white/55"><Num>{s.l}</Num></dt>
               </div>
             ))}
           </dl>
@@ -285,8 +286,8 @@ export default function TierraNuevaPage() {
             {PASOS.map((p) => (
               <li key={p.n} className="bg-white p-5 md:p-6">
                 <span className="font-numeric text-sm font-black text-[#1A5C38]">0{p.n}</span>
-                <p className="mt-2 text-lg font-black text-gray-900">{p.t}</p>
-                <p className="mt-1 text-sm leading-snug text-gray-500">{p.d}</p>
+                <p className="mt-2 text-lg font-black text-gray-900"><Num>{p.t}</Num></p>
+                <p className="mt-1 text-sm leading-snug text-gray-500"><Num>{p.d}</Num></p>
               </li>
             ))}
           </ol>
@@ -310,7 +311,8 @@ export default function TierraNuevaPage() {
               Más de <span className="font-numeric text-[#7FD1A3]">500</span> departamentos ya entregados.
             </p>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-white/75 md:text-lg">
-              No comprás un pozo en el medio de la nada: Condo 22, 23 y 24 se suman a un barrio con vecinos, servicios y
+              No comprás un pozo en el medio de la nada: Condo <span className="font-numeric">22</span>,{' '}
+              <span className="font-numeric">23</span> y <span className="font-numeric">24</span> se suman a un barrio con vecinos, servicios y
               plazas, hecho por los mismos desarrolladores.
             </p>
           </div>
@@ -321,7 +323,7 @@ export default function TierraNuevaPage() {
             {SERVICIOS.map(({ icon: Icon, t }) => (
               <li key={t} className="flex items-center gap-3 bg-[#0E120F] px-5 py-5">
                 <Icon className="h-5 w-5 shrink-0 text-[#7FD1A3]" strokeWidth={1.8} />
-                <span className="text-sm font-semibold">{t}</span>
+                <span className="text-sm font-semibold"><Num>{t}</Num></span>
               </li>
             ))}
           </ul>
@@ -332,7 +334,7 @@ export default function TierraNuevaPage() {
               <figure key={e.img} className="relative aspect-[4/3] w-[78%] shrink-0 snap-start overflow-hidden rounded-2xl bg-white/5 md:w-auto">
                 <Image src={`${TN_BASE}/entregados/${e.img}`} alt={`${e.n}, Tierra Nueva — terminado`} fill className="object-cover" sizes="(max-width: 768px) 80vw, 33vw" />
                 <figcaption className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-xs font-bold backdrop-blur">
-                  <KeyRound className="h-3.5 w-3.5 text-[#7FD1A3]" /> {e.n}
+                  <KeyRound className="h-3.5 w-3.5 text-[#7FD1A3]" /> <Num>{e.n}</Num>
                 </figcaption>
               </figure>
             ))}
@@ -341,12 +343,12 @@ export default function TierraNuevaPage() {
         </div>
       </section>
 
-      {/* ── Los 3 edificios ── */}
+      {/* ── Los <span className="font-numeric">3</span> edificios ── */}
       <section id="condos" className="scroll-mt-20 px-5 py-20 md:py-28">
         <div className="mx-auto max-w-6xl">
           <div className="mb-10 grid grid-cols-1 items-end gap-5 md:grid-cols-2 md:gap-12">
             <div>
-              <Eyebrow>Los 3 edificios</Eyebrow>
+              <Eyebrow>Los <span className="font-numeric">3</span> edificios</Eyebrow>
               <h2 className="mt-3 text-3xl font-black leading-tight tracking-tight text-gray-900 md:text-5xl">
                 Tres condos. Elegí dónde.
               </h2>
@@ -397,8 +399,8 @@ export default function TierraNuevaPage() {
               {AMENITIES.map(({ icon: Icon, t, d }) => (
                 <li key={t} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
                   <Icon className="h-5 w-5" style={{ color: GREEN }} strokeWidth={1.9} />
-                  <p className="mt-2 font-bold text-gray-900">{t}</p>
-                  <p className="text-[13px] leading-snug text-gray-500">{d}</p>
+                  <p className="mt-2 font-bold text-gray-900"><Num>{t}</Num></p>
+                  <p className="text-[13px] leading-snug text-gray-500"><Num>{d}</Num></p>
                 </li>
               ))}
             </ul>
@@ -435,14 +437,14 @@ export default function TierraNuevaPage() {
                 {TERMINACIONES.map((t) => (
                   <li key={t} className="flex items-start gap-3 text-[15px] text-white/80">
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#7FD1A3]" />
-                    {t}
+                    <Num>{t}</Num>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
               <h3 className="text-2xl font-black tracking-tight md:text-3xl">Así se entregan</h3>
-              <p className="mt-2 text-sm text-white/60">Fotos reales de un departamento ya entregado en Condo 7, del mismo barrio.</p>
+              <p className="mt-2 text-sm text-white/60">Fotos reales de un departamento ya entregado en Condo <span className="font-numeric">7</span>, del mismo barrio.</p>
               <div className="mt-6">
                 <FincazulGaleriaLazy base={TN_BASE} items={ENTREGADO_FOTOS} alt="Departamento entregado en Tierra Nueva" layout="fotos" />
               </div>
@@ -558,10 +560,10 @@ export default function TierraNuevaPage() {
             {FAQ.map((f) => (
               <details key={f.q} className="group px-6 py-5 [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-bold text-gray-900">
-                  {f.q}
+                  <Num>{f.q}</Num>
                   <ChevronDown className="h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180" />
                 </summary>
-                <p className="mt-3 text-[15px] leading-relaxed text-gray-600">{f.a}</p>
+                <p className="mt-3 text-[15px] leading-relaxed text-gray-600"><Num>{f.a}</Num></p>
               </details>
             ))}
           </div>

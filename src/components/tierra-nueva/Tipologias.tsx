@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { Compass, ZoomIn } from 'lucide-react'
 import { COCHERA_M2, TIPOLOGIAS, TN_BASE, TN_PRECIOS, cuotaMensual, m2, usd } from '@/lib/tierra-nueva'
 import WaCta from './WaCta'
+import Num from './Num'
 
 const PlanoZoom = dynamic(() => import('@/components/fisherton-work/PlanoZoom'), { ssr: false })
 
@@ -57,7 +58,7 @@ export default function Tipologias() {
                 filtro === f.id ? 'bg-[#1A5C38] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              {f.label}
+              <Num>{f.label}</Num>
             </button>
           ))}
         </div>
@@ -77,7 +78,7 @@ export default function Tipologias() {
               >
                 <span className="block text-2xl font-black leading-none">{x.letra}</span>
                 <span className={`mt-1 block text-[11px] font-semibold ${on ? 'text-white/75' : 'text-gray-500'}`}>
-                  {x.dormitorios} dorm · <span className="font-numeric">{Math.round(x.cubierta)}</span> m²
+                  <span className="font-numeric">{x.dormitorios}</span> dorm · <span className="font-numeric">{Math.round(x.cubierta)}</span> m²
                 </span>
               </button>
             )
@@ -98,7 +99,7 @@ export default function Tipologias() {
                   plano === i ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {pl.pisos}
+                <Num>{pl.pisos}</Num>
               </button>
             ))}
           </div>
@@ -123,13 +124,13 @@ export default function Tipologias() {
             <ZoomIn className="h-3.5 w-3.5" /> Ver en grande
           </span>
         </button>
-        <p className="mt-2 text-xs text-gray-400">{p.pisos} · plano orientativo, sujeto a cambios del proyecto.</p>
+        <p className="mt-2 text-xs text-gray-400"><Num>{p.pisos}</Num> · plano orientativo, sujeto a cambios del proyecto.</p>
       </div>
 
       <article className="rounded-3xl lg:col-start-1 lg:row-start-2 border border-gray-200 bg-white p-6">
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1A5C38]">Unidad {t.letra}</p>
         <h3 className="mt-1 text-2xl font-black tracking-tight text-gray-900">
-          {t.dormitorios === 1 ? '1 dormitorio' : '2 dormitorios'} + balcón + cochera
+          <span className="font-numeric">{t.dormitorios}</span> {t.dormitorios === 1 ? 'dormitorio' : 'dormitorios'} + balcón + cochera
         </h3>
         <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
           <Dato label="Cubierta" valor={m2(t.cubierta)} />

@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { ZoomIn } from 'lucide-react'
 import { TN_BASE } from '@/lib/tierra-nueva'
+import Num from './Num'
 
 const PlanoZoom = dynamic(() => import('@/components/fisherton-work/PlanoZoom'), { ssr: false })
 
@@ -38,8 +39,8 @@ export default function PlantasEdificio() {
               </span>
             </div>
             <div className="border-t border-gray-100 px-5 py-4">
-              <p className="font-bold text-gray-900">{p.titulo}</p>
-              <p className="text-sm text-gray-500">{p.texto}</p>
+              <p className="font-bold text-gray-900"><Num>{p.titulo}</Num></p>
+              <p className="text-sm text-gray-500"><Num>{p.texto}</Num></p>
             </div>
           </button>
         ))}
