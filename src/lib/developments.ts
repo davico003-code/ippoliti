@@ -277,6 +277,22 @@ export { translateTag } from './tokko'
 
 // --- API ---
 
+// Las unidades que nacieron en HILO traen el emprendimiento "pelado" ({ id, name }:
+// sin descripción, financiación, fotos ni mapa). Para armar el emprendimiento se
+// prueba primero con las unidades que vinieron de Tokko (id < 900000000) y se usa
+// la primera que lo trae completo: así no depende del orden del feed, donde las
+// unidades nuevas aparecen primero (pasó con Dock Garden el 03-oct).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function devCompleto(objs: any[], devId: number) {
+  const hits = objs.filter((o) => o.development?.id === devId)
+  const orden = [...hits].sort((a, b) => Number(a.id >= 900000000) - Number(b.id >= 900000000))
+  for (const hit of orden) {
+    const rich = await hiloRichDev(hit.id)
+    if (rich && Object.keys(rich).length > 2) return { rich, hit }
+  }
+  return { rich: null, hit: hits[0] }
+}
+
 export async function getDevelopments(): Promise<Development[]> {
   if (isHiloSource()) {
     const objs = await hiloFeed()
@@ -287,11 +303,10 @@ export async function getDevelopments(): Promise<Development[]> {
       if (d?.id && d.display_on_web !== false && !unitByDev.has(d.id)) unitByDev.set(d.id, o.id)
     }
     const devs = await Promise.all(
-      Array.from(unitByDev.values()).map(async (unitId) => {
-        const rich = await hiloRichDev(unitId)
-        const unit = objs.find((o) => o.id === unitId)
-        // Fallback al dev recortado del feed si la lectura rica falla.
-        return mapRawDev(rich ?? unit?.development, unit)
+      Array.from(unitByDev.keys()).map(async (devId) => {
+        const { rich, hit } = await devCompleto(objs, devId)
+        // Fallback al dev recortado del feed si ninguna unidad lo trae completo.
+        return mapRawDev(rich ?? hit?.development, hit)
       }),
     )
     return devs
@@ -306,10 +321,9 @@ export async function getDevelopments(): Promise<Development[]> {
 export async function getDevelopmentById(id: number): Promise<Development> {
   if (isHiloSource()) {
     const objs = await hiloFeed()
-    const hit = objs.find((o) => o.development?.id === id)
-    if (!hit) throw new Error(`Development ${id} not found`)
-    // Traer el development COMPLETO (con fotos/financiación) desde la unidad.
-    const rich = await hiloRichDev(hit.id)
+    if (!objs.some((o) => o.development?.id === id)) throw new Error(`Development ${id} not found`)
+    // Traer el development COMPLETO (con fotos/financiación) desde una unidad que lo tenga.
+    const { rich, hit } = await devCompleto(objs, id)
     return mapRawDev(rich ?? hit.development, hit)
   }
   const url = `${BASE_URL}/development/${id}/?key=${getApiKey()}&lang=es&format=json`
