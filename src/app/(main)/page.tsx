@@ -2,6 +2,7 @@ export const revalidate = 21600
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { ArrowRight } from 'lucide-react'
 import HeroVideo from '@/components/HeroVideo'
 import EmprendimientosHome from '@/components/EmprendimientosHome'
 import HorizontalCarousel from '@/components/HorizontalCarousel'
@@ -16,7 +17,7 @@ import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import TemporariosHome from '@/components/home/TemporariosHome'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
-import BurbujaAgenteCard from '@/components/home/BurbujaAgenteCard'
+import PastillaAgenteCard from '@/components/home/PastillaAgenteCard'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 import { esTemporadaVerano } from '@/lib/temporarios-data'
 import {
@@ -148,9 +149,10 @@ async function FeaturedPropertiesSection() {
             <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5" />
           )}
         </div>
-        <BurbujaAgenteCard agente={agentes.get(property.id)} />
+        <PastillaAgenteCard agente={agentes.get(property.id)} />
         </div>
-        <div style={{ padding: '10px 2px 4px' }}>
+        <div style={{ padding: '10px 2px 4px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
           {esOportunidadConsultanos(property.id) ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
               <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '4px 9px', whiteSpace: 'nowrap' }}>
@@ -179,6 +181,8 @@ async function FeaturedPropertiesSection() {
           <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
             {direccion || address}
           </p>
+          </div>
+          <span className="prop-card-arrow" aria-hidden="true"><ArrowRight size={18} strokeWidth={2} /></span>
         </div>
       </Link>
     )
@@ -290,6 +294,10 @@ export default async function Home() {
             .prop-card:hover .prop-card-img { transform: scale(1.03); }
           }
           .prop-card-img { transition: transform 400ms ease-out; }
+          .prop-card-arrow { flex-shrink: 0; width: 42px; height: 42px; border-radius: 9999px; border: 1.5px solid #e5e5e5; display: flex; align-items: center; justify-content: center; color: #1d1d1f; transition: background 200ms, color 200ms, border-color 200ms; }
+          @media (hover: hover) {
+            .prop-card:hover .prop-card-arrow { background: #1A5C38; border-color: #1A5C38; color: #fff; }
+          }
           .home-section { padding: 32px 24px; }
           .nosotros-grid { gap: 56px; }
           @media (max-width: 1024px) {

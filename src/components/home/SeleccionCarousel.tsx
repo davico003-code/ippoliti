@@ -19,7 +19,8 @@ import {
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 import EncabezadoSeccion from './EncabezadoSeccion'
-import BurbujaAgenteCard from './BurbujaAgenteCard'
+import PastillaAgenteCard from './PastillaAgenteCard'
+import { ArrowRight } from 'lucide-react'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 
 // Badge basado en operation_type real de Tokko
@@ -122,9 +123,10 @@ export default async function SeleccionCarousel() {
                     client-side por lote. */}
                 <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3" />
               </div>
-              <BurbujaAgenteCard agente={agentes.get(p.id)} size={48} />
+              <PastillaAgenteCard agente={agentes.get(p.id)} size={32} />
               </div>
-              <div className="px-0.5 pt-2.5 pb-1">
+              <div className="px-0.5 pt-2.5 pb-1 flex items-center gap-3">
+                <div className="flex-1 min-w-0">
                 {esOportunidadConsultanos(p.id) ? (
                   <div className="flex items-center gap-2">
                     <span className="font-poppins font-extrabold text-[10.5px] uppercase tracking-wider text-gray-900 rounded-md px-2 py-1 whitespace-nowrap" style={{ background: '#fbce07' }}>
@@ -147,6 +149,10 @@ export default async function SeleccionCarousel() {
                 <p className="font-poppins text-[12px] text-gray-500 mt-1 truncate">
                   {direccion || address}
                 </p>
+                </div>
+                <span className="flex-shrink-0 w-10 h-10 rounded-full border-[1.5px] border-gray-200 flex items-center justify-center text-gray-900" aria-hidden="true">
+                  <ArrowRight size={17} strokeWidth={2} />
+                </span>
               </div>
             </Link>
           )
