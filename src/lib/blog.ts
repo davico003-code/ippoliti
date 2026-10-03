@@ -249,9 +249,12 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | undefined>
   // Borrada (soft-delete): el middleware ya hace 301; defensa en profundidad.
   const redirects = await getBlogRedirects();
   if (redirects[slug]) return undefined;
+  // La versión dinámica (Blob) le gana a la estática del código: así una nota
+  // estática se reescribe publicando su Blob, sin tocar código (reescritura del
+  // blog, oct-2026). Borrar el Blob devuelve la versión estática.
   const local =
-    posts.find(p => p.slug === slug) ??
-    (await getPostsDinamicos()).find(p => p.slug === slug);
+    (await getPostsDinamicos()).find(p => p.slug === slug) ??
+    posts.find(p => p.slug === slug);
   // Programada con fecha futura: tratarla como inexistente (igual que borrada)
   if (!local || !yaPublicada(local)) return undefined;
   const [overrides, creditos] = await Promise.all([getImageOverrides(), getImageCredits()]);
@@ -268,7 +271,8 @@ export async function getAllPosts(): Promise<BlogPost[]> {
     getBlogRedirects(),
     getImageOverrides(),
   ]);
-  return [...posts, ...dinamicos]
+  const slugsDinamicos = new Set(dinamicos.map(p => p.slug));
+  return [...posts.filter(p => !slugsDinamicos.has(p.slug)), ...dinamicos]
     .filter(p => !redirects[p.slug])                                  // tombstone: oculta borradas (estáticas y dinámicas)
     .filter(yaPublicada)                                              // programadas: ocultas hasta su fecha
     .map(p => (

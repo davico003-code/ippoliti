@@ -37,8 +37,10 @@ export async function GET(req: Request) {
       getImageOverrides(),
     ])
 
+    // Una estática reescrita como Blob se muestra una sola vez, como dinámica.
+    const slugsDinamicos = new Set(dinamicos.map(p => p.slug))
     const base = [
-      ...estaticos.map(p => ({ p, tipo: 'estatica' as const })),
+      ...estaticos.filter(p => !slugsDinamicos.has(p.slug)).map(p => ({ p, tipo: 'estatica' as const })),
       ...dinamicos.map(p => ({ p, tipo: 'dinamica' as const })),
     ]
     const n = base.length
