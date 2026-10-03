@@ -225,21 +225,25 @@ export function mapsObra(direccion: string): string {
 
 // ── Unidades en el edificio (selector "Elegí tu departamento") ────────────
 
-/**
- * Planta de la Torre 2 (Etapa 2) en coordenadas del recuadro "Ubicación en el
- * conjunto" de las láminas oficiales: 0,0 = esquina del edificio, x a lo largo
- * (327) e y a lo ancho (118). La punta derecha (x=327) es la que mira al
- * bosque y al arroyo Ludueña.
- */
+/** Proporciones de la Torre 2 (largo × ancho) para dibujarla en 3D. */
 export const TORRE_2 = { largo: 327, ancho: 118 }
 
-/** Las 4 etapas del conjunto (mismo recuadro), para el mini plano de ubicación. */
-export const ETAPAS_CONJUNTO = [
-  { n: 1, x: 27, y: 584, w: 118, h: 190 },
-  { n: 2, x: 15, y: 404, w: 327, h: 118 },
-  { n: 3, x: 208, y: 230, w: 332, h: 117 },
-  { n: 4, x: 407, y: 59, w: 330, h: 111 },
-] as const
+/** Planta real de la Torre 2 por piso: el recuadro "Ubicación en el conjunto"
+ *  de los PDF de AutoCAD de VERS, renderizado a 1000 dpi y limpio (se combinan
+ *  las láminas de un mismo piso para borrar la unidad marcada). Mismo encuadre
+ *  en los 4 pisos, así el edificio no salta al cambiar de piso. */
+export const PLANTA = { w: 1890, h: 700 }
+export const PLANTAS: Record<number, string> = {
+  1: `${IMG}/plantas/piso-1.webp`,
+  2: `${IMG}/plantas/piso-2.webp`,
+  3: `${IMG}/plantas/piso-3.webp`,
+  4: `${IMG}/plantas/piso-4.webp`,
+}
+
+/** El conjunto completo (4 edificios) y dónde cae la Torre 2 en esa imagen. */
+export const CONJUNTO = { src: `${IMG}/plantas/conjunto.webp`, w: 900, h: 876, torre2: [23, 439, 412, 562] as const }
+
+type Punto = [number, number]
 
 type UnidadPlano = {
   codigo: string
@@ -247,8 +251,10 @@ type UnidadPlano = {
   piso: 1 | 2 | 3 | 4
   unidad: number
   tipologia: Tipologia['id']
-  /** [x0, y0, x1, y1] dentro de TORRE_2 (detectado del recuadro rojo de su lámina). */
-  rect: [number, number, number, number]
+  /** Contorno exacto en la PLANTA (sacado de la mancha rosa de su lámina oficial). */
+  poligono: Punto[]
+  /** Dónde va la etiqueta: el punto más "adentro" de la unidad (sirve para las L). */
+  etiqueta: Punto
   superficies: { label: string; m2: string }[]
   total: string
   /** Lámina oficial de VERS con el plano y su ubicación en el conjunto. */
@@ -257,45 +263,54 @@ type UnidadPlano = {
   ficha?: number
 }
 
+// La 3D de la punta (U4) es igual en los pisos 1 y 3: la 01.04 no tiene PDF,
+// usa el contorno de la 03.04 (que está justo encima).
+const P_3D_PUNTA: Punto[] = [[1306,106],[1307,228],[1368,224],[1359,293],[1367,369],[1383,370],[1384,385],[1357,412],[1358,432],[1386,435],[1383,464],[1343,464],[1328,447],[1324,466],[1304,468],[1303,553],[1319,553],[1321,578],[1311,588],[1511,594],[1608,569],[1662,579],[1664,405],[1616,407],[1616,495],[1590,495],[1602,280],[1594,108],[1562,96],[1510,112],[1437,97]]
+const P_CENTRO_ARRIBA: Punto[] = [[912,90],[917,114],[917,285],[938,286],[937,344],[1081,344],[1082,285],[1231,286],[1232,295],[1296,295],[1296,88]]
+
 /** Datos fijos por unidad (clave = id de Brickfy). Precio y estado vienen vivos de Brickfy. */
 export const UNIDADES_PLANO: Record<string, UnidadPlano> = {
   'DOCK_GARDEN-2-1-1': {
-    codigo: '01.01', piso: 1, unidad: 1, tipologia: '3d', rect: [0, 0, 87, 118],
+    codigo: '01.01', piso: 1, unidad: 1, tipologia: '3d',
+    poligono: [[40,88],[40,307],[112,308],[120,406],[114,602],[430,602],[423,458],[371,457],[371,277],[377,251],[426,251],[430,88]], etiqueta: [236, 237],
     superficies: [{ label: 'Departamento', m2: '156,70' }, { label: 'Cochera doble', m2: '26,60' }], total: '183,30',
     lamina: `${IMG}/unidades/2-1-1.webp`, ficha: 7268088,
   },
   'DOCK_GARDEN-2-1-4': {
-    codigo: '01.04', piso: 1, unidad: 4, tipologia: '3d', rect: [239, 0, 327, 118],
+    codigo: '01.04', piso: 1, unidad: 4, tipologia: '3d', poligono: P_3D_PUNTA, etiqueta: [1481, 284],
     superficies: [{ label: 'Departamento', m2: '156,70' }, { label: 'Cochera doble', m2: '23,30' }], total: '180,00',
     lamina: `${IMG}/unidades/2-1-4.webp`, ficha: 900000589,
   },
   'DOCK_GARDEN-2-1-6': {
-    codigo: '01.06', piso: 1, unidad: 6, tipologia: '1d', rect: [87, 54, 164, 118],
+    codigo: '01.06', piso: 1, unidad: 6, tipologia: '1d',
+    poligono: [[791,350],[644,343],[643,405],[430,395],[430,602],[812,600],[808,401],[791,400]], etiqueta: [702, 491],
     superficies: [{ label: 'Departamento', m2: '80,10' }, { label: 'Cochera', m2: '13,80' }], total: '93,90',
     lamina: `${IMG}/unidades/2-1-6.webp`,
   },
   'DOCK_GARDEN-2-2-3': {
-    codigo: '02.03', piso: 2, unidad: 3, tipologia: '2d', rect: [163, 0, 263, 72],
+    codigo: '02.03', piso: 2, unidad: 3, tipologia: '2d', poligono: P_CENTRO_ARRIBA, etiqueta: [1024, 196],
     superficies: [{ label: 'Departamento', m2: '81,80' }, { label: 'Cochera', m2: '13,80' }], total: '95,60',
     lamina: `${IMG}/unidades/2-2-3.webp`, ficha: 7407995,
   },
   'DOCK_GARDEN-2-3-3': {
-    codigo: '03.03', piso: 3, unidad: 3, tipologia: '1d', rect: [163, 0, 240, 71],
+    codigo: '03.03', piso: 3, unidad: 3, tipologia: '1d', poligono: P_CENTRO_ARRIBA, etiqueta: [1024, 196],
     superficies: [{ label: 'Departamento', m2: '80,10' }, { label: 'Cochera', m2: '13,80' }], total: '93,90',
     lamina: `${IMG}/unidades/2-3-3.webp`, ficha: 900000591,
   },
   'DOCK_GARDEN-2-3-4': {
-    codigo: '03.04', piso: 3, unidad: 4, tipologia: '3d', rect: [240, 0, 327, 118],
+    codigo: '03.04', piso: 3, unidad: 4, tipologia: '3d', poligono: P_3D_PUNTA, etiqueta: [1481, 284],
     superficies: [{ label: 'Departamento', m2: '156,70' }, { label: 'Cochera doble', m2: '26,10' }], total: '182,80',
     lamina: `${IMG}/unidades/2-3-4.webp`, ficha: 900000590,
   },
   'DOCK_GARDEN-2-4-1': {
-    codigo: '04.01', piso: 4, unidad: 1, tipologia: 'duplex', rect: [1, 38, 163, 118],
+    codigo: '04.01', piso: 4, unidad: 1, tipologia: 'duplex',
+    poligono: [[113,348],[113,603],[861,603],[861,404],[855,403],[854,347],[643,347],[642,404],[377,404],[376,347]], etiqueta: [250, 475],
     superficies: [{ label: 'Departamento', m2: '127,20' }, { label: 'Terrazas y balcón', m2: '92,60' }, { label: 'Cochera doble', m2: '26,10' }], total: '245,90',
     lamina: `${IMG}/unidades/2-4-1.webp`, ficha: 900000592,
   },
   'DOCK_GARDEN-2-4-3': {
-    codigo: '04.03', piso: 4, unidad: 3, tipologia: 'duplex', rect: [163, 0, 324, 86],
+    codigo: '04.03', piso: 4, unidad: 3, tipologia: 'duplex',
+    poligono: [[864,88],[864,287],[870,288],[871,345],[1081,345],[1082,287],[1348,287],[1349,345],[1612,344],[1612,88]], etiqueta: [1455, 216],
     superficies: [{ label: 'Departamento', m2: '127,20' }, { label: 'Terrazas y balcón', m2: '92,60' }, { label: 'Cochera doble', m2: '26,10' }], total: '245,90',
     lamina: `${IMG}/unidades/2-4-3.webp`, ficha: 7268078,
   },
