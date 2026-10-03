@@ -76,6 +76,7 @@ export interface PropertyCardProjection {
   // audio generado, queda null y el card no renderiza el botón de play.
   // Se popula vía enrichCardsWithAudio() después de projectToCard().
   audioUrl: string | null
+  agente?: { name: string; picture: string } | null
 }
 
 export interface NearbyProperty {
@@ -152,6 +153,7 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
       ? { id: p.development.id, name: p.development.name }
       : null,
     audioUrl: null,
+    ...(p.agente !== undefined ? { agente: p.agente } : {}),
   }
 }
 

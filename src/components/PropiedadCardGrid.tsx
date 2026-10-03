@@ -56,7 +56,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const router = useRouter()
   const cardRef = useRef<HTMLAnchorElement | null>(null)
   const isMobile = variant === 'mobile'
-  const agente = useAgentePropiedad(property.id)
+  // El listado de HILO ya trae el agente; si no (undefined), lo pide el provider.
+  const agenteFeed = property.agente
+  const agentePedido = useAgentePropiedad(property.id)
+  const agente = agenteFeed === undefined ? agentePedido : agenteFeed ?? undefined
   const photos = getAllPhotos(property)
   const fallback = getMainPhoto(property)
   const images = photos.length > 0 ? photos : fallback ? [fallback] : []

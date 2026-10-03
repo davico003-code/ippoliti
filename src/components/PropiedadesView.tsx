@@ -1112,7 +1112,8 @@ export default function PropiedadesView({
   const hayMas = renderedProperties.length < visibleProperties.length
 
   // Ids de las tarjetas pintadas: el provider pide sus agentes por tandas.
-  const idsRenderizadas = useMemo(() => renderedProperties.map(p => p.id), [renderedProperties])
+  // Solo las que el listado no trajo con agente (feed viejo o Tokko).
+  const idsRenderizadas = useMemo(() => renderedProperties.filter(p => p.agente === undefined).map(p => p.id), [renderedProperties])
 
   // Divisor lista | mapa (solo compu): se arrastra para agrandar el mapa o la
   // lista; doble click vuelve al 48 %. Se recuerda en el navegador.
