@@ -33,6 +33,7 @@ import NearbyPlacesLazy from '@/components/NearbyPlacesLazy'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
 import MarcaDesarrollador, { type Marca } from '@/components/landing/MarcaDesarrollador'
+import BurbujaDavid from '@/components/BurbujaDavid'
 import WhatsAppCta from './WhatsAppCta'
 import { conCifras } from './conCifras'
 
@@ -503,17 +504,7 @@ export default function EmprendimientoFunnel({
             />
           </div>
           <div className="lg:col-start-1">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1A5C38] text-sm font-bold text-white">
-                DF
-              </div>
-              <div>
-                <span className="block text-sm font-bold text-gray-900">David Flores</span>
-                <span className="text-xs text-gray-500">
-                  Corredor inmobiliario · Mat. N° <span className="font-numeric">0621</span>
-                </span>
-              </div>
-            </div>
+            <BurbujaDavid />
 
             {/* Sin placaHref: la placa de emprendimientos necesita su propio adapter. */}
             <div className="max-w-sm">

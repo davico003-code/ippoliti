@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug, resolveCategory, readingMinutes } from '@/lib/blog'
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
 import { cierreDeNota, WHATSAPP_BLOG } from '@/lib/blog-cta'
+import BurbujaDavid from '@/components/BurbujaDavid'
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
 // su fecha, sin depender del revalidate on-demand.
@@ -361,6 +362,11 @@ export default async function BlogPostPage({ params }: Props) {
             <p className="text-xs font-bold uppercase tracking-wider text-[#1A5C38]">Para seguir</p>
             <h3 className="mt-2 text-2xl md:text-3xl font-bold text-gray-900 leading-tight">{cierre.titulo}</h3>
             <p className="mt-3 text-gray-600 text-base max-w-xl">{cierre.texto}</p>
+            {isDavidFlores && (
+              <div className="mt-5">
+                <BurbujaDavid />
+              </div>
+            )}
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
               {cierre.href.startsWith('http') ? (
                 <a

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { trackEvent } from '@/lib/analytics'
+import BurbujaDavid from '@/components/BurbujaDavid'
 
 interface Props {
   title?: string
@@ -33,9 +34,9 @@ export default function BarrioCTAFinal({
         >
           Hablar con David por WhatsApp
         </Link>
-        <p className="mt-6 text-xs text-white/60">
-          David Flores · Mat. N° 0621 · SI INMOBILIARIA
-        </p>
+        <div className="mt-8 flex justify-center">
+          <BurbujaDavid tono="oscuro" />
+        </div>
       </div>
     </section>
   )

@@ -5,12 +5,14 @@
 const norm = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
 
-// nombre normalizado → { título largo bajo el nombre, texto corto del badge }
-const ROLES: Record<string, { titulo: string; badge: string }> = {
-  'david flores': { titulo: 'Broker', badge: 'Broker' },
+// nombre normalizado → { título largo bajo el nombre, texto corto del badge,
+// matrícula si es corredor (va al lado del título) }
+type Rol = { titulo: string; badge: string; matricula?: string }
+const ROLES: Record<string, Rol> = {
+  'david flores': { titulo: 'Broker', badge: 'Broker', matricula: '0621' },
 }
 
-export function getAgenteRol(nombre: string | null | undefined): { titulo: string; badge: string } {
+export function getAgenteRol(nombre: string | null | undefined): Rol {
   return ROLES[norm(nombre || '')] ?? { titulo: 'Asesor inmobiliario', badge: 'Asesor' }
 }
 

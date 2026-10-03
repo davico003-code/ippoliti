@@ -343,7 +343,10 @@ export default function PropertyDetailBody({
                   >
                     {name}
                   </span>
-                  <span className="text-xs text-gray-500 block truncate">{rol.titulo}</span>
+                  <span className="text-xs text-gray-500 block truncate">
+                    {rol.titulo}
+                    {rol.matricula && <> · Mat. N° <span className="font-numeric">{rol.matricula}</span></>}
+                  </span>
                 </div>
                 <span
                   className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
