@@ -2,29 +2,27 @@
 
 // Las 4 tipologías de Dock Garden en solapas: plano real, superficies
 // desarmadas (departamento + cochera = total que figura en la lista de precios)
-// y qué ambientes tiene. El 360° sale de Brickfy (lo resuelve el server).
+// y qué ambientes tiene, con un botón por cada vista 360° de esa tipología.
 
 import { useState } from 'react'
 import Image from 'next/image'
 import { ArrowRight, CheckCircle2, Maximize2, Rotate3d } from 'lucide-react'
-import type { Tipologia } from '@/lib/dockgarden'
+import { RECORRIDOS_360, urlRecorrido, type Tipologia } from '@/lib/dockgarden'
 import ViewerModal, { type Viewer } from '@/components/ViewerModal'
 import { conCifras } from '@/components/emprendimiento/conCifras'
 
 interface Props {
   tipologias: Tipologia[]
-  /** Recorridos 360° por id de tipología (vacío si Brickfy no tiene). */
-  tours: Record<string, string[]>
   contenedor: string
   /** Ancla de la lista de precios; sin esto no se muestra el link. */
   hrefPrecios?: string
 }
 
-export default function TipologiasDockGarden({ tipologias, tours, contenedor, hrefPrecios }: Props) {
+export default function TipologiasDockGarden({ tipologias, contenedor, hrefPrecios }: Props) {
   const [activa, setActiva] = useState(tipologias[0].id)
   const [viewer, setViewer] = useState<Viewer | null>(null)
   const t = tipologias.find(x => x.id === activa) ?? tipologias[0]
-  const tour = tours[t.id] ?? []
+  const recorridos = RECORRIDOS_360.filter(r => r.tipologia === t.id)
 
   return (
     <section id="tipologias" className="bg-white py-14 md:py-20">
@@ -117,28 +115,45 @@ export default function TipologiasDockGarden({ tipologias, tours, contenedor, hr
               ))}
             </ul>
 
-            <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
-              {tour.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setViewer({ kind: 'tour', title: `Dock Garden — ${t.nombre} en 360°`, urls: tour })}
-                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-[#1A5C38] px-6 text-[15px] font-bold text-white transition-colors hover:bg-[#15472c]"
-                >
-                  <Rotate3d className="h-5 w-5" aria-hidden />
-                  {/* Un solo hijo: el gap del flex separaba el texto de la cifra. */}
-                  <span>Recorrerlo en <span className="font-numeric">360°</span></span>
-                </button>
-              )}
-              {hrefPrecios && (
-                <a
-                  href={hrefPrecios}
-                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border-2 border-gray-200 px-6 text-[15px] font-bold text-gray-700 transition-colors hover:bg-gray-50"
-                >
-                  Ver precios
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </a>
+            {/* Una vista por botón: con uno solo, las demás quedaban escondidas
+                detrás de las flechas del visor. */}
+            <div className="mt-7">
+              <p className="text-sm font-bold text-gray-900">
+                Recorrelo en <span className="font-numeric">360°</span>
+              </p>
+              {recorridos.length > 0 ? (
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  {recorridos.map(r => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() =>
+                        setViewer({ kind: 'tour', title: `Dock Garden — ${t.nombre} · ${r.ambiente} en 360°`, urls: [urlRecorrido(r.id)] })
+                      }
+                      className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#1A5C38] px-5 text-[15px] font-bold text-white transition-colors hover:bg-[#15472c]"
+                    >
+                      <Rotate3d className="h-5 w-5" aria-hidden />
+                      {r.ambiente}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-1.5 text-sm leading-relaxed text-gray-500">
+                  Esta tipología todavía no tiene recorrido propio. Mirá los de 1 y 3 dormitorios: tienen las mismas
+                  terminaciones.
+                </p>
               )}
             </div>
+
+            {hrefPrecios && (
+              <a
+                href={hrefPrecios}
+                className="mt-5 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border-2 border-gray-200 px-6 text-[15px] font-bold text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Ver precios
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </a>
+            )}
           </div>
         </div>
       </div>
