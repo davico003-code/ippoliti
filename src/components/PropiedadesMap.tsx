@@ -291,6 +291,23 @@ function createClusterIcon(cluster: L.MarkerCluster) {
 // Cuando el usuario filtra por Ubicación, ZonaFlyTo lo lleva a la zona;
 // cuando limpia el filtro, este componente no re-dispara (solo corre al montar).
 
+// El contenedor cambia de ancho sin que cambie la ventana (divisor lista|mapa
+// de /propiedades): Leaflet solo escucha el resize de la ventana, así que sin
+// esto quedan tiles grises en el borde nuevo.
+function AutoResize() {
+  const map = useMap()
+  useEffect(() => {
+    let raf = 0
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => map.invalidateSize({ pan: false }))
+    })
+    ro.observe(map.getContainer())
+    return () => { cancelAnimationFrame(raf); ro.disconnect() }
+  }, [map])
+  return null
+}
+
 function InitialView() {
   const map = useMap()
   useEffect(() => {
@@ -808,6 +825,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       <AutoSatellite satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <SatelliteToggle satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <InitialView />
+      <AutoResize />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
       <ZoomWatcher onZoom={setZoom} />

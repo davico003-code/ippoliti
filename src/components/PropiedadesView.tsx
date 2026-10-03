@@ -35,6 +35,8 @@ import {
   limpiarPerfilDeUrl,
 } from '@/lib/smart-profile-url'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
+import { AgentesPropiedadProvider } from '@/components/AgentesPropiedadContext'
+import { GripVertical } from 'lucide-react'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesktopGridSkeleton'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
@@ -125,6 +127,11 @@ const DEFAULTS: Filters = {
   beds: 'todos', location: 'todos',
   priceMin: '', priceMax: '', currency: 'USD',
 }
+
+const LISTA_PCT_DEFAULT = 48
+const LISTA_PCT_MIN = 30
+const LISTA_PCT_MAX = 70
+const LISTA_PCT_KEY = 'si-propiedades-lista-pct'
 
 function operationTypeForFilter(operation: Operation): OperationType | null {
   if (operation === 'venta') return 'Sale'
@@ -1104,6 +1111,46 @@ export default function PropiedadesView({
   )
   const hayMas = renderedProperties.length < visibleProperties.length
 
+  // Ids de las tarjetas pintadas: el provider pide sus agentes por tandas.
+  const idsRenderizadas = useMemo(() => renderedProperties.map(p => p.id), [renderedProperties])
+
+  // Divisor lista | mapa (solo compu): se arrastra para agrandar el mapa o la
+  // lista; doble click vuelve al 48 %. Se recuerda en el navegador.
+  const contenidoRef = useRef<HTMLDivElement | null>(null)
+  const [listaPct, setListaPct] = useState(LISTA_PCT_DEFAULT)
+  const [arrastrando, setArrastrando] = useState(false)
+  useEffect(() => {
+    try {
+      const v = Number(localStorage.getItem(LISTA_PCT_KEY))
+      if (v >= LISTA_PCT_MIN && v <= LISTA_PCT_MAX) setListaPct(v)
+    } catch { /* sin storage: queda el default */ }
+  }, [])
+  const guardarListaPct = useCallback((v: number) => {
+    try { localStorage.setItem(LISTA_PCT_KEY, String(Math.round(v))) } catch { /* ok */ }
+  }, [])
+  const onDivisorDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const caja = contenidoRef.current?.getBoundingClientRect()
+    if (!caja) return
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setArrastrando(true)
+    let ultimo = listaPct
+    let raf = 0
+    const mover = (ev: PointerEvent) => {
+      ultimo = Math.min(LISTA_PCT_MAX, Math.max(LISTA_PCT_MIN, ((ev.clientX - caja.left) / caja.width) * 100))
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => setListaPct(ultimo))
+    }
+    const soltar = () => {
+      window.removeEventListener('pointermove', mover)
+      window.removeEventListener('pointerup', soltar)
+      setArrastrando(false)
+      guardarListaPct(ultimo)
+    }
+    window.addEventListener('pointermove', mover)
+    window.addEventListener('pointerup', soltar)
+  }, [listaPct, guardarListaPct])
+
   // Cualquier cambio de resultado vuelve a la primera tanda.
   useEffect(() => { setTandas(1) }, [visibleProperties.length])
 
@@ -1644,10 +1691,14 @@ export default function PropiedadesView({
       />
 
       {/* ── Content ────────────────────────────────────────────────────────── */}
-      <div className="flex flex-1 min-h-0">
+      <div
+        ref={contenidoRef}
+        className={`flex flex-1 min-h-0 ${arrastrando ? 'select-none cursor-col-resize' : ''}`}
+        style={{ '--lista': `${listaPct}%` } as React.CSSProperties}
+      >
 
         {/* Left: Property list */}
-        <div className={`flex flex-col border-r border-gray-200 w-full md:w-[48%] ${mobileView === 'map' ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex flex-col border-r border-gray-200 w-full md:w-[var(--lista,48%)] md:flex-shrink-0 ${mobileView === 'map' ? 'hidden md:flex' : 'flex'}`}>
 
           {/* Count header + sort + view toggle — desktop only */}
           <div className="hidden md:flex px-3 py-2 bg-gray-50 border-b border-gray-100 flex-shrink-0 items-center justify-between gap-2">
@@ -1787,6 +1838,7 @@ export default function PropiedadesView({
                     durante hidratación + descarga del chunk, luego el grid
                     real. El skeleton replica grid-cols/gap/aspect-ratio
                     para no causar CLS al swap. */}
+                <AgentesPropiedadProvider ids={idsRenderizadas}>
                 <div className="hidden md:block">
                   {isDesktopViewport ? (
                     <PropiedadesViewDesktopGrid
@@ -1818,6 +1870,7 @@ export default function PropiedadesView({
                     </div>
                   ))}
                 </div>
+                </AgentesPropiedadProvider>
                 {/* Carga incremental: el observer pinta la tanda siguiente al
                     acercarse, y el botón garantiza el control manual (y que
                     funcione aunque el observer no dispare en algún navegador). */}
@@ -1838,8 +1891,26 @@ export default function PropiedadesView({
           </div>
         </div>
 
+        {/* Divisor arrastrable (solo compu) */}
+        <div className="hidden md:block relative w-0 z-[500]">
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Arrastrá para agrandar el mapa o la lista"
+            title="Arrastrá para agrandar el mapa o la lista"
+            onPointerDown={onDivisorDown}
+            onDoubleClick={() => { setListaPct(LISTA_PCT_DEFAULT); guardarListaPct(LISTA_PCT_DEFAULT) }}
+            className="group absolute inset-y-0 -left-2 w-4 cursor-col-resize flex items-center justify-center touch-none"
+          >
+            <span className={`absolute inset-y-0 left-1/2 -translate-x-1/2 w-[3px] transition-colors ${arrastrando ? 'bg-[#1A5C38]' : 'bg-transparent group-hover:bg-[#1A5C38]/40'}`} />
+            <span className={`relative flex h-11 w-5 items-center justify-center rounded-full border bg-white shadow-md transition-colors ${arrastrando ? 'border-[#1A5C38] text-[#1A5C38]' : 'border-gray-200 text-gray-500 group-hover:text-[#1A5C38]'}`}>
+              <GripVertical className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        </div>
+
         {/* Right: Map */}
-        <div className={`relative w-full md:w-[52%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
+        <div className={`relative w-full md:w-auto md:flex-1 md:min-w-0 ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
           {shouldRenderMap && (
             <PropiedadesMap
               // Con el asistente activo el mapa acompaña a la lista: si no,

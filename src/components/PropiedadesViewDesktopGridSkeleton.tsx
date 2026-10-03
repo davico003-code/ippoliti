@@ -5,7 +5,7 @@
 
 export default function PropiedadesViewDesktopGridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid p-4 grid-cols-1 xl:grid-cols-2 gap-4" aria-hidden="true">
+    <div className="grid p-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4" aria-hidden="true">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
