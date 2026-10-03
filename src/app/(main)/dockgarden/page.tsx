@@ -6,6 +6,8 @@ import { getDockGarden } from '@/lib/brickfy'
 import DockGardenUnits, { DockGardenMedia } from '@/components/dockgarden/DockGardenUnits'
 import { OficinaVentas, SeccionCercanias, SeccionTerminaciones, SeccionVers } from '@/components/dockgarden/Confianza'
 import Recorridos360 from '@/components/dockgarden/Recorridos360'
+import ElegiTuUnidad from '@/components/dockgarden/ElegiTuUnidad'
+import { unidadesExplorador } from '@/lib/dockgarden'
 
 // Landing compartible de Dock Garden (Aldea Fisherton) — versión SI del link
 // de compartir de Brickfy del desarrollador, con todas las unidades, planos,
@@ -159,6 +161,9 @@ export default async function DockGardenPage() {
           </div>
         </div>
       </section>
+
+      {/* Elegir la unidad en el edificio antes de la lista completa */}
+      <ElegiTuUnidad unidades={unidadesExplorador(units)} contenedor={CONTENEDOR} whatsapp={WA_PHONE} />
 
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         {/* Unidades */}

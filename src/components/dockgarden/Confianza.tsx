@@ -18,6 +18,7 @@ import {
   Trophy,
   type LucideIcon,
 } from 'lucide-react'
+import { getDockGarden } from '@/lib/brickfy'
 import {
   CERCANIAS,
   MAPA_CERCANIAS,
@@ -27,12 +28,14 @@ import {
   VERS_LOGO,
   VERS_OBRAS,
   mapsObra,
+  unidadesExplorador,
   type Cercania,
 } from '@/lib/dockgarden'
 import { conCifras } from '@/components/emprendimiento/conCifras'
 import type { FunnelSecciones } from '@/components/emprendimiento/EmprendimientoFunnel'
 import TipologiasDockGarden from './TipologiasDockGarden'
 import Recorridos360 from './Recorridos360'
+import ElegiTuUnidad from './ElegiTuUnidad'
 
 /** Mismo contenedor que el funnel; /dockgarden pasa el suyo (más angosto). */
 export const CONTENEDOR_FUNNEL = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12'
@@ -281,7 +284,11 @@ export function OficinaVentas({ className = '' }: { className?: string }) {
 // ── Armado para el funnel ─────────────────────────────────────────────────
 
 /** Las secciones de Dock Garden en los huecos del funnel genérico. */
-export async function seccionesDockGarden(): Promise<FunnelSecciones> {
+export async function seccionesDockGarden({ whatsapp }: { whatsapp: string }): Promise<FunnelSecciones> {
+  // Precio y estado de cada unidad, vivos de Brickfy (misma request cacheada
+  // que la lista de precios). Sin Brickfy el selector no se muestra.
+  const data = await getDockGarden()
+  const unidades = data ? unidadesExplorador(data.units) : []
   return {
     trasProyecto: <SeccionVers />,
     antesDeUnidades: (
@@ -289,6 +296,7 @@ export async function seccionesDockGarden(): Promise<FunnelSecciones> {
         <Recorridos360 contenedor={CONTENEDOR_FUNNEL} />
         <TipologiasDockGarden tipologias={TIPOLOGIAS} contenedor={CONTENEDOR_FUNNEL} hrefPrecios="#unidades" />
         <SeccionTerminaciones />
+        <ElegiTuUnidad unidades={unidades} contenedor={CONTENEDOR_FUNNEL} whatsapp={whatsapp} />
       </>
     ),
     antesDeUbicacion: <SeccionCercanias />,
