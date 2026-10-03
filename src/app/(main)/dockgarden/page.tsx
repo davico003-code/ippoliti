@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { MapPin, MessageCircle, Phone, FileText, CheckCircle2 } from 'lucide-react'
 import { getDockGarden } from '@/lib/brickfy'
 import DockGardenUnits, { DockGardenMedia } from '@/components/dockgarden/DockGardenUnits'
+import { OficinaVentas, SeccionCercanias, SeccionTerminaciones, SeccionVers } from '@/components/dockgarden/Confianza'
 
 // Landing compartible de Dock Garden (Aldea Fisherton) — versión SI del link
 // de compartir de Brickfy del desarrollador, con todas las unidades, planos,
@@ -15,6 +16,8 @@ export const revalidate = 3600
 
 const WA_PHONE = '5493413340916'
 const PAGE_URL = 'https://siinmobiliaria.com/dockgarden'
+// Mismo ancho que el header y la lista de esta página.
+const CONTENEDOR = 'mx-auto w-full max-w-6xl px-4 sm:px-6'
 
 export const metadata: Metadata = {
   title: 'Dock Garden — Unidades, precios y vistas 360° | SI INMOBILIARIA',
@@ -188,6 +191,17 @@ export default async function DockGardenPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Confianza, después de la lista (la página sigue siendo la lista):
+          quién lo construye, con qué está hecho y qué hay cerca. */}
+      <SeccionVers contenedor={CONTENEDOR} />
+      <SeccionTerminaciones contenedor={CONTENEDOR} />
+      <SeccionCercanias contenedor={CONTENEDOR} />
+      <div className="bg-white pb-12">
+        <div className={CONTENEDOR}>
+          <OficinaVentas className="max-w-md" />
+        </div>
       </div>
 
       {/* Footer compacto — el contacto vive en el FAB de WhatsApp. */}
