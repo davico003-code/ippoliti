@@ -1,7 +1,7 @@
 'use client'
 
-// Galería chica para planos, del mismo alto que el mapa (clase vf-media). Tap →
-// Lightbox con zoom/scroll para leer cotas. Un plano en PDF no es imagen (se
+// Galería de planos (alto = clase vf-plano: más alta que el mapa para que el
+// plano entre entero y se lea). Tap → Lightbox con zoom/scroll para leer cotas. Un plano en PDF no es imagen (se
 // veía roto): va como tarjeta "Ver plano en PDF" que lo abre aparte.
 
 import { useEffect, useRef, useState } from 'react'
@@ -31,7 +31,7 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
   const imagenes = blueprints.filter(u => !esPdf(u))
 
   return (
-    <div className="vf-media" style={{ position: 'relative', borderRadius: 16, border: `1px solid ${LINEA}`, background: '#fff', overflow: 'hidden' }}>
+    <div className="vf-plano" style={{ position: 'relative', borderRadius: 16, border: `1px solid ${LINEA}`, background: '#fff', overflow: 'hidden' }}>
       <div
         ref={containerRef}
         className="blueprint-scroll"
@@ -54,7 +54,7 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: 14,
+              padding: 10,
               boxSizing: 'border-box',
             }}
             onClick={() => !esPdf(url) && setLightboxAt(imagenes.indexOf(url))}

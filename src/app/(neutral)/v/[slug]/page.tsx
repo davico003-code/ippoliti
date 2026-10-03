@@ -4,10 +4,11 @@
 // pantallas de celu a ~2):
 //   • Celu/tablet: foto grande con operación, precio y zona encima + tira de
 //     miniaturas, titular, fila de datos, descripción plegada, datos chicos,
-//     plano y mapa compactos, "Cerca" en chips y barra fija abajo
-//     (¿Te gusta? + Compartir).
+//     plano (alto, para que entre entero) y mapa grande, "Cerca" en chips y
+//     barra fija abajo (¿Te gusta? + Compartir).
 //   • Compu (≥1024): mosaico de fotos, contenido a la izquierda y tarjeta fija
-//     a la derecha (precio, datos, Compartir, ¿Qué te parece?).
+//     a la derecha (precio, datos, Compartir, ¿Qué te parece?). Plano y mapa
+//     uno debajo del otro, a todo el ancho de la columna.
 // Llama getFicha() del lib directo (no hop al endpoint /api) para preservar
 // la IP real del usuario en el tracking. generateMetadata y la page comparten
 // getFichaCached vía React.cache para no leer Redis dos veces por request.
@@ -230,7 +231,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
           {tieneAmenities && <AmenityChips caracteristicas={s.caracteristicas} extras={s.extras} />}
 
           {(hasBlueprints || hasCoords) && (
-            <div className={`vf-medios${hasBlueprints && hasCoords ? ' vf-medios-dos' : ''}`}>
+            <div className="vf-medios">
               {hasBlueprints && (
                 <section style={{ minWidth: 0 }}>
                   <h2 style={tituloSeccion}>{s.blueprints.length > 1 ? 'Planos' : 'Plano'}</h2>
@@ -297,7 +298,8 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
         .vf-cuerpo.vf-sin-barra { padding-bottom: 40px; }
         .vf-h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.28; color: ${TINTA}; margin: 0; }
         .vf-lado { display: none; }
-        .vf-media { height: 220px; }
+        .vf-plano { height: 320px; }
+        .vf-mapa { height: 300px; }
         .vf-medios { display: grid; gap: 28px; margin-top: 32px; }
         .vf-footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid ${LINEA}; text-align: center; font-size: 12px; color: ${SUAVE}; }
         @media (min-width: 1024px) {
@@ -306,9 +308,9 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
           .vf-cuerpo.vf-sin-barra { padding-bottom: 40px; }
           .vf-h1 { font-size: 30px; line-height: 1.2; margin-top: 6px; }
           .vf-lado { display: block; position: sticky; top: 24px; }
-          .vf-media { height: 270px; }
-          .vf-medios { margin-top: 40px; }
-          .vf-medios-dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+          .vf-plano { height: 460px; }
+          .vf-mapa { height: 380px; }
+          .vf-medios { margin-top: 40px; gap: 36px; }
         }
       ` }} />
     </>
