@@ -1,9 +1,16 @@
 // Página pública white-label de la ficha. Server component dinámico.
 //
-// Orquesta las 9 secciones de la versión premium. Llama getFicha() del lib
-// directo (no hop al endpoint /api) para preservar la IP real del usuario en
-// el tracking. generateMetadata y la page comparten getFichaCached vía
-// React.cache para no leer Redis dos veces por request.
+// Diseño "foto protagonista" (3-oct-2026, David: "se ve muy larga"; de 5
+// pantallas de celu a ~2):
+//   • Celu/tablet: foto grande con operación, precio y zona encima + tira de
+//     miniaturas, titular, fila de datos, descripción plegada, datos chicos,
+//     plano y mapa compactos, "Cerca" en chips y barra fija abajo
+//     (¿Te gusta? + Compartir).
+//   • Compu (≥1024): mosaico de fotos, contenido a la izquierda y tarjeta fija
+//     a la derecha (precio, datos, Compartir, ¿Qué te parece?).
+// Llama getFicha() del lib directo (no hop al endpoint /api) para preservar
+// la IP real del usuario en el tracking. generateMetadata y la page comparten
+// getFichaCached vía React.cache para no leer Redis dos veces por request.
 //
 // NO renderiza ninguna referencia a SI: la única identidad visible es el
 // dominio "verficha.casa" en el footer.
@@ -15,19 +22,19 @@ import { cache } from 'react'
 
 import { getFicha, isLikelyBot, trackView } from '@/lib/ficha'
 import { publicImageUrl } from '@/lib/external-images'
+import { titularDeDescripcion } from '@/lib/ficha-titular'
 import HeroGallery from '@/components/v/HeroGallery'
 import AudioSummaryNeutral from '@/components/v/AudioSummaryNeutral'
-import PriceHero from '@/components/v/PriceHero'
-import KeyDataGrid from '@/components/v/KeyDataGrid'
-import Surfaces from '@/components/v/Surfaces'
+import { DatosFicha, StatsFicha } from '@/components/v/DatosClave'
 import StructuredDescription from '@/components/v/StructuredDescription'
 import AmenityChips from '@/components/v/AmenityChips'
 import BlueprintGallery from '@/components/v/BlueprintGallery'
 import LocationMap from '@/components/v/LocationMap'
-import NearbyPlacesNeutral from '@/components/v/NearbyPlacesNeutral'
-import ShareCTA from '@/components/v/ShareCTA'
-import FloatingShareButton from '@/components/v/FloatingShareButton'
-import FeedbackColega from '@/components/neutral/FeedbackColega'
+import CercaChips from '@/components/v/CercaChips'
+import CompartirMenu from '@/components/v/CompartirMenu'
+import BarraAccionesMovil from '@/components/v/BarraAccionesMovil'
+import { VotoColega } from '@/components/neutral/FeedbackColega'
+import { APAGADO, LINEA, SUAVE, TINTA, tituloSeccion, volanta } from '@/components/v/estilos'
 
 const NEUTRAL_DOMAIN = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
 
@@ -183,144 +190,125 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
     return parts.join(' · ')
   })()
 
+  const zona = s.zonaCompleta || s.zonaAprox || ''
+  const precio = s.precio && s.precio !== 'Consultar' ? s.precio : 'Consultar precio'
+  // "Casa en venta · a estrenar"
+  const volantaTxt = [
+    [s.tipo, s.operacion ? (s.tipo ? `en ${s.operacion.toLowerCase()}` : s.operacion) : ''].filter(Boolean).join(' '),
+    s.antiguedad === 0 ? 'a estrenar' : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+  const titularDesc = titularDeDescripcion(s.descripcion, [zona])
+  const titular = stripSI(titularDesc || s.tituloGenerico) || s.tituloGenerico
+
   return (
     <>
-      {/* Sección 1: hero galería full-bleed mobile, contenida desktop */}
-      <HeroGallery photos={s.fotos} />
+      <div className="vf-hero-wrap">
+        <HeroGallery photos={s.fotos} overlay={{ volanta: volantaTxt, precio, zona }} />
+      </div>
 
-      {/* Container central para todo lo demás */}
-      <main
-        className="ficha-main"
-        style={{
-          maxWidth: 880,
-          margin: '0 auto',
-          padding: '0 20px 40px',
-        }}
-      >
-        {/* Sección 1b: audio narrado (entre hero y precio) */}
-        <AudioSummaryNeutral propertyId={ficha.propertyId} title={s.tituloGenerico} />
+      <main className={`vf-cuerpo${isEmbedded ? ' vf-sin-barra' : ''}`}>
+        <div style={{ minWidth: 0 }}>
+          <div className="hidden lg:block" style={{ ...volanta, color: APAGADO }}>{volantaTxt}</div>
+          <h1 className="vf-h1">{titular}</h1>
+          <div className="hidden lg:block" style={{ fontSize: 16, color: APAGADO, marginTop: 4 }}>{zona}</div>
 
-        {/* Sección 2: precio + operación + tipología + zona */}
-        <PriceHero snapshot={s} />
+          <div style={{ marginTop: 16 }}>
+            <StatsFicha snapshot={s} />
+          </div>
 
-        {/* H1 oculto pero presente para SEO/accessibility */}
-        <h1
-          style={{
-            position: 'absolute',
-            width: 1,
-            height: 1,
-            padding: 0,
-            margin: -1,
-            overflow: 'hidden',
-            clip: 'rect(0, 0, 0, 0)',
-            whiteSpace: 'nowrap',
-            border: 0,
-          }}
-        >
-          {s.tituloGenerico} {s.precio && s.precio !== 'Consultar' ? `· ${s.precio}` : ''}
-        </h1>
+          <AudioSummaryNeutral propertyId={ficha.propertyId} title={s.tituloGenerico} />
 
-        {/* Sección 3a: datos clave (sin superficies) */}
-        <KeyDataGrid snapshot={s} />
+          <StructuredDescription text={s.descripcion} omitirTituloInicial={Boolean(titularDesc)} />
 
-        {/* Sección 3b: superficies (cubierta / total / terreno / frente / fondo) */}
-        <Surfaces snapshot={s} />
+          {/* En la compu estos datos van en la tarjeta de la derecha */}
+          <div className="lg:hidden" style={{ marginTop: 22 }}>
+            <DatosFicha snapshot={s} />
+          </div>
 
-        {/* Sección 4: descripción estructurada (parser SI replicado) */}
-        <StructuredDescription text={s.descripcion} />
+          {tieneAmenities && <AmenityChips caracteristicas={s.caracteristicas} extras={s.extras} />}
 
-        {/* Sección 5: características */}
-        {tieneAmenities && (
-          <AmenityChips
-            caracteristicas={s.caracteristicas}
-            extras={s.extras}
-          />
-        )}
+          {(hasBlueprints || hasCoords) && (
+            <div className={`vf-medios${hasBlueprints && hasCoords ? ' vf-medios-dos' : ''}`}>
+              {hasBlueprints && (
+                <section style={{ minWidth: 0 }}>
+                  <h2 style={tituloSeccion}>{s.blueprints.length > 1 ? 'Planos' : 'Plano'}</h2>
+                  <BlueprintGallery blueprints={s.blueprints} />
+                </section>
+              )}
+              {hasCoords && (
+                <section style={{ minWidth: 0 }}>
+                  <h2 style={tituloSeccion}>Dónde queda</h2>
+                  <LocationMap lat={s.lat as number} lng={s.lng as number} />
+                </section>
+              )}
+            </div>
+          )}
 
-        {/* Sección 6: planos */}
-        {hasBlueprints && (
-          <section style={{ marginTop: 36 }}>
-            <h2
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#1A1A1A',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                marginBottom: 14,
-              }}
-            >
-              Planos
-            </h2>
-            <BlueprintGallery blueprints={s.blueprints} />
-          </section>
-        )}
+          {hasCoords && (
+            <div style={{ marginTop: 14 }}>
+              {ubicTexto && <p style={{ fontSize: 14, color: APAGADO, margin: '0 0 10px', lineHeight: 1.5 }}>{ubicTexto}</p>}
+              <CercaChips lat={s.lat as number} lng={s.lng as number} />
+            </div>
+          )}
 
-        {/* Sección 7: ubicación + mapa */}
-        {hasCoords && (
-          <section style={{ marginTop: 36 }}>
-            <h2
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#1A1A1A',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                marginBottom: 8,
-              }}
-            >
-              Ubicación
-            </h2>
-            {ubicTexto && (
-              <p style={{ fontSize: 15, color: '#4A4A4A', margin: '0 0 14px', lineHeight: 1.5 }}>
-                {ubicTexto}
-              </p>
-            )}
-            <LocationMap lat={s.lat as number} lng={s.lng as number} />
-          </section>
-        )}
+          {!isEmbedded && <footer className="vf-footer">{NEUTRAL_DOMAIN}</footer>}
+        </div>
 
-        {/* Sección 7b: lugares cercanos (Overpass / OSM, lazy) */}
-        {hasCoords && (
-          <NearbyPlacesNeutral lat={s.lat as number} lng={s.lng as number} />
-        )}
-
-        {!isEmbedded && (
-          <>
-            {/* Sección 7c: feedback anónimo de colegas (final del scroll, antes del CTA) */}
-            <FeedbackColega slug={params.slug} />
-
-            {/* Sección 8: CTA compartir */}
-            <ShareCTA url={url} slug={params.slug} />
-          </>
-        )}
-
-        {!isEmbedded && (
-          /* Sección 9: footer mínimo */
-          <footer
+        {/* Tarjeta fija de la compu */}
+        <aside className="vf-lado">
+          <div
             style={{
-              marginTop: 56,
-              paddingTop: 24,
-              paddingBottom: 32,
-              borderTop: '1px solid #E5E7EB',
-              textAlign: 'center',
-              fontSize: 12,
-              color: '#9CA3AF',
+              border: `1px solid ${LINEA}`,
+              borderRadius: 20,
+              padding: 26,
+              background: '#fff',
+              boxShadow: '0 10px 36px rgba(0,0,0,0.07)',
             }}
           >
-            {NEUTRAL_DOMAIN}
-          </footer>
-        )}
+            {s.operacion && <div style={{ ...volanta, color: APAGADO }}>{s.operacion}</div>}
+            <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15, color: TINTA, marginTop: 2 }}>
+              {precio}
+            </div>
+            <div style={{ marginTop: 18 }}>
+              <DatosFicha snapshot={s} />
+            </div>
+            {!isEmbedded && (
+              <>
+                <div style={{ marginTop: 20 }}>
+                  <CompartirMenu url={url} slug={params.slug} variante="tarjeta" />
+                </div>
+                <div style={{ marginTop: 20, paddingTop: 18, borderTop: `1px solid ${LINEA}` }}>
+                  <div style={{ fontSize: 13, color: APAGADO, marginBottom: 10 }}>¿Qué te parece?</div>
+                  <VotoColega slug={params.slug} />
+                </div>
+              </>
+            )}
+          </div>
+        </aside>
       </main>
 
-      {!isEmbedded && (
-        /* FAB — mobile only (CSS media query oculta en ≥768px) */
-        <FloatingShareButton url={url} slug={params.slug} />
-      )}
+      {!isEmbedded && <BarraAccionesMovil url={url} slug={params.slug} />}
 
       <style dangerouslySetInnerHTML={{ __html: `
-        @media (min-width: 768px) {
-          .ficha-main { padding: 0 32px 60px !important; }
+        button, a { touch-action: manipulation; }
+        .vf-cuerpo { max-width: 760px; margin: 0 auto; padding: 22px 20px 112px; box-sizing: border-box; }
+        .vf-cuerpo.vf-sin-barra { padding-bottom: 40px; }
+        .vf-h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.28; color: ${TINTA}; margin: 0; }
+        .vf-lado { display: none; }
+        .vf-media { height: 220px; }
+        .vf-medios { display: grid; gap: 28px; margin-top: 32px; }
+        .vf-footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid ${LINEA}; text-align: center; font-size: 12px; color: ${SUAVE}; }
+        @media (min-width: 1024px) {
+          .vf-hero-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 40px 0; box-sizing: border-box; }
+          .vf-cuerpo { max-width: 1180px; padding: 32px 40px 56px; display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 56px; align-items: start; }
+          .vf-cuerpo.vf-sin-barra { padding-bottom: 40px; }
+          .vf-h1 { font-size: 30px; line-height: 1.2; margin-top: 6px; }
+          .vf-lado { display: block; position: sticky; top: 24px; }
+          .vf-media { height: 270px; }
+          .vf-medios { margin-top: 40px; }
+          .vf-medios-dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
         }
       ` }} />
     </>

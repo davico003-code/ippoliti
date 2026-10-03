@@ -1,28 +1,33 @@
 'use client'
 
-// Galería principal de la ficha — patrón Zillow (replicado del sitio SI con
-// paleta neutra, sin marca):
-//   - Mobile: 1 sola foto hero ~280px alto, badge "Ver las N fotos" abajo a la
-//     derecha. Tap → lightbox vertical scrolleado con todas las fotos.
-//   - Desktop: grid 5 columnas × 2 filas de 440px. Foto principal ocupa cols
-//     1-3 × 2 rows; las 4 thumbs llenan cols 4-5 en 2×2. Si hay >5 fotos, la
-//     última thumb tiene overlay "Ver las N fotos".
-//
-// Lightbox: scroll vertical de todas las fotos (estilo SI), no swipe horiz.
+// Galería principal de la ficha.
+//   - Celular/tablet (<1024): foto protagonista (~58% de la pantalla) con
+//     operación, precio y zona encima, y una tira de 3 miniaturas debajo
+//     ("+N" en la última). Es lo primero que ve quien abre el link.
+//   - Compu (≥1024): mosaico 1 grande + 4 chicas y botón "Ver las N fotos".
+// Cualquier foto abre el lightbox vertical con todas, parado en esa foto.
 // Esc cierra. Body con overflow:hidden mientras está abierto.
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { Camera, Images, X } from 'lucide-react'
+import { Images, X } from 'lucide-react'
 import { displayImageUrl } from '@/lib/external-images'
+import { TINTA, volanta } from './estilos'
 
 // Fotos de avisos externos (Zonaprop/Navent/Argenprop) se sirven directo de su CDN: las
 // renderizamos sin el optimizador de Vercel para que se vean siempre, sin
 // depender de que el optimizador pueda fetchear ese host.
 const isExternalCdn = (src: string): boolean => /zonapropcdn|naventcdn|argenprop\.com\/static-content/.test(src)
 
-export default function HeroGallery({ photos }: { photos: string[] }) {
-  const [showAll, setShowAll] = useState(false)
+export interface HeroOverlay {
+  volanta: string
+  precio: string
+  zona: string
+}
+
+export default function HeroGallery({ photos, overlay }: { photos: string[]; overlay?: HeroOverlay }) {
+  const [abiertaEn, setAbiertaEn] = useState<number | null>(null)
+  const showAll = abiertaEn !== null
 
   // Bloquear scroll body mientras lightbox abierto
   useEffect(() => {
@@ -38,38 +43,43 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
   useEffect(() => {
     if (!showAll) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowAll(false)
+      if (e.key === 'Escape') setAbiertaEn(null)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [showAll])
 
+  // El lightbox arranca en la foto tocada.
+  useEffect(() => {
+    if (!abiertaEn) return
+    document.getElementById(`vf-foto-${abiertaEn}`)?.scrollIntoView({ block: 'start' })
+  }, [abiertaEn])
+
+  // Sin fotos: en el celu igual va el bloque con operación, precio y zona
+  // (en la compu ya están en la tarjeta de la derecha).
   if (!photos || photos.length === 0) {
+    if (!overlay) return null
     return (
-      <div
-        style={{ aspectRatio: '4 / 3', background: '#F3F3F3' }}
-        aria-hidden
-      />
+      <div className="lg:hidden" style={{ background: TINTA, color: '#fff', padding: '56px 20px 22px' }}>
+        {overlay.volanta && <div style={{ ...volanta, opacity: 0.88 }}>{overlay.volanta}</div>}
+        <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: 4 }}>{overlay.precio}</div>
+        {overlay.zona && <div style={{ fontSize: 15, opacity: 0.92, marginTop: 3 }}>{overlay.zona}</div>}
+      </div>
     )
   }
 
-  const thumbs = photos.slice(1, 5)
-  const hasOverlaySlot = photos.length > 5
   const cover = photos[0]
+  const tira = photos.slice(1, 4)
+  const restantes = photos.length - 1 - tira.length
 
   return (
     <>
-      {/* ── MOBILE: foto única ~280px ───────────────────────────────────── */}
-      <div className="md:hidden">
+      {/* ── CELULAR / TABLET: foto protagonista + tira ─────────────────── */}
+      <div className="lg:hidden">
         <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: 280,
-            cursor: 'pointer',
-            background: '#F3F3F3',
-          }}
-          onClick={() => setShowAll(true)}
+          className="vf-hero"
+          style={{ position: 'relative', width: '100%', cursor: 'pointer', background: '#E9E9E7' }}
+          onClick={() => setAbiertaEn(0)}
         >
           <Image
             src={displayImageUrl(cover)}
@@ -80,144 +90,176 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
             unoptimized={isExternalCdn(cover)}
             style={{ objectFit: 'cover' }}
           />
-          {photos.length > 1 && (
+          {overlay && (
             <div
+              aria-hidden
               style={{
                 position: 'absolute',
-                right: 12,
-                bottom: 12,
-                background: 'rgba(255,255,255,0.95)',
-                padding: '8px 14px',
-                borderRadius: 10,
+                inset: 0,
+                background: 'linear-gradient(180deg, rgba(0,0,0,0) 42%, rgba(0,0,0,0.74) 100%)',
+              }}
+            />
+          )}
+          {photos.length > 1 && (
+            <span
+              style={{
+                position: 'absolute',
+                right: 14,
+                top: 14,
+                background: 'rgba(255,255,255,0.94)',
+                color: TINTA,
                 fontSize: 12,
                 fontWeight: 600,
-                color: '#1A1A1A',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                padding: '5px 10px',
+                borderRadius: 999,
               }}
             >
-              <Camera size={14} />
-              Ver las {photos.length} fotos
+              {photos.length} fotos
+            </span>
+          )}
+          {overlay && (
+            <div style={{ position: 'absolute', left: 20, right: 20, bottom: 20, color: '#fff' }}>
+              {overlay.volanta && <div style={{ ...volanta, opacity: 0.88 }}>{overlay.volanta}</div>}
+              <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: 4 }}>
+                {overlay.precio}
+              </div>
+              {overlay.zona && <div style={{ fontSize: 15, opacity: 0.92, marginTop: 3 }}>{overlay.zona}</div>}
             </div>
           )}
         </div>
+
+        {tira.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, padding: '6px 6px 0' }}>
+            {tira.map((p, i) => {
+              const esUltima = i === tira.length - 1 && restantes > 0
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setAbiertaEn(i + 1)}
+                  aria-label={esUltima ? `Ver las ${photos.length} fotos` : `Ver foto ${i + 2}`}
+                  style={{
+                    position: 'relative',
+                    flex: 1,
+                    height: 84,
+                    border: 'none',
+                    padding: 0,
+                    borderRadius: 10,
+                    overflow: 'hidden',
+                    background: '#F3F3F3',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Image
+                    src={displayImageUrl(p)}
+                    alt=""
+                    fill
+                    sizes="34vw"
+                    unoptimized={isExternalCdn(p)}
+                    style={{ objectFit: 'cover' }}
+                  />
+                  {esUltima && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.45)',
+                        color: '#fff',
+                        fontSize: 16,
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      +{restantes}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      {/* ── DESKTOP: grid Zillow 5-col × 2 rows × 440px ─────────────────── */}
-      <div className="hidden md:block">
+      {/* ── COMPU: mosaico 1 grande + 4 chicas ─────────────────────────── */}
+      <div className="hidden lg:block" style={{ position: 'relative' }}>
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
+            gridTemplateColumns: photos.length === 1 ? '1fr' : '2fr 1fr 1fr',
             gridTemplateRows: 'repeat(2, 1fr)',
             gap: 8,
-            height: 440,
-            borderRadius: 16,
+            height: 460,
+            borderRadius: 18,
             overflow: 'hidden',
           }}
         >
-          {/* Principal */}
           <div
             className="hero-tile"
-            style={{
-              gridColumn: 'span 3',
-              gridRow: 'span 2',
-              position: 'relative',
-              cursor: 'pointer',
-              overflow: 'hidden',
-              background: '#F3F4F6',
-            }}
-            onClick={() => setShowAll(true)}
+            style={{ gridRow: 'span 2', position: 'relative', cursor: 'pointer', overflow: 'hidden', background: '#F3F4F6' }}
+            onClick={() => setAbiertaEn(0)}
           >
             <Image
               src={displayImageUrl(cover)}
               alt=""
               fill
-              sizes="(min-width: 1024px) 60vw, 100vw"
+              sizes="(min-width: 1024px) 55vw, 100vw"
               priority
               unoptimized={isExternalCdn(cover)}
               style={{ objectFit: 'cover', transition: 'transform 300ms' }}
             />
           </div>
 
-          {/* 4 thumbs (cols 4-5 en 2×2) */}
-          {Array.from({ length: 4 }).map((_, i) => {
-            const photo = thumbs[i]
-            const isLast = i === 3
-            if (!photo) {
-              return <div key={i} style={{ background: '#F3F4F6' }} />
-            }
-            return (
-              <div
-                key={i}
-                className="hero-tile"
-                style={{
-                  position: 'relative',
-                  cursor: 'pointer',
-                  overflow: 'hidden',
-                  background: '#F3F4F6',
-                }}
-                onClick={() => setShowAll(true)}
-              >
-                <Image
-                  src={displayImageUrl(photo)}
-                  alt=""
-                  fill
-                  sizes="20vw"
-                  unoptimized={isExternalCdn(photo)}
-                  style={{ objectFit: 'cover', transition: 'transform 300ms' }}
-                />
-                {isLast && hasOverlaySlot && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'rgba(0,0,0,0.55)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      color: '#fff',
-                    }}
-                  >
-                    <Images size={16} />
-                    <span style={{ fontSize: 14, fontWeight: 600 }}>
-                      Ver las {photos.length} fotos
-                    </span>
-                  </div>
-                )}
-              </div>
-            )
-          })}
+          {photos.length > 1 &&
+            Array.from({ length: 4 }).map((_, i) => {
+              const photo = photos[i + 1]
+              if (!photo) return <div key={i} style={{ background: '#F3F4F6' }} />
+              return (
+                <div
+                  key={i}
+                  className="hero-tile"
+                  style={{ position: 'relative', cursor: 'pointer', overflow: 'hidden', background: '#F3F4F6' }}
+                  onClick={() => setAbiertaEn(i + 1)}
+                >
+                  <Image
+                    src={displayImageUrl(photo)}
+                    alt=""
+                    fill
+                    sizes="22vw"
+                    unoptimized={isExternalCdn(photo)}
+                    style={{ objectFit: 'cover', transition: 'transform 300ms' }}
+                  />
+                </div>
+              )
+            })}
         </div>
 
-        {/* Fallback: si hay >1 pero ≤5 fotos no hay overlay slot, mostrar
-            botón discreto debajo a la derecha */}
-        {photos.length > 1 && !hasOverlaySlot && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 14px',
-                background: '#fff',
-                border: '1px solid #E5E7EB',
-                borderRadius: 10,
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: 'pointer',
-                color: '#1A1A1A',
-                fontFamily: 'inherit',
-              }}
-            >
-              <Images size={14} /> Ver las {photos.length} fotos
-            </button>
-          </div>
+        {photos.length > 1 && (
+          <button
+            type="button"
+            onClick={() => setAbiertaEn(0)}
+            style={{
+              position: 'absolute',
+              right: 16,
+              bottom: 16,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '9px 14px',
+              background: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              fontSize: 14,
+              fontWeight: 600,
+              color: TINTA,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
+            }}
+          >
+            <Images size={16} aria-hidden /> Ver las {photos.length} fotos
+          </button>
         )}
       </div>
 
@@ -235,7 +277,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
         >
           <button
             type="button"
-            onClick={() => setShowAll(false)}
+            onClick={() => setAbiertaEn(null)}
             aria-label="Cerrar galería"
             style={{
               position: 'absolute',
@@ -276,14 +318,15 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
               {photos.map((p, i) => (
                 <Image
                   key={i}
+                  id={`vf-foto-${i}`}
                   src={displayImageUrl(p)}
                   alt={`Foto ${i + 1}`}
                   width={1200}
                   height={800}
                   sizes="(max-width: 1000px) 100vw, 1000px"
-                  loading={i < 2 ? 'eager' : 'lazy'}
+                  loading={Math.abs(i - (abiertaEn ?? 0)) < 2 ? 'eager' : 'lazy'}
                   unoptimized={isExternalCdn(p)}
-                  style={{ width: '100%', height: 'auto', borderRadius: 8 }}
+                  style={{ width: '100%', height: 'auto', borderRadius: 8, scrollMarginTop: 70 }}
                 />
               ))}
             </div>
@@ -292,6 +335,7 @@ export default function HeroGallery({ photos }: { photos: string[] }) {
       )}
 
       <style dangerouslySetInnerHTML={{ __html: `
+        .vf-hero { height: 58vh; height: min(58svh, 560px); min-height: 340px; }
         .hero-tile:hover img { transform: scale(1.02); }
       ` }} />
     </>

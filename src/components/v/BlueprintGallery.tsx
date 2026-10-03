@@ -1,9 +1,15 @@
 'use client'
 
-// Galería más chica para planos. Tap → Lightbox con zoom/scroll para leer cotas.
+// Galería chica para planos, del mismo alto que el mapa (clase vf-media). Tap →
+// Lightbox con zoom/scroll para leer cotas. Un plano en PDF no es imagen (se
+// veía roto): va como tarjeta "Ver plano en PDF" que lo abre aparte.
 
 import { useEffect, useRef, useState } from 'react'
+import { FileText, Maximize2 } from 'lucide-react'
 import Lightbox from './Lightbox'
+import { APAGADO, LINEA, TINTA } from './estilos'
+
+const esPdf = (u: string) => /\.pdf($|[?#])/i.test(u)
 
 export default function BlueprintGallery({ blueprints }: { blueprints: string[] }) {
   const [active, setActive] = useState(0)
@@ -22,21 +28,20 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
   }, [blueprints.length])
 
   if (!blueprints || blueprints.length === 0) return null
+  const imagenes = blueprints.filter(u => !esPdf(u))
 
   return (
-    <>
+    <div className="vf-media" style={{ position: 'relative', borderRadius: 16, border: `1px solid ${LINEA}`, background: '#fff', overflow: 'hidden' }}>
       <div
         ref={containerRef}
         className="blueprint-scroll"
         style={{
           display: 'flex',
+          height: '100%',
           overflowX: 'auto',
           scrollSnapType: 'x mandatory',
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
-          background: '#FAFAFA',
-          borderRadius: 16,
-          border: '1px solid #E5E7EB',
         }}
       >
         {blueprints.map((url, i) => (
@@ -45,16 +50,28 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
             style={{
               flex: '0 0 100%',
               scrollSnapAlign: 'center',
-              aspectRatio: '4 / 3',
+              height: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: 16,
+              padding: 14,
               boxSizing: 'border-box',
             }}
-            onClick={() => setLightboxAt(i)}
+            onClick={() => !esPdf(url) && setLightboxAt(imagenes.indexOf(url))}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {esPdf(url) ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: TINTA, textDecoration: 'none' }}
+              >
+                <FileText size={34} strokeWidth={1.5} aria-hidden />
+                <span style={{ fontSize: 15, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 3 }}>Ver plano en PDF</span>
+                <span style={{ fontSize: 12, color: APAGADO }}>Se abre en otra pestaña</span>
+              </a>
+            ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={url}
               alt={`Plano ${i + 1}`}
@@ -68,13 +85,34 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
                 userSelect: 'none',
               }}
             />
+            )}
           </div>
         ))}
       </div>
 
+      {!esPdf(blueprints[active] ?? '') && <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          right: 10,
+          bottom: 10,
+          width: 30,
+          height: 30,
+          borderRadius: 8,
+          background: 'rgba(255,255,255,0.94)',
+          border: `1px solid ${LINEA}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}
+      >
+        <Maximize2 size={15} color={TINTA} />
+      </span>}
+
       {blueprints.length > 1 && (
         <div
-          style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 10 }}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 12, display: 'flex', gap: 6, justifyContent: 'center', pointerEvents: 'none' }}
         >
           {blueprints.map((_, i) => (
             <span
@@ -91,13 +129,9 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
         </div>
       )}
 
-      <p style={{ fontSize: 12, color: '#6B7280', marginTop: 8, textAlign: 'center' }}>
-        Tocá el plano para verlo en grande
-      </p>
-
       {lightboxAt !== null && (
         <Lightbox
-          images={blueprints}
+          images={imagenes}
           startIndex={lightboxAt}
           zoomable
           onClose={() => setLightboxAt(null)}
@@ -107,6 +141,6 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
       <style dangerouslySetInnerHTML={{ __html: `
         .blueprint-scroll::-webkit-scrollbar { display: none; }
       ` }} />
-    </>
+    </div>
   )
 }

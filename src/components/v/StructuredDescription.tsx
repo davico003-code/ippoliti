@@ -4,23 +4,24 @@
 // Reusa el parser lib/formatDescription (3 tipos de bloques: title /
 // dataGroup / paragraph con subtitle inline opcional).
 //
-// Fade + "Ver más" cuando la descripción es larga (>420 chars o >5 bloques).
+// Plegada a ~6 renglones con "Leer todo" cuando es larga (>320 chars o >3
+// bloques). Sin encabezado propio: el título de la ficha ya la presenta.
+// omitirTituloInicial: el primer título de la descripción ya se usó como H1.
 
 import { useMemo, useState } from 'react'
 import { formatDescription, type FormattedBlock } from '@/lib/formatDescription'
-
-const ACCENT = '#2563EB'
+import { TEXTO, TINTA } from './estilos'
 
 function Block({ block }: { block: FormattedBlock }) {
   if (block.type === 'title') {
     return (
       <h3
         style={{
-          fontSize: 17,
-          fontWeight: 600,
-          color: '#1A1A1A',
-          marginTop: 28,
-          marginBottom: 10,
+          fontSize: 16,
+          fontWeight: 700,
+          color: TINTA,
+          marginTop: 22,
+          marginBottom: 8,
           lineHeight: 1.35,
           letterSpacing: '-0.005em',
         }}
@@ -40,13 +41,13 @@ function Block({ block }: { block: FormattedBlock }) {
             style={{
               position: 'relative',
               paddingLeft: 22,
-              color: '#4A4A4A',
-              fontSize: 17,
-              lineHeight: 1.65,
-              marginBottom: i === block.items.length - 1 ? 0 : 7,
+              color: TEXTO,
+              fontSize: 16,
+              lineHeight: 1.6,
+              marginBottom: i === block.items.length - 1 ? 0 : 6,
             }}
           >
-            <span aria-hidden style={{ position: 'absolute', left: 2, top: 0, color: '#1A5C38', fontWeight: 700 }}>
+            <span aria-hidden style={{ position: 'absolute', left: 2, top: 0, color: TINTA, fontWeight: 700 }}>
               ✓
             </span>
             {item}
@@ -63,13 +64,13 @@ function Block({ block }: { block: FormattedBlock }) {
           <div
             key={i}
             style={{
-              color: '#4A4A4A',
-              fontSize: 16,
+              color: TEXTO,
+              fontSize: 15,
               lineHeight: 1.6,
               marginBottom: i === block.content.length - 1 ? 0 : 4,
             }}
           >
-            <strong style={{ fontWeight: 600, color: '#1A1A1A' }}>{dl.key}:</strong>{' '}
+            <strong style={{ fontWeight: 600, color: TINTA }}>{dl.key}:</strong>{' '}
             {dl.value}
           </div>
         ))}
@@ -81,15 +82,15 @@ function Block({ block }: { block: FormattedBlock }) {
     <p
       className="desc-para"
       style={{
-        color: '#4A4A4A',
-        fontSize: 17,
-        lineHeight: 1.75,
-        marginBottom: 16,
+        color: TEXTO,
+        fontSize: 16,
+        lineHeight: 1.65,
+        margin: '0 0 12px',
       }}
     >
       {block.subtitle && (
         <>
-          <strong style={{ fontWeight: 700, color: '#1A1A1A' }}>{block.subtitle}.</strong>{' '}
+          <strong style={{ fontWeight: 700, color: TINTA }}>{block.subtitle}.</strong>{' '}
         </>
       )}
       {block.content}
@@ -97,43 +98,34 @@ function Block({ block }: { block: FormattedBlock }) {
   )
 }
 
-export default function StructuredDescription({ text }: { text: string | null | undefined }) {
+export default function StructuredDescription({
+  text,
+  omitirTituloInicial = false,
+}: {
+  text: string | null | undefined
+  omitirTituloInicial?: boolean
+}) {
   const blocks = useMemo(() => {
     const parsed = formatDescription(text)
+    if (omitirTituloInicial && parsed[0]?.type === 'title') parsed.shift()
     if (parsed.length > 0) return parsed
     const fallback = (text ?? '').trim()
     if (!fallback) return []
     return [{ type: 'paragraph', content: fallback }] as FormattedBlock[]
-  }, [text])
+  }, [text, omitirTituloInicial])
   const [expanded, setExpanded] = useState(false)
 
   if (blocks.length === 0) return null
 
   const rawLength = (text ?? '').length
-  const isLong = rawLength > 420 || blocks.length > 5
+  const isLong = rawLength > 320 || blocks.length > 3
 
   return (
-    <section style={{ marginTop: 36 }}>
-      <h2
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: '#1A1A1A',
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-          marginBottom: 16,
-        }}
-      >
-        Descripción
-      </h2>
-
+    <section style={{ marginTop: 22 }}>
       <div style={{ position: 'relative' }}>
         <div
-          style={
-            isLong && !expanded
-              ? { maxHeight: 240, overflow: 'hidden' }
-              : undefined
-          }
+          className={isLong && !expanded ? 'vf-desc-plegada' : undefined}
+          style={isLong && !expanded ? { overflow: 'hidden' } : undefined}
         >
           {blocks.map((b, i) => (
             <div
@@ -154,7 +146,7 @@ export default function StructuredDescription({ text }: { text: string | null | 
               left: 0,
               right: 0,
               bottom: 0,
-              height: 80,
+              height: 64,
               pointerEvents: 'none',
               background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 85%)',
             }}
@@ -166,29 +158,31 @@ export default function StructuredDescription({ text }: { text: string | null | 
         <button
           type="button"
           onClick={() => setExpanded(v => !v)}
+          aria-expanded={expanded}
           style={{
-            marginTop: 8,
+            marginTop: 0,
             background: 'transparent',
             border: 'none',
-            padding: 0,
-            color: ACCENT,
-            fontSize: 14,
+            padding: '8px 0',
+            color: TINTA,
+            fontSize: 15,
             fontWeight: 600,
+            textDecoration: 'underline',
+            textUnderlineOffset: 3,
             cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
             fontFamily: 'inherit',
           }}
         >
-          {expanded ? <>Ver menos <span aria-hidden>↑</span></> : <>Ver más <span aria-hidden>↓</span></>}
+          {expanded ? 'Leer menos' : 'Leer todo'}
         </button>
       )}
 
       <style dangerouslySetInnerHTML={{ __html: `
-        @media (min-width: 768px) {
-          .desc-para { font-size: 18px !important; }
-          .desc-data > div { font-size: 17px !important; }
+        .vf-desc-plegada { max-height: 168px; }
+        @media (min-width: 1024px) {
+          .vf-desc-plegada { max-height: 224px; }
+          .desc-para { font-size: 17px !important; }
+          .desc-data > div { font-size: 16px !important; }
         }
       ` }} />
     </section>

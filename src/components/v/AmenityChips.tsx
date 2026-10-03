@@ -1,7 +1,10 @@
-// Sección 5: características / amenities como chips. Mapeo name → icono lucide
-// para los amenities más comunes; el resto sin icono.
+'use client'
 
-import type { ReactNode } from 'react'
+// Características / amenities como chips en renglón (wrap). Mapeo name → icono
+// lucide para los amenities más comunes; el resto sin icono. Con muchas (hay
+// fichas con 22) se muestran 8 y un chip "Ver las N".
+
+import { useState, type ReactNode } from 'react'
 import {
   AirVent,
   Bath,
@@ -18,6 +21,7 @@ import {
   Wifi,
   Zap,
 } from 'lucide-react'
+import { FONDO_SUAVE, TINTA, tituloSeccion } from './estilos'
 
 type IconC = LucideIcon
 
@@ -53,7 +57,7 @@ function pickIcon(name: string): ReactNode {
   const low = name.toLowerCase()
   for (const r of ICON_RULES) {
     if (low.includes(r.keyword)) {
-      return <r.Icon size={15} strokeWidth={1.6} color="#4A4A4A" />
+      return <r.Icon size={15} strokeWidth={1.7} color={TINTA} aria-hidden />
     }
   }
   return null
@@ -80,47 +84,37 @@ export default function AmenityChips({
     if (label && !all.includes(label)) all.push(label)
   }
 
+  const [todas, setTodas] = useState(false)
   if (all.length === 0) return null
+  const plegar = all.length > 10 && !todas
+  const visibles = plegar ? all.slice(0, 8) : all
 
   return (
-    <section style={{ marginTop: 36 }}>
-      <h2
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: '#1A1A1A',
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-          marginBottom: 14,
-        }}
-      >
-        Características
-      </h2>
+    <section style={{ marginTop: 32 }}>
+      <h2 style={tituloSeccion}>Características</h2>
 
       <ul
-        className="amenity-grid"
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          display: 'flex',
+          flexWrap: 'wrap',
           gap: 8,
           listStyle: 'none',
           padding: 0,
           margin: 0,
         }}
       >
-        {all.map(name => (
+        {visibles.map(name => (
           <li
             key={name}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
-              padding: '10px 14px',
-              background: '#F3F4F6',
-              borderRadius: 8,
+              gap: 7,
+              padding: '8px 12px',
+              background: FONDO_SUAVE,
+              borderRadius: 999,
               fontSize: 14,
-              fontWeight: 500,
-              color: '#1A1A1A',
+              color: TINTA,
               lineHeight: 1.3,
             }}
           >
@@ -128,13 +122,30 @@ export default function AmenityChips({
             <span>{name}</span>
           </li>
         ))}
+        {plegar && (
+          <li>
+            <button
+              type="button"
+              onClick={() => setTodas(true)}
+              style={{
+                minHeight: 36,
+                padding: '8px 12px',
+                background: '#fff',
+                border: `1px solid ${TINTA}`,
+                borderRadius: 999,
+                fontSize: 14,
+                fontWeight: 600,
+                color: TINTA,
+                lineHeight: 1.3,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Ver las {all.length}
+            </button>
+          </li>
+        )}
       </ul>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media (min-width: 768px) {
-          .amenity-grid { grid-template-columns: repeat(4, 1fr) !important; }
-        }
-      ` }} />
     </section>
   )
 }
