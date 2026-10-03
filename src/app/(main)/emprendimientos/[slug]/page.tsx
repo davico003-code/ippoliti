@@ -95,7 +95,7 @@ const DEV_CONTACTO: Record<number, DevContacto> = {
 // Secciones propias que se intercalan en el funnel (keyed por ID de Tokko).
 // Dock Garden: trayectoria de VERS, tipologías, terminaciones y qué hay cerca,
 // todo de la presentación oficial del desarrollador (lib/dockgarden.ts).
-const DEV_SECCIONES: Record<number, () => Promise<FunnelSecciones>> = {
+const DEV_SECCIONES: Record<number, (ctx: { whatsapp: string }) => Promise<FunnelSecciones>> = {
   67173: seccionesDockGarden,
 }
 
@@ -276,7 +276,7 @@ export default async function DevelopmentPage({ params }: Props) {
       })
     : filasCrm
 
-  const secciones = await DEV_SECCIONES[dev.id]?.().catch(() => undefined)
+  const secciones = await DEV_SECCIONES[dev.id]?.({ whatsapp: contacto?.whatsapp ?? '5493413340916' }).catch(() => undefined)
 
   const mainPhotoUrl = landing?.og
     ? `https://siinmobiliaria.com${landing.og}`

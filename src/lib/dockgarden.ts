@@ -222,3 +222,111 @@ export const OFICINA_VENTAS = {
 export function mapsObra(direccion: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${direccion}, Fisherton, Rosario`)}`
 }
+
+// ── Unidades en el edificio (selector "Elegí tu departamento") ────────────
+
+/**
+ * Planta de la Torre 2 (Etapa 2) en coordenadas del recuadro "Ubicación en el
+ * conjunto" de las láminas oficiales: 0,0 = esquina del edificio, x a lo largo
+ * (327) e y a lo ancho (118). La punta derecha (x=327) es la que mira al
+ * bosque y al arroyo Ludueña.
+ */
+export const TORRE_2 = { largo: 327, ancho: 118 }
+
+/** Las 4 etapas del conjunto (mismo recuadro), para el mini plano de ubicación. */
+export const ETAPAS_CONJUNTO = [
+  { n: 1, x: 27, y: 584, w: 118, h: 190 },
+  { n: 2, x: 15, y: 404, w: 327, h: 118 },
+  { n: 3, x: 208, y: 230, w: 332, h: 117 },
+  { n: 4, x: 407, y: 59, w: 330, h: 111 },
+] as const
+
+type UnidadPlano = {
+  codigo: string
+  /** 4 = dúplex en pisos 4 y 5. */
+  piso: 1 | 2 | 3 | 4
+  unidad: number
+  tipologia: Tipologia['id']
+  /** [x0, y0, x1, y1] dentro de TORRE_2 (detectado del recuadro rojo de su lámina). */
+  rect: [number, number, number, number]
+  superficies: { label: string; m2: string }[]
+  total: string
+  /** Lámina oficial de VERS con el plano y su ubicación en el conjunto. */
+  lamina: string
+  /** Id público de la ficha en HILO (/propiedades/{id}-…). */
+  ficha?: number
+}
+
+/** Datos fijos por unidad (clave = id de Brickfy). Precio y estado vienen vivos de Brickfy. */
+export const UNIDADES_PLANO: Record<string, UnidadPlano> = {
+  'DOCK_GARDEN-2-1-1': {
+    codigo: '01.01', piso: 1, unidad: 1, tipologia: '3d', rect: [0, 0, 87, 118],
+    superficies: [{ label: 'Departamento', m2: '156,70' }, { label: 'Cochera doble', m2: '26,60' }], total: '183,30',
+    lamina: `${IMG}/unidades/2-1-1.webp`, ficha: 7268088,
+  },
+  'DOCK_GARDEN-2-1-4': {
+    codigo: '01.04', piso: 1, unidad: 4, tipologia: '3d', rect: [239, 0, 327, 118],
+    superficies: [{ label: 'Departamento', m2: '156,70' }, { label: 'Cochera doble', m2: '23,30' }], total: '180,00',
+    lamina: `${IMG}/unidades/2-1-4.webp`, ficha: 900000589,
+  },
+  'DOCK_GARDEN-2-1-6': {
+    codigo: '01.06', piso: 1, unidad: 6, tipologia: '1d', rect: [87, 54, 164, 118],
+    superficies: [{ label: 'Departamento', m2: '80,10' }, { label: 'Cochera', m2: '13,80' }], total: '93,90',
+    lamina: `${IMG}/unidades/2-1-6.webp`,
+  },
+  'DOCK_GARDEN-2-2-3': {
+    codigo: '02.03', piso: 2, unidad: 3, tipologia: '2d', rect: [163, 0, 263, 72],
+    superficies: [{ label: 'Departamento', m2: '81,80' }, { label: 'Cochera', m2: '13,80' }], total: '95,60',
+    lamina: `${IMG}/unidades/2-2-3.webp`, ficha: 7407995,
+  },
+  'DOCK_GARDEN-2-3-3': {
+    codigo: '03.03', piso: 3, unidad: 3, tipologia: '1d', rect: [163, 0, 240, 71],
+    superficies: [{ label: 'Departamento', m2: '80,10' }, { label: 'Cochera', m2: '13,80' }], total: '93,90',
+    lamina: `${IMG}/unidades/2-3-3.webp`, ficha: 900000591,
+  },
+  'DOCK_GARDEN-2-3-4': {
+    codigo: '03.04', piso: 3, unidad: 4, tipologia: '3d', rect: [240, 0, 327, 118],
+    superficies: [{ label: 'Departamento', m2: '156,70' }, { label: 'Cochera doble', m2: '26,10' }], total: '182,80',
+    lamina: `${IMG}/unidades/2-3-4.webp`, ficha: 900000590,
+  },
+  'DOCK_GARDEN-2-4-1': {
+    codigo: '04.01', piso: 4, unidad: 1, tipologia: 'duplex', rect: [1, 38, 163, 118],
+    superficies: [{ label: 'Departamento', m2: '127,20' }, { label: 'Terrazas y balcón', m2: '92,60' }, { label: 'Cochera doble', m2: '26,10' }], total: '245,90',
+    lamina: `${IMG}/unidades/2-4-1.webp`, ficha: 900000592,
+  },
+  'DOCK_GARDEN-2-4-3': {
+    codigo: '04.03', piso: 4, unidad: 3, tipologia: 'duplex', rect: [163, 0, 324, 86],
+    superficies: [{ label: 'Departamento', m2: '127,20' }, { label: 'Terrazas y balcón', m2: '92,60' }, { label: 'Cochera doble', m2: '26,10' }], total: '245,90',
+    lamina: `${IMG}/unidades/2-4-3.webp`, ficha: 7268078,
+  },
+}
+
+export type UnidadExplorador = UnidadPlano & {
+  id: string
+  nombre: string
+  dorms: number
+  precio: number
+  preferencial: boolean
+  estado: 'disponible' | 'reservada' | 'vendida'
+}
+
+/** Cruza la lista viva de Brickfy con los datos fijos de cada unidad. */
+export function unidadesExplorador(
+  units: { id: string; status: string; price: number; bedrooms: number; preferencial?: boolean }[],
+): UnidadExplorador[] {
+  return units
+    .filter((u) => UNIDADES_PLANO[u.id])
+    .map((u): UnidadExplorador => {
+      const p = UNIDADES_PLANO[u.id]
+      return {
+        ...p,
+        id: u.id,
+        nombre: TIPOLOGIAS.find((t) => t.id === p.tipologia)?.nombre ?? `${u.bedrooms} dorm.`,
+        dorms: u.bedrooms,
+        precio: u.price,
+        preferencial: !!u.preferencial,
+        estado: u.status === 'available' ? 'disponible' : u.status === 'reserved' ? 'reservada' : 'vendida',
+      }
+    })
+    .sort((a, b) => a.piso - b.piso || a.unidad - b.unidad)
+}
