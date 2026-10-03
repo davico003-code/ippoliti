@@ -57,7 +57,7 @@ export default function AgenteAvatar({
     }
   }, [video])
 
-  const cls = 'w-[72px] h-[72px] rounded-full object-cover flex-shrink-0 bg-gray-100'
+  const cls = 'w-24 h-24 rounded-full object-cover flex-shrink-0 bg-gray-100'
 
   if (picture && video) {
     return (
@@ -69,8 +69,8 @@ export default function AgenteAvatar({
         playsInline
         preload="metadata"
         aria-label={name}
-        width={72}
-        height={72}
+        width={96}
+        height={96}
         className={cls}
       />
     )
@@ -78,12 +78,12 @@ export default function AgenteAvatar({
   if (picture) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={picture} alt={name} width={72} height={72} className={cls} loading="lazy" decoding="async" />
+      <img src={picture} alt={name} width={96} height={96} className={cls} loading="lazy" decoding="async" />
     )
   }
   return (
     <div
-      className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+      className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0"
       style={{ background: bg, fontFamily }}
     >
       {initials}
