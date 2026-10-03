@@ -19,6 +19,7 @@ import {
 } from '@/lib/developments'
 import { getDockGarden } from '@/lib/brickfy'
 import { filasDesdeBrickfy, filasDesdeCrm, type UnidadFila } from '@/lib/unidadesFilas'
+import { VERS_LOGO, type Marca } from '@/components/landing/MarcaDesarrollador'
 import EmprendimientoFunnel from '@/components/emprendimiento/EmprendimientoFunnel'
 import BotonVolver from '@/components/BotonVolver'
 import HeroAerea from '@/components/distrito-roldan/HeroAerea'
@@ -114,11 +115,14 @@ const DEV_LANDING: Record<
     fotosLimpias?: Record<string, string>
     /** Última tanda de fotos reales de la obra (la más nueva reemplaza a la anterior). */
     avances?: { fecha: string; fotos: string[] }
+    /** Marca detrás del proyecto, en el hero (regla: toda landing la muestra). */
+    marcas?: Marca[]
   }
 > = {
   // Dock Garden — Aldea Fisherton
   67173: {
     og: '/og-dockgarden.jpg',
+    marcas: [{ rol: 'Un proyecto de', nombre: 'Estudio VERS', logo: { ...VERS_LOGO, className: 'h-9 w-auto sm:h-11' } }],
     // Brickfy tiene todas las unidades reales con torre, piso, plano y precio
     // al día; el CRM solo una parte. Misma fuente que /dockgarden.
     listaDesarrollador: async () => {
@@ -327,7 +331,7 @@ export default async function DevelopmentPage({ params }: Props) {
           locationName={locationName}
           lineas={paragraphs}
           photos={photos}
-          media={{ hero: landing?.hero ?? mainPhoto, proyecto: landing?.proyecto, ubicacion: landing?.ubicacion, avances: landing?.avances }}
+          media={{ hero: landing?.hero ?? mainPhoto, proyecto: landing?.proyecto, ubicacion: landing?.ubicacion, avances: landing?.avances, marcas: landing?.marcas }}
           filas={filas}
           otherDevs={otherDevs}
           whatsappUrl={whatsappUrl}

@@ -1,5 +1,5 @@
 // Landing de Tierra Nueva — Condos 22, 23 y 24 en Fisherton, Rosario
-// (NM Capital + Proyectta+). No está en el feed de HILO como emprendimiento:
+// (NM Capital + Proyectta). No está en el feed de HILO como emprendimiento:
 // ruta estática propia (le gana al [slug] dinámico), mismo patrón que Fisherton
 // Work. Datos, precios y tipologías en src/lib/tierra-nueva.ts; assets en
 // public/emprendimientos/tierra-nueva.
@@ -37,6 +37,7 @@ import ComoSePaga from '@/components/tierra-nueva/ComoSePaga'
 import PlanoBarrio from '@/components/tierra-nueva/PlanoBarrio'
 import PlantasEdificio from '@/components/tierra-nueva/PlantasEdificio'
 import Tipologias from '@/components/tierra-nueva/Tipologias'
+import MarcaDesarrollador, { PROYECTTA_LOGO } from '@/components/landing/MarcaDesarrollador'
 import WaCta from '@/components/tierra-nueva/WaCta'
 import { TN_BASE, TN_GEO, TN_PRECIOS, TN_URL, cuotaMensual, usd } from '@/lib/tierra-nueva'
 import Num from '@/components/tierra-nueva/Num'
@@ -158,7 +159,7 @@ const FAQ = [
   },
   {
     q: '¿Quién lo construye?',
-    a: 'Tierra Nueva es un desarrollo de NM Capital y Proyectta+, que ya entregaron más de 500 unidades en el barrio. SI INMOBILIARIA lo comercializa y te acompaña en toda la operación.',
+    a: 'Tierra Nueva es un desarrollo de Proyectta y NM Capital, que ya entregaron más de 500 unidades en el barrio. SI INMOBILIARIA lo comercializa y te acompaña en toda la operación.',
   },
 ]
 
@@ -254,7 +255,15 @@ export default function TierraNuevaPage() {
             </a>
           </div>
 
-          <dl className="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-3 md:grid-cols-5">
+          <MarcaDesarrollador
+            className="mt-10"
+            marcas={[
+              { rol: 'Un desarrollo de', nombre: 'Proyectta', logo: PROYECTTA_LOGO },
+              { rol: 'junto a', nombre: 'NM Capital' },
+            ]}
+          />
+
+          <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-3 md:grid-cols-5">
             {STATS.map((s, i) => (
               <div key={s.l} className={`bg-[#0E120F]/70 px-4 py-4 backdrop-blur-md md:px-5 ${i === 4 ? 'col-span-2 sm:col-span-1' : ''}`}>
                 <dd className="font-numeric text-xl font-bold md:text-2xl">{s.v}</dd>
@@ -317,7 +326,7 @@ export default function TierraNuevaPage() {
             <p className="mt-4 max-w-xl text-base leading-relaxed text-white/75 md:text-lg">
               No comprás un pozo en el medio de la nada: Condo <span className="font-numeric">22</span>,{' '}
               <span className="font-numeric">23</span> y <span className="font-numeric">24</span> se suman a un barrio con vecinos, servicios y
-              plazas, hecho por los mismos desarrolladores.
+              plazas, hecho por Proyectta, el mismo desarrollador.
             </p>
           </div>
         </div>
@@ -540,8 +549,9 @@ export default function TierraNuevaPage() {
           </div>
           <div className="flex flex-col justify-center p-8 text-white md:p-12" style={{ background: GREEN }}>
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">El respaldo</p>
+            <Image src={PROYECTTA_LOGO.src} alt="Proyectta" width={PROYECTTA_LOGO.width} height={PROYECTTA_LOGO.height} className="mt-5 h-10 w-auto self-start md:h-12" />
             <p className="mt-3 text-2xl font-black leading-snug md:text-3xl">
-              Desarrollan NM Capital y Proyectta+. Comercializa SI INMOBILIARIA.
+              Desarrollan Proyectta y NM Capital. Comercializa SI INMOBILIARIA.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-white/75">
               Los que hicieron Tierra Nueva desde el primer condo. Nosotros te acompañamos desde la elección de la

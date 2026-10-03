@@ -1,5 +1,5 @@
 // Tierra Nueva — Condos 22, 23 y 24 en Fisherton, Rosario.
-// Desarrollan NM Capital y Proyectta+; comercializa SI INMOBILIARIA.
+// Desarrollan NM Capital y Proyectta; comercializa SI INMOBILIARIA.
 // No está en el feed de HILO como emprendimiento: la landing es estática y
 // estos datos son la fuente. Tipologías y superficies calcadas de los planos
 // oficiales (condos22-23-24.com.ar, sep-2026); precios y condiciones de pago

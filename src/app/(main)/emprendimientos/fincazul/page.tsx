@@ -17,6 +17,7 @@ import {
   TreePine,
 } from 'lucide-react'
 import PlanosGalleryLazy from '@/components/fincazul/PlanosGalleryLazy'
+import MarcaDesarrollador from '@/components/landing/MarcaDesarrollador'
 import HeroBgVideo from '@/components/fincazul/HeroBgVideo'
 import FincazulGaleriaLazy from '@/components/fincazul/FincazulGaleriaLazy'
 
@@ -170,6 +171,10 @@ export default function FincazulPage() {
               Ver avance de obra
             </a>
           </div>
+          <MarcaDesarrollador
+            className="mt-10"
+            marcas={[{ rol: 'Desarrolla y construye', nombre: 'MSR', nota: '23 años · 250.000 m² construidos' }]}
+          />
         </div>
       </section>
 
@@ -184,7 +189,7 @@ export default function FincazulPage() {
           </h2>
           <p className="text-gray-500 text-lg leading-relaxed">
             Viví en Funes muy cerca de Fisherton, en una zona con fuerte proyección de
-            crecimiento de valor. Construidas por MSR Casa, con la experiencia y garantía
+            crecimiento de valor. Construidas por MSR, con la experiencia y garantía
             de MSR: 250.000 m² construidos en 23 años de trayectoria.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-8">
@@ -304,7 +309,7 @@ export default function FincazulPage() {
           <div className="rounded-2xl p-8 text-white flex flex-col justify-center" style={{ background: GREEN }}>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/70 mb-3">El respaldo</p>
             <p className="text-2xl md:text-[26px] font-black leading-snug mb-5">
-              Construido por MSR Casa, comercializado por SI INMOBILIARIA.
+              Desarrollado y construido por MSR, comercializado por SI INMOBILIARIA.
             </p>
             <div className="flex gap-8">
               <div>

@@ -30,6 +30,7 @@ import FincazulGaleriaLazy from '@/components/fincazul/FincazulGaleriaLazy'
 import LandingLeadForm from '@/components/landing/LandingLeadForm'
 import Masterplan from '@/components/fisherton-work/Masterplan'
 import UnidadTipo from '@/components/fisherton-work/UnidadTipo'
+import MarcaDesarrollador, { PROYECTTA_LOGO } from '@/components/landing/MarcaDesarrollador'
 import WaCta from '@/components/fisherton-work/WaCta'
 import { FW_ADDRESS, FW_BASE, FW_GEO, FW_URL } from '@/lib/fisherton-work'
 
@@ -139,7 +140,7 @@ const FAQ = [
   },
   {
     q: '¿Quién desarrolla el proyecto?',
-    a: 'Fisherton Work es un desarrollo de NM Capital y Proyectta. SI INMOBILIARIA lo comercializa y te acompaña en toda la operación.',
+    a: 'Fisherton Work es un desarrollo de Proyectta y NM Capital. SI INMOBILIARIA lo comercializa y te acompaña en toda la operación.',
   },
   {
     q: '¿Cuánto cuesta y hay financiación?',
@@ -235,8 +236,16 @@ export default function FishertonWorkPage() {
             </a>
           </div>
 
+          <MarcaDesarrollador
+            className="mt-10"
+            marcas={[
+              { rol: 'Un desarrollo de', nombre: 'Proyectta', logo: PROYECTTA_LOGO },
+              { rol: 'junto a', nombre: 'NM Capital' },
+            ]}
+          />
+
           {/* Números */}
-          <dl className="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-3 md:grid-cols-5">
+          <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-3 md:grid-cols-5">
             {STATS.map((s, i) => (
               <div key={s.l} className={`bg-[#0F1411]/70 px-4 py-4 backdrop-blur-md md:px-5 ${i === 4 ? 'col-span-2 sm:col-span-1' : ''}`}>
                 <dd className="font-numeric text-2xl font-bold md:text-3xl">{s.v}</dd>
@@ -411,8 +420,9 @@ export default function FishertonWorkPage() {
           </div>
           <div className="flex flex-col justify-center p-8 text-white md:p-12" style={{ background: GREEN }}>
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">El respaldo</p>
+            <Image src={PROYECTTA_LOGO.src} alt="Proyectta" width={PROYECTTA_LOGO.width} height={PROYECTTA_LOGO.height} className="mt-5 h-10 w-auto self-start md:h-12" />
             <p className="mt-3 text-2xl font-black leading-snug md:text-3xl">
-              Desarrollan NM Capital y Proyectta. Comercializa SI INMOBILIARIA.
+              Desarrollan Proyectta y NM Capital. Comercializa SI INMOBILIARIA.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-white/75">
               Te acompañamos desde la elección del lote hasta la escritura, con más de <span className="font-numeric">40</span>{' '}
