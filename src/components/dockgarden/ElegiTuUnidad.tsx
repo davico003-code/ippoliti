@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
-import { ArrowRight, ChevronsLeftRight, Leaf, Maximize2, MessageCircle, Rotate3d } from 'lucide-react'
+import { ArrowRight, Leaf, Maximize2, MessageCircle, Rotate3d, ZoomIn, ZoomOut } from 'lucide-react'
 import {
   CONJUNTO,
   PLANTA,
@@ -139,8 +139,12 @@ function Torre({
 }
 
 // ── Plano real del piso con las unidades marcadas ─────────────────────────
+// El plano entero se ve encuadrado; al elegir una unidad (en celular, siempre)
+// la cámara se acerca hasta ella con una animación. Las etiquetas mantienen su
+// tamaño aunque el plano se agrande.
 
 const pct = (v: number, total: number) => `${(v / total) * 100}%`
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v))
 
 function PlanoPiso({
   piso,
@@ -153,113 +157,204 @@ function PlanoPiso({
   activaId: string | null
   onElegir: (id: string) => void
 }) {
-  const scroller = useRef<HTMLDivElement>(null)
-  const delPiso = unidades.filter((u) => u.piso === piso)
-
-  // En celular el plano se desliza: centrar la unidad elegida.
+  const caja = useRef<HTMLDivElement>(null)
+  const [ancho, setAncho] = useState(0)
   useEffect(() => {
-    const el = scroller.current
-    const u = unidades.find((x) => x.id === activaId)
-    if (!el || !u || el.scrollWidth <= el.clientWidth) return
-    const x = (u.etiqueta[0] / PLANTA.w) * el.scrollWidth
-    el.scrollTo({ left: Math.max(0, x - el.clientWidth / 2), behavior: 'smooth' })
-  }, [activaId, unidades])
+    const el = caja.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setAncho(e.contentRect.width))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const celular = ancho > 0 && ancho < 640
+
+  // Acercar: en celular cada vez que se elige una unidad; en compu, a pedido.
+  const [cerca, setCerca] = useState(false)
+  useEffect(() => {
+    setCerca(celular)
+  }, [activaId, celular])
+
+  // Solo se baja el plano de los pisos que se miraron; el anterior queda
+  // visible hasta que carga el nuevo (fundido sin parpadeo).
+  const [visitados, setVisitados] = useState<number[]>([piso])
+  const [listos, setListos] = useState<number[]>([])
+  const ultimoListo = useRef(piso)
+  useEffect(() => setVisitados((v) => (v.includes(piso) ? v : [...v, piso])), [piso])
+  if (listos.includes(piso)) ultimoListo.current = piso
+  const visible = listos.includes(piso) ? piso : ultimoListo.current
+
+  const delPiso = unidades.filter((u) => u.piso === piso)
+  const u = delPiso.find((x) => x.id === activaId) ?? null
+
+  const k = ancho / PLANTA.w
+  const altoEscena = PLANTA.h * k
+  const altoCaja = celular ? Math.round(ancho * 0.82) : altoEscena
+  let s = 1
+  let tx = 0
+  let ty = (altoCaja - altoEscena) / 2
+  if (cerca && u && ancho > 0) {
+    const xs = u.poligono.map((pt) => pt[0] * k)
+    const ys = u.poligono.map((pt) => pt[1] * k)
+    const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]
+    s = clamp(Math.min(ancho / ((x1 - x0) * 1.3), altoCaja / ((y1 - y0) * 1.3)), 1, 4.5)
+    tx = clamp(ancho / 2 - ((x0 + x1) / 2) * s, ancho - ancho * s, 0)
+    const alto = altoEscena * s
+    ty = alto >= altoCaja ? clamp(altoCaja / 2 - ((y0 + y1) / 2) * s, altoCaja - alto, 0) : (altoCaja - alto) / 2
+  }
 
   return (
     <div>
-      <div ref={scroller} className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-        <div className="relative min-w-[760px] lg:min-w-0" style={{ aspectRatio: `${PLANTA.w} / ${PLANTA.h}` }}>
-          {/* Los 4 planos apilados: cambia el piso con un fundido */}
-          {[1, 2, 3, 4].map((p) => (
+      <div
+        ref={caja}
+        className="relative overflow-hidden rounded-2xl bg-white ring-1 ring-gray-100"
+        style={{ height: ancho > 0 ? altoCaja : undefined, aspectRatio: ancho > 0 ? undefined : `${PLANTA.w} / ${PLANTA.h}` }}
+      >
+        <div
+          className="absolute left-0 top-0 origin-top-left transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+          style={{ width: ancho || '100%', height: altoEscena || '100%', transform: `translate(${tx}px, ${ty}px) scale(${s})` }}
+        >
+          {visitados.map((p) => (
             <Image
               key={p}
               src={PLANTAS[p]}
-              alt={p === piso ? `Plano real del ${etiquetaPiso(p).toLowerCase()} de la Torre 2 de Dock Garden` : ''}
+              alt={p === piso ? `Plano real del ${etiquetaPiso(p).toLowerCase()} de la Torre 2 de Dock Garden (VERS Arquitectos)` : ''}
               aria-hidden={p !== piso}
               fill
-              sizes="(max-width: 1024px) 760px, 900px"
-              className={`object-contain transition-opacity duration-500 motion-reduce:transition-none ${p === piso ? 'opacity-100' : 'opacity-0'}`}
+              sizes="(max-width: 640px) 400vw, 1100px"
+              onLoad={() => setListos((l) => (l.includes(p) ? l : [...l, p]))}
+              className={`object-contain transition-opacity duration-500 motion-reduce:transition-none ${p === visible ? 'opacity-100' : 'opacity-0'}`}
             />
           ))}
 
           <svg viewBox={`0 0 ${PLANTA.w} ${PLANTA.h}`} className="absolute inset-0 h-full w-full" role="group" aria-label={`Unidades del ${etiquetaPiso(piso).toLowerCase()}`}>
             <defs>
-              <pattern id="dg-vendida" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="14" height="14" fill="rgba(107,114,128,0.10)" />
-                <line x1="0" y1="0" x2="0" y2="14" stroke="rgba(107,114,128,0.45)" strokeWidth="4" />
+              <pattern id="dg-vendida" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="26" height="26" fill="rgba(107,114,128,0.10)" />
+                <line x1="0" y1="0" x2="0" y2="26" stroke="rgba(107,114,128,0.45)" strokeWidth="7" />
               </pattern>
             </defs>
-            {delPiso.map((u) => {
-              const activa = u.id === activaId
-              const vendida = u.estado === 'vendida'
-              const puntos = u.poligono.map((pt) => pt.join(',')).join(' ')
+            {delPiso.map((x) => {
+              const activa = x.id === activaId
+              const vendida = x.estado === 'vendida'
+              const puntos = x.poligono.map((pt) => pt.join(',')).join(' ')
               return (
                 <g
-                  key={`${piso}-${u.id}`}
+                  key={`${piso}-${x.id}`}
                   role="button"
                   tabIndex={0}
                   aria-pressed={activa}
-                  aria-label={`Unidad ${u.codigo}, ${u.nombre}${vendida ? ', vendida' : `, ${usd(u.precio)}`}`}
-                  onClick={() => onElegir(u.id)}
-                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onElegir(u.id))}
-                  className="dg-unidad cursor-pointer outline-none"
+                  aria-label={`Unidad ${x.codigo}, ${x.nombre}${vendida ? ', vendida' : `, ${usd(x.precio)}`}`}
+                  onClick={() => onElegir(x.id)}
+                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onElegir(x.id))}
+                  className="cursor-pointer outline-none"
                 >
                   <polygon
                     points={puntos}
-                    fill={vendida ? 'url(#dg-vendida)' : activa ? 'rgba(26,92,56,0.42)' : 'rgba(26,92,56,0.16)'}
-                    className={vendida ? '' : 'transition-[fill] duration-300 hover:fill-[rgba(26,92,56,0.3)]'}
+                    fill={vendida ? 'url(#dg-vendida)' : activa ? 'rgba(26,92,56,0.30)' : 'rgba(26,92,56,0.12)'}
+                    className={vendida ? '' : 'transition-[fill] duration-300 hover:fill-[rgba(26,92,56,0.24)]'}
                   />
                   <polygon
                     points={puntos}
                     fill="none"
                     stroke={vendida ? '#9ca3af' : VERDE}
-                    strokeWidth={activa ? 9 : 5}
+                    strokeWidth={(activa ? 16 : 9) / s}
                     strokeLinejoin="round"
                     pathLength={1}
                     className="dg-trazo"
                   />
-                  {activa && !vendida && <polygon points={puntos} fill="none" stroke={VERDE} strokeWidth={8} strokeLinejoin="round" className="dg-pulso" />}
+                  {activa && !vendida && (
+                    <polygon points={puntos} fill="none" stroke={VERDE} strokeWidth={14 / s} strokeLinejoin="round" className="dg-pulso" />
+                  )}
                 </g>
               )
             })}
           </svg>
 
-          {/* Etiquetas en HTML (texto nítido) en el punto más adentro de cada unidad */}
-          {delPiso.map((u) => {
-            const activa = u.id === activaId
-            const vendida = u.estado === 'vendida'
+          {/* Etiquetas en HTML (texto nítido), del mismo tamaño aunque se acerque */}
+          {delPiso.map((x) => {
+            const activa = x.id === activaId
+            const vendida = x.estado === 'vendida'
+            // En celular solo la elegida lleva la etiqueta completa: si no, se tapan.
+            const compacta = celular && !(activa && cerca)
+            // Que la etiqueta no quede cortada contra el borde del recuadro.
+            const mitad = compacta ? 26 : 92
+            const ax = tx + x.etiqueta[0] * k * s
+            const corrimiento = ancho > 0 ? clamp(ax, mitad + 6, ancho - mitad - 6) - ax : 0
             return (
               <button
-                key={`et-${piso}-${u.id}`}
+                key={`et-${piso}-${x.id}`}
                 type="button"
                 tabIndex={-1}
-                onClick={() => onElegir(u.id)}
-                className={`dg-entrada absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-left shadow-sm ring-1 transition-colors ${
+                onClick={() => onElegir(x.id)}
+                className={`absolute whitespace-nowrap rounded-xl text-left shadow-sm ring-1 transition-[transform,background-color] duration-700 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+                  compacta ? 'px-1.5 py-0.5' : 'px-2.5 py-1.5'
+                } ${
                   vendida
                     ? 'bg-white/90 text-gray-500 ring-gray-200'
                     : activa
                       ? 'bg-[#1A5C38] text-white ring-[#1A5C38]'
                       : 'bg-white/95 text-gray-900 ring-[#1A5C38]/30 hover:bg-white'
                 }`}
-                style={{ left: pct(u.etiqueta[0], PLANTA.w), top: pct(u.etiqueta[1], PLANTA.h) }}
+                style={{
+                  left: pct(x.etiqueta[0], PLANTA.w),
+                  top: pct(x.etiqueta[1], PLANTA.h),
+                  // Primero se des-escala (tamaño fijo en pantalla) y después se centra.
+                  transformOrigin: '0 0',
+                  transform: `scale(${1 / s}) translate(calc(-50% + ${corrimiento}px), -50%)`,
+                }}
               >
-                <span className="block font-numeric text-[13px] font-bold leading-tight">{u.codigo}</span>
-                <span className={`block text-[11px] leading-tight ${activa && !vendida ? 'text-white/85' : 'text-gray-500'}`}>
-                  {vendida ? 'Vendida' : <>{u.nombre} · <span className="font-numeric">{usd(u.precio)}</span></>}
-                </span>
+                <span className={`block font-numeric font-bold leading-tight ${compacta ? 'text-[11px]' : 'text-[13px]'}`}>{x.codigo}</span>
+                {!compacta && (
+                  <span className={`block text-[11px] leading-tight ${activa && !vendida ? 'text-white/85' : 'text-gray-500'}`}>
+                    {vendida ? 'Vendida' : <>{x.nombre} · <span className="font-numeric">{usd(x.precio)}</span></>}
+                  </span>
+                )}
               </button>
             )
           })}
-
-          {/* Hacia dónde da la punta: la línea punteada es el límite con el bosque */}
-          <span className="pointer-events-none absolute bottom-[3%] right-[1%] rounded-full bg-[#e3efe6] px-2.5 py-1 text-[11px] font-semibold text-[#1A5C38]">
-            Bosque y arroyo Ludueña ↘
-          </span>
         </div>
+
+        {/* Orientación (el dibujo no rota: la derecha es siempre el lado del bosque) */}
+        <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-[#e3efe6]/95 px-2.5 py-1 text-[11px] font-semibold text-[#1A5C38]">
+          Bosque y arroyo →
+        </span>
+
+        {/* Acercar / ver todo el piso */}
+        {u && (
+          <button
+            type="button"
+            onClick={() => setCerca((c) => !c)}
+            className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-gray-900/85 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-gray-900"
+          >
+            {cerca ? <ZoomOut className="h-3.5 w-3.5" aria-hidden /> : <ZoomIn className="h-3.5 w-3.5" aria-hidden />}
+            {cerca ? 'Ver todo el piso' : <>Acercar <span className="font-numeric">{u.codigo}</span></>}
+          </button>
+        )}
       </div>
-      <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-400 lg:hidden">
-        <ChevronsLeftRight className="h-4 w-4" aria-hidden /> Deslizá para recorrer todo el piso
-      </p>
+
+      {/* Las unidades del piso también en fila: en celular es lo más cómodo de tocar */}
+      <div className="-mx-1 mt-3 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
+        {delPiso.map((x) => {
+          const activa = x.id === activaId
+          const vendida = x.estado === 'vendida'
+          return (
+            <button
+              key={`chip-${x.id}`}
+              type="button"
+              onClick={() => onElegir(x.id)}
+              aria-pressed={activa}
+              className={`shrink-0 snap-start rounded-2xl border px-3.5 py-2 text-left transition-colors ${
+                activa ? 'border-[#1A5C38] bg-[#1A5C38] text-white' : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-50'
+              }`}
+            >
+              <span className="block font-numeric text-sm font-bold leading-tight">U-{x.codigo}</span>
+              <span className={`block text-xs leading-tight ${activa ? 'text-white/80' : vendida ? 'text-gray-400' : 'text-gray-500'}`}>
+                {vendida ? `${x.nombre} · vendida` : <>{x.nombre} · <span className="font-numeric">{usd(x.precio)}</span></>}
+              </span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -503,7 +598,7 @@ export default function ElegiTuUnidad({
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-500">
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-[#1A5C38] bg-[#1A5C38]/20" /> Disponible</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-gray-400 bg-[repeating-linear-gradient(45deg,#e5e7eb_0_2px,transparent_2px_5px)]" /> Vendida</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border border-gray-300 bg-white" /> Resto del piso (no está a la venta)</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border border-gray-300 bg-white" /> Resto del piso</span>
               </div>
             </div>
           </div>
