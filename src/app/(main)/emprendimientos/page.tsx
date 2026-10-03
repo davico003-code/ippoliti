@@ -11,6 +11,7 @@ import {
   translateDevType,
 } from '@/lib/developments'
 import { getAllClientes } from '@/lib/clientes'
+import MarcaDesarrollador, { LOGOS_CLARO, type Marca } from '@/components/landing/MarcaDesarrollador'
 
 export const revalidate = 21600
 
@@ -43,7 +44,23 @@ type Card = {
   chips: string[]
   accent: string
   share?: { slug: string; title: string; path: string }
+  /** Quién lo desarrolla/construye, con su logo (regla: toda landing la muestra). */
+  marcas?: Marca[]
 }
+
+// Marca detrás de cada emprendimiento del feed (keyed por ID de Tokko), con los
+// mismos créditos que la portada de su landing.
+const MARCAS_DEV: Record<number, Marca[]> = {
+  // Distrito Roldán
+  67178: [
+    { rol: 'Un desarrollo de', nombre: 'Grupo Transatlántica', logo: LOGOS_CLARO.transatlantica },
+    { rol: 'Construye', nombre: 'EDECA', logo: LOGOS_CLARO.edeca },
+  ],
+  // Dock Garden — Aldea Fisherton
+  67173: [{ rol: 'Un proyecto de', nombre: 'Estudio VERS', logo: LOGOS_CLARO.vers }],
+}
+
+const PROYECTTA: Marca[] = [{ rol: 'Un desarrollo de', nombre: 'Proyectta', logo: LOGOS_CLARO.proyectta }]
 
 export default async function EmprendimientosPage() {
   const [developments, clientes] = await Promise.all([
@@ -68,6 +85,7 @@ export default async function EmprendimientosPage() {
       chips: [translateDevType(dev.type?.name || ''), getConstructionStatus(dev.construction_status)].filter(Boolean),
       accent: GREEN,
       share: { slug, title: dev.name, path: `/emprendimientos/${slug}` },
+      marcas: MARCAS_DEV[dev.id],
     })
   }
 
@@ -82,6 +100,7 @@ export default async function EmprendimientosPage() {
       'Departamentos de 1 y 2 dormitorios con cochera, pileta, SUM y parrilla. 36 cuotas fijas en dólares sin anticipo, en un barrio con más de 500 unidades ya entregadas.',
     chips: ['Departamentos', 'En construcción'],
     accent: GREEN,
+    marcas: PROYECTTA,
   })
 
   cards.push({
@@ -95,6 +114,7 @@ export default async function EmprendimientosPage() {
       '43 unidades 4 en 1: showroom, depósito, oficina y 5 cocheras propias sobre lotes desde 400 m². A 300 m de Av. Jorge Newbery y 700 m de Circunvalación. Lotes unificables.',
     chips: ['Locales y depósitos', 'Lanzamiento'],
     accent: GREEN,
+    marcas: PROYECTTA,
   })
 
   cards.push({
@@ -108,6 +128,7 @@ export default async function EmprendimientosPage() {
       'Conjuntos privados de doce casas dúplex con portón de acceso. 2 dormitorios y 2 baños, con jardín, piscina y parrillero propios. A pasos de Fisherton.',
     chips: ['Casas en condominio', 'En construcción'],
     accent: GREEN,
+    marcas: [{ rol: 'Desarrolla y construye', nombre: 'MSR', logo: LOGOS_CLARO.msr }],
   })
 
   cards.push({
@@ -121,6 +142,7 @@ export default async function EmprendimientosPage() {
       'Casas exclusivas en los mejores barrios cerrados de Funes. Diseño contemporáneo, pileta, 3 y 4 dormitorios. Financiación en dólares.',
     chips: ['Casas premium', 'Funes'],
     accent: GREEN,
+    marcas: [{ rol: 'Construye', nombre: 'Hausing', logo: LOGOS_CLARO.hausing }],
   })
 
   cards.push({
@@ -301,6 +323,9 @@ function RowCard({ card, reverse, index }: { card: Card; reverse: boolean; index
           <p className="mt-4 text-[15px] leading-relaxed text-gray-600 line-clamp-4 md:text-base">
             {card.description}
           </p>
+        )}
+        {card.marcas && card.marcas.length > 0 && (
+          <MarcaDesarrollador tono="claro" className="mt-6" marcas={card.marcas} />
         )}
         <Link
           href={card.href}
