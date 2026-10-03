@@ -156,6 +156,11 @@ export default async function EmprendimientosPage() {
       'Lotes desde 500 m² en barrio privado con seguridad 24 hs, club house, pileta y espacios verdes. Financiación disponible.',
     chips: ['Lotes desde 500m²', 'Roldán'],
     accent: GOLD,
+    // Ejecuta Desarrolladora G; diseño arquitectónico y paisajístico de Estudio Masea.
+    marcas: [
+      { rol: 'Un desarrollo de', nombre: 'Desarrolladora G', logo: LOGOS_CLARO.desarrolladoraG, mostrarNombre: true },
+      { rol: 'Diseña', nombre: 'Estudio Masea', logo: LOGOS_CLARO.masea },
+    ],
   })
 
   for (const c of clientes) {

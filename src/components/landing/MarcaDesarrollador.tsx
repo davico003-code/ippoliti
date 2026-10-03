@@ -12,6 +12,8 @@ export type Marca = {
   nombre: string
   /** Logo en blanco sobre transparente (o a color con tono="claro"). Sin logo se muestra el nombre. */
   logo?: { src: string; width: number; height: number; className?: string }
+  /** Muestra también el nombre al lado del logo (para isotipos sin texto, como la G de Desarrolladora G). */
+  mostrarNombre?: boolean
   /** Dato duro de trayectoria al lado de la marca ("23 años · 250.000 m² construidos"). */
   nota?: string
 }
@@ -35,20 +37,27 @@ export default function MarcaDesarrollador({
       {marcas.map((m) => (
         <div key={m.nombre} className="flex items-center gap-3">
           <span className={`text-xs font-medium ${claro ? 'text-gray-500' : 'text-white/[0.75]'}`}>{m.rol}</span>
-          {m.logo ? (
+          {m.logo && (
             <Image
               src={m.logo.src}
-              alt={m.nombre}
+              alt={m.mostrarNombre ? '' : m.nombre}
               width={m.logo.width}
               height={m.logo.height}
               className={m.logo.className ?? 'h-8 w-auto sm:h-9'}
             />
-          ) : (
-            <span
-              className={`text-lg font-black uppercase tracking-[0.12em] sm:text-xl ${claro ? 'text-gray-900' : 'text-white'}`}
-            >
+          )}
+          {m.logo && m.mostrarNombre ? (
+            <span className={`-ml-1 text-base font-bold tracking-tight ${claro ? 'text-gray-900' : 'text-white'}`}>
               {m.nombre}
             </span>
+          ) : (
+            !m.logo && (
+              <span
+                className={`text-lg font-black uppercase tracking-[0.12em] sm:text-xl ${claro ? 'text-gray-900' : 'text-white'}`}
+              >
+                {m.nombre}
+              </span>
+            )
           )}
           {m.nota && <span className={`text-xs ${claro ? 'text-gray-500' : 'text-white/60'}`}>{m.nota}</span>}
         </div>
@@ -89,4 +98,13 @@ export const LOGOS_CLARO = {
     className: 'h-4 w-auto brightness-0',
   },
   hausing: { src: '/hausing-logo.svg', width: 468, height: 114, className: 'h-6 w-auto brightness-0' },
+  /** Isotipo de desarrolladorag.com.ar (sin texto: va con mostrarNombre). */
+  desarrolladoraG: {
+    src: '/emprendimientos/marcas/desarrolladora-g-blanco.webp',
+    width: 200,
+    height: 200,
+    className: 'h-8 w-auto brightness-0',
+  },
+  /** Logo de maseadesarrollos.com.ar. */
+  masea: { src: '/emprendimientos/marcas/masea-blanco.webp', width: 640, height: 210, className: 'h-9 w-auto brightness-0' },
 }
