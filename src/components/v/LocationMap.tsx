@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic'
 const Inner = dynamic(() => import('./LocationMapInner'), {
   ssr: false,
   loading: () => (
-    <div className="vf-media" style={{ background: '#F3F3F3', borderRadius: 16 }} aria-hidden />
+    <div className="vf-mapa" style={{ background: '#F3F3F3', borderRadius: 16 }} aria-hidden />
   ),
 })
 

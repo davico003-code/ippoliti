@@ -4,7 +4,7 @@
 // Las coords ya vienen con offset 30-50m del lib (FichaSnapshot.lat/lng son
 // las coords offseteadas, no las reales). Zoom 16, scroll-wheel desactivado
 // y, en pantallas táctiles, sin arrastre con un dedo: el dedo scrollea la
-// página, no el mapa. Alto = clase vf-media (igual que el plano).
+// página, no el mapa. Alto = clase vf-mapa.
 //
 // Tiles:
 //   - Mapa: OSM standard, sin API key.
@@ -41,7 +41,7 @@ export default function LocationMapInner({ lat, lng }: { lat: number; lng: numbe
 
   return (
     <div
-      className="vf-media"
+      className="vf-mapa"
       style={{
         position: 'relative',
         borderRadius: 16,

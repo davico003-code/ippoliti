@@ -1,7 +1,7 @@
 'use client'
 
 // Galería principal de la ficha.
-//   - Celular/tablet (<1024): foto protagonista (~58% de la pantalla) con
+//   - Celular/tablet (<1024): foto protagonista (~46% de la pantalla) con
 //     operación, precio y zona encima, y una tira de 3 miniaturas debajo
 //     ("+N" en la última). Es lo primero que ve quien abre el link.
 //   - Compu (≥1024): mosaico 1 grande + 4 chicas y botón "Ver las N fotos".
@@ -335,7 +335,7 @@ export default function HeroGallery({ photos, overlay }: { photos: string[]; ove
       )}
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .vf-hero { height: 58vh; height: min(58svh, 560px); min-height: 340px; }
+        .vf-hero { height: 46vh; height: min(46svh, 440px); min-height: 300px; }
         .hero-tile:hover img { transform: scale(1.02); }
       ` }} />
     </>
