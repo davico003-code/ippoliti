@@ -1,13 +1,14 @@
 import { llamarClaude } from '../lib/claude-client';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
+import { obtenerMaterialLocal } from '../lib/material-local';
 import { buildSystemPrompt, buildUserPrompt } from './prompts';
 import { validarNotaDraft } from './validaciones';
+import { verificarHechos } from './verificar-hechos';
 import { getAllExistingSlugs } from '@/lib/blog-posts-dinamicos';
 import type { TemaPropuesto, NotaDraft } from '../types';
-import type { CTA } from '../config/ctas';
 
 const MODEL_WRITER = 'claude-opus-4-7';
-const MAX_INTENTOS = 3;
+const MAX_INTENTOS = 4;
 
 function stripJsonFences(raw: string): string {
   return raw
@@ -33,10 +34,12 @@ type GenerarResult =
 
 export async function generarNotaConRetries(
   tema: TemaPropuesto,
-  cta: CTA,
 ): Promise<GenerarResult> {
   const systemPrompt = buildSystemPrompt();
-  const contexto = await obtenerContextoEconomico();
+  const [contexto, materialLocal] = await Promise.all([
+    obtenerContextoEconomico(),
+    obtenerMaterialLocal(tema),
+  ]);
   const slugsExistentes = await getAllExistingSlugs();
 
   let ultimoDraft: NotaDraft | undefined;
@@ -47,14 +50,14 @@ export async function generarNotaConRetries(
       ? ultimasRazones.map((r, i) => `${i + 1}. ${r}`).join('\n')
       : undefined;
 
-    const userPrompt = buildUserPrompt(tema, cta, contexto, feedback);
+    const userPrompt = buildUserPrompt(tema, materialLocal, contexto, feedback);
 
     console.log(`[writer] Intento ${intento}/${MAX_INTENTOS} para "${tema.titulo}"`);
 
     const { texto, inputTokens, outputTokens } = await llamarClaude(
       systemPrompt,
       userPrompt,
-      6000,
+      8000,
       { model: MODEL_WRITER, temperature: 0.7 },
     );
 
@@ -89,6 +92,15 @@ export async function generarNotaConRetries(
         ];
         console.warn(`[writer] Intento ${intento}: slug duplicado "${nota.slug}", reintentando`);
         ultimoDraft = nota;
+        continue;
+      }
+      // Verificación de datos contra el material local: si hay afirmaciones
+      // sin respaldo, se reintenta con la lista; si en el último intento
+      // siguen, no se publica.
+      const sinRespaldo = await verificarHechos(nota, materialLocal, contexto);
+      if (sinRespaldo.length) {
+        ultimasRazones = sinRespaldo.map((p) => `Dato sin respaldo en el material, sacalo o reformulalo sin el dato: ${p}`);
+        console.warn(`[writer] Intento ${intento}: ${sinRespaldo.length} datos sin respaldo`, sinRespaldo);
         continue;
       }
       console.log(`[writer] Intento ${intento}: APROBADO → slug="${nota.slug}"`);

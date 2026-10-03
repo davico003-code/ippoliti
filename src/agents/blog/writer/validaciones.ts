@@ -1,4 +1,5 @@
 import type { NotaDraft, CategoriaNota } from '../types';
+import { CTAS, CTA_IDS } from '../config/ctas';
 
 export interface ValidacionResultado {
   ok: boolean;
@@ -32,7 +33,21 @@ const CLICHES = [
   'oportunidad unica',
   'imperdible',
   'no te lo pierdas',
+  // Muletillas que la auditoría del 03-oct-2026 encontró en decenas de notas:
+  // delatan que la nota la escribió una IA.
+  'solo hay que saber leerlas',
+  'sino en un estilo de vida',
+  'en si trabajamos todos los días',
+  'vale la pena',
+  'dicho de otro modo',
+  'en este contexto',
+  'no es un detalle menor',
+  'en resumen',
+  'la buena noticia es',
 ];
+
+// Organismos que no son de Santa Fe (errores reales de notas viejas).
+const FUERA_DE_SANTA_FE = [' abl ', 'arba', ' afip'];
 
 const HTML_PELIGROSO = /<\s*(script|iframe|object|embed|form|input)\b/i;
 
@@ -106,10 +121,10 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
   // ── Largo ──
   if (nota.contenido_markdown) {
     const palabras = contarPalabras(nota.contenido_markdown);
-    if (palabras < 700) {
-      errores.push(`contenido muy corto: ${palabras} palabras (mínimo 700)`);
-    } else if (palabras > 1400) {
-      errores.push(`contenido muy largo: ${palabras} palabras (máximo 1400)`);
+    if (palabras < 500) {
+      errores.push(`contenido muy corto: ${palabras} palabras (mínimo 500)`);
+    } else if (palabras > 1150) {
+      errores.push(`contenido muy largo: ${palabras} palabras (máximo 1150)`);
     }
   }
 
@@ -134,6 +149,36 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
   for (const cliche of CLICHES) {
     if (contenidoLower.includes(cliche)) {
       errores.push(`cliché prohibido encontrado: "${cliche}"`);
+    }
+  }
+
+  for (const org of FUERA_DE_SANTA_FE) {
+    if (` ${contenidoLower} `.includes(org)) {
+      errores.push(`"${org.trim().toUpperCase()}" no corresponde a Santa Fe (usar API, ARCA o tasa municipal)`);
+    }
+  }
+
+  // ── Marcas de IA ──
+  const rayas = (nota.contenido_markdown.match(/—/g) || []).length;
+  if (rayas > 2) {
+    errores.push(`demasiados incisos con raya (—): ${rayas}. Reescribí esas oraciones sin raya`);
+  }
+  if (/si inmobiliaria/.test(nota.contenido_markdown.replace(/SI INMOBILIARIA/g, ''))) {
+    errores.push('la marca se escribe "SI INMOBILIARIA" en mayúsculas');
+  }
+  if (/^##\s+(introducci[oó]n|conclusi[oó]n|cierre|el contexto local)\s*$/im.test(nota.contenido_markdown)) {
+    errores.push('subtítulo genérico (Introducción/Conclusión/Cierre): cada subtítulo tiene que decir algo concreto');
+  }
+
+  // ── Cierre: herramienta del catálogo con su link ──
+  if (nota.cta_usado && !CTA_IDS.includes(nota.cta_usado)) {
+    errores.push(`cta_usado inválido: "${nota.cta_usado}". Debe ser uno de: ${CTA_IDS.join(', ')}`);
+  } else if (nota.cta_usado) {
+    const cta = CTAS.find((c) => c.id === nota.cta_usado)!;
+    // terrenos admite /terrenos-funes o /terrenos-roldan según la nota.
+    const link = cta.id === 'terrenos' ? '/terrenos-' : cta.link;
+    if (!nota.contenido_markdown.includes(`](${link}`)) {
+      errores.push(`el cierre tiene que incluir el link de "${cta.id}" en markdown: [texto](${cta.link})`);
     }
   }
 

@@ -1,6 +1,5 @@
 import { Redis } from '@upstash/redis';
 import { BLOG_REDIS_KEYS } from '../lib/redis-keys';
-import { seleccionarCTA } from '../config/ctas';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
 import { registrarActividad } from '../lib/actividad';
 import { generarNotaConRetries } from './generar-nota';
@@ -117,17 +116,17 @@ export async function ejecutarWriterDia(
     });
   }
 
-  // 4. Elegir CTA (rotar)
+  // 4. El cierre lo elige el writer según el tema (catálogo en config/ctas.ts);
+  //    acá solo se guarda el historial.
   const ultimosCTAsRaw = await redis.get<string[]>(BLOG_REDIS_KEYS.ultimosCTAs);
   const ultimosCTAs = ultimosCTAsRaw ?? [];
-  const cta = seleccionarCTA(ultimosCTAs);
 
   // 5. Contexto económico
   await obtenerContextoEconomico(); // para log; el writer lo obtiene internamente también
 
   // 6. Generar nota con retries
-  console.log(`[orquestador] ${dia}: generando nota para "${tema.titulo}" con CTA "${cta.id}"`);
-  const resultado = await generarNotaConRetries(tema, cta);
+  console.log(`[orquestador] ${dia}: generando nota para "${tema.titulo}"`);
+  const resultado = await generarNotaConRetries(tema);
 
   if (!resultado.ok) {
     const razonesTxt = resultado.razones.map((r, i) => `${i + 1}. ${r}`).join('; ');
