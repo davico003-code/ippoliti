@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import TrackPageView from '@/components/recursos/TrackPageView'
 import RecursoHero from '@/components/recursos/RecursoHero'
 import CalculadoraCostos from './CalculadoraCostos'
+import BurbujaDavid from '@/components/BurbujaDavid'
 import { COSTOS_STYLES } from './styles'
 import {
   MATRIZ_RESIDENCIAL_BASE,
@@ -429,6 +430,9 @@ export default async function CostosConstruccionPage() {
 
             <div className="costos-cta-footer">
               <h4>Tomemos un café y definamos juntos qué se adapta más a vos.</h4>
+              <div className="mb-6 flex justify-center">
+                <BurbujaDavid />
+              </div>
               <div className="costos-cta-botones">
                 <a
                   href={WHATSAPP_CAFE}
