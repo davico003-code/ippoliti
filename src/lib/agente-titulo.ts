@@ -19,6 +19,14 @@ export function getAgenteRol(nombre: string | null | undefined): { titulo: strin
 // se generen.
 const VIDEOS: Record<string, string> = {
   'david flores': '/team/videos/david-flores.mp4',
+  'mauro matteucci': '/team/videos/mauro-matteucci.mp4',
+  'leticia alexenicer': '/team/videos/leticia-alexenicer.mp4',
+  'aldana ruiz': '/team/videos/aldana-ruiz.mp4',
+  'carolina echen': '/team/videos/carolina-echen.mp4',
+  'gino pecchenino': '/team/videos/gino-pecchenino.mp4',
+  'maria jose espilocin': '/team/videos/maria-jose-espilocin.mp4',
+  'lucia wilson': '/team/videos/lucia-wilson.mp4',
+  'gisela ramallo': '/team/videos/gisela-ramallo.mp4',
 }
 
 export function getAgenteVideo(nombre: string | null | undefined): string | null {
