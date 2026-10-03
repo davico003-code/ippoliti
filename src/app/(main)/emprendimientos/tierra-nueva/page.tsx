@@ -31,6 +31,7 @@ import {
   ArrowUpDown,
 } from 'lucide-react'
 import FincazulGaleriaLazy from '@/components/fincazul/FincazulGaleriaLazy'
+import HeroBgVideo from '@/components/fincazul/HeroBgVideo'
 import LandingLeadForm from '@/components/landing/LandingLeadForm'
 import ComoSePaga from '@/components/tierra-nueva/ComoSePaga'
 import PlanoBarrio from '@/components/tierra-nueva/PlanoBarrio'
@@ -211,13 +212,16 @@ export default function TierraNuevaPage() {
       {/* ── Portada ── */}
       <section className="relative flex min-h-[92svh] items-end overflow-hidden bg-[#0E120F]">
         <Image
-          src={`${TN_BASE}/hero-atardecer.webp`}
+          src={`${TN_BASE}/portada-poster.webp`}
           alt="Condo 22 de Tierra Nueva al atardecer, Fisherton, Rosario"
           fill
           priority
-          className="object-cover object-[50%_40%]"
+          className="object-cover"
           sizes="100vw"
         />
+        {/* Recorrido de cámara generado con IA (Higgsfield · Kling) desde el render
+            oficial; ida y vuelta para que el loop no salte. */}
+        <HeroBgVideo poster={`${TN_BASE}/portada-poster.webp`} mp4={`${TN_BASE}/portada.mp4`} />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0E120F] via-black/45 to-black/10" />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-10 pt-36 text-white md:pb-14">
           <Link href="/emprendimientos" className="mb-6 inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-white">
