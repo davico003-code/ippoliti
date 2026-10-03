@@ -308,8 +308,8 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
           .vf-cuerpo.vf-sin-barra { padding-bottom: 40px; }
           .vf-h1 { font-size: 30px; line-height: 1.2; margin-top: 6px; }
           .vf-lado { display: block; position: sticky; top: 24px; }
-          .vf-plano { height: 460px; }
-          .vf-mapa { height: 380px; }
+          .vf-plano { height: 320px; }
+          .vf-mapa { height: 320px; }
           .vf-medios { margin-top: 40px; gap: 36px; }
         }
       ` }} />
