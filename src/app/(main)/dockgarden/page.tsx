@@ -5,6 +5,7 @@ import { MapPin, MessageCircle, Phone, FileText, CheckCircle2 } from 'lucide-rea
 import { getDockGarden } from '@/lib/brickfy'
 import DockGardenUnits, { DockGardenMedia } from '@/components/dockgarden/DockGardenUnits'
 import { OficinaVentas, SeccionCercanias, SeccionTerminaciones, SeccionVers } from '@/components/dockgarden/Confianza'
+import Recorridos360 from '@/components/dockgarden/Recorridos360'
 
 // Landing compartible de Dock Garden (Aldea Fisherton) — versión SI del link
 // de compartir de Brickfy del desarrollador, con todas las unidades, planos,
@@ -194,7 +195,8 @@ export default async function DockGardenPage() {
       </div>
 
       {/* Confianza, después de la lista (la página sigue siendo la lista):
-          quién lo construye, con qué está hecho y qué hay cerca. */}
+          las vistas 360°, quién lo construye, con qué está hecho y qué hay cerca. */}
+      <Recorridos360 contenedor={CONTENEDOR} />
       <SeccionVers contenedor={CONTENEDOR} />
       <SeccionTerminaciones contenedor={CONTENEDOR} />
       <SeccionCercanias contenedor={CONTENEDOR} />

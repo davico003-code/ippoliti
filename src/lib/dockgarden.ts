@@ -144,6 +144,32 @@ export const TIPOLOGIAS: Tipologia[] = [
   },
 ]
 
+export type Recorrido360 = {
+  /** Id del recorrido en Kuula (kuula.co/share/{id}). */
+  id: string
+  tipologia: Tipologia['id']
+  ambiente: string
+  /** Portada del recorrido (la de Kuula, sin sello). */
+  foto: string
+}
+
+// Los 7 recorridos 360° de VERS: son los mismos de los QR de la presentación y
+// los de Brickfy. Van fijos porque Brickfy le asigna a la unidad de 2 dorm. el
+// dormitorio del 1 dorm. (la 2 dorm. no tiene recorrido propio).
+export const RECORRIDOS_360: Recorrido360[] = [
+  { id: 'h83cT', tipologia: '1d', ambiente: 'Estar-comedor', foto: `${IMG}/360/1d-estar.webp` },
+  { id: 'h83cx', tipologia: '1d', ambiente: 'Dormitorio', foto: `${IMG}/360/1d-dormitorio.webp` },
+  { id: 'h83XP', tipologia: '3d', ambiente: 'Estar-comedor', foto: `${IMG}/360/3d-estar.webp` },
+  { id: 'h83XG', tipologia: '3d', ambiente: 'Dormitorio', foto: `${IMG}/360/3d-dormitorio.webp` },
+  { id: 'h83FW', tipologia: 'duplex', ambiente: 'Estar-comedor', foto: `${IMG}/360/duplex-estar.webp` },
+  { id: 'h83Fz', tipologia: 'duplex', ambiente: 'Dormitorio', foto: `${IMG}/360/duplex-dormitorio.webp` },
+  { id: 'h839P', tipologia: 'duplex', ambiente: 'Terraza con parrillero', foto: `${IMG}/360/duplex-terraza.webp` },
+]
+
+export function urlRecorrido(id: string): string {
+  return `https://kuula.co/share/${id}?logo=1&info=1&fs=1&vr=0&thumbs=1`
+}
+
 /** Terminaciones de todas las unidades, agrupadas para leerlas de un vistazo. */
 export const TERMINACIONES: { titulo: string; items: string[] }[] = [
   {

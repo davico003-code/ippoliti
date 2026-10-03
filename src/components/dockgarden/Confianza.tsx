@@ -18,7 +18,6 @@ import {
   Trophy,
   type LucideIcon,
 } from 'lucide-react'
-import { getDockGarden } from '@/lib/brickfy'
 import {
   CERCANIAS,
   MAPA_CERCANIAS,
@@ -33,6 +32,7 @@ import {
 import { conCifras } from '@/components/emprendimiento/conCifras'
 import type { FunnelSecciones } from '@/components/emprendimiento/EmprendimientoFunnel'
 import TipologiasDockGarden from './TipologiasDockGarden'
+import Recorridos360 from './Recorridos360'
 
 /** Mismo contenedor que el funnel; /dockgarden pasa el suyo (más angosto). */
 export const CONTENEDOR_FUNNEL = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12'
@@ -282,23 +282,12 @@ export function OficinaVentas({ className = '' }: { className?: string }) {
 
 /** Las secciones de Dock Garden en los huecos del funnel genérico. */
 export async function seccionesDockGarden(): Promise<FunnelSecciones> {
-  // Recorridos 360° por tipología, vivos desde Brickfy (misma request cacheada
-  // que la lista de precios). Si Brickfy no responde, las solapas van sin 360°.
-  const data = await getDockGarden()
-  const tours = Object.fromEntries(
-    TIPOLOGIAS.map(t => {
-      const unidad = data?.units.find(
-        u => u.bedrooms === t.dorms && /d[uú]plex/i.test(u.floor) === t.duplex && u.virtualTours360.length > 0,
-      )
-      return [t.id, unidad?.virtualTours360 ?? []]
-    }),
-  )
-
   return {
     trasProyecto: <SeccionVers />,
     antesDeUnidades: (
       <>
-        <TipologiasDockGarden tipologias={TIPOLOGIAS} tours={tours} contenedor={CONTENEDOR_FUNNEL} hrefPrecios="#unidades" />
+        <Recorridos360 contenedor={CONTENEDOR_FUNNEL} />
+        <TipologiasDockGarden tipologias={TIPOLOGIAS} contenedor={CONTENEDOR_FUNNEL} hrefPrecios="#unidades" />
         <SeccionTerminaciones />
       </>
     ),
