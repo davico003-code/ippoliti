@@ -16,6 +16,8 @@ import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import TemporariosHome from '@/components/home/TemporariosHome'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
+import BurbujaAgenteCard from '@/components/home/BurbujaAgenteCard'
+import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 import { esTemporadaVerano } from '@/lib/temporarios-data'
 import {
   getFeaturedProperties,
@@ -49,6 +51,8 @@ async function FeaturedPropertiesSection() {
   } catch {
     // Tokko API no disponible — seguimos rendering la sección con el CTA.
   }
+
+  const agentes = await getAgentesPorPropiedad(properties)
 
   // Día de partido: la primera card se destaca (borde celeste + glow + chapa).
   const matchday = esDiaDePartido()
@@ -91,6 +95,7 @@ async function FeaturedPropertiesSection() {
       >
         {/* Sin recuadro, como /propiedades: foto con las 4 esquinas redondeadas
             sobre blanco. El destaque de día de partido va en la foto. */}
+        <div className="relative">
         <div
           className="relative w-full bg-gray-100 overflow-hidden rounded-[14px]"
           style={{
@@ -142,6 +147,8 @@ async function FeaturedPropertiesSection() {
           {!destacada && (
             <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5" />
           )}
+        </div>
+        <BurbujaAgenteCard agente={agentes.get(property.id)} />
         </div>
         <div style={{ padding: '10px 2px 4px' }}>
           {esOportunidadConsultanos(property.id) ? (
