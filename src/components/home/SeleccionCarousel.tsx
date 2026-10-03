@@ -19,6 +19,8 @@ import {
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 import EncabezadoSeccion from './EncabezadoSeccion'
+import BurbujaAgenteCard from './BurbujaAgenteCard'
+import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 
 // Badge basado en operation_type real de Tokko
 function getBadge(p: TokkoProperty): { label: string; bg: string } {
@@ -40,6 +42,7 @@ export default async function SeleccionCarousel() {
   } catch {
     // ok — usamos fallback en el CTA
   }
+  const agentes = await getAgentesPorPropiedad(properties)
 
   return (
     <section className="px-5 pt-8 pb-8">
@@ -84,6 +87,7 @@ export default async function SeleccionCarousel() {
               className="min-w-[88%] snap-start bg-white block"
               style={{ textDecoration: 'none' }}
             >
+              <div className="relative">
               <div
                 className="relative aspect-video bg-gray-100 rounded-[14px] overflow-hidden"
               >
@@ -117,6 +121,8 @@ export default async function SeleccionCarousel() {
                     enriquecido acá (home ISR) → CardMediaButtons lo resuelve
                     client-side por lote. */}
                 <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3" />
+              </div>
+              <BurbujaAgenteCard agente={agentes.get(p.id)} size={48} />
               </div>
               <div className="px-0.5 pt-2.5 pb-1">
                 {esOportunidadConsultanos(p.id) ? (
