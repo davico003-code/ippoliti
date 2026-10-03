@@ -127,6 +127,13 @@ export default async function DockGardenPage() {
               <MapPin className="h-4 w-4 shrink-0" />
               <span className="text-sm font-medium">{project.location}</span>
             </div>
+            {/* Quién lo hace: el estudio, como aval (azul en celular sobre blanco,
+                blanco desde md sobre la foto). */}
+            <div className="mt-4 flex items-center gap-3">
+              <span className="text-xs font-medium text-gray-500 md:text-white/75">Un proyecto de</span>
+              <Image src="/emprendimientos/marcas/vers-azul.webp" alt="Estudio VERS" width={640} height={185} className="h-8 w-auto md:hidden" />
+              <Image src="/emprendimientos/marcas/vers-blanco.webp" alt="Estudio VERS" width={640} height={185} className="hidden h-10 w-auto md:block" />
+            </div>
           </div>
         </div>
       </section>

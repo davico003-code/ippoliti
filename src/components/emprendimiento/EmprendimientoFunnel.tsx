@@ -29,6 +29,7 @@ import PropertyMapLazy from '@/components/PropertyMapLazy'
 import NearbyPlacesLazy from '@/components/NearbyPlacesLazy'
 import ShareButtons from '@/components/ShareButtons'
 import VisitWidget from '@/components/VisitWidget'
+import MarcaDesarrollador, { type Marca } from '@/components/landing/MarcaDesarrollador'
 import WhatsAppCta from './WhatsAppCta'
 import { conCifras } from './conCifras'
 
@@ -41,6 +42,8 @@ export interface FunnelMedia {
   ubicacion?: string
   /** Fotos reales de la obra con el mes de la tanda. */
   avances?: { fecha: string; fotos: string[] }
+  /** Desarrollador/estudio detrás del proyecto: va en el hero como aval. */
+  marcas?: Marca[]
 }
 
 interface Props {
@@ -172,6 +175,7 @@ export default function EmprendimientoFunnel({
               Agendar visita
             </a>
           </div>
+          {media.marcas && media.marcas.length > 0 && <MarcaDesarrollador className="mt-10" marcas={media.marcas} />}
         </div>
       </section>
 
