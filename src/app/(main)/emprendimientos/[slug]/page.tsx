@@ -22,6 +22,8 @@ import { filasDesdeBrickfy, filasDesdeCrm, type UnidadFila } from '@/lib/unidade
 import EmprendimientoFunnel from '@/components/emprendimiento/EmprendimientoFunnel'
 import BotonVolver from '@/components/BotonVolver'
 import HeroAerea from '@/components/distrito-roldan/HeroAerea'
+import { seccionesDockGarden } from '@/components/dockgarden/Confianza'
+import type { FunnelSecciones } from '@/components/emprendimiento/EmprendimientoFunnel'
 
 // Sitio dedicado del tour 360° de Distrito Roldán (botón del hero).
 const TOUR_360_EXTERNO = 'https://distritoroldan360.com'
@@ -87,6 +89,13 @@ const DEV_SEO: Record<
 type DevContacto = { whatsapp: string; telefono: string; telefonoLabel: string }
 const DEV_CONTACTO: Record<number, DevContacto> = {
   67173: { whatsapp: '5493416422945', telefono: '+5493416422945', telefonoLabel: '(341) 642-2945' },
+}
+
+// Secciones propias que se intercalan en el funnel (keyed por ID de Tokko).
+// Dock Garden: trayectoria de VERS, tipologías, terminaciones y qué hay cerca,
+// todo de la presentación oficial del desarrollador (lib/dockgarden.ts).
+const DEV_SECCIONES: Record<number, () => Promise<FunnelSecciones>> = {
+  67173: seccionesDockGarden,
 }
 
 // Imágenes propias de la landing por emprendimiento (keyed por ID de Tokko).
@@ -263,6 +272,8 @@ export default async function DevelopmentPage({ params }: Props) {
       })
     : filasCrm
 
+  const secciones = await DEV_SECCIONES[dev.id]?.().catch(() => undefined)
+
   const mainPhotoUrl = landing?.og
     ? `https://siinmobiliaria.com${landing.og}`
     : absoluteDevPhotoUrl(getDevMainPhoto(dev))
@@ -321,6 +332,7 @@ export default async function DevelopmentPage({ params }: Props) {
           otherDevs={otherDevs}
           whatsappUrl={whatsappUrl}
           contacto={contacto}
+          secciones={secciones}
         />
       )}
 

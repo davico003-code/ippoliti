@@ -10,7 +10,10 @@
 //   8. Contacto    → acción (agendar visita + WhatsApp)
 // No hay columna lateral: el contacto vive en el cierre y en el FAB, que lleva
 // el mensaje precargado del emprendimiento (un solo WhatsApp persistente).
+// Cada emprendimiento puede sumar secciones propias en huecos fijos del
+// recorrido (FunnelSecciones), sin tocar este componente.
 
+import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, CalendarCheck, CheckCircle2, MapPin, MessageCircle, Phone } from 'lucide-react'
@@ -60,6 +63,20 @@ interface Props {
   whatsappUrl: string
   /** Contacto propio del emprendimiento (WhatsApp, teléfono); sin esto, el general. */
   contacto?: { whatsapp: string; telefono: string; telefonoLabel: string }
+  /** Secciones propias del emprendimiento intercaladas en el recorrido. */
+  secciones?: FunnelSecciones
+}
+
+/** Huecos del funnel donde un emprendimiento puede sumar secciones propias. */
+export interface FunnelSecciones {
+  /** Después de "El proyecto" (ej.: quién lo construye). */
+  trasProyecto?: ReactNode
+  /** Entre avances de obra y la lista de precios (tipologías, terminaciones). */
+  antesDeUnidades?: ReactNode
+  /** Antes de "Ubicación" (qué hay cerca). */
+  antesDeUbicacion?: ReactNode
+  /** Debajo de los botones de contacto. */
+  enContacto?: ReactNode
 }
 
 const CONTAINER = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12'
@@ -75,7 +92,7 @@ function rango(valores: number[], sufijo: string): string | null {
 }
 
 export default function EmprendimientoFunnel({
-  dev, slug, displayName, typeName, status, locationName, lineas, photos, media, filas, otherDevs, whatsappUrl, contacto,
+  dev, slug, displayName, typeName, status, locationName, lineas, photos, media, filas, otherDevs, whatsappUrl, contacto, secciones,
 }: Props) {
   const desc = estructurarDescripcion(lineas)
   const pageUrl = `https://siinmobiliaria.com/emprendimientos/${slug}`
@@ -246,6 +263,8 @@ export default function EmprendimientoFunnel({
         </section>
       )}
 
+      {secciones?.trasProyecto}
+
       {/* ── 4. Galería ──────────────────────────────────────────── */}
       {photos.length > 1 && (
         <section id="galeria" className="bg-white pt-14 md:pt-20">
@@ -297,6 +316,8 @@ export default function EmprendimientoFunnel({
           <PhotoGalleryLazy photos={media.avances.fotos} alt={`${displayName} — obra ${media.avances.fecha}`} variant="mosaico" />
         </section>
       )}
+
+      {secciones?.antesDeUnidades}
 
       {/* ── 5. Unidades ─────────────────────────────────────────── */}
       <section id="unidades" className="scroll-mt-20 bg-white py-14 md:py-20">
@@ -393,6 +414,8 @@ export default function EmprendimientoFunnel({
         </section>
       )}
 
+      {secciones?.antesDeUbicacion}
+
       {/* ── 7b. Ubicación ───────────────────────────────────────── */}
       {dev.geo_lat && dev.geo_long && (
         <section id="ubicacion" className="bg-gray-50 py-14 md:py-20">
@@ -462,6 +485,7 @@ export default function EmprendimientoFunnel({
                 <span className="font-numeric">{contacto?.telefonoLabel ?? '(341) 334-0916'}</span>
               </a>
             </div>
+            {secciones?.enContacto}
 
           </div>
 
