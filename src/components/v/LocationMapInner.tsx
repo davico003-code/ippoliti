@@ -1,9 +1,10 @@
 'use client'
 
-// Mapa de ubicación con pin clásico + toggle Mapa / Satélite.
+// Mapa de ubicación con punto + halo (zona aproximada) y toggle Mapa / Satélite.
 // Las coords ya vienen con offset 30-50m del lib (FichaSnapshot.lat/lng son
 // las coords offseteadas, no las reales). Zoom 16, scroll-wheel desactivado
-// para no chocar con el scroll vertical de la página.
+// y, en pantallas táctiles, sin arrastre con un dedo: el dedo scrollea la
+// página, no el mapa. Alto = clase vf-media (igual que el plano).
 //
 // Tiles:
 //   - Mapa: OSM standard, sin API key.
@@ -14,14 +15,11 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-const defaultIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
+const puntoIcon = L.divIcon({
+  className: 'vf-pin',
+  html: '<span class="vf-pin-halo"><i></i></span>',
+  iconSize: [48, 48],
+  iconAnchor: [24, 24],
 })
 
 type View = 'street' | 'satellite'
@@ -43,19 +41,19 @@ export default function LocationMapInner({ lat, lng }: { lat: number; lng: numbe
 
   return (
     <div
-      className="locmap-wrap"
+      className="vf-media"
       style={{
         position: 'relative',
-        height: 350,
         borderRadius: 16,
         overflow: 'hidden',
-        border: '1px solid #E5E7EB',
+        border: '1px solid #ECECEC',
       }}
     >
       <MapContainer
         center={[lat, lng]}
         zoom={16}
         scrollWheelZoom={false}
+        dragging={!L.Browser.mobile}
         style={{ height: '100%', width: '100%' }}
         attributionControl
       >
@@ -65,7 +63,7 @@ export default function LocationMapInner({ lat, lng }: { lat: number; lng: numbe
           attribution={cfg.attribution}
           maxZoom={view === 'satellite' ? 19 : 19}
         />
-        <Marker position={[lat, lng]} icon={defaultIcon} />
+        <Marker position={[lat, lng]} icon={puntoIcon} />
       </MapContainer>
 
       {/* Toggle Mapa / Satélite — arriba a la derecha sobre el mapa */}
@@ -92,9 +90,9 @@ export default function LocationMapInner({ lat, lng }: { lat: number; lng: numbe
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        @media (min-width: 768px) {
-          .locmap-wrap { height: 450px !important; }
-        }
+        .vf-pin { background: none; border: none; }
+        .vf-pin-halo { width: 48px; height: 48px; border-radius: 50%; background: rgba(23,23,23,0.14); display: flex; align-items: center; justify-content: center; }
+        .vf-pin-halo i { width: 16px; height: 16px; border-radius: 50%; background: #1A1A1A; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
       ` }} />
     </div>
   )
