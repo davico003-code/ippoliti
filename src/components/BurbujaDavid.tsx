@@ -17,7 +17,7 @@ export default function BurbujaDavid({
     <div className={`inline-flex items-center gap-3 text-left ${className}`}>
       <AgenteAvatar
         name="David Flores"
-        picture="/team/david-flores.jpg"
+        picture="/team/david-flores-v2.jpg"
         initials="DF"
         bg="#1A5C38"
         fontFamily="'Raleway', system-ui, sans-serif"

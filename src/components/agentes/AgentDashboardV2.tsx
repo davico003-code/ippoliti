@@ -25,6 +25,7 @@ import {
 import { getProgress } from '@/lib/si-school/progress'
 import FeedbackPropiedadesTable from './FeedbackPropiedadesTable'
 import type { PanelRow } from '@/lib/feedback-admin'
+import { fotoTeam } from '@/lib/team-fotos'
 
 // ── Design tokens ──────────────────────────────────────────────────────
 // Paleta oficial SI: blanco/gris claro + verde; nada de crema/beige.
@@ -760,7 +761,7 @@ function Avatar({ name, size }: { name: string; size: number }) {
   if (TEAM_FOTOS.has(slug)) {
     return (
       <Image
-        src={`/team/${slug}.jpg`}
+        src={fotoTeam(slug)}
         alt=""
         width={size}
         height={size}

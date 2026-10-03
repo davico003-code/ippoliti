@@ -27,18 +27,18 @@ const AGENTES_EXTRA = [
 // /public/team. David y Laura se filtran del grid vía EXCLUIDOS_DEL_GRID
 // (aparecen como dirección más arriba).
 const AGENTES_CRM: TokkoAgent[] = [
-  { id: 1,  name: 'David Flores',         email: '', phone: '', cellphone: '', picture: '/team/david-flores.jpg',         position: '' },
-  { id: 2,  name: 'Laura Flores',         email: '', phone: '', cellphone: '', picture: '/team/laura-flores.jpg',         position: '' },
-  { id: 3,  name: 'Mauro Matteucci',      email: '', phone: '', cellphone: '', picture: '/team/mauro-matteucci.jpg',      position: '' },
-  { id: 4,  name: 'Gino Pecchenino',      email: '', phone: '', cellphone: '', picture: '/team/gino-pecchenino.jpg',      position: '' },
-  { id: 5,  name: 'Leticia Alexenicer',   email: '', phone: '', cellphone: '', picture: '/team/leticia-alexenicer.jpg',   position: '' },
+  { id: 1,  name: 'David Flores',         email: '', phone: '', cellphone: '', picture: '/team/david-flores-v2.jpg',         position: '' },
+  { id: 2,  name: 'Laura Flores',         email: '', phone: '', cellphone: '', picture: '/team/laura-flores-v2.jpg',         position: '' },
+  { id: 3,  name: 'Mauro Matteucci',      email: '', phone: '', cellphone: '', picture: '/team/mauro-matteucci-v2.jpg',      position: '' },
+  { id: 4,  name: 'Gino Pecchenino',      email: '', phone: '', cellphone: '', picture: '/team/gino-pecchenino-v2.jpg',      position: '' },
+  { id: 5,  name: 'Leticia Alexenicer',   email: '', phone: '', cellphone: '', picture: '/team/leticia-alexenicer-v2.jpg',   position: '' },
   { id: 6,  name: 'Carolina Echen',       email: '', phone: '', cellphone: '', picture: '/team/carolina-echen.jpg',       position: '' },
   { id: 7,  name: 'Aldana Ruiz',          email: '', phone: '', cellphone: '', picture: '/team/aldana-ruiz.jpg',          position: '' },
   { id: 8,  name: 'Mariana Orlate',       email: '', phone: '', cellphone: '', picture: '/team/mariana-orlate.jpg',       position: '' },
   { id: 9,  name: 'Micaela Gonzalez',     email: '', phone: '', cellphone: '', picture: '/team/micaela-gonzalez.jpg',     position: '' },
-  { id: 10, name: 'Gisela Ramallo',       email: '', phone: '', cellphone: '', picture: '/team/gisela-ramallo.jpg',       position: '' },
+  { id: 10, name: 'Gisela Ramallo',       email: '', phone: '', cellphone: '', picture: '/team/gisela-ramallo-v2.jpg',       position: '' },
   { id: 11, name: 'Maria Jose Espilocin', email: '', phone: '', cellphone: '', picture: '/team/maria-jose-espilocin.jpg', position: '' },
-  { id: 12, name: 'Lucia Wilson',         email: '', phone: '', cellphone: '', picture: '/team/lucia-wilson.jpg',         position: '' },
+  { id: 12, name: 'Lucia Wilson',         email: '', phone: '', cellphone: '', picture: '/team/lucia-wilson-v2.jpg',         position: '' },
 ]
 
 /* ─────────────────────────────────────────────
@@ -49,19 +49,19 @@ const direccion = [
     nombre: 'Susana Ippoliti',
     cargo: 'Fundadora',
     desc: 'Más de 40 años construyendo confianza en Roldán y Funes. Matrícula N° 0559 COCIR.',
-    foto: '/team/susana-ippoliti.jpg',
+    foto: '/team/susana-ippoliti-v2.jpg',
   },
   {
     nombre: 'David Flores',
     cargo: 'Corredor Inmobiliario — Responsable Sucursal Funes',
     desc: 'Más de 15 años de experiencia. Matrícula N° 0621 COCIR.',
-    foto: '/team/david-flores.jpg',
+    foto: '/team/david-flores-v2.jpg',
   },
   {
     nombre: 'Laura Flores',
     cargo: 'Corredora Inmobiliaria y Administradora de Empresas — Responsable Sucursal Roldán',
     desc: 'A cargo de la operación de la sucursal Roldán y la gestión integral del equipo.',
-    foto: '/team/laura-flores.jpg',
+    foto: '/team/laura-flores-v2.jpg',
   },
 ]
 

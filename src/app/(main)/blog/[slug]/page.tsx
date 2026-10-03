@@ -229,7 +229,7 @@ export default async function BlogPostPage({ params }: Props) {
             <div className="flex items-center gap-3">
               {isDavidFlores ? (
                 <Image
-                  src="/team/david-flores.jpg"
+                  src="/team/david-flores-v2.jpg"
                   alt="David Flores"
                   width={44}
                   height={44}
