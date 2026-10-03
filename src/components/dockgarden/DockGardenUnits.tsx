@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { unitLabel, type BrickfyUnit } from '@/lib/brickfy'
+import { fotoTarjeta, unitLabel, type BrickfyUnit } from '@/lib/brickfy'
 import ViewerModal, { type Viewer } from '@/components/ViewerModal'
 
 const RALEWAY = 'Raleway, sans-serif'
@@ -85,7 +85,7 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
                 {u.galleryImageUrls[0] && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={u.galleryImageUrls[0]}
+                    src={fotoTarjeta(u.galleryImageUrls[0])}
                     alt={label}
                     loading="lazy"
                     decoding="async"

@@ -62,6 +62,22 @@ const PRECIOS_PREFERENCIALES: Record<string, number> = {
   'DOCK_GARDEN-2-1-1': 340000, // Torre 2 · Piso 1 · Unidad 1 (3D)
 }
 
+// Las fotos de Brickfy traen el sello DOCKGARDEN estampado. Cada una tiene su
+// versión limpia (Codex: sello reconstruido, color corregido y escalada), clave =
+// nombre del archivo en Brickfy. Una foto nueva que suba VERS pasa tal cual.
+const FOTOS_LIMPIAS: Record<string, string> = {
+
+}
+function fotoLimpia(url: string): string {
+  const nombre = url.split('/').pop()?.split('.')[0] ?? ''
+  return FOTOS_LIMPIAS[nombre] ? `/images/dockgarden/renders/${FOTOS_LIMPIAS[nombre]}.webp` : url
+}
+
+/** Versión liviana (900 px) de una foto limpia, para las tarjetas. */
+export function fotoTarjeta(url: string): string {
+  return url.startsWith('/images/dockgarden/renders/') ? url.replace(/\.webp$/, '-900.webp') : url
+}
+
 export interface DockGardenData {
   project: BrickfyProject
   units: BrickfyUnit[]
@@ -77,9 +93,10 @@ export async function getDockGarden(): Promise<DockGardenData | null> {
     })
     if (!res.ok) return null
     const data = await res.json()
-    const units: BrickfyUnit[] = (data?.units?.items ?? []).map((u: BrickfyUnit) =>
-      u.id in PRECIOS_PREFERENCIALES ? { ...u, price: PRECIOS_PREFERENCIALES[u.id], preferencial: true } : u,
-    )
+    const units: BrickfyUnit[] = (data?.units?.items ?? []).map((u: BrickfyUnit) => {
+      const limpia = { ...u, galleryImageUrls: (u.galleryImageUrls ?? []).map(fotoLimpia) }
+      return u.id in PRECIOS_PREFERENCIALES ? { ...limpia, price: PRECIOS_PREFERENCIALES[u.id], preferencial: true } : limpia
+    })
     if (!data?.project || units.length === 0) return null
     return { project: data.project, units }
   } catch {
