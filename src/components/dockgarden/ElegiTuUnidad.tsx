@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
-import { ArrowRight, Leaf, Maximize2, MessageCircle, Rotate3d, ZoomIn, ZoomOut } from 'lucide-react'
+import { ArrowRight, Flag, Leaf, Maximize2, MessageCircle, Rotate3d, TreePine, ZoomIn, ZoomOut } from 'lucide-react'
 import {
   CONJUNTO,
   PLANTA,
@@ -146,6 +146,60 @@ function Torre({
 const pct = (v: number, total: number) => `${(v / total) * 100}%`
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v))
 
+// La escena es el plano más una franja al este (el bosque) y otra al sur (el
+// golf). El norte del plano de VERS es para arriba, así que el dibujo no rota.
+const ESTE = 560
+const SUR = 420
+const ESCENA = { w: PLANTA.w + ESTE, h: PLANTA.h + SUR }
+
+// Árboles figurativos del bosque (x, y, radio) en coordenadas de la escena.
+const ARBOLES: [number, number, number][] = [
+  [3900, 160, 70], [4060, 120, 58], [4220, 190, 74], [3960, 330, 62], [4140, 360, 80], [4290, 470, 56],
+  [3880, 520, 66], [4040, 600, 76], [4230, 680, 64], [3930, 760, 58], [4110, 860, 72], [4280, 930, 60],
+  [3870, 990, 70], [4020, 1110, 62], [4200, 1150, 78], [3920, 1260, 56], [4090, 1380, 70], [4270, 1420, 58],
+  [3960, 1540, 66], [4150, 1640, 74], [3860, 1700, 54], [4300, 1730, 60],
+]
+
+function Contexto() {
+  return (
+    <g aria-hidden>
+      {/* Bosque de los Constituyentes, al este */}
+      {ARBOLES.map(([x, y, r], i) => (
+        <g key={i}>
+          <circle cx={x} cy={y} r={r} fill={i % 3 === 0 ? '#c9e0cf' : '#dbeadf'} stroke="#a9cbb4" strokeWidth={5} />
+          <circle cx={x - r * 0.25} cy={y - r * 0.25} r={r * 0.32} fill="#ffffff" opacity={0.35} />
+        </g>
+      ))}
+      {/* Rosario Golf Club, al sur: un fairway con su green y la banderita */}
+      <path
+        d="M 900 1640 C 1150 1500, 1700 1490, 2050 1560 S 2750 1700, 3050 1590 C 3250 1520, 3420 1600, 3330 1700 C 3220 1800, 2600 1790, 2200 1760 S 1250 1800, 1000 1760 C 880 1740, 840 1690, 900 1640 Z"
+        fill="#e1eee5"
+        stroke="#b5d3bf"
+        strokeWidth={6}
+      />
+      <ellipse cx={2900} cy={1640} rx={150} ry={90} fill="#cfe5d6" stroke="#a9cbb4" strokeWidth={5} />
+      <line x1={2900} y1={1645} x2={2900} y2={1470} stroke="#6b7280" strokeWidth={9} strokeLinecap="round" />
+      <path d="M 2904 1474 L 3010 1505 L 2904 1536 Z" fill="#F40009" />
+      <circle cx={2900} cy={1648} r={12} fill="#374151" />
+    </g>
+  )
+}
+
+/** Mismo símbolo de norte que usa VERS en sus láminas (barra gruesa = norte). */
+function Norte({ className = '' }: { className?: string }) {
+  return (
+    <div className={`pointer-events-none flex flex-col items-center rounded-xl bg-white/95 px-1.5 pb-1 pt-0.5 shadow-sm ring-1 ring-gray-200 ${className}`} aria-label="El norte está hacia arriba">
+      <span className="text-[10px] font-black leading-none text-gray-800">N</span>
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden>
+        <circle cx="11" cy="11" r="9.5" fill="none" stroke="#9ca3af" strokeWidth="1.2" />
+        <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="#9ca3af" strokeWidth="1" />
+        <line x1="11" y1="11" x2="11" y2="20.5" stroke="#9ca3af" strokeWidth="1" />
+        <rect x="9.7" y="1.5" width="2.6" height="9.5" fill={VERDE} />
+      </svg>
+    </div>
+  )
+}
+
 function PlanoPiso({
   piso,
   unidades,
@@ -185,9 +239,12 @@ function PlanoPiso({
 
   const delPiso = unidades.filter((u) => u.piso === piso)
   const u = delPiso.find((x) => x.id === activaId) ?? null
+  // Mouse encima de una unidad: se ilumina y un cartelito aclara si está disponible.
+  const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null)
+  const hu = hover ? delPiso.find((x) => x.id === hover.id) ?? null : null
 
-  const k = ancho / PLANTA.w
-  const altoEscena = PLANTA.h * k
+  const k = ancho / ESCENA.w
+  const altoEscena = ESCENA.h * k
   const altoCaja = celular ? Math.round(ancho * 0.82) : altoEscena
   let s = 1
   let tx = 0
@@ -207,12 +264,14 @@ function PlanoPiso({
       <div
         ref={caja}
         className="relative overflow-hidden rounded-2xl bg-white ring-1 ring-gray-100"
-        style={{ height: ancho > 0 ? altoCaja : undefined, aspectRatio: ancho > 0 ? undefined : `${PLANTA.w} / ${PLANTA.h}` }}
+        style={{ height: ancho > 0 ? altoCaja : undefined, aspectRatio: ancho > 0 ? undefined : `${ESCENA.w} / ${ESCENA.h}` }}
+        onPointerLeave={() => setHover(null)}
       >
         <div
           className="absolute left-0 top-0 origin-top-left transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
           style={{ width: ancho || '100%', height: altoEscena || '100%', transform: `translate(${tx}px, ${ty}px) scale(${s})` }}
         >
+          <div className="absolute left-0 top-0" style={{ width: pct(PLANTA.w, ESCENA.w), height: pct(PLANTA.h, ESCENA.h) }}>
           {visitados.map((p) => (
             <Image
               key={p}
@@ -225,14 +284,16 @@ function PlanoPiso({
               className={`object-contain transition-opacity duration-500 motion-reduce:transition-none ${p === visible ? 'opacity-100' : 'opacity-0'}`}
             />
           ))}
+          </div>
 
-          <svg viewBox={`0 0 ${PLANTA.w} ${PLANTA.h}`} className="absolute inset-0 h-full w-full" role="group" aria-label={`Unidades del ${etiquetaPiso(piso).toLowerCase()}`}>
+          <svg viewBox={`0 0 ${ESCENA.w} ${ESCENA.h}`} className="absolute inset-0 h-full w-full" role="group" aria-label={`Unidades del ${etiquetaPiso(piso).toLowerCase()}`}>
             <defs>
               <pattern id="dg-vendida" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                 <rect width="26" height="26" fill="rgba(107,114,128,0.10)" />
                 <line x1="0" y1="0" x2="0" y2="26" stroke="rgba(107,114,128,0.45)" strokeWidth="7" />
               </pattern>
             </defs>
+            <Contexto />
             {delPiso.map((x) => {
               const activa = x.id === activaId
               const vendida = x.estado === 'vendida'
@@ -246,12 +307,26 @@ function PlanoPiso({
                   aria-label={`Unidad ${x.codigo}, ${x.nombre}${vendida ? ', vendida' : `, ${usd(x.precio)}`}`}
                   onClick={() => onElegir(x.id)}
                   onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onElegir(x.id))}
+                  onPointerMove={(e) => {
+                    if (e.pointerType !== 'mouse' || !caja.current) return
+                    const r = caja.current.getBoundingClientRect()
+                    setHover({ id: x.id, x: e.clientX - r.left, y: e.clientY - r.top })
+                  }}
+                  onPointerLeave={() => setHover(null)}
                   className="cursor-pointer outline-none"
                 >
                   <polygon
                     points={puntos}
-                    fill={vendida ? 'url(#dg-vendida)' : activa ? 'rgba(26,92,56,0.30)' : 'rgba(26,92,56,0.12)'}
-                    className={vendida ? '' : 'transition-[fill] duration-300 hover:fill-[rgba(26,92,56,0.24)]'}
+                    fill={
+                      vendida
+                        ? 'url(#dg-vendida)'
+                        : hover?.id === x.id
+                          ? 'rgba(26,92,56,0.40)'
+                          : activa
+                            ? 'rgba(26,92,56,0.30)'
+                            : 'rgba(26,92,56,0.12)'
+                    }
+                    className="transition-[fill] duration-200"
                   />
                   <polygon
                     points={puntos}
@@ -296,8 +371,8 @@ function PlanoPiso({
                       : 'bg-white/95 text-gray-900 ring-[#1A5C38]/30 hover:bg-white'
                 }`}
                 style={{
-                  left: pct(x.etiqueta[0], PLANTA.w),
-                  top: pct(x.etiqueta[1], PLANTA.h),
+                  left: pct(x.etiqueta[0], ESCENA.w),
+                  top: pct(x.etiqueta[1], ESCENA.h),
                   // Primero se des-escala (tamaño fijo en pantalla) y después se centra.
                   transformOrigin: '0 0',
                   transform: `scale(${1 / s}) translate(calc(-50% + ${corrimiento}px), -50%)`,
@@ -312,19 +387,65 @@ function PlanoPiso({
               </button>
             )
           })}
+          {/* Rótulos del contexto: tamaño fijo en pantalla, como las etiquetas */}
+          {[
+            { x: PLANTA.w + ESTE / 2, y: 1240, icono: TreePine, largo: 'Bosque de los Constituyentes', corto: 'Bosque', lado: 'Este' },
+            { x: 2100, y: 1650, icono: Flag, largo: 'Rosario Golf Club · vista al golf', corto: 'Golf', lado: 'Sur' },
+          ].map((c) => {
+            const Icono = c.icono
+            const corto = celular && !cerca
+            const mitad = corto ? 34 : 110
+            const ax = tx + c.x * k * s
+            const corrimiento = ancho > 0 ? clamp(ax, mitad + 6, ancho - mitad - 6) - ax : 0
+            return (
+              <span
+                key={c.lado}
+                className="pointer-events-none absolute inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-[#1A5C38] shadow-sm ring-1 ring-[#1A5C38]/20 transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+                style={{
+                  left: pct(c.x, ESCENA.w),
+                  top: pct(c.y, ESCENA.h),
+                  transformOrigin: '0 0',
+                  transform: `scale(${1 / s}) translate(calc(-50% + ${corrimiento}px), -50%)`,
+                }}
+              >
+                <Icono className="h-3.5 w-3.5" aria-hidden />
+                {corto ? c.corto : c.largo}
+                <span className="font-normal text-gray-400">· {c.lado}</span>
+              </span>
+            )
+          })}
         </div>
 
-        {/* Orientación (el dibujo no rota: la derecha es siempre el lado del bosque) */}
-        <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-[#e3efe6]/95 px-2.5 py-1 text-[11px] font-semibold text-[#1A5C38]">
-          Bosque y arroyo →
-        </span>
+        {/* Norte (arriba, como en el plano de VERS) */}
+        <Norte className="absolute right-2 top-2" />
+
+        {/* Cartelito al pasar el mouse */}
+        {hover && hu && (
+          <div
+            className="pointer-events-none absolute z-10 w-max max-w-[240px] rounded-xl bg-gray-900/95 px-3 py-2 text-white shadow-lg"
+            style={{ left: clamp(hover.x + 14, 8, Math.max(8, ancho - 248)), top: clamp(hover.y + 14, 8, Math.max(8, altoCaja - 84)) }}
+          >
+            <p className="flex items-center gap-1.5 text-xs font-bold">
+              <span className={`h-2 w-2 rounded-full ${hu.estado === 'disponible' ? 'bg-[#5fd38a]' : 'bg-gray-400'}`} />
+              {hu.estado === 'disponible' ? 'Unidad disponible' : hu.estado === 'reservada' ? 'Unidad reservada' : 'Unidad vendida'}
+            </p>
+            <p className="mt-0.5 text-[13px] font-semibold">
+              <span className="font-numeric">U-{hu.codigo}</span> · {hu.nombre}
+            </p>
+            {hu.estado !== 'vendida' && (
+              <p className="text-xs text-white/80">
+                <span className="font-numeric">{usd(hu.precio)}</span> · tocá para ver plano y precio
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Acercar / ver todo el piso */}
         {u && (
           <button
             type="button"
             onClick={() => setCerca((c) => !c)}
-            className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-gray-900/85 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-gray-900"
+            className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-gray-900/85 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-gray-900"
           >
             {cerca ? <ZoomOut className="h-3.5 w-3.5" aria-hidden /> : <ZoomIn className="h-3.5 w-3.5" aria-hidden />}
             {cerca ? 'Ver todo el piso' : <>Acercar <span className="font-numeric">{u.codigo}</span></>}
@@ -364,6 +485,7 @@ function Conjunto() {
   const [x0, y0, x1, y1] = CONJUNTO.torre2
   return (
     <div className="relative" style={{ aspectRatio: `${CONJUNTO.w} / ${CONJUNTO.h}` }}>
+      <Norte className="absolute right-0 top-0 z-[1]" />
       <Image src={CONJUNTO.src} alt="Plano del conjunto Dock Garden: 4 edificios, la Torre 2 resaltada" fill sizes="340px" className="object-contain" />
       <svg viewBox={`0 0 ${CONJUNTO.w} ${CONJUNTO.h}`} className="absolute inset-0 h-full w-full" aria-hidden>
         <rect x={x0} y={y0} width={x1 - x0} height={y1 - y0} rx={10} fill="rgba(26,92,56,0.18)" stroke={VERDE} strokeWidth={5} className="dg-pulso-suave" />
@@ -595,7 +717,11 @@ export default function ElegiTuUnidad({
               <div className="mt-3">
                 <PlanoPiso piso={piso} unidades={unidades} activaId={activaId} onElegir={setActivaId} />
               </div>
-              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-500">
+              <p className="mt-3 text-sm text-gray-600">
+                Las unidades que se iluminan en <span className="font-bold text-[#1A5C38]">verde</span> están disponibles.
+                Pasá el mouse o tocá una para verla.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-500">
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-[#1A5C38] bg-[#1A5C38]/20" /> Disponible</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-gray-400 bg-[repeating-linear-gradient(45deg,#e5e7eb_0_2px,transparent_2px_5px)]" /> Vendida</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border border-gray-300 bg-white" /> Resto del piso</span>
