@@ -32,18 +32,20 @@ const DOCK_GARDEN_SPACING: Array<[RegExp, string]> = [[/DockGarden/g, 'Dock Gard
 
 export const PROPERTY_SEO: Record<number, PropertySeoOverride> = {
   // ── DockGarden — Aldea Fisherton (dev 67173) ──────────────────────────────
+  // Metas sin precio: el og:description ya lo antepone en vivo, y los precios
+  // escritos acá quedaron viejos (03-oct: decían USD 410.000 y 356.000).
   7268078: {
-    // Dúplex 3 dorm, 3 baños, 153 m² cubiertos, USD 410.000
+    // 04.03 · Dúplex 3 dorm, 2 baños + toilette, 245,90 m² totales (lista de VERS)
     title: 'Departamento dúplex 3 dormitorios con terraza en Dock Garden, Fisherton',
     metaDescription:
-      'Dock Garden Fisherton – Departamento 3 dormitorios dúplex con balcón y terraza privada. 153 m² cubiertos, 3 baños. USD 410.000 con financiación.',
+      'Dock Garden Fisherton – Dúplex de 3 dormitorios con terraza propia y parrillero. 245,90 m² totales, 2 baños y toilette, cochera doble. Valor preferencial.',
     bodyFixes: DOCK_GARDEN_SPACING,
   },
   7268088: {
-    // 3 dorm, 2 baños, 158 m² cubiertos, USD 356.000
+    // 01.01 · 3 dorm, 2 baños + toilette, 156,70 m² + cochera doble 26,60 = 183,30 m²
     title: 'Departamento 3 dormitorios con balcón en Dock Garden, Fisherton',
     metaDescription:
-      'Dock Garden Fisherton – Departamento 3 dormitorios con balcón privado. 158 m² cubiertos, 2 baños, en condominio con paseo comercial. USD 356.000.',
+      'Dock Garden Fisherton – Departamento 3 dormitorios con balcón privado. 156,70 m² más cochera doble, 2 baños y toilette, con paseo comercial. Valor preferencial.',
     bodyFixes: DOCK_GARDEN_SPACING,
   },
   7268239: {
@@ -54,10 +56,10 @@ export const PROPERTY_SEO: Record<number, PropertySeoOverride> = {
     bodyFixes: [...DOCK_GARDEN_SPACING, [/Undidad/gi, 'Unidad']],
   },
   7407995: {
-    // REAL: 2 dorm (el título del CRM decía 1), 2 baños, 80 m², USD 208.000
+    // 02.03 · 2 dorm, 2 baños, 81,80 m² + cochera 13,80 = 95,60 m²
     title: 'Departamento 2 dormitorios y 2 baños en Dock Garden, Fisherton',
     metaDescription:
-      'Dock Garden Fisherton – Departamento 2 dormitorios y 2 baños de 80 m² en la Aldea Fisherton, Rosario. USD 208.000 con financiación disponible.',
+      'Dock Garden Fisherton – Departamento 2 dormitorios y 2 baños de 81,80 m² más cochera, en la Aldea Fisherton, Rosario. Financiación en 36 cuotas.',
     bodyFixes: [...DOCK_GARDEN_SPACING, [/DORMITORIOs/g, 'Dormitorios']],
   },
 
