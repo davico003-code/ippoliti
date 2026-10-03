@@ -313,6 +313,11 @@ export default async function BlogPostPage({ params }: Props) {
             })()}
           </div>
 
+          {/* ── Crédito de la portada (medios locales / Wikimedia / municipios) ── */}
+          {usaImagenCurada && post.imageCredit && (
+            <p className="text-xs text-gray-500 mt-8 italic">{post.imageCredit}</p>
+          )}
+
           {/* ── Atribución Unsplash (requisito de licencia) ── */}
           {!usaImagenCurada && post.imagen_photographer && post.imagen_photographer_url && (
             <p className="text-xs text-gray-500 mt-8 italic">
