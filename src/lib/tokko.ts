@@ -133,6 +133,9 @@ export interface TokkoProperty {
   // propiedad (Vercel Blob) si fue generado en /admin/audio. Populado por
   // enrichCardsWithAudio() en los endpoints que sirven listados al cliente.
   audioUrl?: string | null;
+  /** Agente que atiende (nombre + foto). Lo manda el listado de HILO para la
+   *  pastilla de las tarjetas; undefined = el feed no lo trajo (se pide aparte). */
+  agente?: { name: string; picture: string } | null;
 }
 
 export interface TokkoMeta {
@@ -261,6 +264,8 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
           picture: p.producer.picture ?? null,
         }
       : null,
+    // undefined = el feed no lo trajo (Tokko / HILO viejo) → la tarjeta lo pide aparte.
+    ...(p.agente !== undefined ? { agente: p.agente } : {}),
   });
 }
 

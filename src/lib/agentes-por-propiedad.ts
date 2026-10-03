@@ -19,6 +19,12 @@ export async function getAgentesPorIds(ids: number[]): Promise<Map<number, Agent
   return new Map(pares.filter((x): x is NonNullable<typeof x> => x !== null))
 }
 
-export function getAgentesPorPropiedad(properties: TokkoProperty[]): Promise<Map<number, AgentePropiedad>> {
-  return getAgentesPorIds(properties.map((p) => p.id))
+// Si el listado ya trae el agente (feed de HILO), se usa directo; solo las que
+// no lo traen van al detalle.
+export async function getAgentesPorPropiedad(properties: TokkoProperty[]): Promise<Map<number, AgentePropiedad>> {
+  const out = new Map<number, AgentePropiedad>()
+  for (const p of properties) if (p.agente) out.set(p.id, p.agente)
+  const faltan = properties.filter((p) => p.agente === undefined).map((p) => p.id)
+  if (faltan.length) (await getAgentesPorIds(faltan)).forEach((a, id) => out.set(id, a))
+  return out
 }
