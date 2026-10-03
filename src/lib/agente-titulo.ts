@@ -13,3 +13,14 @@ const ROLES: Record<string, { titulo: string; badge: string }> = {
 export function getAgenteRol(nombre: string | null | undefined): { titulo: string; badge: string } {
   return ROLES[norm(nombre || '')] ?? { titulo: 'Asesor inmobiliario', badge: 'Asesor' }
 }
+
+// Video de saludo (Seedance) por agente, en public/team/videos/. Empieza y
+// termina en la foto de perfil, así el loop no salta. Agregar acá a medida que
+// se generen.
+const VIDEOS: Record<string, string> = {
+  'david flores': '/team/videos/david-flores.mp4',
+}
+
+export function getAgenteVideo(nombre: string | null | undefined): string | null {
+  return VIDEOS[norm(nombre || '')] ?? null
+}

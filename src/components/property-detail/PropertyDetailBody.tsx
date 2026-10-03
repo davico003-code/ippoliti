@@ -43,6 +43,7 @@ import BarrioPanel from './BarrioPanel'
 import type { Barrio } from '@/lib/barrios'
 import PropertyVideo from './PropertyVideo'
 import { getAgenteRol } from '@/lib/agente-titulo'
+import AgenteAvatar from './AgenteAvatar'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
 import FeedbackDetalle from '../feedback/FeedbackDetalle'
@@ -328,25 +329,13 @@ export default function PropertyDetailBody({
                 .toUpperCase() || 'SI'
             return (
               <div className="flex items-center gap-3 mb-4">
-                {producer?.picture ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={producer.picture}
-                    alt={name}
-                    width={56}
-                    height={56}
-                    className="w-14 h-14 rounded-full object-cover flex-shrink-0 bg-gray-100"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <div
-                    className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
-                    style={{ background: '#1A5C38', fontFamily: "'Raleway', system-ui, sans-serif" }}
-                  >
-                    {initials}
-                  </div>
-                )}
+                <AgenteAvatar
+                  name={name}
+                  picture={producer?.picture}
+                  initials={initials}
+                  bg={'#1A5C38'}
+                  fontFamily={"'Raleway', system-ui, sans-serif"}
+                />
                 <div className="flex-1 min-w-0">
                   <span
                     className="block"

@@ -18,6 +18,7 @@ import { events } from '@/lib/analytics'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 import { getAgenteRol } from '@/lib/agente-titulo'
+import AgenteAvatar from './AgenteAvatar'
 
 const TOUR_MEET_USD_THRESHOLD = 450_000
 
@@ -101,25 +102,13 @@ export default function PropertyDetailSidebar({
                   .toUpperCase() || 'SI'
                 return (
                   <>
-                    {producer?.picture ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={producer.picture}
-                        alt={name}
-                        width={56}
-                        height={56}
-                        className="w-14 h-14 rounded-full object-cover flex-shrink-0 bg-gray-100"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : (
-                      <div
-                        className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
-                        style={{ background: GREEN, fontFamily: R }}
-                      >
-                        {initials}
-                      </div>
-                    )}
+                    <AgenteAvatar
+                      name={name}
+                      picture={producer?.picture}
+                      initials={initials}
+                      bg={GREEN}
+                      fontFamily={R}
+                    />
                     <div className="flex-1 min-w-0">
                       <span style={{ fontFamily: R, fontWeight: 700, fontSize: 16, color: '#111', display: 'block' }}>{name}</span>
                       <span className="text-xs text-gray-400 block truncate">{subtitle}</span>
