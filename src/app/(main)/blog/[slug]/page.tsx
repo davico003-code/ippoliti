@@ -5,6 +5,7 @@ import { Calendar, ArrowLeft, ExternalLink, User, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug, resolveCategory, readingMinutes } from '@/lib/blog'
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
+import { cierreDeNota, WHATSAPP_BLOG } from '@/lib/blog-cta'
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
 // su fecha, sin depender del revalidate on-demand.
@@ -118,6 +119,7 @@ export default async function BlogPostPage({ params }: Props) {
     : 'https://siinmobiliaria.com/nosotros'
   const heroImage = resolveBlogImage(post.slug, post.image, post.hasImageOverride)
   const minutos = readingMinutes(post.content)
+  const cierre = cierreDeNota(post.slug, post.title)
   // Si la imagen viene del mapa curado, la atribución propia del post ya no
   // corresponde (reemplazamos la foto original).
   const usaImagenCurada = post.hasImageOverride || Boolean(BLOG_IMAGES[post.slug])
@@ -224,14 +226,26 @@ export default async function BlogPostPage({ params }: Props) {
           {/* Author + source */}
           <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-6 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#1A5C38] flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-white" />
-              </div>
+              {isDavidFlores ? (
+                <Image
+                  src="/team/david-flores.jpg"
+                  alt="David Flores"
+                  width={44}
+                  height={44}
+                  className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-full bg-[#1A5C38] flex items-center justify-center flex-shrink-0">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              )}
               <div>
                 <Link href={authorUrl.replace('https://siinmobiliaria.com', '') || '/'} className="text-sm font-bold text-gray-900 hover:text-[#1A5C38] hover:underline">
                   {authorName}
                 </Link>
-                <p className="text-xs text-gray-400">{post.dateDisplay}</p>
+                <p className="text-xs text-gray-500">
+                  {isDavidFlores ? 'Corredor inmobiliario · matrícula N° 0621' : 'Funes · Roldán · Rosario'}
+                </p>
               </div>
             </div>
             {post.source !== 'SI INMOBILIARIA' && post.source !== 'SI Inmobiliaria' && (
@@ -342,31 +356,39 @@ export default async function BlogPostPage({ params }: Props) {
             </p>
           )}
 
-          {/* ── CTA — Apple style ── */}
-          <div className="mt-16 -mx-4 md:-mx-16 lg:-mx-24">
-            <div className="bg-[#111] rounded-3xl px-8 py-16 md:py-20 text-center">
-              <h3 className="text-3xl md:text-4xl font-light text-white leading-tight mb-4 max-w-xl mx-auto">
-                La mejor decisión comienza con la mejor asesoría.
-              </h3>
-              <p className="text-gray-400 text-base mb-10 max-w-md mx-auto">
-                Más de 40 años acompañando familias en Roldán y Funes. Hablemos sobre tu proyecto.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {/* ── Cierre según el tema de la nota (lib/blog-cta.ts) ── */}
+          <div className="mt-14 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-8 md:px-10 md:py-10">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#1A5C38]">Para seguir</p>
+            <h3 className="mt-2 text-2xl md:text-3xl font-bold text-gray-900 leading-tight">{cierre.titulo}</h3>
+            <p className="mt-3 text-gray-600 text-base max-w-xl">{cierre.texto}</p>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              {cierre.href.startsWith('http') ? (
                 <a
-                  href="https://wa.me/5493413340916?text=Hola!%20Quiero%20consultar%20por%20una%20propiedad"
+                  href={cierre.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-8 py-3.5 bg-white text-black font-semibold rounded-full hover:bg-gray-100 transition-colors text-center"
+                  className="px-7 py-3 bg-[#1A5C38] text-white font-semibold rounded-full hover:bg-[#0F3A23] transition-colors text-center"
                 >
-                  Consultanos
+                  {cierre.boton}
                 </a>
+              ) : (
                 <Link
-                  href="/propiedades"
-                  className="px-8 py-3.5 border border-gray-600 text-white font-semibold rounded-full hover:border-gray-400 transition-colors text-center"
+                  href={cierre.href}
+                  className="px-7 py-3 bg-[#1A5C38] text-white font-semibold rounded-full hover:bg-[#0F3A23] transition-colors text-center"
                 >
-                  Ver propiedades
+                  {cierre.boton}
                 </Link>
-              </div>
+              )}
+              {!cierre.href.startsWith('http') && (
+                <a
+                  href={WHATSAPP_BLOG}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-7 py-3 border border-gray-300 text-gray-800 font-semibold rounded-full hover:border-gray-500 transition-colors text-center"
+                >
+                  {isDavidFlores ? 'Preguntarle a David' : 'Consultar por WhatsApp'}
+                </a>
+              )}
             </div>
           </div>
 
