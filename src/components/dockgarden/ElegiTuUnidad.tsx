@@ -354,14 +354,21 @@ function PlanoPiso({
             // Que la etiqueta no quede cortada contra el borde del recuadro.
             const mitad = compacta ? 26 : 92
             const ax = tx + x.etiqueta[0] * k * s
+            const ay = ty + x.etiqueta[1] * k * s
             const corrimiento = ancho > 0 ? clamp(ax, mitad + 6, ancho - mitad - 6) - ax : 0
+            // Con zoom, la de una unidad que quedó fuera de cuadro se esconde: si no,
+            // el ajuste contra el borde la deja encima de otra (pasaba con 01.04 sobre 01.06).
+            const fuera = s > 1 && !activa && (ax < 0 || ax > ancho || ay < 0 || ay > altoCaja)
             return (
               <button
                 key={`et-${piso}-${x.id}`}
                 type="button"
                 tabIndex={-1}
+                aria-hidden={fuera || undefined}
                 onClick={() => onElegir(x.id)}
-                className={`absolute whitespace-nowrap rounded-xl text-left shadow-sm ring-1 transition-[transform,background-color] duration-700 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+                className={`absolute whitespace-nowrap rounded-xl text-left shadow-sm ring-1 transition-[transform,background-color,opacity] duration-700 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none ${
+                  fuera ? 'pointer-events-none opacity-0' : ''
+                } ${
                   compacta ? 'px-1.5 py-0.5' : 'px-2.5 py-1.5'
                 } ${
                   vendida
