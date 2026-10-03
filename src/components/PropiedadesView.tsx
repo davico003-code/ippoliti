@@ -92,7 +92,7 @@ const PropiedadesViewDesktopGrid = dynamic(
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
-type Operation = 'todos' | 'venta' | 'alquiler'
+type Operation = 'todos' | 'venta' | 'alquiler' | 'temporario'
 // 'todos' o cualquier `value` de TYPE_FILTER_GROUPS (poblado dinámicamente
 // según el inventario presente). String abierto porque las opciones se derivan
 // del mapa de tipos por id en tokko.ts.
@@ -101,7 +101,7 @@ type Beds      = 'todos' | 'mono' | '1' | '2' | '3' | '4+'
 type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
 type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
-type OperationType = 'Sale' | 'Rent'
+type OperationType = 'Sale' | 'Rent' | 'Temporary rent'
 // listMode era un toggle huérfano (compact|list) que no afectaba el render de
 // las cards; eliminado junto con su estado y los botones de la barra superior.
 
@@ -129,6 +129,7 @@ const DEFAULTS: Filters = {
 function operationTypeForFilter(operation: Operation): OperationType | null {
   if (operation === 'venta') return 'Sale'
   if (operation === 'alquiler') return 'Rent'
+  if (operation === 'temporario') return 'Temporary rent'
   return null
 }
 
@@ -643,7 +644,7 @@ export default function PropiedadesView({
     return {
       ...DEFAULTS,
       search: safeDecodeQuery(searchParams.get('q') ?? searchParams.get('search') ?? ''),
-      operation: op === 'venta' || op === 'alquiler' ? (op as Operation) : 'todos',
+      operation: op === 'venta' || op === 'alquiler' || op === 'temporario' ? (op as Operation) : 'todos',
       type: searchParams.get('tipo') || searchParams.get('type') || 'todos',
       beds: (['mono', '1', '2', '3', '4+'].includes(beds) ? beds : 'todos') as Beds,
       location: (['roldan', 'rosario', 'funes'].includes(loc) ? loc : 'todos') as Location,
@@ -1038,11 +1039,13 @@ export default function PropiedadesView({
   // Escribir "alquiler …" con el toggle en Venta (o al revés) mueve el toggle:
   // lo último que la persona dijo es lo que quiere, sin un toque extra.
   const operacionEscrita = resultadoBusqueda?.interpretacion.operacion ?? null
+  const temporarioEscrito = resultadoBusqueda?.interpretacion.temporario ?? false
   useEffect(() => {
     if (!operacionEscrita || filters.operation === 'todos') return
-    const quiere: Operation = operacionEscrita === 'Rent' ? 'alquiler' : 'venta'
+    const quiere: Operation = temporarioEscrito ? 'temporario'
+      : operacionEscrita === 'Rent' ? 'alquiler' : 'venta'
     if (filters.operation !== quiere) updateOperation(quiere)
-  }, [operacionEscrita, filters.operation, updateOperation])
+  }, [operacionEscrita, temporarioEscrito, filters.operation, updateOperation])
 
   // ── Asistente de búsqueda ────────────────────────────────────────────────
   // El perfil vive en la URL (ver lib/smart-profile-url.ts), así que compartir
@@ -1234,7 +1237,8 @@ export default function PropiedadesView({
   }, [selectedId, properties, selectedOperationType])
 
   const opLabel = filters.operation === 'venta' ? 'en venta'
-    : filters.operation === 'alquiler' ? 'en alquiler' : 'disponibles'
+    : filters.operation === 'alquiler' ? 'en alquiler'
+    : filters.operation === 'temporario' ? 'en alquiler temporario' : 'disponibles'
 
   const searchZonas = useMemo(() => buscarZonas(filters.search, 6), [filters.search])
 
@@ -1395,7 +1399,7 @@ export default function PropiedadesView({
         <div className="flex items-center gap-2 px-3 pb-2">
           {/* Segmented control */}
           <div className="flex rounded-full bg-gray-100 p-0.5 flex-1" style={{ minHeight: 44 }}>
-            {(['venta', 'alquiler'] as const).map(op => (
+            {(['venta', 'alquiler', 'temporario'] as const).map(op => (
               <button
                 key={op}
                 onClick={() => updateOperation(filters.operation === op ? 'todos' : op)}
@@ -1579,7 +1583,7 @@ export default function PropiedadesView({
         </div>
         <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
         <FilterSelect value={filters.operation} onChange={updateOperation}
-          options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'}]} />
+          options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'},{value:'temporario',label:'Temporario'}]} />
         <FilterSelect value={filters.type} onChange={v => set('type', v)}
           options={typeOptions} />
         <FilterSelect value={filters.beds} onChange={v => set('beds', v)}
@@ -1992,7 +1996,7 @@ export default function PropiedadesView({
           style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', maxWidth: 'calc(100vw - 24px)' }}
         >
           <Link
-            href={`/propiedades/${generatePropertySlug(selectedProperty)}${selectedOperationType === 'Rent' ? '?operacion=alquiler' : ''}`}
+            href={`/propiedades/${generatePropertySlug(selectedProperty)}${selectedOperationType === 'Rent' ? '?operacion=alquiler' : selectedOperationType === 'Temporary rent' ? '?operacion=temporario' : ''}`}
             className="relative block bg-white rounded-2xl shadow-2xl overflow-hidden"
             style={{ border: '1px solid #e5e7eb' }}
           >
