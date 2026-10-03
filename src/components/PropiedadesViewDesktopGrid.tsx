@@ -26,7 +26,7 @@ export default function PropiedadesViewDesktopGrid({
   smartProfile = null,
 }: Props) {
   return (
-    <div className="grid p-4 grid-cols-1 xl:grid-cols-2 gap-4">
+    <div className="grid p-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
       {properties.map((p, i) => (
         <div
           key={p.id}

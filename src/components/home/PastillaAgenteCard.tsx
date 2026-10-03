@@ -7,7 +7,7 @@ export default function PastillaAgenteCard({ agente, size = 34 }: { agente?: { n
   if (!agente) return null
   return (
     <div
-      className="absolute left-2.5 bottom-2.5 z-[1] flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-white"
+      className="absolute left-2.5 bottom-2.5 z-10 flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-white"
       style={{
         background: 'rgba(17,17,17,0.42)',
         backdropFilter: 'blur(8px)',

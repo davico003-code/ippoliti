@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import CardMediaButtons from '@/components/CardMediaButtons'
+import PastillaAgenteCard from '@/components/home/PastillaAgenteCard'
+import { useAgentePropiedad } from '@/components/AgentesPropiedadContext'
 import {
   type TokkoProperty,
   getAllPhotos,
@@ -54,6 +56,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const router = useRouter()
   const cardRef = useRef<HTMLAnchorElement | null>(null)
   const isMobile = variant === 'mobile'
+  const agente = useAgentePropiedad(property.id)
   const photos = getAllPhotos(property)
   const fallback = getMainPhoto(property)
   const images = photos.length > 0 ? photos : fallback ? [fallback] : []
@@ -283,7 +286,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             </button>
             {/* Dots: máx 5, siempre visibles (avisan que hay más fotos) con
                 sombra para que se lean sobre fotos claras. */}
-            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            <div className={`absolute bottom-2.5 flex items-center gap-1.5 ${agente ? 'right-3' : 'left-1/2 -translate-x-1/2'}`}>
               {Array.from({ length: dotCount }).map((_, i) => (
                 <button
                   key={i}
@@ -336,6 +339,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             </span>
           )}
         </div>
+
+        {/* Agente que atiende la propiedad (pastilla de vidrio, como en la
+            home). Con agente, los puntitos de las fotos se corren a la derecha. */}
+        <PastillaAgenteCard agente={agente} size={isMobile ? 32 : 34} />
 
         {/* Play arriba-derecha (solo si hay audio). audioUrl ya viene enriquecido
             en el listado (string = hay audio, null = no hay). */}
