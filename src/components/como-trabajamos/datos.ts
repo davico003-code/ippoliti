@@ -4,6 +4,8 @@
 // prensa verificadas y cifras públicas relevadas el 27-sep-2026.
 // Al actualizar una cifra, actualizar también la fecha de relevamiento.
 
+import { fotoTeam } from '@/lib/team-fotos'
+
 const P = '/como-trabajamos'
 
 export const RELEVADO = 'septiembre de 2026'
@@ -176,9 +178,9 @@ export const INFORMES = [
 
 /* ── Equipo (roster público de /nosotros) ── */
 export const DIRECCION = [
-  { nombre: 'Susana Ippoliti', cargo: 'Fundadora', detalle: 'Corredora inmobiliaria · Mat. 0559 COCIR · más de 40 años en el mercado', foto: '/team/susana-ippoliti.jpg' },
-  { nombre: 'David Flores', cargo: 'Corredor inmobiliario · Funes', detalle: 'Mat. 0621 COCIR · más de 15 años de experiencia', foto: '/team/david-flores.jpg' },
-  { nombre: 'Laura Flores', cargo: 'Corredora inmobiliaria · Roldán', detalle: 'Administradora de empresas · gestión del equipo', foto: '/team/laura-flores.jpg' },
+  { nombre: 'Susana Ippoliti', cargo: 'Fundadora', detalle: 'Corredora inmobiliaria · Mat. 0559 COCIR · más de 40 años en el mercado', foto: '/team/susana-ippoliti-v2.jpg' },
+  { nombre: 'David Flores', cargo: 'Corredor inmobiliario · Funes', detalle: 'Mat. 0621 COCIR · más de 15 años de experiencia', foto: '/team/david-flores-v2.jpg' },
+  { nombre: 'Laura Flores', cargo: 'Corredora inmobiliaria · Roldán', detalle: 'Administradora de empresas · gestión del equipo', foto: '/team/laura-flores-v2.jpg' },
 ]
 
 export const AGENTES = [
@@ -198,7 +200,7 @@ export const AGENTES = [
   ['Jeremías Caraballo', 'jeremias-caraballo'],
   ['Claudia', 'claudia'],
   ['Florencia Acquarone', 'florencia-acquarone'],
-].map(([nombre, slug]) => ({ nombre, foto: `/team/${slug}.jpg` }))
+].map(([nombre, slug]) => ({ nombre, foto: fotoTeam(slug) }))
 
 export const OFICINAS = [
   { nombre: 'Funes', direccion: 'Hipólito Yrigoyen 2643', nota: 'Inmobiliaria + galería de arte PARED', foto: '/nosotros/si-inmobiliaria-oficina-funes-interior.webp' },

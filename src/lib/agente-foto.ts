@@ -19,12 +19,12 @@ const norm = (s: string) =>
 // Fotos propias en /public/team. Espejan las que muestra /nosotros y tienen
 // prioridad sobre la foto de Tokko.
 const FOTO_TEAM: Record<string, string> = {
-  'Susana Ippoliti': '/team/susana-ippoliti.jpg',
-  'David Flores': '/team/david-flores.jpg',
-  'Laura Flores': '/team/laura-flores.jpg',
+  'Susana Ippoliti': '/team/susana-ippoliti-v2.jpg',
+  'David Flores': '/team/david-flores-v2.jpg',
+  'Laura Flores': '/team/laura-flores-v2.jpg',
   'Mariana Orlate': '/team/mariana-orlate.jpg',
   'Micaela Gonzalez': '/team/micaela-gonzalez.jpg',
-  'Leticia Alexenicer': '/team/leticia-alexenicer.jpg',
+  'Leticia Alexenicer': '/team/leticia-alexenicer-v2.jpg',
   'Maria Jose Espilocin': '/team/maria-jose-espilocin.jpg',
   'Marisa Benitez': '/team/marisa-benitez.jpg',
   'Sabrina Rogani': '/team/sabrina-rogani.jpg',
@@ -33,12 +33,12 @@ const FOTO_TEAM: Record<string, string> = {
   'Jeremías Caraballo': '/team/jeremias-caraballo.jpg',
   'Florencia Acquarone': '/team/florencia-acquarone.jpg',
   'Claudia': '/team/claudia.jpg',
-  'Mauro Matteucci': '/team/mauro-matteucci.jpg',
-  'Gino Pecchenino': '/team/gino-pecchenino.jpg',
+  'Mauro Matteucci': '/team/mauro-matteucci-v2.jpg',
+  'Gino Pecchenino': '/team/gino-pecchenino-v2.jpg',
   'Carolina Echen': '/team/carolina-echen.jpg',
   'Aldana Ruiz': '/team/aldana-ruiz.jpg',
-  'Gisela Ramallo': '/team/gisela-ramallo.jpg',
-  'Lucia Wilson': '/team/lucia-wilson.jpg',
+  'Gisela Ramallo': '/team/gisela-ramallo-v2.jpg',
+  'Lucia Wilson': '/team/lucia-wilson-v2.jpg',
 }
 const FOTO_TEAM_NORM: Record<string, string> = Object.fromEntries(
   Object.entries(FOTO_TEAM).map(([k, v]) => [norm(k), v]),

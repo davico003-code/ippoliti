@@ -42,7 +42,7 @@ const people = [
     '@id': 'https://siinmobiliaria.com/nosotros#susana-ippoliti',
     name: 'Susana Ippoliti',
     jobTitle: 'Fundadora y corredora inmobiliaria',
-    image: 'https://siinmobiliaria.com/team/susana-ippoliti.jpg',
+    image: 'https://siinmobiliaria.com/team/susana-ippoliti-v2.jpg',
     url: 'https://siinmobiliaria.com/nosotros#susana-ippoliti',
     worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
     hasCredential: {
@@ -56,7 +56,7 @@ const people = [
     '@id': 'https://siinmobiliaria.com/nosotros#david-flores',
     name: 'David Flores',
     jobTitle: 'Corredor inmobiliario y responsable de la oficina Funes',
-    image: 'https://siinmobiliaria.com/team/david-flores.jpg',
+    image: 'https://siinmobiliaria.com/team/david-flores-v2.jpg',
     url: 'https://siinmobiliaria.com/nosotros#david-flores',
     worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
     hasCredential: {
@@ -70,7 +70,7 @@ const people = [
     '@id': 'https://siinmobiliaria.com/nosotros#laura-flores',
     name: 'Laura Flores',
     jobTitle: 'Corredora inmobiliaria, administradora de empresas y responsable de Roldán',
-    image: 'https://siinmobiliaria.com/team/laura-flores.jpg',
+    image: 'https://siinmobiliaria.com/team/laura-flores-v2.jpg',
     url: 'https://siinmobiliaria.com/nosotros#laura-flores',
     worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
     knowsAbout: ['mercado inmobiliario de Roldán', 'administración inmobiliaria', 'gestión de equipos'],

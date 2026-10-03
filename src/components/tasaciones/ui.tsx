@@ -86,7 +86,7 @@ export function BarraFija({ children }: { children: ReactNode }) {
 export function FotoDavid({ size, className = '' }: { size: number; className?: string }) {
   return (
     <Image
-      src="/team/david-flores.jpg"
+      src="/team/david-flores-v2.jpg"
       alt="David Flores, corredor responsable de SI INMOBILIARIA"
       width={size}
       height={size}
