@@ -26,6 +26,8 @@ export default function FloatingWhatsApp() {
   if (pathname === '/dockgarden') return null
   // Fisherton Work trae su FAB con el mensaje del emprendimiento ya escrito.
   if (pathname === '/emprendimientos/fisherton-work') return null
+  // Tierra Nueva, ídem.
+  if (pathname === '/emprendimientos/tierra-nueva') return null
   // Hide on /recursos — la propia página tiene su CTA "Hablar con un agente"
   // en el bloque verde inferior con el mismo número.
   if (pathname === '/recursos') return null
