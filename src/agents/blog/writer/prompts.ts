@@ -116,6 +116,7 @@ REGLAS del contenido_markdown:
 - H2 (##) para secciones, H3 (###) solo si hace falta.
 - Citas textuales o datos de un medio en blockquote (>) con el nombre del medio y la fecha.
 - Listas con guiones (-) solo cuando ayuden a leer.
+- Links siempre en markdown [texto](/ruta) con rutas del sitio que empiezan con "/" (o https:// si es externo). Sin tablas, sin bloques de código y sin HTML: el blog no los muestra.
 - Terminar con la firma en dos líneas: "David Flores" y "Corredor inmobiliario, matrícula N° 0621 · SI INMOBILIARIA".
 - NO incluir <script>, <iframe> ni HTML ejecutable.`;
 }

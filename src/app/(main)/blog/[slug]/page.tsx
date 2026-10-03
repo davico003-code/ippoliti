@@ -7,6 +7,8 @@ import { getAllPosts, getPostBySlug, resolveCategory, readingMinutes } from '@/l
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
 import { cierreDeNota, WHATSAPP_BLOG } from '@/lib/blog-cta'
 import BurbujaDavid from '@/components/BurbujaDavid'
+import ContenidoNota from '@/components/blog/ContenidoNota'
+import { parsearNota, bloqueAPlano, inlineAPlano } from '@/lib/blog-markdown'
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
 // su fecha, sin depender del revalidate on-demand.
@@ -58,11 +60,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // ── FAQ → FAQPage schema (GEO) ────────────────────────────────────────────
 // Busca la sección "## Preguntas frecuentes" y arma pares pregunta (###) /
-// respuesta (párrafos siguientes). Devuelve null si no hay sección o si hay
-// menos de 2 pares (un FAQPage de 1 pregunta hace más ruido que aporte).
+// respuesta (bloques siguientes). Usa el mismo parser que el cuerpo, así las
+// respuestas van en texto plano (sin **, ni [texto](url) crudos). Devuelve null
+// si no hay sección o si hay menos de 2 pares (un FAQPage de 1 pregunta hace
+// más ruido que aporte).
 function extraerFaq(content: string): Record<string, unknown> | null {
-  const bloques = content.split('\n\n').map((b) => b.trim()).filter(Boolean)
-  const inicio = bloques.findIndex((b) => /^##\s+preguntas frecuentes/i.test(b))
+  const bloques = parsearNota(content)
+  const inicio = bloques.findIndex(
+    (b) => b.tipo === 'titulo' && b.nivel === 2 && /^preguntas frecuentes/i.test(inlineAPlano(b.hijos).trim()),
+  )
   if (inicio === -1) return null
 
   const qas: { q: string; a: string }[] = []
@@ -71,16 +77,14 @@ function extraerFaq(content: string): Record<string, unknown> | null {
     if (actual && actual.a.length) qas.push({ q: actual.q, a: actual.a.join(' ') })
   }
   for (const b of bloques.slice(inicio + 1)) {
-    // Pregunta en H3; contempla que la respuesta venga pegada en el mismo
-    // bloque (### ¿...?\nRespuesta) además del caso normal separado por \n\n.
-    const h3 = b.match(/^###\s+(.+?)(?:\n([\s\S]+))?$/)
-    if (h3) {
+    if (b.tipo === 'titulo' && b.nivel === 3) {
       cerrar()
-      actual = { q: h3[1].trim(), a: h3[2] ? [h3[2].trim()] : [] }
+      actual = { q: inlineAPlano(b.hijos).trim(), a: [] }
       continue
     }
-    if (/^##\s+/.test(b)) break // arrancó otra sección: terminó la FAQ
-    if (actual) actual.a.push(b)
+    if (b.tipo === 'titulo') break // arrancó otra sección: terminó la FAQ
+    const texto = bloqueAPlano(b).trim()
+    if (actual && texto) actual.a.push(texto)
   }
   cerrar()
 
@@ -167,8 +171,6 @@ export default async function BlogPostPage({ params }: Props) {
   // respuesta suelta. Las notas sin esa sección no emiten nada.
   const faq = extraerFaq(post.content)
   const jsonLdNodes = faq ? [jsonLd, faq] : [jsonLd]
-
-  const paragraphs = post.content.split('\n\n').filter(p => p.trim())
 
   return (
     <div className="min-h-screen bg-white">
@@ -257,76 +259,8 @@ export default async function BlogPostPage({ params }: Props) {
             )}
           </div>
 
-          {/* Content */}
-          <div className="space-y-6">
-            {(() => {
-              // Heurística conservadora de subtítulo (el content es texto plano
-              // sin marcado): línea corta que arranca en mayúscula, sin punto y
-              // sin coma. Exigir "sin coma" y menos de 70 chars evita marcar
-              // frases cortas de prosa como h2. Sigue siendo inferencia.
-              const looksHeading = (p: string) =>
-                /^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && p.length < 70 && !p.includes('.') && !p.includes(',')
-              const getMarkdownImage = (p: string) => {
-                const match = p.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-                if (!match) return null
-                return { alt: match[1].trim(), src: match[2].trim() }
-              }
-              const isRenderableText = (p: string) => !looksHeading(p) && !getMarkdownImage(p)
-              const firstParaIdx = paragraphs.findIndex(isRenderableText)
-              return paragraphs.map((paragraph, i) => {
-                const trimmed = paragraph.trim()
-                const inlineImage = getMarkdownImage(trimmed)
-                if (inlineImage) {
-                  const alt = inlineImage.alt || post.title
-                  return (
-                    <figure
-                      key={i}
-                      className="my-10 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
-                    >
-                      <div className="relative aspect-[4/3] w-full">
-                        <Image
-                          src={inlineImage.src}
-                          alt={alt}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 768px"
-                          className="object-cover"
-                        />
-                      </div>
-                      {inlineImage.alt && (
-                        <figcaption className="px-4 py-3 text-sm leading-relaxed text-gray-500">
-                          {inlineImage.alt}
-                        </figcaption>
-                      )}
-                    </figure>
-                  )
-                }
-
-                const markdownHeading = trimmed.match(/^#{2,3}\s+(.+)$/)
-                const isHeading = Boolean(markdownHeading) || looksHeading(trimmed)
-                if (isHeading) {
-                  return (
-                    <h2 key={i} className="mb-2 mt-12 text-[1.6rem] font-black leading-tight tracking-tight text-gray-900">
-                      {markdownHeading ? markdownHeading[1] : trimmed}
-                    </h2>
-                  )
-                }
-                // Capitular solo en el primer párrafo real y si arranca con letra.
-                const dropCap = i === firstParaIdx && /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(trimmed)
-                return (
-                  <p
-                    key={i}
-                    className={`text-[17px] leading-[1.8] text-gray-700 md:text-lg ${
-                      dropCap
-                        ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[3.4rem] first-letter:font-black first-letter:leading-[0.8] first-letter:text-[#1A5C38]'
-                      : ''
-                    }`}
-                  >
-                    {trimmed}
-                  </p>
-                )
-              })
-            })()}
-          </div>
+          {/* Content (markdown de las notas dinámicas o texto plano de las estáticas) */}
+          <ContenidoNota contenido={post.content} titulo={post.title} />
 
           {/* ── Crédito de la portada (medios locales / Wikimedia / municipios) ── */}
           {usaImagenCurada && post.imageCredit && (

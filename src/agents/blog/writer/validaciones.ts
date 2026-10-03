@@ -1,5 +1,6 @@
 import type { NotaDraft, CategoriaNota } from '../types';
 import { CTAS, CTA_IDS } from '../config/ctas';
+import { problemasDeRender } from '@/lib/blog-markdown';
 
 export interface ValidacionResultado {
   ok: boolean;
@@ -201,6 +202,13 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
   // ── HTML peligroso ──
   if (HTML_PELIGROSO.test(nota.contenido_markdown)) {
     errores.push('contenido contiene HTML potencialmente peligroso (script, iframe, etc.)');
+  }
+
+  // ── Que el blog lo pueda mostrar ──
+  // Mismo parser que usa /blog/[slug]: links con URL no permitida, negritas
+  // sin cerrar, HTML, tablas o código quedarían crudos en la nota publicada.
+  if (nota.contenido_markdown) {
+    errores.push(...problemasDeRender(nota.contenido_markdown));
   }
 
   // ── Villa Flores: barrio prohibido como foco ──

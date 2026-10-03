@@ -48,6 +48,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/blog
 | Firma | "David Flores" en últimas 200 palabras | "falta firma" |
 | Campos | titulo, slug, meta, bajada, etc. | campo-específico |
 | HTML | Sin script/iframe | "HTML potencialmente peligroso" |
+| Render | Lo que el blog no muestra (`problemasDeRender` en `lib/blog-markdown.ts`): links fuera de `/` o `https://`, negritas sin cerrar, HTML, tablas, código | "link con URL no permitida", etc. |
 
 ## Despublicar una nota
 ```bash
