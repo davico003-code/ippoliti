@@ -1,0 +1,115 @@
+'use client'
+
+// Piezas compartidas por la vista del cliente de una selección: el mazo del
+// celular, las tarjetas de la compu, la ficha en hoja y el cierre.
+
+import Image from 'next/image'
+import { BedDouble, Bath, Ruler } from 'lucide-react'
+import { displayImageUrl } from '@/lib/external-images'
+import type { SeleccionItem } from '@/lib/seleccion'
+
+export type ReactKey = 'encanta' | 'no'
+export interface Reaction {
+  liked?: boolean | null
+  wantVisit?: boolean
+  comment?: string
+  reaction?: ReactKey | null
+}
+export type Decision = 'like' | 'nope' | 'visita'
+
+export const VERDE = '#1A5C38'
+export const VERDE_VIVO = '#00754A'
+export const ROJO = '#F40009'
+export const AMARILLO = '#fbce07'
+
+export function isValidNote(note: string | undefined | null): boolean {
+  return !!note && note.trim().length > 3
+}
+
+export function iniciales(nombre: string): string {
+  const p = nombre.trim().split(/\s+/).filter(Boolean)
+  return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || nombre.slice(0, 2).toUpperCase()
+}
+
+export const primerNombre = (nombre: string) => nombre.trim().split(/\s+/)[0] ?? nombre
+
+type PortalLogo = { name: string; logo: string }
+
+/** Logo del portal de un aviso externo (las propias no llevan). */
+export function logoDePortal(url: string): PortalLogo | null {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    if (host.includes('zonaprop.com')) return { name: 'Zonaprop', logo: '/portal-logos/zonaprop.jpg' }
+    if (host.includes('argenprop.com')) return { name: 'Argenprop', logo: '/portal-logos/argenprop.jpg' }
+    if (host.includes('mercadolibre')) return { name: 'Mercado Libre', logo: '/portal-logos/mercadolibre.png' }
+    return null
+  } catch {
+    return null
+  }
+}
+
+// Fotos que /_next/image puede optimizar (remotePatterns de next.config). Las
+// de portales/proxy van directo, como en la ficha.
+function optimizable(src: string): boolean {
+  try {
+    const h = new URL(src).hostname
+    return h.endsWith('.supabase.co') || h.endsWith('.public.blob.vercel-storage.com') || h.endsWith('tokkobroker.com')
+  } catch {
+    return false
+  }
+}
+
+export function Foto({
+  src, alt, sizes, eager, onLoad,
+}: { src: string; alt: string; sizes: string; eager?: boolean; onLoad?: () => void }) {
+  const url = displayImageUrl(src)
+  return (
+    <Image
+      src={url}
+      alt={alt}
+      fill
+      sizes={sizes}
+      unoptimized={!optimizable(url)}
+      loading={eager ? 'eager' : 'lazy'}
+      draggable={false}
+      onLoad={onLoad}
+      className="pointer-events-none select-none object-cover"
+    />
+  )
+}
+
+/** Dormitorios · baños · m², solo lo que hay. */
+export function Specs({ item, className = '' }: { item: SeleccionItem; className?: string }) {
+  const partes = [
+    item.rooms > 0 && { icon: BedDouble, txt: `${item.rooms} dorm.` },
+    item.baths > 0 && { icon: Bath, txt: `${item.baths} baño${item.baths > 1 ? 's' : ''}` },
+    item.area > 0 && { icon: Ruler, txt: `${item.area.toLocaleString('es-AR')} m²` },
+  ].filter(Boolean) as { icon: typeof BedDouble; txt: string }[]
+  if (partes.length === 0) return null
+  return (
+    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 ${className}`}>
+      {partes.map(({ icon: Icon, txt }) => (
+        <span key={txt} className="font-numeric inline-flex items-center gap-1">
+          <Icon className="h-3.5 w-3.5 opacity-70" strokeWidth={1.8} /> {txt}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+export function Avatar({ foto, nombre, size }: { foto?: string | null; nombre: string; size: number }) {
+  if (foto) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={foto} alt={nombre} width={size} height={size} className="shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />
+    )
+  }
+  return (
+    <span
+      className="flex shrink-0 items-center justify-center rounded-full bg-[#EAF3EE] font-bold text-[#1A5C38]"
+      style={{ width: size, height: size, fontSize: size * 0.34 }}
+    >
+      {iniciales(nombre)}
+    </span>
+  )
+}

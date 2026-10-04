@@ -41,3 +41,28 @@ export function buildWhatsAppMessage(
   msg += `\nQuiero visitar: ${wantVisit.length ? wantVisit.join(', ') : 'a confirmar'}.`
   return msg
 }
+
+/**
+ * Propiedad de la selección lista para mostrar. Se arma en el server
+ * (`lib/seleccion-items.ts`) para que la página llegue con fotos y datos, sin
+ * tarjetas grises esperando al navegador.
+ */
+export interface SeleccionItem {
+  id: string
+  url: string
+  note: string
+  /** Aviso de colega/portal (snapshot cargado desde HILO o el panel). */
+  externa: boolean
+  /** Parecida que le ofrecimos al cliente (no la eligió el asesor). */
+  sugerida: boolean
+  title: string
+  location: string
+  rooms: number
+  baths: number
+  area: number
+  price: string | null
+  /** Portada primero. Las externas traen una sola foto. */
+  photos: string[]
+  /** Ficha completa para abrir ADENTRO de la página (mismo origen). null = no hay. */
+  fichaUrl: string | null
+}
