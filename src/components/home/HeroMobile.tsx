@@ -161,7 +161,7 @@ export default function HeroMobile() {
             queda únicamente en la ficha, abajo de las nuestras. */}
         <Link
           href="/conoce-tu-hogar"
-          className="portada-in si-tap mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-raleway text-[14px] font-bold text-white underline decoration-white/60 underline-offset-4 drop-shadow"
+          className="portada-in si-tap mt-1.5 inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 py-1.5 font-raleway text-[14px] font-bold text-white underline decoration-white/60 underline-offset-4 drop-shadow"
           style={{ ['--d' as string]: '750ms' }}
         >
           <span aria-hidden="true" className="text-[#FF6B8E] no-underline">♥</span>

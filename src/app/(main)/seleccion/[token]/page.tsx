@@ -48,8 +48,9 @@ export default async function SeleccionPage({ params }: Props) {
     getReacciones(params.token),
     getAgentePhoto(session.agentName || session.agent),
     armarItems(session.properties ?? []),
+    // El contador de vistas no frena la página (antes iba después, en serie).
+    incrementViewCount(params.token).catch(() => {}),
   ])
-  await incrementViewCount(params.token)
 
   return (
     <ClientShortlist

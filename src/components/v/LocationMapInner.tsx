@@ -44,6 +44,10 @@ export default function LocationMapInner({ lat, lng }: { lat: number; lng: numbe
       className="vf-mapa"
       style={{
         position: 'relative',
+        // Encierra los z-index de Leaflet (capas 400, controles 1000): sin esto
+        // el mapa se pintaba ENCIMA de la barra fija del celu (z 40), de su
+        // hoja "¿Te gusta?", del menú Compartir y del visor de fotos.
+        isolation: 'isolate',
         borderRadius: 16,
         overflow: 'hidden',
         border: '1px solid #ECECEC',

@@ -43,7 +43,9 @@ export default function AgenteAvatar({
   // repeticiones queda quieto un rato al azar, como una persona. `muted` se
   // fuerza por JS porque React no siempre lo deja en el HTML del servidor y
   // sin él el navegador bloquea el autoplay. Con "reducir movimiento" no se
-  // reproduce.
+  // reproduce. Fuera de pantalla se pausa: en /propiedades hay una pastilla por
+  // tarjeta y, al bajar por la lista, quedaban decenas de videos repitiéndose
+  // fuera de vista (batería y CPU del celular).
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -51,22 +53,34 @@ export default function AgenteAvatar({
     el.defaultPlaybackRate = el.playbackRate = VELOCIDAD
     const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let timer: ReturnType<typeof setTimeout> | undefined
-    const onEnded = () => {
-      const espera = PAUSA_MIN_MS + Math.random() * (PAUSA_MAX_MS - PAUSA_MIN_MS)
+    let visible = false
+    let cargado = false
+    const reproducirEn = (ms: number) => {
+      clearTimeout(timer)
+      if (quieto) return
       timer = setTimeout(() => {
-        el.currentTime = 0
+        if (!visible) return
+        if (el.ended) el.currentTime = 0
         el.play().catch(() => {})
-      }, espera)
+      }, ms)
     }
+    const onEnded = () => reproducirEn(PAUSA_MIN_MS + Math.random() * (PAUSA_MAX_MS - PAUSA_MIN_MS))
     el.addEventListener('ended', onEnded)
     const io = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting) return
-      io.disconnect()
-      el.preload = 'auto'
-      el.load()
+      visible = e.isIntersecting
+      if (!visible) {
+        clearTimeout(timer)
+        el.pause()
+        return
+      }
+      if (!cargado) {
+        cargado = true
+        el.preload = 'auto'
+        el.load()
+      }
       // Arranque desfasado: si hay varias burbujas del mismo agente a la vista
       // (home), no saludan todas a la vez.
-      if (!quieto) timer = setTimeout(() => el.play().catch(() => {}), Math.random() * ARRANQUE_MAX_MS)
+      if (el.paused) reproducirEn(Math.random() * ARRANQUE_MAX_MS)
     }, { rootMargin: '300px' })
     io.observe(el)
     return () => {

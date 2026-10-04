@@ -177,30 +177,45 @@ export async function listarSelecciones(agent?: string) {
     if (Array.isArray(batch)) keys.push(...(batch.map(String)))
   } while (cursor !== 0)
 
-  const results = []
-  for (const key of keys) {
-    const raw = await redis.get<string>(key)
-    if (!raw) continue
-    const data = typeof raw === 'string' ? JSON.parse(raw) : raw
-    if (agent && agent !== 'all' && data.agentId !== agent && data.agent !== agent) continue
+  // Solo las selecciones (`seleccion:<token>`): otra clave bajo el mismo prefijo
+  // (p. ej. un hash `seleccion:<token>:algo`) daba WRONGTYPE en el GET y tiraba
+  // el panel entero (pasó el 4-oct). Y de a 20 en paralelo, no una por una.
+  const tokens = keys.filter((k) => /^seleccion:[^:]+$/.test(k))
+  type Fila = Record<string, unknown> & { token: string; resumen: { liked: number; disliked: number; wantVisit: number; hasComments: boolean } }
+  const results: Fila[] = []
+  for (let i = 0; i < tokens.length; i += 20) {
+    const tanda = await Promise.all(
+      tokens.slice(i, i + 20).map(async (key): Promise<Fila | null> => {
+        try {
+          const raw = await redis.get<string>(key)
+          if (!raw) return null
+          const data = typeof raw === 'string' ? JSON.parse(raw) : raw
+          if (agent && agent !== 'all' && data.agentId !== agent && data.agent !== agent) return null
 
-    const tk = key.replace('seleccion:', '')
-    const reactions = await getReacciones(tk)
+          const tk = key.replace('seleccion:', '')
+          const reactions = await getReacciones(tk)
 
-    let liked = 0, disliked = 0, wantVisit = 0, hasComments = false
-    for (const [k, v] of Object.entries(reactions)) {
-      if (k === '_meta') continue
-      const r = v as { liked?: boolean | null; wantVisit?: boolean; comment?: string }
-      if (r.liked === true) liked++
-      if (r.liked === false) disliked++
-      if (r.wantVisit) wantVisit++
-      if (r.comment) hasComments = true
-    }
-
-    results.push({ ...data, token: tk, resumen: { liked, disliked, wantVisit, hasComments } })
+          let liked = 0, disliked = 0, wantVisit = 0, hasComments = false
+          for (const [k, v] of Object.entries(reactions)) {
+            if (k === '_meta') continue
+            const r = v as { liked?: boolean | null; wantVisit?: boolean; comment?: string }
+            if (r.liked === true) liked++
+            if (r.liked === false) disliked++
+            if (r.wantVisit) wantVisit++
+            if (r.comment) hasComments = true
+          }
+          return { ...data, token: tk, resumen: { liked, disliked, wantVisit, hasComments } }
+        } catch (e) {
+          // Una selección rota no deja al agente sin ver las demás.
+          console.warn('[listarSelecciones] salteada', key, e instanceof Error ? e.message : e)
+          return null
+        }
+      }),
+    )
+    for (const f of tanda) if (f) results.push(f)
   }
 
-  results.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+  results.sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))
   return results
 }
 

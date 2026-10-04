@@ -31,18 +31,12 @@ function getBadge(p: TokkoProperty): { label: string; bg: string } {
 }
 
 export default async function SeleccionCarousel() {
-  let properties: TokkoProperty[] = []
-  let totalCount = 0
-  try {
-    properties = await getFeaturedProperties(8)
-  } catch {
-    // Tokko API no disponible — seguimos rendering la sección con el CTA.
-  }
-  try {
-    totalCount = await getPropertyCount()
-  } catch {
-    // ok — usamos fallback en el CTA
-  }
+  // Destacadas y total A LA VEZ (antes en serie). Si el feed no responde,
+  // la sección sigue con el CTA y su texto de respaldo.
+  const [properties, totalCount] = await Promise.all([
+    getFeaturedProperties(8).catch((): TokkoProperty[] => []),
+    getPropertyCount().catch(() => 0),
+  ])
   const agentes = await getAgentesPorPropiedad(properties)
 
   return (

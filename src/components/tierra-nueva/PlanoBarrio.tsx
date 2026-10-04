@@ -53,7 +53,15 @@ export default function PlanoBarrio() {
                 aria-label={nuevo ? `Ver ${l.nombre}` : undefined}
                 aria-pressed={nuevo ? activo : undefined}
                 tabIndex={nuevo ? 0 : undefined}
-                onKeyDown={nuevo ? (e) => (e.key === 'Enter' || e.key === ' ') && setSel(l.condo!) : undefined}
+                onKeyDown={
+                  nuevo
+                    ? (e) => {
+                        if (e.key !== 'Enter' && e.key !== ' ') return
+                        e.preventDefault() // sin esto, la barra espaciadora además scrollea la página
+                        setSel(l.condo!)
+                      }
+                    : undefined
+                }
               >
                 <rect
                   x={x + 1.5}
@@ -74,11 +82,12 @@ export default function PlanoBarrio() {
                 {l.nombre && (
                   <text
                     x={x + w / 2}
-                    y={y + h / 2 + (nuevo ? 4 : 3)}
+                    y={y + h / 2 + (nuevo ? 5.5 : 3)}
                     textAnchor="middle"
                     className={
                       nuevo
-                        ? `pointer-events-none text-[11px] font-black ${activo ? 'fill-white' : 'fill-[#0B2A19]'}`
+                        ? // 16 del viewBox ≈ 9 px en un celu de 375 (con 11 quedaba en 6 px)
+                          `pointer-events-none text-[16px] font-black ${activo ? 'fill-white' : 'fill-[#0B2A19]'}`
                         : 'pointer-events-none fill-gray-400 text-[7.5px] font-semibold'
                     }
                   >

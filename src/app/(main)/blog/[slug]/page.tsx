@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User, Clock } from 'lucide-react'
@@ -56,6 +57,137 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+// ── Markdown liviano del cuerpo ───────────────────────────────────────────
+// Las notas del writer y las reescritas (oct-2026) vienen en markdown: listas,
+// citas, **negritas** y [links](/ruta). Las 10 estáticas viejas son texto
+// plano. Antes todo se pintaba como texto: se veían los asteriscos y los
+// corchetes, las listas quedaban pegadas en un renglón y la frase que presenta
+// una lista ("…es esto:") salía como subtítulo. Se arma con nodos de React
+// (sin dangerouslySetInnerHTML): solo negrita, cursiva, links y saltos de línea.
+
+type Bloque =
+  | { tipo: 'titulo'; nivel: 2 | 3; texto: string }
+  | { tipo: 'imagen'; alt: string; src: string }
+  | { tipo: 'lista'; ordenada: boolean; items: string[] }
+  | { tipo: 'cita'; texto: string }
+  | { tipo: 'parrafo'; texto: string }
+
+const RE_TITULO = /^(#{2,3})\s+(.+?)\s*#*$/
+const RE_IMAGEN = /^!\[([^\]]*)\]\(([^)\s]+)\)$/
+const RE_ITEM = /^\s*(?:([-*•])|(\d+)[.)])\s+/
+const RE_CITA = /^\s*>\s?/
+
+// Heurística de subtítulo SOLO para las estáticas (texto plano): línea corta
+// que arranca en mayúscula, sin punto y sin coma.
+const pareceTitulo = (p: string) =>
+  /^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && p.length < 70 && !p.includes('.') && !p.includes(',')
+
+function bloquesDeNota(content: string): Bloque[] {
+  const esMarkdown = /^#{2,3}\s/m.test(content)
+  const bloques: Bloque[] = []
+  for (const crudo of content.split(/\n\s*\n/)) {
+    const trimmed = crudo.trim()
+    if (!trimmed) continue
+    const img = trimmed.match(RE_IMAGEN)
+    if (img) {
+      bloques.push({ tipo: 'imagen', alt: img[1].trim(), src: img[2].trim() })
+      continue
+    }
+    if (!esMarkdown) {
+      bloques.push(pareceTitulo(trimmed) ? { tipo: 'titulo', nivel: 2, texto: trimmed } : { tipo: 'parrafo', texto: trimmed })
+      continue
+    }
+    let actual: Bloque | null = null
+    for (const linea of crudo.split('\n')) {
+      const l = linea.trim()
+      if (!l) continue
+      const titulo = l.match(RE_TITULO)
+      const item = l.match(RE_ITEM)
+      if (titulo) {
+        if (actual) bloques.push(actual)
+        actual = null
+        bloques.push({ tipo: 'titulo', nivel: titulo[1].length === 3 ? 3 : 2, texto: titulo[2] })
+      } else if (item) {
+        const ordenada = item[2] !== undefined
+        const texto = l.slice(item[0].trim().length).trim()
+        if (actual?.tipo === 'lista' && actual.ordenada === ordenada) actual.items.push(texto)
+        else {
+          if (actual) bloques.push(actual)
+          actual = { tipo: 'lista', ordenada, items: [texto] }
+        }
+      } else if (RE_CITA.test(l)) {
+        const texto = l.replace(RE_CITA, '')
+        if (actual?.tipo === 'cita') actual.texto += `\n${texto}`
+        else {
+          if (actual) bloques.push(actual)
+          actual = { tipo: 'cita', texto }
+        }
+      } else if (actual?.tipo === 'lista' && /^\s{2,}\S/.test(linea)) {
+        // Continuación con sangría de un ítem de la lista.
+        actual.items[actual.items.length - 1] += ` ${l}`
+      } else if (actual?.tipo === 'parrafo') {
+        actual.texto += `\n${l}`
+      } else {
+        if (actual) bloques.push(actual)
+        actual = { tipo: 'parrafo', texto: l }
+      }
+    }
+    if (actual) bloques.push(actual)
+  }
+  return bloques
+}
+
+// [texto](link) · **negrita** · *cursiva* · salto de línea
+const RE_EN_LINEA = /\[([^\]]+)\]\(([^)\s]+)\)|\*\*(.+?)\*\*|(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])|\n/g
+const CLASE_LINK =
+  'font-semibold text-[#1A5C38] underline decoration-[#1A5C38]/30 underline-offset-[3px] transition-colors hover:decoration-[#1A5C38]'
+
+function Enlace({ href, children }: { href: string; children: ReactNode }) {
+  if (href.startsWith('/') && !href.startsWith('//')) {
+    return (
+      <Link href={href} className={CLASE_LINK}>
+        {children}
+      </Link>
+    )
+  }
+  if (/^https?:\/\//i.test(href)) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={CLASE_LINK}>
+        {children}
+      </a>
+    )
+  }
+  return <>{children}</> // otro esquema (javascript:, etc.): solo el texto
+}
+
+function enLinea(texto: string): ReactNode[] {
+  const nodos: ReactNode[] = []
+  let desde = 0
+  let k = 0
+  for (const m of Array.from(texto.matchAll(RE_EN_LINEA))) {
+    const i = m.index ?? 0
+    if (i > desde) nodos.push(texto.slice(desde, i))
+    if (m[1] !== undefined) nodos.push(<Enlace key={k++} href={m[2]}>{enLinea(m[1])}</Enlace>)
+    else if (m[3] !== undefined) nodos.push(<strong key={k++} className="font-bold text-gray-900">{enLinea(m[3])}</strong>)
+    else if (m[4] !== undefined) nodos.push(<em key={k++}>{enLinea(m[4])}</em>)
+    else nodos.push(<br key={k++} />)
+    desde = i + m[0].length
+  }
+  if (desde < texto.length) nodos.push(texto.slice(desde))
+  return nodos
+}
+
+// Para el JSON-LD: el texto sin la sintaxis de markdown.
+function sinMarkdown(texto: string): string {
+  return texto
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\*\*/g, '')
+    .replace(/^\s*(?:[-*•]|\d+[.)])\s+/gm, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 // ── FAQ → FAQPage schema (GEO) ────────────────────────────────────────────
 // Busca la sección "## Preguntas frecuentes" y arma pares pregunta (###) /
 // respuesta (párrafos siguientes). Devuelve null si no hay sección o si hay
@@ -90,8 +222,8 @@ function extraerFaq(content: string): Record<string, unknown> | null {
     '@type': 'FAQPage',
     mainEntity: qas.map(({ q, a }) => ({
       '@type': 'Question',
-      name: q,
-      acceptedAnswer: { '@type': 'Answer', text: a },
+      name: sinMarkdown(q),
+      acceptedAnswer: { '@type': 'Answer', text: sinMarkdown(a) },
     })),
   }
 }
@@ -168,7 +300,9 @@ export default async function BlogPostPage({ params }: Props) {
   const faq = extraerFaq(post.content)
   const jsonLdNodes = faq ? [jsonLd, faq] : [jsonLd]
 
-  const paragraphs = post.content.split('\n\n').filter(p => p.trim())
+  const bloques = bloquesDeNota(post.content)
+  // Capitular solo en el primer párrafo real y si arranca con letra.
+  const primerParrafo = bloques.findIndex(b => b.tipo === 'parrafo')
 
   return (
     <div className="min-h-screen bg-white">
@@ -259,73 +393,81 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Content */}
           <div className="space-y-6">
-            {(() => {
-              // Heurística conservadora de subtítulo (el content es texto plano
-              // sin marcado): línea corta que arranca en mayúscula, sin punto y
-              // sin coma. Exigir "sin coma" y menos de 70 chars evita marcar
-              // frases cortas de prosa como h2. Sigue siendo inferencia.
-              const looksHeading = (p: string) =>
-                /^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && p.length < 70 && !p.includes('.') && !p.includes(',')
-              const getMarkdownImage = (p: string) => {
-                const match = p.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-                if (!match) return null
-                return { alt: match[1].trim(), src: match[2].trim() }
-              }
-              const isRenderableText = (p: string) => !looksHeading(p) && !getMarkdownImage(p)
-              const firstParaIdx = paragraphs.findIndex(isRenderableText)
-              return paragraphs.map((paragraph, i) => {
-                const trimmed = paragraph.trim()
-                const inlineImage = getMarkdownImage(trimmed)
-                if (inlineImage) {
-                  const alt = inlineImage.alt || post.title
-                  return (
-                    <figure
-                      key={i}
-                      className="my-10 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
-                    >
-                      <div className="relative aspect-[4/3] w-full">
-                        <Image
-                          src={inlineImage.src}
-                          alt={alt}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 768px"
-                          className="object-cover"
-                        />
-                      </div>
-                      {inlineImage.alt && (
-                        <figcaption className="px-4 py-3 text-sm leading-relaxed text-gray-500">
-                          {inlineImage.alt}
-                        </figcaption>
-                      )}
-                    </figure>
-                  )
-                }
-
-                const markdownHeading = trimmed.match(/^#{2,3}\s+(.+)$/)
-                const isHeading = Boolean(markdownHeading) || looksHeading(trimmed)
-                if (isHeading) {
-                  return (
-                    <h2 key={i} className="mb-2 mt-12 text-[1.6rem] font-black leading-tight tracking-tight text-gray-900">
-                      {markdownHeading ? markdownHeading[1] : trimmed}
-                    </h2>
-                  )
-                }
-                // Capitular solo en el primer párrafo real y si arranca con letra.
-                const dropCap = i === firstParaIdx && /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(trimmed)
+            {bloques.map((bloque, i) => {
+              if (bloque.tipo === 'imagen') {
+                const alt = bloque.alt || post.title
                 return (
-                  <p
+                  <figure
                     key={i}
-                    className={`text-[17px] leading-[1.8] text-gray-700 md:text-lg ${
-                      dropCap
-                        ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[3.4rem] first-letter:font-black first-letter:leading-[0.8] first-letter:text-[#1A5C38]'
-                      : ''
-                    }`}
+                    className="my-10 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
                   >
-                    {trimmed}
-                  </p>
+                    <div className="relative aspect-[4/3] w-full">
+                      <Image
+                        src={bloque.src}
+                        alt={alt}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 768px"
+                        className="object-cover"
+                      />
+                    </div>
+                    {bloque.alt && (
+                      <figcaption className="px-4 py-3 text-sm leading-relaxed text-gray-500">
+                        {bloque.alt}
+                      </figcaption>
+                    )}
+                  </figure>
                 )
-              })
-            })()}
+              }
+              if (bloque.tipo === 'titulo') {
+                return bloque.nivel === 3 ? (
+                  <h3 key={i} className="mb-1 mt-8 text-xl font-bold leading-snug text-gray-900">
+                    {enLinea(bloque.texto)}
+                  </h3>
+                ) : (
+                  <h2 key={i} className="mb-2 mt-12 text-[1.6rem] font-black leading-tight tracking-tight text-gray-900">
+                    {enLinea(bloque.texto)}
+                  </h2>
+                )
+              }
+              if (bloque.tipo === 'lista') {
+                const Lista = bloque.ordenada ? 'ol' : 'ul'
+                return (
+                  <Lista
+                    key={i}
+                    className={`${bloque.ordenada ? 'list-decimal' : 'list-disc'} space-y-2 pl-6 text-[17px] leading-[1.8] text-gray-700 marker:text-[#1A5C38] md:text-lg`}
+                  >
+                    {bloque.items.map((item, j) => (
+                      <li key={j} className="pl-1">
+                        {enLinea(item)}
+                      </li>
+                    ))}
+                  </Lista>
+                )
+              }
+              if (bloque.tipo === 'cita') {
+                return (
+                  <blockquote
+                    key={i}
+                    className="border-l-4 border-[#1A5C38]/40 pl-5 text-[17px] italic leading-[1.8] text-gray-600 md:text-lg"
+                  >
+                    {enLinea(bloque.texto)}
+                  </blockquote>
+                )
+              }
+              const dropCap = i === primerParrafo && /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(bloque.texto)
+              return (
+                <p
+                  key={i}
+                  className={`text-[17px] leading-[1.8] text-gray-700 md:text-lg ${
+                    dropCap
+                      ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[3.4rem] first-letter:font-black first-letter:leading-[0.8] first-letter:text-[#1A5C38]'
+                    : ''
+                  }`}
+                >
+                  {enLinea(bloque.texto)}
+                </p>
+              )
+            })}
           </div>
 
           {/* ── Crédito de la portada (medios locales / Wikimedia / municipios) ── */}

@@ -46,8 +46,13 @@ const CLICHES = [
   'la buena noticia es',
 ];
 
-// Organismos que no son de Santa Fe (errores reales de notas viejas).
-const FUERA_DE_SANTA_FE = [' abl ', 'arba', ' afip'];
+// Organismos que no son de Santa Fe (errores reales de notas viejas). Palabra
+// entera: con "arba" suelto rebotaba cualquier nota que dijera "barbacoa".
+const FUERA_DE_SANTA_FE: [RegExp, string][] = [
+  [/\babl\b/, 'ABL'],
+  [/\barba\b/, 'ARBA'],
+  [/\bafip\b/, 'AFIP'],
+];
 
 const HTML_PELIGROSO = /<\s*(script|iframe|object|embed|form|input)\b/i;
 
@@ -71,13 +76,17 @@ function esKebabCase(slug: string): boolean {
 
 export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
   const errores: string[] = [];
-  const contenidoLower = nota.contenido_markdown.toLowerCase();
+  // Si Claude devuelve el JSON sin contenido (o con otro tipo), se rechaza con
+  // su motivo y se reintenta; antes reventaba acá y el cron moría sin avisar.
+  const md = typeof nota.contenido_markdown === 'string' ? nota.contenido_markdown : '';
+  const titulo = typeof nota.titulo === 'string' ? nota.titulo : '';
+  const contenidoLower = md.toLowerCase();
 
   // ── Campos obligatorios ──
-  if (!nota.titulo || nota.titulo.trim().length === 0) {
+  if (titulo.trim().length === 0) {
     errores.push('titulo está vacío');
-  } else if (nota.titulo.length > 90) {
-    errores.push(`titulo excede 90 chars (tiene ${nota.titulo.length})`);
+  } else if (titulo.length > 90) {
+    errores.push(`titulo excede 90 chars (tiene ${titulo.length})`);
   }
 
   if (!nota.slug || nota.slug.trim().length === 0) {
@@ -98,7 +107,7 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
     errores.push(`bajada debe tener 80-200 chars (tiene ${nota.bajada.length})`);
   }
 
-  if (!nota.contenido_markdown || nota.contenido_markdown.trim().length === 0) {
+  if (md.trim().length === 0) {
     errores.push('contenido_markdown está vacío');
   }
 
@@ -119,8 +128,8 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
   }
 
   // ── Largo ──
-  if (nota.contenido_markdown) {
-    const palabras = contarPalabras(nota.contenido_markdown);
+  if (md) {
+    const palabras = contarPalabras(md);
     if (palabras < 500) {
       errores.push(`contenido muy corto: ${palabras} palabras (mínimo 500)`);
     } else if (palabras > 1150) {
@@ -152,21 +161,22 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
     }
   }
 
-  for (const org of FUERA_DE_SANTA_FE) {
-    if (` ${contenidoLower} `.includes(org)) {
-      errores.push(`"${org.trim().toUpperCase()}" no corresponde a Santa Fe (usar API, ARCA o tasa municipal)`);
+  for (const [org, nombre] of FUERA_DE_SANTA_FE) {
+    if (org.test(contenidoLower)) {
+      errores.push(`"${nombre}" no corresponde a Santa Fe (usar API, ARCA o tasa municipal)`);
     }
   }
 
   // ── Marcas de IA ──
-  const rayas = (nota.contenido_markdown.match(/—/g) || []).length;
+  const rayas = (md.match(/—/g) || []).length;
   if (rayas > 2) {
     errores.push(`demasiados incisos con raya (—): ${rayas}. Reescribí esas oraciones sin raya`);
   }
-  if (/si inmobiliaria/.test(nota.contenido_markdown.replace(/SI INMOBILIARIA/g, ''))) {
+  // Cualquier otra grafía ("Si Inmobiliaria", "si inmobiliaria") es error.
+  if (/si inmobiliaria/i.test(md.replace(/SI INMOBILIARIA/g, ''))) {
     errores.push('la marca se escribe "SI INMOBILIARIA" en mayúsculas');
   }
-  if (/^##\s+(introducci[oó]n|conclusi[oó]n|cierre|el contexto local)\s*$/im.test(nota.contenido_markdown)) {
+  if (/^##\s+(introducci[oó]n|conclusi[oó]n|cierre|el contexto local)\s*$/im.test(md)) {
     errores.push('subtítulo genérico (Introducción/Conclusión/Cierre): cada subtítulo tiene que decir algo concreto');
   }
 
@@ -177,38 +187,38 @@ export function validarNotaDraft(nota: NotaDraft): ValidacionResultado {
     const cta = CTAS.find((c) => c.id === nota.cta_usado)!;
     // terrenos admite /terrenos-funes o /terrenos-roldan según la nota.
     const link = cta.id === 'terrenos' ? '/terrenos-' : cta.link;
-    if (!nota.contenido_markdown.includes(`](${link}`)) {
+    if (!md.includes(`](${link}`)) {
       errores.push(`el cierre tiene que incluir el link de "${cta.id}" en markdown: [texto](${cta.link})`);
     }
   }
 
   // ── Estructura (mínimo 2 H2) ──
-  if (nota.contenido_markdown) {
-    const h2Count = (nota.contenido_markdown.match(/^## /gm) || []).length;
+  if (md) {
+    const h2Count = (md.match(/^## /gm) || []).length;
     if (h2Count < 2) {
       errores.push(`estructura insuficiente: ${h2Count} subtítulos H2 (mínimo 2)`);
     }
   }
 
   // ── Firma ──
-  if (nota.contenido_markdown) {
-    const ultimas200 = nota.contenido_markdown.slice(-600).toLowerCase();
+  if (md) {
+    const ultimas200 = md.slice(-600).toLowerCase();
     if (!ultimas200.includes('david flores')) {
       errores.push('falta firma de "David Flores" al final del contenido');
     }
   }
 
   // ── HTML peligroso ──
-  if (HTML_PELIGROSO.test(nota.contenido_markdown)) {
+  if (HTML_PELIGROSO.test(md)) {
     errores.push('contenido contiene HTML potencialmente peligroso (script, iframe, etc.)');
   }
 
   // ── Villa Flores: barrio prohibido como foco ──
   // Heurística: si aparece >2 veces o está en el título, se considera tema central
   const VILLA_FLORES_RE = /villa[-\s]?flores/gi;
-  const titleMatch = VILLA_FLORES_RE.test(nota.titulo);
+  const titleMatch = VILLA_FLORES_RE.test(titulo);
   VILLA_FLORES_RE.lastIndex = 0;
-  const bodyMatches = (nota.contenido_markdown.match(VILLA_FLORES_RE) || []).length;
+  const bodyMatches = (md.match(VILLA_FLORES_RE) || []).length;
   if (titleMatch || bodyMatches > 2) {
     errores.push('contiene foco en Villa Flores, que está prohibido');
   }

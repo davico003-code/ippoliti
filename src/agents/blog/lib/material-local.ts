@@ -57,7 +57,7 @@ function textoPlano(html: string): string {
 // matchean todo) y sin palabras vacías.
 function terminosDeBusqueda(tema: TemaPropuesto): string[] {
   const vacias = new Set(['funes', 'roldan', 'roldán', 'rosario', 'en', 'de', 'la', 'el', 'y', 'para', 'como', 'cómo', 'que', 'qué', '2025', '2026']);
-  const terminos = tema.keywords_seo
+  const terminos = (tema.keywords_seo ?? [])
     .map((k) => k.toLowerCase().split(/\s+/).filter((p) => !vacias.has(p)).join(' '))
     .filter((k) => k.length > 3);
   return Array.from(new Set(terminos)).slice(0, 3);
@@ -113,18 +113,28 @@ const TIPOS: Record<string, string> = {
 
 // Rangos de precio publicados hoy en la cartera, por ciudad, tipo y operación.
 async function resumenCartera(): Promise<string> {
-  const data = await getJson<{ objects: PropiedadFeed[] }>(`${HILO_FEED}/api/public/propiedades?limit=500`);
+  // Mismo tope que el resto del sitio (lib/developments.ts): con 500 la cartera
+  // quedaría cortada en silencio al crecer.
+  const data = await getJson<{ objects: PropiedadFeed[] }>(`${HILO_FEED}/api/public/propiedades?limit=1000`);
   if (!data?.objects?.length) return '';
   const grupos = new Map<string, number[]>();
   for (const p of data.objects) {
     const tipo = TIPOS[p.type?.name ?? ''];
     if (!tipo) continue;
     const partes = (p.location?.short_location ?? '').split('|').map((s) => s.trim());
-    const ciudad = partes.find((s) => /funes|rold[aá]n|rosario/i.test(s) && !/santa fe/i.test(s)) ?? partes[1] ?? '';
+    const encontrada = partes.find((s) => /funes|rold[aá]n|rosario/i.test(s) && !/santa fe/i.test(s)) ?? partes[1] ?? '';
+    // "Roldan" y "Roldán" son la misma ciudad: antes salían como dos grupos.
+    const ciudad = /^rold[aá]n$/i.test(encontrada) ? 'Roldán' : encontrada;
     for (const op of p.operations ?? []) {
-      for (const pr of op.prices) {
+      for (const pr of op.prices ?? []) {
+        if (!(pr.price > 0)) continue; // "consultar precio" no es un precio
         const operacion = op.operation_type === 'Rent' ? 'alquiler' : 'venta';
-        const dorm = tipo === 'casa' || tipo === 'departamento' ? ` ${p.suite_amount ?? '?'} dorm.` : '';
+        const dorm =
+          tipo === 'casa' || tipo === 'departamento'
+            ? p.suite_amount === 0
+              ? ' monoambiente'
+              : ` ${p.suite_amount ?? '?'} dorm.`
+            : '';
         const clave = `${ciudad} · ${tipo}${dorm} · ${operacion} · ${pr.currency}`;
         grupos.set(clave, [...(grupos.get(clave) ?? []), pr.price]);
       }

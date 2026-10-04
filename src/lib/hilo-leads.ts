@@ -56,6 +56,9 @@ export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<boolean>
       },
       body: JSON.stringify(payload),
       cache: 'no-store',
+      // Con tope: si Hilo se cuelga, la persona no puede quedar en "Enviando…"
+      // para siempre (el lead ya quedó guardado en Redis).
+      signal: AbortSignal.timeout(15_000),
     })
     // No logueamos el body de la respuesta: puede reflejar PII del lead a los
     // logs de Vercel. Solo el status.

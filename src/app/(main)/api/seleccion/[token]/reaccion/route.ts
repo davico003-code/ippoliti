@@ -27,7 +27,10 @@ export async function PATCH(
     if (!sel) return NextResponse.json({ error: 'Selección no encontrada' }, { status: 404 })
 
     const { propertyId, liked, wantVisit, comment, reaction, sugerida, tarjeta } = await req.json()
-    if (!propertyId) return NextResponse.json({ error: 'propertyId required' }, { status: 400 })
+    // Es la clave dentro de reacciones:{token} (la lee HILO): siempre un id corto en texto.
+    if (typeof propertyId !== 'string' || !propertyId || propertyId.length > 120 || propertyId === '_meta') {
+      return NextResponse.json({ error: 'propertyId required' }, { status: 400 })
+    }
 
     // Parecida que le gustó (o quiere visitar): se suma a la selección para que
     // el asesor la vea en HILO con su título, junto a las que eligió él.

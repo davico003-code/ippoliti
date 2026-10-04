@@ -39,7 +39,7 @@ const REGLAS: { patron: RegExp; cierre: (slug: string) => CierreNota }[] = [
     }),
   },
   {
-    patron: palabras('construc|obra|steel|seco|arquitect|mano-obra|ladrillo|aislacion|calefaccion|humedad|piletas|autosustentables|domotica|modulares'),
+    patron: palabras('construc|obra|steel|seco|arquitect|mano-obra|ladrillo|aislacion|calefaccion|humedad|piletas|autosustentables|domotica|modulares|cac(-|$)'),
     cierre: () => ({
       titulo: '¿Cuánto cuesta construir hoy?',
       texto: 'Mirá el valor actualizado del metro cuadrado de construcción según la calidad de terminación.',
@@ -69,10 +69,11 @@ const REGLAS: { patron: RegExp; cierre: (slug: string) => CierreNota }[] = [
     }),
   },
   {
-    patron: palabras('hipotec|credito|financiacion|tasas|dolar|mercado|inversion|invertir|rendir|pozo|m2|cac|tokeniz|desarrollo|precio-cerrado'),
+    patron: palabras('hipotec|credito|financiacion|tasas|dolar|mercado|inversion|invertir|rendir|pozo|m2|tokeniz|desarrollo|precio-cerrado'),
     cierre: () => ({
       titulo: 'Los números del mercado, al día',
-      texto: 'Dólar, costo de construcción y ajuste de alquileres, actualizados todos los meses en un solo tablero.',
+      // Lo que muestra /informes hoy (el costo de construcción no tiene fuente y no se ve).
+      texto: 'Dólar, inflación y el índice de ajuste de alquileres, actualizados cada semana en un solo tablero.',
       boton: 'Ver informes',
       href: '/informes',
     }),

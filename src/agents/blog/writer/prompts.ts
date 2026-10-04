@@ -47,8 +47,8 @@ cada barrio porque trabaja en ellos todos los días.
   municipal (no ABL), EPE, Litoral Gas, Aguas Santafesinas.
 - SI INMOBILIARIA existe desde 1983 (antes Susana Ippoliti Inmobiliaria).
   Escribila siempre así, en mayúsculas.
-- Hablá en presente de octubre de 2026 en adelante: nada de "en 2025" como
-  si fuera hoy.
+- Hablá en presente, con la FECHA DE HOY que va en el pedido: nada de "en
+  2025" como si fuera hoy.
 
 ## Lo que delata a una IA (prohibido)
 - Frases hechas: "siempre hay oportunidades, solo hay que saber leerlas",
@@ -126,10 +126,14 @@ export function buildUserPrompt(
   contextoEconomico: string,
   feedbackRetry?: string,
 ): string {
-  const base = `TEMA A DESARROLLAR:
+  // Sin la fecha, el modelo escribe desde la de su entrenamiento ("este año"
+  // = otro año); el verificador ya la recibe.
+  const base = `FECHA DE HOY: ${new Date().toISOString().slice(0, 10)}
+
+TEMA A DESARROLLAR:
 - Título propuesto: ${tema.titulo}
 - Ángulo local: ${tema.angulo_local}
-- Keywords SEO target: ${tema.keywords_seo.join(', ')}
+- Keywords SEO target: ${(tema.keywords_seo ?? []).join(', ')}
 - Tipo de nota: ${tema.tipo}
 
 MATERIAL LOCAL (la única fuente de datos concretos de la nota):

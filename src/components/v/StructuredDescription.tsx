@@ -43,6 +43,7 @@ function Block({ block }: { block: FormattedBlock }) {
               paddingLeft: 22,
               color: TEXTO,
               fontSize: 16,
+              fontWeight: 500,
               lineHeight: 1.6,
               marginBottom: i === block.items.length - 1 ? 0 : 6,
             }}
@@ -84,6 +85,9 @@ function Block({ block }: { block: FormattedBlock }) {
       style={{
         color: TEXTO,
         fontSize: 16,
+        // 500 y tinta oscura: la letra de lectura en 400 se veía finita y
+        // cansaba (regla de David 3-oct, misma que la ficha de la web).
+        fontWeight: 500,
         lineHeight: 1.65,
         margin: '0 0 12px',
       }}
@@ -107,11 +111,14 @@ export default function StructuredDescription({
 }) {
   const blocks = useMemo(() => {
     const parsed = formatDescription(text)
+    if (parsed.length === 0) {
+      const fallback = (text ?? '').trim()
+      return fallback ? ([{ type: 'paragraph', content: fallback }] as FormattedBlock[]) : []
+    }
+    // Si la descripción era solo el titular, no queda nada (antes caía al
+    // fallback y repetía el H1 abajo, en mayúsculas).
     if (omitirTituloInicial && parsed[0]?.type === 'title') parsed.shift()
-    if (parsed.length > 0) return parsed
-    const fallback = (text ?? '').trim()
-    if (!fallback) return []
-    return [{ type: 'paragraph', content: fallback }] as FormattedBlock[]
+    return parsed
   }, [text, omitirTituloInicial])
   const [expanded, setExpanded] = useState(false)
 

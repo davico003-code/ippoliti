@@ -356,7 +356,7 @@ export default function TierraNuevaPage() {
         </div>
       </section>
 
-      {/* ── Los <span className="font-numeric">3</span> edificios ── */}
+      {/* ── Los 3 edificios ── */}
       <section id="condos" className="scroll-mt-20 px-5 py-20 md:py-28">
         <div className="mx-auto max-w-6xl">
           <div className="mb-10 grid grid-cols-1 items-end gap-5 md:grid-cols-2 md:gap-12">

@@ -134,7 +134,11 @@ export default function HeroGallery({ photos, overlay }: { photos: string[]; ove
                     src={displayImageUrl(p)}
                     alt={`Foto ${i + 1}`}
                     fill
-                    sizes="100vw"
+                    // Mismo `sizes` que la portada del mosaico de la compu: las
+                    // dos llevan priority (se bajan aunque estén ocultas) y así
+                    // el navegador elige la MISMA versión y la baja una sola vez.
+                    // Con "100vw" la compu bajaba además una copia de ~3840 px.
+                    sizes="(min-width: 1024px) 55vw, 100vw"
                     priority={i === 0}
                     unoptimized={isExternalCdn(p)}
                     style={{ objectFit: 'cover' }}

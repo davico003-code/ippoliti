@@ -7,7 +7,9 @@ import { events } from '@/lib/analytics'
 function contarVistaEnHilo(propertyId: number) {
   try {
     if (navigator.webdriver) return
-    const dia = new Date().toISOString().slice(0, 10)
+    // Día de Argentina (UTC-3): con el día UTC, la misma persona contaba dos
+    // veces si miraba antes y después de las 21 h.
+    const dia = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10)
     const clave = `si:vista:${propertyId}`
     if (localStorage.getItem(clave) === dia) return
     localStorage.setItem(clave, dia)

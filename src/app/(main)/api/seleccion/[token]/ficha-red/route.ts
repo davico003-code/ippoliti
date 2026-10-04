@@ -17,7 +17,10 @@ export async function GET(req: NextRequest, { params }: { params: { token: strin
   const redId = redIdDe(req.nextUrl.searchParams.get('id') ?? '')
   if (!redId) return NextResponse.json({ error: 'id inválido' }, { status: 400 })
 
-  const clave = `seleccion:${params.token}:fichas-red`
+  // OJO: nada de `seleccion:<token>:…` — listarSelecciones recorre `seleccion:*`
+  // y hace GET de cada clave: un hash ahí da WRONGTYPE y rompía el panel de
+  // selecciones de los agentes (pasó en prod el 4-oct).
+  const clave = `seleccion-fichas-red:${params.token}`
   const guardada = await redis.hget<string>(clave, redId)
   if (guardada) return NextResponse.json({ fichaUrl: guardada })
 

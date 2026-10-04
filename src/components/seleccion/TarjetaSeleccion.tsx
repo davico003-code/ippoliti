@@ -60,10 +60,10 @@ export default function TarjetaSeleccion({
           <div className={`absolute inset-0 flex transition-transform duration-300 ease-out ${conFicha ? 'cursor-pointer' : ''}`}
             style={{ transform: `translateX(-${i * 100}%)` }} onClick={conFicha ? onFicha : undefined}>
             {fotos.map((src, n) => (
-              <div key={src + n} className="relative h-full w-full flex-none">
+              <div key={src + n} className="relative h-full w-full flex-none overflow-hidden">
                 {montadas.includes(n) && (
                   <Foto src={src} alt={n === 0 ? item.title : `${item.title} — foto ${n + 1}`}
-                    sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw" />
+                    sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw" logo={item.logo} />
                 )}
               </div>
             ))}
@@ -141,14 +141,14 @@ export default function TarjetaSeleccion({
           <div className="mt-3 border-t border-[#EEF1EF] pt-3">
             <div className="flex items-center gap-2">
               <button type="button" onClick={onVisita}
-                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition active:scale-95"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-semibold transition active:scale-95"
                 style={reaction.wantVisit ? { background: '#EAF3EE', borderColor: '#1A5C38', color: '#1A5C38' } : { background: '#fff', borderColor: '#E3E7E4', color: '#1C2620' }}>
                 {reaction.wantVisit ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <CalendarDays className="h-3.5 w-3.5" />}
                 {reaction.wantVisit ? 'Visita pedida' : 'Quiero visitarla'}
               </button>
               {!comentando && !reaction.comment && (
                 <button type="button" onClick={() => setComentando(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-[12.5px] font-semibold text-[#66736B] hover:text-[#1C2620]">
+                  className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full px-2 py-1.5 text-[13px] font-semibold text-[#66736B] hover:text-[#1C2620]">
                   <MessageCircle className="h-3.5 w-3.5" /> Comentar
                 </button>
               )}
@@ -156,7 +156,7 @@ export default function TarjetaSeleccion({
             {(comentando || !!reaction.comment) && (
               <textarea value={reaction.comment || ''} onChange={(e) => onComentario(e.target.value)} rows={2} autoFocus={comentando && !reaction.comment}
                 placeholder="Ej: me gusta la zona, ¿se puede ver el sábado?"
-                className="mt-2 w-full resize-none rounded-xl border border-[#E3E7E4] bg-[#FAFBFA] px-3 py-2 text-[13px] leading-snug text-[#1C2620] outline-none transition focus:border-[#1A5C38] focus:bg-white" />
+                className="mt-2 w-full resize-none rounded-xl border border-[#E3E7E4] bg-[#FAFBFA] px-3 py-2 text-[16px] leading-snug text-[#1C2620] outline-none transition focus:border-[#1A5C38] focus:bg-white" />
             )}
           </div>
         )}

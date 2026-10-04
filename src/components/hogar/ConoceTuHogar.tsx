@@ -44,7 +44,8 @@ function zonaPorNombre(catalogo: ZonaHogar[], nombre: string | null | undefined)
   return catalogo.find((z) => normal(z.nombre) === normal(nombre)) ?? null
 }
 
-type Resultado = { clave: string; items: ItemFeed[] }
+/** `fallo` = no se pudo buscar (sin señal, servidor caído): no es lo mismo que "no hay". */
+type Resultado = { clave: string; items: ItemFeed[]; fallo?: boolean }
 
 export default function ConoceTuHogar({
   catalogo,
@@ -68,6 +69,8 @@ export default function ConoceTuHogar({
   const [abierto, setAbierto] = useState(false)
   /** Tocó "Comenzá" con el barrio escrito pero sin elegir: se elige solo y el mazo abre cuando llega. */
   const [abrirAlLlegar, setAbrirAlLlegar] = useState(false)
+  /** Sube con "Reintentar" para volver a contar. */
+  const [intento, setIntento] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const buscadorRef = useRef<HTMLDivElement>(null)
   const guardadasApi = useGuardadas()
@@ -75,7 +78,8 @@ export default function ConoceTuHogar({
   const tipoInfo = TIPOS_HOGAR.find((t) => t.id === tipo)!
   const clave = zona ? `${zona.nombre}|${tipo}|${tope ?? ''}` : null
   const listo = resultado && resultado.clave === clave ? resultado : null
-  const cantidad = listo?.items.length ?? null
+  const fallo = !!listo?.fallo
+  const cantidad = listo && !fallo ? listo.items.length : null
   const filtradas = sugerirZonas(catalogo, query, tipo, 7)
   // Escribió algo que no está: se ofrecen las ciudades (nunca queda trabado).
   const sinCoincidencias = query.trim().length >= 3 && filtradas.length === 0
@@ -88,7 +92,9 @@ export default function ConoceTuHogar({
     if (tipo !== 'house') p.set('tipo', tipo)
     if (tope) p.set('tope', String(tope))
     const qs = p.toString()
-    window.history.replaceState(window.history.state, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
+    // `null` y no `window.history.state`: ese trae la marca interna de Next y el
+    // router no se enteraba del cambio; al re-renderizar volvía a la URL vieja.
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
   }, [zona, tipo, tope])
 
   // Se cuenta apenas elige (así el botón dice cuántas hay y el mazo abre al toque).
@@ -98,29 +104,39 @@ export default function ConoceTuHogar({
     const p = new URLSearchParams({ zona: zona.nombre, tipo })
     if (tope) p.set('tope', String(tope))
     fetch(`/api/propiedades/hogar?${p.toString()}`, { signal: ctrl.signal })
-      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
       .then((d: { items?: ItemFeed[] }) => setResultado({ clave, items: Array.isArray(d.items) ? d.items : [] }))
       .catch((e) => {
-        if (e?.name !== 'AbortError') setResultado({ clave, items: [] })
+        // Sin señal o el servidor no respondió: se ofrece reintentar (antes decía "Todavía no tenemos").
+        if (e?.name !== 'AbortError') setResultado({ clave, items: [], fallo: true })
       })
     return () => ctrl.abort()
-  }, [zona, tipo, tope, clave])
+  }, [zona, tipo, tope, clave, intento])
+
+  const reintentar = () => {
+    setResultado(null)
+    setIntento((i) => i + 1)
+  }
 
   useEffect(() => {
     if (!abrirAlLlegar || !listo || !zona) return
     setAbrirAlLlegar(false)
-    if (listo.items.length === 0) return
+    if (listo.fallo || listo.items.length === 0) return
     trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, cantidad: listo.items.length })
     setAbierto(true)
   }, [abrirAlLlegar, listo, zona, tipo, tope])
 
-  // Cerrar las sugerencias al tocar afuera.
+  // Cerrar las sugerencias al tocar afuera. pointerdown (no mousedown): en el
+  // iPhone un toque en una parte "no clickeable" de la página no dispara mousedown.
   useEffect(() => {
-    const onDown = (e: MouseEvent) => {
+    const onDown = (e: PointerEvent) => {
       if (buscadorRef.current && !buscadorRef.current.contains(e.target as Node)) setSugerencias(false)
     }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
   }, [])
 
   const elegirZona = (z: ZonaHogar) => {
@@ -131,6 +147,12 @@ export default function ConoceTuHogar({
   }
 
   const comenzar = () => {
+    // Escribió otro barrio (sin tocarlo en la lista) teniendo uno elegido: manda lo escrito.
+    if (zona && query.trim().length >= 2 && filtradas[0] && filtradas[0].nombre !== zona.nombre) {
+      elegirZona(filtradas[0])
+      setAbrirAlLlegar(true)
+      return
+    }
     if (!zona) {
       // Escribió el barrio pero no lo tocó en la lista: se toma la primera sugerencia.
       if (filtradas[0]) {
@@ -145,6 +167,10 @@ export default function ConoceTuHogar({
     }
     // Todavía contando: abre solo apenas llega.
     if (!listo) return setAbrirAlLlegar(true)
+    if (listo.fallo) {
+      reintentar()
+      return setAbrirAlLlegar(true)
+    }
     if (listo.items.length === 0) return
     trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, cantidad: listo.items.length })
     setAbierto(true)
@@ -293,6 +319,17 @@ export default function ConoceTuHogar({
           </p>
         )}
 
+        {zona && fallo && (
+          <div className="mt-5 rounded-2xl bg-[#FFF7E8] px-4 py-3.5" role="alert">
+            <p className="text-[15px] font-semibold text-[#7A5A16]">No pudimos buscar ahora. Revisá tu conexión y probá de nuevo.</p>
+            <div className="mt-2.5">
+              <button type="button" onClick={reintentar} className={chipOff}>
+                Reintentar
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Sin resultados: nunca un callejón sin salida, se ofrece cómo ampliar. */}
         {zona && cantidad === 0 && (
           <div className="mt-5 rounded-2xl bg-[#F6F8F6] px-4 py-3.5">
@@ -317,12 +354,14 @@ export default function ConoceTuHogar({
       </div>
 
       <BarraFija>
-        <button type="button" onClick={comenzar} className={cls.cta} aria-describedby="hogar-cantidad">
+        <button type="button" onClick={comenzar} className={cls.cta} aria-describedby="hogar-cantidad" disabled={cantidad === 0 && !query.trim()}>
           Comenzá la experiencia <IconoFlecha />
         </button>
         <p id="hogar-cantidad" className={`${cls.fine} mt-1.5 flex min-h-[18px] items-center justify-center gap-2`} aria-live="polite">
           {!zona ? (
             'Deslizá las que te gusten y guardalas con ♥'
+          ) : fallo ? (
+            'No pudimos buscar. Tocá para reintentar.'
           ) : cantidad == null ? (
             <>
               <span className="[&>span]:h-3.5 [&>span]:w-3.5 [&>span]:border-[#17613C]/30 [&>span]:border-t-[#17613C]">

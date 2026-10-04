@@ -121,7 +121,7 @@ function VistaRapida({ item }: { item: SeleccionItem }) {
         <div className="mt-5 grid gap-3">
           {item.photos.map((src, n) => (
             <div key={src + n} className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-[#EEF1EF]">
-              <Foto src={src} alt={`${item.title} — foto ${n + 1}`} sizes="(max-width: 767px) 100vw, 760px" eager={n < 2} />
+              <Foto src={src} alt={`${item.title} — foto ${n + 1}`} sizes="(max-width: 767px) 100vw, 760px" eager={n < 2} logo={item.logo} />
             </div>
           ))}
         </div>
