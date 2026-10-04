@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import HeroSearch from './HeroSearch'
 import HeroVideoDesktop from './home/HeroVideoDesktop'
 import CiudadRotativa from './home/CiudadRotativa'
@@ -46,21 +45,6 @@ export default function HeroVideo() {
           <div className="portada-in portada-buscador" style={{ ['--d' as string]: '680ms' }}>
             <HeroSearch />
           </div>
-          {/* La otra puerta, más chica a propósito: el mazo tipo Tinder por zona. */}
-          <Link
-            href="/conoce-tu-hogar"
-            className="portada-in mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-white underline decoration-white/60 underline-offset-[5px] transition-colors hover:bg-white/10"
-            style={{
-              ['--d' as string]: '820ms',
-              fontFamily: 'var(--font-raleway), Raleway, sans-serif',
-              fontWeight: 700,
-              fontSize: 17,
-              textShadow: '0 2px 12px rgba(0,0,0,0.5)',
-            }}
-          >
-            <span aria-hidden="true" style={{ color: '#FF6B8E', textDecoration: 'none' }}>♥</span>
-            Conocé tu próximo hogar
-          </Link>
         </div>
       </div>
 
