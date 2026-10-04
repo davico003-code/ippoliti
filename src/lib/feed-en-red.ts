@@ -34,6 +34,10 @@ export type TarjetaEnRed = {
   masVista: boolean
   /** Rincón donde la inmobiliaria imprime su logo (MA abajo-izq, Crestale abajo-der). */
   logo?: PosicionLogo | null
+  /** La calle como la publica el aviso ("Espora al 3700"), sin ciudad. */
+  direccion?: string | null
+  /** Ciudad del aviso ("Funes", "Roldán"). */
+  ciudad?: string | null
 }
 
 export type FeedEnRed = { barrio: string | null; tarjetas: TarjetaEnRed[] }
@@ -52,6 +56,24 @@ export type ItemFeed = {
   href: string | null
   masVista: boolean
   logo?: PosicionLogo | null
+  /** "Espora al 3700 | Funes" / "Lote 058 | Vida | Funes" (David, 4-oct: "no te marca la dirección"). */
+  direccion?: string | null
+}
+
+/** "Calle | Barrio | Ciudad" sin repetir ("Funes | Funes" → "Funes"; "Kentucky" ≈ "Kentucky Club de Campo"). */
+export function lineaDireccion(partes: (string | null | undefined)[]): string | null {
+  const out: string[] = []
+  for (const p of partes) {
+    const t = p?.replace(/\s+/g, ' ').trim()
+    if (!t) continue
+    const n = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    const repetida = out.some((o) => {
+      const m = o.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      return m === n || mismoBarrio(o, t)
+    })
+    if (!repetida) out.push(t)
+  }
+  return out.length ? out.join(' | ') : null
 }
 
 /** "Casa · 3 dorm · 2 baños · 226 m²" */
@@ -79,6 +101,7 @@ export function itemDeEnRed(t: TarjetaEnRed): ItemFeed {
     href: null,
     masVista: t.masVista,
     logo: t.logo ?? null,
+    direccion: lineaDireccion([t.direccion, t.zona, t.ciudad]),
   }
 }
 

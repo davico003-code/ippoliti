@@ -16,7 +16,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import Link from 'next/link'
-import { X } from 'lucide-react'
+import { MapPin, X } from 'lucide-react'
 import {
   type GuardadaLocal,
   type ItemFeed,
@@ -252,12 +252,15 @@ export function Tarjeta({
           )}
         </div>
         {item.datos && <p className="text-[15px] mt-1.5 text-gray-700 font-poppins">{item.datos}</p>}
+        {(item.direccion || item.zona) && (
+          <p className="text-[14px] mt-1 flex items-center gap-1.5 min-w-0 text-gray-800">
+            <MapPin className="w-4 h-4 flex-none text-gray-500" aria-hidden="true" />
+            <span className="truncate">{item.direccion || item.zona}</span>
+          </p>
+        )}
         <p className="text-[13px] mt-1 flex items-center gap-1.5 min-w-0 text-gray-500">
           {item.esNuestra ? <Sello /> : <IconoRed className="w-4 h-4 flex-none" />}
-          <span className="truncate">
-            {item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}
-            {item.zona ? ` · ${item.zona}` : ''}
-          </span>
+          <span className="truncate">{item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}</span>
         </p>
       </div>
     </div>

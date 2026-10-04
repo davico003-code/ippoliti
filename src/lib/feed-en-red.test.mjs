@@ -72,3 +72,11 @@ test('sugerirZonas: "Los tronco" encuentra Los Troncos (el caso de David)', asyn
   assert.deepEqual(sugerirZonas(cat, 'fun', 'house').map((z) => z.nombre), ['Funes'])
   assert.deepEqual(sugerirZonas(cat, 'x', 'house'), [])
 })
+
+test('lineaDireccion: calle | barrio | ciudad sin repetir', async () => {
+  const { lineaDireccion } = await import('./feed-en-red.ts')
+  assert.equal(lineaDireccion(['Espora al 3700', 'Funes', 'Funes']), 'Espora al 3700 | Funes')
+  assert.equal(lineaDireccion(['Av. Arturo Illia 1515', 'San Sebastián', 'Funes']), 'Av. Arturo Illia 1515 | San Sebastián | Funes')
+  assert.equal(lineaDireccion([null, 'Kentucky', 'Funes']), 'Kentucky | Funes')
+  assert.equal(lineaDireccion([null, null, null]), null)
+})
