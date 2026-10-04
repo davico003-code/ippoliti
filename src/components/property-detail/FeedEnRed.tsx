@@ -122,116 +122,170 @@ function Chip({ nuestra }: { nuestra: boolean }) {
 
 type Arrastre = { dx: number; dy: number }
 
+/** Cuántos pares de fotos tiene (se muestran de a 2, una arriba de la otra). */
+const paresDe = (item: ItemFeed) => Math.max(1, Math.ceil(item.fotos.length / 2))
+
 /**
- * Una tarjeta del mazo. La de arriba se arrastra; la de abajo asoma un poco
- * más chica (así se ve que hay más). Tocar la mitad izquierda/derecha de la
- * foto cambia de foto, como en Tinder.
+ * Una tarjeta del mazo. Las fotos de las casas son apaisadas: en una tarjeta
+ * vertical, UNA foto queda recortada y agrandada ("estirada", David 3-oct).
+ * Por eso van de a DOS, una arriba de la otra, cada una casi en su forma, y
+ * los datos abajo sobre blanco. Tocar el costado de las fotos pasa al
+ * siguiente par (barritas arriba). La de arriba se arrastra; la de abajo
+ * asoma un poco más chica; 'quieta' = la de la ficha (no se arrastra).
  */
 function Tarjeta({
   item,
-  arriba,
+  modo,
   guardada,
   arrastre,
   salida,
   onPointerDown,
   onPointerMove,
   onPointerUp,
-  foto,
+  par,
 }: {
   item: ItemFeed
-  arriba: boolean
+  modo: 'arriba' | 'abajo' | 'quieta'
   guardada: boolean
   arrastre: Arrastre | null
   salida: 'like' | 'pass' | null
   onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void
   onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void
   onPointerUp?: (e: React.PointerEvent<HTMLDivElement>) => void
-  foto: number
+  par: number
 }) {
+  const arriba = modo === 'arriba'
   const dx = arrastre?.dx ?? 0
-  const transform = !arriba
-    ? 'scale(0.95) translateY(10px)'
-    : salida
-      ? `translateX(${salida === 'like' ? 140 : -140}%) rotate(${salida === 'like' ? 18 : -18}deg)`
-      : arrastre
-        ? `translateX(${dx}px) translateY(${(arrastre.dy ?? 0) * 0.15}px) rotate(${dx / 18}deg)`
-        : 'none'
+  const transform =
+    modo === 'abajo'
+      ? 'scale(0.95) translateY(10px)'
+      : salida
+        ? `translateX(${salida === 'like' ? 140 : -140}%) rotate(${salida === 'like' ? 18 : -18}deg)`
+        : arrastre
+          ? `translateX(${dx}px) translateY(${(arrastre.dy ?? 0) * 0.15}px) rotate(${dx / 18}deg)`
+          : 'none'
   const transicion = arriba && arrastre && !salida ? 'none' : `transform ${DURACION_SALIDA}ms ease-out`
   const fuerza = Math.min(1, Math.abs(dx) / UMBRAL_SWIPE)
-  const fotoActual = item.fotos[Math.min(foto, item.fotos.length - 1)]
+  const n = item.fotos.length
+  const pares = paresDe(item)
+  const p = Math.min(par, pares - 1)
+  // El último par de una cantidad impar vuelve a la primera foto: nunca una sola estirada.
+  const fotos = n > 1 ? [item.fotos[(p * 2) % n], item.fotos[(p * 2 + 1) % n]] : item.fotos.slice(0, 1)
 
   return (
     <div
-      className={`absolute inset-0 rounded-3xl overflow-hidden bg-gray-100 border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.10)] select-none ${arriba ? 'cursor-grab active:cursor-grabbing' : ''}`}
-      style={{ transform, transition: transicion, touchAction: 'none' }}
+      className={`absolute inset-0 flex flex-col rounded-3xl overflow-hidden bg-white border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.10)] select-none ${arriba ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      style={{ transform, transition: transicion, touchAction: arriba ? 'none' : undefined }}
       onPointerDown={arriba ? onPointerDown : undefined}
       onPointerMove={arriba ? onPointerMove : undefined}
       onPointerUp={arriba ? onPointerUp : undefined}
       onPointerCancel={arriba ? onPointerUp : undefined}
-      aria-hidden={!arriba}
+      aria-hidden={modo === 'abajo'}
     >
-      {fotoActual && (
-        <Image src={fotoActual} alt={`${item.titulo} — foto ${foto + 1}`} fill draggable={false} sizes="(max-width: 480px) 100vw, 440px" className="object-cover pointer-events-none" priority={arriba} />
-      )}
+      {/* Fotos de a dos */}
+      <div data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[3px] bg-white">
+        {fotos.map((src, i) => (
+          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-gray-100">
+            <Image
+              src={src}
+              alt={`${item.titulo} — foto ${p * 2 + i + 1}`}
+              fill
+              draggable={false}
+              sizes="(max-width: 480px) 100vw, 440px"
+              className="object-cover pointer-events-none"
+              priority={modo !== 'abajo' && i === 0}
+            />
+          </div>
+        ))}
 
-      {/* Barritas de fotos, como en Tinder */}
-      {item.fotos.length > 1 && (
-        <div className="absolute top-2.5 left-3 right-3 flex gap-1">
-          {item.fotos.map((_, i) => (
-            <span key={i} className={`h-1 flex-1 rounded-full ${i === foto ? 'bg-white' : 'bg-white/45'}`} />
-          ))}
+        {/* Barritas: una por par de fotos */}
+        {pares > 1 && (
+          <div className="absolute top-2.5 left-3 right-3 flex gap-1">
+            {Array.from({ length: pares }, (_, i) => (
+              <span key={i} className={`h-1 flex-1 rounded-full shadow-sm ${i === p ? 'bg-white' : 'bg-white/50'}`} />
+            ))}
+          </div>
+        )}
+        <div className="absolute top-6 left-3 flex items-center gap-2">
+          <Chip nuestra={item.esNuestra} />
+          {item.masVista && (
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/95 text-gray-900 shadow-sm">De las más vistas</span>
+          )}
         </div>
-      )}
-      <div className="absolute top-6 left-3 flex items-center gap-2">
-        <Chip nuestra={item.esNuestra} />
-        {item.masVista && (
-          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/90 text-gray-900 shadow-sm">De las más vistas</span>
+        {guardada && (
+          <div className="absolute top-6 right-3 text-[#E0245E] drop-shadow">
+            <Corazon lleno className="w-7 h-7" />
+          </div>
+        )}
+
+        {/* Sellos mientras arrastra */}
+        {arriba && dx > 8 && (
+          <span
+            className="absolute top-16 left-5 -rotate-12 rounded-xl border-4 px-3 py-1 text-2xl font-black tracking-wide font-raleway bg-white/85"
+            style={{ borderColor: VERDE, color: VERDE, opacity: fuerza }}
+          >
+            ME GUSTA
+          </span>
+        )}
+        {arriba && dx < -8 && (
+          <span className="absolute top-16 right-5 rotate-12 rounded-xl border-4 border-gray-500 px-3 py-1 text-2xl font-black tracking-wide text-gray-600 font-raleway bg-white/85" style={{ opacity: fuerza }}>
+            PASO
+          </span>
         )}
       </div>
-      {guardada && (
-        <div className="absolute top-6 right-3 text-[#E0245E] drop-shadow">
-          <Corazon lleno className="w-7 h-7" />
-        </div>
-      )}
 
-      {/* Sellos mientras arrastra */}
-      {arriba && dx > 8 && (
-        <span
-          className="absolute top-16 left-5 -rotate-12 rounded-xl border-4 px-3 py-1 text-2xl font-black tracking-wide font-raleway bg-white/80"
-          style={{ borderColor: VERDE, color: VERDE, opacity: fuerza }}
-        >
-          ME GUSTA
-        </span>
-      )}
-      {arriba && dx < -8 && (
-        <span className="absolute top-16 right-5 rotate-12 rounded-xl border-4 border-gray-500 px-3 py-1 text-2xl font-black tracking-wide text-gray-600 font-raleway bg-white/80" style={{ opacity: fuerza }}>
-          PASO
-        </span>
-      )}
-
-      {/* Datos sobre la foto */}
-      <div className="absolute inset-x-0 bottom-0 pt-16 pb-4 px-4 bg-gradient-to-t from-black/75 via-black/35 to-transparent text-white">
-        <p className="text-[28px] font-black font-numeric leading-none drop-shadow">{item.precio}</p>
-        {item.datos && <p className="text-[15px] mt-1.5 font-poppins drop-shadow">{item.datos}</p>}
-        <div className="flex items-center justify-between gap-2 mt-2">
-          <p className="text-sm flex items-center gap-1.5 min-w-0">
-            {item.esNuestra ? <Sello /> : <IconoRed className="w-4 h-4 flex-none" />}
-            <span className="truncate">
-              {item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}
-              {item.zona ? ` · ${item.zona}` : ''}
-            </span>
-          </p>
+      {/* Datos sobre blanco */}
+      <div className="flex-none px-4 pt-3 pb-3.5 bg-white">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-[24px] font-black font-numeric leading-none text-gray-900">{item.precio}</p>
+          {/* Solo en el mazo abierto: en la ficha la tarjeta entera es un botón (no se anida un link). */}
           {item.href && arriba && (
             <Link
               href={item.href}
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex-none rounded-full bg-white/90 text-gray-900 text-xs font-bold px-3 py-1.5"
+              onClick={(e) => e.stopPropagation()}
+              className="flex-none text-xs font-bold font-raleway"
+              style={{ color: VERDE }}
             >
               Ver ficha
             </Link>
           )}
         </div>
+        {item.datos && <p className="text-[15px] mt-1.5 text-gray-700 font-poppins">{item.datos}</p>}
+        <p className="text-[13px] mt-1 flex items-center gap-1.5 min-w-0 text-gray-500">
+          {item.esNuestra ? <Sello /> : <IconoRed className="w-4 h-4 flex-none" />}
+          <span className="truncate">
+            {item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}
+            {item.zona ? ` · ${item.zona}` : ''}
+          </span>
+        </p>
       </div>
+    </div>
+  )
+}
+
+function BotonesTinder({ onPaso, onMeGusta, chicos = false }: { onPaso: () => void; onMeGusta: () => void; chicos?: boolean }) {
+  const tam = chicos ? 'w-14 h-14' : 'w-16 h-16'
+  const icono = chicos ? 'w-7 h-7' : 'w-8 h-8'
+  return (
+    <div className="flex items-center justify-center gap-8">
+      <button
+        type="button"
+        onClick={onPaso}
+        aria-label="Paso"
+        className={`${tam} rounded-full bg-white border border-gray-200 shadow-[0_6px_18px_rgba(0,0,0,0.10)] grid place-items-center text-gray-500 active:scale-90 transition-transform`}
+      >
+        <X className={icono} strokeWidth={2.6} />
+      </button>
+      <button
+        type="button"
+        onClick={onMeGusta}
+        aria-label="Me gusta"
+        className={`${tam} rounded-full bg-white border border-gray-200 shadow-[0_6px_18px_rgba(0,0,0,0.10)] grid place-items-center active:scale-90 transition-transform`}
+        style={{ color: ROSA }}
+      >
+        <Corazon lleno className={icono} />
+      </button>
     </div>
   )
 }
@@ -328,23 +382,24 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     const dy = e.clientY - ini.y
     if (Math.abs(dx) > UMBRAL_SWIPE) return decidir(dx > 0 ? 'like' : 'pass')
     setArrastre(null)
-    // Un toque (sin arrastrar): mitad izquierda = foto anterior, derecha = siguiente.
-    if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && actual.fotos.length > 1) {
-      const r = e.currentTarget.getBoundingClientRect()
-      const derecha = e.clientX - r.left > r.width / 2
-      setFoto((f) => (derecha ? Math.min(f + 1, actual.fotos.length - 1) : Math.max(f - 1, 0)))
+    // Un toque (sin arrastrar) sobre las fotos: mitad izquierda = par anterior, derecha = siguiente.
+    const pares = paresDe(actual)
+    const zona = e.currentTarget.querySelector('[data-fotos]')?.getBoundingClientRect()
+    if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && pares > 1 && zona && e.clientY >= zona.top && e.clientY <= zona.bottom) {
+      const derecha = e.clientX - zona.left > zona.width / 2
+      setFoto((f) => (derecha ? Math.min(f + 1, pares - 1) : Math.max(f - 1, 0)))
     }
   }
 
-  const abrir = (key: string | null) => {
-    const i = key ? items.findIndex((it) => it.key === key) : 0
-    setIndice(i >= 0 ? i : 0)
+  const abrirEn = (i: number) => {
+    setIndice(Math.max(0, i))
     setFoto(0)
     setArrastre(null)
     setSalida(null)
     setAbierto(true)
     trackEvent('feed_en_red_abrir', { cantidad: items.length })
   }
+  const abrir = (key: string | null) => abrirEn(key ? items.findIndex((it) => it.key === key) : 0)
   const cerrarTodo = () => {
     setHoja(null)
     setAbierto(false)
@@ -388,40 +443,31 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
         <p className="text-sm text-gray-600 mt-1 mb-4 max-w-2xl">
           Algunas las publican otras inmobiliarias. Te las mostramos y te coordinamos la visita nosotros.
         </p>
-        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x [scrollbar-width:thin]">
-          {enRed.map((it) => (
+        {items[0] && (
+          <div className="max-w-[420px]">
             <button
-              key={it.key}
               type="button"
-              onClick={() => abrir(it.key)}
-              className="group relative flex-none w-44 sm:w-52 snap-start text-left rounded-xl overflow-hidden border border-gray-100 bg-white hover:ring-2 hover:ring-[#1A5C38] focus-visible:ring-2 focus-visible:ring-[#1A5C38] outline-none"
+              onClick={() => abrirEn(0)}
+              aria-label={`Ver ${titulo.toLowerCase()}`}
+              className="relative block w-full h-[470px] text-left rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-[#1A5C38]"
             >
-              <div className="relative aspect-[4/3] bg-gray-100">
-                <Image src={it.fotos[0]} alt={it.titulo} fill sizes="208px" className="object-cover" />
-                <div className="absolute top-2 left-2">
-                  <Chip nuestra={false} />
-                </div>
-                {montado && esGuardada(it.key) && (
-                  <div className="absolute top-2 right-2 text-[#E0245E] drop-shadow">
-                    <Corazon lleno className="w-6 h-6" />
-                  </div>
-                )}
-              </div>
-              <div className="p-2.5">
-                <p className="font-black text-gray-900 font-numeric leading-tight">{it.precio}</p>
-                <p className="text-xs text-gray-600 mt-0.5 line-clamp-1">{it.datos}</p>
-              </div>
+              <Tarjeta item={items[0]} modo="quieta" guardada={montado && esGuardada(items[0].key)} arrastre={null} salida={null} par={0} />
             </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => abrir(null)}
-          className="mt-3 w-full sm:w-auto px-5 py-3 rounded-xl text-white font-bold font-raleway text-sm"
-          style={{ background: VERDE }}
-        >
-          Ver las {n} · deslizá y guardá las que te gusten
-        </button>
+            <div className="mt-4">
+              <BotonesTinder
+                chicos
+                onPaso={() => abrirEn(1)}
+                onMeGusta={() => {
+                  guardar(items[0])
+                  abrirEn(1)
+                }}
+              />
+            </div>
+            <p className="mt-2.5 text-center text-xs text-gray-500">
+              {n} para ver · deslizá a la derecha las que te gusten
+            </p>
+          </div>
+        )}
       </section>
 
       {montado &&
@@ -450,15 +496,15 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
               <div className="relative flex-1 mx-4 min-h-0">
                 {!terminado && actual ? (
                   <>
-                    {siguiente && <Tarjeta key={siguiente.key} item={siguiente} arriba={false} guardada={esGuardada(siguiente.key)} arrastre={null} salida={null} foto={0} />}
+                    {siguiente && <Tarjeta key={siguiente.key} item={siguiente} modo="abajo" guardada={esGuardada(siguiente.key)} arrastre={null} salida={null} par={0} />}
                     <Tarjeta
                       key={actual.key}
                       item={actual}
-                      arriba
+                      modo="arriba"
                       guardada={esGuardada(actual.key)}
                       arrastre={arrastre}
                       salida={salida}
-                      foto={foto}
+                      par={foto}
                       onPointerDown={onPointerDown}
                       onPointerMove={onPointerMove}
                       onPointerUp={onPointerUp}
@@ -499,27 +545,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
 
               {/* Botones ✕ / ♥ y contacto */}
               <div className="px-4 pt-4 pb-[max(14px,env(safe-area-inset-bottom))]">
-                {!terminado && (
-                  <div className="flex items-center justify-center gap-8">
-                    <button
-                      type="button"
-                      onClick={() => decidir('pass')}
-                      aria-label="Paso"
-                      className="w-16 h-16 rounded-full bg-white border border-gray-200 shadow-[0_6px_18px_rgba(0,0,0,0.10)] grid place-items-center text-gray-500 active:scale-90 transition-transform"
-                    >
-                      <X className="w-8 h-8" strokeWidth={2.6} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => decidir('like')}
-                      aria-label="Me gusta"
-                      className="w-16 h-16 rounded-full bg-white border border-gray-200 shadow-[0_6px_18px_rgba(0,0,0,0.10)] grid place-items-center active:scale-90 transition-transform"
-                      style={{ color: ROSA }}
-                    >
-                      <Corazon lleno className="w-8 h-8" />
-                    </button>
-                  </div>
-                )}
+                {!terminado && <BotonesTinder onPaso={() => decidir('pass')} onMeGusta={() => decidir('like')} />}
                 {!terminado &&
                   (g > 0 ? (
                     <button type="button" onClick={() => setHoja({ motivo: 'boton' })} className="mt-3 w-full h-11 rounded-2xl font-bold text-sm border-2" style={{ borderColor: VERDE, color: VERDE }}>
