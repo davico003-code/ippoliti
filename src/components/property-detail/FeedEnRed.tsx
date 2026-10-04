@@ -473,19 +473,32 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     } catch {
       /* sin almacenamiento */
     }
-    const raiz = seccionRef.current!
-    const ubicacion = Array.from(document.querySelectorAll<HTMLElement>('[id="ubicacion"]')).find((el) => el.getClientRects().length > 0)
+    // Se mira en cada scroll (y no con un observer armado una vez) porque
+    // "Ubicación" es el mapa y se monta tarde: al cargar el feed todavía no está.
+    // capture:true agarra también el scroll del panel de la compu (no es window).
     let demora: number | undefined
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.target === raiz) setBloqueALaVista(e.isIntersecting)
-        else if (e.isIntersecting && demora === undefined) demora = window.setTimeout(() => setRecorrio(true), 1500)
-      }
-    })
-    io.observe(raiz)
-    if (ubicacion) io.observe(ubicacion)
+    let cuadro = 0
+    const revisar = () => {
+      cuadro = 0
+      const raiz = seccionRef.current
+      if (!raiz) return
+      const alto = window.innerHeight
+      const r = raiz.getBoundingClientRect()
+      setBloqueALaVista(r.top < alto && r.bottom > 0)
+      if (demora !== undefined) return
+      const ubicacion = Array.from(document.querySelectorAll<HTMLElement>('[id="ubicacion"]')).find((el) => el.getClientRects().length > 0)
+      // Sin "Ubicación" (raro): cuando le falta menos de una pantalla y media para el bloque.
+      const llego = ubicacion ? ubicacion.getBoundingClientRect().top < alto : r.top < alto * 2.5
+      if (llego) demora = window.setTimeout(() => setRecorrio(true), 1500)
+    }
+    const onScroll = () => {
+      if (!cuadro) cuadro = window.setTimeout(revisar, 120)
+    }
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    revisar()
     return () => {
-      io.disconnect()
+      document.removeEventListener('scroll', onScroll, { capture: true })
+      window.clearTimeout(cuadro)
       window.clearTimeout(demora)
     }
   }, [montado, enRed.length])
