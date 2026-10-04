@@ -25,11 +25,13 @@ export interface PropiedadExternaSnapshot {
   lng?: number | null
 }
 
-interface SeleccionProperty {
+export interface SeleccionProperty {
   id: string
   url: string
   note: string
   source?: 'externa'
+  /** Parecida que el cliente marcó desde su selección (no la eligió el asesor). */
+  origen?: 'sugerida'
   snapshot?: PropiedadExternaSnapshot
 }
 
@@ -106,6 +108,22 @@ export async function getSeleccion(token: string) {
   const raw = await redis.get<string>(`seleccion:${token}`)
   if (!raw) return null
   return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+/**
+ * Suma a la selección una parecida que al cliente le gustó, así el asesor la ve
+ * en HILO junto a las que eligió él. Conserva el TTL que haya puesto HILO.
+ * Tope de 40 para que un token filtrado no pueda inflarla sin fin.
+ */
+export async function sumarASeleccion(token: string, prop: SeleccionProperty): Promise<boolean> {
+  const sel = await getSeleccion(token)
+  if (!sel) return false
+  const props: SeleccionProperty[] = sel.properties ?? []
+  if (props.some((p) => p.id === prop.id)) return true
+  if (props.length >= 40) return false
+  sel.properties = [...props, prop]
+  await redis.set(`seleccion:${token}`, JSON.stringify(sel), { keepTtl: true })
+  return true
 }
 
 export async function getReacciones(token: string) {
