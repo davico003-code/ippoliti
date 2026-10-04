@@ -22,6 +22,7 @@ import {
 import { trackEvent } from '@/lib/analytics'
 import { BarraFija, IconoFlecha, Spinner, cls } from '@/components/tasaciones/ui'
 import MazoCasas, { ROSA, useGuardadas } from '@/components/mazo/MazoCasas'
+import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
 const chip = 'si-tap inline-flex h-11 items-center whitespace-nowrap rounded-full border-[1.5px] px-[15px] text-[14.5px] font-semibold transition-colors motion-reduce:transition-none'
 const chipOff = `${chip} border-[#E1E6E1] bg-white text-[#3C4A42] hover:border-[#17613C]/50`
@@ -385,6 +386,7 @@ export default function ConoceTuHogar({
           guardadasApi={guardadasApi}
           origen="home"
           busqueda={busqueda}
+          cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipo, tope, yaVistas)}
           onCerrar={() => setAbierto(false)}
         />
       )}

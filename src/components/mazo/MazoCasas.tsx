@@ -1,7 +1,7 @@
 'use client'
 
 // El MAZO tipo Tinder (David, 3-oct-2026), sobre fondo blanco: de a una
-// tarjeta, primero las nuestras (sello verde) y después las "En red" (otras
+// tarjeta, primero las nuestras (con el isotipo de SI) y después las "En red" (otras
 // inmobiliarias de la zona, dicho abiertamente). Deslizar a la derecha = ♥,
 // a la izquierda = paso (o los botones ✕ / ♥, o las flechas del teclado).
 // Tocar el costado de las fotos pasa de par. Al final, las elegidas en grande
@@ -11,12 +11,16 @@
 //
 // Lo abren la ficha ("Más casas en <barrio>", solo abajo de todo) y "Conocé
 // tu próximo hogar" de la home. Se monta al abrir y se desmonta al cerrar.
+//
+// 4-oct (David): el botón ↺ vuelve a la anterior (si le había dado ♥, se lo
+// saca: decide de nuevo), y al terminar un barrio con parecidos
+// (barrios-parecidos.ts) PRIMERO pregunta y, si dice que sí, suma esas casas.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, X } from 'lucide-react'
+import { MapPin, RotateCcw, X } from 'lucide-react'
 import {
   type GuardadaLocal,
   type ItemFeed,
@@ -27,6 +31,8 @@ import {
   leerGuardadas,
 } from '@/lib/feed-en-red'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
+import { Logo } from '@/components/marca/LogoSI'
+import { barriosParecidos, listaBarrios } from '@/lib/barrios-parecidos'
 
 export const VERDE = '#1A5C38'
 const OCRE_FONDO = '#F4EAD8'
@@ -78,16 +84,13 @@ export function useGuardadas() {
   return { guardadas, guardar, quitar, limpiar, esGuardada, montado }
 }
 
-export function Sello({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={`${className} flex-none`} viewBox="0 0 24 24" role="img" aria-label="Verificada">
-      <polygon
-        fill={VERDE}
-        points="24,12 22,14.7 22.4,18 19.4,19.4 18,22.4 14.7,22 12,24 9.3,22 6,22.4 4.6,19.4 1.6,18 2,14.7 0,12 2,9.3 1.6,6 4.6,4.6 6,1.6 9.3,2 12,0 14.7,2 18,1.6 19.4,4.6 22.4,6 22,9.3"
-      />
-      <path d="M7.2 12.4l3.1 3.1 6.5-6.6" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
+/**
+ * El isotipo OFICIAL de SI (placa verde + monograma; kit de marca en
+ * si-crm/logo-si-inmobiliaria, copiado tal cual en components/marca/LogoSI).
+ * Antes era una pastilla con las letras "SI" escritas y un tilde genérico.
+ */
+export function IsotipoSI({ className = 'h-4 w-auto' }: { className?: string }) {
+  return <Logo variant="isotipo" className={`${className} flex-none`} />
 }
 
 export function IconoRed({ className = 'w-4 h-4' }: { className?: string }) {
@@ -117,9 +120,8 @@ export function Corazon({ lleno, className = 'w-7 h-7' }: { lleno: boolean; clas
 
 export function Chip({ nuestra }: { nuestra: boolean }) {
   return nuestra ? (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white font-raleway shadow-sm" style={{ background: VERDE }}>
-      SI
-    </span>
+    // Sin caja alrededor: el isotipo ya es la placa (regla del kit: no encerrarlo).
+    <IsotipoSI className="h-7 w-auto" />
   ) : (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold font-raleway shadow-sm" style={{ background: OCRE_FONDO, color: OCRE_TEXTO }}>
       <IconoRed className="w-3 h-3" /> En red
@@ -269,7 +271,7 @@ export function Tarjeta({
           </p>
         )}
         <p className="text-[13px] mt-1 flex items-center gap-1.5 min-w-0 text-gray-500">
-          {item.esNuestra ? <Sello /> : <IconoRed className="w-4 h-4 flex-none" />}
+          {item.esNuestra ? <IsotipoSI className="h-[18px] w-auto" /> : <IconoRed className="w-4 h-4 flex-none" />}
           <span className="truncate">{item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}</span>
         </p>
       </div>
@@ -277,11 +279,36 @@ export function Tarjeta({
   )
 }
 
-export function BotonesTinder({ onPaso, onMeGusta, chicos = false }: { onPaso: () => void; onMeGusta: () => void; chicos?: boolean }) {
+export function BotonesTinder({
+  onPaso,
+  onMeGusta,
+  onVolver,
+  puedeVolver = false,
+  chicos = false,
+}: {
+  onPaso: () => void
+  onMeGusta: () => void
+  /** ↺ volver a la anterior (como el de Tinder). Sin esto, no se muestra. */
+  onVolver?: () => void
+  puedeVolver?: boolean
+  chicos?: boolean
+}) {
   const tam = chicos ? 'w-14 h-14' : 'w-16 h-16'
   const icono = chicos ? 'w-7 h-7' : 'w-8 h-8'
   return (
-    <div className="flex items-center justify-center gap-8">
+    <div className={`flex items-center justify-center ${onVolver ? 'gap-6' : 'gap-8'}`}>
+      {onVolver && (
+        <button
+          type="button"
+          onClick={onVolver}
+          disabled={!puedeVolver}
+          aria-label="Volver a la anterior"
+          title="Volver a la anterior"
+          className="w-12 h-12 rounded-full bg-white border border-gray-200 shadow-[0_6px_18px_rgba(0,0,0,0.10)] grid place-items-center text-[#C98A00] active:scale-90 transition-transform disabled:opacity-35 disabled:active:scale-100"
+        >
+          <RotateCcw className="w-6 h-6" strokeWidth={2.6} />
+        </button>
+      )}
       <button
         type="button"
         onClick={onPaso}
@@ -315,6 +342,7 @@ export default function MazoCasas({
   onCerrar,
   origen,
   busqueda = null,
+  cargarParecidos,
 }: {
   items: ItemFeed[]
   titulo: string
@@ -325,8 +353,21 @@ export default function MazoCasas({
   origen: 'ficha' | 'home'
   /** Lo que eligió en la home ("casas hasta USD 200 mil"), para el aviso al asesor. */
   busqueda?: string | null
+  /**
+   * Trae las casas de los barrios parecidos (barrios-parecidos.ts). Sin esto
+   * (o si el barrio no tiene parecidos) el mazo termina como siempre.
+   */
+  cargarParecidos?: (barrios: string[], yaVistas: ReadonlySet<string>) => Promise<ItemFeed[]>
 }) {
-  const { guardadas, guardar, limpiar, esGuardada } = guardadasApi
+  const { guardadas, guardar, quitar, limpiar, esGuardada } = guardadasApi
+  // Las de los barrios parecidos se suman al final del mazo si dice que sí.
+  const [extra, setExtra] = useState<ItemFeed[]>([])
+  const todos = useMemo(() => (extra.length ? [...items, ...extra] : items), [items, extra])
+  const parecidos = useMemo(() => barriosParecidos(barrio), [barrio])
+  /** pendiente → (pregunta) → cargando → sumados | vacio | no. */
+  const [estadoParecidos, setEstadoParecidos] = useState<'pendiente' | 'cargando' | 'sumados' | 'vacio' | 'no'>('pendiente')
+  /** Para ↺: cada decisión, con si el ♥ fue nuevo (si ya estaba guardada de antes, volver no se la saca). */
+  const [historial, setHistorial] = useState<{ indice: number; accion: 'like' | 'pass'; key: string; nueva: boolean }[]>([])
   const [indice, setIndice] = useState(() => Math.min(Math.max(0, inicio), items.length))
   // Se abrió directo en las elegidas (botón de la fila de la compu): no "las vio todas".
   const [directoAlFinal, setDirectoAlFinal] = useState(() => inicio >= items.length)
@@ -359,14 +400,15 @@ export default function MazoCasas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const actual = items[indice] ?? null
-  const siguiente = items[indice + 1] ?? null
-  const terminado = indice >= items.length
+  const actual = todos[indice] ?? null
+  const siguiente = todos[indice + 1] ?? null
+  const terminado = indice >= todos.length
 
   /** ♥ o paso: la tarjeta sale volando y aparece la siguiente. */
   const decidir = useCallback(
     (accion: 'like' | 'pass') => {
       if (!actual || salida || rescate) return
+      setHistorial((h) => [...h.slice(-30), { indice, accion, key: actual.key, nueva: accion === 'like' && !esGuardada(actual.key) }])
       if (accion === 'like') {
         guardar(actual)
         pasesSeguidos.current = 0
@@ -374,7 +416,7 @@ export default function MazoCasas({
         pasesSeguidos.current += 1
       }
       // 4 seguidas con ✕ y ninguna guardada: no es lo que busca → rescate.
-      const rescatar = accion === 'pass' && guardadas.length === 0 && !enviada && pasesSeguidos.current >= 4 && !rescateVisto && indice + 1 < items.length
+      const rescatar = accion === 'pass' && guardadas.length === 0 && !enviada && pasesSeguidos.current >= 4 && !rescateVisto && indice + 1 < todos.length
       setSalida(accion)
       setVistas((v) => Math.max(v, indice + 1))
       window.setTimeout(() => {
@@ -385,8 +427,46 @@ export default function MazoCasas({
         if (rescatar) marcarRescate('mazo')
       }, DURACION_SALIDA)
     },
-    [actual, salida, rescate, rescateVisto, enviada, guardar, guardadas.length, indice, items.length, marcarRescate],
+    [actual, salida, rescate, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate],
   )
+
+  /** ↺ Volver a la anterior: si le había dado ♥ recién, se lo saca y decide de nuevo. */
+  const volver = useCallback(() => {
+    if (salida || rescate || enviada) return
+    const ultima = historial[historial.length - 1]
+    if (!ultima) return
+    setHistorial((h) => h.slice(0, -1))
+    if (ultima.nueva) quitar(ultima.key)
+    if (ultima.accion === 'pass') pasesSeguidos.current = Math.max(0, pasesSeguidos.current - 1)
+    setIndice(ultima.indice)
+    setFoto(0)
+    setArrastre(null)
+    trackEvent('feed_en_red_volver', { origen })
+  }, [salida, rescate, enviada, historial, quitar, origen])
+  const puedeVolver = historial.length > 0 && !enviada
+
+  // Terminó un barrio que tiene parecidos: PRIMERO pregunta (David 4-oct).
+  const preguntaParecidos =
+    terminado &&
+    !directoAlFinal &&
+    !enviada &&
+    !!cargarParecidos &&
+    parecidos.length > 0 &&
+    (estadoParecidos === 'pendiente' || estadoParecidos === 'cargando' || estadoParecidos === 'vacio')
+  const verParecidos = async () => {
+    if (!cargarParecidos || estadoParecidos === 'cargando') return
+    setEstadoParecidos('cargando')
+    trackEvent('feed_en_red_parecidos', { respuesta: 'si', barrio: barrio ?? '' })
+    const nuevas = await cargarParecidos(parecidos, new Set(todos.map((i) => i.key))).catch(() => [] as ItemFeed[])
+    if (nuevas.length === 0) return setEstadoParecidos('vacio')
+    setExtra((e) => [...e, ...nuevas])
+    setEstadoParecidos('sumados')
+    setFoto(0)
+  }
+  const noParecidos = () => {
+    trackEvent('feed_en_red_parecidos', { respuesta: 'no', barrio: barrio ?? '' })
+    setEstadoParecidos('no')
+  }
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (salida) return
@@ -418,7 +498,7 @@ export default function MazoCasas({
 
   // Llegó al final sin guardar ninguna: ese final YA es el rescate de esta
   // visita (antes, al tocar la X ahí salía otro "¿Te vas sin guardar ninguna?").
-  const finEsRescate = terminado && guardadas.length === 0 && !enviada && !rescateVisto
+  const finEsRescate = terminado && !preguntaParecidos && guardadas.length === 0 && !enviada && !rescateVisto
   useEffect(() => {
     if (finEsRescate) rescateMostrado = true
   }, [finEsRescate])
@@ -459,6 +539,7 @@ export default function MazoCasas({
         else salir()
       } else if (!hoja && !rescate && e.key === 'ArrowRight') decidir('like')
       else if (!hoja && !rescate && e.key === 'ArrowLeft') decidir('pass')
+      else if (!hoja && !rescate && e.key === 'Backspace' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) volver()
     }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -466,9 +547,11 @@ export default function MazoCasas({
       window.removeEventListener('keydown', onKey)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoja, rescate, guardadas.length, decidir])
+  }, [hoja, rescate, guardadas.length, decidir, volver])
 
-  const n = items.length
+  const n = todos.length
+  // Mirando las de los barrios parecidos: el título lo dice.
+  const tituloVisible = estadoParecidos === 'sumados' && indice >= items.length && !terminado ? `Casas en ${listaBarrios(parecidos)}` : titulo
   const g = guardadas.length
 
   return createPortal(
@@ -477,7 +560,7 @@ export default function MazoCasas({
         {/* Encabezado */}
         <div className="flex items-center justify-between gap-3 px-4 pt-[max(14px,env(safe-area-inset-top))] pb-2">
           <div className="min-w-0">
-            <p className="font-black text-gray-900 font-raleway truncate">{titulo}</p>
+            <p className="font-black text-gray-900 font-raleway truncate">{tituloVisible}</p>
             <p className="text-[13px] text-gray-500">
               {terminado ? (directoAlFinal && g > 0 ? `Tus elegidas · ${n} para ver` : `Viste las ${n}`) : `${indice + 1} de ${n}`}
               {g > 0 ? ` · ♥ ${g} guardada${g > 1 ? 's' : ''}` : ''}
@@ -509,6 +592,16 @@ export default function MazoCasas({
                 onPointerUp={onPointerUp}
               />
             </>
+          ) : preguntaParecidos ? (
+            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-6 flex flex-col justify-center">
+              <PreguntaParecidos
+                barrio={barrio}
+                parecidos={parecidos}
+                estado={estadoParecidos}
+                onSi={() => void verParecidos()}
+                onNo={noParecidos}
+              />
+            </div>
           ) : g > 0 || enviada === 'linea' ? (
             // El CTA AL FINAL con las elegidas (David, 3-oct): el formulario ya está acá.
             // Al enviar, las ♥ se limpian pero el "Listo" sigue a la vista.
@@ -551,7 +644,19 @@ export default function MazoCasas({
 
         {/* Botones ✕ / ♥ */}
         <div className="px-4 pt-4 pb-[max(14px,env(safe-area-inset-bottom))]">
-          {!terminado && !rescate && <BotonesTinder onPaso={() => decidir('pass')} onMeGusta={() => decidir('like')} />}
+          {!terminado && !rescate && (
+            <BotonesTinder onPaso={() => decidir('pass')} onMeGusta={() => decidir('like')} onVolver={volver} puedeVolver={puedeVolver} />
+          )}
+          {/* Al final también se puede volver a la última (por si la pasó sin querer). */}
+          {terminado && puedeVolver && !hoja && !rescate && estadoParecidos !== 'cargando' && (
+            <button
+              type="button"
+              onClick={volver}
+              className="mx-auto flex h-11 items-center gap-2 rounded-full px-4 text-[15px] font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              <RotateCcw className="w-5 h-5 text-[#C98A00]" strokeWidth={2.6} aria-hidden="true" /> Volver a la anterior
+            </button>
+          )}
           {/* Mientras desliza, solo ✕ y ♥ (David, 3-oct: "que se concentre en eso"); el CTA está al final. */}
           {!terminado && !rescate && (
             <p className="mt-3 text-center text-[13px] text-gray-500">
@@ -590,6 +695,67 @@ export default function MazoCasas({
       </div>
     </div>,
     document.body,
+  )
+}
+
+/**
+ * Al terminar un barrio con parecidos: la PREGUNTA (David 4-oct: "mostrale
+ * alguno parecido, pero primero preguntale"). Nunca se suman solas.
+ */
+function PreguntaParecidos({
+  barrio,
+  parecidos,
+  estado,
+  onSi,
+  onNo,
+}: {
+  barrio: string | null
+  parecidos: string[]
+  estado: 'pendiente' | 'cargando' | 'sumados' | 'vacio' | 'no'
+  onSi: () => void
+  onNo: () => void
+}) {
+  if (estado === 'vacio') {
+    return (
+      <div className="text-center">
+        <p className="text-xl font-black text-gray-900 font-raleway">Por ahora no hay otras</p>
+        <p className="text-[16px] text-gray-600 mt-2">
+          No encontramos casas en {listaBarrios(parecidos)} con lo que buscás. Te avisamos cuando entre alguna.
+        </p>
+        <button type="button" onClick={onNo} className="mt-5 w-full h-12 rounded-2xl text-white font-bold" style={{ background: VERDE }}>
+          Seguir
+        </button>
+      </div>
+    )
+  }
+  const cargando = estado === 'cargando'
+  return (
+    <div className="text-center">
+      <div className="mx-auto w-12 h-12 rounded-full grid place-items-center" style={{ background: '#EAF3EE', color: VERDE }} aria-hidden="true">
+        <MapPin className="w-6 h-6" />
+      </div>
+      <p className="mt-3 text-xl font-black text-gray-900 font-raleway [text-wrap:balance]">¿Te muestro casas en barrios parecidos?</p>
+      <p className="text-[16px] text-gray-600 mt-2">{barrio ? `Ya viste las de ${barrio}. ` : ''}Estos barrios se le parecen:</p>
+      <div className="mt-3 flex flex-wrap justify-center gap-2">
+        {parecidos.map((b) => (
+          <span key={b} className="inline-flex items-center h-9 px-3.5 rounded-full border border-gray-200 bg-gray-50 text-[15px] font-semibold text-gray-800">
+            {b}
+          </span>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={onSi}
+        disabled={cargando}
+        className="mt-6 w-full h-12 rounded-2xl text-white font-bold disabled:opacity-70"
+        style={{ background: VERDE }}
+      >
+        {cargando ? 'Buscando…' : 'Sí, mostrame'}
+      </button>
+      <button type="button" onClick={onNo} disabled={cargando} className="mt-2 w-full h-12 rounded-2xl border border-gray-200 text-gray-800 font-semibold">
+        No, gracias
+      </button>
+    </div>
   )
 }
 

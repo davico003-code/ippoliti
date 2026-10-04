@@ -14,9 +14,10 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { MapPin } from 'lucide-react'
 import { type TokkoProperty, operacionPrincipal, translatePropertyType } from '@/lib/tokko'
-import { type FeedEnRed as DatosFeed, type ItemFeed, type PuntoZona, enLaZona, estiloSinLogo, itemDeEnRed, pluralTipo } from '@/lib/feed-en-red'
+import { type FeedEnRed as DatosFeed, type ItemFeed, type PuntoZona, TIPOS_HOGAR, enLaZona, estiloSinLogo, itemDeEnRed, pluralTipo } from '@/lib/feed-en-red'
 import { itemDeNuestra } from '@/lib/mazo-items'
 import MazoCasas, { BotonesTinder, Chip, Corazon, ROSA, Tarjeta, useGuardadas } from '@/components/mazo/MazoCasas'
+import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
 /** Barrio, pin y precio en dólares de una propiedad, para la regla de zona. */
 function puntoDe(p: TokkoProperty): PuntoZona {
@@ -137,6 +138,13 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     return [...nuestrasZona, ...enRed]
   }, [cercanas, nuestras, property, enRed])
   const barrio = datos?.barrio || property.location?.name || null
+  // Barrios parecidos (al final del mazo, si dice que sí): mismo tipo y hasta
+  // un 25 % más caras que esta, como las En red que ya eligió Hilo.
+  const tipoHogar = TIPOS_HOGAR.find((t) => t.tokkoIds.includes(property.type?.id ?? -1))?.id ?? 'house'
+  const precioVenta = (property.operations ?? [])
+    .find((o) => o.operation_type === 'Sale')
+    ?.prices?.find((x) => x.currency === 'USD' && x.price > 0)?.price
+  const tope = precioVenta ? Math.round(precioVenta * 1.25) : null
   const plural = pluralTipo(translatePropertyType(property.type?.name))
   const titulo = barrio ? `Más ${plural} en ${barrio}` : `Más ${plural} en la zona`
 
@@ -228,6 +236,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
           inicio={abiertoEn}
           guardadasApi={guardadasApi}
           origen="ficha"
+          cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipoHogar, tope, yaVistas)}
           onCerrar={() => setAbiertoEn(null)}
         />
       )}
