@@ -44,11 +44,21 @@ export default function CompartirMenu({
 
   const copy = async () => {
     contarCompartida(slug)
+    let ok = false
     try {
       await navigator.clipboard.writeText(url)
+      ok = true
+    } catch {
+      // Navegadores internos (WhatsApp, Instagram) y Safari viejo no dejan usar
+      // el portapapeles moderno: antes el toque no hacía nada y no avisaba.
+      ok = copiarALaVieja(url)
+    }
+    if (ok) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {}
+    } else {
+      window.prompt('Copiá el link:', url)
+    }
   }
 
   const waText = encodeURIComponent(`Te paso esta propiedad: ${url}`)
@@ -119,6 +129,24 @@ export default function CompartirMenu({
       </button>
     </div>
   )
+}
+
+function copiarALaVieja(texto: string): boolean {
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = texto
+    ta.setAttribute('readonly', '')
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    ta.setSelectionRange(0, texto.length)
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch {
+    return false
+  }
 }
 
 const menuItem: CSSProperties = {

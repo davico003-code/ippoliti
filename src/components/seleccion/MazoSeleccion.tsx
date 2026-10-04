@@ -148,7 +148,7 @@ export default function MazoSeleccion({
           <span className="font-numeric text-[13px] font-medium text-[#66736B]">{Math.min(hechas + 1, total)}/{total}</span>
           {hechas > 0 && (
             <button type="button" onClick={onListo}
-              className="rounded-full bg-[#111814] px-3.5 py-1.5 text-[13px] font-semibold text-white active:scale-95">
+              className="h-10 rounded-full bg-[#111814] px-4 text-[14px] font-semibold text-white active:scale-95">
               Listo
             </button>
           )}
@@ -181,7 +181,7 @@ export default function MazoSeleccion({
           <div key={atras.id} className="absolute inset-x-3 bottom-1 top-1 overflow-hidden rounded-[28px] bg-[#DDE3DF] transition-transform duration-300"
             style={{ transform: `scale(${0.94 + 0.06 * (salida ? 1 : avance)}) translateY(${(1 - (salida ? 1 : avance)) * 14}px)` }}
             aria-hidden>
-            {atras.photos[0] && <Foto src={atras.photos[0]} alt="" sizes="100vw" />}
+            {atras.photos[0] && <Foto src={atras.photos[0]} alt="" sizes="100vw" logo={atras.logo} />}
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
           </div>
         )}
@@ -202,14 +202,14 @@ export default function MazoSeleccion({
             onPointerCancel={onPointerCancel}
           >
             {top.photos[foto] ? (
-              <Foto key={top.photos[foto]} src={top.photos[foto]} alt={top.title} sizes="100vw" eager />
+              <Foto key={top.photos[foto]} src={top.photos[foto]} alt={top.title} sizes="100vw" eager logo={top.logo} />
             ) : (
               <div className="flex h-full items-center justify-center text-[14px] text-[#66736B]">Sin foto</div>
             )}
             {/* Precarga la foto siguiente para que el toque la cambie al instante */}
             {top.photos[foto + 1] && (
               <div className="pointer-events-none absolute inset-0 opacity-0" aria-hidden>
-                <Foto src={top.photos[foto + 1]} alt="" sizes="100vw" eager />
+                <Foto src={top.photos[foto + 1]} alt="" sizes="100vw" eager logo={top.logo} />
               </div>
             )}
 

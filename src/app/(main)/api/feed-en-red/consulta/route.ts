@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
   const str = (v: unknown, max = 200) => String(v ?? '').trim().slice(0, max)
   const nombre = str(body.nombre, 80)
   const whatsapp = str(body.whatsapp, 30)
-  const barrio = str(body.barrio, 80) || null
+  // Una sola línea: la bandeja de Hilo lee el resumen renglón por renglón.
+  const barrio = str(body.barrio, 80).replace(/[\n\r]+/g, ' ') || null
   // "Conocé tu próximo hogar" (home): qué eligió además de la zona ("casas hasta USD 200 mil").
   const busqueda = str(body.busqueda, 80).replace(/[\n\r]+/g, ' ') || null
   const pageUrl = str(body.pageUrl, 400)
@@ -57,23 +58,28 @@ export async function POST(request: NextRequest) {
       `Busca: ${[busqueda, ...motivos.map((m) => m.toLowerCase())].filter(Boolean).join(', ') || 'no dijo'}.`,
       'Pidió que le avisemos por WhatsApp cuando entre algo así.',
     ].join('\n')
-    let savedRedis = false
-    try {
-      const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
-      const data = { nombre, whatsapp, origen: 'feed_web_busca', motivos, barrio, busqueda, pageUrl, fecha: new Date().toISOString() }
-      await redis.set(`lead:feed_web_busca:${Date.now()}:${whatsapp}`, JSON.stringify(data))
-      await redis.lpush('leads:all', JSON.stringify(data))
-      savedRedis = true
-    } catch (err) {
-      console.error('[feed-en-red] Redis error:', err)
-    }
-    const savedHilo = await pushLeadToHilo({
-      name: nombre.length >= 2 ? nombre : null,
-      phone: whatsapp,
-      origen: 'feed_web_busca',
-      message: mensaje,
-      sourceUrl: pageUrl || null,
-    })
+    // Respaldo en Redis y empuje a Hilo A LA VEZ (antes en serie: la persona esperaba los dos).
+    const [savedRedis, savedHilo] = await Promise.all([
+      (async () => {
+        try {
+          const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
+          const data = { nombre, whatsapp, origen: 'feed_web_busca', motivos, barrio, busqueda, pageUrl, fecha: new Date().toISOString() }
+          await redis.set(`lead:feed_web_busca:${Date.now()}:${whatsapp}`, JSON.stringify(data))
+          await redis.lpush('leads:all', JSON.stringify(data))
+          return true
+        } catch (err) {
+          console.error('[feed-en-red] Redis error:', err)
+          return false
+        }
+      })(),
+      pushLeadToHilo({
+        name: nombre.length >= 2 ? nombre : null,
+        phone: whatsapp,
+        origen: 'feed_web_busca',
+        message: mensaje,
+        sourceUrl: pageUrl || null,
+      }),
+    ])
     if (!savedRedis && !savedHilo) {
       return NextResponse.json({ error: 'No pudimos registrar tu pedido. Reintentá en unos segundos o escribinos por WhatsApp.' }, { status: 502 })
     }
@@ -104,27 +110,31 @@ export async function POST(request: NextRequest) {
     }
   })()
 
-  let savedRedis = false
-  try {
-    const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
-    const data = { nombre, whatsapp, origen: 'feed_web', guardadas, barrio, busqueda, pageUrl, fecha: new Date().toISOString() }
-    await redis.set(`lead:feed_web:${Date.now()}:${whatsapp}`, JSON.stringify(data))
-    await redis.lpush('leads:all', JSON.stringify(data))
-    savedRedis = true
-  } catch (err) {
-    console.error('[feed-en-red] Redis error:', err)
-  }
-
-  const savedHilo = await pushLeadToHilo({
-    name: nombre,
-    phone: whatsapp,
-    origen: 'feed_web',
-    guardadas,
-    barrio,
-    message: busqueda ? `Buscó en la web: ${busqueda}.` : null,
-    sourceUrl: pageUrl || null,
-    attribution: utm,
-  })
+  // Respaldo en Redis y empuje a Hilo A LA VEZ (antes en serie: la persona esperaba los dos).
+  const [savedRedis, savedHilo] = await Promise.all([
+    (async () => {
+      try {
+        const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
+        const data = { nombre, whatsapp, origen: 'feed_web', guardadas, barrio, busqueda, pageUrl, fecha: new Date().toISOString() }
+        await redis.set(`lead:feed_web:${Date.now()}:${whatsapp}`, JSON.stringify(data))
+        await redis.lpush('leads:all', JSON.stringify(data))
+        return true
+      } catch (err) {
+        console.error('[feed-en-red] Redis error:', err)
+        return false
+      }
+    })(),
+    pushLeadToHilo({
+      name: nombre,
+      phone: whatsapp,
+      origen: 'feed_web',
+      guardadas,
+      barrio,
+      message: busqueda ? `Buscó en la web: ${busqueda}.` : null,
+      sourceUrl: pageUrl || null,
+      attribution: utm,
+    }),
+  ])
 
   if (!savedRedis && !savedHilo) {
     console.error('[feed-en-red] LEAD PERDIDO: falló Redis y Hilo')

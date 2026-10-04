@@ -10,6 +10,7 @@ import {
   itemDeEnRed,
 } from '@/lib/feed-en-red'
 import { itemDeNuestra } from '@/lib/mazo-items'
+import { rateLimit } from '@/lib/feedback'
 
 // "Conocé tu próximo hogar" (home, David 3-oct-2026): el mazo de una búsqueda
 // — dónde, qué y hasta cuánto — sin ficha de referencia. Primero las nuestras
@@ -58,6 +59,12 @@ export async function GET(request: NextRequest) {
   const topeNum = Number(sp.get('tope'))
   const tope = Number.isFinite(topeNum) && topeNum > 0 ? Math.round(topeNum) : null
   if (!zona || !esTipoHogar(tipo)) return NextResponse.json({ error: 'zona y tipo requeridos' }, { status: 400 })
+  // Público y con el secreto de Hilo detrás: el CDN sirve lo repetido; esto frena
+  // a quien pruebe zonas al azar para saltear el cache.
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  if (!(await rateLimit(ip, 'hogar', 40, 60))) {
+    return NextResponse.json({ error: 'Demasiadas búsquedas seguidas' }, { status: 429, headers: { 'Cache-Control': 'no-store' } })
+  }
   const ids = new Set(TIPOS_HOGAR.find((t) => t.id === tipo)!.tokkoIds)
 
   const [todas, red] = await Promise.all([

@@ -9,6 +9,10 @@ import type { TemaPropuesto, NotaDraft } from '../types';
 
 const MODEL_WRITER = 'claude-opus-4-7';
 const MAX_INTENTOS = 4;
+// El cron corre con maxDuration = 300 s y cada intento (Opus + verificador)
+// tarda ~60-90 s. Pasado este tope no se arranca otro intento: si Vercel corta
+// la función a mitad de camino no queda registro del error en el panel.
+const TOPE_PARA_REINTENTAR_MS = 170_000;
 
 function stripJsonFences(raw: string): string {
   return raw
@@ -35,6 +39,7 @@ type GenerarResult =
 export async function generarNotaConRetries(
   tema: TemaPropuesto,
 ): Promise<GenerarResult> {
+  const inicio = Date.now();
   const systemPrompt = buildSystemPrompt();
   const [contexto, materialLocal] = await Promise.all([
     obtenerContextoEconomico(),
@@ -46,6 +51,15 @@ export async function generarNotaConRetries(
   let ultimasRazones: string[] = [];
 
   for (let intento = 1; intento <= MAX_INTENTOS; intento++) {
+    if (intento > 1 && Date.now() - inicio > TOPE_PARA_REINTENTAR_MS) {
+      console.warn(`[writer] Sin tiempo para el intento ${intento}: se corta acá`);
+      return {
+        ok: false,
+        razones: [`Sin tiempo para otro intento (${intento - 1} en ${Math.round((Date.now() - inicio) / 1000)} s)`, ...ultimasRazones],
+        ultimoDraft,
+      };
+    }
+
     const feedback = intento > 1
       ? ultimasRazones.map((r, i) => `${i + 1}. ${r}`).join('\n')
       : undefined;
@@ -73,8 +87,13 @@ export async function generarNotaConRetries(
       continue;
     }
 
-    // Normalizar slug
-    nota.slug = normalizarSlug(nota.slug);
+    if (!nota || typeof nota !== 'object') {
+      ultimasRazones = ['La respuesta no es un objeto JSON con el shape de NotaDraft.'];
+      continue;
+    }
+
+    // Normalizar slug (sin slug queda vacío y el validador lo rechaza con su motivo)
+    nota.slug = normalizarSlug(typeof nota.slug === 'string' ? nota.slug : '');
 
     // Validar
     const resultado = validarNotaDraft(nota);
@@ -98,6 +117,10 @@ export async function generarNotaConRetries(
       // sin respaldo, se reintenta con la lista; si en el último intento
       // siguen, no se publica.
       const sinRespaldo = await verificarHechos(nota, materialLocal, contexto);
+      if (sinRespaldo === null) {
+        console.warn(`[writer] Intento ${intento}: el verificador de datos no respondió — hoy no se publica`);
+        return { ok: false, razones: ['No se pudieron verificar los datos de la nota (la IA no respondió): no se publica sin verificar.'], ultimoDraft: nota };
+      }
       if (sinRespaldo.length) {
         ultimasRazones = sinRespaldo.map((p) => `Dato sin respaldo en el material, sacalo o reformulalo sin el dato: ${p}`);
         console.warn(`[writer] Intento ${intento}: ${sinRespaldo.length} datos sin respaldo`, sinRespaldo);

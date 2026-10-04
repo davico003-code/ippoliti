@@ -32,6 +32,7 @@ import { parsePropertyLabel, type SeleccionItem } from './seleccion'
 import type { SeleccionProperty } from './redis'
 import { getFicha, type Ficha } from './ficha'
 import { pedirAHilo, redIdDe } from './seleccion-red'
+import type { PosicionLogo } from './feed-en-red'
 
 /** Propiedad tal como está guardada en `seleccion:{token}`. */
 export interface SelProp {
@@ -134,6 +135,7 @@ function itemDePropiedad(d: TokkoProperty, base: SelProp, sugerida: boolean): Se
 
 function itemDeSnapshot(p: SelProp): SeleccionItem {
   const s = p.snapshot ?? {}
+  const slug = slugVerficha(p.url)
   return {
     id: p.id,
     url: p.url,
@@ -147,10 +149,12 @@ function itemDeSnapshot(p: SelProp): SeleccionItem {
     area: s.area ?? 0,
     price: precioVisible(s.price) ?? (p.source === 'externa' ? 'Consultar precio' : null),
     photos: s.image ? [s.image] : [],
-    fichaUrl: (() => { const slug = slugVerficha(p.url); return slug ? fichaNeutraEmbebida(slug) : null })(),
+    fichaUrl: slug ? fichaNeutraEmbebida(slug) : null,
     enRed: esDeRed(p),
     masVista: false,
-    redId: null,
+    // Una En red que quedó guardada sin ficha (HILO no respondió al sumarla):
+    // con su id, la ficha neutra se arma al abrirla, igual que una parecida.
+    redId: slug ? null : redIdDe(p.id),
   }
 }
 
@@ -425,6 +429,8 @@ type TarjetaEnRed = {
   zona: string | null
   fotos: string[]
   masVista: boolean
+  /** Rincón del logo impreso del colega (MA abajo-izq, Crestale abajo-der). */
+  logo?: PosicionLogo | null
 }
 
 /**
@@ -471,6 +477,7 @@ function itemDeTarjetaRed(t: TarjetaEnRed): SeleccionItem {
     enRed: true,
     masVista: !!t.masVista,
     redId: t.id,
+    logo: t.logo ?? null,
   }
 }
 

@@ -55,14 +55,14 @@ export default function CierreSeleccion({
                 return (
                   <li key={it.id} className="flex items-center gap-3 p-2.5">
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#EEF1EF]">
-                      {it.photos[0] && <Foto src={it.photos[0]} alt={it.title} sizes="56px" />}
+                      {it.photos[0] && <Foto src={it.photos[0]} alt={it.title} sizes="56px" logo={it.logo} />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13.5px] font-semibold text-[#111814]">{it.title}</p>
                       {it.price && <p className="font-numeric text-[13px] font-medium text-[#1A5C38]">{it.price}</p>}
                     </div>
                     <button type="button" onClick={() => onVisita(it.id)} aria-pressed={visita}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition active:scale-95"
+                      className="inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-[13px] font-semibold transition active:scale-95"
                       style={visita ? { background: '#1A5C38', borderColor: '#1A5C38', color: '#fff' } : { background: '#fff', borderColor: '#E3E7E4', color: '#1C2620' }}>
                       {visita ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <CalendarDays className="h-3.5 w-3.5" />}
                       {visita ? 'Visita pedida' : 'Visitar'}

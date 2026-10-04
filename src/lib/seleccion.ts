@@ -1,3 +1,5 @@
+import type { PosicionLogo } from './feed-en-red'
+
 export function parsePropertyLabel(url: string): string {
   try {
     const u = new URL(url)
@@ -71,4 +73,6 @@ export interface SeleccionItem {
   masVista: boolean
   /** Parecida En red todavía sin ficha: `propia:<aviso>` / `meli:<MLA>`. La ficha neutra la arma HILO al abrirla. */
   redId: string | null
+  /** Rincón donde el colega imprime su logo en las fotos (MA, Crestale): se deja afuera del recuadro. */
+  logo?: PosicionLogo | null
 }

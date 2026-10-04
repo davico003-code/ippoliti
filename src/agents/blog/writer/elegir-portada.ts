@@ -98,6 +98,21 @@ async function elegirConClaude(datos: DatosPortada, candidatas: FotoBanco[]): Pr
   return elegirPorTags(datos, candidatas);
 }
 
+async function bajarRecortada(foto: FotoBanco): Promise<{ webp: Buffer } | { error: string }> {
+  try {
+    const src = foto.src.startsWith('http') ? foto.src : `${BASE_URL}${foto.src}`;
+    const res = await fetch(src);
+    if (!res.ok) return { error: `no se pudo bajar ${foto.id} (HTTP ${res.status})` };
+    const webp = await sharp(Buffer.from(await res.arrayBuffer()))
+      .resize(OG_W, OG_H, { fit: 'cover', position: 'attention' })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer();
+    return { webp };
+  } catch {
+    return { error: `no se pudo procesar la foto ${foto.id}` };
+  }
+}
+
 async function revalidar(slug: string): Promise<void> {
   const secret = process.env.REVALIDATE_SECRET;
   if (!secret) return;
@@ -122,27 +137,35 @@ export async function elegirPortadaReal(
 ): Promise<ResultadoPortada> {
   const redis = getRedis();
   let foto: FotoBanco | undefined;
+  let candidatas: FotoBanco[] = [];
   if (opciones.fotoId) {
     foto = BANCO_FOTOS.find((f) => f.id === opciones.fotoId);
     if (!foto) return { ok: false, error: `foto ${opciones.fotoId} no está en el banco` };
   } else {
     const usadas = new Set((await redis.lrange<string>(USADAS_KEY, 0, VENTANA_USADAS - 1)) ?? []);
     const libres = BANCO_FOTOS.filter((f) => !usadas.has(f.id));
-    foto = await elegirConClaude(datos, libres.length ? libres : BANCO_FOTOS);
+    candidatas = libres.length ? libres : BANCO_FOTOS;
+    foto = await elegirConClaude(datos, candidatas);
   }
 
-  let webp: Buffer;
-  try {
-    const src = foto.src.startsWith('http') ? foto.src : `${BASE_URL}${foto.src}`;
-    const res = await fetch(src);
-    if (!res.ok) return { ok: false, error: `no se pudo bajar ${foto.id} (HTTP ${res.status})` };
-    webp = await sharp(Buffer.from(await res.arrayBuffer()))
-      .resize(OG_W, OG_H, { fit: 'cover', position: 'attention' })
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer();
-  } catch {
-    return { ok: false, error: `no se pudo procesar la foto ${foto.id}` };
+  // Si la elegida no baja (archivo que ya no está, error de red), se prueba
+  // con la siguiente mejor por tags: una foto faltante no deja la nota sin
+  // portada. Con fotoId (curada a mano) no se cambia por otra.
+  let webp: Buffer | null = null;
+  let error = '';
+  const probadas = new Set<string>();
+  while (foto && !webp && probadas.size < 3) {
+    probadas.add(foto.id);
+    const r = await bajarRecortada(foto);
+    if ('webp' in r) webp = r.webp;
+    else {
+      error = r.error;
+      console.warn(`[elegir-portada] ${r.error}`);
+      const resto = candidatas.filter((f) => !probadas.has(f.id));
+      foto = resto.length ? elegirPorTags(datos, resto) : undefined;
+    }
   }
+  if (!webp || !foto) return { ok: false, error: error || 'no hay foto disponible' };
 
   const blob = await put(`blog-overrides/${datos.slug}.webp`, webp, {
     access: 'public',

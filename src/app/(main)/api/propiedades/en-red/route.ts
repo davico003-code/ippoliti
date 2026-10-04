@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { FeedEnRed } from '@/lib/feed-en-red'
+import { rateLimit } from '@/lib/feedback'
 
 // Propiedades de otras inmobiliarias de la zona ("En red") para el feed de la
 // ficha. Las elige Hilo (fichas armadas de Red Propia y MELI: mismo barrio,
@@ -13,6 +14,9 @@ export async function GET(request: NextRequest) {
   if (!Number.isInteger(id) || id <= 0) return NextResponse.json({ error: 'id required' }, { status: 400 })
   const secret = process.env.HILO_INGEST_SECRET
   if (!secret) return NextResponse.json(VACIO)
+  // El CDN sirve lo repetido; esto frena a quien recorra ids al azar contra Hilo.
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  if (!(await rateLimit(ip, 'en-red', 60, 60))) return NextResponse.json(VACIO, { headers: { 'Cache-Control': 'no-store' } })
   const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
   try {
     const res = await fetch(`${base}/api/public/en-red?id=${id}`, {

@@ -54,8 +54,9 @@ export const CTAS: CTA[] = [
   {
     id: 'informes',
     link: '/informes',
-    para: 'mercado, precios, dólar, créditos hipotecarios, costo de construcción como indicador',
-    idea: 'tablero con la evolución del dólar, el costo de construcción y el ajuste de alquileres',
+    para: 'mercado, precios, dólar, inflación, créditos hipotecarios',
+    // Lo que de verdad muestra /informes: el CAC no tiene fuente y no se ve.
+    idea: 'tablero con el dólar (oficial, blue y MEP), la inflación mensual (IPC) y el índice de alquileres (ICL), actualizado cada semana',
   },
   {
     id: 'propiedades',

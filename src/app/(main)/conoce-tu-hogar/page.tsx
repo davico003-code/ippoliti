@@ -24,7 +24,8 @@ const zonasFijas = (): ZonaHogar[] =>
 async function catalogo(): Promise<ZonaHogar[]> {
   const base = (process.env.HILO_LEADS_URL || 'https://meethilo.com').replace(/\/$/, '')
   try {
-    const res = await fetch(`${base}/api/public/en-red/zonas`, { next: { revalidate: 3600 } })
+    // Con tope de espera: si Hilo no contesta, la página sale igual con las zonas fijas.
+    const res = await fetch(`${base}/api/public/en-red/zonas`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = (await res.json()) as { zonas?: ZonaHogar[] }
     const zonas = (data.zonas ?? []).filter((z) => z && typeof z.nombre === 'string')

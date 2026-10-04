@@ -9,9 +9,14 @@ const POPPINS = 'Poppins, sans-serif'
 
 // ── Grid de unidades con filtro por dormitorios ──
 
-export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
+export default function DockGardenUnits({ units: todas }: { units: BrickfyUnit[] }) {
   const [dormFilter, setDormFilter] = useState<number | null>(null)
   const [viewer, setViewer] = useState<Viewer | null>(null)
+
+  // Solo las que están en venta (disponibles o reservadas), igual que la lista
+  // del emprendimiento (lib/unidadesFilas.ts). Antes una vendida (01.06) salía
+  // como "Reservada" y con precio, mientras el plano de arriba decía "Vendida".
+  const units = useMemo(() => todas.filter(u => u.status === 'available' || u.status === 'reserved'), [todas])
 
   const dorms = useMemo(
     () => Array.from(new Set(units.map(u => u.bedrooms))).sort((a, b) => a - b),
@@ -61,9 +66,10 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map(u => {
           const label = unitLabel(u)
-          const reserved = u.status !== 'available'
+          const reserved = u.status === 'reserved'
           const specs = [
-            { v: `${u.coveredSurfaceM2} m²`, ok: u.coveredSurfaceM2 > 0 },
+            // Con coma decimal, como el resto de la página ("183,3 m²", no "183.3").
+            { v: `${u.coveredSurfaceM2.toLocaleString('es-AR')} m²`, ok: u.coveredSurfaceM2 > 0 },
             { v: `${u.bedrooms} dorm.`, ok: u.bedrooms > 0 },
             { v: `${u.fullBathrooms} baño${u.fullBathrooms > 1 ? 's' : ''}`, ok: u.fullBathrooms > 0 },
             { v: `${u.toilets} toil.`, ok: u.toilets > 0 },

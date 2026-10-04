@@ -68,8 +68,11 @@ export default async function DockGardenPage() {
 
   const { project, units } = data
   const available = units.filter(u => u.status === 'available')
-  const areas = units.map(u => u.coveredSurfaceM2).filter(a => a > 0).sort((a, b) => a - b)
-  const dormsSet = Array.from(new Set(units.map(u => u.bedrooms))).sort((a, b) => a - b)
+  // Rangos de lo que está en venta (sin las vendidas), como la lista de abajo.
+  const enVenta = units.filter(u => u.status === 'available' || u.status === 'reserved')
+  const areas = enVenta.map(u => u.coveredSurfaceM2).filter(a => a > 0).sort((a, b) => a - b)
+  const dormsSet = Array.from(new Set(enVenta.map(u => u.bedrooms))).sort((a, b) => a - b)
+  const m2 = (n: number) => n.toLocaleString('es-AR')
   const videos = (project.videos || []).map(v => ({
     nombre: v.nombre,
     // El iframe de Cloudflare Stream vive en el mismo host que el thumbnail.
@@ -79,8 +82,9 @@ export default async function DockGardenPage() {
 
   const stats = [
     { label: 'Unidades disponibles', value: String(available.length) },
-    { label: 'Dormitorios', value: dormsSet.join(' y ') },
-    ...(areas.length > 0 ? [{ label: 'Superficies', value: `${areas[0]} a ${areas[areas.length - 1]} m²` }] : []),
+    // "1, 2 y 3" (antes salía "1 y 2 y 3").
+    { label: 'Dormitorios', value: dormsSet.length > 1 ? `${dormsSet.slice(0, -1).join(', ')} y ${dormsSet[dormsSet.length - 1]}` : String(dormsSet[0] ?? '') },
+    ...(areas.length > 0 ? [{ label: 'Superficies', value: `${m2(areas[0])} a ${m2(areas[areas.length - 1])} m²` }] : []),
     { label: 'Entrega estimada', value: project.deliveryDate },
   ]
 

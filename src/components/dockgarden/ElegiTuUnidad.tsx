@@ -188,7 +188,7 @@ function Contexto() {
 /** Mismo símbolo de norte que usa VERS en sus láminas (barra gruesa = norte). */
 function Norte({ className = '' }: { className?: string }) {
   return (
-    <div className={`pointer-events-none flex flex-col items-center rounded-xl bg-white/95 px-1.5 pb-1 pt-0.5 shadow-sm ring-1 ring-gray-200 ${className}`} aria-label="El norte está hacia arriba">
+    <div className={`pointer-events-none flex flex-col items-center rounded-xl bg-white/95 px-1.5 pb-1 pt-0.5 shadow-sm ring-1 ring-gray-200 ${className}`} role="img" aria-label="El norte está hacia arriba">
       <span className="text-[10px] font-black leading-none text-gray-800">N</span>
       <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden>
         <circle cx="11" cy="11" r="9.5" fill="none" stroke="#9ca3af" strokeWidth="1.2" />
@@ -297,6 +297,9 @@ function PlanoPiso({
             {delPiso.map((x) => {
               const activa = x.id === activaId
               const vendida = x.estado === 'vendida'
+              // Reservada en ámbar: el verde es "disponible" (lo dice la leyenda).
+              const reservada = x.estado === 'reservada'
+              const tono = reservada ? '217,119,6' : '26,92,56'
               const puntos = x.poligono.map((pt) => pt.join(',')).join(' ')
               return (
                 <g
@@ -304,7 +307,7 @@ function PlanoPiso({
                   role="button"
                   tabIndex={0}
                   aria-pressed={activa}
-                  aria-label={`Unidad ${x.codigo}, ${x.nombre}${vendida ? ', vendida' : `, ${usd(x.precio)}`}`}
+                  aria-label={`Unidad ${x.codigo}, ${x.nombre}${vendida ? ', vendida' : `${reservada ? ', reservada' : ''}, ${usd(x.precio)}`}`}
                   onClick={() => onElegir(x.id)}
                   onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onElegir(x.id))}
                   onPointerMove={(e) => {
@@ -321,24 +324,24 @@ function PlanoPiso({
                       vendida
                         ? 'url(#dg-vendida)'
                         : hover?.id === x.id
-                          ? 'rgba(26,92,56,0.40)'
+                          ? `rgba(${tono},0.40)`
                           : activa
-                            ? 'rgba(26,92,56,0.30)'
-                            : 'rgba(26,92,56,0.12)'
+                            ? `rgba(${tono},0.30)`
+                            : `rgba(${tono},0.12)`
                     }
                     className="transition-[fill] duration-200"
                   />
                   <polygon
                     points={puntos}
                     fill="none"
-                    stroke={vendida ? '#9ca3af' : VERDE}
+                    stroke={vendida ? '#9ca3af' : reservada ? '#d97706' : VERDE}
                     strokeWidth={(activa ? 16 : 9) / s}
                     strokeLinejoin="round"
                     pathLength={1}
                     className="dg-trazo"
                   />
                   {activa && !vendida && (
-                    <polygon points={puntos} fill="none" stroke={VERDE} strokeWidth={14 / s} strokeLinejoin="round" className="dg-pulso" />
+                    <polygon points={puntos} fill="none" stroke={reservada ? '#d97706' : VERDE} strokeWidth={14 / s} strokeLinejoin="round" className="dg-pulso" />
                   )}
                 </g>
               )
@@ -388,7 +391,7 @@ function PlanoPiso({
                 <span className={`block font-numeric font-bold leading-tight ${compacta ? 'text-[11px]' : 'text-[13px]'}`}>{x.codigo}</span>
                 {!compacta && (
                   <span className={`block text-[11px] leading-tight ${activa && !vendida ? 'text-white/85' : 'text-gray-500'}`}>
-                    {vendida ? 'Vendida' : <>{x.nombre} · <span className="font-numeric">{usd(x.precio)}</span></>}
+                    {vendida ? 'Vendida' : x.estado === 'reservada' ? `${x.nombre} · Reservada` : <>{x.nombre} · <span className="font-numeric">{usd(x.precio)}</span></>}
                   </span>
                 )}
               </button>
@@ -441,7 +444,7 @@ function PlanoPiso({
             </p>
             {hu.estado !== 'vendida' && (
               <p className="text-xs text-white/80">
-                <span className="font-numeric">{usd(hu.precio)}</span> · tocá para ver plano y precio
+                <span className="font-numeric">{usd(hu.precio)}</span> · hacé clic para ver el plano
               </p>
             )}
           </div>
@@ -477,7 +480,7 @@ function PlanoPiso({
             >
               <span className="block font-numeric text-sm font-bold leading-tight">U-{x.codigo}</span>
               <span className={`block text-xs leading-tight ${activa ? 'text-white/80' : vendida ? 'text-gray-400' : 'text-gray-500'}`}>
-                {vendida ? `${x.nombre} · vendida` : <>{x.nombre} · <span className="font-numeric">{usd(x.precio)}</span></>}
+                {vendida ? `${x.nombre} · vendida` : x.estado === 'reservada' ? `${x.nombre} · reservada` : <>{x.nombre} · <span className="font-numeric">{usd(x.precio)}</span></>}
               </span>
             </button>
           )
@@ -730,6 +733,9 @@ export default function ElegiTuUnidad({
               </p>
               <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-500">
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-[#1A5C38] bg-[#1A5C38]/20" /> Disponible</span>
+                {unidades.some((x) => x.estado === 'reservada') && (
+                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-[#d97706] bg-[#d97706]/20" /> Reservada</span>
+                )}
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-gray-400 bg-[repeating-linear-gradient(45deg,#e5e7eb_0_2px,transparent_2px_5px)]" /> Vendida</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border border-gray-300 bg-white" /> Resto del piso</span>
               </div>

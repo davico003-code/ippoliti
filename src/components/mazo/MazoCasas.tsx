@@ -201,7 +201,9 @@ export function Tarjeta({
               sizes="(max-width: 480px) 100vw, 440px"
               className="object-cover pointer-events-none"
               style={estiloSinLogo(item.logo)}
-              priority={modo !== 'abajo' && i === 0}
+              // Solo la de arriba del mazo abierto: la 'quieta' está al pie de la
+              // ficha y no tiene que competir con las fotos de arriba.
+              priority={arriba && i === 0}
             />
           </div>
         ))}
@@ -338,6 +340,12 @@ export default function MazoCasas({
   const [rescateVisto, setRescateVisto] = useState(rescateMostrado)
   const pasesSeguidos = useRef(0)
   const [vistas, setVistas] = useState(0)
+  /**
+   * Ya mandó la consulta: desde el final ('linea', el "Listo" queda a la vista
+   * aunque las ♥ se limpien) o desde la hoja de salida ('hoja'). Después de eso
+   * nunca se le pregunta de nuevo (ni la hoja ni el rescate).
+   */
+  const [enviada, setEnviada] = useState<'linea' | 'hoja' | null>(null)
 
   const marcarRescate = useCallback((momento: 'mazo' | 'salir') => {
     rescateMostrado = true
@@ -366,7 +374,7 @@ export default function MazoCasas({
         pasesSeguidos.current += 1
       }
       // 4 seguidas con ✕ y ninguna guardada: no es lo que busca → rescate.
-      const rescatar = accion === 'pass' && guardadas.length === 0 && pasesSeguidos.current >= 4 && !rescateVisto && indice + 1 < items.length
+      const rescatar = accion === 'pass' && guardadas.length === 0 && !enviada && pasesSeguidos.current >= 4 && !rescateVisto && indice + 1 < items.length
       setSalida(accion)
       setVistas((v) => Math.max(v, indice + 1))
       window.setTimeout(() => {
@@ -377,7 +385,7 @@ export default function MazoCasas({
         if (rescatar) marcarRescate('mazo')
       }, DURACION_SALIDA)
     },
-    [actual, salida, rescate, rescateVisto, guardar, guardadas.length, indice, items.length, marcarRescate],
+    [actual, salida, rescate, rescateVisto, enviada, guardar, guardadas.length, indice, items.length, marcarRescate],
   )
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -408,8 +416,16 @@ export default function MazoCasas({
     }
   }
 
+  // Llegó al final sin guardar ninguna: ese final YA es el rescate de esta
+  // visita (antes, al tocar la X ahí salía otro "¿Te vas sin guardar ninguna?").
+  const finEsRescate = terminado && guardadas.length === 0 && !enviada && !rescateVisto
+  useEffect(() => {
+    if (finEsRescate) rescateMostrado = true
+  }, [finEsRescate])
+
   const verDeNuevo = () => {
     setDirectoAlFinal(false)
+    setRescateVisto(rescateMostrado)
     pasesSeguidos.current = 0
     setRescate(null)
     setIndice(0)
@@ -423,9 +439,12 @@ export default function MazoCasas({
     onCerrar()
   }
   const salir = () => {
+    // Ya mandó la consulta, o el formulario ya está a la vista (final con
+    // elegidas): sale directo, sin repetirle el mismo formulario en una hoja.
+    if (enviada || (terminado && guardadas.length > 0)) return cerrarTodo()
     if (guardadas.length > 0) return setHoja({ motivo: 'salir' })
     // Se va sin guardar ninguna después de mirar algunas: una pregunta rápida.
-    if (!rescateVisto && vistas > 0) return marcarRescate('salir')
+    if (!rescateVisto && !finEsRescate && vistas > 0) return marcarRescate('salir')
     cerrarTodo()
   }
 
@@ -459,8 +478,8 @@ export default function MazoCasas({
         <div className="flex items-center justify-between gap-3 px-4 pt-[max(14px,env(safe-area-inset-top))] pb-2">
           <div className="min-w-0">
             <p className="font-black text-gray-900 font-raleway truncate">{titulo}</p>
-            <p className="text-xs text-gray-500">
-              {terminado ? (directoAlFinal ? `Tus elegidas · ${n} para ver` : `Viste las ${n}`) : `${indice + 1} de ${n}`}
+            <p className="text-[13px] text-gray-500">
+              {terminado ? (directoAlFinal && g > 0 ? `Tus elegidas · ${n} para ver` : `Viste las ${n}`) : `${indice + 1} de ${n}`}
               {g > 0 ? ` · ♥ ${g} guardada${g > 1 ? 's' : ''}` : ''}
             </p>
           </div>
@@ -468,7 +487,7 @@ export default function MazoCasas({
             <X className="w-5 h-5" />
           </button>
         </div>
-        <p className="px-4 pb-3 text-xs leading-relaxed text-gray-500">
+        <p className="px-4 pb-3 text-[13px] leading-relaxed text-gray-600">
           <strong className="text-gray-800">Algunas las publican otras inmobiliarias.</strong> Te las mostramos y te coordinamos la visita nosotros.
         </p>
 
@@ -490,8 +509,9 @@ export default function MazoCasas({
                 onPointerUp={onPointerUp}
               />
             </>
-          ) : g > 0 ? (
+          ) : g > 0 || enviada === 'linea' ? (
             // El CTA AL FINAL con las elegidas (David, 3-oct): el formulario ya está acá.
+            // Al enviar, las ♥ se limpian pero el "Listo" sigue a la vista.
             <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
               <HojaContacto
                 enLinea
@@ -500,13 +520,16 @@ export default function MazoCasas({
                 busqueda={busqueda}
                 textoCancelar="Verlas de nuevo"
                 onCancelar={verDeNuevo}
-                onListo={limpiar}
+                onListo={() => {
+                  setEnviada('linea')
+                  limpiar()
+                }}
                 onCerrar={cerrarTodo}
               />
             </div>
           ) : (
             <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
-              {rescateVisto ? (
+              {rescateVisto || enviada ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   <p className="text-xl font-black text-gray-900 font-raleway">Viste las {n}</p>
                   <p className="text-sm text-gray-600 mt-1.5 max-w-xs">Podés verlas de nuevo y darle ♥ a las que te gusten.</p>
@@ -531,7 +554,7 @@ export default function MazoCasas({
           {!terminado && !rescate && <BotonesTinder onPaso={() => decidir('pass')} onMeGusta={() => decidir('like')} />}
           {/* Mientras desliza, solo ✕ y ♥ (David, 3-oct: "que se concentre en eso"); el CTA está al final. */}
           {!terminado && !rescate && (
-            <p className="mt-3 text-center text-xs text-gray-500">
+            <p className="mt-3 text-center text-[13px] text-gray-500">
               {g > 0 ? (
                 <>
                   <span style={{ color: ROSA }}>♥</span> {g} guardada{g > 1 ? 's' : ''} · seguí deslizando, al final te las mandamos
@@ -557,7 +580,10 @@ export default function MazoCasas({
             barrio={barrio}
             busqueda={busqueda}
             onCancelar={() => (hoja.motivo === 'salir' ? cerrarTodo() : setHoja(null))}
-            onListo={limpiar}
+            onListo={() => {
+              setEnviada('hoja')
+              limpiar()
+            }}
             onCerrar={cerrarTodo}
           />
         )}
@@ -618,6 +644,7 @@ function HojaContacto({
 
   const enviar = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (enviando) return
     const nom = nombre.trim()
     if (nom.length < 2) return setError('Poné tu nombre así el asesor sabe cómo llamarte.')
     if (whatsapp.replace(/\D/g, '').length < 10) return setError('Revisá el WhatsApp: con característica, por ejemplo 341 555 1234.')
@@ -678,7 +705,7 @@ function HojaContacto({
                 {guardadas.map((g) =>
                   g.foto ? (
                     <div key={g.key} className="relative w-14 h-14 flex-none rounded-xl overflow-hidden bg-gray-100">
-                      <Image src={g.foto} alt="" fill sizes="56px" className="object-cover" />
+                      <Image src={g.foto} alt="" fill sizes="56px" className="object-cover" style={estiloSinLogo(g.logo)} />
                     </div>
                   ) : null,
                 )}
@@ -687,8 +714,8 @@ function HojaContacto({
             <h3 className="text-lg font-black text-gray-900 font-raleway [text-wrap:balance]">
               {n === 1 ? 'Te gustó 1' : `Te gustaron ${n}`}. ¿Te ayudamos?
             </h3>
-            <p className="text-[13px] leading-relaxed text-gray-600 mt-1 mb-3.5">{explicacion}</p>
-            <label htmlFor="feed-nombre" className="block text-xs font-semibold text-gray-800 mb-1">
+            <p className="text-[14px] leading-relaxed text-gray-600 mt-1 mb-3.5">{explicacion}</p>
+            <label htmlFor="feed-nombre" className="block text-sm font-semibold text-gray-800 mb-1">
               Tu nombre
             </label>
             <input
@@ -703,7 +730,7 @@ function HojaContacto({
               placeholder="Martina"
               className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2.5 outline-none focus:ring-2 focus:ring-[#1A5C38]"
             />
-            <label htmlFor="feed-wsp" className="block text-xs font-semibold text-gray-800 mb-1">
+            <label htmlFor="feed-wsp" className="block text-sm font-semibold text-gray-800 mb-1">
               Tu WhatsApp
             </label>
             <input
@@ -720,7 +747,7 @@ function HojaContacto({
               className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2 outline-none focus:ring-2 focus:ring-[#1A5C38]"
             />
             {error && (
-              <p className="text-xs text-[#E0245E] mb-2" role="alert">
+              <p className="text-sm text-[#E0245E] mb-2" role="alert">
                 {error}
               </p>
             )}
@@ -793,6 +820,8 @@ function Rescate({
   const cuerpo = (conWhatsapp: boolean) =>
     JSON.stringify({
       tipo: conWhatsapp ? 'busca' : 'feedback',
+      // Si ya lo dejó antes en este navegador, el asesor sabe cómo llamarlo.
+      nombre: conWhatsapp ? leerContacto().nombre : '',
       whatsapp: conWhatsapp ? whatsapp : '',
       motivos,
       barrio,
@@ -802,6 +831,7 @@ function Rescate({
     })
 
   const enviar = async (conWhatsapp: boolean) => {
+    if (enviando) return
     if (conWhatsapp && whatsapp.replace(/\D/g, '').length < 10) {
       return setError('Dejá tu WhatsApp con característica, por ejemplo 341 555 1234.')
     }
@@ -850,7 +880,7 @@ function Rescate({
   return (
     <div>
       <h3 className="text-lg font-black text-gray-900 font-raleway [text-wrap:balance]">{titulo}</h3>
-      <p className="text-[13px] leading-relaxed text-gray-600 mt-1 mb-3.5">{bajada}</p>
+      <p className="text-[14px] leading-relaxed text-gray-600 mt-1 mb-3.5">{bajada}</p>
       <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Qué buscás">
         {MOTIVOS.map((m) => {
           const on = motivos.includes(m)
@@ -868,7 +898,7 @@ function Rescate({
           )
         })}
       </div>
-      <label htmlFor={`rescate-wsp-${momento}`} className="block text-xs font-semibold text-gray-800 mb-1">
+      <label htmlFor={`rescate-wsp-${momento}`} className="block text-sm font-semibold text-gray-800 mb-1">
         Tu WhatsApp, si querés que te avisemos
       </label>
       <input
@@ -885,7 +915,7 @@ function Rescate({
         className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2 outline-none focus:ring-2 focus:ring-[#1A5C38]"
       />
       {error && (
-        <p className="text-xs text-[#E0245E] mb-2" role="alert">
+        <p className="text-sm text-[#E0245E] mb-2" role="alert">
           {error}
         </p>
       )}

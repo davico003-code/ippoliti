@@ -160,7 +160,7 @@ function CarruselParado({ imagenes, onAbrir }: { imagenes: string[]; onAbrir: (i
           ))}
         </div>
       )}
-      <p className="mt-2 text-center text-xs text-gray-500">
+      <p className="mt-2 text-center text-[13px] text-gray-600">
         {imagenes.length > 1 ? 'Deslizá para ver los otros · ' : ''}Tocá el plano para agrandarlo
       </p>
     </div>

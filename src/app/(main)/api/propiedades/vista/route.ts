@@ -5,6 +5,8 @@
 // dueño cuenta la web junto a los portales (antes solo medía Mercado Libre).
 // Best-effort: si HILO no responde, la ficha no se entera.
 import { NextResponse } from 'next/server'
+import { redis } from '@/lib/redis'
+import { rateLimit } from '@/lib/feedback'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +20,18 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as { id?: unknown }
   const id = Number(body.id)
   if (!Number.isInteger(id) || id <= 0) return NextResponse.json({ error: 'id inválido' }, { status: 400 })
+  // Las visitas de la web las lee el DUEÑO en su informe: una por persona, por
+  // propiedad y por día (de Argentina), y un tope por IP — si no, un script
+  // inflaba el número. Si Redis falla, se cuenta igual (best-effort).
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  try {
+    const dia = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
+    const primera = await redis.set(`vista:${dia}:${id}:${ip}`, 1, { nx: true, ex: 26 * 3600 })
+    if (primera === null) return new NextResponse(null, { status: 204 })
+  } catch {
+    /* sin Redis: se cuenta */
+  }
+  if (!(await rateLimit(ip, 'vista', 60, 60))) return new NextResponse(null, { status: 204 })
   try {
     await fetch(`${HILO_BASE}/api/public/vista-web`, {
       method: 'POST',

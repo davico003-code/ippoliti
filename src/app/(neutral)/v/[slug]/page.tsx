@@ -23,7 +23,8 @@ import { cache } from 'react'
 
 import { getFicha, isLikelyBot, trackView } from '@/lib/ficha'
 import { publicImageUrl } from '@/lib/external-images'
-import { titularDeDescripcion } from '@/lib/ficha-titular'
+import { limpiarTextoNeutro, titularDeDescripcion } from '@/lib/ficha-titular'
+import { formatDescription } from '@/lib/formatDescription'
 import HeroGallery from '@/components/v/HeroGallery'
 import AudioSummaryNeutral from '@/components/v/AudioSummaryNeutral'
 import { DatosFicha, StatsFicha } from '@/components/v/DatosClave'
@@ -94,6 +95,25 @@ function firstParagraph(text: string, maxLen = 160): string {
   return (lastSpace > 80 ? cut.slice(0, lastSpace) : cut).trim() + '…'
 }
 
+// Sin precio publicado el snapshot trae "Consultar" (fichas externas) o
+// "Consultar precio" (las de Tokko/HILO, vía formatPrice).
+function tienePrecio(precio: string | null | undefined): boolean {
+  return Boolean(precio) && !/^consultar/i.test(String(precio).trim())
+}
+
+// Con titular, la descripción de la tarjeta de WhatsApp sale del primer párrafo
+// de verdad (o de la primera lista): el primer renglón ES el titular y se
+// repetía abajo del título, casi siempre EN MAYÚSCULAS.
+function resumenSinTitular(texto: string, titular: string | null): string {
+  if (!titular || !texto) return texto
+  const bloques = formatDescription(texto)
+  for (const b of bloques) {
+    if (b.type === 'paragraph') return b.content
+    if (b.type === 'list') return b.items.join(' · ')
+  }
+  return ''
+}
+
 // Defensa en profundidad: si una descripción de Tokko trajera branding SI,
 // se filtra antes de meterlo en el preview de la ficha neutra.
 const SI_TERMS = /\b(SI INMOBILIARIA|Susana Ippoliti|SusanaIppoliti|siinmobiliaria\.com|@davidflores\.pov|@inmobiliaria\.si)\b/gi
@@ -116,14 +136,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const s = ficha.snapshot
   // El mismo titular que la página: es lo que se ve en la tarjeta de WhatsApp
   // cuando un colega reenvía el link.
-  const titularDesc = titularDeDescripcion(s.descripcion, [s.zonaCompleta || s.zonaAprox || ''])
+  // Sin "Consultanos…", marca ni teléfonos (ver limpiarTextoNeutro).
+  const descripcion = limpiarTextoNeutro(s.descripcion)
+  const titularDesc = titularDeDescripcion(descripcion, [s.zonaCompleta || s.zonaAprox || ''])
   const nombre = titularDesc || s.tituloGenerico
-  const tituloBase =
-    s.precio && s.precio !== 'Consultar'
-      ? `${nombre} · ${s.precio}`
-      : nombre
+  // Sin precio el título va solo: "· Consultar precio" en la tarjeta de
+  // WhatsApp invitaba a consultar (la ficha neutra nunca lo hace).
+  const tituloBase = tienePrecio(s.precio) ? `${nombre} · ${s.precio}` : nombre
   const titulo = stripSI(tituloBase) || 'Ficha de propiedad'
-  const descRaw = firstParagraph(s.descripcion, 160)
+  const descRaw = firstParagraph(resumenSinTitular(descripcion, titularDesc), 160)
   const desc = stripSI(descRaw) || stripSI(s.tituloGenerico) || 'Ficha de propiedad'
   const url = `https://${NEUTRAL_DOMAIN}/${params.slug}`
   const img = publicImageUrl(s.ogImage || s.fotos[0] || null, `https://${NEUTRAL_DOMAIN}`)
@@ -196,7 +217,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
   })()
 
   const zona = s.zonaCompleta || s.zonaAprox || ''
-  const precio = s.precio && s.precio !== 'Consultar' ? s.precio : 'Consultar precio'
+  const precio = tienePrecio(s.precio) ? s.precio : 'Consultar precio'
   // "Casa en venta · a estrenar"
   const volantaTxt = [
     [s.tipo, s.operacion ? (s.tipo ? `en ${s.operacion.toLowerCase()}` : s.operacion) : ''].filter(Boolean).join(' '),
@@ -204,7 +225,10 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
   ]
     .filter(Boolean)
     .join(' · ')
-  const titularDesc = titularDeDescripcion(s.descripcion, [zona])
+  // La descripción vino escrita para la web propia: se le sacan las oraciones
+  // que invitan a contactar y las de marca/matrícula/teléfono.
+  const descripcion = limpiarTextoNeutro(s.descripcion)
+  const titularDesc = titularDeDescripcion(descripcion, [zona])
   const titular = stripSI(titularDesc || s.tituloGenerico) || s.tituloGenerico
 
   return (
@@ -225,7 +249,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
 
           <AudioSummaryNeutral propertyId={ficha.propertyId} title={s.tituloGenerico} />
 
-          <StructuredDescription text={s.descripcion} omitirTituloInicial={Boolean(titularDesc)} />
+          <StructuredDescription text={descripcion} omitirTituloInicial={Boolean(titularDesc)} />
 
           {/* En la compu estos datos van en la tarjeta de la derecha */}
           <div className="lg:hidden" style={{ marginTop: 22 }}>

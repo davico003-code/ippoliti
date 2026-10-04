@@ -106,33 +106,46 @@ export default function ClientShortlist({
   const porGuardar = useRef<Record<string, CuerpoReaccion>>({})
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const sumadas = useRef<Set<string>>(new Set())
+  // Las respuestas salen DE A UNA: el servidor guarda todas las reacciones en un
+  // solo JSON (lee → cambia → escribe) y dos PATCH a la vez se pisaban; en el
+  // mazo, deslizando rápido, se perdían respuestas que el asesor nunca veía.
+  const cola = useRef<Promise<unknown>>(Promise.resolve())
 
-  const enviar = useCallback((id: string, keepalive = false) => {
+  const enviar = useCallback((id: string, urgente = false) => {
     const body = porGuardar.current[id]
     if (!body) return
     delete porGuardar.current[id]
-    fetch(`/api/seleccion/${token}/reaccion`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      keepalive,
-    }).catch(() => {})
+    const mandar = () =>
+      fetch(`/api/seleccion/${token}/reaccion`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        keepalive: urgente,
+      }).catch(() => {})
+    // La página se está yendo: ya, sin esperar turno.
+    if (urgente) {
+      void mandar()
+      return
+    }
+    // Si una tarda (sumar una parecida le pide a HILO), la siguiente no espera más de 8 s.
+    cola.current = cola.current.then(() => Promise.race([mandar(), new Promise((r) => setTimeout(r, 8000))]))
   }, [token])
 
-  const flush = useCallback(() => {
+  const flush = useCallback((urgente = false) => {
     for (const id of Object.keys(porGuardar.current)) {
       clearTimeout(timers.current[id])
-      enviar(id, true)
+      enviar(id, urgente)
     }
   }, [enviar])
 
   // Que no se pierda la última respuesta si cierra la pestaña enseguida.
   useEffect(() => {
-    const onHide = () => { if (document.visibilityState === 'hidden') flush() }
-    window.addEventListener('pagehide', flush)
+    const salirYa = () => flush(true)
+    const onHide = () => { if (document.visibilityState === 'hidden') flush(true) }
+    window.addEventListener('pagehide', salirYa)
     document.addEventListener('visibilitychange', onHide)
     return () => {
-      window.removeEventListener('pagehide', flush)
+      window.removeEventListener('pagehide', salirYa)
       document.removeEventListener('visibilitychange', onHide)
     }
   }, [flush])

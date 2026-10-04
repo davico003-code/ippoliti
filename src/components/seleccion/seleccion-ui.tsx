@@ -6,6 +6,7 @@
 import Image from 'next/image'
 import { BedDouble, Bath, Flame, Ruler } from 'lucide-react'
 import { displayImageUrl } from '@/lib/external-images'
+import { estiloSinLogo, type PosicionLogo } from '@/lib/feed-en-red'
 import type { SeleccionItem } from '@/lib/seleccion'
 
 export type ReactKey = 'encanta' | 'no'
@@ -70,9 +71,14 @@ function optimizable(src: string): boolean {
   }
 }
 
+/**
+ * `logo`: fotos de colegas con el logo impreso (MA, Crestale): se agranda un
+ * poco desde la esquina opuesta y el logo queda afuera. El contenedor tiene
+ * que tener overflow-hidden.
+ */
 export function Foto({
-  src, alt, sizes, eager, onLoad,
-}: { src: string; alt: string; sizes: string; eager?: boolean; onLoad?: () => void }) {
+  src, alt, sizes, eager, onLoad, logo,
+}: { src: string; alt: string; sizes: string; eager?: boolean; onLoad?: () => void; logo?: PosicionLogo | null }) {
   const url = displayImageUrl(src)
   return (
     <Image
@@ -85,6 +91,7 @@ export function Foto({
       draggable={false}
       onLoad={onLoad}
       className="pointer-events-none select-none object-cover"
+      style={estiloSinLogo(logo)}
     />
   )
 }

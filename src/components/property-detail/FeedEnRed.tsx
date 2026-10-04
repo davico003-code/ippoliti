@@ -11,6 +11,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { MapPin } from 'lucide-react'
 import { type TokkoProperty, operacionPrincipal, translatePropertyType } from '@/lib/tokko'
 import { type FeedEnRed as DatosFeed, type ItemFeed, type PuntoZona, enLaZona, estiloSinLogo, itemDeEnRed, pluralTipo } from '@/lib/feed-en-red'
@@ -92,8 +93,13 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   /** Desde qué tarjeta se abrió el mazo (null = cerrado). */
   const [abiertoEn, setAbiertoEn] = useState<number | null>(null)
   const guardadasApi = useGuardadas()
+  // La misma ficha se abre ADENTRO de la selección del cliente
+  // (/seleccion/ficha/…): ahí no va el mazo ni su "que me escriba un asesor"
+  // (entraría como consulta nueva por turno, aunque ese cliente ya tiene asesor).
+  const dentroDeSeleccion = usePathname()?.startsWith('/seleccion/') ?? false
 
   useEffect(() => {
+    if (dentroDeSeleccion) return
     let cancelado = false
     fetch(`/api/propiedades/similar?id=${property.id}&limit=24`)
       .then((r) => (r.ok ? r.json() : null))
@@ -104,9 +110,10 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     return () => {
       cancelado = true
     }
-  }, [property.id])
+  }, [property.id, dentroDeSeleccion])
 
   useEffect(() => {
+    if (dentroDeSeleccion) return
     let cancelado = false
     fetch(`/api/propiedades/en-red?id=${property.id}`)
       .then((r) => (r.ok ? r.json() : null))
@@ -117,7 +124,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     return () => {
       cancelado = true
     }
-  }, [property.id])
+  }, [property.id, dentroDeSeleccion])
 
   const enRed = useMemo(() => (datos?.tarjetas ?? []).map(itemDeEnRed), [datos])
   const items = useMemo(() => {
@@ -133,7 +140,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const plural = pluralTipo(translatePropertyType(property.type?.name))
   const titulo = barrio ? `Más ${plural} en ${barrio}` : `Más ${plural} en la zona`
 
-  if (enRed.length === 0) return null
+  if (enRed.length === 0 || dentroDeSeleccion) return null
   const { montado, esGuardada, guardar, quitar, guardadas } = guardadasApi
   // Compu: las En red primero (las nuestras ya están arriba, en "Otras opciones").
   const fila = [...items.filter((i) => !i.esNuestra), ...items.filter((i) => i.esNuestra)].slice(0, 4)

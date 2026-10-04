@@ -890,6 +890,16 @@ export default function PropiedadesView({
   const hasActive = (Object.keys(DEFAULTS) as (keyof Filters)[])
     .some(k => filters[k] !== DEFAULTS[k])
 
+  // "Temporario" solo si hay alguno publicado (es de temporada): fuera de
+  // temporada el botón llevaba siempre a "Sin resultados". Si el link ya trae
+  // ?operacion=temporario, se ofrece igual para que se vea y se pueda sacar.
+  const hayTemporarios = useMemo(
+    () => properties.some(p => p.operations?.some(o => o.operation_type === 'Temporary rent')),
+    [properties],
+  )
+  const operacionesUi: Array<'venta' | 'alquiler' | 'temporario'> =
+    hayTemporarios || filters.operation === 'temporario' ? ['venta', 'alquiler', 'temporario'] : ['venta', 'alquiler']
+
   // Opciones de tipología: solo los grupos con al menos un id presente en el
   // inventario cargado, con sus labels en español (mismo mapa por id que el
   // filtrado y el de las cards). Evita ofrecer tipos que SI no tiene.
@@ -1145,11 +1155,15 @@ export default function PropiedadesView({
     const soltar = () => {
       window.removeEventListener('pointermove', mover)
       window.removeEventListener('pointerup', soltar)
+      window.removeEventListener('pointercancel', soltar)
       setArrastrando(false)
       guardarListaPct(ultimo)
     }
     window.addEventListener('pointermove', mover)
     window.addEventListener('pointerup', soltar)
+    // Sin esto, un arrastre cortado (alt-tab, gesto del sistema) dejaba la
+    // página con el texto sin poder seleccionarse y el cursor de redimensionar.
+    window.addEventListener('pointercancel', soltar)
   }, [listaPct, guardarListaPct])
 
   // Cualquier cambio de resultado vuelve a la primera tanda.
@@ -1447,7 +1461,7 @@ export default function PropiedadesView({
         <div className="flex items-center gap-2 px-3 pb-2">
           {/* Segmented control */}
           <div className="flex rounded-full bg-gray-100 p-0.5 flex-1" style={{ minHeight: 44 }}>
-            {(['venta', 'alquiler', 'temporario'] as const).map(op => (
+            {operacionesUi.map(op => (
               <button
                 key={op}
                 onClick={() => updateOperation(filters.operation === op ? 'todos' : op)}
@@ -1631,7 +1645,7 @@ export default function PropiedadesView({
         </div>
         <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
         <FilterSelect value={filters.operation} onChange={updateOperation}
-          options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'},{value:'temporario',label:'Temporario'}]} />
+          options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'},...(operacionesUi.includes('temporario') ? [{value:'temporario' as const,label:'Temporario'}] : [])]} />
         <FilterSelect value={filters.type} onChange={v => set('type', v)}
           options={typeOptions} />
         <FilterSelect value={filters.beds} onChange={v => set('beds', v)}

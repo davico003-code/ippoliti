@@ -25,15 +25,22 @@ function esTerreno(s: FichaSnapshot): boolean {
   return /terreno|lote/i.test(s.tipo || '')
 }
 
+// Total igual al lote = dato sucio heredado de Tokko (o getTotalSurface cayó al
+// lote porque no había total ni cubierta): no es superficie construida.
+function totalEsLote(s: FichaSnapshot): boolean {
+  return Boolean(s.m2totales && s.m2terreno && s.m2totales === s.m2terreno)
+}
+
 // La superficie que va en la fila principal. Lote → m² de lote; el resto →
-// total construida (o cubierta si no hay total).
+// total construida (o cubierta si no hay total, o si el "total" es el lote:
+// regla "superficie protagonista", no vender el terreno como construido).
 function superficiePrincipal(s: FichaSnapshot): { campo: 'm2terreno' | 'm2totales' | 'm2cubiertos'; valor: number; corta: string; larga: string } | null {
   if (esTerreno(s)) {
     if (s.m2terreno) return { campo: 'm2terreno', valor: s.m2terreno, corta: 'm² lote', larga: 'm² de lote' }
     if (s.m2totales) return { campo: 'm2totales', valor: s.m2totales, corta: 'm²', larga: 'm² totales' }
     return null
   }
-  if (s.m2totales) return { campo: 'm2totales', valor: s.m2totales, corta: 'm²', larga: 'm² totales' }
+  if (s.m2totales && !totalEsLote(s)) return { campo: 'm2totales', valor: s.m2totales, corta: 'm²', larga: 'm² totales' }
   if (s.m2cubiertos) return { campo: 'm2cubiertos', valor: s.m2cubiertos, corta: 'm² cub.', larga: 'm² cubiertos' }
   return null
 }
@@ -104,8 +111,9 @@ export function datosFicha(s: FichaSnapshot): Array<{ label: string; valor: stri
   if (s.m2cubiertos && principal !== 'm2cubiertos') out.push({ label: 'Cubierta', valor: m2(s.m2cubiertos) })
   if (s.m2semicubiertos) out.push({ label: 'Semicubierta', valor: m2(s.m2semicubiertos) })
   if (s.m2descubiertos) out.push({ label: 'Descubierta', valor: m2(s.m2descubiertos) })
-  // En lotes, Tokko suele repetir la superficie del lote como "total".
-  if (s.m2totales && principal !== 'm2totales' && !(esTerreno(s) && s.m2totales === s.m2terreno)) {
+  // Tokko suele repetir la superficie del lote como "total" (en lotes y en
+  // algunas casas): ahí no hay "total construida" que mostrar.
+  if (s.m2totales && principal !== 'm2totales' && !totalEsLote(s)) {
     out.push({ label: 'Total construida', valor: m2(s.m2totales) })
   }
   if (s.m2terreno && principal !== 'm2terreno') out.push({ label: 'Terreno', valor: m2(s.m2terreno) })
@@ -137,7 +145,7 @@ export function DatosFicha({ snapshot }: { snapshot: FichaSnapshot }) {
     <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, margin: 0 }}>
       {datos.map(d => (
         <div key={d.label} className={d.soloCelu ? 'lg:hidden' : undefined} style={{ background: FONDO_SUAVE, borderRadius: 12, padding: '10px 12px' }}>
-          <dt style={{ fontSize: 12, color: APAGADO }}>{d.label}</dt>
+          <dt style={{ fontSize: 13, color: APAGADO }}>{d.label}</dt>
           <dd style={{ margin: '2px 0 0', fontSize: 15, fontWeight: 600, color: TINTA }}>{d.valor}</dd>
         </div>
       ))}
