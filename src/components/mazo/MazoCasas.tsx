@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
-import { Info, MapPin, RotateCcw, X } from 'lucide-react'
+import { Expand, Info, MapPin, RotateCcw, X } from 'lucide-react'
 import {
   type GuardadaLocal,
   type ItemFeed,
@@ -35,6 +35,8 @@ import { barriosParecidos, listaBarrios } from '@/lib/barrios-parecidos'
 import { MAX_FOTOS_MAZO, completarFotos } from '@/lib/mazo-items'
 import { marcarMazoAbierto } from '@/lib/mazo-atras'
 import DetalleMazo, { cargarDetalle } from './DetalleMazo'
+import VisorFotos from './VisorFotos'
+import { contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
 
 export const VERDE = '#1A5C38'
 const OCRE_FONDO = '#F4EAD8'
@@ -55,7 +57,7 @@ let rescateMostrado = false
  * otra). `montado` = ya se leyó el almacenamiento (antes, nada se muestra
  * guardado: evita el desfasaje con el HTML del servidor).
  */
-export function useGuardadas() {
+export function useGuardadas(origen?: OrigenTinder) {
   const [guardadas, setGuardadas] = useState<GuardadaLocal[]>([])
   const [montado, setMontado] = useState(false)
   const actuales = useRef<GuardadaLocal[]>([])
@@ -71,7 +73,8 @@ export function useGuardadas() {
     setGuardadas(next)
     escribirGuardadas(next)
     trackEvent('feed_en_red_like', { tipo: item.esNuestra ? 'nuestra' : 'en_red' })
-  }, [])
+    if (origen) contarTinder('like', origen)
+  }, [origen])
   /** Sacar el ♥ (la fila de la compu permite arrepentirse). */
   const quitar = useCallback((key: string) => {
     const next = actuales.current.filter((g) => g.key !== key)
@@ -159,6 +162,7 @@ export function Tarjeta({
   par,
   guia = false,
   onDetalles,
+  onAmpliar,
 }: {
   item: ItemFeed
   modo: 'arriba' | 'abajo' | 'quieta'
@@ -166,6 +170,8 @@ export function Tarjeta({
   guia?: boolean
   /** "Ver detalles": ubicación y características sin salir del mazo. */
   onDetalles?: () => void
+  /** Foto en grande (desde la primera del par que se ve). */
+  onAmpliar?: (desde: number) => void
   guardada: boolean
   arrastre: Arrastre | null
   salida: 'like' | 'pass' | null
@@ -239,6 +245,21 @@ export function Tarjeta({
           <div className="absolute top-6 right-3 text-[#E0245E] drop-shadow">
             <Corazon lleno className="w-7 h-7" />
           </div>
+        )}
+        {arriba && onAmpliar && (
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              onAmpliar(Math.min(p * 2, Math.max(0, n - 1)))
+            }}
+            aria-label="Ver la foto en grande"
+            className="absolute bottom-2.5 right-2.5 grid h-11 w-11 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm"
+          >
+            <Expand className="h-5 w-5" aria-hidden="true" />
+          </button>
         )}
 
         {/* Sellos mientras arrastra */}
@@ -475,12 +496,23 @@ export default function MazoCasas({
 
   useEffect(() => {
     trackEvent('feed_en_red_abrir', { cantidad: items.length, origen })
+    contarTinder('abrir', origen)
     // Solo al abrir.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   /** "Ver detalles" abierto (de la tarjeta de arriba). */
   const [detalle, setDetalle] = useState(false)
+  /** Foto en grande abierta: desde qué foto (de la tarjeta de arriba). */
+  const [visor, setVisor] = useState<number | null>(null)
+  const abrirDetalle = () => {
+    setDetalle(true)
+    contarTinder('detalles', origen)
+  }
+  const abrirVisor = (desde: number) => {
+    setVisor(desde)
+    contarTinder('foto', origen)
+  }
   const actual = conFotos(todos[indice] ?? null)
   const siguiente = conFotos(todos[indice + 1] ?? null)
   const terminado = indice >= todos.length
@@ -545,6 +577,7 @@ export default function MazoCasas({
   const sumarParecidas = async (desde: 'final' | 'rescate'): Promise<boolean> => {
     if (!cargarParecidos || estadoParecidos === 'cargando' || insercion) return false
     setEstadoParecidos('cargando')
+    contarTinder('parecidos_si', origen)
     trackEvent('feed_en_red_parecidos', { respuesta: 'si', barrio: barrio ?? '', desde })
     const nuevas = await cargarParecidos(parecidos, new Set(todos.map((i) => i.key))).catch(() => [] as ItemFeed[])
     if (nuevas.length === 0) {
@@ -596,7 +629,7 @@ export default function MazoCasas({
     const zona = e.currentTarget.querySelector('[data-fotos]')?.getBoundingClientRect()
     // Un toque en la parte blanca (precio, datos, dirección) = "Ver detalles".
     if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && zona && e.clientY > zona.bottom) {
-      setDetalle(true)
+      abrirDetalle()
       return
     }
     if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && pares > 1 && zona && e.clientY >= zona.top && e.clientY <= zona.bottom) {
@@ -607,6 +640,13 @@ export default function MazoCasas({
 
   // Llegó al final sin guardar ninguna: ese final YA es el rescate de esta
   // visita (antes, al tocar la X ahí salía otro "¿Te vas sin guardar ninguna?").
+  const finContado = useRef(false)
+  useEffect(() => {
+    if (terminado && !directoAlFinal && !finContado.current) {
+      finContado.current = true
+      contarTinder('final', origen)
+    }
+  }, [terminado, directoAlFinal, origen])
   const finEsRescate = terminado && !preguntaParecidos && guardadas.length === 0 && !enviada && !rescateVisto
   useEffect(() => {
     if (finEsRescate) rescateMostrado = true
@@ -648,6 +688,10 @@ export default function MazoCasas({
   porAtras.current = () => {
     if (guia) {
       cerrarGuia()
+      return true
+    }
+    if (visor != null) {
+      setVisor(null)
       return true
     }
     if (detalle) {
@@ -746,7 +790,7 @@ export default function MazoCasas({
         else if (hoja) setHoja(null)
         else if (rescate) setRescate(null)
         else salir()
-      } else if (detalle) {
+      } else if (detalle || visor != null) {
         return
       } else if (!hoja && !rescate && e.key === 'ArrowRight') decidir('like')
       else if (!hoja && !rescate && e.key === 'ArrowLeft') decidir('pass')
@@ -758,7 +802,7 @@ export default function MazoCasas({
       window.removeEventListener('keydown', onKey)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoja, rescate, guia, detalle, guardadas.length, decidir, volver])
+  }, [hoja, rescate, guia, detalle, visor, guardadas.length, decidir, volver])
 
   const n = todos.length
   // Mirando las de los barrios parecidos: el título lo dice.
@@ -803,7 +847,8 @@ export default function MazoCasas({
                 guardada={esGuardada(actual.key)}
                 arrastre={guia && guiaDx != null ? { dx: guiaDx, dy: 0 } : arrastre}
                 guia={guia}
-                onDetalles={() => setDetalle(true)}
+                onDetalles={abrirDetalle}
+                onAmpliar={abrirVisor}
                 salida={salida}
                 par={foto}
                 onPointerDown={onPointerDown}
@@ -826,6 +871,7 @@ export default function MazoCasas({
             // Al enviar, las ♥ se limpian pero el "Listo" sigue a la vista.
             <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
               <HojaContacto
+                origen={origen}
                 enLinea
                 guardadas={guardadas}
                 barrio={barrio}
@@ -850,13 +896,14 @@ export default function MazoCasas({
                   </button>
                 </div>
               ) : (
-                <Rescate momento="fin" barrio={barrio} busqueda={busqueda} vistas={n} onListo={cerrarTodo} onSecundario={verDeNuevo} />
+                <Rescate origen={origen} momento="fin" barrio={barrio} busqueda={busqueda} vistas={n} onListo={cerrarTodo} onSecundario={verDeNuevo} />
               )}
             </div>
           )}
           {rescate === 'mazo' && !terminado && (
             <div className="absolute inset-0 z-10 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5 shadow-[0_10px_30px_rgba(0,0,0,0.10)]">
               <Rescate
+                origen={origen}
                 momento="mazo"
                 barrio={barrio}
                 busqueda={busqueda}
@@ -904,6 +951,7 @@ export default function MazoCasas({
             <div className="w-full bg-white rounded-t-3xl border-t border-gray-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] px-5 pt-4 pb-[max(22px,env(safe-area-inset-bottom))]">
               <div className="w-10 h-1 rounded bg-gray-200 mx-auto mb-4" />
               <Rescate
+                origen={origen}
                 momento="salir"
                 barrio={barrio}
                 busqueda={busqueda}
@@ -915,6 +963,9 @@ export default function MazoCasas({
               />
             </div>
           </div>
+        )}
+        {visor != null && actual && !terminado && (
+          <VisorFotos fotos={actual.fotos} inicio={visor} titulo={actual.titulo || actual.precio} logo={actual.logo} onCerrar={() => setVisor(null)} />
         )}
         {detalle && actual && !terminado && (
           <DetalleMazo
@@ -965,7 +1016,7 @@ export default function MazoCasas({
                     </svg>
                   </span>
                   <span>
-                    <strong>Tocá el costado de la foto</strong> para ver más fotos
+                    <strong>Tocá el costado de la foto</strong> para ver más; con ⤢ la ves en grande
                   </span>
                 </li>
                 <li className="flex items-center gap-3">
@@ -986,6 +1037,7 @@ export default function MazoCasas({
         )}
         {hoja && (
           <HojaContacto
+                origen={origen}
             guardadas={guardadas}
             barrio={barrio}
             busqueda={busqueda}
@@ -1065,6 +1117,7 @@ function PreguntaParecidos({
 }
 
 function HojaContacto({
+  origen,
   guardadas,
   barrio,
   busqueda = null,
@@ -1074,6 +1127,7 @@ function HojaContacto({
   enLinea = false,
   textoCancelar = 'No, gracias',
 }: {
+  origen: OrigenTinder
   guardadas: GuardadaLocal[]
   barrio: string | null
   busqueda?: string | null
@@ -1133,6 +1187,7 @@ function HojaContacto({
       trackEvent('feed_en_red_consulta', { cantidad: n, en_red: red })
       trackFbEvent('Lead', { content_name: 'feed_en_red', content_ids: guardadas.filter((g) => g.esNuestra).map((g) => g.key.slice(2)) })
       setListo(nom.split(/\s+/)[0])
+      contarTinder('consulta', origen)
       onListo()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No pudimos enviarlo. Probá de nuevo.')
@@ -1254,6 +1309,7 @@ const MOTIVOS = ['Más económicas', 'Más grandes', 'Otra zona', 'Otro tipo de 
  * WhatsApp, lo que eligió igual se guarda (anónimo).
  */
 function Rescate({
+  origen,
   momento,
   barrio,
   busqueda = null,
@@ -1263,6 +1319,7 @@ function Rescate({
   onListo,
   onSecundario,
 }: {
+  origen: OrigenTinder
   momento: 'mazo' | 'salir' | 'fin'
   barrio: string | null
   busqueda?: string | null
@@ -1341,6 +1398,7 @@ function Rescate({
       if (conWhatsapp) {
         escribirContacto({ nombre: leerContacto().nombre, whatsapp })
         trackFbEvent('Lead', { content_name: 'feed_en_red_rescate' })
+        contarTinder('busca', origen)
         setListo(true)
       } else {
         onListo()
