@@ -463,8 +463,9 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enRed.length, items.length])
 
-  // Cuándo mostrar el aviso: ya bajó hasta "Características" (está mirando en
-  // serio) y el bloque de "Más casas" todavía no está en pantalla.
+  // Cuándo mostrar el aviso (David, 3-oct: "cuando ya está casi abajo"): al
+  // llegar a "Ubicación", la última parte de la ficha — ya vio nuestra casa y
+  // está por irse. Se va solo cuando el bloque de "Más casas" entra en pantalla.
   useEffect(() => {
     if (!montado || enRed.length === 0 || !esVisible()) return
     try {
@@ -473,16 +474,16 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
       /* sin almacenamiento */
     }
     const raiz = seccionRef.current!
-    const caracteristicas = Array.from(document.querySelectorAll<HTMLElement>('[id="caracteristicas"]')).find((el) => el.getClientRects().length > 0)
+    const ubicacion = Array.from(document.querySelectorAll<HTMLElement>('[id="ubicacion"]')).find((el) => el.getClientRects().length > 0)
     let demora: number | undefined
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (e.target === raiz) setBloqueALaVista(e.isIntersecting)
-        else if (e.isIntersecting && demora === undefined) demora = window.setTimeout(() => setRecorrio(true), 2500)
+        else if (e.isIntersecting && demora === undefined) demora = window.setTimeout(() => setRecorrio(true), 1500)
       }
     })
     io.observe(raiz)
-    if (caracteristicas) io.observe(caracteristicas)
+    if (ubicacion) io.observe(ubicacion)
     return () => {
       io.disconnect()
       window.clearTimeout(demora)
