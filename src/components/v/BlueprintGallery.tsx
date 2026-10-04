@@ -3,10 +3,14 @@
 // Galería chica para planos, del mismo alto que el mapa (clase vf-media). Tap →
 // Lightbox con zoom/scroll para leer cotas. Un plano en PDF no es imagen (se
 // veía roto): va como tarjeta "Ver plano en PDF" que lo abre aparte.
+// Los planos de Hilo llegan sin márgenes; a pantalla completa con el celular
+// derecho va la versión PARADA, que llena la pantalla (lib/planos.ts).
 
 import { useEffect, useRef, useState } from 'react'
 import { FileText, Maximize2 } from 'lucide-react'
 import Lightbox from './Lightbox'
+import { planoParaCaja } from '@/lib/planos'
+import { usePantallaVertical } from '@/hooks/usePantallaVertical'
 import { APAGADO, LINEA, TINTA } from './estilos'
 
 const esPdf = (u: string) => /\.pdf($|[?#])/i.test(u)
@@ -15,6 +19,7 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
   const [active, setActive] = useState(0)
   const [lightboxAt, setLightboxAt] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const parada = usePantallaVertical()
 
   useEffect(() => {
     const el = containerRef.current
@@ -131,7 +136,7 @@ export default function BlueprintGallery({ blueprints }: { blueprints: string[] 
 
       {lightboxAt !== null && (
         <Lightbox
-          images={imagenes}
+          images={imagenes.map(u => planoParaCaja(u, parada))}
           startIndex={lightboxAt}
           zoomable
           onClose={() => setLightboxAt(null)}
