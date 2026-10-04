@@ -61,13 +61,21 @@ export function useGuardadas() {
     escribirGuardadas(next)
     trackEvent('feed_en_red_like', { tipo: item.esNuestra ? 'nuestra' : 'en_red' })
   }, [])
+  /** Sacar el ♥ (la fila de la compu permite arrepentirse). */
+  const quitar = useCallback((key: string) => {
+    const next = actuales.current.filter((g) => g.key !== key)
+    if (next.length === actuales.current.length) return
+    actuales.current = next
+    setGuardadas(next)
+    escribirGuardadas(next)
+  }, [])
   const limpiar = useCallback(() => {
     actuales.current = []
     setGuardadas([])
     escribirGuardadas([])
   }, [])
   const esGuardada = useCallback((key: string) => guardadas.some((g) => g.key === key), [guardadas])
-  return { guardadas, guardar, limpiar, esGuardada, montado }
+  return { guardadas, guardar, quitar, limpiar, esGuardada, montado }
 }
 
 export function Sello({ className = 'w-4 h-4' }: { className?: string }) {
@@ -107,7 +115,7 @@ export function Corazon({ lleno, className = 'w-7 h-7' }: { lleno: boolean; clas
   )
 }
 
-function Chip({ nuestra }: { nuestra: boolean }) {
+export function Chip({ nuestra }: { nuestra: boolean }) {
   return nuestra ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white font-raleway shadow-sm" style={{ background: VERDE }}>
       SI
@@ -318,6 +326,8 @@ export default function MazoCasas({
 }) {
   const { guardadas, guardar, limpiar, esGuardada } = guardadasApi
   const [indice, setIndice] = useState(() => Math.min(Math.max(0, inicio), items.length))
+  // Se abrió directo en las elegidas (botón de la fila de la compu): no "las vio todas".
+  const [directoAlFinal, setDirectoAlFinal] = useState(() => inicio >= items.length)
   const [foto, setFoto] = useState(0)
   const [arrastre, setArrastre] = useState<Arrastre | null>(null)
   const [salida, setSalida] = useState<'like' | 'pass' | null>(null)
@@ -399,6 +409,7 @@ export default function MazoCasas({
   }
 
   const verDeNuevo = () => {
+    setDirectoAlFinal(false)
     pasesSeguidos.current = 0
     setRescate(null)
     setIndice(0)
@@ -449,7 +460,7 @@ export default function MazoCasas({
           <div className="min-w-0">
             <p className="font-black text-gray-900 font-raleway truncate">{titulo}</p>
             <p className="text-xs text-gray-500">
-              {terminado ? `Viste las ${n}` : `${indice + 1} de ${n}`}
+              {terminado ? (directoAlFinal ? `Tus elegidas · ${n} para ver` : `Viste las ${n}`) : `${indice + 1} de ${n}`}
               {g > 0 ? ` · ♥ ${g} guardada${g > 1 ? 's' : ''}` : ''}
             </p>
           </div>
