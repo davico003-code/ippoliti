@@ -66,8 +66,10 @@ export default function HeroMobile() {
           Propiedades en <CiudadRotativa />
         </p>
 
-        {/* Searchbar pill unificado */}
-        <div className="portada-in w-full mt-4 relative mx-auto" style={{ maxWidth: 460, ['--d' as string]: '600ms' }} ref={wrapperRef}>
+        {/* Searchbar pill unificado. z-20: el link "♥ Conocé tu próximo hogar"
+            (abajo, también con portada-in) pintaba ENCIMA del dropdown; su texto
+            blanco no se veía sobre el blanco pero el corazón rosa sí. */}
+        <div className="portada-in w-full mt-4 relative z-20 mx-auto"style={{ maxWidth: 460, ['--d' as string]: '600ms' }} ref={wrapperRef}>
           <form
             onSubmit={submit}
             className="bg-white shadow-xl flex items-center"
