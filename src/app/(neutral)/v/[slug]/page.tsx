@@ -35,7 +35,7 @@ import CercaChips from '@/components/v/CercaChips'
 import CompartirMenu from '@/components/v/CompartirMenu'
 import BarraAccionesMovil from '@/components/v/BarraAccionesMovil'
 import { VotoColega } from '@/components/neutral/FeedbackColega'
-import { APAGADO, LINEA, SUAVE, TINTA, tituloSeccion, volanta } from '@/components/v/estilos'
+import { APAGADO, FONDO_SUAVE, LINEA, SUAVE, TINTA, tituloSeccion, volanta } from '@/components/v/estilos'
 
 const NEUTRAL_DOMAIN = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
 
@@ -114,10 +114,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const s = ficha.snapshot
+  // El mismo titular que la página: es lo que se ve en la tarjeta de WhatsApp
+  // cuando un colega reenvía el link.
+  const titularDesc = titularDeDescripcion(s.descripcion, [s.zonaCompleta || s.zonaAprox || ''])
+  const nombre = titularDesc || s.tituloGenerico
   const tituloBase =
     s.precio && s.precio !== 'Consultar'
-      ? `${s.tituloGenerico} · ${s.precio}`
-      : s.tituloGenerico
+      ? `${nombre} · ${s.precio}`
+      : nombre
   const titulo = stripSI(tituloBase) || 'Ficha de propiedad'
   const descRaw = firstParagraph(s.descripcion, 160)
   const desc = stripSI(descRaw) || stripSI(s.tituloGenerico) || 'Ficha de propiedad'
@@ -254,6 +258,13 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
             </div>
           )}
 
+          {!isEmbedded && (
+            <div className="lg:hidden" style={{ marginTop: 36, padding: '18px 20px', background: FONDO_SUAVE, borderRadius: 16, textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TINTA }}>¿Te interesa esta propiedad?</p>
+              <p style={{ margin: '4px 0 0', fontSize: 15, color: APAGADO, lineHeight: 1.5 }}>Consultá con quien te envió esta ficha.</p>
+            </div>
+          )}
+
           {!isEmbedded && <footer className="vf-footer">{NEUTRAL_DOMAIN}</footer>}
         </div>
 
@@ -277,7 +288,10 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
             </div>
             {!isEmbedded && (
               <>
-                <div style={{ marginTop: 20 }}>
+                <p style={{ margin: '20px 0 0', fontSize: 14, color: APAGADO, lineHeight: 1.5 }}>
+                  <b style={{ color: TINTA, fontWeight: 600 }}>¿Te interesa?</b> Consultá con quien te envió esta ficha.
+                </p>
+                <div style={{ marginTop: 12 }}>
                   <CompartirMenu url={url} slug={params.slug} variante="tarjeta" />
                 </div>
                 <div style={{ marginTop: 20, paddingTop: 18, borderTop: `1px solid ${LINEA}` }}>
