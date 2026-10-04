@@ -361,6 +361,9 @@ export default async function PropertyPage({ params }: Props) {
         <PropertyStickyNav
           sections={[
             { id: 'overview', label: 'Resumen' },
+            // Segunda a propósito (David, 3-oct: "que la tendencia los lleve
+            // hacia ese lugar"): abre el Tinder de "Más casas" (FeedEnRed).
+            { id: 'mas-casas', label: '♥ Más casas', evento: 'si:abrir-mas-casas', seccionSiNo: 'similares' },
             { id: 'caracteristicas', label: 'Características' },
             // "Video" solo si la propiedad tiene recorrido (misma condición que
             // la sección #video en PropertyDetailBody).
@@ -375,7 +378,6 @@ export default async function PropertyPage({ params }: Props) {
               ? [{ id: 'planos', label: 'Planos' }]
               : []),
             { id: 'ubicacion', label: 'Ubicación' },
-            { id: 'similares', label: 'Similares' },
           ]}
           stickyTop={56}
         />

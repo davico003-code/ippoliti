@@ -303,6 +303,11 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const [hoja, setHoja] = useState<EstadoHoja>(null)
   const [montado, setMontado] = useState(false)
   const inicioArrastre = useRef<{ x: number; y: number } | null>(null)
+  const seccionRef = useRef<HTMLElement>(null)
+  // Aviso flotante "♥ Mirá N casas más": aparece cuando ya recorrió la ficha.
+  const [recorrio, setRecorrio] = useState(false)
+  const [bloqueALaVista, setBloqueALaVista] = useState(false)
+  const [avisoDescartado, setAvisoDescartado] = useState(false)
 
   useEffect(() => {
     setMontado(true)
@@ -392,6 +397,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   }
 
   const abrirEn = (i: number) => {
+    descartarAviso()
     setIndice(Math.max(0, i))
     setFoto(0)
     setArrastre(null)
@@ -429,14 +435,69 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abierto, hoja, guardadas.length, decidir])
 
+  /**
+   * En la compu la ficha trae una copia oculta de la versión celu: hay DOS
+   * FeedEnRed montados. Solo responde el visible (si no, se abrirían dos mazos).
+   */
+  const esVisible = () => !!seccionRef.current && seccionRef.current.getClientRects().length > 0
+
+  function descartarAviso() {
+    setAvisoDescartado(true)
+    try {
+      window.sessionStorage.setItem('si-mas-casas-aviso', 'no')
+    } catch {
+      /* sin almacenamiento: se vuelve a mostrar en la próxima ficha */
+    }
+  }
+
+  // La pestaña "♥ Más casas" de la barra de arriba abre el mazo.
+  useEffect(() => {
+    if (enRed.length === 0) return
+    const onAbrir = (e: Event) => {
+      if (!esVisible()) return
+      e.preventDefault()
+      abrirEn(0)
+    }
+    window.addEventListener('si:abrir-mas-casas', onAbrir)
+    return () => window.removeEventListener('si:abrir-mas-casas', onAbrir)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enRed.length, items.length])
+
+  // Cuándo mostrar el aviso: ya bajó hasta "Características" (está mirando en
+  // serio) y el bloque de "Más casas" todavía no está en pantalla.
+  useEffect(() => {
+    if (!montado || enRed.length === 0 || !esVisible()) return
+    try {
+      if (window.sessionStorage.getItem('si-mas-casas-aviso') === 'no') setAvisoDescartado(true)
+    } catch {
+      /* sin almacenamiento */
+    }
+    const raiz = seccionRef.current!
+    const caracteristicas = Array.from(document.querySelectorAll<HTMLElement>('[id="caracteristicas"]')).find((el) => el.getClientRects().length > 0)
+    let demora: number | undefined
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.target === raiz) setBloqueALaVista(e.isIntersecting)
+        else if (e.isIntersecting && demora === undefined) demora = window.setTimeout(() => setRecorrio(true), 2500)
+      }
+    })
+    io.observe(raiz)
+    if (caracteristicas) io.observe(caracteristicas)
+    return () => {
+      io.disconnect()
+      window.clearTimeout(demora)
+    }
+  }, [montado, enRed.length])
+
   if (enRed.length === 0) return null
+  const mostrarAviso = recorrio && !bloqueALaVista && !avisoDescartado && !abierto
 
   const n = items.length
   const g = guardadas.length
 
   return (
     <>
-      <section className="mt-4 bg-white rounded-2xl px-5 md:px-8 pt-6 pb-6 shadow-sm border border-gray-100" aria-labelledby="feed-en-red-titulo">
+      <section ref={seccionRef} className="mt-4 bg-white rounded-2xl px-5 md:px-8 pt-6 pb-6 shadow-sm border border-gray-100" aria-labelledby="feed-en-red-titulo">
         <h2 id="feed-en-red-titulo" className="text-2xl font-black text-gray-900 [text-wrap:balance]">
           {titulo}
         </h2>
@@ -469,6 +530,28 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
           </div>
         )}
       </section>
+
+      {montado &&
+        mostrarAviso &&
+        createPortal(
+          <div className="fixed left-1/2 -translate-x-1/2 bottom-[92px] md:bottom-6 z-[10300] w-[calc(100%-32px)] max-w-[380px] flex items-center gap-2 rounded-2xl bg-white border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.15)] pl-3 pr-1.5 py-1.5 animate-slide-up motion-reduce:animate-none">
+            {items[0]?.fotos[0] && (
+              <div className="relative w-10 h-10 flex-none rounded-xl overflow-hidden bg-gray-100">
+                <Image src={items[0].fotos[0]} alt="" fill sizes="40px" className="object-cover" />
+              </div>
+            )}
+            <button type="button" onClick={() => abrirEn(0)} className="flex-1 min-w-0 text-left py-1.5">
+              <span className="block text-sm font-bold text-gray-900 font-raleway truncate">
+                <span style={{ color: ROSA }}>♥</span> Mirá {n} {plural} más
+              </span>
+              <span className="block text-xs text-gray-500 truncate">{barrio ? `en ${barrio} · ` : ''}deslizá y guardá las que te gusten</span>
+            </button>
+            <button type="button" onClick={descartarAviso} aria-label="Cerrar aviso" className="w-9 h-9 flex-none rounded-full grid place-items-center text-gray-400 hover:bg-gray-50">
+              <X className="w-4 h-4" />
+            </button>
+          </div>,
+          document.body,
+        )}
 
       {montado &&
         abierto &&
