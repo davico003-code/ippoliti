@@ -26,6 +26,7 @@ import PropertyDetailSidebar from './property-detail/PropertyDetailSidebar'
 import PropertyDetailSimilars from './property-detail/PropertyDetailSimilars'
 import Footer from './Footer'
 import ShareMenu from './ShareMenu'
+import { atrasEsDelMazo } from '@/lib/mazo-atras'
 
 const R = "'Raleway', system-ui, sans-serif"
 // Height of the sticky header INSIDE the panel (not the site header).
@@ -155,7 +156,11 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
   useEffect(() => {
-    const h = () => onCloseRef.current()
+    // Con el Tinder abierto adentro de la ficha, el atrás es del Tinder (pregunta antes de salir).
+    const h = () => {
+      if (atrasEsDelMazo()) return
+      onCloseRef.current()
+    }
     window.addEventListener('popstate', h); return () => window.removeEventListener('popstate', h)
   }, [])
 
