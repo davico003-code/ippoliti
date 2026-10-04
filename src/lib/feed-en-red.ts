@@ -117,3 +117,67 @@ export function escribirContacto(c: { nombre: string; whatsapp: string }): void 
     /* sin almacenamiento: se vuelve a pedir */
   }
 }
+
+// ── Misma ZONA (David, 3-oct: "estoy mirando Funes Lakes y me mostró cualquier
+// otra; la regla es que sea del barrio o de la zona, si no pierde el sentido").
+// Es la MISMA regla que usa Hilo para las En red (lib/feed-en-red/candidatos.ts):
+//  - ficha en un BARRIO con nombre (Funes Lakes, Kentucky, Vida…) → solo ese
+//    barrio. Por distancia no: en Funes los barrios cerrados están pegados y
+//    con 2,5 km entraban Aguadas o San Sebastián mirando Funes Lakes.
+//  - ficha en zona abierta ("Funes", "Roldán", "Zona 7") → a menos de 1,5 km.
+// Y siempre precio parecido (0,7–1,35).
+
+const PALABRAS_VACIAS = new Set([
+  'de', 'del', 'la', 'las', 'el', 'los', 'y', 'barrio', 'privado', 'cerrado',
+  'funes', 'roldan', 'rosario', 'zona', 'centro', 'santa', 'fe',
+])
+/** "Tierra de Sueños II" = "Tierra de Sueños 2": el número distingue barrios vecinos. */
+const ROMANOS: Record<string, string> = { i: '1', ii: '2', iii: '3', iv: '4' }
+
+function palabrasBarrio(s: string | null | undefined): string[] {
+  if (!s) return []
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .map((w) => ROMANOS[w] ?? w)
+    .filter((w) => (w.length > 1 || /^\d$/.test(w)) && !PALABRAS_VACIAS.has(w))
+}
+
+/** "Vida Crystal Lagoon" ~ "Vida Lagoon"; "Funes" o "Zona 7" solos no son un barrio. */
+export function mismoBarrio(a: string | null | undefined, b: string | null | undefined): boolean {
+  const pa = palabrasBarrio(a)
+  const pb = palabrasBarrio(b)
+  const conNombre = (ws: string[]) => ws.some((w) => /[a-z]/.test(w))
+  if (!conNombre(pa) || !conNombre(pb)) return false
+  const [corto, largo] = pa.length <= pb.length ? [pa, new Set(pb)] : [pb, new Set(pa)]
+  return corto.every((w) => largo.has(w))
+}
+
+export const RADIO_ZONA_M = 1500
+
+/** ¿El barrio tiene nombre propio? ("Funes Lakes" sí; "Funes", "Centro", "Zona 7" no). */
+export function esBarrioConNombre(barrio: string | null | undefined): boolean {
+  return palabrasBarrio(barrio).some((w) => /[a-z]/.test(w))
+}
+export const BANDA_PRECIO = { min: 0.7, max: 1.35 } as const
+
+export type PuntoZona = { barrio: string | null; lat: number | null; lng: number | null; precioUsd: number | null }
+
+function metrosEntre(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const rad = Math.PI / 180
+  const x = (lng2 - lng1) * rad * Math.cos(((lat1 + lat2) / 2) * rad)
+  const y = (lat2 - lat1) * rad
+  return Math.sqrt(x * x + y * y) * 6_371_000
+}
+
+/** ¿Va en el mazo de esta ficha? Su barrio (o, en zona abierta, ≤1,5 km) y precio parecido. */
+export function enLaZona(ref: PuntoZona, otra: PuntoZona): boolean {
+  if (ref.precioUsd && otra.precioUsd) {
+    if (otra.precioUsd < ref.precioUsd * BANDA_PRECIO.min || otra.precioUsd > ref.precioUsd * BANDA_PRECIO.max) return false
+  }
+  if (esBarrioConNombre(ref.barrio)) return mismoBarrio(ref.barrio, otra.barrio)
+  if (ref.lat == null || ref.lng == null || otra.lat == null || otra.lng == null) return false
+  return metrosEntre(ref.lat, ref.lng, otra.lat, otra.lng) <= RADIO_ZONA_M
+}

@@ -21,6 +21,7 @@ import {
   getAllPhotos,
   getMainPhoto,
   getTotalSurface,
+  operacionPrincipal,
   tituloVisible,
   translatePropertyType,
 } from '@/lib/tokko'
@@ -28,9 +29,11 @@ import {
   type FeedEnRed as DatosFeed,
   type GuardadaLocal,
   type ItemFeed,
+  enLaZona,
   escribirContacto,
   escribirGuardadas,
   itemDeEnRed,
+  type PuntoZona,
   leerContacto,
   leerGuardadas,
   pluralTipo,
@@ -44,6 +47,22 @@ const ROSA = '#E0245E'
 /** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso. */
 const UMBRAL_SWIPE = 90
 const DURACION_SALIDA = 260
+
+/** Barrio, pin y precio en dólares de una propiedad, para la regla de zona. */
+function puntoDe(p: TokkoProperty): PuntoZona {
+  const lat = p.geo_lat ? parseFloat(p.geo_lat) : NaN
+  const lng = p.geo_long ? parseFloat(p.geo_long) : NaN
+  const precio = operacionPrincipal(p)?.prices?.[0]
+  return {
+    barrio: p.location?.name ?? null,
+    lat: Number.isFinite(lat) ? lat : null,
+    lng: Number.isFinite(lng) ? lng : null,
+    precioUsd: precio && precio.currency === 'USD' && precio.price > 0 ? precio.price : null,
+  }
+}
+
+/** Cuántas nuestras como mucho en el mazo (así también entran las En red). */
+const MAX_NUESTRAS = 6
 
 function itemDeNuestra(p: TokkoProperty): ItemFeed {
   const fotos = getAllPhotos(p)
@@ -294,6 +313,9 @@ type EstadoHoja = { motivo: 'salir' | 'boton' } | null
 
 export default function FeedEnRed({ property, nuestras }: { property: TokkoProperty; nuestras: TokkoProperty[] }) {
   const [datos, setDatos] = useState<DatosFeed | null>(null)
+  // Nuestras parecidas para el mazo: se piden más que las 4 de "Otras opciones"
+  // y se quedan SOLO las del barrio o la zona (David, 3-oct: "si no, pierde el sentido").
+  const [cercanas, setCercanas] = useState<TokkoProperty[] | null>(null)
   const [abierto, setAbierto] = useState(false)
   const [indice, setIndice] = useState(0)
   const [foto, setFoto] = useState(0)
@@ -321,6 +343,19 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
 
   useEffect(() => {
     let cancelado = false
+    fetch(`/api/propiedades/similar?id=${property.id}&limit=24`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { objects?: TokkoProperty[] } | null) => {
+        if (!cancelado && d && Array.isArray(d.objects)) setCercanas(d.objects)
+      })
+      .catch(() => {})
+    return () => {
+      cancelado = true
+    }
+  }, [property.id])
+
+  useEffect(() => {
+    let cancelado = false
     fetch(`/api/propiedades/en-red?id=${property.id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d: DatosFeed | null) => {
@@ -333,10 +368,15 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   }, [property.id])
 
   const enRed = useMemo(() => (datos?.tarjetas ?? []).map(itemDeEnRed), [datos])
-  const items = useMemo(
-    () => [...nuestras.filter((p) => p.id !== property.id).map(itemDeNuestra).filter((i) => i.fotos.length > 0), ...enRed],
-    [nuestras, property.id, enRed],
-  )
+  const items = useMemo(() => {
+    const ref = puntoDe(property)
+    const nuestrasZona = (cercanas ?? nuestras)
+      .filter((p) => p.id !== property.id && enLaZona(ref, puntoDe(p)))
+      .map(itemDeNuestra)
+      .filter((i) => i.fotos.length > 0)
+      .slice(0, MAX_NUESTRAS)
+    return [...nuestrasZona, ...enRed]
+  }, [cercanas, nuestras, property, enRed])
   const barrio = datos?.barrio || property.location?.name || null
   const plural = pluralTipo(translatePropertyType(property.type?.name))
   const titulo = barrio ? `Más ${plural} en ${barrio}` : `Más ${plural} en la zona`
