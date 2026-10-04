@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import PortadaViva from './PortadaViva'
 import CiudadRotativa from './CiudadRotativa'
 import { Search } from 'lucide-react'
@@ -153,6 +154,17 @@ export default function HeroMobile() {
             </div>
           )}
         </div>
+
+        {/* La otra puerta, más chica a propósito (David, 3-oct: "que lo usen pero
+            que no sea lo principal"): lleva al mazo tipo Tinder por zona. */}
+        <Link
+          href="/conoce-tu-hogar"
+          className="portada-in si-tap mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-raleway text-[14px] font-bold text-white underline decoration-white/60 underline-offset-4 drop-shadow"
+          style={{ ['--d' as string]: '750ms' }}
+        >
+          <span aria-hidden="true" className="text-[#FF6B8E] no-underline">♥</span>
+          Conocé tu próximo hogar
+        </Link>
       </div>
     </section>
   )

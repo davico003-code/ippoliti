@@ -198,3 +198,59 @@ export function enLaZona(ref: PuntoZona, otra: PuntoZona): boolean {
   if (ref.lat == null || ref.lng == null || otra.lat == null || otra.lng == null) return false
   return metrosEntre(ref.lat, ref.lng, otra.lat, otra.lng) <= RADIO_ZONA_M
 }
+
+// ── "Conocé tu próximo hogar" (home, David 3-oct-2026): la persona elige dónde
+// busca, qué y hasta cuánto, y se arma el mismo mazo sin ficha de referencia.
+// Misma regla de zona que Hilo (lib/feed-en-red/candidatos.ts → enZonaBuscada):
+// barrio con nombre → solo ese barrio; ciudad ("Funes", "Roldán") → toda.
+
+export type TipoHogar = 'house' | 'lot' | 'apartment'
+
+export const TIPOS_HOGAR: { id: TipoHogar; label: string; plural: string; tokkoIds: number[] }[] = [
+  { id: 'house', label: 'Casa', plural: 'casas', tokkoIds: [3, 4] },
+  { id: 'lot', label: 'Lote', plural: 'lotes', tokkoIds: [1] },
+  { id: 'apartment', label: 'Depto', plural: 'departamentos', tokkoIds: [2, 13] },
+]
+
+/** Topes en dólares que se ofrecen por tipo (un lote de 150 mil es caro; una casa, no). */
+export const TOPES_HOGAR: Record<TipoHogar, number[]> = {
+  house: [150_000, 250_000, 350_000, 500_000],
+  lot: [50_000, 80_000, 120_000, 200_000],
+  apartment: [80_000, 120_000, 180_000, 250_000],
+}
+
+/** Con tope, desde qué parte del tope entran (200 mil → desde 100 mil). Igual que Hilo. */
+export const PISO_TOPE = 0.5
+
+export function esTipoHogar(v: unknown): v is TipoHogar {
+  return v === 'house' || v === 'lot' || v === 'apartment'
+}
+
+/** USD 200.000 → "USD 200 mil"; 1.500.000 → "USD 1,5 M". */
+export function textoTope(usd: number): string {
+  if (usd >= 1_000_000) return `USD ${(usd / 1_000_000).toLocaleString('es-AR', { maximumFractionDigits: 1 })} M`
+  return `USD ${Math.round(usd / 1000)} mil`
+}
+
+const sinAcentos = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+
+/**
+ * ¿Una nuestra está donde busca? `completa` = "Argentina | Santa Fe | Funes |
+ * Funes Lakes"; `nombre` = el último tramo (el barrio, o la ciudad sola).
+ */
+export function enZonaBuscada(zona: string, ubicacion: { nombre: string | null | undefined; completa: string | null | undefined }): boolean {
+  const tramos = (ubicacion.completa ?? '').split('|').map((t) => t.trim()).filter(Boolean).slice(2)
+  if (esBarrioConNombre(zona)) {
+    return mismoBarrio(zona, ubicacion.nombre) || tramos.some((t) => mismoBarrio(zona, t))
+  }
+  const z = sinAcentos(zona)
+  if (!z) return false
+  return [...tramos, ubicacion.nombre ?? ''].some((t) => sinAcentos(t) === z)
+}
+
+/** ¿El precio entra en el tope? Sin tope entra todo lo que tenga precio. */
+export function entraEnTope(precioUsd: number | null, tope: number | null): boolean {
+  if (!(precioUsd && precioUsd > 0)) return false
+  if (tope == null) return true
+  return precioUsd <= tope && precioUsd >= tope * PISO_TOPE
+}
