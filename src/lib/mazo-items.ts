@@ -12,6 +12,7 @@ import {
   translatePropertyType,
 } from '@/lib/tokko'
 import type { ItemFeed } from '@/lib/feed-en-red'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 export function itemDeNuestra(p: TokkoProperty): ItemFeed {
   const fotos = getAllPhotos(p)
@@ -36,5 +37,7 @@ export function itemDeNuestra(p: TokkoProperty): ItemFeed {
     zona: p.location?.name ?? null,
     href: `/propiedades/${generatePropertySlug(p)}`,
     masVista: false,
+    // Misma línea que las tarjetas del listado ("Av Fuerza Aerea 1515 | San Sebastián | Funes").
+    direccion: formatDireccionCompleta(p, p.fake_address || p.address, ' | ') || null,
   }
 }
