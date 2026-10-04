@@ -259,8 +259,21 @@ export function Tarjeta({
 
       {/* Datos sobre blanco */}
       <div className="flex-none px-4 pt-3 pb-3.5 bg-white">
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="text-[24px] font-black font-numeric leading-none text-gray-900">{item.precio}</p>
+        <p className="whitespace-nowrap text-[24px] font-black font-numeric leading-none text-gray-900">{item.precio}</p>
+        {item.datos && <p className="text-[15px] mt-1.5 text-gray-700 font-poppins">{item.datos}</p>}
+        {(item.direccion || item.zona) && (
+          <p className="text-[14px] mt-1 flex items-center gap-1.5 min-w-0 text-gray-800">
+            <MapPin className="w-4 h-4 flex-none text-gray-500" aria-hidden="true" />
+            <span className="truncate">{item.direccion || item.zona}</span>
+          </p>
+        )}
+        {/* "Ver detalles" en el renglón de la inmobiliaria (que tiene lugar): al
+            lado del precio no entraba en el celu chico y se salía de la tarjeta. */}
+        <div className="mt-1 flex items-center justify-between gap-2 min-w-0">
+          <p className="text-[13px] flex items-center gap-1.5 min-w-0 text-gray-500">
+            {item.esNuestra ? <IsotipoSI className="h-[18px] w-auto" /> : <IconoRed className="w-4 h-4 flex-none" />}
+            <span className="truncate">{item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}</span>
+          </p>
           {/* Solo en el mazo abierto: en la ficha la tarjeta entera es un botón (no se anida otro). */}
           {arriba && onDetalles && (
             <button
@@ -278,17 +291,6 @@ export function Tarjeta({
             </button>
           )}
         </div>
-        {item.datos && <p className="text-[15px] mt-1.5 text-gray-700 font-poppins">{item.datos}</p>}
-        {(item.direccion || item.zona) && (
-          <p className="text-[14px] mt-1 flex items-center gap-1.5 min-w-0 text-gray-800">
-            <MapPin className="w-4 h-4 flex-none text-gray-500" aria-hidden="true" />
-            <span className="truncate">{item.direccion || item.zona}</span>
-          </p>
-        )}
-        <p className="text-[13px] mt-1 flex items-center gap-1.5 min-w-0 text-gray-500">
-          {item.esNuestra ? <IsotipoSI className="h-[18px] w-auto" /> : <IconoRed className="w-4 h-4 flex-none" />}
-          <span className="truncate">{item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}</span>
-        </p>
       </div>
     </div>
   )
@@ -780,9 +782,14 @@ export default function MazoCasas({
             <X className="w-5 h-5" />
           </button>
         </div>
-        <p className="px-4 pb-3 text-[13px] leading-relaxed text-gray-600">
-          <strong className="text-gray-800">Algunas las publican otras inmobiliarias.</strong> Te las mostramos y te coordinamos la visita nosotros.
-        </p>
+        {/* Solo en la primera: después cada tarjeta de colega lo dice con su chip
+            "En red", y en el celu chico ese renglón les sacaba lugar a las fotos. */}
+        {indice === 0 && !terminado && todos.some((i) => !i.esNuestra) && (
+          <p className="px-4 pb-3 text-[13px] leading-relaxed text-gray-600">
+            <strong className="text-gray-800">Algunas las publican otras inmobiliarias.</strong> Te las mostramos y te coordinamos la visita nosotros.
+          </p>
+        )}
+        {!(indice === 0 && !terminado && todos.some((i) => !i.esNuestra)) && <div className="h-1" aria-hidden="true" />}
 
         {/* Mazo */}
         <div className="relative flex-1 mx-4 min-h-0">
@@ -925,15 +932,15 @@ export default function MazoCasas({
           />
         )}
         {guia && !terminado && (
-          <div className="absolute inset-0 z-20 flex items-end bg-black/30" onClick={cerrarGuia} role="presentation">
+          <div className="absolute inset-0 z-20 flex items-end bg-black/20" onClick={cerrarGuia} role="presentation">
             <div
-              className="w-full bg-white rounded-t-3xl px-5 pt-5 pb-[max(22px,env(safe-area-inset-bottom))] shadow-[0_-12px_40px_rgba(0,0,0,0.15)]"
+              className="w-full bg-white rounded-t-3xl px-5 pt-5 [@media(max-height:720px)]:pt-4 pb-[max(22px,env(safe-area-inset-bottom))] shadow-[0_-12px_40px_rgba(0,0,0,0.15)]"
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-label="Cómo se usa"
             >
               <p className="text-xl font-black text-gray-900 font-raleway">Así de fácil</p>
-              <ul className="mt-3 space-y-3 text-[16px] text-gray-800">
+              <ul className="mt-3 space-y-3 [@media(max-height:720px)]:mt-2 [@media(max-height:720px)]:space-y-2 text-[16px] text-gray-800">
                 <li className="flex items-center gap-3">
                   <span className="w-10 h-10 rounded-full grid place-items-center flex-none" style={{ background: '#FDE7EE', color: ROSA }} aria-hidden="true">
                     <Corazon lleno className="w-5 h-5" />
@@ -970,7 +977,7 @@ export default function MazoCasas({
                   </span>
                 </li>
               </ul>
-              <p className="mt-3 text-[15px] text-gray-600">Al final te mandamos las que guardaste por WhatsApp.</p>
+              <p className="mt-3 text-[15px] text-gray-600 [@media(max-height:720px)]:hidden">Al final te mandamos las que guardaste por WhatsApp.</p>
               <button type="button" onClick={cerrarGuia} className="mt-4 w-full h-12 rounded-2xl text-white font-bold text-[16px]" style={{ background: VERDE }} autoFocus>
                 ¡Entendido!
               </button>

@@ -9,7 +9,6 @@
 // ahí mismo.
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { ChevronLeft, MapPin, X } from 'lucide-react'
 import type { FichaSnapshot } from '@/lib/ficha'
 import type { ItemFeed } from '@/lib/feed-en-red'
@@ -58,6 +57,12 @@ export default function DetalleMazo({
 }) {
   const [estado, setEstado] = useState<'cargando' | 'error' | DetalleRespuesta>('cargando')
   const [intento, setIntento] = useState(0)
+  // "Ver la ficha completa" (nuestras) se abre ACÁ ADENTRO, como en la selección
+  // del cliente (/seleccion/ficha/…: la misma ficha sin menú ni pie): antes
+  // sacaba del Tinder y al volver se perdía dónde estaba.
+  const [completa, setCompleta] = useState(false)
+  const [completaCargada, setCompletaCargada] = useState(false)
+  const urlCompleta = item.esNuestra && item.href?.startsWith('/propiedades/') ? item.href.replace('/propiedades/', '/seleccion/ficha/') : null
 
   useEffect(() => {
     let vivo = true
@@ -82,7 +87,7 @@ export default function DetalleMazo({
         <header className="flex items-center gap-2 border-b border-gray-100 px-2 py-2">
           <button
             type="button"
-            onClick={onCerrar}
+            onClick={() => (completa ? setCompleta(false) : onCerrar())}
             className="flex h-11 items-center gap-0.5 rounded-full pl-1.5 pr-3 text-[15px] font-semibold text-gray-800 hover:bg-gray-50"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" /> Volver
@@ -90,7 +95,23 @@ export default function DetalleMazo({
           <p className="min-w-0 flex-1 truncate pr-3 text-right text-[14px] text-gray-500">{s?.tituloGenerico || item.titulo}</p>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-4">
+        {completa && urlCompleta && (
+          <div className="relative min-h-0 flex-1 bg-gray-50">
+            {!completaCargada && (
+              <div className="absolute inset-0 grid place-items-center" aria-label="Cargando la ficha">
+                <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-gray-200 border-t-[#1A5C38]" />
+              </div>
+            )}
+            <iframe
+              src={urlCompleta}
+              title={`Ficha: ${item.titulo || item.precio}`}
+              onLoad={() => setCompletaCargada(true)}
+              className="h-full w-full border-0 bg-white"
+              style={{ opacity: completaCargada ? 1 : 0, transition: 'opacity 200ms' }}
+            />
+          </div>
+        )}
+        <div className={`min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-4 ${completa && urlCompleta ? 'hidden' : ''}`}>
           <p className="text-[26px] font-black leading-none text-gray-900 font-numeric">{item.precio}</p>
           {/* Mientras carga, la línea de la tarjeta; después, la fila de íconos (no se repiten). */}
           {item.datos && typeof estado !== 'object' && <p className="mt-1.5 text-[16px] text-gray-700 font-poppins">{item.datos}</p>}
@@ -156,10 +177,14 @@ export default function DetalleMazo({
                 </section>
               )}
 
-              {item.esNuestra && item.href && (
-                <Link href={item.href} className="mt-6 flex h-12 items-center justify-center rounded-2xl border border-gray-200 text-[16px] font-semibold text-gray-800">
+              {urlCompleta && (
+                <button
+                  type="button"
+                  onClick={() => setCompleta(true)}
+                  className="mt-6 flex h-12 w-full items-center justify-center rounded-2xl border border-gray-200 text-[16px] font-semibold text-gray-800"
+                >
                   Ver la ficha completa
-                </Link>
+                </button>
               )}
             </>
           )}
