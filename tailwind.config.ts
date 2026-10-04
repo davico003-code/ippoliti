@@ -84,15 +84,8 @@ const config: Config = {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "fade-in": "fadeIn 0.5s ease-in-out",
         "slide-up": "slideUp 0.5s ease-out",
-        "feed-pop": "feedPop 0.7s ease-out",
       },
       keyframes: {
-        // ♥ grande del doble toque en el feed de la ficha.
-        feedPop: {
-          "0%": { opacity: "0", transform: "scale(0.6)" },
-          "30%": { opacity: "1", transform: "scale(1.1)" },
-          "100%": { opacity: "0", transform: "scale(1)" },
-        },
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
