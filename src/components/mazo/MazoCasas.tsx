@@ -15,19 +15,27 @@
 // 4-oct (David): el botón ↺ vuelve a la anterior (si le había dado ♥, se lo
 // saca: decide de nuevo), y al terminar un barrio con parecidos
 // (barrios-parecidos.ts) PRIMERO pregunta y, si dice que sí, suma esas casas.
+//
+// 4-oct (David: "que puedan dejar su mail y ya prefiltramos su búsqueda para
+// campañas de mailing"): "Recibí las nuevas por mail" (SuscripcionMail) al
+// final, en el rescate (WhatsApp O mail) y como campo opcional del formulario.
+// La búsqueda (`criterios`) viaja con el mail y Hilo la escribe en el contacto.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
-import { Info, MapPin, RotateCcw, X } from 'lucide-react'
+import { Info, Mail, MapPin, RotateCcw, X } from 'lucide-react'
 import {
+  type CriteriosBusqueda,
   type GuardadaLocal,
   type ItemFeed,
+  esEmail,
   escribirContacto,
   escribirGuardadas,
   estiloSinLogo,
   leerContacto,
   leerGuardadas,
+  textoBusqueda,
 } from '@/lib/feed-en-red'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 import { Logo } from '@/components/marca/LogoSI'
@@ -359,6 +367,7 @@ export default function MazoCasas({
   onCerrar,
   origen,
   busqueda = null,
+  criterios = null,
   cargarParecidos,
 }: {
   items: ItemFeed[]
@@ -370,6 +379,8 @@ export default function MazoCasas({
   origen: 'ficha' | 'home'
   /** Lo que eligió en la home ("casas hasta USD 200 mil"), para el aviso al asesor. */
   busqueda?: string | null
+  /** Dónde, qué y hasta cuánto: viaja con el mail para los envíos (Hilo lo escribe en el contacto). */
+  criterios?: CriteriosBusqueda | null
   /**
    * Trae las casas de los barrios parecidos (barrios-parecidos.ts). Sin esto
    * (o si el barrio no tiene parecidos) el mazo termina como siempre.
@@ -830,6 +841,7 @@ export default function MazoCasas({
                 guardadas={guardadas}
                 barrio={barrio}
                 busqueda={busqueda}
+                criterios={criterios}
                 textoCancelar="Verlas de nuevo"
                 onCancelar={verDeNuevo}
                 onListo={() => {
@@ -848,9 +860,14 @@ export default function MazoCasas({
                   <button type="button" onClick={verDeNuevo} className="mt-5 h-11 px-6 rounded-2xl border border-gray-200 text-gray-800 font-semibold">
                     Verlas de nuevo
                   </button>
+                  {criterios && (
+                    <div className="mt-6 w-full max-w-sm text-left">
+                      <SuscripcionMail criterios={criterios} />
+                    </div>
+                  )}
                 </div>
               ) : (
-                <Rescate momento="fin" barrio={barrio} busqueda={busqueda} vistas={n} onListo={cerrarTodo} onSecundario={verDeNuevo} />
+                <Rescate momento="fin" barrio={barrio} busqueda={busqueda} criterios={criterios} vistas={n} onListo={cerrarTodo} onSecundario={verDeNuevo} />
               )}
             </div>
           )}
@@ -860,6 +877,7 @@ export default function MazoCasas({
                 momento="mazo"
                 barrio={barrio}
                 busqueda={busqueda}
+                criterios={criterios}
                 vistas={vistas}
                 parecidos={parecidos}
                 onVerParecidos={ofrecerEnRescate ? parecidasDesdeRescate : undefined}
@@ -907,6 +925,7 @@ export default function MazoCasas({
                 momento="salir"
                 barrio={barrio}
                 busqueda={busqueda}
+                criterios={criterios}
                 vistas={vistas}
                 parecidos={parecidos}
                 onVerParecidos={ofrecerEnRescate ? parecidasDesdeRescate : undefined}
@@ -989,6 +1008,7 @@ export default function MazoCasas({
             guardadas={guardadas}
             barrio={barrio}
             busqueda={busqueda}
+            criterios={criterios}
             onCancelar={() => (hoja.motivo === 'salir' ? cerrarTodo() : setHoja(null))}
             onListo={() => {
               setEnviada('hoja')
@@ -1068,6 +1088,7 @@ function HojaContacto({
   guardadas,
   barrio,
   busqueda = null,
+  criterios = null,
   onCancelar,
   onListo,
   onCerrar,
@@ -1077,6 +1098,7 @@ function HojaContacto({
   guardadas: GuardadaLocal[]
   barrio: string | null
   busqueda?: string | null
+  criterios?: CriteriosBusqueda | null
   onCancelar: () => void
   onListo: () => void
   onCerrar: () => void
@@ -1086,6 +1108,8 @@ function HojaContacto({
 }) {
   const [nombre, setNombre] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
+  // Opcional: con el mail, además de la consulta, recibe las nuevas de su búsqueda.
+  const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [listo, setListo] = useState<string | null>(null)
@@ -1095,6 +1119,7 @@ function HojaContacto({
     const c = leerContacto()
     setNombre(c.nombre)
     setWhatsapp(c.whatsapp)
+    setEmail(c.email)
     // En el final del mazo no se abre el teclado solo: primero ve sus elegidas.
     if (!enLinea) window.setTimeout(() => nombreRef.current?.focus(), 60)
   }, [enLinea])
@@ -1119,17 +1144,29 @@ function HojaContacto({
     const nom = nombre.trim()
     if (nom.length < 2) return setError('Poné tu nombre así el asesor sabe cómo llamarte.')
     if (whatsapp.replace(/\D/g, '').length < 10) return setError('Revisá el WhatsApp: con característica, por ejemplo 341 555 1234.')
+    const mail = email.trim()
+    if (mail && !esEmail(mail)) return setError('Revisá el mail (o dejalo vacío).')
     setError(null)
     setEnviando(true)
     try {
       const res = await fetch('/api/feed-en-red/consulta', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ nombre: nom, whatsapp, guardadas: guardadas.map((g) => g.key), barrio, busqueda, pageUrl: window.location.href }),
+        body: JSON.stringify({
+          nombre: nom,
+          whatsapp,
+          email: mail || undefined,
+          suscripcion: mail && criterios ? criterios : undefined,
+          guardadas: guardadas.map((g) => g.key),
+          barrio,
+          busqueda,
+          pageUrl: window.location.href,
+        }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'No pudimos enviarlo. Probá de nuevo.')
-      escribirContacto({ nombre: nom, whatsapp })
+      escribirContacto({ nombre: nom, whatsapp, email: mail })
+      if (mail) trackEvent('mazo_suscripcion_mail', { donde: 'formulario' })
       trackEvent('feed_en_red_consulta', { cantidad: n, en_red: red })
       trackFbEvent('Lead', { content_name: 'feed_en_red', content_ids: guardadas.filter((g) => g.esNuestra).map((g) => g.key.slice(2)) })
       setListo(nom.split(/\s+/)[0])
@@ -1150,6 +1187,7 @@ function HojaContacto({
             </div>
             <h3 className="text-lg font-black text-gray-900 mt-1 font-raleway">Listo, {listo}</h3>
             <p className="text-sm text-gray-600 mt-1">Un asesor de SI te escribe por WhatsApp con las que guardaste.</p>
+            {email.trim() && criterios && <p className="text-sm text-gray-600 mt-1">Y te avisamos por mail cuando entren {textoBusqueda(criterios)}.</p>}
             <button type="button" onClick={onCerrar} className="mt-4 w-full h-12 rounded-2xl text-white font-bold" style={{ background: VERDE }}>
               Cerrar
             </button>
@@ -1215,8 +1253,28 @@ function HojaContacto({
               }}
               autoComplete="tel"
               placeholder="341 555 1234"
-              className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2 outline-none focus:ring-2 focus:ring-[#1A5C38]"
+              className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2.5 outline-none focus:ring-2 focus:ring-[#1A5C38]"
             />
+            {criterios && (
+              <>
+                <label htmlFor="feed-mail" className="block text-sm font-semibold text-gray-800 mb-1">
+                  Tu mail <span className="font-normal text-gray-500">(opcional · te avisamos cuando entren {textoBusqueda(criterios)})</span>
+                </label>
+                <input
+                  id="feed-mail"
+                  type="email"
+                  inputMode="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    setError(null)
+                  }}
+                  autoComplete="email"
+                  placeholder="martina@gmail.com"
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2 outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                />
+              </>
+            )}
             {error && (
               <p className="text-sm text-[#E0245E] mb-2" role="alert">
                 {error}
@@ -1257,6 +1315,7 @@ function Rescate({
   momento,
   barrio,
   busqueda = null,
+  criterios = null,
   vistas,
   parecidos = [],
   onVerParecidos,
@@ -1266,6 +1325,8 @@ function Rescate({
   momento: 'mazo' | 'salir' | 'fin'
   barrio: string | null
   busqueda?: string | null
+  /** Con la búsqueda, el campo acepta también un mail (David 4-oct): queda suscripto a las nuevas. */
+  criterios?: CriteriosBusqueda | null
   vistas: number
   /** Barrios parecidos al que mira (barrios-parecidos.ts). */
   parecidos?: string[]
@@ -1280,7 +1341,9 @@ function Rescate({
   onSecundario: () => void
 }) {
   const [motivos, setMotivos] = useState<string[]>([])
+  // WhatsApp o mail (con un "@" es mail: queda suscripto a las nuevas de su búsqueda).
   const [whatsapp, setWhatsapp] = useState('')
+  const [porMail, setPorMail] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [listo, setListo] = useState(false)
@@ -1297,8 +1360,11 @@ function Rescate({
   }
 
   useEffect(() => {
-    setWhatsapp(leerContacto().whatsapp)
+    const c = leerContacto()
+    setWhatsapp(c.whatsapp || (criterios ? c.email : ''))
     trackEvent('feed_en_red_rescate', { momento })
+    // Solo al montar (el criterio no cambia mientras está abierto).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [momento])
 
   const titulo = momento === 'mazo' ? '¿No es lo que buscás?' : momento === 'salir' ? '¿Te vas sin guardar ninguna?' : '¿No encontraste lo que buscabas?'
@@ -1323,8 +1389,25 @@ function Rescate({
 
   const enviar = async (conWhatsapp: boolean) => {
     if (enviando) return
+    const dato = whatsapp.trim()
+    if (conWhatsapp && criterios && dato.includes('@')) {
+      if (!esEmail(dato)) return setError('Revisá el mail.')
+      setError(null)
+      setEnviando(true)
+      // Lo que marcó igual le sirve al equipo (anónimo).
+      if (motivos.length) {
+        void fetch('/api/feed-en-red/consulta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: cuerpo(false), keepalive: true }).catch(() => {})
+      }
+      const ok = await suscribirMail(dato, criterios, motivos)
+      setEnviando(false)
+      if (!ok) return setError('No pudimos anotarte. Probá de nuevo.')
+      trackEvent('mazo_suscripcion_mail', { donde: `rescate_${momento}` })
+      setPorMail(dato)
+      setListo(true)
+      return
+    }
     if (conWhatsapp && whatsapp.replace(/\D/g, '').length < 10) {
-      return setError('Dejá tu WhatsApp con característica, por ejemplo 341 555 1234.')
+      return setError(criterios ? 'Dejá tu WhatsApp con característica (341 555 1234) o tu mail.' : 'Dejá tu WhatsApp con característica, por ejemplo 341 555 1234.')
     }
     setError(null)
     setEnviando(true)
@@ -1360,7 +1443,9 @@ function Rescate({
           ✓
         </div>
         <h3 className="text-lg font-black text-gray-900 mt-1 font-raleway">Listo</h3>
-        <p className="text-sm text-gray-600 mt-1">Un asesor de SI te escribe por WhatsApp apenas tengamos algo así.</p>
+        <p className="text-sm text-gray-600 mt-1">
+          {porMail ? `Te escribimos a ${porMail} cuando entren ${textoBusqueda(criterios)}.` : 'Un asesor de SI te escribe por WhatsApp apenas tengamos algo así.'}
+        </p>
         <button type="button" onClick={onListo} className="mt-4 w-full h-12 rounded-2xl text-white font-bold" style={{ background: VERDE }}>
           {momento === 'mazo' ? 'Seguir mirando' : 'Cerrar'}
         </button>
@@ -1409,19 +1494,20 @@ function Rescate({
         </div>
       )}
       <label htmlFor={`rescate-wsp-${momento}`} className="block text-sm font-semibold text-gray-800 mb-1">
-        Tu WhatsApp, si querés que te avisemos
+        {criterios ? 'Tu WhatsApp o tu mail, si querés que te avisemos' : 'Tu WhatsApp, si querés que te avisemos'}
       </label>
       <input
         id={`rescate-wsp-${momento}`}
-        type="tel"
-        inputMode="tel"
+        type={criterios ? 'text' : 'tel'}
+        inputMode={criterios ? 'text' : 'tel'}
         value={whatsapp}
         onChange={(e) => {
           setWhatsapp(e.target.value)
           setError(null)
         }}
-        autoComplete="tel"
-        placeholder="341 555 1234"
+        autoComplete={criterios ? 'on' : 'tel'}
+        autoCapitalize="none"
+        placeholder={criterios ? '341 555 1234 o martina@gmail.com' : '341 555 1234'}
         className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2 outline-none focus:ring-2 focus:ring-[#1A5C38]"
       />
       {error && (
@@ -1447,5 +1533,104 @@ function Rescate({
         {secundario}
       </button>
     </div>
+  )
+}
+
+/** Anota el mail con su búsqueda (web → Hilo). true si quedó registrado. */
+async function suscribirMail(email: string, criterios: CriteriosBusqueda, motivos: string[] = []): Promise<boolean> {
+  try {
+    const res = await fetch('/api/feed-en-red/suscripcion', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email, nombre: leerContacto().nombre, criterios, busqueda: textoBusqueda(criterios), motivos, pageUrl: window.location.href }),
+    })
+    if (!res.ok) return false
+    escribirContacto({ email })
+    trackFbEvent('Lead', { content_name: 'mazo_suscripcion_mail' })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * "Recibí las nuevas por mail" (David, 4-oct): deja el mail y su búsqueda ya
+ * filtrada (dónde, qué, hasta cuánto) para los envíos. No es una consulta:
+ * nadie lo llama; le llegan las nuevas que entren de lo que busca.
+ */
+export function SuscripcionMail({ criterios, compacta = false }: { criterios: CriteriosBusqueda; compacta?: boolean }) {
+  const [email, setEmail] = useState('')
+  const [estado, setEstado] = useState<'idle' | 'enviando' | 'listo'>('idle')
+  const [error, setError] = useState<string | null>(null)
+  const buscaTexto = textoBusqueda(criterios)
+
+  useEffect(() => {
+    setEmail(leerContacto().email)
+  }, [])
+
+  const enviar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (estado === 'enviando') return
+    const mail = email.trim()
+    if (!esEmail(mail)) return setError('Revisá el mail, por ejemplo martina@gmail.com.')
+    setError(null)
+    setEstado('enviando')
+    const ok = await suscribirMail(mail, criterios)
+    if (!ok) {
+      setEstado('idle')
+      return setError('No pudimos anotarte. Probá de nuevo.')
+    }
+    trackEvent('mazo_suscripcion_mail', { donde: compacta ? 'fila_compu' : 'final' })
+    setEstado('listo')
+  }
+
+  if (estado === 'listo') {
+    return (
+      <div className={`rounded-2xl bg-[#EAF3EE] ${compacta ? 'px-4 py-3' : 'p-4'}`} role="status">
+        <p className="text-[15px] font-bold text-gray-900">Listo, te anotamos.</p>
+        <p className="text-sm text-gray-700 mt-0.5">
+          Te escribimos a {email.trim()} cuando entren {buscaTexto}. Te das de baja cuando quieras.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={enviar} noValidate className={`rounded-2xl bg-[#F6F8F6] ${compacta ? 'px-4 py-3 md:flex md:items-center md:gap-4' : 'p-4'}`}>
+      <div className={compacta ? 'md:flex-1 md:min-w-0' : ''}>
+        <p className="flex items-center gap-2 text-[15px] font-bold text-gray-900">
+          <Mail className="w-4 h-4 flex-none" style={{ color: VERDE }} aria-hidden="true" />
+          Recibí las nuevas por mail
+        </p>
+        <p className="text-sm text-gray-600 mt-0.5">Te avisamos cuando entren {buscaTexto}.</p>
+      </div>
+      <div className={`flex gap-2 ${compacta ? 'mt-2.5 md:mt-0 md:w-[420px]' : 'mt-3'}`}>
+        <label htmlFor={`suscripcion-mail-${compacta ? 'c' : 'f'}`} className="sr-only">
+          Tu mail
+        </label>
+        <input
+          id={`suscripcion-mail-${compacta ? 'c' : 'f'}`}
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          autoCapitalize="none"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value)
+            setError(null)
+          }}
+          placeholder="martina@gmail.com"
+          className="min-w-0 flex-1 h-11 rounded-xl border border-gray-200 bg-white px-3 text-[16px] outline-none focus:ring-2 focus:ring-[#1A5C38]"
+        />
+        <button type="submit" disabled={estado === 'enviando'} className="flex-none h-11 px-4 rounded-xl text-white font-bold disabled:opacity-70" style={{ background: VERDE }}>
+          {estado === 'enviando' ? 'Anotando…' : 'Quiero recibirlas'}
+        </button>
+      </div>
+      {error && (
+        <p className="text-sm text-[#E0245E] mt-2" role="alert">
+          {error}
+        </p>
+      )}
+    </form>
   )
 }

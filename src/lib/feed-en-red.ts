@@ -141,18 +141,24 @@ export function escribirGuardadas(g: GuardadaLocal[]): void {
   }
 }
 
-export function leerContacto(): { nombre: string; whatsapp: string } {
+export type ContactoLocal = { nombre: string; whatsapp: string; email: string }
+
+export function leerContacto(): ContactoLocal {
   try {
     const v = JSON.parse(window.localStorage.getItem(CLAVE_CONTACTO) ?? '{}')
-    return { nombre: typeof v.nombre === 'string' ? v.nombre : '', whatsapp: typeof v.whatsapp === 'string' ? v.whatsapp : '' }
+    const s = (x: unknown) => (typeof x === 'string' ? x : '')
+    return { nombre: s(v.nombre), whatsapp: s(v.whatsapp), email: s(v.email) }
   } catch {
-    return { nombre: '', whatsapp: '' }
+    return { nombre: '', whatsapp: '', email: '' }
   }
 }
 
-export function escribirContacto(c: { nombre: string; whatsapp: string }): void {
+/** Guarda lo que vino, sin borrar lo que ya estaba (dejar el mail no borra el WhatsApp). */
+export function escribirContacto(c: Partial<ContactoLocal>): void {
   try {
-    window.localStorage.setItem(CLAVE_CONTACTO, JSON.stringify(c))
+    const previo = leerContacto()
+    const limpio = Object.fromEntries(Object.entries(c).filter(([, v]) => typeof v === 'string' && v.trim()))
+    window.localStorage.setItem(CLAVE_CONTACTO, JSON.stringify({ ...previo, ...limpio }))
   } catch {
     /* sin almacenamiento: se vuelve a pedir */
   }
@@ -324,4 +330,48 @@ export function sugerirZonas(catalogo: ZonaHogar[], query: string, tipo: TipoHog
       return Number(b.esCiudad) - Number(a.esCiudad) || empiezaB - empiezaA || cantidadZona(b, tipo) - cantidadZona(a, tipo)
     })
     .slice(0, max)
+}
+
+// ── "Recibí las nuevas por mail" (David, 4-oct: "que puedan dejar su mail y ya
+// prefiltramos su búsqueda para campañas de mailing"). La búsqueda viaja con el
+// mail y Hilo la escribe en el contacto (zona, tipo, tope → tramos de mailing).
+
+export type CriteriosBusqueda = {
+  zona: string | null
+  tipo: TipoHogar | null
+  topeUsd: number | null
+  origen: 'conoce_tu_hogar' | 'ficha'
+}
+
+export function esEmail(v: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())
+}
+
+/** "casas en Funes Lakes hasta USD 200 mil" (lo que ve la persona y lo que lee el asesor). */
+export function textoBusqueda(c: CriteriosBusqueda | null | undefined): string {
+  if (!c) return 'propiedades'
+  const plural = TIPOS_HOGAR.find((t) => t.id === c.tipo)?.plural ?? 'propiedades'
+  return `${plural}${c.zona ? ` en ${c.zona}` : ''}${c.topeUsd ? ` hasta ${textoTope(c.topeUsd)}` : ''}`
+}
+
+/** Tipo de la ficha (id de tipo del feed) → el de la búsqueda. */
+export function tipoHogarDeTokko(typeId: number | null | undefined): TipoHogar | null {
+  if (typeId == null) return null
+  return TIPOS_HOGAR.find((t) => t.tokkoIds.includes(typeId))?.id ?? null
+}
+
+/** Valida la búsqueda que manda el navegador (rutas de la web). null si no hay ni zona ni tipo. */
+export function parsearCriteriosWeb(raw: unknown): CriteriosBusqueda | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const r = raw as Record<string, unknown>
+  const zona = typeof r.zona === 'string' ? r.zona.replace(/\s+/g, ' ').trim().slice(0, 80) || null : null
+  const tipo = esTipoHogar(r.tipo) ? r.tipo : null
+  const tope = Number(r.topeUsd)
+  if (!zona && !tipo) return null
+  return {
+    zona,
+    tipo,
+    topeUsd: Number.isFinite(tope) && tope >= 10_000 && tope <= 20_000_000 ? Math.round(tope) : null,
+    origen: r.origen === 'ficha' ? 'ficha' : 'conoce_tu_hogar',
+  }
 }

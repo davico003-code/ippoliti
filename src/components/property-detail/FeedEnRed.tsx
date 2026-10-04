@@ -14,9 +14,20 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { MapPin } from 'lucide-react'
 import { type TokkoProperty, operacionPrincipal, translatePropertyType } from '@/lib/tokko'
-import { type FeedEnRed as DatosFeed, type ItemFeed, type PuntoZona, TIPOS_HOGAR, enLaZona, estiloSinLogo, itemDeEnRed, pluralTipo } from '@/lib/feed-en-red'
+import {
+  type CriteriosBusqueda,
+  type FeedEnRed as DatosFeed,
+  type ItemFeed,
+  type PuntoZona,
+  TIPOS_HOGAR,
+  enLaZona,
+  estiloSinLogo,
+  itemDeEnRed,
+  pluralTipo,
+  tipoHogarDeTokko,
+} from '@/lib/feed-en-red'
 import { itemDeNuestra } from '@/lib/mazo-items'
-import MazoCasas, { BotonesTinder, Chip, Corazon, ROSA, Tarjeta, useGuardadas } from '@/components/mazo/MazoCasas'
+import MazoCasas, { BotonesTinder, Chip, Corazon, ROSA, SuscripcionMail, Tarjeta, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
 /** Barrio, pin y precio en dólares de una propiedad, para la regla de zona. */
@@ -147,6 +158,9 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const tope = precioVenta ? Math.round(precioVenta * 1.25) : null
   const plural = pluralTipo(translatePropertyType(property.type?.name))
   const titulo = barrio ? `Más ${plural} en ${barrio}` : `Más ${plural} en la zona`
+  // Lo que viaja con el mail si quiere recibir las nuevas: el barrio y el tipo de
+  // esta ficha. Sin tope: no lo eligió él (el +25 % es solo para los parecidos).
+  const criterios: CriteriosBusqueda = { zona: barrio, tipo: tipoHogarDeTokko(property.type?.id), topeUsd: null, origen: 'ficha' }
 
   if (enRed.length === 0 || dentroDeSeleccion) return null
   const { montado, esGuardada, guardar, quitar, guardadas } = guardadasApi
@@ -225,6 +239,10 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
               </button>
             )}
           </div>
+          {/* David 4-oct: que puedan dejar el mail con la búsqueda ya filtrada (para los envíos). */}
+          <div className="mt-4">
+            <SuscripcionMail criterios={criterios} compacta />
+          </div>
         </div>
       </section>
 
@@ -236,6 +254,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
           inicio={abiertoEn}
           guardadasApi={guardadasApi}
           origen="ficha"
+          criterios={criterios}
           cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipoHogar, tope, yaVistas)}
           onCerrar={() => setAbiertoEn(null)}
         />
