@@ -27,7 +27,7 @@ export async function PATCH(
     // el asesor la vea en HILO con su título, junto a las que eligió él.
     const enSeleccion = (sel.properties ?? []).some((p: { id: string }) => p.id === propertyId)
     if (!enSeleccion && sugerida === true && (liked === true || wantVisit === true)) {
-      if (!/^\d{5,12}$/.test(String(propertyId))) {
+      if (!/^\d{5,16}$/.test(String(propertyId))) {
         return NextResponse.json({ error: 'Propiedad inválida' }, { status: 400 })
       }
       const prop = await propiedadSugerida(Number(propertyId))

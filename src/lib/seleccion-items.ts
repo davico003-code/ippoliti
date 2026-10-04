@@ -56,8 +56,8 @@ const MAX_FOTOS = 15
  */
 export function idPropio(p: Pick<SelProp, 'id' | 'url' | 'source'>): number | null {
   if (p.source === 'externa') return null
-  if (/^\d{5,12}$/.test(p.id)) return Number(p.id)
-  const m = /\/propiedad(?:es)?\/(\d{5,12})(?:[-/?#]|$)/.exec(p.url)
+  if (/^\d{5,16}$/.test(p.id)) return Number(p.id)
+  const m = /\/propiedad(?:es)?\/(\d{5,16})(?:[-/?#]|$)/.exec(p.url)
   if (m) return Number(m[1])
   try {
     if (new URL(p.url).hostname.toLowerCase().endsWith('siinmobiliaria.com')) {
