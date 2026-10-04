@@ -4,6 +4,19 @@
 // coordinar la visita con el colega). La persona les da ♥ y, al salir, deja
 // nombre y WhatsApp: la consulta entra a Hilo con todo lo que marcó.
 
+export type PosicionLogo = 'abajo-izq' | 'abajo-der'
+
+/**
+ * Fotos de colegas con el logo impreso (David, 3-oct: MA y Crestale). Cada
+ * una lo pone siempre en el mismo rincón: se muestra un recuadro un poco más
+ * chico (×1,3) anclado en la esquina OPUESTA, y el logo queda afuera. La foto
+ * no se toca. Va sobre un contenedor con overflow-hidden.
+ */
+export function estiloSinLogo(logo: PosicionLogo | null | undefined): { transform: string; transformOrigin: string } | undefined {
+  if (!logo) return undefined
+  return { transform: 'scale(1.3)', transformOrigin: logo === 'abajo-izq' ? '100% 0%' : '0% 0%' }
+}
+
 /** Lo que manda Hilo de cada "En red" (sin dirección ni inmobiliaria). */
 export type TarjetaEnRed = {
   /** `propia:455077` / `meli:MLA…` */
@@ -19,6 +32,8 @@ export type TarjetaEnRed = {
   zona: string | null
   fotos: string[]
   masVista: boolean
+  /** Rincón donde la inmobiliaria imprime su logo (MA abajo-izq, Crestale abajo-der). */
+  logo?: PosicionLogo | null
 }
 
 export type FeedEnRed = { barrio: string | null; tarjetas: TarjetaEnRed[] }
@@ -36,6 +51,7 @@ export type ItemFeed = {
   /** Ficha de la web (solo las nuestras). */
   href: string | null
   masVista: boolean
+  logo?: PosicionLogo | null
 }
 
 /** "Casa · 3 dorm · 2 baños · 226 m²" */
@@ -62,6 +78,7 @@ export function itemDeEnRed(t: TarjetaEnRed): ItemFeed {
     zona: t.zona,
     href: null,
     masVista: t.masVista,
+    logo: t.logo ?? null,
   }
 }
 
@@ -78,7 +95,7 @@ export function pluralTipo(tipo: string | null | undefined): string {
 }
 
 /** ♥ guardadas en este navegador (sobreviven al pasar de una ficha a otra). */
-export type GuardadaLocal = { key: string; foto: string | null; precio: string; esNuestra: boolean }
+export type GuardadaLocal = { key: string; foto: string | null; precio: string; esNuestra: boolean; logo?: PosicionLogo | null }
 
 const CLAVE_GUARDADAS = 'si-feed-guardadas'
 const CLAVE_CONTACTO = 'si-feed-contacto'

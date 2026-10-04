@@ -32,6 +32,7 @@ import {
   enLaZona,
   escribirContacto,
   escribirGuardadas,
+  estiloSinLogo,
   itemDeEnRed,
   type PuntoZona,
   leerContacto,
@@ -204,7 +205,7 @@ function Tarjeta({
       {/* Fotos de a dos */}
       <div data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[3px] bg-white">
         {fotos.map((src, i) => (
-          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-gray-100">
+          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-gray-100 overflow-hidden">
             <Image
               src={src}
               alt={`${item.titulo} — foto ${p * 2 + i + 1}`}
@@ -212,6 +213,7 @@ function Tarjeta({
               draggable={false}
               sizes="(max-width: 480px) 100vw, 440px"
               className="object-cover pointer-events-none"
+              style={estiloSinLogo(item.logo)}
               priority={modo !== 'abajo' && i === 0}
             />
           </div>
@@ -389,7 +391,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const guardar = useCallback(
     (item: ItemFeed) => {
       if (guardadas.some((g) => g.key === item.key)) return
-      const next = [...guardadas, { key: item.key, foto: item.fotos[0] ?? null, precio: item.precio, esNuestra: item.esNuestra }].slice(-12)
+      const next = [...guardadas, { key: item.key, foto: item.fotos[0] ?? null, precio: item.precio, esNuestra: item.esNuestra, logo: item.logo ?? null }].slice(-12)
       setGuardadas(next)
       escribirGuardadas(next)
       trackEvent('feed_en_red_like', { tipo: item.esNuestra ? 'nuestra' : 'en_red' })
@@ -619,7 +621,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
           <div className="fixed left-1/2 -translate-x-1/2 bottom-[92px] md:bottom-6 z-[10300] w-[calc(100%-32px)] max-w-[380px] flex items-center gap-2 rounded-2xl bg-white border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.15)] pl-3 pr-1.5 py-1.5 animate-slide-up motion-reduce:animate-none">
             {items[0]?.fotos[0] && (
               <div className="relative w-10 h-10 flex-none rounded-xl overflow-hidden bg-gray-100">
-                <Image src={items[0].fotos[0]} alt="" fill sizes="40px" className="object-cover" />
+                <Image src={items[0].fotos[0]} alt="" fill sizes="40px" className="object-cover" style={estiloSinLogo(items[0].logo)} />
               </div>
             )}
             <button type="button" onClick={() => abrirEn(0)} className="flex-1 min-w-0 text-left py-1.5">
@@ -852,8 +854,8 @@ function HojaContacto({
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {guardadas.map((g) => (
                   <div key={g.key} className="rounded-xl overflow-hidden border border-gray-100 bg-white">
-                    <div className="relative aspect-[4/3] bg-gray-100">
-                      {g.foto && <Image src={g.foto} alt="" fill sizes="(max-width: 480px) 50vw, 200px" className="object-cover" />}
+                    <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                      {g.foto && <Image src={g.foto} alt="" fill sizes="(max-width: 480px) 50vw, 200px" className="object-cover" style={estiloSinLogo(g.logo)} />}
                       <span className="absolute top-1.5 right-1.5 text-[#E0245E] drop-shadow">
                         <Corazon lleno className="w-5 h-5" />
                       </span>
