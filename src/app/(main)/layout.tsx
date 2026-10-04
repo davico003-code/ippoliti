@@ -4,7 +4,8 @@ import "./globals.css";
 
 const raleway = Raleway({
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+  // 500: el texto de lectura (descripción de la propiedad) va en 500, no 400.
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-raleway",
   display: "swap",
 });

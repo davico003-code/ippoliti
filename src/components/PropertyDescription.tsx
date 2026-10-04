@@ -6,12 +6,15 @@ import { formatDescription, type FormattedBlock } from '@/lib/formatDescription'
 
 const GREEN = '#1A5C38'
 const R = "'Raleway', system-ui, sans-serif"
+// Texto de lectura oscuro y en 500: Raleway 400 en gris se veía finito y cansaba
+// a los mayores (David 3-oct: "tendría que ser más legible, un poco más gruesa").
+const TEXTO = '#1F2937'
 
 function Block({ block }: { block: FormattedBlock }) {
   if (block.type === 'title') {
     return (
       <span
-        className="section-title block text-[15.5px] md:text-[16.5px]"
+        className="section-title block text-[18px]"
         style={{
           fontFamily: R,
           fontWeight: 700,
@@ -32,14 +35,14 @@ function Block({ block }: { block: FormattedBlock }) {
         {block.items.map((item, i) => (
           <li
             key={i}
-            className="text-[15px] md:text-[15.5px]"
+            className="text-[17px]"
             style={{
               position: 'relative',
               paddingLeft: 20,
-              color: '#374151',
+              color: TEXTO,
               lineHeight: 1.65,
               marginBottom: i === block.items.length - 1 ? 0 : 7,
-              fontWeight: 400,
+              fontWeight: 500,
             }}
           >
             <span
@@ -61,9 +64,9 @@ function Block({ block }: { block: FormattedBlock }) {
         {block.content.map((dl, i) => (
           <span
             key={i}
-            className="data-line block text-[15px] md:text-[15.5px]"
+            className="data-line block text-[17px]"
             style={{
-              color: '#374151',
+              color: TEXTO,
               lineHeight: 1.6,
               marginBottom: i === block.content.length - 1 ? 0 : 4,
             }}
@@ -79,12 +82,12 @@ function Block({ block }: { block: FormattedBlock }) {
   // paragraph
   return (
     <p
-      className="text-[15px] md:text-[15.5px]"
+      className="text-[17px]"
       style={{
-        color: '#374151',
-        lineHeight: 1.75,
+        color: TEXTO,
+        lineHeight: 1.7,
         marginBottom: 16,
-        fontWeight: 400,
+        fontWeight: 500,
       }}
     >
       {block.subtitle && (
@@ -117,7 +120,7 @@ export default function PropertyDescription({ text }: { text: string | null | un
       <div className="relative">
         <div
           className={isLong && !expanded ? 'overflow-hidden' : ''}
-          style={isLong && !expanded ? { maxHeight: 220 } : undefined}
+          style={isLong && !expanded ? { maxHeight: 250 } : undefined}
         >
           {/* Primer bloque sin margin-top extra (reset del section-title inicial) */}
           {blocks.map((b, i) => (
@@ -138,7 +141,7 @@ export default function PropertyDescription({ text }: { text: string | null | un
           type="button"
           onClick={() => setExpanded(v => !v)}
           aria-expanded={expanded}
-          className="mt-1 min-h-11 font-semibold text-sm hover:underline inline-flex items-center gap-1.5"
+          className="mt-1 min-h-11 font-semibold text-base hover:underline inline-flex items-center gap-1.5"
           style={{ color: GREEN, fontFamily: R, fontWeight: 600 }}
         >
           {expanded ? (
