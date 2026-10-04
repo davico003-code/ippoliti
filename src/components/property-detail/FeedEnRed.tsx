@@ -308,6 +308,11 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const [recorrio, setRecorrio] = useState(false)
   const [bloqueALaVista, setBloqueALaVista] = useState(false)
   const [avisoDescartado, setAvisoDescartado] = useState(false)
+  // Rescate: una vez por visita, cuando pasa 4 seguidas sin ♥ o se va sin guardar.
+  const [rescate, setRescate] = useState<'mazo' | 'salir' | null>(null)
+  const [rescateVisto, setRescateVisto] = useState(false)
+  const pasesSeguidos = useRef(0)
+  const [vistas, setVistas] = useState(0)
 
   useEffect(() => {
     setMontado(true)
@@ -355,17 +360,29 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   /** ♥ o paso: la tarjeta sale volando y aparece la siguiente. */
   const decidir = useCallback(
     (accion: 'like' | 'pass') => {
-      if (!actual || salida) return
-      if (accion === 'like') guardar(actual)
+      if (!actual || salida || rescate) return
+      if (accion === 'like') {
+        guardar(actual)
+        pasesSeguidos.current = 0
+      } else {
+        pasesSeguidos.current += 1
+      }
+      // 4 seguidas con ✕ y ninguna guardada: no es lo que busca → rescate.
+      const rescatar = accion === 'pass' && guardadas.length === 0 && pasesSeguidos.current >= 4 && !rescateVisto && indice + 1 < items.length
       setSalida(accion)
+      setVistas((v) => Math.max(v, indice + 1))
       window.setTimeout(() => {
         setIndice((i) => i + 1)
         setFoto(0)
         setArrastre(null)
         setSalida(null)
+        if (rescatar) {
+          setRescateVisto(true)
+          setRescate('mazo')
+        }
       }, DURACION_SALIDA)
     },
-    [actual, salida, guardar],
+    [actual, salida, rescate, rescateVisto, guardar, guardadas.length, indice, items.length],
   )
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -398,6 +415,8 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
 
   const abrirEn = (i: number) => {
     descartarAviso()
+    pasesSeguidos.current = 0
+    setRescate(null)
     setIndice(Math.max(0, i))
     setFoto(0)
     setArrastre(null)
@@ -408,11 +427,19 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const abrir = (key: string | null) => abrirEn(key ? items.findIndex((it) => it.key === key) : 0)
   const cerrarTodo = () => {
     setHoja(null)
+    setRescate(null)
     setAbierto(false)
   }
   const salir = () => {
-    if (guardadas.length > 0) setHoja({ motivo: 'salir' })
-    else setAbierto(false)
+    if (guardadas.length > 0) return setHoja({ motivo: 'salir' })
+    // Se va sin guardar ninguna después de mirar algunas: una pregunta rápida.
+    if (!rescateVisto && vistas > 0) {
+      setRescateVisto(true)
+      setRescate('salir')
+      return
+    }
+    setRescate(null)
+    setAbierto(false)
   }
 
   // Sin scroll de la página de atrás; Escape sale, flechas = paso / ♥.
@@ -423,9 +450,10 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (hoja) setHoja(null)
+        else if (rescate) setRescate(null)
         else salir()
-      } else if (!hoja && e.key === 'ArrowRight') decidir('like')
-      else if (!hoja && e.key === 'ArrowLeft') decidir('pass')
+      } else if (!hoja && !rescate && e.key === 'ArrowRight') decidir('like')
+      else if (!hoja && !rescate && e.key === 'ArrowLeft') decidir('pass')
     }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -433,7 +461,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
       window.removeEventListener('keydown', onKey)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto, hoja, guardadas.length, decidir])
+  }, [abierto, hoja, rescate, guardadas.length, decidir])
 
   /**
    * En la compu la ficha trae una copia oculta de la versión celu: hay DOS
@@ -607,52 +635,69 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
                       onPointerUp={onPointerUp}
                     />
                   </>
+                ) : g > 0 ? (
+                  // El CTA AL FINAL con las elegidas (David, 3-oct): el formulario ya está acá.
+                  <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
+                    <HojaContacto
+                      enLinea
+                      guardadas={guardadas}
+                      barrio={barrio}
+                      textoCancelar="Verlas de nuevo"
+                      onCancelar={() => abrir(null)}
+                      onListo={() => {
+                        setGuardadas([])
+                        escribirGuardadas([])
+                      }}
+                      onCerrar={cerrarTodo}
+                    />
+                  </div>
                 ) : (
-                  <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white flex flex-col items-center justify-center text-center px-6">
-                    {g > 0 && (
-                      <div className="flex -space-x-3 mb-4">
-                        {guardadas.slice(0, 5).map((x) =>
-                          x.foto ? (
-                            <div key={x.key} className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow">
-                              <Image src={x.foto} alt="" fill sizes="56px" className="object-cover" />
-                            </div>
-                          ) : null,
-                        )}
-                      </div>
-                    )}
-                    <p className="text-xl font-black text-gray-900 font-raleway">Viste las {n}</p>
-                    <p className="text-sm text-gray-600 mt-1.5 max-w-xs">
-                      {g > 0
-                        ? `Guardaste ${g}. Un asesor de SI te las muestra y te coordina las visitas.`
-                        : 'No guardaste ninguna. Podés verlas de nuevo y darle ♥ a las que te gusten.'}
-                    </p>
-                    <div className="flex flex-col gap-2 w-full max-w-xs mt-5">
-                      {g > 0 && (
-                        <button type="button" onClick={() => setHoja({ motivo: 'boton' })} className="h-12 rounded-2xl text-white font-bold" style={{ background: VERDE }}>
-                          Que me escriba un asesor
+                  <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
+                    {rescateVisto ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center">
+                        <p className="text-xl font-black text-gray-900 font-raleway">Viste las {n}</p>
+                        <p className="text-sm text-gray-600 mt-1.5 max-w-xs">Podés verlas de nuevo y darle ♥ a las que te gusten.</p>
+                        <button type="button" onClick={() => abrir(null)} className="mt-5 h-11 px-6 rounded-2xl border border-gray-200 text-gray-800 font-semibold">
+                          Verlas de nuevo
                         </button>
-                      )}
-                      <button type="button" onClick={() => abrir(null)} className="h-11 rounded-2xl border border-gray-200 text-gray-800 font-semibold">
-                        Verlas de nuevo
-                      </button>
-                    </div>
+                      </div>
+                    ) : (
+                      <Rescate momento="fin" barrio={barrio} vistas={n} onListo={cerrarTodo} onSecundario={() => abrir(null)} />
+                    )}
+                  </div>
+                )}
+                {rescate === 'mazo' && !terminado && (
+                  <div className="absolute inset-0 z-10 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5 shadow-[0_10px_30px_rgba(0,0,0,0.10)]">
+                    <Rescate momento="mazo" barrio={barrio} vistas={vistas} onListo={() => setRescate(null)} onSecundario={() => setRescate(null)} />
                   </div>
                 )}
               </div>
 
               {/* Botones ✕ / ♥ y contacto */}
               <div className="px-4 pt-4 pb-[max(14px,env(safe-area-inset-bottom))]">
-                {!terminado && <BotonesTinder onPaso={() => decidir('pass')} onMeGusta={() => decidir('like')} />}
-                {!terminado &&
-                  (g > 0 ? (
-                    <button type="button" onClick={() => setHoja({ motivo: 'boton' })} className="mt-3 w-full h-11 rounded-2xl font-bold text-sm border-2" style={{ borderColor: VERDE, color: VERDE }}>
-                      ♥ {g} guardada{g > 1 ? 's' : ''} · Que me contacten
-                    </button>
-                  ) : (
-                    <p className="mt-3 text-center text-xs text-gray-500">Deslizá a la derecha si te gusta, a la izquierda para pasar</p>
-                  ))}
+                {!terminado && !rescate && <BotonesTinder onPaso={() => decidir('pass')} onMeGusta={() => decidir('like')} />}
+                {/* Mientras desliza, solo ✕ y ♥ (David, 3-oct: "que se concentre en eso"); el CTA está al final. */}
+                {!terminado && !rescate && (
+                  <p className="mt-3 text-center text-xs text-gray-500">
+                    {g > 0 ? (
+                      <>
+                        <span style={{ color: ROSA }}>♥</span> {g} guardada{g > 1 ? 's' : ''} · seguí deslizando, al final te las mandamos
+                      </>
+                    ) : (
+                      'Deslizá a la derecha si te gusta, a la izquierda para pasar'
+                    )}
+                  </p>
+                )}
               </div>
 
+              {rescate === 'salir' && (
+                <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[2px] flex items-end" onClick={(e) => e.target === e.currentTarget && cerrarTodo()}>
+                  <div className="w-full bg-white rounded-t-3xl border-t border-gray-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] px-5 pt-4 pb-[max(22px,env(safe-area-inset-bottom))]">
+                    <div className="w-10 h-1 rounded bg-gray-200 mx-auto mb-4" />
+                    <Rescate momento="salir" barrio={barrio} vistas={vistas} onListo={cerrarTodo} onSecundario={cerrarTodo} />
+                  </div>
+                </div>
+              )}
               {hoja && (
                 <HojaContacto
                   guardadas={guardadas}
@@ -679,12 +724,17 @@ function HojaContacto({
   onCancelar,
   onListo,
   onCerrar,
+  enLinea = false,
+  textoCancelar = 'No, gracias',
 }: {
   guardadas: GuardadaLocal[]
   barrio: string | null
   onCancelar: () => void
   onListo: () => void
   onCerrar: () => void
+  /** true = el CTA del final del mazo (sin velo ni hoja que sube). */
+  enLinea?: boolean
+  textoCancelar?: string
 }) {
   const [nombre, setNombre] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
@@ -697,8 +747,9 @@ function HojaContacto({
     const c = leerContacto()
     setNombre(c.nombre)
     setWhatsapp(c.whatsapp)
-    window.setTimeout(() => nombreRef.current?.focus(), 60)
-  }, [])
+    // En el final del mazo no se abre el teclado solo: primero ve sus elegidas.
+    if (!enLinea) window.setTimeout(() => nombreRef.current?.focus(), 60)
+  }, [enLinea])
 
   const n = guardadas.length
   const nuestras = guardadas.filter((g) => g.esNuestra).length
@@ -741,10 +792,8 @@ function HojaContacto({
     }
   }
 
-  return (
-    <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[2px] flex items-end" onClick={(e) => e.target === e.currentTarget && onCancelar()}>
-      <div className="w-full bg-white rounded-t-3xl border-t border-gray-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] px-5 pt-4 pb-[max(22px,env(safe-area-inset-bottom))]">
-        <div className="w-10 h-1 rounded bg-gray-200 mx-auto mb-4" />
+  const contenido = (
+    <>
         {listo ? (
           <div className="text-center py-3">
             <div className="text-4xl" style={{ color: VERDE }} aria-hidden="true">
@@ -758,15 +807,32 @@ function HojaContacto({
           </div>
         ) : (
           <form onSubmit={enviar} noValidate>
-            <div className="flex gap-2 mb-3 overflow-x-auto">
-              {guardadas.map((g) =>
-                g.foto ? (
-                  <div key={g.key} className="relative w-14 h-14 flex-none rounded-xl overflow-hidden bg-gray-100">
-                    <Image src={g.foto} alt="" fill sizes="56px" className="object-cover" />
+            {enLinea ? (
+              // Final del mazo: las elegidas bien a la vista, con su precio.
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {guardadas.map((g) => (
+                  <div key={g.key} className="rounded-xl overflow-hidden border border-gray-100 bg-white">
+                    <div className="relative aspect-[4/3] bg-gray-100">
+                      {g.foto && <Image src={g.foto} alt="" fill sizes="(max-width: 480px) 50vw, 200px" className="object-cover" />}
+                      <span className="absolute top-1.5 right-1.5 text-[#E0245E] drop-shadow">
+                        <Corazon lleno className="w-5 h-5" />
+                      </span>
+                    </div>
+                    <p className="px-2 py-1.5 text-[13px] font-black text-gray-900 font-numeric truncate">{g.precio}</p>
                   </div>
-                ) : null,
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-2 mb-3 overflow-x-auto">
+                {guardadas.map((g) =>
+                  g.foto ? (
+                    <div key={g.key} className="relative w-14 h-14 flex-none rounded-xl overflow-hidden bg-gray-100">
+                      <Image src={g.foto} alt="" fill sizes="56px" className="object-cover" />
+                    </div>
+                  ) : null,
+                )}
+              </div>
+            )}
             <h3 className="text-lg font-black text-gray-900 font-raleway [text-wrap:balance]">
               {n === 1 ? 'Te gustó 1' : `Te gustaron ${n}`}. ¿Te ayudamos?
             </h3>
@@ -811,11 +877,181 @@ function HojaContacto({
               {enviando ? 'Enviando…' : 'Que me escriba un asesor'}
             </button>
             <button type="button" onClick={onCancelar} className="block mx-auto mt-3 text-sm text-gray-500">
-              No, gracias
+              {textoCancelar}
             </button>
           </form>
         )}
+    </>
+  )
+  if (enLinea) return <div className="w-full">{contenido}</div>
+  return (
+    <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[2px] flex items-end" onClick={(e) => e.target === e.currentTarget && onCancelar()}>
+      <div className="w-full bg-white rounded-t-3xl border-t border-gray-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] px-5 pt-4 pb-[max(22px,env(safe-area-inset-bottom))]">
+        <div className="w-10 h-1 rounded bg-gray-200 mx-auto mb-4" />
+        {contenido}
       </div>
+    </div>
+  )
+}
+
+const MOTIVOS = ['Más económicas', 'Más grandes', 'Otra zona', 'Otro tipo de propiedad', 'Solo estaba mirando'] as const
+
+/**
+ * El RESCATE (David, 3-oct: "si pone no me gusta, tratar de rescatarlo… un
+ * feedback rápido para no perder ese cliente"). No en cada ✕ (cansa): cuando
+ * pasa 4 seguidas sin ningún ♥, cuando se va sin guardar ninguna o cuando
+ * termina el mazo sin guardar. Un toque para decir qué busca y, si quiere, su
+ * WhatsApp para avisarle cuando entre algo así (entra a Hilo por turno). Sin
+ * WhatsApp, lo que eligió igual se guarda (anónimo).
+ */
+function Rescate({
+  momento,
+  barrio,
+  vistas,
+  onListo,
+  onSecundario,
+}: {
+  momento: 'mazo' | 'salir' | 'fin'
+  barrio: string | null
+  vistas: number
+  /** Ya contestó (con o sin WhatsApp). */
+  onListo: () => void
+  /** "Seguir mirando" / "No, gracias" / "Verlas de nuevo". */
+  onSecundario: () => void
+}) {
+  const [motivos, setMotivos] = useState<string[]>([])
+  const [whatsapp, setWhatsapp] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
+  const [listo, setListo] = useState(false)
+
+  useEffect(() => {
+    setWhatsapp(leerContacto().whatsapp)
+    trackEvent('feed_en_red_rescate', { momento })
+  }, [momento])
+
+  const titulo = momento === 'mazo' ? '¿No es lo que buscás?' : momento === 'salir' ? '¿Te vas sin guardar ninguna?' : '¿No encontraste lo que buscabas?'
+  const bajada =
+    momento === 'mazo'
+      ? 'Contanos en un toque qué buscás y te ayudamos a encontrarla.'
+      : 'Contanos qué buscás y te avisamos cuando entre algo así.'
+  const secundario = momento === 'mazo' ? 'Seguir mirando' : momento === 'salir' ? 'No, gracias' : 'Verlas de nuevo'
+
+  const cuerpo = (conWhatsapp: boolean) =>
+    JSON.stringify({
+      tipo: conWhatsapp ? 'busca' : 'feedback',
+      whatsapp: conWhatsapp ? whatsapp : '',
+      motivos,
+      barrio,
+      vistas,
+      pageUrl: window.location.href,
+    })
+
+  const enviar = async (conWhatsapp: boolean) => {
+    if (conWhatsapp && whatsapp.replace(/\D/g, '').length < 10) {
+      return setError('Dejá tu WhatsApp con característica, por ejemplo 341 555 1234.')
+    }
+    setError(null)
+    setEnviando(true)
+    try {
+      const res = await fetch('/api/feed-en-red/consulta', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: cuerpo(conWhatsapp),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(typeof data.error === 'string' ? data.error : 'No pudimos enviarlo. Probá de nuevo.')
+      }
+      if (conWhatsapp) {
+        escribirContacto({ nombre: leerContacto().nombre, whatsapp })
+        trackFbEvent('Lead', { content_name: 'feed_en_red_rescate' })
+        setListo(true)
+      } else {
+        onListo()
+      }
+    } catch (err) {
+      if (conWhatsapp) setError(err instanceof Error ? err.message : 'No pudimos enviarlo. Probá de nuevo.')
+      else onListo()
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  if (listo) {
+    return (
+      <div className="text-center py-3">
+        <div className="text-4xl" style={{ color: VERDE }} aria-hidden="true">
+          ✓
+        </div>
+        <h3 className="text-lg font-black text-gray-900 mt-1 font-raleway">Listo</h3>
+        <p className="text-sm text-gray-600 mt-1">Un asesor de SI te escribe por WhatsApp apenas tengamos algo así.</p>
+        <button type="button" onClick={onListo} className="mt-4 w-full h-12 rounded-2xl text-white font-bold" style={{ background: VERDE }}>
+          {momento === 'mazo' ? 'Seguir mirando' : 'Cerrar'}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <h3 className="text-lg font-black text-gray-900 font-raleway [text-wrap:balance]">{titulo}</h3>
+      <p className="text-[13px] leading-relaxed text-gray-600 mt-1 mb-3.5">{bajada}</p>
+      <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Qué buscás">
+        {MOTIVOS.map((m) => {
+          const on = motivos.includes(m)
+          return (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setMotivos((xs) => (on ? xs.filter((x) => x !== m) : [...xs, m]))}
+              className={`px-3.5 py-2 rounded-full text-sm font-semibold border transition-colors ${on ? 'text-white border-transparent' : 'bg-white text-gray-800 border-gray-200 hover:border-gray-300'}`}
+              style={on ? { background: VERDE } : undefined}
+            >
+              {m}
+            </button>
+          )
+        })}
+      </div>
+      <label htmlFor={`rescate-wsp-${momento}`} className="block text-xs font-semibold text-gray-800 mb-1">
+        Tu WhatsApp, si querés que te avisemos
+      </label>
+      <input
+        id={`rescate-wsp-${momento}`}
+        type="tel"
+        inputMode="tel"
+        value={whatsapp}
+        onChange={(e) => {
+          setWhatsapp(e.target.value)
+          setError(null)
+        }}
+        autoComplete="tel"
+        placeholder="341 555 1234"
+        className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2 outline-none focus:ring-2 focus:ring-[#1A5C38]"
+      />
+      {error && (
+        <p className="text-xs text-[#E0245E] mb-2" role="alert">
+          {error}
+        </p>
+      )}
+      <button type="button" disabled={enviando} onClick={() => void enviar(true)} className="w-full h-12 rounded-2xl text-white font-bold mt-1 disabled:opacity-70" style={{ background: VERDE }}>
+        {enviando ? 'Enviando…' : 'Avisame cuando entre algo así'}
+      </button>
+      <button
+        type="button"
+        disabled={enviando}
+        onClick={() => {
+          // Sin WhatsApp: lo que eligió igual sirve (anónimo, sin esperar la respuesta).
+          if (motivos.length) {
+            void fetch('/api/feed-en-red/consulta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: cuerpo(false), keepalive: true }).catch(() => {})
+          }
+          onSecundario()
+        }}
+        className="block mx-auto mt-3 text-sm text-gray-500"
+      >
+        {secundario}
+      </button>
     </div>
   )
 }

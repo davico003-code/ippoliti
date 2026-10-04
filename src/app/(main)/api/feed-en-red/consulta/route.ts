@@ -8,6 +8,8 @@ import { rateLimit } from '@/lib/feedback'
 // que arma el mensaje con la lista y la suma al link de seguimiento.
 
 const ID_GUARDADA = /^(?:n:[1-9]\d{0,9}|propia:[1-9]\d{0,9}|meli:MLA\d{6,14})$/
+/** Las opciones del rescate ("¿Qué buscás?"): solo estas se aceptan. */
+const MOTIVOS = new Set(['Más económicas', 'Más grandes', 'Otra zona', 'Otro tipo de propiedad', 'Solo estaba mirando'])
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
@@ -25,6 +27,57 @@ export async function POST(request: NextRequest) {
   const whatsapp = str(body.whatsapp, 30)
   const barrio = str(body.barrio, 80) || null
   const pageUrl = str(body.pageUrl, 400)
+  const tipo = str(body.tipo, 20)
+  const motivos = Array.isArray(body.motivos) ? body.motivos.map((m) => str(m, 40)).filter((m, i, xs) => MOTIVOS.has(m) && xs.indexOf(m) === i) : []
+  const vistas = Math.max(0, Math.min(99, Math.round(Number(body.vistas) || 0)))
+
+  // Rescate SIN WhatsApp: lo que eligió queda guardado para entender qué
+  // buscaba la gente que no guardó ninguna (no va a Hilo: no hay a quién llamar).
+  if (tipo === 'feedback') {
+    if (motivos.length === 0) return NextResponse.json({ ok: true })
+    try {
+      const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
+      await redis.lpush('feed:feedback', JSON.stringify({ motivos, barrio, vistas, pageUrl, fecha: new Date().toISOString() }))
+      await redis.ltrim('feed:feedback', 0, 4999)
+    } catch (err) {
+      console.error('[feed-en-red] feedback Redis error:', err)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  // Rescate CON WhatsApp: quiere que le avisemos cuando entre algo así → consulta a Hilo (por turno).
+  if (tipo === 'busca') {
+    if (whatsapp.replace(/\D/g, '').length < 10) {
+      return NextResponse.json({ error: 'Dejá tu WhatsApp con característica, por ejemplo 341 555 1234.' }, { status: 400 })
+    }
+    const mensaje = [
+      `🔎 Miró ${vistas || 'varias'} propiedades en la web${barrio ? ` (zona ${barrio})` : ''} y no guardó ninguna.`,
+      `Busca: ${motivos.length ? motivos.join(', ').toLowerCase() : 'no dijo'}.`,
+      'Pidió que le avisemos por WhatsApp cuando entre algo así.',
+    ].join('\n')
+    let savedRedis = false
+    try {
+      const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
+      const data = { nombre, whatsapp, origen: 'feed_web_busca', motivos, barrio, pageUrl, fecha: new Date().toISOString() }
+      await redis.set(`lead:feed_web_busca:${Date.now()}:${whatsapp}`, JSON.stringify(data))
+      await redis.lpush('leads:all', JSON.stringify(data))
+      savedRedis = true
+    } catch (err) {
+      console.error('[feed-en-red] Redis error:', err)
+    }
+    const savedHilo = await pushLeadToHilo({
+      name: nombre.length >= 2 ? nombre : null,
+      phone: whatsapp,
+      origen: 'feed_web_busca',
+      message: mensaje,
+      sourceUrl: pageUrl || null,
+    })
+    if (!savedRedis && !savedHilo) {
+      return NextResponse.json({ error: 'No pudimos registrar tu pedido. Reintentá en unos segundos o escribinos por WhatsApp.' }, { status: 502 })
+    }
+    return NextResponse.json({ ok: true })
+  }
+
   const guardadas = Array.isArray(body.guardadas)
     ? body.guardadas
         .map((g) => str(g, 40))
