@@ -26,8 +26,16 @@ test('acepta sin tildes, mayúsculas y las otras formas del nombre', () => {
   assert.deepEqual(barriosParecidos('Miraflores (Funes Hills)'), ['Funes Hills Cadaqués', 'Funes Hills San Marino'])
 })
 
+test('Funes Lakes con Vida Jardín (primero) y Vida Lagoon', () => {
+  assert.deepEqual(barriosParecidos('Funes Lakes'), ['Vida Jardín', 'Vida Lagoon'])
+  assert.deepEqual(barriosParecidos('Vida Jardín'), ['Funes Lakes'])
+  assert.deepEqual(barriosParecidos('Vida jardín'), ['Funes Lakes'])
+  assert.deepEqual(barriosParecidos('Vida Lagoon'), ['Funes Lakes'])
+  assert.deepEqual(barriosParecidos('Vida Crystal Lagoon'), ['Funes Lakes'])
+})
+
 test('un barrio sin grupo (o una ciudad) no pregunta nada', () => {
-  assert.deepEqual(barriosParecidos('Funes Lakes'), [])
+  assert.deepEqual(barriosParecidos('Kentucky Club de Campo'), [])
   assert.deepEqual(barriosParecidos('Funes'), [])
   assert.deepEqual(barriosParecidos(''), [])
   assert.deepEqual(barriosParecidos(null), [])

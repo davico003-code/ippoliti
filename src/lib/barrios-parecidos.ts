@@ -13,6 +13,10 @@ const GRUPOS: string[][] = [
   ['Vida', 'Vida Club de Campo'],
   ['Funes Hills Cadaqués', 'Funes Hills Miraflores', 'Funes Hills San Marino'],
   ['Cantegril', 'Don Mateo'],
+  // David 4-oct: "Funes Lakes puede ir con Vida Jardín" (primero) y "Vida Lagoon
+  // puede ir con Funes Lakes, pero ya hay mucho en ambos barrios".
+  ['Funes Lakes', 'Vida Jardín'],
+  ['Vida Lagoon', 'Funes Lakes'],
 ]
 
 const clave = (s: string) =>
@@ -34,6 +38,8 @@ const ALIAS: Record<string, string> = {
   'barrio san sebastian': 'san sebastian',
   'don mateo ii': 'don mateo',
   'don mateo 2': 'don mateo',
+  'vida crystal lagoon': 'vida lagoon',
+  'vida lagoon funes': 'vida lagoon',
 }
 
 const canonica = (barrio: string) => {
