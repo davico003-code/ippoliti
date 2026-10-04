@@ -1,14 +1,15 @@
 'use client'
 
 // Galería principal de la ficha.
-//   - Celular/tablet (<1024): foto protagonista (~58% de la pantalla) con
-//     operación, precio y zona encima, y una tira de 3 miniaturas debajo
-//     ("+N" en la última). Es lo primero que ve quien abre el link.
+//   - Celular/tablet (<1024): foto protagonista (~46% de la pantalla) que se
+//     pasa con el dedo (scroll-snap nativo, contador "1 / N"), con operación,
+//     precio y zona fijos encima, y una tira de 3 miniaturas debajo ("+N" en
+//     la última). Solo se cargan la foto a la vista y la siguiente.
 //   - Compu (≥1024): mosaico 1 grande + 4 chicas y botón "Ver las N fotos".
 // Cualquier foto abre el lightbox vertical con todas, parado en esa foto.
 // Esc cierra. Body con overflow:hidden mientras está abierto.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Images, X } from 'lucide-react'
 import { displayImageUrl } from '@/lib/external-images'
@@ -28,6 +29,35 @@ export interface HeroOverlay {
 export default function HeroGallery({ photos, overlay }: { photos: string[]; overlay?: HeroOverlay }) {
   const [abiertaEn, setAbiertaEn] = useState<number | null>(null)
   const showAll = abiertaEn !== null
+  const fotosRef = useRef<HTMLDivElement>(null)
+  const [actual, setActual] = useState(0)
+  // Fotos del carrusel ya pedidas: la visible + la siguiente (precarga).
+  const [cargadas, setCargadas] = useState<Set<number>>(() => new Set([0, 1]))
+
+  useEffect(() => {
+    const el = fotosRef.current
+    if (!el) return
+    let raf = 0
+    const onScroll = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const i = Math.round(el.scrollLeft / Math.max(el.clientWidth, 1))
+        setActual(i)
+        setCargadas(prev => {
+          if (prev.has(i) && prev.has(i + 1)) return prev
+          const next = new Set(prev)
+          next.add(i)
+          next.add(i + 1)
+          return next
+        })
+      })
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(raf)
+    }
+  }, [])
 
   // Bloquear scroll body mientras lightbox abierto
   useEffect(() => {
@@ -74,51 +104,78 @@ export default function HeroGallery({ photos, overlay }: { photos: string[]; ove
 
   return (
     <>
-      {/* ── CELULAR / TABLET: foto protagonista + tira ─────────────────── */}
+      {/* ── CELULAR / TABLET: foto protagonista deslizable + tira ──────── */}
       <div className="lg:hidden">
-        <div
-          className="vf-hero"
-          style={{ position: 'relative', width: '100%', cursor: 'pointer', background: '#E9E9E7' }}
-          onClick={() => setAbiertaEn(0)}
-        >
-          <Image
-            src={displayImageUrl(cover)}
-            alt=""
-            fill
-            sizes="100vw"
-            priority
-            unoptimized={isExternalCdn(cover)}
-            style={{ objectFit: 'cover' }}
-          />
+        <div className="vf-hero" style={{ position: 'relative', width: '100%', background: '#E9E9E7' }}>
+          <div
+            ref={fotosRef}
+            className="vf-hero-fotos"
+            role="group"
+            aria-label={`Fotos de la propiedad: ${photos.length}. Deslizá para ver más.`}
+            style={{
+              display: 'flex',
+              height: '100%',
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              scrollSnapType: 'x mandatory',
+              overscrollBehaviorX: 'contain',
+              scrollbarWidth: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            {photos.map((p, i) => (
+              <div
+                key={`${i}-${p}`}
+                onClick={() => setAbiertaEn(i)}
+                style={{ position: 'relative', flex: '0 0 100%', height: '100%', scrollSnapAlign: 'start', scrollSnapStop: 'always', cursor: 'pointer' }}
+              >
+                {cargadas.has(i) && (
+                  <Image
+                    src={displayImageUrl(p)}
+                    alt={`Foto ${i + 1}`}
+                    fill
+                    sizes="100vw"
+                    priority={i === 0}
+                    unoptimized={isExternalCdn(p)}
+                    style={{ objectFit: 'cover' }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
           {overlay && (
             <div
               aria-hidden
               style={{
                 position: 'absolute',
                 inset: 0,
+                pointerEvents: 'none',
                 background: 'linear-gradient(180deg, rgba(0,0,0,0) 42%, rgba(0,0,0,0.74) 100%)',
               }}
             />
           )}
           {photos.length > 1 && (
             <span
+              aria-hidden
               style={{
                 position: 'absolute',
                 right: 14,
                 top: 14,
+                pointerEvents: 'none',
                 background: 'rgba(255,255,255,0.94)',
                 color: TINTA,
                 fontSize: 12,
                 fontWeight: 600,
                 padding: '5px 10px',
                 borderRadius: 999,
+                fontVariantNumeric: 'tabular-nums',
               }}
             >
-              {photos.length} fotos
+              {actual + 1} / {photos.length}
             </span>
           )}
           {overlay && (
-            <div style={{ position: 'absolute', left: 20, right: 20, bottom: 20, color: '#fff' }}>
+            <div style={{ position: 'absolute', left: 20, right: 20, bottom: 20, color: '#fff', pointerEvents: 'none' }}>
               {overlay.volanta && <div style={{ ...volanta, opacity: 0.88 }}>{overlay.volanta}</div>}
               <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: 4 }}>
                 {overlay.precio}
@@ -335,7 +392,8 @@ export default function HeroGallery({ photos, overlay }: { photos: string[]; ove
       )}
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .vf-hero { height: 58vh; height: min(58svh, 560px); min-height: 340px; }
+        .vf-hero { height: 46vh; height: min(46svh, 440px); min-height: 300px; }
+        .vf-hero-fotos::-webkit-scrollbar { display: none; }
         .hero-tile:hover img { transform: scale(1.02); }
       ` }} />
     </>
