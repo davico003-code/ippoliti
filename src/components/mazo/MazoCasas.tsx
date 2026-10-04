@@ -360,9 +360,13 @@ export default function MazoCasas({
   cargarParecidos?: (barrios: string[], yaVistas: ReadonlySet<string>) => Promise<ItemFeed[]>
 }) {
   const { guardadas, guardar, quitar, limpiar, esGuardada } = guardadasApi
-  // Las de los barrios parecidos se suman al final del mazo si dice que sí.
-  const [extra, setExtra] = useState<ItemFeed[]>([])
-  const todos = useMemo(() => (extra.length ? [...items, ...extra] : items), [items, extra])
+  // Las de los barrios parecidos entran DONDE está parado si dice que sí: al
+  // final del mazo (la pregunta) o en medio (rescate → "Otra zona").
+  const [insercion, setInsercion] = useState<{ en: number; items: ItemFeed[] } | null>(null)
+  const todos = useMemo(
+    () => (insercion ? [...items.slice(0, insercion.en), ...insercion.items, ...items.slice(insercion.en)] : items),
+    [items, insercion],
+  )
   const parecidos = useMemo(() => barriosParecidos(barrio), [barrio])
   /** pendiente → (pregunta) → cargando → sumados | vacio | no. */
   const [estadoParecidos, setEstadoParecidos] = useState<'pendiente' | 'cargando' | 'sumados' | 'vacio' | 'no'>('pendiente')
@@ -453,15 +457,31 @@ export default function MazoCasas({
     !!cargarParecidos &&
     parecidos.length > 0 &&
     (estadoParecidos === 'pendiente' || estadoParecidos === 'cargando' || estadoParecidos === 'vacio')
-  const verParecidos = async () => {
-    if (!cargarParecidos || estadoParecidos === 'cargando') return
+  /** Trae las de los barrios parecidos y las pone como las PRÓXIMAS tarjetas. */
+  const sumarParecidas = async (desde: 'final' | 'rescate'): Promise<boolean> => {
+    if (!cargarParecidos || estadoParecidos === 'cargando' || insercion) return false
     setEstadoParecidos('cargando')
-    trackEvent('feed_en_red_parecidos', { respuesta: 'si', barrio: barrio ?? '' })
+    trackEvent('feed_en_red_parecidos', { respuesta: 'si', barrio: barrio ?? '', desde })
     const nuevas = await cargarParecidos(parecidos, new Set(todos.map((i) => i.key))).catch(() => [] as ItemFeed[])
-    if (nuevas.length === 0) return setEstadoParecidos('vacio')
-    setExtra((e) => [...e, ...nuevas])
+    if (nuevas.length === 0) {
+      // Desde el rescate no se le vuelve a preguntar al final (ya sabe que no hay).
+      setEstadoParecidos(desde === 'final' ? 'vacio' : 'no')
+      return false
+    }
+    setInsercion({ en: indice, items: nuevas })
     setEstadoParecidos('sumados')
     setFoto(0)
+    pasesSeguidos.current = 0
+    return true
+  }
+  const verParecidos = () => void sumarParecidas('final')
+  // El rescate ("¿No es lo que buscás?" → "Otra zona") también los ofrece, si
+  // todavía no se le preguntó.
+  const ofrecerEnRescate = !!cargarParecidos && parecidos.length > 0 && estadoParecidos === 'pendiente'
+  const parecidasDesdeRescate = async (): Promise<boolean> => {
+    const ok = await sumarParecidas('rescate')
+    if (ok) setRescate(null)
+    return ok
   }
   const noParecidos = () => {
     trackEvent('feed_en_red_parecidos', { respuesta: 'no', barrio: barrio ?? '' })
@@ -551,7 +571,8 @@ export default function MazoCasas({
 
   const n = todos.length
   // Mirando las de los barrios parecidos: el título lo dice.
-  const tituloVisible = estadoParecidos === 'sumados' && indice >= items.length && !terminado ? `Casas en ${listaBarrios(parecidos)}` : titulo
+  const tituloVisible =
+    insercion && indice >= insercion.en && indice < insercion.en + insercion.items.length ? `Casas en ${listaBarrios(parecidos)}` : titulo
   const g = guardadas.length
 
   return createPortal(
@@ -598,7 +619,7 @@ export default function MazoCasas({
                 barrio={barrio}
                 parecidos={parecidos}
                 estado={estadoParecidos}
-                onSi={() => void verParecidos()}
+                onSi={verParecidos}
                 onNo={noParecidos}
               />
             </div>
@@ -637,7 +658,16 @@ export default function MazoCasas({
           )}
           {rescate === 'mazo' && !terminado && (
             <div className="absolute inset-0 z-10 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5 shadow-[0_10px_30px_rgba(0,0,0,0.10)]">
-              <Rescate momento="mazo" barrio={barrio} busqueda={busqueda} vistas={vistas} onListo={() => setRescate(null)} onSecundario={() => setRescate(null)} />
+              <Rescate
+                momento="mazo"
+                barrio={barrio}
+                busqueda={busqueda}
+                vistas={vistas}
+                parecidos={parecidos}
+                onVerParecidos={ofrecerEnRescate ? parecidasDesdeRescate : undefined}
+                onListo={() => setRescate(null)}
+                onSecundario={() => setRescate(null)}
+              />
             </div>
           )}
         </div>
@@ -675,7 +705,16 @@ export default function MazoCasas({
           <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[2px] flex items-end" onClick={(e) => e.target === e.currentTarget && cerrarTodo()}>
             <div className="w-full bg-white rounded-t-3xl border-t border-gray-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] px-5 pt-4 pb-[max(22px,env(safe-area-inset-bottom))]">
               <div className="w-10 h-1 rounded bg-gray-200 mx-auto mb-4" />
-              <Rescate momento="salir" barrio={barrio} busqueda={busqueda} vistas={vistas} onListo={cerrarTodo} onSecundario={cerrarTodo} />
+              <Rescate
+                momento="salir"
+                barrio={barrio}
+                busqueda={busqueda}
+                vistas={vistas}
+                parecidos={parecidos}
+                onVerParecidos={ofrecerEnRescate ? parecidasDesdeRescate : undefined}
+                onListo={cerrarTodo}
+                onSecundario={cerrarTodo}
+              />
             </div>
           </div>
         )}
@@ -953,6 +992,8 @@ function Rescate({
   barrio,
   busqueda = null,
   vistas,
+  parecidos = [],
+  onVerParecidos,
   onListo,
   onSecundario,
 }: {
@@ -960,6 +1001,13 @@ function Rescate({
   barrio: string | null
   busqueda?: string | null
   vistas: number
+  /** Barrios parecidos al que mira (barrios-parecidos.ts). */
+  parecidos?: string[]
+  /**
+   * Con "Otra zona" marcado, ofrece verlos ahí mismo (David 4-oct). Devuelve
+   * false si no había ninguna. Sin esto (ya se le preguntó), no se ofrece.
+   */
+  onVerParecidos?: () => Promise<boolean>
   /** Ya contestó (con o sin WhatsApp). */
   onListo: () => void
   /** "Seguir mirando" / "No, gracias" / "Verlas de nuevo". */
@@ -970,6 +1018,17 @@ function Rescate({
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [listo, setListo] = useState(false)
+  const [parecidasEstado, setParecidasEstado] = useState<'idle' | 'cargando' | 'vacio'>('idle')
+  const ofrecerParecidos = !!onVerParecidos && parecidos.length > 0 && motivos.includes('Otra zona')
+
+  const verParecidas = async () => {
+    if (!onVerParecidos || parecidasEstado === 'cargando') return
+    // Lo que marcó igual le sirve al equipo (anónimo, como "Seguir mirando").
+    void fetch('/api/feed-en-red/consulta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: cuerpo(false), keepalive: true }).catch(() => {})
+    setParecidasEstado('cargando')
+    const ok = await onVerParecidos().catch(() => false)
+    if (!ok) setParecidasEstado('vacio')
+  }
 
   useEffect(() => {
     setWhatsapp(leerContacto().whatsapp)
@@ -1064,6 +1123,25 @@ function Rescate({
           )
         })}
       </div>
+      {ofrecerParecidos && (
+        <div className="mb-4 rounded-2xl p-3.5" style={{ background: '#EAF3EE' }}>
+          <p className="text-[16px] font-bold text-gray-900">¿Te muestro casas en barrios parecidos?</p>
+          <p className="text-[15px] text-gray-700 mt-0.5">{listaBarrios(parecidos)}</p>
+          {parecidasEstado === 'vacio' ? (
+            <p className="text-[15px] text-gray-700 mt-2">Por ahora no hay otras en esos barrios con lo que buscás.</p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void verParecidas()}
+              disabled={parecidasEstado === 'cargando'}
+              className="mt-2.5 w-full h-11 rounded-xl text-white font-bold disabled:opacity-70"
+              style={{ background: VERDE }}
+            >
+              {parecidasEstado === 'cargando' ? 'Buscando…' : 'Sí, mostrame'}
+            </button>
+          )}
+        </div>
+      )}
       <label htmlFor={`rescate-wsp-${momento}`} className="block text-sm font-semibold text-gray-800 mb-1">
         Tu WhatsApp, si querés que te avisemos
       </label>
