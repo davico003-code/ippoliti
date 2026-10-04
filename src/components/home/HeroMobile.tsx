@@ -156,7 +156,9 @@ export default function HeroMobile() {
         </div>
 
         {/* La otra puerta, más chica a propósito (David, 3-oct: "que lo usen pero
-            que no sea lo principal"): lleva al mazo tipo Tinder por zona. */}
+            que no sea lo principal"): lleva al mazo tipo Tinder por zona. SOLO
+            en el celu (David, 4-oct: "en la web no sirve"): en la compu el mazo
+            queda únicamente en la ficha, abajo de las nuestras. */}
         <Link
           href="/conoce-tu-hogar"
           className="portada-in si-tap mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-raleway text-[14px] font-bold text-white underline decoration-white/60 underline-offset-4 drop-shadow"
