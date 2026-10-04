@@ -33,6 +33,8 @@ import {
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 import { Logo } from '@/components/marca/LogoSI'
 import { barriosParecidos, listaBarrios } from '@/lib/barrios-parecidos'
+import { MAX_FOTOS_MAZO, completarFotos } from '@/lib/mazo-items'
+import { marcarMazoAbierto } from '@/lib/mazo-atras'
 
 export const VERDE = '#1A5C38'
 const OCRE_FONDO = '#F4EAD8'
@@ -41,6 +43,9 @@ export const ROSA = '#E0245E'
 /** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso. */
 const UMBRAL_SWIPE = 90
 const DURACION_SALIDA = 260
+
+/** El instructivo se muestra una vez por navegador. */
+const CLAVE_GUIA = 'si-mazo-guia-v1'
 
 /** El rescate sale UNA vez por visita (aunque abra el mazo varias veces). */
 let rescateMostrado = false
@@ -131,8 +136,8 @@ export function Chip({ nuestra }: { nuestra: boolean }) {
 
 export type Arrastre = { dx: number; dy: number }
 
-/** Cuántos pares de fotos tiene (se muestran de a 2, una arriba de la otra). */
-const paresDe = (item: ItemFeed) => Math.max(1, Math.ceil(item.fotos.length / 2))
+/** Cuántos pares de fotos tiene (se muestran de a 2, una arriba de la otra): hasta 5. */
+const paresDe = (item: ItemFeed) => Math.max(1, Math.ceil(Math.min(item.fotos.length, MAX_FOTOS_MAZO) / 2))
 
 /**
  * Una tarjeta del mazo. Las fotos de las casas son apaisadas: en una tarjeta
@@ -152,9 +157,12 @@ export function Tarjeta({
   onPointerMove,
   onPointerUp,
   par,
+  guia = false,
 }: {
   item: ItemFeed
   modo: 'arriba' | 'abajo' | 'quieta'
+  /** El instructivo la mueve sola (suave) para mostrar cómo se desliza. */
+  guia?: boolean
   guardada: boolean
   arrastre: Arrastre | null
   salida: 'like' | 'pass' | null
@@ -173,9 +181,9 @@ export function Tarjeta({
         : arrastre
           ? `translateX(${dx}px) translateY(${(arrastre.dy ?? 0) * 0.15}px) rotate(${dx / 18}deg)`
           : 'none'
-  const transicion = arriba && arrastre && !salida ? 'none' : `transform ${DURACION_SALIDA}ms ease-out`
+  const transicion = guia ? 'transform 520ms ease-in-out' : arriba && arrastre && !salida ? 'none' : `transform ${DURACION_SALIDA}ms ease-out`
   const fuerza = Math.min(1, Math.abs(dx) / UMBRAL_SWIPE)
-  const n = item.fotos.length
+  const n = Math.min(item.fotos.length, MAX_FOTOS_MAZO)
   const pares = paresDe(item)
   const p = Math.min(par, pares - 1)
   // El último par de una cantidad impar vuelve a la primera foto: nunca una sola estirada.
@@ -368,6 +376,31 @@ export default function MazoCasas({
     [items, insercion],
   )
   const parecidos = useMemo(() => barriosParecidos(barrio), [barrio])
+  // Las nuestras vienen del listado con las 5 fotos de la tarjeta: el mazo pide
+  // las del álbum (hasta 10 = 5 pares, David 4-oct) de las casas que tiene.
+  const [album, setAlbum] = useState<Record<string, string[]>>({})
+  const pedidas = useRef(new Set<string>())
+  useEffect(() => {
+    const faltan = todos.filter((i) => i.esNuestra && i.key.startsWith('n:') && !pedidas.current.has(i.key)).slice(0, 16)
+    if (!faltan.length) return
+    faltan.forEach((i) => pedidas.current.add(i.key))
+    const ids = faltan.map((i) => i.key.slice(2)).join(',')
+    fetch(`/api/propiedades/fotos-mazo?ids=${ids}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { fotos?: Record<string, string[]> } | null) => {
+        if (!d?.fotos) return
+        setAlbum((a) => {
+          const nuevo = { ...a }
+          for (const [id, fotos] of Object.entries(d.fotos!)) if (Array.isArray(fotos)) nuevo[`n:${id}`] = fotos
+          return nuevo
+        })
+      })
+      .catch(() => {})
+  }, [todos])
+  const conFotos = useCallback(
+    (i: ItemFeed | null): ItemFeed | null => (i && album[i.key] ? { ...i, fotos: completarFotos(i.fotos, album[i.key]) } : i),
+    [album],
+  )
   /** pendiente → (pregunta) → cargando → sumados | vacio | no. */
   const [estadoParecidos, setEstadoParecidos] = useState<'pendiente' | 'cargando' | 'sumados' | 'vacio' | 'no'>('pendiente')
   /** Para ↺: cada decisión, con si el ♥ fue nuevo (si ya estaba guardada de antes, volver no se la saca). */
@@ -391,6 +424,39 @@ export default function MazoCasas({
    * nunca se le pregunta de nuevo (ni la hoja ni el rescate).
    */
   const [enviada, setEnviada] = useState<'linea' | 'hoja' | null>(null)
+  /**
+   * INSTRUCTIVO (David 4-oct: "un instructivo sencillo para insinuar cómo se
+   * maneja"): la primera vez en este celu, la tarjeta se mueve sola a la
+   * derecha (ME GUSTA) y a la izquierda (PASO) y un cartel lo dice en tres
+   * renglones. Se va con "¡Entendido!" o tocando en cualquier lado.
+   */
+  const [guia, setGuia] = useState(false)
+  const [guiaDx, setGuiaDx] = useState<number | null>(null)
+  useEffect(() => {
+    let vista = true
+    try {
+      vista = window.localStorage.getItem(CLAVE_GUIA) === '1'
+    } catch {
+      vista = false
+    }
+    if (vista || inicio >= items.length) return
+    setGuia(true)
+    const pasos: [number, number | null][] = [[700, 90], [1500, -90], [2300, null], [3300, 90], [4100, -90], [4900, null]]
+    const timers = pasos.map(([t, dx]) => window.setTimeout(() => setGuiaDx(dx), t))
+    return () => timers.forEach((t) => window.clearTimeout(t))
+    // Solo al abrir.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const cerrarGuia = () => {
+    setGuia(false)
+    setGuiaDx(null)
+    try {
+      window.localStorage.setItem(CLAVE_GUIA, '1')
+    } catch {
+      /* sin almacenamiento: se vuelve a mostrar la próxima vez */
+    }
+    trackEvent('feed_en_red_guia', { origen })
+  }
 
   const marcarRescate = useCallback((momento: 'mazo' | 'salir') => {
     rescateMostrado = true
@@ -404,14 +470,14 @@ export default function MazoCasas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const actual = todos[indice] ?? null
-  const siguiente = todos[indice + 1] ?? null
+  const actual = conFotos(todos[indice] ?? null)
+  const siguiente = conFotos(todos[indice + 1] ?? null)
   const terminado = indice >= todos.length
 
   /** ♥ o paso: la tarjeta sale volando y aparece la siguiente. */
   const decidir = useCallback(
     (accion: 'like' | 'pass') => {
-      if (!actual || salida || rescate) return
+      if (!actual || salida || rescate || guia) return
       setHistorial((h) => [...h.slice(-30), { indice, accion, key: actual.key, nueva: accion === 'like' && !esGuardada(actual.key) }])
       if (accion === 'like') {
         guardar(actual)
@@ -431,7 +497,7 @@ export default function MazoCasas({
         if (rescatar) marcarRescate('mazo')
       }, DURACION_SALIDA)
     },
-    [actual, salida, rescate, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate],
+    [actual, salida, rescate, guia, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate],
   )
 
   /** ↺ Volver a la anterior: si le había dado ♥ recién, se lo saca y decide de nuevo. */
@@ -548,13 +614,108 @@ export default function MazoCasas({
     cerrarTodo()
   }
 
+  // ATRÁS DEL NAVEGADOR (David 4-oct: "mi mamá corrió para el costado de la foto
+  // y cerró el Tinder sin que le pida los datos"). En el iPhone, deslizar desde
+  // el borde izquierdo es "atrás" de Safari: sacaba de la página sin pasar por
+  // la pregunta de la X. Al abrir se agrega una entrada propia al historial
+  // (misma URL); el gesto o el botón Atrás solo la sacan a ella y acá se hace lo
+  // mismo que la X: pregunta (♥ → sus datos; sin ♥ → el rescate) y se queda.
+  // Si insiste (atrás otra vez con la pregunta a la vista), recién ahí sale.
+  const porAtras = useRef<() => boolean>(() => false)
+  porAtras.current = () => {
+    if (guia) {
+      cerrarGuia()
+      return true
+    }
+    if (hoja?.motivo === 'salir' || rescate === 'salir') {
+      cerrarTodo()
+      return false
+    }
+    if (hoja) {
+      setHoja(null)
+      return true
+    }
+    if (rescate === 'mazo') {
+      setRescate(null)
+      return true
+    }
+    if (enviada) {
+      cerrarTodo()
+      return false
+    }
+    // El formulario del final ya está a la vista: se queda ahí.
+    if (terminado && guardadas.length > 0) return true
+    if (guardadas.length > 0) {
+      setHoja({ motivo: 'salir' })
+      return true
+    }
+    if (!rescateVisto && !finEsRescate && vistas > 0) {
+      marcarRescate('salir')
+      return true
+    }
+    cerrarTodo()
+    return false
+  }
+  // La entrada sobrevive al desmontar/montar de prueba de React (StrictMode en
+  // desarrollo): el back() de limpieza se posterga un instante y se cancela si
+  // el mazo vuelve a montarse (mismo truco que PropertyPanel).
+  const entrada = useRef<{ marca: string; propia: boolean; backTimer: number | null } | null>(null)
+  useEffect(() => {
+    const empujar = (marca: string) => window.history.pushState({ ...(window.history.state ?? {}), siMazo: marca }, '')
+    let e = entrada.current
+    if (e && e.backTimer != null) {
+      window.clearTimeout(e.backTimer)
+      e.backTimer = null
+    } else {
+      e = entrada.current = { marca: `mazo-${Date.now()}`, propia: true, backTimer: null }
+      empujar(e.marca)
+    }
+    const actual = e
+    marcarMazoAbierto(true)
+    // Ojo: en la ventana, el popstate lo atienden los listeners EN EL ORDEN EN
+    // QUE SE REGISTRARON (la captura no adelanta a nadie). Los de antes —la
+    // ficha de la compu (PropertyPanel se cierra con cualquier popstate)— miran
+    // la marca de mazo-atras.ts y lo dejan pasar; a los de después se los corta.
+    const onPop = (ev: PopStateEvent) => {
+      ev.stopImmediatePropagation()
+      actual.propia = false
+      if (porAtras.current()) {
+        empujar(actual.marca)
+        actual.propia = true
+      }
+    }
+    window.addEventListener('popstate', onPop, true)
+    return () => {
+      window.removeEventListener('popstate', onPop, true)
+      actual.backTimer = window.setTimeout(() => {
+        actual.backTimer = null
+        entrada.current = null
+        if (!actual.propia || window.history.state?.siMazo !== actual.marca) return marcarMazoAbierto(false)
+        // Se cerró con la X: se saca la entrada propia sin que nadie más se entere
+        // (la marca sigue puesta hasta que pase ese popstate).
+        const listo = () => {
+          window.removeEventListener('popstate', tragar, true)
+          marcarMazoAbierto(false)
+        }
+        const tragar = (ev: PopStateEvent) => {
+          ev.stopImmediatePropagation()
+          listo()
+        }
+        window.addEventListener('popstate', tragar, true)
+        window.setTimeout(listo, 1500)
+        window.history.back()
+      }, 0)
+    }
+  }, [])
+
   // Sin scroll de la página de atrás; Escape sale, flechas = paso / ♥.
   useEffect(() => {
     const previo = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (hoja) setHoja(null)
+        if (guia) cerrarGuia()
+        else if (hoja) setHoja(null)
         else if (rescate) setRescate(null)
         else salir()
       } else if (!hoja && !rescate && e.key === 'ArrowRight') decidir('like')
@@ -567,7 +728,7 @@ export default function MazoCasas({
       window.removeEventListener('keydown', onKey)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoja, rescate, guardadas.length, decidir, volver])
+  }, [hoja, rescate, guia, guardadas.length, decidir, volver])
 
   const n = todos.length
   // Mirando las de los barrios parecidos: el título lo dice.
@@ -605,7 +766,8 @@ export default function MazoCasas({
                 item={actual}
                 modo="arriba"
                 guardada={esGuardada(actual.key)}
-                arrastre={arrastre}
+                arrastre={guia && guiaDx != null ? { dx: guiaDx, dy: 0 } : arrastre}
+                guia={guia}
                 salida={salida}
                 par={foto}
                 onPointerDown={onPointerDown}
@@ -715,6 +877,51 @@ export default function MazoCasas({
                 onListo={cerrarTodo}
                 onSecundario={cerrarTodo}
               />
+            </div>
+          </div>
+        )}
+        {guia && !terminado && (
+          <div className="absolute inset-0 z-20 flex items-end bg-black/30" onClick={cerrarGuia} role="presentation">
+            <div
+              className="w-full bg-white rounded-t-3xl px-5 pt-5 pb-[max(22px,env(safe-area-inset-bottom))] shadow-[0_-12px_40px_rgba(0,0,0,0.15)]"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-label="Cómo se usa"
+            >
+              <p className="text-xl font-black text-gray-900 font-raleway">Así de fácil</p>
+              <ul className="mt-3 space-y-3 text-[16px] text-gray-800">
+                <li className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none" style={{ background: '#FDE7EE', color: ROSA }} aria-hidden="true">
+                    <Corazon lleno className="w-5 h-5" />
+                  </span>
+                  <span>
+                    <strong>Deslizá a la derecha</strong> la que te gusta
+                  </span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none bg-gray-100 text-gray-500" aria-hidden="true">
+                    <X className="w-5 h-5" strokeWidth={2.6} />
+                  </span>
+                  <span>
+                    <strong>A la izquierda</strong> para pasar a otra
+                  </span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none bg-gray-100 text-gray-600" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M10 9l3 3-3 3" />
+                    </svg>
+                  </span>
+                  <span>
+                    <strong>Tocá el costado de la foto</strong> para ver más fotos
+                  </span>
+                </li>
+              </ul>
+              <p className="mt-3 text-[15px] text-gray-600">Al final te mandamos las que guardaste por WhatsApp.</p>
+              <button type="button" onClick={cerrarGuia} className="mt-4 w-full h-12 rounded-2xl text-white font-bold text-[16px]" style={{ background: VERDE }} autoFocus>
+                ¡Entendido!
+              </button>
             </div>
           </div>
         )}
