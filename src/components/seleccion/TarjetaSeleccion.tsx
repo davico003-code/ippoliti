@@ -1,10 +1,9 @@
 'use client'
 
-import Image from 'next/image'
 import { useRef, useState } from 'react'
 import { CalendarDays, Check, ChevronLeft, ChevronRight, Heart, MessageCircle, X } from 'lucide-react'
 import type { SeleccionItem } from '@/lib/seleccion'
-import { Foto, Specs, isValidNote, logoDePortal, type Reaction } from './seleccion-ui'
+import { ChipsRed, Foto, Specs, isValidNote, tieneFicha, type Reaction } from './seleccion-ui'
 
 /**
  * Tarjeta de la grilla (compu, y la lista del celular después del mazo).
@@ -35,7 +34,7 @@ export default function TarjetaSeleccion({
     setI(sig)
     setMontadas((m) => Array.from(new Set([...m, sig, (sig + 1) % fotos.length])))
   }
-  const portal = item.externa ? logoDePortal(item.url) : null
+  const conFicha = tieneFicha(item)
   const gusta = reaction.liked === true
   const nope = reaction.liked === false
   const puntoMax = Math.min(fotos.length, 5)
@@ -58,8 +57,8 @@ export default function TarjetaSeleccion({
         }}
       >
         {fotos.length > 0 ? (
-          <div className={`absolute inset-0 flex transition-transform duration-300 ease-out ${item.fichaUrl ? 'cursor-pointer' : ''}`}
-            style={{ transform: `translateX(-${i * 100}%)` }} onClick={item.fichaUrl ? onFicha : undefined}>
+          <div className={`absolute inset-0 flex transition-transform duration-300 ease-out ${conFicha ? 'cursor-pointer' : ''}`}
+            style={{ transform: `translateX(-${i * 100}%)` }} onClick={conFicha ? onFicha : undefined}>
             {fotos.map((src, n) => (
               <div key={src + n} className="relative h-full w-full flex-none">
                 {montadas.includes(n) && (
@@ -97,14 +96,15 @@ export default function TarjetaSeleccion({
           </>
         )}
 
-        <span className="font-numeric absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11.5px] font-semibold text-[#1C2620] shadow-sm">
-          {item.sugerida ? 'Parecida' : `#${idx + 1}`}
+        <span className="absolute left-3 top-3 flex items-center gap-1.5">
+          {!item.sugerida && (
+            <span className="font-numeric rounded-full bg-white/95 px-2.5 py-1 text-[11.5px] font-semibold text-[#1C2620] shadow-sm">#{idx + 1}</span>
+          )}
+          {item.sugerida && !item.enRed && (
+            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11.5px] font-semibold text-[#1A5C38] shadow-sm">Parecida</span>
+          )}
+          <ChipsRed item={item} sobreFoto />
         </span>
-        {portal && (
-          <span className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-white p-1 shadow-sm">
-            <Image src={portal.logo} alt={portal.name} width={24} height={24} className="h-6 w-auto" />
-          </span>
-        )}
       </div>
 
       <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5">
@@ -119,7 +119,7 @@ export default function TarjetaSeleccion({
         <div className="flex-1" />
 
         <div className="mt-4 flex items-center gap-2">
-          {item.fichaUrl ? (
+          {conFicha ? (
             <button type="button" onClick={onFicha}
               className="mr-auto rounded-full px-1 py-2 text-[13.5px] font-semibold text-[#1A5C38] underline-offset-4 hover:underline">
               Ver ficha

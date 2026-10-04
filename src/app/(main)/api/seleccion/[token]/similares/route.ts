@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getReacciones, getSeleccion } from '@/lib/redis'
 import { rateLimit } from '@/lib/feedback'
-import { similaresDeSeleccion } from '@/lib/seleccion-items'
+import { parecidasDeSeleccion } from '@/lib/seleccion-items'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, { params }: { params: { token: strin
 
   try {
     const reacciones = await getReacciones(params.token)
-    const items = await similaresDeSeleccion(sel.properties ?? [], reacciones, excluir, limit)
+    const items = await parecidasDeSeleccion(params.token, sel.properties ?? [], reacciones, excluir, limit)
     // Depende de la selección y de stock de colegas con permisos revocables.
     return NextResponse.json({ items }, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch {

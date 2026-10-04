@@ -65,4 +65,10 @@ export interface SeleccionItem {
   photos: string[]
   /** Ficha completa para abrir ADENTRO de la página (mismo origen). null = no hay. */
   fichaUrl: string | null
+  /** De otra inmobiliaria (Red Propia / MELI / portal): va con la etiqueta "En red", nunca como nuestra. */
+  enRed: boolean
+  /** Entre las más vistas de la zona (visitas de 30 días en MELI, lo marca HILO). */
+  masVista: boolean
+  /** Parecida En red todavía sin ficha: `propia:<aviso>` / `meli:<MLA>`. La ficha neutra la arma HILO al abrirla. */
+  redId: string | null
 }

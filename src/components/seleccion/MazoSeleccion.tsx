@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import { CalendarDays, Heart, Info, RotateCcw, X } from 'lucide-react'
 import type { SeleccionItem } from '@/lib/seleccion'
-import { Avatar, Foto, Specs, isValidNote, logoDePortal, primerNombre, type Decision } from './seleccion-ui'
+import { Avatar, ChipsRed, Foto, Specs, isValidNote, primerNombre, tieneFicha, type Decision } from './seleccion-ui'
 
 const UMBRAL = 110 // px de arrastre para decidir
 const SALIDA_MS = 260
@@ -112,7 +111,7 @@ export default function MazoSeleccion({
       if (!r) return
       const relY = (e.clientY - r.top) / r.height
       const relX = (e.clientX - r.left) / r.width
-      if (relY > 0.66) onFicha(top)
+      if (relY > 0.66) { if (tieneFicha(top)) onFicha(top) }
       else if (top.photos.length > 1) setFoto((f) => (relX < 0.4 ? Math.max(0, f - 1) : Math.min(top.photos.length - 1, f + 1)))
     }
   }
@@ -223,15 +222,11 @@ export default function MazoSeleccion({
               </div>
             )}
 
-            <div className="pointer-events-none absolute left-3 top-6 flex items-center gap-1.5">
-              {top.sugerida && (
+            <div className="pointer-events-none absolute left-3 top-6 flex flex-wrap items-center gap-1.5">
+              {top.sugerida && !top.enRed && (
                 <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11.5px] font-semibold text-[#1A5C38]">Parecida a lo que buscás</span>
               )}
-              {top.externa && logoDePortal(top.url) && (
-                <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-white p-1">
-                  <Image src={logoDePortal(top.url)!.logo} alt={logoDePortal(top.url)!.name} width={20} height={20} className="h-5 w-auto" />
-                </span>
-              )}
+              <ChipsRed item={top} sobreFoto />
             </div>
 
             {/* Sellos mientras arrastra */}
@@ -241,7 +236,7 @@ export default function MazoSeleccion({
             )}
             {sello === 'nope' && (
               <span className="pointer-events-none absolute right-5 top-16 rotate-[14deg] rounded-xl border-[4px] border-[#FF3B3B] px-3 py-1 text-[28px] font-extrabold tracking-wide text-[#FF3B3B]"
-                style={{ opacity: selloOpacidad }}>NO</span>
+                style={{ opacity: selloOpacidad }}>PASO</span>
             )}
             {sello === 'visita' && (
               <span className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -rotate-[8deg] rounded-xl border-[4px] border-white px-3 py-1 text-[26px] font-extrabold tracking-wide text-white">
@@ -261,7 +256,7 @@ export default function MazoSeleccion({
                   <Specs item={top} className="mt-2 text-[12.5px] text-white/90" />
                   {isValidNote(top.note) && <p className="mt-2 text-[13px] italic leading-snug text-white/85">&ldquo;{top.note}&rdquo;</p>}
                 </div>
-                {top.fichaUrl && (
+                {tieneFicha(top) && (
                   <button type="button" aria-label="Ver ficha completa"
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={() => onFicha(top)}

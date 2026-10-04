@@ -7,7 +7,7 @@ import MazoSeleccion from './MazoSeleccion'
 import TarjetaSeleccion from './TarjetaSeleccion'
 import FichaHoja from './FichaHoja'
 import CierreSeleccion from './CierreSeleccion'
-import { Avatar, isValidNote, primerNombre, type Decision, type Reaction } from './seleccion-ui'
+import { Avatar, LINEA_EN_RED, isValidNote, primerNombre, tieneFicha, type Decision, type Reaction } from './seleccion-ui'
 
 /**
  * Lo que ve el cliente en siinmobiliaria.com/seleccion/<token>.
@@ -34,6 +34,8 @@ type CuerpoReaccion = {
   comment: string
   reaction: Reaction['reaction']
   sugerida?: boolean
+  /** Parecida En red: lo que vio el cliente, por si HILO no puede sumarla (respaldo). */
+  tarjeta?: { title: string; image: string | null; location: string; price: string | null; rooms: number; baths: number; area: number }
 }
 
 function leerLocal(clave: string): string[] {
@@ -157,6 +159,9 @@ export default function ClientShortlist({
       comment: updated.comment ?? '',
       reaction: updated.reaction ?? null,
       ...(item.sugerida ? { sugerida: true } : {}),
+      ...(item.redId
+        ? { tarjeta: { title: item.title, image: item.photos[0] ?? null, location: item.location, price: item.price, rooms: item.rooms, baths: item.baths, area: item.area } }
+        : {}),
     }
     clearTimeout(timers.current[item.id])
     timers.current[item.id] = setTimeout(() => enviar(item.id), 700)
@@ -305,7 +310,7 @@ export default function ClientShortlist({
   /* ── Ficha en hoja ── */
 
   const ficha = fichaId ? porId.get(fichaId) ?? null : null
-  const abrirFicha = (item: SeleccionItem) => { if (item.fichaUrl) setFichaId(item.id) }
+  const abrirFicha = (item: SeleccionItem) => { if (tieneFicha(item)) setFichaId(item.id) }
   const cerrarFicha = useCallback(() => setFichaId(null), [])
 
   function decidirDesdeFicha(d: 'like' | 'nope') {
@@ -485,6 +490,9 @@ export default function ClientShortlist({
                     {gustaron.length === 0 ? MENSAJE_PARECIDAS : 'Parecidas a lo que buscás'}
                   </h3>
                 </div>
+                {activasParecidas.some((i) => i.enRed) && (
+                  <p className="-mt-2 mb-4 text-[13.5px] text-[#66736B]">{LINEA_EN_RED}</p>
+                )}
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">{activasParecidas.map(tarjeta)}</div>
               </div>
             )}
@@ -517,7 +525,7 @@ export default function ClientShortlist({
       </div>
 
       {ficha && (
-        <FichaHoja item={ficha} reaction={reactions[ficha.id] ?? {}} onCerrar={cerrarFicha} onDecidir={decidirDesdeFicha} />
+        <FichaHoja key={ficha.id} item={ficha} token={token} reaction={reactions[ficha.id] ?? {}} onCerrar={cerrarFicha} onDecidir={decidirDesdeFicha} />
       )}
     </div>
   )

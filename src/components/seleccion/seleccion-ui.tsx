@@ -4,7 +4,7 @@
 // celular, las tarjetas de la compu, la ficha en hoja y el cierre.
 
 import Image from 'next/image'
-import { BedDouble, Bath, Ruler } from 'lucide-react'
+import { BedDouble, Bath, Flame, Ruler } from 'lucide-react'
 import { displayImageUrl } from '@/lib/external-images'
 import type { SeleccionItem } from '@/lib/seleccion'
 
@@ -33,20 +33,31 @@ export function iniciales(nombre: string): string {
 
 export const primerNombre = (nombre: string) => nombre.trim().split(/\s+/)[0] ?? nombre
 
-type PortalLogo = { name: string; logo: string }
+/** Tiene ficha para abrir adentro: la propia, la neutra, o una En red que HILO arma al abrirla. */
+export const tieneFicha = (item: SeleccionItem) => !!item.fichaUrl || !!item.redId
 
-/** Logo del portal de un aviso externo (las propias no llevan). */
-export function logoDePortal(url: string): PortalLogo | null {
-  try {
-    const host = new URL(url).hostname.toLowerCase()
-    if (host.includes('zonaprop.com')) return { name: 'Zonaprop', logo: '/portal-logos/zonaprop.jpg' }
-    if (host.includes('argenprop.com')) return { name: 'Argenprop', logo: '/portal-logos/argenprop.jpg' }
-    if (host.includes('mercadolibre')) return { name: 'Mercado Libre', logo: '/portal-logos/mercadolibre.png' }
-    return null
-  } catch {
-    return null
-  }
+/**
+ * Las de otras inmobiliarias van marcadas "En red" (David: no hacerlas pasar
+ * por nuestras). "Muy vista" = entre las más vistas de la zona en 30 días.
+ * Mismo lenguaje que el feed En red de la ficha.
+ */
+export function ChipsRed({ item, sobreFoto = false }: { item: SeleccionItem; sobreFoto?: boolean }) {
+  if (!item.enRed && !item.masVista) return null
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {item.enRed && (
+        <span className={`rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${sobreFoto ? 'bg-[#FFF4DE]/95' : 'bg-[#FFF4DE]'} text-[#8A5A00]`}>En red</span>
+      )}
+      {item.masVista && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11.5px] font-semibold text-[#111814]">
+          <Flame className="h-3.5 w-3.5 text-[#F40009]" fill="#F40009" strokeWidth={1.5} /> Muy vista
+        </span>
+      )}
+    </span>
+  )
 }
+
+export const LINEA_EN_RED = 'Algunas las publican otras inmobiliarias. Te las mostramos y te coordinamos la visita nosotros.'
 
 // Fotos que /_next/image puede optimizar (remotePatterns de next.config). Las
 // de portales/proxy van directo, como en la ficha.

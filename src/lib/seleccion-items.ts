@@ -3,9 +3,13 @@
 // de la página. Antes lo pedía el navegador después de cargar (con corte a los
 // 5 s) y el cliente veía tarjetas grises hasta que llegaba.
 //
+// Las de colegas (Red Propia / MELI) llegan desde HILO con su ficha neutra ya
+// armada (verficha): de ahí salen TODAS sus fotos y datos, no solo la portada.
+//
 // También el motor de "parecidas": cuando al cliente no le cierra ninguna, le
-// ofrecemos otras del mismo feed de la web (stock propio + red de colegas de
-// HILO), con el mismo criterio que "Propiedades similares" de la ficha.
+// ofrecemos otras nuestras (mismo criterio que "Propiedades similares" de la
+// ficha) y de la red En red de HILO (Red Propia + MELI, las más vistas
+// primero), intercaladas.
 
 import {
   generatePropertySlug,
@@ -26,6 +30,8 @@ import { geocodeZona } from './geocode'
 import { haversineDistance } from './geo'
 import { parsePropertyLabel, type SeleccionItem } from './seleccion'
 import type { SeleccionProperty } from './redis'
+import { getFicha, type Ficha } from './ficha'
+import { pedirAHilo, redIdDe } from './seleccion-red'
 
 /** Propiedad tal como está guardada en `seleccion:{token}`. */
 export interface SelProp {
@@ -70,18 +76,35 @@ export function idPropio(p: Pick<SelProp, 'id' | 'url' | 'source'>): number | nu
   return null
 }
 
-/** Ficha neutra (verficha) embebible. Los avisos de portales no tienen: el cliente nunca ve Zonaprop. */
-function fichaExterna(url: string): string | null {
+/** Slug de la ficha neutra (verficha.casa/<slug> o /v/<slug>). Los avisos de portales no tienen. */
+export function slugVerficha(url: string): string | null {
   try {
     const u = new URL(url, 'https://siinmobiliaria.com')
-    if (u.hostname.toLowerCase().includes('verficha.casa')) {
-      const slug = u.pathname.split('/').filter(Boolean)[0]
-      return slug ? `/v/${slug}?embed=1` : null
-    }
-    if (u.pathname.startsWith('/v/')) return `${u.pathname}?embed=1`
+    const partes = u.pathname.split('/').filter(Boolean)
+    if (u.hostname.toLowerCase().includes('verficha.casa')) return partes[0] ?? null
+    if (partes[0] === 'v' && partes[1]) return partes[1]
     return null
   } catch {
     return null
+  }
+}
+
+/** La ficha neutra para abrir ADENTRO de la selección (sin barra ni compartir). */
+export const fichaNeutraEmbebida = (slug: string) => `/v/${slug}?embed=1`
+
+const PORTALES = /(^|\.)(zonaprop|argenprop|mercadolibre)\.com/i
+
+/**
+ * De otra inmobiliaria: las de la Red de HILO (`red:propia:…` / `red:meli:…`)
+ * y los avisos de portales pegados a mano. Van con "En red", nunca como
+ * nuestras (David: "es muy chanta", después la visita se coordina con el colega).
+ */
+function esDeRed(p: Pick<SelProp, 'id' | 'url'>): boolean {
+  if (p.id.startsWith('red:')) return true
+  try {
+    return PORTALES.test(new URL(p.url).hostname)
+  } catch {
+    return false
   }
 }
 
@@ -103,6 +126,9 @@ function itemDePropiedad(d: TokkoProperty, base: SelProp, sugerida: boolean): Se
     price: mostrarPrecio(d) ?? 'Consultar precio',
     photos: photos.slice(0, MAX_FOTOS),
     fichaUrl: `/seleccion/ficha/${generatePropertySlug(d)}`,
+    enRed: false,
+    masVista: false,
+    redId: null,
   }
 }
 
@@ -119,9 +145,36 @@ function itemDeSnapshot(p: SelProp): SeleccionItem {
     rooms: s.rooms ?? 0,
     baths: s.baths ?? 0,
     area: s.area ?? 0,
-    price: s.price ?? null,
+    price: precioVisible(s.price) ?? (p.source === 'externa' ? 'Consultar precio' : null),
     photos: s.image ? [s.image] : [],
-    fichaUrl: fichaExterna(p.url),
+    fichaUrl: (() => { const slug = slugVerficha(p.url); return slug ? fichaNeutraEmbebida(slug) : null })(),
+    enRed: esDeRed(p),
+    masVista: false,
+    redId: null,
+  }
+}
+
+/** "Consultar" (sin precio publicado) se muestra como en la web: "Consultar precio". */
+const precioVisible = (p: string | null | undefined) => (p && !/^consultar/i.test(p.trim()) ? p : null)
+
+/**
+ * Una de colega con su ficha neutra: TODAS las fotos y los datos de la ficha
+ * (antes la selección mostraba solo la portada que guarda HILO).
+ */
+function itemDeFicha(p: SelProp, ficha: Ficha): SeleccionItem {
+  const s = ficha.snapshot
+  const base = itemDeSnapshot(p)
+  const fotos = (s.fotos ?? []).filter((f) => typeof f === 'string' && f.startsWith('https://'))
+  return {
+    ...base,
+    title: p.snapshot?.title?.trim() || s.tituloGenerico || base.title,
+    location: s.zonaCompleta || s.zonaAprox || base.location,
+    rooms: s.dormitorios ?? base.rooms,
+    baths: s.banos ?? base.baths,
+    area: Math.round(s.m2cubiertos ?? s.m2totales ?? s.m2terreno ?? base.area) || 0,
+    price: precioVisible(s.precio) ?? precioVisible(base.price) ?? 'Consultar precio',
+    photos: fotos.length > 0 ? fotos.slice(0, MAX_FOTOS) : base.photos,
+    fichaUrl: fichaNeutraEmbebida(ficha.slug),
   }
 }
 
@@ -154,6 +207,13 @@ export async function armarItems(props: SelProp[]): Promise<SeleccionItem[]> {
           if (e instanceof Error && e.message.includes('not found')) return null
           // El feed falló: lo que haya guardado, mejor que nada.
         }
+      }
+      const slug = slugVerficha(p.url)
+      if (slug) {
+        const ficha = await getFicha(slug).catch(() => null)
+        // Revocada porque se vendió o el colega la bajó: no se la mostramos.
+        if (ficha?.revokedAt) return null
+        if (ficha) return itemDeFicha(p, ficha)
       }
       if (!p.snapshot && !p.source) {
         const og = await previewDeLink(p.url)
@@ -346,4 +406,139 @@ export async function similaresDeSeleccion(
         true,
       ),
     )
+}
+
+/* ── Parecidas En red (Red Propia + MELI, las elige HILO) ── */
+
+/** Lo que HILO manda de cada una (/api/public/en-red). Sin dirección, inmobiliaria ni descripción. */
+type TarjetaEnRed = {
+  /** `propia:455077` / `meli:MLA…` */
+  id: string
+  titulo: string
+  precio: string
+  precioUsd: number
+  tipo: string
+  dormitorios: number | null
+  banos: number | null
+  m2Total: number | null
+  m2Cubiertos: number | null
+  zona: string | null
+  fotos: string[]
+  masVista: boolean
+}
+
+/**
+ * Las de colegas parecidas a UNA nuestra: mismo tipo, precio 0,7–1,35, mismo
+ * barrio o a menos de 2,5 km, sin repetidas, las más vistas primero (el mismo
+ * motor del feed "En red" de la ficha). Servidor a servidor con el secreto de
+ * HILO; 15 min de cache. Si HILO no responde, simplemente no hay En red.
+ */
+async function enRedDe(idPublico: number): Promise<TarjetaEnRed[]> {
+  const secret = process.env.HILO_INGEST_SECRET
+  if (!secret) return []
+  const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
+  try {
+    const res = await fetch(`${base}/api/public/en-red?id=${idPublico}`, {
+      headers: { 'x-hilo-ingest-secret': secret },
+      next: { revalidate: 900 },
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!res.ok) return []
+    const data = (await res.json()) as { tarjetas?: TarjetaEnRed[] }
+    return Array.isArray(data.tarjetas) ? data.tarjetas.filter((t) => t?.id && t.fotos?.length) : []
+  } catch {
+    return []
+  }
+}
+
+function itemDeTarjetaRed(t: TarjetaEnRed): SeleccionItem {
+  return {
+    // Mismo id que usa HILO al sumarla al link de seguimiento: la reacción y la
+    // propiedad quedan atadas.
+    id: `red:${t.id}`,
+    url: '',
+    note: '',
+    externa: true,
+    sugerida: true,
+    title: t.titulo,
+    location: t.zona ?? '',
+    rooms: t.dormitorios ?? 0,
+    baths: t.banos ?? 0,
+    area: Math.round(t.m2Cubiertos ?? t.m2Total ?? 0),
+    price: t.precio || null,
+    photos: t.fotos.slice(0, MAX_FOTOS),
+    fichaUrl: null,
+    enRed: true,
+    masVista: !!t.masVista,
+    redId: t.id,
+  }
+}
+
+/** Las En red parecidas a una de la RED que está en la selección (la referencia la arma HILO). */
+async function enRedDesdeRed(token: string, redId: string): Promise<TarjetaEnRed[]> {
+  const r = await pedirAHilo(token, redId, 'parecidas')
+  if (!r.ok || !Array.isArray(r.tarjetas)) return []
+  return (r.tarjetas as TarjetaEnRed[]).filter((t) => t?.id && t.fotos?.length)
+}
+
+async function parecidasEnRed(
+  token: string,
+  props: SelProp[],
+  reacciones: Record<string, { liked?: boolean | null } | undefined>,
+  excluir: Set<string>,
+  limit: number,
+): Promise<SeleccionItem[]> {
+  // Referencias: lo que le gustó; si no le gustó nada, toda la selección.
+  // Una nuestra pide por su id; una de la red, por su aviso. Hasta 3.
+  const gustaron = props.filter((p) => reacciones[p.id]?.liked === true)
+  const pedidos: Promise<TarjetaEnRed[]>[] = []
+  const usadas = new Set<string>()
+  for (const p of gustaron.length > 0 ? gustaron : props) {
+    if (pedidos.length >= 3) break
+    const propio = idPropio(p)
+    const red = propio == null ? redIdDe(p.id) : null
+    const clave = propio != null ? `n:${propio}` : red
+    if (!clave || usadas.has(clave)) continue
+    usadas.add(clave)
+    pedidos.push(propio != null ? enRedDe(propio) : enRedDesdeRed(token, red!))
+  }
+  if (pedidos.length === 0) return []
+  const listas = await Promise.all(pedidos)
+
+  const enSeleccion = new Set(props.map((p) => p.id))
+  const vistas = new Set<string>()
+  const salida: SeleccionItem[] = []
+  // De a una por referencia, así todas aportan.
+  for (let i = 0; i < 8; i++) {
+    for (const lista of listas) {
+      const t = lista[i]
+      if (!t) continue
+      const id = `red:${t.id}`
+      if (vistas.has(id) || enSeleccion.has(id) || excluir.has(id)) continue
+      vistas.add(id)
+      salida.push(itemDeTarjetaRed(t))
+    }
+  }
+  // David: "que la persona tenga las casas más vistas" → las más vistas adelante.
+  return salida.sort((a, b) => Number(b.masVista) - Number(a.masVista)).slice(0, limit)
+}
+
+/** Nuestras y En red intercaladas (nuestra, En red, nuestra…). */
+export async function parecidasDeSeleccion(
+  token: string,
+  props: SelProp[],
+  reacciones: Record<string, { liked?: boolean | null } | undefined>,
+  excluir: Set<string>,
+  limit: number,
+): Promise<SeleccionItem[]> {
+  const [propias, red] = await Promise.all([
+    similaresDeSeleccion(props, reacciones, excluir, limit).catch(() => [] as SeleccionItem[]),
+    parecidasEnRed(token, props, reacciones, excluir, limit).catch(() => [] as SeleccionItem[]),
+  ])
+  const salida: SeleccionItem[] = []
+  for (let i = 0; i < limit && salida.length < limit; i++) {
+    if (propias[i]) salida.push(propias[i])
+    if (red[i] && salida.length < limit) salida.push(red[i])
+  }
+  return salida
 }
