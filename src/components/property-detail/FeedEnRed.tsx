@@ -370,7 +370,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
       {montado &&
         abierto &&
         createPortal(
-          <div className="fixed inset-0 z-[120] bg-black/50 md:flex md:items-center md:justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
+          <div className="fixed inset-0 z-[10400] bg-black/50 md:flex md:items-center md:justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
             <div className="relative flex flex-col h-[100dvh] w-full bg-white md:h-[92vh] md:max-w-[440px] md:rounded-3xl overflow-hidden">
               <div className="flex items-center justify-between px-4 pt-[max(14px,env(safe-area-inset-top))] pb-2.5">
                 <div className="min-w-0">
