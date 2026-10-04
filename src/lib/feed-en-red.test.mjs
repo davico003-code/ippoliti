@@ -33,3 +33,27 @@ test('nombres de barrio escritos distinto', () => {
   assert.equal(mismoBarrio('Tierra de Sueños 1', 'Tierra de Sueños 3'), false)
   assert.equal(mismoBarrio('Funes', 'Funes'), false)
 })
+
+test('Conocé tu próximo hogar: barrio con nombre → solo ese barrio', async () => {
+  const { enZonaBuscada } = await import('./feed-en-red.ts')
+  assert.equal(enZonaBuscada('Funes Lakes', { nombre: 'Funes Lakes', completa: 'Argentina | Santa Fe | Funes | Funes Lakes' }), true)
+  assert.equal(enZonaBuscada('Vida Lagoon', { nombre: 'Vida Crystal Lagoon', completa: 'Argentina | Santa Fe | Funes | Countries/B. Cerrado (Funes) | Vida Crystal Lagoon' }), true)
+  assert.equal(enZonaBuscada('Funes Lakes', { nombre: 'Funes', completa: 'Argentina | Santa Fe | Funes' }), false)
+  assert.equal(enZonaBuscada('Fisherton', { nombre: 'Fisherton - Tierra Nueva', completa: 'Argentina | Santa Fe | Rosario | Fisherton - Tierra Nueva' }), true)
+})
+
+test('Conocé tu próximo hogar: ciudad → toda la ciudad (también "San Lorenzo | Roldan")', async () => {
+  const { enZonaBuscada } = await import('./feed-en-red.ts')
+  assert.equal(enZonaBuscada('Funes', { nombre: 'Funes Lakes', completa: 'Argentina | Santa Fe | Funes | Funes Lakes' }), true)
+  assert.equal(enZonaBuscada('Roldán', { nombre: 'Roldan', completa: 'Argentina | Santa Fe | San Lorenzo | Roldan' }), true)
+  assert.equal(enZonaBuscada('Funes', { nombre: 'Centro', completa: 'Argentina | Santa Fe | Rosario | Centro' }), false)
+})
+
+test('Conocé tu próximo hogar: tope = hasta el tope y desde la mitad', async () => {
+  const { entraEnTope } = await import('./feed-en-red.ts')
+  assert.equal(entraEnTope(200000, 200000), true)
+  assert.equal(entraEnTope(210000, 200000), false)
+  assert.equal(entraEnTope(90000, 200000), false)
+  assert.equal(entraEnTope(90000, null), true)
+  assert.equal(entraEnTope(null, null), false)
+})

@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
   const nombre = str(body.nombre, 80)
   const whatsapp = str(body.whatsapp, 30)
   const barrio = str(body.barrio, 80) || null
+  // "Conocé tu próximo hogar" (home): qué eligió además de la zona ("casas hasta USD 200 mil").
+  const busqueda = str(body.busqueda, 80).replace(/[\n\r]+/g, ' ') || null
   const pageUrl = str(body.pageUrl, 400)
   const tipo = str(body.tipo, 20)
   const motivos = Array.isArray(body.motivos) ? body.motivos.map((m) => str(m, 40)).filter((m, i, xs) => MOTIVOS.has(m) && xs.indexOf(m) === i) : []
@@ -37,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (motivos.length === 0) return NextResponse.json({ ok: true })
     try {
       const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
-      await redis.lpush('feed:feedback', JSON.stringify({ motivos, barrio, vistas, pageUrl, fecha: new Date().toISOString() }))
+      await redis.lpush('feed:feedback', JSON.stringify({ motivos, barrio, busqueda, vistas, pageUrl, fecha: new Date().toISOString() }))
       await redis.ltrim('feed:feedback', 0, 4999)
     } catch (err) {
       console.error('[feed-en-red] feedback Redis error:', err)
@@ -52,13 +54,13 @@ export async function POST(request: NextRequest) {
     }
     const mensaje = [
       `🔎 Miró ${vistas || 'varias'} propiedades en la web${barrio ? ` (zona ${barrio})` : ''} y no guardó ninguna.`,
-      `Busca: ${motivos.length ? motivos.join(', ').toLowerCase() : 'no dijo'}.`,
+      `Busca: ${[busqueda, ...motivos.map((m) => m.toLowerCase())].filter(Boolean).join(', ') || 'no dijo'}.`,
       'Pidió que le avisemos por WhatsApp cuando entre algo así.',
     ].join('\n')
     let savedRedis = false
     try {
       const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
-      const data = { nombre, whatsapp, origen: 'feed_web_busca', motivos, barrio, pageUrl, fecha: new Date().toISOString() }
+      const data = { nombre, whatsapp, origen: 'feed_web_busca', motivos, barrio, busqueda, pageUrl, fecha: new Date().toISOString() }
       await redis.set(`lead:feed_web_busca:${Date.now()}:${whatsapp}`, JSON.stringify(data))
       await redis.lpush('leads:all', JSON.stringify(data))
       savedRedis = true
@@ -105,7 +107,7 @@ export async function POST(request: NextRequest) {
   let savedRedis = false
   try {
     const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
-    const data = { nombre, whatsapp, origen: 'feed_web', guardadas, barrio, pageUrl, fecha: new Date().toISOString() }
+    const data = { nombre, whatsapp, origen: 'feed_web', guardadas, barrio, busqueda, pageUrl, fecha: new Date().toISOString() }
     await redis.set(`lead:feed_web:${Date.now()}:${whatsapp}`, JSON.stringify(data))
     await redis.lpush('leads:all', JSON.stringify(data))
     savedRedis = true
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
     origen: 'feed_web',
     guardadas,
     barrio,
+    message: busqueda ? `Buscó en la web: ${busqueda}.` : null,
     sourceUrl: pageUrl || null,
     attribution: utm,
   })

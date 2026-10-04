@@ -18,6 +18,8 @@ export default function FloatingWhatsApp() {
   // /tasaciones: el pedido va a Hilo, no a WhatsApp; además el CTA fijo de abajo
   // ocupa ese lugar.
   if (pathname.startsWith('/tasaciones')) return null
+  // /conoce-tu-hogar: igual, el CTA fijo de abajo (y la consulta va a Hilo desde el mazo).
+  if (pathname.startsWith('/conoce-tu-hogar')) return null
   // Hide en las landings de emprendimiento del CRM (/emprendimientos/{id}-slug):
   // cada una trae su FAB con el mensaje del emprendimiento ya escrito. Las
   // páginas propias (fincazul, clientes manuales) no empiezan con ID y lo conservan.

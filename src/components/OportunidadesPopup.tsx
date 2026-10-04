@@ -39,7 +39,7 @@ const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min)
 // /hausing: landing de casas premium — experiencia limpia, sin tarjetas encima.
 // /emprendimientos/: en las landings la pastilla tapaba el selector de piso de Dock Garden
 // (el listado /emprendimientos la sigue mostrando).
-const HIDE_PREFIXES = ['/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden', '/recursos/si-school', '/hausing', '/como-trabajamos', '/emprendimientos/']
+const HIDE_PREFIXES = ['/conoce-tu-hogar', '/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden', '/recursos/si-school', '/hausing', '/como-trabajamos', '/emprendimientos/']
 
 const HOOK_META: Record<string, { badge: string; cta: string; color: string; bg: string }> = {
   motivado: { badge: 'Vendedor motivado', cta: 'Pasá a conocerla', color: '#B5562F', bg: '#FCEBE3' },

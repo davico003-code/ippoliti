@@ -7,13 +7,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { findPropertySection } from './propertySectionTarget'
 
-/**
- * `evento`: la pestaña no es una sección sino una acción — dispara ese evento
- * (cancelable) en window; si nadie lo atiende (preventDefault), salta a
- * `seccionSiNo`. Así "♥ Más casas" abre el Tinder del feed En red y, si esa
- * ficha no tiene, baja a "Otras opciones para vos".
- */
-type Section = { id: string; label: string; evento?: string; seccionSiNo?: string }
+type Section = { id: string; label: string }
 
 export default function PropertyStickyNav({
   sections,
@@ -83,15 +77,9 @@ export default function PropertyStickyNav({
             return (
               <li key={s.id}>
                 <button
-                  onClick={() => {
-                    if (!s.evento) return jumpTo(s.id)
-                    const atendido = !window.dispatchEvent(new CustomEvent(s.evento, { cancelable: true }))
-                    if (!atendido && s.seccionSiNo) jumpTo(s.seccionSiNo)
-                  }}
+                  onClick={() => jumpTo(s.id)}
                   className={`relative px-3 py-4 text-[15px] whitespace-nowrap transition-colors ${
-                    s.evento
-                      ? 'text-[#1A5C38] font-bold'
-                      : isActive ? 'text-[#1A5C38] font-bold' : 'text-gray-500 font-semibold hover:text-gray-800'
+                    isActive ? 'text-[#1A5C38] font-bold' : 'text-gray-500 font-semibold hover:text-gray-800'
                   }`}
                   style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
                 >
