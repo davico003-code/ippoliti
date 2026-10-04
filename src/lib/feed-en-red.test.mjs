@@ -80,3 +80,14 @@ test('lineaDireccion: calle | barrio | ciudad sin repetir', async () => {
   assert.equal(lineaDireccion([null, 'Kentucky', 'Funes']), 'Kentucky | Funes')
   assert.equal(lineaDireccion([null, null, null]), null)
 })
+
+test('textoBusqueda y esEmail', async () => {
+  const { textoBusqueda, esEmail, tipoHogarDeTokko } = await import('./feed-en-red.ts')
+  assert.equal(textoBusqueda({ zona: 'Funes Lakes', tipo: 'house', topeUsd: 200000, origen: 'conoce_tu_hogar' }), 'casas en Funes Lakes hasta USD 200 mil')
+  assert.equal(textoBusqueda({ zona: 'Roldán', tipo: 'lot', topeUsd: null, origen: 'ficha' }), 'lotes en Roldán')
+  assert.equal(esEmail('martina@gmail.com'), true)
+  assert.equal(esEmail('341 555 1234'), false)
+  assert.equal(esEmail('martina@gmail'), false)
+  assert.equal(tipoHogarDeTokko(3), 'house')
+  assert.equal(tipoHogarDeTokko(12), null)
+})

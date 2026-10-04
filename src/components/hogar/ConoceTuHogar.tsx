@@ -21,7 +21,7 @@ import {
 } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
 import { BarraFija, IconoFlecha, Spinner, cls } from '@/components/tasaciones/ui'
-import MazoCasas, { ROSA, useGuardadas } from '@/components/mazo/MazoCasas'
+import MazoCasas, { ROSA, SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
 const chip = 'si-tap inline-flex h-11 items-center whitespace-nowrap rounded-full border-[1.5px] px-[15px] text-[14.5px] font-semibold transition-colors motion-reduce:transition-none'
@@ -350,6 +350,10 @@ export default function ConoceTuHogar({
                 </button>
               )}
             </div>
+            {/* O que le avisemos cuando entren (David 4-oct: el mail con la búsqueda ya filtrada). */}
+            <div className="mt-3">
+              <SuscripcionMail criterios={{ zona: zona.nombre, tipo, topeUsd: tope, origen: 'conoce_tu_hogar' }} />
+            </div>
           </div>
         )}
       </div>
@@ -386,6 +390,7 @@ export default function ConoceTuHogar({
           guardadasApi={guardadasApi}
           origen="home"
           busqueda={busqueda}
+          criterios={{ zona: zona.nombre, tipo, topeUsd: tope, origen: 'conoce_tu_hogar' }}
           cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipo, tope, yaVistas)}
           onCerrar={() => setAbierto(false)}
         />

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { pushLeadToHilo } from '@/lib/hilo-leads'
+import { esEmail, parsearCriteriosWeb } from '@/lib/feed-en-red'
 import { rateLimit } from '@/lib/feedback'
 
 // Consulta del feed de la ficha: nombre + WhatsApp + lo que marcó con ♥.
@@ -33,6 +34,11 @@ export async function POST(request: NextRequest) {
   const tipo = str(body.tipo, 20)
   const motivos = Array.isArray(body.motivos) ? body.motivos.map((m) => str(m, 40)).filter((m, i, xs) => MOTIVOS.has(m) && xs.indexOf(m) === i) : []
   const vistas = Math.max(0, Math.min(99, Math.round(Number(body.vistas) || 0)))
+  // Opcional (4-oct): dejó también el mail para recibir las nuevas de su búsqueda.
+  const emailCrudo = str(body.email, 120).toLowerCase()
+  const email = emailCrudo && esEmail(emailCrudo) ? emailCrudo : null
+  const criterios = email ? parsearCriteriosWeb(body.suscripcion) : null
+  const suscripcion = criterios ? { ...criterios, busqueda, pagina: pageUrl || null } : null
 
   // Rescate SIN WhatsApp: lo que eligió queda guardado para entender qué
   // buscaba la gente que no guardó ninguna (no va a Hilo: no hay a quién llamar).
@@ -115,7 +121,7 @@ export async function POST(request: NextRequest) {
     (async () => {
       try {
         const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
-        const data = { nombre, whatsapp, origen: 'feed_web', guardadas, barrio, busqueda, pageUrl, fecha: new Date().toISOString() }
+        const data = { nombre, whatsapp, email, origen: 'feed_web', guardadas, barrio, busqueda, suscripcion, pageUrl, fecha: new Date().toISOString() }
         await redis.set(`lead:feed_web:${Date.now()}:${whatsapp}`, JSON.stringify(data))
         await redis.lpush('leads:all', JSON.stringify(data))
         return true
@@ -127,9 +133,11 @@ export async function POST(request: NextRequest) {
     pushLeadToHilo({
       name: nombre,
       phone: whatsapp,
+      email,
       origen: 'feed_web',
       guardadas,
       barrio,
+      suscripcion,
       message: busqueda ? `Buscó en la web: ${busqueda}.` : null,
       sourceUrl: pageUrl || null,
       attribution: utm,

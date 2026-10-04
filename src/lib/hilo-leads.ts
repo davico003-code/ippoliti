@@ -37,6 +37,18 @@ export type HiloLeadPayload = {
   guardadas?: string[] | null
   /** Barrio de la ficha donde estaba mirando (para el texto del chat). */
   barrio?: string | null
+  /** Dejó además el mail para recibir las nuevas de su búsqueda (4-oct-2026). */
+  suscripcion?: SuscripcionHilo | null
+}
+
+/** La búsqueda que viaja con el mail (Hilo la escribe en el contacto). */
+export type SuscripcionHilo = {
+  zona: string | null
+  tipo: 'house' | 'lot' | 'apartment' | null
+  topeUsd: number | null
+  origen: 'conoce_tu_hogar' | 'ficha'
+  busqueda: string | null
+  pagina: string | null
 }
 
 /** Devuelve true si el lead quedó registrado en el inbox de Hilo. best-effort:
@@ -66,6 +78,31 @@ export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<boolean>
     return res.ok
   } catch (err) {
     console.warn('[hilo-leads] push error:', err)
+    return false
+  }
+}
+
+/**
+ * "Recibí las nuevas por mail" del Tinder: deja el mail con su búsqueda en Hilo
+ * (contacto + consentimiento de email + lista "Web: búsquedas por mail"), sin
+ * abrir una consulta. Best-effort como pushLeadToHilo: nunca lanza.
+ */
+export async function pushSuscripcionToHilo(payload: { email: string; nombre: string | null; criterios: SuscripcionHilo }): Promise<boolean> {
+  const secret = process.env.HILO_INGEST_SECRET
+  if (!secret) return false
+  const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
+  try {
+    const res = await fetch(`${base}/api/public/suscripcion-busqueda`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-hilo-ingest-secret': secret },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!res.ok) console.warn('[hilo-leads] suscripción no-ok:', res.status)
+    return res.ok
+  } catch (err) {
+    console.warn('[hilo-leads] suscripción error:', err)
     return false
   }
 }
