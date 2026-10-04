@@ -72,7 +72,7 @@ function NoDisponible({ titulo, zona }: { titulo: string; zona: string }) {
           Esta propiedad ya no está disponible
         </h1>
         <p style={{ fontSize: 14, color: '#6B6B6B', marginTop: 12, lineHeight: 1.6 }}>
-          Se vendió o se retiró de la venta. Si te interesa algo parecido, consultá con quien te envió esta ficha.
+          Se vendió o se retiró de la venta.
         </p>
       </div>
       <footer style={{ position: 'absolute', bottom: 24, fontSize: 12, color: '#9A9A9A' }}>{NEUTRAL_DOMAIN}</footer>
@@ -260,8 +260,8 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
 
           {!isEmbedded && (
             <div className="lg:hidden" style={{ marginTop: 36, padding: '18px 20px', background: FONDO_SUAVE, borderRadius: 16, textAlign: 'center' }}>
-              <p style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TINTA }}>¿Te interesa esta propiedad?</p>
-              <p style={{ margin: '4px 0 0', fontSize: 15, color: APAGADO, lineHeight: 1.5 }}>Consultá con quien te envió esta ficha.</p>
+              <p style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TINTA }}>¿Te gustó?</p>
+              <p style={{ margin: '4px 0 0', fontSize: 15, color: APAGADO, lineHeight: 1.5 }}>Compartila con un amigo.</p>
             </div>
           )}
 
@@ -289,7 +289,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
             {!isEmbedded && (
               <>
                 <p style={{ margin: '20px 0 0', fontSize: 14, color: APAGADO, lineHeight: 1.5 }}>
-                  <b style={{ color: TINTA, fontWeight: 600 }}>¿Te interesa?</b> Consultá con quien te envió esta ficha.
+                  <b style={{ color: TINTA, fontWeight: 600 }}>¿Te gustó?</b> Compartila con un amigo.
                 </p>
                 <div style={{ marginTop: 12 }}>
                   <CompartirMenu url={url} slug={params.slug} variante="tarjeta" />
