@@ -1,10 +1,15 @@
 // /conoce-tu-hogar — "Conocé tu próximo hogar": dónde busca, qué y hasta
 // cuánto, y el mazo tipo Tinder (nuestras + "En red"). Se llega desde el link
-// debajo del buscador de la home. Query params: ?zona=<nombre>&tipo=house|lot|apartment&tope=<usd>
+// debajo del buscador de la home (celu). Query params: ?zona=<nombre>&tipo=house|lot|apartment&tope=<usd>
+//
+// Dónde se puede buscar lo dice Hilo (barrios y ciudades con algo en venta,
+// nuestras o de la red): se carga en el servidor, así las sugerencias salen
+// al tipear sin esperar.
 
 import type { Metadata } from 'next'
 import ConoceTuHogar from '@/components/hogar/ConoceTuHogar'
-import { esTipoHogar } from '@/lib/feed-en-red'
+import { type ZonaHogar, esTipoHogar } from '@/lib/feed-en-red'
+import { ZONAS } from '@/lib/zonas'
 
 export const metadata: Metadata = {
   title: 'Conocé tu próximo hogar | SI INMOBILIARIA',
@@ -12,14 +17,33 @@ export const metadata: Metadata = {
   alternates: { canonical: '/conoce-tu-hogar' },
 }
 
+/** Sin Hilo: las zonas fijas de la web (sin cantidades). */
+const zonasFijas = (): ZonaHogar[] =>
+  ZONAS.map((z) => ({ nombre: z.nombre, ciudad: z.ciudad, esCiudad: z.tipo === 'zona' && z.nombre === z.ciudad, casas: 0, lotes: 0, deptos: 0 }))
+
+async function catalogo(): Promise<ZonaHogar[]> {
+  const base = (process.env.HILO_LEADS_URL || 'https://meethilo.com').replace(/\/$/, '')
+  try {
+    const res = await fetch(`${base}/api/public/en-red/zonas`, { next: { revalidate: 3600 } })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = (await res.json()) as { zonas?: ZonaHogar[] }
+    const zonas = (data.zonas ?? []).filter((z) => z && typeof z.nombre === 'string')
+    return zonas.length ? zonas : zonasFijas()
+  } catch (e) {
+    console.warn('[conoce-tu-hogar] zonas', e instanceof Error ? e.message : e)
+    return zonasFijas()
+  }
+}
+
 type SP = Record<string, string | string[] | undefined>
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 
-export default function ConoceTuHogarPage({ searchParams }: { searchParams: SP }) {
+export default async function ConoceTuHogarPage({ searchParams }: { searchParams: SP }) {
   const tipo = first(searchParams.tipo)
   const tope = Number(first(searchParams.tope))
   return (
     <ConoceTuHogar
+      catalogo={await catalogo()}
       zonaInicial={first(searchParams.zona) ?? null}
       tipoInicial={esTipoHogar(tipo) ? tipo : 'house'}
       topeInicial={Number.isFinite(tope) && tope > 0 ? Math.round(tope) : null}

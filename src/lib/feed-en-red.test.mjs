@@ -57,3 +57,18 @@ test('Conocé tu próximo hogar: tope = hasta el tope y desde la mitad', async (
   assert.equal(entraEnTope(90000, null), true)
   assert.equal(entraEnTope(null, null), false)
 })
+
+test('sugerirZonas: "Los tronco" encuentra Los Troncos (el caso de David)', async () => {
+  const { sugerirZonas } = await import('./feed-en-red.ts')
+  const cat = [
+    { nombre: 'Funes', ciudad: 'Funes', esCiudad: true, casas: 2000, lotes: 3000, deptos: 600 },
+    { nombre: 'Los Troncos', ciudad: 'Funes', esCiudad: false, casas: 20, lotes: 10, deptos: 0 },
+    { nombre: 'Tierra de Sueños III', ciudad: 'Roldán', esCiudad: false, casas: 200, lotes: 200, deptos: 0 },
+    { nombre: 'Tierra de Sueños II', ciudad: 'Roldán', esCiudad: false, casas: 100, lotes: 40, deptos: 0 },
+  ]
+  assert.deepEqual(sugerirZonas(cat, 'Los tronco', 'house').map((z) => z.nombre), ['Los Troncos'])
+  assert.deepEqual(sugerirZonas(cat, 'tierra de sueños 3', 'house').map((z) => z.nombre), ['Tierra de Sueños III'])
+  assert.deepEqual(sugerirZonas(cat, 'tierra', 'house').map((z) => z.nombre), ['Tierra de Sueños III', 'Tierra de Sueños II'])
+  assert.deepEqual(sugerirZonas(cat, 'fun', 'house').map((z) => z.nombre), ['Funes'])
+  assert.deepEqual(sugerirZonas(cat, 'x', 'house'), [])
+})
