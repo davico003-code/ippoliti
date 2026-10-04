@@ -36,12 +36,13 @@ const PANEL_HEADER_H = 56
 function seccionesDe(property: TokkoProperty) {
   return [
     { id: 'overview', label: 'Resumen' },
+    // Abre el Tinder de "Más casas" (FeedEnRed); ver PropertyStickyNav.
+    { id: 'mas-casas', label: '♥ Más casas', evento: 'si:abrir-mas-casas', seccionSiNo: 'similares' },
     { id: 'caracteristicas', label: 'Características' },
     ...(property.videos && property.videos.length > 0 ? [{ id: 'video', label: 'Video' }] : []),
     ...(getDescription(property) ? [{ id: 'descripcion', label: 'Descripción' }] : []),
     ...(getBlueprintPhotos(property).length > 0 ? [{ id: 'planos', label: 'Planos' }] : []),
     { id: 'ubicacion', label: 'Ubicación' },
-    { id: 'similares', label: 'Similares' },
   ]
 }
 

@@ -11,6 +11,7 @@ import type { TokkoProperty } from '@/lib/tokko'
 import type { PropertyCardProjection } from '@/lib/projections'
 import SimilarProperties from '../SimilarProperties'
 import SectionBoundary from './SectionBoundary'
+import FeedEnRed from './FeedEnRed'
 
 type State =
   | { kind: 'loading' }
@@ -88,11 +89,15 @@ export default function PropertyDetailSimilars({
             Reintentar
           </button>
         </section>
+        <FeedEnRed property={property} nuestras={[]} />
       </SectionBoundary>
     )
   }
 
-  if (state.data.length === 0) return null
+  // Abajo de las nuestras, el feed "En red" (otras inmobiliarias de la zona,
+  // dicho abiertamente). Si Hilo no trae ninguna, no aparece.
+  const enRed = <FeedEnRed property={property} nuestras={state.data as unknown as TokkoProperty[]} />
+  if (state.data.length === 0) return <SectionBoundary name="similares">{enRed}</SectionBoundary>
 
   return (
     <SectionBoundary name="similares">
@@ -108,6 +113,7 @@ export default function PropertyDetailSimilars({
           currentPropertyId={property.id}
         />
       </section>
+      {enRed}
     </SectionBoundary>
   )
 }

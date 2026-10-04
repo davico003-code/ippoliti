@@ -32,6 +32,11 @@ export type HiloLeadPayload = {
   sourceUrl?: string | null
   /** utm_* del clic (Hilo los ata al anuncio de Meta por utm_content = ref). */
   attribution?: Record<string, unknown> | null
+  /** Feed de la ficha (origen 'feed_web', 03-oct-2026): lo que marcó con ♥.
+   *  `n:<id público>` = nuestra, `propia:<aviso>` / `meli:<MLA…>` = En red. */
+  guardadas?: string[] | null
+  /** Barrio de la ficha donde estaba mirando (para el texto del chat). */
+  barrio?: string | null
 }
 
 /** Devuelve true si el lead quedó registrado en el inbox de Hilo. best-effort:
