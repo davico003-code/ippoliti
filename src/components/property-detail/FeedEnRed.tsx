@@ -104,7 +104,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const [cercanas, setCercanas] = useState<TokkoProperty[] | null>(null)
   /** Desde qué tarjeta se abrió el mazo (null = cerrado). */
   const [abiertoEn, setAbiertoEn] = useState<number | null>(null)
-  const guardadasApi = useGuardadas()
+  const guardadasApi = useGuardadas('ficha')
   // La misma ficha se abre ADENTRO de la selección del cliente
   // (/seleccion/ficha/…): ahí no va el mazo ni su "que me escriba un asesor"
   // (entraría como consulta nueva por turno, aunque ese cliente ya tiene asesor).
@@ -241,7 +241,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
           </div>
           {/* David 4-oct: que puedan dejar el mail con la búsqueda ya filtrada (para los envíos). */}
           <div className="mt-4">
-            <SuscripcionMail criterios={criterios} compacta />
+            <SuscripcionMail criterios={criterios} compacta origen="ficha" />
           </div>
         </div>
       </section>

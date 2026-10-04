@@ -74,7 +74,7 @@ export default function ConoceTuHogar({
   const [intento, setIntento] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const buscadorRef = useRef<HTMLDivElement>(null)
-  const guardadasApi = useGuardadas()
+  const guardadasApi = useGuardadas('home')
 
   const tipoInfo = TIPOS_HOGAR.find((t) => t.id === tipo)!
   const clave = zona ? `${zona.nombre}|${tipo}|${tope ?? ''}` : null
@@ -352,7 +352,7 @@ export default function ConoceTuHogar({
             </div>
             {/* O que le avisemos cuando entren (David 4-oct: el mail con la búsqueda ya filtrada). */}
             <div className="mt-3">
-              <SuscripcionMail criterios={{ zona: zona.nombre, tipo, topeUsd: tope, origen: 'conoce_tu_hogar' }} />
+              <SuscripcionMail criterios={{ zona: zona.nombre, tipo, topeUsd: tope, origen: 'conoce_tu_hogar' }} origen="home" />
             </div>
           </div>
         )}
