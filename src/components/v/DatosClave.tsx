@@ -95,9 +95,12 @@ export function StatsFicha({ snapshot: s }: { snapshot: FichaSnapshot }) {
   )
 }
 
-export function datosFicha(s: FichaSnapshot): Array<{ label: string; valor: string }> {
-  const out: Array<{ label: string; valor: string }> = []
+export function datosFicha(s: FichaSnapshot): Array<{ label: string; valor: string; soloCelu?: boolean }> {
+  const out: Array<{ label: string; valor: string; soloCelu?: boolean }> = []
   const principal = superficiePrincipal(s)?.campo
+  // En el celu la fila principal no muestra ambientes cuando hay dormitorios
+  // (no entra en un renglón): va acá. En la compu ya está en la fila.
+  if (!esTerreno(s) && s.ambientes && s.dormitorios) out.push({ label: 'Ambientes', valor: String(s.ambientes), soloCelu: true })
   if (s.m2cubiertos && principal !== 'm2cubiertos') out.push({ label: 'Cubierta', valor: m2(s.m2cubiertos) })
   if (s.m2semicubiertos) out.push({ label: 'Semicubierta', valor: m2(s.m2semicubiertos) })
   if (s.m2descubiertos) out.push({ label: 'Descubierta', valor: m2(s.m2descubiertos) })
@@ -133,7 +136,7 @@ export function DatosFicha({ snapshot }: { snapshot: FichaSnapshot }) {
   return (
     <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, margin: 0 }}>
       {datos.map(d => (
-        <div key={d.label} style={{ background: FONDO_SUAVE, borderRadius: 12, padding: '10px 12px' }}>
+        <div key={d.label} className={d.soloCelu ? 'lg:hidden' : undefined} style={{ background: FONDO_SUAVE, borderRadius: 12, padding: '10px 12px' }}>
           <dt style={{ fontSize: 12, color: APAGADO }}>{d.label}</dt>
           <dd style={{ margin: '2px 0 0', fontSize: 15, fontWeight: 600, color: TINTA }}>{d.valor}</dd>
         </div>
