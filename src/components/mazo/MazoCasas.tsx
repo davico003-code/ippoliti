@@ -19,8 +19,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
-import Link from 'next/link'
-import { MapPin, RotateCcw, X } from 'lucide-react'
+import { Info, MapPin, RotateCcw, X } from 'lucide-react'
 import {
   type GuardadaLocal,
   type ItemFeed,
@@ -35,6 +34,7 @@ import { Logo } from '@/components/marca/LogoSI'
 import { barriosParecidos, listaBarrios } from '@/lib/barrios-parecidos'
 import { MAX_FOTOS_MAZO, completarFotos } from '@/lib/mazo-items'
 import { marcarMazoAbierto } from '@/lib/mazo-atras'
+import DetalleMazo, { cargarDetalle } from './DetalleMazo'
 
 export const VERDE = '#1A5C38'
 const OCRE_FONDO = '#F4EAD8'
@@ -158,11 +158,14 @@ export function Tarjeta({
   onPointerUp,
   par,
   guia = false,
+  onDetalles,
 }: {
   item: ItemFeed
   modo: 'arriba' | 'abajo' | 'quieta'
   /** El instructivo la mueve sola (suave) para mostrar cómo se desliza. */
   guia?: boolean
+  /** "Ver detalles": ubicación y características sin salir del mazo. */
+  onDetalles?: () => void
   guardada: boolean
   arrastre: Arrastre | null
   salida: 'like' | 'pass' | null
@@ -258,17 +261,21 @@ export function Tarjeta({
       <div className="flex-none px-4 pt-3 pb-3.5 bg-white">
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-[24px] font-black font-numeric leading-none text-gray-900">{item.precio}</p>
-          {/* Solo en el mazo abierto: en la ficha la tarjeta entera es un botón (no se anida un link). */}
-          {item.href && arriba && (
-            <Link
-              href={item.href}
+          {/* Solo en el mazo abierto: en la ficha la tarjeta entera es un botón (no se anida otro). */}
+          {arriba && onDetalles && (
+            <button
+              type="button"
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-              className="flex-none text-xs font-bold font-raleway"
-              style={{ color: VERDE }}
+              onPointerUp={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                onDetalles()
+              }}
+              className="flex-none inline-flex h-10 items-center gap-1 rounded-full border px-3.5 text-[14px] font-bold font-raleway"
+              style={{ color: VERDE, borderColor: '#CFE0D6' }}
             >
-              Ver ficha
-            </Link>
+              <Info className="h-4 w-4" aria-hidden="true" /> Ver detalles
+            </button>
           )}
         </div>
         {item.datos && <p className="text-[15px] mt-1.5 text-gray-700 font-poppins">{item.datos}</p>}
@@ -470,9 +477,18 @@ export default function MazoCasas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  /** "Ver detalles" abierto (de la tarjeta de arriba). */
+  const [detalle, setDetalle] = useState(false)
   const actual = conFotos(todos[indice] ?? null)
   const siguiente = conFotos(todos[indice + 1] ?? null)
   const terminado = indice >= todos.length
+  // Los detalles de la de arriba se piden solos al rato: "Ver detalles" abre al instante.
+  const claveArriba = todos[indice]?.key ?? null
+  useEffect(() => {
+    if (!claveArriba) return
+    const t = window.setTimeout(() => void cargarDetalle(claveArriba), 700)
+    return () => window.clearTimeout(t)
+  }, [claveArriba])
 
   /** ♥ o paso: la tarjeta sale volando y aparece la siguiente. */
   const decidir = useCallback(
@@ -576,6 +592,11 @@ export default function MazoCasas({
     // Un toque (sin arrastrar) sobre las fotos: mitad izquierda = par anterior, derecha = siguiente.
     const pares = paresDe(actual)
     const zona = e.currentTarget.querySelector('[data-fotos]')?.getBoundingClientRect()
+    // Un toque en la parte blanca (precio, datos, dirección) = "Ver detalles".
+    if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && zona && e.clientY > zona.bottom) {
+      setDetalle(true)
+      return
+    }
     if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && pares > 1 && zona && e.clientY >= zona.top && e.clientY <= zona.bottom) {
       const derecha = e.clientX - zona.left > zona.width / 2
       setFoto((f) => (derecha ? Math.min(f + 1, pares - 1) : Math.max(f - 1, 0)))
@@ -625,6 +646,10 @@ export default function MazoCasas({
   porAtras.current = () => {
     if (guia) {
       cerrarGuia()
+      return true
+    }
+    if (detalle) {
+      setDetalle(false)
       return true
     }
     if (hoja?.motivo === 'salir' || rescate === 'salir') {
@@ -715,9 +740,12 @@ export default function MazoCasas({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (guia) cerrarGuia()
+        else if (detalle) setDetalle(false)
         else if (hoja) setHoja(null)
         else if (rescate) setRescate(null)
         else salir()
+      } else if (detalle) {
+        return
       } else if (!hoja && !rescate && e.key === 'ArrowRight') decidir('like')
       else if (!hoja && !rescate && e.key === 'ArrowLeft') decidir('pass')
       else if (!hoja && !rescate && e.key === 'Backspace' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) volver()
@@ -728,7 +756,7 @@ export default function MazoCasas({
       window.removeEventListener('keydown', onKey)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoja, rescate, guia, guardadas.length, decidir, volver])
+  }, [hoja, rescate, guia, detalle, guardadas.length, decidir, volver])
 
   const n = todos.length
   // Mirando las de los barrios parecidos: el título lo dice.
@@ -768,6 +796,7 @@ export default function MazoCasas({
                 guardada={esGuardada(actual.key)}
                 arrastre={guia && guiaDx != null ? { dx: guiaDx, dy: 0 } : arrastre}
                 guia={guia}
+                onDetalles={() => setDetalle(true)}
                 salida={salida}
                 par={foto}
                 onPointerDown={onPointerDown}
@@ -880,6 +909,21 @@ export default function MazoCasas({
             </div>
           </div>
         )}
+        {detalle && actual && !terminado && (
+          <DetalleMazo
+            item={actual}
+            guardada={esGuardada(actual.key)}
+            onCerrar={() => setDetalle(false)}
+            onPaso={() => {
+              setDetalle(false)
+              decidir('pass')
+            }}
+            onMeGusta={() => {
+              setDetalle(false)
+              decidir('like')
+            }}
+          />
+        )}
         {guia && !terminado && (
           <div className="absolute inset-0 z-20 flex items-end bg-black/30" onClick={cerrarGuia} role="presentation">
             <div
@@ -915,6 +959,14 @@ export default function MazoCasas({
                   </span>
                   <span>
                     <strong>Tocá el costado de la foto</strong> para ver más fotos
+                  </span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none bg-gray-100" style={{ color: VERDE }} aria-hidden="true">
+                    <Info className="w-5 h-5" />
+                  </span>
+                  <span>
+                    <strong>Ver detalles</strong>: la ubicación en el mapa y todo lo que tiene
                   </span>
                 </li>
               </ul>
