@@ -254,3 +254,51 @@ export function entraEnTope(precioUsd: number | null, tope: number | null): bool
   if (tope == null) return true
   return precioUsd <= tope && precioUsd >= tope * PISO_TOPE
 }
+
+/**
+ * Dónde se puede buscar (Hilo /api/public/en-red/zonas): barrios y ciudades
+ * con algo en venta, nuestras o de la red. David (4-oct) escribió "Los tronco"
+ * y la lista fija de zonas no lo tenía: este catálogo sale de lo que hay.
+ */
+export type ZonaHogar = {
+  nombre: string
+  ciudad: string | null
+  esCiudad: boolean
+  casas: number
+  lotes: number
+  deptos: number
+}
+
+export function cantidadZona(z: ZonaHogar, tipo: TipoHogar): number {
+  return tipo === 'house' ? z.casas : tipo === 'lot' ? z.lotes : z.deptos
+}
+
+const palabrasBusqueda = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .map((w, i) => (i > 0 && ROMANOS[w] ? ROMANOS[w] : w))
+
+/**
+ * Sugerencias mientras escribe: cada palabra tipeada tiene que ser el comienzo
+ * de alguna palabra del barrio ("los tronco" → Los Troncos; "tds 3" no, pero
+ * "tierra 3" sí). Primero las ciudades y los que más tienen del tipo elegido.
+ */
+export function sugerirZonas(catalogo: ZonaHogar[], query: string, tipo: TipoHogar, max = 8): ZonaHogar[] {
+  const q = palabrasBusqueda(query)
+  if (q.length === 0 || q.join('').length < 2) return []
+  return catalogo
+    .filter((z) => {
+      const ws = palabrasBusqueda(z.nombre)
+      return q.every((p) => ws.some((w) => w.startsWith(p)))
+    })
+    .sort((a, b) => {
+      const empiezaA = palabrasBusqueda(a.nombre)[0]?.startsWith(q[0]) ? 1 : 0
+      const empiezaB = palabrasBusqueda(b.nombre)[0]?.startsWith(q[0]) ? 1 : 0
+      return Number(b.esCiudad) - Number(a.esCiudad) || empiezaB - empiezaA || cantidadZona(b, tipo) - cantidadZona(a, tipo)
+    })
+    .slice(0, max)
+}
