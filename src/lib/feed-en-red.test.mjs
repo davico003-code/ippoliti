@@ -126,14 +126,16 @@ test('barrio cerrado/abierto: me da igual entra todo; lo que no se sabe cuenta c
 })
 
 // ── Renglón corto de la tarjeta del Tinder (David 5-oct)
-import { lineaTarjeta, lugarTarjeta } from './feed-en-red.ts'
+import { lineaTarjeta, lugarTarjeta, superficiesTarjeta, tipoHogarDeTexto } from './feed-en-red.ts'
 
 test('casa con lote: dormitorios, metros y lote', () => {
   assert.equal(lineaTarjeta({ datos: 'x', dorm: 3, m2: 430, lote: 800 }), '3 dorm · 430 m² · lote 800 m²')
 })
-test('sin lote (o igual a los metros) no repite', () => {
+test('sin lote: dormitorios y metros', () => {
   assert.equal(lineaTarjeta({ datos: 'x', dorm: 2, m2: 90, lote: null }), '2 dorm · 90 m²')
-  assert.equal(lineaTarjeta({ datos: 'x', dorm: 2, m2: 300, lote: 300 }), '2 dorm · 300 m²')
+})
+test('metros iguales al lote = son del terreno: dice lote, no metros de casa', () => {
+  assert.equal(lineaTarjeta({ datos: 'x', dorm: 3, m2: 800, lote: 800 }), '3 dorm · lote 800 m²')
 })
 test('un lote dice Lote y sus metros', () => {
   assert.equal(lineaTarjeta({ datos: 'x', esLote: true, m2: null, lote: 930 }), 'Lote · 930 m²')
@@ -143,4 +145,33 @@ test('sin datos sueltos queda el renglón de siempre', () => {
 })
 test('lugar en una línea con puntos', () => {
   assert.equal(lugarTarjeta({ direccion: 'Lote 058 | Vida | Funes', zona: null }), 'Lote 058 · Vida · Funes')
+})
+
+// Superficie protagonista (David 10-sep): la total, salvo que sea el lote → la cubierta. Casos reales del feed.
+const linea = (tipo, total, cubierta, lote, dorm) => lineaTarjeta({ datos: 'x', dorm, esLote: tipo === 'lot', ...superficiesTarjeta({ tipo, total, cubierta, lote }) })
+test('casa con total = lote y cubierta cargada (Las Tardes): la cubierta y el lote', () => {
+  assert.equal(linea('house', 695, 198, 695, 3), '3 dorm · 198 m² · lote 695 m²')
+})
+test('depto con total = terreno mal cargado (Alippi 9262): los metros, sin lote', () => {
+  assert.equal(linea('apartment', 55.59, 40.24, 55.59, 2), '2 dorm · 56 m²')
+})
+test('casa con solo el lote: dice lote', () => {
+  assert.equal(linea('house', 800, null, 800, 3), '3 dorm · lote 800 m²')
+})
+test('casa normal: total y lote', () => {
+  assert.equal(linea('house', 430, 350, 800, 3), '3 dorm · 430 m² · lote 800 m²')
+})
+test('lote: su terreno', () => {
+  assert.equal(linea('lot', 930, null, 930, null), 'Lote · 930 m²')
+})
+test('tipo de un aviso En red por su texto', () => {
+  assert.equal(tipoHogarDeTexto('Departamento'), 'apartment')
+  assert.equal(tipoHogarDeTexto('Terreno'), 'lot')
+  assert.equal(tipoHogarDeTexto('Casa'), 'house')
+})
+test('galpón con metros = terreno: sus metros, sin repetir', () => {
+  assert.equal(linea(null, 261, 261, 261, null), '261 m²')
+})
+test('casa sin dormitorios ni metros pero con lote: dice lote (no el renglón viejo)', () => {
+  assert.equal(lineaTarjeta({ datos: 'Casa · 800 m²', dorm: null, m2: null, lote: 800 }), 'lote 800 m²')
 })

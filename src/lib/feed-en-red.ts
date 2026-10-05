@@ -70,6 +70,40 @@ export type ItemFeed = {
 const m2Texto = (n: number) => `${Math.round(n).toLocaleString('es-AR')} m²`
 
 /**
+ * Qué metros y qué lote muestra la tarjeta. Regla de David (10-sep, superficie
+ * protagonista): la TOTAL, salvo que sea igual al lote (dato mal cargado: el
+ * terreno puesto como total) → la cubierta. Un depto no tiene lote (si viene,
+ * es un error de carga); un lote muestra solo su terreno.
+ */
+export function superficiesTarjeta(s: {
+  tipo: TipoHogar | null
+  total: number | null | undefined
+  cubierta: number | null | undefined
+  lote: number | null | undefined
+}): { m2: number | null; lote: number | null } {
+  const pos = (n: number | null | undefined) => (n != null && n > 0 ? n : null)
+  const total = pos(s.total)
+  const cubierta = pos(s.cubierta)
+  const lote = pos(s.lote)
+  if (s.tipo === 'lot') return { m2: null, lote: lote ?? total }
+  if (s.tipo === 'apartment') return { m2: total ?? cubierta, lote: null }
+  // Galpón, local, oficina: sus metros; el terreno solo si dice algo más.
+  if (s.tipo == null) {
+    const m2 = total ?? cubierta
+    return { m2, lote: lote != null && (m2 == null || Math.abs(lote - m2) > 5) ? lote : null }
+  }
+  const totalEsLote = total != null && lote != null && Math.abs(total - lote) <= 5
+  return { m2: total == null || totalEsLote ? cubierta : total, lote }
+}
+
+/** El tipo de un aviso En red por su texto ("Casa", "Departamento", "Terreno"). */
+export function tipoHogarDeTexto(tipo: string | null | undefined): TipoHogar {
+  if (/terreno|lote/i.test(tipo ?? '')) return 'lot'
+  if (/depart|dpto|depto/i.test(tipo ?? '')) return 'apartment'
+  return 'house'
+}
+
+/**
  * El renglón de la tarjeta del Tinder (David 5-oct: "molesta tanto texto sobre
  * la foto… en las casas agregá tamaño de lote si lo tenemos"): dormitorios,
  * metros y lote. Sin el tipo (el mazo ya es de casas) ni los baños (en ⓘ).
@@ -77,10 +111,12 @@ const m2Texto = (n: number) => `${Math.round(n).toLocaleString('es-AR')} m²`
  */
 export function lineaTarjeta(i: Pick<ItemFeed, 'datos' | 'dorm' | 'm2' | 'lote' | 'esLote'>): string {
   if (i.esLote) return i.m2 || i.lote ? `Lote · ${m2Texto((i.lote || i.m2)!)}` : i.datos
-  if (i.dorm == null && i.m2 == null) return i.datos
-  const partes = [i.dorm ? `${i.dorm} dorm` : null, i.m2 ? m2Texto(i.m2) : null]
-  // El lote solo si dice algo más que los metros (en un PH sin terreno propio a veces vienen iguales).
-  if (i.lote && (!i.m2 || Math.abs(i.lote - i.m2) > 5)) partes.push(`lote ${m2Texto(i.lote)}`)
+  if (i.dorm == null && i.m2 == null && i.lote == null) return i.datos
+  // Metros iguales al lote = no se sabe la superficie de la casa (el feed y Hilo
+  // caen al terreno cuando falta la total): se dice "lote", no "800 m²" de casa.
+  const m2EsElLote = !!(i.lote && i.m2 && Math.abs(i.lote - i.m2) <= 5)
+  const partes = [i.dorm ? `${i.dorm} dorm` : null, i.m2 && !m2EsElLote ? m2Texto(i.m2) : null]
+  if (i.lote) partes.push(`lote ${m2Texto(i.lote)}`)
   return partes.filter(Boolean).join(' · ') || i.datos
 }
 
@@ -133,9 +169,8 @@ export function itemDeEnRed(t: TarjetaEnRed): ItemFeed {
     logo: t.logo ?? null,
     direccion: lineaDireccion([t.direccion, t.zona, t.ciudad]),
     dorm: t.dormitorios,
-    m2: t.m2Total ?? t.m2Cubiertos,
-    lote: t.m2Lote ?? null,
-    esLote: /terreno|lote/i.test(t.tipo),
+    ...superficiesTarjeta({ tipo: tipoHogarDeTexto(t.tipo), total: t.m2Total, cubierta: t.m2Cubiertos, lote: t.m2Lote }),
+    esLote: tipoHogarDeTexto(t.tipo) === 'lot',
   }
 }
 
