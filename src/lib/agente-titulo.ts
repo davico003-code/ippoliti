@@ -29,6 +29,8 @@ const VIDEOS: Record<string, string> = {
   'maria jose espilocin': '/team/videos/maria-jose-espilocin.mp4',
   'lucia wilson': '/team/videos/lucia-wilson.mp4',
   'gisela ramallo': '/team/videos/gisela-ramallo.mp4',
+  'mariana orlate': '/team/videos/mariana-orlate.mp4',
+  'florencia acquarone': '/team/videos/florencia-acquarone.mp4',
 }
 
 export function getAgenteVideo(nombre: string | null | undefined): string | null {
