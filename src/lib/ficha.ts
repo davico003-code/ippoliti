@@ -64,7 +64,12 @@ export interface FichaSnapshot {
   tituloGenerico: string             // "Casa 4 amb en Funes"
   zonaAprox: string                  // "Funes" — último segmento de short_location
   zonaCompleta: string               // "Charquito, Roldán" — barrio, ciudad
-  direccionCalle: string             // "Bv Sarmiento" — sin número
+  direccionCalle: string             // "Bv Sarmiento" — sin número (fichas viejas)
+  // La dirección que muestra la ficha (David, 5-oct-2026: "exacta, o
+  // aproximada si no la tenemos"), sin la zona: "Aconcagua 348", "Lote 56",
+  // "Aconcagua al 300". Ausente = solo la zona. Las que arma Hilo la traen
+  // exacta; las que se arman acá, la que ya publica la web.
+  direccion?: string
   m2cubiertos: number | null
   m2totales: number | null
   m2terreno: number | null
@@ -88,8 +93,8 @@ export interface FichaSnapshot {
   extras?: Array<{ name: string; value: string }>  // extra_attributes filtrados
   descripcion: string
   caracteristicas: string[]
-  // Coords con offset 30-50m aplicado al crear (NO son las coords reales).
-  // Se renombraron a lat/lng para retrocompat del consumer.
+  // El punto del mapa. Desde el 5-oct-2026 es el REAL (la ficha ya muestra la
+  // dirección); las fichas anteriores lo tienen corrido 30-50 m.
   lat: number | null
   lng: number | null
 }
@@ -155,15 +160,27 @@ function deriveTituloGenerico(tipo: string, ambientes: number | null, zona: stri
   return [tipoStr, ambStr, zonaStr].filter(Boolean).join(' ')
 }
 
-// Aplica un offset aleatorio de 30..50 metros a las coords reales para que el
-// pin del mapa no exponga la dirección exacta. Calculado al crear la ficha y
-// fijado durante sus 60 días de vida.
-function applyOffset(lat: number, lng: number): { lat: number; lng: number } {
-  const angle = Math.random() * 2 * Math.PI
-  const distM = 30 + Math.random() * 20
-  const dLat = (distM * Math.cos(angle)) / 111000
-  const dLng = (distM * Math.sin(angle)) / (111000 * Math.cos((lat * Math.PI) / 180))
-  return { lat: lat + dLat, lng: lng + dLng }
+// La dirección para la ficha: sin los tramos que repiten la zona ("- Cotos de
+// la Alameda - Roldán") y solo si ubica algo más que el barrio (una altura, un
+// lote o una esquina). La regla completa vive en Hilo
+// (lib/fichas/direccion-ficha.ts); esta es la de las fichas que se arman acá.
+const SEPARADOR_DIRECCION = /\s*[|,]\s*|\s+-\s*|\s*-\s+/
+function normalizarLugar(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+export function direccionParaFicha(cruda: string | null | undefined, zona: Array<string | null | undefined>): string | undefined {
+  const nombres = new Set(zona.flatMap(z => (z || '').split(SEPARADOR_DIRECCION)).map(normalizarLugar).filter(Boolean))
+  const d = (cruda || '')
+    .replace(/\s+/g, ' ')
+    .split(SEPARADOR_DIRECCION)
+    .map(t => t.trim())
+    .filter(t => {
+      const n = normalizarLugar(t).replace(/^barrio (privado |cerrado |abierto )?/, '')
+      return n && !nombres.has(n) && n !== 'argentina' && n !== 'santa fe' && !/^zona\b/.test(n)
+    })
+    .join(', ')
+  const ubica = /\d/.test(d) || /\s(y|esq\.?|esquina)\s/i.test(d)
+  return d && (d.match(/[a-záéíóúñ]/gi) || []).length >= 3 && ubica ? d.slice(0, 120) : undefined
 }
 
 function parseNum(v: unknown): number | null {
@@ -209,21 +226,24 @@ export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
   const ambientes = property.room_amount || null
   const zonaAprox = deriveZonaAprox(property)
 
-  // Coords con offset
+  // El punto real (la ficha ya muestra la dirección; correrlo no protegía nada)
   const realLat = property.geo_lat ? parseFloat(property.geo_lat) : NaN
   const realLng = property.geo_long ? parseFloat(property.geo_long) : NaN
-  let lat: number | null = null
-  let lng: number | null = null
-  if (Number.isFinite(realLat) && Number.isFinite(realLng)) {
-    const off = applyOffset(realLat, realLng)
-    lat = off.lat
-    lng = off.lng
-  }
+  const hayPunto = Number.isFinite(realLat) && Number.isFinite(realLng) && !(realLat === 0 && realLng === 0)
+  const lat: number | null = hayPunto ? realLat : null
+  const lng: number | null = hayPunto ? realLng : null
 
   // Direccion calle: prefiero real_address (sin marketing) sobre address
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const realAddr = (property as any).real_address || property.address || ''
   const direccionCalle = parseStreetOnly(realAddr)
+  // La que ya publica la web (el feed de Hilo no trae la exacta: Hilo se la
+  // completa a las fichas que arma un agente).
+  const direccion = direccionParaFicha(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (property as any).real_address || property.fake_address || property.address,
+    [property.location?.full_location, property.location?.name],
+  )
 
   // Expensas — undefined si 0 o no aplica
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -250,6 +270,7 @@ export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
     zonaAprox,
     zonaCompleta: deriveZonaCompleta(property),
     direccionCalle,
+    ...(direccion ? { direccion } : {}),
     m2cubiertos: getRoofedArea(property),
     m2totales: getTotalSurface(property),
     m2terreno: getLotSurface(property),
@@ -405,15 +426,11 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
     stripPortal(input.titulo) || deriveTituloGenerico(tipo, ambientes, zonaAprox)
   const fotos = (input.fotos || []).filter(u => typeof u === 'string' && u.startsWith('https://'))
 
-  // Coords: si vienen (del portal o geocodificadas), les aplicamos el mismo
-  // offset de privacidad que a las de Tokko para no exponer la ubicación exacta.
-  let lat: number | null = null
-  let lng: number | null = null
-  if (input.lat != null && input.lng != null && Number.isFinite(input.lat) && Number.isFinite(input.lng)) {
-    const off = applyOffset(input.lat, input.lng)
-    lat = off.lat
-    lng = off.lng
-  }
+  // Coords: si vienen (del portal o geocodificadas), tal cual.
+  const hayPunto = input.lat != null && input.lng != null && Number.isFinite(input.lat) && Number.isFinite(input.lng)
+  const lat: number | null = hayPunto ? (input.lat as number) : null
+  const lng: number | null = hayPunto ? (input.lng as number) : null
+  const direccion = direccionParaFicha(stripPortal(input.direccion || ''), [zonaAprox])
 
   return {
     fotos,
@@ -428,6 +445,7 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
     zonaAprox,
     zonaCompleta: zonaAprox,
     direccionCalle: stripPortal(input.direccion || ''),
+    ...(direccion ? { direccion } : {}),
     m2cubiertos: input.m2cubiertos,
     m2totales: null,
     m2terreno: input.m2terreno,

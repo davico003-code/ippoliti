@@ -1,8 +1,8 @@
 'use client'
 
-// Mapa de ubicación con punto + halo (zona aproximada) y toggle Mapa / Satélite.
-// Las coords ya vienen con offset 30-50m del lib (FichaSnapshot.lat/lng son
-// las coords offseteadas, no las reales). Zoom 16, scroll-wheel desactivado
+// Mapa de ubicación con punto + halo y toggle Mapa / Satélite. Desde el
+// 5-oct-2026 el punto es el real (la ficha muestra la dirección); las fichas
+// anteriores lo traen corrido 30-50 m. Zoom 16, scroll-wheel desactivado
 // y, en pantallas táctiles, sin arrastre con un dedo: el dedo scrollea la
 // página, no el mapa. Alto = clase vf-mapa.
 //
