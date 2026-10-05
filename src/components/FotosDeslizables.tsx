@@ -19,7 +19,7 @@ export default function FotosDeslizables({
   priority = false,
   swipe = true,
   flechasSiempre = false,
-  puntosALaIzquierda = false,
+  puntos = 'centro',
   imgClassName = '',
   className = '',
   style,
@@ -36,8 +36,9 @@ export default function FotosDeslizables({
   /** Flechas visibles siempre y también en el celu (donde no hay hover). Para
    *  tarjetas con `swipe` apagado: si no, en el celu no habría cómo pasar fotos. */
   flechasSiempre?: boolean
-  /** Con la cara del agente abajo a la derecha, los puntitos se corren a la izquierda. */
-  puntosALaIzquierda?: boolean
+  /** Dónde van los puntitos: al costado contrario de lo que haya abajo en la foto
+   *  (la cara del agente en la home va a la derecha; la pastilla del listado, a la izquierda). */
+  puntos?: 'centro' | 'izquierda' | 'derecha'
   imgClassName?: string
   /** Clases del recuadro (proporción, fondo). */
   className?: string
@@ -187,7 +188,7 @@ export default function FotosDeslizables({
           </button>
           {/* Dots: máx 5, siempre visibles (avisan que hay más fotos) con
               sombra para que se lean sobre fotos claras. */}
-          <div className={`absolute bottom-2.5 z-10 flex items-center gap-1.5 ${puntosALaIzquierda ? 'left-3' : 'left-1/2 -translate-x-1/2'}`}>
+          <div className={`absolute bottom-2.5 z-10 flex items-center gap-1.5 ${puntos === 'izquierda' ? 'left-3' : puntos === 'derecha' ? 'right-3' : 'left-1/2 -translate-x-1/2'}`}>
             {Array.from({ length: dotCount }).map((_, i) => (
               <button
                 key={i}

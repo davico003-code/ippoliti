@@ -111,7 +111,7 @@ async function FeaturedPropertiesSection() {
           alt={property.publication_title || address}
           sizes="(min-width: 768px) 42vw, 90vw"
           imgClassName="prop-card-img"
-          puntosALaIzquierda={!!agente}
+          puntos={agente ? 'izquierda' : 'centro'}
           className="aspect-[16/9]"
           style={destacada ? { boxShadow: '0 0 0 2px #75AADB, 0 0 0 6px rgba(117,170,219,0.22)' } : undefined}
         >

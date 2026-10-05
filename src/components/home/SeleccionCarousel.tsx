@@ -101,7 +101,7 @@ export default async function SeleccionCarousel() {
                 priority={i === 0}
                 swipe={false}
                 flechasSiempre
-                puntosALaIzquierda={!!agente}
+                puntos={agente ? 'izquierda' : 'centro'}
                 className="aspect-video"
               >
                 {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
