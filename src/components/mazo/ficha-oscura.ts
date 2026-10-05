@@ -1,18 +1,26 @@
 // "VER LA FICHA COMPLETA" EN NEGRO (David 5-oct: "sí sí, todo a negro"). Adentro
 // del Tinder la ficha de la web se abre en un iframe (misma web, /seleccion/ficha).
 // No se reescribe esa página: al cargar se le pone una capa oscura —se invierte
-// la página y se vuelven a invertir las fotos, el mapa y los verdes de marca y de
-// WhatsApp, que quedan con su color de siempre— y se esconde su barra de arriba
-// ("← Mapa" + logo): adentro del Tinder ya está "Volver a los detalles".
+// la página y se vuelven a invertir las fotos (con sus velos y títulos encima),
+// el visor de fotos negro y los verdes de marca y de WhatsApp, que quedan con su
+// color de siempre; el mapa queda en versión oscura, a propósito— y se esconde su
+// barra de arriba ("← Mapa" + logo): adentro del Tinder ya está "Volver a los detalles".
 // Solo pasa en el iframe del Tinder; la ficha en la web sigue blanca.
 
 const MARCA = 'si-color-original'
 
+// La caja de una foto con lo que lleva encima (velos, títulos): queda en su color de siempre.
+const FOTO = ':has(> img[data-nimg="fill"])'
+// La barra "← Mapa" + logo de la ficha (data- en propiedades/[slug]/page.tsx; el aria-label, por si
+// el iframe carga una versión vieja).
+const BARRA = ':is([data-ficha-barra-arriba], .sticky.top-0:has(a[aria-label="Volver al mapa"]))'
+
 const CSS = `
 html { filter: invert(0.93) hue-rotate(180deg); background: #fff !important; }
-img, video, picture, canvas, iframe, [style*="background-image"], .leaflet-tile-pane, .${MARCA} { filter: invert(1) hue-rotate(180deg); }
-.${MARCA} img, .${MARCA} video, .${MARCA} picture, .${MARCA} canvas, .${MARCA} [style*="background-image"] { filter: none; }
-.sticky.top-0:has(a[aria-label="Volver al mapa"]) { display: none !important; }
+img, video, picture, canvas, iframe, [style*="background-image"], .leaflet-tile-pane, .${MARCA}, .bg-black, ${FOTO} { filter: invert(1) hue-rotate(180deg); }
+:is(.${MARCA}, .bg-black, ${FOTO}) :is(img, video, picture, canvas, iframe, [style*="background-image"], .${MARCA}) { filter: none; }
+${BARRA} { display: none !important; }
+${BARRA} ~ nav.sticky { top: 0 !important; }
 `
 
 /** ¿Un fondo verde que tiene que quedar con su color (marca #1A5C38, WhatsApp #25D366)? */

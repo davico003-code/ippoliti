@@ -318,6 +318,8 @@ export default async function PropertyPage({ params }: Props) {
       <div className="md:hidden min-h-screen bg-[#fafafa]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 112px)' }}>
         {/* Header propio de la ficha mobile — back + logo + (acciones) */}
         <div
+          // El Tinder la esconde al abrir "Ver la ficha completa" (mazo/ficha-oscura.ts).
+          data-ficha-barra-arriba=""
           className="sticky top-0 z-40 bg-white border-b border-gray-200 grid items-center px-4"
           style={{ height: 56, gridTemplateColumns: 'minmax(76px,1fr) auto minmax(76px,1fr)' }}
         >
