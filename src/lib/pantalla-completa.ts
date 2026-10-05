@@ -38,6 +38,8 @@ export async function salirPantallaCompleta(): Promise<void> {
 
 /** Pusimos nosotros la pantalla completa (si ya estaba, no la sacamos al cerrar). */
 let laPusimos = false
+/** El mazo sigue abierto: si cierra antes de que el navegador termine de entrar, se sale al llegar. */
+let montado = false
 let salidaPendiente: number | null = null
 
 /**
@@ -48,6 +50,7 @@ let salidaPendiente: number | null = null
  */
 export function usePantallaCompletaCelu(): void {
   useEffect(() => {
+    montado = true
     if (salidaPendiente != null) {
       window.clearTimeout(salidaPendiente)
       salidaPendiente = null
@@ -55,11 +58,13 @@ export function usePantallaCompletaCelu(): void {
       laPusimos = true
       void entrarPantallaCompleta().then((entro) => {
         if (!entro) laPusimos = false
+        else if (!montado) void salirPantallaCompleta()
       })
     }
     return () => {
       salidaPendiente = window.setTimeout(() => {
         salidaPendiente = null
+        montado = false
         if (laPusimos && enPantallaCompleta()) void salirPantallaCompleta()
         laPusimos = false
       }, 0)
