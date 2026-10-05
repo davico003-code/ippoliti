@@ -212,7 +212,7 @@ export default function DetalleMazo({
               className="flex h-12 flex-auto items-center justify-center gap-1.5 rounded-2xl px-2 text-[14px] font-bold text-white whitespace-nowrap active:scale-[0.98]"
               style={{ background: '#2B7FFF' }}
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 flex-none [@media(max-width:360px)]:hidden" aria-hidden="true">
                 <path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.6l6-.9z" fill="currentColor" />
               </svg>
               Quiero conocerla
@@ -225,7 +225,7 @@ export default function DetalleMazo({
             className="flex h-12 flex-auto items-center justify-center gap-1.5 rounded-2xl px-2 text-[14px] font-bold text-white whitespace-nowrap active:scale-[0.98]"
             style={{ background: '#1A5C38' }}
           >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 flex-none [@media(max-width:360px)]:hidden" aria-hidden="true">
               <path d="M12 20.5s-7.5-4.4-9.3-9A5 5 0 0 1 12 6.6a5 5 0 0 1 9.3 4.9c-1.8 4.6-9.3 9-9.3 9z" fill="currentColor" />
             </svg>
             Me gusta
