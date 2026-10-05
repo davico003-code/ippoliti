@@ -6,7 +6,7 @@
 //
 // Diferencias a propósito entre las dos:
 // - El atrás primero saca la capa que esté arriba (instructivo, foto en grande,
-//   detalles, match, hoja, rescate). Si arriba está la pregunta de salida (hoja
+//   detalles, la hoja de ★, hoja, rescate). Si arriba está la pregunta de salida (hoja
 //   o rescate 'salir'), es que insiste: sale.
 // - En el final, con el formulario de sus elegidas a la vista, la X sale y el
 //   atrás se queda ahí.
@@ -19,8 +19,8 @@ export type EstadoSalida = {
   visor: boolean
   /** "Ver detalles", abierto. */
   detalle: boolean
-  /** "¡Es un match!", a la vista. */
-  match: boolean
+  /** La hoja de ★ "Quiero verla" (pide nombre y WhatsApp), a la vista. */
+  visita: boolean
   /** La hoja de contacto abierta y por qué (al salir o desde ♥ N). */
   hoja: 'salir' | 'boton' | null
   /** El rescate a la vista: en medio del mazo o al querer salir. */
@@ -56,7 +56,7 @@ export type QueHacer =
   | 'sacar-guia'
   | 'sacar-visor'
   | 'sacar-detalle'
-  | 'sacar-match'
+  | 'sacar-visita'
   | 'sacar-hoja'
   | 'sacar-rescate'
 
@@ -65,7 +65,7 @@ export function queHacerAlSalir(e: EstadoSalida, via: 'x' | 'atras'): QueHacer {
     if (e.guia) return 'sacar-guia'
     if (e.visor) return 'sacar-visor'
     if (e.detalle) return 'sacar-detalle'
-    if (e.match) return 'sacar-match'
+    if (e.visita) return 'sacar-visita'
     // Atrás otra vez con la pregunta de salida a la vista: insiste, sale.
     if (e.hoja === 'salir' || e.rescate === 'salir') return 'cerrar'
     if (e.hoja) return 'sacar-hoja'
@@ -77,7 +77,7 @@ export function queHacerAlSalir(e: EstadoSalida, via: 'x' | 'atras'): QueHacer {
   if (e.terminado && e.pendientes > 0) return via === 'x' ? 'cerrar' : 'quedarse'
   // ♥ que todavía no nos mandó.
   if (e.pendientes > 0) return 'hoja'
-  // Le gustaron y ya las tiene un asesor (match o ★): se va tranquilo.
+  // Le gustaron y ya las tiene un asesor (★ o ♥ N): se va tranquilo.
   if (e.guardadas > 0) return 'cerrar-limpiando'
   // Se va sin guardar ninguna después de mirar algunas: una pregunta rápida.
   if (!e.rescateVisto && !e.finEsRescate && e.vistas > 0) return 'rescate'
