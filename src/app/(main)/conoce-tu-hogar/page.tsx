@@ -1,6 +1,6 @@
 // /conoce-tu-hogar — "Conocé tu próximo hogar": dónde busca, qué y hasta
 // cuánto, y el mazo tipo Tinder (nuestras + "En red"). Se llega desde el link
-// debajo del buscador de la home (celu). Query params: ?zona=<nombre>&tipo=house|lot|apartment&tope=<usd>
+// debajo del buscador de la home (celu). Query params: ?zona=<nombre>&tipo=house|lot|apartment&tope=<usd>&dorm=<1-5>
 //
 // Dónde se puede buscar lo dice Hilo (barrios y ciudades con algo en venta,
 // nuestras o de la red): se carga en el servidor, así las sugerencias salen
@@ -8,7 +8,7 @@
 
 import type { Metadata } from 'next'
 import ConoceTuHogar from '@/components/hogar/ConoceTuHogar'
-import { type TipoHogar, type ZonaHogar, esTipoHogar } from '@/lib/feed-en-red'
+import { type TipoHogar, type ZonaHogar, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
 import { type BarrioPortada, type NuestraPortada, armarPortadas } from '@/lib/hogar-portadas'
 import { getMainPhoto, getProperties, sanitizeProperty } from '@/lib/tokko'
 import { ZONAS } from '@/lib/zonas'
@@ -76,6 +76,7 @@ export default async function ConoceTuHogarPage({ searchParams }: { searchParams
       zonaInicial={first(searchParams.zona) ?? null}
       tipoInicial={esTipoHogar(tipo) ? tipo : 'house'}
       topeInicial={Number.isFinite(tope) && tope > 0 ? Math.round(tope) : null}
+      dormInicial={dormMinValido(first(searchParams.dorm))}
     />
   )
 }

@@ -32,11 +32,13 @@ export async function cargarCasasDeBarrios(
   tipo: TipoHogar,
   tope: number | null,
   yaVistas: ReadonlySet<string>,
+  dorm: number | null = null,
 ): Promise<ItemFeed[]> {
   const porBarrio = await Promise.all(
     barrios.map(async (zona) => {
       const p = new URLSearchParams({ zona, tipo })
       if (tope) p.set('tope', String(tope))
+      if (dorm) p.set('dorm', String(dorm))
       try {
         const r = await fetch(`/api/propiedades/hogar?${p.toString()}`, { signal: AbortSignal.timeout(12_000) })
         if (!r.ok) return []

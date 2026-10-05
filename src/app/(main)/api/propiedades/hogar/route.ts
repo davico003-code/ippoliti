@@ -4,7 +4,9 @@ import {
   type FeedEnRed,
   type ItemFeed,
   TIPOS_HOGAR,
+  dormMinValido,
   enZonaBuscada,
+  entraEnDorm,
   entraEnTope,
   esTipoHogar,
   itemDeEnRed,
@@ -16,19 +18,21 @@ import { rateLimit } from '@/lib/feedback'
 // — dónde, qué y hasta cuánto — sin ficha de referencia. Primero las nuestras
 // de esa zona (sello verde) y después las "En red" que elige Hilo (mismo
 // barrio o misma ciudad, las más vistas primero). Solo venta en dólares.
-// GET ?zona=Funes%20Lakes&tipo=house&tope=200000 → { zona, items }
+// GET ?zona=Funes%20Lakes&tipo=house&tope=200000&dorm=3 → { zona, items }
+// (`dorm` = dormitorios o más, opcional; en lotes no filtra)
 
 /** Cuántas nuestras como mucho (así también entran las En red). */
 const MAX_NUESTRAS = 8
 
 type Respuesta = { zona: string; items: ItemFeed[] }
 
-async function enRedDeHilo(zona: string, tipo: string, tope: number | null): Promise<FeedEnRed> {
+async function enRedDeHilo(zona: string, tipo: string, tope: number | null, dorm: number | null): Promise<FeedEnRed> {
   const secret = process.env.HILO_INGEST_SECRET
   if (!secret) return { barrio: zona, tarjetas: [] }
   const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
   const p = new URLSearchParams({ zona, tipo })
   if (tope) p.set('tope', String(tope))
+  if (dorm) p.set('dorm', String(dorm))
   try {
     const res = await fetch(`${base}/api/public/en-red?${p.toString()}`, {
       headers: { 'x-hilo-ingest-secret': secret },
@@ -58,6 +62,7 @@ export async function GET(request: NextRequest) {
   const tipo = sp.get('tipo') ?? 'house'
   const topeNum = Number(sp.get('tope'))
   const tope = Number.isFinite(topeNum) && topeNum > 0 ? Math.round(topeNum) : null
+  const dorm = tipo === 'lot' ? null : dormMinValido(sp.get('dorm'))
   if (!zona || !esTipoHogar(tipo)) return NextResponse.json({ error: 'zona y tipo requeridos' }, { status: 400 })
   // Público y con el secreto de Hilo detrás: el CDN sirve lo repetido; esto frena
   // a quien pruebe zonas al azar para saltear el cache.
@@ -71,20 +76,28 @@ export async function GET(request: NextRequest) {
     getProperties()
       .then((d) => (d.objects ?? []).map(sanitizeProperty))
       .catch(() => [] as TokkoProperty[]),
-    enRedDeHilo(zona, tipo, tope),
+    enRedDeHilo(zona, tipo, tope, dorm),
   ])
 
   const nuestras = todas
     .filter((p) => ids.has(p.type?.id ?? -1))
     .map((p) => ({ p, precio: precioVentaUsd(p) }))
-    .filter(({ p, precio }) => entraEnTope(precio, tope) && enZonaBuscada(zona, { nombre: p.location?.name, completa: p.location?.full_location }))
+    .filter(
+      ({ p, precio }) =>
+        entraEnTope(precio, tope) &&
+        // Mismo dato que muestra la tarjeta del mazo (itemDeNuestra).
+        entraEnDorm(p.suite_amount || p.room_amount || null, dorm) &&
+        enZonaBuscada(zona, { nombre: p.location?.name, completa: p.location?.full_location }),
+    )
     // Destacadas primero; con tope, lo mejor que le alcanza (más cerca del tope).
     .sort((a, b) => Number(b.p.is_starred_on_web) - Number(a.p.is_starred_on_web) || (tope ? b.precio! - a.precio! : 0))
     .map(({ p }) => itemDeNuestra(priorizarOperacion(p, 'Sale')))
     .filter((i) => i.fotos.length > 0)
     .slice(0, MAX_NUESTRAS)
 
-  const body: Respuesta = { zona, items: [...nuestras, ...red.tarjetas.map(itemDeEnRed)] }
+  // Hilo ya filtra por dormitorios; esto cubre el rato en que todavía no lo hace.
+  const enRed = red.tarjetas.filter((t) => entraEnDorm(t.dormitorios, dorm)).map(itemDeEnRed)
+  const body: Respuesta = { zona, items: [...nuestras, ...enRed] }
   return NextResponse.json(body, {
     headers: { 'Cache-Control': `public, s-maxage=${body.items.length ? 900 : 120}, stale-while-revalidate=86400` },
   })
