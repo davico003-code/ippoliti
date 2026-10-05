@@ -85,7 +85,7 @@ export default function ProyectosMosaico() {
           .proj-bento .sm{ grid-column:span 1; aspect-ratio:3/4; }
           .proj-bento .big h3{ font-size:26px; }
           .proj-bento .pc .go{ display:none; }
-          .proj-bento .maquinas .mq{ transform:scale(1.45); }
+          .proj-bento .maquinas .mq{ transform:scale(1.25); }
         }
         @media (prefers-reduced-motion: reduce){
           .proj-bento .bg{ transition:none; }
