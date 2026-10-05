@@ -9,23 +9,11 @@
 
 import { useEffect, useState } from 'react'
 import { Maximize2, Minimize2 } from 'lucide-react'
-
-type DocFs = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => Promise<void>; webkitFullscreenEnabled?: boolean }
-type ElFs = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> }
-
-const enPantallaCompleta = () => Boolean(document.fullscreenElement || (document as DocFs).webkitFullscreenElement)
+import { enPantallaCompleta, entrarPantallaCompleta, pantallaCompletaDisponible, salirPantallaCompleta } from '@/lib/pantalla-completa'
 
 async function alternar() {
-  const d = document as DocFs
-  try {
-    if (enPantallaCompleta()) await (d.exitFullscreen?.() ?? d.webkitExitFullscreen?.())
-    else {
-      const el = document.documentElement as ElFs
-      await (el.requestFullscreen?.({ navigationUI: 'hide' }) ?? el.webkitRequestFullscreen?.())
-    }
-  } catch {
-    // El navegador lo rechazó (permisos, iframe): la página sigue igual.
-  }
+  if (enPantallaCompleta()) await salirPantallaCompleta()
+  else await entrarPantallaCompleta()
 }
 
 export default function PantallaCompleta() {
@@ -33,8 +21,7 @@ export default function PantallaCompleta() {
   const [activa, setActiva] = useState(false)
 
   useEffect(() => {
-    const d = document as DocFs
-    setDisponible(Boolean(d.fullscreenEnabled || d.webkitFullscreenEnabled))
+    setDisponible(pantallaCompletaDisponible())
     const alCambiar = () => {
       const on = enPantallaCompleta()
       setActiva(on)

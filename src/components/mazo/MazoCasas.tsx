@@ -37,6 +37,7 @@ import type { CriteriosBusqueda, ItemFeed } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
 import { barriosParecidos } from '@/lib/barrios-parecidos'
 import { useAtrasDelMazo } from '@/lib/mazo-atras'
+import { usePantallaCompletaCelu } from '@/lib/pantalla-completa'
 import { contactoListo, leerEnviadas, mandarConsulta } from '@/lib/mazo-consulta'
 import { type EstadoSalida, type QueHacer, cierraElMazo, queHacerAlSalir } from '@/lib/mazo-salida'
 import { contarTinder } from '@/lib/tinder-contador'
@@ -486,6 +487,7 @@ export default function MazoCasas({
   const porAtras = useRef<() => boolean>(() => false)
   porAtras.current = () => hacer(queHacerAlSalir(estadoSalida(), 'atras'))
   useAtrasDelMazo(porAtras)
+  usePantallaCompletaCelu() // sin barra del navegador en el celu (Android; el iPhone no deja)
 
   // Sin scroll de la página de atrás; Escape sale, flechas = paso / ♥ / ★.
   useEffect(() => {
