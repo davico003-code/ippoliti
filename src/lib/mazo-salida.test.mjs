@@ -75,3 +75,9 @@ test('cierraElMazo: solo cerrar y cerrar-limpiando sacan del mazo', () => {
     assert.equal(cierraElMazo(q), false, q)
   }
 })
+
+test('afinar: el atrás lo saca; si era la pregunta de salida, insiste y sale', () => {
+  assert.equal(queHacerAlSalir({ ...base, afinar: 'boton' }, 'atras'), 'sacar-afinar')
+  assert.equal(queHacerAlSalir({ ...base, afinar: 'salir' }, 'atras'), 'cerrar')
+  assert.equal(cierraElMazo('sacar-afinar'), false)
+})

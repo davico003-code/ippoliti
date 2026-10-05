@@ -90,7 +90,7 @@ export default function GuiaMazo({ onCerrar }: { onCerrar: () => void }) {
               </svg>
             </span>
             <span>
-              <strong>Tocá el costado de la foto</strong> para ver más; tocá el precio para los detalles
+              <strong>Tocá el costado de la foto</strong> para ver más; ⓘ para los detalles
             </span>
           </li>
         </ul>

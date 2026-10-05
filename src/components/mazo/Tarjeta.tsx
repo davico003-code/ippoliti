@@ -4,10 +4,10 @@
 // el mazo abierto (MazoCasas) y la ficha (la primera tarjeta, 'quieta').
 
 import Image from 'next/image'
-import { Expand, Info, MapPin, RotateCcw, Star, X } from 'lucide-react'
-import { type ItemFeed, estiloSinLogo } from '@/lib/feed-en-red'
+import { Expand, RotateCcw, Star, X } from 'lucide-react'
+import { type ItemFeed, estiloSinLogo, lineaTarjeta, lugarTarjeta } from '@/lib/feed-en-red'
 import { MAX_FOTOS_MAZO } from '@/lib/mazo-items'
-import { AZUL_VISITA, CORAZON, Chip, Corazon, IconoRed, IsotipoSI, ORO_VOLVER, ROJO_PASO, VERDE } from './marca-mazo'
+import { AZUL_VISITA, CORAZON, Corazon, IsotipoSI, ORO_VOLVER, ROJO_PASO } from './marca-mazo'
 
 const RGB: Record<Salida, string> = { like: '26,92,56', pass: '229,72,77', super: '43,127,255' }
 /** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso… */
@@ -31,15 +31,19 @@ export function direccionDe(dx: number, dy: number, conSuper = true): Salida | n
 /** Cuántos pares de fotos tiene (se muestran de a 2, una arriba de la otra): hasta 5. */
 export const paresDe = (item: ItemFeed) => Math.max(1, Math.ceil(Math.min(item.fotos.length, MAX_FOTOS_MAZO) / 2))
 
+// Sobre la foto oscura, los colores claros (como los botones de vidrio).
 const SELLOS: Record<Salida, { texto: string; color: string; clase: string }> = {
-  like: { texto: 'ME GUSTA', color: VERDE, clase: 'top-12 left-4 -rotate-12' },
-  pass: { texto: 'PASO', color: ROJO_PASO, clase: 'top-12 right-4 rotate-12' },
-  super: { texto: 'QUIERO VERLA', color: AZUL_VISITA, clase: 'top-[30%] left-1/2 -translate-x-1/2 -rotate-6' },
+  like: { texto: 'ME GUSTA', color: '#45D98B', clase: 'top-24 left-4 -rotate-12' },
+  pass: { texto: 'PASO', color: '#FF6B6F', clase: 'top-24 right-4 rotate-12' },
+  super: { texto: 'QUIERO VERLA', color: '#5AAEFF', clase: 'top-[32%] left-1/2 -translate-x-1/2 -rotate-6' },
 }
 
 /**
- * Una tarjeta del mazo, con la estética de Tinder (David 4-oct): la foto ocupa
- * TODA la tarjeta y los datos van encima, sobre un degradé oscuro. Las fotos de
+ * Una tarjeta del mazo, con la estética de Tinder. 5-oct (David eligió la
+ * propuesta A, "molesta tanto texto sobre la foto… más discreto"): pantalla
+ * negra, las dos fotos de punta a punta, sombra negra abajo y encima lo mínimo
+ * — precio con ⓘ (detalles), un renglón (dorm · m² · lote) y dónde, con el
+ * isotipo o "En red · otra inmobiliaria". Sin chips arriba. Las fotos de
  * las casas son apaisadas: UNA sola en una tarjeta vertical queda recortada y
  * agrandada ("estirada", David 3-oct), así que siguen de a DOS, una arriba de
  * la otra (ahora más altas: casi en su forma). Tocar el costado de las fotos
@@ -64,7 +68,6 @@ export function Tarjeta({
   arrastrando = false,
   conSuper = false,
   conBotones = false,
-  nota = null,
 }: {
   item: ItemFeed
   modo: 'arriba' | 'abajo' | 'quieta'
@@ -89,8 +92,6 @@ export function Tarjeta({
   conSuper?: boolean
   /** Los botones ↺ ✕ ★ ♥ flotan sobre la foto (mazo abierto): los datos suben para dejarles lugar. */
   conBotones?: boolean
-  /** Un aviso cortito arriba de la foto (la primera: "Algunas las publican otras inmobiliarias…"). */
-  nota?: string | null
 }) {
   const arriba = modo === 'arriba'
   const dx = arrastre?.dx ?? 0
@@ -128,11 +129,13 @@ export function Tarjeta({
   const p = Math.min(par, pares - 1)
   // El último par de una cantidad impar vuelve a la primera foto: nunca una sola estirada.
   const fotos = n > 1 ? [item.fotos[(p * 2) % n], item.fotos[(p * 2 + 1) % n]] : item.fotos.slice(0, 1)
-  const direccion = item.direccion || item.zona
+
+  const linea = lineaTarjeta(item)
+  const lugar = lugarTarjeta(item)
 
   return (
     <div
-      className={`absolute inset-0 rounded-3xl overflow-hidden bg-gray-900 shadow-[0_10px_28px_rgba(0,0,0,0.18)] select-none ${arriba ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      className={`absolute inset-0 rounded-[22px] overflow-hidden bg-neutral-900 select-none ${arriba ? 'cursor-grab active:cursor-grabbing' : ''} ${modo === 'abajo' ? 'brightness-75' : ''}`}
       style={{ transform, transition: transicion, touchAction: arriba ? 'none' : undefined }}
       onPointerDown={arriba ? onPointerDown : undefined}
       onPointerMove={arriba ? onPointerMove : undefined}
@@ -141,9 +144,9 @@ export function Tarjeta({
       aria-hidden={modo === 'abajo'}
     >
       {/* Fotos de a dos, de punta a punta */}
-      <div data-fotos className="absolute inset-0 flex flex-col gap-[2px] bg-white">
+      <div data-fotos className="absolute inset-0 flex flex-col gap-[2px] bg-black">
         {fotos.map((src, i) => (
-          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-gray-200 overflow-hidden">
+          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-neutral-800 overflow-hidden">
             <Image
               src={src}
               alt={`${item.titulo} — foto ${p * 2 + i + 1}`}
@@ -162,22 +165,17 @@ export function Tarjeta({
 
       {/* Barritas: una por par de fotos (como Tinder) */}
       {pares > 1 && (
-        <div className="absolute top-2 left-3 right-3 flex gap-1">
+        <div className="absolute top-2 left-2.5 right-2.5 flex gap-1">
           {Array.from({ length: pares }, (_, i) => (
-            <span key={i} className={`h-1 flex-1 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.25)] ${i === p ? 'bg-white' : 'bg-white/45'}`} />
+            <span key={i} className={`h-[3px] flex-1 rounded-full ${i === p ? 'bg-white' : 'bg-white/40'}`} />
           ))}
         </div>
       )}
-      <div className="absolute top-5 left-3 right-16 flex flex-wrap items-center gap-2">
-        <Chip nuestra={item.esNuestra} />
-        {item.masVista && <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/95 text-gray-900 shadow-sm">De las más vistas</span>}
-        {guardada && (
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-white shadow-sm" style={{ color: CORAZON }} aria-label="Te gusta">
-            <Corazon lleno className="w-[18px] h-[18px]" />
-          </span>
-        )}
-        {nota && <p className="basis-full max-w-[290px] rounded-xl bg-black/50 px-3 py-2 text-[13px] leading-snug text-white backdrop-blur-sm">{nota}</p>}
-      </div>
+      {guardada && (
+        <span className="absolute top-[68px] left-3 grid h-7 w-7 place-items-center rounded-full bg-black/40 backdrop-blur-sm" style={{ color: '#45D98B' }} aria-label="Te gusta">
+          <Corazon lleno className="w-4 h-4" />
+        </span>
+      )}
       {arriba && onAmpliar && (
         <button
           type="button"
@@ -188,43 +186,30 @@ export function Tarjeta({
             onAmpliar(Math.min(p * 2, Math.max(0, n - 1)))
           }}
           aria-label="Ver la foto en grande"
-          className="absolute top-4 right-3 grid h-10 w-10 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+          className="absolute top-[68px] right-3 grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur-md"
         >
-          <Expand className="h-5 w-5" aria-hidden="true" />
+          <Expand className="h-4 w-4" aria-hidden="true" />
         </button>
       )}
 
       {/* Sello mientras arrastra (o al decidir con los botones) */}
       {sello && (
         <span
-          className={`absolute ${SELLOS[sello].clase} rounded-xl border-[5px] px-3 py-1 text-[28px] font-black tracking-wide font-raleway bg-white/85 whitespace-nowrap pointer-events-none`}
+          className={`absolute ${SELLOS[sello].clase} rounded-xl border-4 px-3 py-1 text-[24px] font-black tracking-wide font-raleway bg-black/25 whitespace-nowrap pointer-events-none`}
           style={{ borderColor: SELLOS[sello].color, color: SELLOS[sello].color, opacity: fuerzaSello }}
         >
           {SELLOS[sello].texto}
         </span>
       )}
 
-      {/* Datos SOBRE la foto, en un degradé (como Tinder) */}
+      {/* Sombra negra abajo y lo mínimo encima */}
       <div
-        className={`absolute inset-x-0 bottom-0 pt-14 [@media(max-height:720px)]:pt-8 pointer-events-none ${conBotones ? 'pb-[92px]' : ''}`}
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.62) 55%, rgba(0,0,0,0) 100%)' }}
+        className={`absolute inset-x-0 bottom-0 pt-24 pointer-events-none ${conBotones ? 'pb-[88px]' : ''}`}
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.72) 38%, rgba(0,0,0,0) 100%)' }}
       >
-        <div data-datos className="px-4 pb-4 [@media(max-height:720px)]:pb-3 text-white">
-          <p className="whitespace-nowrap text-[30px] [@media(max-height:720px)]:text-[26px] font-black font-numeric leading-none [text-shadow:0_1px_10px_rgba(0,0,0,0.35)]">{item.precio}</p>
-          {item.datos && <p className="mt-1.5 text-[16px] font-medium font-poppins text-white/95">{item.datos}</p>}
-          {direccion && (
-            <p className="mt-1 flex items-center gap-1.5 min-w-0 text-[15px] text-white/90">
-              <MapPin className="w-4 h-4 flex-none" aria-hidden="true" />
-              <span className="truncate">{direccion}</span>
-            </p>
-          )}
-          {/* "Ver detalles" en el renglón de la inmobiliaria (que tiene lugar): al
-              lado del precio no entraba en el celu chico y se salía de la tarjeta. */}
-          <div className="mt-2 flex items-center justify-between gap-2 min-w-0">
-            <p className="flex items-center gap-1.5 min-w-0 text-[13px] text-white/85">
-              {item.esNuestra ? <IsotipoSI className="h-[18px] w-auto" /> : <IconoRed className="w-4 h-4 flex-none" />}
-              <span className="truncate">{item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}</span>
-            </p>
+        <div data-datos className="px-4 pb-4 text-white">
+          <div className="flex items-center justify-between gap-3">
+            <p className="whitespace-nowrap text-[27px] font-bold font-numeric leading-none tracking-tight">{item.precio}</p>
             {/* Solo en el mazo abierto: en la ficha la tarjeta entera es un botón (no se anida otro). */}
             {arriba && onDetalles && (
               <button
@@ -235,12 +220,27 @@ export function Tarjeta({
                   e.stopPropagation()
                   onDetalles()
                 }}
-                className="pointer-events-auto flex-none inline-flex h-10 items-center gap-1.5 rounded-full border border-white/35 bg-white/20 px-3.5 text-[14px] font-bold text-white backdrop-blur-md font-raleway"
+                aria-label="Ver detalles"
+                className="pointer-events-auto grid h-8 w-8 flex-none place-items-center rounded-full border-[1.5px] border-white/75 text-white"
               >
-                <Info className="h-4 w-4" aria-hidden="true" /> Ver detalles
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+                  <path d="M12 11v6M12 7.5v.01" />
+                </svg>
               </button>
             )}
           </div>
+          {linea && <p className="mt-1.5 text-[16px] font-semibold text-white/90">{linea}</p>}
+          <p className="mt-1 flex items-center gap-1.5 min-w-0 text-[14px] text-white/70">
+            {item.esNuestra ? (
+              <IsotipoSI className="h-[15px] w-auto" />
+            ) : (
+              <span className="flex-none rounded-full border border-white/25 bg-white/10 px-2 py-[1px] text-[13px] font-bold text-white/90">En red</span>
+            )}
+            <span className="truncate">
+              {lugar}
+              {!item.esNuestra && ' · otra inmobiliaria'}
+            </span>
+          </p>
         </div>
       </div>
     </div>

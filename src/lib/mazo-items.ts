@@ -56,6 +56,11 @@ export function itemDeNuestra(p: TokkoProperty): ItemFeed {
     titulo: tituloVisible(p) || p.fake_address || p.address || '',
     zona: p.location?.name ?? null,
     href: `/propiedades/${generatePropertySlug(p)}`,
+    dorm: beds || null,
+    m2: m2 || null,
+    // `surface` del feed = el terreno (land_surface de Hilo).
+    lote: Number(p.surface) > 0 ? Number(p.surface) : null,
+    esLote: /terreno|lote/i.test(p.type?.name ?? ''),
     masVista: false,
     // Misma línea que las tarjetas del listado ("Av Fuerza Aerea 1515 | San Sebastián | Funes").
     direccion: formatDireccionCompleta(p, p.fake_address || p.address, ' | ') || null,

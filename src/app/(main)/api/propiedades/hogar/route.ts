@@ -25,8 +25,8 @@ import { rateLimit } from '@/lib/feedback'
 // (`dorm` = dormitorios o más, opcional; en lotes no filtra)
 // `&barrio=cerrado|abierto` (opcional; sin él, me da igual; solo al buscar una ciudad)
 
-/** Cuántas nuestras como mucho (así también entran las En red). */
-const MAX_NUESTRAS = 8
+/** Cuántas nuestras como mucho. Sin tope chico (David 5-oct: "no sé por qué tiene tope de 24"). */
+const MAX_NUESTRAS = 40
 
 type Respuesta = { zona: string; items: ItemFeed[] }
 

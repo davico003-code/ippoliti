@@ -143,6 +143,13 @@ export default function ConoceTuHogar({
   const [sugerencias, setSugerencias] = useState(false)
   const [resultado, setResultado] = useState<Resultado | null>(null)
   const [abierto, setAbierto] = useState(false)
+  /**
+   * Las casas que tiene el mazo abierto. Al afinar la búsqueda desde adentro
+   * (David 5-oct) cambian los filtros de acá y se vuelve a contar; el mazo NO se
+   * cierra mientras tanto: recibe las nuevas cuando llegan.
+   */
+  const [mazo, setMazo] = useState<{ clave: string; items: ItemFeed[] } | null>(null)
+  const [estadoAfinar, setEstadoAfinar] = useState<'listo' | 'buscando' | 'vacio'>('listo')
   /** Tocó "Ver" mientras contaba: el mazo abre apenas llegan las casas. */
   const [abrirAlLlegar, setAbrirAlLlegar] = useState(false)
   /** Tocó "Ver" sin elegir dónde: se marca esa fila un momento. */
@@ -210,6 +217,8 @@ export default function ConoceTuHogar({
   const abrir = () => {
     if (!zona || !listo || listo.fallo || listo.items.length === 0) return
     trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, dorm: dorm ?? 0, barrio: barrio ?? 'indistinto', cantidad: listo.items.length })
+    setMazo({ clave: listo.clave, items: listo.items })
+    setEstadoAfinar('listo')
     setAbierto(true)
   }
 
@@ -220,6 +229,17 @@ export default function ConoceTuHogar({
     // `abrir` lee el estado de este mismo render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abrirAlLlegar, listo])
+
+  // Afinó con el mazo abierto: cuando llegan las nuevas, el mazo arranca con ellas.
+  useEffect(() => {
+    if (!abierto || !listo || !mazo || listo.clave === mazo.clave) return
+    if (listo.fallo || listo.items.length === 0) {
+      setEstadoAfinar('vacio')
+      return
+    }
+    setMazo({ clave: listo.clave, items: listo.items })
+    setEstadoAfinar('listo')
+  }, [abierto, listo, mazo])
 
   // Sin resultados: el aviso con cómo ampliar queda a la vista.
   useEffect(() => {
@@ -470,9 +490,9 @@ export default function ConoceTuHogar({
         </button>
       </BarraFija>
 
-      {abierto && listo && zona && guardadasApi.montado && (
+      {abierto && mazo && zona && guardadasApi.montado && (
         <MazoCasas
-          items={listo.items}
+          items={mazo.items}
           titulo={titulo}
           barrio={zona.nombre}
           guardadasApi={guardadasApi}
@@ -480,6 +500,21 @@ export default function ConoceTuHogar({
           busqueda={busqueda}
           criterios={criterios}
           cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipo, tope, yaVistas, dorm)}
+          afinar={{
+            tipo,
+            valores: { zona: zona.nombre, tope, dorm, barrio },
+            zonas: [...ciudades.map((c) => c.nombre), ...(zona.esCiudad ? [] : [zona.nombre])],
+            esCiudad: (z) => !!zonaPorNombre(catalogo, z)?.esCiudad,
+            estado: estadoAfinar,
+            onAplicar: (v) => {
+              const nueva = zonaPorNombre(catalogo, v.zona) ?? zona
+              setZona(nueva)
+              setTope(v.tope)
+              setDorm(v.dorm)
+              setBarrio(v.barrio)
+              setEstadoAfinar('buscando')
+            },
+          }}
           onCerrar={() => setAbierto(false)}
         />
       )}

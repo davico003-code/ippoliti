@@ -35,7 +35,7 @@ import { createPortal } from 'react-dom'
 import { RotateCcw, X } from 'lucide-react'
 import type { CriteriosBusqueda, ItemFeed } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
-import { barriosParecidos, listaBarrios } from '@/lib/barrios-parecidos'
+import { barriosParecidos } from '@/lib/barrios-parecidos'
 import { useAtrasDelMazo } from '@/lib/mazo-atras'
 import { contactoListo, leerEnviadas, mandarConsulta } from '@/lib/mazo-consulta'
 import { type EstadoSalida, type QueHacer, cierraElMazo, queHacerAlSalir } from '@/lib/mazo-salida'
@@ -46,11 +46,12 @@ import VisorFotos from './VisorFotos'
 import GuiaMazo, { useGuiaMazo } from './GuiaMazo'
 import HojaContacto from './HojaContacto'
 import HojaVisita, { type EstadoVisita } from './HojaVisita'
+import AfinarBusqueda, { type AfinarMazo } from './AfinarBusqueda'
 import PreguntaParecidos from './PreguntaParecidos'
 import Rescate from './Rescate'
 import { SuscripcionMail } from './SuscripcionMail'
 import { type Arrastre, type Salida, type Tendencia, BotonesTinder, DURACION_SALIDA, Tarjeta, UMBRAL_SUPER, UMBRAL_SWIPE, direccionDe, paresDe } from './Tarjeta'
-import { CORAZON, Corazon, ORO_VOLVER } from './marca-mazo'
+import { ORO_VOLVER } from './marca-mazo'
 import { useAlbumMazo } from './useAlbumMazo'
 import { useGuardadas } from './useGuardadas'
 
@@ -79,6 +80,7 @@ export default function MazoCasas({
   busqueda = null,
   criterios = null,
   cargarParecidos,
+  afinar,
 }: {
   items: ItemFeed[]
   titulo: string
@@ -96,6 +98,12 @@ export default function MazoCasas({
    * (o si el barrio no tiene parecidos) el mazo termina como siempre.
    */
   cargarParecidos?: (barrios: string[], yaVistas: ReadonlySet<string>) => Promise<ItemFeed[]>
+  /**
+   * "Afiná tu búsqueda" (David 5-oct): quien abre el mazo vuelve a buscar con lo
+   * que elija y le pasa las nuevas en `items` (el mazo arranca de nuevo, sin
+   * cerrarse). Sin esto (la ficha), no hay ícono y la X sigue con el rescate.
+   */
+  afinar?: AfinarMazo
 }) {
   const { guardadas, guardar, quitar, limpiar, esGuardada } = guardadasApi
   // Las de los barrios parecidos entran DONDE está parado si dice que sí: al
@@ -120,6 +128,8 @@ export default function MazoCasas({
   const [hoja, setHoja] = useState<EstadoHoja>(null)
   /** La hoja de ★ "Quiero verla" (sin su WhatsApp todavía). */
   const [visita, setVisita] = useState<EstadoVisita>(null)
+  /** "Afiná tu búsqueda": desde el ícono o al querer salir sin ♥. */
+  const [afinarAbierto, setAfinarAbierto] = useState<'boton' | 'salir' | null>(null)
   /** Aviso cortito abajo ("Listo, te escribimos…"). */
   const [aviso, setAviso] = useState<string | null>(null)
   useEffect(() => {
@@ -127,6 +137,29 @@ export default function MazoCasas({
     const t = window.setTimeout(() => setAviso(null), 3800)
     return () => window.clearTimeout(t)
   }, [aviso])
+  // Afinó la búsqueda: llegan otras casas y el mazo arranca de nuevo, sin cerrarse.
+  const itemsPrevios = useRef(items)
+  useEffect(() => {
+    // Solo con "afinar" (la home). En la ficha las casas llegan de a tandas (/similar)
+    // con el mazo abierto: no tiene que volver a la primera ni decir "Listo".
+    if (!afinar || itemsPrevios.current === items) return
+    itemsPrevios.current = items
+    setInsercion(null)
+    setIndice(0)
+    setFoto(0)
+    setHistorial([])
+    setArrastre(null)
+    setSalida(null)
+    setEstadoParecidos('pendiente')
+    setDirectoAlFinal(false)
+    pasesSeguidos.current = 0
+    setAviso('Listo: te mostramos las que van con eso.')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando cambian las casas
+  }, [items])
+  const estadoAfinar = afinar?.estado
+  useEffect(() => {
+    if (estadoAfinar === 'vacio') setAviso('Con eso no encontramos. Probá con otro precio o zona.')
+  }, [estadoAfinar])
   /** Las que ya le mandamos a un asesor (no se le vuelven a pedir ni a mandar). */
   const [enviadas, setEnviadas] = useState<ReadonlySet<string>>(() => new Set<string>())
   const refrescarEnviadas = useCallback(() => setEnviadas(new Set(leerEnviadas())), [])
@@ -204,7 +237,7 @@ export default function MazoCasas({
   /** ♥, paso o ★: la tarjeta sale volando y aparece la siguiente. */
   const decidir = useCallback(
     (accion: Salida) => {
-      if (!actual || salida || rescate || guia || visita) return
+      if (!actual || salida || rescate || guia || visita || afinarAbierto) return
       const yaEstaba = esGuardada(actual.key)
       setHistorial((h) => [...h.slice(-30), { indice, accion, key: actual.key, nueva: accion === 'like' && !yaEstaba }])
       if (accion === 'pass') {
@@ -241,7 +274,7 @@ export default function MazoCasas({
         }
       }, DURACION_SALIDA)
     },
-    [actual, salida, rescate, guia, visita, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate, origen, pedirVisitaDirecto],
+    [actual, salida, rescate, guia, visita, afinarAbierto, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate, origen, pedirVisitaDirecto],
   )
 
   /** ↺ Volver a la anterior: si le había dado ♥ recién, se lo saca y decide de nuevo. */
@@ -407,6 +440,7 @@ export default function MazoCasas({
     visor: visor != null,
     detalle,
     visita: visita != null,
+    afinar: afinarAbierto,
     hoja: hoja?.motivo ?? null,
     rescate,
     enviada: enviada != null,
@@ -423,10 +457,18 @@ export default function MazoCasas({
     else if (q === 'sacar-visor') setVisor(null)
     else if (q === 'sacar-detalle') setDetalle(false)
     else if (q === 'sacar-visita') setVisita(null)
+    else if (q === 'sacar-afinar') setAfinarAbierto(null)
     else if (q === 'sacar-hoja') setHoja(null)
     else if (q === 'sacar-rescate') setRescate(null)
     else if (q === 'hoja') setHoja({ motivo: 'salir' })
-    else if (q === 'rescate') marcarRescate('salir')
+    else if (q === 'rescate') {
+      // Con búsqueda para afinar (la home): "¿Afinamos la búsqueda?" en vez de la pregunta suelta.
+      if (afinar) {
+        rescateMostrado = true
+        setRescateVisto(true)
+        setAfinarAbierto('salir')
+      } else marcarRescate('salir')
+    }
     else if (q === 'cerrar-limpiando') cerrarYaConsultadas()
     else if (q === 'cerrar') cerrarTodo()
     return !cierraElMazo(q)
@@ -453,10 +495,11 @@ export default function MazoCasas({
         if (guia) cerrarGuia()
         else if (detalle) setDetalle(false)
         else if (visita) setVisita(null)
+        else if (afinarAbierto) setAfinarAbierto(null)
         else if (hoja) setHoja(null)
         else if (rescate) setRescate(null)
         else salir()
-      } else if (detalle || visor != null || visita || hoja || rescate) {
+      } else if (detalle || visor != null || visita || afinarAbierto || hoja || rescate) {
         return
       } else if (e.key === 'ArrowRight') decidir('like')
       else if (e.key === 'ArrowLeft') decidir('pass')
@@ -469,12 +512,9 @@ export default function MazoCasas({
       window.removeEventListener('keydown', onKey)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoja, rescate, guia, detalle, visor, visita, guardadas.length, pendientes.length, decidir, volver])
+  }, [hoja, rescate, guia, detalle, visor, visita, afinarAbierto, guardadas.length, pendientes.length, decidir, volver])
 
   const n = todos.length
-  // Mirando las de los barrios parecidos: el título lo dice.
-  const tituloVisible =
-    insercion && indice >= insercion.en && indice < insercion.en + insercion.items.length ? `Casas en ${listaBarrios(parecidos)}` : titulo
   const g = guardadas.length
   // Mientras arrastra: hacia dónde va y cuánto falta (la de abajo crece, el botón de ese lado se pinta).
   const dirArrastre = arrastre && !guia ? direccionDe(arrastre.dx, arrastre.dy) : null
@@ -485,38 +525,13 @@ export default function MazoCasas({
   const volverFinal = terminado && puedeVolver && !hoja && !rescate && estadoParecidos !== 'cargando'
 
   return createPortal(
-    <div className="fixed inset-0 z-[10400] bg-white md:bg-white/85 md:backdrop-blur-sm md:flex md:items-center md:justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
+    <div className="fixed inset-0 z-[10400] bg-black md:bg-black/80 md:backdrop-blur-sm md:flex md:items-center md:justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
       <style dangerouslySetInnerHTML={{ __html: ESTILOS_MAZO }} />
-      <div className="relative flex flex-col h-[100dvh] w-full bg-white md:h-[92vh] md:max-w-[440px] md:rounded-3xl md:border md:border-gray-200 md:shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden">
-        {/* Encabezado de UNA línea (la foto se lleva casi toda la pantalla, David 5-oct):
-            título, por cuál va y sus elegidas (♥ N) siempre a mano */}
-        <div className="flex items-center justify-between gap-2 px-3 pt-[max(8px,env(safe-area-inset-top))] pb-2">
-          <p className="min-w-0 flex-1 truncate font-raleway">
-            <span className="font-black text-gray-900">{tituloVisible}</span>
-            <span className="ml-2 text-[13px] text-gray-500 font-sans">
-              {terminado ? (directoAlFinal && g > 0 ? `Tus elegidas · ${n} para ver` : `Viste las ${n}`) : `${indice + 1} de ${n}`}
-            </span>
-          </p>
-          {g > 0 && !terminado && (
-            <button
-              type="button"
-              onClick={() => setHoja({ motivo: 'boton' })}
-              aria-label={`Tus elegidas: ${g}. Pedí que te las mandemos`}
-              className="flex-none inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[15px] font-bold text-white shadow-sm active:scale-95 transition-transform"
-              style={{ background: CORAZON }}
-            >
-              <span key={g} className="mazo-latido inline-grid">
-                <Corazon lleno className="w-[18px] h-[18px]" />
-              </span>
-              {g}
-            </button>
-          )}
-          <button type="button" onClick={salir} aria-label="Salir" className="w-10 h-10 rounded-full border border-gray-200 bg-white grid place-items-center flex-none text-gray-800 hover:bg-gray-50">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+      {/* NEGRO como Tinder (David 5-oct: "que se sienta una app real… bien inmersivo"):
+          sin encabezado, sin "1 de 24" ni cuántas le gustaron; la X y "afinar" van adentro de la foto. */}
+      <div className="relative flex flex-col h-[100dvh] w-full bg-black pt-[max(6px,env(safe-area-inset-top))] md:h-[92vh] md:max-w-[440px] md:rounded-3xl md:shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden">
         {/* Mazo: hasta abajo de todo (los botones van adentro de la foto) */}
-        <div className={`relative flex-1 mx-2 min-h-0 ${volverFinal ? '' : 'mb-[max(8px,env(safe-area-inset-bottom))]'}`}>
+        <div className={`relative flex-1 mx-1.5 min-h-0 ${volverFinal ? '' : 'mb-[max(6px,env(safe-area-inset-bottom))]'}`}>
           {!terminado && actual ? (
             <>
               {siguiente && (
@@ -542,8 +557,6 @@ export default function MazoCasas({
                 guia={guia}
                 conSuper
                 conBotones={!rescate}
-                // Solo en la primera: después cada tarjeta de colega lo dice con su chip "En red".
-                nota={indice === 0 && todos.some((i) => !i.esNuestra) ? 'Algunas las publican otras inmobiliarias: te coordinamos la visita nosotros.' : null}
                 onDetalles={abrirDetalle}
                 onAmpliar={abrirVisor}
                 salida={salida}
@@ -634,8 +647,32 @@ export default function MazoCasas({
               />
             </div>
           )}
+          <div className="pointer-events-none absolute inset-x-3 top-[18px] z-[6] flex items-center justify-between">
+            <button
+              type="button"
+              onClick={salir}
+              aria-label="Salir"
+              className="pointer-events-auto grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/40 text-white backdrop-blur-md"
+            >
+              <X className="h-5 w-5" strokeWidth={2.4} />
+            </button>
+            {afinar && !terminado && (
+              <button
+                type="button"
+                onClick={() => setAfinarAbierto('boton')}
+                aria-label="Afiná tu búsqueda"
+                className="pointer-events-auto grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/40 text-white backdrop-blur-md"
+              >
+                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
+                  <circle cx="16" cy="7" r="2" />
+                  <circle cx="8" cy="17" r="2" />
+                </svg>
+              </button>
+            )}
+          </div>
           {aviso && (
-            <div role="status" className="absolute inset-x-3 top-3 z-20 rounded-2xl bg-gray-900/95 px-4 py-3 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] mazo-aviso">
+            <div role="status" className="absolute inset-x-3 top-[68px] z-20 rounded-2xl bg-gray-900/95 px-4 py-3 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] mazo-aviso">
               {aviso}
             </div>
           )}
@@ -647,7 +684,7 @@ export default function MazoCasas({
             <button
               type="button"
               onClick={volver}
-              className="mx-auto flex h-11 items-center gap-2 rounded-full px-4 text-[15px] font-semibold text-gray-700 hover:bg-gray-50"
+              className="mx-auto flex h-11 items-center gap-2 rounded-full px-4 text-[15px] font-semibold text-white/80 hover:bg-white/10"
             >
               <RotateCcw className="w-5 h-5" style={{ color: ORO_VOLVER }} strokeWidth={2.6} aria-hidden="true" /> Volver a la anterior
             </button>
@@ -715,6 +752,21 @@ export default function MazoCasas({
               }
             }}
             onCerrar={hoja.motivo === 'salir' ? cerrarTodo : () => setHoja(null)}
+          />
+        )}
+        {afinarAbierto && afinar && (
+          <AfinarBusqueda
+            afinar={{
+              ...afinar,
+              onAplicar: (v) => {
+                setAfinarAbierto(null)
+                trackEvent('feed_en_red_afinar', { desde: afinarAbierto, tope: v.tope ?? 0, dorm: v.dorm ?? 0, zona: v.zona })
+                afinar.onAplicar(v)
+              },
+            }}
+            modo={afinarAbierto}
+            onCerrar={() => setAfinarAbierto(null)}
+            onSalir={() => (afinarAbierto === 'salir' ? cerrarTodo() : setAfinarAbierto(null))}
           />
         )}
         {visita && (

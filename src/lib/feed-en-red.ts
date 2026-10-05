@@ -38,6 +38,8 @@ export type TarjetaEnRed = {
   direccion?: string | null
   /** Ciudad del aviso ("Funes", "Roldán"). */
   ciudad?: string | null
+  /** Terreno del aviso, si el portal lo trae (Hilo, 5-oct). */
+  m2Lote?: number | null
 }
 
 export type FeedEnRed = { barrio: string | null; tarjetas: TarjetaEnRed[] }
@@ -58,6 +60,34 @@ export type ItemFeed = {
   logo?: PosicionLogo | null
   /** "Espora al 3700 | Funes" / "Lote 058 | Vida | Funes" (David, 4-oct: "no te marca la dirección"). */
   direccion?: string | null
+  /** Para el renglón corto de la tarjeta ("3 dorm · 430 m² · lote 800 m²", David 5-oct). */
+  dorm?: number | null
+  m2?: number | null
+  lote?: number | null
+  esLote?: boolean
+}
+
+const m2Texto = (n: number) => `${Math.round(n).toLocaleString('es-AR')} m²`
+
+/**
+ * El renglón de la tarjeta del Tinder (David 5-oct: "molesta tanto texto sobre
+ * la foto… en las casas agregá tamaño de lote si lo tenemos"): dormitorios,
+ * metros y lote. Sin el tipo (el mazo ya es de casas) ni los baños (en ⓘ).
+ * Un lote: "Lote · 930 m²". Sin datos sueltos, el renglón de siempre.
+ */
+export function lineaTarjeta(i: Pick<ItemFeed, 'datos' | 'dorm' | 'm2' | 'lote' | 'esLote'>): string {
+  if (i.esLote) return i.m2 || i.lote ? `Lote · ${m2Texto((i.lote || i.m2)!)}` : i.datos
+  if (i.dorm == null && i.m2 == null) return i.datos
+  const partes = [i.dorm ? `${i.dorm} dorm` : null, i.m2 ? m2Texto(i.m2) : null]
+  // El lote solo si dice algo más que los metros (en un PH sin terreno propio a veces vienen iguales).
+  if (i.lote && (!i.m2 || Math.abs(i.lote - i.m2) > 5)) partes.push(`lote ${m2Texto(i.lote)}`)
+  return partes.filter(Boolean).join(' · ') || i.datos
+}
+
+/** Dónde está, en una línea corta: "Lote 058 · Vida · Funes". */
+export function lugarTarjeta(i: Pick<ItemFeed, 'direccion' | 'zona'>): string | null {
+  const d = i.direccion || i.zona
+  return d ? d.split('|').map((p) => p.trim()).filter(Boolean).join(' · ') : null
 }
 
 /** "Calle | Barrio | Ciudad" sin repetir ("Funes | Funes" → "Funes"; "Kentucky" ≈ "Kentucky Club de Campo"). */
@@ -102,6 +132,10 @@ export function itemDeEnRed(t: TarjetaEnRed): ItemFeed {
     masVista: t.masVista,
     logo: t.logo ?? null,
     direccion: lineaDireccion([t.direccion, t.zona, t.ciudad]),
+    dorm: t.dormitorios,
+    m2: t.m2Total ?? t.m2Cubiertos,
+    lote: t.m2Lote ?? null,
+    esLote: /terreno|lote/i.test(t.tipo),
   }
 }
 
