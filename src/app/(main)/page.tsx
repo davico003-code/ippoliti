@@ -1,7 +1,6 @@
 export const revalidate = 21600
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 import HeroVideo from '@/components/HeroVideo'
 import EmprendimientosHome from '@/components/EmprendimientosHome'
@@ -9,6 +8,7 @@ import HorizontalCarousel from '@/components/HorizontalCarousel'
 import HeroMobile from '@/components/home/HeroMobile'
 import SeleccionCarousel from '@/components/home/SeleccionCarousel'
 import CardMediaButtons from '@/components/CardMediaButtons'
+import FotosDeslizables from '@/components/FotosDeslizables'
 import { esDiaDePartido } from '@/lib/mundial'
 import ProyectosCarousel from '@/components/home/ProyectosCarousel'
 import GuiaSection from '@/components/home/GuiaSection'
@@ -24,6 +24,7 @@ import {
   getFeaturedProperties,
   generatePropertySlug,
   getMainPhoto,
+  getAllPhotos,
   formatPrice,
   getOperationType,
   operationBadgeColor,
@@ -59,7 +60,9 @@ async function FeaturedPropertiesSection() {
   const matchday = esDiaDePartido()
   const renderCard = (property: TokkoProperty, destacada = false) => {
     const slug = generatePropertySlug(property)
-    const photo = getMainPhoto(property)
+    // Portada primero (la misma que se veía sola) y después el resto en orden.
+    const portada = getMainPhoto(property)
+    const fotos = portada ? [portada, ...getAllPhotos(property).filter(f => f !== portada)] : []
     const price = formatPrice(property)
     const operation = getOperationType(property)
     const roofed = getRoofedArea(property)
@@ -97,21 +100,19 @@ async function FeaturedPropertiesSection() {
         {/* Sin recuadro, como /propiedades: foto con las 4 esquinas redondeadas
             sobre blanco. El destaque de día de partido va en la foto. */}
         <div className="relative">
-        <div
-          className="relative w-full bg-gray-100 overflow-hidden rounded-[14px]"
-          style={{
-            aspectRatio: '16 / 9',
-            boxShadow: destacada ? '0 0 0 2px #75AADB, 0 0 0 6px rgba(117,170,219,0.22)' : undefined,
-          }}
+        {/* Las fotos se pasan acá mismo, sin entrar (flechas al pasar el
+            mouse), igual que en /propiedades. */}
+        <FotosDeslizables
+          images={fotos}
+          alt={property.publication_title || address}
+          sizes="(min-width: 768px) 42vw, 90vw"
+          imgClassName="prop-card-img"
+          puntosALaDerecha={agentes.has(property.id)}
+          className="aspect-[16/9]"
+          style={destacada ? { boxShadow: '0 0 0 2px #75AADB, 0 0 0 6px rgba(117,170,219,0.22)' } : undefined}
         >
-          {photo ? (
-            <Image src={photo} alt={property.publication_title || address} fill
-              className="object-cover prop-card-img" sizes="(min-width: 768px) 42vw, 90vw" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
-          )}
           {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
-          <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6 }}>
+          <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 10, display: 'flex', gap: 6, transform: 'translateZ(0)' }}>
             {operation && (
               <span style={{
                 background: operationBadgeColor(operation),
@@ -134,7 +135,7 @@ async function FeaturedPropertiesSection() {
           </div>
           {destacada && (
             <span style={{
-              position: 'absolute', top: 10, right: 10,
+              position: 'absolute', top: 10, right: 10, zIndex: 10,
               background: '#75AADB', color: '#0d3a5c',
               fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
               padding: '3px 10px', borderRadius: 6,
@@ -146,9 +147,9 @@ async function FeaturedPropertiesSection() {
           {/* Play + like juntos, arriba-derecha (oculto en la card "destacada"
               de día de partido, que ya usa ese rincón para la chapa). */}
           {!destacada && (
-            <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5" />
+            <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5 z-10" />
           )}
-        </div>
+        </FotosDeslizables>
         <PastillaAgenteCard agente={agentes.get(property.id)} />
         </div>
         <div style={{ padding: '10px 2px 4px', display: 'flex', alignItems: 'center', gap: 12 }}>
