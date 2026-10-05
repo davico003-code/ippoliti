@@ -8,9 +8,7 @@
 
 import type { Metadata } from 'next'
 import ConoceTuHogar from '@/components/hogar/ConoceTuHogar'
-import { type TipoHogar, type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
-import { type BarrioCerrado, barriosCerradosHogar, ciudadesHogar } from '@/lib/hogar-portadas'
-import { getBarriosHub } from '@/lib/barrios'
+import { type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
 import { ZONAS } from '@/lib/zonas'
 
 export const metadata: Metadata = {
@@ -45,17 +43,9 @@ export default async function ConoceTuHogarPage({ searchParams }: { searchParams
   const tipo = first(searchParams.tipo)
   const tope = Number(first(searchParams.tope))
   const zonas = await catalogo()
-  // Fotos DEL BARRIO (las curadas de /barrios-privados), nunca de una casa.
-  const fotos = getBarriosHub()
-    .filter((b) => b.imagenHero)
-    .map((b) => ({ nombre: b.nombre, foto: b.imagenHero }))
-  const cerrados = {} as Record<TipoHogar, BarrioCerrado[]>
-  for (const t of ['house', 'lot', 'apartment'] as const) cerrados[t] = barriosCerradosHogar(zonas, fotos, t)
   return (
     <ConoceTuHogar
       catalogo={zonas}
-      ciudades={ciudadesHogar(zonas)}
-      cerrados={cerrados}
       zonaInicial={first(searchParams.zona) ?? null}
       tipoInicial={esTipoHogar(tipo) ? tipo : 'house'}
       topeInicial={Number.isFinite(tope) && tope > 0 ? Math.round(tope) : null}
