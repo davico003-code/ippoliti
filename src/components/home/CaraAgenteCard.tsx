@@ -4,7 +4,8 @@ import AgenteAvatar from '@/components/property-detail/AgenteAvatar'
 // a la derecha, montada sobre el borde de la foto (mitad foto, mitad blanco),
 // con su video de saludo (o su foto) y nombre y apellido en una pastilla
 // blanca. Diseño elegido por David el 4-oct-2026 entre varias opciones; a
-// 96 px le pareció "demasiado grande" en la home: 72 compu / 64 celu. En
+// 96 px le pareció "demasiado grande" en la home: 72 compu; en el celu
+// pidió más chica todavía: 52. En
 // /propiedades (lista + mapa) David pidió dejar la pastilla de antes
 // (PastillaAgenteCard).
 //
@@ -13,7 +14,7 @@ import AgenteAvatar from '@/components/property-detail/AgenteAvatar'
 // `espacioCaraAgente` (precio y datos se corren; la dirección pasa por debajo).
 
 export const CARA_AGENTE_COMPU = 72
-export const CARA_AGENTE_CELU = 64
+export const CARA_AGENTE_CELU = 52
 
 const RIGHT = 14
 

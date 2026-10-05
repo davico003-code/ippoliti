@@ -7,6 +7,7 @@ import { EVENTOS_TINDER, type EventoTinder } from '@/lib/tinder-contador'
 // Tinder en el Redis compartido (lo lee Hilo en Resultados → Tinder web):
 //   tinder:dia:<YYYY-MM-DD>           hash  evento → veces · "evento|origen" → veces
 //   tinder:uv:<YYYY-MM-DD>:<evento>   HyperLogLog de personas (v = id por navegador)
+//   tinder:uv:<YYYY-MM-DD>:<evento>|<origen>   ídem por origen (de los que entraron a la home, cuántos abrieron)
 // Día de Argentina. Mismo contrato que si-crm src/lib/tinder/metricas-logic.ts.
 
 // TINDER_PREFIJO solo para pruebas locales (no ensuciar el contador real).
@@ -27,12 +28,15 @@ export async function POST(req: Request) {
     const dia = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
     const kDia = `${PREFIJO}:dia:${dia}`
     const kUv = `${PREFIJO}:uv:${dia}:${evento}`
+    const kUvOrigen = `${kUv}|${origen}`
     const p = redis.pipeline()
     p.hincrby(kDia, evento, 1)
     p.hincrby(kDia, `${evento}|${origen}`, 1)
     p.pfadd(kUv, v)
+    p.pfadd(kUvOrigen, v)
     p.expire(kDia, DIAS_GUARDADO * 86_400)
     p.expire(kUv, DIAS_GUARDADO * 86_400)
+    p.expire(kUvOrigen, DIAS_GUARDADO * 86_400)
     await p.exec()
   } catch (e) {
     console.warn('[tinder-evento]', e instanceof Error ? e.message : e)
