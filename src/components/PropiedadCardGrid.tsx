@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import CardMediaButtons from '@/components/CardMediaButtons'
 import FotosDeslizables from '@/components/FotosDeslizables'
-import CaraAgenteCard, { CARA_AGENTE_CELU, espacioCaraAgente } from '@/components/home/CaraAgenteCard'
+import PastillaAgenteCard from '@/components/home/PastillaAgenteCard'
 import { useAgentePropiedad } from '@/components/AgentesPropiedadContext'
 import {
   type TokkoProperty,
@@ -59,10 +59,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const agenteFeed = property.agente
   const agentePedido = useAgentePropiedad(property.id)
   const agente = agenteFeed === undefined ? agentePedido : agenteFeed ?? undefined
-  // Su cara va a la derecha sobre el borde de la foto: precio y datos le dejan
-  // lugar (el botón de compartir queda junto al precio) y la dirección pasa por
-  // debajo. Las tarjetas del listado son angostas (≥280 px): tamaño celu.
-  const espacio = agente ? espacioCaraAgente(CARA_AGENTE_CELU) : null
   const photos = getAllPhotos(property)
   const fallback = getMainPhoto(property)
   const images = photos.length > 0 ? photos : fallback ? [fallback] : []
@@ -165,13 +161,12 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       onMouseEnter={() => router.prefetch(cardHref)}
     >
       {/* Fotos deslizables (flechas en hover en la compu, swipe en el celu). */}
-      <div className="relative">
       <FotosDeslizables
         images={images}
         alt={address}
         sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw"
         priority={priority}
-        puntosALaIzquierda={!!agente}
+        puntos={agente ? 'derecha' : 'centro'}
         className="aspect-[16/9]"
         style={isSelected ? { boxShadow: '0 0 0 2px #1A5C38' } : undefined}
       >
@@ -209,6 +204,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           )}
         </div>
 
+        {/* Agente que atiende la propiedad (pastilla de vidrio, como en la
+            home). Con agente, los puntitos de las fotos se corren a la derecha. */}
+        <PastillaAgenteCard agente={agente} size={isMobile ? 32 : 34} />
+
         {/* Play arriba-derecha (solo si hay audio). audioUrl ya viene enriquecido
             en el listado (string = hay audio, null = no hay). */}
         <CardMediaButtons
@@ -218,14 +217,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           className="absolute top-2.5 right-2.5 z-10"
         />
       </FotosDeslizables>
-      {/* Agente que atiende la propiedad: cara grande sobre el borde de la
-          foto (como en la home). Los puntitos de las fotos van a la izquierda. */}
-      <CaraAgenteCard agente={agente} size={CARA_AGENTE_CELU} />
-      </div>
 
       {/* Body */}
       <div style={{ padding: '8px 2px' }}>
-        <div style={espacio ? { paddingRight: espacio.derecha, minHeight: espacio.abajo - 8 } : undefined}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
           {esOportunidadConsultanos(property.id) ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
@@ -294,7 +288,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             ))}
           </p>
         )}
-        </div>
 
         <p style={{
           fontFamily: RALEWAY,
@@ -303,8 +296,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           margin: 0,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          // En el celu la dirección se lee entera (baja de renglón si hace falta).
-          whiteSpace: isMobile ? 'normal' : 'nowrap',
+          whiteSpace: 'nowrap',
         }}>
           {direccion || typeName}
         </p>

@@ -1,10 +1,12 @@
 import AgenteAvatar from '@/components/property-detail/AgenteAvatar'
 
-// Cara del agente en las tarjetas de propiedades (home y /propiedades): grande,
+// Cara del agente en las tarjetas de "Nuestra selección" (home): grande,
 // a la derecha, montada sobre el borde de la foto (mitad foto, mitad blanco),
 // con su video de saludo (o su foto) y nombre y apellido en una pastilla
 // blanca. Diseño elegido por David el 4-oct-2026 entre varias opciones; a
-// 96 px le pareció "demasiado grande" en la home: 72 compu / 64 celu.
+// 96 px le pareció "demasiado grande" en la home: 72 compu / 64 celu. En
+// /propiedades (lista + mapa) David pidió dejar la pastilla de antes
+// (PastillaAgenteCard).
 //
 // El padre tiene que ser `relative` y envolver SOLO la foto: la cara se ubica
 // contra su borde de abajo. El cuerpo de la tarjeta le deja lugar con
