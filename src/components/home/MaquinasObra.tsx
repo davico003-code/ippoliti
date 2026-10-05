@@ -5,8 +5,8 @@
 // vehículos nunca se pisen (el tractor frena en el cruce a que pase el camión,
 // el verde entra cuando el camión ya dejó la calle del medio, etc.).
 //
-// Las figuras (public/maquinas/*.svg, las arma scripts/maquinas/generar-
-// sprites.mjs) están en isométrica, el ángulo de la aérea: cada vehículo tiene
+// Las figuras (public/maquinas/*.webp, fotorrealistas generadas con IA y
+// recortadas) están en isométrica, el ángulo de la aérea: cada vehículo tiene
 // una vista "de frente" (va hacia abajo a la derecha) y una "de atrás" (va
 // hacia arriba a la derecha); espejadas cubren las cuatro direcciones de las
 // calles, así nunca se ve girado raro.
@@ -20,41 +20,41 @@
 
 type P = readonly [number, number]
 
-/** px de la foto por metro del vehículo. La escala real de la aérea es ~1,2:
- *  se agranda para que se reconozcan como tractores y camiones. */
-const ESCALA = 5
-
+// Tamaños en px de la foto aérea. La escala real es ~1,2 px por metro: los
+// vehículos van ~4× más grandes para que se reconozcan.
 interface Vista {
   href: string
-  /** Tamaño del viewBox de la figura, en metros (lo imprime el generador).
-   *  La figura está centrada en el punto del piso donde va la ruta. */
   w: number
   h: number
 }
+
+/** Dónde pisa la figura: centrada en x y a este alto (desde arriba), que es
+ *  el centro del vehículo sobre el piso en la isométrica. */
+const ANCLA_Y = 0.72
 
 interface Modelo {
   /** Va hacia abajo a la derecha: se le ve el frente. */
   frente: Vista
   /** Va hacia arriba a la derecha: se le ve la parte de atrás. */
   atras: Vista
-  /** Largo del vehículo en metros (para la sombra y el polvo). */
+  /** Largo del vehículo sobre la calle (para la sombra y el polvo). */
   largo: number
 }
 
 const TRACTOR_ROJO: Modelo = {
-  frente: { href: '/maquinas/tractor-rojo-frente.svg', w: 5.86, h: 8.27 },
-  atras: { href: '/maquinas/tractor-rojo-atras.svg', w: 5.86, h: 6.27 },
-  largo: 4.2,
+  frente: { href: '/maquinas/tractor-rojo-frente.webp', w: 27, h: 27.73 },
+  atras: { href: '/maquinas/tractor-rojo-atras.webp', w: 27, h: 25.09 },
+  largo: 21,
 }
 const TRACTOR_VERDE: Modelo = {
-  frente: { href: '/maquinas/tractor-verde-frente.svg', w: 5.86, h: 8.27 },
-  atras: { href: '/maquinas/tractor-verde-atras.svg', w: 5.86, h: 6.27 },
-  largo: 4.2,
+  frente: { href: '/maquinas/tractor-verde-frente.webp', w: 27, h: 26.07 },
+  atras: { href: '/maquinas/tractor-verde-atras.webp', w: 27, h: 26.92 },
+  largo: 21,
 }
 const CAMION: Modelo = {
-  frente: { href: '/maquinas/camion-frente.svg', w: 9.29, h: 10.55 },
-  atras: { href: '/maquinas/camion-atras.svg', w: 9.29, h: 11.4 },
-  largo: 8,
+  frente: { href: '/maquinas/camion-frente.webp', w: 46, h: 41.2 },
+  atras: { href: '/maquinas/camion-atras.webp', w: 46, h: 43 },
+  largo: 40,
 }
 
 interface Recorrido {
@@ -227,7 +227,7 @@ const AVANCE: Record<Rumbo, P> = {
 
 function Vehiculo({ m }: { m: Recorrido }) {
   const c = cronograma(m)
-  const largo = m.modelo.largo * ESCALA
+  const largo = m.modelo.largo
   return (
     <g opacity={0}>
       <animateMotion {...COMUN} calcMode="linear" path={c.d} rotate="0" keyTimes={c.mov.keyTimes} keyPoints={c.mov.values} />
@@ -256,10 +256,10 @@ function Vehiculo({ m }: { m: Recorrido }) {
               {ay > 0 && polvo}
               <image
                 href={v.href}
-                x={r2((-v.w * ESCALA) / 2)}
-                y={r2((-v.h * ESCALA) / 2)}
-                width={r2(v.w * ESCALA)}
-                height={r2(v.h * ESCALA)}
+                x={r2(-v.w / 2)}
+                y={r2(-v.h * ANCLA_Y)}
+                width={v.w}
+                height={v.h}
                 transform={r.endsWith('Espejo') ? 'scale(-1 1)' : undefined}
               />
               {ay < 0 && polvo}
