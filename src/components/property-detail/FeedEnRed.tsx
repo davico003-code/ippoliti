@@ -9,7 +9,7 @@
 // Mazo = las nuestras del barrio (sello verde) + las "En red" (otras
 // inmobiliarias, dicho abiertamente).
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { MapPin } from 'lucide-react'
@@ -24,8 +24,7 @@ import {
   estiloSinLogo,
   itemDeEnRed,
   pluralTipo,
-  textoDorm,
-  textoTope,
+  textoBusqueda,
   tipoHogarDeTokko,
 } from '@/lib/feed-en-red'
 import type { ValoresAfinar } from '@/components/mazo/AfinarBusqueda'
@@ -119,6 +118,8 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const [afinado, setAfinado] = useState<{ valores: ValoresAfinar; items: ItemFeed[] } | null>(null)
   const [estadoAfinar, setEstadoAfinar] = useState<'listo' | 'buscando' | 'vacio'>('listo')
   const [rondaAfinar, setRondaAfinar] = useState(0)
+  /** Cada búsqueda (y cerrar el mazo) sube esto: una respuesta vieja no pisa nada. */
+  const pedidoAfinar = useRef(0)
   // La misma ficha se abre ADENTRO de la selección del cliente
   // (/seleccion/ficha/…): ahí no va el mazo ni su "que me escriba un asesor"
   // (entraría como consulta nueva por turno, aunque ese cliente ya tiene asesor).
@@ -177,6 +178,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
   const criterios: CriteriosBusqueda = { zona: barrio, tipo: tipoHogarDeTokko(property.type?.id), topeUsd: null, origen: 'ficha' }
   const zonasAfinar = [...(barrio && !CIUDADES_AFINAR.includes(barrio) ? [barrio] : []), ...CIUDADES_AFINAR]
   const aplicarAfinar = async (v: ValoresAfinar) => {
+    const pedido = ++pedidoAfinar.current
     setEstadoAfinar('buscando')
     const p = new URLSearchParams({ zona: v.zona, tipo: tipoHogar })
     if (v.tope) p.set('tope', String(v.tope))
@@ -186,17 +188,20 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
       const r = await fetch(`/api/propiedades/hogar?${p.toString()}`)
       const d: { items?: ItemFeed[] } = r.ok ? await r.json() : {}
       const nuevas = Array.isArray(d.items) ? d.items.filter((i) => i.key !== `n:${property.id}`) : []
+      // Cerró el mazo (o pidió otra) mientras buscaba: esta respuesta ya no va.
+      if (pedido !== pedidoAfinar.current) return
       if (!nuevas.length) return setEstadoAfinar('vacio')
       setAfinado({ valores: v, items: nuevas })
       setEstadoAfinar('listo')
       setRondaAfinar((x) => x + 1)
     } catch {
-      setEstadoAfinar('vacio')
+      if (pedido === pedidoAfinar.current) setEstadoAfinar('vacio')
     }
   }
-  // Lo que eligió al afinar, para el aviso al asesor ("casas de 3 dormitorios o más en Funes hasta USD 500 mil").
-  const busquedaAfinada = afinado
-    ? `${plural}${afinado.valores.dorm ? ` de ${textoDorm(afinado.valores.dorm)}` : ''}${afinado.valores.barrio ? ` en barrio ${afinado.valores.barrio}` : ''} en ${afinado.valores.zona}${afinado.valores.tope ? ` hasta ${textoTope(afinado.valores.tope)}` : ''}`
+  // Lo que eligió al afinar: viaja con la consulta (texto para el asesor) y con
+  // el mail (Hilo lo escribe en el contacto para los envíos). Sin afinar, la ficha.
+  const criteriosAfinados: CriteriosBusqueda | null = afinado
+    ? { zona: afinado.valores.zona, tipo: tipoHogar, topeUsd: afinado.valores.tope, dormMin: afinado.valores.dorm, barrio: afinado.valores.barrio, origen: 'ficha' }
     : null
 
   if (enRed.length === 0 || dentroDeSeleccion) return null
@@ -291,8 +296,8 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
           inicio={abiertoEn}
           guardadasApi={guardadasApi}
           origen="ficha"
-          busqueda={busquedaAfinada}
-          criterios={criterios}
+          busqueda={criteriosAfinados ? textoBusqueda(criteriosAfinados) : null}
+          criterios={criteriosAfinados ?? criterios}
           cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipoHogar, tope, yaVistas)}
           afinar={{
             tipo: tipoHogar,
@@ -304,6 +309,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
             onAplicar: (v) => void aplicarAfinar(v),
           }}
           onCerrar={() => {
+            pedidoAfinar.current++
             setAbiertoEn(null)
             setAfinado(null)
             setEstadoAfinar('listo')
