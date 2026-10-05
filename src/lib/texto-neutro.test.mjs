@@ -1,10 +1,6 @@
-// Correr con tsx (resuelve el import sin extensión de formatDescription):
-//   npx tsx --test src/lib/ficha-titular.test.mjs
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-const mod = await import('./ficha-titular.ts')
-const { limpiarTextoNeutro } = mod.default ?? mod
+import { limpiarTextoNeutro } from './texto-neutro.ts'
 
 test('saca las oraciones que invitan a contactar', () => {
   const t = 'Casa en Funes con pileta.\n\nServicios: luz, agua y gas natural. Consultanos para coordinar una visita.\n\nPara más información o coordinar una visita, comunicate con nosotros.'
