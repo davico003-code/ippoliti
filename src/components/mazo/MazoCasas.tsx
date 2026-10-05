@@ -567,7 +567,7 @@ export default function MazoCasas({
               />
             </>
           ) : preguntaParecidos ? (
-            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-6 flex flex-col justify-center">
+            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 pt-16 pb-6 flex flex-col justify-center">
               <PreguntaParecidos
                 barrio={barrio}
                 parecidos={parecidos}
@@ -579,7 +579,7 @@ export default function MazoCasas({
           ) : g > 0 || enviada === 'linea' ? (
             // El CTA AL FINAL con las elegidas (David, 3-oct): el formulario ya está acá.
             // Al enviar, las ♥ se limpian pero el "Listo" sigue a la vista.
-            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
+            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 pt-16 pb-5">
               <HojaContacto
                 origen={origen}
                 enLinea
@@ -599,7 +599,7 @@ export default function MazoCasas({
               />
             </div>
           ) : (
-            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
+            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 pt-16 pb-5">
               {rescateVisto || enviada ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   <p className="text-xl font-black text-gray-900 font-raleway">Viste las {n}</p>
