@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { getSeleccion, getReacciones, incrementViewCount } from '@/lib/redis'
 import { getAgentePhoto } from '@/lib/agente-foto'
 import { armarItems } from '@/lib/seleccion-items'
+import { isLikelyBot } from '@/lib/ficha'
 import ClientShortlist from '@/components/seleccion/ClientShortlist'
 
-interface Props { params: { token: string } }
+interface Props { params: { token: string }; searchParams?: { vista?: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const session = await getSeleccion(params.token)
@@ -15,8 +17,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function SeleccionPage({ params }: Props) {
+export default async function SeleccionPage({ params, searchParams }: Props) {
   const session = await getSeleccion(params.token)
+  // Un asesor la abre desde Hilo (?vista=asesor) para ver qué le gustó al
+  // cliente: no cuenta como que el cliente la abrió y no guarda sus toques.
+  const asesor = searchParams?.vista === 'asesor'
+  // La vista previa de WhatsApp (y otros bots) baja la página cuando el asesor
+  // manda el link: tampoco es el cliente abriéndola (igual que las fichas).
+  const contarVista = !asesor && !isLikelyBot(headers().get('user-agent'))
 
   if (!session) {
     return (
@@ -49,7 +57,7 @@ export default async function SeleccionPage({ params }: Props) {
     getAgentePhoto(session.agentName || session.agent),
     armarItems(session.properties ?? []),
     // El contador de vistas no frena la página (antes iba después, en serie).
-    incrementViewCount(params.token).catch(() => {}),
+    contarVista ? incrementViewCount(params.token).catch(() => {}) : null,
   ])
 
   return (
@@ -61,6 +69,7 @@ export default async function SeleccionPage({ params }: Props) {
       initialReactions={reactions}
       token={params.token}
       agentPhoto={agentPhoto}
+      soloMirar={asesor}
     />
   )
 }

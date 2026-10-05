@@ -57,7 +57,7 @@ function escribirLocal(clave: string, valor: string[] | string) {
 const esCelular = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
 
 export default function ClientShortlist({
-  clientName, agentName, note, items, initialReactions, token, agentPhoto,
+  clientName, agentName, note, items, initialReactions, token, agentPhoto, soloMirar = false,
 }: {
   clientName: string
   agentName: string
@@ -66,6 +66,8 @@ export default function ClientShortlist({
   initialReactions: Record<string, Reaction & { updatedAt?: string }>
   token: string
   agentPhoto?: string | null
+  /** El asesor mirando desde Hilo (?vista=asesor): puede tocar todo, nada se guarda. */
+  soloMirar?: boolean
 }) {
   const claveIntro = `seleccion:${token}:intro`
   const claveDescartadas = `seleccion:${token}:parecidas-descartadas`
@@ -115,6 +117,7 @@ export default function ClientShortlist({
     const body = porGuardar.current[id]
     if (!body) return
     delete porGuardar.current[id]
+    if (soloMirar) return
     const mandar = () =>
       fetch(`/api/seleccion/${token}/reaccion`, {
         method: 'PATCH',
@@ -129,7 +132,7 @@ export default function ClientShortlist({
     }
     // Si una tarda (sumar una parecida le pide a HILO), la siguiente no espera más de 8 s.
     cola.current = cola.current.then(() => Promise.race([mandar(), new Promise((r) => setTimeout(r, 8000))]))
-  }, [token])
+  }, [token, soloMirar])
 
   const flush = useCallback((urgente = false) => {
     for (const id of Object.keys(porGuardar.current)) {
@@ -404,6 +407,11 @@ export default function ClientShortlist({
   return (
     <div className="min-h-[100dvh] bg-[#F4F6F5] text-[#111814]" style={{ fontFamily: 'var(--font-raleway), Raleway, system-ui, sans-serif' }}>
       <style>{CSS}</style>
+      {soloMirar && (
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex justify-center pt-[max(6px,env(safe-area-inset-top))]" role="status">
+          <span className="rounded-full bg-[#111814]/85 px-3 py-1 text-[13px] font-semibold text-white shadow">Vista del asesor · lo que toques no se guarda</span>
+        </div>
+      )}
 
       {/* ── Celular ── */}
       <div className="md:hidden">
