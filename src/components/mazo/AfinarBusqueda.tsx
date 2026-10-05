@@ -81,7 +81,7 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
         )}
 
         <fieldset className="mt-4">
-          <legend className="mb-2 text-[13px] font-bold uppercase tracking-wider text-white/60">Hasta</legend>
+          <legend className="mb-2 text-[13px] font-bold uppercase tracking-wider text-white/60">Precio</legend>
           <div className="flex flex-wrap gap-2">
             {topes.map((t) => (
               <button key={t} type="button" aria-pressed={v.tope === t} onClick={() => setV((x) => ({ ...x, tope: t }))} className={chip(v.tope === t)} style={fondo(v.tope === t)}>
@@ -89,7 +89,7 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
               </button>
             ))}
             <button type="button" aria-pressed={v.tope == null} onClick={() => setV((x) => ({ ...x, tope: null }))} className={chip(v.tope == null)} style={fondo(v.tope == null)}>
-              Sin tope
+              Todos
             </button>
           </div>
         </fieldset>

@@ -39,7 +39,7 @@ import {
   cantidadZona,
   sugerirZonas,
   textoDorm,
-  textoTope,
+  textoPrecio,
 } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
 import { contarTinder } from '@/lib/tinder-contador'
@@ -345,7 +345,7 @@ export default function ConoceTuHogar({
   // Lo lee el asesor en Hilo ("Buscó en la web: …").
   const busqueda = `${plural}${dorm ? ` de ${textoDorm(dorm)}` : ''}${barrio ? ` en barrio ${barrio}` : ''}${
     cerca ? ` cerca de su ubicación${ciudadCerca ? `, en ${ciudadCerca},` : ''}` : ''
-  }${tope ? ` hasta ${textoTope(tope)}` : ''}`
+  }${tope ? ` ${textoPrecio(tope)}` : ''}`
   // En "Cerca mío" la zona del mail y de la consulta es la ciudad de la más cercana.
   const criterios: CriteriosBusqueda = { zona: zona?.nombre ?? ciudadCerca, tipo, topeUsd: tope, dormMin: dorm, barrio, origen: 'conoce_tu_hogar' }
   const ciudadEntera = zona && !zona.esCiudad && zona.ciudad ? zonaPorNombre(catalogo, zona.ciudad) : null
@@ -419,7 +419,7 @@ export default function ConoceTuHogar({
           opciones={TIPOS_HOGAR.map((t) => ({ v: t.id, label: t.label }))}
           valor={tipo}
           onChange={(t) => {
-            // Los topes cambian con el tipo (un lote de 250 mil no es lo mismo que una casa).
+            // Los precios cambian con el tipo (un lote de 250 mil no es lo mismo que una casa).
             if (t !== tipo) setTope(null)
             setTipo(t)
           }}
@@ -477,8 +477,9 @@ export default function ConoceTuHogar({
         )}
 
         <Segmentos<number | null>
-          etiqueta="Hasta (dólares)"
-          opciones={[{ v: null, label: 'Sin tope' }, ...TOPES_HOGAR[tipo].slice(0, 3).map((v) => ({ v, label: textoTope(v).replace('USD ', '') }))]}
+          // Un valor, no un techo: busca ±20 % (David 5-oct). Los 4 precios ("500 mil" también) en miles para que entren en el celu.
+          etiqueta="Precio (miles de dólares)"
+          opciones={[{ v: null, label: 'Todos' }, ...TOPES_HOGAR[tipo].map((v) => ({ v, label: String(v / 1000) }))]}
           valor={tope}
           onChange={setTope}
         />
@@ -516,7 +517,7 @@ export default function ConoceTuHogar({
           <div ref={sinResultadosRef} className="mt-6 rounded-2xl bg-[#F6F8F6] px-4 py-3.5">
             <p className="text-[16px] font-semibold text-[#121A15]">
               {zona ? `Todavía no tenemos ${textoSinResultados} en ${zona.nombre}` : `No hay ${textoSinResultados} a menos de 15 km tuyo`}
-              {tope ? ` hasta ${textoTope(tope)}` : ''}.
+              {tope ? ` ${textoPrecio(tope)}` : ''}.
             </p>
             {cerca && <p className="mt-1 text-[15px] text-[#3C4A42]">Elegí Funes, Roldán o Rosario arriba.</p>}
             <div className="mt-2.5 flex flex-wrap gap-2">

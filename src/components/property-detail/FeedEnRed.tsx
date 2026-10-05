@@ -164,17 +164,17 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
     return [...nuestrasZona, ...enRed]
   }, [cercanas, nuestras, property, enRed])
   const barrio = datos?.barrio || property.location?.name || null
-  // Barrios parecidos (al final del mazo, si dice que sí): mismo tipo y hasta
-  // un 25 % más caras que esta, como las En red que ya eligió Hilo.
+  // Barrios parecidos (al final del mazo, si dice que sí): mismo tipo y ±20 %
+  // del precio de esta (el precio de /api/propiedades/hogar es un valor, no un techo).
   const tipoHogar = TIPOS_HOGAR.find((t) => t.tokkoIds.includes(property.type?.id ?? -1))?.id ?? 'house'
   const precioVenta = (property.operations ?? [])
     .find((o) => o.operation_type === 'Sale')
     ?.prices?.find((x) => x.currency === 'USD' && x.price > 0)?.price
-  const tope = precioVenta ? Math.round(precioVenta * 1.25) : null
+  const tope = precioVenta ? Math.round(precioVenta) : null
   const plural = pluralTipo(translatePropertyType(property.type?.name))
   const titulo = barrio ? `Más ${plural} en ${barrio}` : `Más ${plural} en la zona`
   // Lo que viaja con el mail si quiere recibir las nuevas: el barrio y el tipo de
-  // esta ficha. Sin tope: no lo eligió él (el +25 % es solo para los parecidos).
+  // esta ficha. Sin precio: no lo eligió él (el de la ficha es solo para los parecidos).
   const criterios: CriteriosBusqueda = { zona: barrio, tipo: tipoHogarDeTokko(property.type?.id), topeUsd: null, origen: 'ficha' }
   const zonasAfinar = [...(barrio && !CIUDADES_AFINAR.includes(barrio) ? [barrio] : []), ...CIUDADES_AFINAR]
   const aplicarAfinar = async (v: ValoresAfinar) => {
