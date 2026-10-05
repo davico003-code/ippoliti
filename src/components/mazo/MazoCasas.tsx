@@ -53,6 +53,7 @@ import { SuscripcionMail } from './SuscripcionMail'
 import { type Arrastre, type Salida, type Tendencia, BotonesTinder, DURACION_SALIDA, Tarjeta, UMBRAL_SUPER, UMBRAL_SWIPE, direccionDe, paresDe } from './Tarjeta'
 import { ORO_VOLVER } from './marca-mazo'
 import { useAlbumMazo } from './useAlbumMazo'
+import { ESTILOS_MAZO } from './piel-oscura'
 import { useGuardadas } from './useGuardadas'
 
 // Lo que usan la ficha (FeedEnRed) y "Conocé tu próximo hogar" sale de acá, como siempre.
@@ -529,7 +530,7 @@ export default function MazoCasas({
       <style dangerouslySetInnerHTML={{ __html: ESTILOS_MAZO }} />
       {/* NEGRO como Tinder (David 5-oct: "que se sienta una app real… bien inmersivo"):
           sin encabezado, sin "1 de 24" ni cuántas le gustaron; la X y "afinar" van adentro de la foto. */}
-      <div className="relative flex flex-col h-[100dvh] w-full bg-black pt-[max(6px,env(safe-area-inset-top))] md:h-[92vh] md:max-w-[440px] md:rounded-3xl md:shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="mazo-oscuro relative flex flex-col h-[100dvh] w-full bg-black pt-[max(6px,env(safe-area-inset-top))] md:h-[92vh] md:max-w-[440px] md:rounded-3xl md:shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden">
         {/* Mazo: hasta abajo de todo (los botones van adentro de la foto) */}
         <div className={`relative flex-1 mx-1.5 min-h-0 ${volverFinal ? '' : 'mb-[max(6px,env(safe-area-inset-bottom))]'}`}>
           {!terminado && actual ? (
@@ -567,7 +568,7 @@ export default function MazoCasas({
               />
             </>
           ) : preguntaParecidos ? (
-            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-6 flex flex-col justify-center">
+            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 pt-16 pb-6 flex flex-col justify-center">
               <PreguntaParecidos
                 barrio={barrio}
                 parecidos={parecidos}
@@ -579,7 +580,7 @@ export default function MazoCasas({
           ) : g > 0 || enviada === 'linea' ? (
             // El CTA AL FINAL con las elegidas (David, 3-oct): el formulario ya está acá.
             // Al enviar, las ♥ se limpian pero el "Listo" sigue a la vista.
-            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
+            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 pt-16 pb-5">
               <HojaContacto
                 origen={origen}
                 enLinea
@@ -599,7 +600,7 @@ export default function MazoCasas({
               />
             </div>
           ) : (
-            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 py-5">
+            <div className="absolute inset-0 rounded-3xl border border-gray-200 bg-white overflow-y-auto px-5 pt-16 pb-5">
               {rescateVisto || enviada ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   <p className="text-xl font-black text-gray-900 font-raleway">Viste las {n}</p>
@@ -786,11 +787,3 @@ export default function MazoCasas({
   )
 }
 
-/** Animaciones del mazo (el latido del ♥ N y el aviso). Sin movimiento si el sistema lo pide. */
-const ESTILOS_MAZO = `
-@keyframes mazo-latido { 0% { transform: scale(1) } 35% { transform: scale(1.45) } 100% { transform: scale(1) } }
-@keyframes mazo-aviso { 0% { transform: translateY(-16px); opacity: 0 } 100% { transform: none; opacity: 1 } }
-.mazo-latido { animation: mazo-latido 420ms ease-out }
-.mazo-aviso { animation: mazo-aviso 220ms ease-out both }
-@media (prefers-reduced-motion: reduce) { .mazo-latido, .mazo-aviso { animation: none } }
-`

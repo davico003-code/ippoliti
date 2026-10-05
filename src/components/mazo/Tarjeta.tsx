@@ -167,7 +167,7 @@ export function Tarjeta({
       {pares > 1 && (
         <div className="absolute top-2 left-2.5 right-2.5 flex gap-1">
           {Array.from({ length: pares }, (_, i) => (
-            <span key={i} className={`h-[3px] flex-1 rounded-full ${i === p ? 'bg-white' : 'bg-white/40'}`} />
+            <span key={i} className={`h-[3px] flex-1 rounded-full ${i === p ? 'bg-[#fff]' : 'bg-white/40'}`} />
           ))}
         </div>
       )}

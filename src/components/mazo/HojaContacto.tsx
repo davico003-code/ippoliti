@@ -133,7 +133,7 @@ export default function HojaContacto({
                   <div key={g.key} className="rounded-xl overflow-hidden border border-gray-100 bg-white">
                     <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                       {g.foto && <Image src={g.foto} alt="" fill sizes="(max-width: 480px) 50vw, 200px" className="object-cover" style={estiloSinLogo(g.logo)} />}
-                      <span className="absolute top-1.5 right-1.5 grid h-7 w-7 place-items-center rounded-full bg-white shadow-sm" style={{ color: CORAZON }}>
+                      <span className="absolute top-1.5 right-1.5 grid h-7 w-7 place-items-center rounded-full bg-[#fff] shadow-sm" style={{ color: CORAZON }}>
                         <Corazon lleno className="w-4 h-4" />
                       </span>
                     </div>
@@ -161,7 +161,7 @@ export default function HojaContacto({
                   <span className="block font-bold truncate">{nombre}</span>
                   <span className="block text-gray-600 truncate">{whatsapp}</span>
                 </p>
-                <button type="button" onClick={() => setConocido(false)} className="flex-none text-[14px] font-semibold underline underline-offset-2" style={{ color: VERDE }}>
+                <button type="button" onClick={() => setConocido(false)} className="mazo-verde-texto flex-none text-[14px] font-semibold underline underline-offset-2" style={{ color: VERDE }}>
                   Cambiar
                 </button>
               </div>

@@ -139,7 +139,7 @@ export default function DetalleMazo({
           {s && (
             <>
               <div className="mt-4">
-                <StatsFicha snapshot={s} />
+                <StatsFicha snapshot={s} oscuro />
               </div>
 
               <section className="mt-6" aria-labelledby="detalle-ubicacion">
@@ -165,18 +165,18 @@ export default function DetalleMazo({
               </section>
 
               <section className="mt-6">
-                <DatosFicha snapshot={s} />
+                <DatosFicha snapshot={s} oscuro />
               </section>
 
               {s.caracteristicas?.length > 0 && (
                 <section className="mt-6">
-                  <AmenityChips caracteristicas={s.caracteristicas} extras={s.extras} />
+                  <AmenityChips caracteristicas={s.caracteristicas} extras={s.extras} oscuro />
                 </section>
               )}
 
               {descripcion.trim() && (
                 <section className="mt-6">
-                  <StructuredDescription text={descripcion} />
+                  <StructuredDescription text={descripcion} oscuro />
                 </section>
               )}
 

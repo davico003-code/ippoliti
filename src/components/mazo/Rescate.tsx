@@ -150,7 +150,7 @@ export default function Rescate({
   if (listo) {
     return (
       <div className="text-center py-3">
-        <div className="text-4xl" style={{ color: VERDE }} aria-hidden="true">
+        <div className="mazo-verde-texto text-4xl" style={{ color: VERDE }} aria-hidden="true">
           ✓
         </div>
         <h3 className="text-lg font-black text-gray-900 mt-1 font-raleway">Listo</h3>
@@ -186,7 +186,7 @@ export default function Rescate({
         })}
       </div>
       {ofrecerParecidos && (
-        <div className="mb-4 rounded-2xl p-3.5" style={{ background: '#EAF3EE' }}>
+        <div className="mb-4 rounded-2xl p-3.5 bg-[#EAF3EE]">
           <p className="text-[16px] font-bold text-gray-900">¿Te muestro casas en barrios parecidos?</p>
           <p className="text-[15px] text-gray-700 mt-0.5">{listaBarrios(parecidos)}</p>
           {parecidasEstado === 'vacio' ? (

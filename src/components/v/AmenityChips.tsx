@@ -21,7 +21,7 @@ import {
   Wifi,
   Zap,
 } from 'lucide-react'
-import { FONDO_SUAVE, TINTA, tituloSeccion } from './estilos'
+import { coloresFicha, tituloSeccion } from './estilos'
 
 type IconC = LucideIcon
 
@@ -53,11 +53,11 @@ const ICON_RULES: Array<{ keyword: string; Icon: IconC }> = [
   { keyword: 'energia', Icon: Zap },
 ]
 
-function pickIcon(name: string): ReactNode {
+function pickIcon(name: string, color: string): ReactNode {
   const low = name.toLowerCase()
   for (const r of ICON_RULES) {
     if (low.includes(r.keyword)) {
-      return <r.Icon size={15} strokeWidth={1.7} color={TINTA} aria-hidden />
+      return <r.Icon size={15} strokeWidth={1.7} color={color} aria-hidden />
     }
   }
   return null
@@ -66,10 +66,14 @@ function pickIcon(name: string): ReactNode {
 export default function AmenityChips({
   caracteristicas,
   extras,
+  oscuro = false,
 }: {
   caracteristicas: string[]
   extras?: Array<{ name: string; value: string }>
+  /** Sobre el negro del Tinder (Ver detalles). */
+  oscuro?: boolean
 }) {
+  const { FONDO, FONDO_SUAVE, TINTA } = coloresFicha(oscuro)
   // Combino tags + extras (estos son atributos custom de Tokko que pueden ser
   // amenities adicionales como "Pileta", "Quincho", etc., con value "Sí").
   const all: string[] = []
@@ -91,7 +95,7 @@ export default function AmenityChips({
 
   return (
     <section style={{ marginTop: 32 }}>
-      <h2 style={tituloSeccion}>Características</h2>
+      <h2 style={{ ...tituloSeccion, color: TINTA }}>Características</h2>
 
       <ul
         style={{
@@ -118,7 +122,7 @@ export default function AmenityChips({
               lineHeight: 1.3,
             }}
           >
-            {pickIcon(name)}
+            {pickIcon(name, TINTA)}
             <span>{name}</span>
           </li>
         ))}
@@ -130,7 +134,7 @@ export default function AmenityChips({
               style={{
                 minHeight: 36,
                 padding: '8px 12px',
-                background: '#fff',
+                background: FONDO,
                 border: `1px solid ${TINTA}`,
                 borderRadius: 999,
                 fontSize: 14,
