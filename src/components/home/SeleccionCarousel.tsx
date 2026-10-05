@@ -20,7 +20,7 @@ import {
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 import EncabezadoSeccion from './EncabezadoSeccion'
-import PastillaAgenteCard from './PastillaAgenteCard'
+import CaraAgenteCard, { CARA_AGENTE_CELU, espacioCaraAgente } from './CaraAgenteCard'
 import { ArrowRight } from 'lucide-react'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 
@@ -67,6 +67,11 @@ export default async function SeleccionCarousel() {
           const direccion = formatDireccionCompleta(p, address, ' | ')
           const typeName = propertyTypeLabelById(p.type?.id)
           const badge = getBadge(p)
+          // Con agente, su cara va a la derecha sobre el borde de la foto:
+          // precio y datos le dejan lugar, la dirección pasa por debajo y se
+          // lee entera, y la flecha se va (la cara invita a entrar).
+          const agente = agentes.get(p.id)
+          const espacio = agente ? espacioCaraAgente(CARA_AGENTE_CELU) : null
 
           const specs: string[] = []
           if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
@@ -96,7 +101,7 @@ export default async function SeleccionCarousel() {
                 priority={i === 0}
                 swipe={false}
                 flechasSiempre
-                puntosALaDerecha={agentes.has(p.id)}
+                puntosALaIzquierda={!!agente}
                 className="aspect-video"
               >
                 {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
@@ -118,10 +123,11 @@ export default async function SeleccionCarousel() {
                     client-side por lote. */}
                 <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3 z-10" />
               </FotosDeslizables>
-              <PastillaAgenteCard agente={agentes.get(p.id)} size={32} />
+              <CaraAgenteCard agente={agente} size={CARA_AGENTE_CELU} />
               </div>
               <div className="px-0.5 pt-2.5 pb-1 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
+                <div style={espacio ? { paddingRight: espacio.derecha, minHeight: espacio.abajo - 10 } : undefined}>
                 {esOportunidadConsultanos(p.id) ? (
                   <div className="flex items-center gap-2">
                     <span className="font-poppins font-extrabold text-[10.5px] uppercase tracking-wider text-gray-900 rounded-md px-2 py-1 whitespace-nowrap" style={{ background: '#fbce07' }}>
@@ -141,13 +147,16 @@ export default async function SeleccionCarousel() {
                     {specs.join(' · ')}
                   </p>
                 )}
-                <p className="font-poppins text-[12px] text-gray-500 mt-1 truncate">
+                </div>
+                <p className="font-poppins text-[12px] text-gray-500 mt-1">
                   {direccion || address}
                 </p>
                 </div>
-                <span className="flex-shrink-0 w-10 h-10 rounded-full border-[1.5px] border-gray-200 flex items-center justify-center text-gray-900" aria-hidden="true">
-                  <ArrowRight size={17} strokeWidth={2} />
-                </span>
+                {!agente && (
+                  <span className="flex-shrink-0 w-10 h-10 rounded-full border-[1.5px] border-gray-200 flex items-center justify-center text-gray-900" aria-hidden="true">
+                    <ArrowRight size={17} strokeWidth={2} />
+                  </span>
+                )}
               </div>
             </Link>
           )
