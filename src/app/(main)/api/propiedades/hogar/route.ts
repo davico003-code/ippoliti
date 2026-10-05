@@ -40,13 +40,16 @@ const MAX_NUESTRAS = 40
 
 type Respuesta = { zona: string; items: ItemFeed[] }
 
+/** `fallo`: Hilo no respondió (no es lo mismo que "no hay de colegas"). */
+type EnRed = FeedEnRed & { fallo?: boolean }
+
 async function enRedDeHilo(
   donde: { zona: string } | { cerca: PuntoCerca },
   tipo: string,
   tope: number | null,
   dorm: number | null,
   barrio: string | null,
-): Promise<FeedEnRed> {
+): Promise<EnRed> {
   const zona = 'zona' in donde ? donde.zona : null
   const secret = process.env.HILO_INGEST_SECRET
   if (!secret) return { barrio: zona, tarjetas: [] }
@@ -67,7 +70,7 @@ async function enRedDeHilo(
   } catch (e) {
     console.warn('[hogar] en-red', e instanceof Error ? e.message : e)
     // Sin En red el mazo sigue con las nuestras.
-    return { barrio: zona, tarjetas: [] }
+    return { barrio: zona, tarjetas: [], fallo: true }
   }
 }
 
@@ -127,6 +130,8 @@ export async function GET(request: NextRequest) {
     })
     for (const t of tarjetasRed) ciudadDe.set(t.id, t.ciudad ?? null)
     const items = masCercanas([...nuestrasCerca, ...tarjetasRed.map(itemDeEnRed)].filter((i) => i.fotos.length > 0))
+    // Sin nuestras cerca y Hilo caído: es un fallo (la pantalla ofrece Reintentar), no "no hay casas a 15 km".
+    if (items.length === 0 && red.fallo) return NextResponse.json({ error: 'No se pudo buscar' }, { status: 502, headers: { 'Cache-Control': 'no-store' } })
     const body: Respuesta = { zona: (items[0] && ciudadDe.get(items[0].key)) || '', items }
     return NextResponse.json(body, { headers: { 'Cache-Control': 'no-store' } })
   }
