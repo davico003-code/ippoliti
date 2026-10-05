@@ -1391,11 +1391,16 @@ async function mandarConsulta(p: {
   /** Tocó ★ "Quiero verla": el asesor sabe que quiere coordinar la visita. */
   visita?: boolean
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  // Se marcan ANTES de salir (si toca ★ y ♥ N seguidos no viajan dos veces); si falla, se desmarcan.
+  // Se marcan ANTES de salir (si toca ★ y ♥ N seguidos no viajan dos veces); si
+  // falla, se desmarcan SOLO las que marcó este envío (las de antes ya las tiene un asesor).
+  const yaEstaban = new Set(leerEnviadas())
+  const marcadasAhora = p.keys.filter((k) => !yaEstaban.has(k))
   marcarEnviadas(p.keys)
   try {
     const res = await fetch('/api/feed-en-red/consulta', {
       method: 'POST',
+      // Sale aunque cierre la pestaña en ese segundo (ya figura como enviada).
+      keepalive: true,
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         nombre: p.nombre,
@@ -1411,7 +1416,7 @@ async function mandarConsulta(p: {
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
-      desmarcarEnviadas(p.keys)
+      desmarcarEnviadas(marcadasAhora)
       return { ok: false, error: typeof data.error === 'string' ? data.error : 'No pudimos enviarlo. Probá de nuevo.' }
     }
     escribirContacto({ nombre: p.nombre, whatsapp: p.whatsapp, email: p.email })
@@ -1424,7 +1429,7 @@ async function mandarConsulta(p: {
     contarTinder('consulta', p.origen)
     return { ok: true }
   } catch {
-    desmarcarEnviadas(p.keys)
+    desmarcarEnviadas(marcadasAhora)
     return { ok: false, error: 'No pudimos enviarlo. Probá de nuevo.' }
   }
 }
