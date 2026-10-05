@@ -10,6 +10,7 @@ import {
   type TokkoProperty,
   formatPrice,
   mostrarPrecio,
+  esTemporario,
   preciosPorOperacion,
   operationBadgeColor,
   esOportunidadConsultanos,
@@ -47,6 +48,7 @@ import AgenteAvatar from './AgenteAvatar'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
 import FeedbackDetalle from '../feedback/FeedbackDetalle'
+import AvisameSiBaja from './AvisameSiBaja'
 
 // Skeletons mientras se carga el chunk JS — evitan que la sección quede en
 // blanco hasta que llega el bundle de Leaflet (mapa) o la galería de planos.
@@ -127,6 +129,10 @@ export default function PropertyDetailBody({
   // Venta Y alquiler a la vez: se muestran los dos valores, cada uno con su cartel.
   const precios = preciosPorOperacion(property)
   const dobleOperacion = precios.length > 1
+  const avisarSiBaja =
+    tienePrecio &&
+    !esTemporario(property) &&
+    (property.operations ?? []).some((o) => o.operation_type === 'Sale' && (o.prices ?? []).some((x) => x.currency === 'USD' && x.price > 0))
   const roofedArea = getRoofedArea(property)
   const area = getTotalSurface(property)
   const lotSurface = getLotSurface(property)
@@ -291,6 +297,8 @@ export default function PropertyDetailBody({
           )}
         </div>
         )}
+        {/* David 4-oct: "Avisame si baja" — solo venta con precio en dólares a la vista. */}
+        {avisarSiBaja && <AvisameSiBaja propertyId={property.id} />}
       </section>
 
       {/* CONDICIONES — solo alquiler temporario que las tenga cargadas */}
