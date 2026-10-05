@@ -3,7 +3,7 @@
 // Shared sticky right column for desktop: WhatsApp + Call + Agent + Visit.
 // (Compartir vive en el header del panel — ver PropertyPanel.)
 import type { CSSProperties } from 'react'
-import { MessageCircle, Phone } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
 import {
   type TokkoProperty,
   getOperationType,
@@ -20,7 +20,7 @@ import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 import { getAgenteRol } from '@/lib/agente-titulo'
 import AgenteAvatar from './AgenteAvatar'
-import PedirContacto from './PedirContacto'
+import ContactoSecundario from './ContactoSecundario'
 
 const TOUR_MEET_USD_THRESHOLD = 450_000
 
@@ -66,38 +66,9 @@ export default function PropertyDetailSidebar({
         style={{ top: topOffset, ['--sb-top' as string]: `${topOffset}px` } as unknown as CSSProperties}
       >
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <AudioSummary propertyId={property.id} title={propertyTitle} />
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => events.contactoPropiedad(property.id, propertyTitle, 'whatsapp')}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
-            style={{ background: '#25d366', color: '#fff' }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#25d366' }}
-          >
-            <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
-          </a>
-          <a
-            href={getProducerCallHref(property)}
-            onClick={() => events.contactoPropiedad(property.id, propertyTitle, 'llamada')}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2.5"
-            style={{ border: '1.5px solid #e5e7eb', color: '#111' }}
-          >
-            <Phone className="w-5 h-5" /> Llamar <span className="font-numeric">{getProducerPhoneDisplay(property)}</span>
-          </a>
-          {/* Para el que no quiere escribir: deja nombre y WhatsApp y lo contactamos. */}
-          <PedirContacto
-            propertyId={property.id}
-            propertyTitle={propertyTitle}
-            propertyPrice={formatPrice(property)}
-            whatsappUrl={whatsappUrl}
-            agente={getProducerName(property)}
-            className="mb-2.5"
-          />
-
-          <div className="border-t border-gray-100 pt-4 mt-2.5">
+          {/* Agente arriba (con quién hablás), UN botón principal y una fila
+              secundaria (David 4-oct: "son demasiados botones, confunden"). */}
+          <div className="mb-4">
             <div className="flex items-center gap-3">
               {(() => {
                 const producer = property.producer
@@ -137,6 +108,30 @@ export default function PropertyDetailSidebar({
                 )
               })()}
             </div>
+          </div>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => events.contactoPropiedad(property.id, propertyTitle, 'whatsapp')}
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2"
+            style={{ background: '#25d366', color: '#fff' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#25d366' }}
+          >
+            <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
+          </a>
+          <ContactoSecundario
+            propertyId={property.id}
+            propertyTitle={propertyTitle}
+            propertyPrice={formatPrice(property)}
+            whatsappUrl={whatsappUrl}
+            agente={getProducerName(property)}
+            callHref={getProducerCallHref(property)}
+            telefono={getProducerPhoneDisplay(property)}
+          />
+          <div className="border-t border-gray-100 pt-4 mt-4">
+            <AudioSummary propertyId={property.id} title={propertyTitle} />
           </div>
         </div>
 
