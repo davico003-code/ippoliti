@@ -10,7 +10,7 @@ import type { OrigenTinder } from '@/lib/tinder-contador'
 import { AZUL_VISITA, VERDE } from './marca-mazo'
 
 /**
- * ★ "QUIERO VERLA" sin su WhatsApp todavía: una hoja blanca, igual a las demás
+ * ★ "QUIERO CONOCERLA" sin su WhatsApp todavía: una hoja blanca, igual a las demás
  * de la web, con la casa, nombre y WhatsApp. Antes era el "¡Es un match!" con
  * corazones (también al 1er y 3er ♥); David 5-oct: "no me gusta lo del match,
  * es muy Tinder" → se fue el match del ♥ y la ★ quedó con esta hoja sobria.
@@ -94,7 +94,7 @@ export default function HojaVisita({
               </div>
               <div className="min-w-0">
                 <p className="flex items-center gap-1 text-[14px] font-bold" style={{ color: AZUL_VISITA }}>
-                  <Star className="h-4 w-4" fill="currentColor" strokeWidth={1.5} aria-hidden="true" /> Quiero verla
+                  <Star className="h-4 w-4" fill="currentColor" strokeWidth={1.5} aria-hidden="true" /> Quiero conocerla
                 </p>
                 <h3 className="text-[19px] font-black leading-tight text-gray-900 font-raleway [text-wrap:balance]">¿Coordinamos la visita?</h3>
               </div>

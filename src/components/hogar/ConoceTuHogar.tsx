@@ -150,6 +150,7 @@ export default function ConoceTuHogar({
    */
   const [mazo, setMazo] = useState<{ clave: string; items: ItemFeed[] } | null>(null)
   const [estadoAfinar, setEstadoAfinar] = useState<'listo' | 'buscando' | 'vacio'>('listo')
+  const [rondaAfinar, setRondaAfinar] = useState(0)
   /** Tocó "Ver" mientras contaba: el mazo abre apenas llegan las casas. */
   const [abrirAlLlegar, setAbrirAlLlegar] = useState(false)
   /** Tocó "Ver" sin elegir dónde: se marca esa fila un momento. */
@@ -239,6 +240,7 @@ export default function ConoceTuHogar({
     }
     setMazo({ clave: listo.clave, items: listo.items })
     setEstadoAfinar('listo')
+    setRondaAfinar((r) => r + 1)
   }, [abierto, listo, mazo])
 
   // Sin resultados: el aviso con cómo ampliar queda a la vista.
@@ -506,6 +508,7 @@ export default function ConoceTuHogar({
             zonas: [...ciudades.map((c) => c.nombre), ...(zona.esCiudad ? [] : [zona.nombre])],
             esCiudad: (z) => !!zonaPorNombre(catalogo, z)?.esCiudad,
             estado: estadoAfinar,
+            ronda: rondaAfinar,
             onAplicar: (v) => {
               const nueva = zonaPorNombre(catalogo, v.zona) ?? zona
               setZona(nueva)

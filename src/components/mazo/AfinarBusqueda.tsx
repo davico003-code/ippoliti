@@ -23,6 +23,12 @@ export type AfinarMazo = {
   onAplicar: (v: ValoresAfinar) => void
   /** 'buscando' mientras trae las nuevas; 'vacio' = con eso no hay. */
   estado: 'listo' | 'buscando' | 'vacio'
+  /**
+   * Sube cada vez que llegan casas de una búsqueda afinada: el mazo arranca de
+   * nuevo con ellas. (Que cambie `items` no alcanza: en la ficha llegan de a
+   * tandas con el mazo abierto y no tiene que volver a la primera.)
+   */
+  ronda: number
 }
 
 const DORMS = [2, 3, 4] as const

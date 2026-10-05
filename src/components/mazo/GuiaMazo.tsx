@@ -79,7 +79,7 @@ export default function GuiaMazo({ onCerrar }: { onCerrar: () => void }) {
               <Star className="w-5 h-5" fill="currentColor" strokeWidth={1.5} />
             </span>
             <span>
-              <strong>Hacia arriba o ★</strong> si querés ir a verla
+              <strong>Hacia arriba o ★</strong> si querés conocerla
             </span>
           </li>
           <li className="flex items-center gap-3">

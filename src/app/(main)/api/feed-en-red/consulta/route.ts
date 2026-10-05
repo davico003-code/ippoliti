@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   const tipo = str(body.tipo, 20)
   const motivos = Array.isArray(body.motivos) ? body.motivos.map((m) => str(m, 40)).filter((m, i, xs) => MOTIVOS.has(m) && xs.indexOf(m) === i) : []
   const vistas = Math.max(0, Math.min(99, Math.round(Number(body.vistas) || 0)))
-  // Tocó ★ "Quiero verla" en el Tinder (4-oct): el asesor sabe que quiere coordinar la visita.
+  // Tocó ★ "Quiero conocerla" en el Tinder (4-oct): el asesor sabe que quiere coordinar la visita.
   const visita = body.visita === true
   // Opcional (4-oct): dejó también el mail para recibir las nuevas de su búsqueda.
   const emailCrudo = str(body.email, 120).toLowerCase()
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       guardadas,
       barrio,
       suscripcion,
-      message: [busqueda ? `Buscó en la web: ${busqueda}.` : null, visita ? 'Tocó «Quiero verla» en la primera de la lista: pidió coordinar esa visita.' : null].filter(Boolean).join(' ') || null,
+      message: [busqueda ? `Buscó en la web: ${busqueda}.` : null, visita ? 'Tocó «Quiero conocerla» en la primera de la lista: pidió coordinar esa visita.' : null].filter(Boolean).join(' ') || null,
       sourceUrl: pageUrl || null,
       attribution: utm,
     }),

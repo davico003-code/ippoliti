@@ -12,11 +12,11 @@ import { AZUL_VISITA, CORAZON, Corazon, IsotipoSI, ORO_VOLVER, ROJO_PASO } from 
 const RGB: Record<Salida, string> = { like: '26,92,56', pass: '229,72,77', super: '43,127,255' }
 /** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso… */
 export const UMBRAL_SWIPE = 90
-/** …o hacia arriba para "Quiero verla". */
+/** …o hacia arriba para "Quiero conocerla". */
 export const UMBRAL_SUPER = 110
 export const DURACION_SALIDA = 300
 
-/** ♥ (derecha), paso (izquierda) o "Quiero verla" (arriba, el super like de Tinder). */
+/** ♥ (derecha), paso (izquierda) o "Quiero conocerla" (arriba, el super like de Tinder). */
 export type Salida = 'like' | 'pass' | 'super'
 /** `agarreArriba`: la agarró de la mitad de arriba (gira para un lado) o de abajo (para el otro), como Tinder. */
 export type Arrastre = { dx: number; dy: number; agarreArriba?: boolean }
@@ -35,7 +35,7 @@ export const paresDe = (item: ItemFeed) => Math.max(1, Math.ceil(Math.min(item.f
 const SELLOS: Record<Salida, { texto: string; color: string; clase: string }> = {
   like: { texto: 'ME GUSTA', color: '#45D98B', clase: 'top-24 left-4 -rotate-12' },
   pass: { texto: 'PASO', color: '#FF6B6F', clase: 'top-24 right-4 rotate-12' },
-  super: { texto: 'QUIERO VERLA', color: '#5AAEFF', clase: 'top-[32%] left-1/2 -translate-x-1/2 -rotate-6' },
+  super: { texto: 'QUIERO CONOCERLA', color: '#5AAEFF', clase: 'top-[32%] left-1/2 -translate-x-1/2 -rotate-6' },
 }
 
 /**
@@ -88,7 +88,7 @@ export function Tarjeta({
   progreso?: number
   /** Solo la de abajo: el dedo sigue apoyado en la de arriba (sigue sin demora). */
   arrastrando?: boolean
-  /** Arrastrar hacia arriba = "Quiero verla" (en el mazo abierto). */
+  /** Arrastrar hacia arriba = "Quiero conocerla" (en el mazo abierto). */
   conSuper?: boolean
   /** Los botones ↺ ✕ ★ ♥ flotan sobre la foto (mazo abierto): los datos suben para dejarles lugar. */
   conBotones?: boolean
@@ -234,11 +234,11 @@ export function Tarjeta({
             {item.esNuestra ? (
               <IsotipoSI className="h-[15px] w-auto" />
             ) : (
-              <span className="flex-none rounded-full border border-white/25 bg-white/10 px-2 py-[1px] text-[13px] font-bold text-white/90">En red</span>
+              // "Otra inmobiliaria" en la etiqueta (antes "En red" + la cola del renglón, que se cortaba con direcciones largas).
+              <span className="flex-none rounded-full border border-white/25 bg-white/10 px-2 py-[1px] text-[13px] font-bold text-white/90">Otra inmobiliaria</span>
             )}
             <span className="truncate">
               {lugar}
-              {!item.esNuestra && ' · otra inmobiliaria'}
             </span>
           </p>
         </div>
@@ -264,7 +264,7 @@ export function BotonesTinder({
   onMeGusta: () => void
   /** ↺ volver a la anterior (como el de Tinder). Sin esto, no se muestra. */
   onVolver?: () => void
-  /** ★ "Quiero verla" (el super like): coordinar la visita. Sin esto, no se muestra. */
+  /** ★ "Quiero conocerla" (el super like): coordinar la visita. Sin esto, no se muestra. */
   onQuieroVerla?: () => void
   puedeVolver?: boolean
   chicos?: boolean
@@ -310,7 +310,7 @@ export function BotonesTinder({
         <X className={iconoGrande} strokeWidth={3} />
       </button>
       {onQuieroVerla && (
-        <button type="button" onClick={onQuieroVerla} aria-label="Quiero verla: coordinar una visita" title="Quiero verla" className={`${chico} ${base}`} style={pintar('super', color.super)}>
+        <button type="button" onClick={onQuieroVerla} aria-label="Quiero conocerla: coordinar una visita" title="Quiero conocerla" className={`${chico} ${base}`} style={pintar('super', color.super)}>
           <Star className="w-6 h-6" fill="currentColor" strokeWidth={1.5} />
         </button>
       )}
