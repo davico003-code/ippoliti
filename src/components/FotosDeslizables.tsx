@@ -18,6 +18,7 @@ export default function FotosDeslizables({
   sizes,
   priority = false,
   swipe = true,
+  flechasSiempre = false,
   puntosALaDerecha = false,
   imgClassName = '',
   className = '',
@@ -32,6 +33,9 @@ export default function FotosDeslizables({
   /** Swipe horizontal en el celu. Apagarlo si la tarjeta vive dentro de un
    *  carrusel que ya scrollea de costado (se pelearían el gesto). */
   swipe?: boolean
+  /** Flechas visibles siempre y también en el celu (donde no hay hover). Para
+   *  tarjetas con `swipe` apagado: si no, en el celu no habría cómo pasar fotos. */
+  flechasSiempre?: boolean
   /** Con la pastilla del agente abajo a la izquierda, los puntitos se corren a la derecha. */
   puntosALaDerecha?: boolean
   imgClassName?: string
@@ -117,10 +121,13 @@ export default function FotosDeslizables({
 
   // `group/media` acota el hover a la imagen (no a toda la card), así las
   // flechas aparecen solo al pasar el mouse sobre la foto.
+  const flecha = flechasSiempre
+    ? 'flex w-9 h-9 bg-white/90 shadow-md'
+    : 'hidden md:flex w-8 h-8 bg-white/85 shadow-sm opacity-0 group-hover/media:opacity-100 focus-visible:opacity-100'
   return (
     <div
       className={`group/media relative w-full overflow-hidden rounded-[14px] ${images.length === 0 ? 'bg-gray-100' : imgLoaded ? '' : 'si-img-shimmer'} ${className}`}
-      onTouchStart={swipe ? onTouchStart : undefined}
+      onTouchStart={swipe ? onTouchStart : () => setCalentar(true)}
       onTouchEnd={swipe ? onTouchEnd : undefined}
       onMouseEnter={() => setCalentar(true)}
       onClickCapture={swipe ? onClickCapture : undefined}
@@ -160,12 +167,13 @@ export default function FotosDeslizables({
           visibles pero discretos. */}
       {images.length > 1 && (
         <>
-          {/* Flechas: solo desktop (hidden md:flex), visibles en hover o foco */}
+          {/* Flechas: solo desktop (hidden md:flex), visibles en hover o foco;
+              con `flechasSiempre`, siempre y en todos los tamaños. */}
           <button
             type="button"
             onClick={prev}
             aria-label="Foto anterior"
-            className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/85 shadow-sm items-center justify-center text-gray-700 hover:bg-white opacity-0 group-hover/media:opacity-100 focus-visible:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-opacity duration-200"
+            className={`${flecha} absolute left-2 top-1/2 -translate-y-1/2 z-10 rounded-full items-center justify-center text-gray-700 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-opacity duration-200`}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -173,7 +181,7 @@ export default function FotosDeslizables({
             type="button"
             onClick={next}
             aria-label="Foto siguiente"
-            className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/85 shadow-sm items-center justify-center text-gray-700 hover:bg-white opacity-0 group-hover/media:opacity-100 focus-visible:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-opacity duration-200"
+            className={`${flecha} absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-full items-center justify-center text-gray-700 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-opacity duration-200`}
           >
             <ChevronRight className="w-4 h-4" />
           </button>

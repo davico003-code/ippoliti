@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import CardMediaButtons from '@/components/CardMediaButtons'
+import FotosDeslizables from '@/components/FotosDeslizables'
 import {
   getFeaturedProperties,
   generatePropertySlug,
   getMainPhoto,
+  getAllPhotos,
   formatPrice,
   getOperationType,
   operationBadgeColor,
@@ -54,7 +55,9 @@ export default async function SeleccionCarousel() {
       >
         {properties.map((p, i) => {
           const slug = generatePropertySlug(p)
-          const photo = getMainPhoto(p)
+          // Portada primero (la misma que se veía sola) y después el resto en orden.
+          const portada = getMainPhoto(p)
+          const fotos = portada ? [portada, ...getAllPhotos(p).filter(f => f !== portada)] : []
           const price = formatPrice(p)
           const roofed = getRoofedArea(p)
           const land = isLand(p)
@@ -83,23 +86,21 @@ export default async function SeleccionCarousel() {
               style={{ textDecoration: 'none' }}
             >
               <div className="relative">
-              <div
-                className="relative aspect-video bg-gray-100 rounded-[14px] overflow-hidden"
+              {/* Fotos con flechas siempre visibles: la tarjeta vive en un
+                  carrusel que se desliza de costado, así que acá no hay swipe
+                  de fotos (se pelearían el gesto). */}
+              <FotosDeslizables
+                images={fotos}
+                alt={tituloVisible(p) || address}
+                sizes="88vw"
+                priority={i === 0}
+                swipe={false}
+                flechasSiempre
+                puntosALaDerecha={agentes.has(p.id)}
+                className="aspect-video"
               >
-                {photo ? (
-                  <Image
-                    src={photo}
-                    alt={tituloVisible(p) || address}
-                    fill
-                    className="object-cover"
-                    sizes="88vw"
-                    priority={i === 0}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
-                )}
                 {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
-                <div className="absolute top-3 left-3 flex gap-1.5">
+                <div className="absolute top-3 left-3 z-10 flex gap-1.5" style={{ transform: 'translateZ(0)' }}>
                   <span
                     className="text-white text-[12px] font-semibold leading-none px-3.5 py-2 rounded-full font-raleway"
                     style={{ background: badge.bg }}
@@ -115,8 +116,8 @@ export default async function SeleccionCarousel() {
                 {/* Play + like juntos, arriba-derecha. audioUrl no viene
                     enriquecido acá (home ISR) → CardMediaButtons lo resuelve
                     client-side por lote. */}
-                <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3" />
-              </div>
+                <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3 z-10" />
+              </FotosDeslizables>
               <PastillaAgenteCard agente={agentes.get(p.id)} size={32} />
               </div>
               <div className="px-0.5 pt-2.5 pb-1 flex items-center gap-3">
