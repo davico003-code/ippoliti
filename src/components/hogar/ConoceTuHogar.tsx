@@ -3,7 +3,8 @@
 // "Conocé tu próximo hogar" (David, 3-oct-2026): la puerta de la home al mazo
 // tipo Tinder. Que lo usen pero que no sea lo principal: en la home es un link
 // debajo del buscador. 4-oct, "esta pantalla intermedia no me convence": ya no
-// es un formulario. Un mosaico de barrios con la foto de una casa nuestra; un
+// es un formulario. Un mosaico de barrios con la foto DEL BARRIO (nunca de una
+// casa; los que no tienen foto curada van con el nombre); un
 // toque abre el mismo mazo de la ficha (MazoCasas): nuestras primero y después
 // las "En red". Mismo día (David): "no tiene filtro de dormitorios ni de
 // precio, y el buscador de barrios va arriba de todo" → buscador primero,
@@ -93,6 +94,7 @@ type Resultado = { clave: string; items: ItemFeed[]; fallo?: boolean }
 export default function ConoceTuHogar({
   catalogo,
   portadas,
+  conNombre,
   zonaInicial,
   tipoInicial,
   topeInicial,
@@ -100,8 +102,10 @@ export default function ConoceTuHogar({
 }: {
   /** Barrios y ciudades con algo en venta (Hilo). */
   catalogo: ZonaHogar[]
-  /** Por tipo: los barrios del mosaico con la foto de una casa nuestra. */
+  /** Por tipo: los barrios del mosaico, con la foto DEL BARRIO. */
   portadas: Record<TipoHogar, BarrioPortada[]>
+  /** Por tipo: los que siguen, sin foto curada (van con el nombre). */
+  conNombre: Record<TipoHogar, ZonaHogar[]>
   zonaInicial: string | null
   tipoInicial: TipoHogar
   topeInicial: number | null
@@ -135,6 +139,7 @@ export default function ConoceTuHogar({
   const sinCoincidencias = query.trim().length >= 3 && filtradas.length === 0
   const ciudades = useMemo(() => catalogo.filter((z) => z.esCiudad && cantidadZona(z, tipo) >= 3).slice(0, 3), [catalogo, tipo])
   const mosaico = portadas[tipo] ?? []
+  const otrosBarrios = conNombre[tipo] ?? []
 
   // Lo que eligió queda en la URL: se puede compartir y viaja con la consulta.
   useEffect(() => {
@@ -329,7 +334,7 @@ export default function ConoceTuHogar({
         <p className={`${cls.lbl} mt-6`}>O tocá un barrio</p>
         {/* El mosaico: un toque y arranca */}
         <div role="list" aria-label="Barrios" className="mt-2.5 grid grid-cols-2 gap-2.5">
-          {mosaico.map(({ zona: z, foto }, i) => {
+          {mosaico.map(({ zona: z, foto, nombre }, i) => {
             const elegido = zona?.nombre === z.nombre
             const cargando = cargandoZona === z.nombre
             return (
@@ -338,17 +343,17 @@ export default function ConoceTuHogar({
                 role="listitem"
                 type="button"
                 onClick={() => abrirZona(z)}
-                aria-label={`${plural[0].toUpperCase()}${plural.slice(1)} en ${z.nombre}`}
+                aria-label={`${plural[0].toUpperCase()}${plural.slice(1)} en ${nombre}`}
                 className={`si-tap relative aspect-[4/3.4] overflow-hidden rounded-2xl bg-[#EEF1EE] text-left outline-none focus-visible:ring-[3px] focus-visible:ring-[#17613C] ${elegido ? 'ring-[3px] ring-[#17613C]' : ''}`}
               >
                 <Image src={foto} alt="" fill sizes="(max-width: 520px) 50vw, 250px" priority={i < 4} className="object-cover" />
                 <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
                 <span className="absolute inset-x-0 bottom-0 px-3 pb-2.5">
-                  <span className="block font-poppins text-[15px] font-bold leading-[1.15] tracking-[-0.01em] text-white [text-wrap:balance]">{z.nombre}</span>
+                  <span className="block font-poppins text-[15px] font-bold leading-[1.15] tracking-[-0.01em] text-white [text-wrap:balance]">{nombre}</span>
                   <span className="mt-0.5 block text-[12.5px] font-medium text-white/85">{z.ciudad}</span>
                 </span>
                 {cargando && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-black/35" role="status" aria-label={`Buscando ${plural} en ${z.nombre}`}>
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/35" role="status" aria-label={`Buscando ${plural} en ${nombre}`}>
                     <Spinner />
                   </span>
                 )}
@@ -357,21 +362,42 @@ export default function ConoceTuHogar({
           })}
         </div>
 
+        {/* Más barrios, con el nombre (sin foto curada del barrio) */}
+        {otrosBarrios.length > 0 && (
+          <>
+            <p className={`${cls.lbl} mt-6`}>Más barrios</p>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {otrosBarrios.map((z) => (
+                <button key={z.nombre} type="button" aria-pressed={zona?.nombre === z.nombre} onClick={() => abrirZona(z)} className={`${zona?.nombre === z.nombre ? chipOn : chipOff} !h-10`}>
+                  {cargandoZona === z.nombre ? (
+                    <span className="mr-1.5 [&>span]:h-3.5 [&>span]:w-3.5 [&>span]:border-[#17613C]/30 [&>span]:border-t-[#17613C]">
+                      <Spinner />
+                    </span>
+                  ) : null}
+                  {z.nombre}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
         {/* Toda la ciudad */}
         {ciudades.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-[14px] font-medium text-[#6B766E]">Toda la ciudad:</span>
-            {ciudades.map((c) => (
-              <button key={c.nombre} type="button" aria-pressed={zona?.nombre === c.nombre} onClick={() => abrirZona(c)} className={`${zona?.nombre === c.nombre ? chipOn : chipOff} !h-10`}>
-                {cargandoZona === c.nombre ? (
-                  <span className="mr-1.5 [&>span]:h-3.5 [&>span]:w-3.5 [&>span]:border-[#17613C]/30 [&>span]:border-t-[#17613C]">
-                    <Spinner />
-                  </span>
-                ) : null}
-                {c.nombre}
-              </button>
-            ))}
-          </div>
+          <>
+            <p className={`${cls.lbl} mt-6`}>Toda la ciudad</p>
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {ciudades.map((c) => (
+                <button key={c.nombre} type="button" aria-pressed={zona?.nombre === c.nombre} onClick={() => abrirZona(c)} className={`${zona?.nombre === c.nombre ? chipOn : chipOff} !h-10`}>
+                  {cargandoZona === c.nombre ? (
+                    <span className="mr-1.5 [&>span]:h-3.5 [&>span]:w-3.5 [&>span]:border-[#17613C]/30 [&>span]:border-t-[#17613C]">
+                      <Spinner />
+                    </span>
+                  ) : null}
+                  {c.nombre}
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
         {zona && fallo && (

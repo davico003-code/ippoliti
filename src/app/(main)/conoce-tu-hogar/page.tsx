@@ -9,8 +9,8 @@
 import type { Metadata } from 'next'
 import ConoceTuHogar from '@/components/hogar/ConoceTuHogar'
 import { type TipoHogar, type ZonaHogar, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
-import { type BarrioPortada, type NuestraPortada, armarPortadas } from '@/lib/hogar-portadas'
-import { getMainPhoto, getProperties, sanitizeProperty } from '@/lib/tokko'
+import { type BarrioPortada, armarPortadas, barriosConNombre } from '@/lib/hogar-portadas'
+import { getBarriosHub } from '@/lib/barrios'
 import { ZONAS } from '@/lib/zonas'
 
 export const metadata: Metadata = {
@@ -38,41 +38,28 @@ async function catalogo(): Promise<ZonaHogar[]> {
   }
 }
 
-/** Las nuestras en venta (mismo listado cacheado que usa el resto de la web). */
-async function nuestras(): Promise<NuestraPortada[]> {
-  try {
-    const d = await getProperties()
-    return (d.objects ?? []).map(sanitizeProperty).map((p) => {
-      const venta = (p.operations ?? []).find((o) => o.operation_type === 'Sale')
-      return {
-        tipoId: p.type?.id ?? null,
-        barrio: p.location?.name ?? null,
-        ubicacionCompleta: p.location?.full_location ?? null,
-        foto: venta ? getMainPhoto(p) : null,
-        destacada: !!p.is_starred_on_web,
-        precioUsd: venta?.prices?.find((x) => x.currency === 'USD' && x.price > 0)?.price ?? null,
-      }
-    })
-  } catch (e) {
-    console.warn('[conoce-tu-hogar] nuestras', e instanceof Error ? e.message : e)
-    return []
-  }
-}
-
 type SP = Record<string, string | string[] | undefined>
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 
 export default async function ConoceTuHogarPage({ searchParams }: { searchParams: SP }) {
   const tipo = first(searchParams.tipo)
   const tope = Number(first(searchParams.tope))
-  const [zonas, propias] = await Promise.all([catalogo(), nuestras()])
-  const portadas = Object.fromEntries(
-    (['house', 'lot', 'apartment'] as const).map((t) => [t, armarPortadas(zonas, propias, t)]),
-  ) as Record<TipoHogar, BarrioPortada[]>
+  const zonas = await catalogo()
+  // Fotos DEL BARRIO (las curadas de /barrios-privados), nunca de una casa.
+  const fotos = getBarriosHub()
+    .filter((b) => b.imagenHero)
+    .map((b) => ({ nombre: b.nombre, foto: b.imagenHero }))
+  const portadas = {} as Record<TipoHogar, BarrioPortada[]>
+  const conNombre = {} as Record<TipoHogar, ZonaHogar[]>
+  for (const t of ['house', 'lot', 'apartment'] as const) {
+    portadas[t] = armarPortadas(zonas, fotos, t)
+    conNombre[t] = barriosConNombre(zonas, portadas[t], t)
+  }
   return (
     <ConoceTuHogar
       catalogo={zonas}
       portadas={portadas}
+      conNombre={conNombre}
       zonaInicial={first(searchParams.zona) ?? null}
       tipoInicial={esTipoHogar(tipo) ? tipo : 'house'}
       topeInicial={Number.isFinite(tope) && tope > 0 ? Math.round(tope) : null}

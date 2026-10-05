@@ -1,39 +1,52 @@
 // "Conocé tu próximo hogar" en mosaico (David, 4-oct-2026: la pantalla de
 // filtros "no me convence"): en vez de escribir el barrio, se toca su foto.
-// Cada barrio lleva de portada una casa NUESTRA (sin logos de colegas):
-// destacada primero, después la más cara (la más vistosa). Orden = dónde hay
-// más del tipo elegido (catálogo de Hilo, nuestras + red).
+// La foto es DEL BARRIO (aérea, club house, laguna — las curadas de
+// /barrios-privados), nunca de una casa (David: "no pongas foto de casa, no
+// tiene nada que ver"). Los barrios sin foto curada van con su nombre.
+// Orden = dónde hay más del tipo elegido (catálogo de Hilo, nuestras + red).
 
-import { type TipoHogar, type ZonaHogar, TIPOS_HOGAR, cantidadZona, enZonaBuscada } from '@/lib/feed-en-red'
+import { type TipoHogar, type ZonaHogar, cantidadZona, mismoBarrio } from '@/lib/feed-en-red'
 
-export type BarrioPortada = { zona: ZonaHogar; foto: string }
+/** `nombre` = el que se muestra (Hilo dice "Cadaques"; la tarjeta, "Funes Hills Cadaqués"). */
+export type BarrioPortada = { zona: ZonaHogar; foto: string; nombre: string }
 
-/** Lo mínimo de cada nuestra para elegir la portada. */
-export type NuestraPortada = {
-  tipoId: number | null
-  barrio: string | null
-  ubicacionCompleta: string | null
-  foto: string | null
-  destacada: boolean
-  precioUsd: number | null
-}
+/** Foto curada de un barrio (lib/barrios → getBarriosHub). */
+export type FotoBarrio = { nombre: string; foto: string }
 
 export const MAX_BARRIOS_MOSAICO = 8
+export const MAX_BARRIOS_NOMBRE = 10
 
-export function armarPortadas(catalogo: ZonaHogar[], nuestras: NuestraPortada[], tipo: TipoHogar, max = MAX_BARRIOS_MOSAICO): BarrioPortada[] {
-  const ids = new Set(TIPOS_HOGAR.find((t) => t.id === tipo)!.tokkoIds)
-  const delTipo = nuestras.filter((n) => n.foto && ids.has(n.tipoId ?? -1))
+const llano = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+
+/**
+ * El nombre curado si es el completo del de Hilo ("Funes Hills Cadaqués" ⊃
+ * "Cadaques"); si no, el de Hilo ("La Finca" no pasa a "La Finca 1": el mazo
+ * trae las dos).
+ */
+function nombreVisible(curado: string, hilo: string): string {
+  return llano(curado).endsWith(llano(hilo)) ? curado : hilo
+}
+
+const barriosConTipo = (catalogo: ZonaHogar[], tipo: TipoHogar) =>
+  catalogo.filter((z) => !z.esCiudad && cantidadZona(z, tipo) > 0).sort((a, b) => cantidadZona(b, tipo) - cantidadZona(a, tipo))
+
+export function armarPortadas(catalogo: ZonaHogar[], fotos: FotoBarrio[], tipo: TipoHogar, max = MAX_BARRIOS_MOSAICO): BarrioPortada[] {
   const usadas = new Set<string>()
   const out: BarrioPortada[] = []
-  const barrios = catalogo.filter((z) => !z.esCiudad && cantidadZona(z, tipo) > 0).sort((a, b) => cantidadZona(b, tipo) - cantidadZona(a, tipo))
-  for (const zona of barrios) {
+  for (const zona of barriosConTipo(catalogo, tipo)) {
     if (out.length >= max) break
-    const portada = delTipo
-      .filter((n) => enZonaBuscada(zona.nombre, { nombre: n.barrio, completa: n.ubicacionCompleta }) && !usadas.has(n.foto!.split('?')[0]))
-      .sort((a, b) => Number(b.destacada) - Number(a.destacada) || (b.precioUsd ?? 0) - (a.precioUsd ?? 0))[0]
-    if (!portada) continue
-    usadas.add(portada.foto!.split('?')[0])
-    out.push({ zona, foto: portada.foto! })
+    const f = fotos.find((x) => !usadas.has(x.foto) && mismoBarrio(x.nombre, zona.nombre))
+    if (!f) continue
+    usadas.add(f.foto)
+    out.push({ zona, foto: f.foto, nombre: nombreVisible(f.nombre, zona.nombre) })
   }
   return out
+}
+
+/** Los que siguen (con más del tipo) que no están en el mosaico: van con el nombre. */
+export function barriosConNombre(catalogo: ZonaHogar[], mosaico: BarrioPortada[], tipo: TipoHogar, max = MAX_BARRIOS_NOMBRE): ZonaHogar[] {
+  const enMosaico = new Set(mosaico.map((m) => m.zona.nombre))
+  return barriosConTipo(catalogo, tipo)
+    .filter((z) => !enMosaico.has(z.nombre))
+    .slice(0, max)
 }
