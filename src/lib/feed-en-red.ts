@@ -111,7 +111,7 @@ export function tipoHogarDeTexto(tipo: string | null | undefined): TipoHogar {
  */
 export function lineaTarjeta(i: Pick<ItemFeed, 'datos' | 'dorm' | 'm2' | 'lote' | 'esLote'>): string {
   if (i.esLote) return i.m2 || i.lote ? `Lote · ${m2Texto((i.lote || i.m2)!)}` : i.datos
-  if (i.dorm == null && i.m2 == null) return i.datos
+  if (i.dorm == null && i.m2 == null && i.lote == null) return i.datos
   // Metros iguales al lote = no se sabe la superficie de la casa (el feed y Hilo
   // caen al terreno cuando falta la total): se dice "lote", no "800 m²" de casa.
   const m2EsElLote = !!(i.lote && i.m2 && Math.abs(i.lote - i.m2) <= 5)

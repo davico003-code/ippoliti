@@ -172,3 +172,6 @@ test('tipo de un aviso En red por su texto', () => {
 test('galpón con metros = terreno: sus metros, sin repetir', () => {
   assert.equal(linea(null, 261, 261, 261, null), '261 m²')
 })
+test('casa sin dormitorios ni metros pero con lote: dice lote (no el renglón viejo)', () => {
+  assert.equal(lineaTarjeta({ datos: 'Casa · 800 m²', dorm: null, m2: null, lote: 800 }), 'lote 800 m²')
+})
