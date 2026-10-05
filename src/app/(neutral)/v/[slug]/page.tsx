@@ -207,16 +207,14 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
   const tieneAmenities = (s.caracteristicas?.length ?? 0) > 0 || (s.extras?.length ?? 0) > 0
   const isEmbedded = searchParams?.embed === '1'
 
-  // "Bv Sarmiento y alrededores · Charquito, Roldán" — sin número
-  const ubicTexto = (() => {
-    const parts: string[] = []
-    if (s.direccionCalle) parts.push(`${s.direccionCalle} y alrededores`)
-    if (s.zonaCompleta) parts.push(s.zonaCompleta)
-    else if (s.zonaAprox) parts.push(s.zonaAprox)
-    return parts.join(' · ')
-  })()
-
   const zona = s.zonaCompleta || s.zonaAprox || ''
+  // La dirección (David, 5-oct-2026: "exacta, o aproximada si no la tenemos"):
+  // "Aconcagua 348 · Cotos de la Alameda, Roldán", debajo del titular.
+  const direccion = s.direccion?.trim() || ''
+  const ubicacion = direccion ? [direccion, zona].filter(Boolean).join(' · ') : ''
+  // Fichas de antes del 5-oct: solo la calle, sin altura, debajo del mapa
+  // ("Bv Sarmiento y alrededores · Charquito, Roldán").
+  const ubicTexto = !direccion && s.direccionCalle ? [`${s.direccionCalle} y alrededores`, zona].filter(Boolean).join(' · ') : ''
   const precio = tienePrecio(s.precio) ? s.precio : 'Consultar precio'
   // "Casa en venta · a estrenar"
   const volantaTxt = [
@@ -241,7 +239,17 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
         <div style={{ minWidth: 0 }}>
           <div className="hidden lg:block" style={{ ...volanta, color: APAGADO }}>{volantaTxt}</div>
           <h1 className="vf-h1">{titular}</h1>
-          <div className="hidden lg:block" style={{ fontSize: 16, color: APAGADO, marginTop: 4 }}>{zona}</div>
+          {ubicacion ? (
+            <p className="vf-ubicacion">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" />
+                <circle cx="12" cy="9.5" r="2.5" />
+              </svg>
+              <span>{ubicacion}</span>
+            </p>
+          ) : (
+            <div className="hidden lg:block" style={{ fontSize: 16, color: APAGADO, marginTop: 4 }}>{zona}</div>
+          )}
 
           <div style={{ marginTop: 16 }}>
             <StatsFicha snapshot={s} />
@@ -335,6 +343,8 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
         .vf-cuerpo { max-width: 760px; margin: 0 auto; padding: 22px 20px 112px; box-sizing: border-box; }
         .vf-cuerpo.vf-sin-barra { padding-bottom: 40px; }
         .vf-h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.28; color: ${TINTA}; margin: 0; }
+        .vf-ubicacion { display: flex; gap: 6px; align-items: flex-start; margin: 8px 0 0; font-size: 16px; font-weight: 500; line-height: 1.4; color: ${APAGADO}; overflow-wrap: anywhere; }
+        .vf-ubicacion svg { flex-shrink: 0; margin-top: 2px; }
         .vf-lado { display: none; }
         .vf-plano { height: 320px; }
         .vf-mapa { height: 300px; }
