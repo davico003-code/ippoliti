@@ -229,12 +229,12 @@ export function Tarjeta({
               </button>
             )}
           </div>
-          {linea && <p className="mt-1.5 text-[15px] font-semibold text-white/90">{linea}</p>}
+          {linea && <p className="mt-1.5 text-[16px] font-semibold text-white/90">{linea}</p>}
           <p className="mt-1 flex items-center gap-1.5 min-w-0 text-[14px] text-white/70">
             {item.esNuestra ? (
               <IsotipoSI className="h-[15px] w-auto" />
             ) : (
-              <span className="flex-none rounded-full border border-white/25 bg-white/10 px-1.5 py-[1px] text-[10px] font-bold uppercase tracking-wide text-white/85">En red</span>
+              <span className="flex-none rounded-full border border-white/25 bg-white/10 px-2 py-[1px] text-[13px] font-bold text-white/90">En red</span>
             )}
             <span className="truncate">
               {lugar}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { type BarrioHogar, type TipoHogar, TOPES_HOGAR, textoTope } from '@/lib/feed-en-red'
+import { VERDE } from './marca-mazo'
 
 /**
  * AFINÁ TU BÚSQUEDA (David 5-oct: "en qué momento puede cambiar el criterio de
@@ -31,7 +32,8 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
   const topes = TOPES_HOGAR[afinar.tipo]
   const ciudad = afinar.esCiudad(v.zona)
   const chip = (on: boolean) =>
-    `h-10 rounded-full px-3.5 text-[15px] font-semibold border transition-colors ${on ? 'bg-[#1A5C38] border-[#1A5C38] text-white' : 'border-white/20 text-white/85 hover:border-white/40'}`
+    `h-10 rounded-full px-3.5 text-[15px] font-semibold border transition-colors ${on ? 'text-white border-transparent' : 'border-white/20 text-white/85 hover:border-white/40'}`
+  const fondo = (on: boolean) => (on ? { background: VERDE } : undefined)
   const salirTexto = modo === 'salir' ? 'Salir igual' : 'Ahora no'
 
   return (
@@ -49,10 +51,10 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
         </p>
 
         <fieldset className="mt-4">
-          <legend className="mb-2 text-[12px] font-bold uppercase tracking-wider text-white/55">Dónde</legend>
+          <legend className="mb-2 text-[13px] font-bold uppercase tracking-wider text-white/60">Dónde</legend>
           <div className="flex flex-wrap gap-2">
             {afinar.zonas.map((z) => (
-              <button key={z} type="button" aria-pressed={v.zona === z} onClick={() => setV((x) => ({ ...x, zona: z, barrio: afinar.esCiudad(z) ? x.barrio : null }))} className={chip(v.zona === z)}>
+              <button key={z} type="button" aria-pressed={v.zona === z} onClick={() => setV((x) => ({ ...x, zona: z, barrio: afinar.esCiudad(z) ? x.barrio : null }))} className={chip(v.zona === z)} style={fondo(v.zona === z)}>
                 {z}
               </button>
             ))}
@@ -61,10 +63,10 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
 
         {ciudad && (
           <fieldset className="mt-4">
-            <legend className="mb-2 text-[12px] font-bold uppercase tracking-wider text-white/55">Barrio</legend>
+            <legend className="mb-2 text-[13px] font-bold uppercase tracking-wider text-white/60">Barrio</legend>
             <div className="flex flex-wrap gap-2">
               {([null, 'cerrado', 'abierto'] as const).map((b) => (
-                <button key={b ?? 'igual'} type="button" aria-pressed={v.barrio === b} onClick={() => setV((x) => ({ ...x, barrio: b }))} className={chip(v.barrio === b)}>
+                <button key={b ?? 'igual'} type="button" aria-pressed={v.barrio === b} onClick={() => setV((x) => ({ ...x, barrio: b }))} className={chip(v.barrio === b)} style={fondo(v.barrio === b)}>
                   {b === 'cerrado' ? 'Cerrado' : b === 'abierto' ? 'Abierto' : 'Me da igual'}
                 </button>
               ))}
@@ -73,14 +75,14 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
         )}
 
         <fieldset className="mt-4">
-          <legend className="mb-2 text-[12px] font-bold uppercase tracking-wider text-white/55">Hasta</legend>
+          <legend className="mb-2 text-[13px] font-bold uppercase tracking-wider text-white/60">Hasta</legend>
           <div className="flex flex-wrap gap-2">
             {topes.map((t) => (
-              <button key={t} type="button" aria-pressed={v.tope === t} onClick={() => setV((x) => ({ ...x, tope: t }))} className={chip(v.tope === t)}>
+              <button key={t} type="button" aria-pressed={v.tope === t} onClick={() => setV((x) => ({ ...x, tope: t }))} className={chip(v.tope === t)} style={fondo(v.tope === t)}>
                 {textoTope(t)}
               </button>
             ))}
-            <button type="button" aria-pressed={v.tope == null} onClick={() => setV((x) => ({ ...x, tope: null }))} className={chip(v.tope == null)}>
+            <button type="button" aria-pressed={v.tope == null} onClick={() => setV((x) => ({ ...x, tope: null }))} className={chip(v.tope == null)} style={fondo(v.tope == null)}>
               Sin tope
             </button>
           </div>
@@ -88,10 +90,10 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
 
         {afinar.tipo !== 'lot' && (
           <fieldset className="mt-4">
-            <legend className="mb-2 text-[12px] font-bold uppercase tracking-wider text-white/55">Dormitorios</legend>
+            <legend className="mb-2 text-[13px] font-bold uppercase tracking-wider text-white/60">Dormitorios</legend>
             <div className="flex flex-wrap gap-2">
               {DORMS.map((d) => (
-                <button key={d} type="button" aria-pressed={v.dorm === d} onClick={() => setV((x) => ({ ...x, dorm: x.dorm === d ? null : d }))} className={chip(v.dorm === d)}>
+                <button key={d} type="button" aria-pressed={v.dorm === d} onClick={() => setV((x) => ({ ...x, dorm: x.dorm === d ? null : d }))} className={chip(v.dorm === d)} style={fondo(v.dorm === d)}>
                   {d} o más
                 </button>
               ))}
@@ -102,7 +104,8 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
         <button
           type="button"
           onClick={() => afinar.onAplicar(v)}
-          className="mt-6 h-12 w-full rounded-2xl bg-[#1A5C38] text-[16px] font-bold text-white"
+          className="mt-6 h-12 w-full rounded-2xl text-[16px] font-bold text-white"
+          style={{ background: VERDE }}
         >
           Seguir viendo
         </button>

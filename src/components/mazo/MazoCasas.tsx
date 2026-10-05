@@ -140,7 +140,9 @@ export default function MazoCasas({
   // Afinó la búsqueda: llegan otras casas y el mazo arranca de nuevo, sin cerrarse.
   const itemsPrevios = useRef(items)
   useEffect(() => {
-    if (itemsPrevios.current === items) return
+    // Solo con "afinar" (la home). En la ficha las casas llegan de a tandas (/similar)
+    // con el mazo abierto: no tiene que volver a la primera ni decir "Listo".
+    if (!afinar || itemsPrevios.current === items) return
     itemsPrevios.current = items
     setInsercion(null)
     setIndice(0)
@@ -152,6 +154,7 @@ export default function MazoCasas({
     setDirectoAlFinal(false)
     pasesSeguidos.current = 0
     setAviso('Listo: te mostramos las que van con eso.')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando cambian las casas
   }, [items])
   const estadoAfinar = afinar?.estado
   useEffect(() => {
