@@ -24,11 +24,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
-import { Expand, Info, Mail, MapPin, RotateCcw, X } from 'lucide-react'
+import { Expand, Info, Mail, MapPin, RotateCcw, Star, X } from 'lucide-react'
 import {
   type CriteriosBusqueda,
   type GuardadaLocal,
   type ItemFeed,
+  type PosicionLogo,
   esEmail,
   escribirContacto,
   escribirGuardadas,
@@ -45,20 +46,37 @@ import { marcarMazoAbierto } from '@/lib/mazo-atras'
 import DetalleMazo, { cargarDetalle } from './DetalleMazo'
 import VisorFotos from './VisorFotos'
 import { contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
+import { haptico } from '@/lib/haptico'
 
 export const VERDE = '#1A5C38'
 const OCRE_FONDO = '#F4EAD8'
 const OCRE_TEXTO = '#7A5212'
-export const ROSA = '#E0245E'
-/** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso. */
+/**
+ * El ♥ del Tinder es VERDE (David 4-oct: "darle más la estética de Tinder": en
+ * Tinder el me gusta es verde y el paso rojo; acá el verde es el de la marca).
+ * Antes era rosa. Lo usan también la ficha y "Conocé tu próximo hogar".
+ */
+export const CORAZON = VERDE
+const ROJO_PASO = '#E5484D'
+const AZUL_VISITA = '#2B7FFF'
+const ORO_VOLVER = '#D99A00'
+const RGB: Record<Salida, string> = { like: '26,92,56', pass: '229,72,77', super: '43,127,255' }
+/** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso… */
 const UMBRAL_SWIPE = 90
-const DURACION_SALIDA = 260
+/** …o hacia arriba para "Quiero verla". */
+const UMBRAL_SUPER = 110
+/** Un latigazo corto también decide (como Tinder): px por milisegundo. */
+const VELOCIDAD_LATIGAZO = 0.6
+const DURACION_SALIDA = 300
 
 /** El instructivo se muestra una vez por navegador. */
-const CLAVE_GUIA = 'si-mazo-guia-v1'
+const CLAVE_GUIA = 'si-mazo-guia-v2'
 
 /** El rescate sale UNA vez por visita (aunque abra el mazo varias veces). */
 let rescateMostrado = false
+/** ♥ dados en esta visita y qué "match" ya se le mostró (cada uno una vez por visita). */
+let likesVisita = 0
+const matchesVistos = new Set<'match' | 'tres'>()
 
 /**
  * Las ♥ de este navegador (localStorage: sobreviven al pasar de una ficha a
@@ -145,18 +163,36 @@ export function Chip({ nuestra }: { nuestra: boolean }) {
   )
 }
 
-export type Arrastre = { dx: number; dy: number }
+/** ♥ (derecha), paso (izquierda) o "Quiero verla" (arriba, el super like de Tinder). */
+export type Salida = 'like' | 'pass' | 'super'
+/** `agarreArriba`: la agarró de la mitad de arriba (gira para un lado) o de abajo (para el otro), como Tinder. */
+export type Arrastre = { dx: number; dy: number; agarreArriba?: boolean }
+
+/** Hacia dónde va un arrastre (null = todavía no se movió lo suficiente). */
+export function direccionDe(dx: number, dy: number, conSuper = true): Salida | null {
+  if (conSuper && dy < -12 && Math.abs(dy) > Math.abs(dx) * 1.1) return 'super'
+  if (Math.abs(dx) > 8) return dx > 0 ? 'like' : 'pass'
+  return null
+}
 
 /** Cuántos pares de fotos tiene (se muestran de a 2, una arriba de la otra): hasta 5. */
 const paresDe = (item: ItemFeed) => Math.max(1, Math.ceil(Math.min(item.fotos.length, MAX_FOTOS_MAZO) / 2))
 
+const SELLOS: Record<Salida, { texto: string; color: string; clase: string }> = {
+  like: { texto: 'ME GUSTA', color: VERDE, clase: 'top-12 left-4 -rotate-12' },
+  pass: { texto: 'PASO', color: ROJO_PASO, clase: 'top-12 right-4 rotate-12' },
+  super: { texto: 'QUIERO VERLA', color: AZUL_VISITA, clase: 'bottom-[38%] left-1/2 -translate-x-1/2 -rotate-6' },
+}
+
 /**
- * Una tarjeta del mazo. Las fotos de las casas son apaisadas: en una tarjeta
- * vertical, UNA foto queda recortada y agrandada ("estirada", David 3-oct).
- * Por eso van de a DOS, una arriba de la otra, cada una casi en su forma, y
- * los datos abajo sobre blanco. Tocar el costado de las fotos pasa al
- * siguiente par (barritas arriba). La de arriba se arrastra; la de abajo
- * asoma un poco más chica; 'quieta' = la de la ficha (no se arrastra).
+ * Una tarjeta del mazo, con la estética de Tinder (David 4-oct): la foto ocupa
+ * TODA la tarjeta y los datos van encima, sobre un degradé oscuro. Las fotos de
+ * las casas son apaisadas: UNA sola en una tarjeta vertical queda recortada y
+ * agrandada ("estirada", David 3-oct), así que siguen de a DOS, una arriba de
+ * la otra (ahora más altas: casi en su forma). Tocar el costado de las fotos
+ * pasa al siguiente par (barritas arriba); tocar los datos abre "Ver detalles".
+ * La de arriba se arrastra y gira según dónde la agarraste; la de abajo crece
+ * mientras tanto (`progreso`); 'quieta' = la de la ficha (no se arrastra).
  */
 export function Tarjeta({
   item,
@@ -171,6 +207,9 @@ export function Tarjeta({
   guia = false,
   onDetalles,
   onAmpliar,
+  progreso = 0,
+  arrastrando = false,
+  conSuper = false,
 }: {
   item: ItemFeed
   modo: 'arriba' | 'abajo' | 'quieta'
@@ -182,33 +221,59 @@ export function Tarjeta({
   onAmpliar?: (desde: number) => void
   guardada: boolean
   arrastre: Arrastre | null
-  salida: 'like' | 'pass' | null
+  salida: Salida | null
   onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void
   onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void
   onPointerUp?: (e: React.PointerEvent<HTMLDivElement>) => void
   par: number
+  /** Solo la de abajo: 0 quieta → 1 la de arriba ya se va (crece hasta su tamaño). */
+  progreso?: number
+  /** Solo la de abajo: el dedo sigue apoyado en la de arriba (sigue sin demora). */
+  arrastrando?: boolean
+  /** Arrastrar hacia arriba = "Quiero verla" (en el mazo abierto). */
+  conSuper?: boolean
 }) {
   const arriba = modo === 'arriba'
   const dx = arrastre?.dx ?? 0
+  const dy = arrastre?.dy ?? 0
+  const haciaArriba = conSuper && direccionDe(dx, dy, true) === 'super'
+  // Gira según DÓNDE la agarraste (como Tinder): de la mitad de arriba la punta va adelante; de abajo, al revés.
+  const giro = dx * 0.06 * (arrastre?.agarreArriba === false ? -1 : 1)
   const transform =
     modo === 'abajo'
-      ? 'scale(0.95) translateY(10px)'
-      : salida
-        ? `translateX(${salida === 'like' ? 140 : -140}%) rotate(${salida === 'like' ? 18 : -18}deg)`
-        : arrastre
-          ? `translateX(${dx}px) translateY(${(arrastre.dy ?? 0) * 0.15}px) rotate(${dx / 18}deg)`
-          : 'none'
-  const transicion = guia ? 'transform 520ms ease-in-out' : arriba && arrastre && !salida ? 'none' : `transform ${DURACION_SALIDA}ms ease-out`
-  const fuerza = Math.min(1, Math.abs(dx) / UMBRAL_SWIPE)
+      ? `scale(${0.94 + 0.06 * progreso}) translateY(${12 * (1 - progreso)}px)`
+      : salida === 'super'
+        ? `translate(${dx}px, calc(${Math.min(dy, 0)}px - 125%)) rotate(-3deg)`
+        : salida
+          ? `translate(calc(${dx}px + ${salida === 'like' ? 135 : -135}%), ${dy * 0.4}px) rotate(${salida === 'like' ? 26 : -26}deg)`
+          : arrastre
+            ? `translate(${dx}px, ${haciaArriba ? dy * 0.85 : dy * 0.2}px) rotate(${haciaArriba ? giro * 0.4 : giro}deg)`
+            : 'none'
+  const transicion =
+    modo === 'abajo'
+      ? arrastrando
+        ? 'none'
+        : 'transform 260ms ease-out'
+      : guia
+        ? 'transform 520ms ease-in-out'
+        : salida
+          ? `transform ${DURACION_SALIDA}ms cubic-bezier(.3,.6,.4,1)`
+          : arriba && arrastre
+            ? 'none'
+            : // Vuelve a su lugar con un rebotecito (o aparece como la de arriba).
+              'transform 420ms cubic-bezier(.2,1.3,.4,1)'
+  const sello: Salida | null = !arriba ? null : salida ?? (haciaArriba ? 'super' : dx > 8 ? 'like' : dx < -8 ? 'pass' : null)
+  const fuerzaSello = salida ? 1 : sello === 'super' ? Math.min(1, -dy / UMBRAL_SUPER) : Math.min(1, Math.abs(dx) / UMBRAL_SWIPE)
   const n = Math.min(item.fotos.length, MAX_FOTOS_MAZO)
   const pares = paresDe(item)
   const p = Math.min(par, pares - 1)
   // El último par de una cantidad impar vuelve a la primera foto: nunca una sola estirada.
   const fotos = n > 1 ? [item.fotos[(p * 2) % n], item.fotos[(p * 2 + 1) % n]] : item.fotos.slice(0, 1)
+  const direccion = item.direccion || item.zona
 
   return (
     <div
-      className={`absolute inset-0 flex flex-col rounded-3xl overflow-hidden bg-white border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.10)] select-none ${arriba ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      className={`absolute inset-0 rounded-3xl overflow-hidden bg-gray-900 shadow-[0_10px_28px_rgba(0,0,0,0.18)] select-none ${arriba ? 'cursor-grab active:cursor-grabbing' : ''}`}
       style={{ transform, transition: transicion, touchAction: arriba ? 'none' : undefined }}
       onPointerDown={arriba ? onPointerDown : undefined}
       onPointerMove={arriba ? onPointerMove : undefined}
@@ -216,10 +281,10 @@ export function Tarjeta({
       onPointerCancel={arriba ? onPointerUp : undefined}
       aria-hidden={modo === 'abajo'}
     >
-      {/* Fotos de a dos */}
-      <div data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[3px] bg-white">
+      {/* Fotos de a dos, de punta a punta */}
+      <div data-fotos className="absolute inset-0 flex flex-col gap-[2px] bg-white">
         {fotos.map((src, i) => (
-          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-gray-100 overflow-hidden">
+          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-gray-200 overflow-hidden">
             <Image
               src={src}
               alt={`${item.titulo} — foto ${p * 2 + i + 1}`}
@@ -234,115 +299,125 @@ export function Tarjeta({
             />
           </div>
         ))}
+      </div>
 
-        {/* Barritas: una por par de fotos */}
-        {pares > 1 && (
-          <div className="absolute top-2.5 left-3 right-3 flex gap-1">
-            {Array.from({ length: pares }, (_, i) => (
-              <span key={i} className={`h-1 flex-1 rounded-full shadow-sm ${i === p ? 'bg-white' : 'bg-white/50'}`} />
-            ))}
-          </div>
-        )}
-        <div className="absolute top-6 left-3 flex items-center gap-2">
-          <Chip nuestra={item.esNuestra} />
-          {item.masVista && (
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/95 text-gray-900 shadow-sm">De las más vistas</span>
-          )}
+      {/* Barritas: una por par de fotos (como Tinder) */}
+      {pares > 1 && (
+        <div className="absolute top-2 left-3 right-3 flex gap-1">
+          {Array.from({ length: pares }, (_, i) => (
+            <span key={i} className={`h-1 flex-1 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.25)] ${i === p ? 'bg-white' : 'bg-white/45'}`} />
+          ))}
         </div>
+      )}
+      <div className="absolute top-5 left-3 flex items-center gap-2">
+        <Chip nuestra={item.esNuestra} />
+        {item.masVista && <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/95 text-gray-900 shadow-sm">De las más vistas</span>}
         {guardada && (
-          <div className="absolute top-6 right-3 text-[#E0245E] drop-shadow">
-            <Corazon lleno className="w-7 h-7" />
-          </div>
-        )}
-        {arriba && onAmpliar && (
-          <button
-            type="button"
-            onPointerDown={(e) => e.stopPropagation()}
-            onPointerUp={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              onAmpliar(Math.min(p * 2, Math.max(0, n - 1)))
-            }}
-            aria-label="Ver la foto en grande"
-            className="absolute bottom-2.5 right-2.5 grid h-11 w-11 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm"
-          >
-            <Expand className="h-5 w-5" aria-hidden="true" />
-          </button>
-        )}
-
-        {/* Sellos mientras arrastra */}
-        {arriba && dx > 8 && (
-          <span
-            className="absolute top-16 left-5 -rotate-12 rounded-xl border-4 px-3 py-1 text-2xl font-black tracking-wide font-raleway bg-white/85"
-            style={{ borderColor: VERDE, color: VERDE, opacity: fuerza }}
-          >
-            ME GUSTA
-          </span>
-        )}
-        {arriba && dx < -8 && (
-          <span className="absolute top-16 right-5 rotate-12 rounded-xl border-4 border-gray-500 px-3 py-1 text-2xl font-black tracking-wide text-gray-600 font-raleway bg-white/85" style={{ opacity: fuerza }}>
-            PASO
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-white shadow-sm" style={{ color: CORAZON }} aria-label="Te gusta">
+            <Corazon lleno className="w-[18px] h-[18px]" />
           </span>
         )}
       </div>
+      {arriba && onAmpliar && (
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation()
+            onAmpliar(Math.min(p * 2, Math.max(0, n - 1)))
+          }}
+          aria-label="Ver la foto en grande"
+          className="absolute top-4 right-3 grid h-10 w-10 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+        >
+          <Expand className="h-5 w-5" aria-hidden="true" />
+        </button>
+      )}
 
-      {/* Datos sobre blanco */}
-      <div className="flex-none px-4 pt-3 pb-3.5 bg-white">
-        <p className="whitespace-nowrap text-[24px] font-black font-numeric leading-none text-gray-900">{item.precio}</p>
-        {item.datos && <p className="text-[15px] mt-1.5 text-gray-700 font-poppins">{item.datos}</p>}
-        {(item.direccion || item.zona) && (
-          <p className="text-[14px] mt-1 flex items-center gap-1.5 min-w-0 text-gray-800">
-            <MapPin className="w-4 h-4 flex-none text-gray-500" aria-hidden="true" />
-            <span className="truncate">{item.direccion || item.zona}</span>
-          </p>
-        )}
-        {/* "Ver detalles" en el renglón de la inmobiliaria (que tiene lugar): al
-            lado del precio no entraba en el celu chico y se salía de la tarjeta. */}
-        <div className="mt-1 flex items-center justify-between gap-2 min-w-0">
-          <p className="text-[13px] flex items-center gap-1.5 min-w-0 text-gray-500">
-            {item.esNuestra ? <IsotipoSI className="h-[18px] w-auto" /> : <IconoRed className="w-4 h-4 flex-none" />}
-            <span className="truncate">{item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}</span>
-          </p>
-          {/* Solo en el mazo abierto: en la ficha la tarjeta entera es un botón (no se anida otro). */}
-          {arriba && onDetalles && (
-            <button
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onPointerUp={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation()
-                onDetalles()
-              }}
-              className="flex-none inline-flex h-10 items-center gap-1 rounded-full border px-3.5 text-[14px] font-bold font-raleway"
-              style={{ color: VERDE, borderColor: '#CFE0D6' }}
-            >
-              <Info className="h-4 w-4" aria-hidden="true" /> Ver detalles
-            </button>
+      {/* Sello mientras arrastra (o al decidir con los botones) */}
+      {sello && (
+        <span
+          className={`absolute ${SELLOS[sello].clase} rounded-xl border-[5px] px-3 py-1 text-[28px] font-black tracking-wide font-raleway bg-white/85 whitespace-nowrap pointer-events-none`}
+          style={{ borderColor: SELLOS[sello].color, color: SELLOS[sello].color, opacity: fuerzaSello }}
+        >
+          {SELLOS[sello].texto}
+        </span>
+      )}
+
+      {/* Datos SOBRE la foto, en un degradé (como Tinder) */}
+      <div className="absolute inset-x-0 bottom-0 pt-14 [@media(max-height:720px)]:pt-8 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0) 100%)' }}>
+        <div data-datos className="px-4 pb-4 [@media(max-height:720px)]:pb-3 text-white">
+          <p className="whitespace-nowrap text-[30px] [@media(max-height:720px)]:text-[26px] font-black font-numeric leading-none [text-shadow:0_1px_10px_rgba(0,0,0,0.35)]">{item.precio}</p>
+          {item.datos && <p className="mt-1.5 text-[16px] font-medium font-poppins text-white/95">{item.datos}</p>}
+          {direccion && (
+            <p className="mt-1 flex items-center gap-1.5 min-w-0 text-[15px] text-white/90">
+              <MapPin className="w-4 h-4 flex-none" aria-hidden="true" />
+              <span className="truncate">{direccion}</span>
+            </p>
           )}
+          {/* "Ver detalles" en el renglón de la inmobiliaria (que tiene lugar): al
+              lado del precio no entraba en el celu chico y se salía de la tarjeta. */}
+          <div className="mt-2 flex items-center justify-between gap-2 min-w-0">
+            <p className="flex items-center gap-1.5 min-w-0 text-[13px] text-white/85">
+              {item.esNuestra ? <IsotipoSI className="h-[18px] w-auto" /> : <IconoRed className="w-4 h-4 flex-none" />}
+              <span className="truncate">{item.esNuestra ? 'SI Inmobiliaria' : 'Otra inmobiliaria'}</span>
+            </p>
+            {/* Solo en el mazo abierto: en la ficha la tarjeta entera es un botón (no se anida otro). */}
+            {arriba && onDetalles && (
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDetalles()
+                }}
+                className="pointer-events-auto flex-none inline-flex h-10 items-center gap-1.5 rounded-full border border-white/35 bg-white/20 px-3.5 text-[14px] font-bold text-white backdrop-blur-md font-raleway"
+              >
+                <Info className="h-4 w-4" aria-hidden="true" /> Ver detalles
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
+/** Mientras arrastra, el botón de ese lado se agranda y se pinta (como Tinder). */
+export type Tendencia = { dir: Salida | null; fuerza: number }
+
 export function BotonesTinder({
   onPaso,
   onMeGusta,
   onVolver,
+  onQuieroVerla,
   puedeVolver = false,
   chicos = false,
+  tendencia = null,
 }: {
   onPaso: () => void
   onMeGusta: () => void
   /** ↺ volver a la anterior (como el de Tinder). Sin esto, no se muestra. */
   onVolver?: () => void
+  /** ★ "Quiero verla" (el super like): coordinar la visita. Sin esto, no se muestra. */
+  onQuieroVerla?: () => void
   puedeVolver?: boolean
   chicos?: boolean
+  tendencia?: Tendencia | null
 }) {
-  const tam = chicos ? 'w-14 h-14' : 'w-16 h-16'
-  const icono = chicos ? 'w-7 h-7' : 'w-8 h-8'
+  const grande = chicos ? 'w-14 h-14' : 'w-16 h-16'
+  const iconoGrande = chicos ? 'w-7 h-7' : 'w-8 h-8'
+  const chico = chicos ? 'w-11 h-11' : 'w-[52px] h-[52px]'
+  const base =
+    'rounded-full bg-white border border-gray-100 shadow-[0_6px_18px_rgba(0,0,0,0.12)] grid place-items-center transition-[transform,background-color,color] duration-150 active:scale-90'
+  const pintar = (dir: Salida, color: string): React.CSSProperties => {
+    const f = tendencia?.dir === dir ? Math.min(1, tendencia.fuerza) : 0
+    if (f <= 0) return { color }
+    return { color: f > 0.55 ? '#fff' : color, background: `rgba(${RGB[dir]},${0.12 + 0.88 * f})`, borderColor: 'transparent', transform: `scale(${1 + 0.14 * f})` }
+  }
   return (
-    <div className={`flex items-center justify-center ${onVolver ? 'gap-6' : 'gap-8'}`}>
+    <div className={`flex items-center justify-center ${onVolver || onQuieroVerla ? 'gap-4' : 'gap-8'}`}>
       {onVolver && (
         <button
           type="button"
@@ -350,34 +425,35 @@ export function BotonesTinder({
           disabled={!puedeVolver}
           aria-label="Volver a la anterior"
           title="Volver a la anterior"
-          className="w-12 h-12 rounded-full bg-white border border-gray-200 shadow-[0_6px_18px_rgba(0,0,0,0.10)] grid place-items-center text-[#C98A00] active:scale-90 transition-transform disabled:opacity-35 disabled:active:scale-100"
+          className={`${chico} ${base} disabled:opacity-35 disabled:active:scale-100`}
+          style={{ color: ORO_VOLVER }}
         >
           <RotateCcw className="w-6 h-6" strokeWidth={2.6} />
         </button>
       )}
-      <button
-        type="button"
-        onClick={onPaso}
-        aria-label="Paso"
-        className={`${tam} rounded-full bg-white border border-gray-200 shadow-[0_6px_18px_rgba(0,0,0,0.10)] grid place-items-center text-gray-500 active:scale-90 transition-transform`}
-      >
-        <X className={icono} strokeWidth={2.6} />
+      <button type="button" onClick={onPaso} aria-label="Paso" className={`${grande} ${base}`} style={pintar('pass', ROJO_PASO)}>
+        <X className={iconoGrande} strokeWidth={3} />
       </button>
-      <button
-        type="button"
-        onClick={onMeGusta}
-        aria-label="Me gusta"
-        className={`${tam} rounded-full bg-white border border-gray-200 shadow-[0_6px_18px_rgba(0,0,0,0.10)] grid place-items-center active:scale-90 transition-transform`}
-        style={{ color: ROSA }}
-      >
-        <Corazon lleno className={icono} />
+      {onQuieroVerla && (
+        <button type="button" onClick={onQuieroVerla} aria-label="Quiero verla: coordinar una visita" title="Quiero verla" className={`${chico} ${base}`} style={pintar('super', AZUL_VISITA)}>
+          <Star className="w-6 h-6" fill="currentColor" strokeWidth={1.5} />
+        </button>
+      )}
+      <button type="button" onClick={onMeGusta} aria-label="Me gusta" className={`${grande} ${base}`} style={pintar('like', CORAZON)}>
+        <Corazon lleno className={iconoGrande} />
       </button>
     </div>
   )
 }
 
-
 type EstadoHoja = { motivo: 'salir' | 'boton' } | null
+/**
+ * EL MATCH (David 4-oct: "que no termine sin sacarle algún dato o sin que nos
+ * consulte por una propiedad o por varias"). Como el "¡Es un match!" de Tinder:
+ * al primer ♥ de la visita, al tercero, y al tocar ★ "Quiero verla". Solo si
+ * todavía no sabemos su WhatsApp; si ya lo dejó, no se interrumpe nada.
+ */
+type EstadoMatch = { modo: 'match' | 'tres' | 'visita'; item: ItemFeed } | null
 
 export default function MazoCasas({
   items,
@@ -445,15 +521,30 @@ export default function MazoCasas({
   /** pendiente → (pregunta) → cargando → sumados | vacio | no. */
   const [estadoParecidos, setEstadoParecidos] = useState<'pendiente' | 'cargando' | 'sumados' | 'vacio' | 'no'>('pendiente')
   /** Para ↺: cada decisión, con si el ♥ fue nuevo (si ya estaba guardada de antes, volver no se la saca). */
-  const [historial, setHistorial] = useState<{ indice: number; accion: 'like' | 'pass'; key: string; nueva: boolean }[]>([])
+  const [historial, setHistorial] = useState<{ indice: number; accion: Salida; key: string; nueva: boolean }[]>([])
   const [indice, setIndice] = useState(() => Math.min(Math.max(0, inicio), items.length))
   // Se abrió directo en las elegidas (botón de la fila de la compu): no "las vio todas".
   const [directoAlFinal, setDirectoAlFinal] = useState(() => inicio >= items.length)
   const [foto, setFoto] = useState(0)
   const [arrastre, setArrastre] = useState<Arrastre | null>(null)
-  const [salida, setSalida] = useState<'like' | 'pass' | null>(null)
+  const [salida, setSalida] = useState<Salida | null>(null)
   const [hoja, setHoja] = useState<EstadoHoja>(null)
-  const inicioArrastre = useRef<{ x: number; y: number } | null>(null)
+  const [match, setMatch] = useState<EstadoMatch>(null)
+  /** Aviso cortito abajo ("Listo, te escribimos…"). */
+  const [aviso, setAviso] = useState<string | null>(null)
+  useEffect(() => {
+    if (!aviso) return
+    const t = window.setTimeout(() => setAviso(null), 3800)
+    return () => window.clearTimeout(t)
+  }, [aviso])
+  /** Las que ya le mandamos a un asesor (no se le vuelven a pedir ni a mandar). */
+  const [enviadas, setEnviadas] = useState<ReadonlySet<string>>(() => new Set<string>())
+  const refrescarEnviadas = useCallback(() => setEnviadas(new Set(leerEnviadas())), [])
+  useEffect(refrescarEnviadas, [refrescarEnviadas])
+  const inicioArrastre = useRef<{ x: number; y: number; arriba: boolean } | null>(null)
+  /** Últimos puntos del dedo: la velocidad decide el latigazo. */
+  const muestras = useRef<{ x: number; y: number; t: number }[]>([])
+  const cruzoUmbral = useRef(false)
   // Rescate: una vez por visita, cuando pasa 4 seguidas sin ♥ o se va sin guardar.
   const [rescate, setRescate] = useState<'mazo' | 'salir' | null>(null)
   const [rescateVisto, setRescateVisto] = useState(rescateMostrado)
@@ -468,7 +559,7 @@ export default function MazoCasas({
   /**
    * INSTRUCTIVO (David 4-oct: "un instructivo sencillo para insinuar cómo se
    * maneja"): la primera vez en este celu, la tarjeta se mueve sola a la
-   * derecha (ME GUSTA) y a la izquierda (PASO) y un cartel lo dice en tres
+   * derecha (ME GUSTA) y a la izquierda (PASO) y un cartel lo dice en pocos
    * renglones. Se va con "¡Entendido!" o tocando en cualquier lado.
    */
   const [guia, setGuia] = useState(false)
@@ -535,19 +626,53 @@ export default function MazoCasas({
     return () => window.clearTimeout(t)
   }, [claveArriba])
 
-  /** ♥ o paso: la tarjeta sale volando y aparece la siguiente. */
+  const pendientes = useMemo(() => guardadas.filter((g) => !enviadas.has(g.key)), [guardadas, enviadas])
+
+  /** ★ con el WhatsApp ya conocido: se manda en el momento, sin preguntar nada. */
+  const pedirVisitaDirecto = useCallback(
+    (c: { nombre: string; whatsapp: string }, item: ItemFeed) => {
+      const keys = Array.from(new Set([item.key, ...pendientes.map((g) => g.key)]))
+      const envio = mandarConsulta({ nombre: c.nombre, whatsapp: c.whatsapp, keys, barrio, busqueda, origen, visita: true })
+      // Ya quedaron marcadas como enviadas (si falla, se desmarcan): ♥ N no las repite mientras viaja.
+      refrescarEnviadas()
+      void envio.then((r) => {
+        refrescarEnviadas()
+        setAviso(r.ok ? `Listo, ${c.nombre.split(/\s+/)[0]}: un asesor te escribe para coordinar la visita.` : r.error)
+      })
+    },
+    [pendientes, barrio, busqueda, origen, refrescarEnviadas],
+  )
+
+  /** ♥, paso o ★: la tarjeta sale volando y aparece la siguiente. */
   const decidir = useCallback(
-    (accion: 'like' | 'pass') => {
-      if (!actual || salida || rescate || guia) return
-      setHistorial((h) => [...h.slice(-30), { indice, accion, key: actual.key, nueva: accion === 'like' && !esGuardada(actual.key) }])
-      if (accion === 'like') {
+    (accion: Salida) => {
+      if (!actual || salida || rescate || guia || match) return
+      const yaEstaba = esGuardada(actual.key)
+      setHistorial((h) => [...h.slice(-30), { indice, accion, key: actual.key, nueva: accion === 'like' && !yaEstaba }])
+      if (accion === 'pass') {
+        pasesSeguidos.current += 1
+      } else {
         guardar(actual)
         pasesSeguidos.current = 0
-      } else {
-        pasesSeguidos.current += 1
       }
+      haptico(accion !== 'pass')
       // 4 seguidas con ✕ y ninguna guardada: no es lo que busca → rescate.
       const rescatar = accion === 'pass' && guardadas.length === 0 && !enviada && pasesSeguidos.current >= 4 && !rescateVisto && indice + 1 < todos.length
+      let abrirMatch: EstadoMatch = null
+      const contacto = contactoListo()
+      if (accion === 'super') {
+        contarTinder('quiero_verla', origen)
+        trackEvent('feed_en_red_quiero_verla', { tipo: actual.esNuestra ? 'nuestra' : 'en_red' })
+        if (contacto) pedirVisitaDirecto(contacto, actual)
+        else abrirMatch = { modo: 'visita', item: actual }
+      } else if (accion === 'like' && !yaEstaba) {
+        likesVisita += 1
+        const modo = likesVisita === 1 ? 'match' : likesVisita === 3 ? 'tres' : null
+        if (modo && !contacto && !enviada && !matchesVistos.has(modo)) {
+          matchesVistos.add(modo)
+          abrirMatch = { modo, item: actual }
+        }
+      }
       setSalida(accion)
       setVistas((v) => Math.max(v, indice + 1))
       window.setTimeout(() => {
@@ -556,14 +681,18 @@ export default function MazoCasas({
         setArrastre(null)
         setSalida(null)
         if (rescatar) marcarRescate('mazo')
+        if (abrirMatch) {
+          setMatch(abrirMatch)
+          contarTinder('match', origen)
+        }
       }, DURACION_SALIDA)
     },
-    [actual, salida, rescate, guia, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate],
+    [actual, salida, rescate, guia, match, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate, origen, pedirVisitaDirecto],
   )
 
   /** ↺ Volver a la anterior: si le había dado ♥ recién, se lo saca y decide de nuevo. */
   const volver = useCallback(() => {
-    if (salida || rescate || enviada) return
+    if (salida || rescate || enviada || match) return
     const ultima = historial[historial.length - 1]
     if (!ultima) return
     setHistorial((h) => h.slice(0, -1))
@@ -573,7 +702,7 @@ export default function MazoCasas({
     setFoto(0)
     setArrastre(null)
     trackEvent('feed_en_red_volver', { origen })
-  }, [salida, rescate, enviada, historial, quitar, origen])
+  }, [salida, rescate, enviada, match, historial, quitar, origen])
   const puedeVolver = historial.length > 0 && !enviada
 
   // Terminó un barrio que tiene parecidos: PRIMERO pregunta (David 4-oct).
@@ -619,13 +748,26 @@ export default function MazoCasas({
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (salida) return
     e.currentTarget.setPointerCapture(e.pointerId)
-    inicioArrastre.current = { x: e.clientX, y: e.clientY }
-    setArrastre({ dx: 0, dy: 0 })
+    const r = e.currentTarget.getBoundingClientRect()
+    inicioArrastre.current = { x: e.clientX, y: e.clientY, arriba: e.clientY < r.top + r.height / 2 }
+    muestras.current = [{ x: e.clientX, y: e.clientY, t: e.timeStamp }]
+    cruzoUmbral.current = false
+    setArrastre({ dx: 0, dy: 0, agarreArriba: inicioArrastre.current.arriba })
   }
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const ini = inicioArrastre.current
     if (!ini) return
-    setArrastre({ dx: e.clientX - ini.x, dy: e.clientY - ini.y })
+    const dx = e.clientX - ini.x
+    const dy = e.clientY - ini.y
+    muestras.current = [...muestras.current.filter((m) => e.timeStamp - m.t < 120), { x: e.clientX, y: e.clientY, t: e.timeStamp }]
+    // Un golpecito al cruzar el punto en que la tarjeta ya se va (como Tinder).
+    const dir = direccionDe(dx, dy)
+    const fuera = dir === 'super' ? -dy > UMBRAL_SUPER : dir !== null && Math.abs(dx) > UMBRAL_SWIPE
+    if (fuera !== cruzoUmbral.current) {
+      cruzoUmbral.current = fuera
+      if (fuera) haptico()
+    }
+    setArrastre({ dx, dy, agarreArriba: ini.arriba })
   }
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     const ini = inicioArrastre.current
@@ -633,17 +775,36 @@ export default function MazoCasas({
     if (!ini || !actual) return setArrastre(null)
     const dx = e.clientX - ini.x
     const dy = e.clientY - ini.y
-    if (Math.abs(dx) > UMBRAL_SWIPE) return decidir(dx > 0 ? 'like' : 'pass')
+    // Velocidad de los últimos ~120 ms (contando el soltar): un latigazo corto
+    // también decide. Si frenó antes de soltar, no quedan muestras viejas: no sale.
+    const ms = [...muestras.current.filter((m) => e.timeStamp - m.t < 120), { x: e.clientX, y: e.clientY, t: e.timeStamp }]
+    const a = ms[0]
+    const b = ms[ms.length - 1]
+    const dt = a && b ? Math.max(1, b.t - a.t) : 1
+    const vx = a && b ? (b.x - a.x) / dt : 0
+    const dir = direccionDe(dx, dy)
+    // ★ por gesto SOLO con el arrastre completo hacia arriba: deslizar para
+    // arriba es el reflejo de "ver más" (Instagram, TikTok) y una ★ sin querer
+    // le manda un asesor (sin latigazo vertical, a propósito).
+    if (dir === 'super' && -dy > UMBRAL_SUPER) return decidir('super')
+    if (
+      (dir === 'like' || dir === 'pass') &&
+      (Math.abs(dx) > UMBRAL_SWIPE || (Math.abs(vx) > VELOCIDAD_LATIGAZO && Math.abs(dx) > 30 && Math.sign(vx) === Math.sign(dx)))
+    ) {
+      return decidir(dir)
+    }
     setArrastre(null)
-    // Un toque (sin arrastrar) sobre las fotos: mitad izquierda = par anterior, derecha = siguiente.
-    const pares = paresDe(actual)
-    const zona = e.currentTarget.querySelector('[data-fotos]')?.getBoundingClientRect()
-    // Un toque en la parte blanca (precio, datos, dirección) = "Ver detalles".
-    if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && zona && e.clientY > zona.bottom) {
+    if (Math.abs(dx) >= 6 || Math.abs(dy) >= 6) return
+    // Un toque (sin arrastrar): sobre los datos = "Ver detalles"; sobre las
+    // fotos, mitad izquierda = par anterior, derecha = siguiente (como Tinder).
+    const datos = e.currentTarget.querySelector('[data-datos]')?.getBoundingClientRect()
+    if (datos && e.clientY >= datos.top) {
       abrirDetalle()
       return
     }
-    if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && pares > 1 && zona && e.clientY >= zona.top && e.clientY <= zona.bottom) {
+    const pares = paresDe(actual)
+    if (pares > 1) {
+      const zona = e.currentTarget.getBoundingClientRect()
       const derecha = e.clientX - zona.left > zona.width / 2
       setFoto((f) => (derecha ? Math.min(f + 1, pares - 1) : Math.max(f - 1, 0)))
     }
@@ -676,13 +837,22 @@ export default function MazoCasas({
   const cerrarTodo = () => {
     setHoja(null)
     setRescate(null)
+    setMatch(null)
     onCerrar()
+  }
+  /** Todas sus ♥ ya están con un asesor: se limpian al irse (como al mandar desde el final). */
+  const cerrarYaConsultadas = () => {
+    limpiar()
+    cerrarTodo()
   }
   const salir = () => {
     // Ya mandó la consulta, o el formulario ya está a la vista (final con
     // elegidas): sale directo, sin repetirle el mismo formulario en una hoja.
-    if (enviada || (terminado && guardadas.length > 0)) return cerrarTodo()
-    if (guardadas.length > 0) return setHoja({ motivo: 'salir' })
+    if (enviada || (terminado && pendientes.length > 0)) return cerrarTodo()
+    // ♥ que todavía no nos mandó: "¡No pierdas tus elegidas!".
+    if (pendientes.length > 0) return setHoja({ motivo: 'salir' })
+    // Le gustaron y ya las tiene un asesor (match o ★): se va tranquilo.
+    if (guardadas.length > 0) return cerrarYaConsultadas()
     // Se va sin guardar ninguna después de mirar algunas: una pregunta rápida.
     if (!rescateVisto && !finEsRescate && vistas > 0) return marcarRescate('salir')
     cerrarTodo()
@@ -709,6 +879,10 @@ export default function MazoCasas({
       setDetalle(false)
       return true
     }
+    if (match) {
+      setMatch(null)
+      return true
+    }
     if (hoja?.motivo === 'salir' || rescate === 'salir') {
       cerrarTodo()
       return false
@@ -726,10 +900,14 @@ export default function MazoCasas({
       return false
     }
     // El formulario del final ya está a la vista: se queda ahí.
-    if (terminado && guardadas.length > 0) return true
-    if (guardadas.length > 0) {
+    if (terminado && pendientes.length > 0) return true
+    if (pendientes.length > 0) {
       setHoja({ motivo: 'salir' })
       return true
+    }
+    if (guardadas.length > 0) {
+      cerrarYaConsultadas()
+      return false
     }
     if (!rescateVisto && !finEsRescate && vistas > 0) {
       marcarRescate('salir')
@@ -790,7 +968,7 @@ export default function MazoCasas({
     }
   }, [])
 
-  // Sin scroll de la página de atrás; Escape sale, flechas = paso / ♥.
+  // Sin scroll de la página de atrás; Escape sale, flechas = paso / ♥ / ★.
   useEffect(() => {
     const previo = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -798,14 +976,16 @@ export default function MazoCasas({
       if (e.key === 'Escape') {
         if (guia) cerrarGuia()
         else if (detalle) setDetalle(false)
+        else if (match) setMatch(null)
         else if (hoja) setHoja(null)
         else if (rescate) setRescate(null)
         else salir()
-      } else if (detalle || visor != null) {
+      } else if (detalle || visor != null || match || hoja || rescate) {
         return
-      } else if (!hoja && !rescate && e.key === 'ArrowRight') decidir('like')
-      else if (!hoja && !rescate && e.key === 'ArrowLeft') decidir('pass')
-      else if (!hoja && !rescate && e.key === 'Backspace' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) volver()
+      } else if (e.key === 'ArrowRight') decidir('like')
+      else if (e.key === 'ArrowLeft') decidir('pass')
+      else if (e.key === 'ArrowUp') decidir('super')
+      else if (e.key === 'Backspace' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) volver()
     }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -813,26 +993,45 @@ export default function MazoCasas({
       window.removeEventListener('keydown', onKey)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoja, rescate, guia, detalle, visor, guardadas.length, decidir, volver])
+  }, [hoja, rescate, guia, detalle, visor, match, guardadas.length, pendientes.length, decidir, volver])
 
   const n = todos.length
   // Mirando las de los barrios parecidos: el título lo dice.
   const tituloVisible =
     insercion && indice >= insercion.en && indice < insercion.en + insercion.items.length ? `Casas en ${listaBarrios(parecidos)}` : titulo
   const g = guardadas.length
+  // Mientras arrastra: hacia dónde va y cuánto falta (la de abajo crece, el botón de ese lado se pinta).
+  const dirArrastre = arrastre && !guia ? direccionDe(arrastre.dx, arrastre.dy) : null
+  const fuerzaArrastre = !arrastre || !dirArrastre ? 0 : dirArrastre === 'super' ? Math.min(1, -arrastre.dy / UMBRAL_SUPER) : Math.min(1, Math.abs(arrastre.dx) / UMBRAL_SWIPE)
+  const progresoAbajo = salida ? 1 : fuerzaArrastre
+  const tendencia: Tendencia | null = salida ? { dir: salida, fuerza: 1 } : dirArrastre ? { dir: dirArrastre, fuerza: fuerzaArrastre } : null
 
   return createPortal(
     <div className="fixed inset-0 z-[10400] bg-white md:bg-white/85 md:backdrop-blur-sm md:flex md:items-center md:justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
+      <style dangerouslySetInnerHTML={{ __html: ESTILOS_MAZO }} />
       <div className="relative flex flex-col h-[100dvh] w-full bg-white md:h-[92vh] md:max-w-[440px] md:rounded-3xl md:border md:border-gray-200 md:shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden">
-        {/* Encabezado */}
-        <div className="flex items-center justify-between gap-3 px-4 pt-[max(14px,env(safe-area-inset-top))] pb-2">
-          <div className="min-w-0">
+        {/* Encabezado: título, por cuál va y sus elegidas (♥ N) siempre a mano */}
+        <div className="flex items-center justify-between gap-2 px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2">
+          <div className="min-w-0 flex-1">
             <p className="font-black text-gray-900 font-raleway truncate">{tituloVisible}</p>
             <p className="text-[13px] text-gray-500">
               {terminado ? (directoAlFinal && g > 0 ? `Tus elegidas · ${n} para ver` : `Viste las ${n}`) : `${indice + 1} de ${n}`}
-              {g > 0 ? ` · ♥ ${g} guardada${g > 1 ? 's' : ''}` : ''}
             </p>
           </div>
+          {g > 0 && !terminado && (
+            <button
+              type="button"
+              onClick={() => setHoja({ motivo: 'boton' })}
+              aria-label={`Tus elegidas: ${g}. Pedí que te las mandemos`}
+              className="flex-none inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[15px] font-bold text-white shadow-sm active:scale-95 transition-transform"
+              style={{ background: CORAZON }}
+            >
+              <span key={g} className="mazo-latido inline-grid">
+                <Corazon lleno className="w-[18px] h-[18px]" />
+              </span>
+              {g}
+            </button>
+          )}
           <button type="button" onClick={salir} aria-label="Salir" className="w-10 h-10 rounded-full border border-gray-200 bg-white grid place-items-center flex-none text-gray-800 hover:bg-gray-50">
             <X className="w-5 h-5" />
           </button>
@@ -840,17 +1039,29 @@ export default function MazoCasas({
         {/* Solo en la primera: después cada tarjeta de colega lo dice con su chip
             "En red", y en el celu chico ese renglón les sacaba lugar a las fotos. */}
         {indice === 0 && !terminado && todos.some((i) => !i.esNuestra) && (
-          <p className="px-4 pb-3 text-[13px] leading-relaxed text-gray-600">
+          <p className="px-4 pb-2.5 text-[13px] leading-relaxed text-gray-600">
             <strong className="text-gray-800">Algunas las publican otras inmobiliarias.</strong> Te las mostramos y te coordinamos la visita nosotros.
           </p>
         )}
         {!(indice === 0 && !terminado && todos.some((i) => !i.esNuestra)) && <div className="h-1" aria-hidden="true" />}
 
         {/* Mazo */}
-        <div className="relative flex-1 mx-4 min-h-0">
+        <div className="relative flex-1 mx-3 min-h-0">
           {!terminado && actual ? (
             <>
-              {siguiente && <Tarjeta key={siguiente.key} item={siguiente} modo="abajo" guardada={esGuardada(siguiente.key)} arrastre={null} salida={null} par={0} />}
+              {siguiente && (
+                <Tarjeta
+                  key={siguiente.key}
+                  item={siguiente}
+                  modo="abajo"
+                  guardada={esGuardada(siguiente.key)}
+                  arrastre={null}
+                  salida={null}
+                  par={0}
+                  progreso={progresoAbajo}
+                  arrastrando={!!arrastre && !salida}
+                />
+              )}
               <Tarjeta
                 key={actual.key}
                 item={actual}
@@ -858,6 +1069,7 @@ export default function MazoCasas({
                 guardada={esGuardada(actual.key)}
                 arrastre={guia && guiaDx != null ? { dx: guiaDx, dy: 0 } : arrastre}
                 guia={guia}
+                conSuper
                 onDetalles={abrirDetalle}
                 onAmpliar={abrirVisor}
                 salida={salida}
@@ -885,6 +1097,7 @@ export default function MazoCasas({
                 origen={origen}
                 enLinea
                 guardadas={guardadas}
+                enviadas={enviadas}
                 barrio={barrio}
                 busqueda={busqueda}
                 criterios={criterios}
@@ -893,8 +1106,9 @@ export default function MazoCasas({
                 onListo={() => {
                   setEnviada('linea')
                   limpiar()
+                  refrescarEnviadas()
                 }}
-                onCerrar={cerrarTodo}
+                onCerrar={cerrarYaConsultadas}
               />
             </div>
           ) : (
@@ -933,12 +1147,24 @@ export default function MazoCasas({
               />
             </div>
           )}
+          {aviso && (
+            <div role="status" className="absolute inset-x-3 top-3 z-20 rounded-2xl bg-gray-900/95 px-4 py-3 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] mazo-aviso">
+              {aviso}
+            </div>
+          )}
         </div>
 
-        {/* Botones ✕ / ♥ */}
+        {/* Botones ↺ ✕ ★ ♥ (como Tinder) */}
         <div className="px-4 pt-4 pb-[max(14px,env(safe-area-inset-bottom))]">
           {!terminado && !rescate && (
-            <BotonesTinder onPaso={() => decidir('pass')} onMeGusta={() => decidir('like')} onVolver={volver} puedeVolver={puedeVolver} />
+            <BotonesTinder
+              onPaso={() => decidir('pass')}
+              onMeGusta={() => decidir('like')}
+              onQuieroVerla={() => decidir('super')}
+              onVolver={volver}
+              puedeVolver={puedeVolver}
+              tendencia={tendencia}
+            />
           )}
           {/* Al final también se puede volver a la última (por si la pasó sin querer). */}
           {terminado && puedeVolver && !hoja && !rescate && estadoParecidos !== 'cargando' && (
@@ -947,18 +1173,23 @@ export default function MazoCasas({
               onClick={volver}
               className="mx-auto flex h-11 items-center gap-2 rounded-full px-4 text-[15px] font-semibold text-gray-700 hover:bg-gray-50"
             >
-              <RotateCcw className="w-5 h-5 text-[#C98A00]" strokeWidth={2.6} aria-hidden="true" /> Volver a la anterior
+              <RotateCcw className="w-5 h-5" style={{ color: ORO_VOLVER }} strokeWidth={2.6} aria-hidden="true" /> Volver a la anterior
             </button>
           )}
-          {/* Mientras desliza, solo ✕ y ♥ (David, 3-oct: "que se concentre en eso"); el CTA está al final. */}
           {!terminado && !rescate && (
             <p className="mt-3 text-center text-[13px] text-gray-500">
-              {g > 0 ? (
+              {g > 0 && pendientes.length === 0 ? (
                 <>
-                  <span style={{ color: ROSA }}>♥</span> {g} guardada{g > 1 ? 's' : ''} · seguí deslizando, al final te las mandamos
+                  <span style={{ color: CORAZON }}>✓</span> Tus elegidas ya las tiene un asesor · seguí mirando
+                </>
+              ) : g > 0 ? (
+                <>
+                  <span style={{ color: CORAZON }}>♥</span> {g} elegida{g > 1 ? 's' : ''} · tocá <span className="font-semibold text-gray-700">♥ {g}</span> arriba y te las mandamos
                 </>
               ) : (
-                'Deslizá a la derecha si te gusta, a la izquierda para pasar'
+                <>
+                  Deslizá → si te gusta · <span style={{ color: AZUL_VISITA }}>★</span> para ir a verla
+                </>
               )}
             </p>
           )}
@@ -999,6 +1230,10 @@ export default function MazoCasas({
               setDetalle(false)
               decidir('like')
             }}
+            onQuieroVerla={() => {
+              setDetalle(false)
+              decidir('super')
+            }}
           />
         )}
         {guia && !terminado && (
@@ -1012,7 +1247,7 @@ export default function MazoCasas({
               <p className="text-xl font-black text-gray-900 font-raleway">Así de fácil</p>
               <ul className="mt-3 space-y-3 [@media(max-height:720px)]:mt-2 [@media(max-height:720px)]:space-y-2 text-[16px] text-gray-800">
                 <li className="flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none" style={{ background: '#FDE7EE', color: ROSA }} aria-hidden="true">
+                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none" style={{ background: '#E7F2EC', color: CORAZON }} aria-hidden="true">
                     <Corazon lleno className="w-5 h-5" />
                   </span>
                   <span>
@@ -1020,11 +1255,19 @@ export default function MazoCasas({
                   </span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none bg-gray-100 text-gray-500" aria-hidden="true">
-                    <X className="w-5 h-5" strokeWidth={2.6} />
+                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none" style={{ background: '#FDECEC', color: ROJO_PASO }} aria-hidden="true">
+                    <X className="w-5 h-5" strokeWidth={3} />
                   </span>
                   <span>
                     <strong>A la izquierda</strong> para pasar a otra
+                  </span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none" style={{ background: '#E8F1FF', color: AZUL_VISITA }} aria-hidden="true">
+                    <Star className="w-5 h-5" fill="currentColor" strokeWidth={1.5} />
+                  </span>
+                  <span>
+                    <strong>Hacia arriba o ★</strong> si querés ir a verla
                   </span>
                 </li>
                 <li className="flex items-center gap-3">
@@ -1035,19 +1278,11 @@ export default function MazoCasas({
                     </svg>
                   </span>
                   <span>
-                    <strong>Tocá el costado de la foto</strong> para ver más; con ⤢ la ves en grande
-                  </span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-full grid place-items-center flex-none bg-gray-100" style={{ color: VERDE }} aria-hidden="true">
-                    <Info className="w-5 h-5" />
-                  </span>
-                  <span>
-                    <strong>Ver detalles</strong>: la ubicación en el mapa y todo lo que tiene
+                    <strong>Tocá el costado de la foto</strong> para ver más; tocá el precio para los detalles
                   </span>
                 </li>
               </ul>
-              <p className="mt-3 text-[15px] text-gray-600 [@media(max-height:720px)]:hidden">Al final te mandamos las que guardaste por WhatsApp.</p>
+              <p className="mt-3 text-[15px] text-gray-600 [@media(max-height:720px)]:hidden">Las que te gusten te las mandamos por WhatsApp.</p>
               <button type="button" onClick={cerrarGuia} className="mt-4 w-full h-12 rounded-2xl text-white font-bold text-[16px]" style={{ background: VERDE }} autoFocus>
                 ¡Entendido!
               </button>
@@ -1057,21 +1292,330 @@ export default function MazoCasas({
         {hoja && (
           <HojaContacto
             origen={origen}
+            motivo={hoja.motivo}
             guardadas={guardadas}
+            enviadas={enviadas}
             barrio={barrio}
             busqueda={busqueda}
             criterios={criterios}
             onCancelar={() => (hoja.motivo === 'salir' ? cerrarTodo() : setHoja(null))}
             onListo={() => {
-              setEnviada('hoja')
-              limpiar()
+              refrescarEnviadas()
+              // Desde ♥ N (mitad del mazo) sigue mirando: las ♥ quedan y las nuevas se suman.
+              if (hoja.motivo === 'salir') {
+                setEnviada('hoja')
+                limpiar()
+              }
             }}
-            onCerrar={cerrarTodo}
+            onCerrar={hoja.motivo === 'salir' ? cerrarTodo : () => setHoja(null)}
+          />
+        )}
+        {match && (
+          <MatchMazo
+            estado={match}
+            pendientes={pendientes}
+            barrio={barrio}
+            busqueda={busqueda}
+            origen={origen}
+            onSeguir={() => setMatch(null)}
+            onEnviado={refrescarEnviadas}
           />
         )}
       </div>
     </div>,
     document.body,
+  )
+}
+
+/** Animaciones del mazo (el latido del ♥ N, el match, el aviso). Sin movimiento si el sistema lo pide. */
+const ESTILOS_MAZO = `
+@keyframes mazo-latido { 0% { transform: scale(1) } 35% { transform: scale(1.45) } 100% { transform: scale(1) } }
+@keyframes mazo-subir { 0% { transform: translateY(0) scale(.6); opacity: 0 } 15% { opacity: .9 } 100% { transform: translateY(-220px) scale(1.1); opacity: 0 } }
+@keyframes mazo-entrar { 0% { transform: scale(.7); opacity: 0 } 70% { transform: scale(1.06); opacity: 1 } 100% { transform: scale(1) } }
+@keyframes mazo-aviso { 0% { transform: translateY(-16px); opacity: 0 } 100% { transform: none; opacity: 1 } }
+.mazo-latido { animation: mazo-latido 420ms ease-out }
+.mazo-entrar { animation: mazo-entrar 520ms cubic-bezier(.2,1.2,.4,1) both }
+.mazo-aviso { animation: mazo-aviso 220ms ease-out both }
+.mazo-corazon-sube { animation: mazo-subir 2.6s ease-out infinite }
+@media (prefers-reduced-motion: reduce) { .mazo-latido, .mazo-entrar, .mazo-aviso, .mazo-corazon-sube { animation: none } }
+`
+
+/** Las ♥ que ya le mandamos a un asesor (localStorage: no se mandan dos veces). */
+const CLAVE_ENVIADAS = 'si-feed-enviadas'
+function leerEnviadas(): string[] {
+  try {
+    const v = JSON.parse(window.localStorage.getItem(CLAVE_ENVIADAS) ?? '[]')
+    return Array.isArray(v) ? v.filter((k): k is string => typeof k === 'string') : []
+  } catch {
+    return []
+  }
+}
+/** Un solo Lead de Meta por visita (ver mandarConsulta). */
+let leadContado = false
+function desmarcarEnviadas(keys: string[]): void {
+  try {
+    const fuera = new Set(keys)
+    window.localStorage.setItem(CLAVE_ENVIADAS, JSON.stringify(leerEnviadas().filter((k) => !fuera.has(k))))
+  } catch {
+    /* sin almacenamiento */
+  }
+}
+function marcarEnviadas(keys: string[]): void {
+  try {
+    const todas = Array.from(new Set([...leerEnviadas(), ...keys])).slice(-40)
+    window.localStorage.setItem(CLAVE_ENVIADAS, JSON.stringify(todas))
+  } catch {
+    /* sin almacenamiento */
+  }
+}
+
+/** Su nombre y WhatsApp, si ya los dejó en este navegador (si no, null). */
+function contactoListo(): { nombre: string; whatsapp: string } | null {
+  const c = leerContacto()
+  return c.nombre.trim().length >= 2 && c.whatsapp.replace(/\D/g, '').length >= 10 ? { nombre: c.nombre.trim(), whatsapp: c.whatsapp } : null
+}
+
+/**
+ * La consulta a Hilo (la usan el match, ★ "Quiero verla", ♥ N y el final). Las
+ * que se mandan quedan marcadas: nunca se le vuelven a mandar al asesor.
+ */
+async function mandarConsulta(p: {
+  nombre: string
+  whatsapp: string
+  email?: string
+  criterios?: CriteriosBusqueda | null
+  keys: string[]
+  barrio: string | null
+  busqueda: string | null
+  origen: OrigenTinder
+  /** Tocó ★ "Quiero verla": el asesor sabe que quiere coordinar la visita. */
+  visita?: boolean
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  // Se marcan ANTES de salir (si toca ★ y ♥ N seguidos no viajan dos veces); si
+  // falla, se desmarcan SOLO las que marcó este envío (las de antes ya las tiene un asesor).
+  const yaEstaban = new Set(leerEnviadas())
+  const marcadasAhora = p.keys.filter((k) => !yaEstaban.has(k))
+  marcarEnviadas(p.keys)
+  try {
+    const res = await fetch('/api/feed-en-red/consulta', {
+      method: 'POST',
+      // Sale aunque cierre la pestaña en ese segundo (ya figura como enviada).
+      keepalive: true,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        nombre: p.nombre,
+        whatsapp: p.whatsapp,
+        email: p.email || undefined,
+        suscripcion: p.email && p.criterios ? p.criterios : undefined,
+        guardadas: p.keys,
+        barrio: p.barrio,
+        busqueda: p.busqueda,
+        visita: p.visita === true,
+        pageUrl: window.location.href,
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      desmarcarEnviadas(marcadasAhora)
+      return { ok: false, error: typeof data.error === 'string' ? data.error : 'No pudimos enviarlo. Probá de nuevo.' }
+    }
+    escribirContacto({ nombre: p.nombre, whatsapp: p.whatsapp, email: p.email })
+    trackEvent('feed_en_red_consulta', { cantidad: p.keys.length, en_red: p.keys.filter((k) => !k.startsWith('n:')).length, visita: p.visita === true })
+    // UN Lead de Meta por visita (match + ★ + hoja son la misma persona: no inflar lo que mide la pauta).
+    if (!leadContado) {
+      leadContado = true
+      trackFbEvent('Lead', { content_name: 'feed_en_red', content_ids: p.keys.filter((k) => k.startsWith('n:')).map((k) => k.slice(2)) })
+    }
+    contarTinder('consulta', p.origen)
+    return { ok: true }
+  } catch {
+    desmarcarEnviadas(marcadasAhora)
+    return { ok: false, error: 'No pudimos enviarlo. Probá de nuevo.' }
+  }
+}
+
+/** Hasta 3 fotos en abanico, como las cartas de Tinder (match y "No pierdas tus elegidas"). */
+function AbanicoFotos({ fotos }: { fotos: { src: string | null; logo?: PosicionLogo | null }[] }) {
+  const tres = fotos.filter((f) => f.src).slice(-3)
+  const giros = tres.length === 1 ? [0] : tres.length === 2 ? [-7, 7] : [-10, 0, 10]
+  return (
+    <div className="relative mx-auto h-[118px] w-[210px]" aria-hidden="true">
+      {tres.map((f, i) => (
+        <div
+          key={`${f.src}-${i}`}
+          className="absolute left-1/2 top-1 h-[108px] w-[84px] overflow-hidden rounded-2xl border-[3px] border-white bg-gray-100 shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
+          style={{ transform: `translateX(calc(-50% + ${(i - (tres.length - 1) / 2) * 52}px)) rotate(${giros[i]}deg)`, zIndex: i === Math.floor(tres.length / 2) ? 2 : 1 }}
+        >
+          <Image src={f.src!} alt="" fill sizes="84px" className="object-cover" style={estiloSinLogo(f.logo)} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * "¡Es un match!" (Tinder): la casa que le gustó + el isotipo de SI, y ahí
+ * mismo nombre y WhatsApp. "Seguir mirando" siempre a mano: no es una traba.
+ */
+function MatchMazo({
+  estado,
+  pendientes,
+  barrio,
+  busqueda,
+  origen,
+  onSeguir,
+  onEnviado,
+}: {
+  estado: NonNullable<EstadoMatch>
+  pendientes: GuardadaLocal[]
+  barrio: string | null
+  busqueda: string | null
+  origen: OrigenTinder
+  onSeguir: () => void
+  onEnviado: () => void
+}) {
+  const [nombre, setNombre] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
+  const [listo, setListo] = useState<string | null>(null)
+  useEffect(() => {
+    const c = leerContacto()
+    setNombre(c.nombre)
+    setWhatsapp(c.whatsapp)
+  }, [])
+  const { modo, item } = estado
+  const keys = Array.from(new Set([item.key, ...pendientes.map((g) => g.key)]))
+  const cantidad = keys.length
+  const titulo = modo === 'visita' ? '¡Vamos a verla!' : modo === 'tres' ? `¡Ya van ${cantidad}!` : '¡Es un match!'
+  const bajada =
+    modo === 'visita'
+      ? 'Dejanos tu nombre y WhatsApp y un asesor te escribe para coordinar la visita.'
+      : modo === 'tres'
+        ? `¿Te mandamos las ${cantidad} por WhatsApp? Un asesor te pasa la info de cada una y te coordina las visitas.`
+        : 'Te gustó esta casa. Un asesor te pasa toda la info y te coordina la visita.'
+  const fotos = modo === 'tres' ? [...pendientes.filter((g) => g.key !== item.key).map((g) => ({ src: g.foto, logo: g.logo })), { src: item.fotos[0] ?? null, logo: item.logo }] : []
+
+  const enviar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (enviando) return
+    const nom = nombre.trim()
+    if (nom.length < 2) return setError('Poné tu nombre así el asesor sabe cómo llamarte.')
+    if (whatsapp.replace(/\D/g, '').length < 10) return setError('Revisá el WhatsApp: con característica, por ejemplo 341 555 1234.')
+    setError(null)
+    setEnviando(true)
+    const r = await mandarConsulta({ nombre: nom, whatsapp, keys, barrio, busqueda, origen, visita: modo === 'visita' })
+    setEnviando(false)
+    if (!r.ok) return setError(r.error)
+    trackEvent('feed_en_red_match_datos', { modo })
+    onEnviado()
+    setListo(nom.split(/\s+/)[0])
+  }
+
+  return (
+    <div
+      className="absolute inset-0 z-30 overflow-y-auto bg-white"
+      style={{ background: 'radial-gradient(120% 60% at 50% 0%, rgba(26,92,56,0.16) 0%, rgba(255,255,255,0) 60%), #fff' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={titulo}
+    >
+      {/* Corazones que suben (como el match de Tinder) */}
+      <div className="pointer-events-none absolute inset-x-0 top-[34%] h-0" aria-hidden="true">
+        {[12, 28, 46, 64, 80, 90].map((x, i) => (
+          <span key={x} className="mazo-corazon-sube absolute" style={{ left: `${x}%`, color: i % 2 ? CORAZON : '#3FA36B', animationDelay: `${i * 0.38}s` }}>
+            <Corazon lleno className={i % 3 === 0 ? 'w-5 h-5' : 'w-3.5 h-3.5'} />
+          </span>
+        ))}
+      </div>
+      <div className="relative mx-auto flex min-h-full max-w-sm flex-col justify-center px-6 pb-[max(22px,env(safe-area-inset-bottom))] pt-[max(22px,env(safe-area-inset-top))] text-center">
+        {listo ? (
+          <div className="mazo-entrar">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-full text-white" style={{ background: VERDE }} aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            </div>
+            <p className="mt-4 text-[28px] font-black text-gray-900 font-raleway">¡Listo, {listo}!</p>
+            <p className="mt-2 text-[17px] text-gray-700">Un asesor de SI te escribe por WhatsApp. Seguí mirando: si te gusta otra, tocá ♥ arriba y te la sumamos.</p>
+            <button type="button" onClick={onSeguir} className="mt-6 h-[52px] w-full rounded-2xl text-[17px] font-bold text-white" style={{ background: VERDE }} autoFocus>
+              Seguir mirando
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={enviar} noValidate>
+            <p
+              className="mazo-entrar text-[42px] [@media(max-width:400px)]:text-[34px] leading-none font-black italic font-raleway bg-clip-text text-transparent [text-wrap:balance]"
+              style={{ backgroundImage: `linear-gradient(90deg, ${VERDE}, #3FA36B)` }}
+            >
+              {titulo}
+            </p>
+            {modo === 'tres' ? (
+              <div className="mt-5">
+                <AbanicoFotos fotos={fotos} />
+              </div>
+            ) : (
+              // La casa y SI, juntas (en Tinder son las dos personas).
+              <div className="mazo-entrar mt-5 flex items-center justify-center" aria-hidden="true">
+                <div className="relative h-[104px] w-[104px] -rotate-6 overflow-hidden rounded-full border-4 border-white bg-gray-100 shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
+                  {item.fotos[0] && <Image src={item.fotos[0]} alt="" fill sizes="104px" className="object-cover" style={estiloSinLogo(item.logo)} />}
+                </div>
+                <div className="-ml-5 grid h-[104px] w-[104px] rotate-6 place-items-center rounded-full border-4 border-white bg-white shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
+                  <IsotipoSI className="h-11 w-auto" />
+                </div>
+              </div>
+            )}
+            <p className="mt-4 text-[17px] leading-snug text-gray-700">{bajada}</p>
+            {!item.esNuestra && modo !== 'tres' && (
+              <p className="mt-1.5 text-[14px] text-gray-500">La publica otra inmobiliaria de la zona: la visita te la coordinamos nosotros.</p>
+            )}
+            <div className="mt-5 space-y-2.5 text-left">
+              <label htmlFor="match-nombre" className="sr-only">
+                Tu nombre
+              </label>
+              <input
+                id="match-nombre"
+                value={nombre}
+                onChange={(e) => {
+                  setNombre(e.target.value)
+                  setError(null)
+                }}
+                autoComplete="name"
+                placeholder="Tu nombre"
+                className="h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[17px] outline-none focus:ring-2 focus:ring-[#1A5C38]"
+              />
+              <label htmlFor="match-wsp" className="sr-only">
+                Tu WhatsApp
+              </label>
+              <input
+                id="match-wsp"
+                type="tel"
+                inputMode="tel"
+                value={whatsapp}
+                onChange={(e) => {
+                  setWhatsapp(e.target.value)
+                  setError(null)
+                }}
+                autoComplete="tel"
+                placeholder="Tu WhatsApp (341 555 1234)"
+                className="h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[17px] outline-none focus:ring-2 focus:ring-[#1A5C38]"
+              />
+            </div>
+            {error && (
+              <p className="mt-2 text-left text-sm text-[#E0245E]" role="alert">
+                {error}
+              </p>
+            )}
+            <button type="submit" disabled={enviando} className="mt-4 h-[52px] w-full rounded-2xl text-[17px] font-bold text-white disabled:opacity-70" style={{ background: VERDE }}>
+              {enviando ? 'Enviando…' : modo === 'visita' ? 'Coordinar la visita' : 'Que me escriba un asesor'}
+            </button>
+            <button type="button" onClick={onSeguir} className="mt-2 h-12 w-full rounded-2xl text-[16px] font-semibold text-gray-600">
+              Seguir mirando
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -1139,6 +1683,7 @@ function PreguntaParecidos({
 function HojaContacto({
   origen,
   guardadas,
+  enviadas,
   barrio,
   busqueda = null,
   criterios = null,
@@ -1146,10 +1691,13 @@ function HojaContacto({
   onListo,
   onCerrar,
   enLinea = false,
+  motivo = 'salir',
   textoCancelar = 'No, gracias',
 }: {
   origen: OrigenTinder
   guardadas: GuardadaLocal[]
+  /** Las que ya tiene un asesor (match o ★): no se vuelven a mandar. */
+  enviadas: ReadonlySet<string>
   barrio: string | null
   busqueda?: string | null
   criterios?: CriteriosBusqueda | null
@@ -1158,6 +1706,8 @@ function HojaContacto({
   onCerrar: () => void
   /** true = el CTA del final del mazo (sin velo ni hoja que sube). */
   enLinea?: boolean
+  /** 'salir' = se va con ♥ sin mandar ("¡No pierdas tus elegidas!"); 'boton' = tocó ♥ N arriba. */
+  motivo?: 'salir' | 'boton'
   textoCancelar?: string
 }) {
   const [nombre, setNombre] = useState('')
@@ -1167,6 +1717,8 @@ function HojaContacto({
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [listo, setListo] = useState<string | null>(null)
+  /** Ya dejó nombre y WhatsApp antes: se muestra "Te las mandamos a …" con un toque (y "Cambiar"). */
+  const [conocido, setConocido] = useState(false)
   const nombreRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -1174,12 +1726,16 @@ function HojaContacto({
     setNombre(c.nombre)
     setWhatsapp(c.whatsapp)
     setEmail(c.email)
+    const ya = !!contactoListo()
+    setConocido(ya)
     // En el final del mazo no se abre el teclado solo: primero ve sus elegidas.
-    if (!enLinea) window.setTimeout(() => nombreRef.current?.focus(), 60)
+    if (!enLinea && !ya) window.setTimeout(() => nombreRef.current?.focus(), 60)
   }, [enLinea])
 
-  const n = guardadas.length
-  const nuestras = guardadas.filter((g) => g.esNuestra).length
+  // Solo las que todavía no tiene un asesor (las del match o ★ ya se mandaron).
+  const pendientes = listo ? guardadas : guardadas.filter((g) => !enviadas.has(g.key))
+  const n = pendientes.length
+  const nuestras = pendientes.filter((g) => g.esNuestra).length
   const red = n - nuestras
   const explicacion =
     red === 0
@@ -1202,62 +1758,51 @@ function HojaContacto({
     if (mail && !esEmail(mail)) return setError('Revisá el mail (o dejalo vacío).')
     setError(null)
     setEnviando(true)
-    try {
-      const res = await fetch('/api/feed-en-red/consulta', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          nombre: nom,
-          whatsapp,
-          email: mail || undefined,
-          suscripcion: mail && criterios ? criterios : undefined,
-          guardadas: guardadas.map((g) => g.key),
-          barrio,
-          busqueda,
-          pageUrl: window.location.href,
-        }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'No pudimos enviarlo. Probá de nuevo.')
-      escribirContacto({ nombre: nom, whatsapp, email: mail })
-      if (mail) trackEvent('mazo_suscripcion_mail', { donde: 'formulario' })
-      trackEvent('feed_en_red_consulta', { cantidad: n, en_red: red })
-      trackFbEvent('Lead', { content_name: 'feed_en_red', content_ids: guardadas.filter((g) => g.esNuestra).map((g) => g.key.slice(2)) })
-      setListo(nom.split(/\s+/)[0])
-      contarTinder('consulta', origen)
-      onListo()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No pudimos enviarlo. Probá de nuevo.')
-    } finally {
-      setEnviando(false)
-    }
+    const r = await mandarConsulta({ nombre: nom, whatsapp, email: mail, criterios, keys: pendientes.map((g) => g.key), barrio, busqueda, origen })
+    setEnviando(false)
+    if (!r.ok) return setError(r.error)
+    if (mail) trackEvent('mazo_suscripcion_mail', { donde: 'formulario' })
+    setListo(nom.split(/\s+/)[0])
+    onListo()
   }
+
+  const textoCerrar = motivo === 'boton' && !enLinea ? 'Seguir mirando' : 'Cerrar'
+  const yaTodas = !listo && n === 0 && guardadas.length > 0
 
   const contenido = (
     <>
-        {listo ? (
+        {listo || yaTodas ? (
           <div className="text-center py-3">
-            <div className="text-4xl" style={{ color: VERDE }} aria-hidden="true">
-              ✓
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-full text-white" style={{ background: VERDE }} aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
             </div>
-            <h3 className="text-lg font-black text-gray-900 mt-1 font-raleway">Listo, {listo}</h3>
-            <p className="text-sm text-gray-600 mt-1">Un asesor de SI te escribe por WhatsApp con las que guardaste.</p>
-            {email.trim() && criterios && <p className="text-sm text-gray-600 mt-1">Y te avisamos por mail cuando entren {textoBusqueda(criterios)}.</p>}
+            <h3 className="text-lg font-black text-gray-900 mt-2 font-raleway">{listo ? `Listo, ${listo}` : 'Ya las tiene un asesor'}</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {listo ? 'Un asesor de SI te escribe por WhatsApp con las que guardaste.' : 'Tus elegidas ya se las pasamos: te escribe por WhatsApp. Si te gusta otra, tocá ♥ y te la sumamos.'}
+            </p>
+            {listo && email.trim() && criterios && <p className="text-sm text-gray-600 mt-1">Y te avisamos por mail cuando entren {textoBusqueda(criterios)}.</p>}
             <button type="button" onClick={onCerrar} className="mt-4 w-full h-12 rounded-2xl text-white font-bold" style={{ background: VERDE }}>
-              Cerrar
+              {textoCerrar}
             </button>
+            {enLinea && yaTodas && (
+              <button type="button" onClick={onCancelar} className="block mx-auto mt-3 text-sm text-gray-500">
+                {textoCancelar}
+              </button>
+            )}
           </div>
         ) : (
           <form onSubmit={enviar} noValidate>
             {enLinea ? (
               // Final del mazo: las elegidas bien a la vista, con su precio.
               <div className="grid grid-cols-2 gap-2 mb-4">
-                {guardadas.map((g) => (
+                {pendientes.map((g) => (
                   <div key={g.key} className="rounded-xl overflow-hidden border border-gray-100 bg-white">
                     <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                       {g.foto && <Image src={g.foto} alt="" fill sizes="(max-width: 480px) 50vw, 200px" className="object-cover" style={estiloSinLogo(g.logo)} />}
-                      <span className="absolute top-1.5 right-1.5 text-[#E0245E] drop-shadow">
-                        <Corazon lleno className="w-5 h-5" />
+                      <span className="absolute top-1.5 right-1.5 grid h-7 w-7 place-items-center rounded-full bg-white shadow-sm" style={{ color: CORAZON }}>
+                        <Corazon lleno className="w-4 h-4" />
                       </span>
                     </div>
                     <p className="px-2 py-1.5 text-[13px] font-black text-gray-900 font-numeric truncate">{g.precio}</p>
@@ -1265,69 +1810,82 @@ function HojaContacto({
                 ))}
               </div>
             ) : (
-              <div className="flex gap-2 mb-3 overflow-x-auto">
-                {guardadas.map((g) =>
-                  g.foto ? (
-                    <div key={g.key} className="relative w-14 h-14 flex-none rounded-xl overflow-hidden bg-gray-100">
-                      <Image src={g.foto} alt="" fill sizes="56px" className="object-cover" style={estiloSinLogo(g.logo)} />
-                    </div>
-                  ) : null,
-                )}
+              // Hoja: sus elegidas en abanico, como cartas de Tinder.
+              <div className="mb-3">
+                <AbanicoFotos fotos={pendientes.map((g) => ({ src: g.foto, logo: g.logo }))} />
               </div>
             )}
-            <h3 className="text-lg font-black text-gray-900 font-raleway [text-wrap:balance]">
-              {n === 1 ? 'Te gustó 1' : `Te gustaron ${n}`}. ¿Te ayudamos?
+            <h3 className={`text-lg font-black text-gray-900 font-raleway [text-wrap:balance] ${enLinea ? '' : 'text-center'}`}>
+              {motivo === 'salir' && !enLinea ? '¡No pierdas tus elegidas!' : `${n === 1 ? 'Te gustó 1' : `Te gustaron ${n}`}. ¿Te ayudamos?`}
             </h3>
-            <p className="text-[14px] leading-relaxed text-gray-600 mt-1 mb-3.5">{explicacion}</p>
-            <label htmlFor="feed-nombre" className="block text-sm font-semibold text-gray-800 mb-1">
-              Tu nombre
-            </label>
-            <input
-              id="feed-nombre"
-              ref={nombreRef}
-              value={nombre}
-              onChange={(e) => {
-                setNombre(e.target.value)
-                setError(null)
-              }}
-              autoComplete="name"
-              placeholder="Martina"
-              className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2.5 outline-none focus:ring-2 focus:ring-[#1A5C38]"
-            />
-            <label htmlFor="feed-wsp" className="block text-sm font-semibold text-gray-800 mb-1">
-              Tu WhatsApp
-            </label>
-            <input
-              id="feed-wsp"
-              type="tel"
-              inputMode="tel"
-              value={whatsapp}
-              onChange={(e) => {
-                setWhatsapp(e.target.value)
-                setError(null)
-              }}
-              autoComplete="tel"
-              placeholder="341 555 1234"
-              className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2.5 outline-none focus:ring-2 focus:ring-[#1A5C38]"
-            />
-            {criterios && (
+            <p className={`text-[14px] leading-relaxed text-gray-600 mt-1 mb-3.5 ${enLinea ? '' : 'text-center'}`}>
+              {motivo === 'salir' && !enLinea ? `${n === 1 ? 'Te gustó 1' : `Te gustaron ${n}`}: te ${n === 1 ? 'la' : 'las'} mandamos por WhatsApp. ` : ''}
+              {explicacion}
+            </p>
+            {conocido ? (
+              // Ya lo conocemos: un toque.
+              <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3">
+                <p className="min-w-0 text-[15px] text-gray-800">
+                  <span className="block font-bold truncate">{nombre}</span>
+                  <span className="block text-gray-600 truncate">{whatsapp}</span>
+                </p>
+                <button type="button" onClick={() => setConocido(false)} className="flex-none text-[14px] font-semibold underline underline-offset-2" style={{ color: VERDE }}>
+                  Cambiar
+                </button>
+              </div>
+            ) : (
               <>
-                <label htmlFor="feed-mail" className="block text-sm font-semibold text-gray-800 mb-1">
-                  Tu mail <span className="font-normal text-gray-500">(opcional · te avisamos cuando entren {textoBusqueda(criterios)})</span>
+                <label htmlFor="feed-nombre" className="block text-sm font-semibold text-gray-800 mb-1">
+                  Tu nombre
                 </label>
                 <input
-                  id="feed-mail"
-                  type="email"
-                  inputMode="email"
-                  value={email}
+                  id="feed-nombre"
+                  ref={nombreRef}
+                  value={nombre}
                   onChange={(e) => {
-                    setEmail(e.target.value)
+                    setNombre(e.target.value)
                     setError(null)
                   }}
-                  autoComplete="email"
-                  placeholder="martina@gmail.com"
-                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2 outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                  autoComplete="name"
+                  placeholder="Martina"
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2.5 outline-none focus:ring-2 focus:ring-[#1A5C38]"
                 />
+                <label htmlFor="feed-wsp" className="block text-sm font-semibold text-gray-800 mb-1">
+                  Tu WhatsApp
+                </label>
+                <input
+                  id="feed-wsp"
+                  type="tel"
+                  inputMode="tel"
+                  value={whatsapp}
+                  onChange={(e) => {
+                    setWhatsapp(e.target.value)
+                    setError(null)
+                  }}
+                  autoComplete="tel"
+                  placeholder="341 555 1234"
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2.5 outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                />
+                {criterios && (
+                  <>
+                    <label htmlFor="feed-mail" className="block text-sm font-semibold text-gray-800 mb-1">
+                      Tu mail <span className="font-normal text-gray-500">(opcional · te avisamos cuando entren {textoBusqueda(criterios)})</span>
+                    </label>
+                    <input
+                      id="feed-mail"
+                      type="email"
+                      inputMode="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value)
+                        setError(null)
+                      }}
+                      autoComplete="email"
+                      placeholder="martina@gmail.com"
+                      className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[16px] mb-2 outline-none focus:ring-2 focus:ring-[#1A5C38]"
+                    />
+                  </>
+                )}
               </>
             )}
             {error && (
@@ -1336,10 +1894,10 @@ function HojaContacto({
               </p>
             )}
             <button type="submit" disabled={enviando} className="w-full h-12 rounded-2xl text-white font-bold mt-1 disabled:opacity-70" style={{ background: VERDE }}>
-              {enviando ? 'Enviando…' : 'Que me escriba un asesor'}
+              {enviando ? 'Enviando…' : conocido ? `Mandámel${n === 1 ? 'a' : 'as'} por WhatsApp` : 'Que me escriba un asesor'}
             </button>
             <button type="button" onClick={onCancelar} className="block mx-auto mt-3 text-sm text-gray-500">
-              {textoCancelar}
+              {motivo === 'boton' && !enLinea ? 'Seguir mirando' : textoCancelar}
             </button>
           </form>
         )}
@@ -1348,7 +1906,7 @@ function HojaContacto({
   if (enLinea) return <div className="w-full">{contenido}</div>
   return (
     <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[2px] flex items-end" onClick={(e) => e.target === e.currentTarget && onCancelar()}>
-      <div className="w-full bg-white rounded-t-3xl border-t border-gray-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] px-5 pt-4 pb-[max(22px,env(safe-area-inset-bottom))]">
+      <div className="w-full max-h-full overflow-y-auto bg-white rounded-t-3xl border-t border-gray-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] px-5 pt-4 pb-[max(22px,env(safe-area-inset-bottom))]">
         <div className="w-10 h-1 rounded bg-gray-200 mx-auto mb-4" />
         {contenido}
       </div>

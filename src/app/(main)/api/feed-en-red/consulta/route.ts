@@ -34,6 +34,8 @@ export async function POST(request: NextRequest) {
   const tipo = str(body.tipo, 20)
   const motivos = Array.isArray(body.motivos) ? body.motivos.map((m) => str(m, 40)).filter((m, i, xs) => MOTIVOS.has(m) && xs.indexOf(m) === i) : []
   const vistas = Math.max(0, Math.min(99, Math.round(Number(body.vistas) || 0)))
+  // Tocó ★ "Quiero verla" en el Tinder (4-oct): el asesor sabe que quiere coordinar la visita.
+  const visita = body.visita === true
   // Opcional (4-oct): dejó también el mail para recibir las nuevas de su búsqueda.
   const emailCrudo = str(body.email, 120).toLowerCase()
   const email = emailCrudo && esEmail(emailCrudo) ? emailCrudo : null
@@ -121,7 +123,7 @@ export async function POST(request: NextRequest) {
     (async () => {
       try {
         const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
-        const data = { nombre, whatsapp, email, origen: 'feed_web', guardadas, barrio, busqueda, suscripcion, pageUrl, fecha: new Date().toISOString() }
+        const data = { nombre, whatsapp, email, origen: 'feed_web', guardadas, barrio, busqueda, visita, suscripcion, pageUrl, fecha: new Date().toISOString() }
         await redis.set(`lead:feed_web:${Date.now()}:${whatsapp}`, JSON.stringify(data))
         await redis.lpush('leads:all', JSON.stringify(data))
         return true
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
       guardadas,
       barrio,
       suscripcion,
-      message: busqueda ? `Buscó en la web: ${busqueda}.` : null,
+      message: [busqueda ? `Buscó en la web: ${busqueda}.` : null, visita ? 'Tocó «Quiero verla» en la primera de la lista: pidió coordinar esa visita.' : null].filter(Boolean).join(' ') || null,
       sourceUrl: pageUrl || null,
       attribution: utm,
     }),

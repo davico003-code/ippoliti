@@ -27,7 +27,7 @@ import {
   tipoHogarDeTokko,
 } from '@/lib/feed-en-red'
 import { itemDeNuestra } from '@/lib/mazo-items'
-import MazoCasas, { BotonesTinder, Chip, Corazon, ROSA, SuscripcionMail, Tarjeta, useGuardadas } from '@/components/mazo/MazoCasas'
+import MazoCasas, { BotonesTinder, Chip, Corazon, CORAZON, SuscripcionMail, Tarjeta, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
 /** Barrio, pin y precio en dólares de una propiedad, para la regla de zona. */
@@ -89,7 +89,7 @@ function TarjetaFila({ item, guardada, onAbrir, onCorazon }: { item: ItemFeed; g
         aria-pressed={guardada}
         aria-label={guardada ? 'Quitar de las que me gustan' : 'Me gusta'}
         className="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/95 shadow-sm grid place-items-center transition-transform hover:scale-110 active:scale-90"
-        style={{ color: ROSA }}
+        style={{ color: CORAZON }}
       >
         <Corazon lleno={guardada} className="w-6 h-6" />
       </button>
@@ -230,7 +230,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
               </button>
             ) : (
               <p className="text-sm text-gray-500">
-                Tocá el <span style={{ color: ROSA }}>♥</span> en las que te gusten y te las mandamos por WhatsApp.
+                Tocá el <span style={{ color: CORAZON }}>♥</span> en las que te gusten y te las mandamos por WhatsApp.
               </p>
             )}
             {items.length > fila.length && (
