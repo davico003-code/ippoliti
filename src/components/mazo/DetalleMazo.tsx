@@ -48,12 +48,15 @@ export default function DetalleMazo({
   onCerrar,
   onPaso,
   onMeGusta,
+  onQuieroVerla,
 }: {
   item: ItemFeed
   guardada: boolean
   onCerrar: () => void
   onPaso: () => void
   onMeGusta: () => void
+  /** ★ "Quiero verla" (coordinar la visita), igual que en la tarjeta. */
+  onQuieroVerla?: () => void
 }) {
   const [estado, setEstado] = useState<'cargando' | 'error' | DetalleRespuesta>('cargando')
   const [intento, setIntento] = useState(0)
@@ -191,19 +194,33 @@ export default function DetalleMazo({
         </div>
 
         {/* Decidir sin volver a la tarjeta */}
-        <footer className="grid grid-cols-2 gap-2 border-t border-gray-100 px-3 pt-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+        {/* Los mismos tres de la tarjeta (✕ · ★ · ♥), con los colores de Tinder */}
+        <footer className="flex gap-2 border-t border-gray-100 px-3 pt-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
           <button
             type="button"
             onClick={onPaso}
-            className="flex h-12 items-center justify-center gap-1.5 rounded-2xl border border-gray-200 bg-white text-[16px] font-semibold text-gray-700 active:scale-[0.98]"
+            className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-gray-200 bg-white text-[15px] font-semibold text-gray-700 active:scale-[0.98]"
           >
-            <X className="h-5 w-5" strokeWidth={2.6} aria-hidden="true" /> Paso
+            <X className="h-5 w-5 text-[#E5484D]" strokeWidth={3} aria-hidden="true" /> Paso
           </button>
+          {onQuieroVerla && (
+            <button
+              type="button"
+              onClick={onQuieroVerla}
+              className="flex h-12 flex-[1.35] items-center justify-center gap-1.5 rounded-2xl text-[15px] font-bold text-white active:scale-[0.98]"
+              style={{ background: '#2B7FFF' }}
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                <path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.6l6-.9z" fill="currentColor" />
+              </svg>
+              Quiero verla
+            </button>
+          )}
           <button
             type="button"
             onClick={onMeGusta}
-            className="flex h-12 items-center justify-center gap-1.5 rounded-2xl text-[16px] font-bold text-white active:scale-[0.98]"
-            style={{ background: '#E0245E' }}
+            className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-2xl text-[15px] font-bold text-white active:scale-[0.98]"
+            style={{ background: '#1A5C38' }}
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
               <path d="M12 20.5s-7.5-4.4-9.3-9A5 5 0 0 1 12 6.6a5 5 0 0 1 9.3 4.9c-1.8 4.6-9.3 9-9.3 9z" fill="currentColor" />

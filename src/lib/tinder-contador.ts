@@ -4,7 +4,8 @@
 // suma en el Redis compartido; Hilo lo muestra en Resultados → Tinder web.
 // Claves y eventos: mismo contrato que si-crm src/lib/tinder/metricas-logic.ts.
 
-export const EVENTOS_TINDER = ['abrir', 'like', 'detalles', 'foto', 'parecidos_si', 'final', 'consulta', 'busca'] as const
+// 4-oct: 'match' = se le mostró el "¡Es un match!"; 'quiero_verla' = tocó ★ (o deslizó hacia arriba).
+export const EVENTOS_TINDER = ['abrir', 'like', 'detalles', 'foto', 'parecidos_si', 'final', 'consulta', 'busca', 'match', 'quiero_verla'] as const
 export type EventoTinder = (typeof EVENTOS_TINDER)[number]
 export type OrigenTinder = 'ficha' | 'home'
 

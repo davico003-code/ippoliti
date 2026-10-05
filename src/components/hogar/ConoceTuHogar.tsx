@@ -32,7 +32,7 @@ import {
 import { trackEvent } from '@/lib/analytics'
 import { Spinner, cls } from '@/components/tasaciones/ui'
 import type { BarrioCerrado, CiudadHogar } from '@/lib/hogar-portadas'
-import MazoCasas, { ROSA, SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
+import MazoCasas, { CORAZON, SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
 const chip = 'si-tap inline-flex h-11 items-center whitespace-nowrap rounded-full border-[1.5px] px-[15px] text-[14.5px] font-semibold transition-colors motion-reduce:transition-none'
@@ -280,7 +280,7 @@ export default function ConoceTuHogar({
     <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-[520px] px-5 pt-3 pb-16">
         <p className={`${cls.lbl} mt-2`}>
-          <span style={{ color: ROSA }} aria-hidden="true">
+          <span style={{ color: CORAZON }} aria-hidden="true">
             ♥
           </span>{' '}
           Conocé tu próximo hogar
