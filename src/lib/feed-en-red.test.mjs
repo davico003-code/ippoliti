@@ -187,3 +187,39 @@ test('verdes de marca y de WhatsApp quedan con su color; blancos, grises y trans
   assert.equal(esVerdeDeMarca('rgb(240, 242, 240)'), false)
   assert.equal(esVerdeDeMarca('rgba(0, 0, 0, 0)'), false)
 })
+
+// ── "Cerca mío" (David, 5-oct-2026)
+import { masCercanas, metrosVisibles, puntoCercaValido } from './feed-en-red.ts'
+
+test('cerca: el punto viaja redondeado a ~100 m; lo que no es un punto, no', () => {
+  assert.deepEqual(puntoCercaValido('-32.94057,-60.83271'), { lat: -32.941, lng: -60.833 })
+  assert.equal(puntoCercaValido('0,0'), null)
+  assert.equal(puntoCercaValido('hola'), null)
+  assert.equal(puntoCercaValido(undefined), null)
+})
+
+test('cerca: de la más cercana a la más lejana, hasta 15 km y sin las que no tienen pin', () => {
+  const items = [6000, 300, null, 16000, 1200, 14900].map((distanciaM, i) => ({ key: String(i), distanciaM, esNuestra: false }))
+  assert.deepEqual(masCercanas(items).map((i) => i.distanciaM), [300, 1200, 6000, 14900])
+})
+
+test('cerca: a la misma distancia que se ve, primero la nuestra', () => {
+  const items = [
+    { key: 'colega', distanciaM: 1210, esNuestra: false },
+    { key: 'nuestra', distanciaM: 1240, esNuestra: true },
+  ]
+  assert.deepEqual(masCercanas(items).map((i) => i.key), ['nuestra', 'colega'])
+})
+
+test('cerca: como mucho las 40 más cercanas', () => {
+  const items = Array.from({ length: 60 }, (_, i) => ({ key: String(i), distanciaM: 100 * (60 - i), esNuestra: false }))
+  const out = masCercanas(items)
+  assert.equal(out.length, 40)
+  assert.equal(out[0].distanciaM, 100)
+})
+
+test('cerca: la distancia se muestra de a 100 m', () => {
+  assert.equal(metrosVisibles(30), 100)
+  assert.equal(metrosVisibles(640), 600)
+  assert.equal(metrosVisibles(1240), 1200)
+})

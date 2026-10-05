@@ -40,6 +40,8 @@ export type TarjetaEnRed = {
   ciudad?: string | null
   /** Terreno del aviso, si el portal lo trae (Hilo, 5-oct). */
   m2Lote?: number | null
+  /** Solo en "Cerca mío": metros desde donde está la persona. */
+  distanciaM?: number | null
 }
 
 export type FeedEnRed = { barrio: string | null; tarjetas: TarjetaEnRed[] }
@@ -65,6 +67,8 @@ export type ItemFeed = {
   m2?: number | null
   lote?: number | null
   esLote?: boolean
+  /** Solo en "Cerca mío": metros desde donde está la persona ("a 1,2 km" en la tarjeta). */
+  distanciaM?: number | null
 }
 
 const m2Texto = (n: number) => `${Math.round(n).toLocaleString('es-AR')} m²`
@@ -171,6 +175,7 @@ export function itemDeEnRed(t: TarjetaEnRed): ItemFeed {
     dorm: t.dormitorios,
     ...superficiesTarjeta({ tipo: tipoHogarDeTexto(t.tipo), total: t.m2Total, cubierta: t.m2Cubiertos, lote: t.m2Lote }),
     esLote: tipoHogarDeTexto(t.tipo) === 'lot',
+    distanciaM: t.distanciaM ?? null,
   }
 }
 
@@ -403,6 +408,44 @@ export function entraEnBarrio(cerrado: boolean | null | undefined, barrio: Barri
 
 export function cantidadZona(z: ZonaHogar, tipo: TipoHogar): number {
   return tipo === 'house' ? z.casas : tipo === 'lot' ? z.lotes : z.deptos
+}
+
+// ── "Cerca mío" (David, 5-oct-2026: "buscar casas cerca tuyo"): desde la
+// ubicación del celular, las 40 más cercanas hasta 15 km — nuestras y de
+// colegas mezcladas, porque "cerca" es la promesa. Igual que Hilo (masCercanas).
+
+export type PuntoCerca = { lat: number; lng: number }
+
+export const RADIO_CERCA_M = 15_000
+export const MAX_CERCA = 40
+
+/** 3 decimales (~100 m): alcanza para "a 1,2 km" y no viaja dónde está la persona exacto. */
+export function redondearPunto(lat: number, lng: number): PuntoCerca {
+  const r = (n: number) => Math.round(n * 1000) / 1000
+  return { lat: r(lat), lng: r(lng) }
+}
+
+/** "lat,lng" (query de la ruta) → el punto redondeado; null si no es un punto. */
+export function puntoCercaValido(v: unknown): PuntoCerca | null {
+  if (typeof v !== 'string') return null
+  const [lat, lng] = v.split(',').map((x) => Number(x.trim()))
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null
+  if (lat === 0 && lng === 0) return null
+  return redondearPunto(lat, lng)
+}
+
+/** Lo que se muestra: de a 100 m (el punto viaja redondeado a ~100 m; "a 37 m" sería una precisión que no hay). */
+export const metrosVisibles = (m: number) => Math.max(100, Math.round(m / 100) * 100)
+
+/**
+ * Las 40 más cercanas hasta 15 km, de la más cercana a la más lejana; sin pin
+ * no entra. Si dos se ven a la misma distancia, primero la nuestra.
+ */
+export function masCercanas<T extends { distanciaM?: number | null; esNuestra: boolean }>(items: T[]): T[] {
+  return items
+    .filter((i) => i.distanciaM != null && i.distanciaM <= RADIO_CERCA_M)
+    .sort((a, b) => metrosVisibles(a.distanciaM!) - metrosVisibles(b.distanciaM!) || Number(b.esNuestra) - Number(a.esNuestra))
+    .slice(0, MAX_CERCA)
 }
 
 const palabrasBusqueda = (s: string) =>

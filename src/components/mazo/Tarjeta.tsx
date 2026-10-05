@@ -5,7 +5,8 @@
 
 import Image from 'next/image'
 import { Expand, RotateCcw, Star, X } from 'lucide-react'
-import { type ItemFeed, estiloSinLogo, lineaTarjeta, lugarTarjeta } from '@/lib/feed-en-red'
+import { type ItemFeed, estiloSinLogo, lineaTarjeta, lugarTarjeta, metrosVisibles } from '@/lib/feed-en-red'
+import { formatDistanceAR } from '@/lib/geo'
 import { MAX_FOTOS_MAZO } from '@/lib/mazo-items'
 import { AZUL_VISITA, CORAZON, Corazon, IsotipoSI, ORO_VOLVER, ROJO_PASO } from './marca-mazo'
 
@@ -236,6 +237,13 @@ export function Tarjeta({
             ) : (
               // "Otra inmobiliaria" en la etiqueta (antes "En red" + la cola del renglón, que se cortaba con direcciones largas).
               <span className="flex-none rounded-full border border-white/25 bg-white/10 px-2 py-[1px] text-[13px] font-bold text-white/90">Otra inmobiliaria</span>
+            )}
+            {/* "Cerca mío": a cuánto está, siempre entero (la dirección es la que se corta). */}
+            {item.distanciaM != null && (
+              <span className="flex-none font-semibold text-white/90">
+                a {formatDistanceAR(metrosVisibles(item.distanciaM) / 1000)}
+                {lugar ? ' ·' : ''}
+              </span>
             )}
             <span className="truncate">
               {lugar}
