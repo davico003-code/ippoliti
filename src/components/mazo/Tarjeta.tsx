@@ -34,7 +34,7 @@ export const paresDe = (item: ItemFeed) => Math.max(1, Math.ceil(Math.min(item.f
 const SELLOS: Record<Salida, { texto: string; color: string; clase: string }> = {
   like: { texto: 'ME GUSTA', color: VERDE, clase: 'top-12 left-4 -rotate-12' },
   pass: { texto: 'PASO', color: ROJO_PASO, clase: 'top-12 right-4 rotate-12' },
-  super: { texto: 'QUIERO VERLA', color: AZUL_VISITA, clase: 'bottom-[38%] left-1/2 -translate-x-1/2 -rotate-6' },
+  super: { texto: 'QUIERO VERLA', color: AZUL_VISITA, clase: 'top-[30%] left-1/2 -translate-x-1/2 -rotate-6' },
 }
 
 /**
@@ -63,6 +63,8 @@ export function Tarjeta({
   progreso = 0,
   arrastrando = false,
   conSuper = false,
+  conBotones = false,
+  nota = null,
 }: {
   item: ItemFeed
   modo: 'arriba' | 'abajo' | 'quieta'
@@ -85,6 +87,10 @@ export function Tarjeta({
   arrastrando?: boolean
   /** Arrastrar hacia arriba = "Quiero verla" (en el mazo abierto). */
   conSuper?: boolean
+  /** Los botones ↺ ✕ ★ ♥ flotan sobre la foto (mazo abierto): los datos suben para dejarles lugar. */
+  conBotones?: boolean
+  /** Un aviso cortito arriba de la foto (la primera: "Algunas las publican otras inmobiliarias…"). */
+  nota?: string | null
 }) {
   const arriba = modo === 'arriba'
   const dx = arrastre?.dx ?? 0
@@ -162,7 +168,7 @@ export function Tarjeta({
           ))}
         </div>
       )}
-      <div className="absolute top-5 left-3 flex items-center gap-2">
+      <div className="absolute top-5 left-3 right-16 flex flex-wrap items-center gap-2">
         <Chip nuestra={item.esNuestra} />
         {item.masVista && <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/95 text-gray-900 shadow-sm">De las más vistas</span>}
         {guardada && (
@@ -170,6 +176,7 @@ export function Tarjeta({
             <Corazon lleno className="w-[18px] h-[18px]" />
           </span>
         )}
+        {nota && <p className="basis-full max-w-[290px] rounded-xl bg-black/50 px-3 py-2 text-[13px] leading-snug text-white backdrop-blur-sm">{nota}</p>}
       </div>
       {arriba && onAmpliar && (
         <button
@@ -198,7 +205,10 @@ export function Tarjeta({
       )}
 
       {/* Datos SOBRE la foto, en un degradé (como Tinder) */}
-      <div className="absolute inset-x-0 bottom-0 pt-14 [@media(max-height:720px)]:pt-8 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0) 100%)' }}>
+      <div
+        className={`absolute inset-x-0 bottom-0 pt-14 [@media(max-height:720px)]:pt-8 pointer-events-none ${conBotones ? 'pb-[92px]' : ''}`}
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.62) 55%, rgba(0,0,0,0) 100%)' }}
+      >
         <div data-datos className="px-4 pb-4 [@media(max-height:720px)]:pb-3 text-white">
           <p className="whitespace-nowrap text-[30px] [@media(max-height:720px)]:text-[26px] font-black font-numeric leading-none [text-shadow:0_1px_10px_rgba(0,0,0,0.35)]">{item.precio}</p>
           {item.datos && <p className="mt-1.5 text-[16px] font-medium font-poppins text-white/95">{item.datos}</p>}
@@ -248,6 +258,7 @@ export function BotonesTinder({
   puedeVolver = false,
   chicos = false,
   tendencia = null,
+  sobreFoto = false,
 }: {
   onPaso: () => void
   onMeGusta: () => void
@@ -258,12 +269,23 @@ export function BotonesTinder({
   puedeVolver?: boolean
   chicos?: boolean
   tendencia?: Tendencia | null
+  /**
+   * Flotando SOBRE la foto, como Tinder (David 5-oct: "usan casi toda la
+   * pantalla para la foto, los menús están dentro de las fotos"): vidrio oscuro
+   * con los íconos de color. Sin esto, blancos debajo (la ficha).
+   */
+  sobreFoto?: boolean
 }) {
-  const grande = chicos ? 'w-14 h-14' : 'w-16 h-16'
+  const grande = chicos ? 'w-14 h-14' : sobreFoto ? 'w-[60px] h-[60px]' : 'w-16 h-16'
   const iconoGrande = chicos ? 'w-7 h-7' : 'w-8 h-8'
-  const chico = chicos ? 'w-11 h-11' : 'w-[52px] h-[52px]'
-  const base =
-    'rounded-full bg-white border border-gray-100 shadow-[0_6px_18px_rgba(0,0,0,0.12)] grid place-items-center transition-[transform,background-color,color] duration-150 active:scale-90'
+  const chico = chicos ? 'w-11 h-11' : sobreFoto ? 'w-12 h-12' : 'w-[52px] h-[52px]'
+  const base = sobreFoto
+    ? 'pointer-events-auto rounded-full bg-black/35 border border-white/25 backdrop-blur-md shadow-[0_6px_18px_rgba(0,0,0,0.25)] grid place-items-center transition-[transform,background-color,color] duration-150 active:scale-90'
+    : 'rounded-full bg-white border border-gray-100 shadow-[0_6px_18px_rgba(0,0,0,0.12)] grid place-items-center transition-[transform,background-color,color] duration-150 active:scale-90'
+  // Sobre la foto oscura los colores van más claros (el verde de marca no se lee sobre negro).
+  const color = sobreFoto
+    ? { pass: '#FF6B6F', super: '#5AAEFF', like: '#45D98B', volver: '#FFC94D' }
+    : { pass: ROJO_PASO, super: AZUL_VISITA, like: CORAZON, volver: ORO_VOLVER }
   const pintar = (dir: Salida, color: string): React.CSSProperties => {
     const f = tendencia?.dir === dir ? Math.min(1, tendencia.fuerza) : 0
     if (f <= 0) return { color }
@@ -279,20 +301,20 @@ export function BotonesTinder({
           aria-label="Volver a la anterior"
           title="Volver a la anterior"
           className={`${chico} ${base} disabled:opacity-35 disabled:active:scale-100`}
-          style={{ color: ORO_VOLVER }}
+          style={{ color: color.volver }}
         >
           <RotateCcw className="w-6 h-6" strokeWidth={2.6} />
         </button>
       )}
-      <button type="button" onClick={onPaso} aria-label="Paso" className={`${grande} ${base}`} style={pintar('pass', ROJO_PASO)}>
+      <button type="button" onClick={onPaso} aria-label="Paso" className={`${grande} ${base}`} style={pintar('pass', color.pass)}>
         <X className={iconoGrande} strokeWidth={3} />
       </button>
       {onQuieroVerla && (
-        <button type="button" onClick={onQuieroVerla} aria-label="Quiero verla: coordinar una visita" title="Quiero verla" className={`${chico} ${base}`} style={pintar('super', AZUL_VISITA)}>
+        <button type="button" onClick={onQuieroVerla} aria-label="Quiero verla: coordinar una visita" title="Quiero verla" className={`${chico} ${base}`} style={pintar('super', color.super)}>
           <Star className="w-6 h-6" fill="currentColor" strokeWidth={1.5} />
         </button>
       )}
-      <button type="button" onClick={onMeGusta} aria-label="Me gusta" className={`${grande} ${base}`} style={pintar('like', CORAZON)}>
+      <button type="button" onClick={onMeGusta} aria-label="Me gusta" className={`${grande} ${base}`} style={pintar('like', color.like)}>
         <Corazon lleno className={iconoGrande} />
       </button>
     </div>

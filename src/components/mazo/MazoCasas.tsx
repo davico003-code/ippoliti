@@ -21,7 +21,12 @@
 // final, en el rescate (WhatsApp O mail) y como campo opcional del formulario.
 // La búsqueda (`criterios`) viaja con el mail y Hilo la escribe en el contacto.
 //
-// Las piezas viven al lado (Tarjeta, MatchMazo, HojaContacto, Rescate,
+// 5-oct (David: "no me gusta lo del match, es muy Tinder" y "usan casi toda
+// la pantalla para la foto, los menús están dentro de las fotos"): sin
+// "¡Es un match!" (la ★ pide los datos en una hoja blanca, HojaVisita), la
+// tarjeta ocupa casi toda la pantalla y ↺ ✕ ★ ♥ flotan sobre la foto.
+//
+// Las piezas viven al lado (Tarjeta, HojaVisita, HojaContacto, Rescate,
 // SuscripcionMail, GuiaMazo…); la consulta a Hilo en lib/mazo-consulta.ts y
 // qué hacen la X y el atrás en lib/mazo-salida.ts (con test).
 
@@ -40,12 +45,12 @@ import DetalleMazo, { cargarDetalle } from './DetalleMazo'
 import VisorFotos from './VisorFotos'
 import GuiaMazo, { useGuiaMazo } from './GuiaMazo'
 import HojaContacto from './HojaContacto'
-import MatchMazo, { type EstadoMatch } from './MatchMazo'
+import HojaVisita, { type EstadoVisita } from './HojaVisita'
 import PreguntaParecidos from './PreguntaParecidos'
 import Rescate from './Rescate'
 import { SuscripcionMail } from './SuscripcionMail'
 import { type Arrastre, type Salida, type Tendencia, BotonesTinder, DURACION_SALIDA, Tarjeta, UMBRAL_SUPER, UMBRAL_SWIPE, direccionDe, paresDe } from './Tarjeta'
-import { AZUL_VISITA, CORAZON, Corazon, ORO_VOLVER } from './marca-mazo'
+import { CORAZON, Corazon, ORO_VOLVER } from './marca-mazo'
 import { useAlbumMazo } from './useAlbumMazo'
 import { useGuardadas } from './useGuardadas'
 
@@ -60,9 +65,6 @@ const VELOCIDAD_LATIGAZO = 0.6
 
 /** El rescate sale UNA vez por visita (aunque abra el mazo varias veces). */
 let rescateMostrado = false
-/** ♥ dados en esta visita y qué "match" ya se le mostró (cada uno una vez por visita). */
-let likesVisita = 0
-const matchesVistos = new Set<'match' | 'tres'>()
 
 type EstadoHoja = { motivo: 'salir' | 'boton' } | null
 
@@ -116,7 +118,8 @@ export default function MazoCasas({
   const [arrastre, setArrastre] = useState<Arrastre | null>(null)
   const [salida, setSalida] = useState<Salida | null>(null)
   const [hoja, setHoja] = useState<EstadoHoja>(null)
-  const [match, setMatch] = useState<EstadoMatch>(null)
+  /** La hoja de ★ "Quiero verla" (sin su WhatsApp todavía). */
+  const [visita, setVisita] = useState<EstadoVisita>(null)
   /** Aviso cortito abajo ("Listo, te escribimos…"). */
   const [aviso, setAviso] = useState<string | null>(null)
   useEffect(() => {
@@ -201,7 +204,7 @@ export default function MazoCasas({
   /** ♥, paso o ★: la tarjeta sale volando y aparece la siguiente. */
   const decidir = useCallback(
     (accion: Salida) => {
-      if (!actual || salida || rescate || guia || match) return
+      if (!actual || salida || rescate || guia || visita) return
       const yaEstaba = esGuardada(actual.key)
       setHistorial((h) => [...h.slice(-30), { indice, accion, key: actual.key, nueva: accion === 'like' && !yaEstaba }])
       if (accion === 'pass') {
@@ -213,20 +216,15 @@ export default function MazoCasas({
       haptico(accion !== 'pass')
       // 4 seguidas con ✕ y ninguna guardada: no es lo que busca → rescate.
       const rescatar = accion === 'pass' && guardadas.length === 0 && !enviada && pasesSeguidos.current >= 4 && !rescateVisto && indice + 1 < todos.length
-      let abrirMatch: EstadoMatch = null
-      const contacto = contactoListo()
+      // El ♥ no interrumpe nada (sin "¡Es un match!", David 5-oct). La ★ sí pide
+      // los datos: es él pidiendo la visita.
+      let abrirVisita: EstadoVisita = null
       if (accion === 'super') {
         contarTinder('quiero_verla', origen)
         trackEvent('feed_en_red_quiero_verla', { tipo: actual.esNuestra ? 'nuestra' : 'en_red' })
+        const contacto = contactoListo()
         if (contacto) pedirVisitaDirecto(contacto, actual)
-        else abrirMatch = { modo: 'visita', item: actual }
-      } else if (accion === 'like' && !yaEstaba) {
-        likesVisita += 1
-        const modo = likesVisita === 1 ? 'match' : likesVisita === 3 ? 'tres' : null
-        if (modo && !contacto && !enviada && !matchesVistos.has(modo)) {
-          matchesVistos.add(modo)
-          abrirMatch = { modo, item: actual }
-        }
+        else abrirVisita = { item: actual }
       }
       setSalida(accion)
       setVistas((v) => Math.max(v, indice + 1))
@@ -236,18 +234,19 @@ export default function MazoCasas({
         setArrastre(null)
         setSalida(null)
         if (rescatar) marcarRescate('mazo')
-        if (abrirMatch) {
-          setMatch(abrirMatch)
+        if (abrirVisita) {
+          setVisita(abrirVisita)
+          // 'match' = le pedimos el WhatsApp en el medio del mazo (Hilo: /tinder).
           contarTinder('match', origen)
         }
       }, DURACION_SALIDA)
     },
-    [actual, salida, rescate, guia, match, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate, origen, pedirVisitaDirecto],
+    [actual, salida, rescate, guia, visita, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate, origen, pedirVisitaDirecto],
   )
 
   /** ↺ Volver a la anterior: si le había dado ♥ recién, se lo saca y decide de nuevo. */
   const volver = useCallback(() => {
-    if (salida || rescate || enviada || match) return
+    if (salida || rescate || enviada || visita) return
     const ultima = historial[historial.length - 1]
     if (!ultima) return
     setHistorial((h) => h.slice(0, -1))
@@ -257,7 +256,7 @@ export default function MazoCasas({
     setFoto(0)
     setArrastre(null)
     trackEvent('feed_en_red_volver', { origen })
-  }, [salida, rescate, enviada, match, historial, quitar, origen])
+  }, [salida, rescate, enviada, visita, historial, quitar, origen])
   const puedeVolver = historial.length > 0 && !enviada
 
   // Terminó un barrio que tiene parecidos: PRIMERO pregunta (David 4-oct).
@@ -353,10 +352,12 @@ export default function MazoCasas({
     // Un toque (sin arrastrar): sobre los datos = "Ver detalles"; sobre las
     // fotos, mitad izquierda = par anterior, derecha = siguiente (como Tinder).
     const datos = e.currentTarget.querySelector('[data-datos]')?.getBoundingClientRect()
-    if (datos && e.clientY >= datos.top) {
+    if (datos && e.clientY >= datos.top && e.clientY <= datos.bottom) {
       abrirDetalle()
       return
     }
+    // Debajo de los datos están los botones flotando: un toque entre ellos no hace nada.
+    if (datos && e.clientY > datos.bottom) return
     const pares = paresDe(actual)
     if (pares > 1) {
       const zona = e.currentTarget.getBoundingClientRect()
@@ -392,7 +393,7 @@ export default function MazoCasas({
   const cerrarTodo = () => {
     setHoja(null)
     setRescate(null)
-    setMatch(null)
+    setVisita(null)
     onCerrar()
   }
   /** Todas sus ♥ ya están con un asesor: se limpian al irse (como al mandar desde el final). */
@@ -405,7 +406,7 @@ export default function MazoCasas({
     guia,
     visor: visor != null,
     detalle,
-    match: match != null,
+    visita: visita != null,
     hoja: hoja?.motivo ?? null,
     rescate,
     enviada: enviada != null,
@@ -421,7 +422,7 @@ export default function MazoCasas({
     if (q === 'sacar-guia') cerrarGuia()
     else if (q === 'sacar-visor') setVisor(null)
     else if (q === 'sacar-detalle') setDetalle(false)
-    else if (q === 'sacar-match') setMatch(null)
+    else if (q === 'sacar-visita') setVisita(null)
     else if (q === 'sacar-hoja') setHoja(null)
     else if (q === 'sacar-rescate') setRescate(null)
     else if (q === 'hoja') setHoja({ motivo: 'salir' })
@@ -451,11 +452,11 @@ export default function MazoCasas({
       if (e.key === 'Escape') {
         if (guia) cerrarGuia()
         else if (detalle) setDetalle(false)
-        else if (match) setMatch(null)
+        else if (visita) setVisita(null)
         else if (hoja) setHoja(null)
         else if (rescate) setRescate(null)
         else salir()
-      } else if (detalle || visor != null || match || hoja || rescate) {
+      } else if (detalle || visor != null || visita || hoja || rescate) {
         return
       } else if (e.key === 'ArrowRight') decidir('like')
       else if (e.key === 'ArrowLeft') decidir('pass')
@@ -468,7 +469,7 @@ export default function MazoCasas({
       window.removeEventListener('keydown', onKey)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoja, rescate, guia, detalle, visor, match, guardadas.length, pendientes.length, decidir, volver])
+  }, [hoja, rescate, guia, detalle, visor, visita, guardadas.length, pendientes.length, decidir, volver])
 
   const n = todos.length
   // Mirando las de los barrios parecidos: el título lo dice.
@@ -485,14 +486,15 @@ export default function MazoCasas({
     <div className="fixed inset-0 z-[10400] bg-white md:bg-white/85 md:backdrop-blur-sm md:flex md:items-center md:justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
       <style dangerouslySetInnerHTML={{ __html: ESTILOS_MAZO }} />
       <div className="relative flex flex-col h-[100dvh] w-full bg-white md:h-[92vh] md:max-w-[440px] md:rounded-3xl md:border md:border-gray-200 md:shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden">
-        {/* Encabezado: título, por cuál va y sus elegidas (♥ N) siempre a mano */}
-        <div className="flex items-center justify-between gap-2 px-4 pt-[max(12px,env(safe-area-inset-top))] pb-2">
-          <div className="min-w-0 flex-1">
-            <p className="font-black text-gray-900 font-raleway truncate">{tituloVisible}</p>
-            <p className="text-[13px] text-gray-500">
+        {/* Encabezado de UNA línea (la foto se lleva casi toda la pantalla, David 5-oct):
+            título, por cuál va y sus elegidas (♥ N) siempre a mano */}
+        <div className="flex items-center justify-between gap-2 px-3 pt-[max(8px,env(safe-area-inset-top))] pb-2">
+          <p className="min-w-0 flex-1 truncate font-raleway">
+            <span className="font-black text-gray-900">{tituloVisible}</span>
+            <span className="ml-2 text-[13px] text-gray-500 font-sans">
               {terminado ? (directoAlFinal && g > 0 ? `Tus elegidas · ${n} para ver` : `Viste las ${n}`) : `${indice + 1} de ${n}`}
-            </p>
-          </div>
+            </span>
+          </p>
           {g > 0 && !terminado && (
             <button
               type="button"
@@ -511,17 +513,8 @@ export default function MazoCasas({
             <X className="w-5 h-5" />
           </button>
         </div>
-        {/* Solo en la primera: después cada tarjeta de colega lo dice con su chip
-            "En red", y en el celu chico ese renglón les sacaba lugar a las fotos. */}
-        {indice === 0 && !terminado && todos.some((i) => !i.esNuestra) && (
-          <p className="px-4 pb-2.5 text-[13px] leading-relaxed text-gray-600">
-            <strong className="text-gray-800">Algunas las publican otras inmobiliarias.</strong> Te las mostramos y te coordinamos la visita nosotros.
-          </p>
-        )}
-        {!(indice === 0 && !terminado && todos.some((i) => !i.esNuestra)) && <div className="h-1" aria-hidden="true" />}
-
-        {/* Mazo */}
-        <div className="relative flex-1 mx-3 min-h-0">
+        {/* Mazo: hasta abajo de todo (los botones van adentro de la foto) */}
+        <div className={`relative flex-1 mx-2 min-h-0 ${terminado ? '' : 'mb-[max(8px,env(safe-area-inset-bottom))]'}`}>
           {!terminado && actual ? (
             <>
               {siguiente && (
@@ -535,6 +528,7 @@ export default function MazoCasas({
                   par={0}
                   progreso={progresoAbajo}
                   arrastrando={!!arrastre && !salida}
+                  conBotones
                 />
               )}
               <Tarjeta
@@ -545,6 +539,9 @@ export default function MazoCasas({
                 arrastre={guia && guiaDx != null ? { dx: guiaDx, dy: 0 } : arrastre}
                 guia={guia}
                 conSuper
+                conBotones={!rescate}
+                // Solo en la primera: después cada tarjeta de colega lo dice con su chip "En red".
+                nota={indice === 0 && todos.some((i) => !i.esNuestra) ? 'Algunas las publican otras inmobiliarias: te coordinamos la visita nosotros.' : null}
                 onDetalles={abrirDetalle}
                 onAmpliar={abrirVisor}
                 salida={salida}
@@ -622,6 +619,19 @@ export default function MazoCasas({
               />
             </div>
           )}
+          {!terminado && actual && !rescate && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] pb-4">
+              <BotonesTinder
+                sobreFoto
+                onPaso={() => decidir('pass')}
+                onMeGusta={() => decidir('like')}
+                onQuieroVerla={() => decidir('super')}
+                onVolver={volver}
+                puedeVolver={puedeVolver}
+                tendencia={tendencia}
+              />
+            </div>
+          )}
           {aviso && (
             <div role="status" className="absolute inset-x-3 top-3 z-20 rounded-2xl bg-gray-900/95 px-4 py-3 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] mazo-aviso">
               {aviso}
@@ -629,20 +639,9 @@ export default function MazoCasas({
           )}
         </div>
 
-        {/* Botones ↺ ✕ ★ ♥ (como Tinder) */}
-        <div className="px-4 pt-4 pb-[max(14px,env(safe-area-inset-bottom))]">
-          {!terminado && !rescate && (
-            <BotonesTinder
-              onPaso={() => decidir('pass')}
-              onMeGusta={() => decidir('like')}
-              onQuieroVerla={() => decidir('super')}
-              onVolver={volver}
-              puedeVolver={puedeVolver}
-              tendencia={tendencia}
-            />
-          )}
-          {/* Al final también se puede volver a la última (por si la pasó sin querer). */}
-          {terminado && puedeVolver && !hoja && !rescate && estadoParecidos !== 'cargando' && (
+        {/* En el final también se puede volver a la última (por si la pasó sin querer). */}
+        {terminado && puedeVolver && !hoja && !rescate && estadoParecidos !== 'cargando' && (
+          <div className="px-4 pt-3 pb-[max(14px,env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={volver}
@@ -650,25 +649,8 @@ export default function MazoCasas({
             >
               <RotateCcw className="w-5 h-5" style={{ color: ORO_VOLVER }} strokeWidth={2.6} aria-hidden="true" /> Volver a la anterior
             </button>
-          )}
-          {!terminado && !rescate && (
-            <p className="mt-3 text-center text-[13px] text-gray-500">
-              {g > 0 && pendientes.length === 0 ? (
-                <>
-                  <span style={{ color: CORAZON }}>✓</span> Tus elegidas ya las tiene un asesor · seguí mirando
-                </>
-              ) : g > 0 ? (
-                <>
-                  <span style={{ color: CORAZON }}>♥</span> {g} elegida{g > 1 ? 's' : ''} · tocá <span className="font-semibold text-gray-700">♥ {g}</span> arriba y te las mandamos
-                </>
-              ) : (
-                <>
-                  Deslizá → si te gusta · <span style={{ color: AZUL_VISITA }}>★</span> para ir a verla
-                </>
-              )}
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {rescate === 'salir' && (
           <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[2px] flex items-end" onClick={(e) => e.target === e.currentTarget && cerrarTodo()}>
@@ -733,14 +715,14 @@ export default function MazoCasas({
             onCerrar={hoja.motivo === 'salir' ? cerrarTodo : () => setHoja(null)}
           />
         )}
-        {match && (
-          <MatchMazo
-            estado={match}
+        {visita && (
+          <HojaVisita
+            estado={visita}
             pendientes={pendientes}
             barrio={barrio}
             busqueda={busqueda}
             origen={origen}
-            onSeguir={() => setMatch(null)}
+            onSeguir={() => setVisita(null)}
             onEnviado={refrescarEnviadas}
           />
         )}
@@ -750,15 +732,11 @@ export default function MazoCasas({
   )
 }
 
-/** Animaciones del mazo (el latido del ♥ N, el match, el aviso). Sin movimiento si el sistema lo pide. */
+/** Animaciones del mazo (el latido del ♥ N y el aviso). Sin movimiento si el sistema lo pide. */
 const ESTILOS_MAZO = `
 @keyframes mazo-latido { 0% { transform: scale(1) } 35% { transform: scale(1.45) } 100% { transform: scale(1) } }
-@keyframes mazo-subir { 0% { transform: translateY(0) scale(.6); opacity: 0 } 15% { opacity: .9 } 100% { transform: translateY(-220px) scale(1.1); opacity: 0 } }
-@keyframes mazo-entrar { 0% { transform: scale(.7); opacity: 0 } 70% { transform: scale(1.06); opacity: 1 } 100% { transform: scale(1) } }
 @keyframes mazo-aviso { 0% { transform: translateY(-16px); opacity: 0 } 100% { transform: none; opacity: 1 } }
 .mazo-latido { animation: mazo-latido 420ms ease-out }
-.mazo-entrar { animation: mazo-entrar 520ms cubic-bezier(.2,1.2,.4,1) both }
 .mazo-aviso { animation: mazo-aviso 220ms ease-out both }
-.mazo-corazon-sube { animation: mazo-subir 2.6s ease-out infinite }
-@media (prefers-reduced-motion: reduce) { .mazo-latido, .mazo-entrar, .mazo-aviso, .mazo-corazon-sube { animation: none } }
+@media (prefers-reduced-motion: reduce) { .mazo-latido, .mazo-aviso { animation: none } }
 `

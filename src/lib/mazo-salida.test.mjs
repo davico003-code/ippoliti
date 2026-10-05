@@ -7,7 +7,7 @@ const base = {
   guia: false,
   visor: false,
   detalle: false,
-  match: false,
+  visita: false,
   hoja: null,
   rescate: null,
   enviada: false,
@@ -34,7 +34,7 @@ test('sin mirar ninguna: sale sin preguntar', () => {
   assert.deepEqual(ambas({ ...base, vistas: 0 }), ['cerrar', 'cerrar'])
 })
 
-test('sus ♥ ya las tiene un asesor (match o ★): sale y las limpia', () => {
+test('sus ♥ ya las tiene un asesor (★ o ♥ N): sale y las limpia', () => {
   assert.deepEqual(ambas({ ...base, guardadas: 2, pendientes: 0 }), ['cerrar-limpiando', 'cerrar-limpiando'])
 })
 
@@ -47,11 +47,11 @@ test('final con el formulario de sus elegidas: la X sale, el atrás se queda', (
 })
 
 test('el atrás saca primero la capa de arriba, en este orden', () => {
-  const todo = { ...base, guia: true, visor: true, detalle: true, match: true, hoja: 'boton', rescate: 'mazo' }
+  const todo = { ...base, guia: true, visor: true, detalle: true, visita: true, hoja: 'boton', rescate: 'mazo' }
   assert.equal(queHacerAlSalir(todo, 'atras'), 'sacar-guia')
   assert.equal(queHacerAlSalir({ ...todo, guia: false }, 'atras'), 'sacar-visor')
   assert.equal(queHacerAlSalir({ ...todo, guia: false, visor: false }, 'atras'), 'sacar-detalle')
-  assert.equal(queHacerAlSalir({ ...todo, guia: false, visor: false, detalle: false }, 'atras'), 'sacar-match')
+  assert.equal(queHacerAlSalir({ ...todo, guia: false, visor: false, detalle: false }, 'atras'), 'sacar-visita')
   assert.equal(queHacerAlSalir({ ...base, hoja: 'boton', rescate: 'mazo' }, 'atras'), 'sacar-hoja')
   assert.equal(queHacerAlSalir({ ...base, rescate: 'mazo', rescateVisto: true }, 'atras'), 'sacar-rescate')
 })
@@ -71,7 +71,7 @@ test('la X no mira las capas: decide como si no estuvieran (la tapan o no la dej
 test('cierraElMazo: solo cerrar y cerrar-limpiando sacan del mazo', () => {
   assert.equal(cierraElMazo('cerrar'), true)
   assert.equal(cierraElMazo('cerrar-limpiando'), true)
-  for (const q of ['hoja', 'rescate', 'quedarse', 'sacar-guia', 'sacar-visor', 'sacar-detalle', 'sacar-match', 'sacar-hoja', 'sacar-rescate']) {
+  for (const q of ['hoja', 'rescate', 'quedarse', 'sacar-guia', 'sacar-visor', 'sacar-detalle', 'sacar-visita', 'sacar-hoja', 'sacar-rescate']) {
     assert.equal(cierraElMazo(q), false, q)
   }
 })
