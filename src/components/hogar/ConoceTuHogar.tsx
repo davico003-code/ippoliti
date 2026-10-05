@@ -18,13 +18,20 @@
 //     entrada "me da igual" ("hay gente que es indiferente").
 // El buscador queda arriba de todo (David) para el que ya sabe el barrio.
 // Nunca se abre un mazo vacío: sin resultados se ofrece cómo ampliar.
+//
+// 5-oct, David: "buscar casas cerca tuyo" → "Cerca mío" es una opción más de
+// Dónde: pide la ubicación del navegador y el mazo sale de la más cercana a la
+// más lejana (nuestras y de colegas mezcladas), con "a 1,2 km" en cada una. El
+// punto viaja redondeado a ~100 m y NUNCA va a la URL (no se comparte dónde
+// está la persona en un link).
 
-import { useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { highlightMatch } from '@/lib/highlight'
 import {
   type BarrioHogar,
   type CriteriosBusqueda,
   type ItemFeed,
+  type PuntoCerca,
   type TipoHogar,
   type ZonaHogar,
   TIPOS_HOGAR,
@@ -39,9 +46,12 @@ import { contarTinder } from '@/lib/tinder-contador'
 import { BarraFija, IconoFlecha, Spinner, cls } from '@/components/tasaciones/ui'
 import MazoCasas, { SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
+import { type FalloUbicacion, pedirUbicacion } from '@/lib/mi-ubicacion'
 
 /** Dónde: las tres que cubren casi todas las consultas, en ese orden. */
 const CIUDADES = ['Funes', 'Roldán', 'Rosario']
+/** La opción "Cerca mío" de Dónde (y de "Afiná tu búsqueda" adentro del mazo). */
+const CERCA_MIO = 'Cerca mío'
 
 /** Última vez que se contó la entrada (el modo estricto de React monta dos veces en desarrollo). */
 let pantallaContadaEn = 0
@@ -72,7 +82,7 @@ function Segmentos<V extends string | number | null>({
   resaltar,
 }: {
   etiqueta: string
-  opciones: { v: V; label: string }[]
+  opciones: { v: V; label: ReactNode }[]
   valor: V
   onChange: (v: V) => void
   /** Marca la fila cuando tocó "Ver" sin elegirla (sin carteles de error). */
@@ -111,8 +121,19 @@ function Segmentos<V extends string | number | null>({
   )
 }
 
-/** `fallo` = no se pudo buscar (sin señal, servidor caído): no es lo mismo que "no hay". */
-type Resultado = { clave: string; items: ItemFeed[]; fallo?: boolean }
+/**
+ * `fallo` = no se pudo buscar (sin señal, servidor caído): no es lo mismo que "no hay".
+ * `ciudad`: en "Cerca mío", la de la más cercana (va como su zona en la consulta y el mail).
+ */
+type Resultado = { clave: string; items: ItemFeed[]; fallo?: boolean; ciudad?: string | null }
+
+function IconoUbicacion() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="mr-1 inline-block h-[15px] w-[15px] -translate-y-px" fill="currentColor">
+      <path d="M21.2 2.8a1 1 0 0 0-1.06-.23l-16.5 6.6a1 1 0 0 0 .1 1.9l6.9 1.6 1.6 6.9a1 1 0 0 0 1.9.1l6.6-16.5a1 1 0 0 0-.23-1.07Z" />
+    </svg>
+  )
+}
 
 export default function ConoceTuHogar({
   catalogo,
@@ -131,6 +152,11 @@ export default function ConoceTuHogar({
   barrioInicial: BarrioHogar | null
 }) {
   const [zona, setZona] = useState<ZonaHogar | null>(() => zonaPorNombre(catalogo, zonaInicial))
+  /** "Cerca mío": dónde está (redondeado a ~100 m). Excluye a `zona`. */
+  const [cerca, setCerca] = useState<PuntoCerca | null>(null)
+  const [ubicacion, setUbicacion] = useState<'buscando' | FalloUbicacion | null>(null)
+  /** Sube con cada pedido de ubicación o elección de zona: una respuesta vieja no pisa lo que eligió después. */
+  const pedidoUbicacion = useRef(0)
   const [tipo, setTipo] = useState<TipoHogar>(tipoInicial)
   const [tope, setTope] = useState<number | null>(topeInicial)
   /** Dormitorios o más (los lotes no tienen). */
@@ -170,7 +196,8 @@ export default function ConoceTuHogar({
 
   const tipoInfo = TIPOS_HOGAR.find((t) => t.id === tipo)!
   const plural = tipoInfo.plural
-  const clave = zona ? `${zona.nombre}|${tipo}|${tope ?? ''}|${dorm ?? ''}|${barrio ?? ''}` : null
+  const donde = zona ? zona.nombre : cerca ? `cerca:${cerca.lat},${cerca.lng}` : null
+  const clave = donde ? `${donde}|${tipo}|${tope ?? ''}|${dorm ?? ''}|${barrio ?? ''}` : null
   const listo = resultado && resultado.clave === clave ? resultado : null
   const fallo = !!listo?.fallo
   const cantidad = listo && !fallo ? listo.items.length : null
@@ -196,9 +223,9 @@ export default function ConoceTuHogar({
 
   // Se cuenta apenas elige: el botón dice cuántas hay y el mazo abre al toque.
   useEffect(() => {
-    if (!zona || !clave) return
+    if (!clave || (!zona && !cerca)) return
     const ctrl = new AbortController()
-    const p = new URLSearchParams({ zona: zona.nombre, tipo })
+    const p = new URLSearchParams(zona ? { zona: zona.nombre, tipo } : { cerca: `${cerca!.lat},${cerca!.lng}`, tipo })
     if (tope) p.set('tope', String(tope))
     if (dorm) p.set('dorm', String(dorm))
     if (barrio) p.set('barrio', barrio)
@@ -207,17 +234,17 @@ export default function ConoceTuHogar({
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
       })
-      .then((d: { items?: ItemFeed[] }) => setResultado({ clave, items: Array.isArray(d.items) ? d.items : [] }))
+      .then((d: { items?: ItemFeed[]; zona?: string }) => setResultado({ clave, items: Array.isArray(d.items) ? d.items : [], ciudad: d.zona || null }))
       .catch((e) => {
         // Sin señal o el servidor no respondió: se ofrece reintentar (no es "no hay").
         if (e?.name !== 'AbortError') setResultado({ clave, items: [], fallo: true })
       })
     return () => ctrl.abort()
-  }, [zona, tipo, tope, dorm, barrio, clave, intento])
+  }, [zona, cerca, tipo, tope, dorm, barrio, clave, intento])
 
   const abrir = () => {
-    if (!zona || !listo || listo.fallo || listo.items.length === 0) return
-    trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, dorm: dorm ?? 0, barrio: barrio ?? 'indistinto', cantidad: listo.items.length })
+    if (!donde || !listo || listo.fallo || listo.items.length === 0) return
+    trackEvent('hogar_comenzar', { zona: zona?.nombre ?? 'cerca', tipo, tope: tope ?? 0, dorm: dorm ?? 0, barrio: barrio ?? 'indistinto', cantidad: listo.items.length })
     setMazo({ clave: listo.clave, items: listo.items })
     setEstadoAfinar('listo')
     setAbierto(true)
@@ -265,11 +292,35 @@ export default function ConoceTuHogar({
   }, [])
 
   const elegirZona = (z: ZonaHogar | null) => {
+    pedidoUbicacion.current++
+    setCerca(null)
+    setUbicacion(null)
     setZona(z)
     setQuery('')
     setSugerencias(false)
     // Eligió del buscador: se cierra el teclado del celu y queda a la vista el botón.
     if (document.activeElement instanceof HTMLInputElement) document.activeElement.blur()
+  }
+
+  // "Cerca mío". Al analytics va solo si salió o no (nunca el punto).
+  const ubicar = () => {
+    if (cerca) return
+    const pedido = ++pedidoUbicacion.current
+    setUbicacion('buscando')
+    pedirUbicacion().then(
+      (punto) => {
+        if (pedido !== pedidoUbicacion.current) return
+        trackEvent('hogar_cerca', { resultado: 'ok' })
+        setZona(null)
+        setCerca(punto)
+        setUbicacion(null)
+      },
+      (motivo: FalloUbicacion) => {
+        if (pedido !== pedidoUbicacion.current) return
+        trackEvent('hogar_cerca', { resultado: motivo })
+        setUbicacion(motivo)
+      },
+    )
   }
 
   const reintentar = () => {
@@ -278,7 +329,7 @@ export default function ConoceTuHogar({
   }
 
   const ver = () => {
-    if (!zona) return setMarcarDonde(true)
+    if (!donde) return ubicacion === 'buscando' ? undefined : setMarcarDonde(true)
     if (fallo) {
       reintentar()
       return setAbrirAlLlegar(true)
@@ -288,11 +339,18 @@ export default function ConoceTuHogar({
     abrir()
   }
 
-  const titulo = zona ? `${plural[0].toUpperCase()}${plural.slice(1)} en ${barrio ? `barrio ${barrio} de ` : ''}${zona.nombre}` : ''
-  const busqueda = `${plural}${dorm ? ` de ${textoDorm(dorm)}` : ''}${barrio ? ` en barrio ${barrio}` : ''}${tope ? ` hasta ${textoTope(tope)}` : ''}`
-  const criterios: CriteriosBusqueda = { zona: zona?.nombre ?? null, tipo, topeUsd: tope, dormMin: dorm, barrio, origen: 'conoce_tu_hogar' }
+  const Plural = `${plural[0].toUpperCase()}${plural.slice(1)}`
+  const ciudadCerca = cerca ? listo?.ciudad ?? null : null
+  const titulo = zona ? `${Plural} en ${barrio ? `barrio ${barrio} de ` : ''}${zona.nombre}` : cerca ? `${Plural} cerca tuyo` : ''
+  // Lo lee el asesor en Hilo ("Buscó en la web: …").
+  const busqueda = `${plural}${dorm ? ` de ${textoDorm(dorm)}` : ''}${barrio ? ` en barrio ${barrio}` : ''}${
+    cerca ? ` cerca de su ubicación${ciudadCerca ? `, en ${ciudadCerca},` : ''}` : ''
+  }${tope ? ` hasta ${textoTope(tope)}` : ''}`
+  // En "Cerca mío" la zona del mail y de la consulta es la ciudad de la más cercana.
+  const criterios: CriteriosBusqueda = { zona: zona?.nombre ?? ciudadCerca, tipo, topeUsd: tope, dormMin: dorm, barrio, origen: 'conoce_tu_hogar' }
   const ciudadEntera = zona && !zona.esCiudad && zona.ciudad ? zonaPorNombre(catalogo, zona.ciudad) : null
   const esperando = abrirAlLlegar && !listo
+  const textoSinResultados = `${plural}${dorm ? ` de ${textoDorm(dorm)}` : ''}${barrio ? ` en barrio ${barrio}` : ''}`
 
   return (
     <div className="min-h-screen bg-white">
@@ -390,11 +448,32 @@ export default function ConoceTuHogar({
         ) : (
           <Segmentos<string | null>
             etiqueta="Dónde"
-            opciones={ciudades.map((c) => ({ v: c.nombre, label: c.nombre }))}
-            valor={zona?.nombre ?? null}
-            onChange={(n) => elegirZona(ciudades.find((c) => c.nombre === n) ?? null)}
+            opciones={[
+              ...ciudades.map((c) => ({ v: c.nombre, label: c.nombre })),
+              {
+                v: CERCA_MIO,
+                // En el celu no entra "Cerca mío" en un cuarto de la fila: pin + "Cerca" (nunca texto cortado).
+                label: (
+                  <>
+                    <IconoUbicacion />
+                    Cerca<span className="sr-only sm:not-sr-only"> mío</span>
+                  </>
+                ),
+              },
+            ]}
+            valor={ubicacion === 'buscando' || cerca ? CERCA_MIO : zona?.nombre ?? null}
+            onChange={(n) => (n === CERCA_MIO ? ubicar() : elegirZona(ciudades.find((c) => c.nombre === n) ?? null))}
             resaltar={marcarDonde}
           />
+        )}
+
+        {/* Sin ubicación nunca es un callejón: las ciudades siguen ahí. */}
+        {(ubicacion === 'denegada' || ubicacion === 'fallo') && (
+          <p role="status" className="mt-2 text-[15px] leading-snug text-[#3C4A42]">
+            {ubicacion === 'denegada'
+              ? 'Para ver las casas cerca tuyo, permití la ubicación en tu navegador. O elegí una ciudad.'
+              : 'No pudimos saber dónde estás. Tocá «Cerca mío» de nuevo o elegí una ciudad.'}
+          </p>
         )}
 
         <Segmentos<number | null>
@@ -426,21 +505,20 @@ export default function ConoceTuHogar({
           />
         )}
 
-        {zona && fallo && (
+        {donde && fallo && (
           <div className="mt-6 rounded-2xl bg-[#FFF7E8] px-4 py-3.5" role="alert">
             <p className="text-[15px] font-semibold text-[#7A5A16]">No pudimos buscar ahora. Revisá tu conexión y tocá Reintentar.</p>
           </div>
         )}
 
         {/* Sin resultados: nunca un callejón sin salida, se ofrece cómo ampliar. */}
-        {zona && cantidad === 0 && (
+        {donde && cantidad === 0 && (
           <div ref={sinResultadosRef} className="mt-6 rounded-2xl bg-[#F6F8F6] px-4 py-3.5">
             <p className="text-[16px] font-semibold text-[#121A15]">
-              Todavía no tenemos {plural}
-              {dorm ? ` de ${textoDorm(dorm)}` : ''}
-              {barrio ? ` en barrio ${barrio}` : ''} en {zona.nombre}
+              {zona ? `Todavía no tenemos ${textoSinResultados} en ${zona.nombre}` : `No hay ${textoSinResultados} a menos de 15 km tuyo`}
               {tope ? ` hasta ${textoTope(tope)}` : ''}.
             </p>
+            {cerca && <p className="mt-1 text-[15px] text-[#3C4A42]">Elegí Funes, Roldán o Rosario arriba.</p>}
             <div className="mt-2.5 flex flex-wrap gap-2">
               {tope != null && (
                 <button type="button" onClick={() => setTope(null)} className={chipSecundario}>
@@ -463,17 +541,25 @@ export default function ConoceTuHogar({
                 </button>
               )}
             </div>
-            {/* O que le avisemos cuando entren (David 4-oct: el mail con la búsqueda ya filtrada). */}
-            <div className="mt-3">
-              <SuscripcionMail criterios={criterios} origen="home" />
-            </div>
+            {/* O que le avisemos cuando entren (David 4-oct: el mail con la búsqueda ya filtrada).
+                Lejos de todo ("Cerca mío" sin nada a 15 km) no hay zona que avisarle. */}
+            {zona && (
+              <div className="mt-3">
+                <SuscripcionMail criterios={criterios} origen="home" />
+              </div>
+            )}
           </div>
         )}
       </div>
 
       <BarraFija>
         <button type="button" onClick={ver} className={cls.cta} aria-live="polite">
-          {!zona ? (
+          {ubicacion === 'buscando' ? (
+            <>
+              <Spinner />
+              Buscando tu ubicación…
+            </>
+          ) : !donde ? (
             'Elegí dónde buscar'
           ) : fallo ? (
             'Reintentar'
@@ -492,11 +578,11 @@ export default function ConoceTuHogar({
         </button>
       </BarraFija>
 
-      {abierto && mazo && zona && guardadasApi.montado && (
+      {abierto && mazo && donde && guardadasApi.montado && (
         <MazoCasas
           items={mazo.items}
           titulo={titulo}
-          barrio={zona.nombre}
+          barrio={zona?.nombre ?? ciudadCerca}
           guardadasApi={guardadasApi}
           origen="home"
           busqueda={busqueda}
@@ -504,14 +590,18 @@ export default function ConoceTuHogar({
           cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipo, tope, yaVistas, dorm)}
           afinar={{
             tipo,
-            valores: { zona: zona.nombre, tope, dorm, barrio },
-            zonas: [...ciudades.map((c) => c.nombre), ...(zona.esCiudad ? [] : [zona.nombre])],
-            esCiudad: (z) => !!zonaPorNombre(catalogo, z)?.esCiudad,
+            valores: { zona: zona?.nombre ?? CERCA_MIO, tope, dorm, barrio },
+            zonas: [...(cerca ? [CERCA_MIO] : []), ...ciudades.map((c) => c.nombre), ...(zona && !zona.esCiudad ? [zona.nombre] : [])],
+            esCiudad: (z) => z === CERCA_MIO || !!zonaPorNombre(catalogo, z)?.esCiudad,
             estado: estadoAfinar,
             ronda: rondaAfinar,
             onAplicar: (v) => {
-              const nueva = zonaPorNombre(catalogo, v.zona) ?? zona
-              setZona(nueva)
+              // "Cerca mío" sigue con el mismo punto; una ciudad o barrio lo reemplaza.
+              const nueva = v.zona === CERCA_MIO ? null : zonaPorNombre(catalogo, v.zona)
+              if (nueva) {
+                setCerca(null)
+                setZona(nueva)
+              }
               setTope(v.tope)
               setDorm(v.dorm)
               setBarrio(v.barrio)
