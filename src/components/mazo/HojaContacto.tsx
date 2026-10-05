@@ -9,7 +9,7 @@ import { type CriteriosBusqueda, type GuardadaLocal, esEmail, estiloSinLogo, lee
 import { trackEvent } from '@/lib/analytics'
 import { contactoListo, mandarConsulta } from '@/lib/mazo-consulta'
 import type { OrigenTinder } from '@/lib/tinder-contador'
-import { AbanicoFotos } from './MatchMazo'
+import { AbanicoFotos } from './AbanicoFotos'
 import { CORAZON, Corazon, VERDE } from './marca-mazo'
 
 export default function HojaContacto({

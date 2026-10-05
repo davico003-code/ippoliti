@@ -4,7 +4,9 @@
 // suma en el Redis compartido; Hilo lo muestra en Resultados → Tinder web.
 // Claves y eventos: mismo contrato que si-crm src/lib/tinder/metricas-logic.ts.
 
-// 4-oct: 'match' = se le mostró el "¡Es un match!"; 'quiero_verla' = tocó ★ (o deslizó hacia arriba);
+// 'quiero_verla' = tocó ★ (o deslizó hacia arriba). 'match' = le pedimos el WhatsApp en el medio del
+// mazo: del 4 al 5-oct era el "¡Es un match!" del 1er/3er ♥ + la ★; desde el 5-oct (sin match) es SOLO
+// la hoja de la ★ de alguien que todavía no nos dejó el WhatsApp (el número baja por eso, no es caída).
 // 'pantalla' = entró a "Conocé tu próximo hogar" (para saber cuántos de los que entran abren el mazo).
 export const EVENTOS_TINDER = ['abrir', 'like', 'detalles', 'foto', 'parecidos_si', 'final', 'consulta', 'busca', 'match', 'quiero_verla', 'pantalla'] as const
 export type EventoTinder = (typeof EVENTOS_TINDER)[number]
