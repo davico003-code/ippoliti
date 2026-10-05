@@ -10,9 +10,10 @@
 
 import { useMemo, useState } from 'react'
 import { formatDescription, type FormattedBlock } from '@/lib/formatDescription'
-import { TEXTO, TINTA } from './estilos'
+import { type ColoresFicha, coloresFicha } from './estilos'
 
-function Block({ block }: { block: FormattedBlock }) {
+function Block({ block, c }: { block: FormattedBlock; c: ColoresFicha }) {
+  const { TEXTO, TINTA } = c
   if (block.type === 'title') {
     return (
       <h3
@@ -105,10 +106,14 @@ function Block({ block }: { block: FormattedBlock }) {
 export default function StructuredDescription({
   text,
   omitirTituloInicial = false,
+  oscuro = false,
 }: {
   text: string | null | undefined
   omitirTituloInicial?: boolean
+  /** Sobre el negro del Tinder (Ver detalles). */
+  oscuro?: boolean
 }) {
+  const c = coloresFicha(oscuro)
   const blocks = useMemo(() => {
     const parsed = formatDescription(text)
     if (parsed.length === 0) {
@@ -141,7 +146,7 @@ export default function StructuredDescription({
                 i === 0 && b.type === 'title' ? { marginTop: 0 } : undefined
               }
             >
-              <Block block={b} />
+              <Block block={b} c={c} />
             </div>
           ))}
         </div>
@@ -155,7 +160,7 @@ export default function StructuredDescription({
               bottom: 0,
               height: 64,
               pointerEvents: 'none',
-              background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 85%)',
+              background: `linear-gradient(to bottom, rgba(${c.FONDO_RGB},0) 0%, ${c.FONDO} 85%)`,
             }}
           />
         )}
@@ -171,7 +176,7 @@ export default function StructuredDescription({
             background: 'transparent',
             border: 'none',
             padding: '8px 0',
-            color: TINTA,
+            color: c.TINTA,
             fontSize: 15,
             fontWeight: 600,
             textDecoration: 'underline',

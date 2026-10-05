@@ -161,7 +161,7 @@ export default function HojaContacto({
                   <span className="block font-bold truncate">{nombre}</span>
                   <span className="block text-gray-600 truncate">{whatsapp}</span>
                 </p>
-                <button type="button" onClick={() => setConocido(false)} className="flex-none text-[14px] font-semibold underline underline-offset-2" style={{ color: VERDE }}>
+                <button type="button" onClick={() => setConocido(false)} className="mazo-verde-texto flex-none text-[14px] font-semibold underline underline-offset-2" style={{ color: VERDE }}>
                   Cambiar
                 </button>
               </div>

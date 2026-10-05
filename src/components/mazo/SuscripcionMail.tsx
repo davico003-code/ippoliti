@@ -55,7 +55,7 @@ export function SuscripcionMail({ criterios, compacta = false, origen }: { crite
     <form onSubmit={enviar} noValidate className={`rounded-2xl bg-[#F6F8F6] ${compacta ? 'px-4 py-3 md:flex md:items-center md:gap-4' : 'p-4'}`}>
       <div className={compacta ? 'md:flex-1 md:min-w-0' : ''}>
         <p className="flex items-center gap-2 text-[15px] font-bold text-gray-900">
-          <Mail className="w-4 h-4 flex-none" style={{ color: VERDE }} aria-hidden="true" />
+          <Mail className="mazo-verde-texto w-4 h-4 flex-none" style={{ color: VERDE }} aria-hidden="true" />
           Recibí las nuevas por mail
         </p>
         <p className="text-sm text-gray-600 mt-0.5">Te avisamos cuando entren {buscaTexto}.</p>

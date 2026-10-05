@@ -9,7 +9,7 @@
 
 import { Bath, BedDouble, House, LandPlot, Ruler, type LucideIcon } from 'lucide-react'
 import type { FichaSnapshot } from '@/lib/ficha'
-import { APAGADO, FONDO_SUAVE, LINEA, TINTA } from './estilos'
+import { coloresFicha } from './estilos'
 
 const m2 = (n: number) => `${n.toLocaleString('es-AR')} m²`
 
@@ -53,7 +53,8 @@ interface Stat {
   soloCompu?: boolean
 }
 
-export function StatsFicha({ snapshot: s }: { snapshot: FichaSnapshot }) {
+export function StatsFicha({ snapshot: s, oscuro = false }: { snapshot: FichaSnapshot; oscuro?: boolean }) {
+  const { APAGADO, LINEA, TINTA } = coloresFicha(oscuro)
   const items: Stat[] = []
   if (!esTerreno(s)) {
     if (s.dormitorios) items.push({ Icon: BedDouble, valor: String(s.dormitorios), corta: 'dorm.', larga: s.dormitorios === 1 ? 'dormitorio' : 'dormitorios' })
@@ -138,7 +139,8 @@ export function datosFicha(s: FichaSnapshot): Array<{ label: string; valor: stri
   return out
 }
 
-export function DatosFicha({ snapshot }: { snapshot: FichaSnapshot }) {
+export function DatosFicha({ snapshot, oscuro = false }: { snapshot: FichaSnapshot; oscuro?: boolean }) {
+  const { APAGADO, FONDO_SUAVE, TINTA } = coloresFicha(oscuro)
   const datos = datosFicha(snapshot)
   if (datos.length === 0) return null
   return (
