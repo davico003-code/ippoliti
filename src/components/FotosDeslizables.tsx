@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import PortadaViva from '@/components/PortadaViva'
 
 export default function FotosDeslizables({
   images,
@@ -23,6 +24,7 @@ export default function FotosDeslizables({
   imgClassName = '',
   className = '',
   style,
+  portadaViva,
   children,
 }: {
   images: string[]
@@ -43,6 +45,8 @@ export default function FotosDeslizables({
   /** Clases del recuadro (proporción, fondo). */
   className?: string
   style?: CSSProperties
+  /** Loop de la portada (destacadas): corre sobre la foto 1 y se apaga al pasar de foto. */
+  portadaViva?: string | null
   children?: ReactNode
 }) {
   const [imgIdx, setImgIdx] = useState(0)
@@ -154,6 +158,7 @@ export default function FotosDeslizables({
                   onLoad={i === 0 ? () => setImgLoaded(true) : undefined}
                 />
               )}
+              {i === 0 && portadaViva && <PortadaViva src={portadaViva} activa={imgIdx === 0} />}
             </div>
           ))}
         </div>
