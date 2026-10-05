@@ -23,10 +23,11 @@ import { resolverUbicacion } from '@/lib/ubicacion'
 import { rateLimit } from '@/lib/feedback'
 
 // "Conocé tu próximo hogar" (home, David 3-oct-2026): el mazo de una búsqueda
-// — dónde, qué y hasta cuánto — sin ficha de referencia. Primero las nuestras
+// — dónde, qué y qué precio — sin ficha de referencia. Primero las nuestras
 // de esa zona (sello verde) y después las "En red" que elige Hilo (mismo
 // barrio o misma ciudad, las más vistas primero). Solo venta en dólares.
 // GET ?zona=Funes%20Lakes&tipo=house&tope=200000&dorm=3 → { zona, items }
+// (`tope` = el precio elegido: entra ±20 %, 250 mil → 200 a 300 mil — David 5-oct)
 // (`dorm` = dormitorios o más, opcional; en lotes no filtra)
 // `&barrio=cerrado|abierto` (opcional; sin él, me da igual; solo al buscar una ciudad)
 // "Cerca mío" (David 5-oct): `?cerca=<lat>,<lng>` en vez de `zona` → las 40 más
@@ -138,8 +139,12 @@ export async function GET(request: NextRequest) {
 
   const nuestras = candidatas
     .filter(({ p }) => enZonaBuscada(zona, { nombre: p.location?.name, completa: p.location?.full_location }))
-    // Destacadas primero; con tope, lo mejor que le alcanza (más cerca del tope).
-    .sort((a, b) => Number(b.p.is_starred_on_web) - Number(a.p.is_starred_on_web) || (tope ? b.precio! - a.precio! : 0))
+    // Destacadas primero; con precio, la más parecida al que eligió (entra ±20 %).
+    .sort(
+      (a, b) =>
+        Number(b.p.is_starred_on_web) - Number(a.p.is_starred_on_web) ||
+        (tope ? Math.abs(Math.log(a.precio! / tope)) - Math.abs(Math.log(b.precio! / tope)) : 0),
+    )
     .map(({ p }) => itemDeNuestra(priorizarOperacion(p, 'Sale')))
     .filter((i) => i.fotos.length > 0)
     .slice(0, MAX_NUESTRAS)

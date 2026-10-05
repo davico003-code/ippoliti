@@ -49,13 +49,18 @@ test('Conocé tu próximo hogar: ciudad → toda la ciudad (también "San Lorenz
   assert.equal(enZonaBuscada('Funes', { nombre: 'Centro', completa: 'Argentina | Santa Fe | Rosario | Centro' }), false)
 })
 
-test('Conocé tu próximo hogar: tope = hasta el tope y desde la mitad', async () => {
-  const { entraEnTope } = await import('./feed-en-red.ts')
-  assert.equal(entraEnTope(200000, 200000), true)
-  assert.equal(entraEnTope(210000, 200000), false)
-  assert.equal(entraEnTope(90000, 200000), false)
+test('Conocé tu próximo hogar: el precio elegido busca ±20 % (David 5-oct)', async () => {
+  const { entraEnTope, textoPrecio } = await import('./feed-en-red.ts')
+  assert.equal(entraEnTope(250000, 250000), true)
+  assert.equal(entraEnTope(300000, 250000), true)
+  assert.equal(entraEnTope(200000, 250000), true)
+  assert.equal(entraEnTope(301000, 250000), false)
+  assert.equal(entraEnTope(199000, 250000), false)
   assert.equal(entraEnTope(90000, null), true)
   assert.equal(entraEnTope(null, null), false)
+  assert.equal(textoPrecio(500000), 'entre USD 400 y 600 mil')
+  assert.equal(textoPrecio(50000), 'entre USD 40 y 60 mil')
+  assert.equal(textoPrecio(1000000), 'entre USD 800 mil y USD 1,2 M')
 })
 
 test('sugerirZonas: "Los tronco" encuentra Los Troncos (el caso de David)', async () => {
@@ -83,7 +88,7 @@ test('lineaDireccion: calle | barrio | ciudad sin repetir', async () => {
 
 test('textoBusqueda y esEmail', async () => {
   const { textoBusqueda, esEmail, tipoHogarDeTokko } = await import('./feed-en-red.ts')
-  assert.equal(textoBusqueda({ zona: 'Funes Lakes', tipo: 'house', topeUsd: 200000, origen: 'conoce_tu_hogar' }), 'casas en Funes Lakes hasta USD 200 mil')
+  assert.equal(textoBusqueda({ zona: 'Funes Lakes', tipo: 'house', topeUsd: 200000, origen: 'conoce_tu_hogar' }), 'casas en Funes Lakes entre USD 160 y 240 mil')
   assert.equal(textoBusqueda({ zona: 'Roldán', tipo: 'lot', topeUsd: null, origen: 'ficha' }), 'lotes en Roldán')
   assert.equal(esEmail('martina@gmail.com'), true)
   assert.equal(esEmail('341 555 1234'), false)
@@ -104,7 +109,7 @@ test('dormitorios: N o más; sin dato no entra; en lotes no cuenta', async () =>
   assert.equal(dormMinValido(null), null)
   assert.equal(
     textoBusqueda({ zona: 'Funes Lakes', tipo: 'house', topeUsd: 250000, dormMin: 3, origen: 'conoce_tu_hogar' }),
-    'casas de 3 dormitorios o más en Funes Lakes hasta USD 250 mil',
+    'casas de 3 dormitorios o más en Funes Lakes entre USD 200 y 300 mil',
   )
   assert.equal(textoBusqueda({ zona: 'Roldán', tipo: 'lot', topeUsd: null, dormMin: 3, origen: 'conoce_tu_hogar' }), 'lotes en Roldán')
 })
@@ -121,7 +126,7 @@ test('barrio cerrado/abierto: me da igual entra todo; lo que no se sabe cuenta c
   assert.equal(barrioHogarValido('x'), null)
   assert.equal(
     textoBusqueda({ zona: 'Funes', tipo: 'house', topeUsd: 250000, barrio: 'abierto', origen: 'conoce_tu_hogar' }),
-    'casas en barrio abierto de Funes hasta USD 250 mil',
+    'casas en barrio abierto de Funes entre USD 200 y 300 mil',
   )
 })
 

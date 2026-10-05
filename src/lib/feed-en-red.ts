@@ -315,7 +315,7 @@ export const TIPOS_HOGAR: { id: TipoHogar; label: string; plural: string; tokkoI
   { id: 'apartment', label: 'Depto', plural: 'departamentos', tokkoIds: [2, 13] },
 ]
 
-/** Topes en dólares que se ofrecen por tipo (un lote de 150 mil es caro; una casa, no). */
+/** Precios en dólares que se ofrecen por tipo (un lote de 150 mil es caro; una casa, no). Cada uno busca ±20 % (BANDA_TOPE). */
 export const TOPES_HOGAR: Record<TipoHogar, number[]> = {
   house: [150_000, 250_000, 350_000, 500_000],
   lot: [50_000, 80_000, 120_000, 200_000],
@@ -341,8 +341,12 @@ export function entraEnDorm(dormitorios: number | null | undefined, dormMin: num
   return dormitorios != null && dormitorios >= dormMin
 }
 
-/** Con tope, desde qué parte del tope entran (200 mil → desde 100 mil). Igual que Hilo. */
-export const PISO_TOPE = 0.5
+/**
+ * El precio que elige es un valor, no un techo (David, 5-oct-2026: "si buscan
+ * con este valor específico, mostrá hasta un 20 % más y un 20 % para abajo"):
+ * 250 mil → de 200 a 300 mil. Igual que Hilo (candidatos.ts → BANDA_TOPE).
+ */
+export const BANDA_TOPE = { min: 0.8, max: 1.2 } as const
 
 export function esTipoHogar(v: unknown): v is TipoHogar {
   return v === 'house' || v === 'lot' || v === 'apartment'
@@ -352,6 +356,14 @@ export function esTipoHogar(v: unknown): v is TipoHogar {
 export function textoTope(usd: number): string {
   if (usd >= 1_000_000) return `USD ${(usd / 1_000_000).toLocaleString('es-AR', { maximumFractionDigits: 1 })} M`
   return `USD ${Math.round(usd / 1000)} mil`
+}
+
+/** El rango que de verdad se busca con ese precio: 250 mil → "entre USD 200 y 300 mil". */
+export function textoPrecio(tope: number): string {
+  const desde = tope * BANDA_TOPE.min
+  const hasta = tope * BANDA_TOPE.max
+  if (hasta < 1_000_000) return `entre USD ${Math.round(desde / 1000)} y ${Math.round(hasta / 1000)} mil`
+  return `entre ${textoTope(desde)} y ${textoTope(hasta)}`
 }
 
 const sinAcentos = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -370,11 +382,11 @@ export function enZonaBuscada(zona: string, ubicacion: { nombre: string | null |
   return [...tramos, ubicacion.nombre ?? ''].some((t) => sinAcentos(t) === z)
 }
 
-/** ¿El precio entra en el tope? Sin tope entra todo lo que tenga precio. */
+/** ¿El precio entra con el que eligió (±20 %)? Sin precio elegido entra todo lo que tenga precio. */
 export function entraEnTope(precioUsd: number | null, tope: number | null): boolean {
   if (!(precioUsd && precioUsd > 0)) return false
   if (tope == null) return true
-  return precioUsd <= tope && precioUsd >= tope * PISO_TOPE
+  return precioUsd >= tope * BANDA_TOPE.min && precioUsd <= tope * BANDA_TOPE.max
 }
 
 /**
@@ -497,13 +509,13 @@ export function esEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())
 }
 
-/** "casas de 3 dormitorios o más en Funes Lakes hasta USD 200 mil" (lo que ve la persona y lo que lee el asesor). */
+/** "casas de 3 dormitorios o más en Funes Lakes entre USD 160 y 240 mil" (lo que ve la persona y lo que lee el asesor). */
 export function textoBusqueda(c: CriteriosBusqueda | null | undefined): string {
   if (!c) return 'propiedades'
   const plural = TIPOS_HOGAR.find((t) => t.id === c.tipo)?.plural ?? 'propiedades'
   const dorm = c.tipo !== 'lot' && c.dormMin ? ` de ${textoDorm(c.dormMin)}` : ''
   const zona = c.zona ? (c.barrio ? ` en barrio ${c.barrio} de ${c.zona}` : ` en ${c.zona}`) : ''
-  return `${plural}${dorm}${zona}${c.topeUsd ? ` hasta ${textoTope(c.topeUsd)}` : ''}`
+  return `${plural}${dorm}${zona}${c.topeUsd ? ` ${textoPrecio(c.topeUsd)}` : ''}`
 }
 
 /** Tipo de la ficha (id de tipo del feed) → el de la búsqueda. */
