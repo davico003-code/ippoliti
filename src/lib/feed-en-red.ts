@@ -315,6 +315,21 @@ export type ZonaHogar = {
   casas: number
   lotes: number
   deptos: number
+  /** Barrio cerrado (lo marca Hilo; las ciudades no llevan). */
+  cerrado?: boolean
+}
+
+/** Barrio cerrado o abierto; null = me da igual (David, 4-oct: "hay gente que es indiferente"). */
+export type BarrioHogar = 'cerrado' | 'abierto'
+
+export function barrioHogarValido(v: unknown): BarrioHogar | null {
+  return v === 'cerrado' || v === 'abierto' ? v : null
+}
+
+/** ¿La nuestra es del tipo de barrio pedido? Lo que no se sabe cuenta como abierto (igual que Hilo). */
+export function entraEnBarrio(cerrado: boolean | null | undefined, barrio: BarrioHogar | null): boolean {
+  if (!barrio) return true
+  return (cerrado === true) === (barrio === 'cerrado')
 }
 
 export function cantidadZona(z: ZonaHogar, tipo: TipoHogar): number {
@@ -361,6 +376,8 @@ export type CriteriosBusqueda = {
   topeUsd: number | null
   /** Dormitorios mínimos (solo "Conocé tu próximo hogar"; viaja en el texto de la búsqueda). */
   dormMin?: number | null
+  /** Barrio cerrado/abierto (solo "Conocé tu próximo hogar", al buscar una ciudad). */
+  barrio?: BarrioHogar | null
   origen: 'conoce_tu_hogar' | 'ficha'
 }
 
@@ -373,7 +390,8 @@ export function textoBusqueda(c: CriteriosBusqueda | null | undefined): string {
   if (!c) return 'propiedades'
   const plural = TIPOS_HOGAR.find((t) => t.id === c.tipo)?.plural ?? 'propiedades'
   const dorm = c.tipo !== 'lot' && c.dormMin ? ` de ${textoDorm(c.dormMin)}` : ''
-  return `${plural}${dorm}${c.zona ? ` en ${c.zona}` : ''}${c.topeUsd ? ` hasta ${textoTope(c.topeUsd)}` : ''}`
+  const zona = c.zona ? (c.barrio ? ` en barrio ${c.barrio} de ${c.zona}` : ` en ${c.zona}`) : ''
+  return `${plural}${dorm}${zona}${c.topeUsd ? ` hasta ${textoTope(c.topeUsd)}` : ''}`
 }
 
 /** Tipo de la ficha (id de tipo del feed) → el de la búsqueda. */
@@ -395,6 +413,7 @@ export function parsearCriteriosWeb(raw: unknown): CriteriosBusqueda | null {
     tipo,
     topeUsd: Number.isFinite(tope) && tope >= 10_000 && tope <= 20_000_000 ? Math.round(tope) : null,
     dormMin: tipo === 'lot' ? null : dormMinValido(r.dormMin),
+    barrio: barrioHogarValido(r.barrio),
     origen: r.origen === 'ficha' ? 'ficha' : 'conoce_tu_hogar',
   }
 }

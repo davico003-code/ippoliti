@@ -1,6 +1,6 @@
 // /conoce-tu-hogar — "Conocé tu próximo hogar": dónde busca, qué y hasta
 // cuánto, y el mazo tipo Tinder (nuestras + "En red"). Se llega desde el link
-// debajo del buscador de la home (celu). Query params: ?zona=<nombre>&tipo=house|lot|apartment&tope=<usd>&dorm=<1-5>
+// debajo del buscador de la home (celu). Query params: ?zona=<nombre>&tipo=house|lot|apartment&tope=<usd>&dorm=<1-5>&barrio=cerrado|abierto
 //
 // Dónde se puede buscar lo dice Hilo (barrios y ciudades con algo en venta,
 // nuestras o de la red): se carga en el servidor, así las sugerencias salen
@@ -8,8 +8,8 @@
 
 import type { Metadata } from 'next'
 import ConoceTuHogar from '@/components/hogar/ConoceTuHogar'
-import { type TipoHogar, type ZonaHogar, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
-import { type BarrioPortada, armarPortadas, barriosConNombre } from '@/lib/hogar-portadas'
+import { type TipoHogar, type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
+import { type BarrioCerrado, barriosCerradosHogar, ciudadesHogar } from '@/lib/hogar-portadas'
 import { getBarriosHub } from '@/lib/barrios'
 import { ZONAS } from '@/lib/zonas'
 
@@ -49,21 +49,18 @@ export default async function ConoceTuHogarPage({ searchParams }: { searchParams
   const fotos = getBarriosHub()
     .filter((b) => b.imagenHero)
     .map((b) => ({ nombre: b.nombre, foto: b.imagenHero }))
-  const portadas = {} as Record<TipoHogar, BarrioPortada[]>
-  const conNombre = {} as Record<TipoHogar, ZonaHogar[]>
-  for (const t of ['house', 'lot', 'apartment'] as const) {
-    portadas[t] = armarPortadas(zonas, fotos, t)
-    conNombre[t] = barriosConNombre(zonas, portadas[t], t)
-  }
+  const cerrados = {} as Record<TipoHogar, BarrioCerrado[]>
+  for (const t of ['house', 'lot', 'apartment'] as const) cerrados[t] = barriosCerradosHogar(zonas, fotos, t)
   return (
     <ConoceTuHogar
       catalogo={zonas}
-      portadas={portadas}
-      conNombre={conNombre}
+      ciudades={ciudadesHogar(zonas)}
+      cerrados={cerrados}
       zonaInicial={first(searchParams.zona) ?? null}
       tipoInicial={esTipoHogar(tipo) ? tipo : 'house'}
       topeInicial={Number.isFinite(tope) && tope > 0 ? Math.round(tope) : null}
       dormInicial={dormMinValido(first(searchParams.dorm))}
+      barrioInicial={barrioHogarValido(first(searchParams.barrio))}
     />
   )
 }
