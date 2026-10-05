@@ -18,8 +18,17 @@ export function leerEnviadas(): string[] {
     return []
   }
 }
-/** Un solo Lead de Meta por visita (ver mandarConsulta). */
+/**
+ * UN solo Lead de Meta por visita: la consulta (match, ★, hoja), el mail de
+ * "Recibí las nuevas" y el WhatsApp del rescate son la misma persona; no
+ * inflar lo que mide la pauta. Cuenta el primero que ocurra, con su content_name.
+ */
 let leadContado = false
+export function contarLeadUnaVez(params: Record<string, string | number | string[]>): void {
+  if (leadContado) return
+  leadContado = true
+  trackFbEvent('Lead', params)
+}
 function desmarcarEnviadas(keys: string[]): void {
   try {
     const fuera = new Set(keys)
@@ -89,11 +98,7 @@ export async function mandarConsulta(p: {
     }
     escribirContacto({ nombre: p.nombre, whatsapp: p.whatsapp, email: p.email })
     trackEvent('feed_en_red_consulta', { cantidad: p.keys.length, en_red: p.keys.filter((k) => !k.startsWith('n:')).length, visita: p.visita === true })
-    // UN Lead de Meta por visita (match + ★ + hoja son la misma persona: no inflar lo que mide la pauta).
-    if (!leadContado) {
-      leadContado = true
-      trackFbEvent('Lead', { content_name: 'feed_en_red', content_ids: p.keys.filter((k) => k.startsWith('n:')).map((k) => k.slice(2)) })
-    }
+    contarLeadUnaVez({ content_name: 'feed_en_red', content_ids: p.keys.filter((k) => k.startsWith('n:')).map((k) => k.slice(2)) })
     contarTinder('consulta', p.origen)
     return { ok: true }
   } catch {
@@ -112,7 +117,7 @@ export async function suscribirMail(email: string, criterios: CriteriosBusqueda,
     })
     if (!res.ok) return false
     escribirContacto({ email })
-    trackFbEvent('Lead', { content_name: 'mazo_suscripcion_mail' })
+    contarLeadUnaVez({ content_name: 'mazo_suscripcion_mail' })
     return true
   } catch {
     return false

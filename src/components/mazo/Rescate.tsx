@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { type CriteriosBusqueda, esEmail, escribirContacto, leerContacto, textoBusqueda } from '@/lib/feed-en-red'
-import { trackEvent, trackFbEvent } from '@/lib/analytics'
+import { trackEvent } from '@/lib/analytics'
 import { listaBarrios } from '@/lib/barrios-parecidos'
-import { suscribirMail } from '@/lib/mazo-consulta'
+import { contarLeadUnaVez, suscribirMail } from '@/lib/mazo-consulta'
 import { contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
 import { VERDE } from './marca-mazo'
 
@@ -133,7 +133,7 @@ export default function Rescate({
       }
       if (conWhatsapp) {
         escribirContacto({ nombre: leerContacto().nombre, whatsapp })
-        trackFbEvent('Lead', { content_name: 'feed_en_red_rescate' })
+        contarLeadUnaVez({ content_name: 'feed_en_red_rescate' })
         contarTinder('busca', origen)
         setListo(true)
       } else {
