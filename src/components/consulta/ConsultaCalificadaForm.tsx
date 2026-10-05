@@ -93,7 +93,9 @@ export default function ConsultaCalificadaForm({
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
         <p className="text-xl font-bold text-neutral-900">Listo, {nombre.trim()}.</p>
         <p className="mt-1 text-[15px] text-neutral-700">
-          {preguntas ? `${agente} te escribe por WhatsApp en minutos con las condiciones y cómo seguir.` : `${agente} te contacta por WhatsApp a la brevedad.`}
+          {/* Sin nombre en el pedido de contacto: en las propiedades del broker y en
+              emprendimientos la consulta rota entre los agentes de la sucursal. */}
+          {preguntas ? `${agente} te escribe por WhatsApp en minutos con las condiciones y cómo seguir.` : 'Te contactamos por WhatsApp a la brevedad.'}
         </p>
         <a
           href={whatsappUrl}

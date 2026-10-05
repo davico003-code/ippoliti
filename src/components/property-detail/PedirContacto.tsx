@@ -44,7 +44,7 @@ export default function PedirContacto({
 
   return (
     <div className={`rounded-2xl border border-gray-200 bg-white p-4 ${className}`}>
-      <p className="mb-3 text-[15px] font-semibold text-neutral-900">Dejanos tus datos y {agente} te contacta</p>
+      <p className="mb-3 text-[15px] font-semibold text-neutral-900">Dejanos tus datos y te contactamos</p>
       <ConsultaCalificadaForm
         propertyId={propertyId}
         hiloPropertyId={null}
