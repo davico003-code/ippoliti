@@ -217,7 +217,7 @@ export default function FeedEnRed({ property, nuestras }: { property: TokkoPrope
           {titulo}
         </h2>
         <p className="text-sm text-gray-600 mt-1 mb-4 max-w-2xl">
-          Algunas las publican otras inmobiliarias. Te las mostramos y te coordinamos la visita nosotros.
+          Otras propiedades de la Red que te pueden interesar.
         </p>
         {/* Celu: la primera tarjeta del mazo */}
         {items[0] && (
