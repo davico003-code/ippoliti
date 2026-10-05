@@ -2,18 +2,24 @@
 
 // "Conocé tu próximo hogar" (David, 3-oct-2026): la puerta de la home al mazo
 // tipo Tinder. Que lo usen pero que no sea lo principal: en la home es un link
-// debajo del buscador. 4-oct, "esta pantalla intermedia no me convence": ya no
-// es un formulario: un toque abre el mismo mazo de la ficha (MazoCasas),
-// nuestras primero y después las "En red". Orden (David, mismo día): buscador
-// ARRIBA DE TODO → Casa/Lote/Depto + Precio + Dormitorios + Barrio (opcionales,
-// a la vista; Barrio de entrada "me da igual": "hay gente que es indiferente")
-// → la CIUDAD (Funes · Roldán · Rosario: 2 de cada 3 consultas son de barrio
-// abierto) → los barrios cerrados en una tira aparte, con la foto DEL BARRIO,
-// nunca de una casa. Nunca se abre un mazo vacío: sin resultados se ofrece
-// cómo ampliar.
+// debajo del buscador.
+//
+// 4-oct, después de tres vueltas (formulario → mosaico de barrios con fotos →
+// ciudades con fotos), David: "me la estoy recomplicando, tiene que ser bien
+// sencillo, minimalista, como lo haría un diseñador de Apple; ni siquiera
+// fotos". Lo que se aprendió:
+//   · Lo escondido no se encuentra: el precio dentro de un menú "Sin tope ▾" no
+//     se vio. Todo a la vista, en controles segmentados (como un ajuste del
+//     iPhone), con la opción elegida resaltada.
+//   · Las fotos no ayudan a elegir: el mazo ya es puro fotos.
+//   · Un solo camino: se elige y UN botón abre el mazo, diciendo cuántas hay.
+//   · Los datos (90 días de consultas): Funes, Roldán y Rosario son el 99%; el
+//     84% busca hasta USD 250 mil; 2 de cada 3, barrio abierto → "Barrio" de
+//     entrada "me da igual" ("hay gente que es indiferente").
+// El buscador queda arriba de todo (David) para el que ya sabe el barrio.
+// Nunca se abre un mazo vacío: sin resultados se ofrece cómo ampliar.
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useRef, useState } from 'react'
 import { highlightMatch } from '@/lib/highlight'
 import {
   type BarrioHogar,
@@ -23,120 +29,82 @@ import {
   type ZonaHogar,
   TIPOS_HOGAR,
   TOPES_HOGAR,
-  DORMS_HOGAR,
   cantidadZona,
   sugerirZonas,
   textoDorm,
   textoTope,
 } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
-import { Spinner, cls } from '@/components/tasaciones/ui'
-import type { BarrioCerrado, CiudadHogar } from '@/lib/hogar-portadas'
-import MazoCasas, { CORAZON, SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
+import { BarraFija, IconoFlecha, Spinner, cls } from '@/components/tasaciones/ui'
+import MazoCasas, { SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
-const chip = 'si-tap inline-flex h-11 items-center whitespace-nowrap rounded-full border-[1.5px] px-[15px] text-[14.5px] font-semibold transition-colors motion-reduce:transition-none'
-const chipOff = `${chip} border-[#E1E6E1] bg-white text-[#3C4A42] hover:border-[#17613C]/50`
-const chipOn = `${chip} border-[#17613C] bg-[#17613C] font-bold text-white`
+/** Dónde: las tres que cubren casi todas las consultas, en ese orden. */
+const CIUDADES = ['Funes', 'Roldán', 'Rosario']
 
-/**
- * Filtro opcional como chip: muestra el valor (o el nombre del filtro, así se
- * lee como filtro) y el select nativo va encima, invisible — en el iPhone abre
- * la ruedita. El chip mide lo que dice, no la opción más larga.
- */
-function ChipSelect<V extends string | number>({
-  nombre,
-  valor,
-  textoValor,
-  textoCualquiera,
-  opciones,
-  onChange,
-}: {
-  nombre: string
-  valor: V | null
-  textoValor: string | null
-  /** La opción "sin filtro" ("Precio: cualquiera", "Barrio: me da igual"). */
-  textoCualquiera?: string
-  opciones: { v: V; label: string }[]
-  onChange: (v: V | null) => void
-}) {
-  const on = valor != null
-  return (
-    <label
-      className={`${on ? 'border-[#17613C] bg-[#17613C] text-white' : 'border-[#E1E6E1] bg-white text-[#3C4A42]'} relative inline-flex h-10 items-center gap-1 whitespace-nowrap rounded-full border-[1.5px] pl-3.5 pr-2.5 text-[14px] font-semibold focus-within:ring-2 focus-within:ring-[#17613C]/40`}
-    >
-      {on ? textoValor : nombre}
-      <svg aria-hidden="true" viewBox="0 0 24 24" className={`h-4 w-4 ${on ? 'text-white/80' : 'text-[#6B766E]'}`} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 9l6 6 6-6" />
-      </svg>
-      <select
-        aria-label={nombre}
-        value={valor ?? ''}
-        onChange={(e) => onChange(opciones.find((o) => String(o.v) === e.target.value)?.v ?? null)}
-        className="absolute inset-0 h-full w-full cursor-pointer appearance-none opacity-0"
-      >
-        <option value="">{textoCualquiera ?? `${nombre}: cualquiera`}</option>
-        {opciones.map((o) => (
-          <option key={String(o.v)} value={String(o.v)}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  )
-}
+/** Dormitorios a la vista ("N o más"); 1 y 5+ no hacen falta para elegir. */
+const DORMS = [2, 3, 4]
 
-/** Tarjeta de ciudad o barrio: foto del LUGAR con el nombre encima; sin foto, verde de marca. */
-function TarjetaLugar({
-  nombre,
-  sub,
-  foto,
-  label,
-  elegido,
-  cargando,
-  onClick,
-  className,
-  grande,
-  priority,
-}: {
-  nombre: string
-  sub: string | null
-  foto: string | null
-  label: string
-  elegido: boolean
-  cargando: boolean
-  onClick: () => void
-  className: string
-  grande?: boolean
-  priority?: boolean
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className={`si-tap relative overflow-hidden rounded-2xl text-left outline-none focus-visible:ring-[3px] focus-visible:ring-[#17613C] focus-visible:ring-offset-2 ${foto ? 'bg-[#EEF1EE]' : 'bg-[#17613C]'} ${elegido ? 'ring-[3px] ring-[#17613C] ring-offset-2' : ''} ${className}`}
-    >
-      {foto && <Image src={foto} alt="" fill sizes={grande ? '(max-width: 520px) 50vw, 250px' : '160px'} priority={priority} className="object-cover" />}
-      {foto && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/75 via-black/30 to-transparent" />}
-      <span className={`absolute inset-x-0 bottom-0 ${grande ? 'px-3.5 pb-3' : 'px-3 pb-2.5'}`}>
-        <span className={`block font-poppins font-bold leading-[1.15] tracking-[-0.01em] text-white [text-wrap:balance] ${grande ? 'text-[22px]' : 'text-[14.5px]'}`}>{nombre}</span>
-        {sub && <span className="mt-0.5 block text-[12.5px] font-medium text-white/85">{sub}</span>}
-      </span>
-      {cargando && (
-        <span className="absolute inset-0 flex items-center justify-center bg-black/35" role="status" aria-label={`Buscando en ${nombre}`}>
-          <Spinner />
-        </span>
-      )}
-    </button>
-  )
-}
+const chipSecundario =
+  'si-tap inline-flex h-10 items-center whitespace-nowrap rounded-full border-[1.5px] border-[#E1E6E1] bg-white px-4 text-[14.5px] font-semibold text-[#3C4A42] transition-colors hover:border-[#17613C]/50 motion-reduce:transition-none'
 
-const normal = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+const normal = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 
 function zonaPorNombre(catalogo: ZonaHogar[], nombre: string | null | undefined): ZonaHogar | null {
   if (!nombre?.trim()) return null
   return catalogo.find((z) => normal(z.nombre) === normal(nombre)) ?? null
+}
+
+/**
+ * Control segmentado, como en el iPhone: todas las opciones a la vista, la
+ * elegida en blanco sobre gris. Es un grupo de radios (teclado y lector de
+ * pantalla lo leen como "una de N").
+ */
+function Segmentos<V extends string | number | null>({
+  etiqueta,
+  opciones,
+  valor,
+  onChange,
+  resaltar,
+}: {
+  etiqueta: string
+  opciones: { v: V; label: string }[]
+  valor: V
+  onChange: (v: V) => void
+  /** Marca la fila cuando tocó "Ver" sin elegirla (sin carteles de error). */
+  resaltar?: boolean
+}) {
+  const id = `seg-${normal(etiqueta).replace(/[^a-z]+/g, '-')}`
+  return (
+    <div className="mt-5">
+      <p id={id} className={`${cls.lbl} transition-colors ${resaltar ? '!text-[#17613C]' : ''}`}>
+        {etiqueta}
+      </p>
+      <div
+        role="radiogroup"
+        aria-labelledby={id}
+        className={`mt-2 flex gap-1 rounded-[14px] bg-[#F1F3F1] p-1 transition-shadow ${resaltar ? 'shadow-[0_0_0_2px_#17613C]' : ''}`}
+      >
+        {opciones.map((o) => {
+          const on = o.v === valor
+          return (
+            <button
+              key={String(o.v)}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => onChange(o.v)}
+              className={`si-tap h-11 min-w-0 flex-1 truncate rounded-[11px] px-1 text-[15px] font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#17613C] motion-reduce:transition-none ${
+                on ? 'bg-white text-[#121A15] shadow-[0_1px_3px_rgba(18,26,21,0.14)]' : 'text-[#5B665F] hover:text-[#121A15]'
+              }`}
+            >
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 /** `fallo` = no se pudo buscar (sin señal, servidor caído): no es lo mismo que "no hay". */
@@ -144,8 +112,6 @@ type Resultado = { clave: string; items: ItemFeed[]; fallo?: boolean }
 
 export default function ConoceTuHogar({
   catalogo,
-  ciudades,
-  cerrados,
   zonaInicial,
   tipoInicial,
   topeInicial,
@@ -154,10 +120,6 @@ export default function ConoceTuHogar({
 }: {
   /** Barrios y ciudades con algo en venta (Hilo). */
   catalogo: ZonaHogar[]
-  /** Funes · Roldán · Rosario, con la aérea de la ciudad si la hay. */
-  ciudades: CiudadHogar[]
-  /** Por tipo: los barrios cerrados con más del tipo, con la foto DEL BARRIO si la hay. */
-  cerrados: Record<TipoHogar, BarrioCerrado[]>
   zonaInicial: string | null
   tipoInicial: TipoHogar
   topeInicial: number | null
@@ -170,15 +132,17 @@ export default function ConoceTuHogar({
   /** Dormitorios o más (los lotes no tienen). */
   const [dormElegido, setDorm] = useState<number | null>(dormInicial)
   const dorm = tipo === 'lot' ? null : dormElegido
-  /** Barrio cerrado/abierto; null = me da igual. Solo cuenta al elegir una ciudad (un barrio ya lo dice). */
+  /** Barrio cerrado/abierto; null = me da igual. Solo cuenta con una ciudad (un barrio ya lo dice). */
   const [barrioElegido, setBarrio] = useState<BarrioHogar | null>(barrioInicial)
   const barrio = zona && !zona.esCiudad ? null : barrioElegido
   const [query, setQuery] = useState('')
   const [sugerencias, setSugerencias] = useState(false)
   const [resultado, setResultado] = useState<Resultado | null>(null)
   const [abierto, setAbierto] = useState(false)
-  /** Tocó un barrio: el mazo abre apenas llegan las casas (con link a un barrio, abre solo). */
-  const [abrirAlLlegar, setAbrirAlLlegar] = useState(() => zonaPorNombre(catalogo, zonaInicial) != null)
+  /** Tocó "Ver" mientras contaba: el mazo abre apenas llegan las casas. */
+  const [abrirAlLlegar, setAbrirAlLlegar] = useState(false)
+  /** Tocó "Ver" sin elegir dónde: se marca esa fila un momento. */
+  const [marcarDonde, setMarcarDonde] = useState(false)
   /** Sube con "Reintentar" para volver a contar. */
   const [intento, setIntento] = useState(0)
   const sinResultadosRef = useRef<HTMLDivElement>(null)
@@ -186,17 +150,16 @@ export default function ConoceTuHogar({
   const guardadasApi = useGuardadas('home')
 
   const tipoInfo = TIPOS_HOGAR.find((t) => t.id === tipo)!
+  const plural = tipoInfo.plural
   const clave = zona ? `${zona.nombre}|${tipo}|${tope ?? ''}|${dorm ?? ''}|${barrio ?? ''}` : null
   const listo = resultado && resultado.clave === clave ? resultado : null
   const fallo = !!listo?.fallo
   const cantidad = listo && !fallo ? listo.items.length : null
   const filtradas = sugerirZonas(catalogo, query, tipo, 7)
-  // Escribió algo que no está: se ofrecen las ciudades (nunca queda trabado).
   const sinCoincidencias = query.trim().length >= 3 && filtradas.length === 0
-  const ciudadesZona = useMemo(() => ciudades.map((c) => c.zona).filter((z) => cantidadZona(z, tipo) > 0), [ciudades, tipo])
-  const ciudadesConFoto = ciudades.filter((c) => c.foto && cantidadZona(c.zona, tipo) > 0)
-  const ciudadesSinFoto = ciudades.filter((c) => !c.foto && cantidadZona(c.zona, tipo) > 0)
-  const tira = cerrados[tipo] ?? []
+  const ciudades = CIUDADES.map((n) => zonaPorNombre(catalogo, n)).filter((z): z is ZonaHogar => z != null && cantidadZona(z, tipo) > 0)
+  // Eligió un barrio en el buscador: ocupa la fila "Dónde" hasta que lo saque.
+  const barrioBuscado = zona && !ciudades.some((c) => c.nombre === zona.nombre) ? zona : null
 
   // Lo que eligió queda en la URL: se puede compartir y viaja con la consulta.
   useEffect(() => {
@@ -212,7 +175,7 @@ export default function ConoceTuHogar({
     window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
   }, [zona, tipo, tope, dorm, barrioElegido])
 
-  // Se cuenta apenas elige (así el botón dice cuántas hay y el mazo abre al toque).
+  // Se cuenta apenas elige: el botón dice cuántas hay y el mazo abre al toque.
   useEffect(() => {
     if (!zona || !clave) return
     const ctrl = new AbortController()
@@ -227,24 +190,36 @@ export default function ConoceTuHogar({
       })
       .then((d: { items?: ItemFeed[] }) => setResultado({ clave, items: Array.isArray(d.items) ? d.items : [] }))
       .catch((e) => {
-        // Sin señal o el servidor no respondió: se ofrece reintentar (antes decía "Todavía no tenemos").
+        // Sin señal o el servidor no respondió: se ofrece reintentar (no es "no hay").
         if (e?.name !== 'AbortError') setResultado({ clave, items: [], fallo: true })
       })
     return () => ctrl.abort()
   }, [zona, tipo, tope, dorm, barrio, clave, intento])
 
-  const reintentar = () => {
-    setResultado(null)
-    setIntento((i) => i + 1)
+  const abrir = () => {
+    if (!zona || !listo || listo.fallo || listo.items.length === 0) return
+    trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, dorm: dorm ?? 0, barrio: barrio ?? 'indistinto', cantidad: listo.items.length })
+    setAbierto(true)
   }
 
   useEffect(() => {
-    if (!abrirAlLlegar || !listo || !zona) return
+    if (!abrirAlLlegar || !listo) return
     setAbrirAlLlegar(false)
-    if (listo.fallo || listo.items.length === 0) return
-    trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, dorm: dorm ?? 0, barrio: barrio ?? 'indistinto', cantidad: listo.items.length })
-    setAbierto(true)
-  }, [abrirAlLlegar, listo, zona, tipo, tope, dorm, barrio])
+    abrir()
+    // `abrir` lee el estado de este mismo render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abrirAlLlegar, listo])
+
+  // Sin resultados: el aviso con cómo ampliar queda a la vista.
+  useEffect(() => {
+    if (cantidad === 0) sinResultadosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [cantidad])
+
+  useEffect(() => {
+    if (!marcarDonde) return
+    const t = setTimeout(() => setMarcarDonde(false), 1600)
+    return () => clearTimeout(t)
+  }, [marcarDonde])
 
   // Cerrar las sugerencias al tocar afuera. pointerdown (no mousedown): en el
   // iPhone un toque en una parte "no clickeable" de la página no dispara mousedown.
@@ -256,42 +231,48 @@ export default function ConoceTuHogar({
     return () => document.removeEventListener('pointerdown', onDown)
   }, [])
 
-  // Un toque y arranca: elige y el mazo abre apenas llegan las casas.
-  const abrirZona = (z: ZonaHogar) => {
+  const elegirZona = (z: ZonaHogar | null) => {
     setZona(z)
     setQuery('')
     setSugerencias(false)
-    setAbrirAlLlegar(true)
+    // Eligió del buscador: se cierra el teclado del celu y queda a la vista el botón.
+    if (document.activeElement instanceof HTMLInputElement) document.activeElement.blur()
   }
 
-  // Sin resultados: el aviso con cómo ampliar queda a la vista (puede estar abajo del mosaico).
-  useEffect(() => {
-    if (cantidad === 0) sinResultadosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [cantidad])
+  const reintentar = () => {
+    setResultado(null)
+    setIntento((i) => i + 1)
+  }
 
-  const plural = tipoInfo.plural
+  const ver = () => {
+    if (!zona) return setMarcarDonde(true)
+    if (fallo) {
+      reintentar()
+      return setAbrirAlLlegar(true)
+    }
+    if (!listo) return setAbrirAlLlegar(true)
+    if (listo.items.length === 0) return sinResultadosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    abrir()
+  }
+
   const titulo = zona ? `${plural[0].toUpperCase()}${plural.slice(1)} en ${barrio ? `barrio ${barrio} de ` : ''}${zona.nombre}` : ''
   const busqueda = `${plural}${dorm ? ` de ${textoDorm(dorm)}` : ''}${barrio ? ` en barrio ${barrio}` : ''}${tope ? ` hasta ${textoTope(tope)}` : ''}`
   const criterios: CriteriosBusqueda = { zona: zona?.nombre ?? null, tipo, topeUsd: tope, dormMin: dorm, barrio, origen: 'conoce_tu_hogar' }
   const ciudadEntera = zona && !zona.esCiudad && zona.ciudad ? zonaPorNombre(catalogo, zona.ciudad) : null
-  const cargandoZona = abrirAlLlegar && !listo ? zona?.nombre : null
+  const esperando = abrirAlLlegar && !listo
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-[520px] px-5 pt-3 pb-16">
-        <p className={`${cls.lbl} mt-2`}>
-          <span style={{ color: CORAZON }} aria-hidden="true">
-            ♥
-          </span>{' '}
-          Conocé tu próximo hogar
-        </p>
-        <h1 className={`${cls.h1} mt-1.5`}>¿Dónde buscás?</h1>
-        {/* Buscador de barrios: arriba de todo (David, 4-oct) */}
-        <div ref={buscadorRef} className="relative mt-4">
+      <div className="mx-auto max-w-[520px] px-5 pt-5 pb-[140px]">
+        <h1 className={cls.h1}>Conocé tu próximo hogar</h1>
+        <p className={`${cls.sub} mt-1.5`}>Elegí qué y dónde, y deslizá las que te gusten.</p>
+
+        {/* Buscador de barrios: arriba de todo (David, 4-oct), para el que ya sabe cuál. */}
+        <div ref={buscadorRef} className="relative mt-5">
           <label htmlFor="hogar-zona" className="sr-only">
-            Barrio o ciudad
+            Buscar un barrio
           </label>
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#8A958D]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#8A958D]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
             <circle cx="11" cy="11" r="7" />
             <path d="M20 20l-3.5-3.5" />
           </svg>
@@ -307,13 +288,13 @@ export default function ConoceTuHogar({
             onKeyDown={(e) => {
               if (e.key === 'Enter' && filtradas[0]) {
                 e.preventDefault()
-                abrirZona(filtradas[0])
+                elegirZona(filtradas[0])
               }
             }}
-            placeholder="Escribí un barrio o una ciudad"
+            placeholder="Buscar un barrio"
             autoComplete="off"
             enterKeyHint="search"
-            className="h-12 w-full rounded-2xl border-[1.5px] border-[#E1E6E1] bg-white pl-11 pr-4 text-[16px] font-medium text-[#121A15] outline-none placeholder:text-[#8A958D] focus:border-[#17613C]"
+            className="h-11 w-full rounded-[12px] bg-[#F1F3F1] pl-10 pr-4 text-[16px] font-medium text-[#121A15] outline-none placeholder:text-[#8A958D] focus:bg-white focus:shadow-[0_0_0_2px_#17613C]"
           />
           {sugerencias && (filtradas.length > 0 || sinCoincidencias) && (
             <div className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-[300px] overflow-auto rounded-2xl border border-[#E1E6E1] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
@@ -324,11 +305,11 @@ export default function ConoceTuHogar({
                     key={`${z.nombre}|${z.ciudad ?? ''}`}
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => abrirZona(z)}
+                    onClick={() => elegirZona(z)}
                     className="flex w-full items-baseline gap-2 border-b border-[#F3F4F3] px-4 py-3 text-left text-[15px] text-[#121A15] last:border-b-0 hover:bg-[#F6F8F6]"
                   >
                     <span className="flex-1">{highlightMatch(z.nombre, query)}</span>
-                    <span className="shrink-0 text-xs text-[#8A958D]">
+                    <span className="shrink-0 text-[13px] text-[#6B766E]">
                       {z.esCiudad ? 'Ciudad' : z.ciudad}
                       {n === 0 && z.casas + z.lotes + z.deptos > 0 ? ` · sin ${plural}` : ''}
                     </span>
@@ -336,157 +317,92 @@ export default function ConoceTuHogar({
                 )
               })}
               {sinCoincidencias && (
-                <div className="px-4 py-3">
-                  <p className="text-[14px] text-[#3C4A42]">
-                    No encontramos «{query.trim()}». Buscá en toda la ciudad:
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {ciudadesZona.map((c) => (
-                      <button key={c.nombre} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => abrirZona(c)} className={chipOff}>
-                        {c.nombre}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <p className="px-4 py-3 text-[14px] text-[#3C4A42]">No encontramos «{query.trim()}». Elegí la ciudad abajo.</p>
               )}
             </div>
           )}
         </div>
 
-        {/* Qué + precio + dormitorios + barrio (opcionales, a la vista) */}
-        <div role="group" aria-label="Qué buscás" className="mt-3 flex gap-1.5">
-          {TIPOS_HOGAR.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              aria-pressed={tipo === t.id}
-              onClick={() => {
-                setTipo(t.id)
-                // Los topes cambian con el tipo (un lote de 250 mil no es lo mismo que una casa).
-                if (t.id !== tipo) setTope(null)
-              }}
-              className={`${tipo === t.id ? chipOn : chipOff} !h-10 !px-3.5`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          <ChipSelect
-            nombre="Precio"
-            valor={tope}
-            textoValor={tope ? `Hasta ${textoTope(tope)}` : null}
-            opciones={TOPES_HOGAR[tipo].map((v) => ({ v, label: `Hasta ${textoTope(v)}` }))}
-            onChange={setTope}
+        <Segmentos<TipoHogar>
+          etiqueta="Qué buscás"
+          opciones={TIPOS_HOGAR.map((t) => ({ v: t.id, label: t.label }))}
+          valor={tipo}
+          onChange={(t) => {
+            // Los topes cambian con el tipo (un lote de 250 mil no es lo mismo que una casa).
+            if (t !== tipo) setTope(null)
+            setTipo(t)
+          }}
+        />
+
+        {barrioBuscado ? (
+          <div className="mt-5">
+            <p className={cls.lbl}>Dónde</p>
+            <div className="mt-2 flex h-[52px] items-center gap-2 rounded-[14px] bg-[#F1F3F1] p-1">
+              <span className="flex h-11 min-w-0 flex-1 items-center rounded-[11px] bg-white px-3.5 text-[15px] font-semibold text-[#121A15] shadow-[0_1px_3px_rgba(18,26,21,0.14)]">
+                <span className="truncate">{barrioBuscado.nombre}</span>
+                {barrioBuscado.ciudad && !barrioBuscado.esCiudad && <span className="ml-1.5 shrink-0 font-medium text-[#6B766E]">· {barrioBuscado.ciudad}</span>}
+              </span>
+              <button
+                type="button"
+                onClick={() => elegirZona(null)}
+                aria-label={`Sacar ${barrioBuscado.nombre}`}
+                className="si-tap flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] text-[#5B665F] hover:text-[#121A15]"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Segmentos<string | null>
+            etiqueta="Dónde"
+            opciones={ciudades.map((c) => ({ v: c.nombre, label: c.nombre }))}
+            valor={zona?.nombre ?? null}
+            onChange={(n) => elegirZona(ciudades.find((c) => c.nombre === n) ?? null)}
+            resaltar={marcarDonde}
           />
-          {tipo !== 'lot' && (
-            <ChipSelect
-              nombre="Dormitorios"
-              valor={dorm}
-              textoValor={dorm ? `${dorm}+ dormitorios` : null}
-              opciones={DORMS_HOGAR.map((v) => ({ v, label: textoDorm(v) }))}
-              onChange={setDorm}
-            />
-          )}
-          <ChipSelect<BarrioHogar>
-            nombre="Barrio"
-            valor={barrioElegido}
-            textoValor={barrioElegido === 'cerrado' ? 'Barrio cerrado' : barrioElegido === 'abierto' ? 'Barrio abierto' : null}
-            textoCualquiera="Barrio: me da igual"
+        )}
+
+        <Segmentos<number | null>
+          etiqueta="Hasta (dólares)"
+          opciones={[{ v: null, label: 'Sin tope' }, ...TOPES_HOGAR[tipo].slice(0, 3).map((v) => ({ v, label: textoTope(v).replace('USD ', '') }))]}
+          valor={tope}
+          onChange={setTope}
+        />
+
+        {tipo !== 'lot' && (
+          <Segmentos<number | null>
+            etiqueta="Dormitorios"
+            opciones={[{ v: null, label: 'Todos' }, ...DORMS.map((v) => ({ v, label: `${v}+` }))]}
+            valor={dorm}
+            onChange={setDorm}
+          />
+        )}
+
+        {!barrioBuscado && (
+          <Segmentos<BarrioHogar | null>
+            etiqueta="Barrio"
             opciones={[
-              { v: 'cerrado', label: 'Barrio cerrado' },
-              { v: 'abierto', label: 'Barrio abierto' },
+              { v: null, label: 'Me da igual' },
+              { v: 'cerrado', label: 'Cerrado' },
+              { v: 'abierto', label: 'Abierto' },
             ]}
+            valor={barrioElegido}
             onChange={setBarrio}
           />
-        </div>
-
-        {/* Dónde: la ciudad. Un toque y arranca. */}
-        <p className={`${cls.lbl} mt-6`}>Elegí dónde</p>
-        <div role="list" aria-label="Ciudades" className="mt-2.5 grid grid-cols-2 gap-2.5">
-          {ciudadesConFoto.map(({ zona: z, foto }) => (
-            <div key={z.nombre} role="listitem">
-              <TarjetaLugar
-                nombre={z.nombre}
-                sub={null}
-                foto={foto}
-                label={`${plural[0].toUpperCase()}${plural.slice(1)} en ${z.nombre}`}
-                elegido={zona?.nombre === z.nombre}
-                cargando={cargandoZona === z.nombre}
-                onClick={() => abrirZona(z)}
-                className="aspect-[4/4.4] w-full"
-                grande
-                priority
-              />
-            </div>
-          ))}
-        </div>
-        {ciudadesSinFoto.map(({ zona: z }) => (
-          <button
-            key={z.nombre}
-            type="button"
-            onClick={() => abrirZona(z)}
-            aria-label={`${plural[0].toUpperCase()}${plural.slice(1)} en ${z.nombre}`}
-            className={`si-tap mt-2.5 flex h-14 w-full items-center justify-between rounded-2xl bg-[#EEF4F0] px-4 text-left outline-none focus-visible:ring-[3px] focus-visible:ring-[#17613C] ${zona?.nombre === z.nombre ? 'ring-[3px] ring-[#17613C]' : ''}`}
-          >
-            <span className="font-poppins text-[18px] font-bold tracking-[-0.01em] text-[#121A15]">{z.nombre}</span>
-            {cargandoZona === z.nombre ? (
-              <span className="[&>span]:h-5 [&>span]:w-5 [&>span]:border-[#17613C]/30 [&>span]:border-t-[#17613C]">
-                <Spinner />
-              </span>
-            ) : (
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-[#17613C]" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            )}
-          </button>
-        ))}
-
-        {/* Barrios cerrados: aparte, en una tira (no es lo que busca la mayoría) */}
-        {tira.length > 0 && (
-          <>
-            <p className={`${cls.lbl} mt-7`}>Barrios cerrados</p>
-            <div role="list" aria-label="Barrios cerrados" className="-mx-5 mt-2.5 flex snap-x gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {tira.map(({ zona: z, foto, nombre }) => (
-                <div key={z.nombre} role="listitem" className="shrink-0 snap-start">
-                  <TarjetaLugar
-                    nombre={nombre}
-                    sub={z.ciudad}
-                    foto={foto}
-                    label={`${plural[0].toUpperCase()}${plural.slice(1)} en ${nombre}`}
-                    elegido={zona?.nombre === z.nombre}
-                    cargando={cargandoZona === z.nombre}
-                    onClick={() => abrirZona(z)}
-                    className="aspect-[4/3.6] w-[150px]"
-                  />
-                </div>
-              ))}
-            </div>
-          </>
         )}
 
         {zona && fallo && (
-          <div className="mt-5 rounded-2xl bg-[#FFF7E8] px-4 py-3.5" role="alert">
-            <p className="text-[15px] font-semibold text-[#7A5A16]">No pudimos buscar ahora. Revisá tu conexión y probá de nuevo.</p>
-            <div className="mt-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  reintentar()
-                  setAbrirAlLlegar(true)
-                }}
-                className={chipOff}
-              >
-                Reintentar
-              </button>
-            </div>
+          <div className="mt-6 rounded-2xl bg-[#FFF7E8] px-4 py-3.5" role="alert">
+            <p className="text-[15px] font-semibold text-[#7A5A16]">No pudimos buscar ahora. Revisá tu conexión y tocá Reintentar.</p>
           </div>
         )}
 
         {/* Sin resultados: nunca un callejón sin salida, se ofrece cómo ampliar. */}
         {zona && cantidad === 0 && (
-          <div ref={sinResultadosRef} className="mt-5 rounded-2xl bg-[#F6F8F6] px-4 py-3.5">
-            <p className="text-[15px] font-semibold text-[#121A15]">
+          <div ref={sinResultadosRef} className="mt-6 rounded-2xl bg-[#F6F8F6] px-4 py-3.5">
+            <p className="text-[16px] font-semibold text-[#121A15]">
               Todavía no tenemos {plural}
               {dorm ? ` de ${textoDorm(dorm)}` : ''}
               {barrio ? ` en barrio ${barrio}` : ''} en {zona.nombre}
@@ -494,44 +410,23 @@ export default function ConoceTuHogar({
             </p>
             <div className="mt-2.5 flex flex-wrap gap-2">
               {tope != null && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTope(null)
-                    setAbrirAlLlegar(true)
-                  }}
-                  className={chipOff}
-                >
-                  Ver sin tope
-                </button>
-              )}
-              {barrio != null && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBarrio(null)
-                    setAbrirAlLlegar(true)
-                  }}
-                  className={chipOff}
-                >
-                  Cerrado o abierto, me da igual
+                <button type="button" onClick={() => setTope(null)} className={chipSecundario}>
+                  Cualquier precio
                 </button>
               )}
               {dorm != null && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDorm(null)
-                    setAbrirAlLlegar(true)
-                  }}
-                  className={chipOff}
-                >
+                <button type="button" onClick={() => setDorm(null)} className={chipSecundario}>
                   Cualquier cantidad de dormitorios
                 </button>
               )}
+              {barrio != null && (
+                <button type="button" onClick={() => setBarrio(null)} className={chipSecundario}>
+                  Cerrado o abierto
+                </button>
+              )}
               {ciudadEntera && (
-                <button type="button" onClick={() => abrirZona(ciudadEntera)} className={chipOff}>
-                  Ver todo {ciudadEntera.nombre}
+                <button type="button" onClick={() => elegirZona(ciudadEntera)} className={chipSecundario}>
+                  Todo {ciudadEntera.nombre}
                 </button>
               )}
             </div>
@@ -542,6 +437,27 @@ export default function ConoceTuHogar({
           </div>
         )}
       </div>
+
+      <BarraFija>
+        <button type="button" onClick={ver} className={cls.cta} aria-live="polite">
+          {!zona ? (
+            'Elegí dónde buscar'
+          ) : fallo ? (
+            'Reintentar'
+          ) : cantidad == null || esperando ? (
+            <>
+              <Spinner />
+              Buscando {plural}…
+            </>
+          ) : cantidad === 0 ? (
+            `No hay ${plural} con esto`
+          ) : (
+            <>
+              Ver {cantidad} {cantidad === 1 ? plural.replace(/s$/, '') : plural} <IconoFlecha />
+            </>
+          )}
+        </button>
+      </BarraFija>
 
       {abierto && listo && zona && guardadasApi.montado && (
         <MazoCasas

@@ -5,7 +5,7 @@
 // Mobile is NOT rendered here — each parent keeps its own mobile layout.
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Phone, Navigation } from 'lucide-react'
+import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Navigation } from 'lucide-react'
 import {
   type TokkoProperty,
   formatPrice,
@@ -31,8 +31,10 @@ import {
   translateDisposition,
   operacionPrincipal,
   tituloVisible,
+  getProducerName,
 } from '@/lib/tokko'
 import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
+import ContactoSecundario from './ContactoSecundario'
 import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondiciones'
 import DisponibilidadTemporada from '../temporarios/DisponibilidadTemporada'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
@@ -366,20 +368,21 @@ export default function PropertyDetailBody({
             )
           })()}
 
-          <div className="grid grid-cols-2 gap-2.5">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-              onClick={() => events.contactoPropiedad(property.id, tituloContacto, 'whatsapp')}
-              className="flex items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
-              style={{ background: '#25d366', color: '#fff' }}>
-              <MessageCircle className="w-4 h-4" /> WhatsApp
-            </a>
-            <a href={getProducerCallHref(property)}
-              onClick={() => events.contactoPropiedad(property.id, tituloContacto, 'llamada')}
-              className="flex items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
-              style={{ border: '1.5px solid #e5e7eb', color: '#111' }}>
-              <Phone className="w-4 h-4" /> Llamar
-            </a>
-          </div>
+          {/* UN botón principal y una fila secundaria (David 4-oct: "son demasiados botones, confunden"). */}
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+            onClick={() => events.contactoPropiedad(property.id, tituloContacto, 'whatsapp')}
+            className="mb-2 flex w-full items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
+            style={{ background: '#25d366', color: '#fff' }}>
+            <MessageCircle className="w-4 h-4" /> Consultar por WhatsApp
+          </a>
+          <ContactoSecundario
+            propertyId={property.id}
+            propertyTitle={tituloContacto}
+            propertyPrice={price}
+            whatsappUrl={whatsappUrl}
+            agente={getProducerName(property)}
+            callHref={getProducerCallHref(property)}
+          />
         </section>
       )}
 
