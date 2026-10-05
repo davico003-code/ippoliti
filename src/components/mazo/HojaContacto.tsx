@@ -133,7 +133,7 @@ export default function HojaContacto({
                   <div key={g.key} className="rounded-xl overflow-hidden border border-gray-100 bg-white">
                     <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                       {g.foto && <Image src={g.foto} alt="" fill sizes="(max-width: 480px) 50vw, 200px" className="object-cover" style={estiloSinLogo(g.logo)} />}
-                      <span className="absolute top-1.5 right-1.5 grid h-7 w-7 place-items-center rounded-full bg-white shadow-sm" style={{ color: CORAZON }}>
+                      <span className="absolute top-1.5 right-1.5 grid h-7 w-7 place-items-center rounded-full bg-[#fff] shadow-sm" style={{ color: CORAZON }}>
                         <Corazon lleno className="w-4 h-4" />
                       </span>
                     </div>
