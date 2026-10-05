@@ -481,6 +481,8 @@ export default function MazoCasas({
   const fuerzaArrastre = !arrastre || !dirArrastre ? 0 : dirArrastre === 'super' ? Math.min(1, -arrastre.dy / UMBRAL_SUPER) : Math.min(1, Math.abs(arrastre.dx) / UMBRAL_SWIPE)
   const progresoAbajo = salida ? 1 : fuerzaArrastre
   const tendencia: Tendencia | null = salida ? { dir: salida, fuerza: 1 } : dirArrastre ? { dir: dirArrastre, fuerza: fuerzaArrastre } : null
+  // En el final, "Volver a la anterior" va debajo (y él se ocupa del borde de abajo del iPhone).
+  const volverFinal = terminado && puedeVolver && !hoja && !rescate && estadoParecidos !== 'cargando'
 
   return createPortal(
     <div className="fixed inset-0 z-[10400] bg-white md:bg-white/85 md:backdrop-blur-sm md:flex md:items-center md:justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
@@ -514,7 +516,7 @@ export default function MazoCasas({
           </button>
         </div>
         {/* Mazo: hasta abajo de todo (los botones van adentro de la foto) */}
-        <div className={`relative flex-1 mx-2 min-h-0 ${terminado ? '' : 'mb-[max(8px,env(safe-area-inset-bottom))]'}`}>
+        <div className={`relative flex-1 mx-2 min-h-0 ${volverFinal ? '' : 'mb-[max(8px,env(safe-area-inset-bottom))]'}`}>
           {!terminado && actual ? (
             <>
               {siguiente && (
@@ -640,7 +642,7 @@ export default function MazoCasas({
         </div>
 
         {/* En el final también se puede volver a la última (por si la pasó sin querer). */}
-        {terminado && puedeVolver && !hoja && !rescate && estadoParecidos !== 'cargando' && (
+        {volverFinal && (
           <div className="px-4 pt-3 pb-[max(14px,env(safe-area-inset-bottom))]">
             <button
               type="button"
