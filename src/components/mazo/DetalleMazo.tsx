@@ -199,9 +199,11 @@ export default function DetalleMazo({
           <button
             type="button"
             onClick={onPaso}
-            className="flex h-12 flex-auto items-center justify-center gap-1.5 rounded-2xl border border-gray-200 bg-white px-2 text-[14px] font-semibold text-gray-700 whitespace-nowrap active:scale-[0.98]"
+            aria-label="Paso"
+            // Solo la ✕ (como Tinder): así entran "Quiero conocerla" y "Me gusta" hasta en el iPhone SE.
+            className="grid h-12 w-12 flex-none place-items-center rounded-2xl border border-gray-200 bg-white active:scale-[0.98]"
           >
-            <X className="h-5 w-5 text-[#E5484D]" strokeWidth={3} aria-hidden="true" /> Paso
+            <X className="h-6 w-6 text-[#E5484D]" strokeWidth={3} aria-hidden="true" />
           </button>
           {onQuieroVerla && (
             <button
