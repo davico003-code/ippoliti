@@ -31,8 +31,10 @@ import {
   translateDisposition,
   operacionPrincipal,
   tituloVisible,
+  getProducerName,
 } from '@/lib/tokko'
 import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
+import PedirContacto from './PedirContacto'
 import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondiciones'
 import DisponibilidadTemporada from '../temporarios/DisponibilidadTemporada'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
@@ -380,6 +382,15 @@ export default function PropertyDetailBody({
               <Phone className="w-4 h-4" /> Llamar
             </a>
           </div>
+          {/* Para el que no quiere escribir: deja nombre y WhatsApp y lo contactamos. */}
+          <PedirContacto
+            propertyId={property.id}
+            propertyTitle={tituloContacto}
+            propertyPrice={price}
+            whatsappUrl={whatsappUrl}
+            agente={getProducerName(property)}
+            className="mt-2.5"
+          />
         </section>
       )}
 

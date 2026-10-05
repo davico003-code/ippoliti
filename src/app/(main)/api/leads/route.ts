@@ -50,8 +50,13 @@ export async function POST(request: NextRequest) {
   // paga y para cuándo. El id del feed es el tokko_id salvo los 9000000xx, que
   // son propiedades cargadas directo en Hilo y viajan por su uuid.
   const esConsultaCalificada = origen === 'consulta_calificada'
+  // "Pedí que te contactemos" de la ficha (4-oct-2026): nombre + WhatsApp de una propiedad.
+  const esPedirContacto = origen === 'pedir_contacto'
+  const esDePropiedad = esConsultaCalificada || esPedirContacto
+  // El id del feed tal cual: Hilo resuelve el tokko_id y también el 9000000xx
+  // de las cargadas directo en Hilo (public_numeric_id, desde el 4-oct-2026).
   const propertyIdNum = Number(body.propertyId)
-  const tokkoPropertyId = Number.isFinite(propertyIdNum) && propertyIdNum > 0 && propertyIdNum < 900_000_000 ? String(propertyIdNum) : null
+  const tokkoPropertyId = Number.isFinite(propertyIdNum) && propertyIdNum > 0 ? String(propertyIdNum) : null
   const hiloPropertyId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str(body.hiloPropertyId)) ? str(body.hiloPropertyId) : null
   const pageUrl = str(body.pageUrl)
   const utm = (() => {
@@ -71,7 +76,7 @@ export async function POST(request: NextRequest) {
     const redis = getRedis()
     const ts = Date.now()
     const leadKey = `lead:${origen}:${ts}:${email || whatsapp}`
-    const leadData = { nombre, email, whatsapp, origen, fecha: new Date().toISOString(), ...(esConsultaCalificada ? { propertyId: str(body.propertyId), pago: str(body.pago), plazo: str(body.plazo) } : {}) }
+    const leadData = { nombre, email, whatsapp, origen, fecha: new Date().toISOString(), ...(esDePropiedad ? { propertyId: str(body.propertyId) } : {}), ...(esConsultaCalificada ? { pago: str(body.pago), plazo: str(body.plazo) } : {}) }
 
     await redis.set(leadKey, JSON.stringify(leadData))
     await redis.lpush('leads:all', JSON.stringify(leadData))
@@ -112,8 +117,10 @@ export async function POST(request: NextRequest) {
       ? 'Lead desde Guía del Comprador 2026 — siinmobiliaria.com'
       : esConsultaCalificada
         ? `Consultó por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la web · Paga: ${str(body.pago) || 'no dijo'} · Plazo: ${str(body.plazo) || 'no dijo'}`
-        : mensajeGenerico,
-    ...(esConsultaCalificada
+        : esPedirContacto
+          ? `Pidió que lo contacten por WhatsApp por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la ficha de la web`
+          : mensajeGenerico,
+    ...(esDePropiedad
       ? { tokkoPropertyId, hiloPropertyId, sourceUrl: pageUrl || null, attribution: utm }
       : pageUrl ? { sourceUrl: pageUrl, attribution: utm } : {}),
   })

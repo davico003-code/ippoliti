@@ -11,6 +11,7 @@ import {
   formatPrice,
   getProducerCallHref,
   getProducerPhoneDisplay,
+  getProducerName,
   tituloVisible,
 } from '@/lib/tokko'
 import AudioSummary from '../AudioSummary'
@@ -19,6 +20,7 @@ import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 import { getAgenteRol } from '@/lib/agente-titulo'
 import AgenteAvatar from './AgenteAvatar'
+import PedirContacto from './PedirContacto'
 
 const TOUR_MEET_USD_THRESHOLD = 450_000
 
@@ -85,6 +87,15 @@ export default function PropertyDetailSidebar({
           >
             <Phone className="w-5 h-5" /> Llamar <span className="font-numeric">{getProducerPhoneDisplay(property)}</span>
           </a>
+          {/* Para el que no quiere escribir: deja nombre y WhatsApp y lo contactamos. */}
+          <PedirContacto
+            propertyId={property.id}
+            propertyTitle={propertyTitle}
+            propertyPrice={formatPrice(property)}
+            whatsappUrl={whatsappUrl}
+            agente={getProducerName(property)}
+            className="mb-2.5"
+          />
 
           <div className="border-t border-gray-100 pt-4 mt-2.5">
             <div className="flex items-center gap-3">
