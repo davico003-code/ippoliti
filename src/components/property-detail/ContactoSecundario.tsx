@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Phone, PhoneIncoming } from 'lucide-react'
+import { Phone } from 'lucide-react'
 import ConsultaCalificadaForm from '@/components/consulta/ConsultaCalificadaForm'
 import { events } from '@/lib/analytics'
 
@@ -31,7 +31,7 @@ export default function ContactoSecundario({
   telefono?: string | null
 }) {
   const [abierto, setAbierto] = useState(false)
-  const boton = 'flex min-h-11 items-center justify-center gap-1.5 rounded-full px-2 text-[13px] font-semibold transition-colors'
+  const boton = 'flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-2 text-[13px] font-semibold transition-colors'
 
   return (
     <div>
@@ -52,7 +52,7 @@ export default function ContactoSecundario({
           className={`${boton} ${abierto ? 'bg-[#1A5C38] text-white' : 'hover:bg-[#f2f8f4]'}`}
           style={abierto ? { border: '1.5px solid #1A5C38' } : { border: '1.5px solid #1A5C38', color: '#1A5C38' }}
         >
-          <PhoneIncoming className="h-4 w-4 shrink-0" aria-hidden /> Que me contacten
+          Que me contacten
         </button>
       </div>
       {abierto && (
