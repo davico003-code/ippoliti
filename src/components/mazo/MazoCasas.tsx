@@ -126,7 +126,7 @@ export default function MazoCasas({
   const [arrastre, setArrastre] = useState<Arrastre | null>(null)
   const [salida, setSalida] = useState<Salida | null>(null)
   const [hoja, setHoja] = useState<EstadoHoja>(null)
-  /** La hoja de ★ "Quiero verla" (sin su WhatsApp todavía). */
+  /** La hoja de ★ "Quiero conocerla" (sin su WhatsApp todavía). */
   const [visita, setVisita] = useState<EstadoVisita>(null)
   /** "Afiná tu búsqueda": desde el ícono o al querer salir sin ♥. */
   const [afinarAbierto, setAfinarAbierto] = useState<'boton' | 'salir' | null>(null)
@@ -138,12 +138,13 @@ export default function MazoCasas({
     return () => window.clearTimeout(t)
   }, [aviso])
   // Afinó la búsqueda: llegan otras casas y el mazo arranca de nuevo, sin cerrarse.
-  const itemsPrevios = useRef(items)
+  // Por la ronda de "afinar" y no por `items`: en la ficha las casas llegan de a
+  // tandas (/similar) con el mazo abierto y no tiene que volver a la primera.
+  const ronda = afinar?.ronda ?? 0
+  const rondaPrevia = useRef(ronda)
   useEffect(() => {
-    // Solo con "afinar" (la home). En la ficha las casas llegan de a tandas (/similar)
-    // con el mazo abierto: no tiene que volver a la primera ni decir "Listo".
-    if (!afinar || itemsPrevios.current === items) return
-    itemsPrevios.current = items
+    if (ronda === rondaPrevia.current) return
+    rondaPrevia.current = ronda
     setInsercion(null)
     setIndice(0)
     setFoto(0)
@@ -154,8 +155,7 @@ export default function MazoCasas({
     setDirectoAlFinal(false)
     pasesSeguidos.current = 0
     setAviso('Listo: te mostramos las que van con eso.')
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando cambian las casas
-  }, [items])
+  }, [ronda])
   const estadoAfinar = afinar?.estado
   useEffect(() => {
     if (estadoAfinar === 'vacio') setAviso('Con eso no encontramos. Probá con otro precio o zona.')

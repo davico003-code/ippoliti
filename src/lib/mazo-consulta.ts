@@ -53,7 +53,7 @@ export function contactoListo(): { nombre: string; whatsapp: string } | null {
 }
 
 /**
- * La consulta a Hilo (la usan el match, ★ "Quiero verla", ♥ N y el final). Las
+ * La consulta a Hilo (la usan el match, ★ "Quiero conocerla", ♥ N y el final). Las
  * que se mandan quedan marcadas: nunca se le vuelven a mandar al asesor.
  */
 export async function mandarConsulta(p: {
@@ -65,7 +65,7 @@ export async function mandarConsulta(p: {
   barrio: string | null
   busqueda: string | null
   origen: OrigenTinder
-  /** Tocó ★ "Quiero verla": el asesor sabe que quiere coordinar la visita. */
+  /** Tocó ★ "Quiero conocerla": el asesor sabe que quiere coordinar la visita. */
   visita?: boolean
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   // Se marcan ANTES de salir (si toca ★ y ♥ N seguidos no viajan dos veces); si

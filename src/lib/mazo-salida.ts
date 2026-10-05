@@ -19,7 +19,7 @@ export type EstadoSalida = {
   visor: boolean
   /** "Ver detalles", abierto. */
   detalle: boolean
-  /** La hoja de ★ "Quiero verla" (pide nombre y WhatsApp), a la vista. */
+  /** La hoja de ★ "Quiero conocerla" (pide nombre y WhatsApp), a la vista. */
   visita: boolean
   /** "Afiná tu búsqueda" a la vista: desde el ícono ('boton') o al querer salir ('salir'). */
   afinar?: 'boton' | 'salir' | null

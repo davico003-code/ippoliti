@@ -55,7 +55,7 @@ export default function DetalleMazo({
   onCerrar: () => void
   onPaso: () => void
   onMeGusta: () => void
-  /** ★ "Quiero verla" (coordinar la visita), igual que en la tarjeta. */
+  /** ★ "Quiero conocerla" (coordinar la visita), igual que en la tarjeta. */
   onQuieroVerla?: () => void
 }) {
   const [estado, setEstado] = useState<'cargando' | 'error' | DetalleRespuesta>('cargando')
@@ -199,7 +199,7 @@ export default function DetalleMazo({
           <button
             type="button"
             onClick={onPaso}
-            className="flex h-12 flex-[0.85] items-center justify-center gap-1.5 rounded-2xl border border-gray-200 bg-white px-2 text-[15px] font-semibold text-gray-700 active:scale-[0.98]"
+            className="flex h-12 flex-auto items-center justify-center gap-1.5 rounded-2xl border border-gray-200 bg-white px-2 text-[14px] font-semibold text-gray-700 whitespace-nowrap active:scale-[0.98]"
           >
             <X className="h-5 w-5 text-[#E5484D]" strokeWidth={3} aria-hidden="true" /> Paso
           </button>
@@ -207,25 +207,26 @@ export default function DetalleMazo({
             <button
               type="button"
               onClick={onQuieroVerla}
-              className="flex h-12 flex-[1.25] items-center justify-center gap-1.5 rounded-2xl px-2 text-[15px] font-bold text-white whitespace-nowrap active:scale-[0.98]"
+              className="flex h-12 flex-auto items-center justify-center gap-1.5 rounded-2xl px-2 text-[14px] font-bold text-white whitespace-nowrap active:scale-[0.98]"
               style={{ background: '#2B7FFF' }}
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
                 <path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.6l6-.9z" fill="currentColor" />
               </svg>
-              Quiero verla
+              Quiero conocerla
             </button>
           )}
           <button
             type="button"
             onClick={onMeGusta}
-            className="flex h-12 flex-[1.1] items-center justify-center gap-1.5 rounded-2xl px-2 text-[15px] font-bold text-white whitespace-nowrap active:scale-[0.98]"
+            aria-pressed={guardada}
+            className="flex h-12 flex-auto items-center justify-center gap-1.5 rounded-2xl px-2 text-[14px] font-bold text-white whitespace-nowrap active:scale-[0.98]"
             style={{ background: '#1A5C38' }}
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
               <path d="M12 20.5s-7.5-4.4-9.3-9A5 5 0 0 1 12 6.6a5 5 0 0 1 9.3 4.9c-1.8 4.6-9.3 9-9.3 9z" fill="currentColor" />
             </svg>
-            {guardada ? 'Ya te gusta' : 'Me gusta'}
+            Me gusta
           </button>
         </footer>
       </div>
