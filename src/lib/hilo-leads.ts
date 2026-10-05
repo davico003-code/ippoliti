@@ -106,3 +106,28 @@ export async function pushSuscripcionToHilo(payload: { email: string; nombre: st
     return false
   }
 }
+
+/**
+ * "Avisame si baja" de la ficha: el pedido de ESA propiedad (Hilo lo suma al
+ * aviso automático de bajas por emBlue) + el contacto con permiso de email.
+ * Best-effort: nunca lanza.
+ */
+export async function pushAvisameSiBajaToHilo(payload: { email: string; nombre: string | null; propiedadId: number; pagina: string | null }): Promise<boolean> {
+  const secret = process.env.HILO_INGEST_SECRET
+  if (!secret) return false
+  const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
+  try {
+    const res = await fetch(`${base}/api/public/avisame-si-baja`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-hilo-ingest-secret': secret },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!res.ok) console.warn('[hilo-leads] avisame-si-baja no-ok:', res.status)
+    return res.ok
+  } catch (err) {
+    console.warn('[hilo-leads] avisame-si-baja error:', err)
+    return false
+  }
+}
