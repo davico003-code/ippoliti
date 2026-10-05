@@ -49,7 +49,7 @@ const CARRUSEL_IZQ = 'max(var(--pad), calc((100vw - 1440px) / 2 + var(--pad)))'
 async function FeaturedPropertiesSection() {
   let properties: TokkoProperty[] = []
   try {
-    properties = await getFeaturedProperties(6)
+    properties = await getFeaturedProperties(8)
   } catch {
     // Tokko API no disponible — seguimos rendering la sección con el CTA.
   }
@@ -114,6 +114,7 @@ async function FeaturedPropertiesSection() {
           puntos={agente ? 'izquierda' : 'centro'}
           className="aspect-[16/9]"
           style={destacada ? { boxShadow: '0 0 0 2px #75AADB, 0 0 0 6px rgba(117,170,219,0.22)' } : undefined}
+          portadaViva={property.portada_viva}
         >
           {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
           <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 10, display: 'flex', gap: 6, transform: 'translateZ(0)' }}>

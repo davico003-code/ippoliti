@@ -110,6 +110,8 @@ export interface TokkoProperty {
   geo_long: string | null;
   web_price: boolean;
   is_starred_on_web: boolean;
+  /** Loop de la portada (Hilo, solo destacadas que lo tienen). Ver PortadaViva. */
+  portada_viva?: string | null;
   status: number;
   deleted_at: string | null;
   tags: TokkoTag[];
@@ -269,6 +271,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
     // undefined = el feed no lo trajo (Tokko / HILO viejo) → la tarjeta lo pide aparte.
     ...(p.agente !== undefined ? { agente: p.agente } : {}),
     ...(p.barrio_cerrado != null ? { barrio_cerrado: p.barrio_cerrado } : {}),
+    ...(p.portada_viva ? { portada_viva: p.portada_viva } : {}),
   });
 }
 

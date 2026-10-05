@@ -103,6 +103,7 @@ export default async function SeleccionCarousel() {
                 flechasSiempre
                 puntos={agente ? 'izquierda' : 'centro'}
                 className="aspect-video"
+                portadaViva={p.portada_viva}
               >
                 {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
                 <div className="absolute top-3 left-3 z-10 flex gap-1.5" style={{ transform: 'translateZ(0)' }}>
