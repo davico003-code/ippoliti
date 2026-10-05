@@ -108,3 +108,19 @@ test('dormitorios: N o más; sin dato no entra; en lotes no cuenta', async () =>
   )
   assert.equal(textoBusqueda({ zona: 'Roldán', tipo: 'lot', topeUsd: null, dormMin: 3, origen: 'conoce_tu_hogar' }), 'lotes en Roldán')
 })
+
+test('barrio cerrado/abierto: me da igual entra todo; lo que no se sabe cuenta como abierto', async () => {
+  const { entraEnBarrio, barrioHogarValido, textoBusqueda } = await import('./feed-en-red.ts')
+  assert.equal(entraEnBarrio(true, 'cerrado'), true)
+  assert.equal(entraEnBarrio(false, 'cerrado'), false)
+  assert.equal(entraEnBarrio(null, 'cerrado'), false)
+  assert.equal(entraEnBarrio(null, 'abierto'), true)
+  assert.equal(entraEnBarrio(true, 'abierto'), false)
+  assert.equal(entraEnBarrio(true, null), true)
+  assert.equal(barrioHogarValido('cerrado'), 'cerrado')
+  assert.equal(barrioHogarValido('x'), null)
+  assert.equal(
+    textoBusqueda({ zona: 'Funes', tipo: 'house', topeUsd: 250000, barrio: 'abierto', origen: 'conoce_tu_hogar' }),
+    'casas en barrio abierto de Funes hasta USD 250 mil',
+  )
+})

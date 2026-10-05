@@ -4,9 +4,12 @@ import {
   type FeedEnRed,
   type ItemFeed,
   TIPOS_HOGAR,
+  barrioHogarValido,
   dormMinValido,
   enZonaBuscada,
+  entraEnBarrio,
   entraEnDorm,
+  esBarrioConNombre,
   entraEnTope,
   esTipoHogar,
   itemDeEnRed,
@@ -20,19 +23,21 @@ import { rateLimit } from '@/lib/feedback'
 // barrio o misma ciudad, las más vistas primero). Solo venta en dólares.
 // GET ?zona=Funes%20Lakes&tipo=house&tope=200000&dorm=3 → { zona, items }
 // (`dorm` = dormitorios o más, opcional; en lotes no filtra)
+// `&barrio=cerrado|abierto` (opcional; sin él, me da igual; solo al buscar una ciudad)
 
 /** Cuántas nuestras como mucho (así también entran las En red). */
 const MAX_NUESTRAS = 8
 
 type Respuesta = { zona: string; items: ItemFeed[] }
 
-async function enRedDeHilo(zona: string, tipo: string, tope: number | null, dorm: number | null): Promise<FeedEnRed> {
+async function enRedDeHilo(zona: string, tipo: string, tope: number | null, dorm: number | null, barrio: string | null): Promise<FeedEnRed> {
   const secret = process.env.HILO_INGEST_SECRET
   if (!secret) return { barrio: zona, tarjetas: [] }
   const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
   const p = new URLSearchParams({ zona, tipo })
   if (tope) p.set('tope', String(tope))
   if (dorm) p.set('dorm', String(dorm))
+  if (barrio) p.set('barrio', barrio)
   try {
     const res = await fetch(`${base}/api/public/en-red?${p.toString()}`, {
       headers: { 'x-hilo-ingest-secret': secret },
@@ -63,6 +68,8 @@ export async function GET(request: NextRequest) {
   const topeNum = Number(sp.get('tope'))
   const tope = Number.isFinite(topeNum) && topeNum > 0 ? Math.round(topeNum) : null
   const dorm = tipo === 'lot' ? null : dormMinValido(sp.get('dorm'))
+  // Si eligió un barrio con nombre, el barrio ya dice si es cerrado.
+  const barrio = esBarrioConNombre(zona) ? null : barrioHogarValido(sp.get('barrio'))
   if (!zona || !esTipoHogar(tipo)) return NextResponse.json({ error: 'zona y tipo requeridos' }, { status: 400 })
   // Público y con el secreto de Hilo detrás: el CDN sirve lo repetido; esto frena
   // a quien pruebe zonas al azar para saltear el cache.
@@ -76,7 +83,7 @@ export async function GET(request: NextRequest) {
     getProperties()
       .then((d) => (d.objects ?? []).map(sanitizeProperty))
       .catch(() => [] as TokkoProperty[]),
-    enRedDeHilo(zona, tipo, tope, dorm),
+    enRedDeHilo(zona, tipo, tope, dorm, barrio),
   ])
 
   const nuestras = todas
@@ -87,6 +94,7 @@ export async function GET(request: NextRequest) {
         entraEnTope(precio, tope) &&
         // Mismo dato que muestra la tarjeta del mazo (itemDeNuestra).
         entraEnDorm(p.suite_amount || p.room_amount || null, dorm) &&
+        entraEnBarrio(p.barrio_cerrado, barrio) &&
         enZonaBuscada(zona, { nombre: p.location?.name, completa: p.location?.full_location }),
     )
     // Destacadas primero; con tope, lo mejor que le alcanza (más cerca del tope).

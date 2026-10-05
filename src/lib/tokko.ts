@@ -136,6 +136,8 @@ export interface TokkoProperty {
   /** Agente que atiende (nombre + foto). Lo manda el listado de HILO para la
    *  pastilla de las tarjetas; undefined = el feed no lo trajo (se pide aparte). */
   agente?: { name: string; picture: string } | null;
+  /** Barrio cerrado según HILO (0230; null = no se sabe). Tokko no lo manda. */
+  barrio_cerrado?: boolean | null;
 }
 
 export interface TokkoMeta {
@@ -266,6 +268,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
       : null,
     // undefined = el feed no lo trajo (Tokko / HILO viejo) → la tarjeta lo pide aparte.
     ...(p.agente !== undefined ? { agente: p.agente } : {}),
+    ...(p.barrio_cerrado != null ? { barrio_cerrado: p.barrio_cerrado } : {}),
   });
 }
 

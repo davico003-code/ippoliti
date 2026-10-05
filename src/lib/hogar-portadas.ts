@@ -1,20 +1,31 @@
-// "Conocé tu próximo hogar" en mosaico (David, 4-oct-2026: la pantalla de
-// filtros "no me convence"): en vez de escribir el barrio, se toca su foto.
-// La foto es DEL BARRIO (aérea, club house, laguna — las curadas de
-// /barrios-privados), nunca de una casa (David: "no pongas foto de casa, no
-// tiene nada que ver"). Los barrios sin foto curada van con su nombre.
-// Orden = dónde hay más del tipo elegido (catálogo de Hilo, nuestras + red).
+// "Conocé tu próximo hogar" (David, 4-oct-2026). Primero se elige la CIUDAD
+// (Funes · Roldán · Rosario): de ~330 personas que consultaron casas en 90
+// días, 2 de cada 3 fueron por barrio ABIERTO (Zona 7, Fisherton, Roldán) y
+// los barrios cerrados del primer mosaico casi no aparecían. Los cerrados
+// quedan en una tira aparte, con la foto DEL BARRIO (aérea, club house,
+// laguna — las curadas de /barrios-privados), nunca de una casa; sin foto
+// curada, va el nombre.
 
 import { type TipoHogar, type ZonaHogar, cantidadZona, mismoBarrio } from '@/lib/feed-en-red'
-
-/** `nombre` = el que se muestra (Hilo dice "Cadaques"; la tarjeta, "Funes Hills Cadaqués"). */
-export type BarrioPortada = { zona: ZonaHogar; foto: string; nombre: string }
 
 /** Foto curada de un barrio (lib/barrios → getBarriosHub). */
 export type FotoBarrio = { nombre: string; foto: string }
 
-export const MAX_BARRIOS_MOSAICO = 8
-export const MAX_BARRIOS_NOMBRE = 10
+/** `nombre` = el que se muestra (Hilo dice "Cadaques"; la tarjeta, "Funes Hills Cadaqués"). */
+export type BarrioCerrado = { zona: ZonaHogar; foto: string | null; nombre: string }
+
+export type CiudadHogar = { zona: ZonaHogar; foto: string | null }
+
+export const MAX_BARRIOS_CERRADOS = 12
+
+/** Aéreas de la ciudad (fotos del blog). Rosario no tiene: va sin foto. */
+const FOTO_CIUDAD: Record<string, string> = {
+  funes: '/blog/images/funes-zona-residencial-arboles-aereo.webp',
+  roldan: '/blog/images/roldan-vista-aerea-panoramica.webp',
+}
+
+/** En el orden de lo que más se consulta. */
+const CIUDADES = ['Funes', 'Roldán', 'Rosario']
 
 const llano = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 
@@ -55,26 +66,32 @@ export function fotoDelBarrio(fotos: FotoBarrio[], nombre: string, usadas: Reado
   return f && !usadas.has(f.foto) ? f : null
 }
 
-const barriosConTipo = (catalogo: ZonaHogar[], tipo: TipoHogar) =>
-  catalogo.filter((z) => !z.esCiudad && cantidadZona(z, tipo) > 0).sort((a, b) => cantidadZona(b, tipo) - cantidadZona(a, tipo))
-
-export function armarPortadas(catalogo: ZonaHogar[], fotos: FotoBarrio[], tipo: TipoHogar, max = MAX_BARRIOS_MOSAICO): BarrioPortada[] {
-  const usadas = new Set<string>()
-  const out: BarrioPortada[] = []
-  for (const zona of barriosConTipo(catalogo, tipo)) {
-    if (out.length >= max) break
-    const f = fotoDelBarrio(fotos, zona.nombre, usadas)
-    if (!f) continue
-    usadas.add(f.foto)
-    out.push({ zona, foto: f.foto, nombre: nombreVisible(f.nombre, zona.nombre) })
-  }
-  return out
+export function ciudadesHogar(catalogo: ZonaHogar[]): CiudadHogar[] {
+  return CIUDADES.flatMap((nombre) => {
+    const zona = catalogo.find((z) => z.esCiudad && llano(z.nombre) === llano(nombre))
+    return zona ? [{ zona, foto: FOTO_CIUDAD[llano(nombre)] ?? null }] : []
+  })
 }
 
-/** Los que siguen (con más del tipo) que no están en el mosaico: van con el nombre. */
-export function barriosConNombre(catalogo: ZonaHogar[], mosaico: BarrioPortada[], tipo: TipoHogar, max = MAX_BARRIOS_NOMBRE): ZonaHogar[] {
-  const enMosaico = new Set(mosaico.map((m) => m.zona.nombre))
-  return barriosConTipo(catalogo, tipo)
-    .filter((z) => !enMosaico.has(z.nombre))
-    .slice(0, max)
+/**
+ * Los barrios cerrados con más del tipo elegido, con su foto si la hay.
+ * Cerrado = lo marca Hilo, o es uno de los curados de /barrios-privados (La
+ * Finca no está marcada en la base). Dos nombres del mismo barrio ("Cadaques"
+ * y "Funes Hills Cadaqués") van una sola vez: el que tiene más.
+ */
+export function barriosCerradosHogar(catalogo: ZonaHogar[], fotos: FotoBarrio[], tipo: TipoHogar, max = MAX_BARRIOS_CERRADOS): BarrioCerrado[] {
+  const usadas = new Set<string>()
+  const out: BarrioCerrado[] = []
+  const candidatos = catalogo
+    .filter((z) => !z.esCiudad && cantidadZona(z, tipo) > 0)
+    .sort((a, b) => cantidadZona(b, tipo) - cantidadZona(a, tipo))
+  for (const zona of candidatos) {
+    if (out.length >= max) break
+    const f = fotoDelBarrio(fotos, zona.nombre)
+    if (zona.cerrado !== true && !f) continue
+    if (f && usadas.has(f.foto)) continue
+    if (f) usadas.add(f.foto)
+    out.push({ zona, foto: f?.foto ?? null, nombre: f ? nombreVisible(f.nombre, zona.nombre) : zona.nombre })
+  }
+  return out
 }
