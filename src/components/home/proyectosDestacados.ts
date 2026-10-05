@@ -16,6 +16,10 @@ export interface ProyectoDestacado {
   image: string
   /** URL sin extensión; ProjectMediaCard arma `${videoUrl}.webm` y `.mp4`. */
   videoUrl?: string
+  /** Máquinas de obra animadas sobre la foto (MaquinasObra). Las rutas están
+   *  trazadas sobre ESTA `image`: si se cambia la foto, sacar el flag o
+   *  retrazarlas. */
+  maquinas?: boolean
 }
 
 export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
@@ -28,6 +32,7 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
     href: '/emprendimientos/67178-distrito-roldan',
     image: 'https://static.tokkobroker.com/dev_pictures/67178_41755302210101797952152961824111367170079757743169980171710493926367681957871.jpg',
     videoUrl: '/videos/proyectos/distrito-roldan',
+    maquinas: true,
   },
   {
     id: 'tierra-nueva',
