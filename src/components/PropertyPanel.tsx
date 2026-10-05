@@ -20,7 +20,7 @@ import {
   tituloVisible,
 } from '@/lib/tokko'
 import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
-import PropertyStickyNav from './property-detail/PropertyStickyNav'
+import PropertyStickyNav, { ALTURA_NAV_FICHA } from './property-detail/PropertyStickyNav'
 import PropertyDetailBody from './property-detail/PropertyDetailBody'
 import PropertyDetailSidebar from './property-detail/PropertyDetailSidebar'
 import PropertyDetailSimilars from './property-detail/PropertyDetailSimilars'
@@ -270,7 +270,8 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
               showMobileContact
             />
           </div>
-          <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={PANEL_HEADER_H + 16} />
+          {/* Se pega DEBAJO de la barra de secciones (no por debajo de ella). */}
+          <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={PANEL_HEADER_H + ALTURA_NAV_FICHA + 16} />
         </div>
 
         {/* Full-width: "Otras opciones para vos" ocupa todo el ancho del panel */}
