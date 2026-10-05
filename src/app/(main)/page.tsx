@@ -17,7 +17,7 @@ import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import TemporariosHome from '@/components/home/TemporariosHome'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
-import PastillaAgenteCard from '@/components/home/PastillaAgenteCard'
+import CaraAgenteCard, { CARA_AGENTE_COMPU, espacioCaraAgente } from '@/components/home/CaraAgenteCard'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 import { esTemporadaVerano } from '@/lib/temporarios-data'
 import {
@@ -73,6 +73,10 @@ async function FeaturedPropertiesSection() {
     const address = property.fake_address || property.address
     const direccion = formatDireccionCompleta(property, address, ' | ')
     const typeName = propertyTypeLabelById(property.type?.id)
+    // Con agente, su cara va a la derecha sobre el borde de la foto: precio y
+    // datos le dejan lugar y la flecha se va (la cara invita a entrar).
+    const agente = agentes.get(property.id)
+    const espacio = agente ? espacioCaraAgente(CARA_AGENTE_COMPU) : null
     const specs: { num: string; unit: string }[] = []
     if (!land && mono) specs.push({ num: '', unit: 'Monoambiente' })
     else if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
@@ -107,7 +111,7 @@ async function FeaturedPropertiesSection() {
           alt={property.publication_title || address}
           sizes="(min-width: 768px) 42vw, 90vw"
           imgClassName="prop-card-img"
-          puntosALaDerecha={agentes.has(property.id)}
+          puntosALaIzquierda={!!agente}
           className="aspect-[16/9]"
           style={destacada ? { boxShadow: '0 0 0 2px #75AADB, 0 0 0 6px rgba(117,170,219,0.22)' } : undefined}
         >
@@ -150,10 +154,11 @@ async function FeaturedPropertiesSection() {
             <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5 z-10" />
           )}
         </FotosDeslizables>
-        <PastillaAgenteCard agente={agentes.get(property.id)} />
+        <CaraAgenteCard agente={agente} size={CARA_AGENTE_COMPU} />
         </div>
         <div style={{ padding: '10px 2px 4px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={espacio ? { paddingRight: espacio.derecha, minHeight: espacio.abajo - 10 } : undefined}>
           {esOportunidadConsultanos(property.id) ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
               <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '4px 9px', whiteSpace: 'nowrap' }}>
@@ -179,11 +184,12 @@ async function FeaturedPropertiesSection() {
               ))}
             </p>
           )}
+          </div>
           <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
             {direccion || address}
           </p>
           </div>
-          <span className="prop-card-arrow" aria-hidden="true"><ArrowRight size={18} strokeWidth={2} /></span>
+          {!agente && <span className="prop-card-arrow" aria-hidden="true"><ArrowRight size={18} strokeWidth={2} /></span>}
         </div>
       </Link>
     )
