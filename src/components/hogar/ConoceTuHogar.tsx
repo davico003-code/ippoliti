@@ -35,12 +35,16 @@ import {
   textoTope,
 } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
+import { contarTinder } from '@/lib/tinder-contador'
 import { BarraFija, IconoFlecha, Spinner, cls } from '@/components/tasaciones/ui'
 import MazoCasas, { SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
 /** Dónde: las tres que cubren casi todas las consultas, en ese orden. */
 const CIUDADES = ['Funes', 'Roldán', 'Rosario']
+
+/** Última vez que se contó la entrada (el modo estricto de React monta dos veces en desarrollo). */
+let pantallaContadaEn = 0
 
 /** Dormitorios a la vista ("N o más"); 1 y 5+ no hacen falta para elegir. */
 const DORMS = [2, 3, 4]
@@ -148,6 +152,13 @@ export default function ConoceTuHogar({
   const sinResultadosRef = useRef<HTMLDivElement>(null)
   const buscadorRef = useRef<HTMLDivElement>(null)
   const guardadasApi = useGuardadas('home')
+
+  // Contador: entró a la pantalla (en /tinder de Hilo: de los que entran, cuántos abren el mazo).
+  useEffect(() => {
+    if (Date.now() - pantallaContadaEn < 3000) return
+    pantallaContadaEn = Date.now()
+    contarTinder('pantalla', 'home')
+  }, [])
 
   const tipoInfo = TIPOS_HOGAR.find((t) => t.id === tipo)!
   const plural = tipoInfo.plural
