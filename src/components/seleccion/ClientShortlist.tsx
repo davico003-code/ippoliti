@@ -409,7 +409,7 @@ export default function ClientShortlist({
       <style>{CSS}</style>
       {soloMirar && (
         <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex justify-center pt-[max(6px,env(safe-area-inset-top))]" role="status">
-          <span className="rounded-full bg-[#111814]/85 px-3 py-1 text-[12.5px] font-semibold text-white shadow">Vista del asesor · no cuenta como que lo abrió el cliente</span>
+          <span className="rounded-full bg-[#111814]/85 px-3 py-1 text-[13px] font-semibold text-white shadow">Vista del asesor · lo que toques no se guarda</span>
         </div>
       )}
 
