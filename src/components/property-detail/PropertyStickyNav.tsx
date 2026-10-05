@@ -73,7 +73,7 @@ export default function PropertyStickyNav({
   return (
     <nav
       ref={navRef}
-      className="sticky z-30 flex items-center bg-white/90 backdrop-blur-md shadow-[0_1px_0_rgba(17,17,17,0.06),0_8px_16px_-12px_rgba(17,17,17,0.18)]"
+      className="sticky z-30 flex items-center bg-white shadow-[0_1px_0_rgba(17,17,17,0.06),0_8px_16px_-12px_rgba(17,17,17,0.18)]"
       style={{ top: stickyTop, height: ALTURA_NAV_FICHA }}
       aria-label="Secciones de la propiedad"
     >
