@@ -9,6 +9,13 @@ import { findPropertySection } from './propertySectionTarget'
 
 type Section = { id: string; label: string }
 
+/**
+ * Alto FIJO de la barra (px). Lo que se pega debajo (la columna de contacto de
+ * la compu) se calcula con esto: antes la barra medía lo que daba el texto y la
+ * columna se metía por debajo (4-oct-2026: le cortaba la cabeza al agente).
+ */
+export const ALTURA_NAV_FICHA = 52
+
 export default function PropertyStickyNav({
   sections,
   scrollRoot,
@@ -66,27 +73,25 @@ export default function PropertyStickyNav({
   return (
     <nav
       ref={navRef}
-      className="sticky z-30 bg-white border-b border-gray-200"
-      style={{ top: stickyTop }}
+      className="sticky z-30 flex items-center bg-white/90 backdrop-blur-md shadow-[0_1px_0_rgba(17,17,17,0.06),0_8px_16px_-12px_rgba(17,17,17,0.18)]"
+      style={{ top: stickyTop, height: ALTURA_NAV_FICHA }}
       aria-label="Secciones de la propiedad"
     >
       <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8">
-        <ul className="flex gap-2 md:gap-5 overflow-x-auto scrollbar-none md:justify-center">
+        <ul className="flex items-center gap-1 overflow-x-auto scrollbar-none md:justify-center">
           {sections.map(s => {
             const isActive = active === s.id
             return (
-              <li key={s.id}>
+              <li key={s.id} className="shrink-0">
                 <button
                   onClick={() => jumpTo(s.id)}
-                  className={`relative px-3 py-4 text-[15px] whitespace-nowrap transition-colors ${
-                    isActive ? 'text-[#1A5C38] font-bold' : 'text-gray-500 font-semibold hover:text-gray-800'
+                  aria-current={isActive ? 'true' : undefined}
+                  className={`h-9 rounded-full px-4 text-[14px] whitespace-nowrap transition-colors ${
+                    isActive ? 'bg-[#e7f2eb] text-[#1A5C38] font-bold' : 'text-gray-500 font-semibold hover:bg-gray-100 hover:text-gray-800'
                   }`}
                   style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
                 >
                   {s.label}
-                  {isActive && (
-                    <span className="absolute left-3 right-3 bottom-0 h-[3px] rounded-t-sm" style={{ background: '#1A5C38' }} />
-                  )}
                 </button>
               </li>
             )
