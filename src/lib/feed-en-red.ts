@@ -78,9 +78,11 @@ const m2Texto = (n: number) => `${Math.round(n).toLocaleString('es-AR')} m²`
 export function lineaTarjeta(i: Pick<ItemFeed, 'datos' | 'dorm' | 'm2' | 'lote' | 'esLote'>): string {
   if (i.esLote) return i.m2 || i.lote ? `Lote · ${m2Texto((i.lote || i.m2)!)}` : i.datos
   if (i.dorm == null && i.m2 == null) return i.datos
-  const partes = [i.dorm ? `${i.dorm} dorm` : null, i.m2 ? m2Texto(i.m2) : null]
-  // El lote solo si dice algo más que los metros (en un PH sin terreno propio a veces vienen iguales).
-  if (i.lote && (!i.m2 || Math.abs(i.lote - i.m2) > 5)) partes.push(`lote ${m2Texto(i.lote)}`)
+  // Metros iguales al lote = no se sabe la superficie de la casa (el feed y Hilo
+  // caen al terreno cuando falta la total): se dice "lote", no "800 m²" de casa.
+  const m2EsElLote = !!(i.lote && i.m2 && Math.abs(i.lote - i.m2) <= 5)
+  const partes = [i.dorm ? `${i.dorm} dorm` : null, i.m2 && !m2EsElLote ? m2Texto(i.m2) : null]
+  if (i.lote) partes.push(`lote ${m2Texto(i.lote)}`)
   return partes.filter(Boolean).join(' · ') || i.datos
 }
 

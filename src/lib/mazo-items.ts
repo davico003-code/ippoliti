@@ -57,7 +57,8 @@ export function itemDeNuestra(p: TokkoProperty): ItemFeed {
     zona: p.location?.name ?? null,
     href: `/propiedades/${generatePropertySlug(p)}`,
     dorm: beds || null,
-    m2: m2 || null,
+    // La de la casa (total o cubierta); getTotalSurface cae al terreno si faltan las dos.
+    m2: Number(p.total_surface) > 0 ? Number(p.total_surface) : Number(p.roofed_surface) > 0 ? Number(p.roofed_surface) : null,
     // `surface` del feed = el terreno (land_surface de Hilo).
     lote: Number(p.surface) > 0 ? Number(p.surface) : null,
     esLote: /terreno|lote/i.test(p.type?.name ?? ''),
