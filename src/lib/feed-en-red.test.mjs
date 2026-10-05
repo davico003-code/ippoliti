@@ -175,3 +175,15 @@ test('galpón con metros = terreno: sus metros, sin repetir', () => {
 test('casa sin dormitorios ni metros pero con lote: dice lote (no el renglón viejo)', () => {
   assert.equal(lineaTarjeta({ datos: 'Casa · 800 m²', dorm: null, m2: null, lote: 800 }), 'lote 800 m²')
 })
+
+// "Ver la ficha completa" en negro: qué fondos quedan con su color
+import { esVerdeDeMarca } from '../components/mazo/ficha-oscura.ts'
+test('verdes de marca y de WhatsApp quedan con su color; blancos, grises y transparentes no', () => {
+  assert.equal(esVerdeDeMarca('rgb(26, 92, 56)'), true)
+  assert.equal(esVerdeDeMarca('rgb(37, 211, 102)'), true)
+  assert.equal(esVerdeDeMarca('rgba(26, 92, 56, 0.92)'), true)
+  assert.equal(esVerdeDeMarca('rgba(26, 92, 56, 0.1)'), false)
+  assert.equal(esVerdeDeMarca('rgb(255, 255, 255)'), false)
+  assert.equal(esVerdeDeMarca('rgb(240, 242, 240)'), false)
+  assert.equal(esVerdeDeMarca('rgba(0, 0, 0, 0)'), false)
+})

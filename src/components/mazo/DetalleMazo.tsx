@@ -17,6 +17,7 @@ import { DatosFicha, StatsFicha } from '@/components/v/DatosClave'
 import LocationMap from '@/components/v/LocationMap'
 import AmenityChips from '@/components/v/AmenityChips'
 import StructuredDescription from '@/components/v/StructuredDescription'
+import { oscurecerFicha } from './ficha-oscura'
 
 export type DetalleRespuesta = {
   snapshot: Omit<FichaSnapshot, 'fotos' | 'blueprints' | 'ogImage'>
@@ -108,7 +109,11 @@ export default function DetalleMazo({
             <iframe
               src={urlCompleta}
               title={`Ficha: ${item.titulo || item.precio}`}
-              onLoad={() => setCompletaCargada(true)}
+              onLoad={(e) => {
+                // En negro como el resto del Tinder (antes de mostrarla: no hay destello blanco).
+                oscurecerFicha(e.currentTarget)
+                setCompletaCargada(true)
+              }}
               className="h-full w-full border-0 bg-white"
               style={{ opacity: completaCargada ? 1 : 0, transition: 'opacity 200ms' }}
             />
