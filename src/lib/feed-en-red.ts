@@ -248,6 +248,25 @@ export const TOPES_HOGAR: Record<TipoHogar, number[]> = {
   apartment: [80_000, 120_000, 180_000, 250_000],
 }
 
+/** Dormitorios que se pueden pedir ("N o más"). Los lotes no tienen. Igual que Hilo (dormMinValido). */
+export const DORMS_HOGAR = [1, 2, 3, 4, 5] as const
+
+export function dormMinValido(v: unknown): number | null {
+  const n = Number(v)
+  return Number.isInteger(n) && n >= 1 && n <= 5 ? n : null
+}
+
+/** "3 dormitorios o más" / "1 dormitorio o más". */
+export function textoDorm(n: number): string {
+  return `${n} dormitorio${n === 1 ? '' : 's'} o más`
+}
+
+/** ¿Tiene los dormitorios que pide? Sin pedido entra todo; si no se sabe cuántos tiene, no entra. */
+export function entraEnDorm(dormitorios: number | null | undefined, dormMin: number | null): boolean {
+  if (dormMin == null) return true
+  return dormitorios != null && dormitorios >= dormMin
+}
+
 /** Con tope, desde qué parte del tope entran (200 mil → desde 100 mil). Igual que Hilo. */
 export const PISO_TOPE = 0.5
 
@@ -340,6 +359,8 @@ export type CriteriosBusqueda = {
   zona: string | null
   tipo: TipoHogar | null
   topeUsd: number | null
+  /** Dormitorios mínimos (solo "Conocé tu próximo hogar"; viaja en el texto de la búsqueda). */
+  dormMin?: number | null
   origen: 'conoce_tu_hogar' | 'ficha'
 }
 
@@ -347,11 +368,12 @@ export function esEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())
 }
 
-/** "casas en Funes Lakes hasta USD 200 mil" (lo que ve la persona y lo que lee el asesor). */
+/** "casas de 3 dormitorios o más en Funes Lakes hasta USD 200 mil" (lo que ve la persona y lo que lee el asesor). */
 export function textoBusqueda(c: CriteriosBusqueda | null | undefined): string {
   if (!c) return 'propiedades'
   const plural = TIPOS_HOGAR.find((t) => t.id === c.tipo)?.plural ?? 'propiedades'
-  return `${plural}${c.zona ? ` en ${c.zona}` : ''}${c.topeUsd ? ` hasta ${textoTope(c.topeUsd)}` : ''}`
+  const dorm = c.tipo !== 'lot' && c.dormMin ? ` de ${textoDorm(c.dormMin)}` : ''
+  return `${plural}${dorm}${c.zona ? ` en ${c.zona}` : ''}${c.topeUsd ? ` hasta ${textoTope(c.topeUsd)}` : ''}`
 }
 
 /** Tipo de la ficha (id de tipo del feed) → el de la búsqueda. */
@@ -372,6 +394,7 @@ export function parsearCriteriosWeb(raw: unknown): CriteriosBusqueda | null {
     zona,
     tipo,
     topeUsd: Number.isFinite(tope) && tope >= 10_000 && tope <= 20_000_000 ? Math.round(tope) : null,
+    dormMin: tipo === 'lot' ? null : dormMinValido(r.dormMin),
     origen: r.origen === 'ficha' ? 'ficha' : 'conoce_tu_hogar',
   }
 }

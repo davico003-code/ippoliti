@@ -2,25 +2,34 @@
 
 // "Conocé tu próximo hogar" (David, 3-oct-2026): la puerta de la home al mazo
 // tipo Tinder. Que lo usen pero que no sea lo principal: en la home es un link
-// debajo del buscador; acá, una sola pantalla — dónde busca (obligatorio), qué
-// y hasta cuánto (opcional) — y "Comenzá la experiencia" abre el mismo mazo de
-// la ficha (MazoCasas): nuestras primero y después las "En red". El botón dice
-// cuántas hay antes de entrar: nunca se abre un mazo vacío.
+// debajo del buscador. 4-oct, "esta pantalla intermedia no me convence": ya no
+// es un formulario. Un mosaico de barrios con la foto DEL BARRIO (nunca de una
+// casa; los que no tienen foto curada van con el nombre); un
+// toque abre el mismo mazo de la ficha (MazoCasas): nuestras primero y después
+// las "En red". Mismo día (David): "no tiene filtro de dormitorios ni de
+// precio, y el buscador de barrios va arriba de todo" → buscador primero,
+// después Casa/Lote/Depto + Precio + Dormitorios (opcionales, a la vista) y el
+// mosaico. Nunca se abre un mazo vacío: sin resultados se ofrece cómo ampliar.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import { highlightMatch } from '@/lib/highlight'
 import {
+  type CriteriosBusqueda,
   type ItemFeed,
   type TipoHogar,
   type ZonaHogar,
   TIPOS_HOGAR,
   TOPES_HOGAR,
+  DORMS_HOGAR,
   cantidadZona,
   sugerirZonas,
+  textoDorm,
   textoTope,
 } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
-import { BarraFija, IconoFlecha, Spinner, cls } from '@/components/tasaciones/ui'
+import { Spinner, cls } from '@/components/tasaciones/ui'
+import type { BarrioPortada } from '@/lib/hogar-portadas'
 import MazoCasas, { ROSA, SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
 
@@ -28,15 +37,49 @@ const chip = 'si-tap inline-flex h-11 items-center whitespace-nowrap rounded-ful
 const chipOff = `${chip} border-[#E1E6E1] bg-white text-[#3C4A42] hover:border-[#17613C]/50`
 const chipOn = `${chip} border-[#17613C] bg-[#17613C] font-bold text-white`
 
-/** Las zonas a un toque: donde más se busca (y donde hay más casas en la red). */
-const RAPIDAS: { nombre: string; label: string }[] = [
-  { nombre: 'Funes', label: 'Funes' },
-  { nombre: 'Roldán', label: 'Roldán' },
-  { nombre: 'Funes Lakes', label: 'Funes Lakes' },
-  { nombre: 'Kentucky Club de Campo', label: 'Kentucky' },
-  { nombre: 'Vida Lagoon', label: 'Vida Lagoon' },
-  { nombre: 'Fisherton', label: 'Fisherton' },
-]
+/**
+ * Filtro opcional como chip: muestra el valor (o el nombre del filtro, así se
+ * lee como filtro) y el select nativo va encima, invisible — en el iPhone abre
+ * la ruedita. El chip mide lo que dice, no la opción más larga.
+ */
+function ChipSelect({
+  nombre,
+  valor,
+  textoValor,
+  opciones,
+  onChange,
+}: {
+  nombre: string
+  valor: number | null
+  textoValor: string | null
+  opciones: { v: number; label: string }[]
+  onChange: (v: number | null) => void
+}) {
+  const on = valor != null
+  return (
+    <label
+      className={`${on ? 'border-[#17613C] bg-[#17613C] text-white' : 'border-[#E1E6E1] bg-white text-[#3C4A42]'} relative inline-flex h-10 items-center gap-1 whitespace-nowrap rounded-full border-[1.5px] pl-3.5 pr-2.5 text-[14px] font-semibold focus-within:ring-2 focus-within:ring-[#17613C]/40`}
+    >
+      {on ? textoValor : nombre}
+      <svg aria-hidden="true" viewBox="0 0 24 24" className={`h-4 w-4 ${on ? 'text-white/80' : 'text-[#6B766E]'}`} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+      <select
+        aria-label={nombre}
+        value={valor ?? ''}
+        onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+        className="absolute inset-0 h-full w-full cursor-pointer appearance-none opacity-0"
+      >
+        <option value="">{nombre}: cualquiera</option>
+        {opciones.map((o) => (
+          <option key={o.v} value={o.v}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
 
 const normal = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 
@@ -50,41 +93,53 @@ type Resultado = { clave: string; items: ItemFeed[]; fallo?: boolean }
 
 export default function ConoceTuHogar({
   catalogo,
+  portadas,
+  conNombre,
   zonaInicial,
   tipoInicial,
   topeInicial,
+  dormInicial,
 }: {
   /** Barrios y ciudades con algo en venta (Hilo). */
   catalogo: ZonaHogar[]
+  /** Por tipo: los barrios del mosaico, con la foto DEL BARRIO. */
+  portadas: Record<TipoHogar, BarrioPortada[]>
+  /** Por tipo: los que siguen, sin foto curada (van con el nombre). */
+  conNombre: Record<TipoHogar, ZonaHogar[]>
   zonaInicial: string | null
   tipoInicial: TipoHogar
   topeInicial: number | null
+  dormInicial: number | null
 }) {
   const [zona, setZona] = useState<ZonaHogar | null>(() => zonaPorNombre(catalogo, zonaInicial))
   const [tipo, setTipo] = useState<TipoHogar>(tipoInicial)
   const [tope, setTope] = useState<number | null>(topeInicial)
+  /** Dormitorios o más (los lotes no tienen). */
+  const [dormElegido, setDorm] = useState<number | null>(dormInicial)
+  const dorm = tipo === 'lot' ? null : dormElegido
   const [query, setQuery] = useState('')
   const [sugerencias, setSugerencias] = useState(false)
   const [resultado, setResultado] = useState<Resultado | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [abierto, setAbierto] = useState(false)
-  /** Tocó "Comenzá" con el barrio escrito pero sin elegir: se elige solo y el mazo abre cuando llega. */
-  const [abrirAlLlegar, setAbrirAlLlegar] = useState(false)
+  /** Tocó un barrio: el mazo abre apenas llegan las casas (con link a un barrio, abre solo). */
+  const [abrirAlLlegar, setAbrirAlLlegar] = useState(() => zonaPorNombre(catalogo, zonaInicial) != null)
   /** Sube con "Reintentar" para volver a contar. */
   const [intento, setIntento] = useState(0)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const sinResultadosRef = useRef<HTMLDivElement>(null)
   const buscadorRef = useRef<HTMLDivElement>(null)
   const guardadasApi = useGuardadas('home')
 
   const tipoInfo = TIPOS_HOGAR.find((t) => t.id === tipo)!
-  const clave = zona ? `${zona.nombre}|${tipo}|${tope ?? ''}` : null
+  const clave = zona ? `${zona.nombre}|${tipo}|${tope ?? ''}|${dorm ?? ''}` : null
   const listo = resultado && resultado.clave === clave ? resultado : null
   const fallo = !!listo?.fallo
   const cantidad = listo && !fallo ? listo.items.length : null
   const filtradas = sugerirZonas(catalogo, query, tipo, 7)
   // Escribió algo que no está: se ofrecen las ciudades (nunca queda trabado).
   const sinCoincidencias = query.trim().length >= 3 && filtradas.length === 0
-  const ciudades = useMemo(() => catalogo.filter((z) => z.esCiudad && z.casas + z.lotes + z.deptos >= 5).slice(0, 3), [catalogo])
+  const ciudades = useMemo(() => catalogo.filter((z) => z.esCiudad && cantidadZona(z, tipo) >= 3).slice(0, 3), [catalogo, tipo])
+  const mosaico = portadas[tipo] ?? []
+  const otrosBarrios = conNombre[tipo] ?? []
 
   // Lo que eligió queda en la URL: se puede compartir y viaja con la consulta.
   useEffect(() => {
@@ -92,11 +147,12 @@ export default function ConoceTuHogar({
     if (zona) p.set('zona', zona.nombre)
     if (tipo !== 'house') p.set('tipo', tipo)
     if (tope) p.set('tope', String(tope))
+    if (dorm) p.set('dorm', String(dorm))
     const qs = p.toString()
     // `null` y no `window.history.state`: ese trae la marca interna de Next y el
     // router no se enteraba del cambio; al re-renderizar volvía a la URL vieja.
     window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
-  }, [zona, tipo, tope])
+  }, [zona, tipo, tope, dorm])
 
   // Se cuenta apenas elige (así el botón dice cuántas hay y el mazo abre al toque).
   useEffect(() => {
@@ -104,6 +160,7 @@ export default function ConoceTuHogar({
     const ctrl = new AbortController()
     const p = new URLSearchParams({ zona: zona.nombre, tipo })
     if (tope) p.set('tope', String(tope))
+    if (dorm) p.set('dorm', String(dorm))
     fetch(`/api/propiedades/hogar?${p.toString()}`, { signal: ctrl.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
@@ -115,7 +172,7 @@ export default function ConoceTuHogar({
         if (e?.name !== 'AbortError') setResultado({ clave, items: [], fallo: true })
       })
     return () => ctrl.abort()
-  }, [zona, tipo, tope, clave, intento])
+  }, [zona, tipo, tope, dorm, clave, intento])
 
   const reintentar = () => {
     setResultado(null)
@@ -126,9 +183,9 @@ export default function ConoceTuHogar({
     if (!abrirAlLlegar || !listo || !zona) return
     setAbrirAlLlegar(false)
     if (listo.fallo || listo.items.length === 0) return
-    trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, cantidad: listo.items.length })
+    trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, dorm: dorm ?? 0, cantidad: listo.items.length })
     setAbierto(true)
-  }, [abrirAlLlegar, listo, zona, tipo, tope])
+  }, [abrirAlLlegar, listo, zona, tipo, tope, dorm])
 
   // Cerrar las sugerencias al tocar afuera. pointerdown (no mousedown): en el
   // iPhone un toque en una parte "no clickeable" de la página no dispara mousedown.
@@ -140,60 +197,29 @@ export default function ConoceTuHogar({
     return () => document.removeEventListener('pointerdown', onDown)
   }, [])
 
-  const elegirZona = (z: ZonaHogar) => {
+  // Un toque y arranca: elige y el mazo abre apenas llegan las casas.
+  const abrirZona = (z: ZonaHogar) => {
     setZona(z)
     setQuery('')
     setSugerencias(false)
-    setError(null)
+    setAbrirAlLlegar(true)
   }
 
-  const comenzar = () => {
-    // Escribió otro barrio (sin tocarlo en la lista) teniendo uno elegido: manda lo escrito.
-    if (zona && query.trim().length >= 2 && filtradas[0] && filtradas[0].nombre !== zona.nombre) {
-      elegirZona(filtradas[0])
-      setAbrirAlLlegar(true)
-      return
-    }
-    if (!zona) {
-      // Escribió el barrio pero no lo tocó en la lista: se toma la primera sugerencia.
-      if (filtradas[0]) {
-        elegirZona(filtradas[0])
-        setAbrirAlLlegar(true)
-        return
-      }
-      setError(query.trim() ? 'Elegí el barrio de la lista, o una de las ciudades.' : 'Elegí dónde buscás: un barrio o una ciudad.')
-      setSugerencias(true)
-      inputRef.current?.focus()
-      return
-    }
-    // Todavía contando: abre solo apenas llega.
-    if (!listo) return setAbrirAlLlegar(true)
-    if (listo.fallo) {
-      reintentar()
-      return setAbrirAlLlegar(true)
-    }
-    if (listo.items.length === 0) return
-    trackEvent('hogar_comenzar', { zona: zona.nombre, tipo, tope: tope ?? 0, cantidad: listo.items.length })
-    setAbierto(true)
-  }
-
-  // La zona elegida, aunque no esté entre las rápidas, queda como chip prendido.
-  const rapidas = useMemo(() => {
-    const base = RAPIDAS.map((r) => ({ label: r.label, zona: zonaPorNombre(catalogo, r.nombre) })).filter(
-      (r): r is { label: string; zona: ZonaHogar } => r.zona != null,
-    )
-    if (zona && !base.some((r) => r.zona.nombre === zona.nombre)) base.unshift({ label: zona.nombre, zona })
-    return base
-  }, [zona, catalogo])
+  // Sin resultados: el aviso con cómo ampliar queda a la vista (puede estar abajo del mosaico).
+  useEffect(() => {
+    if (cantidad === 0) sinResultadosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [cantidad])
 
   const plural = tipoInfo.plural
   const titulo = zona ? `${plural[0].toUpperCase()}${plural.slice(1)} en ${zona.nombre}` : ''
-  const busqueda = `${plural}${tope ? ` hasta ${textoTope(tope)}` : ''}`
+  const busqueda = `${plural}${dorm ? ` de ${textoDorm(dorm)}` : ''}${tope ? ` hasta ${textoTope(tope)}` : ''}`
+  const criterios: CriteriosBusqueda = { zona: zona?.nombre ?? null, tipo, topeUsd: tope, dormMin: dorm, origen: 'conoce_tu_hogar' }
   const ciudadEntera = zona && !zona.esCiudad && zona.ciudad ? zonaPorNombre(catalogo, zona.ciudad) : null
+  const cargandoZona = abrirAlLlegar && !listo ? zona?.nombre : null
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-[520px] px-5 pt-3 pb-[170px]">
+      <div className="mx-auto max-w-[520px] px-5 pt-3 pb-16">
         <p className={`${cls.lbl} mt-2`}>
           <span style={{ color: ROSA }} aria-hidden="true">
             ♥
@@ -201,33 +227,34 @@ export default function ConoceTuHogar({
           Conocé tu próximo hogar
         </p>
         <h1 className={`${cls.h1} mt-1.5`}>¿Dónde buscás?</h1>
-        <p className={`${cls.sub} mt-2`}>Mientras mejor nos detalles, más cerca estarás de tu hogar.</p>
-
-        {/* Dónde */}
+        {/* Buscador de barrios: arriba de todo (David, 4-oct) */}
         <div ref={buscadorRef} className="relative mt-4">
           <label htmlFor="hogar-zona" className="sr-only">
             Barrio o ciudad
           </label>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#8A958D]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
           <input
             id="hogar-zona"
-            ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
               setSugerencias(e.target.value.trim().length >= 2)
-              setError(null)
             }}
             onFocus={() => query.trim().length >= 2 && setSugerencias(true)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && filtradas[0]) {
                 e.preventDefault()
-                elegirZona(filtradas[0])
+                abrirZona(filtradas[0])
               }
             }}
             placeholder="Escribí un barrio o una ciudad"
             autoComplete="off"
-            className="h-12 w-full rounded-2xl border-[1.5px] border-[#E1E6E1] bg-white px-4 text-[16px] font-medium text-[#121A15] outline-none placeholder:text-[#8A958D] focus:border-[#17613C]"
+            enterKeyHint="search"
+            className="h-12 w-full rounded-2xl border-[1.5px] border-[#E1E6E1] bg-white pl-11 pr-4 text-[16px] font-medium text-[#121A15] outline-none placeholder:text-[#8A958D] focus:border-[#17613C]"
           />
           {sugerencias && (filtradas.length > 0 || sinCoincidencias) && (
             <div className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-[300px] overflow-auto rounded-2xl border border-[#E1E6E1] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
@@ -238,7 +265,7 @@ export default function ConoceTuHogar({
                     key={`${z.nombre}|${z.ciudad ?? ''}`}
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => elegirZona(z)}
+                    onClick={() => abrirZona(z)}
                     className="flex w-full items-baseline gap-2 border-b border-[#F3F4F3] px-4 py-3 text-left text-[15px] text-[#121A15] last:border-b-0 hover:bg-[#F6F8F6]"
                   >
                     <span className="flex-1">{highlightMatch(z.nombre, query)}</span>
@@ -256,7 +283,7 @@ export default function ConoceTuHogar({
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {ciudades.map((c) => (
-                      <button key={c.nombre} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => elegirZona(c)} className={chipOff}>
+                      <button key={c.nombre} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => abrirZona(c)} className={chipOff}>
                         {c.nombre}
                       </button>
                     ))}
@@ -266,22 +293,9 @@ export default function ConoceTuHogar({
             </div>
           )}
         </div>
-        <div role="group" aria-label="Zonas" className="mt-3 flex flex-wrap gap-2">
-          {rapidas.map((r) => {
-            const on = zona?.nombre === r.zona.nombre
-            return (
-              <button key={r.zona.nombre} type="button" aria-pressed={on} onClick={() => (on ? setZona(null) : elegirZona(r.zona))} className={on ? chipOn : chipOff}>
-                {r.label}
-              </button>
-            )
-          })}
-        </div>
 
-        {/* Qué */}
-        <p className={`${cls.lbl} mt-6`} id="lbl-hogar-tipo">
-          ¿Qué buscás?
-        </p>
-        <div role="group" aria-labelledby="lbl-hogar-tipo" className="mt-2 flex flex-wrap gap-2">
+        {/* Qué + precio + dormitorios (opcionales, a la vista) */}
+        <div role="group" aria-label="Qué buscás" className="mt-3 flex gap-1.5">
           {TIPOS_HOGAR.map((t) => (
             <button
               key={t.id}
@@ -292,39 +306,112 @@ export default function ConoceTuHogar({
                 // Los topes cambian con el tipo (un lote de 250 mil no es lo mismo que una casa).
                 if (t.id !== tipo) setTope(null)
               }}
-              className={tipo === t.id ? chipOn : chipOff}
+              className={`${tipo === t.id ? chipOn : chipOff} !h-10 !px-3.5`}
             >
               {t.label}
             </button>
           ))}
         </div>
-
-        {/* Hasta cuánto */}
-        <p className={`${cls.lbl} mt-6`} id="lbl-hogar-tope">
-          ¿Hasta cuánto? <span className="normal-case tracking-normal font-medium">(opcional)</span>
-        </p>
-        <div role="group" aria-labelledby="lbl-hogar-tope" className="mt-2 flex flex-wrap gap-2">
-          {TOPES_HOGAR[tipo].map((v) => (
-            <button key={v} type="button" aria-pressed={tope === v} onClick={() => setTope(tope === v ? null : v)} className={tope === v ? chipOn : chipOff}>
-              <span className="font-poppins">{textoTope(v)}</span>
-            </button>
-          ))}
-          <button type="button" aria-pressed={tope == null} onClick={() => setTope(null)} className={tope == null ? chipOn : chipOff}>
-            Sin tope
-          </button>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <ChipSelect
+            nombre="Precio"
+            valor={tope}
+            textoValor={tope ? `Hasta ${textoTope(tope)}` : null}
+            opciones={TOPES_HOGAR[tipo].map((v) => ({ v, label: `Hasta ${textoTope(v)}` }))}
+            onChange={setTope}
+          />
+          {tipo !== 'lot' && (
+            <ChipSelect
+              nombre="Dormitorios"
+              valor={dorm}
+              textoValor={dorm ? `${dorm}+ dormitorios` : null}
+              opciones={DORMS_HOGAR.map((v) => ({ v, label: textoDorm(v) }))}
+              onChange={setDorm}
+            />
+          )}
         </div>
 
-        {error && (
-          <p role="alert" className="mt-4 rounded-xl bg-[#FFF7E8] px-3.5 py-2.5 text-[13.5px] font-medium text-[#7A5A16]">
-            {error}
-          </p>
+        <p className={`${cls.lbl} mt-6`}>O tocá un barrio</p>
+        {/* El mosaico: un toque y arranca */}
+        <div role="list" aria-label="Barrios" className="mt-2.5 grid grid-cols-2 gap-2.5">
+          {mosaico.map(({ zona: z, foto, nombre }, i) => {
+            const elegido = zona?.nombre === z.nombre
+            const cargando = cargandoZona === z.nombre
+            return (
+              <button
+                key={z.nombre}
+                role="listitem"
+                type="button"
+                onClick={() => abrirZona(z)}
+                aria-label={`${plural[0].toUpperCase()}${plural.slice(1)} en ${nombre}`}
+                className={`si-tap relative aspect-[4/3.4] overflow-hidden rounded-2xl bg-[#EEF1EE] text-left outline-none focus-visible:ring-[3px] focus-visible:ring-[#17613C] ${elegido ? 'ring-[3px] ring-[#17613C]' : ''}`}
+              >
+                <Image src={foto} alt="" fill sizes="(max-width: 520px) 50vw, 250px" priority={i < 4} className="object-cover" />
+                <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+                <span className="absolute inset-x-0 bottom-0 px-3 pb-2.5">
+                  <span className="block font-poppins text-[15px] font-bold leading-[1.15] tracking-[-0.01em] text-white [text-wrap:balance]">{nombre}</span>
+                  <span className="mt-0.5 block text-[12.5px] font-medium text-white/85">{z.ciudad}</span>
+                </span>
+                {cargando && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/35" role="status" aria-label={`Buscando ${plural} en ${nombre}`}>
+                    <Spinner />
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Más barrios, con el nombre (sin foto curada del barrio) */}
+        {otrosBarrios.length > 0 && (
+          <>
+            <p className={`${cls.lbl} mt-6`}>Más barrios</p>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {otrosBarrios.map((z) => (
+                <button key={z.nombre} type="button" aria-pressed={zona?.nombre === z.nombre} onClick={() => abrirZona(z)} className={`${zona?.nombre === z.nombre ? chipOn : chipOff} !h-10`}>
+                  {cargandoZona === z.nombre ? (
+                    <span className="mr-1.5 [&>span]:h-3.5 [&>span]:w-3.5 [&>span]:border-[#17613C]/30 [&>span]:border-t-[#17613C]">
+                      <Spinner />
+                    </span>
+                  ) : null}
+                  {z.nombre}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Toda la ciudad */}
+        {ciudades.length > 0 && (
+          <>
+            <p className={`${cls.lbl} mt-6`}>Toda la ciudad</p>
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {ciudades.map((c) => (
+                <button key={c.nombre} type="button" aria-pressed={zona?.nombre === c.nombre} onClick={() => abrirZona(c)} className={`${zona?.nombre === c.nombre ? chipOn : chipOff} !h-10`}>
+                  {cargandoZona === c.nombre ? (
+                    <span className="mr-1.5 [&>span]:h-3.5 [&>span]:w-3.5 [&>span]:border-[#17613C]/30 [&>span]:border-t-[#17613C]">
+                      <Spinner />
+                    </span>
+                  ) : null}
+                  {c.nombre}
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
         {zona && fallo && (
           <div className="mt-5 rounded-2xl bg-[#FFF7E8] px-4 py-3.5" role="alert">
             <p className="text-[15px] font-semibold text-[#7A5A16]">No pudimos buscar ahora. Revisá tu conexión y probá de nuevo.</p>
             <div className="mt-2.5">
-              <button type="button" onClick={reintentar} className={chipOff}>
+              <button
+                type="button"
+                onClick={() => {
+                  reintentar()
+                  setAbrirAlLlegar(true)
+                }}
+                className={chipOff}
+              >
                 Reintentar
               </button>
             </div>
@@ -333,54 +420,50 @@ export default function ConoceTuHogar({
 
         {/* Sin resultados: nunca un callejón sin salida, se ofrece cómo ampliar. */}
         {zona && cantidad === 0 && (
-          <div className="mt-5 rounded-2xl bg-[#F6F8F6] px-4 py-3.5">
+          <div ref={sinResultadosRef} className="mt-5 rounded-2xl bg-[#F6F8F6] px-4 py-3.5">
             <p className="text-[15px] font-semibold text-[#121A15]">
-              Todavía no tenemos {plural} en {zona.nombre}
+              Todavía no tenemos {plural}
+              {dorm ? ` de ${textoDorm(dorm)}` : ''} en {zona.nombre}
               {tope ? ` hasta ${textoTope(tope)}` : ''}.
             </p>
             <div className="mt-2.5 flex flex-wrap gap-2">
               {tope != null && (
-                <button type="button" onClick={() => setTope(null)} className={chipOff}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTope(null)
+                    setAbrirAlLlegar(true)
+                  }}
+                  className={chipOff}
+                >
                   Ver sin tope
                 </button>
               )}
+              {dorm != null && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDorm(null)
+                    setAbrirAlLlegar(true)
+                  }}
+                  className={chipOff}
+                >
+                  Cualquier cantidad de dormitorios
+                </button>
+              )}
               {ciudadEntera && (
-                <button type="button" onClick={() => elegirZona(ciudadEntera)} className={chipOff}>
+                <button type="button" onClick={() => abrirZona(ciudadEntera)} className={chipOff}>
                   Ver todo {ciudadEntera.nombre}
                 </button>
               )}
             </div>
             {/* O que le avisemos cuando entren (David 4-oct: el mail con la búsqueda ya filtrada). */}
             <div className="mt-3">
-              <SuscripcionMail criterios={{ zona: zona.nombre, tipo, topeUsd: tope, origen: 'conoce_tu_hogar' }} origen="home" />
+              <SuscripcionMail criterios={criterios} origen="home" />
             </div>
           </div>
         )}
       </div>
-
-      <BarraFija>
-        <button type="button" onClick={comenzar} className={cls.cta} aria-describedby="hogar-cantidad" disabled={cantidad === 0 && !query.trim()}>
-          Comenzá la experiencia <IconoFlecha />
-        </button>
-        <p id="hogar-cantidad" className={`${cls.fine} mt-1.5 flex min-h-[18px] items-center justify-center gap-2`} aria-live="polite">
-          {!zona ? (
-            'Deslizá las que te gusten y guardalas con ♥'
-          ) : fallo ? (
-            'No pudimos buscar. Tocá para reintentar.'
-          ) : cantidad == null ? (
-            <>
-              <span className="[&>span]:h-3.5 [&>span]:w-3.5 [&>span]:border-[#17613C]/30 [&>span]:border-t-[#17613C]">
-                <Spinner />
-              </span>
-              Buscando {plural}…
-            </>
-          ) : cantidad > 0 ? (
-            `${cantidad} ${cantidad === 1 ? plural.replace(/s$/, '') : plural} para ver en ${zona.nombre}`
-          ) : (
-            'Probá con otra zona o sin tope'
-          )}
-        </p>
-      </BarraFija>
 
       {abierto && listo && zona && guardadasApi.montado && (
         <MazoCasas
@@ -390,8 +473,8 @@ export default function ConoceTuHogar({
           guardadasApi={guardadasApi}
           origen="home"
           busqueda={busqueda}
-          criterios={{ zona: zona.nombre, tipo, topeUsd: tope, origen: 'conoce_tu_hogar' }}
-          cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipo, tope, yaVistas)}
+          criterios={criterios}
+          cargarParecidos={(barrios, yaVistas) => cargarCasasDeBarrios(barrios, tipo, tope, yaVistas, dorm)}
           onCerrar={() => setAbierto(false)}
         />
       )}

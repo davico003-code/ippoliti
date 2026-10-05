@@ -91,3 +91,20 @@ test('textoBusqueda y esEmail', async () => {
   assert.equal(tipoHogarDeTokko(3), 'house')
   assert.equal(tipoHogarDeTokko(12), null)
 })
+
+test('dormitorios: N o más; sin dato no entra; en lotes no cuenta', async () => {
+  const { entraEnDorm, dormMinValido, textoBusqueda } = await import('./feed-en-red.ts')
+  assert.equal(entraEnDorm(3, 3), true)
+  assert.equal(entraEnDorm(4, 3), true)
+  assert.equal(entraEnDorm(2, 3), false)
+  assert.equal(entraEnDorm(null, 3), false)
+  assert.equal(entraEnDorm(null, null), true)
+  assert.equal(dormMinValido('3'), 3)
+  assert.equal(dormMinValido('9'), null)
+  assert.equal(dormMinValido(null), null)
+  assert.equal(
+    textoBusqueda({ zona: 'Funes Lakes', tipo: 'house', topeUsd: 250000, dormMin: 3, origen: 'conoce_tu_hogar' }),
+    'casas de 3 dormitorios o más en Funes Lakes hasta USD 250 mil',
+  )
+  assert.equal(textoBusqueda({ zona: 'Roldán', tipo: 'lot', topeUsd: null, dormMin: 3, origen: 'conoce_tu_hogar' }), 'lotes en Roldán')
+})
