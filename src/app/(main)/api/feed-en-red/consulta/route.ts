@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       guardadas,
       barrio,
       suscripcion,
-      message: [busqueda ? `Buscó en la web: ${busqueda}.` : null, visita ? 'Tocó «Quiero verla»: pidió coordinar una visita.' : null].filter(Boolean).join(' ') || null,
+      message: [busqueda ? `Buscó en la web: ${busqueda}.` : null, visita ? 'Tocó «Quiero verla» en la primera de la lista: pidió coordinar esa visita.' : null].filter(Boolean).join(' ') || null,
       sourceUrl: pageUrl || null,
       attribution: utm,
     }),

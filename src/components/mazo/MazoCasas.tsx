@@ -345,9 +345,9 @@ export function Tarjeta({
       )}
 
       {/* Datos SOBRE la foto, en un degradé (como Tinder) */}
-      <div className="absolute inset-x-0 bottom-0 pt-14 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0) 100%)' }}>
-        <div data-datos className="px-4 pb-4 text-white">
-          <p className="whitespace-nowrap text-[30px] font-black font-numeric leading-none [text-shadow:0_1px_10px_rgba(0,0,0,0.35)]">{item.precio}</p>
+      <div className="absolute inset-x-0 bottom-0 pt-14 [@media(max-height:720px)]:pt-8 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0) 100%)' }}>
+        <div data-datos className="px-4 pb-4 [@media(max-height:720px)]:pb-3 text-white">
+          <p className="whitespace-nowrap text-[30px] [@media(max-height:720px)]:text-[26px] font-black font-numeric leading-none [text-shadow:0_1px_10px_rgba(0,0,0,0.35)]">{item.precio}</p>
           {item.datos && <p className="mt-1.5 text-[16px] font-medium font-poppins text-white/95">{item.datos}</p>}
           {direccion && (
             <p className="mt-1 flex items-center gap-1.5 min-w-0 text-[15px] text-white/90">
@@ -632,7 +632,10 @@ export default function MazoCasas({
   const pedirVisitaDirecto = useCallback(
     (c: { nombre: string; whatsapp: string }, item: ItemFeed) => {
       const keys = Array.from(new Set([item.key, ...pendientes.map((g) => g.key)]))
-      void mandarConsulta({ nombre: c.nombre, whatsapp: c.whatsapp, keys, barrio, busqueda, origen, visita: true }).then((r) => {
+      const envio = mandarConsulta({ nombre: c.nombre, whatsapp: c.whatsapp, keys, barrio, busqueda, origen, visita: true })
+      // Ya quedaron marcadas como enviadas (si falla, se desmarcan): ♥ N no las repite mientras viaja.
+      refrescarEnviadas()
+      void envio.then((r) => {
         refrescarEnviadas()
         setAviso(r.ok ? `Listo, ${c.nombre.split(/\s+/)[0]}: un asesor te escribe para coordinar la visita.` : r.error)
       })
@@ -772,15 +775,18 @@ export default function MazoCasas({
     if (!ini || !actual) return setArrastre(null)
     const dx = e.clientX - ini.x
     const dy = e.clientY - ini.y
-    // Velocidad de los últimos ~120 ms: un latigazo corto también decide.
-    const ms = muestras.current
+    // Velocidad de los últimos ~120 ms (contando el soltar): un latigazo corto
+    // también decide. Si frenó antes de soltar, no quedan muestras viejas: no sale.
+    const ms = [...muestras.current.filter((m) => e.timeStamp - m.t < 120), { x: e.clientX, y: e.clientY, t: e.timeStamp }]
     const a = ms[0]
     const b = ms[ms.length - 1]
     const dt = a && b ? Math.max(1, b.t - a.t) : 1
     const vx = a && b ? (b.x - a.x) / dt : 0
-    const vy = a && b ? (b.y - a.y) / dt : 0
     const dir = direccionDe(dx, dy)
-    if (dir === 'super' && (-dy > UMBRAL_SUPER || (vy < -VELOCIDAD_LATIGAZO && -dy > 40))) return decidir('super')
+    // ★ por gesto SOLO con el arrastre completo hacia arriba: deslizar para
+    // arriba es el reflejo de "ver más" (Instagram, TikTok) y una ★ sin querer
+    // le manda un asesor (sin latigazo vertical, a propósito).
+    if (dir === 'super' && -dy > UMBRAL_SUPER) return decidir('super')
     if (
       (dir === 'like' || dir === 'pass') &&
       (Math.abs(dx) > UMBRAL_SWIPE || (Math.abs(vx) > VELOCIDAD_LATIGAZO && Math.abs(dx) > 30 && Math.sign(vx) === Math.sign(dx)))
@@ -1182,7 +1188,7 @@ export default function MazoCasas({
                 </>
               ) : (
                 <>
-                  Deslizá a la derecha si te gusta · <span style={{ color: AZUL_VISITA }}>★</span> para coordinar una visita
+                  Deslizá → si te gusta · <span style={{ color: AZUL_VISITA }}>★</span> para ir a verla
                 </>
               )}
             </p>
@@ -1344,6 +1350,16 @@ function leerEnviadas(): string[] {
     return []
   }
 }
+/** Un solo Lead de Meta por visita (ver mandarConsulta). */
+let leadContado = false
+function desmarcarEnviadas(keys: string[]): void {
+  try {
+    const fuera = new Set(keys)
+    window.localStorage.setItem(CLAVE_ENVIADAS, JSON.stringify(leerEnviadas().filter((k) => !fuera.has(k))))
+  } catch {
+    /* sin almacenamiento */
+  }
+}
 function marcarEnviadas(keys: string[]): void {
   try {
     const todas = Array.from(new Set([...leerEnviadas(), ...keys])).slice(-40)
@@ -1375,6 +1391,8 @@ async function mandarConsulta(p: {
   /** Tocó ★ "Quiero verla": el asesor sabe que quiere coordinar la visita. */
   visita?: boolean
 }): Promise<{ ok: true } | { ok: false; error: string }> {
+  // Se marcan ANTES de salir (si toca ★ y ♥ N seguidos no viajan dos veces); si falla, se desmarcan.
+  marcarEnviadas(p.keys)
   try {
     const res = await fetch('/api/feed-en-red/consulta', {
       method: 'POST',
@@ -1392,14 +1410,21 @@ async function mandarConsulta(p: {
       }),
     })
     const data = await res.json().catch(() => ({}))
-    if (!res.ok) return { ok: false, error: typeof data.error === 'string' ? data.error : 'No pudimos enviarlo. Probá de nuevo.' }
+    if (!res.ok) {
+      desmarcarEnviadas(p.keys)
+      return { ok: false, error: typeof data.error === 'string' ? data.error : 'No pudimos enviarlo. Probá de nuevo.' }
+    }
     escribirContacto({ nombre: p.nombre, whatsapp: p.whatsapp, email: p.email })
-    marcarEnviadas(p.keys)
     trackEvent('feed_en_red_consulta', { cantidad: p.keys.length, en_red: p.keys.filter((k) => !k.startsWith('n:')).length, visita: p.visita === true })
-    trackFbEvent('Lead', { content_name: 'feed_en_red', content_ids: p.keys.filter((k) => k.startsWith('n:')).map((k) => k.slice(2)) })
+    // UN Lead de Meta por visita (match + ★ + hoja son la misma persona: no inflar lo que mide la pauta).
+    if (!leadContado) {
+      leadContado = true
+      trackFbEvent('Lead', { content_name: 'feed_en_red', content_ids: p.keys.filter((k) => k.startsWith('n:')).map((k) => k.slice(2)) })
+    }
     contarTinder('consulta', p.origen)
     return { ok: true }
   } catch {
+    desmarcarEnviadas(p.keys)
     return { ok: false, error: 'No pudimos enviarlo. Probá de nuevo.' }
   }
 }
@@ -1515,7 +1540,7 @@ function MatchMazo({
         ) : (
           <form onSubmit={enviar} noValidate>
             <p
-              className="mazo-entrar text-[42px] leading-none font-black italic font-raleway bg-clip-text text-transparent [text-wrap:balance]"
+              className="mazo-entrar text-[42px] [@media(max-width:400px)]:text-[34px] leading-none font-black italic font-raleway bg-clip-text text-transparent [text-wrap:balance]"
               style={{ backgroundImage: `linear-gradient(90deg, ${VERDE}, #3FA36B)` }}
             >
               {titulo}

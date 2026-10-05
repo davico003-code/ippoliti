@@ -199,7 +199,7 @@ export default function DetalleMazo({
           <button
             type="button"
             onClick={onPaso}
-            className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-gray-200 bg-white text-[15px] font-semibold text-gray-700 active:scale-[0.98]"
+            className="flex h-12 flex-[0.85] items-center justify-center gap-1.5 rounded-2xl border border-gray-200 bg-white px-2 text-[15px] font-semibold text-gray-700 active:scale-[0.98]"
           >
             <X className="h-5 w-5 text-[#E5484D]" strokeWidth={3} aria-hidden="true" /> Paso
           </button>
@@ -207,7 +207,7 @@ export default function DetalleMazo({
             <button
               type="button"
               onClick={onQuieroVerla}
-              className="flex h-12 flex-[1.35] items-center justify-center gap-1.5 rounded-2xl text-[15px] font-bold text-white active:scale-[0.98]"
+              className="flex h-12 flex-[1.25] items-center justify-center gap-1.5 rounded-2xl px-2 text-[15px] font-bold text-white whitespace-nowrap active:scale-[0.98]"
               style={{ background: '#2B7FFF' }}
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -219,7 +219,7 @@ export default function DetalleMazo({
           <button
             type="button"
             onClick={onMeGusta}
-            className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-2xl text-[15px] font-bold text-white active:scale-[0.98]"
+            className="flex h-12 flex-[1.1] items-center justify-center gap-1.5 rounded-2xl px-2 text-[15px] font-bold text-white whitespace-nowrap active:scale-[0.98]"
             style={{ background: '#1A5C38' }}
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
