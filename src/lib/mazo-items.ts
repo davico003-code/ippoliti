@@ -11,7 +11,7 @@ import {
   tituloVisible,
   translatePropertyType,
 } from '@/lib/tokko'
-import type { ItemFeed } from '@/lib/feed-en-red'
+import { type ItemFeed, superficiesTarjeta, tipoHogarDeTokko } from '@/lib/feed-en-red'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 
 /** Hasta 5 pares de fotos por casa en el Tinder (David, 4-oct-2026). */
@@ -57,11 +57,14 @@ export function itemDeNuestra(p: TokkoProperty): ItemFeed {
     zona: p.location?.name ?? null,
     href: `/propiedades/${generatePropertySlug(p)}`,
     dorm: beds || null,
-    // La de la casa (total o cubierta); getTotalSurface cae al terreno si faltan las dos.
-    m2: Number(p.total_surface) > 0 ? Number(p.total_surface) : Number(p.roofed_surface) > 0 ? Number(p.roofed_surface) : null,
-    // `surface` del feed = el terreno (land_surface de Hilo).
-    lote: Number(p.surface) > 0 ? Number(p.surface) : null,
-    esLote: /terreno|lote/i.test(p.type?.name ?? ''),
+    // Total, o la cubierta si la total es el lote (regla 10-sep); `surface` del feed = el terreno.
+    ...superficiesTarjeta({
+      tipo: tipoHogarDeTokko(p.type?.id),
+      total: Number(p.total_surface),
+      cubierta: Number(p.roofed_surface),
+      lote: Number(p.surface),
+    }),
+    esLote: tipoHogarDeTokko(p.type?.id) === 'lot',
     masVista: false,
     // Misma línea que las tarjetas del listado ("Av Fuerza Aerea 1515 | San Sebastián | Funes").
     direccion: formatDireccionCompleta(p, p.fake_address || p.address, ' | ') || null,
