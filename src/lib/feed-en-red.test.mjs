@@ -124,3 +124,23 @@ test('barrio cerrado/abierto: me da igual entra todo; lo que no se sabe cuenta c
     'casas en barrio abierto de Funes hasta USD 250 mil',
   )
 })
+
+// ── Renglón corto de la tarjeta del Tinder (David 5-oct)
+import { lineaTarjeta, lugarTarjeta } from './feed-en-red.ts'
+
+test('casa con lote: dormitorios, metros y lote', () => {
+  assert.equal(lineaTarjeta({ datos: 'x', dorm: 3, m2: 430, lote: 800 }), '3 dorm · 430 m² · lote 800 m²')
+})
+test('sin lote (o igual a los metros) no repite', () => {
+  assert.equal(lineaTarjeta({ datos: 'x', dorm: 2, m2: 90, lote: null }), '2 dorm · 90 m²')
+  assert.equal(lineaTarjeta({ datos: 'x', dorm: 2, m2: 300, lote: 300 }), '2 dorm · 300 m²')
+})
+test('un lote dice Lote y sus metros', () => {
+  assert.equal(lineaTarjeta({ datos: 'x', esLote: true, m2: null, lote: 930 }), 'Lote · 930 m²')
+})
+test('sin datos sueltos queda el renglón de siempre', () => {
+  assert.equal(lineaTarjeta({ datos: 'Casa · 3 dorm' }), 'Casa · 3 dorm')
+})
+test('lugar en una línea con puntos', () => {
+  assert.equal(lugarTarjeta({ direccion: 'Lote 058 | Vida | Funes', zona: null }), 'Lote 058 · Vida · Funes')
+})

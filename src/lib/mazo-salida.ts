@@ -21,6 +21,8 @@ export type EstadoSalida = {
   detalle: boolean
   /** La hoja de ★ "Quiero verla" (pide nombre y WhatsApp), a la vista. */
   visita: boolean
+  /** "Afiná tu búsqueda" a la vista: desde el ícono ('boton') o al querer salir ('salir'). */
+  afinar?: 'boton' | 'salir' | null
   /** La hoja de contacto abierta y por qué (al salir o desde ♥ N). */
   hoja: 'salir' | 'boton' | null
   /** El rescate a la vista: en medio del mazo o al querer salir. */
@@ -57,6 +59,7 @@ export type QueHacer =
   | 'sacar-visor'
   | 'sacar-detalle'
   | 'sacar-visita'
+  | 'sacar-afinar'
   | 'sacar-hoja'
   | 'sacar-rescate'
 
@@ -67,7 +70,8 @@ export function queHacerAlSalir(e: EstadoSalida, via: 'x' | 'atras'): QueHacer {
     if (e.detalle) return 'sacar-detalle'
     if (e.visita) return 'sacar-visita'
     // Atrás otra vez con la pregunta de salida a la vista: insiste, sale.
-    if (e.hoja === 'salir' || e.rescate === 'salir') return 'cerrar'
+    if (e.hoja === 'salir' || e.rescate === 'salir' || e.afinar === 'salir') return 'cerrar'
+    if (e.afinar) return 'sacar-afinar'
     if (e.hoja) return 'sacar-hoja'
     if (e.rescate === 'mazo') return 'sacar-rescate'
   }
