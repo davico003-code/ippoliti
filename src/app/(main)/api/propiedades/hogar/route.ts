@@ -18,7 +18,7 @@ import {
   type PuntoCerca,
 } from '@/lib/feed-en-red'
 import { distanceToProperty } from '@/lib/geo'
-import { itemDeNuestra } from '@/lib/mazo-items'
+import { itemDeNuestra, precioVentaUsd } from '@/lib/mazo-items'
 import { resolverUbicacion } from '@/lib/ubicacion'
 import { rateLimit } from '@/lib/feedback'
 
@@ -73,13 +73,6 @@ async function enRedDeHilo(
     // Sin En red el mazo sigue con las nuestras.
     return { barrio: zona, tarjetas: [], fallo: true }
   }
-}
-
-/** Precio de venta en dólares (una propiedad puede estar en venta y alquiler). */
-function precioVentaUsd(p: TokkoProperty): number | null {
-  const venta = (p.operations ?? []).find((o) => o.operation_type === 'Sale')
-  const precio = venta?.prices?.find((x) => x.currency === 'USD' && x.price > 0)
-  return precio?.price ?? null
 }
 
 export async function GET(request: NextRequest) {

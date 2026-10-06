@@ -19,7 +19,8 @@ export async function POST(req: Request) {
   if (BOT.test(req.headers.get('user-agent') ?? '')) return new NextResponse(null, { status: 204 })
   const body = (await req.json().catch(() => null)) as { evento?: unknown; origen?: unknown; v?: unknown } | null
   const evento = EVENTOS_TINDER.find((e) => e === body?.evento) as EventoTinder | undefined
-  const origen = body?.origen === 'ficha' || body?.origen === 'home' ? body.origen : null
+  // 'pauta' (anuncio) y 'cliente' (link del asesor) desde el 5-oct: Hilo los muestra aparte.
+  const origen = ['ficha', 'home', 'pauta', 'cliente'].find((o) => o === body?.origen) ?? null
   const v = typeof body?.v === 'string' && /^[A-Za-z0-9-]{4,64}$/.test(body.v) ? body.v : null
   if (!evento || !origen || !v) return NextResponse.json({ error: 'evento inválido' }, { status: 400 })
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'

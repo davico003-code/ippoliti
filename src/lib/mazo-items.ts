@@ -34,6 +34,13 @@ export function completarFotos(actuales: readonly string[], album: readonly stri
   return out.slice(0, MAX_FOTOS_MAZO)
 }
 
+/** Precio de venta en dólares (una propiedad puede estar en venta y alquiler). */
+export function precioVentaUsd(p: TokkoProperty): number | null {
+  const venta = (p.operations ?? []).find((o) => o.operation_type === 'Sale')
+  const precio = venta?.prices?.find((x) => x.currency === 'USD' && x.price > 0)
+  return precio?.price ?? null
+}
+
 export function itemDeNuestra(p: TokkoProperty): ItemFeed {
   const fotos = getAllPhotos(p)
   const principal = getMainPhoto(p)
@@ -65,6 +72,7 @@ export function itemDeNuestra(p: TokkoProperty): ItemFeed {
       lote: Number(p.surface),
     }),
     esLote: tipoHogarDeTokko(p.type?.id) === 'lot',
+    precioUsd: precioVentaUsd(p),
     masVista: false,
     // Misma línea que las tarjetas del listado ("Av Fuerza Aerea 1515 | San Sebastián | Funes").
     direccion: formatDireccionCompleta(p, p.fake_address || p.address, ' | ') || null,

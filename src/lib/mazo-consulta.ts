@@ -4,7 +4,7 @@
 // suscripción. Ojo: `leadContado` y las enviadas ('si-feed-enviadas') son UNA
 // sola instancia por visita: no duplicar este estado en otro archivo.
 
-import { type CriteriosBusqueda, escribirContacto, leerContacto, textoBusqueda } from '@/lib/feed-en-red'
+import { type CriteriosBusqueda, type ItemFeed, escribirContacto, idEnSeleccion, leerContacto, textoBusqueda } from '@/lib/feed-en-red'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 import { contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
 
@@ -44,6 +44,67 @@ function marcarEnviadas(keys: string[]): void {
   } catch {
     /* sin almacenamiento */
   }
+}
+
+/**
+ * TINDER DEL CLIENTE (David, 5-oct-2026): con su link de seguimiento
+ * (?s=<token>) cada ♥ y ★ va a SU selección —la ruta de reacciones la suma si
+ * no estaba— y el asesor se entera por el circuito de siempre (cron de
+ * reacciones de Hilo: chat, línea de tiempo y, si pide visita, tarea). Se
+ * marcan como "ya las tiene un asesor": el mazo no le pide datos. De a una (la
+ * ruta lee → cambia → escribe). `soloMirar` = vista previa del asesor: no se
+ * manda nada.
+ */
+export type ClienteMazo = { token: string; soloMirar: boolean }
+
+/** Lo que ve después de la ★ con el link de su asesor (cuando el pedido de visita ya llegó, o no). */
+export function avisoVisitaCliente(ok: boolean, cliente: ClienteMazo): string {
+  if (cliente.soloMirar) return 'Vista del asesor: esto no se manda.'
+  return ok ? 'Listo: le avisamos a tu asesor para coordinar la visita.' : 'No pudimos avisarle a tu asesor. Probá de nuevo en un rato.'
+}
+let colaCliente: Promise<unknown> = Promise.resolve()
+
+export function reaccionarEnSeleccion(
+  cliente: ClienteMazo,
+  item: Pick<ItemFeed, 'key'> & Partial<Pick<ItemFeed, 'titulo' | 'fotos' | 'zona' | 'precio' | 'dorm' | 'm2'>>,
+  /** 'deshacer' = ↺ de un ♥ · 'deshacer-visita' = ↺ de una ★ (si no, al asesor le queda una visita que el cliente no pidió). */
+  accion: 'like' | 'super' | 'deshacer' | 'deshacer-visita',
+): Promise<boolean> {
+  const propertyId = idEnSeleccion(item.key)
+  if (!propertyId) return Promise.resolve(false)
+  const deshace = accion === 'deshacer' || accion === 'deshacer-visita'
+  const anotar = (ok: boolean) => {
+    if (ok) (deshace ? desmarcarEnviadas : marcarEnviadas)([item.key])
+    return ok
+  }
+  if (cliente.soloMirar) return Promise.resolve(anotar(true))
+  const cuerpo =
+    accion === 'deshacer'
+      ? { propertyId, liked: null, reaction: null }
+      : accion === 'deshacer-visita'
+        ? { propertyId, liked: null, reaction: null, wantVisit: false }
+        : {
+          propertyId,
+          liked: true,
+          reaction: 'encanta',
+          ...(accion === 'super' ? { wantVisit: true } : {}),
+          // Si no estaba en su selección, se suma (la de colegas, con lo que vio por si Hilo no responde).
+          sugerida: true,
+          tarjeta: { title: item.titulo ?? '', image: item.fotos?.[0] ?? null, location: item.zona ?? '', price: item.precio ?? null, rooms: item.dorm ?? 0, baths: 0, area: item.m2 ?? 0 },
+        }
+  const resultado = colaCliente.then(() =>
+    fetch(`/api/seleccion/${encodeURIComponent(cliente.token)}/reaccion`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cuerpo),
+      keepalive: true,
+    })
+      .then((r) => r.ok)
+      .catch(() => false),
+  )
+  // Si una tarda (sumar una de colegas le pide a Hilo), la siguiente no espera más de 8 s.
+  colaCliente = Promise.race([resultado, new Promise((r) => window.setTimeout(r, 8000))])
+  return resultado.then(anotar)
 }
 
 /** Su nombre y WhatsApp, si ya los dejó en este navegador (si no, null). */

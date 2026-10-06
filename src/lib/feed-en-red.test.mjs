@@ -228,3 +228,71 @@ test('cerca: la distancia se muestra de a 100 m', () => {
   assert.equal(metrosVisibles(640), 600)
   assert.equal(metrosVisibles(1240), 1200)
 })
+
+// ── El mazo que aprende (David, 5-oct)
+import { aplicarOrden, ordenarPorGusto, parecidoCasas } from './feed-en-red.ts'
+
+const casa = (key, zona, precioUsd, dorm, m2, esNuestra = false) => ({ key, zona, precioUsd, dorm, m2, esNuestra })
+
+test('aprende: lo que se parece a lo que le gustó pasa adelante', () => {
+  const gusto = casa('a', 'Funes Lakes', 400000, 4, 250)
+  const resto = [casa('lejos', 'Centro', 120000, 2, 80), casa('igual', 'Funes Lakes', 410000, 4, 260), casa('media', 'Kentucky', 380000, 3, 220)]
+  const decididas = [{ item: gusto, accion: 'like' }, { item: casa('x', 'Centro', 110000, 2, 70), accion: 'pass' }, { item: casa('y', 'Centro', 130000, 2, 90), accion: 'pass' }]
+  assert.deepEqual(ordenarPorGusto(resto, decididas).map((c) => c.key), ['igual', 'media', 'lejos'])
+})
+
+test('aprende: sin un ♥ o con menos de 3 decisiones, no toca el orden', () => {
+  const resto = [casa('1', 'Centro', 120000, 2, 80), casa('2', 'Funes Lakes', 410000, 4, 260)]
+  const pases = [1, 2, 3, 4].map((i) => ({ item: casa(`p${i}`, 'Funes Lakes', 400000, 4, 250), accion: 'pass' }))
+  assert.deepEqual(ordenarPorGusto(resto, pases).map((c) => c.key), ['1', '2'])
+  assert.deepEqual(ordenarPorGusto(resto, [{ item: casa('a', 'Funes Lakes', 400000, 4, 250), accion: 'like' }]).map((c) => c.key), ['1', '2'])
+})
+
+test('aprende: barrios escritos distinto cuentan como el mismo', () => {
+  assert.ok(parecidoCasas(casa('a', 'Vida Crystal Lagoon', 300000, 3, 200), casa('b', 'Vida Lagoon', 300000, 3, 200)) > 0.95)
+})
+
+test('aprende: las que llegan después (parecidos) van donde está parado', () => {
+  const todos = ['a', 'b', 'c', 'd', 'n1'].map((key) => ({ key }))
+  assert.deepEqual(aplicarOrden(todos, ['a', 'b', 'd', 'c'], 2).map((t) => t.key), ['a', 'b', 'n1', 'd', 'c'])
+  assert.deepEqual(aplicarOrden(todos, null, 2).map((t) => t.key), ['a', 'b', 'c', 'd', 'n1'])
+})
+
+// ── Tinder del cliente (David, 5-oct)
+import { idEnSeleccion, topeOfrecido } from './feed-en-red.ts'
+
+test('cliente: la key del mazo se traduce al id de su selección', () => {
+  assert.equal(idEnSeleccion('n:4512345'), '4512345')
+  assert.equal(idEnSeleccion('propia:455077'), 'red:propia:455077')
+  assert.equal(idEnSeleccion('meli:MLA1234567'), 'red:meli:MLA1234567')
+  assert.equal(idEnSeleccion('otra:1'), null)
+  assert.equal(idEnSeleccion('n:abc'), null)
+})
+
+test('presupuesto del link → el precio que se ofrece más parecido', () => {
+  assert.equal(topeOfrecido('house', 230000), 250000)
+  assert.equal(topeOfrecido('house', 180000), 150000)
+  assert.equal(topeOfrecido('house', 600000), 500000)
+  assert.equal(topeOfrecido('house', 900000), null)
+  assert.equal(topeOfrecido('lot', 70000), 80000)
+  assert.equal(topeOfrecido('house', null), null)
+})
+
+test('aprende: tres ✕ a casas caras no hacen subir las baratas si le gustó una cara (caso real 5-oct)', () => {
+  const decididas = [
+    { item: casa('vida', 'Vida Crystal Lagoon', 455000, 4, 187), accion: 'like' },
+    { item: casa('lakes', 'Funes Lakes', 415000, 3, 230), accion: 'pass' },
+    { item: casa('funes', 'Funes', 295000, 3, 253), accion: 'pass' },
+    { item: casa('cadaques', 'Cadaques', 590000, 3, 300), accion: 'pass' },
+  ]
+  const resto = [casa('barata', 'Zona 7 - Funes', 180000, 5, 430), casa('centro', 'Centro', 148000, 1, 60), casa('aguadas', 'Aguadas', 450000, 4, 296), casa('miraflores', 'Miraflores (Funes Hills)', 560000, 4, 427)]
+  const orden = ordenarPorGusto(resto, decididas).map((c) => c.key)
+  assert.deepEqual(orden.slice(0, 2), ['aguadas', 'miraflores'])
+})
+
+test('aprende: las sumadas en el medio quedan fijas aunque avance (no se repite una ni se pierde otra)', () => {
+  const todos = ['a', 'b', 'c', 'd', 'e', 'x', 'y'].map((key) => ({ key }))
+  const orden = ['a', 'b', 'c', 'd', 'e']
+  // Se sumaron x, y cuando estaba en la 3ª (índice 2): siguen ahí aunque ya esté en la 4ª o vuelva a la 2ª.
+  for (const indice of [1, 2, 3, 4]) assert.deepEqual(aplicarOrden(todos, orden, 2).map((t) => t.key), ['a', 'b', 'x', 'y', 'c', 'd', 'e'], `indice ${indice}`)
+})
