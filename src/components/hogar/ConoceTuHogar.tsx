@@ -179,7 +179,8 @@ export default function ConoceTuHogar({
   const [resultado, setResultado] = useState<Resultado | null>(null)
   const [abierto, setAbierto] = useState(false)
   /** Vino de un anuncio y el mazo abre solo: después de las instrucciones, "¿Qué buscás?" (David 6-oct). */
-  const [entradaPauta, setEntradaPauta] = useState(desdePauta && abrirAlCargar && !cliente)
+  // Solo si el mazo abre solo (zona del link válida): si no, elige en la pantalla y no se le repregunta.
+  const [entradaPauta, setEntradaPauta] = useState(() => desdePauta && abrirAlCargar && !cliente && !!zonaPorNombre(catalogo, zonaInicial))
   /**
    * Las casas que tiene el mazo abierto. Al afinar la búsqueda desde adentro
    * (David 5-oct) cambian los filtros de acá y se vuelve a contar; el mazo NO se

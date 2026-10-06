@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { BarrioHogar, TipoHogar } from '@/lib/feed-en-red'
+import { type BarrioHogar, type TipoHogar, TIPOS_HOGAR } from '@/lib/feed-en-red'
 import CampoPresupuesto from '@/components/hogar/CampoPresupuesto'
 import { VERDE } from './marca-mazo'
 
@@ -48,7 +48,7 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
   const chip = (on: boolean) =>
     `h-10 rounded-full px-3.5 text-[15px] font-semibold border transition-colors ${on ? 'text-white border-transparent' : 'border-white/20 text-white/85 hover:border-white/40'}`
   const fondo = (on: boolean) => (on ? { background: VERDE } : undefined)
-  const salirTexto = modo === 'salir' ? 'Salir igual' : modo === 'entrada' ? 'Ver todas así' : 'Ahora no'
+  const salirTexto = modo === 'salir' ? 'Salir igual' : 'Ahora no'
   const titulo = modo === 'salir' ? '¿Afinamos la búsqueda?' : modo === 'entrada' ? '¿Qué buscás?' : 'Afiná tu búsqueda'
   const bajada =
     modo === 'salir' ? 'Contanos un poco más y te mostramos otras.' : modo === 'entrada' ? 'Elegí y te mostramos solo las que van con vos.' : 'Te mostramos las que van con lo que buscás.'
@@ -112,7 +112,7 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
           className="mt-6 h-12 w-full rounded-2xl text-[16px] font-bold text-white"
           style={{ background: VERDE }}
         >
-          {modo === 'entrada' ? 'Ver casas' : 'Seguir viendo'}
+          {modo === 'entrada' ? `Ver ${TIPOS_HOGAR.find((t) => t.id === afinar.tipo)?.plural ?? 'casas'}` : 'Seguir viendo'}
         </button>
         <button type="button" onClick={onSalir} className="mx-auto mt-3 block text-[15px] font-semibold text-white/60">
           {salirTexto}
