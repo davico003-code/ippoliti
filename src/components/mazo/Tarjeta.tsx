@@ -31,9 +31,9 @@ export function direccionDe(dx: number, dy: number, conSuper = true): Salida | n
 
 /**
  * De a cuántas fotos se muestran, una arriba de la otra. En el mazo, de a TRES
- * (David 6-oct: las fotos son apaisadas — 42 de 48 — y en un hueco más ancho se
- * ven casi enteras: 88 % de cada foto contra 66 % de a dos). La de la ficha
- * ('quieta', 470 px de alto) sigue de a dos: de a tres serían tiras finas.
+ * (David 6-oct, eligió viendo varias simuladas: ninguna foto queda bajo el
+ * precio). Ojo: con las barras de Safari cada hueco queda ~2,5:1 (tiras finas).
+ * La de la ficha ('quieta', 470 px de alto) sigue de a dos.
  */
 export const FOTOS_POR_TARJETA = 3
 /** Cuántos grupos de fotos tiene (cada toque al costado pasa al siguiente). */
