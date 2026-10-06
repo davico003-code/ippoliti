@@ -148,7 +148,9 @@ export async function POST(request: NextRequest) {
       barrio,
       suscripcion,
       message:
-        [busqueda ? `Buscó en la web: ${busqueda}.` : null, visita ? 'Tocó «Quiero conocerla» en la primera de la lista: pidió coordinar esa visita.' : null, deslizadas]
+        // La ★ viaja como dato (`visita`): Hilo marca el renglón de ESA casa en el chat. La frase
+        // "en la primera de la lista" señalaba otra casa si la de la ★ ya no estaba (6-oct).
+        [busqueda ? `Buscó en la web: ${busqueda}.` : null, deslizadas]
           .filter(Boolean)
           .join(' ') || null,
       sourceUrl: pageUrl || null,
