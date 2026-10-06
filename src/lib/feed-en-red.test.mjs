@@ -259,7 +259,7 @@ test('aprende: las que llegan después (parecidos) van donde está parado', () =
 })
 
 // ── Tinder del cliente (David, 5-oct)
-import { formatearPresupuesto, idEnSeleccion, sugerirPresupuestos } from './feed-en-red.ts'
+import { formatearPresupuesto, idEnSeleccion, presupuestoRaro, sugerirPresupuestos } from './feed-en-red.ts'
 
 test('cliente: la key del mazo se traduce al id de su selección', () => {
   assert.equal(idEnSeleccion('n:4512345'), '4512345')
@@ -287,6 +287,13 @@ test('presupuesto: autocompleta lo que quiso decir mientras escribe', () => {
   assert.equal(sugerirPresupuestos('35', 'house')[0], 350000)
   assert.deepEqual(sugerirPresupuestos('', 'house'), [150000, 250000, 350000, 500000])
   assert.equal(formatearPresupuesto('250000'), '250.000')
+  // Lo raro para el tipo espera más mientras escribe (a mitad de "250.000" pasa por "25.000").
+  assert.equal(presupuestoRaro(25000, 'house'), true)
+  assert.equal(presupuestoRaro(250000, 'house'), false)
+  assert.equal(presupuestoRaro(35000, 'lot'), false)
+  assert.equal(presupuestoRaro(15000, 'lot'), true)
+  assert.equal(presupuestoRaro(1500000, 'house'), true)
+  assert.equal(presupuestoRaro(null, 'house'), false)
   assert.equal(formatearPresupuesto('USD 0180.5'), '1.805')
   assert.equal(formatearPresupuesto(''), '')
 })
