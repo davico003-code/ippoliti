@@ -7,7 +7,8 @@ import MazoSeleccion from './MazoSeleccion'
 import TarjetaSeleccion from './TarjetaSeleccion'
 import FichaHoja from './FichaHoja'
 import CierreSeleccion from './CierreSeleccion'
-import { Avatar, LINEA_EN_RED, isValidNote, primerNombre, tieneFicha, type Decision, type Reaction } from './seleccion-ui'
+import BuscarConIA, { type ResultadoIA } from './BuscarConIA'
+import { Avatar, FotoAsesor, LINEA_EN_RED, isValidNote, primerNombre, tieneFicha, type Decision, type Reaction } from './seleccion-ui'
 
 /**
  * Lo que ve el cliente en siinmobiliaria.com/seleccion/<token>.
@@ -17,9 +18,12 @@ import { Avatar, LINEA_EN_RED, isValidNote, primerNombre, tieneFicha, type Decis
  * - Compu: grilla de tarjetas con fotos grandes y botones redondos; al
  *   terminar, el mismo cierre en un panel.
  * - En los dos, la ficha se abre ADENTRO de la página (nunca otra pestaña).
- * - Si no le gusta ninguna, aparecen solas parecidas de la red (se piden apenas
- *   carga, así están listas al instante). Las que le gustan se suman a la
- *   selección y el asesor las ve en HILO.
+ * - Si no le gusta ninguna, aparecen solas parecidas (se piden apenas carga, así
+ *   están listas al instante). Las que le gustan se suman a la selección y el
+ *   asesor las ve en HILO. Las elige HILO: −10/+15 % de lo que le mostraron,
+ *   nuestras y de colegas en un solo orden (David, 6-oct-2026).
+ * - "Buscá con IA" (debajo de "Listo, avisale a…" en la compu; en el cierre del
+ *   celular): escribe qué busca y le mostramos opciones con las mismas tarjetas.
  *
  * Las respuestas se guardan solas (PATCH por propiedad, con debounce) y HILO
  * se las lleva al chat del asesor cada 5 minutos.
@@ -87,13 +91,21 @@ export default function ClientShortlist({
   const [esperando, setEsperando] = useState(false)
   const [cierreCompu, setCierreCompu] = useState(false)
   const [descartadasOpen, setDescartadasOpen] = useState(false)
+  const [busqueda, setBusqueda] = useState<ResultadoIA | null>(null)
+  // Todo lo que le mostró la IA en esta visita: lo que marcó de una búsqueda
+  // anterior no desaparece al buscar otra cosa.
+  const [vistasIA, setVistasIA] = useState<SeleccionItem[]>([])
 
   const idsSeleccion = useMemo(() => new Set(items.map((i) => i.id)), [items])
-  const porId = useMemo(() => new Map([...parecidas, ...items].map((i) => [i.id, i])), [items, parecidas])
-  const todos = useMemo(
-    () => [...items, ...reveladas.map((id) => porId.get(id)).filter((i): i is SeleccionItem => !!i && !idsSeleccion.has(i.id))],
-    [items, reveladas, porId, idsSeleccion],
-  )
+  const deIA = useMemo(() => (busqueda?.items ?? []).filter((i) => !idsSeleccion.has(i.id)), [busqueda, idsSeleccion])
+  const idsIA = useMemo(() => new Set(deIA.map((i) => i.id)), [deIA])
+  const porId = useMemo(() => new Map([...parecidas, ...vistasIA, ...items].map((i) => [i.id, i])), [items, parecidas, vistasIA])
+  const todos = useMemo(() => {
+    const extra = [...reveladas.map((id) => porId.get(id)), ...vistasIA.filter((i) => reactions[i.id]?.liked != null)]
+      .filter((i): i is SeleccionItem => !!i && !idsSeleccion.has(i.id))
+    // Las de la búsqueda con IA cuentan recién cuando las marca (no son pendientes).
+    return [...items, ...extra.filter((i, n) => extra.findIndex((x) => x.id === i.id) === n)]
+  }, [items, reveladas, porId, idsSeleccion, vistasIA, reactions])
   const pendientes = todos.filter((i) => reactions[i.id]?.liked == null)
   const gustaron = todos.filter((i) => reactions[i.id]?.liked === true)
   const descartadas = todos.filter((i) => reactions[i.id]?.liked === false)
@@ -354,7 +366,25 @@ export default function ClientShortlist({
 
   const asesor = primerNombre(agentName)
   const activasSeleccion = items.filter((i) => reactions[i.id]?.liked !== false)
-  const activasParecidas = todos.filter((i) => !idsSeleccion.has(i.id) && reactions[i.id]?.liked !== false)
+  const activasParecidas = todos.filter((i) => !idsSeleccion.has(i.id) && !idsIA.has(i.id) && reactions[i.id]?.liked !== false)
+  const activasIA = deIA.filter((i) => reactions[i.id]?.liked !== false)
+
+  function verResultadosIA(r: ResultadoIA) {
+    setBusqueda(r)
+    setVistasIA((prev) => [...prev, ...r.items.filter((n) => !prev.some((p) => p.id === n.id))])
+    if (r.items.length === 0) return
+    window.setTimeout(() => {
+      const el = Array.from(document.querySelectorAll<HTMLElement>('[data-resultados-ia]')).find((x) => x.offsetParent !== null)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 80)
+  }
+  // Para no ofrecerle de nuevo lo que ya descartó (se lee al buscar, no en cada render).
+  const excluirIA = () => [...descartadas.map((i) => i.id), ...leerLocal(claveDescartadas)]
+
+  const buscador = (className: string) => (
+    <BuscarConIA token={token} asesor={asesor} excluir={excluirIA} soloMirar={soloMirar} onResultado={verResultadosIA} className={className} />
+  )
+
   const indice = (id: string) => items.findIndex((i) => i.id === id)
 
   const tarjeta = (item: SeleccionItem) => (
@@ -368,6 +398,23 @@ export default function ClientShortlist({
       onComentario={(texto) => patchReaction(item, { comment: texto })}
       onFicha={() => abrirFicha(item)}
     />
+  )
+
+  const seccionIA = activasIA.length > 0 && busqueda && (
+    <section data-resultados-ia className="mb-8 scroll-mt-6">
+      <div className="mb-1 flex items-center gap-2">
+        <Sparkles className="h-4 w-4 shrink-0 text-[#1A5C38]" />
+        <h3 className="flex-1 text-[17px] font-bold text-[#111814]">Lo que encontré para vos</h3>
+        <button type="button" onClick={() => setBusqueda(null)} className="rounded-full px-3 py-1.5 text-[13.5px] font-semibold text-[#66736B] hover:bg-white hover:text-[#1C2620]">
+          Cerrar
+        </button>
+      </div>
+      <p className="mb-4 text-[14.5px] font-medium leading-snug text-[#4F5C54]">
+        «{busqueda.texto}»{busqueda.resumen ? <span className="text-[#66736B]"> · {busqueda.resumen}</span> : null}
+      </p>
+      {activasIA.some((i) => i.enRed) && <p className="-mt-2 mb-4 text-[13.5px] text-[#66736B]">{LINEA_EN_RED}</p>}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">{activasIA.map(tarjeta)}</div>
+    </section>
   )
 
   const cierreProps = {
@@ -442,10 +489,12 @@ export default function ClientShortlist({
         ) : (
           <div className="px-4 pb-12" style={{ paddingTop: 'max(36px, env(safe-area-inset-top))' }}>
             <CierreSeleccion {...cierreProps} onSeguir={() => setModoCel('mazo')} />
-            {todos.length - descartadas.length > 0 && (
+            {buscador('mx-auto mt-8 max-w-[460px] rounded-[22px] bg-white p-4 shadow-[0_1px_0_rgba(16,40,28,0.06)]')}
+            {seccionIA && <div className="mt-8">{seccionIA}</div>}
+            {todos.some((i) => reactions[i.id]?.liked !== false && !idsIA.has(i.id)) && (
               <section className="mt-12">
                 <h3 className="mb-3 px-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#66736B]">Volver a mirar</h3>
-                <div className="grid grid-cols-1 gap-5">{todos.filter((i) => reactions[i.id]?.liked !== false).map(tarjeta)}</div>
+                <div className="grid grid-cols-1 gap-5">{todos.filter((i) => reactions[i.id]?.liked !== false && !idsIA.has(i.id)).map(tarjeta)}</div>
               </section>
             )}
             {seccionDescartadas}
@@ -458,12 +507,10 @@ export default function ClientShortlist({
         <main className="mx-auto grid w-full max-w-[1440px] gap-6 px-6 py-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:px-8">
           <aside className="lg:sticky lg:top-6 lg:self-start">
             <section className="rounded-[24px] bg-white p-5 shadow-[0_1px_0_rgba(16,40,28,0.06),0_14px_40px_-24px_rgba(16,40,28,0.35)]">
-              <div className="flex items-center gap-3">
-                <Avatar foto={agentPhoto} nombre={agentName} size={56} />
-                <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1A5C38]">Tu asesor</p>
-                  <h2 className="truncate text-[17px] font-bold text-[#111814]">{agentName}</h2>
-                </div>
+              <div className="flex flex-col items-center text-center">
+                <FotoAsesor foto={agentPhoto} nombre={agentName} size={128} />
+                <p className="mt-3.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1A5C38]">Tu asesor</p>
+                <h2 className="max-w-full truncate text-[21px] font-bold leading-tight text-[#111814]">{agentName}</h2>
               </div>
               <p className="mt-4 rounded-2xl rounded-tl-md bg-[#F4F6F5] px-4 py-3 text-[14px] leading-relaxed text-[#2B3630]">
                 {isValidNote(note) ? note : `Hola ${primerNombre(clientName)}, te preparé esta selección. Mirala tranquilo y marcame cuáles te gustan.`}
@@ -494,10 +541,12 @@ export default function ClientShortlist({
                 </button>
               )}
               <p className="mt-2.5 text-center text-[12px] text-[#8A968E]">Tus respuestas se guardan solas.</p>
+              {buscador('mt-5 border-t border-[#EEF1EF] pt-4')}
             </section>
           </aside>
 
           <section className="min-w-0">
+            {seccionIA}
             {activasSeleccion.length > 0 ? (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">{activasSeleccion.map(tarjeta)}</div>
             ) : reveladas.length === 0 && (

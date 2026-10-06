@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CalendarDays, Heart, Info, RotateCcw, X } from 'lucide-react'
 import type { SeleccionItem } from '@/lib/seleccion'
-import { Avatar, ChipsRed, Foto, Specs, isValidNote, primerNombre, tieneFicha, type Decision } from './seleccion-ui'
+import { Avatar, ChipsRed, FotoAsesor, Foto, Specs, isValidNote, primerNombre, tieneFicha, type Decision } from './seleccion-ui'
 
 const UMBRAL = 110 // px de arrastre para decidir
 const SALIDA_MS = 260
@@ -139,7 +139,7 @@ export default function MazoSeleccion({
       <header className="px-4 pb-2" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
         <div className="flex items-center gap-2.5">
           <button type="button" onClick={onVerMensaje} className="flex min-w-0 flex-1 items-center gap-2.5 text-left" aria-label="Ver el mensaje de tu asesor">
-            <Avatar foto={agentPhoto} nombre={agentName} size={36} />
+            <Avatar foto={agentPhoto} nombre={agentName} size={44} />
             <span className="min-w-0">
               <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1A5C38]">Tu asesor</span>
               <span className="block truncate text-[14.5px] font-bold leading-tight text-[#111814]">{agentName}</span>
@@ -273,12 +273,10 @@ export default function MazoSeleccion({
         {intro && (
           <div className="absolute inset-0 z-40 flex items-end bg-black/35 px-3 pb-3 backdrop-blur-[2px]">
             <div className="w-full rounded-[26px] bg-white p-5 shadow-2xl">
-              <div className="flex items-center gap-3">
-                <Avatar foto={agentPhoto} nombre={agentName} size={48} />
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1A5C38]">Tu asesor</p>
-                  <p className="text-[16px] font-bold text-[#111814]">{agentName}</p>
-                </div>
+              <div className="flex flex-col items-center text-center">
+                <FotoAsesor foto={agentPhoto} nombre={agentName} size={96} />
+                <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1A5C38]">Tu asesor</p>
+                <p className="text-[18px] font-bold text-[#111814]">{agentName}</p>
               </div>
               <p className="mt-3.5 text-[15px] leading-relaxed text-[#2B3630]">
                 {isValidNote(note) ? note : `Hola ${primerNombre(clientName)}, te preparé esta selección. Mirala tranquilo y marcame cuáles te gustan.`}

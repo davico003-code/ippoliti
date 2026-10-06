@@ -2,7 +2,7 @@
 
 import { CalendarDays, Check, Sparkles } from 'lucide-react'
 import type { SeleccionItem } from '@/lib/seleccion'
-import { Avatar, Foto, primerNombre, type Reaction } from './seleccion-ui'
+import { Foto, FotoAsesor, primerNombre, type Reaction } from './seleccion-ui'
 
 /**
  * El cierre, como el "it's a match" de Tinder: el cliente sabe que terminó y
@@ -35,8 +35,8 @@ export default function CierreSeleccion({
 
   return (
     <div className="si-cierre-entra text-center">
-      <div className="relative mx-auto h-[76px] w-[76px]">
-        <Avatar foto={agentPhoto} nombre={agentName} size={76} />
+      <div className="relative mx-auto h-[112px] w-[112px]">
+        <FotoAsesor foto={agentPhoto} nombre={agentName} size={112} />
         <span className="si-check-pop absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-[#1A5C38] text-white ring-4 ring-white">
           <Check className="h-4 w-4" strokeWidth={3.2} />
         </span>
