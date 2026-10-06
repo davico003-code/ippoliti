@@ -8,10 +8,12 @@ import { Avatar, Foto, primerNombre, type Reaction } from './seleccion-ui'
  * El cierre, como el "it's a match" de Tinder: el cliente sabe que terminó y
  * qué pasa ahora (su asesor ya tiene sus respuestas y lo contacta). Sus
  * elegidas con "Quiero visitarla" a un toque, y parecidas si quiere más.
+ * Si llegó con todo ya elegido (las del Tinder de la web vienen marcadas), no
+ * es un "gracias": son sus elegidas y la invitación a visitarlas (David, 6-oct).
  */
 export default function CierreSeleccion({
   clientName, agentName, agentPhoto, gustaron, reactions, pendientes, parecidasDisponibles,
-  onVisita, onVerParecidas, onSeguir, onCerrar,
+  onVisita, onVerParecidas, onSeguir, onCerrar, llegoConElegidas = false,
 }: {
   clientName: string
   agentName: string
@@ -25,6 +27,8 @@ export default function CierreSeleccion({
   onVerParecidas: () => void
   onSeguir: (() => void) | null
   onCerrar?: () => void
+  /** Abrió el link con todo ya elegido: "Tus elegidas" en vez de "¡Gracias!". */
+  llegoConElegidas?: boolean
 }) {
   const nombre = primerNombre(clientName)
   const asesor = primerNombre(agentName)
@@ -40,9 +44,13 @@ export default function CierreSeleccion({
 
       {gustaron.length > 0 ? (
         <>
-          <h2 className="mt-5 text-[26px] font-bold leading-tight tracking-[-0.01em] text-[#111814]">¡Gracias, {nombre}!</h2>
-          <p className="mx-auto mt-2 max-w-[400px] text-[15px] leading-relaxed text-[#4F5C54]">
-            {asesor} ya tiene tus respuestas y se va a comunicar con vos para seguir.
+          <h2 className="mt-5 text-[26px] font-bold leading-tight tracking-[-0.01em] text-[#111814]">
+            {llegoConElegidas ? `Tus elegidas, ${nombre}` : `¡Gracias, ${nombre}!`}
+          </h2>
+          <p className="mx-auto mt-2 max-w-[400px] text-[16px] font-medium leading-relaxed text-[#1C2620]">
+            {llegoConElegidas
+              ? `Tocá «Visitar» en las que quieras ver y ${asesor} coordina con vos.`
+              : `${asesor} ya tiene tus respuestas y se va a comunicar con vos para seguir.`}
           </p>
 
           <div className="mx-auto mt-6 max-w-[460px] text-left">

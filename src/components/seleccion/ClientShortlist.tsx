@@ -102,6 +102,9 @@ export default function ClientShortlist({
   const parecidasSinVer = parecidas.filter((p) => !reveladas.includes(p.id) && !idsSeleccion.has(p.id) && reactions[p.id]?.liked == null)
 
   const [modoCel, setModoCel] = useState<'mazo' | 'cierre'>(() => (pendientes.length > 0 ? 'mazo' : 'cierre'))
+  // Llegó con todo ya elegido (las del Tinder de la web vienen marcadas, o vuelve
+  // a mirar): el cierre no le agradece, le muestra sus elegidas para visitar.
+  const llegoConElegidas = useRef(pendientes.length === 0 && gustaron.length > 0).current
 
   /* ── Guardado de respuestas ── */
 
@@ -368,7 +371,7 @@ export default function ClientShortlist({
   )
 
   const cierreProps = {
-    clientName, agentName, agentPhoto, gustaron, reactions,
+    clientName, agentName, agentPhoto, gustaron, reactions, llegoConElegidas,
     pendientes: pendientes.length,
     parecidasDisponibles: parecidasSinVer.length,
     onVisita: toggleVisita,
