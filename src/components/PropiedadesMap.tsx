@@ -17,7 +17,7 @@ import {
   tituloVisible,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
-import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
+import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
 import { VOYAGER_TILES } from '@/lib/map-tiles'
@@ -308,14 +308,33 @@ function AutoResize() {
   return null
 }
 
-function InitialView() {
+// Al entrar o salir de pantalla completa el mapa cambia de tamaño de golpe:
+// se conserva el centro (AutoResize ancla la esquina y lo que se miraba
+// quedaba corrido a un costado).
+function CentroAlCambiarTamano({ clave }: { clave: unknown }) {
+  const map = useMap()
+  const primera = useRef(true)
+  useEffect(() => {
+    if (primera.current) { primera.current = false; return }
+    // getCenter todavía usa el tamaño viejo: es el centro que se veía.
+    const centro = map.getCenter()
+    map.invalidateSize({ pan: false })
+    map.setView(centro, map.getZoom(), { animate: false })
+  }, [map, clave])
+  return null
+}
+
+function InitialView({ vista }: { vista?: ZonaMapa | null }) {
   const map = useMap()
   useEffect(() => {
     // setTimeout corto para que MapContainer termine de medirse antes de
     // invalidateSize (sino el primer render queda con tiles cortadas en flex).
     const t = setTimeout(() => {
       map.invalidateSize()
-      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+      // Al volver a abrir el mapa (celular: lista → mapa) retoma la zona que la
+      // persona estaba mirando; si no movió el mapa, el encuadre de siempre.
+      if (vista) map.setView([vista.lat, vista.lng], vista.zoom)
+      else map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
     }, 200)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -527,59 +546,87 @@ function LocateButton({
   )
 }
 
-// ─── Search in this zone button ──────────────────────────────────────────────
+// ─── La lista sigue al mapa ─────────────────────────────────────────────────
+//
+// Cuando la persona arrastra o hace zoom, el listado pasa a mostrar lo que
+// queda a la vista. Solo cuentan los gestos: los vuelos que hace el propio
+// mapa (encuadre inicial, búsqueda, zona, Centrar, tocar una tarjeta, el
+// autopan del popup) no recortan la lista, porque ya acompañan a los filtros.
+// Si cambia el tamaño (divisor, pantalla completa) y la lista ya seguía al
+// mapa, se recalcula con lo que entra ahora.
 
-function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => void }) {
+const GESTO_MS = 500
+
+function zonaDe(map: L.Map): ZonaMapa | null {
+  const size = map.getSize()
+  // Mapa oculto (0×0): los bordes serían un punto y la lista quedaría vacía.
+  if (size.x === 0 || size.y === 0) return null
+  const b = map.getBounds()
+  const c = map.getCenter()
+  return {
+    south: b.getSouth(), north: b.getNorth(), west: b.getWest(), east: b.getEast(),
+    lat: c.lat, lng: c.lng, zoom: map.getZoom(),
+  }
+}
+
+function ListaSigueMapa({ onZona }: { onZona: (zona: ZonaMapa, soloSiYaSeguia: boolean) => void }) {
   const map = useMap()
-
-  // Listen for external refresh trigger (from bottom refresh button)
+  const onZonaRef = useRef(onZona)
+  onZonaRef.current = onZona
   useEffect(() => {
-    const handler = () => onSearch(map.getBounds())
-    window.addEventListener('si-refresh-bounds', handler)
-    return () => window.removeEventListener('si-refresh-bounds', handler)
-  }, [map, onSearch])
-
-  // Desktop-only: show "Buscar en esta zona" button on map move
-  const [visible, setVisible] = useState(false)
-  const initial = useRef(true)
-
-  useEffect(() => {
-    const handler = () => {
-      if (initial.current) { initial.current = false; return }
-      setVisible(true)
+    const el = map.getContainer()
+    let presionado = false
+    let ultimoGesto = 0
+    let autopan = false
+    let deUsuario = false
+    let tResize: ReturnType<typeof setTimeout> | undefined
+    // Botones propios (Centrar, satélite) y popups no son navegar el mapa.
+    // El zoom de Leaflet son <a>, así que sí cuenta.
+    const esControl = (t: EventTarget | null) => t instanceof Element && !!t.closest('button, .leaflet-popup')
+    const onDown = (e: PointerEvent) => { if (!esControl(e.target)) presionado = true }
+    const onUp = () => { if (presionado) { presionado = false; ultimoGesto = Date.now() } }
+    const onInput = (e: Event) => { if (!esControl(e.target)) ultimoGesto = Date.now() }
+    const onAutopan = () => { autopan = true }
+    const onMoveStart = () => {
+      deUsuario = !autopan && (presionado || Date.now() - ultimoGesto < GESTO_MS)
+      autopan = false
     }
-    map.on('moveend', handler)
-    return () => { map.off('moveend', handler) }
+    const onMoveEnd = () => {
+      if (!deUsuario) return
+      deUsuario = false
+      const z = zonaDe(map)
+      if (z) onZonaRef.current(z, false)
+    }
+    const onResize = () => {
+      clearTimeout(tResize)
+      tResize = setTimeout(() => {
+        const z = zonaDe(map)
+        if (z) onZonaRef.current(z, true)
+      }, 250)
+    }
+    el.addEventListener('pointerdown', onDown, true)
+    window.addEventListener('pointerup', onUp, true)
+    window.addEventListener('pointercancel', onUp, true)
+    el.addEventListener('wheel', onInput, { capture: true, passive: true })
+    el.addEventListener('keydown', onInput, true)
+    map.on('autopanstart', onAutopan)
+    map.on('movestart', onMoveStart)
+    map.on('moveend', onMoveEnd)
+    map.on('resize', onResize)
+    return () => {
+      clearTimeout(tResize)
+      el.removeEventListener('pointerdown', onDown, true)
+      window.removeEventListener('pointerup', onUp, true)
+      window.removeEventListener('pointercancel', onUp, true)
+      el.removeEventListener('wheel', onInput, true)
+      el.removeEventListener('keydown', onInput, true)
+      map.off('autopanstart', onAutopan)
+      map.off('movestart', onMoveStart)
+      map.off('moveend', onMoveEnd)
+      map.off('resize', onResize)
+    }
   }, [map])
-
-  if (!visible) return null
-
-  return (
-    <div className="hidden md:block" style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
-      <button
-        onClick={() => { onSearch(map.getBounds()); setVisible(false) }}
-        style={{
-          background: 'white',
-          color: '#1f2937',
-          fontSize: 13,
-          fontWeight: 600,
-          padding: '8px 16px',
-          borderRadius: 50,
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-        </svg>
-        Buscar en esta zona
-      </button>
-    </div>
-  )
+  return null
 }
 
 // ─── Zona fly-to ────────────────────────────────────────────────────────────
@@ -590,9 +637,18 @@ function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => 
 // maxZoom 15 evita acercarse de más cuando hay pocos puntos pegados.
 // Fallback al centroide de la zona si las propiedades no tienen coords.
 
-function ZonaFlyTo({ zona, properties }: { zona: Zona; properties: TokkoProperty[] }) {
+function ZonaFlyTo({ zona, properties, vistaPropiaRef }: {
+  zona: Zona
+  properties: TokkoProperty[]
+  /** true si la persona ya eligió qué mirar moviendo el mapa: no se la saca. */
+  vistaPropiaRef: React.MutableRefObject<boolean>
+}) {
   const map = useMap()
   useEffect(() => {
+    // Con la lista siguiendo al mapa, re-encuadrar al cambiar un filtro dejaba
+    // el mapa en un lugar y la lista en otro: los filtros nuevos se ven dentro
+    // de la vista que eligió la persona.
+    if (vistaPropiaRef.current) return
     const coords = properties
       .filter(p => p.geo_lat && p.geo_long)
       .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
@@ -618,7 +674,7 @@ function ZonaFlyTo({ zona, properties }: { zona: Zona; properties: TokkoProperty
     }
     // Guarda anti-NaN: no volar si el mapa está oculto (tamaño 0); esperar resize.
     return whenMapSized(map, doFly)
-  }, [map, zona, properties])
+  }, [map, zona, properties, vistaPropiaRef])
   return null
 }
 
@@ -753,7 +809,12 @@ interface Props {
   onDeselect?: () => void
   onOpenDetail?: (id: number) => void
   flyToCenter: FlyToTarget | null
-  onBoundsSearch?: (bounds: L.LatLngBounds) => void
+  /** La persona movió el mapa (o cambió su tamaño y la lista ya lo seguía): el listado muestra esa zona. */
+  onZonaChange?: (zona: ZonaMapa, soloSiYaSeguia: boolean) => void
+  /** Zona que la persona eligió moviendo el mapa (null si no lo movió). */
+  zonaDelMapa?: ZonaMapa | null
+  /** Pantalla completa: al cambiar, el mapa conserva el centro. */
+  pantallaCompleta?: boolean
   activeZona?: Zona | null
   onMapMove?: () => void
   /** Notifica al padre las coords del usuario tras un click en "Centrar". Activa modo cercanía. */
@@ -764,8 +825,10 @@ interface Props {
   busqueda?: string
 }
 
-export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove, onNearbyOrigin, nearbyActive, busqueda }: Props) {
+export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onZonaChange, zonaDelMapa, pantallaCompleta, activeZona, onMapMove, onNearbyOrigin, nearbyActive, busqueda }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  const vistaPropiaRef = useRef(false)
+  vistaPropiaRef.current = zonaDelMapa != null
   const [satellite, setSatellite] = useState(false)
   // true una vez que el usuario eligió capa a mano: el auto-switch deja de decidir
   const satManualRef = useRef(false)
@@ -824,14 +887,15 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       <ZoomControl position="bottomright" />
       <AutoSatellite satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <SatelliteToggle satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
-      <InitialView />
+      <InitialView vista={zonaDelMapa} />
+      <CentroAlCambiarTamano clave={pantallaCompleta} />
       <AutoResize />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
       <ZoomWatcher onZoom={setZoom} />
       <LocateButton onNearbyOrigin={onNearbyOrigin} nearbyActive={nearbyActive} />
-      {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
-      {activeZona && <ZonaFlyTo zona={activeZona} properties={mapped} />}
+      {onZonaChange && <ListaSigueMapa onZona={onZonaChange} />}
+      {activeZona && <ZonaFlyTo zona={activeZona} properties={mapped} vistaPropiaRef={vistaPropiaRef} />}
       <EncuadreBusqueda busqueda={busqueda ?? ''} properties={mapped} />
       {onMapMove && <MapMoveListener onMove={onMapMove} />}
 

@@ -21,3 +21,16 @@ export const DEFAULT_ZOOM = 12
 // una propiedad seleccionada). Pasarlo explícito sirve para reset al
 // encuadre inicial: [DEFAULT_LAT, DEFAULT_LNG, DEFAULT_ZOOM].
 export type FlyToTarget = [number, number] | [number, number, number]
+
+// Lo que la persona dejó a la vista moviendo el mapa: el listado muestra lo que
+// cae adentro de los bordes, y el centro/zoom sirven para volver a abrir el
+// mapa en el mismo lugar (celular: lista → mapa lo vuelve a montar).
+export interface ZonaMapa {
+  south: number
+  north: number
+  west: number
+  east: number
+  lat: number
+  lng: number
+  zoom: number
+}
