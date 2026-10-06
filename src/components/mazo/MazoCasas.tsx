@@ -38,7 +38,7 @@ import { trackEvent } from '@/lib/analytics'
 import { barriosParecidos } from '@/lib/barrios-parecidos'
 import { useAtrasDelMazo } from '@/lib/mazo-atras'
 import { usePantallaCompletaCelu } from '@/lib/pantalla-completa'
-import { type ClienteMazo, avisoVisitaCliente, contactoListo, leerEnviadas, mandarConsulta, reaccionarEnSeleccion, registrarDecision } from '@/lib/mazo-consulta'
+import { type ClienteMazo, avisoVisitaCliente, contactoListo, deshacerDecision, leerEnviadas, mandarConsulta, reaccionarEnSeleccion, registrarDecision } from '@/lib/mazo-consulta'
 import { type EstadoSalida, type QueHacer, cierraElMazo, queHacerAlSalir } from '@/lib/mazo-salida'
 import { contarTinder } from '@/lib/tinder-contador'
 import { haptico } from '@/lib/haptico'
@@ -286,6 +286,7 @@ export default function MazoCasas({
     const ultima = historial[historial.length - 1]
     if (!ultima) return
     setHistorial((h) => h.slice(0, -1))
+    deshacerDecision()
     // Con el link de su asesor, ↺ de una ★ también la saca (si no, queda una visita que no pidió).
     const deshacerVisita = !!cliente && ultima.accion === 'super'
     if (ultima.nueva || deshacerVisita) {

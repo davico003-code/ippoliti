@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { type GuardadaLocal, type ItemFeed, escribirGuardadas, leerGuardadas } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
-import { contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
+import { canalTinder, contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
 
 const CLAVE_CORAZONES = 'si-corazones-contados'
 /**
@@ -11,7 +11,8 @@ const CLAVE_CORAZONES = 'si-corazones-contados'
  */
 function contarCorazon(key: string): void {
   const id = /^n:(\d{1,12})$/.exec(key)?.[1]
-  if (!id) return
+  // La vista previa del asesor (vista=asesor) no es una persona interesada: no va al informe.
+  if (!id || canalTinder() === 'asesor') return
   try {
     const ya = JSON.parse(window.localStorage.getItem(CLAVE_CORAZONES) ?? '[]') as unknown
     const lista = Array.isArray(ya) ? ya.filter((k): k is string => typeof k === 'string') : []

@@ -20,6 +20,10 @@ export function registrarDecision(item: ItemFeed, accion: Decision['accion']): v
   decisiones.push({ key: item.key, accion, precio: item.precio, dorm: item.dorm ?? null, zona: item.zona })
   if (decisiones.length > 200) decisiones.shift()
 }
+/** ↺ deshizo la última: no cuenta (si no, diría "le gustaron 3" con 2 en su link). */
+export function deshacerDecision(): void {
+  decisiones.pop()
+}
 export function deslizadasDeLaVisita(): string | null {
   return resumenDeslizadas(decisiones)
 }
@@ -145,7 +149,8 @@ export function mandarDeslizadasCliente(cliente: ClienteMazo | null): void {
       .then((r) => r.ok)
       .catch(() => false),
   )
-  colaCliente = envio
+  // Mismo tope que los ♥: si este POST se cuelga, los que vienen detrás no esperan más de 8 s.
+  colaCliente = Promise.race([envio, new Promise((r) => window.setTimeout(r, 8000))])
   // Si no llegó, la próxima vez se vuelve a mandar.
   void envio.then((ok) => {
     if (!ok && deslizadasMandadas === texto) deslizadasMandadas = null

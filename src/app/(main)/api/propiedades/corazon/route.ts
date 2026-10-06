@@ -33,14 +33,16 @@ export async function POST(req: Request) {
   }
   if (!(await rateLimit(ip, 'corazon', 30, 60))) return new NextResponse(null, { status: 204 })
   try {
-    await fetch(`${HILO_BASE}/api/public/corazon-web`, {
+    const res = await fetch(`${HILO_BASE}/api/public/corazon-web`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-hilo-ingest-secret': secret },
       body: JSON.stringify({ id }),
       signal: AbortSignal.timeout(4000),
     })
-  } catch {
-    /* best-effort */
+    // Best-effort, pero que quede a la vista si Hilo deja de recibirlos.
+    if (!res.ok && res.status !== 404) console.warn('[corazon] Hilo respondió', res.status)
+  } catch (e) {
+    console.warn('[corazon] Hilo no respondió', e instanceof Error ? e.message : e)
   }
   return new NextResponse(null, { status: 204 })
 }
