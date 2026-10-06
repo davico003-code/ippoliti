@@ -318,7 +318,7 @@ export const TIPOS_HOGAR: { id: TipoHogar; label: string; plural: string; tokkoI
   { id: 'apartment', label: 'Depto', plural: 'departamentos', tokkoIds: [2, 13] },
 ]
 
-/** Precios en dólares que se ofrecen por tipo (un lote de 150 mil es caro; una casa, no). Cada uno busca ±20 % (BANDA_TOPE). */
+/** Atajos de presupuesto por tipo, con la casilla vacía (un lote de 150 mil es caro; una casa, no). */
 export const TOPES_HOGAR: Record<TipoHogar, number[]> = {
   house: [150_000, 250_000, 350_000, 500_000],
   lot: [50_000, 80_000, 120_000, 200_000],
@@ -345,11 +345,12 @@ export function entraEnDorm(dormitorios: number | null | undefined, dormMin: num
 }
 
 /**
- * El precio que elige es un valor, no un techo (David, 5-oct-2026: "si buscan
- * con este valor específico, mostrá hasta un 20 % más y un 20 % para abajo"):
- * 250 mil → de 200 a 300 mil. Igual que Hilo (candidatos.ts → BANDA_TOPE).
+ * SU PRESUPUESTO (David, 6-oct-2026: "preguntarle cuál es su presupuesto y de
+ * su presupuesto mostrarle un 15 % por encima y un 15 % por debajo"): 250 mil →
+ * de 212 a 288 mil. Es el número que escribió, no un botón fijo: no quedan
+ * huecos. Igual que Hilo (candidatos.ts → BANDA_TOPE).
  */
-export const BANDA_TOPE = { min: 0.8, max: 1.2 } as const
+export const BANDA_TOPE = { min: 0.85, max: 1.15 } as const
 
 export function esTipoHogar(v: unknown): v is TipoHogar {
   return v === 'house' || v === 'lot' || v === 'apartment'
@@ -361,12 +362,40 @@ export function textoTope(usd: number): string {
   return `USD ${Math.round(usd / 1000)} mil`
 }
 
-/** El rango que de verdad se busca con ese precio: 250 mil → "entre USD 200 y 300 mil". */
+/** Su presupuesto en el texto que ve y que lee el asesor: "de alrededor de USD 250 mil". */
 export function textoPrecio(tope: number): string {
-  const desde = tope * BANDA_TOPE.min
-  const hasta = tope * BANDA_TOPE.max
-  if (hasta < 1_000_000) return `entre USD ${Math.round(desde / 1000)} y ${Math.round(hasta / 1000)} mil`
-  return `entre ${textoTope(desde)} y ${textoTope(hasta)}`
+  return `de alrededor de ${textoTope(tope)}`
+}
+
+/** Presupuesto típico por tipo (para entender qué quiso decir con "25") y lo que tiene sentido. */
+const PRESUPUESTO_TIPICO: Record<TipoHogar, { tipico: number; min: number; max: number }> = {
+  house: { tipico: 250_000, min: 40_000, max: 5_000_000 },
+  lot: { tipico: 80_000, min: 10_000, max: 3_000_000 },
+  apartment: { tipico: 120_000, min: 25_000, max: 3_000_000 },
+}
+
+/** "250000" → "250.000" (lo que escribe, con puntos). */
+export function formatearPresupuesto(texto: string): string {
+  const d = texto.replace(/\D/g, '').replace(/^0+/, '').slice(0, 9)
+  return d ? Number(d).toLocaleString('es-AR') : ''
+}
+
+/**
+ * Lo que quiso decir mientras escribe (David, 6-oct: "autocompletar fácilmente
+ * cuando está escribiendo"): "25" en casas → 250.000 o 2.500.000; "8" en lotes
+ * → 80.000 u 800.000. La primera es la más probable y es la que se aplica.
+ * Vacío → los atajos del tipo.
+ */
+export function sugerirPresupuestos(texto: string, tipo: TipoHogar): number[] {
+  const d = texto.replace(/\D/g, '').replace(/^0+/, '')
+  if (!d) return TOPES_HOGAR[tipo]
+  const { tipico, min, max } = PRESUPUESTO_TIPICO[tipo]
+  const n = Number(d.slice(0, 9))
+  return [1, 10, 100, 1_000, 10_000, 100_000, 1_000_000]
+    .map((f) => n * f)
+    .filter((v) => v >= min && v <= max)
+    .sort((a, b) => Math.abs(Math.log(a / tipico)) - Math.abs(Math.log(b / tipico)))
+    .slice(0, 2)
 }
 
 const sinAcentos = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -619,14 +648,3 @@ export function idEnSeleccion(key: string): string | null {
   return null
 }
 
-/**
- * El precio que se ofrece más parecido a un presupuesto (links del asesor o de
- * la pauta con un número cualquiera): el que lo contiene con su ±20 %, o el más
- * cercano. Muy por encima del más alto → sin precio (Todos).
- */
-export function topeOfrecido(tipo: TipoHogar, usd: number | null): number | null {
-  if (!usd || !(usd > 0)) return null
-  const topes = TOPES_HOGAR[tipo]
-  if (usd > topes[topes.length - 1] * BANDA_TOPE.max) return null
-  return [...topes].sort((a, b) => Math.abs(Math.log(usd / a)) - Math.abs(Math.log(usd / b)))[0]
-}
