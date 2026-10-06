@@ -56,24 +56,34 @@ function marcarEnviadas(keys: string[]): void {
  * manda nada.
  */
 export type ClienteMazo = { token: string; soloMirar: boolean }
+
+/** Lo que ve después de la ★ con el link de su asesor (cuando el pedido de visita ya llegó, o no). */
+export function avisoVisitaCliente(ok: boolean, cliente: ClienteMazo): string {
+  if (cliente.soloMirar) return 'Vista del asesor: esto no se manda.'
+  return ok ? 'Listo: le avisamos a tu asesor para coordinar la visita.' : 'No pudimos avisarle a tu asesor. Probá de nuevo en un rato.'
+}
 let colaCliente: Promise<unknown> = Promise.resolve()
 
 export function reaccionarEnSeleccion(
   cliente: ClienteMazo,
   item: Pick<ItemFeed, 'key'> & Partial<Pick<ItemFeed, 'titulo' | 'fotos' | 'zona' | 'precio' | 'dorm' | 'm2'>>,
-  accion: 'like' | 'super' | 'deshacer',
+  /** 'deshacer' = ↺ de un ♥ · 'deshacer-visita' = ↺ de una ★ (si no, al asesor le queda una visita que el cliente no pidió). */
+  accion: 'like' | 'super' | 'deshacer' | 'deshacer-visita',
 ): Promise<boolean> {
   const propertyId = idEnSeleccion(item.key)
   if (!propertyId) return Promise.resolve(false)
+  const deshace = accion === 'deshacer' || accion === 'deshacer-visita'
   const anotar = (ok: boolean) => {
-    if (ok) (accion === 'deshacer' ? desmarcarEnviadas : marcarEnviadas)([item.key])
+    if (ok) (deshace ? desmarcarEnviadas : marcarEnviadas)([item.key])
     return ok
   }
   if (cliente.soloMirar) return Promise.resolve(anotar(true))
   const cuerpo =
     accion === 'deshacer'
       ? { propertyId, liked: null, reaction: null }
-      : {
+      : accion === 'deshacer-visita'
+        ? { propertyId, liked: null, reaction: null, wantVisit: false }
+        : {
           propertyId,
           liked: true,
           reaction: 'encanta',

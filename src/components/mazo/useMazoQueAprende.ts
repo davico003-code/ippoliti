@@ -15,6 +15,7 @@ export function useMazoQueAprende({
   todos,
   historial,
   indice,
+  insertarEn,
   activo,
 }: {
   /** Las casas que le pasaron al mazo: si cambian, el orden aprendido no vale más. */
@@ -23,11 +24,13 @@ export function useMazoQueAprende({
   todos: ItemFeed[]
   historial: readonly Decision[]
   indice: number
+  /** Dónde se sumaron las de los barrios parecidos (fijo; null = no hay). */
+  insertarEn: number | null
   activo: boolean
 }): ItemFeed[] {
   const [orden, setOrden] = useState<{ para: ItemFeed[]; keys: string[] } | null>(null)
   const vigente = activo && orden?.para === items ? orden.keys : null
-  const mazo = useMemo(() => aplicarOrden(todos, vigente, indice), [todos, vigente, indice])
+  const mazo = useMemo(() => aplicarOrden(todos, vigente, insertarEn ?? indice), [todos, vigente, insertarEn, indice])
   const vistas = useRef(new WeakSet<Decision>())
 
   useEffect(() => {

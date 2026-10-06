@@ -596,15 +596,16 @@ export function ordenarPorGusto<T extends Rasgos>(resto: T[], decididas: { item:
 
 /**
  * Aplica un orden guardado (keys) a las casas actuales. Las que llegaron
- * después (barrios parecidos) van donde está parado: son las próximas.
+ * después (barrios parecidos) van en `en`: el lugar FIJO donde se sumaron (no
+ * donde está parado ahora, que se mueve: se repetía una y se perdía otra).
  */
-export function aplicarOrden<T extends { key: string }>(todos: T[], orden: readonly string[] | null, indice: number): T[] {
+export function aplicarOrden<T extends { key: string }>(todos: T[], orden: readonly string[] | null, en: number): T[] {
   if (!orden) return todos
   const porKey = new Map(todos.map((t) => [t.key, t]))
   const conocidas = orden.map((k) => porKey.get(k)).filter((t): t is T => !!t)
   const enOrden = new Set(orden)
   const nuevas = todos.filter((t) => !enOrden.has(t.key))
-  return [...conocidas.slice(0, indice), ...nuevas, ...conocidas.slice(indice)]
+  return [...conocidas.slice(0, en), ...nuevas, ...conocidas.slice(en)]
 }
 
 // ── TINDER DEL CLIENTE (David, 5-oct-2026): el asesor le manda el link con

@@ -289,3 +289,10 @@ test('aprende: tres ✕ a casas caras no hacen subir las baratas si le gustó un
   const orden = ordenarPorGusto(resto, decididas).map((c) => c.key)
   assert.deepEqual(orden.slice(0, 2), ['aguadas', 'miraflores'])
 })
+
+test('aprende: las sumadas en el medio quedan fijas aunque avance (no se repite una ni se pierde otra)', () => {
+  const todos = ['a', 'b', 'c', 'd', 'e', 'x', 'y'].map((key) => ({ key }))
+  const orden = ['a', 'b', 'c', 'd', 'e']
+  // Se sumaron x, y cuando estaba en la 3ª (índice 2): siguen ahí aunque ya esté en la 4ª o vuelva a la 2ª.
+  for (const indice of [1, 2, 3, 4]) assert.deepEqual(aplicarOrden(todos, orden, 2).map((t) => t.key), ['a', 'b', 'x', 'y', 'c', 'd', 'e'], `indice ${indice}`)
+})

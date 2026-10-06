@@ -38,7 +38,7 @@ import { trackEvent } from '@/lib/analytics'
 import { barriosParecidos } from '@/lib/barrios-parecidos'
 import { useAtrasDelMazo } from '@/lib/mazo-atras'
 import { usePantallaCompletaCelu } from '@/lib/pantalla-completa'
-import { type ClienteMazo, contactoListo, leerEnviadas, mandarConsulta, reaccionarEnSeleccion } from '@/lib/mazo-consulta'
+import { type ClienteMazo, avisoVisitaCliente, contactoListo, leerEnviadas, mandarConsulta, reaccionarEnSeleccion } from '@/lib/mazo-consulta'
 import { type EstadoSalida, type QueHacer, cierraElMazo, queHacerAlSalir } from '@/lib/mazo-salida'
 import { contarTinder } from '@/lib/tinder-contador'
 import { haptico } from '@/lib/haptico'
@@ -129,7 +129,7 @@ export default function MazoCasas({
   /** Para ↺: cada decisión, con si el ♥ fue nuevo (si ya estaba guardada de antes, volver no se la saca). */
   const [historial, setHistorial] = useState<{ indice: number; accion: Salida; key: string; nueva: boolean }[]>([])
   const [indice, setIndice] = useState(() => Math.min(Math.max(0, inicio), items.length))
-  const todos = useMazoQueAprende({ items, todos: base, historial, indice, activo: aprender })
+  const todos = useMazoQueAprende({ items, todos: base, historial, indice, insertarEn: insercion?.en ?? null, activo: aprender })
   const conFotos = useAlbumMazo(todos)
   // Se abrió directo en las elegidas (botón de la fila de la compu): no "las vio todas".
   const [directoAlFinal, setDirectoAlFinal] = useState(() => inicio >= items.length)
@@ -243,7 +243,8 @@ export default function MazoCasas({
       } else {
         guardar(actual)
         pasesSeguidos.current = 0
-        if (cliente) void reaccionarEnSeleccion(cliente, actual, accion).then(refrescarEnviadas)
+        // La ★ avisa cuando de verdad llegó (si no, al salir le pedimos los datos: hay respaldo).
+        if (cliente) void reaccionarEnSeleccion(cliente, actual, accion).then((ok) => (refrescarEnviadas(), accion === 'super' && setAviso(avisoVisitaCliente(ok, cliente))))
       }
       haptico(accion !== 'pass')
       // 4 seguidas con ✕ y ninguna guardada: no es lo que busca → rescate.
@@ -255,9 +256,9 @@ export default function MazoCasas({
         contarTinder('quiero_verla', origen)
         trackEvent('feed_en_red_quiero_verla', { tipo: actual.esNuestra ? 'nuestra' : 'en_red' })
         const contacto = contactoListo()
-        if (cliente) setAviso(cliente.soloMirar ? 'Vista del asesor: esto no se manda.' : 'Listo: le avisamos a tu asesor para coordinar la visita.')
-        else if (contacto) pedirVisitaDirecto(contacto, actual)
-        else abrirVisita = { item: actual }
+        // Con el link de su asesor ya fue a su selección (arriba), sin pedirle datos.
+        if (!cliente && contacto) pedirVisitaDirecto(contacto, actual)
+        else if (!cliente) abrirVisita = { item: actual }
       }
       setSalida(accion)
       setVistas((v) => Math.max(v, indice + 1))
@@ -283,9 +284,11 @@ export default function MazoCasas({
     const ultima = historial[historial.length - 1]
     if (!ultima) return
     setHistorial((h) => h.slice(0, -1))
-    if (ultima.nueva) {
+    // Con el link de su asesor, ↺ de una ★ también la saca (si no, queda una visita que no pidió).
+    const deshacerVisita = !!cliente && ultima.accion === 'super'
+    if (ultima.nueva || deshacerVisita) {
       quitar(ultima.key)
-      if (cliente) void reaccionarEnSeleccion(cliente, { key: ultima.key }, 'deshacer').then(refrescarEnviadas)
+      if (cliente) void reaccionarEnSeleccion(cliente, { key: ultima.key }, deshacerVisita ? 'deshacer-visita' : 'deshacer').then(refrescarEnviadas)
     }
     if (ultima.accion === 'pass') pasesSeguidos.current = Math.max(0, pasesSeguidos.current - 1)
     setIndice(ultima.indice)
