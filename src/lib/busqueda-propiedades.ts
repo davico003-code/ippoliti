@@ -319,7 +319,8 @@ const ZONAS_CERRADAS: string[] = ZONAS
     'aldea funes', 'tierra de suenos', 'tierra de suenos 1', 'tds 1', 'tds1'].includes(f))
 
 // Barrios cerrados que el catálogo de zonas no nombra como en los avisos.
-const CERRADOS_EXTRA = ['puerto roldan', 'los molinos', 'el molino', 'don mateo', 'funes lakes', 'cotos de la alameda',
+// Cotos de la Alameda NO: es abierto (David, 6-oct-2026).
+const CERRADOS_EXTRA = ['puerto roldan', 'los molinos', 'el molino', 'don mateo', 'funes lakes',
   'aurea', 'kentucky', 'palos verdes', 'aldea fisherton', 'country golf', 'miraflores', 'san sebastian', 'vida']
 
 const NO_LUGAR = new Set(['santa', 'fe', 'argentina', 'countries', 'cerrado', 'b', 'barrio', 'abierto', 'de', 'la',

@@ -234,11 +234,12 @@ const FUNES: Zona[] = [
     aliases: [],
   },
   {
+    // Es de Roldán y abierto (David, 6-oct-2026); el id queda por compatibilidad.
     id: 'funes-cotos-alameda',
     nombre: 'Cotos de la Alameda',
-    ciudad: 'Funes',
-    tipo: 'barrio_cerrado',
-    centro: { lat: -32.9240, lng: -60.8270 },
+    ciudad: 'Roldán',
+    tipo: 'barrio',
+    centro: { lat: -32.9070, lng: -60.8760 },
     aliases: ['Cotos', 'Alameda'],
   },
   {
