@@ -13,8 +13,8 @@ export function redIdDe(propertyId: string): string | null {
 export async function pedirAHilo(
   token: string,
   redId: string,
-  accion: 'ficha' | 'sumar' | 'parecidas',
-): Promise<{ ok: boolean; status: number; url?: string; tarjetas?: unknown[] }> {
+  accion: 'ficha' | 'sumar',
+): Promise<{ ok: boolean; status: number; url?: string }> {
   const secret = process.env.HILO_INGEST_SECRET
   if (!secret) return { ok: false, status: 503 }
   const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
@@ -26,12 +26,11 @@ export async function pedirAHilo(
       cache: 'no-store',
       signal: AbortSignal.timeout(12000),
     })
-    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; url?: string; tarjetas?: unknown[] }
+    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; url?: string }
     return {
-      ok: res.ok && (accion === 'ficha' ? !!data.url : accion === 'parecidas' ? Array.isArray(data.tarjetas) : data.ok !== false),
+      ok: res.ok && (accion === 'ficha' ? !!data.url : data.ok !== false),
       status: res.status,
       url: data.url,
-      tarjetas: data.tarjetas,
     }
   } catch {
     return { ok: false, status: 504 }

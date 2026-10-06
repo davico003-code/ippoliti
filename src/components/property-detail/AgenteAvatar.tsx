@@ -21,6 +21,7 @@ export default function AgenteAvatar({
   fontFamily,
   size = 96,
   className = '',
+  conFoto = false,
 }: {
   name: string
   picture: string | null | undefined
@@ -29,6 +30,12 @@ export default function AgenteAvatar({
   fontFamily: string
   size?: number
   className?: string
+  /**
+   * La foto de portada mientras el video carga (el video arranca en esa misma
+   * foto, así que no se nota el cambio). Para las fotos grandes de la
+   * selección: sin portada se veía un círculo gris hasta que bajaba.
+   */
+  conFoto?: boolean
 }) {
   const video = picture ? getAgenteVideo(name) : null
   // La foto original pesa 200-330 KB; para un círculo de 96 px alcanza la
@@ -101,6 +108,7 @@ export default function AgenteAvatar({
         muted
         playsInline
         preload="none"
+        poster={conFoto ? foto.src : undefined}
         aria-label={name}
         width={size}
         height={size}

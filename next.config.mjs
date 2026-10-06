@@ -121,6 +121,11 @@ const nextConfig = {
       // sirven directo del CDN del portal (ver isExternalCdn en HeroGallery).
       { protocol: 'https', hostname: '*.zonapropcdn.com' },
       { protocol: 'https', hostname: '*.naventcdn.com' },
+      // Colegas de la Red Propia EN VIVO en la selección del cliente (Rosario):
+      // las originales pesan 1-2 MB; optimizadas, como las de Tokko.
+      { protocol: 'https', hostname: 'propia-assets-v2.nyc3.cdn.digitaloceanspaces.com' },
+      { protocol: 'https', hostname: 'propia-assets-v2.nyc3.digitaloceanspaces.com' },
+      { protocol: 'https', hostname: 'storage.googleapis.com', pathname: '/portales-prod-images/**' },
     ],
   },
 };

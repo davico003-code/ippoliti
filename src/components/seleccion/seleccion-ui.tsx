@@ -5,6 +5,7 @@
 
 import Image from 'next/image'
 import { BedDouble, Bath, Flame, Ruler } from 'lucide-react'
+import AgenteAvatar from '@/components/property-detail/AgenteAvatar'
 import { displayImageUrl } from '@/lib/external-images'
 import { estiloSinLogo, type PosicionLogo } from '@/lib/feed-en-red'
 import type { SeleccionItem } from '@/lib/seleccion'
@@ -64,8 +65,17 @@ export const LINEA_EN_RED = 'Algunas las publican otras inmobiliarias. Te las mo
 // de portales/proxy van directo, como en la ficha.
 function optimizable(src: string): boolean {
   try {
-    const h = new URL(src).hostname
-    return h.endsWith('.supabase.co') || h.endsWith('.public.blob.vercel-storage.com') || h.endsWith('tokkobroker.com')
+    const u = new URL(src)
+    const h = u.hostname
+    return (
+      h.endsWith('.supabase.co') ||
+      h.endsWith('.public.blob.vercel-storage.com') ||
+      h.endsWith('tokkobroker.com') ||
+      // Red Propia en vivo (colegas de Rosario en las parecidas).
+      h === 'propia-assets-v2.nyc3.cdn.digitaloceanspaces.com' ||
+      h === 'propia-assets-v2.nyc3.digitaloceanspaces.com' ||
+      (h === 'storage.googleapis.com' && u.pathname.startsWith('/portales-prod-images/'))
+    )
   } catch {
     return false
   }
@@ -129,5 +139,25 @@ export function Avatar({ foto, nombre, size }: { foto?: string | null; nombre: s
     >
       {iniciales(nombre)}
     </span>
+  )
+}
+
+/**
+ * La cara del asesor, grande (David, 6-oct: "la foto de Gisela más
+ * protagonista"): con su video de saludo si lo tiene, como la burbuja de la
+ * ficha. El cliente sabe con quién está hablando antes de mirar una casa.
+ */
+export function FotoAsesor({ foto, nombre, size }: { foto?: string | null; nombre: string; size: number }) {
+  return (
+    <AgenteAvatar
+      name={nombre}
+      picture={foto}
+      initials={iniciales(nombre)}
+      bg={VERDE}
+      fontFamily="var(--font-raleway), Raleway, system-ui, sans-serif"
+      size={size}
+      conFoto
+      className="shadow-[0_10px_30px_-12px_rgba(16,40,28,0.55)] ring-4 ring-white"
+    />
   )
 }

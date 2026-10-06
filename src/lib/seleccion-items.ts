@@ -6,10 +6,9 @@
 // Las de colegas (Red Propia / MELI) llegan desde HILO con su ficha neutra ya
 // armada (verficha): de ahí salen TODAS sus fotos y datos, no solo la portada.
 //
-// También el motor de "parecidas": cuando al cliente no le cierra ninguna, le
-// ofrecemos otras nuestras (mismo criterio que "Propiedades similares" de la
-// ficha) y de la red En red de HILO (Red Propia + MELI, las más vistas
-// primero), intercaladas.
+// Las "parecidas" (cuando no le cierra ninguna) y "Buscá con IA" las elige
+// HILO (/api/public/seleccion-parecidas): banda −10/+15 sobre lo que le
+// mostraron y nuestras + de colegas en un solo orden. Acá solo se arman.
 
 import {
   generatePropertySlug,
@@ -18,20 +17,16 @@ import {
   getProperties,
   getPropertyById,
   mostrarPrecio,
-  operacionPrincipal,
   sanitizeProperty,
   tituloVisible,
-  type TokkoOperation,
   type TokkoProperty,
 } from './tokko'
 import { applyPropertySeoOverride } from './seoOverrides'
 import { formatDireccionCompleta } from './ubicacion'
-import { geocodeZona } from './geocode'
-import { haversineDistance } from './geo'
 import { parsePropertyLabel, type SeleccionItem } from './seleccion'
 import type { SeleccionProperty } from './redis'
 import { getFicha, type Ficha } from './ficha'
-import { pedirAHilo, redIdDe } from './seleccion-red'
+import { redIdDe } from './seleccion-red'
 import type { PosicionLogo } from './feed-en-red'
 
 /** Propiedad tal como está guardada en `seleccion:{token}`. */
@@ -255,166 +250,9 @@ export async function propiedadSugerida(id: number): Promise<SeleccionProperty |
   }
 }
 
-/* ── Parecidas ── */
+/* ── Parecidas y "Buscá con IA" (las elige HILO) ── */
 
-const TIPO_POR_PALABRA: [RegExp, number][] = [
-  [/\bcasa quinta\b|\bquinta\b/i, 4],
-  [/\bdepartamento\b|\bdepto\b|\bmonoambiente\b/i, 2],
-  [/\bph\b/i, 13],
-  [/\bterreno\b|\blote\b/i, 1],
-  [/\bcasa\b|\bchalet\b|\bd[uú]plex\b/i, 3],
-  [/\blocal\b/i, 7],
-  [/\boficina\b/i, 5],
-  [/\bgalp[oó]n\b/i, 12],
-  [/\bcochera\b/i, 10],
-]
-
-// Galpón viene con dos ids de Tokko (ver TYPE_FILTER_GROUPS).
-const mismoTipo = (a: number, b: number) => a === b || (a === 12 && b === 24) || (a === 24 && b === 12)
-
-function tipoDeTitulo(titulo: string): number | null {
-  for (const [re, id] of TIPO_POR_PALABRA) if (re.test(titulo)) return id
-  return null
-}
-
-function precioDeTexto(texto: string | null | undefined): { monto: number; moneda: string } | null {
-  const m = /(USD|U\$S|US\$|ARS|\$)\s*([\d.,]+)/i.exec(texto ?? '')
-  if (!m) return null
-  const monto = Number(m[2].replace(/[.,](?=\d{3}(\D|$))/g, '').replace(',', '.'))
-  if (!Number.isFinite(monto) || monto <= 0) return null
-  const moneda = /^(usd|u\$s|us\$)$/i.test(m[1]) ? 'USD' : 'ARS'
-  return { monto, moneda }
-}
-
-const mediana = (xs: number[]): number | null => {
-  if (xs.length === 0) return null
-  const s = [...xs].sort((a, b) => a - b)
-  const mid = Math.floor(s.length / 2)
-  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2
-}
-
-type Coord = { lat: number; lng: number }
-
-function coordsDe(d: Pick<TokkoProperty, 'geo_lat' | 'geo_long'>): Coord | null {
-  const lat = d.geo_lat ? parseFloat(d.geo_lat) : NaN
-  const lng = d.geo_long ? parseFloat(d.geo_long) : NaN
-  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null
-}
-
-/**
- * Parecidas a la selección, para el cliente al que no le cerró ninguna (o que
- * quiere ver más). Perfil: lo que le gustó; si no le gustó nada, toda la
- * selección (describe lo que busca aunque esas puntuales no le cerraran).
- * Filtros duros: operación, tipo y precio dentro de 0,5–1,6 de la mediana.
- * Puntaje: precio, dormitorios y cercanía (igual que /api/propiedades/similar).
- */
-export async function similaresDeSeleccion(
-  props: SelProp[],
-  reacciones: Record<string, { liked?: boolean | null } | undefined>,
-  excluir: Set<string>,
-  limit: number,
-): Promise<SeleccionItem[]> {
-  const todas = ((await getProperties()).objects ?? []).map(sanitizeProperty)
-  const porId = new Map(todas.map((d) => [d.id, d]))
-
-  const gustaron = props.filter((p) => reacciones[p.id]?.liked === true)
-  const base = gustaron.length > 0 ? gustaron : props
-
-  const ops = new Set<TokkoOperation['operation_type']>()
-  const tipos = new Set<number>()
-  const precios: { monto: number; moneda: string }[] = []
-  const dorms: number[] = []
-  const coords: Coord[] = []
-
-  for (const p of base) {
-    const id = idPropio(p)
-    const d = id != null ? porId.get(id) : undefined
-    if (d) {
-      const op = operacionPrincipal(d)
-      if (op) ops.add(op.operation_type)
-      if (d.type?.id != null) tipos.add(d.type.id)
-      const pr = op?.prices?.find((x) => x.price > 0)
-      if (pr) precios.push({ monto: pr.price, moneda: pr.currency })
-      const dm = d.suite_amount || d.room_amount || 0
-      if (dm > 0) dorms.push(dm)
-      const c = coordsDe(d)
-      if (c) coords.push(c)
-      continue
-    }
-    const s = p.snapshot
-    if (!s) continue
-    const tipo = tipoDeTitulo(s.title ?? '')
-    if (tipo != null) tipos.add(tipo)
-    const pr = precioDeTexto(s.price)
-    if (pr) {
-      precios.push(pr)
-      ops.add(pr.moneda === 'USD' ? 'Sale' : 'Rent')
-    }
-    if (s.rooms) dorms.push(s.rooms)
-    const c = s.lat != null && s.lng != null ? { lat: s.lat, lng: s.lng } : await geocodeZona(s.location)
-    if (c) coords.push(c)
-  }
-  if (ops.size === 0) ops.add('Sale')
-
-  // Precio de referencia en la moneda que más aparece.
-  const conteo = new Map<string, number>()
-  for (const p of precios) conteo.set(p.moneda, (conteo.get(p.moneda) ?? 0) + 1)
-  const moneda = Array.from(conteo.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
-  const precioRef = mediana(precios.filter((p) => p.moneda === moneda).map((p) => p.monto))
-  const dormRef = mediana(dorms)
-
-  const enSeleccion = new Set(props.map((p) => idPropio(p)).filter((x): x is number => x != null))
-
-  const puntuadas: { d: TokkoProperty; score: number }[] = []
-  for (const d of todas) {
-    if (enSeleccion.has(d.id) || excluir.has(String(d.id))) continue
-    if (!d.photos?.some((f) => !f.is_blueprint)) continue
-    const op = (d.operations ?? []).find((o) => ops.has(o.operation_type))
-    if (!op) continue
-    if (tipos.size > 0 && !(d.type?.id != null && Array.from(tipos).some((t) => mismoTipo(t, d.type.id!)))) continue
-
-    let score = 0
-    const pr = op.prices?.find((x) => x.currency === moneda && x.price > 0)
-    if (precioRef && pr) {
-      const ratio = pr.price / precioRef
-      if (ratio < 0.5 || ratio > 1.6) continue
-      score += ratio >= 0.75 && ratio <= 1.3 ? 3 : 1
-    }
-
-    const dm = d.suite_amount || d.room_amount || 0
-    if (dormRef && dm > 0) {
-      const dif = Math.abs(dm - dormRef)
-      if (dif < 1) score += 2
-      else if (dif <= 1) score += 1
-    }
-
-    const c = coordsDe(d)
-    if (coords.length > 0 && c) {
-      const km = Math.min(...coords.map((o) => haversineDistance(o.lat, o.lng, c.lat, c.lng)))
-      if (km > 40) continue
-      if (km < 2) score += 4
-      else if (km < 5) score += 2
-      else if (km < 15) score += 1
-    }
-
-    if (score >= 2) puntuadas.push({ d, score })
-  }
-
-  return puntuadas
-    .sort((a, b) => b.score - a.score || b.d.id - a.d.id)
-    .slice(0, limit)
-    .map(({ d }) =>
-      itemDePropiedad(
-        applyPropertySeoOverride(d),
-        { id: String(d.id), url: `https://siinmobiliaria.com/propiedad/${d.id}` },
-        true,
-      ),
-    )
-}
-
-/* ── Parecidas En red (Red Propia + MELI, las elige HILO) ── */
-
-/** Lo que HILO manda de cada una (/api/public/en-red). Sin dirección, inmobiliaria ni descripción. */
+/** Lo que HILO manda de cada una de colegas. Sin inmobiliaria, teléfonos ni descripción. */
 type TarjetaEnRed = {
   /** `propia:455077` / `meli:MLA…` */
   id: string
@@ -433,28 +271,18 @@ type TarjetaEnRed = {
   logo?: PosicionLogo | null
 }
 
-/**
- * Las de colegas parecidas a UNA nuestra: mismo tipo, precio 0,7–1,35, mismo
- * barrio o a menos de 2,5 km, sin repetidas, las más vistas primero (el mismo
- * motor del feed "En red" de la ficha). Servidor a servidor con el secreto de
- * HILO; 15 min de cache. Si HILO no responde, simplemente no hay En red.
- */
-async function enRedDe(idPublico: number): Promise<TarjetaEnRed[]> {
-  const secret = process.env.HILO_INGEST_SECRET
-  if (!secret) return []
-  const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
-  try {
-    const res = await fetch(`${base}/api/public/en-red?id=${idPublico}`, {
-      headers: { 'x-hilo-ingest-secret': secret },
-      next: { revalidate: 900 },
-      signal: AbortSignal.timeout(6000),
-    })
-    if (!res.ok) return []
-    const data = (await res.json()) as { tarjetas?: TarjetaEnRed[] }
-    return Array.isArray(data.tarjetas) ? data.tarjetas.filter((t) => t?.id && t.fotos?.length) : []
-  } catch {
-    return []
-  }
+type ItemHilo = { origen: 'nuestra'; id: number } | { origen: 'red'; tarjeta: TarjetaEnRed }
+
+export type MotivoSinParecidas = 'no_entendi' | 'falta_tipo' | 'falta_precio' | 'falta_zona' | 'sin_referencia'
+
+export interface ParecidasSeleccion {
+  /** Con qué se buscó, en una línea ("Departamentos · 2+ dorm. · Pichincha · USD 145–190 mil"). */
+  resumen: string | null
+  items: SeleccionItem[]
+  /** Zonas que escribió y HILO no conoce. */
+  noEncontradas: string[]
+  /** Por qué no hay nada que mostrar (para decirle qué tocar). */
+  motivo: MotivoSinParecidas | null
 }
 
 function itemDeTarjetaRed(t: TarjetaEnRed): SeleccionItem {
@@ -481,71 +309,57 @@ function itemDeTarjetaRed(t: TarjetaEnRed): SeleccionItem {
   }
 }
 
-/** Las En red parecidas a una de la RED que está en la selección (la referencia la arma HILO). */
-async function enRedDesdeRed(token: string, redId: string): Promise<TarjetaEnRed[]> {
-  const r = await pedirAHilo(token, redId, 'parecidas')
-  if (!r.ok || !Array.isArray(r.tarjetas)) return []
-  return (r.tarjetas as TarjetaEnRed[]).filter((t) => t?.id && t.fotos?.length)
-}
-
-async function parecidasEnRed(
+/**
+ * Las parecidas a la selección (sin `texto`) o lo que buscó con IA (con
+ * `texto`). HILO decide todo —la banda −10/+15 sobre lo que le mostraron
+ * (David, 6-oct), nuestras y de colegas en un solo orden— y acá solo se
+ * arman las tarjetas: las nuestras desde el feed (ya en cache), las de colegas
+ * tal cual llegan. `excluir` = las que ya vio o descartó.
+ */
+export async function pedirParecidas(
   token: string,
-  props: SelProp[],
-  reacciones: Record<string, { liked?: boolean | null } | undefined>,
-  excluir: Set<string>,
-  limit: number,
-): Promise<SeleccionItem[]> {
-  // Referencias: lo que le gustó; si no le gustó nada, toda la selección.
-  // Una nuestra pide por su id; una de la red, por su aviso. Hasta 3.
-  const gustaron = props.filter((p) => reacciones[p.id]?.liked === true)
-  const pedidos: Promise<TarjetaEnRed[]>[] = []
-  const usadas = new Set<string>()
-  for (const p of gustaron.length > 0 ? gustaron : props) {
-    if (pedidos.length >= 3) break
-    const propio = idPropio(p)
-    const red = propio == null ? redIdDe(p.id) : null
-    const clave = propio != null ? `n:${propio}` : red
-    if (!clave || usadas.has(clave)) continue
-    usadas.add(clave)
-    pedidos.push(propio != null ? enRedDe(propio) : enRedDesdeRed(token, red!))
+  { texto = null, excluir = [], soloMirar = false }: { texto?: string | null; excluir?: string[]; soloMirar?: boolean } = {},
+): Promise<ParecidasSeleccion> {
+  const vacio: ParecidasSeleccion = { resumen: null, items: [], noEncontradas: [], motivo: null }
+  const secret = process.env.HILO_INGEST_SECRET
+  if (!secret) return vacio
+  const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
+  const res = await fetch(`${base}/api/public/seleccion-parecidas`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-hilo-ingest-secret': secret },
+    // soloMirar: el asesor probando desde Hilo (?vista=asesor) no queda como búsqueda del cliente.
+    body: JSON.stringify({ token, excluir, ...(texto ? { texto } : {}), ...(soloMirar ? { soloMirar: true } : {}) }),
+    cache: 'no-store',
+    // Con IA: Haiku + la Red Propia en vivo (HILO le pone 3 s de tope).
+    signal: AbortSignal.timeout(texto ? 15_000 : 10_000),
+  })
+  if (res.status === 429) throw new Error('limite')
+  if (!res.ok) throw new Error(`HILO respondió ${res.status}`)
+  const data = (await res.json()) as {
+    resumen?: string | null
+    items?: ItemHilo[]
+    noEncontradas?: string[]
+    motivo?: MotivoSinParecidas | null
   }
-  if (pedidos.length === 0) return []
-  const listas = await Promise.all(pedidos)
 
-  const enSeleccion = new Set(props.map((p) => p.id))
-  const vistas = new Set<string>()
-  const salida: SeleccionItem[] = []
-  // De a una por referencia, así todas aportan.
-  for (let i = 0; i < 8; i++) {
-    for (const lista of listas) {
-      const t = lista[i]
-      if (!t) continue
-      const id = `red:${t.id}`
-      if (vistas.has(id) || enSeleccion.has(id) || excluir.has(id)) continue
-      vistas.add(id)
-      salida.push(itemDeTarjetaRed(t))
-    }
+  const pedidas = (data.items ?? []).filter((i) => i.origen === 'nuestra').map((i) => (i as { id: number }).id)
+  const porId = new Map<number, TokkoProperty>()
+  if (pedidas.length) {
+    const todas = (await getProperties()).objects ?? []
+    const buscadas = new Set(pedidas)
+    for (const d of todas) if (buscadas.has(d.id)) porId.set(d.id, sanitizeProperty(d))
   }
-  // David: "que la persona tenga las casas más vistas" → las más vistas adelante.
-  return salida.sort((a, b) => Number(b.masVista) - Number(a.masVista)).slice(0, limit)
-}
-
-/** Nuestras y En red intercaladas (nuestra, En red, nuestra…). */
-export async function parecidasDeSeleccion(
-  token: string,
-  props: SelProp[],
-  reacciones: Record<string, { liked?: boolean | null } | undefined>,
-  excluir: Set<string>,
-  limit: number,
-): Promise<SeleccionItem[]> {
-  const [propias, red] = await Promise.all([
-    similaresDeSeleccion(props, reacciones, excluir, limit).catch(() => [] as SeleccionItem[]),
-    parecidasEnRed(token, props, reacciones, excluir, limit).catch(() => [] as SeleccionItem[]),
-  ])
-  const salida: SeleccionItem[] = []
-  for (let i = 0; i < limit && salida.length < limit; i++) {
-    if (propias[i]) salida.push(propias[i])
-    if (red[i] && salida.length < limit) salida.push(red[i])
+  const items = (data.items ?? []).flatMap((i): SeleccionItem[] => {
+    if (i.origen === 'red') return i.tarjeta?.id && i.tarjeta.fotos?.length ? [itemDeTarjetaRed(i.tarjeta)] : []
+    const d = porId.get(i.id)
+    // Sin una foto que no sea plano, no se ofrece (como en la ficha).
+    if (!d || !d.photos?.some((f) => !f.is_blueprint)) return []
+    return [itemDePropiedad(applyPropertySeoOverride(d), { id: String(d.id), url: `https://siinmobiliaria.com/propiedad/${d.id}` }, true)]
+  })
+  return {
+    resumen: data.resumen ?? null,
+    items,
+    noEncontradas: Array.isArray(data.noEncontradas) ? data.noEncontradas.slice(0, 4) : [],
+    motivo: data.motivo ?? null,
   }
-  return salida
 }
