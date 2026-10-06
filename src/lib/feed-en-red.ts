@@ -69,6 +69,8 @@ export type ItemFeed = {
   esLote?: boolean
   /** Solo en "Cerca mío": metros desde donde está la persona ("a 1,2 km" en la tarjeta). */
   distanciaM?: number | null
+  /** Precio de venta en dólares (el mazo que aprende compara precios). */
+  precioUsd?: number | null
 }
 
 const m2Texto = (n: number) => `${Math.round(n).toLocaleString('es-AR')} m²`
@@ -176,6 +178,7 @@ export function itemDeEnRed(t: TarjetaEnRed): ItemFeed {
     ...superficiesTarjeta({ tipo: tipoHogarDeTexto(t.tipo), total: t.m2Total, cubierta: t.m2Cubiertos, lote: t.m2Lote }),
     esLote: tipoHogarDeTexto(t.tipo) === 'lot',
     distanciaM: t.distanciaM ?? null,
+    precioUsd: t.precioUsd,
   }
 }
 
@@ -540,4 +543,89 @@ export function parsearCriteriosWeb(raw: unknown): CriteriosBusqueda | null {
     barrio: barrioHogarValido(r.barrio),
     origen: r.origen === 'ficha' ? 'ficha' : 'conoce_tu_hogar',
   }
+}
+
+// ── EL MAZO QUE APRENDE (David, 5-oct-2026: "que el mazo aprenda mientras
+// desliza"). Con lo que ya decidió se reordenan las que FALTAN: primero las
+// que se parecen a las que le gustaron (barrio, precio, dormitorios, metros).
+// Manda el ♥ (la ★ pesa más); el ✕ resta poco, solo para desempatar: un ✕ es
+// "esta no", no "nada así" (con tres ✕ a casas caras y un ♥ a una de 455 mil,
+// pesando igual, subían las de 150 mil que no se parecen a nada). Sin
+// preguntar nada. Con poca señal no toca el orden.
+
+export type DecisionMazo = 'like' | 'pass' | 'super'
+type Rasgos = Pick<ItemFeed, 'zona' | 'precioUsd' | 'dorm' | 'm2' | 'esNuestra'>
+
+const PESO_GUSTO: Record<Exclude<DecisionMazo, 'pass'>, number> = { like: 1, super: 1.5 }
+/** Cuánto resta, como mucho, parecerse a las que pasó. */
+const PESO_PASES = 0.25
+/** Recién con 3 decisiones y al menos un ♥ o ★ hay algo que aprender. */
+export const MIN_DECISIONES_APRENDER = 3
+
+/** 1 = muy parecida, 0 = nada que ver; un dato que falta cuenta a medias. */
+export function parecidoCasas(a: Rasgos, b: Rasgos): number {
+  const cerca = (x: number | null | undefined, y: number | null | undefined, tol: number) =>
+    x && y && x > 0 && y > 0 ? Math.max(0, 1 - Math.abs(Math.log(x / y)) / tol) : 0.5
+  const zona =
+    a.zona && b.zona ? (sinAcentos(a.zona) === sinAcentos(b.zona) || mismoBarrio(a.zona, b.zona) ? 1 : 0) : 0.5
+  const dorm = a.dorm && b.dorm ? (a.dorm === b.dorm ? 1 : Math.abs(a.dorm - b.dorm) === 1 ? 0.5 : 0) : 0.5
+  return 0.35 * zona + 0.35 * cerca(a.precioUsd, b.precioUsd, 0.4) + 0.2 * dorm + 0.1 * cerca(a.m2, b.m2, 0.5)
+}
+
+/**
+ * Las que faltan, de la que más se parece a lo que le gustó a la que menos (a
+ * igual parecido, el orden de antes; las nuestras con un empujoncito). Sin
+ * señal suficiente, igual que antes.
+ */
+export function ordenarPorGusto<T extends Rasgos>(resto: T[], decididas: { item: Rasgos; accion: DecisionMazo }[]): T[] {
+  const gustos = decididas.filter((d) => d.accion !== 'pass')
+  const pases = decididas.filter((d) => d.accion === 'pass')
+  if (decididas.length < MIN_DECISIONES_APRENDER || gustos.length === 0 || resto.length < 2) return resto
+  const peso = (d: { accion: DecisionMazo }) => PESO_GUSTO[d.accion as Exclude<DecisionMazo, 'pass'>]
+  const pesoGustos = gustos.reduce((s, d) => s + peso(d), 0)
+  const puntaje = (c: T) => {
+    const gusto = gustos.reduce((s, d) => s + peso(d) * parecidoCasas(c, d.item), 0) / pesoGustos
+    const pase = pases.length ? pases.reduce((s, d) => s + parecidoCasas(c, d.item), 0) / pases.length : 0
+    return gusto - PESO_PASES * pase + (c.esNuestra ? 0.05 : 0)
+  }
+  return resto
+    .map((c, i) => ({ c, i, p: puntaje(c) }))
+    .sort((a, b) => b.p - a.p || a.i - b.i)
+    .map((x) => x.c)
+}
+
+/**
+ * Aplica un orden guardado (keys) a las casas actuales. Las que llegaron
+ * después (barrios parecidos) van donde está parado: son las próximas.
+ */
+export function aplicarOrden<T extends { key: string }>(todos: T[], orden: readonly string[] | null, indice: number): T[] {
+  if (!orden) return todos
+  const porKey = new Map(todos.map((t) => [t.key, t]))
+  const conocidas = orden.map((k) => porKey.get(k)).filter((t): t is T => !!t)
+  const enOrden = new Set(orden)
+  const nuevas = todos.filter((t) => !enOrden.has(t.key))
+  return [...conocidas.slice(0, indice), ...nuevas, ...conocidas.slice(indice)]
+}
+
+// ── TINDER DEL CLIENTE (David, 5-oct-2026): el asesor le manda el link con
+// `s=<token de su link de seguimiento>`; cada ♥ y ★ se guarda como reacción de
+// SU selección (la ruta /api/seleccion/<token>/reaccion la suma si no estaba).
+
+/** La key del mazo → el id de la selección: `n:123` → `123`, `propia:9` → `red:propia:9`, `meli:MLA1` → `red:meli:MLA1`. */
+export function idEnSeleccion(key: string): string | null {
+  if (/^n:\d{1,16}$/.test(key)) return key.slice(2)
+  if (/^(propia|meli):[A-Za-z0-9_-]{1,40}$/.test(key)) return `red:${key}`
+  return null
+}
+
+/**
+ * El precio que se ofrece más parecido a un presupuesto (links del asesor o de
+ * la pauta con un número cualquiera): el que lo contiene con su ±20 %, o el más
+ * cercano. Muy por encima del más alto → sin precio (Todos).
+ */
+export function topeOfrecido(tipo: TipoHogar, usd: number | null): number | null {
+  if (!usd || !(usd > 0)) return null
+  const topes = TOPES_HOGAR[tipo]
+  if (usd > topes[topes.length - 1] * BANDA_TOPE.max) return null
+  return [...topes].sort((a, b) => Math.abs(Math.log(usd / a)) - Math.abs(Math.log(usd / b)))[0]
 }

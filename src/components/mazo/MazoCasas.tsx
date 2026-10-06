@@ -38,7 +38,7 @@ import { trackEvent } from '@/lib/analytics'
 import { barriosParecidos } from '@/lib/barrios-parecidos'
 import { useAtrasDelMazo } from '@/lib/mazo-atras'
 import { usePantallaCompletaCelu } from '@/lib/pantalla-completa'
-import { contactoListo, leerEnviadas, mandarConsulta } from '@/lib/mazo-consulta'
+import { type ClienteMazo, contactoListo, leerEnviadas, mandarConsulta, reaccionarEnSeleccion } from '@/lib/mazo-consulta'
 import { type EstadoSalida, type QueHacer, cierraElMazo, queHacerAlSalir } from '@/lib/mazo-salida'
 import { contarTinder } from '@/lib/tinder-contador'
 import { haptico } from '@/lib/haptico'
@@ -54,6 +54,8 @@ import { SuscripcionMail } from './SuscripcionMail'
 import { type Arrastre, type Salida, type Tendencia, BotonesTinder, DURACION_SALIDA, Tarjeta, UMBRAL_SUPER, UMBRAL_SWIPE, direccionDe, paresDe } from './Tarjeta'
 import { ORO_VOLVER } from './marca-mazo'
 import { useAlbumMazo } from './useAlbumMazo'
+import { useAvisoMazo, useReinicioAfinar } from './useAfinarMazo'
+import { useMazoQueAprende } from './useMazoQueAprende'
 import { ESTILOS_MAZO } from './piel-oscura'
 import { useGuardadas } from './useGuardadas'
 
@@ -83,6 +85,8 @@ export default function MazoCasas({
   criterios = null,
   cargarParecidos,
   afinar,
+  aprender = false,
+  cliente = null,
 }: {
   items: ItemFeed[]
   titulo: string
@@ -106,22 +110,27 @@ export default function MazoCasas({
    * cerrarse). Sin esto (la ficha), no hay ícono y la X sigue con el rescate.
    */
   afinar?: AfinarMazo
+  /** Reordena las que faltan según lo que le gusta (la home; no en "Cerca mío", ahí manda la distancia). */
+  aprender?: boolean
+  /** El link que le mandó su asesor (?s=): ♥ y ★ van a SU selección, sin pedirle datos. */
+  cliente?: ClienteMazo | null
 }) {
   const { guardadas, guardar, quitar, limpiar, esGuardada } = guardadasApi
   // Las de los barrios parecidos entran DONDE está parado si dice que sí: al
   // final del mazo (la pregunta) o en medio (rescate → "Otra zona").
   const [insercion, setInsercion] = useState<{ en: number; items: ItemFeed[] } | null>(null)
-  const todos = useMemo(
+  const base = useMemo(
     () => (insercion ? [...items.slice(0, insercion.en), ...insercion.items, ...items.slice(insercion.en)] : items),
     [items, insercion],
   )
   const parecidos = useMemo(() => barriosParecidos(barrio), [barrio])
-  const conFotos = useAlbumMazo(todos)
   /** pendiente → (pregunta) → cargando → sumados | vacio | no. */
   const [estadoParecidos, setEstadoParecidos] = useState<'pendiente' | 'cargando' | 'sumados' | 'vacio' | 'no'>('pendiente')
   /** Para ↺: cada decisión, con si el ♥ fue nuevo (si ya estaba guardada de antes, volver no se la saca). */
   const [historial, setHistorial] = useState<{ indice: number; accion: Salida; key: string; nueva: boolean }[]>([])
   const [indice, setIndice] = useState(() => Math.min(Math.max(0, inicio), items.length))
+  const todos = useMazoQueAprende({ items, todos: base, historial, indice, activo: aprender })
+  const conFotos = useAlbumMazo(todos)
   // Se abrió directo en las elegidas (botón de la fila de la compu): no "las vio todas".
   const [directoAlFinal, setDirectoAlFinal] = useState(() => inicio >= items.length)
   const [foto, setFoto] = useState(0)
@@ -132,36 +141,22 @@ export default function MazoCasas({
   const [visita, setVisita] = useState<EstadoVisita>(null)
   /** "Afiná tu búsqueda": desde el ícono o al querer salir sin ♥. */
   const [afinarAbierto, setAfinarAbierto] = useState<'boton' | 'salir' | null>(null)
-  /** Aviso cortito abajo ("Listo, te escribimos…"). */
-  const [aviso, setAviso] = useState<string | null>(null)
-  useEffect(() => {
-    if (!aviso) return
-    const t = window.setTimeout(() => setAviso(null), 3800)
-    return () => window.clearTimeout(t)
-  }, [aviso])
-  // Afinó la búsqueda: llegan otras casas y el mazo arranca de nuevo, sin cerrarse.
-  // Por la ronda de "afinar" y no por `items`: en la ficha las casas llegan de a
-  // tandas (/similar) con el mazo abierto y no tiene que volver a la primera.
-  const ronda = afinar?.ronda ?? 0
-  const rondaPrevia = useRef(ronda)
-  useEffect(() => {
-    if (ronda === rondaPrevia.current) return
-    rondaPrevia.current = ronda
-    setInsercion(null)
-    setIndice(0)
-    setFoto(0)
-    setHistorial([])
-    setArrastre(null)
-    setSalida(null)
-    setEstadoParecidos('pendiente')
-    setDirectoAlFinal(false)
-    pasesSeguidos.current = 0
-    setAviso('Listo: te mostramos las que van con eso.')
-  }, [ronda])
-  const estadoAfinar = afinar?.estado
-  useEffect(() => {
-    if (estadoAfinar === 'vacio') setAviso('Con eso no encontramos. Probá con otro precio o zona.')
-  }, [estadoAfinar])
+  const [aviso, setAviso] = useAvisoMazo()
+  useReinicioAfinar(
+    afinar,
+    () => {
+      setInsercion(null)
+      setIndice(0)
+      setFoto(0)
+      setHistorial([])
+      setArrastre(null)
+      setSalida(null)
+      setEstadoParecidos('pendiente')
+      setDirectoAlFinal(false)
+      pasesSeguidos.current = 0
+    },
+    setAviso,
+  )
   /** Las que ya le mandamos a un asesor (no se le vuelven a pedir ni a mandar). */
   const [enviadas, setEnviadas] = useState<ReadonlySet<string>>(() => new Set<string>())
   const refrescarEnviadas = useCallback(() => setEnviadas(new Set(leerEnviadas())), [])
@@ -172,7 +167,8 @@ export default function MazoCasas({
   const cruzoUmbral = useRef(false)
   // Rescate: una vez por visita, cuando pasa 4 seguidas sin ♥ o se va sin guardar.
   const [rescate, setRescate] = useState<'mazo' | 'salir' | null>(null)
-  const [rescateVisto, setRescateVisto] = useState(rescateMostrado)
+  // Con el link de su asesor ya sabemos quién es: sin el rescate que pide WhatsApp.
+  const [rescateVisto, setRescateVisto] = useState(rescateMostrado || !!cliente)
   const pasesSeguidos = useRef(0)
   const [vistas, setVistas] = useState(0)
   /**
@@ -233,7 +229,7 @@ export default function MazoCasas({
         setAviso(r.ok ? `Listo, ${c.nombre.split(/\s+/)[0]}: un asesor te escribe para coordinar la visita.` : r.error)
       })
     },
-    [pendientes, barrio, busqueda, origen, refrescarEnviadas],
+    [pendientes, barrio, busqueda, origen, refrescarEnviadas, setAviso],
   )
 
   /** ♥, paso o ★: la tarjeta sale volando y aparece la siguiente. */
@@ -247,6 +243,7 @@ export default function MazoCasas({
       } else {
         guardar(actual)
         pasesSeguidos.current = 0
+        if (cliente) void reaccionarEnSeleccion(cliente, actual, accion).then(refrescarEnviadas)
       }
       haptico(accion !== 'pass')
       // 4 seguidas con ✕ y ninguna guardada: no es lo que busca → rescate.
@@ -258,7 +255,8 @@ export default function MazoCasas({
         contarTinder('quiero_verla', origen)
         trackEvent('feed_en_red_quiero_verla', { tipo: actual.esNuestra ? 'nuestra' : 'en_red' })
         const contacto = contactoListo()
-        if (contacto) pedirVisitaDirecto(contacto, actual)
+        if (cliente) setAviso(cliente.soloMirar ? 'Vista del asesor: esto no se manda.' : 'Listo: le avisamos a tu asesor para coordinar la visita.')
+        else if (contacto) pedirVisitaDirecto(contacto, actual)
         else abrirVisita = { item: actual }
       }
       setSalida(accion)
@@ -276,7 +274,7 @@ export default function MazoCasas({
         }
       }, DURACION_SALIDA)
     },
-    [actual, salida, rescate, guia, visita, afinarAbierto, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate, origen, pedirVisitaDirecto],
+    [actual, salida, rescate, guia, visita, afinarAbierto, rescateVisto, enviada, guardar, esGuardada, guardadas.length, indice, todos.length, marcarRescate, origen, pedirVisitaDirecto, cliente, refrescarEnviadas, setAviso],
   )
 
   /** ↺ Volver a la anterior: si le había dado ♥ recién, se lo saca y decide de nuevo. */
@@ -285,13 +283,16 @@ export default function MazoCasas({
     const ultima = historial[historial.length - 1]
     if (!ultima) return
     setHistorial((h) => h.slice(0, -1))
-    if (ultima.nueva) quitar(ultima.key)
+    if (ultima.nueva) {
+      quitar(ultima.key)
+      if (cliente) void reaccionarEnSeleccion(cliente, { key: ultima.key }, 'deshacer').then(refrescarEnviadas)
+    }
     if (ultima.accion === 'pass') pasesSeguidos.current = Math.max(0, pasesSeguidos.current - 1)
     setIndice(ultima.indice)
     setFoto(0)
     setArrastre(null)
     trackEvent('feed_en_red_volver', { origen })
-  }, [salida, rescate, enviada, visita, historial, quitar, origen])
+  }, [salida, rescate, enviada, visita, historial, quitar, origen, cliente, refrescarEnviadas])
   const puedeVolver = historial.length > 0 && !enviada
 
   // Terminó un barrio que tiene parecidos: PRIMERO pregunta (David 4-oct).

@@ -1,6 +1,10 @@
 // /conoce-tu-hogar — "Conocé tu próximo hogar": dónde busca, qué y hasta
 // cuánto, y el mazo tipo Tinder (nuestras + "En red"). Se llega desde el link
 // debajo del buscador de la home (celu). Query params: ?zona=<nombre>&tipo=house|lot|apartment&tope=<usd>&dorm=<1-5>&barrio=cerrado|abierto
+// 5-oct (David): `s=<token>` = el link que le mandó su asesor (♥ y ★ van a su
+// selección; `vista=asesor` = vista previa, no manda nada); `abrir=1` abre el
+// mazo apenas cuenta (links de la pauta); `utm_medium=pauta|paid|cpc` u
+// `origen=pauta` = vino de un anuncio (el contador lo separa).
 //
 // Dónde se puede buscar lo dice Hilo (barrios y ciudades con algo en venta,
 // nuestras o de la red): se carga en el servidor, así las sugerencias salen
@@ -8,7 +12,8 @@
 
 import type { Metadata } from 'next'
 import ConoceTuHogar from '@/components/hogar/ConoceTuHogar'
-import { type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
+import { type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar, topeOfrecido } from '@/lib/feed-en-red'
+import { getSeleccion } from '@/lib/redis'
 import { ZONAS } from '@/lib/zonas'
 
 export const metadata: Metadata = {
@@ -39,18 +44,37 @@ async function catalogo(): Promise<ZonaHogar[]> {
 type SP = Record<string, string | string[] | undefined>
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 
+/** "Martina Gómez" → "Martina"; el "vos" que pone Hilo cuando no hay nombre no cuenta. */
+const primerNombre = (s: unknown) => {
+  const n = typeof s === 'string' ? s.trim().split(/\s+/)[0] : ''
+  return n && n.toLowerCase() !== 'vos' ? n : null
+}
+
+/** Su link de seguimiento, si existe (el token lo arma Hilo). */
+async function clienteDelLink(token: string | undefined, vista: string | undefined) {
+  if (!token || !/^[A-Za-z0-9_-]{4,64}$/.test(token)) return null
+  const sel = await getSeleccion(token).catch(() => null)
+  if (!sel) return null
+  return { token, nombre: primerNombre(sel.clientName), asesor: primerNombre(sel.agentName), soloMirar: vista === 'asesor' }
+}
+
 export default async function ConoceTuHogarPage({ searchParams }: { searchParams: SP }) {
   const tipo = first(searchParams.tipo)
-  const tope = Number(first(searchParams.tope))
-  const zonas = await catalogo()
+  const tipoInicial = esTipoHogar(tipo) ? tipo : 'house'
+  const [zonas, cliente] = await Promise.all([catalogo(), clienteDelLink(first(searchParams.s), first(searchParams.vista))])
+  const medio = (first(searchParams.utm_medium) ?? '').toLowerCase()
   return (
     <ConoceTuHogar
       catalogo={zonas}
       zonaInicial={first(searchParams.zona) ?? null}
-      tipoInicial={esTipoHogar(tipo) ? tipo : 'house'}
-      topeInicial={Number.isFinite(tope) && tope > 0 ? Math.round(tope) : null}
+      tipoInicial={tipoInicial}
+      // Un presupuesto cualquiera (link del asesor o de la pauta) → el precio que se ofrece más parecido.
+      topeInicial={topeOfrecido(tipoInicial, Number(first(searchParams.tope)) || null)}
       dormInicial={dormMinValido(first(searchParams.dorm))}
       barrioInicial={barrioHogarValido(first(searchParams.barrio))}
+      cliente={cliente}
+      desdePauta={first(searchParams.origen) === 'pauta' || ['pauta', 'paid', 'cpc', 'paid_social'].includes(medio)}
+      abrirAlCargar={first(searchParams.abrir) === '1'}
     />
   )
 }

@@ -42,7 +42,7 @@ import {
   textoPrecio,
 } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
-import { contarTinder } from '@/lib/tinder-contador'
+import { contarTinder, fijarCanalTinder } from '@/lib/tinder-contador'
 import { BarraFija, IconoFlecha, Spinner, cls } from '@/components/tasaciones/ui'
 import MazoCasas, { SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
@@ -142,6 +142,9 @@ export default function ConoceTuHogar({
   topeInicial,
   dormInicial,
   barrioInicial,
+  cliente = null,
+  desdePauta = false,
+  abrirAlCargar = false,
 }: {
   /** Barrios y ciudades con algo en venta (Hilo). */
   catalogo: ZonaHogar[]
@@ -150,6 +153,12 @@ export default function ConoceTuHogar({
   topeInicial: number | null
   dormInicial: number | null
   barrioInicial: BarrioHogar | null
+  /** El link que le mandó su asesor (?s=): lo que marque va a SU selección (David 5-oct). */
+  cliente?: { token: string; nombre: string | null; asesor: string | null; soloMirar: boolean } | null
+  /** Llegó desde un anuncio: el contador lo cuenta aparte. */
+  desdePauta?: boolean
+  /** ?abrir=1 (links de la pauta): el mazo abre apenas cuenta, sin un toque más. */
+  abrirAlCargar?: boolean
 }) {
   const [zona, setZona] = useState<ZonaHogar | null>(() => zonaPorNombre(catalogo, zonaInicial))
   /** "Cerca mío": dónde está (redondeado a ~100 m). Excluye a `zona`. */
@@ -188,10 +197,16 @@ export default function ConoceTuHogar({
   const guardadasApi = useGuardadas('home')
 
   // Contador: entró a la pantalla (en /tinder de Hilo: de los que entran, cuántos abren el mazo).
+  // Antes de contar: si vino del link del asesor o de un anuncio, se cuenta aparte (y la vista previa del asesor no cuenta).
   useEffect(() => {
+    if (cliente) fijarCanalTinder(cliente.soloMirar ? 'asesor' : 'cliente')
+    else if (desdePauta) fijarCanalTinder('pauta')
+    if (abrirAlCargar && zonaInicial) setAbrirAlLlegar(true)
     if (Date.now() - pantallaContadaEn < 3000) return
     pantallaContadaEn = Date.now()
     contarTinder('pantalla', 'home')
+    // Solo al entrar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const tipoInfo = TIPOS_HOGAR.find((t) => t.id === tipo)!
@@ -215,11 +230,14 @@ export default function ConoceTuHogar({
     if (tope) p.set('tope', String(tope))
     if (dorm) p.set('dorm', String(dorm))
     if (barrioElegido) p.set('barrio', barrioElegido)
+    // Su link sigue siendo SU link (si recarga, lo que marque le sigue llegando al asesor).
+    if (cliente) p.set('s', cliente.token)
+    if (cliente?.soloMirar) p.set('vista', 'asesor')
     const qs = p.toString()
     // `null` y no `window.history.state`: ese trae la marca interna de Next y el
     // router no se enteraba del cambio; al re-renderizar volvía a la URL vieja.
     window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
-  }, [zona, tipo, tope, dorm, barrioElegido])
+  }, [zona, tipo, tope, dorm, barrioElegido, cliente])
 
   // Se cuenta apenas elige: el botón dice cuántas hay y el mazo abre al toque.
   useEffect(() => {
@@ -356,7 +374,14 @@ export default function ConoceTuHogar({
     <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-[520px] px-5 pt-5 pb-[140px]">
         <h1 className={cls.h1}>Conocé tu próximo hogar</h1>
-        <p className={`${cls.sub} mt-1.5`}>Elegí qué y dónde, y deslizá las que te gusten.</p>
+        <p className={`${cls.sub} mt-1.5`}>
+          {cliente
+            ? `${cliente.nombre ? `${cliente.nombre}, deslizá` : 'Deslizá'} las que te gusten: le llegan a ${cliente.asesor ?? 'tu asesor'}.`
+            : 'Elegí qué y dónde, y deslizá las que te gusten.'}
+        </p>
+        {cliente?.soloMirar && (
+          <p className="mt-3 rounded-[12px] bg-[#FFF7E8] px-3.5 py-2.5 text-[15px] font-semibold text-[#7A5A16]">Vista del asesor: lo que toques no se manda.</p>
+        )}
 
         {/* Buscador de barrios: arriba de todo (David, 4-oct), para el que ya sabe cuál. */}
         <div ref={buscadorRef} className="relative mt-5">
@@ -609,6 +634,8 @@ export default function ConoceTuHogar({
               setEstadoAfinar('buscando')
             },
           }}
+          aprender={!cerca}
+          cliente={cliente ? { token: cliente.token, soloMirar: cliente.soloMirar } : null}
           onCerrar={() => setAbierto(false)}
         />
       )}

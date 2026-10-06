@@ -74,7 +74,12 @@ export async function PATCH(
     }
 
     const safeComment = typeof comment === 'string' ? comment.slice(0, 1000) : comment
-    await patchReaccion(params.token, propertyId, { liked, wantVisit, comment: safeComment, reaction })
+    // Solo lo que vino: el Tinder del cliente manda ♥ sin comentario y no tiene que
+    // borrar el que dejó antes en su selección (la selección manda todo, como siempre).
+    const patch = Object.fromEntries(
+      Object.entries({ liked, wantVisit, comment: safeComment, reaction }).filter(([, v]) => v !== undefined),
+    ) as Parameters<typeof patchReaccion>[2]
+    await patchReaccion(params.token, propertyId, patch)
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
