@@ -14,7 +14,7 @@ import {
 import { type ItemFeed, superficiesTarjeta, tipoHogarDeTokko } from '@/lib/feed-en-red'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 
-/** Hasta 5 pares de fotos por casa en el Tinder (David, 4-oct-2026). */
+/** Hasta 10 fotos por casa en el Tinder (David, 4-oct-2026); se muestran de a 3 desde el 6-oct. */
 export const MAX_FOTOS_MAZO = 10
 
 /**

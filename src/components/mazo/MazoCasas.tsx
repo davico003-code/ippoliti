@@ -49,7 +49,7 @@ import AfinarBusqueda, { type AfinarMazo } from './AfinarBusqueda'
 import PreguntaParecidos from './PreguntaParecidos'
 import Rescate from './Rescate'
 import { SuscripcionMail } from './SuscripcionMail'
-import { type Arrastre, type Salida, type Tendencia, BotonesTinder, DURACION_SALIDA, Tarjeta, UMBRAL_SUPER, UMBRAL_SWIPE, direccionDe, paresDe } from './Tarjeta'
+import { type Arrastre, type Salida, type Tendencia, BotonesTinder, DURACION_SALIDA, Tarjeta, UMBRAL_SUPER, UMBRAL_SWIPE, direccionDe, gruposDe } from './Tarjeta'
 import { ORO_VOLVER } from './marca-mazo'
 import { useAlbumMazo } from './useAlbumMazo'
 import { useAfinarAlEntrar, useAvisoMazo, useReinicioAfinar } from './useAfinarMazo'
@@ -399,11 +399,11 @@ export default function MazoCasas({
     }
     // Debajo de los datos están los botones flotando: un toque entre ellos no hace nada.
     if (datos && e.clientY > datos.bottom) return
-    const pares = paresDe(actual)
-    if (pares > 1) {
+    const grupos = gruposDe(actual)
+    if (grupos > 1) {
       const zona = e.currentTarget.getBoundingClientRect()
       const derecha = e.clientX - zona.left > zona.width / 2
-      setFoto((f) => (derecha ? Math.min(f + 1, pares - 1) : Math.max(f - 1, 0)))
+      setFoto((f) => (derecha ? Math.min(f + 1, grupos - 1) : Math.max(f - 1, 0)))
     }
   }
 
