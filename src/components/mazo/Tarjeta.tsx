@@ -3,14 +3,12 @@
 // La TARJETA del Tinder y sus botones ↺ ✕ ★ ♥ (David, 3/4-oct-2026). Las usan
 // el mazo abierto (MazoCasas) y la ficha (la primera tarjeta, 'quieta').
 
-import { useRef } from 'react'
 import Image from 'next/image'
 import { Expand, RotateCcw, Star, X } from 'lucide-react'
 import { type ItemFeed, estiloSinLogo, lineaTarjeta, lugarTarjeta, metrosVisibles } from '@/lib/feed-en-red'
 import { formatDistanceAR } from '@/lib/geo'
 import { MAX_FOTOS_MAZO } from '@/lib/mazo-items'
 import { AZUL_VISITA, CORAZON, Corazon, IsotipoSI, ORO_VOLVER, ROJO_PASO } from './marca-mazo'
-import { useFotosPorTarjeta } from './useFotosPorTarjeta'
 
 const RGB: Record<Salida, string> = { like: '26,92,56', pass: '229,72,77', super: '43,127,255' }
 /** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso… */
@@ -32,12 +30,13 @@ export function direccionDe(dx: number, dy: number, conSuper = true): Salida | n
 }
 
 /**
- * De a cuántas fotos se muestran, una arriba de la otra. En el mazo, de a TRES
- * cuando la pantalla es alta y de a DOS cuando no (useFotosPorTarjeta: con las
- * barras de Safari, de a 3 eran tiras finas). La de la ficha ('quieta', 470 px
- * de alto) va siempre de a dos.
+ * De a cuántas fotos se muestran, una arriba de la otra: de a DOS, cada una en
+ * su forma (3:2, la de casi todas las fotos de casas). David, 6-oct-2026 ("se
+ * ven todas las fotos recortadas"): de a tres, cada foto quedaba en una tira
+ * de 1,8:1 que le cortaba arriba y abajo (17 % a una 3:2, 26 % a una 4:3).
+ * Si la pantalla no alcanza para las dos enteras, se achican parejo.
  */
-export const FOTOS_POR_TARJETA = 3
+export const FOTOS_POR_TARJETA = 2
 /** Cuántos grupos de fotos tiene (cada toque al costado pasa al siguiente). */
 export const gruposDe = (item: ItemFeed, porGrupo = FOTOS_POR_TARJETA) => Math.max(1, Math.ceil(Math.min(item.fotos.length, MAX_FOTOS_MAZO) / porGrupo))
 
@@ -55,8 +54,9 @@ const SELLOS: Record<Salida, { texto: string; color: string; clase: string }> = 
  * dónde, con el isotipo o "Otra inmobiliaria". Las fotos de las casas son
  * apaisadas: UNA sola en una tarjeta vertical queda recortada y agrandada
  * ("estirada", David 3-oct). 6-oct (David eligió "3 fotos con degradé a
- * negro" entre varias simuladas): de a TRES arriba, la última se funde a negro
- * y los datos van sobre negro debajo — ninguna foto queda tapada por el precio.
+ * negro" entre varias simuladas; a la tarde, de a DOS en su forma para que no
+ * se corten): la última se funde a negro y los datos van sobre negro debajo —
+ * ninguna foto queda tapada por el precio.
  * Tocar el costado de las fotos pasa al siguiente grupo (barritas arriba);
  * tocar los datos abre "Ver detalles".
  * La de arriba se arrastra y gira según dónde la agarraste; la de abajo crece
@@ -136,8 +136,7 @@ export function Tarjeta({
   const sello: Salida | null = !arriba ? null : salida ?? (haciaArriba ? 'super' : dx > 8 ? 'like' : dx < -8 ? 'pass' : null)
   const fuerzaSello = salida ? 1 : sello === 'super' ? Math.min(1, -dy / UMBRAL_SUPER) : Math.min(1, Math.abs(dx) / UMBRAL_SWIPE)
   const n = Math.min(item.fotos.length, MAX_FOTOS_MAZO)
-  const fotosRef = useRef<HTMLDivElement>(null)
-  const porGrupo = useFotosPorTarjeta(fotosRef, modo !== 'quieta')
+  const porGrupo = FOTOS_POR_TARJETA
   const pares = gruposDe(item, porGrupo)
   const p = Math.min(par, pares - 1)
   // El último grupo incompleto vuelve a las primeras fotos: nunca una sola estirada.
@@ -158,10 +157,10 @@ export function Tarjeta({
       // El mazo lo lee al tocar el costado (cuántos grupos hay con este tamaño de pantalla).
       data-grupos={pares}
     >
-      {/* Fotos de a tres o de a dos (según el alto), de punta a punta; la última se funde a negro */}
-      <div ref={fotosRef} data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[2px] bg-black">
+      {/* Fotos de a dos, de punta a punta y en su forma (3:2): lo que sobra de alto queda negro; la última se funde a negro */}
+      <div data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[2px] bg-black">
         {fotos.map((src, i) => (
-          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-neutral-800 overflow-hidden">
+          <div key={`${src}-${i}`} className="relative w-full aspect-[3/2] min-h-0 bg-neutral-800 overflow-hidden">
             <Image
               src={src}
               alt={`${item.titulo} — foto ${p * porGrupo + i + 1}`}
@@ -175,7 +174,7 @@ export function Tarjeta({
               priority={arriba && i === 0}
             />
             {i === fotos.length - 1 && (
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%]" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0), #000)' }} />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[35%]" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0), #000)' }} />
             )}
           </div>
         ))}
