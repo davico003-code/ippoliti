@@ -504,7 +504,7 @@ export default function ConoceTuHogar({
         {tipo !== 'lot' && (
           <Segmentos<number | null>
             etiqueta="Dormitorios"
-            opciones={[{ v: null, label: 'Todos' }, ...DORMS.map((v) => ({ v, label: `${v}+` }))]}
+            opciones={[{ v: null, label: 'Todos' }, ...DORMS.map((v) => ({ v, label: <span className="font-numeric">{v}+</span> }))]}
             valor={dorm}
             onChange={setDorm}
           />

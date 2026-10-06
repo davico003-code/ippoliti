@@ -230,7 +230,7 @@ export function Tarjeta({
               </button>
             )}
           </div>
-          {linea && <p className="mt-1.5 text-[16px] font-semibold text-white/90">{linea}</p>}
+          {linea && <p className="mt-1.5 font-numeric text-[16px] font-semibold text-white/90">{linea}</p>}
           <p className="mt-1 flex items-center gap-1.5 min-w-0 text-[14px] text-white/70">
             {item.esNuestra ? (
               <IsotipoSI className="h-[15px] w-auto" />
@@ -240,7 +240,7 @@ export function Tarjeta({
             )}
             {/* "Cerca mío": a cuánto está, siempre entero (la dirección es la que se corta). */}
             {item.distanciaM != null && (
-              <span className="flex-none font-semibold text-white/90">
+              <span className="flex-none font-numeric font-semibold text-white/90">
                 a {formatDistanceAR(metrosVisibles(item.distanciaM) / 1000)}
                 {lugar ? ' ·' : ''}
               </span>

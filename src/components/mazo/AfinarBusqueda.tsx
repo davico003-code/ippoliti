@@ -89,7 +89,7 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
             <div className="flex flex-wrap gap-2">
               {DORMS.map((d) => (
                 <button key={d} type="button" aria-pressed={v.dorm === d} onClick={() => setV((x) => ({ ...x, dorm: x.dorm === d ? null : d }))} className={chip(v.dorm === d)} style={fondo(v.dorm === d)}>
-                  {d} o más
+                  <span className="font-numeric">{d}</span> o más
                 </button>
               ))}
             </div>

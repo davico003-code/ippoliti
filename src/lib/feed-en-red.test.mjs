@@ -270,7 +270,7 @@ test('cliente: la key del mazo se traduce al id de su selección', () => {
 })
 
 test('presupuesto: autocompleta lo que quiso decir mientras escribe', () => {
-  assert.deepEqual(sugerirPresupuestos('25', 'house'), [250000, 2500000])
+  assert.deepEqual(sugerirPresupuestos('25', 'house'), [250000, 25000])
   assert.deepEqual(sugerirPresupuestos('180', 'house'), [180000, 1800000])
   assert.deepEqual(sugerirPresupuestos('250.000', 'house'), [250000, 2500000])
   assert.deepEqual(sugerirPresupuestos('1', 'house'), [100000, 1000000])
@@ -279,6 +279,12 @@ test('presupuesto: autocompleta lo que quiso decir mientras escribe', () => {
   assert.equal(sugerirPresupuestos('70.000', 'house')[0], 70000)
   assert.equal(sugerirPresupuestos('20.000', 'lot')[0], 20000)
   assert.equal(sugerirPresupuestos('30.000', 'apartment')[0], 30000)
+  // Un lote de 35.000 (David 6-oct), escrito completo o abreviado; y una casa de 35.000.
+  assert.equal(sugerirPresupuestos('35', 'lot')[0], 35000)
+  assert.equal(sugerirPresupuestos('350', 'lot')[0], 35000)
+  assert.equal(sugerirPresupuestos('35.000', 'lot')[0], 35000)
+  assert.equal(sugerirPresupuestos('35.000', 'house')[0], 35000)
+  assert.equal(sugerirPresupuestos('35', 'house')[0], 350000)
   assert.deepEqual(sugerirPresupuestos('', 'house'), [150000, 250000, 350000, 500000])
   assert.equal(formatearPresupuesto('250000'), '250.000')
   assert.equal(formatearPresupuesto('USD 0180.5'), '1.805')
