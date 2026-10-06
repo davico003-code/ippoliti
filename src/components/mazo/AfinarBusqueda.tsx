@@ -11,6 +11,10 @@ import { VERDE } from './marca-mazo'
  * mostrándole"). Desde el ícono de arriba a la derecha en cualquier momento y,
  * si se va sin ♥, al tocar la X ('salir': "¿Afinamos la búsqueda?"). Lo elige
  * acá y "Conocé tu próximo hogar" vuelve a buscar sin cerrar el mazo.
+ *
+ * 6-oct (David): el que llega desde un anuncio ve primero cómo se usa y, al
+ * cerrarlo, esta misma hoja como "¿Qué buscás?" ('entrada'), con lo del
+ * anuncio ya elegido: toca los filtros y no le mostramos cualquier cosa.
  */
 export type ValoresAfinar = { zona: string; tope: number | null; dorm: number | null; barrio: BarrioHogar | null }
 
@@ -30,17 +34,24 @@ export type AfinarMazo = {
    * tandas con el mazo abierto y no tiene que volver a la primera.)
    */
   ronda: number
+  /** Vino de un anuncio: después de las instrucciones se abre "¿Qué buscás?" (una vez). */
+  alEntrar?: boolean
 }
 
 const DORMS = [2, 3, 4] as const
 
-export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { afinar: AfinarMazo; modo: 'boton' | 'salir'; onCerrar: () => void; onSalir: () => void }) {
+const mismos = (a: ValoresAfinar, b: ValoresAfinar) => a.zona === b.zona && a.tope === b.tope && a.dorm === b.dorm && a.barrio === b.barrio
+
+export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { afinar: AfinarMazo; modo: 'boton' | 'salir' | 'entrada'; onCerrar: () => void; onSalir: () => void }) {
   const [v, setV] = useState<ValoresAfinar>(afinar.valores)
   const ciudad = afinar.esCiudad(v.zona)
   const chip = (on: boolean) =>
     `h-10 rounded-full px-3.5 text-[15px] font-semibold border transition-colors ${on ? 'text-white border-transparent' : 'border-white/20 text-white/85 hover:border-white/40'}`
   const fondo = (on: boolean) => (on ? { background: VERDE } : undefined)
-  const salirTexto = modo === 'salir' ? 'Salir igual' : 'Ahora no'
+  const salirTexto = modo === 'salir' ? 'Salir igual' : modo === 'entrada' ? 'Ver todas así' : 'Ahora no'
+  const titulo = modo === 'salir' ? '¿Afinamos la búsqueda?' : modo === 'entrada' ? '¿Qué buscás?' : 'Afiná tu búsqueda'
+  const bajada =
+    modo === 'salir' ? 'Contanos un poco más y te mostramos otras.' : modo === 'entrada' ? 'Elegí y te mostramos solo las que van con vos.' : 'Te mostramos las que van con lo que buscás.'
 
   return (
     <div className="absolute inset-0 z-30 flex items-end bg-black/50" onClick={(e) => e.target === e.currentTarget && onCerrar()}>
@@ -51,10 +62,8 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
         aria-label="Afiná tu búsqueda"
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded bg-white/25" />
-        <h3 className="text-[21px] font-black font-raleway">{modo === 'salir' ? '¿Afinamos la búsqueda?' : 'Afiná tu búsqueda'}</h3>
-        <p className="mt-1 text-[15px] text-white/65">
-          {modo === 'salir' ? 'Contanos un poco más y te mostramos otras.' : 'Te mostramos las que van con lo que buscás.'}
-        </p>
+        <h3 className="text-[21px] font-black font-raleway">{titulo}</h3>
+        <p className="mt-1 text-[15px] text-white/65">{bajada}</p>
 
         <fieldset className="mt-4">
           <legend className="mb-2 text-[13px] font-bold uppercase tracking-wider text-white/60">Dónde</legend>
@@ -98,11 +107,12 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
 
         <button
           type="button"
-          onClick={() => afinar.onAplicar(v)}
+          // Sin cambios no se vuelve a buscar (el mazo sigue donde estaba).
+          onClick={() => (mismos(v, afinar.valores) ? onCerrar() : afinar.onAplicar(v))}
           className="mt-6 h-12 w-full rounded-2xl text-[16px] font-bold text-white"
           style={{ background: VERDE }}
         >
-          Seguir viendo
+          {modo === 'entrada' ? 'Ver casas' : 'Seguir viendo'}
         </button>
         <button type="button" onClick={onSalir} className="mx-auto mt-3 block text-[15px] font-semibold text-white/60">
           {salirTexto}

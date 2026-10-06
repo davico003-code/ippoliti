@@ -1,13 +1,11 @@
 'use client'
 
-// El MAZO tipo Tinder (David, 3-oct-2026), sobre fondo blanco: de a una
-// tarjeta, primero las nuestras (con el isotipo de SI) y después las "En red" (otras
-// inmobiliarias de la zona, dicho abiertamente). Deslizar a la derecha = ♥,
-// a la izquierda = paso (o los botones ✕ / ♥, o las flechas del teclado).
-// Tocar el costado de las fotos pasa de par. Al final, las elegidas en grande
-// con el formulario; al salir con alguna guardada, la hoja de nombre y
-// WhatsApp; si no guarda ninguna, el rescate (una vez por visita). La
-// consulta entra a Hilo con todo lo que marcó.
+// El MAZO tipo Tinder (David, 3-oct-2026), en negro: de a una tarjeta, primero
+// las nuestras (isotipo de SI) y después las "En red" (otras inmobiliarias,
+// dicho abiertamente). Derecha = ♥, izquierda = paso (o ✕ / ♥, o las flechas);
+// tocar el costado de las fotos pasa de par. Al final, las elegidas con el
+// formulario; al salir con ♥, la hoja de nombre y WhatsApp; sin ninguna, el
+// rescate (una vez por visita). La consulta entra a Hilo con lo que marcó.
 //
 // Lo abren la ficha ("Más casas en <barrio>", solo abajo de todo) y "Conocé
 // tu próximo hogar" de la home. Se monta al abrir y se desmonta al cerrar.
@@ -54,7 +52,7 @@ import { SuscripcionMail } from './SuscripcionMail'
 import { type Arrastre, type Salida, type Tendencia, BotonesTinder, DURACION_SALIDA, Tarjeta, UMBRAL_SUPER, UMBRAL_SWIPE, direccionDe, paresDe } from './Tarjeta'
 import { ORO_VOLVER } from './marca-mazo'
 import { useAlbumMazo } from './useAlbumMazo'
-import { useAvisoMazo, useReinicioAfinar } from './useAfinarMazo'
+import { useAfinarAlEntrar, useAvisoMazo, useReinicioAfinar } from './useAfinarMazo'
 import { useMazoQueAprende } from './useMazoQueAprende'
 import { useDeslizadasCliente } from './useDeslizadasCliente'
 import { ESTILOS_MAZO } from './piel-oscura'
@@ -141,7 +139,7 @@ export default function MazoCasas({
   /** La hoja de ★ "Quiero conocerla" (sin su WhatsApp todavía). */
   const [visita, setVisita] = useState<EstadoVisita>(null)
   /** "Afiná tu búsqueda": desde el ícono o al querer salir sin ♥. */
-  const [afinarAbierto, setAfinarAbierto] = useState<'boton' | 'salir' | null>(null)
+  const [afinarAbierto, setAfinarAbierto] = useState<'boton' | 'salir' | 'entrada' | null>(null)
   const [aviso, setAviso] = useAvisoMazo()
   useReinicioAfinar(
     afinar,
@@ -179,6 +177,7 @@ export default function MazoCasas({
    */
   const [enviada, setEnviada] = useState<'linea' | 'hoja' | null>(null)
   const { guia, guiaDx, cerrarGuia } = useGuiaMazo(inicio < items.length, origen)
+  useAfinarAlEntrar(!!afinar?.alEntrar, guia, () => setAfinarAbierto('entrada')) // del anuncio: "¿Qué buscás?"
 
   const marcarRescate = useCallback((momento: 'mazo' | 'salir') => {
     rescateMostrado = true

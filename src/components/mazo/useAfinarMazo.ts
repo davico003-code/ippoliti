@@ -1,6 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AfinarMazo } from './AfinarBusqueda'
 
+/**
+ * Vino de un anuncio (`afinar.alEntrar`, David 6-oct): apenas se va el
+ * instructivo (o enseguida, si ya lo había visto), "¿Qué buscás?". Una vez.
+ */
+export function useAfinarAlEntrar(alEntrar: boolean, guia: boolean, abrir: () => void) {
+  const pendiente = useRef(alEntrar)
+  useEffect(() => {
+    if (guia || !pendiente.current) return
+    pendiente.current = false
+    abrir()
+    // Cuando se va el instructivo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guia])
+}
+
 /** Aviso cortito abajo ("Listo, te escribimos…"): se va solo. */
 export function useAvisoMazo() {
   const [aviso, setAviso] = useState<string | null>(null)
