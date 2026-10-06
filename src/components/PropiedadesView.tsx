@@ -21,8 +21,9 @@ import {
   LocateFixed,
   Clock,
   ArrowLeft,
-  RefreshCw,
   FileDown,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react'
 import MotivosFit from '@/components/MotivosFit'
 import {
@@ -69,7 +70,7 @@ import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } fr
 // Constantes del mapa desde @/lib/map-config (módulo sin leaflet): un import
 // estático de PropiedadesMap acá anularía el dynamic() de abajo y metería
 // leaflet en el First Load JS de /propiedades.
-import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
+import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
   ssr: false,
@@ -742,7 +743,11 @@ export default function PropiedadesView({
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
-  const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
+  // Zona que la persona dejó a la vista moviendo el mapa: el listado muestra
+  // solo lo que cae adentro (como Zonaprop/Airbnb). null = no movió el mapa.
+  const [mapBounds, setMapBounds]       = useState<ZonaMapa | null>(null)
+  // Mapa a pantalla completa (solo compu): tapa la página entera; Esc sale.
+  const [mapaCompleto, setMapaCompleto] = useState(false)
   // Modo "cercanía": cuando el usuario clickea Centrar y damos OK al permiso
   // de geolocalización, guardamos el origen acá. El listado y el mapa pasan a
   // mostrar SOLO propiedades dentro de GEO_NEARBY_RADIUS_KM (5 km por default).
@@ -750,7 +755,6 @@ export default function PropiedadesView({
   const [nearbyOrigin, setNearbyOrigin] = useState<{ lat: number; lng: number } | null>(null)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [mobileSortOpen, setMobileSortOpen]       = useState(false)
-  const [refreshing, setRefreshing]               = useState(false)
   const [searchSuggestions, setSearchSuggestions] = useState(false)
   const [searchDropdownDesktop, setSearchDropdownDesktop] = useState(false)
   const [locatingUser, setLocatingUser] = useState(false)
@@ -1049,9 +1053,10 @@ export default function PropiedadesView({
     setMapBounds(null)
   }, [])
 
-  // Una búsqueda nueva manda sobre "Buscar en esta zona": si no, escribir
-  // "funes" con el mapa parado en Rosario daba cero.
-  useEffect(() => { setMapBounds(null) }, [filters.search])
+  // Una búsqueda o una Ubicación nueva mandan sobre la zona del mapa: si no,
+  // escribir "funes" (o elegir Funes) con el mapa parado en Rosario daba cero.
+  // Los demás filtros (tipo, dormitorios, precio) se ven dentro de la zona.
+  useEffect(() => { setMapBounds(null) }, [filters.search, filters.location])
 
   // Escribir "alquiler …" con el toggle en Venta (o al revés) mueve el toggle:
   // lo último que la persona dijo es lo que quiere, sin un toque extra.
@@ -1083,27 +1088,34 @@ export default function PropiedadesView({
     [smartActivo, propertiesForMap, smartProfile],
   )
 
-  // Lista para el listado lateral: asistente (si está activo) + bounds del mapa.
+  // Lista para el listado lateral: asistente (si está activo) + zona del mapa.
   // El asistente se aplica ACÁ, así el contador, el mapa y el render por tandas
   // trabajan sobre el mismo conjunto sin tener que enterarse de nada.
+  const propertiesSinZona = useMemo(() => {
+    if (!smartSelection) return propertiesForMap
+    return smartSelection.properties
+      .map(p => ({ p, fit: scorePropertyFit(p, smartProfile) }))
+      .sort((a, b) => b.fit.score - a.fit.score)
+      .map(x => x.p)
+  }, [propertiesForMap, smartSelection, smartProfile])
   const visibleProperties = useMemo(() => {
-    let list = propertiesForMap
-    if (smartSelection) {
-      list = smartSelection.properties
-        .map(p => ({ p, fit: scorePropertyFit(p, smartProfile) }))
-        .sort((a, b) => b.fit.score - a.fit.score)
-        .map(x => x.p)
-    }
-    if (mapBounds) {
-      list = list.filter(p => {
-        if (!p.geo_lat || !p.geo_long) return true
-        const lat = parseFloat(p.geo_lat)
-        const lng = parseFloat(p.geo_long)
-        return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
-      })
-    }
-    return list
-  }, [propertiesForMap, mapBounds, smartSelection, smartProfile])
+    if (!mapBounds) return propertiesSinZona
+    return propertiesSinZona.filter(p => {
+      if (!p.geo_lat || !p.geo_long) return true
+      const lat = parseFloat(p.geo_lat)
+      const lng = parseFloat(p.geo_long)
+      return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
+    })
+  }, [propertiesSinZona, mapBounds])
+
+  // El mapa avisa cada vez que la persona lo mueve. Si solo cambió de tamaño
+  // (divisor, pantalla completa), actualiza la zona únicamente si la lista ya
+  // venía siguiendo al mapa. La lista vuelve arriba: lo de antes ya no aplica.
+  const handleZonaMapa = useCallback((zona: ZonaMapa, soloSiYaSeguia: boolean) => {
+    setMapBounds(prev => (soloSiYaSeguia && !prev ? prev : zona))
+    if (!soloSiYaSeguia) listRef.current?.scrollTo({ top: 0 })
+  }, [])
+
 
   // ── Render incremental de las cards ──────────────────────────────────────
   // Antes se renderizaban TODAS las propiedades filtradas (248): el HTML de
@@ -1243,6 +1255,15 @@ export default function PropiedadesView({
   const isDesktopViewport = useMediaQuery('(min-width: 768px)')
   const shouldRenderMap = isDesktopViewport || mobileView === 'map'
   const [panelPropertyId, setPanelPropertyId] = useState<number | null>(null)
+
+  // Esc sale de la pantalla completa; si hay una ficha abierta encima, Esc
+  // cierra solo la ficha (PropertyPanel) y el mapa sigue grande.
+  useEffect(() => {
+    if (!mapaCompleto || panelPropertyId != null) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMapaCompleto(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mapaCompleto, panelPropertyId])
 
   useEffect(() => {
     if (initialPropertyId == null) return
@@ -1789,7 +1810,22 @@ export default function PropiedadesView({
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
-                {nearbyOrigin ? (
+                {mapBounds && propertiesSinZona.length > 0 ? (
+                  <>
+                    <p className="text-gray-700 font-semibold text-sm mb-1">
+                      No hay propiedades en esta parte del mapa
+                    </p>
+                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                      Alejá el mapa o mirá todas las que coinciden con tu búsqueda.
+                    </p>
+                    <button
+                      onClick={() => setMapBounds(null)}
+                      className="bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors mb-2"
+                    >
+                      Ver las <span className="font-numeric">{propertiesSinZona.length}</span>
+                    </button>
+                  </>
+                ) : nearbyOrigin ? (
                   <>
                     <p className="text-gray-700 font-semibold text-sm mb-1">
                       No hay propiedades a {GEO_NEARBY_RADIUS_KM} km de tu ubicación.
@@ -1925,7 +1961,7 @@ export default function PropiedadesView({
         </div>
 
         {/* Right: Map */}
-        <div className={`relative w-full md:w-auto md:flex-1 md:min-w-0 ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
+        <div className={`relative w-full md:w-auto md:flex-1 md:min-w-0 ${mobileView === 'list' ? 'hidden md:block' : 'block'} ${mapaCompleto ? 'md:fixed md:inset-0 md:z-[9000] md:bg-white' : ''}`}>
           {shouldRenderMap && (
             <PropiedadesMap
               // Con el asistente activo el mapa acompaña a la lista: si no,
@@ -1937,16 +1973,9 @@ export default function PropiedadesView({
               onDeselect={handleMapDeselect}
               onOpenDetail={(id) => setPanelPropertyId(id)}
               flyToCenter={flyToCenter}
-              onBoundsSearch={(bounds) => {
-                setRefreshing(true)
-                setMapBounds({
-                  south: bounds.getSouth(),
-                  north: bounds.getNorth(),
-                  west: bounds.getWest(),
-                  east: bounds.getEast(),
-                })
-                setTimeout(() => setRefreshing(false), 500)
-              }}
+              onZonaChange={handleZonaMapa}
+              zonaDelMapa={mapBounds}
+              pantallaCompleta={mapaCompleto}
               activeZona={activeZona}
               onMapMove={closeBottomSheet}
               onNearbyOrigin={handleNearbyOrigin}
@@ -1991,6 +2020,29 @@ export default function PropiedadesView({
               <span className="text-xs text-gray-500"> propiedades</span>
             </div>
           </div>
+          {/* Pantalla completa (solo compu): agranda el mapa sobre toda la
+              página; al salir, la lista muestra lo que quedó a la vista. */}
+          {mapaCompleto ? (
+            <button
+              type="button"
+              onClick={() => setMapaCompleto(false)}
+              className="hidden md:inline-flex absolute top-3 right-3 z-[1000] items-center gap-2 rounded-full bg-white text-gray-900 shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
+              style={{ padding: '9px 16px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, fontWeight: 600 }}
+              title="Salir de pantalla completa (Esc)"
+            >
+              <Minimize2 className="w-4 h-4" /> Volver a la lista
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setMapaCompleto(true); trackEvent('mapa_pantalla_completa') }}
+              className="hidden md:flex absolute top-3 right-3 z-[1000] w-10 h-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-md border border-gray-200 hover:text-[#1A5C38] transition-colors"
+              title="Ver el mapa en pantalla completa"
+              aria-label="Ver el mapa en pantalla completa"
+            >
+              <Maximize2 className="w-[18px] h-[18px]" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -2008,16 +2060,6 @@ export default function PropiedadesView({
             style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
           >
             <ArrowUpDown className="w-4 h-4" /> Ordenar
-          </button>
-        )}
-        {mobileView === 'map' && (
-          <button
-            onClick={() => { window.dispatchEvent(new Event('si-refresh-bounds')) }}
-            className="inline-flex items-center justify-center rounded-full"
-            style={{ background: '#111', color: '#fff', width: 44, height: 44, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
-            aria-label="Buscar en esta zona"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
         )}
         <button
