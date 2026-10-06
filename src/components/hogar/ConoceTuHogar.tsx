@@ -178,6 +178,9 @@ export default function ConoceTuHogar({
   const [sugerencias, setSugerencias] = useState(false)
   const [resultado, setResultado] = useState<Resultado | null>(null)
   const [abierto, setAbierto] = useState(false)
+  /** Vino de un anuncio y el mazo abre solo: después de las instrucciones, "¿Qué buscás?" (David 6-oct). */
+  // Solo si el mazo abre solo (zona del link válida): si no, elige en la pantalla y no se le repregunta.
+  const [entradaPauta, setEntradaPauta] = useState(() => desdePauta && abrirAlCargar && !cliente && !!zonaPorNombre(catalogo, zonaInicial))
   /**
    * Las casas que tiene el mazo abierto. Al afinar la búsqueda desde adentro
    * (David 5-oct) cambian los filtros de acá y se vuelve a contar; el mazo NO se
@@ -613,6 +616,7 @@ export default function ConoceTuHogar({
             esCiudad: (z) => z === CERCA_MIO || !!zonaPorNombre(catalogo, z)?.esCiudad,
             estado: estadoAfinar,
             ronda: rondaAfinar,
+            alEntrar: entradaPauta,
             onAplicar: (v) => {
               // "Cerca mío" sigue con el mismo punto; una ciudad o barrio lo reemplaza.
               const nueva = v.zona === CERCA_MIO ? null : zonaPorNombre(catalogo, v.zona)
@@ -628,7 +632,10 @@ export default function ConoceTuHogar({
           }}
           aprender={!cerca}
           cliente={cliente ? { token: cliente.token, soloMirar: cliente.soloMirar } : null}
-          onCerrar={() => setAbierto(false)}
+          onCerrar={() => {
+            setAbierto(false)
+            setEntradaPauta(false) // la pregunta de entrada es una sola vez
+          }}
         />
       )}
     </div>

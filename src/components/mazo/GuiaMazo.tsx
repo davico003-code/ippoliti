@@ -14,19 +14,22 @@ import { AZUL_VISITA, CORAZON, Corazon, ROJO_PASO, VERDE } from './marca-mazo'
 /** El instructivo se muestra una vez por navegador. */
 const CLAVE_GUIA = 'si-mazo-guia-v2'
 
+function guiaVista(): boolean {
+  try {
+    return window.localStorage.getItem(CLAVE_GUIA) === '1'
+  } catch {
+    return false
+  }
+}
+
 /** `mostrar` = el mazo abrió en una tarjeta (no directo en el final). Solo cuenta al abrir. */
 export function useGuiaMazo(mostrar: boolean, origen: OrigenTinder) {
-  const [guia, setGuia] = useState(false)
+  // Decidido desde el primer render (el mazo solo se monta en el navegador, al
+  // abrirlo): así "¿Qué buscás?" del anuncio sabe esperar a que se cierre.
+  const [guia, setGuia] = useState(() => mostrar && !guiaVista())
   const [guiaDx, setGuiaDx] = useState<number | null>(null)
   useEffect(() => {
-    let vista = true
-    try {
-      vista = window.localStorage.getItem(CLAVE_GUIA) === '1'
-    } catch {
-      vista = false
-    }
-    if (vista || !mostrar) return
-    setGuia(true)
+    if (!guia) return
     const pasos: [number, number | null][] = [[700, 90], [1500, -90], [2300, null], [3300, 90], [4100, -90], [4900, null]]
     const timers = pasos.map(([t, dx]) => window.setTimeout(() => setGuiaDx(dx), t))
     return () => timers.forEach((t) => window.clearTimeout(t))

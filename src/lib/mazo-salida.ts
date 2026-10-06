@@ -22,7 +22,7 @@ export type EstadoSalida = {
   /** La hoja de ★ "Quiero conocerla" (pide nombre y WhatsApp), a la vista. */
   visita: boolean
   /** "Afiná tu búsqueda" a la vista: desde el ícono ('boton') o al querer salir ('salir'). */
-  afinar?: 'boton' | 'salir' | null
+  afinar?: 'boton' | 'salir' | 'entrada' | null
   /** La hoja de contacto abierta y por qué (al salir o desde ♥ N). */
   hoja: 'salir' | 'boton' | null
   /** El rescate a la vista: en medio del mazo o al querer salir. */
