@@ -384,17 +384,19 @@ export function formatearPresupuesto(texto: string): string {
  * Lo que quiso decir mientras escribe (David, 6-oct: "autocompletar fácilmente
  * cuando está escribiendo"): "25" en casas → 250.000 o 2.500.000; "8" en lotes
  * → 80.000 u 800.000. La primera es la más probable y es la que se aplica.
- * Vacío → los atajos del tipo.
+ * Si lo que escribió ya es un precio lógico ("70.000" en casas), va primero tal
+ * cual (si no, se buscaba 10 veces más). Vacío → los atajos del tipo.
  */
 export function sugerirPresupuestos(texto: string, tipo: TipoHogar): number[] {
   const d = texto.replace(/\D/g, '').replace(/^0+/, '')
   if (!d) return TOPES_HOGAR[tipo]
   const { tipico, min, max } = PRESUPUESTO_TIPICO[tipo]
   const n = Number(d.slice(0, 9))
+  const cerca = (v: number) => (v === n ? -1 : Math.abs(Math.log(v / tipico)))
   return [1, 10, 100, 1_000, 10_000, 100_000, 1_000_000]
     .map((f) => n * f)
     .filter((v) => v >= min && v <= max)
-    .sort((a, b) => Math.abs(Math.log(a / tipico)) - Math.abs(Math.log(b / tipico)))
+    .sort((a, b) => cerca(a) - cerca(b))
     .slice(0, 2)
 }
 

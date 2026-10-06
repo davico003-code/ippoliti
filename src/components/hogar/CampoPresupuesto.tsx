@@ -40,8 +40,19 @@ export default function CampoPresupuesto({
 
   const aplicar = (v: number | null, ya: boolean) => {
     if (espera.current) window.clearTimeout(espera.current)
+    espera.current = null
     if (ya || !demoraMs) return onChange(v)
-    espera.current = window.setTimeout(() => onChange(v), demoraMs)
+    espera.current = window.setTimeout(() => {
+      espera.current = null
+      onChange(v)
+    }, demoraMs)
+  }
+  // Sale de la casilla (o toca "Ver casas" enseguida: el blur llega antes del click):
+  // se aplica ya lo pendiente y se ve completo lo que se aplicó ("25" → "250.000").
+  const alSalir = () => {
+    const v = interpretar(texto, tipo)
+    if (espera.current) aplicar(v, true)
+    if (v) setTexto(formatearPresupuesto(String(v)))
   }
   const escribir = (t: string) => {
     const f = formatearPresupuesto(t)
@@ -82,6 +93,7 @@ export default function CampoPresupuesto({
           placeholder="Ej: 250.000"
           value={texto}
           onChange={(e) => escribir(e.target.value)}
+          onBlur={alSalir}
           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
           className={`h-11 w-full rounded-[12px] pl-[52px] pr-11 text-[16px] font-semibold outline-none ${caja}`}
         />
@@ -107,7 +119,7 @@ export default function CampoPresupuesto({
         ))}
       </div>
       {valor != null && (
-        <p className={`mt-1.5 text-[14px] font-medium ${oscuro ? 'text-white/60' : 'text-[#5B665F]'}`}>
+        <p aria-live="polite" className={`mt-1.5 text-[14px] font-medium ${oscuro ? 'text-white/60' : 'text-[#5B665F]'}`}>
           Te mostramos de {textoTope(valor * BANDA_TOPE.min)} a {textoTope(valor * BANDA_TOPE.max).replace('USD ', '')}.
         </p>
       )}
