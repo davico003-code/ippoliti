@@ -19,13 +19,13 @@ export default function CampoPresupuesto({
   valor,
   onChange,
   oscuro = false,
-  demoraMs = 450,
+  demoraMs = 900,
 }: {
   tipo: TipoHogar
   valor: number | null
   onChange: (v: number | null) => void
   oscuro?: boolean
-  /** Mientras escribe, se aplica después de esta pausa (no busca en cada tecla). */
+  /** Mientras escribe, se aplica después de esta pausa (David 6-oct: "dejá que escriba un poco más"). */
   demoraMs?: number
 }) {
   const [texto, setTexto] = useState(() => (valor ? formatearPresupuesto(String(valor)) : ''))
@@ -51,12 +51,15 @@ export default function CampoPresupuesto({
   // se aplica ya lo pendiente y se ve completo lo que se aplicó ("25" → "250.000").
   const alSalir = () => {
     const v = interpretar(texto, tipo)
-    if (espera.current) aplicar(v, true)
+    if (espera.current || v !== valor) aplicar(v, true)
     if (v) setTexto(formatearPresupuesto(String(v)))
   }
   const escribir = (t: string) => {
     const f = formatearPresupuesto(t)
     setTexto(f)
+    const digitos = f.replace(/\D/g, '').length
+    // Con un solo dígito no se adivina nada ("3": ¿30 mil o 300 mil?): espera a que siga o salga de la casilla.
+    if (digitos === 1) return aplicar(valor, true)
     aplicar(interpretar(f, tipo), false)
   }
   const elegir = (v: number) => {
@@ -72,8 +75,8 @@ export default function CampoPresupuesto({
     : 'bg-[#F1F3F1] text-[#121A15] placeholder:text-[#8A958D] focus:bg-white focus:shadow-[0_0_0_2px_#17613C]'
   const chip = (on: boolean) =>
     oscuro
-      ? `h-10 rounded-full px-3.5 text-[15px] font-semibold border transition-colors ${on ? 'border-transparent bg-[#17613C] text-white' : 'border-white/20 text-white/85 hover:border-white/40'}`
-      : `si-tap h-10 rounded-full px-3.5 text-[15px] font-semibold border-[1.5px] transition-colors ${on ? 'border-[#17613C] bg-[#17613C] text-white' : 'border-[#E1E6E1] bg-white text-[#3C4A42] hover:border-[#17613C]/50'}`
+      ? `h-10 rounded-full px-3.5 font-numeric text-[15px] font-semibold border transition-colors ${on ? 'border-transparent bg-[#17613C] text-white' : 'border-white/20 text-white/85 hover:border-white/40'}`
+      : `si-tap h-10 rounded-full px-3.5 font-numeric text-[15px] font-semibold border-[1.5px] transition-colors ${on ? 'border-[#17613C] bg-[#17613C] text-white' : 'border-[#E1E6E1] bg-white text-[#3C4A42] hover:border-[#17613C]/50'}`
 
   return (
     <div className={oscuro ? 'mt-4' : 'mt-5'}>
@@ -95,7 +98,7 @@ export default function CampoPresupuesto({
           onChange={(e) => escribir(e.target.value)}
           onBlur={alSalir}
           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-          className={`h-11 w-full rounded-[12px] pl-[52px] pr-11 text-[16px] font-semibold outline-none ${caja}`}
+          className={`h-11 w-full rounded-[12px] pl-[52px] pr-11 font-numeric text-[16px] font-semibold tabular-nums outline-none ${caja}`}
         />
         {texto && (
           <button
@@ -120,7 +123,8 @@ export default function CampoPresupuesto({
       </div>
       {valor != null && (
         <p aria-live="polite" className={`mt-1.5 text-[14px] font-medium ${oscuro ? 'text-white/60' : 'text-[#5B665F]'}`}>
-          Te mostramos de {textoTope(valor * BANDA_TOPE.min)} a {textoTope(valor * BANDA_TOPE.max).replace('USD ', '')}.
+          Te mostramos de <span className="font-numeric">{textoTope(valor * BANDA_TOPE.min)}</span> a{' '}
+          <span className="font-numeric">{textoTope(valor * BANDA_TOPE.max).replace('USD ', '')}</span>.
         </p>
       )}
     </div>

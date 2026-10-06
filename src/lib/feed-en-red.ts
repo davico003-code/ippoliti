@@ -369,9 +369,11 @@ export function textoPrecio(tope: number): string {
 
 /** Presupuesto típico por tipo (para entender qué quiso decir con "25") y lo que tiene sentido. */
 const PRESUPUESTO_TIPICO: Record<TipoHogar, { tipico: number; min: number; max: number }> = {
-  house: { tipico: 250_000, min: 40_000, max: 5_000_000 },
+  // Pisos bajos (David 6-oct: "puede que busque un lote de 35.000"): el número
+  // completo de algo barato se toma tal cual; el típico decide lo abreviado ("25").
+  house: { tipico: 250_000, min: 20_000, max: 5_000_000 },
   lot: { tipico: 80_000, min: 10_000, max: 3_000_000 },
-  apartment: { tipico: 120_000, min: 25_000, max: 3_000_000 },
+  apartment: { tipico: 120_000, min: 15_000, max: 3_000_000 },
 }
 
 /** "250000" → "250.000" (lo que escribe, con puntos). */
