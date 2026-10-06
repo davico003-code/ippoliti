@@ -35,7 +35,6 @@ import {
   type TipoHogar,
   type ZonaHogar,
   TIPOS_HOGAR,
-  TOPES_HOGAR,
   cantidadZona,
   sugerirZonas,
   textoDorm,
@@ -46,6 +45,7 @@ import { contarTinder, fijarCanalTinder } from '@/lib/tinder-contador'
 import { BarraFija, IconoFlecha, Spinner, cls } from '@/components/tasaciones/ui'
 import MazoCasas, { SuscripcionMail, useGuardadas } from '@/components/mazo/MazoCasas'
 import { cargarCasasDeBarrios } from '@/lib/mazo-parecidos'
+import CampoPresupuesto from './CampoPresupuesto'
 import { type FalloUbicacion, pedirUbicacion } from '@/lib/mi-ubicacion'
 
 /** Dónde: las tres que cubren casi todas las consultas, en ese orden. */
@@ -443,11 +443,8 @@ export default function ConoceTuHogar({
           etiqueta="Qué buscás"
           opciones={TIPOS_HOGAR.map((t) => ({ v: t.id, label: t.label }))}
           valor={tipo}
-          onChange={(t) => {
-            // Los precios cambian con el tipo (un lote de 250 mil no es lo mismo que una casa).
-            if (t !== tipo) setTope(null)
-            setTipo(t)
-          }}
+          // Su presupuesto es su plata: se queda aunque cambie de casa a lote (6-oct).
+          onChange={setTipo}
         />
 
         {barrioBuscado ? (
@@ -501,13 +498,8 @@ export default function ConoceTuHogar({
           </p>
         )}
 
-        <Segmentos<number | null>
-          // Un valor, no un techo: busca ±20 % (David 5-oct). Los 4 precios ("500 mil" también) en miles para que entren en el celu.
-          etiqueta="Precio (miles de dólares)"
-          opciones={[{ v: null, label: 'Todos' }, ...TOPES_HOGAR[tipo].map((v) => ({ v, label: String(v / 1000) }))]}
-          valor={tope}
-          onChange={setTope}
-        />
+        {/* Su presupuesto, ±15 % (David 6-oct): lo escribe (con autocompletado) o toca un atajo; vacío = todas. */}
+        <CampoPresupuesto tipo={tipo} valor={tope} onChange={setTope} />
 
         {tipo !== 'lot' && (
           <Segmentos<number | null>

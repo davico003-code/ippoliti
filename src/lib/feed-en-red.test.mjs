@@ -49,18 +49,18 @@ test('Conocé tu próximo hogar: ciudad → toda la ciudad (también "San Lorenz
   assert.equal(enZonaBuscada('Funes', { nombre: 'Centro', completa: 'Argentina | Santa Fe | Rosario | Centro' }), false)
 })
 
-test('Conocé tu próximo hogar: el precio elegido busca ±20 % (David 5-oct)', async () => {
+test('Conocé tu próximo hogar: su presupuesto busca ±15 % (David 6-oct)', async () => {
   const { entraEnTope, textoPrecio } = await import('./feed-en-red.ts')
   assert.equal(entraEnTope(250000, 250000), true)
-  assert.equal(entraEnTope(300000, 250000), true)
-  assert.equal(entraEnTope(200000, 250000), true)
-  assert.equal(entraEnTope(301000, 250000), false)
-  assert.equal(entraEnTope(199000, 250000), false)
+  assert.equal(entraEnTope(287000, 250000), true)
+  assert.equal(entraEnTope(213000, 250000), true)
+  assert.equal(entraEnTope(290000, 250000), false)
+  assert.equal(entraEnTope(210000, 250000), false)
+  assert.equal(entraEnTope(90000, 100000), true)
   assert.equal(entraEnTope(90000, null), true)
   assert.equal(entraEnTope(null, null), false)
-  assert.equal(textoPrecio(500000), 'entre USD 400 y 600 mil')
-  assert.equal(textoPrecio(50000), 'entre USD 40 y 60 mil')
-  assert.equal(textoPrecio(1000000), 'entre USD 800 mil y USD 1,2 M')
+  assert.equal(textoPrecio(500000), 'de alrededor de USD 500 mil')
+  assert.equal(textoPrecio(1200000), 'de alrededor de USD 1,2 M')
 })
 
 test('sugerirZonas: "Los tronco" encuentra Los Troncos (el caso de David)', async () => {
@@ -88,7 +88,7 @@ test('lineaDireccion: calle | barrio | ciudad sin repetir', async () => {
 
 test('textoBusqueda y esEmail', async () => {
   const { textoBusqueda, esEmail, tipoHogarDeTokko } = await import('./feed-en-red.ts')
-  assert.equal(textoBusqueda({ zona: 'Funes Lakes', tipo: 'house', topeUsd: 200000, origen: 'conoce_tu_hogar' }), 'casas en Funes Lakes entre USD 160 y 240 mil')
+  assert.equal(textoBusqueda({ zona: 'Funes Lakes', tipo: 'house', topeUsd: 200000, origen: 'conoce_tu_hogar' }), 'casas en Funes Lakes de alrededor de USD 200 mil')
   assert.equal(textoBusqueda({ zona: 'Roldán', tipo: 'lot', topeUsd: null, origen: 'ficha' }), 'lotes en Roldán')
   assert.equal(esEmail('martina@gmail.com'), true)
   assert.equal(esEmail('341 555 1234'), false)
@@ -109,7 +109,7 @@ test('dormitorios: N o más; sin dato no entra; en lotes no cuenta', async () =>
   assert.equal(dormMinValido(null), null)
   assert.equal(
     textoBusqueda({ zona: 'Funes Lakes', tipo: 'house', topeUsd: 250000, dormMin: 3, origen: 'conoce_tu_hogar' }),
-    'casas de 3 dormitorios o más en Funes Lakes entre USD 200 y 300 mil',
+    'casas de 3 dormitorios o más en Funes Lakes de alrededor de USD 250 mil',
   )
   assert.equal(textoBusqueda({ zona: 'Roldán', tipo: 'lot', topeUsd: null, dormMin: 3, origen: 'conoce_tu_hogar' }), 'lotes en Roldán')
 })
@@ -126,7 +126,7 @@ test('barrio cerrado/abierto: me da igual entra todo; lo que no se sabe cuenta c
   assert.equal(barrioHogarValido('x'), null)
   assert.equal(
     textoBusqueda({ zona: 'Funes', tipo: 'house', topeUsd: 250000, barrio: 'abierto', origen: 'conoce_tu_hogar' }),
-    'casas en barrio abierto de Funes entre USD 200 y 300 mil',
+    'casas en barrio abierto de Funes de alrededor de USD 250 mil',
   )
 })
 
@@ -259,7 +259,7 @@ test('aprende: las que llegan después (parecidos) van donde está parado', () =
 })
 
 // ── Tinder del cliente (David, 5-oct)
-import { idEnSeleccion, topeOfrecido } from './feed-en-red.ts'
+import { formatearPresupuesto, idEnSeleccion, sugerirPresupuestos } from './feed-en-red.ts'
 
 test('cliente: la key del mazo se traduce al id de su selección', () => {
   assert.equal(idEnSeleccion('n:4512345'), '4512345')
@@ -269,13 +269,20 @@ test('cliente: la key del mazo se traduce al id de su selección', () => {
   assert.equal(idEnSeleccion('n:abc'), null)
 })
 
-test('presupuesto del link → el precio que se ofrece más parecido', () => {
-  assert.equal(topeOfrecido('house', 230000), 250000)
-  assert.equal(topeOfrecido('house', 180000), 150000)
-  assert.equal(topeOfrecido('house', 600000), 500000)
-  assert.equal(topeOfrecido('house', 900000), null)
-  assert.equal(topeOfrecido('lot', 70000), 80000)
-  assert.equal(topeOfrecido('house', null), null)
+test('presupuesto: autocompleta lo que quiso decir mientras escribe', () => {
+  assert.deepEqual(sugerirPresupuestos('25', 'house'), [250000, 2500000])
+  assert.deepEqual(sugerirPresupuestos('180', 'house'), [180000, 1800000])
+  assert.deepEqual(sugerirPresupuestos('250.000', 'house'), [250000, 2500000])
+  assert.deepEqual(sugerirPresupuestos('1', 'house'), [100000, 1000000])
+  assert.deepEqual(sugerirPresupuestos('8', 'lot'), [80000, 800000])
+  // El número completo, tal cual (Arquitecto 6-oct: "70.000" buscaba 700 mil).
+  assert.equal(sugerirPresupuestos('70.000', 'house')[0], 70000)
+  assert.equal(sugerirPresupuestos('20.000', 'lot')[0], 20000)
+  assert.equal(sugerirPresupuestos('30.000', 'apartment')[0], 30000)
+  assert.deepEqual(sugerirPresupuestos('', 'house'), [150000, 250000, 350000, 500000])
+  assert.equal(formatearPresupuesto('250000'), '250.000')
+  assert.equal(formatearPresupuesto('USD 0180.5'), '1.805')
+  assert.equal(formatearPresupuesto(''), '')
 })
 
 test('aprende: tres ✕ a casas caras no hacen subir las baratas si le gustó una cara (caso real 5-oct)', () => {

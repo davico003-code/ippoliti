@@ -12,7 +12,7 @@
 
 import type { Metadata } from 'next'
 import ConoceTuHogar from '@/components/hogar/ConoceTuHogar'
-import { type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar, topeOfrecido } from '@/lib/feed-en-red'
+import { type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
 import { getSeleccion } from '@/lib/redis'
 import { ZONAS } from '@/lib/zonas'
 
@@ -61,6 +61,7 @@ async function clienteDelLink(token: string | undefined, vista: string | undefin
 export default async function ConoceTuHogarPage({ searchParams }: { searchParams: SP }) {
   const tipo = first(searchParams.tipo)
   const tipoInicial = esTipoHogar(tipo) ? tipo : 'house'
+  const tope = Number(first(searchParams.tope)) || 0
   const [zonas, cliente] = await Promise.all([catalogo(), clienteDelLink(first(searchParams.s), first(searchParams.vista))])
   const medio = (first(searchParams.utm_medium) ?? '').toLowerCase()
   return (
@@ -68,8 +69,8 @@ export default async function ConoceTuHogarPage({ searchParams }: { searchParams
       catalogo={zonas}
       zonaInicial={first(searchParams.zona) ?? null}
       tipoInicial={tipoInicial}
-      // Un presupuesto cualquiera (link del asesor o de la pauta) → el precio que se ofrece más parecido.
-      topeInicial={topeOfrecido(tipoInicial, Number(first(searchParams.tope)) || null)}
+      // Su presupuesto tal cual (link del asesor o de la pauta): se busca ±15 %.
+      topeInicial={tope > 0 && tope <= 20_000_000 ? Math.round(tope) : null}
       dormInicial={dormMinValido(first(searchParams.dorm))}
       barrioInicial={barrioHogarValido(first(searchParams.barrio))}
       cliente={cliente}

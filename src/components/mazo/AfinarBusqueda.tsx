@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { type BarrioHogar, type TipoHogar, TOPES_HOGAR, textoTope } from '@/lib/feed-en-red'
+import type { BarrioHogar, TipoHogar } from '@/lib/feed-en-red'
+import CampoPresupuesto from '@/components/hogar/CampoPresupuesto'
 import { VERDE } from './marca-mazo'
 
 /**
@@ -35,7 +36,6 @@ const DORMS = [2, 3, 4] as const
 
 export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { afinar: AfinarMazo; modo: 'boton' | 'salir'; onCerrar: () => void; onSalir: () => void }) {
   const [v, setV] = useState<ValoresAfinar>(afinar.valores)
-  const topes = TOPES_HOGAR[afinar.tipo]
   const ciudad = afinar.esCiudad(v.zona)
   const chip = (on: boolean) =>
     `h-10 rounded-full px-3.5 text-[15px] font-semibold border transition-colors ${on ? 'text-white border-transparent' : 'border-white/20 text-white/85 hover:border-white/40'}`
@@ -80,19 +80,8 @@ export default function AfinarBusqueda({ afinar, modo, onCerrar, onSalir }: { af
           </fieldset>
         )}
 
-        <fieldset className="mt-4">
-          <legend className="mb-2 text-[13px] font-bold uppercase tracking-wider text-white/60">Precio</legend>
-          <div className="flex flex-wrap gap-2">
-            {topes.map((t) => (
-              <button key={t} type="button" aria-pressed={v.tope === t} onClick={() => setV((x) => ({ ...x, tope: t }))} className={chip(v.tope === t)} style={fondo(v.tope === t)}>
-                {textoTope(t)}
-              </button>
-            ))}
-            <button type="button" aria-pressed={v.tope == null} onClick={() => setV((x) => ({ ...x, tope: null }))} className={chip(v.tope == null)} style={fondo(v.tope == null)}>
-              Todos
-            </button>
-          </div>
-        </fieldset>
+        {/* El mismo "Tu presupuesto" de la pantalla (±15 %, autocompleta); se aplica con "Seguir viendo". */}
+        <CampoPresupuesto oscuro tipo={afinar.tipo} valor={v.tope} onChange={(tope) => setV((x) => ({ ...x, tope }))} demoraMs={0} />
 
         {afinar.tipo !== 'lot' && (
           <fieldset className="mt-4">
