@@ -111,7 +111,8 @@ export default function BuscarConIA({
         {estado === 'buscando' ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Search className="h-4 w-4" aria-hidden />}
         {estado === 'buscando' ? 'Buscando…' : 'Buscar'}
       </button>
-      <p className="mt-2 min-h-[1px] text-[13.5px] leading-snug text-[#4F5C54]" role="status" aria-live="polite">
+      {/* Lo que más lee el cliente acá (qué sumar, cuántas encontró): letra legible para mayores. */}
+      <p className="mt-2 min-h-[1px] text-[16px] font-medium leading-snug text-[#111814]" role="status" aria-live="polite">
         {mensaje}
       </p>
     </form>
