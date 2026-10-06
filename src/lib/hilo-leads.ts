@@ -35,6 +35,8 @@ export type HiloLeadPayload = {
   /** Feed de la ficha (origen 'feed_web', 03-oct-2026): lo que marcó con ♥.
    *  `n:<id público>` = nuestra, `propia:<aviso>` / `meli:<MLA…>` = En red. */
   guardadas?: string[] | null
+  /** Tocó ★ "Quiero conocerla" en la PRIMERA de `guardadas`: en su link de seguimiento queda "Visita pedida". */
+  visita?: boolean
   /** Barrio de la ficha donde estaba mirando (para el texto del chat). */
   barrio?: string | null
   /** Dejó además el mail para recibir las nuevas de su búsqueda (4-oct-2026). */
