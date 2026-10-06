@@ -376,6 +376,17 @@ const PRESUPUESTO_TIPICO: Record<TipoHogar, { tipico: number; min: number; max: 
   apartment: { tipico: 120_000, min: 15_000, max: 3_000_000 },
 }
 
+/**
+ * ¿Es un monto raro para el tipo? (menos de un tercio o más del triple de lo
+ * típico: "25.000" en casas). Mientras escribe, lo raro espera más antes de
+ * buscar: casi siempre está a mitad de "250.000" (David 6-oct: sin el parpadeo
+ * de 21–29 mil). Lo común ("35.000" en lotes) busca enseguida.
+ */
+export function presupuestoRaro(usd: number | null, tipo: TipoHogar): boolean {
+  if (!usd || !(usd > 0)) return false
+  return Math.abs(Math.log(usd / PRESUPUESTO_TIPICO[tipo].tipico)) > Math.log(3)
+}
+
 /** "250000" → "250.000" (lo que escribe, con puntos). */
 export function formatearPresupuesto(texto: string): string {
   const d = texto.replace(/\D/g, '').replace(/^0+/, '').slice(0, 9)

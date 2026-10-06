@@ -8,7 +8,7 @@
 // "Conocé tu próximo hogar" y "Afiná tu búsqueda" adentro del mazo (oscuro).
 
 import { useEffect, useRef, useState } from 'react'
-import { type TipoHogar, BANDA_TOPE, formatearPresupuesto, sugerirPresupuestos, textoTope } from '@/lib/feed-en-red'
+import { type TipoHogar, BANDA_TOPE, formatearPresupuesto, presupuestoRaro, sugerirPresupuestos, textoTope } from '@/lib/feed-en-red'
 import { cls } from '@/components/tasaciones/ui'
 
 /** Lo que se aplica con lo escrito: la sugerencia más probable (null = sin presupuesto). */
@@ -42,10 +42,14 @@ export default function CampoPresupuesto({
     if (espera.current) window.clearTimeout(espera.current)
     espera.current = null
     if (ya || !demoraMs) return onChange(v)
-    espera.current = window.setTimeout(() => {
-      espera.current = null
-      onChange(v)
-    }, demoraMs)
+    // Lo raro para el tipo ("25.000" en casas) casi siempre está a mitad de escribir: espera más.
+    espera.current = window.setTimeout(
+      () => {
+        espera.current = null
+        onChange(v)
+      },
+      presupuestoRaro(v, tipo) ? demoraMs * 2.2 : demoraMs,
+    )
   }
   // Sale de la casilla (o toca "Ver casas" enseguida: el blur llega antes del click):
   // se aplica ya lo pendiente y se ve completo lo que se aplicó ("25" → "250.000").
