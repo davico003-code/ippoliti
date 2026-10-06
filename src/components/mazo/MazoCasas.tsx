@@ -399,7 +399,7 @@ export default function MazoCasas({
     }
     // Debajo de los datos están los botones flotando: un toque entre ellos no hace nada.
     if (datos && e.clientY > datos.bottom) return
-    const grupos = gruposDe(actual)
+    const grupos = Number(e.currentTarget.dataset.grupos) || gruposDe(actual)
     if (grupos > 1) {
       const zona = e.currentTarget.getBoundingClientRect()
       const derecha = e.clientX - zona.left > zona.width / 2

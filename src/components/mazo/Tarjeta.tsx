@@ -3,12 +3,14 @@
 // La TARJETA del Tinder y sus botones ↺ ✕ ★ ♥ (David, 3/4-oct-2026). Las usan
 // el mazo abierto (MazoCasas) y la ficha (la primera tarjeta, 'quieta').
 
+import { useRef } from 'react'
 import Image from 'next/image'
 import { Expand, RotateCcw, Star, X } from 'lucide-react'
 import { type ItemFeed, estiloSinLogo, lineaTarjeta, lugarTarjeta, metrosVisibles } from '@/lib/feed-en-red'
 import { formatDistanceAR } from '@/lib/geo'
 import { MAX_FOTOS_MAZO } from '@/lib/mazo-items'
 import { AZUL_VISITA, CORAZON, Corazon, IsotipoSI, ORO_VOLVER, ROJO_PASO } from './marca-mazo'
+import { useFotosPorTarjeta } from './useFotosPorTarjeta'
 
 const RGB: Record<Salida, string> = { like: '26,92,56', pass: '229,72,77', super: '43,127,255' }
 /** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso… */
@@ -31,9 +33,9 @@ export function direccionDe(dx: number, dy: number, conSuper = true): Salida | n
 
 /**
  * De a cuántas fotos se muestran, una arriba de la otra. En el mazo, de a TRES
- * (David 6-oct, eligió viendo varias simuladas: ninguna foto queda bajo el
- * precio). Ojo: con las barras de Safari cada hueco queda ~2,5:1 (tiras finas).
- * La de la ficha ('quieta', 470 px de alto) sigue de a dos.
+ * cuando la pantalla es alta y de a DOS cuando no (useFotosPorTarjeta: con las
+ * barras de Safari, de a 3 eran tiras finas). La de la ficha ('quieta', 470 px
+ * de alto) va siempre de a dos.
  */
 export const FOTOS_POR_TARJETA = 3
 /** Cuántos grupos de fotos tiene (cada toque al costado pasa al siguiente). */
@@ -134,7 +136,8 @@ export function Tarjeta({
   const sello: Salida | null = !arriba ? null : salida ?? (haciaArriba ? 'super' : dx > 8 ? 'like' : dx < -8 ? 'pass' : null)
   const fuerzaSello = salida ? 1 : sello === 'super' ? Math.min(1, -dy / UMBRAL_SUPER) : Math.min(1, Math.abs(dx) / UMBRAL_SWIPE)
   const n = Math.min(item.fotos.length, MAX_FOTOS_MAZO)
-  const porGrupo = modo === 'quieta' ? 2 : FOTOS_POR_TARJETA
+  const fotosRef = useRef<HTMLDivElement>(null)
+  const porGrupo = useFotosPorTarjeta(fotosRef, modo !== 'quieta')
   const pares = gruposDe(item, porGrupo)
   const p = Math.min(par, pares - 1)
   // El último grupo incompleto vuelve a las primeras fotos: nunca una sola estirada.
@@ -152,9 +155,11 @@ export function Tarjeta({
       onPointerUp={arriba ? onPointerUp : undefined}
       onPointerCancel={arriba ? onPointerUp : undefined}
       aria-hidden={modo === 'abajo'}
+      // El mazo lo lee al tocar el costado (cuántos grupos hay con este tamaño de pantalla).
+      data-grupos={pares}
     >
-      {/* Fotos de a tres (de a dos en la ficha), de punta a punta; la última se funde a negro */}
-      <div data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[2px] bg-black">
+      {/* Fotos de a tres o de a dos (según el alto), de punta a punta; la última se funde a negro */}
+      <div ref={fotosRef} data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[2px] bg-black">
         {fotos.map((src, i) => (
           <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-neutral-800 overflow-hidden">
             <Image
