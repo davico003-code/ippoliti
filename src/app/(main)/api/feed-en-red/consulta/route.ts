@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
       email,
       origen: 'feed_web',
       guardadas,
+      visita,
       barrio,
       suscripcion,
       message:
