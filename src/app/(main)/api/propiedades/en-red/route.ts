@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { FeedEnRed } from '@/lib/feed-en-red'
 import { rateLimit } from '@/lib/feedback'
+import { TINDER_ACTIVO } from '@/lib/tinder'
 
 // Propiedades de otras inmobiliarias de la zona ("En red") para el feed de la
 // ficha. Las elige Hilo (fichas armadas de Red Propia y MELI: mismo barrio,
@@ -10,6 +11,8 @@ import { rateLimit } from '@/lib/feedback'
 const VACIO: FeedEnRed = { barrio: null, tarjetas: [] }
 
 export async function GET(request: NextRequest) {
+  // Tinder en pausa (lib/tinder.ts): las En red no salen de la web.
+  if (!TINDER_ACTIVO) return NextResponse.json({ error: 'pausado' }, { status: 404, headers: { 'Cache-Control': 'no-store' } })
   const id = Number(request.nextUrl.searchParams.get('id'))
   if (!Number.isInteger(id) || id <= 0) return NextResponse.json({ error: 'id required' }, { status: 400 })
   const secret = process.env.HILO_INGEST_SECRET
