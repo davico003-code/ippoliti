@@ -5,7 +5,7 @@ import { rateLimit } from '@/lib/feedback'
 
 // GET /api/propiedades/fotos-mazo?ids=123,456 → { fotos: { "123": [url, …] } }
 //
-// El Tinder muestra hasta 5 pares de fotos por casa (David, 4-oct-2026). El
+// El Tinder muestra hasta 10 fotos por casa, de a 3 (David, 4/6-oct-2026). El
 // listado de la web trae solo las 5 de la tarjeta (más liviano para todas las
 // páginas), así que el mazo pide aparte las del álbum de SUS casas nuestras
 // (≤16). Cada una sale del mismo cache que la ficha (getPropertyById).

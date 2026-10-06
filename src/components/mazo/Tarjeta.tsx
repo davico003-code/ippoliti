@@ -3,12 +3,14 @@
 // La TARJETA del Tinder y sus botones ↺ ✕ ★ ♥ (David, 3/4-oct-2026). Las usan
 // el mazo abierto (MazoCasas) y la ficha (la primera tarjeta, 'quieta').
 
+import { useRef } from 'react'
 import Image from 'next/image'
 import { Expand, RotateCcw, Star, X } from 'lucide-react'
 import { type ItemFeed, estiloSinLogo, lineaTarjeta, lugarTarjeta, metrosVisibles } from '@/lib/feed-en-red'
 import { formatDistanceAR } from '@/lib/geo'
 import { MAX_FOTOS_MAZO } from '@/lib/mazo-items'
 import { AZUL_VISITA, CORAZON, Corazon, IsotipoSI, ORO_VOLVER, ROJO_PASO } from './marca-mazo'
+import { useFotosPorTarjeta } from './useFotosPorTarjeta'
 
 const RGB: Record<Salida, string> = { like: '26,92,56', pass: '229,72,77', super: '43,127,255' }
 /** Cuánto hay que arrastrar la tarjeta para que cuente como ♥ o paso… */
@@ -29,8 +31,15 @@ export function direccionDe(dx: number, dy: number, conSuper = true): Salida | n
   return null
 }
 
-/** Cuántos pares de fotos tiene (se muestran de a 2, una arriba de la otra): hasta 5. */
-export const paresDe = (item: ItemFeed) => Math.max(1, Math.ceil(Math.min(item.fotos.length, MAX_FOTOS_MAZO) / 2))
+/**
+ * De a cuántas fotos se muestran, una arriba de la otra. En el mazo, de a TRES
+ * cuando la pantalla es alta y de a DOS cuando no (useFotosPorTarjeta: con las
+ * barras de Safari, de a 3 eran tiras finas). La de la ficha ('quieta', 470 px
+ * de alto) va siempre de a dos.
+ */
+export const FOTOS_POR_TARJETA = 3
+/** Cuántos grupos de fotos tiene (cada toque al costado pasa al siguiente). */
+export const gruposDe = (item: ItemFeed, porGrupo = FOTOS_POR_TARJETA) => Math.max(1, Math.ceil(Math.min(item.fotos.length, MAX_FOTOS_MAZO) / porGrupo))
 
 // Sobre la foto oscura, los colores claros (como los botones de vidrio).
 const SELLOS: Record<Salida, { texto: string; color: string; clase: string }> = {
@@ -42,13 +51,14 @@ const SELLOS: Record<Salida, { texto: string; color: string; clase: string }> = 
 /**
  * Una tarjeta del mazo, con la estética de Tinder. 5-oct (David eligió la
  * propuesta A, "molesta tanto texto sobre la foto… más discreto"): pantalla
- * negra, las dos fotos de punta a punta, sombra negra abajo y encima lo mínimo
- * — precio con ⓘ (detalles), un renglón (dorm · m² · lote) y dónde, con el
- * isotipo o "En red · otra inmobiliaria". Sin chips arriba. Las fotos de
- * las casas son apaisadas: UNA sola en una tarjeta vertical queda recortada y
- * agrandada ("estirada", David 3-oct), así que siguen de a DOS, una arriba de
- * la otra (ahora más altas: casi en su forma). Tocar el costado de las fotos
- * pasa al siguiente par (barritas arriba); tocar los datos abre "Ver detalles".
+ * negra y lo mínimo — precio con ⓘ (detalles), un renglón (dorm · m² · lote) y
+ * dónde, con el isotipo o "Otra inmobiliaria". Las fotos de las casas son
+ * apaisadas: UNA sola en una tarjeta vertical queda recortada y agrandada
+ * ("estirada", David 3-oct). 6-oct (David eligió "3 fotos con degradé a
+ * negro" entre varias simuladas): de a TRES arriba, la última se funde a negro
+ * y los datos van sobre negro debajo — ninguna foto queda tapada por el precio.
+ * Tocar el costado de las fotos pasa al siguiente grupo (barritas arriba);
+ * tocar los datos abre "Ver detalles".
  * La de arriba se arrastra y gira según dónde la agarraste; la de abajo crece
  * mientras tanto (`progreso`); 'quieta' = la de la ficha (no se arrastra).
  */
@@ -126,31 +136,35 @@ export function Tarjeta({
   const sello: Salida | null = !arriba ? null : salida ?? (haciaArriba ? 'super' : dx > 8 ? 'like' : dx < -8 ? 'pass' : null)
   const fuerzaSello = salida ? 1 : sello === 'super' ? Math.min(1, -dy / UMBRAL_SUPER) : Math.min(1, Math.abs(dx) / UMBRAL_SWIPE)
   const n = Math.min(item.fotos.length, MAX_FOTOS_MAZO)
-  const pares = paresDe(item)
+  const fotosRef = useRef<HTMLDivElement>(null)
+  const porGrupo = useFotosPorTarjeta(fotosRef, modo !== 'quieta')
+  const pares = gruposDe(item, porGrupo)
   const p = Math.min(par, pares - 1)
-  // El último par de una cantidad impar vuelve a la primera foto: nunca una sola estirada.
-  const fotos = n > 1 ? [item.fotos[(p * 2) % n], item.fotos[(p * 2 + 1) % n]] : item.fotos.slice(0, 1)
+  // El último grupo incompleto vuelve a las primeras fotos: nunca una sola estirada.
+  const fotos = n >= porGrupo ? Array.from({ length: porGrupo }, (_, i) => item.fotos[(p * porGrupo + i) % n]) : item.fotos.slice(0, n)
 
   const linea = lineaTarjeta(item)
   const lugar = lugarTarjeta(item)
 
   return (
     <div
-      className={`absolute inset-0 rounded-[22px] overflow-hidden bg-neutral-900 select-none ${arriba ? 'cursor-grab active:cursor-grabbing' : ''} ${modo === 'abajo' ? 'brightness-75' : ''}`}
+      className={`absolute inset-0 flex flex-col rounded-[22px] overflow-hidden bg-black select-none ${arriba ? 'cursor-grab active:cursor-grabbing' : ''} ${modo === 'abajo' ? 'brightness-75' : ''}`}
       style={{ transform, transition: transicion, touchAction: arriba ? 'none' : undefined }}
       onPointerDown={arriba ? onPointerDown : undefined}
       onPointerMove={arriba ? onPointerMove : undefined}
       onPointerUp={arriba ? onPointerUp : undefined}
       onPointerCancel={arriba ? onPointerUp : undefined}
       aria-hidden={modo === 'abajo'}
+      // El mazo lo lee al tocar el costado (cuántos grupos hay con este tamaño de pantalla).
+      data-grupos={pares}
     >
-      {/* Fotos de a dos, de punta a punta */}
-      <div data-fotos className="absolute inset-0 flex flex-col gap-[2px] bg-black">
+      {/* Fotos de a tres o de a dos (según el alto), de punta a punta; la última se funde a negro */}
+      <div ref={fotosRef} data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[2px] bg-black">
         {fotos.map((src, i) => (
           <div key={`${src}-${i}`} className="relative flex-1 min-h-0 bg-neutral-800 overflow-hidden">
             <Image
               src={src}
-              alt={`${item.titulo} — foto ${p * 2 + i + 1}`}
+              alt={`${item.titulo} — foto ${p * porGrupo + i + 1}`}
               fill
               draggable={false}
               sizes="(max-width: 480px) 100vw, 440px"
@@ -160,11 +174,14 @@ export function Tarjeta({
               // ficha y no tiene que competir con las fotos de arriba.
               priority={arriba && i === 0}
             />
+            {i === fotos.length - 1 && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%]" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0), #000)' }} />
+            )}
           </div>
         ))}
       </div>
 
-      {/* Barritas: una por par de fotos (como Tinder) */}
+      {/* Barritas: una por grupo de fotos (como Tinder) */}
       {pares > 1 && (
         <div className="absolute top-2 left-2.5 right-2.5 flex gap-1">
           {Array.from({ length: pares }, (_, i) => (
@@ -184,7 +201,7 @@ export function Tarjeta({
           onPointerUp={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation()
-            onAmpliar(Math.min(p * 2, Math.max(0, n - 1)))
+            onAmpliar(Math.min(p * porGrupo, Math.max(0, n - 1)))
           }}
           aria-label="Ver la foto en grande"
           className="absolute top-[68px] right-3 grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur-md"
@@ -203,11 +220,8 @@ export function Tarjeta({
         </span>
       )}
 
-      {/* Sombra negra abajo y lo mínimo encima */}
-      <div
-        className={`absolute inset-x-0 bottom-0 pt-24 pointer-events-none ${conBotones ? 'pb-[88px]' : ''}`}
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.72) 38%, rgba(0,0,0,0) 100%)' }}
-      >
+      {/* Los datos, sobre negro debajo de las fotos (los botones flotan más abajo) */}
+      <div className={`relative flex-none bg-black pt-1 pointer-events-none ${conBotones ? 'pb-[88px]' : ''}`}>
         <div data-datos className="px-4 pb-4 text-white">
           <div className="flex items-center justify-between gap-3">
             <p className="whitespace-nowrap text-[27px] font-bold font-numeric leading-none tracking-tight">{item.precio}</p>
