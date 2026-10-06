@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/feedback'
+import { TINDER_ACTIVO } from '@/lib/tinder'
 
 // GET /api/propiedades/detalle-mazo?id=n:123|propia:455077|meli:MLA… — el "Ver
 // detalles" de una tarjeta del Tinder (David, 4-oct-2026): ubicación y
@@ -9,6 +10,8 @@ import { rateLimit } from '@/lib/feedback'
 const ID = /^(?:n:[1-9]\d{0,11}|propia:[1-9]\d{0,9}|meli:MLA\d{6,14})$/
 
 export async function GET(request: NextRequest) {
+  // Tinder en pausa (lib/tinder.ts): las En red no salen de la web.
+  if (!TINDER_ACTIVO) return NextResponse.json({ error: 'pausado' }, { status: 404, headers: { 'Cache-Control': 'no-store' } })
   const id = (request.nextUrl.searchParams.get('id') ?? '').trim()
   if (!ID.test(id)) return NextResponse.json({ error: 'id inválido' }, { status: 400 })
   const secret = process.env.HILO_INGEST_SECRET

@@ -8,6 +8,7 @@ import CiudadRotativa from './CiudadRotativa'
 import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
+import { TINDER_ACTIVO } from '@/lib/tinder'
 
 export default function HeroMobile() {
   const [query, setQuery] = useState('')
@@ -161,14 +162,16 @@ export default function HeroMobile() {
             que no sea lo principal"): lleva al mazo tipo Tinder por zona. SOLO
             en el celu (David, 4-oct: "en la web no sirve"): en la compu el mazo
             queda únicamente en la ficha, abajo de las nuestras. */}
-        <Link
-          href="/conoce-tu-hogar"
-          className="portada-in si-tap mt-1.5 inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 py-1.5 font-raleway text-[14px] font-bold text-white underline decoration-white/60 underline-offset-4 drop-shadow"
-          style={{ ['--d' as string]: '750ms' }}
-        >
-          <span aria-hidden="true" className="text-[#FF6B8E] no-underline">♥</span>
-          Conocé tu próximo hogar
-        </Link>
+        {TINDER_ACTIVO && (
+          <Link
+            href="/conoce-tu-hogar"
+            className="portada-in si-tap mt-1.5 inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 py-1.5 font-raleway text-[14px] font-bold text-white underline decoration-white/60 underline-offset-4 drop-shadow"
+            style={{ ['--d' as string]: '750ms' }}
+          >
+            <span aria-hidden="true" className="text-[#FF6B8E] no-underline">♥</span>
+            Conocé tu próximo hogar
+          </Link>
+        )}
       </div>
     </section>
   )

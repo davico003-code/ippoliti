@@ -11,9 +11,11 @@
 // al tipear sin esperar.
 
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import ConoceTuHogar from '@/components/hogar/ConoceTuHogar'
 import { type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar } from '@/lib/feed-en-red'
 import { getSeleccion } from '@/lib/redis'
+import { TINDER_ACTIVO } from '@/lib/tinder'
 import { ZONAS } from '@/lib/zonas'
 
 export const metadata: Metadata = {
@@ -59,6 +61,12 @@ async function clienteDelLink(token: string | undefined, vista: string | undefin
 }
 
 export default async function ConoceTuHogarPage({ searchParams }: { searchParams: SP }) {
+  // Tinder en pausa (lib/tinder.ts): el link de un asesor (?s=<token>) va a su
+  // selección; el resto (home, pauta, links viejos) a las propiedades.
+  if (!TINDER_ACTIVO) {
+    const s = first(searchParams.s)
+    redirect(s && /^[A-Za-z0-9_-]{4,64}$/.test(s) ? `/seleccion/${s}` : '/propiedades')
+  }
   const tipo = first(searchParams.tipo)
   const tipoInicial = esTipoHogar(tipo) ? tipo : 'house'
   const tope = Number(first(searchParams.tope)) || 0

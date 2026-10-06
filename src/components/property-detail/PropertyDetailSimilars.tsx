@@ -12,6 +12,7 @@ import type { PropertyCardProjection } from '@/lib/projections'
 import SimilarProperties from '../SimilarProperties'
 import SectionBoundary from './SectionBoundary'
 import FeedEnRed from './FeedEnRed'
+import { TINDER_ACTIVO } from '@/lib/tinder'
 
 type State =
   | { kind: 'loading' }
@@ -89,15 +90,16 @@ export default function PropertyDetailSimilars({
             Reintentar
           </button>
         </section>
-        <FeedEnRed property={property} nuestras={[]} />
+        {TINDER_ACTIVO && <FeedEnRed property={property} nuestras={[]} />}
       </SectionBoundary>
     )
   }
 
   // Abajo de las nuestras, el feed "En red" (otras inmobiliarias de la zona,
-  // dicho abiertamente). Si Hilo no trae ninguna, no aparece.
-  const enRed = <FeedEnRed property={property} nuestras={state.data as unknown as TokkoProperty[]} />
-  if (state.data.length === 0) return <SectionBoundary name="similares">{enRed}</SectionBoundary>
+  // dicho abiertamente). Si Hilo no trae ninguna, no aparece. Con el Tinder en
+  // pausa (lib/tinder.ts) no va.
+  const enRed = TINDER_ACTIVO ? <FeedEnRed property={property} nuestras={state.data as unknown as TokkoProperty[]} /> : null
+  if (state.data.length === 0) return enRed ? <SectionBoundary name="similares">{enRed}</SectionBoundary> : null
 
   return (
     <SectionBoundary name="similares">

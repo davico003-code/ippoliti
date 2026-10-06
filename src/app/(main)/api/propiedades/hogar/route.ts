@@ -21,6 +21,7 @@ import { distanceToProperty } from '@/lib/geo'
 import { itemDeNuestra, precioVentaUsd } from '@/lib/mazo-items'
 import { resolverUbicacion } from '@/lib/ubicacion'
 import { rateLimit } from '@/lib/feedback'
+import { TINDER_ACTIVO } from '@/lib/tinder'
 
 // "Conocé tu próximo hogar" (home, David 3-oct-2026): el mazo de una búsqueda
 // — dónde, qué y qué precio — sin ficha de referencia. Primero las nuestras
@@ -76,6 +77,8 @@ async function enRedDeHilo(
 }
 
 export async function GET(request: NextRequest) {
+  // Tinder en pausa (lib/tinder.ts): las En red no salen de la web.
+  if (!TINDER_ACTIVO) return NextResponse.json({ error: 'pausado' }, { status: 404, headers: { 'Cache-Control': 'no-store' } })
   const sp = request.nextUrl.searchParams
   const zona = (sp.get('zona') ?? '').trim().slice(0, 80)
   const cerca = puntoCercaValido(sp.get('cerca'))
