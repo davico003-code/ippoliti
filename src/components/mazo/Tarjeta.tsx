@@ -30,11 +30,12 @@ export function direccionDe(dx: number, dy: number, conSuper = true): Salida | n
 }
 
 /**
- * De a cuántas fotos se muestran, una arriba de la otra: de a DOS, cada una en
- * su forma (3:2, la de casi todas las fotos de casas). David, 6-oct-2026 ("se
- * ven todas las fotos recortadas"): de a tres, cada foto quedaba en una tira
- * de 1,8:1 que le cortaba arriba y abajo (17 % a una 3:2, 26 % a una 4:3).
- * Si la pantalla no alcanza para las dos enteras, se achican parejo.
+ * De a cuántas fotos se muestran, una arriba de la otra: de a DOS, cada una
+ * como mucho de 4:3 (la forma de las fotos de celular y de la mayoría de las de
+ * MELI: una 4:3 entra entera; a una 3:2 se le van los costados, 11 %). David,
+ * 6-oct-2026 ("se ven todas las fotos recortadas"): de a tres, cada foto
+ * quedaba en una tira de 1,8:1 que le cortaba arriba y abajo (26 % a una 4:3).
+ * Si la pantalla no alcanza para las dos de 4:3, se achican parejo.
  */
 export const FOTOS_POR_TARJETA = 2
 /** Cuántos grupos de fotos tiene (cada toque al costado pasa al siguiente). */
@@ -54,7 +55,7 @@ const SELLOS: Record<Salida, { texto: string; color: string; clase: string }> = 
  * dónde, con el isotipo o "Otra inmobiliaria". Las fotos de las casas son
  * apaisadas: UNA sola en una tarjeta vertical queda recortada y agrandada
  * ("estirada", David 3-oct). 6-oct (David eligió "3 fotos con degradé a
- * negro" entre varias simuladas; a la tarde, de a DOS en su forma para que no
+ * negro" entre varias simuladas; a la tarde, de a DOS de hasta 4:3 para que no
  * se corten): la última se funde a negro y los datos van sobre negro debajo —
  * ninguna foto queda tapada por el precio.
  * Tocar el costado de las fotos pasa al siguiente grupo (barritas arriba);
@@ -157,10 +158,10 @@ export function Tarjeta({
       // El mazo lo lee al tocar el costado (cuántos grupos hay con este tamaño de pantalla).
       data-grupos={pares}
     >
-      {/* Fotos de a dos, de punta a punta y en su forma (3:2): lo que sobra de alto queda negro; la última se funde a negro */}
-      <div data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[2px] bg-black">
+      {/* Fotos de a dos, de punta a punta y como mucho de 4:3 (75cqw = 3/4 del ancho): lo poco que sobra de alto queda negro; la última se funde a negro */}
+      <div data-fotos className="relative flex-1 min-h-0 flex flex-col gap-[2px] bg-black [container-type:inline-size]">
         {fotos.map((src, i) => (
-          <div key={`${src}-${i}`} className="relative w-full aspect-[3/2] min-h-0 bg-neutral-800 overflow-hidden">
+          <div key={`${src}-${i}`} className="relative flex-1 min-h-0 max-h-[75cqw] bg-neutral-800 overflow-hidden">
             <Image
               src={src}
               alt={`${item.titulo} — foto ${p * porGrupo + i + 1}`}
