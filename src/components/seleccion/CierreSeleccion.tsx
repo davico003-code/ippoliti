@@ -47,7 +47,7 @@ export default function CierreSeleccion({
           <h2 className="mt-5 text-[26px] font-bold leading-tight tracking-[-0.01em] text-[#111814]">
             {llegoConElegidas ? `Tus elegidas, ${nombre}` : `¡Gracias, ${nombre}!`}
           </h2>
-          <p className="mx-auto mt-2 max-w-[400px] text-[15px] leading-relaxed text-[#4F5C54]">
+          <p className="mx-auto mt-2 max-w-[400px] text-[16px] font-medium leading-relaxed text-[#1C2620]">
             {llegoConElegidas
               ? `Tocá «Visitar» en las que quieras ver y ${asesor} coordina con vos.`
               : `${asesor} ya tiene tus respuestas y se va a comunicar con vos para seguir.`}
