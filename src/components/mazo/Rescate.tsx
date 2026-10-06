@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { type CriteriosBusqueda, esEmail, escribirContacto, leerContacto, textoBusqueda } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
 import { listaBarrios } from '@/lib/barrios-parecidos'
-import { contarLeadUnaVez, suscribirMail } from '@/lib/mazo-consulta'
+import { contarLeadUnaVez, deslizadasDeLaVisita, suscribirMail } from '@/lib/mazo-consulta'
 import { contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
 import { VERDE } from './marca-mazo'
 
@@ -93,6 +93,7 @@ export default function Rescate({
       barrio,
       busqueda,
       vistas,
+      deslizadas: deslizadasDeLaVisita(),
       pageUrl: window.location.href,
     })
 

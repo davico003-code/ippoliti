@@ -36,6 +36,9 @@ export async function POST(request: NextRequest) {
   const vistas = Math.max(0, Math.min(99, Math.round(Number(body.vistas) || 0)))
   // Tocó ★ "Quiero conocerla" en el Tinder (4-oct): el asesor sabe que quiere coordinar la visita.
   const visita = body.visita === true
+  // Lo que deslizó, en una línea ("Deslizó 14: le gustaron 3 … y pasó 11 …", lib/mazo-deslizadas.ts):
+  // el asesor sabe qué busca de verdad sin preguntarle (David 5-oct).
+  const deslizadas = str(body.deslizadas, 300).replace(/[\n\r]+/g, ' ') || null
   // Opcional (4-oct): dejó también el mail para recibir las nuevas de su búsqueda.
   const emailCrudo = str(body.email, 120).toLowerCase()
   const email = emailCrudo && esEmail(emailCrudo) ? emailCrudo : null
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (motivos.length === 0) return NextResponse.json({ ok: true })
     try {
       const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
-      await redis.lpush('feed:feedback', JSON.stringify({ motivos, barrio, busqueda, vistas, pageUrl, fecha: new Date().toISOString() }))
+      await redis.lpush('feed:feedback', JSON.stringify({ motivos, barrio, busqueda, vistas, deslizadas, pageUrl, fecha: new Date().toISOString() }))
       await redis.ltrim('feed:feedback', 0, 4999)
     } catch (err) {
       console.error('[feed-en-red] feedback Redis error:', err)
@@ -65,7 +68,10 @@ export async function POST(request: NextRequest) {
       `🔎 Miró ${vistas || 'varias'} propiedades en la web${barrio ? ` (zona ${barrio})` : ''} y no guardó ninguna.`,
       `Busca: ${[busqueda, ...motivos.map((m) => m.toLowerCase())].filter(Boolean).join(', ') || 'no dijo'}.`,
       'Pidió que le avisemos por WhatsApp cuando entre algo así.',
-    ].join('\n')
+      deslizadas,
+    ]
+      .filter(Boolean)
+      .join('\n')
     // Respaldo en Redis y empuje a Hilo A LA VEZ (antes en serie: la persona esperaba los dos).
     const [savedRedis, savedHilo] = await Promise.all([
       (async () => {
@@ -140,7 +146,10 @@ export async function POST(request: NextRequest) {
       guardadas,
       barrio,
       suscripcion,
-      message: [busqueda ? `Buscó en la web: ${busqueda}.` : null, visita ? 'Tocó «Quiero conocerla» en la primera de la lista: pidió coordinar esa visita.' : null].filter(Boolean).join(' ') || null,
+      message:
+        [busqueda ? `Buscó en la web: ${busqueda}.` : null, visita ? 'Tocó «Quiero conocerla» en la primera de la lista: pidió coordinar esa visita.' : null, deslizadas]
+          .filter(Boolean)
+          .join(' ') || null,
       sourceUrl: pageUrl || null,
       attribution: utm,
     }),

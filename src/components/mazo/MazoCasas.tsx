@@ -38,7 +38,7 @@ import { trackEvent } from '@/lib/analytics'
 import { barriosParecidos } from '@/lib/barrios-parecidos'
 import { useAtrasDelMazo } from '@/lib/mazo-atras'
 import { usePantallaCompletaCelu } from '@/lib/pantalla-completa'
-import { type ClienteMazo, avisoVisitaCliente, contactoListo, leerEnviadas, mandarConsulta, reaccionarEnSeleccion } from '@/lib/mazo-consulta'
+import { type ClienteMazo, avisoVisitaCliente, contactoListo, leerEnviadas, mandarConsulta, reaccionarEnSeleccion, registrarDecision } from '@/lib/mazo-consulta'
 import { type EstadoSalida, type QueHacer, cierraElMazo, queHacerAlSalir } from '@/lib/mazo-salida'
 import { contarTinder } from '@/lib/tinder-contador'
 import { haptico } from '@/lib/haptico'
@@ -56,6 +56,7 @@ import { ORO_VOLVER } from './marca-mazo'
 import { useAlbumMazo } from './useAlbumMazo'
 import { useAvisoMazo, useReinicioAfinar } from './useAfinarMazo'
 import { useMazoQueAprende } from './useMazoQueAprende'
+import { useDeslizadasCliente } from './useDeslizadasCliente'
 import { ESTILOS_MAZO } from './piel-oscura'
 import { useGuardadas } from './useGuardadas'
 
@@ -237,6 +238,7 @@ export default function MazoCasas({
     (accion: Salida) => {
       if (!actual || salida || rescate || guia || visita || afinarAbierto) return
       const yaEstaba = esGuardada(actual.key)
+      registrarDecision(actual, accion) // "Deslizó 14: le gustaron 3 … y pasó 11 …" (lib/mazo-deslizadas.ts)
       setHistorial((h) => [...h.slice(-30), { indice, accion, key: actual.key, nueva: accion === 'like' && !yaEstaba }])
       if (accion === 'pass') {
         pasesSeguidos.current += 1
@@ -491,6 +493,7 @@ export default function MazoCasas({
   const porAtras = useRef<() => boolean>(() => false)
   porAtras.current = () => hacer(queHacerAlSalir(estadoSalida(), 'atras'))
   useAtrasDelMazo(porAtras)
+  useDeslizadasCliente(cliente) // lo que deslizó, al link de su asesor al cerrar o irse
   usePantallaCompletaCelu() // sin barra del navegador en el celu (Android; el iPhone no deja)
 
   // Sin scroll de la página de atrás; Escape sale, flechas = paso / ♥ / ★.

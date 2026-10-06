@@ -3,6 +3,26 @@ import { type GuardadaLocal, type ItemFeed, escribirGuardadas, leerGuardadas } f
 import { trackEvent } from '@/lib/analytics'
 import { contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
 
+const CLAVE_CORAZONES = 'si-corazones-contados'
+/**
+ * ♥ a una casa NUESTRA → el informe al dueño ("N personas la marcaron como
+ * favorita", /api/propiedades/corazon → Hilo). Una vez por navegador y casa:
+ * sacar el ♥ y volver a ponerlo no suma otra persona.
+ */
+function contarCorazon(key: string): void {
+  const id = /^n:(\d{1,12})$/.exec(key)?.[1]
+  if (!id) return
+  try {
+    const ya = JSON.parse(window.localStorage.getItem(CLAVE_CORAZONES) ?? '[]') as unknown
+    const lista = Array.isArray(ya) ? ya.filter((k): k is string => typeof k === 'string') : []
+    if (lista.includes(id)) return
+    window.localStorage.setItem(CLAVE_CORAZONES, JSON.stringify([...lista, id].slice(-300)))
+  } catch {
+    /* sin almacenamiento: el servidor igual deduplica por IP */
+  }
+  void fetch('/api/propiedades/corazon', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id }) }).catch(() => {})
+}
+
 /**
  * Las ♥ de este navegador (localStorage: sobreviven al pasar de una ficha a
  * otra). `montado` = ya se leyó el almacenamiento (antes, nada se muestra
@@ -25,6 +45,7 @@ export function useGuardadas(origen?: OrigenTinder) {
     escribirGuardadas(next)
     trackEvent('feed_en_red_like', { tipo: item.esNuestra ? 'nuestra' : 'en_red' })
     if (origen) contarTinder('like', origen)
+    contarCorazon(item.key)
   }, [origen])
   /** Sacar el ♥ (la fila de la compu permite arrepentirse). */
   const quitar = useCallback((key: string) => {
