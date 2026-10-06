@@ -6,7 +6,27 @@
 
 import { type CriteriosBusqueda, type ItemFeed, escribirContacto, idEnSeleccion, leerContacto, textoBusqueda } from '@/lib/feed-en-red'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
+import { type Decision, resumenDeslizadas } from '@/lib/mazo-deslizadas'
 import { contarTinder, type OrigenTinder } from '@/lib/tinder-contador'
+
+/**
+ * Lo que deslizó en esta visita (♥, ★ y ✕), en todos los mazos que abrió
+ * (David 5-oct: "si también le llegan las que pasó, sabe qué busca de
+ * verdad"): la línea "Deslizó 14: le gustaron 3 … y pasó 11 …" viaja con la
+ * consulta y el rescate, y al link del cliente de un asesor.
+ */
+const decisiones: Decision[] = []
+export function registrarDecision(item: ItemFeed, accion: Decision['accion']): void {
+  decisiones.push({ key: item.key, accion, precio: item.precio, dorm: item.dorm ?? null, zona: item.zona })
+  if (decisiones.length > 200) decisiones.shift()
+}
+/** ↺ deshizo la última: no cuenta (si no, diría "le gustaron 3" con 2 en su link). */
+export function deshacerDecision(): void {
+  decisiones.pop()
+}
+export function deslizadasDeLaVisita(): string | null {
+  return resumenDeslizadas(decisiones)
+}
 
 /** Las ♥ que ya le mandamos a un asesor (localStorage: no se mandan dos veces). */
 const CLAVE_ENVIADAS = 'si-feed-enviadas'
@@ -75,6 +95,8 @@ export function reaccionarEnSeleccion(
   const deshace = accion === 'deshacer' || accion === 'deshacer-visita'
   const anotar = (ok: boolean) => {
     if (ok) (deshace ? desmarcarEnviadas : marcarEnviadas)([item.key])
+    // Con cada ♥ que llegó, la línea de lo que deslizó (si cierra de golpe, ya está).
+    if (ok && !deshace) mandarDeslizadasCliente(cliente)
     return ok
   }
   if (cliente.soloMirar) return Promise.resolve(anotar(true))
@@ -105,6 +127,34 @@ export function reaccionarEnSeleccion(
   // Si una tarda (sumar una de colegas le pide a Hilo), la siguiente no espera más de 8 s.
   colaCliente = Promise.race([resultado, new Promise((r) => window.setTimeout(r, 8000))])
   return resultado.then(anotar)
+}
+
+let deslizadasMandadas: string | null = null
+/**
+ * Lo que deslizó, al link de su asesor (/seleccion/[token]/deslizadas → Hilo lo
+ * lleva a su chat con los ♥). Solo si cambió desde la última vez; por la misma
+ * cola que los ♥ (la ruta lee → cambia → escribe el mismo JSON).
+ */
+export function mandarDeslizadasCliente(cliente: ClienteMazo | null): void {
+  const texto = cliente && !cliente.soloMirar ? deslizadasDeLaVisita() : null
+  if (!cliente || !texto || texto === deslizadasMandadas) return
+  deslizadasMandadas = texto
+  const envio = colaCliente.then(() =>
+    fetch(`/api/seleccion/${encodeURIComponent(cliente.token)}/deslizadas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texto }),
+      keepalive: true,
+    })
+      .then((r) => r.ok)
+      .catch(() => false),
+  )
+  // Mismo tope que los ♥: si este POST se cuelga, los que vienen detrás no esperan más de 8 s.
+  colaCliente = Promise.race([envio, new Promise((r) => window.setTimeout(r, 8000))])
+  // Si no llegó, la próxima vez se vuelve a mandar.
+  void envio.then((ok) => {
+    if (!ok && deslizadasMandadas === texto) deslizadasMandadas = null
+  })
 }
 
 /** Su nombre y WhatsApp, si ya los dejó en este navegador (si no, null). */
@@ -149,6 +199,7 @@ export async function mandarConsulta(p: {
         barrio: p.barrio,
         busqueda: p.busqueda,
         visita: p.visita === true,
+        deslizadas: deslizadasDeLaVisita(),
         pageUrl: window.location.href,
       }),
     })

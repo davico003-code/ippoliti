@@ -151,6 +151,23 @@ export async function patchReaccion(
   }
 }
 
+/**
+ * Lo que deslizó en el mazo de la web el cliente de un asesor (5-oct): una
+ * línea ("Deslizó 14: le gustaron 3 … y pasó 11 …") en `_meta.deslizadas`.
+ * HILO la lleva al chat del cliente junto con sus ♥ (cron seleccion-reacciones).
+ */
+export async function guardarDeslizadas(token: string, texto: string) {
+  const current = await getReacciones(token)
+  const now = new Date().toISOString()
+  current._meta = { ...(current._meta || {}), deslizadas: { texto, at: now }, lastActivity: now }
+  const ttl = await redis.ttl(`reacciones:${token}`)
+  if (ttl > 0) {
+    await redis.set(`reacciones:${token}`, JSON.stringify(current), { ex: ttl })
+  } else {
+    await redis.set(`reacciones:${token}`, JSON.stringify(current))
+  }
+}
+
 export async function incrementViewCount(token: string) {
   const current = await getReacciones(token)
   const meta = current._meta || { viewCount: 0 }

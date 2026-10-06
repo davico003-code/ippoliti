@@ -29,7 +29,7 @@ export function fijarCanalTinder(canal: CanalTinder): void {
   }
 }
 
-function canalTinder(): CanalTinder | null {
+export function canalTinder(): CanalTinder | null {
   try {
     const c = window.sessionStorage.getItem(CLAVE_CANAL)
     return c === 'pauta' || c === 'cliente' || c === 'asesor' ? c : null
