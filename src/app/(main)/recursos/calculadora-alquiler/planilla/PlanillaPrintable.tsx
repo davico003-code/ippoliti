@@ -48,11 +48,15 @@ main { padding: 0 !important; margin: 0 !important; max-width: none !important; 
   --si-green: #1A5C38;
   --si-green-dark: #0F3D25;
   --si-green-tint: #EAF2ED;
+  /* next/font publica las fuentes de marca como variables (el nombre literal
+     'Raleway' no existe en la página: caía a la letra del sistema). */
+  --f-texto: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+  --f-num: var(--font-poppins), 'Poppins', system-ui, sans-serif;
 }
 
 html, body {
   background: var(--paper) !important;
-  font-family: 'Raleway', system-ui, sans-serif;
+  font-family: var(--f-texto);
   color: var(--tinta);
   line-height: 1.3;
   -webkit-font-smoothing: antialiased;
@@ -67,7 +71,7 @@ html, body {
   top: 16px;
   right: 16px;
   z-index: 50;
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.4px;
@@ -102,7 +106,7 @@ html, body {
 }
 .planilla-page .header-logo { height: 26px; width: auto; display: block; }
 .planilla-page .header-meta {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 1.4px;
@@ -114,7 +118,7 @@ html, body {
 
 /* ── Título ─────────────────────────────────────────────────────────── */
 .planilla-page .doc-eyebrow {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 2px;
@@ -123,7 +127,7 @@ html, body {
   margin-bottom: 4px;
 }
 .planilla-page .doc-h1 {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 24px;
   color: var(--tinta);
@@ -131,7 +135,7 @@ html, body {
   line-height: 1.1;
 }
 .planilla-page .doc-sub {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 12px;
   font-weight: 500;
   color: var(--tinta-mute);
@@ -165,14 +169,14 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 700;
   font-size: 15px;
   margin-top: 2px;
 }
 .planilla-page .dato-icon svg { display: block; }
 .planilla-page .dato-label {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 1.4px;
@@ -181,7 +185,7 @@ html, body {
   margin-bottom: 3px;
 }
 .planilla-page .dato-valor {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 700;
   font-size: 19px;
   color: var(--tinta);
@@ -190,7 +194,7 @@ html, body {
   line-height: 1.15;
 }
 .planilla-page .dato-valor .per {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 11px;
   font-weight: 500;
   color: var(--tinta-mute);
@@ -198,7 +202,7 @@ html, body {
   letter-spacing: 0;
 }
 .planilla-page .dato-sub {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 10px;
   font-weight: 500;
   color: var(--tinta-mute);
@@ -225,7 +229,7 @@ html, body {
   background: rgba(255,255,255,0.28);
 }
 .planilla-page .total-label {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 700;
   font-size: 9.5px;
   letter-spacing: 1.4px;
@@ -234,7 +238,7 @@ html, body {
   margin-bottom: 4px;
 }
 .planilla-page .total-valor {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 800;
   font-size: 24px;
   font-variant-numeric: tabular-nums;
@@ -242,7 +246,7 @@ html, body {
   line-height: 1.1;
 }
 .planilla-page .total-sub {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 10px;
   font-weight: 500;
   color: rgba(255,255,255,0.85);
@@ -252,7 +256,7 @@ html, body {
 /* ── Secciones ──────────────────────────────────────────────────────── */
 .planilla-page .section { margin-bottom: 12px; }
 .planilla-page .section-title {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 11px;
   letter-spacing: 1.8px;
@@ -288,19 +292,19 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 600;
   font-size: 10.5px;
 }
 .planilla-page .fila-label {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 700;
   font-size: 11.5px;
   color: var(--tinta);
   line-height: 1.25;
 }
 .planilla-page .fila-sub {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 400;
   font-size: 9.5px;
   color: var(--tinta-mute);
@@ -308,7 +312,7 @@ html, body {
   line-height: 1.3;
 }
 .planilla-page .fila-valor {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 600;
   font-size: 12px;
   color: var(--tinta);
@@ -337,7 +341,7 @@ html, body {
   border: 1.5px solid var(--si-green);
 }
 .planilla-page .mes-label {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 9.5px;
   letter-spacing: 1.3px;
@@ -345,14 +349,14 @@ html, body {
   color: var(--si-green);
 }
 .planilla-page .mes-sub {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9.5px;
   font-weight: 500;
   color: var(--tinta-mute);
   margin-top: 1px;
 }
 .planilla-page .mes-valor {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 700;
   font-size: 17px;
   color: var(--tinta);
@@ -362,7 +366,7 @@ html, body {
   line-height: 1.15;
 }
 .planilla-page .mes-desc {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9px;
   font-weight: 400;
   color: var(--tinta-mute);
@@ -385,7 +389,7 @@ html, body {
 .planilla-page .cond-head {
   background: var(--si-green-tint);
   padding: 7px 13px;
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 9px;
   letter-spacing: 1.1px;
@@ -395,7 +399,7 @@ html, body {
 }
 .planilla-page .cond-body {
   padding: 8px 13px 10px;
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9.5px;
   color: var(--tinta-soft);
   line-height: 1.35;
@@ -425,7 +429,7 @@ html, body {
   top: 0;
   background: var(--si-green-tint);
   color: var(--si-green);
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 600;
   font-size: 8.5px;
   display: flex;
@@ -442,7 +446,7 @@ html, body {
   margin-bottom: 10px;
 }
 .planilla-page .disclaimer-title {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 9px;
   letter-spacing: 1.3px;
@@ -451,7 +455,7 @@ html, body {
   margin-bottom: 3px;
 }
 .planilla-page .disclaimer-text {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9px;
   line-height: 1.4;
   color: var(--tinta-mute);
@@ -464,7 +468,7 @@ html, body {
   text-align: center;
 }
 .planilla-page .footer-line {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 1.3px;
@@ -472,14 +476,14 @@ html, body {
   color: var(--tinta-mute);
 }
 .planilla-page .footer-contact {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9px;
   font-weight: 600;
   color: var(--tinta-soft);
   margin-top: 3px;
 }
 .planilla-page .footer-contact strong {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 600;
   color: var(--si-green);
   font-variant-numeric: tabular-nums;
@@ -489,7 +493,7 @@ html, body {
   max-width: 480px;
   margin: 96px auto;
   padding: 32px;
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   text-align: center;
 }
 .planilla-fallback h1 {
@@ -509,14 +513,19 @@ html, body {
   text-decoration: underline;
 }
 
-@page { size: A4; margin: 6mm; }
+/* REGLA DE ORO: la planilla impresa entra SIEMPRE en UNA sola hoja A4.
+   @page sin márgenes (el padding vive en la hoja), fondo verdoso en toda la
+   hoja y spacings recortados en print para dejar colchón abajo (~120px en el
+   peor caso). Verificado contando páginas del PDF real (page.pdf) con Raleway
+   y Poppins cargadas; si se agrega contenido, volver a verificar. */
+@page { size: A4; margin: 0; }
 @media print {
   html, body {
     margin: 0 !important;
     padding: 0 !important;
     height: auto !important;
     overflow: visible !important;
-    background: #fff !important;
+    background: var(--paper) !important;
   }
   body > *:not(main):not(script) { display: none !important; }
   main > .si-page-enter { display: contents !important; }
@@ -525,9 +534,11 @@ html, body {
      ajusta al contenido, eliminando la página 2 fantasma. */
   .planilla-page {
     box-shadow: none;
+    /* auto = ancho de la hoja (210mm con @page margin 0); si un navegador
+       impone márgenes propios, se angosta en vez de cortarse a la derecha. */
     width: auto !important;
     margin: 0 !important;
-    padding: 6mm 8mm !important;
+    padding: 6mm 9mm 5mm !important;
     max-height: none !important;
     min-height: 0 !important;
     page-break-after: avoid !important;
@@ -542,8 +553,20 @@ html, body {
   .planilla-page .footer {
     page-break-inside: avoid !important;
   }
+  /* Spacings compactos para garantizar la hoja única. */
+  .planilla-page .header { margin-bottom: 10px !important; }
+  .planilla-page .doc-sub { margin-bottom: 9px !important; }
+  .planilla-page .datos-grid { margin-bottom: 9px !important; }
+  .planilla-page .dato-card { padding: 9px 14px !important; }
+  .planilla-page .total-card { padding: 11px 16px !important; margin-bottom: 10px !important; }
+  .planilla-page .section { margin-bottom: 9px !important; }
+  .planilla-page .fila { padding: 5px 0 !important; }
+  .planilla-page .mes-card { padding: 9px 12px !important; }
+  .planilla-page .cond-head { padding: 5px 12px !important; }
+  .planilla-page .cond-body { padding: 6px 12px 8px !important; }
+  .planilla-page .disclaimer { padding: 7px 12px !important; margin-bottom: 6px !important; }
   /* Espacio entre el último bloque y el footer (sin margin-top:auto). */
-  .planilla-page .footer { margin-top: 14px !important; }
+  .planilla-page .footer { margin-top: 8px !important; padding-top: 6px !important; }
 }
 `
 
