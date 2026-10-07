@@ -1,8 +1,9 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
-import { enrichCardsWithAudio, projectToCard, type PropertyCardProjection } from '@/lib/projections'
+import { conSoloPortada, enrichCardsWithAudio, projectToCard, type PropertyCardProjection } from '@/lib/projections'
 import PropiedadesView from '@/components/PropiedadesView'
+import { FotosExtraProvider } from '@/components/FotosExtraCards'
 
 // Render dinámico a propósito. Se probó pasarlo a ISR (revalidate) para bajar
 // el TTFB de ~400 ms a ~5 ms y evitar los picos de revalidación bloqueante,
@@ -35,7 +36,7 @@ export default async function PropiedadesPage() {
   let projected: PropertyCardProjection[] = []
   try {
     const data = await getProperties()
-    projected = (data.objects ?? []).map(sanitizeProperty).map(projectToCard)
+    projected = (data.objects ?? []).map(sanitizeProperty).map(projectToCard).map(conSoloPortada)
     // Enriquecimiento bulk de audioUrl (un solo MGET a Redis). Soft-fail si
     // Redis cae: las cards quedan con audioUrl=null y no se muestra el play.
     await enrichCardsWithAudio(projected)
@@ -45,7 +46,11 @@ export default async function PropiedadesPage() {
 
   return (
     <Suspense fallback={<PropiedadesSkeleton />}>
-      <PropiedadesView properties={projected as unknown as TokkoProperty[]} />
+      {/* Las cards llegan con la portada sola (conSoloPortada); las fotos 2-5
+          las suma el provider después del load. */}
+      <FotosExtraProvider>
+        <PropiedadesView properties={projected as unknown as TokkoProperty[]} />
+      </FotosExtraProvider>
     </Suspense>
   )
 }

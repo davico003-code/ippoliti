@@ -117,6 +117,23 @@ function pickCardPhotos(p: TokkoProperty) {
   }))
 }
 
+// El listado /propiedades manda SOLO la portada en el HTML: las fotos 2-5 son
+// links firmados de ~490 caracteres y, por 288 propiedades, eran 700 kB de los
+// 1,6 MB del documento (el aviso de precarga de la foto principal quedaba al 76%
+// y el LCP en el celu, en 5 s). Las demás llegan después de cargar la página
+// (list-cards?fotos=extra → FotosExtraProvider), antes de que alguien deslice.
+export function conSoloPortada(card: PropertyCardProjection): PropertyCardProjection {
+  return card.photos.length > 1 ? { ...card, photos: card.photos.slice(0, 1) } : card
+}
+
+export function fotosExtraDeCards(cards: PropertyCardProjection[]): Record<string, string[]> {
+  const out: Record<string, string[]> = {}
+  for (const c of cards) {
+    if (c.photos.length > 1) out[String(c.id)] = c.photos.slice(1).map(ph => ph.image)
+  }
+  return out
+}
+
 export function projectToCard(p: TokkoProperty): PropertyCardProjection {
   return {
     id: p.id,

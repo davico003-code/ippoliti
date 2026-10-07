@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getProperties, sanitizeProperty, ocultarPrecioOportunidad, type TokkoListResponse } from '@/lib/tokko'
-import { enrichCardsWithAudio, projectToCard } from '@/lib/projections'
+import { enrichCardsWithAudio, fotosExtraDeCards, projectToCard } from '@/lib/projections'
 
 // Devuelve TODAS las propiedades disponibles proyectadas a card-shape
 // (sin description, photos array, tags, videos, etc.). Lo consumen los
@@ -32,19 +32,22 @@ async function getFreshProperties(): Promise<TokkoListResponse> {
   return data
 }
 
-export async function GET() {
+const CACHE = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900' }
+
+export async function GET(req: Request) {
   try {
     const data = await getFreshProperties()
     const sanitized = (data.objects ?? []).map(sanitizeProperty)
     const objects = sanitized.map(projectToCard)
+    // ?fotos=extra → solo las fotos 2-5 de cada card ({ id: [urls] }): el listado
+    // /propiedades las pide después de cargar (su HTML lleva solo la portada).
+    if (new URL(req.url).searchParams.get('fotos') === 'extra') {
+      return NextResponse.json({ fotos: fotosExtraDeCards(objects) }, { headers: CACHE })
+    }
     await enrichCardsWithAudio(objects)
     return NextResponse.json(
       { objects, meta: { total_count: objects.length } },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900',
-        },
-      },
+      { headers: CACHE },
     )
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'unknown'

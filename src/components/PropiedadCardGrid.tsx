@@ -8,6 +8,7 @@ import CardMediaButtons from '@/components/CardMediaButtons'
 import FotosDeslizables from '@/components/FotosDeslizables'
 import PastillaAgenteCard from '@/components/home/PastillaAgenteCard'
 import { useAgentePropiedad } from '@/components/AgentesPropiedadContext'
+import { useFotosExtra } from '@/components/FotosExtraCards'
 import {
   type TokkoProperty,
   getAllPhotos,
@@ -61,7 +62,11 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const agente = agenteFeed === undefined ? agentePedido : agenteFeed ?? undefined
   const photos = getAllPhotos(property)
   const fallback = getMainPhoto(property)
-  const images = photos.length > 0 ? photos : fallback ? [fallback] : []
+  const base = photos.length > 0 ? photos : fallback ? [fallback] : []
+  // En /propiedades la card llega con la portada sola y las fotos 2-5 las suma
+  // FotosExtraProvider cuando la página terminó de cargar.
+  const extra = useFotosExtra(property.id)
+  const images = extra && base.length === 1 ? [base[0], ...extra.filter(u => u !== base[0])] : base
 
   const operation = getOperationType(property)
   const price = formatPrice(property)
