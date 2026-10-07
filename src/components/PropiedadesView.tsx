@@ -1915,6 +1915,7 @@ export default function PropiedadesView({
                         isSelected={p.id === selectedId}
                         variant="mobile"
                         priority={i < 2}
+                        diferirFoto={i >= 3}
                         distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
                       />
                       {smartActivo && <MotivosFit property={p} profile={smartProfile} />}
