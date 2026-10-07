@@ -121,6 +121,9 @@ const nextConfig = {
       // sirven directo del CDN del portal (ver isExternalCdn en HeroGallery).
       { protocol: 'https', hostname: '*.zonapropcdn.com' },
       { protocol: 'https', hostname: '*.naventcdn.com' },
+      // Fotos de avisos de colegas copiadas a Cloudflare R2 por Hilo (7-oct-2026):
+      // las fichas de verficha las muestran desde ahí.
+      { protocol: 'https', hostname: 'fotos.likeprop.app' },
       // Colegas de la Red Propia EN VIVO en la selección del cliente (Rosario):
       // las originales pesan 1-2 MB; optimizadas, como las de Tokko.
       { protocol: 'https', hostname: 'propia-assets-v2.nyc3.cdn.digitaloceanspaces.com' },
