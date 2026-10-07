@@ -573,7 +573,7 @@ export default function ClientShortlist({
             {hechas === todos.length && parecidasSinVer.length > 0 && (
               <button type="button" onClick={verParecidas}
                 className="mt-8 inline-flex items-center gap-2 rounded-full border border-[#D5DDD8] bg-white px-5 py-3 text-[14px] font-semibold text-[#1A5C38] transition hover:border-[#1A5C38]">
-                <Sparkles className="h-4 w-4" /> Ver {parecidasSinVer.length} parecida{parecidasSinVer.length !== 1 ? 's' : ''} más
+                <Sparkles className="h-4 w-4" /> Quiero ver más propiedades
               </button>
             )}
 

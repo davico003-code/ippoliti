@@ -96,7 +96,8 @@ export default function CierreSeleccion({
         {parecidasDisponibles > 0 && (
           <button type="button" onClick={onVerParecidas}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1A5C38] py-3.5 text-[15px] font-bold text-white transition active:scale-[0.98]">
-            <Sparkles className="h-4 w-4" /> Ver {parecidasDisponibles} parecida{parecidasDisponibles !== 1 ? 's' : ''}
+            {/* David (7-oct): "un botón tipo «quiero ver más propiedades»". Las elige HILO: parecidas a lo que le mandaron, dentro de su presupuesto. */}
+            <Sparkles className="h-4 w-4" /> Quiero ver más propiedades
           </button>
         )}
         {onSeguir && pendientes > 0 && (
