@@ -8,6 +8,7 @@ import {
   type TipoFiscal,
   type FormaPagoHonorarios,
 } from '@/lib/calculadora-alquiler'
+import { WHATSAPP_DISPLAY } from './contacto'
 
 type Frecuencia = 'trimestral' | 'cuatrimestral'
 type Indice = 'ICL' | 'IPC'
@@ -20,8 +21,6 @@ const fmtUsd = (n: number) =>
   })}`
 const fmt = (n: number, m: Moneda) => (m === 'USD' ? fmtUsd(n) : fmtArs(n))
 
-const WHATSAPP_NUM = '5493413415159'
-const WHATSAPP_DISPLAY = '+54 9 341 341 5159'
 
 // Documento A4 estilo "hoja de cards": fondo verdoso muy claro, cards blancas
 // con hairlines, totales unificados en una sola banda verde. Embebido como
@@ -41,12 +40,12 @@ main { padding: 0 !important; margin: 0 !important; max-width: none !important; 
 :root {
   --tinta: #1C1C1E;
   --tinta-soft: #3A3A3D;
-  --tinta-mute: #6E6E72;
+  --tinta-mute: #55555A;
   --line: #E0E6E1;
   --paper: #F4F7F5;
   --card: #FFFFFF;
-  --si-green: #1A5C38;
-  --si-green-dark: #0F3D25;
+  --si-green: #17613C;
+  --si-green-dark: #0E3F27;
   --si-green-tint: #EAF2ED;
   /* next/font publica las fuentes de marca como variables (el nombre literal
      'Raleway' no existe en la página: caía a la letra del sistema). */
@@ -65,8 +64,9 @@ html, body {
 }
 
 /* CTA de impresión: visible en pantalla, fuera del flujo (no afecta la altura
-   de la hoja), oculto al imprimir vía .no-print. */
-.planilla-print-btn {
+   de la hoja), oculto al imprimir vía .no-print. Con .planilla-page delante
+   para ganarle al reset ".planilla-page *" (le borraba el padding). */
+.planilla-page .planilla-print-btn {
   position: fixed;
   top: 16px;
   right: 16px;
@@ -83,7 +83,7 @@ html, body {
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0,0,0,0.18);
 }
-.planilla-print-btn:hover { background: #14492c; }
+.planilla-page .planilla-print-btn:hover { background: var(--si-green-dark); }
 
 .planilla-page {
   width: 794px;
@@ -305,8 +305,8 @@ html, body {
 }
 .planilla-page .fila-sub {
   font-family: var(--f-texto);
-  font-weight: 400;
-  font-size: 9.5px;
+  font-weight: 500;
+  font-size: 10px;
   color: var(--tinta-mute);
   margin-top: 1px;
   line-height: 1.3;
@@ -350,7 +350,7 @@ html, body {
 }
 .planilla-page .mes-sub {
   font-family: var(--f-texto);
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--tinta-mute);
   margin-top: 1px;
@@ -365,10 +365,18 @@ html, body {
   margin-top: 6px;
   line-height: 1.15;
 }
+.planilla-page .mes-pesos {
+  font-family: var(--f-num);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--tinta-soft);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
 .planilla-page .mes-desc {
   font-family: var(--f-texto);
-  font-size: 9px;
-  font-weight: 400;
+  font-size: 10px;
+  font-weight: 500;
   color: var(--tinta-mute);
   margin-top: 5px;
   line-height: 1.35;
@@ -400,7 +408,8 @@ html, body {
 .planilla-page .cond-body {
   padding: 8px 13px 10px;
   font-family: var(--f-texto);
-  font-size: 9.5px;
+  font-size: 10px;
+  font-weight: 500;
   color: var(--tinta-soft);
   line-height: 1.35;
 }
@@ -437,13 +446,53 @@ html, body {
   justify-content: center;
 }
 
-/* ── Disclaimer + footer ────────────────────────────────────────────── */
+/* ── Cierre: aclaración + WhatsApp con QR (se escanea desde el papel) ── */
+.planilla-page .cierre {
+  display: grid;
+  grid-template-columns: 1fr 270px;
+  gap: 12px;
+  margin-bottom: 10px;
+}
 .planilla-page .disclaimer {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 9px 14px;
-  margin-bottom: 10px;
+}
+.planilla-page .contacto {
+  background: var(--card);
+  border: 1.5px solid var(--si-green);
+  border-radius: 14px;
+  padding: 9px 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.planilla-page .contacto-qr { width: 78px; height: 78px; display: block; }
+.planilla-page .contacto-titulo {
+  font-family: var(--f-texto);
+  font-weight: 800;
+  font-size: 9px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--si-green);
+  margin-bottom: 3px;
+}
+.planilla-page .contacto-texto {
+  font-family: var(--f-texto);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--tinta);
+  line-height: 1.35;
+}
+.planilla-page .contacto-num {
+  font-family: var(--f-num);
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--si-green);
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
 }
 .planilla-page .disclaimer-title {
   font-family: var(--f-texto);
@@ -456,7 +505,8 @@ html, body {
 }
 .planilla-page .disclaimer-text {
   font-family: var(--f-texto);
-  font-size: 9px;
+  font-size: 10px;
+  font-weight: 500;
   line-height: 1.4;
   color: var(--tinta-mute);
 }
@@ -481,12 +531,6 @@ html, body {
   font-weight: 600;
   color: var(--tinta-soft);
   margin-top: 3px;
-}
-.planilla-page .footer-contact strong {
-  font-family: var(--f-num);
-  font-weight: 600;
-  color: var(--si-green);
-  font-variant-numeric: tabular-nums;
 }
 
 .planilla-fallback {
@@ -549,7 +593,7 @@ html, body {
   .planilla-page .datos-grid,
   .planilla-page .total-card,
   .planilla-page .cond-grid,
-  .planilla-page .disclaimer,
+  .planilla-page .cierre,
   .planilla-page .footer {
     page-break-inside: avoid !important;
   }
@@ -564,7 +608,8 @@ html, body {
   .planilla-page .mes-card { padding: 9px 12px !important; }
   .planilla-page .cond-head { padding: 5px 12px !important; }
   .planilla-page .cond-body { padding: 6px 12px 8px !important; }
-  .planilla-page .disclaimer { padding: 7px 12px !important; margin-bottom: 6px !important; }
+  .planilla-page .disclaimer { padding: 7px 12px !important; }
+  .planilla-page .cierre { margin-bottom: 8px !important; }
   /* Espacio entre el último bloque y el footer (sin margin-top:auto). */
   .planilla-page .footer { margin-top: 8px !important; padding-top: 6px !important; }
 }
@@ -627,7 +672,7 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
   }
 }
 
-export default function PlanillaPrintable() {
+export default function PlanillaPrintable({ qrSvg }: { qrSvg: string }) {
   const sp = useSearchParams()
   const parsed = useMemo(() => parseInput(sp), [sp])
 
@@ -725,7 +770,7 @@ export default function PlanillaPrintable() {
       sub: `Total honorarios ${fmt(c.honoTotal, moneda)} · alquiler × meses × 5% × IVA`,
       valor: fmt(c.honoEnMes1, moneda),
     },
-    { label: 'Sellado', sub: selladoSub, valor: fmtArs(c.sellado) },
+    { label: 'Sellado', sub: selladoSub, valor: c.sellado > 0 ? fmtArs(c.sellado) : 'Exento' },
     {
       label: 'Verificación de garantes',
       sub: 'Pago único · chequeo de documentación',
@@ -860,6 +905,9 @@ export default function PlanillaPrintable() {
               <div className="mes-valor">
                 {moneda === 'USD' ? fmtUsd(totalUsd) : fmtArs(totalArs)}
               </div>
+              {moneda === 'USD' && (
+                <div className="mes-pesos">+ {fmtArs(totalArs)} en pesos</div>
+              )}
               <div className="mes-desc">
                 Alquiler + {c.mostrarMeses23 ? '1ª cuota de honorarios' : 'honorarios'} + sellado +
                 garantes{adminDesc}
@@ -924,18 +972,37 @@ export default function PlanillaPrintable() {
           </div>
         </div>
 
-        <div className="disclaimer">
-          <div className="disclaimer-title">Aclaración importante</div>
-          <div className="disclaimer-text">
-            <p>
-              Estos valores son estimaciones basadas en usos y costumbres de
-              ajuste en locaciones. El ajuste pactado con el propietario puede
-              ser distinto.
-            </p>
-            <p style={{ marginTop: 3 }}>
-              Te recomendamos consultarnos antes de firmar el contrato. Por esta
-              misma razón, este cálculo no tiene carácter contractual.
-            </p>
+        <div className="cierre">
+          <div className="disclaimer">
+            <div className="disclaimer-title">Aclaración importante</div>
+            <div className="disclaimer-text">
+              <p>
+                Estos valores son estimaciones basadas en usos y costumbres de
+                ajuste en locaciones. El ajuste pactado con el propietario puede
+                ser distinto.
+              </p>
+              <p style={{ marginTop: 3 }}>
+                Te recomendamos consultarnos antes de firmar el contrato. Por esta
+                misma razón, este cálculo no tiene carácter contractual.
+              </p>
+            </div>
+          </div>
+          <div className="contacto">
+            {qrSvg && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="contacto-qr"
+                src={`data:image/svg+xml;utf8,${encodeURIComponent(qrSvg)}`}
+                alt="QR para escribirle a Administración por WhatsApp"
+              />
+            )}
+            <div>
+              <div className="contacto-titulo">¿Dudas? Escaneá</div>
+              <div className="contacto-texto">
+                Escribile a Administración por WhatsApp
+              </div>
+              <div className="contacto-num">{WHATSAPP_DISPLAY}</div>
+            </div>
           </div>
         </div>
 
@@ -943,10 +1010,7 @@ export default function PlanillaPrintable() {
           <div className="footer-line">
             SI INMOBILIARIA · Desde 1983 acompañando decisiones importantes
           </div>
-          <div className="footer-contact">
-            Administración · WhatsApp <strong>{WHATSAPP_DISPLAY}</strong> ·
-            wa.me/{WHATSAPP_NUM} · siinmobiliaria.com
-          </div>
+          <div className="footer-contact">siinmobiliaria.com</div>
         </footer>
       </div>
     </>
