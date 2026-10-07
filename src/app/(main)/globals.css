@@ -212,6 +212,16 @@ body {
   display: none;
 }
 
+/* Videos decorativos (sin `controls`): Safari en Modo de bajo consumo no los
+   deja arrancar solos y les pinta un ▶ nativo en el medio (David, 7-oct, la
+   portada de la home). Sin controles nunca se muestra; queda la foto/póster. */
+video:not([controls])::-webkit-media-controls,
+video:not([controls])::-webkit-media-controls-start-playback-button,
+video:not([controls])::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
 /* Poppins for numeric content */
 .font-poppins,
 .stat-number,

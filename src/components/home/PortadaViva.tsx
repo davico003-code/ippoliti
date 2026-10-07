@@ -28,6 +28,7 @@ export default function PortadaViva({ poster, video, sizes, velo }: Props) {
   const vid = useRef<HTMLVideoElement>(null)
   const [src, setSrc] = useState<string | null>(null)
   const [vivo, setVivo] = useState(false)
+  const pausaPropia = useRef(false)
 
   // El video se asigna recién en el cliente, cuando la página ya terminó de
   // cargar y el navegador está libre: nunca compite con la foto (LCP) ni con
@@ -55,14 +56,18 @@ export default function PortadaViva({ poster, video, sizes, velo }: Props) {
     }
   }, [video])
 
-  // Pausa fuera de pantalla (batería) y retoma al volver.
+  // Pausa fuera de pantalla (batería) y retoma al volver. Si Safari no lo deja
+  // correr (Modo de bajo consumo), vuelve la foto: nunca un cuadro congelado.
   useEffect(() => {
     const v = vid.current
     const el = cuadro.current
     if (!v || !el || !src) return
     const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) v.play().catch(() => {})
-      else v.pause()
+      if (e.isIntersecting) v.play().catch(() => setVivo(false))
+      else {
+        pausaPropia.current = true
+        v.pause()
+      }
     }, { threshold: 0.05 })
     io.observe(el)
     return () => io.disconnect()
@@ -113,8 +118,19 @@ export default function PortadaViva({ poster, video, sizes, velo }: Props) {
               playsInline
               autoPlay
               preload="auto"
-              onPlaying={() => setVivo(true)}
-              className="absolute inset-0 h-full w-full object-cover"
+              disablePictureInPicture
+              disableRemotePlayback
+              tabIndex={-1}
+              onPlaying={() => {
+                pausaPropia.current = false
+                setVivo(true)
+              }}
+              // Una pausa que no pedimos (Safari en bajo consumo la corta
+              // sola): fundido de vuelta a la foto.
+              onPause={() => {
+                if (!pausaPropia.current) setVivo(false)
+              }}
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover"
               style={{ opacity: vivo ? 1 : 0, transition: 'opacity 1200ms ease' }}
             />
           )}
