@@ -18,6 +18,7 @@ export default function FotosDeslizables({
   alt,
   sizes,
   priority = false,
+  diferir = false,
   swipe = true,
   flechasSiempre = false,
   puntos = 'centro',
@@ -32,6 +33,11 @@ export default function FotosDeslizables({
   alt: string
   sizes: string
   priority?: boolean
+  /** No montar ni la portada hasta que la página terminó de cargar. Para las
+   *  cards de más abajo del listado en el celu: con señal floja, sus portadas
+   *  (lazy, pero dentro del margen de 2500 px de Chrome) le comían el ancho de
+   *  banda a la foto principal. Las que se montan después del load, normal. */
+  diferir?: boolean
   /** Swipe horizontal en el celu. Apagarlo si la tarjeta vive dentro de un
    *  carrusel que ya scrollea de costado (se pelearían el gesto). */
   swipe?: boolean
@@ -58,6 +64,19 @@ export default function FotosDeslizables({
   // la foto se precargan la anterior y las dos siguientes, y cada cambio corre la ventana.
   const [calentar, setCalentar] = useState(false)
   const [montadas, setMontadas] = useState<number[]>([0])
+  const [cargada, setCargada] = useState(!diferir)
+  useEffect(() => {
+    if (cargada) return
+    const listo = () => setCargada(true)
+    if (document.readyState === 'complete') { listo(); return }
+    // Si algo cuelga el load, que igual vea fotos al bajar.
+    window.addEventListener('load', listo, { once: true })
+    window.addEventListener('scroll', listo, { once: true, passive: true })
+    return () => {
+      window.removeEventListener('load', listo)
+      window.removeEventListener('scroll', listo)
+    }
+  }, [cargada])
   useEffect(() => {
     if (!calentar || images.length < 2) return
     const n = images.length
@@ -147,7 +166,7 @@ export default function FotosDeslizables({
         >
           {images.map((src, i) => (
             <div key={src + i} className="relative h-full w-full flex-none overflow-hidden bg-gray-100">
-              {montadas.includes(i) && (
+              {cargada && montadas.includes(i) && (
                 <Image
                   src={src}
                   alt={i === 0 ? alt : `${alt} — foto ${i + 1}`}
