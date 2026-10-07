@@ -41,7 +41,7 @@ type WindowWithIdle = Window & {
   cancelIdleCallback?: (id: number) => void
 }
 
-export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop', priority = false, distanceKm }: {
+export default function PropiedadCardGrid({ property, isSelected, onClick, variant = 'desktop', priority = false, diferirFoto = false, distanceKm }: {
   property: TokkoProperty
   isSelected: boolean
   /** Si se pasa, se ejecuta antes de la navegación. Llamar e.preventDefault() para
@@ -49,6 +49,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
   variant?: 'desktop' | 'mobile'
   priority?: boolean
+  /** Portada recién después del load (cards de más abajo del listado en el celu). */
+  diferirFoto?: boolean
   /** Distancia en km desde la ubicación del usuario (modo "buscar cerca").
    *  Null/undefined → no se muestra. */
   distanceKm?: number | null
@@ -171,6 +173,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         alt={address}
         sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw"
         priority={priority}
+        diferir={diferirFoto}
         puntos={agente ? 'derecha' : 'centro'}
         className="aspect-[16/9]"
         style={isSelected ? { boxShadow: '0 0 0 2px #1A5C38' } : undefined}

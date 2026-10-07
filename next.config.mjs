@@ -83,6 +83,20 @@ const nextConfig = {
         destination: '/recursos/ajuste-alquiler',
         permanent: true,
       },
+      // URLs del sitio viejo (inmobiliariaippoliti.com, que llega acá con la
+      // misma ruta): Google todavía las manda y daban 404. Van al listado con
+      // la operación y el tipo que dice la URL (sin adivinar la propiedad).
+      ...[['venta', 'venta'], ['alquiler', 'alquiler']].flatMap(([seg, op]) => [
+        { source: `/${seg}/:t(casa|casas)/:rest*`, destination: `/propiedades?operacion=${op}&tipo=casa`, permanent: true },
+        { source: `/${seg}/:t(departamento|departamentos)/:rest*`, destination: `/propiedades?operacion=${op}&tipo=departamento`, permanent: true },
+        { source: `/${seg}/:t(terreno|terrenos|lote|lotes)/:rest*`, destination: `/propiedades?operacion=${op}&tipo=terreno`, permanent: true },
+        { source: `/${seg}/:t(local|locales)/:rest*`, destination: `/propiedades?operacion=${op}&tipo=local`, permanent: true },
+        { source: `/${seg}/:rest*`, destination: `/propiedades?operacion=${op}`, permanent: true },
+      ]),
+      // Selecciones viejas de Hilo (hasta 27-sep): siinmobiliaria.com/propiedad/{tokko_id}.
+      // Ese número es el id de la ficha (getIdFromSlug lee el número del principio).
+      { source: '/propiedad/:id(\\d+)', destination: '/propiedades/:id', permanent: true },
+      { source: '/propiedad/:rest*', destination: '/propiedades', permanent: true },
       // Redirect old domain to new
       {
         source: '/:path*',
