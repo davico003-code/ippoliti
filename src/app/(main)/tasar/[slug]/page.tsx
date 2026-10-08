@@ -12,7 +12,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, permanentRedirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import TasadorBarrio from '@/components/tasador/TasadorBarrio'
 import { estimar, porcentaje, resultado } from '@/lib/tasador/estimar'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
@@ -42,10 +42,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!d || 'redirigir' in d.r) return { title: 'Tasación | SI INMOBILIARIA', robots: { index: false, follow: true } }
   const l = d.r.landing
   const t = TEXTO_TIPO[l.tipo]
-  const p = l.zona.params[l.tipo]!
+  const p = l.zona.params[l.tipo]
   const title = l.conNumero ? `Tasación de ${t.plural} en ${lugar(l)}: valor de referencia hoy` : `Tasación de ${t.plural} en ${lugar(l)}, con un corredor matriculado`
-  const m2 =
-    l.tipo === 'casa' && l.zona.mixto && p.tierraM2 != null && p.construccionM2 != null
+  const m2 = !p
+    ? ''
+    : l.tipo === 'casa' && l.zona.mixto && p.tierraM2 != null && p.construccionM2 != null
       ? `El terreno se publica a USD ${n(p.tierraM2)}/m² y la construcción a USD ${n(p.construccionM2)}/m².`
       : `Se publica a unos USD ${n(p.usdM2)} por m² ${l.tipo === 'lote' ? 'de terreno' : 'cubierto'}.`
   const description = l.conNumero
@@ -65,11 +66,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TasarPage({ params }: Props) {
   const d = await datos(params.slug)
   if (!d) notFound()
-  if ('redirigir' in d.r) permanentRedirect(d.r.redirigir)
+  // 307 y no 308: a dónde va depende de los datos de hoy (mañana el barrio puede tener los suyos).
+  if ('redirigir' in d.r) redirect(d.r.redirigir)
   const { tasador, indice } = d
   const l = d.r.landing
   const t = TEXTO_TIPO[l.tipo]
-  const p = l.zona.params[l.tipo]!
+  // Una ciudad puede no tener avisos de un tipo (Hilo no lo manda): la página queda solo con el pedido.
+  const p = l.zona.params[l.tipo] ?? { n: 0, usdM2: 0, m2Tipico: 0, error: 1, daNumero: false, errorPropio: false }
   const conTerreno = l.tipo === 'casa' && l.zona.mixto && p.tierraM2 != null && p.construccionM2 != null
   const tipica = l.conNumero ? resultado(estimar({ tipo: HILO_DE[l.tipo], m2: p.m2Tipico, ant: l.tipo === 'lote' ? null : (p.antTipica ?? null) }, p, tasador.modelo, l.zona.mixto), p.error) : null
   const pedido = hrefPedido(l)

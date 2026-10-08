@@ -7,9 +7,9 @@
 //   /tasar/casa-funes                 (Funes fuera de los barrios con nombre)
 //
 // Una sola dirección por barrio y tipo. Un barrio de la lista vieja (OSM) que
-// no tiene datos propios redirige a la página de su ciudad: con el número del
-// casco sería tirar cualquier valor. A Google va solo lo que da número (lo
-// decide Hilo: daNumero). Sin imports de servidor.
+// no tiene datos propios redirige (307: depende de los datos de hoy) a la
+// página de su ciudad: con el número del casco sería tirar cualquier valor. A
+// Google va solo lo que da número (lo decide Hilo: daNumero). Sin imports de servidor.
 
 import { BARRIOS_TASADOR, type BarrioTasador } from '@/lib/tasador/barrios'
 import { daNumero } from '@/lib/tasador/estimar'
@@ -153,12 +153,14 @@ export function indiceTasar(t: Tasador): IndiceTasar {
       tomadas.add(zona)
       landings.set(slug, { slug, tipo, zona, nombre: zona.nombre, conNumero: !!zona.params[tipo]?.daNumero })
     }
-    // 3. Las zonas medidas que la lista vieja no tenía (solo si dan número: si no, no hay nada que decir).
+    // 3. Las zonas medidas que la lista vieja no tenía. Todas las que tienen avisos del tipo:
+    //    las que dan número van a Google; las que hoy no, siguen vivas solo con el pedido
+    //    (si mañana dejan de dar número, la dirección no desaparece).
     for (const zona of zonas) {
-      if (zona.esCiudad || tomadas.has(zona) || !zona.params[tipo]?.daNumero) continue
+      if (zona.esCiudad || tomadas.has(zona) || !zona.params[tipo]) continue
       let slug = `${tipo}-${slugZona(zona)}`
       while (landings.has(slug) || redirecciones.has(slug)) slug = `${slug}-${ciudadSlug(zona.ciudad)}`
-      landings.set(slug, { slug, tipo, zona, nombre: zona.nombre, conNumero: true })
+      landings.set(slug, { slug, tipo, zona, nombre: zona.nombre, conNumero: !!zona.params[tipo]?.daNumero })
     }
   }
   return { landings, redirecciones, version: t.modelo.version }

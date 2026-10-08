@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BarrioTasacion, PlazoVenta, TipoTasacion, UtmTasacion } from '@/lib/tasacion/types'
 import { parseTipo, PLAZOS_VENTA, TEXTO_TIPO, normalizarCelularAr } from '@/lib/tasacion/formato'
 import { trackEvent, trackFbCustomEvent, trackFbEvent } from '@/lib/analytics'
+import { barrioParaPedido } from '@/lib/tasacion/barrio-de-zona'
 import PasoVender from './PasoVender'
 import Paso3Pedido from './Paso3Pedido'
 import PantallaListo from './PantallaListo'
@@ -38,9 +39,6 @@ function normalizarTexto(s: string): string {
     .trim()
 }
 
-/** Prefijo del id de un barrio que la lista no tiene (viene por ?zona= desde /tasar): el pedido va solo con el nombre. */
-const SIN_LISTA = 'zona:'
-
 function resolverBarrioInicial(barrios: BarrioTasacion[], slug?: string, zona?: string, ciudad?: string): BarrioTasacion | null {
   if (slug) {
     const s = normalizarTexto(slug)
@@ -53,22 +51,10 @@ function resolverBarrioInicial(barrios: BarrioTasacion[], slug?: string, zona?: 
     const z = normalizarTexto(zona)
     const porZona = barrios.find((b) => normalizarTexto(b.nombre) === z)
     if (porZona) return porZona
-    // Las landings /tasar usan los nombres del mercado ("Vida Lagoon", "Abasto") y la
-    // lista de acá no los tiene todos: se conserva el nombre (el vendedor no llega
-    // sin barrio) y el pedido llega a Hilo con barrioNombre.
-    const nombre = zona.trim().slice(0, 80)
-    if (nombre) {
-      return {
-        id: `${SIN_LISTA}${z}`,
-        nombre,
-        slug: z.replace(/[^a-z0-9]+/g, '-'),
-        ciudad: ciudad?.trim().slice(0, 40) ?? '',
-        esCerrado: null,
-        centroide: null,
-        m2Tipico: { lote: null, cubiertos: null },
-        tiene: { casas: 0, lotes: 0, deptos: 0 },
-      }
-    }
+    // Las landings /tasar usan los nombres del mercado ("Kentucky Club de Campo",
+    // "Vida Lagoon"): el de la lista por palabras o, si no está, uno propio con el
+    // nombre (solo con ciudad). Así el vendedor no llega sin barrio ni el pedido rebota.
+    return barrioParaPedido(barrios, zona, ciudad)
   }
   return null
 }
@@ -152,7 +138,7 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
           whatsapp: normalizarCelularAr(whatsapp),
           website: honeypot,
           tasacion: {
-            barrioId: barrio.id.startsWith(SIN_LISTA) ? '' : barrio.id,
+            barrioId: barrio.id,
             barrioNombre: barrio.nombre,
             ciudad: barrio.ciudad,
             esCerrado: barrio.esCerrado,
