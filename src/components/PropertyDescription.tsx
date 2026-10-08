@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { formatDescription, quitarTitularInicial, type FormattedBlock } from '@/lib/formatDescription'
+import {
+  formatDescription,
+  quitarTitularInicial,
+  resaltarDatos,
+  type FormattedBlock,
+  type Segmento,
+} from '@/lib/formatDescription'
 
 const GREEN = '#1A5C38'
 const R = "'Raleway', system-ui, sans-serif"
@@ -25,7 +31,15 @@ function itemConEtiqueta(item: string): { key: string; rest: string } | null {
   return { key: m[1].trim(), rest: m[2] }
 }
 
-function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) {
+function Block({
+  block,
+  primero,
+  segmentos,
+}: {
+  block: FormattedBlock
+  primero: boolean
+  segmentos?: Segmento[]
+}) {
   if (block.type === 'title') {
     // Los títulos en MAYÚSCULAS gritaban: van chicos, espaciados y en verde, como
     // rótulo de sección. Los normales, en negrita un poco más grandes que el texto.
@@ -125,7 +139,17 @@ function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) 
           <strong style={{ fontWeight: 700, color: '#111827' }}>{block.subtitle}.</strong>{' '}
         </>
       )}
-      {block.content}
+      {segmentos
+        ? segmentos.map((sg, i) =>
+            sg.negrita ? (
+              <strong key={i} style={{ fontWeight: 700, color: '#111827' }}>
+                {sg.texto}
+              </strong>
+            ) : (
+              sg.texto
+            ),
+          )
+        : block.content}
     </p>
   )
 }
@@ -138,6 +162,11 @@ export default function PropertyDescription({ text }: { text: string | null | un
     if (!fallback) return []
     return [{ type: 'paragraph', content: fallback }] as FormattedBlock[]
   }, [text])
+  // Negritas en los datos clave (m², frente, pileta…), una vez por descripción.
+  const segmentos = useMemo(() => {
+    const vistos = new Set<string>()
+    return blocks.map(b => (b.type === 'paragraph' ? resaltarDatos(b.content, vistos) : undefined))
+  }, [blocks])
   const [expanded, setExpanded] = useState(false)
 
   if (blocks.length === 0) return null
@@ -146,16 +175,17 @@ export default function PropertyDescription({ text }: { text: string | null | un
   const isLong = rawLength > 420 || blocks.length > 5
 
   return (
-    // Renglón de ~75 caracteres en desktop (max-w 34em): a lo ancho de la tarjeta
-    // eran ~95 y el ojo se perdía al volver al inicio del renglón siguiente.
-    <div className="prose-description max-w-[34em] break-words text-[17px] lg:text-[18px]" style={{ fontFamily: R }}>
+    // Renglón de ~68 caracteres en desktop (max-w 31em, dentro del rango ideal
+    // 60-70): a lo ancho de la tarjeta eran ~95 y el ojo se perdía al volver al
+    // inicio del renglón siguiente.
+    <div className="prose-description max-w-[31em] break-words text-[17px] lg:text-[18px]" style={{ fontFamily: R }}>
       <div className="relative">
         <div
           className={isLong && !expanded ? 'overflow-hidden' : ''}
           style={isLong && !expanded ? { maxHeight: 250 } : undefined}
         >
           {blocks.map((b, i) => (
-            <Block key={i} block={b} primero={i === 0} />
+            <Block key={i} block={b} primero={i === 0} segmentos={segmentos[i]} />
           ))}
         </div>
         {isLong && !expanded && (

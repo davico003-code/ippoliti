@@ -433,6 +433,47 @@ export function quitarTitularInicial(blocks: FormattedBlock[]): FormattedBlock[]
   return blocks
 }
 
+// ── Negritas en los datos que la gente busca ───────────────────────────────
+// Poquitas y con regla fija: superficies, metros de frente y un puñado de
+// atributos que deciden una visita. Cada dato se marca una sola vez por
+// descripción, como mucho 3 por párrafo y 6 en total (un loteo con 14
+// superficies quedaba todo en negrita); si se marca todo, nada resalta.
+// La cantidad de dormitorios en la prosa NO: suele ser parcial ("los tres
+// dormitorios restantes") y ya está en la tarjeta de características.
+const LETRA = 'A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9'
+const RESALTAR_RE = new RegExp(
+  [
+    `\\d[\\d.,]*\\s?(?:m|mts|metros)\\s+de\\s+frente`,
+    `\\d[\\d.,]*\\s?(?:m²|m2|mts²|mts2|metros cuadrados|hect[áa]reas|ha)(?![${LETRA}])`,
+    `(?<![${LETRA}])(?:piletas?|piscinas?|a estrenar|apto cr[ée]dito|financiaci[óo]n|permuta|en suite)(?![${LETRA}])`,
+  ].join('|'),
+  'gi',
+)
+const MAX_NEGRITAS_POR_PARRAFO = 3
+const MAX_NEGRITAS_POR_DESCRIPCION = 6
+
+export type Segmento = { texto: string; negrita?: boolean }
+
+export function resaltarDatos(texto: string, vistos: Set<string>): Segmento[] {
+  const out: Segmento[] = []
+  let desde = 0
+  let marcadas = 0
+  for (const m of Array.from(texto.matchAll(RESALTAR_RE))) {
+    if (marcadas >= MAX_NEGRITAS_POR_PARRAFO || vistos.size >= MAX_NEGRITAS_POR_DESCRIPCION) break
+    // "pileta" y "piscina" son el mismo dato.
+    const clave = norm(m[0]).replace(/s$/, '').replace('piscina', 'pileta')
+    if (vistos.has(clave)) continue
+    vistos.add(clave)
+    marcadas++
+    const i = m.index ?? 0
+    if (i > desde) out.push({ texto: texto.slice(desde, i) })
+    out.push({ texto: m[0], negrita: true })
+    desde = i + m[0].length
+  }
+  if (desde < texto.length) out.push({ texto: texto.slice(desde) })
+  return out
+}
+
 // ── Entry point ────────────────────────────────────────────────────────────
 export function formatDescription(raw: string | null | undefined): FormattedBlock[] {
   if (!raw || !raw.trim()) return []
