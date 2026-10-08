@@ -26,6 +26,8 @@ interface Props {
   tipoInicial?: string
   /** ?zona=<nombre> (compat con el link viejo de /tasar). */
   zonaInicial?: string
+  /** ?ciudad= (acompaña a ?zona= desde /tasar). */
+  ciudadInicial?: string
 }
 
 function normalizarTexto(s: string): string {
@@ -36,7 +38,10 @@ function normalizarTexto(s: string): string {
     .trim()
 }
 
-function resolverBarrioInicial(barrios: BarrioTasacion[], slug?: string, zona?: string): BarrioTasacion | null {
+/** Prefijo del id de un barrio que la lista no tiene (viene por ?zona= desde /tasar): el pedido va solo con el nombre. */
+const SIN_LISTA = 'zona:'
+
+function resolverBarrioInicial(barrios: BarrioTasacion[], slug?: string, zona?: string, ciudad?: string): BarrioTasacion | null {
   if (slug) {
     const s = normalizarTexto(slug)
     const porSlug = barrios.find((b) => b.slug === s || b.id === slug)
@@ -48,6 +53,22 @@ function resolverBarrioInicial(barrios: BarrioTasacion[], slug?: string, zona?: 
     const z = normalizarTexto(zona)
     const porZona = barrios.find((b) => normalizarTexto(b.nombre) === z)
     if (porZona) return porZona
+    // Las landings /tasar usan los nombres del mercado ("Vida Lagoon", "Abasto") y la
+    // lista de acá no los tiene todos: se conserva el nombre (el vendedor no llega
+    // sin barrio) y el pedido llega a Hilo con barrioNombre.
+    const nombre = zona.trim().slice(0, 80)
+    if (nombre) {
+      return {
+        id: `${SIN_LISTA}${z}`,
+        nombre,
+        slug: z.replace(/[^a-z0-9]+/g, '-'),
+        ciudad: ciudad?.trim().slice(0, 40) ?? '',
+        esCerrado: null,
+        centroide: null,
+        m2Tipico: { lote: null, cubiertos: null },
+        tiene: { casas: 0, lotes: 0, deptos: 0 },
+      }
+    }
   }
   return null
 }
@@ -60,11 +81,11 @@ function leerUtm(): UtmTasacion | null {
   return utm.source || utm.medium || utm.campaign || utm.content ? utm : null
 }
 
-export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zonaInicial }: Props) {
+export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zonaInicial, ciudadInicial }: Props) {
   const tipoIni = parseTipo(tipoInicial) ?? 'casa'
   // Sin barrio por defecto: en una página de vendedores un barrio pre-elegido
   // que no es el suyo es un pedido con datos falsos. Solo si viene en el link.
-  const barrioIni = resolverBarrioInicial(barrios, barrioInicial, zonaInicial)
+  const barrioIni = resolverBarrioInicial(barrios, barrioInicial, zonaInicial, ciudadInicial)
 
   const [paso, setPaso] = useState<Paso>(1)
   const [tipo, setTipo] = useState<TipoTasacion>(tipoIni)
@@ -131,7 +152,7 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
           whatsapp: normalizarCelularAr(whatsapp),
           website: honeypot,
           tasacion: {
-            barrioId: barrio.id,
+            barrioId: barrio.id.startsWith(SIN_LISTA) ? '' : barrio.id,
             barrioNombre: barrio.nombre,
             ciudad: barrio.ciudad,
             esCerrado: barrio.esCerrado,

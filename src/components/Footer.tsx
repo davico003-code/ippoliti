@@ -20,6 +20,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: 'Alquilar en Funes y Roldán', href: '/propiedades?op=alquiler' },
       { label: 'Emprendimientos', href: '/emprendimientos' },
       { label: 'Tasaciones', href: '/tasaciones' },
+      { label: 'Tasación por barrio', href: '/tasar' },
     ],
   },
   {

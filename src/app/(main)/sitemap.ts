@@ -5,9 +5,9 @@ import { getDevelopments, generateDevSlug } from '@/lib/developments'
 import { BARRIOS } from '@/lib/barrios'
 import { detectarEdificios } from '@/lib/edificios'
 import { sanitizeProperty } from '@/lib/tokko'
-import { BARRIOS_TASADOR } from '@/lib/tasador/barrios'
 import { CLUSTERS, clusterUrl } from '@/lib/clusters'
-import { tiposTasadorIndexables } from '@/lib/seo/tasador-indexing'
+import { esIndexableTasar } from '@/lib/seo/tasar'
+import { cargarTasar } from '@/lib/tasador/cargar-tasar'
 
 const BASE = 'https://siinmobiliaria.com'
 
@@ -126,15 +126,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]
 
-  // Solo publicamos landings con referencias locales suficientes. El tasador
-  // puede resolver otras combinaciones, pero no deben competir en el índice.
-  const tasadorRoutes: MetadataRoute.Sitemap = BARRIOS_TASADOR.flatMap((barrio) => {
-    return tiposTasadorIndexables(barrio).map((tipo) => ({
-      url: `${BASE}/tasar/${tipo}-${barrio.slug}`,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }))
-  })
+  // Tasación por barrio: solo las landings que dan número (lo decide Hilo). Si
+  // Hilo no responde, el sitemap sale igual, sin ellas esa vez.
+  const tasadorRoutes: MetadataRoute.Sitemap = await cargarTasar()
+    .then(({ indice }) => [
+      { url: `${BASE}/tasar`, changeFrequency: 'weekly' as const, priority: 0.8 },
+      ...Array.from(indice.landings.values())
+        .filter(esIndexableTasar)
+        .map((l) => ({ url: `${BASE}/tasar/${l.slug}`, changeFrequency: 'weekly' as const, priority: l.zona.esCiudad ? 0.8 : 0.7 })),
+    ])
+    .catch((err: unknown) => {
+      console.error('[sitemap] Sin las landings de tasación:', err instanceof Error ? err.message : err)
+      return []
+    })
 
   // Páginas de edificio (departamentos agrupados por dirección). Reusa el
   // inventario ya fetcheado arriba en vez de pegarle a Tokko de nuevo.
