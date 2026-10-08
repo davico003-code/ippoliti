@@ -24,7 +24,3 @@ export async function traerMercadoHilo(): Promise<{ tasador: Tasador; mercado: Z
   if (!t || !Array.isArray(t.zonas) || !t.modelo) throw new Error('Hilo no mandó los números del tasador')
   return { tasador: t, mercado: Array.isArray(data.zonas) ? data.zonas : [] }
 }
-
-export async function traerTasadorHilo(): Promise<Tasador> {
-  return (await traerMercadoHilo()).tasador
-}

@@ -22,7 +22,6 @@ type Props = {
   antiguedad: string | null
   rango: { desde: number; hasta: number } | null
   avisos: number
-  errorPropio: boolean
   /** Sin barrio elegido: llevar a la persona al buscador. */
   onSinBarrio: () => void
 }
@@ -39,7 +38,7 @@ function leerUtm(): UtmTasacion | null {
 const input =
   'h-[54px] w-full rounded-2xl border-[1.5px] border-[#E1E6E1] bg-white px-4 text-[16px] font-medium text-[#121A15] placeholder:text-[#A6AFAA] focus:border-[#17613C] focus:outline-none focus:ring-4 focus:ring-[#17613C]/10 aria-[invalid=true]:border-[#C2410C]'
 
-export default function PedidoTasacion({ modo, tipo, zona, m2, lote, antiguedad, rango, avisos, errorPropio, onSinBarrio }: Props) {
+export default function PedidoTasacion({ modo, tipo, zona, m2, lote, antiguedad, rango, avisos, onSinBarrio }: Props) {
   const t = TEXTO_TIPO[tipo]
   const [estado, setEstado] = useState<Estado>('cerrado')
   const [nombre, setNombre] = useState('')
@@ -109,8 +108,9 @@ export default function PedidoTasacion({ modo, tipo, zona, m2, lote, antiguedad,
             m2Cubiertos: tipo === 'lote' ? null : m2,
             m2Lote: tipo === 'lote' ? m2 : lote,
             rangoVisto: rango ? { min: rango.desde, max: rango.hasta } : null,
-            // 1 = medido en el barrio, 3 = con el margen de la ciudad, 4 = sin número.
-            nivel: rango ? (errorPropio ? 1 : 3) : 4,
+            // 3 = estimado por m² (Hilo escribe "estimado por m² sobre N casas"); 1-2 son
+            // comparables parecidos de /tasaciones y acá serían falsos. 4 = sin número.
+            nivel: rango ? 3 : 4,
             n: avisos,
             lat: null,
             lng: null,
@@ -166,13 +166,10 @@ export default function PedidoTasacion({ modo, tipo, zona, m2, lote, antiguedad,
         </button>
       ) : (
         <form onSubmit={enviar} noValidate className="mt-4 rounded-2xl bg-white p-4 text-[#121A15] sm:p-5">
-          {(m2 || rango) && (
-            <p className="mb-3 rounded-xl bg-[#F3F7F4] px-3.5 py-2.5 text-[14px] font-semibold text-[#3C4A42]">
-              {t.corto} en {lugar}
-              {m2 ? <span className="font-numeric"> · {m2.toLocaleString('es-AR')} m²</span> : null}
-              {antiguedad ? ` · ${antiguedad.toLowerCase()}` : ''}
-            </p>
-          )}
+          <p className="mb-3 rounded-xl bg-[#F3F7F4] px-3.5 py-2.5 text-[14px] font-semibold text-[#3C4A42]">
+            {t.corto} en {lugar}
+            {m2 ? <span className="font-numeric"> · {m2.toLocaleString('es-AR')} m²</span> : null}
+          </p>
           <label htmlFor={ids.nombre} className="block text-[14px] font-bold text-[#3C4A42]">
             Nombre
           </label>

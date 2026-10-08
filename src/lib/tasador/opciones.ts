@@ -73,7 +73,7 @@ export function filtrarOpciones(opciones: OpcionTasar[], tipo: TipoTasar, texto:
 export function sugeridas(opciones: OpcionTasar[], tipo: TipoTasar, barrios = 6): OpcionTasar[] {
   const ciudades = opciones.filter((o) => o.esCiudad && tieneDatos(o, tipo))
   const top = opciones
-    .filter((o) => !o.esCiudad && o.params[tipo]?.daNumero)
+    .filter((o) => !o.esCiudad && tieneDatos(o, tipo) && o.params[tipo]?.daNumero)
     .sort((a, b) => (b.params[tipo]?.n ?? 0) - (a.params[tipo]?.n ?? 0))
     .slice(0, barrios)
   return [...top, ...ciudades]

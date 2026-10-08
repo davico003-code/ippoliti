@@ -159,11 +159,12 @@ export function indiceTasar(t: Tasador): IndiceTasar {
 
 export type ResolucionTasar = { landing: Landing } | { redirigir: string } | null
 
-export function resolverTasar(slug: string, indice: IndiceTasar): ResolucionTasar {
+/** La landing de un slug, o a dónde redirigir. /tasar y /vender comparten slugs: `base` decide a cuál. */
+export function resolverTasar(slug: string, indice: IndiceTasar, base: '/tasar' | '/vender' = '/tasar'): ResolucionTasar {
   const landing = indice.landings.get(slug)
   if (landing) return { landing }
   const destino = indice.redirecciones.get(slug)
-  return destino ? { redirigir: `/tasar/${destino}` } : null
+  return destino ? { redirigir: `${base}/${destino}` } : null
 }
 
 /** A Google: solo lo que da número. */

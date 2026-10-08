@@ -11,9 +11,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import Tasador from '@/components/tasador/Tasador'
-import { estimar, resultado } from '@/lib/tasador/estimar'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
-import { HILO_DE, TEXTO_TIPO, TIPOS_TASAR, esIndexableTasar, landingDeCiudad, landingsDeCiudad, mercadoDe, opcionesTasar, type Landing } from '@/lib/seo/tasar'
+import { TEXTO_TIPO, TIPOS_TASAR, esIndexableTasar, landingDeCiudad, landingsDeCiudad, mercadoDe, opcionesTasar, resolverTasar, type Landing } from '@/lib/seo/tasar'
 import type { ResumenMercado } from '@/lib/tasador/tipos'
 
 export const revalidate = 3600
@@ -24,34 +23,33 @@ export const generateStaticParams = () => []
 const BASE = 'https://siinmobiliaria.com'
 const n = (x: number) => x.toLocaleString('es-AR')
 const usd = (x: number) => `USD ${n(x)}`
-const Mayus = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 /** USD 1.425.000 → "1,4 millones"; USD 860.000 → "860 mil" (para el texto corrido). */
 const usdCorto = (x: number) => (x >= 1_000_000 ? `USD ${(Math.round(x / 100_000) / 10).toLocaleString('es-AR')} millones` : `USD ${n(Math.round(x / 1000))} mil`)
 
 type Props = { params: { slug: string } }
 
-type Datos = Awaited<ReturnType<typeof cargarTasar>> & { landing: Landing }
-
-async function datos(slug: string): Promise<Datos | { redirigir: string } | null> {
-  const cargado = await cargarTasar()
-  const landing = cargado.indice.landings.get(slug)
-  if (landing) return { ...cargado, landing }
-  const destino = cargado.indice.redirecciones.get(slug)
-  return destino ? { redirigir: `/vender/${destino}` } : null
+async function datos(slug: string) {
+  const { tasador, mercado, indice } = await cargarTasar()
+  const r = resolverTasar(slug, indice, '/vender')
+  return r ? { r, tasador, mercado, indice } : null
 }
+
+/** A Google: con número (Hilo) y con el mercado del barrio; si no, sería una página floja que compite con /tasar. */
+const indexable = (l: Landing, m: ResumenMercado | null) => esIndexableTasar(l) && !!m
 
 const lugar = (l: Landing) => (l.zona.esCiudad ? l.nombre : `${l.nombre}, ${l.zona.ciudad}`)
 
 /** "Hoy hay 63 casas en venta en Kentucky: la mitad pide entre USD 860 mil y USD 1,4 millones." */
 function frasesMercado(l: Landing, m: ResumenMercado) {
   const t = TEXTO_TIPO[l.tipo]
-  return `Hoy hay ${n(m.n)} ${t.plural} en venta en ${l.nombre}: la mitad pide entre ${usdCorto(m.p25)} y ${usdCorto(m.p75)}.`
+  // En la ciudad, el mercado es el de toda la ciudad (barrios incluidos).
+  return `Hoy hay ${n(m.n)} ${t.plural} en venta en ${l.zona.esCiudad ? 'todo ' : ''}${l.nombre}: la mitad pide entre ${usdCorto(m.p25)} y ${usdCorto(m.p75)}.`
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const d = await datos(params.slug).catch(() => null)
-  if (!d || !('landing' in d)) return { title: 'Vender | SI INMOBILIARIA', robots: { index: false, follow: true } }
-  const l = d.landing
+  if (!d || 'redirigir' in d.r) return { title: 'Vender | SI INMOBILIARIA', robots: { index: false, follow: true } }
+  const l = d.r.landing
   const t = TEXTO_TIPO[l.tipo]
   const m = mercadoDe(d.mercado, l)
   // "Vender mi casa en …": lo que la gente escribe en Google.
@@ -64,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website', locale: 'es_AR' },
     twitter: { card: 'summary_large_image', title, description, images: ['/og-image.jpg'] },
-    robots: esIndexableTasar(l) ? { index: true, follow: true } : { index: false, follow: true },
+    robots: indexable(l, m) ? { index: true, follow: true } : { index: false, follow: true },
   }
 }
 
@@ -72,15 +70,14 @@ export default async function VenderBarrioPage({ params }: Props) {
   const d = await datos(params.slug)
   if (!d) notFound()
   // 307: a dónde va depende de los datos de hoy (igual que /tasar).
-  if (!('landing' in d)) redirect(d.redirigir)
-  const { landing: l, tasador, mercado, indice } = d
+  if ('redirigir' in d.r) redirect(d.r.redirigir)
+  const { tasador, mercado, indice } = d
+  const l = d.r.landing
   const t = TEXTO_TIPO[l.tipo]
   const ella = t.singular === 'casa'
   const opciones = opcionesTasar(indice)
   const clave = opciones.find((o) => o.slugs[l.tipo] === l.slug)?.clave ?? null
-  const p = l.zona.params[l.tipo]
   const m = mercadoDe(mercado, l)
-  const tipica = l.conNumero && p ? resultado(estimar({ tipo: HILO_DE[l.tipo], m2: p.m2Tipico, ant: l.tipo === 'lote' ? null : (p.antTipica ?? null) }, p, tasador.modelo, l.zona.mixto), p.error) : null
   const ciudadLanding = !l.zona.esCiudad ? landingDeCiudad(indice, l) : null
   const otrosTipos = TIPOS_TASAR.filter((x) => x !== l.tipo)
     .map((x) => Array.from(indice.landings.values()).find((y) => y.tipo === x && y.zona === l.zona && y.conNumero))
@@ -107,14 +104,9 @@ export default async function VenderBarrioPage({ params }: Props) {
   ]
 
   const faq: { q: string; a: string }[] = []
-  if (tipica && p)
-    faq.push({
-      q: `¿Cuánto vale ${t.una} en ${l.nombre}?`,
-      a: `${Mayus(t.una.replace(/^un[a]? /, ''))} típic${ella ? 'a' : 'o'} de ${n(p.m2Tipico)} m² tiene un valor de referencia de ${usd(tipica.valor)} (entre ${usd(tipica.desde)} y ${usd(tipica.hasta)}), con los avisos de hoy. Con el tasador de esta página calculás ${ella ? 'la tuya' : 'el tuyo'}; el precio de salida lo fija la tasación.`,
-    })
   if (m)
     faq.push({
-      q: `¿Cuánt${ella ? 'as' : 'os'} ${t.plural} hay en venta en ${l.nombre}?`,
+      q: `¿Cuánt${ella ? 'as' : 'os'} ${t.plural} hay en venta en ${l.zona.esCiudad ? 'todo ' : ''}${l.nombre}?`,
       a: `${frasesMercado(l, m)} El precio del medio es ${usd(m.mediana)}. Es lo que compite con ${ella ? 'la tuya' : 'el tuyo'} cuando la publicás.`,
     })
   faq.push({
@@ -183,12 +175,12 @@ export default async function VenderBarrioPage({ params }: Props) {
           </div>
 
           <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <Tasador opciones={opciones} modelo={tasador.modelo} modo="vender" tipoInicial={l.tipo} inicial={clave} />
+            <Tasador opciones={opciones} modelo={tasador.modelo} modo="vender" tipoInicial={l.tipo} inicial={clave} sinDatosDelBarrio />
           </div>
 
           {mercadoTiles.length > 0 && (
             <div className="lg:col-start-1 lg:row-start-2">
-              <h2 className="text-[15px] font-bold uppercase tracking-wider text-[#5B6B62]">El mercado en {l.nombre} hoy</h2>
+              <h2 className="text-[15px] font-bold uppercase tracking-wider text-[#5B6B62]">El mercado en {l.zona.esCiudad ? 'todo ' : ''}{l.nombre} hoy</h2>
               <ul className="mt-3 grid grid-cols-2 gap-2.5">
                 {mercadoTiles.map((x) => (
                   <li key={x.texto} className="rounded-2xl border border-[#E1E6E1] px-4 py-3.5">
@@ -226,7 +218,7 @@ export default async function VenderBarrioPage({ params }: Props) {
             </h2>
             <div className="mt-4 max-w-[46rem] space-y-4 text-[16px] leading-relaxed text-[#3C4A42]">
               <p>
-                En {l.nombre} compiten hoy <b className="font-numeric font-semibold text-[#121A15]">{n(m.n)}</b> {t.plural}. La mitad pide entre <b className="font-numeric font-semibold text-[#121A15]">{usd(m.p25)}</b> y <b className="font-numeric font-semibold text-[#121A15]">{usd(m.p75)}</b>, y el precio del medio es <b className="font-numeric font-semibold text-[#121A15]">{usd(m.mediana)}</b>.
+                En {l.zona.esCiudad ? 'todo ' : ''}{l.nombre} compiten hoy <b className="font-numeric font-semibold text-[#121A15]">{n(m.n)}</b> {t.plural}. La mitad pide entre <b className="font-numeric font-semibold text-[#121A15]">{usd(m.p25)}</b> y <b className="font-numeric font-semibold text-[#121A15]">{usd(m.p75)}</b>, y el precio del medio es <b className="font-numeric font-semibold text-[#121A15]">{usd(m.mediana)}</b>.
               </p>
               <p>
                 El que busca en {l.nombre} ve {ella ? 'la tuya' : 'el tuyo'} al lado de esas. Si sale muy por encima de lo que vale sin algo que lo explique —más metros, a estrenar, mejor ubicación dentro del barrio—, la mira, la compara y sigue de largo. Por eso arrancamos por la tasación: el tasador de arriba te da la referencia y el corredor la ajusta con lo que el aviso no dice.

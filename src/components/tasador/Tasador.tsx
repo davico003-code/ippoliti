@@ -52,6 +52,10 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
   const [m2, setM2] = useState(pIni ? String(pIni.m2Tipico) : '')
   const [lote, setLote] = useState('')
   const [edad, setEdad] = useState<number | null>(pIni?.antTipica != null ? tramoEdad(pIni.antTipica) : null)
+  // ¿Los metros y la antigüedad los cargó la persona, o son los típicos del barrio que
+  // pusimos de arranque? Al corredor le llegan solo los suyos (arquitecto, 8-oct).
+  const [m2Propio, setM2Propio] = useState(false)
+  const [edadPropia, setEdadPropia] = useState(false)
   const entrada = useRef<HTMLInputElement>(null)
   const ids = { buscar: useId(), lista: useId(), m2: useId(), lote: useId() }
 
@@ -101,7 +105,11 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
     if (po) {
       setM2(String(po.m2Tipico))
       setLote('')
-      if (po.antTipica != null) setEdad(tramoEdad(po.antTipica))
+      setM2Propio(false)
+      if (po.antTipica != null) {
+        setEdad(tramoEdad(po.antTipica))
+        setEdadPropia(false)
+      }
     }
   }
   const cambiarTipo = (x: TipoTasar) => {
@@ -111,7 +119,11 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
     const po = zona && tieneDatos(zona, x) ? zona.params[x] : null
     if (zona && !po) setZona(null)
     setM2(po ? String(po.m2Tipico) : '')
-    if (po?.antTipica != null) setEdad(tramoEdad(po.antTipica))
+    setM2Propio(false)
+    if (po?.antTipica != null) {
+      setEdad(tramoEdad(po.antTipica))
+      setEdadPropia(false)
+    }
   }
   const abrirBuscador = () => {
     setAbierto(true)
@@ -226,7 +238,10 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
               id={ids.m2}
               inputMode="numeric"
               value={m2}
-              onChange={(ev) => setM2(soloNumero(ev.target.value))}
+              onChange={(ev) => {
+                setM2(soloNumero(ev.target.value))
+                setM2Propio(true)
+              }}
               placeholder={p ? String(p.m2Tipico) : tipo === 'lote' ? '600' : '150'}
               className="font-numeric h-[54px] w-32 rounded-2xl border-[1.5px] border-[#E1E6E1] px-4 text-[19px] font-semibold text-[#121A15] outline-none placeholder:font-normal placeholder:text-[#A6AFAA] focus:border-[#17613C] focus:ring-4 focus:ring-[#17613C]/10"
             />
@@ -273,7 +288,10 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
                 key={x.id}
                 type="button"
                 aria-pressed={edad === x.id}
-                onClick={() => setEdad(x.id)}
+                onClick={() => {
+                  setEdad(x.id)
+                  setEdadPropia(true)
+                }}
                 className={`min-h-11 rounded-full border-[1.5px] px-4 text-[14.5px] font-semibold transition-colors ${edad === x.id ? 'border-[#17613C] bg-[#17613C] text-white' : 'border-[#E1E6E1] text-[#3C4A42] hover:border-[#17613C]/50'}`}
               >
                 {x.texto}
@@ -338,12 +356,11 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
         modo={modo}
         tipo={tipo}
         zona={zona}
-        m2={metros || null}
+        m2={m2Propio && metros > 0 ? metros : null}
         lote={tipo === 'casa' ? loteNum : null}
-        antiguedad={tipo !== 'lote' && edad != null ? EDADES[edad].texto : null}
+        antiguedad={tipo !== 'lote' && edadPropia && edad != null ? EDADES[edad].texto : null}
         rango={r ? { desde: r.desde, hasta: r.hasta } : null}
         avisos={p?.n ?? 0}
-        errorPropio={!!p?.errorPropio}
         onSinBarrio={abrirBuscador}
       />
     </div>
