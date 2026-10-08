@@ -48,13 +48,13 @@ function resolverBarrioInicial(barrios: BarrioTasacion[], slug?: string, zona?: 
     if (porNombre) return porNombre
   }
   if (zona) {
+    // Desde las landings /tasar viene la ciudad: el mismo barrio DENTRO de esa ciudad o
+    // uno propio con el nombre del mercado (San Andrés de Roldán no es San Andrés de
+    // Rosario: la ciudad decide la sucursal que atiende). Así no rebota ni cambia de ciudad.
+    if (ciudad) return barrioParaPedido(barrios, zona, ciudad)
+    // Links viejos con ?zona= sola: el nombre exacto de la lista, como siempre.
     const z = normalizarTexto(zona)
-    const porZona = barrios.find((b) => normalizarTexto(b.nombre) === z)
-    if (porZona) return porZona
-    // Las landings /tasar usan los nombres del mercado ("Kentucky Club de Campo",
-    // "Vida Lagoon"): el de la lista por palabras o, si no está, uno propio con el
-    // nombre (solo con ciudad). Así el vendedor no llega sin barrio ni el pedido rebota.
-    return barrioParaPedido(barrios, zona, ciudad)
+    return barrios.find((b) => normalizarTexto(b.nombre) === z) ?? null
   }
   return null
 }

@@ -31,3 +31,11 @@ test('si la lista no lo tiene: uno propio con id zona: y la ciudad (Hilo exige l
   assert.equal(x.ciudad, 'Rosario')
   assert.equal(barrioParaPedido(lista, 'Abasto'), null)
 })
+
+test('el mismo nombre en otra ciudad no es el mismo barrio (la ciudad decide la sucursal)', () => {
+  const conSanAndres = [...lista, b('20', 'San Andres', 'Rosario')]
+  const x = barrioParaPedido(conSanAndres, 'San Andrés', 'Roldán')
+  assert.ok(x && x.id.startsWith(SIN_LISTA))
+  assert.equal(x.ciudad, 'Roldán')
+  assert.equal(barrioParaPedido(conSanAndres, 'San Andrés', 'Rosario')?.id, '20')
+})
