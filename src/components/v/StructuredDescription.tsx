@@ -90,7 +90,7 @@ function Block({ block, c }: { block: FormattedBlock; c: ColoresFicha }) {
         // cansaba (regla de David 3-oct, misma que la ficha de la web).
         fontWeight: 500,
         lineHeight: 1.65,
-        margin: '0 0 12px',
+        margin: block.compact ? '0 0 2px' : '0 0 12px',
       }}
     >
       {block.subtitle && (

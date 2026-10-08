@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { formatDescription, type FormattedBlock } from '@/lib/formatDescription'
+import { formatDescription, quitarTitularInicial, type FormattedBlock } from '@/lib/formatDescription'
 
 const GREEN = '#1A5C38'
 const R = "'Raleway', system-ui, sans-serif"
@@ -10,17 +10,37 @@ const R = "'Raleway', system-ui, sans-serif"
 // a los mayores (David 3-oct: "tendría que ser más legible, un poco más gruesa").
 const TEXTO = '#1F2937'
 
-function Block({ block }: { block: FormattedBlock }) {
+// Tamaños en em: el contenedor manda (17 px en el celular, 18 px en desktop) y
+// todo escala junto.
+const esMayusculas = (s: string) => {
+  const letras = s.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g, '')
+  return letras.length >= 3 && letras === letras.toLocaleUpperCase('es-AR')
+}
+
+// "Cocina: mesada a definir, pileta de acero…" → la etiqueta en negrita, para
+// que una lista de ítems largos se pueda escanear.
+function itemConEtiqueta(item: string): { key: string; rest: string } | null {
+  const m = item.match(/^([^:]{2,32}):\s+(.+)$/)
+  if (!m || m[1].trim().split(/\s+/).length > 4) return null
+  return { key: m[1].trim(), rest: m[2] }
+}
+
+function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) {
   if (block.type === 'title') {
+    // Los títulos en MAYÚSCULAS gritaban: van chicos, espaciados y en verde, como
+    // rótulo de sección. Los normales, en negrita un poco más grandes que el texto.
+    const caps = esMayusculas(block.content)
     return (
       <span
-        className="section-title block text-[18px]"
+        className="section-title block text-pretty"
         style={{
           fontFamily: R,
           fontWeight: 700,
-          color: '#111827',
-          marginTop: 28,
-          marginBottom: 10,
+          fontSize: caps ? '0.8em' : '1.1em',
+          letterSpacing: caps ? '0.07em' : undefined,
+          color: caps ? GREEN : '#111827',
+          marginTop: primero ? 0 : '1.5em',
+          marginBottom: caps ? '0.6em' : '0.5em',
           lineHeight: 1.35,
         }}
       >
@@ -31,44 +51,54 @@ function Block({ block }: { block: FormattedBlock }) {
 
   if (block.type === 'list') {
     return (
-      <ul style={{ listStyle: 'none', margin: '0 0 16px', padding: 0 }}>
-        {block.items.map((item, i) => (
-          <li
-            key={i}
-            className="text-[17px]"
-            style={{
-              position: 'relative',
-              paddingLeft: 20,
-              color: TEXTO,
-              lineHeight: 1.65,
-              marginBottom: i === block.items.length - 1 ? 0 : 7,
-              fontWeight: 500,
-            }}
-          >
-            <span
-              aria-hidden
-              style={{ position: 'absolute', left: 2, top: 1, color: GREEN, fontWeight: 700 }}
+      <ul style={{ listStyle: 'none', margin: '0 0 1em', padding: 0 }}>
+        {block.items.map((item, i) => {
+          const et = itemConEtiqueta(item)
+          return (
+            <li
+              key={i}
+              className="text-pretty"
+              style={{
+                position: 'relative',
+                paddingLeft: '1.3em',
+                color: TEXTO,
+                lineHeight: 1.6,
+                marginBottom: i === block.items.length - 1 ? 0 : '0.45em',
+                fontWeight: 500,
+              }}
             >
-              ✓
-            </span>
-            {item}
-          </li>
-        ))}
+              <span
+                aria-hidden
+                style={{ position: 'absolute', left: 1, top: 0, color: GREEN, fontWeight: 700 }}
+              >
+                ✓
+              </span>
+              {et ? (
+                <>
+                  <strong style={{ fontWeight: 700, color: '#111827' }}>{et.key}:</strong> {et.rest}
+                </>
+              ) : (
+                item
+              )}
+            </li>
+          )
+        })}
       </ul>
     )
   }
 
   if (block.type === 'dataGroup') {
     return (
-      <div className="data-group" style={{ marginBottom: 16 }}>
+      <div className="data-group" style={{ marginBottom: '1em' }}>
         {block.content.map((dl, i) => (
           <span
             key={i}
-            className="data-line block text-[17px]"
+            className="data-line block"
             style={{
               color: TEXTO,
               lineHeight: 1.6,
-              marginBottom: i === block.content.length - 1 ? 0 : 4,
+              marginBottom: i === block.content.length - 1 ? 0 : '0.25em',
+              fontWeight: 500,
             }}
           >
             <strong style={{ fontWeight: 600, color: '#111827' }}>{dl.key}:</strong>{' '}
@@ -82,11 +112,11 @@ function Block({ block }: { block: FormattedBlock }) {
   // paragraph
   return (
     <p
-      className="text-[17px]"
+      className="text-pretty"
       style={{
         color: TEXTO,
         lineHeight: 1.7,
-        marginBottom: 16,
+        marginBottom: block.compact ? '0.15em' : '1em',
         fontWeight: 500,
       }}
     >
@@ -102,7 +132,7 @@ function Block({ block }: { block: FormattedBlock }) {
 
 export default function PropertyDescription({ text }: { text: string | null | undefined }) {
   const blocks = useMemo(() => {
-    const parsed = formatDescription(text)
+    const parsed = quitarTitularInicial(formatDescription(text))
     if (parsed.length > 0) return parsed
     const fallback = (text ?? '').trim()
     if (!fallback) return []
@@ -116,17 +146,16 @@ export default function PropertyDescription({ text }: { text: string | null | un
   const isLong = rawLength > 420 || blocks.length > 5
 
   return (
-    <div className="prose-description">
+    // Renglón de ~75 caracteres en desktop (max-w 34em): a lo ancho de la tarjeta
+    // eran ~95 y el ojo se perdía al volver al inicio del renglón siguiente.
+    <div className="prose-description max-w-[34em] break-words text-[17px] lg:text-[18px]" style={{ fontFamily: R }}>
       <div className="relative">
         <div
           className={isLong && !expanded ? 'overflow-hidden' : ''}
           style={isLong && !expanded ? { maxHeight: 250 } : undefined}
         >
-          {/* Primer bloque sin margin-top extra (reset del section-title inicial) */}
           {blocks.map((b, i) => (
-            <div key={i} style={i === 0 && b.type === 'title' ? { marginTop: 0 } : undefined}>
-              <Block block={b} />
-            </div>
+            <Block key={i} block={b} primero={i === 0} />
           ))}
         </div>
         {isLong && !expanded && (
