@@ -3,13 +3,19 @@ import test from 'node:test'
 import { barrioDeLaLista, barrioParaPedido, SIN_LISTA } from './barrio-de-zona.ts'
 
 const b = (id, nombre, ciudad) => ({ id, nombre, slug: id, ciudad, esCerrado: null, centroide: null, m2Tipico: { lote: null, cubiertos: null }, tiene: { casas: 1, lotes: 1, deptos: 0 } })
-const lista = [b('11', 'Kentucky', 'Funes'), b('12', 'Vida', 'Funes'), b('13', 'Vida Lagoon', 'Funes'), b('14', 'Tierra de Sueños 2', 'Roldán'), b('15', 'Funes Hills Miraflores', 'Funes')]
+const lista = [b('11', 'Kentucky', 'Funes'), b('12', 'Vida', 'Funes'), b('13', 'Vida Lagoon', 'Funes'), b('14', 'Tierra de Sueños 2', 'Roldán'), b('15', 'Funes Hills Miraflores', 'Funes'), b('16', 'Rosario Golf Country Club', 'Rosario'), b('17', 'Portal Aldea Fisherton', 'Rosario')]
 
-test('el nombre del mercado encuentra el de la lista', () => {
+test('el nombre del mercado encuentra el MISMO de la lista', () => {
   assert.equal(barrioDeLaLista(lista, 'Kentucky Club de Campo', 'Funes')?.id, '11')
   assert.equal(barrioDeLaLista(lista, 'Tierra de Sueños II', 'Roldán')?.id, '14')
   assert.equal(barrioDeLaLista(lista, 'Vida Lagoon', 'Funes')?.id, '13')
-  assert.equal(barrioDeLaLista(lista, 'Miraflores', 'Funes')?.id, '15')
+})
+
+test('nunca uno parecido: la ciudad no es un barrio y Aldea no es Portal Aldea', () => {
+  assert.equal(barrioDeLaLista(lista, 'Rosario', 'Rosario'), null)
+  assert.equal(barrioDeLaLista(lista, 'Aldea Fisherton', 'Rosario'), null)
+  assert.equal(barrioDeLaLista(lista, 'Miraflores', 'Funes'), null)
+  assert.equal(barrioParaPedido(lista, 'Rosario', 'Rosario')?.nombre, 'Rosario')
 })
 
 test('nunca uno menos preciso, y respeta la ciudad', () => {

@@ -1,9 +1,9 @@
 // El barrio de la lista de /tasaciones para un nombre del mercado que llega
 // desde una landing /tasar (?zona=Kentucky Club de Campo&ciudad=Funes). Hilo
-// rechaza un pedido sin barrioId: primero se busca el de la lista (con el
-// mismo criterio por palabras de lib/seo/tasar.ts: "Kentucky Club de Campo" =
-// "Kentucky"); si no está, un barrio propio con id `zona:` y el nombre tal cual
-// (solo si se sabe la ciudad: Hilo también la exige). Sin imports de valores.
+// rechaza un pedido sin barrioId: primero el de la lista si es el MISMO
+// nombre ("Kentucky Club de Campo" = "Kentucky"); si no, un barrio propio con
+// id `zona:` y el nombre tal cual (solo si se sabe la ciudad: Hilo también la
+// exige). Sin imports de valores.
 
 import type { BarrioTasacion } from './types'
 
@@ -22,26 +22,16 @@ const palabras = (s: string) =>
 const mismaCiudad = (a: string, b?: string) => !b || sinAcentos(a) === sinAcentos(b)
 
 /**
- * El de la lista que es ese barrio: mismo nombre, o uno que lo nombra más
- * completo ("Miraflores" → "Funes Hills Miraflores"), sin empate. Nunca uno
- * MENOS preciso ("Vida Lagoon" no es "Vida"): ahí viaja el nombre del mercado.
+ * El de la lista que es ESE barrio: mismo nombre una vez sacado el relleno y
+ * los números romanos ("Kentucky Club de Campo" = "Kentucky", "Tierra de Sueños
+ * II" = "Tierra de Sueños 2"). Nada de "el más parecido": "Rosario" terminaba
+ * en "Rosario Golf Country Club" y "Vida Lagoon" en "Vida" (arquitecto,
+ * 8-oct). Si no es exactamente el mismo, viaja el nombre del mercado.
  */
 export function barrioDeLaLista(barrios: BarrioTasacion[], zona: string, ciudad?: string): BarrioTasacion | null {
-  const buscado = palabras(zona)
-  if (!buscado.length) return null
-  const candidatos = barrios.filter((b) => mismaCiudad(b.ciudad, ciudad))
-  const igual = candidatos.find((b) => palabras(b.nombre).join(' ') === buscado.join(' '))
-  if (igual) return igual
-  const parecidos = candidatos
-    .map((b) => {
-      const pb = new Set(palabras(b.nombre))
-      return { b, comparte: buscado.every((w) => pb.has(w)) && buscado.some((w) => /[a-z]/.test(w)) ? pb.size : 0 }
-    })
-    .filter((x) => x.comparte > 0)
-    // El que menos agrega (el más parecido); con empate, no se adivina.
-    .sort((x, y) => x.comparte - y.comparte)
-  if (!parecidos.length || (parecidos.length > 1 && parecidos[1].comparte === parecidos[0].comparte)) return null
-  return parecidos[0].b
+  const buscado = palabras(zona).join(' ')
+  if (!buscado) return null
+  return barrios.find((b) => mismaCiudad(b.ciudad, ciudad) && palabras(b.nombre).join(' ') === buscado) ?? null
 }
 
 /** El barrio para el pedido: el de la lista, o uno propio con el nombre del mercado (solo con ciudad). */
