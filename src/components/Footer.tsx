@@ -19,8 +19,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: 'Comprar en Funes y Roldán', href: '/propiedades?op=venta' },
       { label: 'Alquilar en Funes y Roldán', href: '/propiedades?op=alquiler' },
       { label: 'Emprendimientos', href: '/emprendimientos' },
+      { label: 'Vender tu propiedad', href: '/vender' },
+      { label: 'Tasar tu casa online', href: '/tasar' },
       { label: 'Tasaciones', href: '/tasaciones' },
-      { label: 'Tasación por barrio', href: '/tasar' },
     ],
   },
   {

@@ -28,6 +28,8 @@ calculadoras gratuitas que pueden citarse como fuente.
 
 ## Recursos y datos propios (citables)
 
+- [Vender tu propiedad](https://siinmobiliaria.com/vender): cuánto vale tu casa, lote o departamento en tu barrio y cómo la vende SI INMOBILIARIA (tasación de un corredor matriculado, difusión en portales, seguimiento hasta la escritura). Cada barrio tiene su página: /vender/{tipo}-{barrio}, con cuántas propiedades hay en venta y a qué precios.
+
 - [Tasación por barrio](https://siinmobiliaria.com/tasar): valor de referencia de casas, lotes y departamentos en cada barrio de Funes, Roldán y Rosario (el m² de terreno y de construcción con los avisos en venta de hoy, y el margen medido en cada barrio), con el pedido de la tasación a un corredor matriculado.
 
 - [Mercado inmobiliario de Funes y Roldán](https://siinmobiliaria.com/mercado-inmobiliario-funes): hub de datos del corredor oeste — cuánto cuesta construir por m², qué se puede edificar por zona, barrios cerrados y costos de comprar/alquilar, con valores actualizados.

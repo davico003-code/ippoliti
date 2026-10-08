@@ -13,21 +13,12 @@
 
 import { BARRIOS_TASADOR, type BarrioTasador } from '@/lib/tasador/barrios'
 import { daNumero } from '@/lib/tasador/estimar'
-import type { ParamsTasador, Tasador, TipoHiloTasador } from '@/lib/tasador/tipos'
+import type { ParamsTasador, ResumenMercado, Tasador, ZonaMercado } from '@/lib/tasador/tipos'
 
-export type TipoTasar = 'casa' | 'lote' | 'departamento'
-export const TIPOS_TASAR: TipoTasar[] = ['casa', 'lote', 'departamento']
-export const HILO_DE: Record<TipoTasar, TipoHiloTasador> = { casa: 'casa', lote: 'lote', departamento: 'depto' }
-/** El tipo que entiende el formulario de vendedores (/tasaciones?tipo=). */
-export const TIPO_PEDIDO: Record<TipoTasar, 'casa' | 'lote' | 'depto'> = { casa: 'casa', lote: 'lote', departamento: 'depto' }
+import { CIUDADES_TASAR, ETIQUETA_CIUDAD, HILO_DE, MINIMO_AVISOS, TIPOS_TASAR, type OpcionTasar, type TipoTasar } from '@/lib/tasador/opciones'
 
-export const TEXTO_TIPO: Record<TipoTasar, { singular: string; plural: string; corto: string; tu: string }> = {
-  casa: { singular: 'casa', plural: 'casas', corto: 'Casa', tu: 'tu casa' },
-  lote: { singular: 'lote', plural: 'lotes', corto: 'Lote', tu: 'tu lote' },
-  departamento: { singular: 'departamento', plural: 'departamentos', corto: 'Depto', tu: 'tu departamento' },
-}
-
-export const CIUDADES_TASAR = ['Funes', 'Roldán', 'Rosario'] as const
+// Los tipos y textos viven en lib/tasador/opciones.ts (liviano: lo usa el navegador).
+export { CIUDADES_TASAR, HILO_DE, TEXTO_TIPO, TIPOS_TASAR, TIPO_PEDIDO, type TipoTasar } from '@/lib/tasador/opciones'
 
 /** Una zona de Hilo con sus números (barrio, o la ciudad fuera de barrios). */
 export type ZonaTasar = {
@@ -168,11 +159,12 @@ export function indiceTasar(t: Tasador): IndiceTasar {
 
 export type ResolucionTasar = { landing: Landing } | { redirigir: string } | null
 
-export function resolverTasar(slug: string, indice: IndiceTasar): ResolucionTasar {
+/** La landing de un slug, o a dónde redirigir. /tasar y /vender comparten slugs: `base` decide a cuál. */
+export function resolverTasar(slug: string, indice: IndiceTasar, base: '/tasar' | '/vender' = '/tasar'): ResolucionTasar {
   const landing = indice.landings.get(slug)
   if (landing) return { landing }
   const destino = indice.redirecciones.get(slug)
-  return destino ? { redirigir: `/tasar/${destino}` } : null
+  return destino ? { redirigir: `${base}/${destino}` } : null
 }
 
 /** A Google: solo lo que da número. */
@@ -185,8 +177,35 @@ export function landingsDeCiudad(indice: IndiceTasar, ciudad: string, tipo?: Tip
     .sort((a, b) => Number(b.zona.esCiudad) - Number(a.zona.esCiudad) || (b.zona.params[b.tipo]?.n ?? 0) - (a.zona.params[a.tipo]?.n ?? 0))
 }
 
-/** El link al formulario de vendedores, con el barrio y el tipo ya elegidos. */
-export function hrefPedido(l: Pick<Landing, 'tipo' | 'zona' | 'nombre'>): string {
-  const p = new URLSearchParams({ zona: l.zona.esCiudad ? l.zona.ciudad : l.nombre, ciudad: l.zona.ciudad, tipo: TIPO_PEDIDO[l.tipo] })
-  return `/tasaciones?${p.toString()}`
+/** Las zonas para el buscador del tasador, con el slug de su landing por tipo: las ciudades primero y después de la que más avisos tiene a la que menos. */
+export function opcionesTasar(indice: IndiceTasar): OpcionTasar[] {
+  const porZona = new Map<ZonaTasar, OpcionTasar>()
+  for (const l of Array.from(indice.landings.values())) {
+    const z = l.zona
+    let o = porZona.get(z)
+    if (!o) {
+      const params: OpcionTasar['params'] = {}
+      for (const t of TIPOS_TASAR) if ((z.params[t]?.n ?? 0) >= MINIMO_AVISOS) params[t] = z.params[t]
+      o = { clave: `${z.nombre}|${z.esCiudad ? '' : z.ciudad}`, nombre: z.nombre, ciudad: z.ciudad, esCiudad: z.esCiudad, etiqueta: z.esCiudad ? ETIQUETA_CIUDAD[z.nombre] ?? z.nombre : z.nombre, mixto: z.mixto, params, slugs: {} }
+      porZona.set(z, o)
+    }
+    o.slugs[l.tipo] = l.slug
+  }
+  const total = (o: OpcionTasar) => TIPOS_TASAR.reduce((s, t) => s + (o.params[t]?.n ?? 0), 0)
+  return Array.from(porZona.values())
+    .filter((o) => Object.keys(o.params).length > 0)
+    .sort((a, b) => Number(b.esCiudad) - Number(a.esCiudad) || total(b) - total(a))
 }
+
+const CLAVE_MERCADO: Record<TipoTasar, 'casas' | 'lotes' | 'deptos'> = { casa: 'casas', lote: 'lotes', departamento: 'deptos' }
+
+/** Lo que se pide hoy en la zona de una landing (null si Hilo no lo mandó o hay pocos avisos). */
+export function mercadoDe(mercado: ZonaMercado[], l: Pick<Landing, 'tipo' | 'zona'>): ResumenMercado | null {
+  const m = mercado.find((x) => x.nombre === l.zona.nombre && x.esCiudad === l.zona.esCiudad && (x.esCiudad || x.ciudad === l.zona.ciudad))
+  const r = m?.[CLAVE_MERCADO[l.tipo]] ?? null
+  return r && r.n >= MINIMO_AVISOS && r.p25 > 0 && r.p75 >= r.p25 ? r : null
+}
+
+/** La landing de la ciudad de una zona (/tasar/casa-funes), si existe. */
+export const landingDeCiudad = (indice: IndiceTasar, l: Pick<Landing, 'tipo' | 'zona'>) =>
+  indice.landings.get(`${l.tipo}-${l.zona.ciudad.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()}`) ?? null
