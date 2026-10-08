@@ -37,3 +37,28 @@ export type ModeloTasador = {
 export type TasadorZona = { nombre: string; ciudad: string | null; esCiudad: boolean; params: Partial<Record<TipoHiloTasador, ParamsTasador>> }
 
 export type Tasador = { modelo: ModeloTasador; zonas: TasadorZona[] }
+
+/** Lo que se pide hoy en una zona para un tipo (campo `zonas` de /mercado; lo arma mercado-zonas.ts en Hilo). */
+export type ResumenMercado = {
+  /** Avisos en venta. */
+  n: number
+  p25: number
+  mediana: number
+  p75: number
+  usdM2: number | null
+  /** Lote típico (m²). */
+  lote: number | null
+  /** Cubiertos típicos (m²). */
+  m2: number | null
+  /** Dormitorios típicos. */
+  dorm: number | null
+}
+
+export type ZonaMercado = {
+  nombre: string
+  ciudad: string | null
+  esCiudad: boolean
+  casas?: ResumenMercado | null
+  lotes?: ResumenMercado | null
+  deptos?: ResumenMercado | null
+}

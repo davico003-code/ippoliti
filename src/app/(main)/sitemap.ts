@@ -126,15 +126,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]
 
-  // Tasación por barrio: solo las landings que dan número (lo decide Hilo). Si
-  // Hilo no responde, el sitemap sale igual, sin ellas esa vez.
+  // Tasar y vender por barrio: solo las landings que dan número (lo decide
+  // Hilo); /tasar/{slug} y /vender/{slug} comparten slug. Si Hilo no responde,
+  // el sitemap sale igual, sin ellas esa vez.
   const tasadorRoutes: MetadataRoute.Sitemap = await cargarTasar()
-    .then(({ indice }) => [
-      { url: `${BASE}/tasar`, changeFrequency: 'weekly' as const, priority: 0.8 },
-      ...Array.from(indice.landings.values())
-        .filter(esIndexableTasar)
-        .map((l) => ({ url: `${BASE}/tasar/${l.slug}`, changeFrequency: 'weekly' as const, priority: l.zona.esCiudad ? 0.8 : 0.7 })),
-    ])
+    .then(({ indice }) => {
+      const indexables = Array.from(indice.landings.values()).filter(esIndexableTasar)
+      return [
+        { url: `${BASE}/vender`, changeFrequency: 'weekly' as const, priority: 0.9 },
+        { url: `${BASE}/tasar`, changeFrequency: 'weekly' as const, priority: 0.8 },
+        ...indexables.map((l) => ({ url: `${BASE}/tasar/${l.slug}`, changeFrequency: 'weekly' as const, priority: l.zona.esCiudad ? 0.8 : 0.7 })),
+        ...indexables.map((l) => ({ url: `${BASE}/vender/${l.slug}`, changeFrequency: 'weekly' as const, priority: l.zona.esCiudad ? 0.8 : 0.7 })),
+      ]
+    })
     .catch((err: unknown) => {
       console.error('[sitemap] Sin las landings de tasación:', err instanceof Error ? err.message : err)
       return []
