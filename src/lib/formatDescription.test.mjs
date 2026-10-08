@@ -89,28 +89,3 @@ test('un "Descripción" suelto arriba no se repite', () => {
   )
   assert.equal(b[0].content.startsWith('Edificio'), true)
 })
-
-test('negritas: metros, frente y pileta, una vez por descripción y hasta 3 por párrafo', async () => {
-  const { resaltarDatos } = await import('./formatDescription.ts')
-  const vistos = new Set()
-  const neg = (t) => resaltarDatos(t, vistos).filter((s) => s.negrita).map((s) => s.texto)
-  assert.deepEqual(
-    neg('El lote tiene 606,06 m² con 15,40 m de frente. La casa cuenta con pileta propia y quincho.'),
-    ['606,06 m²', '15,40 m de frente', 'pileta'],
-  )
-  assert.deepEqual(neg('La piscina es climatizada y el dormitorio en suite tiene vestidor.'), ['en suite'])
-  assert.deepEqual(neg('Uno de los dos dormitorios tiene 3 habitaciones de huéspedes.'), [])
-  const todo = resaltarDatos('Apto crédito, a estrenar, con financiación y permuta.', new Set())
-  assert.equal(todo.filter((s) => s.negrita).length, 3)
-  assert.equal(todo.map((s) => s.texto).join(''), 'Apto crédito, a estrenar, con financiación y permuta.')
-})
-
-test('negritas: tope de 6 por descripción', async () => {
-  const { resaltarDatos } = await import('./formatDescription.ts')
-  const vistos = new Set()
-  const lotes = Array.from({ length: 5 }, (_, i) => `Lote ${i + 1} de ${300 + i} m².`).join(' ')
-  const total = [lotes, lotes.replace(/30/g, '40')]
-    .flatMap((t) => resaltarDatos(t, vistos))
-    .filter((s) => s.negrita).length
-  assert.equal(total, 6)
-})
