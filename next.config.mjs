@@ -138,6 +138,8 @@ const nextConfig = {
       // Fotos de avisos de colegas copiadas a Cloudflare R2 por Hilo (7-oct-2026):
       // las fichas de verficha las muestran desde ahí.
       { protocol: 'https', hostname: 'fotos.likeprop.app' },
+      // El mismo bucket de R2 con el dominio de SI (lo que ven los clientes en verficha).
+      { protocol: 'https', hostname: 'fotos.verficha.casa' },
       // Colegas de la Red Propia EN VIVO en la selección del cliente (Rosario):
       // las originales pesan 1-2 MB; optimizadas, como las de Tokko.
       { protocol: 'https', hostname: 'propia-assets-v2.nyc3.cdn.digitaloceanspaces.com' },
