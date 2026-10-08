@@ -9,6 +9,9 @@ const R = "'Raleway', system-ui, sans-serif"
 // Texto de lectura oscuro y en 500: Raleway 400 en gris se veía finito y cansaba
 // a los mayores (David 3-oct: "tendría que ser más legible, un poco más gruesa").
 const TEXTO = '#1F2937'
+// Escala de grosores: texto 500 · etiquetas ("Cocina:", "Superficie:", subtítulos)
+// 600 · títulos 700. Las etiquetas en 700 competían con los títulos y la
+// descripción quedaba salpicada de negro.
 
 // Tamaños en em: el contenedor manda (17 px en el celular, 18 px en desktop) y
 // todo escala junto.
@@ -75,7 +78,7 @@ function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) 
               </span>
               {et ? (
                 <>
-                  <strong style={{ fontWeight: 700, color: '#111827' }}>{et.key}:</strong> {et.rest}
+                  <strong style={{ fontWeight: 600, color: '#111827' }}>{et.key}:</strong> {et.rest}
                 </>
               ) : (
                 item
@@ -122,7 +125,7 @@ function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) 
     >
       {block.subtitle && (
         <>
-          <strong style={{ fontWeight: 700, color: '#111827' }}>{block.subtitle}.</strong>{' '}
+          <strong style={{ fontWeight: 600, color: '#111827' }}>{block.subtitle}.</strong>{' '}
         </>
       )}
       {block.content}
