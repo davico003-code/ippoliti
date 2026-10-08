@@ -11,7 +11,9 @@
 
 export type FormattedBlock =
   | { type: 'title'; content: string }
-  | { type: 'paragraph'; content: string; subtitle?: string }
+  // compact: línea corta seguida de otra línea corta (dirección, datos sueltos):
+  // va pegada a la siguiente en vez de con aire de párrafo.
+  | { type: 'paragraph'; content: string; subtitle?: string; compact?: boolean }
   | { type: 'dataGroup'; content: Array<{ key: string; value: string }> }
   | { type: 'list'; items: string[] }
 
@@ -76,8 +78,31 @@ const LIST_INTRO_RE =
   /^(consta de|cuenta con|la propiedad (cuenta|consta)|incluye|comodidades|caracter[ií]sticas|servicios|amenities|detalles|equipamiento|distribuci[óo]n|posee|dispone de)\b/i
 
 // Marcador de viñeta al inicio de línea: •, -, –, *, ✓, y el "?" con el que
-// HILO/Tokko suelen mandar los ítems (un check que se degradó a "?").
-const BULLET_RE = /^\s*(?:[•·‣▪◦●○*✓✔☑▶►»–—-]|\?)\s+/
+// HILO/Tokko suelen mandar los ítems (un check que se degradó a "?"). También
+// los pegados al texto ("✓Gimnasio", "-Oficina en planta alta") y el ". " que
+// algunos agentes usan como viñeta.
+const BULLET_RE =
+  /^\s*(?:(?:[•·‣▪◦●○*✓✔☑▶►»–—-]|\?)\s+|[•‣▪◦●○✓✔☑▶►»]\s*|[-–—](?=[A-ZÁÉÍÓÚÑ0-9¿])|\.\s+(?=[A-ZÁÉÍÓÚÑ]))/
+
+// Saca TODOS los marcadores del inicio: "• ✓ Piscina" mostraba un ✓ doble.
+function stripBullets(line: string): string {
+  let s = line
+  while (BULLET_RE.test(s)) s = s.replace(BULLET_RE, '')
+  return s.trim()
+}
+
+// Abreviaturas que terminan en punto sin cerrar la oración ("Av. Pellegrini",
+// "Sup. total", "Piso 5, Depto. B"): ni subtítulo ni corte de párrafo.
+const ABREVIATURAS = new Set([
+  'av', 'avda', 'bv', 'bvd', 'bvard', 'sup', 'superf', 'depto', 'dpto', 'dto', 'exc', 'excl',
+  'cub', 'semicub', 'descub', 'aprox', 'arq', 'ing', 'dr', 'dra', 'sr', 'sra', 'gral', 'pje',
+  'nro', 'nº', 'n°', 'tel', 'cel', 'esq', 'prov', 'pcia', 'cnel', 'pte', 'sta', 'sto', 'mts',
+  'mt', 'km', 'hs', 'etc', 'ej', 'lic', 'cdad', 'urb', 'mz', 'mza', 'lte',
+])
+function terminaEnAbreviatura(antes: string): boolean {
+  const ultima = norm(antes.match(/(\S+)$/)?.[1] ?? '').replace(/^[(«"“]+/, '')
+  return ultima.length === 1 || ABREVIATURAS.has(ultima)
+}
 
 // ── Heurísticas de título ──────────────────────────────────────────────────
 function isTitle(line: string): boolean {
@@ -119,6 +144,8 @@ function parseSubtitle(line: string): { subtitle: string; rest: string } | null 
   const rest = m[2].trim()
   if (!rest) return null
   if (subtitle.split(/\s+/).length > 3) return null
+  // "Casa 1. Lote 3", "Piso 5, Depto. B", "Av. San Martín": datos, no subtítulos.
+  if (/[\d,]/.test(subtitle) || terminaEnAbreviatura(subtitle)) return null
   return { subtitle, rest }
 }
 
@@ -192,7 +219,7 @@ function parseStructured(normalized: string): FormattedBlock[] {
     // Ítem con marcador explícito (•, -, ?, …): siempre viñeta.
     if (BULLET_RE.test(line)) {
       flushData()
-      listItems.push(line.replace(BULLET_RE, '').trim())
+      listItems.push(stripBullets(line))
       continue
     }
 
@@ -287,7 +314,7 @@ function parseRunOn(raw: string): FormattedBlock[] {
       flushItems()
       blocks.push({ type: 'paragraph', content: line })
     } else {
-      items.push(line.replace(BULLET_RE, '').trim())
+      items.push(stripBullets(line))
     }
   }
   flushItems()
@@ -298,6 +325,12 @@ function parseRunOn(raw: string): FormattedBlock[] {
 // Polish tipográfico SEGURO (no toca palabras ni mayúsculas).
 function polish(s: string): string {
   return s
+    // Líneas separadoras ("_______", "-----", "*****"): ruido visual.
+    .replace(/^[ \t]*[_=~*·•.\-–—]{3,}[ \t]*$/gm, '')
+    .replace(/_{4,}/g, '\n')
+    // "7.013 m²? USD 5.030.000": una flecha/guion que llegó degradado a "?"
+    // (una pregunta de verdad trae "¿" en la misma línea).
+    .replace(/^[^¿\n]*$/gm, (l) => l.replace(/([0-9²³)])\?[ \t]+(?=[A-Z0-9$])/g, '$1 – '))
     .replace(/(\d)[ \t]*[xX][ \t]*(\d)/g, '$1×$2')
     // Solo espacios/tabs antes de puntuación (NO \n: rompía las viñetas "\n? item",
     // porque "?" es puntuación y se comía el salto de línea del ítem).
@@ -312,6 +345,92 @@ function isSeoHeadline(content: string): boolean {
   const c = content.trim()
   if (/[.][ ]/.test(c) || c.length > 95) return false
   return LISTING_KW.test(c) && /[-–—|·]/.test(c)
+}
+
+// ── Aire para leer ─────────────────────────────────────────────────────────
+// Un párrafo de 700+ caracteres es un muro, sobre todo en el celular. Se corta
+// en oraciones (respetando "Av.", "Sup.", etc.) y se reagrupa en párrafos de
+// 2-3 oraciones. El texto no cambia: solo dónde va el aire.
+const PARRAFO_LARGO = 560
+const CORTE_OBJETIVO = 280
+
+function dividirEnOraciones(texto: string): string[] {
+  const oraciones: string[] = []
+  const re = /[.!?…]["”»)]?\s+(?=[¿¡"“«(]?[A-ZÁÉÍÓÚÑ0-9])/g
+  let desde = 0
+  let m: RegExpExecArray | null
+  while ((m = re.exec(texto))) {
+    const fin = m.index + m[0].trimEnd().length
+    if (terminaEnAbreviatura(texto.slice(desde, m.index))) continue
+    oraciones.push(texto.slice(desde, fin).trim())
+    desde = m.index + m[0].length
+  }
+  oraciones.push(texto.slice(desde).trim())
+  return oraciones.filter(Boolean)
+}
+
+function partirParrafoLargo(texto: string): string[] {
+  if (texto.length <= PARRAFO_LARGO) return [texto]
+  const partes: string[] = []
+  let actual = ''
+  for (const o of dividirEnOraciones(texto)) {
+    if (actual.length >= CORTE_OBJETIVO) {
+      partes.push(actual)
+      actual = o
+    } else {
+      actual = actual ? `${actual} ${o}` : o
+    }
+  }
+  if (actual) {
+    // Una cola de media línea no merece párrafo propio.
+    if (partes.length > 0 && actual.length < 120) partes[partes.length - 1] += ` ${actual}`
+    else partes.push(actual)
+  }
+  return partes
+}
+
+const LINEA_CORTA = 90
+function esLineaCorta(b: FormattedBlock | undefined): boolean {
+  return !!b && b.type === 'paragraph' && b.content.length + (b.subtitle?.length ?? 0) < LINEA_CORTA
+}
+
+function darAire(blocks: FormattedBlock[]): FormattedBlock[] {
+  const out: FormattedBlock[] = []
+  for (const b of blocks) {
+    if (b.type !== 'paragraph') {
+      out.push(b)
+      continue
+    }
+    partirParrafoLargo(b.content).forEach((content, i) =>
+      out.push(i === 0 && b.subtitle ? { type: 'paragraph', content, subtitle: b.subtitle } : { type: 'paragraph', content }),
+    )
+  }
+  // Líneas cortas seguidas ("Av. San Martín 1248." / "Contrato x 1 año.") van
+  // juntas como un bloque, no como renglones sueltos con aire de párrafo.
+  return out.map((b, i) =>
+    b.type === 'paragraph' && esLineaCorta(b) && esLineaCorta(out[i + 1]) ? { ...b, compact: true } : b,
+  )
+}
+
+// Titular SEO al inicio en forma de título ("COUNTRY PALOS VERDES – CASA DE 5
+// DORMITORIOS CON PILETA"): repite el H1 de la ficha. La ficha lo saca; la
+// verficha ya tiene su propio `omitirTituloInicial`.
+export function quitarTitularInicial(blocks: FormattedBlock[]): FormattedBlock[] {
+  // Un "Descripción" suelto arriba repite el encabezado de la sección.
+  if (blocks.length > 1 && blocks[0].type !== 'list' && blocks[0].type !== 'dataGroup' &&
+      /^descripcion( de la propiedad)?:?$/.test(norm(blocks[0].content))) {
+    blocks = blocks.slice(1)
+  }
+  const b = blocks[0]
+  if (blocks.length < 2 || b.type !== 'title') return blocks
+  // También el titular en MAYÚSCULAS sin guiones ("LOTE EN VENTA BARRIO LA
+  // CASONA ROLDÁN"); un eslogan sin datos del aviso ("OPORTUNIDAD ÚNICA EN
+  // FUNES LAKES") se queda.
+  const enMayusculas = b.content === b.content.toLocaleUpperCase('es-AR')
+  if (isSeoHeadline(b.content) || (enMayusculas && b.content.length <= 95 && LISTING_KW.test(b.content))) {
+    return blocks.slice(1)
+  }
+  return blocks
 }
 
 // ── Entry point ────────────────────────────────────────────────────────────
@@ -338,5 +457,5 @@ export function formatDescription(raw: string | null | undefined): FormattedBloc
     blocks = blocks.slice(1)
   }
 
-  return blocks
+  return darAire(blocks)
 }
