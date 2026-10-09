@@ -22,7 +22,12 @@ with sync_playwright() as p:
  page.get_by_role('button',name='Cerrar video').click()
  page.get_by_role('button',name='Reproducir: Una casa donde cada detalle está pensado',exact=True).click()
  expect(page.locator('dialog iframe')).to_have_attribute('src',re.compile('tiktok.com/player/v1/7605940004627467532'))
- page.wait_for_timeout(4000)
+ tt=page.frame_locator('dialog iframe').locator('video')
+ expect(tt).to_be_visible(timeout=15000)
+ for _ in range(20):
+  if tt.evaluate('(v)=>v.currentTime>0 && !v.error'): break
+  page.wait_for_timeout(500)
+ assert tt.evaluate('(v)=>v.currentTime>0 && !v.error'), 'TikTok playback did not start'
  print('TikTok iframe:',[(f.url,f.locator('body').inner_text()[:450]) for f in page.frames[1:] if 'tiktok' in f.url])
  page.screenshot(path=str(out/'tiktok-player.png'))
  page.get_by_role('button',name='Cerrar video').click()
@@ -64,6 +69,10 @@ with sync_playwright() as p:
   page.evaluate('window.scrollTo(0,0)')
   page.wait_for_timeout(700)
   page.screenshot(path=str(out/f'width-{width}.png'),full_page=True)
- print('PASS: filters, search, pagination, back, details, canonical, blog, lazy players, dialog close/focus, 390/768/1920 layouts. Errors:',errors)
- assert not errors
+ # TikTok may reject one codec and recover with another. Playback is independently asserted above.
+ external=[e for e in errors if e['message']=='Failed to load because no supported source was found.' and 'ttwstatic.com/obj/tiktok_web_login_static/tiktok_4d_playback/' in e['stack']]
+ application=[e for e in errors if e not in external]
+ print('Third-party TikTok codec recovery notices:',external)
+ assert not application, application
+ print('PASS: branding, featured talks, TikTok/native playback, filters, search, pagination, back, details, canonical, blog, lazy players, dialog close/focus, 390/768/1920 layouts.')
  b.close()
