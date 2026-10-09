@@ -6,7 +6,6 @@ import type { CondicionesTemporario } from '@/lib/temporarios'
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
-const GREEN = '#1A5C38'
 const CARD = 'bg-white rounded-2xl p-6 shadow-sm border border-gray-100'
 
 function Grupo({ icon, titulo, filas }: { icon: React.ReactNode; titulo: string; filas: [string, string | null][] }) {

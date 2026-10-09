@@ -59,7 +59,7 @@ export default function MapaBarriosClient() {
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
       >
-        <TileLayer
+        <TileLayer className="si-street-tiles"
           url={LIGHT_TILES.url}
           attribution={LIGHT_TILES.attribution}
         />
@@ -98,7 +98,7 @@ export default function MapaBarriosClient() {
                     margin: "0 0 6px",
                     fontSize: 16,
                     fontWeight: 700,
-                    color: "#0a0a0a",
+                    color: "var(--theme-ink, #0a0a0a)",
                   }}
                 >
                   {b.nombre}
@@ -107,7 +107,7 @@ export default function MapaBarriosClient() {
                   style={{
                     margin: "0 0 8px",
                     fontSize: 12,
-                    color: "#444",
+                    color: "var(--theme-muted, #444)",
                     lineHeight: 1.45,
                     fontFamily:
                       "var(--font-poppins), 'Poppins', system-ui, sans-serif",
@@ -120,7 +120,7 @@ export default function MapaBarriosClient() {
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: "#1A5C38",
+                    color: "var(--theme-accent, #1A5C38)",
                     textDecoration: "none",
                   }}
                 >

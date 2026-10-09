@@ -513,14 +513,14 @@ function LocateButton({
             background: nearbyActive ? '#1A5C38' : 'var(--theme-surface, white)',
             borderRadius: '50%',
             boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            border: nearbyActive ? '1px solid #1A5C38' : '1px solid #e5e7eb',
+            border: nearbyActive ? '1px solid #1A5C38' : '1px solid var(--theme-border, #e5e7eb)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
             transition: 'background 0.15s, border 0.15s',
           }}
         >
           {loading ? (
-            <div style={{ width: 18, height: 18, border: '2px solid #e5e7eb', borderTopColor: nearbyActive ? '#fff' : '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+            <div style={{ width: 18, height: 18, border: '2px solid var(--theme-border, #e5e7eb)', borderTopColor: nearbyActive ? '#fff' : '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
           ) : (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={nearbyActive ? '#fff' : '#3B82F6'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="3 11 22 2 13 21 11 13 3 11" />
@@ -786,7 +786,7 @@ function SatelliteToggle({ satellite, setSatellite, manualRef }: {
           background: satellite ? '#1A5C38' : 'var(--theme-surface, white)',
           borderRadius: '50%',
           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-          border: satellite ? '1px solid #1A5C38' : '1px solid #e5e7eb',
+          border: satellite ? '1px solid #1A5C38' : '1px solid var(--theme-border, #e5e7eb)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer',
           transition: 'background 0.15s, border 0.15s',

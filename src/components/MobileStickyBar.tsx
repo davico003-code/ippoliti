@@ -92,7 +92,7 @@ export default function MobileStickyBar({
           border: '1px solid rgba(26,92,56,.12)',
           boxShadow: '0 12px 34px rgba(9,30,20,.16)',
           borderRadius: 20,
-          background: 'rgba(255,255,255,.96)',
+          background: 'var(--theme-overlay, rgba(255,255,255,.96))',
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
           padding: '7px',
@@ -159,7 +159,7 @@ export default function MobileStickyBar({
               width: 48, height: 48,
               borderRadius: 14,
               background: 'var(--theme-surface, #fff)',
-              border: '1.5px solid #cfd7dc',
+              border: '1.5px solid var(--theme-border, #cfd7dc)',
               cursor: 'pointer',
             }}
           >

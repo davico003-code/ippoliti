@@ -273,7 +273,7 @@ function FilterSelect<T extends string>({
         aria-label={options[0].label}
         className="appearance-none h-10 rounded-xl pl-3.5 pr-8 cursor-pointer flex items-center whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all relative"
         style={{
-          border: active || open ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
+          border: active || open ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
           background: 'var(--theme-surface, #fff)',
           color: active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
           fontFamily: "'Raleway', system-ui, sans-serif",
@@ -459,7 +459,7 @@ function PriceFilterDropdown({
         aria-expanded={open}
         className="appearance-none h-10 rounded-xl pl-3.5 pr-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all flex items-center gap-1 flex-shrink-0"
         style={{
-          border: open || active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
+          border: open || active ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
           background: 'var(--theme-surface, #fff)',
           color: open || active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
           fontFamily: "'Raleway', system-ui, sans-serif",
@@ -519,10 +519,11 @@ function PriceFilterDropdown({
               onKeyDown={e => { if (e.key === 'Enter') apply() }}
               className="flex-1 min-w-0 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
-                border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
+                border: invalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #d1d5db)',
                 fontFamily: "'Raleway', system-ui, sans-serif",
                 fontSize: 14,
                 boxSizing: 'border-box',
+                background: 'var(--theme-surface-soft, #fff)',
               }}
             />
             <span className="shrink-0 mx-0.5 text-gray-400">—</span>
@@ -536,10 +537,11 @@ function PriceFilterDropdown({
               onKeyDown={e => { if (e.key === 'Enter') apply() }}
               className="flex-1 min-w-0 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
-                border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
+                border: invalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #d1d5db)',
                 fontFamily: "'Raleway', system-ui, sans-serif",
                 fontSize: 14,
                 boxSizing: 'border-box',
+                background: 'var(--theme-surface-soft, #fff)',
               }}
             />
           </div>
@@ -1378,7 +1380,7 @@ export default function PropiedadesView({
                 className="absolute left-0 right-0 z-50 bg-white overflow-y-auto"
                 style={{
                   top: '100%', marginTop: 4,
-                  border: '1px solid #e5e7eb', borderRadius: 12,
+                  border: '1px solid var(--theme-border, #e5e7eb)', borderRadius: 12,
                   boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
                   maxHeight: '50vh',
                 }}
@@ -1393,7 +1395,7 @@ export default function PropiedadesView({
                   style={{
                     padding: '14px 16px', fontSize: 15, color: 'var(--theme-accent, #1A5C38)',
                     background: 'transparent', border: 'none',
-                    borderBottom: '1px solid #f3f4f6',
+                    borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                     cursor: locatingUser ? 'wait' : 'pointer',
                     minHeight: 48, fontFamily: "'Raleway', system-ui, sans-serif",
                     fontWeight: 600,
@@ -1409,7 +1411,7 @@ export default function PropiedadesView({
                   </span>
                 </button>
                 {locationError && (
-                  <div style={{ padding: '10px 16px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid #f3f4f6' }}>
+                  <div style={{ padding: '10px 16px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid var(--theme-border, #f3f4f6)' }}>
                     {locationError}
                   </div>
                 )}
@@ -1433,7 +1435,7 @@ export default function PropiedadesView({
                         style={{
                           padding: '12px 16px', fontSize: 15, color: 'var(--theme-ink, #111)',
                           background: 'transparent', border: 'none',
-                          borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
+                          borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
                           minHeight: 44, fontFamily: "'Raleway', system-ui, sans-serif",
                         }}
                       >
@@ -1460,7 +1462,7 @@ export default function PropiedadesView({
                       color: 'var(--theme-ink, #111)',
                       background: 'transparent',
                       border: 'none',
-                      borderBottom: '1px solid #f3f4f6',
+                      borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                       cursor: 'pointer',
                       minHeight: 48,
                       fontFamily: "'Raleway', system-ui, sans-serif",
@@ -1508,7 +1510,7 @@ export default function PropiedadesView({
             onClick={() => setMobileFiltersOpen(true)}
             className="relative flex items-center gap-1.5 h-11 rounded-xl px-4 flex-shrink-0 cursor-pointer"
             style={{
-              border: mobileActiveCount > 0 ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
+              border: mobileActiveCount > 0 ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
               background: 'var(--theme-surface, #fff)',
               fontFamily: "'Raleway', system-ui, sans-serif",
               fontSize: 14,
@@ -1566,7 +1568,7 @@ export default function PropiedadesView({
               className="absolute left-0 right-0 z-50 bg-white overflow-y-auto"
               style={{
                 top: '100%', marginTop: 4,
-                border: '1px solid #e5e7eb', borderRadius: 12,
+                border: '1px solid var(--theme-border, #e5e7eb)', borderRadius: 12,
                 boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
                 maxHeight: '60vh', minWidth: 280,
               }}
@@ -1581,7 +1583,7 @@ export default function PropiedadesView({
                 style={{
                   padding: '12px 14px', fontSize: 14, color: 'var(--theme-accent, #1A5C38)',
                   background: 'transparent', border: 'none',
-                  borderBottom: '1px solid #f3f4f6',
+                  borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                   cursor: locatingUser ? 'wait' : 'pointer',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   fontWeight: 600,
@@ -1599,7 +1601,7 @@ export default function PropiedadesView({
                 </span>
               </button>
               {locationError && (
-                <div style={{ padding: '10px 14px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid #f3f4f6' }}>
+                <div style={{ padding: '10px 14px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid var(--theme-border, #f3f4f6)' }}>
                   {locationError}
                 </div>
               )}
@@ -1623,7 +1625,7 @@ export default function PropiedadesView({
                       style={{
                         padding: '10px 14px', fontSize: 14, color: 'var(--theme-ink, #111)',
                         background: 'transparent', border: 'none',
-                        borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
+                        borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
                         fontFamily: "'Raleway', system-ui, sans-serif",
                       }}
                       onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f9fafb)' }}
@@ -1649,7 +1651,7 @@ export default function PropiedadesView({
                   style={{
                     padding: '10px 14px', fontSize: 14, color: 'var(--theme-ink, #111)',
                     background: 'transparent', border: 'none',
-                    borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
+                    borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
                     fontFamily: "'Raleway', system-ui, sans-serif",
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f9fafb)' }}
@@ -2103,7 +2105,7 @@ export default function PropiedadesView({
                     color: sortBy === opt.value ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: '1px solid #f3f4f6',
+                    borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                     minHeight: 48,
                     cursor: 'pointer',
                   }}
@@ -2128,7 +2130,7 @@ export default function PropiedadesView({
           <Link
             href={`/propiedades/${generatePropertySlug(selectedProperty)}${selectedOperationType === 'Rent' ? '?operacion=alquiler' : selectedOperationType === 'Temporary rent' ? '?operacion=temporario' : ''}`}
             className="relative block bg-white rounded-2xl shadow-2xl overflow-hidden"
-            style={{ border: '1px solid #e5e7eb' }}
+            style={{ border: '1px solid var(--theme-border, #e5e7eb)' }}
           >
             {/* Photo — 16:9 (más bajo y compacto) */}
             <div className="relative w-full aspect-[16/9] bg-gray-100">

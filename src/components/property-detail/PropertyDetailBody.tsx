@@ -71,7 +71,6 @@ const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false, load
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
-const GREEN = 'var(--brand)'
 const CARD = 'bg-white rounded-2xl p-6 shadow-sm border border-gray-100'
 
 function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | null {

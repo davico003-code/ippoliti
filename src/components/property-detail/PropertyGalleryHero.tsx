@@ -16,7 +16,6 @@ import type { TokkoProperty } from '@/lib/tokko'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
 import { getAllPhotos, getOperationType, operationBadgeColor, preciosPorOperacion, tituloVisible, translatePropertyType } from '@/lib/tokko'
 
-const GREEN = '#1A5C38'
 
 export default function PropertyGalleryHero({ property: propertyOriginal }: { property: TokkoProperty }) {
   // Mismo orden de carteles que el cuerpo de la ficha (la operación buscada primero).

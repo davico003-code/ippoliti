@@ -186,7 +186,7 @@ export default function Navbar() {
             {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
-          {/* Centered logo (absolute) — swap dinámico:
+          {/* Logo between the link groups — swap dinámico:
               transparent (sobre el hero) → logo blanco webp con fallback .png vía <picture>;
               opaco (scrolleado) → logo verde horizontal. */}
           <Link
@@ -251,7 +251,7 @@ export default function Navbar() {
           </button>
 
           {/* Center — logo */}
-          <Link href="/" className="absolute left-1/2 top-1/2" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
+          <Link href="/" className="absolute left-1/2 top-1/2 max-[359px]:-ml-3" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
             <Image
               src="/LOGO_HORIZONTAL.png"
               alt="SI INMOBILIARIA"

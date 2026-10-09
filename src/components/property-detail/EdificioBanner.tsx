@@ -7,7 +7,6 @@
 import Link from 'next/link'
 import { Building2, ArrowRight } from 'lucide-react'
 
-const GREEN = '#1A5C38'
 const R = "'Raleway', system-ui, sans-serif"
 
 interface Props {

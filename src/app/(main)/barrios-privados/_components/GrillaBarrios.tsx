@@ -80,12 +80,12 @@ export default function GrillaBarrios() {
             fontFamily: "var(--font-raleway), 'Raleway', system-ui, sans-serif",
             fontWeight: 700,
             fontSize: 22,
-            color: "#0a0a0a",
+            color: "var(--theme-ink, #0a0a0a)",
             margin: 0,
           }}
         >
           Mostrando{" "}
-          <span style={{ color: "#1A5C38" }}>{filtered.length}</span> de{" "}
+          <span style={{ color: "var(--theme-accent, #1A5C38)" }}>{filtered.length}</span> de{" "}
           {allBarrios.length} barrios
         </h2>
 
@@ -97,7 +97,7 @@ export default function GrillaBarrios() {
             gap: 6,
             padding: "9px 38px 9px 16px",
             borderRadius: 999,
-            background: "#fff",
+            background: "var(--theme-surface, #fff)",
             border: "1px solid #e8e2d5",
             boxShadow: "0 1px 3px rgba(10,10,10,.05)",
             fontSize: 13,
@@ -106,13 +106,13 @@ export default function GrillaBarrios() {
             fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
           }}
         >
-          <span style={{ color: "#777" }}>Ordenar:</span>
-          <span style={{ color: "#0a0a0a", fontWeight: 600 }}>
+          <span style={{ color: "var(--theme-subtle, #777)" }}>Ordenar:</span>
+          <span style={{ color: "var(--theme-ink, #0a0a0a)", fontWeight: 600 }}>
             {ORDEN_OPCIONES.find((o) => o.id === orden)?.label}
           </span>
           <ChevronDown
             size={14}
-            style={{ position: "absolute", right: 14, color: "#777" }}
+            style={{ position: "absolute", right: 14, color: "var(--theme-subtle, #777)" }}
             aria-hidden
           />
           <select
@@ -151,7 +151,7 @@ export default function GrillaBarrios() {
               style={{
                 fontFamily: "var(--font-raleway), 'Raleway', system-ui, sans-serif",
                 fontSize: 22,
-                color: "#0a0a0a",
+                color: "var(--theme-ink, #0a0a0a)",
                 margin: "0 0 10px",
                 fontWeight: 700,
               }}
@@ -161,7 +161,7 @@ export default function GrillaBarrios() {
             <p
               style={{
                 fontSize: 14,
-                color: "#777",
+                color: "var(--theme-subtle, #777)",
                 margin: 0,
                 fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
               }}

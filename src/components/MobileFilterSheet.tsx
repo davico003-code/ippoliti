@@ -66,7 +66,7 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
     <button
       onClick={onClick}
       style={{
-        border: active ? '1.5px solid #1A5C38' : '1.5px solid #e5e7eb',
+        border: active ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #e5e7eb)',
         background: active ? 'var(--theme-tint, rgba(26,92,56,0.08))' : 'var(--theme-surface, #fff)',
         color: active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
         fontFamily: R,
@@ -224,10 +224,12 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
                 onBlur={commitPrice}
                 style={{
                   flex: 1,
+                  minWidth: 0,
+                  background: 'var(--theme-surface-soft, #fff)',
                   height: 48,
                   padding: '0 14px',
                   borderRadius: 12,
-                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid #e5e7eb',
+                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #e5e7eb)',
                   fontFamily: R,
                   fontSize: 16,
                   outline: 'none',
@@ -244,10 +246,12 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
                 onBlur={commitPrice}
                 style={{
                   flex: 1,
+                  minWidth: 0,
+                  background: 'var(--theme-surface-soft, #fff)',
                   height: 48,
                   padding: '0 14px',
                   borderRadius: 12,
-                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid #e5e7eb',
+                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #e5e7eb)',
                   fontFamily: R,
                   fontSize: 16,
                   outline: 'none',

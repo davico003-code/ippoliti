@@ -103,7 +103,7 @@ export default function ShareMenu({ propertyId, slug, title, placaHref, variant 
     padding: '11px 14px',
     background: 'var(--theme-surface, #fff)',
     border: 'none',
-    borderTop: '1px solid #F0F0F0',
+    borderTop: '1px solid var(--theme-border, #F0F0F0)',
     color: 'var(--theme-ink, #1f2937)',
     fontSize: 14,
     fontFamily: R,
