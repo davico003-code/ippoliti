@@ -26,10 +26,10 @@ interface Props {
 
 const COLOR_MAIN = '#1A5C38'
 const COLOR_NEUTRAL = '#2563EB'
-const TRACK_BG = '#E5E7EB'
-const TEXT_MUTED = '#6B7280'
-const TIME_COLOR = '#4B5563'
-const SPEED_BG = '#F3F4F6'
+const TRACK_BG = 'var(--theme-surface-soft, #E5E7EB)'
+const TEXT_MUTED = 'var(--theme-muted, #6B7280)'
+const TIME_COLOR = 'var(--theme-muted, #4B5563)'
+const SPEED_BG = 'var(--theme-surface-soft, #F3F4F6)'
 
 const SPEED_OPTIONS = [1, 1.25, 1.5, 2] as const
 type Speed = (typeof SPEED_OPTIONS)[number]
@@ -407,8 +407,8 @@ export default function AudioPlayer({
       style={{
         opacity: visible ? 1 : 0,
         transition: 'opacity 400ms ease',
-        background: '#fff',
-        border: '1px solid #E5E7EB',
+        background: 'var(--theme-surface, #fff)',
+        border: '1px solid var(--theme-border, #E5E7EB)',
         borderRadius: 12,
         padding: 16,
         boxShadow: '0 1px 2px rgba(0,0,0,0.04)',

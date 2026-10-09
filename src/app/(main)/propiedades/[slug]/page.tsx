@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { normalizarTitulo } from '@/lib/titulo';
 import { ArrowLeft } from 'lucide-react';
 
+import ThemeToggle from '@/components/ThemeToggle';
 import AudioSummary from '@/components/AudioSummary';
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyViewTracker from '@/components/PropertyViewTracker';
@@ -338,11 +339,11 @@ export default async function PropertyPage({ params }: Props) {
               alt="SI INMOBILIARIA"
               width={120}
               height={24}
-              className="h-6 w-[120px] object-contain"
+              className="h-6 w-[120px] object-contain si-theme-logo"
               priority
             />
           </Link>
-          <div />
+          <div className="flex justify-end"><ThemeToggle /></div>
         </div>
 
         {/* Galería Zillow adaptada a mobile (grande + 2x2 thumbs) */}

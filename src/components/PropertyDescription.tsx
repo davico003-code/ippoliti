@@ -164,7 +164,7 @@ export default function PropertyDescription({ text }: { text: string | null | un
         {isLong && !expanded && (
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 h-16"
-            style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 85%)' }}
+            style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--card-surface) 85%)' }}
           />
         )}
       </div>
