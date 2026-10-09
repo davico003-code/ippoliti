@@ -152,7 +152,7 @@ export default function PropertyShareButton({
         width: size,
         height: size,
         borderRadius: '50%',
-        background: 'rgba(255,255,255,0.9)',
+        background: 'var(--theme-overlay, rgba(255,255,255,0.9))',
         border: '1px solid #f3f4f6',
         boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
         display: 'flex',
@@ -164,7 +164,7 @@ export default function PropertyShareButton({
         width: size,
         height: size,
         borderRadius: '50%',
-        background: 'rgba(255,255,255,0.95)',
+        background: 'var(--theme-overlay, rgba(255,255,255,0.95))',
         border: 'none',
         boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
         display: 'flex',
@@ -188,7 +188,7 @@ export default function PropertyShareButton({
         aria-expanded={open}
         style={buttonStyle}
       >
-        <Share2 size={Math.round(size * 0.5)} style={{ color: buttonVariant === 'card' ? '#6b7280' : '#1f2937' }} />
+        <Share2 size={Math.round(size * 0.5)} style={{ color: buttonVariant === 'card' ? 'var(--theme-muted, #6b7280)' : 'var(--theme-ink, #1f2937)' }} />
       </button>
 
       {open && menuPos && createPortal(
@@ -202,7 +202,7 @@ export default function PropertyShareButton({
             bottom: menuPos.bottom,
             left: menuPos.left,
             width: MENU_W,
-            background: '#fff',
+            background: 'var(--theme-surface, #fff)',
             border: '1px solid #ECECEE',
             borderRadius: 12,
             boxShadow: '0 10px 30px rgba(0,0,0,0.13)',
@@ -224,7 +224,7 @@ export default function PropertyShareButton({
               cursor: 'pointer',
               fontSize: 13,
               fontWeight: 500,
-              color: '#1a1a1a',
+              color: 'var(--theme-ink, #1a1a1a)',
               fontFamily: R,
             }}
           >
@@ -246,17 +246,17 @@ export default function PropertyShareButton({
               cursor: 'pointer',
               fontSize: 13,
               fontWeight: 500,
-              color: '#1a1a1a',
+              color: 'var(--theme-ink, #1a1a1a)',
               fontFamily: R,
             }}
           >
-            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 26, height: 26, borderRadius: '50%', background: '#eef1f2' }}>
+            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--theme-surface-soft, #eef1f2)' }}>
               {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Link2 className="w-3.5 h-3.5 text-gray-600" />}
             </div>
             {copied ? 'Copiado!' : 'Copiar link'}
           </button>
 
-          <div style={{ height: 1, background: '#f0f3f5', margin: '3px 11px' }} />
+          <div style={{ height: 1, background: 'var(--theme-border, #f0f3f5)', margin: '3px 11px' }} />
 
           <button
             type="button"
@@ -266,18 +266,18 @@ export default function PropertyShareButton({
             className="w-full flex items-center gap-2.5 text-left"
             style={{
               padding: '9px 13px',
-              background: '#fafaf8',
+              background: 'var(--theme-surface-soft, #fafaf8)',
               border: 'none',
               cursor: generandoFicha ? 'wait' : 'pointer',
               fontSize: 13,
               fontWeight: 600,
-              color: '#1A5C38',
+              color: 'var(--theme-accent, #1A5C38)',
               fontFamily: R,
               opacity: generandoFicha ? 0.7 : 1,
             }}
           >
-            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 26, height: 26, borderRadius: '50%', background: '#e7f2eb' }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: '#1A5C38' }} />
+            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--theme-tint, #e7f2eb)' }}>
+              <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
             </div>
             {generandoFicha ? 'Generando…' : 'Link para colega'}
           </button>

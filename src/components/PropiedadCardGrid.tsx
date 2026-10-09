@@ -198,8 +198,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           ))}
           {typeName && (
             <span style={{
-              background: 'rgba(255,255,255,0.94)',
-              color: '#0a0a0a',
+              background: 'var(--theme-overlay, rgba(255,255,255,0.94))',
+              color: 'var(--theme-ink, #0a0a0a)',
               fontFamily: RALEWAY,
               fontWeight: 600,
               fontSize: 12,
@@ -274,7 +274,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             lineHeight: 1.3,
           }}>
             {operacion}{' '}
-            <span style={{ fontFamily: POPPINS, fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#0a0a0a' }}>{precio}</span>
+            <span style={{ fontFamily: POPPINS, fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--theme-ink, #0a0a0a)' }}>{precio}</span>
           </p>
         ))}
 
@@ -289,7 +289,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           }}>
             {specs.map((s, i) => (
               <span key={i}>
-                <span style={{ fontFamily: POPPINS, fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: '#0a0a0a' }}>{s.num}</span>
+                <span style={{ fontFamily: POPPINS, fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{s.num}</span>
                 {s.label}
                 {i < specs.length - 1 && <span style={{ margin: '0 6px', color: '#d1d5db' }}>&middot;</span>}
               </span>
