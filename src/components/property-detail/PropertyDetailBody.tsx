@@ -71,7 +71,7 @@ const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false, load
 
 const R = "'Raleway', system-ui, sans-serif"
 const P = "'Poppins', system-ui, sans-serif"
-const GREEN = '#1A5C38'
+const GREEN = 'var(--brand)'
 const CARD = 'bg-white rounded-2xl p-6 shadow-sm border border-gray-100'
 
 function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | null {
@@ -83,8 +83,8 @@ function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string
   return (
     <div className="flex flex-col items-center text-center gap-1.5 py-3 px-2 bg-[#f9fafb] rounded-xl">
       <div style={{ color: GREEN }}>{icon}</div>
-      <span style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: '#111' }}>{value}</span>
-      <span style={{ fontSize: 11, fontWeight: 500, color: '#9ca3af' }}>{label}</span>
+      <span style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}>{value}</span>
+      <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--tinta-mute)' }}>{label}</span>
     </div>
   )
 }
@@ -220,7 +220,7 @@ export default function PropertyDetailBody({
     <div className="space-y-6">
       {/* OVERVIEW — title + location + price + badges */}
       <section id="overview" className={`${CARD} scroll-mt-40`}>
-        <h1 style={{ fontFamily: R, fontWeight: 800, fontSize: 28, color: '#111', lineHeight: 1.2, marginBottom: 8 }}>
+        <h1 style={{ fontFamily: R, fontWeight: 800, fontSize: 28, color: 'var(--foreground)', lineHeight: 1.2, marginBottom: 8 }}>
           {tituloVisible(property) || address}
         </h1>
         <div className="flex gap-2 mb-3">
@@ -237,7 +237,7 @@ export default function PropertyDetailBody({
         </div>
         <div className="flex items-center gap-1.5 mb-5">
           <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: GREEN }} />
-          <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
+          <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
             {property.real_address || address}{location ? `, ${location}` : ''}
           </span>
         </div>
@@ -248,7 +248,7 @@ export default function PropertyDetailBody({
               return (
                 <div key={operacion}>
                   <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">{operacion}</span>
-                  <span style={{ fontFamily: P, fontWeight: 800, fontSize: 28, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
+                  <span style={{ fontFamily: P, fontWeight: 800, fontSize: 28, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
                     {precio}
                   </span>
                   {mes && (
@@ -276,7 +276,7 @@ export default function PropertyDetailBody({
               </div>
             </div>
           ) : tienePrecio ? (
-            <span style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
+            <span style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
               {price}
             </span>
           ) : (
@@ -349,7 +349,7 @@ export default function PropertyDetailBody({
                 <div className="flex-1 min-w-0">
                   <span
                     className="block"
-                    style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: '#111' }}
+                    style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--foreground)' }}
                   >
                     {name}
                   </span>
@@ -389,7 +389,7 @@ export default function PropertyDetailBody({
       {/* CARACTERÍSTICAS */}
       {specs.length > 0 && (
         <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Características</h2>
+          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Características</h2>
           <div className="grid grid-cols-3 lg:grid-cols-5 gap-3">
             {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
           </div>
@@ -400,7 +400,7 @@ export default function PropertyDetailBody({
       {property.videos && property.videos.length > 0 && (
         <SectionBoundary name="video">
           <section id="video" className={`${CARD} scroll-mt-40`}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Recorrido en video</h2>
+            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Recorrido en video</h2>
             <PropertyVideo videos={property.videos} fallbackPoster={property.photos?.[0]?.image ?? null} />
           </section>
         </SectionBoundary>
@@ -410,7 +410,7 @@ export default function PropertyDetailBody({
       {description && (
         <SectionBoundary name="descripcion">
           <section id="descripcion" className={`${CARD} scroll-mt-40`}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Descripción</h2>
+            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Descripción</h2>
             <PropertyDescription text={description} />
           </section>
         </SectionBoundary>
@@ -419,7 +419,7 @@ export default function PropertyDetailBody({
       {/* SUPERFICIES */}
       {hasSurfaces && (
         <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Superficies</h2>
+          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Superficies</h2>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
             {parseFloat(property.surface) > 0 && <Row label="Terreno" value={`${(parseFloat(property.surface)).toLocaleString('es-AR')} m²`} />}
             {roofedArea != null && roofedArea > 0 && <Row label="Cubierta" value={`${roofedArea.toLocaleString('es-AR')} m²`} />}
@@ -432,7 +432,7 @@ export default function PropertyDetailBody({
       {/* DETALLES */}
       {hasDetails && (
         <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>Detalles</h2>
+          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Detalles</h2>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
             {property.age != null && property.age >= 0 && <Row label="Antigüedad" value={property.age === 0 ? 'A estrenar' : `${property.age} años`} />}
             {translateCondition(property.property_condition) && <Row label="Estado" value={translateCondition(property.property_condition)!} numeric={false} />}
@@ -453,10 +453,10 @@ export default function PropertyDetailBody({
           <section className={CARD}>
             {grupos.map((g, i) => (
               <div key={g.cat} className={i > 0 ? 'mt-5' : ''}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 15, color: '#111', marginBottom: 10 }}>{g.label}</h2>
+                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 15, color: 'var(--foreground)', marginBottom: 10 }}>{g.label}</h2>
                 <div className="flex flex-wrap gap-2">
                   {g.items.map(item => (
-                    <span key={item} className="px-4 py-1.5 rounded-full text-sm border border-gray-200" style={{ color: '#374151' }}>
+                    <span key={item} className="px-4 py-1.5 rounded-full text-sm border border-gray-200" style={{ color: 'var(--tinta-soft)' }}>
                       {item}
                     </span>
                   ))}
@@ -471,7 +471,7 @@ export default function PropertyDetailBody({
       {blueprints.length > 0 && (
         <SectionBoundary name="planos">
           <section id="planos" className={`${CARD} scroll-mt-40`}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Planos</h2>
+            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Planos</h2>
             <BlueprintGallery blueprints={blueprints} />
           </section>
         </SectionBoundary>
@@ -487,7 +487,7 @@ export default function PropertyDetailBody({
       {/* UBICACIÓN */}
       <SectionBoundary name="ubicacion">
         <section id="ubicacion" className={`${CARD} scroll-mt-40`}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 12 }}>Ubicación</h2>
+          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Ubicación</h2>
           {/* Sin aspect-ratio forzado: el mapa mide 280/380px fijos y el 4:3
               dejaba ~200px en blanco debajo en desktop. */}
           <div className="rounded-[14px] overflow-hidden mb-3">
@@ -500,7 +500,7 @@ export default function PropertyDetailBody({
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <div className="flex items-center gap-2 min-w-0">
               <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: GREEN }} />
-              <span style={{ fontFamily: P, fontSize: 13, color: '#6b7280' }}>
+              <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
                 {direccionCompleta}
               </span>
             </div>
@@ -524,7 +524,7 @@ export default function PropertyDetailBody({
       {hasCoords && (
         <SectionBoundary name="lugares-cercanos">
           <section className={CARD}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 4 }}>Lugares cercanos</h2>
+            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 4 }}>Lugares cercanos</h2>
             <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
             <NearbyPlaces lat={currentLat!} lng={currentLng!} />
           </section>

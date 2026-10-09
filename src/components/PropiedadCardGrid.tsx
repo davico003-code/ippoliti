@@ -161,7 +161,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       onClick={onClick}
       className="group cursor-pointer block"
       style={{
-        background: '#fff',
+        background: 'var(--card-surface)',
         textDecoration: 'none',
         color: 'inherit',
       }}
@@ -243,7 +243,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             fontFamily: POPPINS,
             fontWeight: 800,
             fontSize: isMobile ? 20 : 22,
-            color: '#0a0a0a',
+            color: 'var(--foreground)',
             margin: 0,
             lineHeight: 1.2,
             fontVariantNumeric: 'tabular-nums',
@@ -269,7 +269,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           <p key={operacion} style={{
             fontFamily: RALEWAY,
             fontSize: 13,
-            color: '#4b5563',
+            color: 'var(--tinta-soft)',
             margin: '0 0 3px',
             lineHeight: 1.3,
           }}>
@@ -282,7 +282,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           <p style={{
             fontFamily: RALEWAY,
             fontSize: 13,
-            color: '#4b5563',
+            color: 'var(--tinta-soft)',
             margin: '0 0 3px',
             lineHeight: 1.3,
             fontWeight: 400,
@@ -300,7 +300,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         <p style={{
           fontFamily: RALEWAY,
           fontSize: 12,
-          color: '#6b7280',
+          color: 'var(--tinta-mute)',
           margin: 0,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -314,7 +314,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             fontFamily: RALEWAY,
             fontSize: 12,
             fontWeight: 600,
-            color: '#1A5C38',
+            color: 'var(--brand)',
             margin: '2px 0 0',
             fontVariantNumeric: 'tabular-nums',
           }}>

@@ -4,6 +4,7 @@
 
 :root {
   --background: #ffffff;
+  --card-surface: #ffffff;
   --foreground: #1a1a1a;
   --brand: #1A5C38;
   --brand-light: #E8F2ED;
@@ -109,6 +110,7 @@ body {
 /* El visitante elige el tema; la preferencia del sistema se usa solo la primera vez. */
 html[data-theme='dark'] {
   --background: #111916;
+  --card-surface: #17231c;
   --foreground: #edf2ee;
   --brand: #79c99b;
   --brand-light: #1d3327;
@@ -163,6 +165,12 @@ html[data-theme='dark'] .si-tasacion [class~='text-[#17613C]'] { color: #79c99b;
 html[data-theme='dark'] .si-tasacion :is([class~='bg-[#EAF3ED]'], [class~='bg-[#F2F4F0]'], [class~='bg-white/95']) { background-color: #223329; }
 html[data-theme='dark'] .si-tasacion [class~='bg-[#FFF7E8]'] { background-color: #3c321d; }
 html[data-theme='dark'] .si-tasacion :is([class~='border-[#E1E6E1]'], [class~='border-[#B9C6BD]']) { border-color: var(--line); }
+html[data-theme='dark'] .si-property-panel { background: var(--background); color: var(--foreground); }
+html[data-theme='dark'] .si-property-panel .bg-white:not([class*='bg-white/']) { background-color: var(--card-surface); }
+html[data-theme='dark'] .si-property-panel :is(.text-gray-950, .text-gray-900, .text-gray-800, .text-gray-700, .text-black) { color: var(--foreground); }
+html[data-theme='dark'] .si-property-panel :is(.text-gray-600, .text-gray-500, .text-gray-400) { color: var(--tinta-soft); }
+html[data-theme='dark'] .si-property-panel :is(.bg-gray-50, .bg-gray-100, [class~='bg-[#f9fafb]']) { background-color: #223329; }
+html[data-theme='dark'] .si-property-panel :is(.border-gray-100, .border-gray-200, .border-gray-300) { border-color: var(--line); }
 html[data-theme='dark'] :is(input, textarea, select) { color-scheme: dark; }
 
 @layer utilities {
