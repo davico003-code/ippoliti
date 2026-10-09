@@ -100,7 +100,7 @@ export default function PropertyDetailSidebar({
                     </div>
                     <span
                       className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
-                      style={{ background: '#e7f2eb', color: GREEN }}
+                      style={{ background: 'var(--theme-tint, #e7f2eb)', color: 'var(--theme-accent, #1A5C38)' }}
                     >
                       {rol.badge}
                     </span>

@@ -40,7 +40,7 @@ export default function ContactoSecundario({
           href={callHref}
           onClick={() => events.contactoPropiedad(propertyId, propertyTitle, 'llamada')}
           className={`${boton} hover:bg-gray-50`}
-          style={{ border: '1.5px solid #e5e7eb', color: '#111' }}
+          style={{ border: '1.5px solid #e5e7eb', color: 'var(--theme-ink, #111)' }}
         >
           <Phone className="h-4 w-4 shrink-0" aria-hidden />
           {telefono ? <span className="font-numeric">{telefono}</span> : 'Llamar'}
@@ -50,7 +50,7 @@ export default function ContactoSecundario({
           onClick={() => setAbierto((a) => !a)}
           aria-expanded={abierto}
           className={`${boton} ${abierto ? 'bg-[#1A5C38] text-white' : 'hover:bg-[#f2f8f4]'}`}
-          style={abierto ? { border: '1.5px solid #1A5C38' } : { border: '1.5px solid #1A5C38', color: '#1A5C38' }}
+          style={abierto ? { border: '1.5px solid #1A5C38' } : { border: '1.5px solid #1A5C38', color: 'var(--theme-accent, #1A5C38)' }}
         >
           Que me contacten
         </button>

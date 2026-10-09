@@ -91,7 +91,7 @@ export default function ConfianzaDesktop() {
           <div className="text-left">
             <EncabezadoSeccion
               eyebrow="Dos generaciones"
-              titulo={<>No vendemos casas.<br /><span style={{ color: GREEN }}>Acompañamos historias.</span></>}
+              titulo={<>No vendemos casas.<br /><span style={{ color: 'var(--theme-accent, #1A5C38)' }}>Acompañamos historias.</span></>}
               bajada="Empezamos en 1983 cuando Susana abrió la primera oficina en Roldán. Hoy somos un equipo en tres sedes, pero seguimos pensándonos como un estudio: pocos clientes a la vez, mucha cabeza puesta en cada uno."
             />
           </div>
@@ -107,7 +107,7 @@ export default function ConfianzaDesktop() {
                     i < 2 ? 'border-b border-gray-200' : '',
                   ].join(' ')}
                 >
-                  <p className="font-poppins text-[34px] font-bold leading-none" style={{ color: GREEN, fontVariantNumeric: 'tabular-nums' }}>
+                  <p className="font-poppins text-[34px] font-bold leading-none" style={{ color: 'var(--theme-accent, #1A5C38)', fontVariantNumeric: 'tabular-nums' }}>
                     {s.num}
                   </p>
                   <p className="font-raleway mt-3 text-[10.5px] font-bold uppercase tracking-[0.16em] text-gray-500">
@@ -156,7 +156,7 @@ export default function ConfianzaDesktop() {
                 </div>
                 <div className="bg-gray-50 p-5">
                   <p className="font-raleway flex items-start gap-2 text-[13px] text-gray-700">
-                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: GREEN }} />
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
                     <span>{sede.direccion}</span>
                   </p>
                   <p className="font-raleway mt-2 flex items-center gap-2 text-[12px] text-gray-500">

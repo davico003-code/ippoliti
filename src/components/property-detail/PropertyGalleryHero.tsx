@@ -110,7 +110,7 @@ export default function PropertyGalleryHero({ property: propertyOriginal }: { pr
       {propType && (
         <span
           className="px-3 py-1 bg-white/90 rounded-full text-[11px] font-bold uppercase"
-          style={{ color: GREEN }}
+          style={{ color: 'var(--theme-accent, #1A5C38)' }}
         >
           {propType}
         </span>

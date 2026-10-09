@@ -15,7 +15,7 @@ function Grupo({ icon, titulo, filas }: { icon: React.ReactNode; titulo: string;
   return (
     <div>
       <h3 className="flex items-center gap-2 mb-2 text-[13px] font-bold uppercase tracking-wide text-gray-500">
-        <span style={{ color: GREEN }}>{icon}</span>
+        <span style={{ color: 'var(--theme-accent, #1A5C38)' }}>{icon}</span>
         {titulo}
       </h3>
       <dl className="space-y-2">
@@ -38,7 +38,7 @@ export function TemporarioPrecios({ precios }: { precios: CondicionesTemporario[
           <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-1">
             Por {p.periodo}
           </span>
-          <span style={{ fontFamily: P, fontWeight: 800, fontSize: 24, fontVariantNumeric: 'tabular-nums', color: '#111', lineHeight: 1 }}>
+          <span style={{ fontFamily: P, fontWeight: 800, fontSize: 24, fontVariantNumeric: 'tabular-nums', color: 'var(--theme-ink, #111)', lineHeight: 1 }}>
             {p.texto}
           </span>
         </div>
@@ -57,7 +57,7 @@ export default function TemporarioCondiciones({
 }) {
   return (
     <section id="condiciones" className={`${CARD} scroll-mt-40`}>
-      <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: '#111', marginBottom: 16 }}>
+      <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--theme-ink, #111)', marginBottom: 16 }}>
         Condiciones del alquiler temporario
       </h2>
       <div className="grid gap-6 md:grid-cols-2">
@@ -108,7 +108,7 @@ export default function TemporarioCondiciones({
               <li
                 key={item}
                 className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5ee] px-3 py-1 text-[13px] font-semibold"
-                style={{ color: GREEN }}
+                style={{ color: 'var(--theme-accent, #1A5C38)' }}
               >
                 <Check className="w-3.5 h-3.5" aria-hidden />
                 {item}

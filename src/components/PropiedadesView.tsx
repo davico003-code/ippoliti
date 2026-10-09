@@ -274,8 +274,8 @@ function FilterSelect<T extends string>({
         className="appearance-none h-10 rounded-xl pl-3.5 pr-8 cursor-pointer flex items-center whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all relative"
         style={{
           border: active || open ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
-          background: '#fff',
-          color: active ? '#1A5C38' : '#0a0a0a',
+          background: 'var(--theme-surface, #fff)',
+          color: active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
           fontFamily: "'Raleway', system-ui, sans-serif",
           fontWeight: active ? 600 : 500,
           fontSize: 14,
@@ -306,7 +306,7 @@ function FilterSelect<T extends string>({
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   fontSize: 14,
                   fontWeight: sel ? 600 : 500,
-                  color: sel ? '#1A5C38' : '#0a0a0a',
+                  color: sel ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
                 }}
               >
                 {o.label}
@@ -460,8 +460,8 @@ function PriceFilterDropdown({
         className="appearance-none h-10 rounded-xl pl-3.5 pr-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all flex items-center gap-1 flex-shrink-0"
         style={{
           border: open || active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
-          background: '#fff',
-          color: open || active ? '#1A5C38' : '#0a0a0a',
+          background: 'var(--theme-surface, #fff)',
+          color: open || active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
           fontFamily: "'Raleway', system-ui, sans-serif",
           fontWeight: open || active ? 600 : 500,
           fontSize: 14,
@@ -479,7 +479,7 @@ function PriceFilterDropdown({
             top: pos.top,
             left: pos.left,
             width: 320,
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--theme-surface, #fff)',
             isolation: 'isolate',
           }}
           role="dialog"
@@ -494,8 +494,8 @@ function PriceFilterDropdown({
                 onClick={() => onCurrencyChange(c)}
                 className={`flex-1 h-9 transition-colors ${i === 0 ? 'rounded-l-md' : 'rounded-r-md'}`}
                 style={{
-                  background: localCur === c ? '#1A5C38' : '#f3f4f6',
-                  color: localCur === c ? '#fff' : '#374151',
+                  background: localCur === c ? '#1A5C38' : 'var(--theme-surface-soft, #f3f4f6)',
+                  color: localCur === c ? '#fff' : 'var(--theme-muted, #374151)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   fontSize: 13,
                   fontWeight: localCur === c ? 700 : 500,
@@ -567,8 +567,8 @@ function PriceFilterDropdown({
                     fontFamily: "'Raleway', system-ui, sans-serif",
                     fontSize: 12,
                     fontWeight: 500,
-                    color: '#374151',
-                    background: '#fff',
+                    color: 'var(--theme-muted, #374151)',
+                    background: 'var(--theme-surface, #fff)',
                     cursor: 'pointer',
                   }}
                 >
@@ -589,7 +589,7 @@ function PriceFilterDropdown({
                 fontFamily: "'Raleway', system-ui, sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
-                color: '#6b7280',
+                color: 'var(--theme-subtle, #6b7280)',
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
@@ -1391,7 +1391,7 @@ export default function PropiedadesView({
                   disabled={locatingUser}
                   className="w-full flex items-center gap-3 text-left"
                   style={{
-                    padding: '14px 16px', fontSize: 15, color: '#1A5C38',
+                    padding: '14px 16px', fontSize: 15, color: 'var(--theme-accent, #1A5C38)',
                     background: 'transparent', border: 'none',
                     borderBottom: '1px solid #f3f4f6',
                     cursor: locatingUser ? 'wait' : 'pointer',
@@ -1416,7 +1416,7 @@ export default function PropiedadesView({
                 {/* Búsquedas recientes — solo si no está escribiendo y hay historial */}
                 {filters.search.trim().length < 2 && searchHistory.length > 0 && (
                   <>
-                    <div style={{ padding: '10px 16px 6px', fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                    <div style={{ padding: '10px 16px 6px', fontSize: 11, fontWeight: 700, color: 'var(--theme-subtle, #9ca3af)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
                       Búsquedas recientes
                     </div>
                     {searchHistory.map(term => (
@@ -1431,7 +1431,7 @@ export default function PropiedadesView({
                         }}
                         className="w-full flex items-center gap-3 text-left"
                         style={{
-                          padding: '12px 16px', fontSize: 15, color: '#111',
+                          padding: '12px 16px', fontSize: 15, color: 'var(--theme-ink, #111)',
                           background: 'transparent', border: 'none',
                           borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
                           minHeight: 44, fontFamily: "'Raleway', system-ui, sans-serif",
@@ -1457,7 +1457,7 @@ export default function PropiedadesView({
                     style={{
                       padding: '14px 16px',
                       fontSize: 15,
-                      color: '#111',
+                      color: 'var(--theme-ink, #111)',
                       background: 'transparent',
                       border: 'none',
                       borderBottom: '1px solid #f3f4f6',
@@ -1468,7 +1468,7 @@ export default function PropiedadesView({
                   >
                     <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
-                    <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, color: 'var(--theme-subtle, #9ca3af)', flexShrink: 0 }}>
                       {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
                     </span>
                   </button>
@@ -1490,7 +1490,7 @@ export default function PropiedadesView({
                 className="flex-1 py-2.5 rounded-full text-center transition-all"
                 style={{
                   background: filters.operation === op ? '#1A5C38' : 'transparent',
-                  color: filters.operation === op ? '#fff' : '#6b7280',
+                  color: filters.operation === op ? '#fff' : 'var(--theme-subtle, #6b7280)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   fontSize: 13,
                   fontWeight: filters.operation === op ? 600 : 500,
@@ -1509,11 +1509,11 @@ export default function PropiedadesView({
             className="relative flex items-center gap-1.5 h-11 rounded-xl px-4 flex-shrink-0 cursor-pointer"
             style={{
               border: mobileActiveCount > 0 ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
-              background: '#fff',
+              background: 'var(--theme-surface, #fff)',
               fontFamily: "'Raleway', system-ui, sans-serif",
               fontSize: 14,
               fontWeight: 500,
-              color: mobileActiveCount > 0 ? '#1A5C38' : '#0a0a0a',
+              color: mobileActiveCount > 0 ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
             }}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -1579,14 +1579,14 @@ export default function PropiedadesView({
                 disabled={locatingUser}
                 className="w-full flex items-center gap-3 text-left"
                 style={{
-                  padding: '12px 14px', fontSize: 14, color: '#1A5C38',
+                  padding: '12px 14px', fontSize: 14, color: 'var(--theme-accent, #1A5C38)',
                   background: 'transparent', border: 'none',
                   borderBottom: '1px solid #f3f4f6',
                   cursor: locatingUser ? 'wait' : 'pointer',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   fontWeight: 600,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f0f7f4' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f0f7f4)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
               >
                 {locatingUser ? (
@@ -1606,7 +1606,7 @@ export default function PropiedadesView({
               {/* Búsquedas recientes — solo si no está escribiendo y hay historial */}
               {filters.search.trim().length < 2 && searchHistory.length > 0 && (
                 <>
-                  <div style={{ padding: '10px 14px 6px', fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                  <div style={{ padding: '10px 14px 6px', fontSize: 11, fontWeight: 700, color: 'var(--theme-subtle, #9ca3af)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
                     Búsquedas recientes
                   </div>
                   {searchHistory.map(term => (
@@ -1621,12 +1621,12 @@ export default function PropiedadesView({
                       }}
                       className="w-full flex items-center gap-3 text-left"
                       style={{
-                        padding: '10px 14px', fontSize: 14, color: '#111',
+                        padding: '10px 14px', fontSize: 14, color: 'var(--theme-ink, #111)',
                         background: 'transparent', border: 'none',
                         borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
                         fontFamily: "'Raleway', system-ui, sans-serif",
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f9fafb)' }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                     >
                       <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -1647,17 +1647,17 @@ export default function PropiedadesView({
                   }}
                   className="w-full flex items-center gap-3 text-left"
                   style={{
-                    padding: '10px 14px', fontSize: 14, color: '#111',
+                    padding: '10px 14px', fontSize: 14, color: 'var(--theme-ink, #111)',
                     background: 'transparent', border: 'none',
                     borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
                     fontFamily: "'Raleway', system-ui, sans-serif",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f9fafb)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                 >
                   <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
                   <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
-                  <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0 }}>
+                  <span style={{ fontSize: 12, color: 'var(--theme-subtle, #9ca3af)', flexShrink: 0 }}>
                     {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
                   </span>
                 </button>
@@ -1933,7 +1933,7 @@ export default function PropiedadesView({
                       type="button"
                       onClick={() => setTandas(t => t + 1)}
                       className="rounded-xl border-2 px-6 py-3 text-sm font-bold transition-colors"
-                      style={{ borderColor: '#1A5C38', color: '#1A5C38' }}
+                      style={{ borderColor: '#1A5C38', color: 'var(--theme-accent, #1A5C38)' }}
                     >
                       Ver más propiedades ({visibleProperties.length - renderedProperties.length} restantes)
                     </button>
@@ -2085,7 +2085,7 @@ export default function PropiedadesView({
             style={{ borderRadius: '24px 24px 0 0', boxShadow: '0 -8px 40px rgba(0,0,0,0.15)', animation: 'slideUp 250ms ease-out' }}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div />
-              <span style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 18, color: '#0a0a0a' }}>Ordenar por</span>
+              <span style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--theme-ink, #0a0a0a)' }}>Ordenar por</span>
               <button onClick={() => setMobileSortOpen(false)} className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -2100,7 +2100,7 @@ export default function PropiedadesView({
                     fontFamily: "'Raleway', system-ui, sans-serif",
                     fontSize: 15,
                     fontWeight: sortBy === opt.value ? 600 : 400,
-                    color: sortBy === opt.value ? '#1A5C38' : '#0a0a0a',
+                    color: sortBy === opt.value ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
                     background: 'transparent',
                     border: 'none',
                     borderBottom: '1px solid #f3f4f6',
@@ -2180,10 +2180,10 @@ export default function PropiedadesView({
 
             {/* Body — tap en cualquier parte abre la ficha completa */}
             <div style={{ padding: 14 }}>
-              <p style={{ fontFamily: "'Poppins', system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: '#0a0a0a', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums' }}>
+              <p style={{ fontFamily: "'Poppins', system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: 'var(--theme-ink, #0a0a0a)', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums' }}>
                 {formatPrice(selectedProperty)}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, color: '#6b7280', margin: '0 0 6px' }}>
+              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, color: 'var(--theme-subtle, #6b7280)', margin: '0 0 6px' }}>
                 {(() => {
                   const specs: string[] = []
                   const r = getRoofedArea(selectedProperty)
@@ -2201,10 +2201,10 @@ export default function PropiedadesView({
                   return specs.join(' · ')
                 })()}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: '#0a0a0a', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: 'var(--theme-ink, #0a0a0a)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {propertyTypeLabelById(selectedProperty.type?.id)}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, color: '#6b7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, color: 'var(--theme-subtle, #6b7280)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {formatDireccionCompleta(selectedProperty, selectedProperty.fake_address || selectedProperty.address, ' | ')}
               </p>
             </div>

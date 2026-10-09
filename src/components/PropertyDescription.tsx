@@ -72,13 +72,13 @@ function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) 
             >
               <span
                 aria-hidden
-                style={{ position: 'absolute', left: 1, top: 0, color: GREEN, fontWeight: 700 }}
+                style={{ position: 'absolute', left: 1, top: 0, color: 'var(--theme-accent, #1A5C38)', fontWeight: 700 }}
               >
                 ✓
               </span>
               {et ? (
                 <>
-                  <strong style={{ fontWeight: 600, color: '#111827' }}>{et.key}:</strong> {et.rest}
+                  <strong style={{ fontWeight: 600, color: 'var(--theme-ink, #111827)' }}>{et.key}:</strong> {et.rest}
                 </>
               ) : (
                 item
@@ -104,7 +104,7 @@ function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) 
               fontWeight: 500,
             }}
           >
-            <strong style={{ fontWeight: 600, color: '#111827' }}>{dl.key}:</strong>{' '}
+            <strong style={{ fontWeight: 600, color: 'var(--theme-ink, #111827)' }}>{dl.key}:</strong>{' '}
             {dl.value}
           </span>
         ))}
@@ -125,7 +125,7 @@ function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) 
     >
       {block.subtitle && (
         <>
-          <strong style={{ fontWeight: 600, color: '#111827' }}>{block.subtitle}.</strong>{' '}
+          <strong style={{ fontWeight: 600, color: 'var(--theme-ink, #111827)' }}>{block.subtitle}.</strong>{' '}
         </>
       )}
       {block.content}
@@ -174,7 +174,7 @@ export default function PropertyDescription({ text }: { text: string | null | un
           onClick={() => setExpanded(v => !v)}
           aria-expanded={expanded}
           className="mt-1 min-h-11 font-semibold text-base hover:underline inline-flex items-center gap-1.5"
-          style={{ color: GREEN, fontFamily: R, fontWeight: 600 }}
+          style={{ color: 'var(--theme-accent, #1A5C38)', fontFamily: R, fontWeight: 600 }}
         >
           {expanded ? (
             <>Ver menos <ChevronUp className="h-4 w-4" aria-hidden /></>

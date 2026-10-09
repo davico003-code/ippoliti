@@ -158,7 +158,7 @@ export default function MobileStickyBar({
             style={{
               width: 48, height: 48,
               borderRadius: 14,
-              background: '#fff',
+              background: 'var(--theme-surface, #fff)',
               border: '1.5px solid #cfd7dc',
               cursor: 'pointer',
             }}
@@ -176,7 +176,7 @@ export default function MobileStickyBar({
                 bottom: 'calc(100% + 12px)',
                 right: -8,
                 width: 220,
-                background: '#fff',
+                background: 'var(--theme-surface, #fff)',
                 borderRadius: 14,
                 boxShadow: '0 8px 30px rgba(0,0,0,0.18)',
                 padding: '8px 0',
@@ -210,7 +210,7 @@ export default function MobileStickyBar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#1a1a1a',
+                  color: 'var(--theme-ink, #1a1a1a)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                 }}
               >
@@ -232,7 +232,7 @@ export default function MobileStickyBar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#1a1a1a',
+                  color: 'var(--theme-ink, #1a1a1a)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                 }}
               >
@@ -254,7 +254,7 @@ export default function MobileStickyBar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#1a1a1a',
+                  color: 'var(--theme-ink, #1a1a1a)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   textDecoration: 'none',
                 }}
@@ -291,13 +291,13 @@ export default function MobileStickyBar({
                   cursor: generandoFicha ? 'wait' : 'pointer',
                   fontSize: 14,
                   fontWeight: 600,
-                  color: '#1A5C38',
+                  color: 'var(--theme-accent, #1A5C38)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   opacity: generandoFicha ? 0.7 : 1,
                 }}
               >
-                <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#e7f2eb' }}>
-                  <Sparkles className="w-4 h-4" style={{ color: '#1A5C38' }} />
+                <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--theme-tint, #e7f2eb)' }}>
+                  <Sparkles className="w-4 h-4" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
                 </div>
                 {generandoFicha ? 'Generando…' : 'Link para colega'}
               </button>

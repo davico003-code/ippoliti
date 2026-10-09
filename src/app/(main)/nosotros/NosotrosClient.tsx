@@ -598,8 +598,8 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
             style={{ objectPosition: 'center 40%' }}
           />
           {/* Degradé blanco que integra la foto con el fondo */}
-          <div aria-hidden className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(90deg,#F7F8F7 0%,rgba(247,248,247,.94) 12%,rgba(247,248,247,.55) 30%,rgba(247,248,247,.12) 48%,rgba(247,248,247,0) 62%)' }} />
-          <div aria-hidden className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(0deg,rgba(247,248,247,.5) 0%,rgba(247,248,247,0) 18%)' }} />
+          <div aria-hidden className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(90deg,var(--cream) 0%,color-mix(in srgb, var(--cream) 94%, transparent) 12%,color-mix(in srgb, var(--cream) 55%, transparent) 30%,transparent 62%)' }} />
+          <div aria-hidden className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(0deg,color-mix(in srgb, var(--cream) 50%, transparent) 0%,transparent 18%)' }} />
           {/* Quote verde esmerilado, sutil y compacta */}
           <div
             className="absolute z-[3] rounded-2xl"

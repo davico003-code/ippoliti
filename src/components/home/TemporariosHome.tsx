@@ -68,7 +68,7 @@ function Tarjeta({ property, condiciones: c, paleta }: Temporario & { paleta: Pa
 
       <div className="p-4 flex flex-col gap-3 flex-1">
         <div className="min-w-0">
-          <h3 className="line-clamp-1" style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 16, color: '#111827', margin: 0 }}>{titulo}</h3>
+          <h3 className="line-clamp-1" style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 16, color: 'var(--theme-ink, #111827)', margin: 0 }}>{titulo}</h3>
           {zona && (
             <p className="mt-1 flex items-center gap-1 text-[13px] text-gray-500" style={{ margin: 0 }}>
               <MapPin className="w-3.5 h-3.5 flex-shrink-0" aria-hidden /> {zona}
@@ -91,7 +91,7 @@ function Tarjeta({ property, condiciones: c, paleta }: Temporario & { paleta: Pa
                 <span className="block text-[10px] font-bold uppercase tracking-wider" style={{ color: paleta.precioLabel }}>
                   {p.periodo === 'quincena' ? 'Quincena' : 'Mes'}
                 </span>
-                <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 16, color: '#111827', fontVariantNumeric: 'tabular-nums' }}>{p.texto}</span>
+                <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 16, color: 'var(--theme-ink, #111827)', fontVariantNumeric: 'tabular-nums' }}>{p.texto}</span>
               </div>
             ))}
           </div>

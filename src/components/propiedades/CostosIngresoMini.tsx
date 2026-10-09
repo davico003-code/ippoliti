@@ -132,7 +132,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
             className="inline-grid gap-1 p-0.5 rounded-lg"
             style={{
               gridTemplateColumns: 'repeat(2, minmax(60px, 1fr))',
-              background: '#FAFAF7',
+              background: 'var(--theme-surface-soft, #FAFAF7)',
               border: '1px solid var(--line)',
             }}
           >
@@ -169,7 +169,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
         {/* Card 1 — Total al ingresar */}
         <div
           className="rounded-xl p-4"
-          style={{ background: '#FAFAF7', border: '1px solid var(--line)' }}
+          style={{ background: 'var(--theme-surface-soft, #FAFAF7)', border: '1px solid var(--line)' }}
         >
           <div style={eyebrowStyle}>Total al ingresar</div>
           {moneda === 'USD' ? (
@@ -207,7 +207,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
         <div
           className="rounded-xl p-4"
           style={{
-            background: '#FAFAF7',
+            background: 'var(--theme-surface-soft, #FAFAF7)',
             border: '1px solid var(--line)',
             borderLeft: '3px solid var(--usd)',
           }}

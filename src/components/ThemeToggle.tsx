@@ -9,11 +9,22 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
   const [dark, setDark] = useState(false)
 
   useEffect(() => {
-    setDark(document.documentElement.dataset.theme === 'dark')
+    const sync = () => setDark(document.documentElement.dataset.theme === 'dark')
+    sync()
+    const observer = new MutationObserver(sync)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY) return
+      const next = event.newValue === 'dark' || (!event.newValue && matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.dataset.theme = next ? 'dark' : 'light'
+      document.documentElement.style.colorScheme = next ? 'dark' : 'light'
+    }
+    window.addEventListener('storage', onStorage)
+    return () => { observer.disconnect(); window.removeEventListener('storage', onStorage) }
   }, [])
 
   function toggle() {
-    const next = !dark
+    const next = document.documentElement.dataset.theme !== 'dark'
     document.documentElement.dataset.theme = next ? 'dark' : 'light'
     document.documentElement.style.colorScheme = next ? 'dark' : 'light'
     try { localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light') } catch { /* Preferencia de esta sesión. */ }

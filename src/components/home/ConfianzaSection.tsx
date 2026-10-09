@@ -89,7 +89,7 @@ export default function ConfianzaSection() {
       <section className="px-5 pt-10 pb-7 bg-white">
         <EncabezadoSeccion
           eyebrow="Dos generaciones"
-          titulo={<>No vendemos casas.<br /><span style={{ color: GREEN }}>Acompañamos historias.</span></>}
+          titulo={<>No vendemos casas.<br /><span style={{ color: 'var(--theme-accent, #1A5C38)' }}>Acompañamos historias.</span></>}
           bajada="Empezamos en 1983 cuando Susana abrió la primera oficina en Roldán. Hoy somos un equipo en tres sedes, pero seguimos pensándonos como un estudio: pocos clientes a la vez, mucha cabeza puesta en cada uno."
         />
       </section>
@@ -101,7 +101,7 @@ export default function ConfianzaSection() {
             <div key={s.label} className="flex items-center gap-4">
               {i > 0 && <div className="w-px h-9 bg-gray-200" />}
               <div>
-                <p className="font-poppins font-bold text-[19px] leading-none" style={{ color: GREEN, fontVariantNumeric: 'tabular-nums' }}>{s.num}</p>
+                <p className="font-poppins font-bold text-[19px] leading-none" style={{ color: 'var(--theme-accent, #1A5C38)', fontVariantNumeric: 'tabular-nums' }}>{s.num}</p>
                 <p className="font-raleway text-gray-500 text-[9.5px] font-bold tracking-[0.1em] uppercase mt-1.5">{s.label}</p>
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function ConfianzaSection() {
               </div>
               <div className="p-3.5 bg-gray-50">
                 <p className="font-raleway text-gray-700 text-[12px] flex items-start gap-1.5">
-                  <MapPin className="w-3 h-3 mt-0.5 shrink-0" style={{ color: GREEN }} />
+                  <MapPin className="w-3 h-3 mt-0.5 shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
                   <span>{sede.direccion}</span>
                 </p>
                 <p className="font-raleway text-gray-500 text-[11px] mt-1.5 flex items-center gap-1.5">

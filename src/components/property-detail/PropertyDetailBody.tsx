@@ -82,7 +82,7 @@ function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | nul
 function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
     <div className="flex flex-col items-center text-center gap-1.5 py-3 px-2 bg-[#f9fafb] rounded-xl">
-      <div style={{ color: GREEN }}>{icon}</div>
+      <div style={{ color: 'var(--theme-accent, #1A5C38)' }}>{icon}</div>
       <span style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}>{value}</span>
       <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--tinta-mute)' }}>{label}</span>
     </div>
@@ -236,7 +236,7 @@ export default function PropertyDetailBody({
           )}
         </div>
         <div className="flex items-center gap-1.5 mb-5">
-          <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: GREEN }} />
+          <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
           <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
             {property.real_address || address}{location ? `, ${location}` : ''}
           </span>
@@ -282,7 +282,7 @@ export default function PropertyDetailBody({
           ) : (
             <span className="inline-flex items-center gap-2.5 flex-wrap">
               {esOportunidad && (
-                <span className="font-bold text-[11px] uppercase tracking-wider text-gray-900 rounded-md px-2.5 py-1" style={{ fontFamily: P, background: '#fbce07' }}>
+                <span className="font-bold text-[11px] uppercase tracking-wider text-gray-900 rounded-md px-2.5 py-1" style={{ fontFamily: P, background: '#fbce07', color: '#111' }}>
                   Oportunidad
                 </span>
               )}
@@ -360,7 +360,7 @@ export default function PropertyDetailBody({
                 </div>
                 <span
                   className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
-                  style={{ background: '#e7f2eb', color: '#1A5C38' }}
+                  style={{ background: 'var(--theme-tint, #e7f2eb)', color: 'var(--theme-accent, #1A5C38)' }}
                 >
                   {rol.badge}
                 </span>
@@ -499,7 +499,7 @@ export default function PropertyDetailBody({
           </div>
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <div className="flex items-center gap-2 min-w-0">
-              <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: GREEN }} />
+              <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
               <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
                 {direccionCompleta}
               </span>

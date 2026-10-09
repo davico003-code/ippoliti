@@ -115,7 +115,7 @@ function NavLink({ href, label, transparent }: { href: string; label: string; tr
   return (
     <Link
       href={href}
-      className="hover:text-[var(--mundial-accent)] transition-colors duration-200 whitespace-nowrap text-[14px] xl:text-[17px]"
+      className="hover:text-[var(--mundial-accent)] transition-colors duration-200 whitespace-nowrap text-[13px] min-[1200px]:text-[14px] min-[1440px]:text-[16px]"
       style={{
         fontFamily: R,
         fontWeight: 500,
@@ -168,11 +168,9 @@ export default function Navbar() {
 
   return (
     <div className={hideOnMobile ? 'hidden md:block' : 'contents'}>
-      {/* ── Desktop nav (1360px+) ── Debajo de ese ancho los links + logo centrado no
-          entran (el logo se encimaba con "Emprendimientos"): ahí va la barra
-          con hamburguesa. */}
+      {/* Desktop navigation, with space reserved for the theme control. */}
       <nav
-        className="hidden min-[1360px]:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
+        className="hidden lg:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
           background: transparent ? 'transparent' : 'var(--background)',
           borderBottom: transparent ? '1px solid transparent' : '1px solid var(--line)',
@@ -182,9 +180,9 @@ export default function Navbar() {
         {/* Entre 1024 y ~1065 px (iPad apaisado, ventanas chicas) el logo
             centrado se encimaba con "Barrios cerrados": hasta xl va más
             ajustado (menos margen lateral y menos separación entre links). */}
-        <div className="relative mx-auto flex items-center px-6 xl:px-10 py-[18px]" style={{ maxWidth: 1400 }}>
+        <div className="relative mx-auto flex items-center justify-between gap-4 px-4 xl:px-8 py-[16px]" style={{ maxWidth: 1400 }}>
           {/* Left menu */}
-          <div className="flex items-center gap-4 xl:gap-5">
+          <div className="flex items-center gap-3 min-[1440px]:gap-5">
             {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
@@ -193,8 +191,8 @@ export default function Navbar() {
               opaco (scrolleado) → logo verde horizontal. */}
           <Link
             href="/"
-            className="absolute left-1/2 top-1/2"
-            style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}
+            className="relative shrink-0"
+            style={{ textDecoration: 'none', width: 160 }}
           >
             {transparent ? (
               <picture>
@@ -228,7 +226,7 @@ export default function Navbar() {
           </Link>
 
           {/* Right menu + CTA */}
-          <div className="ml-auto flex items-center gap-4 xl:gap-5">
+          <div className="flex items-center gap-3 min-[1440px]:gap-5">
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
             <ThemeToggle className={transparent ? 'si-theme-toggle--hero' : ''} />
             <IngresarButton agent={agent} />
@@ -236,9 +234,9 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* ── Barra compacta (<1360px) ── */}
+      {/* Mobile navigation */}
       <nav
-        className="min-[1360px]:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+        className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="relative flex items-center justify-between px-4 py-2.5">
@@ -259,7 +257,7 @@ export default function Navbar() {
               alt="SI INMOBILIARIA"
               width={164}
               height={24}
-              className="object-contain si-theme-logo"
+              className="object-contain si-theme-logo w-[128px] min-[390px]:w-[150px]"
               priority
               quality={90}
             />
@@ -268,13 +266,13 @@ export default function Navbar() {
           </Link>
 
           {/* Right — tema e ingreso */}
-          <div className="flex items-center gap-2"><ThemeToggle /><IngresarButton agent={agent} /></div>
+          <div className="flex items-center gap-1"><ThemeToggle /><IngresarButton agent={agent} /></div>
         </div>
       </nav>
 
       {/* ── Mobile drawer ── */}
       {isOpen && (
-        <div className="min-[1360px]:hidden fixed inset-0 z-[9990]">
+        <div className="lg:hidden fixed inset-0 z-[9990]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
           <div
             className="si-theme-drawer absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl"
