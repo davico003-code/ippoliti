@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowUpRight } from 'lucide-react'
 import { categoryLabel, type Video } from '@/lib/contenidos'
+import SocialIcon from './SocialIcon'
 import Player from './Player'
 import styles from './contenidos.module.css'
 
@@ -12,8 +13,8 @@ export default function VideoCard({ video }: { video: Video }) {
       <Player video={video} />
       {video.duration && <span className={styles.duration}>{video.duration}</span>}
     </div>
-    <p className={styles.meta}>{video.platform === 'Instagram' ? `@${video.author}` : categoryLabel(video.category)}</p>
+    <p className={styles.meta}>{['Instagram', 'TikTok'].includes(video.platform) && video.author ? `@${video.author}` : categoryLabel(video.category)}</p>
     <h3><Link href={`/contenidos/${video.id}`}>{video.title}</Link></h3>
-    <a className={styles.source} href={video.url} target="_blank" rel="noopener noreferrer">{video.platform} <ArrowUpRight size={13} aria-hidden /><span className="sr-only">: {video.title}</span></a>
+    <a className={styles.source} href={video.url} target="_blank" rel="noopener noreferrer"><SocialIcon platform={video.platform} size={16} />{video.platform} <ArrowUpRight size={13} aria-hidden /><span className="sr-only">: {video.title}</span></a>
   </article>
 }

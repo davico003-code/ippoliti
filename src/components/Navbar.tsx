@@ -139,8 +139,7 @@ export default function Navbar() {
   const isBarriosHub = pathname === '/barrios-privados'
   // Navbar transparente sobre el hero inmersivo (home + hub de barrios).
   const overHero = isHome || isBarriosHub
-  const isContenidos = pathname.startsWith('/contenidos')
-  const transparent = isContenidos || (overHero && !scrolled)
+  const transparent = overHero && !scrolled
 
   useEffect(() => {
     if (!overHero) return
@@ -174,7 +173,7 @@ export default function Navbar() {
       <nav
         className="hidden lg:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: isContenidos ? '#111915' : transparent ? 'transparent' : '#fff',
+          background: transparent ? 'transparent' : '#fff',
           borderBottom: transparent ? '1px solid transparent' : '1px solid #eee',
           boxShadow: transparent ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
         }}
@@ -238,7 +237,7 @@ export default function Navbar() {
       {/* ── Mobile nav (<lg) ── */}
       <nav
         className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)', ...(isContenidos ? { background: '#111915', borderColor: '#28392d' } : {}) }}
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="relative flex items-center justify-between px-4 py-2.5">
           {/* Left — hamburger */}
@@ -248,13 +247,13 @@ export default function Navbar() {
             aria-label="Menú"
             aria-expanded={isOpen}
           >
-            {isOpen ? <X className={`w-6 h-6 ${isContenidos ? 'text-white' : 'text-gray-600'}`} /> : <Menu className={`w-6 h-6 ${isContenidos ? 'text-white' : 'text-gray-600'}`} />}
+            {isOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
           </button>
 
           {/* Center — logo */}
           <Link href="/" className="absolute left-1/2 top-1/2" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
             <Image
-              src={isContenidos ? "/si-inmobiliaria-blanco.svg" : "/LOGO_HORIZONTAL.png"}
+              src="/LOGO_HORIZONTAL.png"
               alt="SI INMOBILIARIA"
               width={164}
               height={24}

@@ -21,9 +21,9 @@ export default function VideoPage({ params }: { params: { id: string } }) {
   return <div className={styles.root}><div className={`${styles.wrap} ${styles.detail}`}>
     <Link href="/contenidos" className={styles.quietLink}>← Volver a Mundo SI</Link>
     <p className={styles.eyebrow}>{categoryLabel(video.category)}</p><h1>{video.title}</h1>
-    <div className={styles.detailPoster}><Image src={video.thumbnail} alt="" fill priority sizes="(max-width: 1100px) 100vw, 1050px" className={styles.cover} /><Player video={video} /></div>
+    <div className={styles.detailPoster}><Image src={video.thumbnail} alt="" fill priority sizes="(max-width: 1100px) 100vw, 1050px" className={`${styles.cover} ${video.vertical ? styles.verticalDetail : ''}`} /><Player video={video} /></div>
     <a className={styles.quietLink} href={video.url} target="_blank" rel="noopener noreferrer">Ver publicación original en {video.platform} <ArrowUpRight size={17} aria-hidden /></a>
-    {video.platform === 'YouTube' && video.description && <p className={styles.note}>{video.description}</p>}
+    {video.description && <p className={styles.note}>{video.description}</p>}
     {video.uploadDate && <p className={styles.meta}>Publicado el {new Intl.DateTimeFormat('es-AR', { dateStyle: 'long', timeZone: 'America/Argentina/Cordoba' }).format(new Date(video.uploadDate))}</p>}
     <p className={styles.note}>{video.category === 'charlas' ? 'Charlas que Sí reúne conversaciones con protagonistas, colegas y referentes de nuestra comunidad. Un espacio para escuchar distintas miradas y conocer las historias detrás de cada proyecto.' : video.category === 'recorridos' ? 'Un recorrido de SI INMOBILIARIA para conocer los espacios y su entorno. El video forma parte de nuestro archivo: consultanos por la disponibilidad actual de la propiedad.' : 'Una mirada de cerca a los lugares, las personas y el día a día de SI INMOBILIARIA.'}</p>
     <section className={styles.section}><div className={styles.heading}><h2>Seguí mirando</h2><Link href={`/contenidos?categoria=${video.category}`}>Ver todos →</Link></div><div className={styles.grid}>{related.map(v => <VideoCard video={v} key={v.id} />)}</div></section>

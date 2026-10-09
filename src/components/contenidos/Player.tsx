@@ -24,7 +24,7 @@ export default function Player({ video, hero = false }: { video: Video; hero?: b
     {open && <dialog ref={dialog} className={styles.dialog} aria-label={video.title} onCancel={close} onClick={e => { if (e.target === e.currentTarget) close() }}>
       <div className={styles.dialogBody}>
         <button autoFocus className={styles.close} onClick={close} aria-label="Cerrar video"><X aria-hidden /></button>
-        <iframe className={video.vertical ? styles.verticalPlayer : styles.player} src={video.platform === 'Instagram' ? `https://www.instagram.com/p/${video.id.slice(3)}/embed/` : `https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&playsinline=1`} title={video.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
+        {video.mediaSrc ? <video className={video.vertical ? styles.verticalPlayer : styles.player} src={video.mediaSrc} poster={video.thumbnail} controls autoPlay playsInline preload="metadata" aria-label={video.title} /> : <iframe className={video.vertical ? styles.verticalPlayer : styles.player} src={video.platform === 'Instagram' ? `https://www.instagram.com/p/${video.id.slice(3)}/embed/` : video.platform === 'TikTok' ? `https://www.tiktok.com/player/v1/${video.id.slice(3)}?autoplay=1&rel=0` : `https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&playsinline=1`} title={video.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />}
         <h2>{video.title}</h2>
         <a href={video.url} target="_blank" rel="noopener noreferrer">Ver en {video.platform} <ArrowUpRight size={16} aria-hidden /></a>
       </div>

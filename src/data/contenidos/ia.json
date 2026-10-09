@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ia-los-robles",
+    "title": "Los Robles 210, Funes · placa con voz",
+    "category": "ia",
+    "platform": "SI INMOBILIARIA",
+    "url": "/como-trabajamos/video/placa-voz-los-robles.mp4",
+    "mediaSrc": "/como-trabajamos/video/placa-voz-los-robles.mp4",
+    "thumbnail": "/como-trabajamos/video/placa-voz-los-robles.webp",
+    "duration": "",
+    "vertical": true,
+    "description": "Una pieza animada de SI INMOBILIARIA con locución generada con IA. Parte de nuestro archivo de comunicación de propiedades."
+  },
+  {
+    "id": "ia-vida-058",
+    "title": "Lote 058, barrio Vida · placa con voz",
+    "category": "ia",
+    "platform": "SI INMOBILIARIA",
+    "url": "/como-trabajamos/video/placa-voz-vida-058.mp4",
+    "mediaSrc": "/como-trabajamos/video/placa-voz-vida-058.mp4",
+    "thumbnail": "/como-trabajamos/video/placa-voz-vida-058.webp",
+    "duration": "",
+    "vertical": true,
+    "description": "Una pieza animada de SI INMOBILIARIA con locución generada con IA. Parte de nuestro archivo de comunicación de propiedades."
+  }
+]

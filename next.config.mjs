@@ -19,7 +19,7 @@ const cspReportOnly = [
   // kuula.co (tours 360 de /dockgarden) y cloudflarestream (videos del
   // desarrollador vía Brickfy) se embeben en iframes; www.google.com es el mapa
   // embebido de /emprendimientos/fisherton-work.
-  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.instagram.com https://kuula.co https://*.cloudflarestream.com https://www.facebook.com https://www.google.com",
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.instagram.com https://www.tiktok.com https://kuula.co https://*.cloudflarestream.com https://www.facebook.com https://www.google.com",
   "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.supabase.co",
   "worker-src 'self' blob:",
 ].join('; ')
