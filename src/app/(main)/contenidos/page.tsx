@@ -32,7 +32,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
   const results = filtered.slice((page - 1) * 24, page * 24)
   const featured = videos.find(v => v.id === 'XyITUD7dYNU')!
   const href = (cat: string, p = 1) => `/contenidos?${new URLSearchParams({ categoria: cat, ...(query ? { q: query } : {}), ...(p > 1 ? { pagina: String(p) } : {}) })}#explorar`
-  const rail = (cat: string, title: string, limit = 3) => cat === 'ia' ? <section className={styles.aiSection} aria-label={title}><div className={styles.aiIntro}><p className={styles.eyebrow}>Creatividad SI</p><h2>{title}</h2><p>Exploramos nuevas maneras de mostrar y contar. Piezas animadas con locución creada con IA.</p><Link className={styles.quietLink} href={href(cat)}>Ver las creaciones <ArrowRight size={16} aria-hidden /></Link></div><div className={styles.aiGrid}>{videos.filter(v => v.category === cat).slice(0, limit).map(v => <VideoCard video={v} key={v.id} />)}</div></section> : <section className={styles.section} aria-label={title}>
+  const rail = (cat: string, title: string, limit = 3) => <section className={styles.section} aria-label={title}>
     <div className={styles.heading}><h2>{title}</h2><Link href={href(cat)}>Ver todos <ArrowRight size={16} aria-hidden /></Link></div>
     <div className={['cortos', 'tiktok'].includes(cat) ? styles.shortGrid : styles.grid}>{videos.filter(v => v.category === cat).slice(0, limit).map(v => <VideoCard video={v} key={v.id} />)}</div>
   </section>
@@ -68,7 +68,6 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
         {rail('cortos', 'Cortitos, todos los días', 4)}
         {rail('tiktok', 'También estamos en TikTok', 4)}
         {rail('recorridos', 'Una puerta abierta para recorrer')}
-        {rail('ia', 'Otra forma de contar: creaciones con IA', 2)}
       </> : category !== 'blog' && <section className={styles.results} aria-label="Resultados de videos">
         <p className={styles.resultTitle}>{filtered.length} {filtered.length === 1 ? 'video' : 'videos'} para mirar</p>
         {results.length ? <div className={['cortos', 'tiktok'].includes(category) ? styles.shortGrid : styles.grid}>{results.map(v => <VideoCard video={v} key={v.id} />)}</div> : <div className={styles.empty}><h2>No encontramos videos con esa búsqueda.</h2><p>Probá con Funes, una persona o el nombre de un barrio.</p><Link className={styles.quietLink} href="/contenidos">Volver a todos los contenidos <ArrowRight size={16} aria-hidden /></Link></div>}

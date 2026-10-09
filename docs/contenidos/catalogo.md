@@ -16,13 +16,12 @@ reproducción a pedido, enlaces originales, blog existente y seis perfiles socia
   Títulos editoriales basados en la portada o en el caption visible; no son transcripciones.
 - Blog: `getAllPosts()`, conserva reglas de publicación y portadas existentes.
 - TikTok: cuatro publicaciones reales de `@si.inmobiliaria`, verificadas en el perfil público. Portadas locales y reproductor oficial a pedido. Títulos editoriales basados en captions.
-- IA: dos placas con voz ya publicadas en Cómo trabajamos (Los Robles y Vida 058). Se reutilizan los MP4 y portadas existentes, sin crear material nuevo.
 - Facebook: acceso al perfil ya configurado en la web, sin importar publicaciones.
 
 ## Mantenimiento
 
 El catálogo de videos es una selección versionada, no una sincronización automática.
-Catálogos: `src/data/contenidos/{youtube,instagram,tiktok,ia}.json`.
+Catálogos: `src/data/contenidos/{youtube,instagram,tiktok}.json`.
 TikTok: `tt-<id>`; reproductor según https://developers.tiktok.com/docs/en/embed-player.
 Iconos de redes: SVG del repositorio oficial Simple Icons. Logo Charlas que Sí: vector existente entregado en Downloads.
 Agregar id único, título, categoría, plataforma, URL original, portada, duración si
@@ -37,10 +36,12 @@ El blog se regenera cada hora a partir de la fuente actual.
 
 YouTube oEmbed confirma disponibilidad pública, no garantiza reproducción en todos los
 navegadores/regiones. Instagram puede pedir login o limitar un embed; siempre se ofrece
-el enlace original junto al reproductor. Los videos de redes no se descargan ni se alojan nuevamente. Las dos piezas IA reutilizan archivos propios existentes.
+el enlace original junto al reproductor. Los videos de redes no se descargan ni se alojan nuevamente.
 No se agregan métricas ni fechas de publicación inventadas.
 
 ## Publicación
 
 La rama `feat/videoteca-si` se entrega mediante preview. La regla de AGENTS.md del
 repositorio exige aprobación visual del preview antes del merge a main.
+
+Revisión de David: acento verde en la placa principal, base blanca; se retiraron la sección y el catálogo IA de la videoteca. Los archivos originales de Cómo trabajamos se conservan.

@@ -15,11 +15,7 @@ with sync_playwright() as p:
  assert page.locator('img[src*="instagram.svg"]').count()>=2
  assert page.locator('h1').evaluate("e=>getComputedStyle(e).fontFamily").lower().find('raleway')>=0
  assert page.locator('h1').evaluate("e=>getComputedStyle(e.closest('section').parentElement).backgroundColor")=='rgb(255, 255, 255)'
- page.get_by_role('button',name='Reproducir: Los Robles 210, Funes · placa con voz',exact=True).click()
- expect(page.locator('dialog video')).to_be_visible()
- page.wait_for_function("document.querySelector('dialog video')?.currentTime > 0",timeout=15000)
- print('IA native playback confirmed')
- page.get_by_role('button',name='Cerrar video').click()
+ assert page.get_by_text('Creaciones con IA',exact=True).count()==0
  page.get_by_role('button',name='Reproducir: Una casa donde cada detalle está pensado',exact=True).click()
  expect(page.locator('dialog iframe')).to_have_attribute('src',re.compile('tiktok.com/player/v1/7605940004627467532'))
  tt=page.frame_locator('dialog iframe').locator('video')
@@ -74,5 +70,5 @@ with sync_playwright() as p:
  application=[e for e in errors if e not in external]
  print('Third-party TikTok codec recovery notices:',external)
  assert not application, application
- print('PASS: branding, featured talks, TikTok/native playback, filters, search, pagination, back, details, canonical, blog, lazy players, dialog close/focus, 390/768/1920 layouts.')
+ print('PASS: branding, featured talks, TikTok playback, filters, search, pagination, back, details, canonical, blog, lazy players, dialog close/focus, 390/768/1920 layouts.')
  b.close()

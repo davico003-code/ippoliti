@@ -1,10 +1,9 @@
 import instagram from '@/data/contenidos/instagram.json'
 import tiktok from '@/data/contenidos/tiktok.json'
-import ia from '@/data/contenidos/ia.json'
 import youtube from '@/data/contenidos/youtube.json'
 
 export type Video = { id: string; title: string; category: string; platform: string; url: string; thumbnail: string; duration: string; vertical: boolean; author?: string; description?: string; uploadDate?: string | null; seconds?: number; mediaSrc?: string }
-export const videos: Video[] = [...instagram, ...youtube, ...tiktok, ...ia]
+export const videos: Video[] = [...instagram, ...youtube, ...tiktok]
 export const categories = [
   { id: 'todos', label: 'Todos' },
   { id: 'charlas', label: 'Charlas que Sí' },
@@ -12,7 +11,6 @@ export const categories = [
   { id: 'recorridos', label: 'Recorridos' },
   { id: 'cortos', label: 'Videos cortos' },
   { id: 'tiktok', label: 'TikTok' },
-  { id: 'ia', label: 'Creaciones con IA' },
   { id: 'blog', label: 'Blog' },
 ]
 export const channels = [
