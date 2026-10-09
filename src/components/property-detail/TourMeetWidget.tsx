@@ -55,7 +55,7 @@ export default function TourMeetWidget({
 
       <h3
         className="pr-20 mb-2"
-        style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: GREEN, lineHeight: 1.25 }}
+        style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--theme-accent, #1A5C38)', lineHeight: 1.25 }}
       >
         Tour virtual por Meet
       </h3>
@@ -73,7 +73,7 @@ export default function TourMeetWidget({
           'Resolvemos tus dudas en tiempo real',
         ].map(item => (
           <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
-            <Check className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: GREEN }} />
+            <Check className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
             <span>{item}</span>
           </li>
         ))}

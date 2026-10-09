@@ -245,14 +245,14 @@ export default function OportunidadesPopup() {
         aria-label="Oportunidades"
         style={{
           position: 'fixed', right: 6, bottom: 176, zIndex: 45, width: 244,
-          background: '#fff', borderRadius: 16, border: '1px solid #ECECEE', padding: 6,
+          background: 'var(--theme-surface, #fff)', borderRadius: 16, border: '1px solid #ECECEE', padding: 6,
           boxShadow: '0 16px 44px rgba(9, 30, 20, 0.16)',
           animation: 'si-oport-in .45s cubic-bezier(.22,1,.36,1)',
         }}
       >
         <button
           type="button" onClick={dismiss} aria-label="Cerrar"
-          style={{ position: 'absolute', top: 11, right: 11, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,.92)', border: 'none', cursor: 'pointer', color: '#52525B', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,.12)' }}
+          style={{ position: 'absolute', top: 11, right: 11, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'var(--theme-overlay, rgba(255,255,255,.92))', border: 'none', cursor: 'pointer', color: 'var(--theme-muted, #52525B)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,.12)' }}
         >
           <X size={12} strokeWidth={2.4} />
         </button>
@@ -262,18 +262,18 @@ export default function OportunidadesPopup() {
             {it.foto && (
               <Image src={it.foto} alt="" fill sizes="232px" style={{ objectFit: 'cover', objectPosition: 'center 60%' }} />
             )}
-            <span style={{ position: 'absolute', left: 7, top: 7, fontFamily: POPPINS, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: '#fff', borderRadius: 999, padding: '3px 8px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
+            <span style={{ position: 'absolute', left: 7, top: 7, fontFamily: POPPINS, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: `var(--theme-accent, ${meta.color})`, background: 'var(--theme-surface, #fff)', borderRadius: 999, padding: '3px 8px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
               {meta.badge}
             </span>
           </div>
           <div style={{ padding: '8px 5px 2px' }}>
-            <div style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 12.5, color: '#1c1c1e', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 12.5, color: 'var(--theme-ink, #1c1c1e)', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {it.titulo}
             </div>
             <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
               {esBaja ? (
                 <span style={{ fontFamily: POPPINS, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
-                  <b style={{ color: '#111', whiteSpace: 'nowrap' }}>{it.precio}</b>
+                  <b style={{ color: 'var(--theme-ink, #111)', whiteSpace: 'nowrap' }}>{it.precio}</b>
                   {typeof it.pctBaja === 'number' ? (
                     <span style={{ background: '#FBE9F0', color: '#A83C66', fontWeight: 700, fontSize: 10, borderRadius: 5, padding: '1px 5px', whiteSpace: 'nowrap' }}>
                       −{String(Math.round(it.pctBaja))}%
@@ -283,9 +283,9 @@ export default function OportunidadesPopup() {
                   )}
                 </span>
               ) : (
-                <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: '#111', whiteSpace: 'nowrap' }}>{it.precio}</span>
+                <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: 'var(--theme-ink, #111)', whiteSpace: 'nowrap' }}>{it.precio}</span>
               )}
-              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 600, color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta} →</span>
+              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 600, color: 'var(--theme-accent, #1A5C38)', whiteSpace: 'nowrap' }}>{meta.cta} →</span>
             </div>
           </div>
         </Link>
@@ -328,8 +328,8 @@ export default function OportunidadesPopup() {
             flexDirection: peekPos.side === 'right' ? 'row-reverse' : 'row',
             borderRadius: 999,
             border: '1px solid rgba(26,92,56,.16)',
-            background: '#FFFFFF',
-            color: GREEN,
+            background: 'var(--theme-surface, #FFFFFF)',
+            color: 'var(--theme-accent, #1A5C38)',
             boxShadow: '0 12px 30px rgba(9, 30, 20, 0.16)',
             padding: compactMobile ? 0 : peekPos.side === 'right' ? '5px 5px 5px 12px' : '5px 12px 5px 5px',
             cursor: dragXY ? 'grabbing' : 'grab',
@@ -353,10 +353,10 @@ export default function OportunidadesPopup() {
           )}
           {!compactMobile && (
             <span style={{ display: 'flex', minWidth: 0, flexDirection: 'column', alignItems: peekPos.side === 'right' ? 'flex-end' : 'flex-start', lineHeight: 1.05 }}>
-              <span style={{ fontFamily: POPPINS, fontSize: 9.5, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 9.5, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: `var(--theme-accent, ${meta.color})`, whiteSpace: 'nowrap' }}>
                 Oportunidad
               </span>
-              <span style={{ fontFamily: RALEWAY, fontSize: 12.5, fontWeight: 800, color: '#1C1C1E', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: RALEWAY, fontSize: 12.5, fontWeight: 800, color: 'var(--theme-ink, #1C1C1E)', whiteSpace: 'nowrap' }}>
                 Ver ahora
               </span>
             </span>
@@ -377,7 +377,7 @@ export default function OportunidadesPopup() {
             bottom: compactMobile
               ? 'calc(env(safe-area-inset-bottom, 0px) + 86px)'
               : 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
-            background: '#fff',
+            background: 'var(--theme-surface, #fff)',
             borderRadius: 18,
             border: '1px solid rgba(26,92,56,.12)',
             boxShadow: '0 18px 44px rgba(9, 30, 20, 0.18)',
@@ -389,7 +389,7 @@ export default function OportunidadesPopup() {
             type="button"
             onClick={dismiss}
             aria-label="Cerrar oportunidades"
-            style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,.94)', border: '1px solid #ECECEE', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32, borderRadius: '50%', background: 'var(--theme-overlay, rgba(255,255,255,.94))', border: '1px solid #ECECEE', cursor: 'pointer', color: 'var(--theme-muted, #71717A)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <X size={15} strokeWidth={2.2} />
           </button>
@@ -403,15 +403,15 @@ export default function OportunidadesPopup() {
               <span style={{ width: 96, height: 82, borderRadius: 12, background: '#EEF2F0' }} />
             )}
             <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, paddingRight: 30 }}>
-              <span style={{ alignSelf: 'flex-start', fontFamily: POPPINS, fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: meta.color, background: meta.bg, borderRadius: 999, padding: '3px 8px', whiteSpace: 'nowrap' }}>
+              <span style={{ alignSelf: 'flex-start', fontFamily: POPPINS, fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: `var(--theme-accent, ${meta.color})`, background: `var(--theme-tint, ${meta.bg})`, borderRadius: 999, padding: '3px 8px', whiteSpace: 'nowrap' }}>
                 {meta.badge}{esBaja && typeof it.pctBaja === 'number' ? ` · -${String(it.pctBaja).replace('.', ',')}%` : ''}
               </span>
-              <span style={{ fontFamily: RALEWAY, fontSize: 13.5, fontWeight: 800, color: '#1C1C1E', lineHeight: 1.18, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              <span style={{ fontFamily: RALEWAY, fontSize: 13.5, fontWeight: 800, color: 'var(--theme-ink, #1C1C1E)', lineHeight: 1.18, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                 {it.titulo}
               </span>
-              <span style={{ fontFamily: POPPINS, fontSize: 12, color: '#3A3A3A', display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 12, color: 'var(--theme-muted, #3A3A3A)', display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.precio}</span>
-                <b style={{ color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta}</b>
+                <b style={{ color: 'var(--theme-accent, #1A5C38)', whiteSpace: 'nowrap' }}>{meta.cta}</b>
               </span>
             </span>
           </Link>

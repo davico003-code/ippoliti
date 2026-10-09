@@ -46,7 +46,7 @@ export default function CaraAgenteCard({ agente, size = CARA_AGENTE_COMPU }: { a
         style={{
           bottom: -9,
           padding: '3px 10px',
-          color: '#1A5C38',
+          color: 'var(--brand)',
           fontFamily: "'Raleway', system-ui, sans-serif",
           fontWeight: 800,
           fontSize: size >= CARA_AGENTE_COMPU ? 12 : 11,

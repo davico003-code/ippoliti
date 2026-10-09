@@ -13,7 +13,7 @@ export default function FaqBarrios() {
     <section
       className="bp-faq-section"
       style={{
-        background: "#FAF7F2",
+        background: "var(--theme-surface-soft, #FAF7F2)",
         padding: "80px 0",
       }}
     >
@@ -27,7 +27,7 @@ export default function FaqBarrios() {
             fontWeight: 700,
             fontSize: 36,
             letterSpacing: "-0.015em",
-            color: "#0a0a0a",
+            color: "var(--theme-ink, #0a0a0a)",
             margin: "0 0 8px",
           }}
         >
@@ -36,7 +36,7 @@ export default function FaqBarrios() {
         <p
           style={{
             fontSize: 14,
-            color: "#777",
+            color: "var(--theme-subtle, #777)",
             margin: "0 0 36px",
             fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
           }}
@@ -53,7 +53,7 @@ export default function FaqBarrios() {
                 role="listitem"
                 className="bp-faq-item"
                 style={{
-                  background: "#fff",
+                  background: "var(--theme-surface, #fff)",
                   borderRadius: 12,
                   marginBottom: 10,
                   boxShadow: "0 1px 3px rgba(10,10,10,.05)",
@@ -78,7 +78,7 @@ export default function FaqBarrios() {
                     textAlign: "left",
                     fontSize: 15,
                     fontWeight: 600,
-                    color: "#0a0a0a",
+                    color: "var(--theme-ink, #0a0a0a)",
                     fontFamily:
                       "var(--font-poppins), 'Poppins', system-ui, sans-serif",
                     transition: "color 150ms",
@@ -91,7 +91,7 @@ export default function FaqBarrios() {
                       flexShrink: 0,
                       transform: open ? "rotate(180deg)" : "rotate(0)",
                       transition: "transform 250ms ease",
-                      color: "#777",
+                      color: "var(--theme-subtle, #777)",
                     }}
                     aria-hidden
                   />
@@ -108,7 +108,7 @@ export default function FaqBarrios() {
                       padding: "0 24px 22px",
                       fontSize: 14,
                       lineHeight: 1.65,
-                      color: "#444",
+                      color: "var(--theme-muted, #444)",
                       fontFamily:
                         "var(--font-poppins), 'Poppins', system-ui, sans-serif",
                     }}
@@ -124,7 +124,7 @@ export default function FaqBarrios() {
 
       <style
         dangerouslySetInnerHTML={{
-          __html: `.bp-faq-q:hover { color: #1A5C38 !important; }`,
+          __html: `.bp-faq-q:hover { color: var(--theme-accent, #1A5C38) !important; }`,
         }}
       />
     </section>

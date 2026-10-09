@@ -585,7 +585,7 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       {/* QUIÉNES SOMOS — intro full-width: foto de la oficina full-bleed a la
           derecha, integrada con degradé blanco; texto + stats con divisores a
           la izquierda; quote verde esmerilado sutil sobre la foto. */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: '#F7F8F7' }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: 'var(--cream)' }}>
         {/* Foto full-bleed (desktop) */}
         <div className="hidden lg:block absolute top-0 right-0 bottom-0" style={{ width: '62%' }}>
           <Image
@@ -598,8 +598,8 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
             style={{ objectPosition: 'center 40%' }}
           />
           {/* Degradé blanco que integra la foto con el fondo */}
-          <div aria-hidden className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(90deg,#F7F8F7 0%,rgba(247,248,247,.94) 12%,rgba(247,248,247,.55) 30%,rgba(247,248,247,.12) 48%,rgba(247,248,247,0) 62%)' }} />
-          <div aria-hidden className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(0deg,rgba(247,248,247,.5) 0%,rgba(247,248,247,0) 18%)' }} />
+          <div aria-hidden className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(90deg,var(--cream) 0%,color-mix(in srgb, var(--cream) 94%, transparent) 12%,color-mix(in srgb, var(--cream) 55%, transparent) 30%,transparent 62%)' }} />
+          <div aria-hidden className="absolute inset-0 z-[1]" style={{ background: 'linear-gradient(0deg,color-mix(in srgb, var(--cream) 50%, transparent) 0%,transparent 18%)' }} />
           {/* Quote verde esmerilado, sutil y compacta */}
           <div
             className="absolute z-[3] rounded-2xl"
@@ -626,17 +626,17 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
         <div className="relative z-[2] mx-auto max-w-[1440px] px-6 pt-16 pb-16 md:px-[72px] md:pt-[88px] md:pb-[80px] lg:grid lg:grid-cols-[minmax(0,560px)_1fr] lg:gap-10">
           <div>
             <div className="inline-flex items-center gap-3.5 mb-6">
-              <span style={{ width: 34, height: 2, background: '#1A5C38' }} />
-              <p className="m-0 text-xs font-bold uppercase tracking-[0.34em]" style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
+              <span style={{ width: 34, height: 2, background: 'var(--brand)' }} />
+              <p className="m-0 text-xs font-bold uppercase tracking-[0.34em]" style={{ color: 'var(--brand)', fontFamily: 'Raleway, sans-serif' }}>
                 Desde 1983
               </p>
             </div>
-            <h1 className="mb-6 font-bold" style={{ color: '#111213', fontFamily: 'Raleway, sans-serif', fontSize: 'clamp(2.4rem, 4.4vw, 4rem)', lineHeight: 1.06, letterSpacing: '-0.022em' }}>
-              Acompañamos cada decisión <span style={{ color: '#14472B' }}>importante.</span>
+            <h1 className="mb-6 font-bold" style={{ color: 'var(--foreground)', fontFamily: 'Raleway, sans-serif', fontSize: 'clamp(2.4rem, 4.4vw, 4rem)', lineHeight: 1.06, letterSpacing: '-0.022em' }}>
+              Acompañamos cada decisión <span style={{ color: 'var(--brand)' }}>importante.</span>
             </h1>
-            <span className="block mb-8" style={{ width: 64, height: 3, background: '#1A5C38' }} />
-            <p className="mb-11" style={{ color: '#4A4F4C', fontFamily: 'Raleway, sans-serif', fontSize: 17.5, lineHeight: 1.65, maxWidth: '52ch' }}>
-              Dos generaciones, <strong style={{ color: '#111213', fontWeight: 700 }}>tres oficinas entre Roldán y Funes</strong> y un mismo compromiso: acompañar cada operación con información clara, experiencia local y atención personal.
+            <span className="block mb-8" style={{ width: 64, height: 3, background: 'var(--brand)' }} />
+            <p className="mb-11" style={{ color: 'var(--tinta-soft)', fontFamily: 'Raleway, sans-serif', fontSize: 17.5, lineHeight: 1.65, maxWidth: '52ch' }}>
+              Dos generaciones, <strong style={{ color: 'var(--foreground)', fontWeight: 700 }}>tres oficinas entre Roldán y Funes</strong> y un mismo compromiso: acompañar cada operación con información clara, experiencia local y atención personal.
             </p>
             {/* Stats en fila con divisores verticales finos */}
             <div className="flex flex-col gap-4 sm:flex-row sm:gap-0 sm:items-stretch">
@@ -649,12 +649,12 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
                   key={l}
                   className={`flex items-center gap-3.5 sm:px-7 ${i === 0 ? 'sm:pl-0' : 'sm:border-l sm:border-black/15'}`}
                 >
-                  <div className="flex flex-none items-center justify-center rounded-full" style={{ width: 52, height: 52, background: '#ECEFEC' }}>
-                    <Icon size={22} style={{ color: '#1A5C38' }} strokeWidth={1.7} aria-hidden />
+                  <div className="flex flex-none items-center justify-center rounded-full" style={{ width: 52, height: 52, background: 'var(--cream-deep)' }}>
+                    <Icon size={22} style={{ color: 'var(--brand)' }} strokeWidth={1.7} aria-hidden />
                   </div>
                   <div>
-                    <div className="font-bold" style={{ color: '#111213', fontFamily: 'Raleway, sans-serif', fontSize: 17.5, lineHeight: 1.2 }}>{n}</div>
-                    <div style={{ color: '#5F6762', fontFamily: 'Raleway, sans-serif', fontSize: 13.5, lineHeight: 1.3 }}>{l}</div>
+                    <div className="font-bold" style={{ color: 'var(--foreground)', fontFamily: 'Raleway, sans-serif', fontSize: 17.5, lineHeight: 1.2 }}>{n}</div>
+                    <div style={{ color: 'var(--tinta-mute)', fontFamily: 'Raleway, sans-serif', fontSize: 13.5, lineHeight: 1.3 }}>{l}</div>
                   </div>
                 </div>
               ))}
@@ -673,7 +673,7 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
               className="object-cover"
               style={{ objectPosition: 'center 40%' }}
             />
-            <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#F7F8F7 0%,rgba(247,248,247,0) 30%)' }} />
+            <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg,var(--cream) 0%,transparent 30%)' }} />
           </div>
           <div
             className="relative z-[2] mx-5 -mt-16 ml-auto max-w-[280px] rounded-2xl"
@@ -696,13 +696,13 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       </section>
 
       {/* PRINCIPIOS — columnas limpias sin cards, ícono en círculo de línea fina */}
-      <section style={{ backgroundColor: '#F7F8F7' }} className="px-6 pb-20 pt-6 md:px-[72px] md:pb-[110px]">
+      <section style={{ backgroundColor: 'var(--cream)' }} className="px-6 pb-20 pt-6 md:px-[72px] md:pb-[110px]">
         <div className="mx-auto mb-12 flex items-center justify-center gap-4 md:mb-14">
-          <span style={{ width: 44, height: 1.5, background: '#1A5C38' }} />
-          <h2 className="m-0 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: '#1A5C38', fontFamily: 'Raleway, sans-serif' }}>
+          <span style={{ width: 44, height: 1.5, background: 'var(--brand)' }} />
+          <h2 className="m-0 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: 'var(--brand)', fontFamily: 'Raleway, sans-serif' }}>
             Nuestros principios
           </h2>
-          <span style={{ width: 44, height: 1.5, background: '#1A5C38' }} />
+          <span style={{ width: 44, height: 1.5, background: 'var(--brand)' }} />
         </div>
         <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-11 md:grid-cols-3 md:gap-16">
           {[
@@ -715,13 +715,13 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
                 className="flex items-center justify-center rounded-full bg-white"
                 style={{ width: 84, height: 84, border: '1px solid rgba(17,18,19,.1)' }}
               >
-                <Icon size={30} style={{ color: '#14472B' }} strokeWidth={1.5} aria-hidden />
+                <Icon size={30} style={{ color: 'var(--brand)' }} strokeWidth={1.5} aria-hidden />
               </div>
               <div>
-                <h3 className="mb-3 mt-1 font-extrabold uppercase tracking-[0.02em]" style={{ color: '#111213', fontFamily: 'Raleway, sans-serif', fontSize: 19 }}>
+                <h3 className="mb-3 mt-1 font-extrabold uppercase tracking-[0.02em]" style={{ color: 'var(--foreground)', fontFamily: 'Raleway, sans-serif', fontSize: 19 }}>
                   {titulo}
                 </h3>
-                <p className="m-0" style={{ color: '#4A4F4C', fontFamily: 'Raleway, sans-serif', fontSize: 15, lineHeight: 1.85 }}>
+                <p className="m-0" style={{ color: 'var(--tinta-soft)', fontFamily: 'Raleway, sans-serif', fontSize: 15, lineHeight: 1.85 }}>
                   {texto}
                 </p>
               </div>

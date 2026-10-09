@@ -13,7 +13,7 @@ function renderDato(raw: string) {
   if (!m) return raw;
   return (
     <>
-      <strong style={{ color: "#0a0a0a", fontWeight: 700 }}>{m[1]}</strong>
+      <strong style={{ color: "var(--theme-ink, #0a0a0a)", fontWeight: 700 }}>{m[1]}</strong>
       {m[2] ? ` ${m[2]}` : ""}
     </>
   );
@@ -28,7 +28,7 @@ export default function CardBarrio({ barrio }: { barrio: HubBarrio }) {
       href={`/barrios-privados/${barrio.slug}`}
       className="bp-card group block overflow-hidden"
       style={{
-        background: "#fff",
+        background: "var(--theme-surface, #fff)",
         borderRadius: 16,
         boxShadow: "0 1px 3px rgba(10,10,10,.05)",
         textDecoration: "none",
@@ -45,7 +45,7 @@ export default function CardBarrio({ barrio }: { barrio: HubBarrio }) {
           position: "relative",
           aspectRatio: "4 / 3",
           overflow: "hidden",
-          background: isProx ? PROX_GRADIENT_BG : "#f0ece2",
+          background: isProx ? PROX_GRADIENT_BG : "var(--theme-surface-soft, #f0ece2)",
         }}
       >
         {!isProx && barrio.imagenHero && (
@@ -119,7 +119,7 @@ export default function CardBarrio({ barrio }: { barrio: HubBarrio }) {
             fontFamily: "var(--font-raleway), 'Raleway', system-ui, sans-serif",
             fontWeight: 700,
             fontSize: 21,
-            color: "#0a0a0a",
+            color: "var(--theme-ink, #0a0a0a)",
             letterSpacing: "-0.01em",
             margin: "0 0 10px",
             lineHeight: 1.2,
@@ -130,7 +130,7 @@ export default function CardBarrio({ barrio }: { barrio: HubBarrio }) {
         <p
           style={{
             fontSize: 14,
-            color: "#444",
+            color: "var(--theme-muted, #444)",
             lineHeight: 1.5,
             margin: "0 0 18px",
             flex: 1,
@@ -151,7 +151,7 @@ export default function CardBarrio({ barrio }: { barrio: HubBarrio }) {
             <span
               style={{
                 fontSize: 12.5,
-                color: "#1A5C38",
+                color: "var(--theme-accent, #1A5C38)",
                 fontWeight: 600,
               }}
             >
@@ -164,7 +164,7 @@ export default function CardBarrio({ barrio }: { barrio: HubBarrio }) {
                 alignItems: "center",
                 flexWrap: "wrap",
                 fontSize: 12.5,
-                color: "#777",
+                color: "var(--theme-subtle, #777)",
                 fontWeight: 500,
               }}
             >

@@ -67,7 +67,7 @@ export default function HeroSearch() {
           style={{
             fontFamily: 'Raleway, sans-serif',
             fontSize: 15,
-            color: '#111',
+            color: 'var(--theme-ink, #111)',
             background: 'transparent',
           }}
         />
@@ -98,7 +98,7 @@ export default function HeroSearch() {
             left: 0,
             right: 0,
             marginTop: 6,
-            background: '#fff',
+            background: 'var(--theme-surface, #fff)',
             borderRadius: 12,
             boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
             overflow: 'auto',
@@ -120,19 +120,19 @@ export default function HeroSearch() {
                 textAlign: 'left',
                 padding: '10px 16px',
                 fontSize: 14,
-                color: '#111',
+                color: 'var(--theme-ink, #111)',
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f0f7f4' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f0f7f4)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
               <span style={{ flex: 1 }}>
                 {highlightMatch(zona.nombre, query)}
               </span>
-              <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0, whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 12, color: 'var(--theme-subtle, #9ca3af)', flexShrink: 0, whiteSpace: 'nowrap' }}>
                 {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
               </span>
             </button>

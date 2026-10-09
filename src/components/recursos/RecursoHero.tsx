@@ -4,9 +4,9 @@
 import Breadcrumbs from '@/components/recursos/Breadcrumbs'
 
 const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', sans-serif"
-const ACCENT = '#00754A'
-const INK = '#111111'
-const MUTED = '#666666'
+const ACCENT = 'var(--theme-accent, #00754A)'
+const INK = 'var(--theme-ink, #111111)'
+const MUTED = 'var(--theme-muted, #666666)'
 
 type Theme = 'green' | 'sand' | 'plain'
 
@@ -25,7 +25,7 @@ export default function RecursoHero({
   breadcrumbLabel?: string
 }) {
   return (
-    <section style={{ background: '#FFFFFF', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+    <section style={{ background: 'var(--theme-surface, #FFFFFF)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
       <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 clamp(22px, 5vw, 48px)' }}>
         <style dangerouslySetInnerHTML={{ __html: `
           .recurso-hero { padding: 30px 0 50px; text-align: center; -webkit-font-smoothing: antialiased; }

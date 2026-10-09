@@ -20,7 +20,7 @@ export default function RecursosCalculadoras() {
       <div className="r4wrap">
         <EncabezadoSeccion
           eyebrow="Herramientas gratis"
-          titulo={<>Antes de dar el paso, <span style={{ color: '#1A5C38' }}>hacé los números.</span></>}
+          titulo={<>Antes de dar el paso, <span style={{ color: 'var(--theme-accent, #1A5C38)' }}>hacé los números.</span></>}
           bajada="Para construir, alquilar o comprar con criterio."
           className="r4head"
         />
@@ -49,28 +49,28 @@ export default function RecursosCalculadoras() {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .r4{ --green:#1A5C38; --green-dark:#0F3F26; --paper:#F5F5F7; --ink:#111; --muted:#5b6170; --line:#eceeed;
+        .r4{ --green:var(--theme-accent, #1A5C38); --green-dark:#0F3F26; --paper:var(--cream); --ink:var(--foreground); --muted:var(--tinta-soft); --line:var(--theme-border, #eceeed);
              background:var(--paper); padding:64px 0 56px; }
         .r4 .r4wrap{ max-width:1440px; margin:0 auto; padding:0 24px; }
         @media(min-width:1024px){ .r4 .r4wrap{ padding:0 40px; } }
         .r4 .r4head{ margin:0 0 32px; }
         .r4 .trio{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; align-items:stretch; }
 
-        .r4 .card{ position:relative; background:#fff; border-radius:24px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 14px 40px -20px rgba(0,0,0,.14); transition:transform .4s cubic-bezier(.2,.7,.2,1), box-shadow .4s; }
+        .r4 .card{ position:relative; background:var(--card-surface); border-radius:24px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 14px 40px -20px rgba(0,0,0,.14); transition:transform .4s cubic-bezier(.2,.7,.2,1), box-shadow .4s; }
         .r4 .card:hover{ transform:translateY(-4px); box-shadow:0 1px 2px rgba(0,0,0,.04), 0 24px 50px -20px rgba(0,0,0,.2); }
 
-        .r4 .foto{ position:relative; height:250px; flex-shrink:0; background:#e8ece9; }
+        .r4 .foto{ position:relative; height:250px; flex-shrink:0; background:var(--theme-surface-soft, #e8ece9); }
         .r4 .foto > img{ transition:transform .8s cubic-bezier(.2,.7,.2,1); }
         .r4 .card:hover .foto > img{ transform:scale(1.03); }
-        .r4 .clock{ position:absolute; top:16px; right:16px; z-index:3; display:flex; align-items:center; gap:6px; font:600 13px ${P}; color:var(--ink); background:rgba(255,255,255,.94); padding:7px 13px; border-radius:9999px; }
+        .r4 .clock{ position:absolute; top:16px; right:16px; z-index:3; display:flex; align-items:center; gap:6px; font:600 13px ${P}; color:var(--ink); background:var(--theme-overlay, rgba(255,255,255,.94)); padding:7px 13px; border-radius:9999px; }
         .r4 .clock svg{ color:var(--ink); }
 
-        .r4 .body{ position:relative; z-index:1; flex:1; display:flex; flex-direction:column; background:#fff; border-radius:24px 24px 0 0; margin-top:-28px; padding:26px 26px 26px; }
+        .r4 .body{ position:relative; z-index:1; flex:1; display:flex; flex-direction:column; background:var(--card-surface); border-radius:24px 24px 0 0; margin-top:-28px; padding:26px 26px 26px; }
         .r4 .eyebrow{ display:flex; align-items:center; gap:9px; font:700 12.5px ${R}; color:var(--green); letter-spacing:.12em; text-transform:uppercase; margin:0; }
         .r4 .card h3{ font:800 clamp(23px,2vw,28px)/1.1 ${R}; letter-spacing:-.025em; margin:12px 0 0; color:var(--ink); }
         .r4 .bajada{ font:500 15.5px/1.45 ${R}; color:var(--muted); margin:8px 0 0; }
 
-        .r4 .caja{ margin-top:18px; background:#f4f5f4; border-radius:14px; padding:16px 20px; }
+        .r4 .caja{ margin-top:18px; background:var(--theme-surface-soft, #f4f5f4); border-radius:14px; padding:16px 20px; }
         .r4 .caja .lbl{ display:flex; align-items:baseline; gap:4px; font:500 14px ${R}; color:var(--muted); }
         .r4 .caja .num{ font:600 14px ${P}; color:var(--ink); background:transparent; border:0; border-bottom:1.5px dashed #b9c2bd; outline:0; padding:0 0 1px; text-align:center; border-radius:0; }
         .r4 .auto{ display:inline-grid; }
@@ -78,21 +78,21 @@ export default function RecursosCalculadoras() {
         .r4 .auto > span{ visibility:hidden; white-space:pre; padding:0 1px; }
         .r4 .auto > input{ width:0; min-width:100%; }
         .r4 .caja .num:focus{ border-bottom-color:var(--green); border-bottom-style:solid; }
-        .r4 .caja .big{ font:700 clamp(28px,2.6vw,36px)/1.1 ${P}; color:var(--green-dark); letter-spacing:-.02em; margin-top:4px; }
+        .r4 .caja .big{ font:700 clamp(28px,2.6vw,36px)/1.1 ${P}; color:var(--theme-accent, #0F3F26); letter-spacing:-.02em; margin-top:4px; }
         .r4 .split{ display:grid; grid-template-columns:1fr 1fr; padding:14px 0; }
         .r4 .split .mitad{ display:flex; flex-direction:column; gap:4px; padding:0 18px; min-width:0; }
-        .r4 .split .mitad + .mitad{ border-left:1px solid #e1e4e2; }
+        .r4 .split .mitad + .mitad{ border-left:1px solid var(--line); }
         .r4 .split .lbl{ font:500 13px ${R}; }
-        .r4 .split .val{ display:flex; align-items:baseline; font:700 clamp(18px,1.55vw,22px) ${P}; color:var(--green-dark); letter-spacing:-.01em; white-space:nowrap; }
+        .r4 .split .val{ display:flex; align-items:baseline; font:700 clamp(18px,1.55vw,22px) ${P}; color:var(--theme-accent, #0F3F26); letter-spacing:-.01em; white-space:nowrap; }
         .r4 .split .val .num{ font:inherit; color:inherit; text-align:left; }
         .r4 .split .val small{ font:500 11px ${P}; color:var(--muted); margin-left:2px; }
 
         .r4 .feats{ list-style:none; margin:18px 0 0; padding:0; display:grid; grid-template-columns:repeat(3,1fr); }
         .r4 .feats.cuatro{ grid-template-columns:repeat(4,1fr); }
-        .r4 .feats li{ display:flex; flex-direction:column; gap:8px; font:500 13px/1.3 ${R}; color:#374151; padding:2px 12px; }
+        .r4 .feats li{ display:flex; flex-direction:column; gap:8px; font:500 13px/1.3 ${R}; color:var(--theme-muted, #374151); padding:2px 12px; }
         .r4 .feats li:first-child{ padding-left:0; }
         .r4 .feats li + li{ border-left:1px solid var(--line); }
-        .r4 .feats svg{ color:var(--green-dark); }
+        .r4 .feats svg{ color:var(--theme-accent, #0F3F26); }
 
         .r4 .checklist{ list-style:none; margin:16px 0 0; padding:0; display:flex; flex-direction:column; gap:12px; }
         .r4 .checklist li{ display:flex; align-items:center; gap:12px; font:500 15px/1.3 ${R}; color:var(--ink); }
@@ -106,11 +106,11 @@ export default function RecursosCalculadoras() {
         .r4 .cta svg{ transition:transform .3s; }
         .r4 .card:hover .cta svg{ transform:translateX(4px); }
 
-        .r4 .trust{ list-style:none; margin:32px auto 0; padding:16px 10px; max-width:820px; display:flex; background:#fff; border-radius:9999px; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 10px 30px -18px rgba(0,0,0,.14); }
+        .r4 .trust{ list-style:none; margin:32px auto 0; padding:16px 10px; max-width:820px; display:flex; background:var(--card-surface); border-radius:9999px; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 10px 30px -18px rgba(0,0,0,.14); }
         .r4 .trust li{ flex:1; display:flex; align-items:center; justify-content:center; gap:11px; font:600 15.5px ${R}; color:var(--ink); padding:2px 12px; }
-        .r4 .trust li + li{ border-left:1px solid #e5e7eb; }
+        .r4 .trust li + li{ border-left:1px solid var(--line); }
         .r4 .trust svg{ color:var(--ink); flex-shrink:0; }
-        .r4 .s4foot{ text-align:center; font:500 12px ${R}; color:#8a8f98; margin:14px 0 0; }
+        .r4 .s4foot{ text-align:center; font:500 12px ${R}; color:var(--theme-subtle, #8a8f98); margin:14px 0 0; }
 
         @media(max-width:900px){
           .r4{ padding:48px 0 44px; }

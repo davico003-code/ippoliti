@@ -170,12 +170,12 @@ async function FeaturedPropertiesSection() {
               </span>
             </div>
           ) : (
-          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
+          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
             {price}
           </p>
           )}
           {specs.length > 0 && (
-            <p style={{ fontFamily: POPPINS, fontSize: 14, color: '#1d1d1f', margin: '0 0 4px', fontWeight: 400 }}>
+            <p style={{ fontFamily: POPPINS, fontSize: 14, color: 'var(--foreground)', margin: '0 0 4px', fontWeight: 400 }}>
               {specs.map((s, i) => (
                 <span key={i}>
                   {i > 0 && ' · '}
@@ -186,7 +186,7 @@ async function FeaturedPropertiesSection() {
             </p>
           )}
           </div>
-          <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+          <p style={{ fontFamily: POPPINS, fontSize: 13, color: 'var(--tinta-mute)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
             {direccion || address}
           </p>
           </div>

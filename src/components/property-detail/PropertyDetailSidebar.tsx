@@ -32,7 +32,7 @@ function getUsdPrice(property: TokkoProperty): number {
 }
 
 const R = "'Raleway', system-ui, sans-serif"
-const GREEN = '#1A5C38'
+const GREEN = 'var(--brand)'
 
 export default function PropertyDetailSidebar({
   property,
@@ -92,7 +92,7 @@ export default function PropertyDetailSidebar({
                       fontFamily={R}
                     />
                     <div className="flex-1 min-w-0">
-                      <span style={{ fontFamily: R, fontWeight: 700, fontSize: 16, color: '#111', display: 'block' }}>{name}</span>
+                      <span style={{ fontFamily: R, fontWeight: 700, fontSize: 16, color: 'var(--foreground)', display: 'block' }}>{name}</span>
                       <span className="text-xs text-gray-400 block truncate">
                         {subtitle}
                         {rol.matricula && <> · Mat. N° <span className="font-numeric">{rol.matricula}</span></>}
@@ -100,7 +100,7 @@ export default function PropertyDetailSidebar({
                     </div>
                     <span
                       className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0"
-                      style={{ background: '#e7f2eb', color: GREEN }}
+                      style={{ background: 'var(--theme-tint, #e7f2eb)', color: 'var(--theme-accent, #1A5C38)' }}
                     >
                       {rol.badge}
                     </span>

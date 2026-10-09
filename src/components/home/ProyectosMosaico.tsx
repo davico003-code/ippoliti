@@ -54,7 +54,7 @@ export default function ProyectosMosaico() {
       <Link href="/emprendimientos" className="seehint">Ver todos los emprendimientos →</Link>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .proj-bento{ --green:#1A5C38; }
+        .proj-bento{ --green:var(--brand); }
         .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:270px; gap:14px; margin-top:20px; }
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
         .proj-bento .wide{ grid-column:span 2; }

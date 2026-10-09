@@ -66,9 +66,9 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
     <button
       onClick={onClick}
       style={{
-        border: active ? '1.5px solid #1A5C38' : '1.5px solid #e5e7eb',
-        background: active ? 'rgba(26,92,56,0.08)' : '#fff',
-        color: active ? '#1A5C38' : '#0a0a0a',
+        border: active ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #e5e7eb)',
+        background: active ? 'var(--theme-tint, rgba(26,92,56,0.08))' : 'var(--theme-surface, #fff)',
+        color: active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
         fontFamily: R,
         fontWeight: active ? 600 : 500,
         fontSize: 14,
@@ -156,7 +156,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
           <div />
-          <span style={{ fontFamily: R, fontWeight: 700, fontSize: 20, color: '#0a0a0a' }}>Filtros</span>
+          <span style={{ fontFamily: R, fontWeight: 700, fontSize: 20, color: 'var(--theme-ink, #0a0a0a)' }}>Filtros</span>
           <button
             onClick={handleClose}
             className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center"
@@ -169,7 +169,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
           {/* Tipo */}
           <div>
-            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: '#0a0a0a', marginBottom: 12 }}>Tipo de propiedad</p>
+            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: 'var(--theme-ink, #0a0a0a)', marginBottom: 12 }}>Tipo de propiedad</p>
             <div className="flex flex-wrap gap-2">
               {(typeOptions ?? TYPE_OPTIONS).map(o => (o.value === 'todos' ? { ...o, label: 'Todas' } : o)).map(o => (
                 <Chip key={o.value} label={o.label} active={filters.type === o.value} onClick={() => onChangeFilter('type', o.value)} />
@@ -179,7 +179,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
 
           {/* Dormitorios */}
           <div>
-            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: '#0a0a0a', marginBottom: 12 }}>Dormitorios</p>
+            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: 'var(--theme-ink, #0a0a0a)', marginBottom: 12 }}>Dormitorios</p>
             <div className="flex flex-wrap gap-2">
               {BEDS_OPTIONS.map(o => (
                 <Chip key={o.value} label={o.label} active={filters.beds === o.value} onClick={() => onChangeFilter('beds', o.value)} />
@@ -189,7 +189,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
 
           {/* Precio */}
           <div>
-            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: '#0a0a0a', marginBottom: 12 }}>Rango de precio</p>
+            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: 'var(--theme-ink, #0a0a0a)', marginBottom: 12 }}>Rango de precio</p>
             {/* Currency segmented */}
             <div className="flex rounded-full bg-gray-100 p-0.5 mb-3">
               {(['USD', 'ARS'] as const).map(c => (
@@ -200,7 +200,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
                   className="flex-1 py-2 rounded-full"
                   style={{
                     background: localCur === c ? '#1A5C38' : 'transparent',
-                    color: localCur === c ? '#fff' : '#6b7280',
+                    color: localCur === c ? '#fff' : 'var(--theme-subtle, #6b7280)',
                     fontFamily: R,
                     fontSize: 13,
                     fontWeight: localCur === c ? 600 : 500,
@@ -224,10 +224,12 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
                 onBlur={commitPrice}
                 style={{
                   flex: 1,
+                  minWidth: 0,
+                  background: 'var(--theme-surface-soft, #fff)',
                   height: 48,
                   padding: '0 14px',
                   borderRadius: 12,
-                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid #e5e7eb',
+                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #e5e7eb)',
                   fontFamily: R,
                   fontSize: 16,
                   outline: 'none',
@@ -244,10 +246,12 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
                 onBlur={commitPrice}
                 style={{
                   flex: 1,
+                  minWidth: 0,
+                  background: 'var(--theme-surface-soft, #fff)',
                   height: 48,
                   padding: '0 14px',
                   borderRadius: 12,
-                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid #e5e7eb',
+                  border: priceInvalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #e5e7eb)',
                   fontFamily: R,
                   fontSize: 16,
                   outline: 'none',
@@ -263,7 +267,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
 
           {/* Ubicación */}
           <div>
-            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: '#0a0a0a', marginBottom: 12 }}>Ubicación</p>
+            <p style={{ fontFamily: R, fontWeight: 600, fontSize: 15, color: 'var(--theme-ink, #0a0a0a)', marginBottom: 12 }}>Ubicación</p>
             <div className="flex flex-wrap gap-2">
               {LOCATION_OPTIONS.map(o => (
                 <Chip key={o.value} label={o.label} active={filters.location === o.value} onClick={() => onChangeFilter('location', o.value)} />
@@ -278,7 +282,7 @@ export default function MobileFilterSheet({ open, onClose, filters, onChangeFilt
           {hasActive && (
             <button
               onClick={onReset}
-              style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{ fontFamily: R, fontSize: 14, fontWeight: 500, color: 'var(--theme-subtle, #6b7280)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               Limpiar todo
             </button>

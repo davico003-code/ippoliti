@@ -24,7 +24,7 @@ export default function EncabezadoSeccion({ eyebrow, titulo, bajada, nivel = 'h2
           fontSize: 12,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
-          color: '#00754A',
+          color: 'var(--brand)',
           margin: 0,
         }}
       >
@@ -37,7 +37,7 @@ export default function EncabezadoSeccion({ eyebrow, titulo, bajada, nivel = 'h2
           fontSize: 'clamp(28px, 3.3vw, 44px)',
           lineHeight: 1.06,
           letterSpacing: '-0.035em',
-          color: '#111',
+          color: 'var(--foreground)',
           margin: '10px 0 0',
         }}
       >
@@ -50,7 +50,7 @@ export default function EncabezadoSeccion({ eyebrow, titulo, bajada, nivel = 'h2
             fontWeight: 600,
             fontSize: 'clamp(15px, 1.2vw, 17px)',
             lineHeight: 1.5,
-            color: '#5b6170',
+            color: 'var(--tinta-soft)',
             margin: '10px 0 0',
             maxWidth: 620,
           }}

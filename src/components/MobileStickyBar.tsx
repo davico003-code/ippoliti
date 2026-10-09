@@ -92,7 +92,7 @@ export default function MobileStickyBar({
           border: '1px solid rgba(26,92,56,.12)',
           boxShadow: '0 12px 34px rgba(9,30,20,.16)',
           borderRadius: 20,
-          background: 'rgba(255,255,255,.96)',
+          background: 'var(--theme-overlay, rgba(255,255,255,.96))',
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
           padding: '7px',
@@ -158,8 +158,8 @@ export default function MobileStickyBar({
             style={{
               width: 48, height: 48,
               borderRadius: 14,
-              background: '#fff',
-              border: '1.5px solid #cfd7dc',
+              background: 'var(--theme-surface, #fff)',
+              border: '1.5px solid var(--theme-border, #cfd7dc)',
               cursor: 'pointer',
             }}
           >
@@ -176,7 +176,7 @@ export default function MobileStickyBar({
                 bottom: 'calc(100% + 12px)',
                 right: -8,
                 width: 220,
-                background: '#fff',
+                background: 'var(--theme-surface, #fff)',
                 borderRadius: 14,
                 boxShadow: '0 8px 30px rgba(0,0,0,0.18)',
                 padding: '8px 0',
@@ -210,7 +210,7 @@ export default function MobileStickyBar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#1a1a1a',
+                  color: 'var(--theme-ink, #1a1a1a)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                 }}
               >
@@ -232,7 +232,7 @@ export default function MobileStickyBar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#1a1a1a',
+                  color: 'var(--theme-ink, #1a1a1a)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                 }}
               >
@@ -254,7 +254,7 @@ export default function MobileStickyBar({
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#1a1a1a',
+                  color: 'var(--theme-ink, #1a1a1a)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   textDecoration: 'none',
                 }}
@@ -291,13 +291,13 @@ export default function MobileStickyBar({
                   cursor: generandoFicha ? 'wait' : 'pointer',
                   fontSize: 14,
                   fontWeight: 600,
-                  color: '#1A5C38',
+                  color: 'var(--theme-accent, #1A5C38)',
                   fontFamily: "'Raleway', system-ui, sans-serif",
                   opacity: generandoFicha ? 0.7 : 1,
                 }}
               >
-                <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#e7f2eb' }}>
-                  <Sparkles className="w-4 h-4" style={{ color: '#1A5C38' }} />
+                <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--theme-tint, #e7f2eb)' }}>
+                  <Sparkles className="w-4 h-4" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
                 </div>
                 {generandoFicha ? 'Generando…' : 'Link para colega'}
               </button>

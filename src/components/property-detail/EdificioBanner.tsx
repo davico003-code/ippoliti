@@ -7,7 +7,6 @@
 import Link from 'next/link'
 import { Building2, ArrowRight } from 'lucide-react'
 
-const GREEN = '#1A5C38'
 const R = "'Raleway', system-ui, sans-serif"
 
 interface Props {
@@ -28,7 +27,7 @@ export default function EdificioBanner({ nombre, slug, otrasUnidades, desde }: P
     >
       <span
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-        style={{ background: '#e7f2eb', color: GREEN }}
+        style={{ background: 'var(--theme-tint, #e7f2eb)', color: 'var(--theme-accent, #1A5C38)' }}
         aria-hidden
       >
         <Building2 className="h-5 w-5" />
@@ -45,7 +44,7 @@ export default function EdificioBanner({ nombre, slug, otrasUnidades, desde }: P
           edificio{desde ? ` · desde ${desde}` : ''}
         </span>
       </span>
-      <ArrowRight className="h-4 w-4 shrink-0" style={{ color: GREEN }} aria-hidden />
+      <ArrowRight className="h-4 w-4 shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} aria-hidden />
     </Link>
   )
 }

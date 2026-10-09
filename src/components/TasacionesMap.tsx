@@ -51,7 +51,7 @@ export default function TasacionesMap({ center, onPositionChange }: Props) {
         scrollWheelZoom={false}
         zoomControl={false}
       >
-        <TileLayer
+        <TileLayer className="si-street-tiles"
           url={VOYAGER_TILES.url}
           attribution={VOYAGER_TILES.attribution}
           maxZoom={19}

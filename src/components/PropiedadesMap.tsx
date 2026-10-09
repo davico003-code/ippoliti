@@ -510,17 +510,17 @@ function LocateButton({
           aria-pressed={nearbyActive}
           style={{
             width: 40, height: 40,
-            background: nearbyActive ? '#1A5C38' : 'white',
+            background: nearbyActive ? '#1A5C38' : 'var(--theme-surface, white)',
             borderRadius: '50%',
             boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            border: nearbyActive ? '1px solid #1A5C38' : '1px solid #e5e7eb',
+            border: nearbyActive ? '1px solid #1A5C38' : '1px solid var(--theme-border, #e5e7eb)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
             transition: 'background 0.15s, border 0.15s',
           }}
         >
           {loading ? (
-            <div style={{ width: 18, height: 18, border: '2px solid #e5e7eb', borderTopColor: nearbyActive ? '#fff' : '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+            <div style={{ width: 18, height: 18, border: '2px solid var(--theme-border, #e5e7eb)', borderTopColor: nearbyActive ? '#fff' : '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
           ) : (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={nearbyActive ? '#fff' : '#3B82F6'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="3 11 22 2 13 21 11 13 3 11" />
@@ -783,10 +783,10 @@ function SatelliteToggle({ satellite, setSatellite, manualRef }: {
         aria-pressed={satellite}
         style={{
           width: 40, height: 40,
-          background: satellite ? '#1A5C38' : 'white',
+          background: satellite ? '#1A5C38' : 'var(--theme-surface, white)',
           borderRadius: '50%',
           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-          border: satellite ? '1px solid #1A5C38' : '1px solid #e5e7eb',
+          border: satellite ? '1px solid #1A5C38' : '1px solid var(--theme-border, #e5e7eb)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer',
           transition: 'background 0.15s, border 0.15s',
@@ -878,6 +878,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       ) : (
         <TileLayer
           key="base"
+          className="si-street-tiles"
           url={VOYAGER_TILES.url}
           attribution={VOYAGER_TILES.attribution}
           maxNativeZoom={VOYAGER_TILES.maxNativeZoom}
@@ -900,16 +901,16 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       {onMapMove && <MapMoveListener onMove={onMapMove} />}
 
       {/* Legend — hidden on mobile */}
-      <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'white', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: isMobile ? 'none' : 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'var(--theme-surface, white)', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: isMobile ? 'none' : 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
-          <span style={{ color: '#666' }}>Propiedad</span>
+          <span style={{ color: 'var(--theme-muted, #666)' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 14, height: 14, background: '#0D3620', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="8" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
           </div>
-          <span style={{ color: '#666' }}>Emprendimiento</span>
+          <span style={{ color: 'var(--theme-muted, #666)' }}>Emprendimiento</span>
         </div>
       </div>
 
@@ -975,25 +976,25 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                     <span style={{
-                      fontSize: '22px', fontWeight: 800, color: '#1A5C38',
+                      fontSize: '22px', fontWeight: 800, color: 'var(--theme-accent, #1A5C38)',
                       fontFamily: "'Poppins',system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
                       lineHeight: 1.1,
                     }}>
                       {fullPrice}
                     </span>
                   </div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.3, margin: '0 0 8px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--theme-ink, #1a1a1a)', lineHeight: 1.3, margin: '0 0 8px' }}>
                     {tituloVisible(property) || property.address}
                   </h3>
-                  <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#4b5563', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--theme-muted, #4b5563)', marginBottom: '12px' }}>
                     {area != null && area > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{area}</span> m²</span>
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{area}</span> m²</span>
                     )}
                     {(property.suite_amount || property.room_amount) > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
                     )}
                     {property.bathroom_amount > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
+                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
                     )}
                   </div>
                   <button
@@ -1027,16 +1028,16 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
         >
           <Popup maxWidth={260} className="ippoliti-popup">
             <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A5C38', display: 'block', marginBottom: 4 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--theme-accent, #1A5C38)', display: 'block', marginBottom: 4 }}>
                 Emprendimiento
               </span>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', margin: '0 0 6px' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--theme-ink, #1a1a1a)', margin: '0 0 6px' }}>
                 {g.devName}
               </h3>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#1A5C38', fontFamily: "'Poppins',system-ui,sans-serif", marginBottom: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--theme-accent, #1A5C38)', fontFamily: "'Poppins',system-ui,sans-serif", marginBottom: 8 }}>
                 Desde {g.minPrice}
               </div>
-              <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#666', marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--theme-muted, #666)', marginBottom: 12 }}>
                 <span>{g.units.length} unidad{g.units.length !== 1 ? 'es' : ''}</span>
                 {g.dormRange && <span>{g.dormRange}</span>}
               </div>

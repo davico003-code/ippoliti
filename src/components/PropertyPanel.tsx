@@ -206,7 +206,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
 
       <div
         ref={scrollRef}
-        className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
+        className="si-property-panel absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
         style={{ animation: 'ppSlideIn 250ms ease-out' }}
       >
         {/* Panel header sticky — volver a la izquierda, logo SI centrado, compartir a la derecha */}
@@ -231,7 +231,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
               alt="SI INMOBILIARIA"
               width={140}
               height={28}
-              className="object-contain"
+              className="object-contain si-theme-logo"
               style={{ height: 28, width: 'auto' }}
               priority
             />

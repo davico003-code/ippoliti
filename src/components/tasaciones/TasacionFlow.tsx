@@ -181,7 +181,7 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
     : ''
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="si-tasacion min-h-screen bg-white">
       <div className={`mx-auto max-w-[520px] px-5 pt-3 ${paso === 'listo' ? 'pb-16' : 'pb-[150px]'}`}>
         {paso === 1 && (
           <PasoVender

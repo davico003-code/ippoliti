@@ -96,7 +96,7 @@ export default function HeroMobile() {
               style={{
                 fontFamily: 'Raleway, sans-serif',
                 fontSize: 14,
-                color: '#111',
+                color: 'var(--theme-ink, #111)',
               }}
             />
             <button
@@ -140,7 +140,7 @@ export default function HeroMobile() {
                   style={{
                     padding: '10px 16px',
                     fontSize: 14,
-                    color: '#111',
+                    color: 'var(--theme-ink, #111)',
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',

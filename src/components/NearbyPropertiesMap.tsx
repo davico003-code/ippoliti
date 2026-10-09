@@ -109,7 +109,7 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
           zoomControl
           className="nearby-map"
         >
-          <TileLayer
+          <TileLayer className="si-street-tiles"
             url={VOYAGER_TILES.url}
             attribution={VOYAGER_TILES.attribution}
             maxZoom={19}
@@ -124,8 +124,8 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
             <Marker key={np.id} position={[np.lat, np.lng]} icon={createPriceBubble(np.price)}>
               <Popup>
                 <div style={{ minWidth: 180, fontFamily: 'Poppins, sans-serif' }}>
-                  <p style={{ fontWeight: 800, fontSize: 15, color: '#1A5C38', margin: '0 0 4px' }}>{np.price}</p>
-                  <p style={{ fontSize: 12, color: '#374151', margin: '0 0 10px', lineHeight: 1.4 }}>{np.title}</p>
+                  <p style={{ fontWeight: 800, fontSize: 15, color: 'var(--theme-accent, #1A5C38)', margin: '0 0 4px' }}>{np.price}</p>
+                  <p style={{ fontSize: 12, color: 'var(--theme-muted, #374151)', margin: '0 0 10px', lineHeight: 1.4 }}>{np.title}</p>
                   <Link
                     href={`/propiedades/${np.slug}`}
                     style={{ display: 'block', textAlign: 'center', background: '#1A5C38', color: 'white', fontSize: 12, fontWeight: 700, padding: '8px 14px', borderRadius: '8px', textDecoration: 'none' }}

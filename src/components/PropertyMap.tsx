@@ -91,7 +91,7 @@ export default function PropertyMap({ lat, lng, address }: Props) {
         scrollWheelZoom={false}
         zoomControl
       >
-        <TileLayer
+        <TileLayer className="si-street-tiles"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           maxZoom={19}

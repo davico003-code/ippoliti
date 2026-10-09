@@ -138,7 +138,7 @@ export default function VisitWidget({
     return (
       <div className={`${CARD} text-center`}>
         <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: '#E8F1ED' }}>
-          <Check className="w-7 h-7" style={{ color: GREEN }} />
+          <Check className="w-7 h-7" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
         </div>
         <p className="text-[17px] font-bold text-gray-900 mb-1.5">¡Casi listo!</p>
         <p className="text-sm text-gray-500 mb-4">
@@ -170,7 +170,7 @@ export default function VisitWidget({
       {/* Header */}
       <div className="flex items-center gap-3 mb-1">
         <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#E8F1ED' }}>
-          <Calendar className="w-5 h-5" style={{ color: GREEN }} />
+          <Calendar className="w-5 h-5" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
         </span>
         <h3 className="text-xl font-bold text-gray-900">Agendar visita</h3>
         {onClose && (
@@ -246,7 +246,7 @@ export default function VisitWidget({
                 onClick={() => setSelectedHour(h)}
                 aria-pressed={active}
                 className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-semibold font-numeric transition-all"
-                style={active ? { border: `2px solid ${GREEN}`, background: '#F4F8F5', color: GREEN } : { border: '1px solid #e5e7eb', color: '#374151' }}
+                style={active ? { border: `2px solid ${GREEN}`, background: '#F4F8F5', color: 'var(--theme-accent, #1A5C38)' } : { border: '1px solid #e5e7eb', color: 'var(--theme-muted, #374151)' }}
               >
                 <Clock className="w-3.5 h-3.5" style={{ color: active ? GREEN : '#9ca3af' }} />
                 {h}
