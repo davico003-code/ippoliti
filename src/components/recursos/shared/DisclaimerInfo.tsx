@@ -3,9 +3,9 @@ export default function DisclaimerInfo() {
     <div
       className="rounded-2xl px-5 py-4 flex gap-3 items-start text-[13px] leading-relaxed"
       style={{
-        background: '#FEF7EC',
-        border: '1px solid #F0DEB8',
-        color: '#6B5316',
+        background: 'var(--theme-warning-surface, #FEF7EC)',
+        border: '1px solid var(--theme-border, #F0DEB8)',
+        color: 'var(--theme-warning-ink, #6B5316)',
       }}
     >
       <span
@@ -18,7 +18,7 @@ export default function DisclaimerInfo() {
       <div>
         <strong
           className="block font-bold uppercase tracking-[0.8px] text-[10.5px] mb-[3px]"
-          style={{ color: '#4A3A0F' }}
+          style={{ color: 'var(--theme-warning-ink, #4A3A0F)' }}
         >
           Aclaración importante
         </strong>

@@ -45,7 +45,7 @@ function Toggle<T extends string>({
       className="grid gap-1.5 p-1 rounded-lg"
       style={{
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        background: '#FAFAF7',
+        background: 'var(--theme-surface-soft, #FAFAF7)',
         border: '1px solid var(--line)',
       }}
     >
@@ -150,7 +150,7 @@ function NumInput({
     <div
       className="flex items-center rounded-lg transition-all focus-within:bg-white"
       style={{
-        background: '#FAFAF7',
+        background: 'var(--theme-surface-soft, #FAFAF7)',
         border: '1px solid var(--line)',
       }}
     >
@@ -471,7 +471,7 @@ export default function CalculadoraCostos() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: '#FAFAF7' }}
+      style={{ background: 'var(--theme-surface-soft, #FAFAF7)' }}
     >
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes recursosFlash {
@@ -503,7 +503,7 @@ export default function CalculadoraCostos() {
         {/* ── HERO ── */}
         <header className="mb-7">
           <div className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[1.4px] mb-3"
-               style={{ color: 'var(--si-green)' }}>
+               style={{ color: 'var(--theme-accent, var(--si-green))' }}>
             <span
               aria-hidden
               className="w-2 h-2 rounded-full animate-pulse-slow"
@@ -520,7 +520,7 @@ export default function CalculadoraCostos() {
         {/* ── CONFIG CARD ── */}
         <section
           className="rounded-2xl p-6 mb-4 shadow-sm"
-          style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+          style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
         >
           <div className="mb-4">
             <Label>Moneda</Label>
@@ -578,7 +578,7 @@ export default function CalculadoraCostos() {
           ) : (
             <div
               className="rounded-lg px-4 py-3 mb-4 text-[13px] leading-relaxed"
-              style={{ background: 'var(--si-green-tint)', color: 'var(--si-green-dark)' }}
+              style={{ background: 'var(--theme-tint, var(--si-green-tint))', color: 'var(--theme-accent, var(--si-green-dark))' }}
             >
               <strong className="block uppercase tracking-[0.6px] text-[11px] mb-1">
                 Ajuste anual
@@ -618,7 +618,7 @@ export default function CalculadoraCostos() {
               className="grid gap-1.5 p-1 rounded-lg"
               style={{
                 gridTemplateColumns: 'repeat(3, 1fr)',
-                background: '#FAFAF7',
+                background: 'var(--theme-surface-soft, #FAFAF7)',
                 border: '1px solid var(--line)',
               }}
             >
@@ -733,15 +733,15 @@ export default function CalculadoraCostos() {
         {alquiler === 0 && (
           <section
             className="rounded-2xl p-7 mb-4 text-center recursos-fadein"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <div
               aria-hidden
               className="mx-auto mb-3 flex items-center justify-center rounded-full"
               style={{
                 width: 52, height: 52,
-                background: 'var(--si-green-tint)',
-                color: 'var(--si-green)',
+                background: 'var(--theme-tint, var(--si-green-tint))',
+                color: 'var(--theme-accent, var(--si-green))',
               }}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -757,7 +757,7 @@ export default function CalculadoraCostos() {
             </div>
             <div
               className="text-[11px] font-bold uppercase tracking-[1.6px] mb-2"
-              style={{ color: 'var(--si-green)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))' }}
             >
               Para empezar
             </div>
@@ -783,11 +783,11 @@ export default function CalculadoraCostos() {
           {/* DESGLOSE — card unificada: filas + línea separadora + total al final */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <h2
               className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-2 pb-2.5"
-              style={{ color: 'var(--si-green)', borderBottom: '1px solid var(--line)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))', borderBottom: '1px solid var(--line)' }}
             >
               Costos al ingresar — desglose
             </h2>
@@ -926,11 +926,11 @@ export default function CalculadoraCostos() {
           {/* TIMELINE */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <h2
               className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-3.5 pb-2.5"
-              style={{ color: 'var(--si-green)', borderBottom: '1px solid var(--line)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))', borderBottom: '1px solid var(--line)' }}
             >
               Cronograma estimado
             </h2>
@@ -966,11 +966,11 @@ export default function CalculadoraCostos() {
           {/* ── CTA DESCARGAR + COMPARTIR — botonera compacta dual ──────────── */}
           <section
             className="rounded-2xl px-6 py-4 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <div
               className="text-[10px] font-bold uppercase tracking-[1.6px] mb-3"
-              style={{ color: 'var(--si-green)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))' }}
             >
               Planilla de costos · PDF A4
             </div>
@@ -1023,8 +1023,8 @@ export default function CalculadoraCostos() {
                 aria-label="Compartir el cálculo por link o app nativa"
                 className="group relative text-left rounded-xl px-4 py-3 overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
                 style={{
-                  background: '#FFFFFF',
-                  color: 'var(--si-green)',
+                  background: 'var(--theme-surface, #FFFFFF)',
+                  color: 'var(--theme-accent, var(--si-green))',
                   border: '1.5px solid var(--si-green)',
                 }}
               >
@@ -1035,9 +1035,9 @@ export default function CalculadoraCostos() {
                     style={{
                       width: 44,
                       height: 44,
-                      background: 'var(--si-green-tint)',
+                      background: 'var(--theme-tint, var(--si-green-tint))',
                       border: '1px solid var(--si-green)',
-                      color: 'var(--si-green)',
+                      color: 'var(--theme-accent, var(--si-green))',
                     }}
                   >
                     {/* SVG inline (no lucide): cuadrado con flecha hacia arriba — share */}
@@ -1069,11 +1069,11 @@ export default function CalculadoraCostos() {
           {/* GARANTÍAS QUE NECESITÁS */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <h3
               className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-3"
-              style={{ color: 'var(--si-green)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))' }}
             >
               Garantías que necesitás — opción 1 ó 2
             </h3>
@@ -1093,7 +1093,7 @@ export default function CalculadoraCostos() {
           <section className="mb-4 grid gap-3">
             <div
               className="rounded-2xl px-5 py-4 text-[13px] leading-relaxed"
-              style={{ background: 'var(--si-green-tint)', color: 'var(--si-green-dark)' }}
+              style={{ background: 'var(--theme-tint, var(--si-green-tint))', color: 'var(--theme-accent, var(--si-green-dark))' }}
             >
               <strong className="block font-bold uppercase text-[11px] tracking-[0.8px] mb-1">
                 Impuestos a cargo del locatario
@@ -1103,13 +1103,13 @@ export default function CalculadoraCostos() {
             <div
               className="rounded-2xl px-5 py-4 text-[13px] leading-relaxed"
               style={{
-                background: '#FFF8E6',
+                background: 'var(--theme-warning-surface, #FFF8E6)',
                 borderLeft: '3px solid #D4A93B',
-                color: '#6B5316',
+                color: 'var(--theme-warning-ink, #6B5316)',
               }}
             >
               <strong className="block font-bold uppercase text-[11px] tracking-[0.8px] mb-1"
-                      style={{ color: '#4A3A0F' }}>
+                      style={{ color: 'var(--theme-warning-ink, #4A3A0F)' }}>
                 Importante — seguro obligatorio
               </strong>
               Al ingresar, el locatario debe contar con seguro contra incendio,
@@ -1125,11 +1125,11 @@ export default function CalculadoraCostos() {
         {/* FAQ */}
         <section
           className="recursos-faq rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-          style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+          style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
         >
           <h2
             className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-2"
-            style={{ color: 'var(--si-green)' }}
+            style={{ color: 'var(--theme-accent, var(--si-green))' }}
           >
             Dudas frecuentes
           </h2>
@@ -1306,7 +1306,7 @@ function GarantiaNum({ children }: { children: React.ReactNode }) {
   return (
     <span
       className="flex-shrink-0 w-6 h-6 rounded-full font-poppins font-bold text-[12px] flex items-center justify-center mt-0.5"
-      style={{ background: 'var(--si-green-tint)', color: 'var(--si-green)' }}
+      style={{ background: 'var(--theme-tint, var(--si-green-tint))', color: 'var(--theme-accent, var(--si-green))' }}
     >
       {children}
     </span>

@@ -133,6 +133,8 @@ html[data-theme='dark'] {
   --theme-accent: #8bd3ac;
   --theme-tint: #26392f;
   --theme-border: #383c40;
+  --theme-warning-surface: #393122;
+  --theme-warning-ink: #edd7a8;
 }
 
 .si-theme-toggle {

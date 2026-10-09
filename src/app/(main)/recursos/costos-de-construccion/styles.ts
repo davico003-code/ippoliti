@@ -8,21 +8,21 @@ export const COSTOS_STYLES = `
     --c-verde-vivo: #34A065;
     --c-carbon: #24292B;
     --c-carbon-claro: #353B3D;
-    --c-menta: #EFF1F0;
-    --c-menta-suave: #F6F7F7;
-    --c-surface: #ffffff;
-    --c-text-dark: #1F2624;
-    --c-text-muted: #626B67;
-    --c-border: #E4E7E6;
-    --c-ganancia: #15803d;
-    --c-ganancia-bg: #F0FAF3;
+    --c-menta: var(--theme-surface-soft, #EFF1F0);
+    --c-menta-suave: var(--theme-surface-soft, #F6F7F7);
+    --c-surface: var(--theme-surface, #ffffff);
+    --c-text-dark: var(--theme-ink, #1F2624);
+    --c-text-muted: var(--theme-muted, #626B67);
+    --c-border: var(--theme-border, #E4E7E6);
+    --c-ganancia: var(--theme-accent, #15803d);
+    --c-ganancia-bg: var(--theme-tint, #F0FAF3);
     --c-shadow-sm: 0 2px 8px rgba(30, 38, 35, 0.06);
     --c-shadow-md: 0 12px 32px -8px rgba(30, 38, 35, 0.14);
     --c-shadow-lg: 0 24px 48px -12px rgba(30, 38, 35, 0.22);
     --c-radius: 16px;
     --c-radius-sm: 10px;
     font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
-    background: #F8F9F9;
+    background: var(--theme-surface-soft, #F8F9F9);
     color: var(--c-text-dark);
     line-height: 1.65;
   }
@@ -37,18 +37,18 @@ export const COSTOS_STYLES = `
     display: inline-block; margin-top: 18px;
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
     font-size: 12px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--c-verde); background: var(--c-menta);
+    color: var(--theme-accent, var(--c-verde)); background: var(--c-menta);
     padding: 8px 18px; border-radius: 100px;
   }
   .costos-header h1 {
-    color: var(--c-verde-profundo);
+    color: var(--theme-accent, var(--c-verde-profundo));
     font-size: clamp(26px, 6vw, 46px); font-weight: 900; line-height: 1.12;
     margin: 0 0 14px; letter-spacing: -1px;
   }
   .costos-header p { color: var(--c-text-muted); font-size: 17px; margin: 0; }
 
   .costos-block-title {
-    color: var(--c-verde-profundo);
+    color: var(--theme-accent, var(--c-verde-profundo));
     font-size: 25px; font-weight: 800; letter-spacing: -0.4px;
     margin: 0 0 24px; display: flex; align-items: center; gap: 14px;
   }
@@ -75,11 +75,11 @@ export const COSTOS_STYLES = `
     border-radius: 100px; padding: 5px 13px; margin-bottom: 14px;
   }
   .costos-def-card h4 {
-    font-size: 17px; font-weight: 800; color: var(--c-verde-profundo);
+    font-size: 17px; font-weight: 800; color: var(--theme-accent, var(--c-verde-profundo));
     letter-spacing: -0.2px; margin: 0 0 8px;
   }
   .costos-def-card p { font-size: 13.5px; color: var(--c-text-muted); line-height: 1.7; margin: 0; }
-  .costos-def-featured { background: var(--c-verde-profundo); border-color: var(--c-verde-profundo); }
+  .costos-def-featured { background: var(--c-verde-profundo); border-color: var(--theme-accent, var(--c-verde-profundo)); }
   .costos-def-featured .costos-def-tag { background: rgba(255,255,255,0.14); color: #A7E3C0; }
   .costos-def-featured h4 { color: #fff; }
   .costos-def-featured p { color: rgba(255,255,255,0.78); }
@@ -105,20 +105,20 @@ export const COSTOS_STYLES = `
   .costos-table tbody tr:hover td { background-color: var(--c-menta-suave); }
   .costos-td-title {
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
-    font-weight: 800; color: var(--c-verde-profundo); font-size: 16px; white-space: nowrap;
+    font-weight: 800; color: var(--theme-accent, var(--c-verde-profundo)); font-size: 16px; white-space: nowrap;
   }
   .costos-td-surface { font-size: 12.5px; font-weight: 600; color: var(--c-verde-medio); white-space: nowrap; }
   .costos-td-desc { font-size: 13px; color: var(--c-text-muted); line-height: 1.65; min-width: 280px; }
   .costos-td-price { font-weight: 500; color: var(--c-text-dark); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .costos-td-highlight {
-    font-weight: 700; color: var(--c-verde); background: var(--c-menta-suave);
+    font-weight: 700; color: var(--theme-accent, var(--c-verde)); background: var(--c-menta-suave);
     font-size: 16px; white-space: nowrap; font-variant-numeric: tabular-nums;
   }
   .costos-examples-table th { background: var(--c-carbon-claro); }
   .costos-badge-barrio {
     display: inline-block; background: var(--c-menta);
     padding: 4px 12px; border-radius: 100px;
-    font-size: 12px; font-weight: 600; color: var(--c-verde); margin-top: 7px;
+    font-size: 12px; font-weight: 600; color: var(--theme-accent, var(--c-verde)); margin-top: 7px;
   }
   .costos-td-success {
     font-weight: 700; color: var(--c-ganancia); background: var(--c-ganancia-bg);
@@ -135,7 +135,7 @@ export const COSTOS_STYLES = `
     background-color: var(--c-menta); padding: 26px 30px;
     border-radius: var(--c-radius-sm); border-left: 4px solid var(--c-verde);
   }
-  .costos-disclaimer strong { color: var(--c-verde-profundo); font-weight: 600; }
+  .costos-disclaimer strong { color: var(--theme-accent, var(--c-verde-profundo)); font-weight: 600; }
   .costos-disclaimer p { margin: 0 0 10px; }
   .costos-disclaimer p:last-child { margin-bottom: 0; }
 
@@ -147,7 +147,7 @@ export const COSTOS_STYLES = `
     display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: center;
   }
   .costos-chart-info h3 {
-    font-size: 24px; font-weight: 800; color: var(--c-verde-profundo);
+    font-size: 24px; font-weight: 800; color: var(--theme-accent, var(--c-verde-profundo));
     letter-spacing: -0.4px; margin: 0 0 10px;
   }
   .costos-chart-info > p { font-size: 15px; color: var(--c-text-muted); margin: 0 0 32px; }
@@ -158,7 +158,7 @@ export const COSTOS_STYLES = `
   }
   .costos-legend-item:last-child { border-bottom: none; }
   .costos-legend-item .costos-pct {
-    margin-left: auto; font-weight: 600; color: var(--c-verde-profundo);
+    margin-left: auto; font-weight: 600; color: var(--theme-accent, var(--c-verde-profundo));
     font-variant-numeric: tabular-nums;
   }
   .costos-legend-dot { width: 13px; height: 13px; border-radius: 4px; display: inline-block; flex-shrink: 0; }
@@ -188,7 +188,7 @@ export const COSTOS_STYLES = `
   }
   .costos-hole-value {
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
-    font-size: 30px; font-weight: 900; color: var(--c-verde-profundo); letter-spacing: -0.5px;
+    font-size: 30px; font-weight: 900; color: var(--theme-accent, var(--c-verde-profundo)); letter-spacing: -0.5px;
   }
 
   /* Estimador (calculadora) */
@@ -226,7 +226,7 @@ export const COSTOS_STYLES = `
     border-radius: var(--c-radius-sm); border: 2px solid transparent;
     font-family: var(--font-poppins), 'Poppins', system-ui, sans-serif;
     font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;
-    color: var(--c-verde-profundo); background: #fff;
+    color: var(--theme-accent, var(--c-verde-profundo)); background: var(--theme-surface, #fff);
     transition: border-color 0.25s, box-shadow 0.25s; outline: none; appearance: none;
   }
   input.costos-has-prefix { padding-left: 58px; }
@@ -244,7 +244,7 @@ export const COSTOS_STYLES = `
     transform: translateY(-70%) rotate(45deg); pointer-events: none;
   }
   .costos-btn-calc {
-    background: #fff; color: var(--c-verde-profundo);
+    background: var(--theme-surface, #fff); color: var(--theme-accent, var(--c-verde-profundo));
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
     font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px;
     padding: 19px 40px; border: none; border-radius: var(--c-radius-sm);
@@ -295,7 +295,7 @@ export const COSTOS_STYLES = `
   }
   .costos-res-cta-botones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   .costos-res-btn-david {
-    display: inline-block; background: #fff; color: var(--c-verde-profundo); text-decoration: none;
+    display: inline-block; background: var(--theme-surface, #fff); color: var(--theme-accent, var(--c-verde-profundo)); text-decoration: none;
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
     padding: 14px 28px; border-radius: 100px;
     font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
@@ -341,14 +341,14 @@ export const COSTOS_STYLES = `
   }
   .costos-flow-q {
     background: var(--c-surface); border: 2px solid var(--c-verde);
-    color: var(--c-verde-profundo);
+    color: var(--theme-accent, var(--c-verde-profundo));
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
     font-weight: 800; font-size: 14px; line-height: 1.35; text-align: center;
     padding: 14px 24px; border-radius: 100px; box-shadow: var(--c-shadow-sm);
     position: relative; z-index: 1; max-width: 280px;
   }
   .costos-flow-start {
-    background: var(--c-carbon); border-color: var(--c-carbon);
+    background: var(--c-carbon); border-color: var(--theme-ink, var(--c-carbon));
     color: #fff; font-size: 15px; letter-spacing: 0.3px;
   }
   .costos-flow-leaf {
@@ -366,7 +366,7 @@ export const COSTOS_STYLES = `
   .costos-flow-leaf strong {
     display: block;
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
-    font-size: 15px; font-weight: 800; color: var(--c-verde-profundo);
+    font-size: 15px; font-weight: 800; color: var(--theme-accent, var(--c-verde-profundo));
     line-height: 1.3; margin-bottom: 4px;
   }
   .costos-flow-leaf em { font-style: normal; font-size: 12.5px; color: var(--c-text-muted); }
@@ -377,7 +377,7 @@ export const COSTOS_STYLES = `
     padding: 3px 13px; border-radius: 100px;
   }
   .costos-branch-si { background: var(--c-verde); color: #fff; }
-  .costos-branch-no { background: var(--c-surface); color: var(--c-verde-profundo); border: 2px solid #D3D8D6; }
+  .costos-branch-no { background: var(--c-surface); color: var(--theme-accent, var(--c-verde-profundo)); border: 2px solid #D3D8D6; }
 
   /* CTA */
   .costos-cta {
@@ -386,13 +386,13 @@ export const COSTOS_STYLES = `
   }
   .costos-cta-intro { text-align: center; max-width: 760px; margin: 0 auto 52px; }
   .costos-cta-intro h3 {
-    font-size: clamp(26px, 4vw, 34px); color: var(--c-verde-profundo);
+    font-size: clamp(26px, 4vw, 34px); color: var(--theme-accent, var(--c-verde-profundo));
     margin: 0 0 16px; font-weight: 900; letter-spacing: -0.8px;
   }
   .costos-cta-intro p { font-size: 17px; color: var(--c-text-muted); margin: 0; }
   .costos-cta-footer { text-align: center; margin-top: 44px; }
   .costos-cta-footer h4 {
-    font-size: 21px; color: var(--c-verde-profundo);
+    font-size: 21px; color: var(--theme-accent, var(--c-verde-profundo));
     margin: 0 0 26px; font-weight: 700; letter-spacing: -0.3px;
   }
   .costos-btn-cafe {
@@ -407,7 +407,7 @@ export const COSTOS_STYLES = `
   .costos-btn-cafe:focus-visible { outline: 3px solid var(--c-verde-vivo); outline-offset: 3px; }
   .costos-cta-botones { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
   .costos-btn-compartir {
-    display: inline-block; background: transparent; color: var(--c-verde); text-decoration: none;
+    display: inline-block; background: transparent; color: var(--theme-accent, var(--c-verde)); text-decoration: none;
     font-family: var(--font-raleway), 'Raleway', system-ui, sans-serif;
     padding: 18px 38px; border-radius: 100px; border: 2px solid var(--c-verde);
     font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;
@@ -517,7 +517,7 @@ export const COSTOS_STYLES = `
     box-shadow: var(--c-shadow-sm);
   }
   .costos-calc-detalle h3 {
-    font-size: 17px; font-weight: 800; color: var(--c-verde-profundo);
+    font-size: 17px; font-weight: 800; color: var(--theme-accent, var(--c-verde-profundo));
     margin: 0 0 14px; letter-spacing: -0.2px;
   }
   .costos-calc-detalle ul { margin: 0 0 18px; padding-left: 18px; }
@@ -536,7 +536,7 @@ export const COSTOS_STYLES = `
     box-shadow: var(--c-shadow-sm);
   }
   .costos-calc-cta h3 {
-    font-size: 22px; font-weight: 900; color: var(--c-verde-profundo);
+    font-size: 22px; font-weight: 900; color: var(--theme-accent, var(--c-verde-profundo));
     margin: 0 0 20px; letter-spacing: -0.4px;
   }
   @media (max-width: 768px) {
