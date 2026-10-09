@@ -104,7 +104,7 @@ const LEFT_ITEMS = [
 const RIGHT_ITEMS = [
   { href: '/barrios-privados', label: 'Barrios cerrados' },
   { href: '/nosotros', label: 'Nosotros' },
-  { href: '/blog', label: 'Blog' },
+  { href: '/contenidos', label: 'Contenidos' },
   { href: '/recursos', label: 'Recursos' },
 ]
 

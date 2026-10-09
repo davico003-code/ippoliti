@@ -31,6 +31,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: 'Recursos y calculadoras', href: '/recursos' },
       { label: 'Informes de mercado', href: '/informes' },
       { label: 'Guía del Comprador', href: '/guia' },
+      { label: 'Mundo SI · Videos y charlas', href: '/contenidos' },
       { label: 'Blog', href: '/blog' },
       { label: 'Nosotros', href: '/nosotros' },
     ],
