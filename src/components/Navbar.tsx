@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, User, X } from 'lucide-react'
 import FranjaMundial from './FranjaMundial'
+import ThemeToggle from './ThemeToggle'
 
 const R = "'Raleway', system-ui, sans-serif"
 
@@ -118,7 +119,7 @@ function NavLink({ href, label, transparent }: { href: string; label: string; tr
       style={{
         fontFamily: R,
         fontWeight: 500,
-        color: transparent ? '#fff' : '#111',
+        color: transparent ? '#fff' : 'var(--foreground)',
         textDecoration: 'none',
         textShadow: transparent ? '0 1px 4px rgba(0,0,0,0.45)' : 'none',
       }}
@@ -173,8 +174,8 @@ export default function Navbar() {
       <nav
         className="hidden lg:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: transparent ? 'transparent' : '#fff',
-          borderBottom: transparent ? '1px solid transparent' : '1px solid #eee',
+          background: transparent ? 'transparent' : 'var(--background)',
+          borderBottom: transparent ? '1px solid transparent' : '1px solid var(--line)',
           boxShadow: transparent ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
         }}
       >
@@ -183,7 +184,7 @@ export default function Navbar() {
             ajustado (menos margen lateral y menos separación entre links). */}
         <div className="relative mx-auto flex items-center px-6 xl:px-10 py-[18px]" style={{ maxWidth: 1400 }}>
           {/* Left menu */}
-          <div className="flex items-center gap-4 xl:gap-8">
+          <div className="flex items-center gap-4 xl:gap-5">
             {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
@@ -217,7 +218,7 @@ export default function Navbar() {
                 alt="SI INMOBILIARIA"
                 width={191}
                 height={28}
-                className="object-contain"
+                className="object-contain si-theme-logo"
                 priority
                 quality={90}
               />
@@ -227,8 +228,9 @@ export default function Navbar() {
           </Link>
 
           {/* Right menu + CTA */}
-          <div className="ml-auto flex items-center gap-4 xl:gap-8">
+          <div className="ml-auto flex items-center gap-4 xl:gap-5">
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
+            <ThemeToggle className={transparent ? 'si-theme-toggle--hero' : ''} />
             <IngresarButton agent={agent} />
           </div>
         </div>
@@ -257,7 +259,7 @@ export default function Navbar() {
               alt="SI INMOBILIARIA"
               width={164}
               height={24}
-              className="object-contain"
+              className="object-contain si-theme-logo"
               priority
               quality={90}
             />
@@ -265,8 +267,8 @@ export default function Navbar() {
             <FranjaMundial scrolled={true} />
           </Link>
 
-          {/* Right — Ingresar (círculo con halo) */}
-          <IngresarButton agent={agent} />
+          {/* Right — tema e ingreso */}
+          <div className="flex items-center gap-2"><ThemeToggle /><IngresarButton agent={agent} /></div>
         </div>
       </nav>
 
@@ -275,7 +277,7 @@ export default function Navbar() {
         <div className="lg:hidden fixed inset-0 z-[9990]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
           <div
-            className="absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl"
+            className="si-theme-drawer absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl"
             style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)', animation: 'slideRight 200ms ease-out' }}
           >
             <div className="px-5 pb-4 mb-2 border-b border-gray-100 flex items-center justify-between">
@@ -285,7 +287,7 @@ export default function Navbar() {
                   alt="SI INMOBILIARIA"
                   width={164}
                   height={24}
-                  className="object-contain"
+                  className="object-contain si-theme-logo"
                   quality={90}
                 />
               </Link>

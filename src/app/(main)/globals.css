@@ -106,13 +106,64 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Remove default dark mode override to maintain brand identity */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #1a1a1a;
-  }
+/* El visitante elige el tema; la preferencia del sistema se usa solo la primera vez. */
+html[data-theme='dark'] {
+  --background: #111916;
+  --foreground: #edf2ee;
+  --brand: #79c99b;
+  --brand-light: #1d3327;
+  --cream: #17231c;
+  --cream-deep: #223329;
+  --tinta: #edf2ee;
+  --tinta-soft: #c3d0c7;
+  --tinta-mute: #a6b4aa;
+  --line: #34463a;
+  --usd: #81bfea;
+  --usd-dark: #a4d4f4;
 }
+
+.si-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 9999px;
+  color: var(--foreground);
+  background: transparent;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.si-theme-toggle:hover { background: var(--brand-light); }
+.si-theme-toggle:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.si-theme-toggle--hero { color: white; border-color: rgba(255,255,255,.65); }
+.si-theme-toggle--hero:hover { background: rgba(255,255,255,.18); }
+html[data-theme='dark'] .si-theme-logo { content: url('/logo-blanco.png'); }
+html[data-theme='dark'] .si-theme-drawer { background: #17231c; color: var(--foreground); }
+html[data-theme='dark'] .si-theme-drawer :is(.text-gray-800, .text-gray-500) { color: var(--foreground); }
+html[data-theme='dark'] .si-theme-drawer :is(.bg-gray-100, .hover\:bg-gray-50:hover) { background: #223329; }
+html[data-theme='dark'] .si-theme-drawer .border-gray-100 { border-color: var(--line); }
+
+/* Superficies y texto compartidos de la web pública. Las imágenes y los
+   controles con colores propios conservan su tratamiento. */
+html[data-theme='dark'] body,
+html[data-theme='dark'] main { background-color: var(--background); color: var(--foreground); }
+html[data-theme='dark'] :is(main, nav, footer).bg-white,
+html[data-theme='dark'] :is(main, nav, footer) .bg-white:not([class*='bg-white/']) { background-color: #17231c; }
+html[data-theme='dark'] :is(main, nav, footer) :is(.bg-gray-50, .bg-gray-100, .bg-\[\#F5F5F7\]) { background-color: #1d2b22; }
+html[data-theme='dark'] :is(main, nav, footer) :is(.text-gray-950, .text-gray-900, .text-gray-800, .text-gray-700, .text-black, [class~='text-[#173229]']) { color: #edf2ee; }
+html[data-theme='dark'] :is(main, nav, footer) :is(.text-gray-600, .text-gray-500, .text-gray-400) { color: #b4c3b8; }
+html[data-theme='dark'] :is(main, nav, footer) :is(.border-gray-100, .border-gray-200, .border-gray-300) { border-color: var(--line); }
+html[data-theme='dark'] main [class~='bg-[#F4F7F2]'] { background-color: #1d2b22; }
+html[data-theme='dark'] .si-tasacion :is([class~='text-[#121A15]'], [class~='text-[#3C4A42]']) { color: #edf2ee; }
+html[data-theme='dark'] .si-tasacion [class~='text-[#6B766E]'] { color: #b4c3b8; }
+html[data-theme='dark'] .si-tasacion [class~='text-[#17613C]'] { color: #79c99b; }
+html[data-theme='dark'] .si-tasacion :is([class~='bg-[#EAF3ED]'], [class~='bg-[#F2F4F0]'], [class~='bg-white/95']) { background-color: #223329; }
+html[data-theme='dark'] .si-tasacion [class~='bg-[#FFF7E8]'] { background-color: #3c321d; }
+html[data-theme='dark'] .si-tasacion :is([class~='border-[#E1E6E1]'], [class~='border-[#B9C6BD]']) { border-color: var(--line); }
+html[data-theme='dark'] :is(input, textarea, select) { color-scheme: dark; }
 
 @layer utilities {
   .font-numeric {

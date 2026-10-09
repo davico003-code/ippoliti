@@ -41,6 +41,7 @@ import { GripVertical } from 'lucide-react'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesktopGridSkeleton'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
+import ThemeToggle from '@/components/ThemeToggle'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { trackEvent } from '@/lib/analytics'
@@ -506,7 +507,6 @@ function PriceFilterDropdown({
               </button>
             ))}
           </div>
-
           {/* Inputs min/max */}
           <div className="flex w-full items-center gap-2 mb-3">
             <input
@@ -1476,6 +1476,7 @@ export default function PropiedadesView({
               </div>
             )}
           </div>
+          <ThemeToggle />
         </div>
 
         {/* Row 2: Operation toggle + Filters button */}

@@ -6,11 +6,11 @@ import { FranjaFooterMundial, LineaMundial } from '@/components/mundial/FooterMu
 // sitio. Conserva los links/columnas reales y los datos legales.
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 
-const GREEN = '#15543a'
-const INK = '#15201b'
-const MUTED = '#5e6a63'
-const LINE = '#e6eae7'
-const LINE_SOFT = '#eef1ef'
+const GREEN = 'var(--brand)'
+const INK = 'var(--foreground)'
+const MUTED = 'var(--tinta-soft)'
+const LINE = 'var(--line)'
+const LINE_SOFT = 'var(--line)'
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -49,7 +49,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export default function Footer() {
   return (
-    <footer style={{ position: 'relative', background: '#fff', borderTop: `1px solid ${LINE}`, padding: '64px 40px 36px', color: INK }}>
+    <footer style={{ position: 'relative', background: 'var(--background)', borderTop: `1px solid ${LINE}`, padding: '64px 40px 36px', color: INK }}>
       {/* Edición Mundial 2026 — franja-bandera pegada al borde superior. */}
       <FranjaFooterMundial />
       <style dangerouslySetInnerHTML={{ __html: `
@@ -78,7 +78,7 @@ export default function Footer() {
                 alt="SI INMOBILIARIA"
                 width={205}
                 height={30}
-                className="object-contain"
+                className="object-contain si-theme-logo"
               />
             </Link>
             <p style={{ fontFamily: RALEWAY, fontSize: 15, color: MUTED, maxWidth: '34ch', margin: '18px 0 0', lineHeight: 1.5, fontWeight: 500 }}>

@@ -104,7 +104,7 @@ const collectionJsonLd = {
 
 const STYLES = `
   .rr-page {
-    background: #ffffff;
+    background: var(--background);
     font-family: var(--font-raleway), Raleway, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -121,7 +121,7 @@ const STYLES = `
     align-items: start;
   }
   .rr-intro {
-    color: #111111;
+    color: var(--foreground);
     padding-top: clamp(4px, 1vw, 8px);
   }
   .rr-eyebrow {
@@ -129,7 +129,7 @@ const STYLES = `
     font-weight: 700;
     letter-spacing: 0.17em;
     text-transform: uppercase;
-    color: #5b5b5b;
+    color: var(--tinta-mute);
     margin: 0 0 14px;
   }
   .rr-title {
@@ -140,14 +140,14 @@ const STYLES = `
     font-weight: 800;
   }
   .rr-title b {
-    color: #1a5c38;
+    color: var(--brand);
     font-weight: 800;
   }
   .rr-sub {
     margin: 18px 0 0;
     font-size: clamp(16px, 1.45vw, 19px);
     line-height: 1.55;
-    color: #4f4f4f;
+    color: var(--tinta-soft);
     max-width: 34ch;
   }
   .rr-stats {
@@ -156,13 +156,13 @@ const STYLES = `
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--line);
   }
   .rr-stat-label {
     margin-top: 6px;
     font-size: 13px;
     line-height: 1.2;
-    color: #787878;
+    color: var(--tinta-mute);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -171,7 +171,7 @@ const STYLES = `
     line-height: 1;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: #1a5c38;
+    color: var(--brand);
   }
 
   .rr-bento {

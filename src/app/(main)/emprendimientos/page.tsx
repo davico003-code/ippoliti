@@ -200,7 +200,7 @@ export default async function EmprendimientosPage() {
       <section className="bg-white px-6 pt-14 md:pt-24">
         <div className="mx-auto max-w-6xl">
           <h1
-            className="whitespace-nowrap pb-2 font-black leading-none tracking-tighter text-[#1A5C38] md:bg-[#1A5C38] md:bg-[url('/images/distrito-roldan/hero-aerea-titulo.webp')] md:bg-cover md:bg-center md:bg-clip-text md:pb-3 md:text-transparent"
+            className="whitespace-nowrap pb-2 font-black leading-none tracking-tighter text-[var(--brand)] md:bg-[#1A5C38] md:bg-[url('/images/distrito-roldan/hero-aerea-titulo.webp')] md:bg-cover md:bg-center md:bg-clip-text md:pb-3 md:text-transparent"
             style={{ fontSize: 'min(calc((100vw - 48px) / 8.3), 138px)' }}
           >
             Emprendimientos
@@ -210,7 +210,7 @@ export default async function EmprendimientosPage() {
             <p className="max-w-md text-base leading-relaxed text-gray-600 md:text-lg">
               Los desarrollos que comercializamos en Roldán, Funes y Rosario.
             </p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#1A5C38] md:text-xs">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--brand)] md:text-xs">
               <span className="font-numeric">{cards.length}</span> desarrollos · <span className="font-numeric">3</span> zonas
             </p>
           </div>
