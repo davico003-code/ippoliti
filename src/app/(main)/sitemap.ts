@@ -9,6 +9,8 @@ import { CLUSTERS, clusterUrl } from '@/lib/clusters'
 import { esIndexableTasar, mercadoDe } from '@/lib/seo/tasar'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
 
+import { videos } from '@/lib/contenidos'
+
 const BASE = 'https://siinmobiliaria.com'
 
 // Regenerar cada hora para que las notas programadas entren solas al sitemap
@@ -18,6 +20,8 @@ export const revalidate = 3600
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE, changeFrequency: 'daily', priority: 1 },
+    { url: `${BASE}/contenidos`, changeFrequency: 'weekly', priority: 0.8 },
+    ...videos.map(v => ({ url: `${BASE}/contenidos/${v.id}`, changeFrequency: 'monthly' as const, priority: 0.6 })),
     { url: `${BASE}/propiedades`, changeFrequency: 'hourly', priority: 0.9 },
     { url: `${BASE}/nosotros`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE}/tasaciones`, changeFrequency: 'monthly', priority: 0.7 },
