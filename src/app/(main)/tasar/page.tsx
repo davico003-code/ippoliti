@@ -37,11 +37,11 @@ export default async function TasarIndice() {
   const preguntas = [
     {
       q: '¿De dónde sale el valor de mi casa?',
-      a: 'De un relevamiento propio de las propiedades que hoy están a la venta en tu mismo barrio. Separamos el precio en dos partes: el terreno, que medimos con los lotes publicados, y la construcción, que es lo que queda de cada casa al descontarle su terreno. Con tus metros y tu antigüedad armamos la cuenta; las casas más grandes se pagan algo menos por m² y las más nuevas, algo más que la típica del barrio.',
+      a: 'De nuestro relevamiento de lo que hoy está publicado a la venta en tu mismo barrio. Con eso sabemos cuánto vale ahí el terreno y cuánto lo construido, y lo ajustamos a los metros y la antigüedad de tu propiedad.',
     },
     {
       q: '¿Cuánto se equivoca?',
-      a: `Lo controlamos casa por casa: calculamos el valor de cada una de las publicadas sin mirar su precio y después lo comparamos. En los barrios de Funes, en la mitad de los casos la diferencia fue menor a ${porcentaje(err.Funes?.casa ?? 0.15)}; en Roldán, menor a ${porcentaje(err['Roldán']?.casa ?? 0.2)}. Cada barrio muestra su propio margen y, donde hay pocos avisos o los precios son muy dispares, preferimos no dar número.`,
+      a: `Lo controlamos barrio por barrio contra lo que está publicado. En los barrios de Funes, en la mitad de los casos la diferencia es menor a ${porcentaje(err.Funes?.casa ?? 0.15)}; en Roldán, menor a ${porcentaje(err['Roldán']?.casa ?? 0.2)}. Cada barrio muestra su propio margen y, donde no podemos dar un valor confiable, preferimos no dar número.`,
     },
     {
       q: '¿Reemplaza a una tasación?',
@@ -116,7 +116,7 @@ export default async function TasarIndice() {
         </section>
 
         <section className="border-t border-[#E1E6E1] py-14">
-          <h2 className="font-raleway text-[clamp(26px,3.6vw,36px)] font-extrabold text-[#121A15]">Cómo lo calculamos</h2>
+          <h2 className="font-raleway text-[clamp(26px,3.6vw,36px)] font-extrabold text-[#121A15]">Preguntas frecuentes</h2>
           <div className="mt-4 max-w-[760px]">
             {preguntas.map((f) => (
               <details key={f.q} className="border-b border-[#E1E6E1] py-4">
