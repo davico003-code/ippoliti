@@ -11,6 +11,7 @@ export default function VideoCard({ video }: { video: Video }) {
     <div className={`${styles.poster} ${video.vertical ? styles.vertical : ''}`}>
       <Image src={video.thumbnail} alt="" fill sizes={video.vertical ? '(max-width: 640px) 45vw, 260px' : '(max-width: 640px) 90vw, (max-width: 1000px) 45vw, 400px'} className={styles.cover} />
       <Player video={video} />
+      <span className={styles.platformBadge} aria-hidden><SocialIcon platform={video.platform} size={21} /></span>
       {video.duration && <span className={styles.duration}>{video.duration}</span>}
     </div>
     <p className={styles.meta}>{['Instagram', 'TikTok'].includes(video.platform) && video.author ? `@${video.author}` : categoryLabel(video.category)}</p>

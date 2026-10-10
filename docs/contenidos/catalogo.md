@@ -45,3 +45,11 @@ La rama `feat/videoteca-si` se entrega mediante preview. La regla de AGENTS.md d
 repositorio exige aprobación visual del preview antes del merge a main.
 
 Revisión de David: acento verde en la placa principal, base blanca; se retiraron la sección y el catálogo IA de la videoteca. Los archivos originales de Cómo trabajamos se conservan.
+
+## Revisión de identidad en color
+
+Logos de redes en color en portada, encabezados, videos y tarjetas de canales.
+YouTube y Facebook usan los paths de Simple Icons con color de marca; Instagram y
+TikTok reutilizan los SVG de SVGL (https://github.com/pheralb/svgl, carpeta static/library).
+Mantiene Raleway, verde moderado en la placa, organización por series y sin sección IA.
+Compatible con los tokens de modo oscuro existentes.
