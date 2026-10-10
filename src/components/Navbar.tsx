@@ -115,13 +115,13 @@ function NavLink({ href, label, transparent }: { href: string; label: string; tr
   return (
     <Link
       href={href}
-      className="hover:text-[var(--mundial-accent)] transition-colors duration-200 whitespace-nowrap text-[13px] min-[1200px]:text-[14px] min-[1440px]:text-[16px]"
+      className="hover:text-[var(--mundial-accent)] transition-colors duration-200 whitespace-nowrap text-[15px] min-[1600px]:text-[16px]"
       style={{
         fontFamily: R,
         fontWeight: 500,
         color: transparent ? '#fff' : 'var(--foreground)',
         textDecoration: 'none',
-        textShadow: transparent ? '0 1px 4px rgba(0,0,0,0.45)' : 'none',
+        textShadow: transparent ? '0 1px 5px rgba(0,0,0,0.8)' : 'none',
       }}
     >
       {label}
@@ -168,21 +168,19 @@ export default function Navbar() {
 
   return (
     <div className={hideOnMobile ? 'hidden md:block' : 'contents'}>
-      {/* Desktop navigation, with space reserved for the theme control. */}
+      {/* El logo ocupa la columna central real de la pantalla. Los menús
+          conservan el mismo espacio a ambos lados aunque tengan anchos distintos. */}
       <nav
-        className="hidden lg:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
+        className="hidden min-[1360px]:block sticky top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: transparent ? 'transparent' : 'var(--background)',
+          background: transparent ? 'rgba(0,0,0,0.42)' : 'var(--background)',
           borderBottom: transparent ? '1px solid transparent' : '1px solid var(--line)',
           boxShadow: transparent ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
         }}
       >
-        {/* Entre 1024 y ~1065 px (iPad apaisado, ventanas chicas) el logo
-            centrado se encimaba con "Barrios cerrados": hasta xl va más
-            ajustado (menos margen lateral y menos separación entre links). */}
-        <div className="relative mx-auto flex items-center justify-between gap-4 px-4 xl:px-8 py-[16px]" style={{ maxWidth: 1400 }}>
+        <div className="mx-auto grid grid-cols-[minmax(0,1fr)_160px_minmax(0,1fr)] items-center gap-4 px-8 py-[16px]" style={{ maxWidth: 1600 }}>
           {/* Left menu */}
-          <div className="flex items-center gap-3 min-[1440px]:gap-5">
+          <div className="flex items-center gap-3 min-[1600px]:gap-5">
             {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
@@ -191,7 +189,7 @@ export default function Navbar() {
               opaco (scrolleado) → logo verde horizontal. */}
           <Link
             href="/"
-            className="relative shrink-0"
+            className="relative justify-self-center"
             style={{ textDecoration: 'none', width: 160 }}
           >
             {transparent ? (
@@ -226,7 +224,7 @@ export default function Navbar() {
           </Link>
 
           {/* Right menu + CTA */}
-          <div className="flex items-center gap-3 min-[1440px]:gap-5">
+          <div className="flex items-center justify-end gap-3 min-[1600px]:gap-5">
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
             <ThemeToggle className={transparent ? 'si-theme-toggle--hero' : ''} />
             <IngresarButton agent={agent} />
@@ -236,7 +234,7 @@ export default function Navbar() {
 
       {/* Mobile navigation */}
       <nav
-        className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
+        className="min-[1360px]:hidden sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="relative flex items-center justify-between px-4 py-2.5">
@@ -251,13 +249,13 @@ export default function Navbar() {
           </button>
 
           {/* Center — logo */}
-          <Link href="/" className="absolute left-1/2 top-1/2 max-[359px]:-ml-3" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
+          <Link href="/" className="absolute left-1/2 top-1/2" style={{ transform: 'translate(-50%, -50%)', textDecoration: 'none' }}>
             <Image
               src="/LOGO_HORIZONTAL.png"
               alt="SI INMOBILIARIA"
               width={164}
               height={24}
-              className="object-contain si-theme-logo w-[128px] min-[390px]:w-[150px]"
+              className="object-contain si-theme-logo w-[104px] min-[360px]:w-[128px] min-[390px]:w-[150px]"
               priority
               quality={90}
             />
@@ -272,7 +270,7 @@ export default function Navbar() {
 
       {/* ── Mobile drawer ── */}
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-[9990]">
+        <div className="min-[1360px]:hidden fixed inset-0 z-[9990]">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
           <div
             className="si-theme-drawer absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl"
