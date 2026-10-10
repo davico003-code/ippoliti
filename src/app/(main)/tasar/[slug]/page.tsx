@@ -32,9 +32,9 @@ const Mayus = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 type Props = { params: { slug: string } }
 
 async function datos(slug: string) {
-  const { tasador, indice } = await cargarTasar()
+  const { tasador, indice, actualizado } = await cargarTasar()
   const r = resolverTasar(slug, indice)
-  return r ? { r, tasador, indice } : null
+  return r ? { r, tasador, indice, actualizado } : null
 }
 
 const lugar = (l: Landing) => (l.zona.esCiudad ? l.nombre : `${l.nombre}, ${l.zona.ciudad}`)
@@ -77,7 +77,7 @@ export default async function TasarPage({ params }: Props) {
   if (!d) notFound()
   // 307 y no 308: a dónde va depende de los datos de hoy (mañana el barrio puede tener los suyos).
   if ('redirigir' in d.r) redirect(d.r.redirigir)
-  const { tasador, indice } = d
+  const { tasador, indice, actualizado } = d
   const l = d.r.landing
   const t = TEXTO_TIPO[l.tipo]
   const opciones = opcionesTasar(indice)
@@ -178,7 +178,8 @@ export default async function TasarPage({ params }: Props) {
     } else datosBarrio.push({ valor: `${usd(p.usdM2)}/m²`, texto: l.tipo === 'lote' ? 'de terreno, valor del medio' : 'cubierto, valor del medio' })
     datosBarrio.push({ valor: `${n(p.m2Tipico)} m²`, texto: l.tipo === 'lote' ? 'el lote típico' : `${ella ? 'la casa típica' : 'el depto típico'}${l.tipo === 'casa' && p.loteTipico ? `, en ${n(p.loteTipico)} m² de terreno` : ''}` })
     datosBarrio.push({ valor: `±${porcentaje(p.error)}`, texto: p.errorPropio ? 'lo que erra la cuenta acá (la mitad de las veces)' : `lo que erra en los barrios de ${l.zona.ciudad}` })
-    datosBarrio.push({ valor: n(p.n), texto: `${t.plural} ${t.publicadas} hoy en la cuenta` })
+    // La cantidad, solo por barrio: en la ciudad son miles y no le dice nada al dueño (David, 10-oct).
+    if (!l.zona.esCiudad) datosBarrio.push({ valor: n(p.n), texto: `${t.plural} ${t.publicadas} hoy en la cuenta` })
   }
 
   return (
@@ -215,7 +216,7 @@ export default async function TasarPage({ params }: Props) {
             )}
             {l.conNumero ? (
               <p className="mt-3 text-[17px] font-medium leading-relaxed text-[#3C4A42]">
-                ¿Cuánto vale hoy? Con {n(p.n)} {t.plural} {t.publicadas} en {l.nombre} armamos el valor de referencia
+                ¿Cuánto vale hoy? Con {l.zona.esCiudad ? `${ella ? 'las' : 'los'} ${t.plural}` : `${n(p.n)} ${t.plural}`} {t.publicadas} en {l.nombre} armamos el valor de referencia
                 {tipica ? (
                   <>
                     : {ella ? 'una típica' : 'uno típico'} de <span className="font-numeric">{n(p.m2Tipico)}</span> m² ronda los <b className="font-numeric font-semibold text-[#17613C]">{usd(tipica.valor)}</b>
@@ -232,7 +233,7 @@ export default async function TasarPage({ params }: Props) {
           </div>
 
           <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <Tasador opciones={opciones} modelo={tasador.modelo} modo="tasar" tipoInicial={l.tipo} inicial={clave} sinDatosDelBarrio />
+            <Tasador opciones={opciones} modelo={tasador.modelo} modo="tasar" actualizado={actualizado} tipoInicial={l.tipo} inicial={clave} sinDatosDelBarrio />
           </div>
           {datosBarrio.length > 0 && (
             <ul className="grid grid-cols-2 gap-2.5 lg:col-start-1 lg:row-start-2">

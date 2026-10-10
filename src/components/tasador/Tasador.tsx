@@ -34,6 +34,8 @@ type Props = {
   leerLink?: boolean
   /** En la landing, los números del barrio ya están al lado: el resultado no los repite. */
   sinDatosDelBarrio?: boolean
+  /** El día de los números ("10 de octubre"); null = no se muestra. */
+  actualizado?: string | null
 }
 
 const soloNumero = (s: string) => s.replace(/\D/g, '').slice(0, 6)
@@ -42,7 +44,7 @@ const usd = (x: number) => `USD ${n(x)}`
 
 const TIPO_LINK: Record<string, TipoTasar> = { casa: 'casa', lote: 'lote', terreno: 'lote', depto: 'departamento', departamento: 'departamento' }
 
-export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', inicial = null, conLinkAlBarrio = false, leerLink = false, sinDatosDelBarrio = false }: Props) {
+export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', inicial = null, conLinkAlBarrio = false, leerLink = false, sinDatosDelBarrio = false, actualizado = null }: Props) {
   const zonaIni = inicial ? opciones.find((o) => o.clave === inicial) ?? null : null
   const pIni = zonaIni?.params[tipoInicial]
   const [tipo, setTipo] = useState<TipoTasar>(tipoInicial)
@@ -213,7 +215,6 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
                       <span className="block truncate text-[15.5px] font-bold leading-tight text-[#121A15]">{o.esCiudad ? o.etiqueta : o.nombre}</span>
                       {!o.esCiudad && <span className="block text-[13.5px] text-[#5B6B62]">{o.ciudad}</span>}
                     </span>
-                    <span className="font-numeric flex-none text-[13px] text-[#5B6B62]">{n(o.params[tipo]?.n ?? 0)} avisos</span>
                   </button>
                 </li>
               ))}
@@ -330,6 +331,7 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
                 : `En ${zona.nombre} hay pocos avisos para medirlo aparte: en los barrios de ${zona.ciudad}, la mitad de lo publicado está a menos de ${porcentaje(r.error)} de esta cuenta.`}{' '}
               Es precio de publicación: el de venta lo fija la tasación.
             </p>
+            <p className="mt-2 text-[13.5px] font-semibold text-[#5B6B62]">Relevamiento propio{actualizado ? ` · actualizado el ${actualizado}` : ''}</p>
             {!(sinDatosDelBarrio && zona.clave === inicial) && (
               <ul className="mt-4 divide-y divide-[#E1E6E1] rounded-2xl bg-white px-4">
                 {tipo === 'casa' && zona.mixto && p.tierraM2 != null && p.construccionM2 != null ? (
@@ -340,7 +342,7 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
                 ) : (
                   <Dato valor={`${usd(p.usdM2)}/m²`} texto={tipo === 'lote' ? 'de terreno en el barrio' : 'cubierto, en el barrio'} />
                 )}
-                <Dato valor={n(p.n)} texto={`${t.plural} ${t.publicadas} en la cuenta`} />
+                {!zona.esCiudad && <Dato valor={n(p.n)} texto={`${t.plural} ${t.publicadas} en la cuenta`} />}
               </ul>
             )}
             {conLinkAlBarrio && slugBarrio && (

@@ -29,9 +29,9 @@ const usdCorto = (x: number) => (x >= 1_000_000 ? `USD ${(Math.round(x / 100_000
 type Props = { params: { slug: string } }
 
 async function datos(slug: string) {
-  const { tasador, mercado, indice } = await cargarTasar()
+  const { tasador, mercado, indice, actualizado } = await cargarTasar()
   const r = resolverTasar(slug, indice, '/vender')
-  return r ? { r, tasador, mercado, indice } : null
+  return r ? { r, tasador, mercado, indice, actualizado } : null
 }
 
 /** A Google: con número (Hilo) y con el mercado del barrio; si no, sería una página floja que compite con /tasar. */
@@ -71,7 +71,7 @@ export default async function VenderBarrioPage({ params }: Props) {
   if (!d) notFound()
   // 307: a dónde va depende de los datos de hoy (igual que /tasar).
   if ('redirigir' in d.r) redirect(d.r.redirigir)
-  const { tasador, mercado, indice } = d
+  const { tasador, mercado, indice, actualizado } = d
   const l = d.r.landing
   const t = TEXTO_TIPO[l.tipo]
   const ella = t.singular === 'casa'
@@ -175,12 +175,12 @@ export default async function VenderBarrioPage({ params }: Props) {
           </div>
 
           <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <Tasador opciones={opciones} modelo={tasador.modelo} modo="vender" tipoInicial={l.tipo} inicial={clave} sinDatosDelBarrio />
+            <Tasador opciones={opciones} modelo={tasador.modelo} modo="vender" actualizado={actualizado} tipoInicial={l.tipo} inicial={clave} sinDatosDelBarrio />
           </div>
 
           {mercadoTiles.length > 0 && (
             <div className="lg:col-start-1 lg:row-start-2">
-              <h2 className="text-[15px] font-bold uppercase tracking-wider text-[#5B6B62]">El mercado en {l.zona.esCiudad ? 'todo ' : ''}{l.nombre} hoy</h2>
+              <h2 className="text-[15px] font-bold uppercase tracking-wider text-[#5B6B62]">El mercado en {l.zona.esCiudad ? 'todo ' : ''}{l.nombre}{actualizado ? ` · al ${actualizado}` : ' hoy'}</h2>
               <ul className="mt-3 grid grid-cols-2 gap-2.5">
                 {mercadoTiles.map((x) => (
                   <li key={x.texto} className="rounded-2xl border border-[#E1E6E1] px-4 py-3.5">
