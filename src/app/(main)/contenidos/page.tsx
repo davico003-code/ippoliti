@@ -33,7 +33,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
   const featured = videos.find(v => v.id === 'XyITUD7dYNU')!
   const href = (cat: string, p = 1) => `/contenidos?${new URLSearchParams({ categoria: cat, ...(query ? { q: query } : {}), ...(p > 1 ? { pagina: String(p) } : {}) })}#explorar`
   const rail = (cat: string, title: string, limit = 3) => <section className={styles.section} aria-label={title}>
-    <div className={styles.heading}><h2>{title}</h2><Link href={href(cat)}>Ver todos <ArrowRight size={16} aria-hidden /></Link></div>
+    <div className={styles.heading}><div className={styles.sectionTitle}><span className={styles.sectionIcon}><SocialIcon platform={cat === 'tiktok' ? 'TikTok' : cat === 'cortos' ? 'Instagram' : 'YouTube'} size={26} /></span><div><p className={styles.sectionKicker}>{categoryLabel(cat)}</p><h2>{title}</h2></div></div><Link href={href(cat)}>Ver todos <ArrowRight size={16} aria-hidden /></Link></div>
     <div className={['cortos', 'tiktok'].includes(cat) ? styles.shortGrid : styles.grid}>{videos.filter(v => v.category === cat).slice(0, limit).map(v => <VideoCard video={v} key={v.id} />)}</div>
   </section>
   const showBlog = !browsing || category === 'blog' || (category === 'todos' && !!query)
@@ -45,7 +45,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
           <p className={styles.eyebrow}>Nuestra videoteca</p>
           <h1>Dale play<br />al <span>mundo SI.</span></h1>
           <p className={styles.intro}>Charlas, historias y lugares que queremos compartir. Todo lo que hacemos, en un solo lugar.</p>
-          <div className={styles.heroSocials}>{channels.filter(c => ['YouTube', 'Instagram', 'TikTok'].includes(c.name)).map(c => <a key={c.name} href={c.href} target="_blank" rel="noopener noreferrer"><SocialIcon platform={c.name} />{c.name}<ArrowUpRight size={13} aria-hidden /></a>)}</div>
+          <div className={styles.heroSocials}>{channels.filter(c => ['YouTube', 'Instagram', 'TikTok'].includes(c.name)).map(c => <a key={c.name} href={c.href} target="_blank" rel="noopener noreferrer"><SocialIcon platform={c.name} size={23} />{c.name}<ArrowUpRight size={13} aria-hidden /></a>)}</div>
         </div>
         <div className={styles.heroMedia}>
           <Image src="/como-trabajamos/charla-colegas-rodaje.webp" alt="Grabación de Charlas que Sí con colegas del sector inmobiliario" fill priority sizes="(max-width: 760px) 90vw, 650px" className={styles.heroPhoto} />
@@ -82,7 +82,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
       {!displayedPosts.length && <p>No encontramos notas con esa búsqueda. <Link href="/blog">Explorá el blog completo.</Link></p>}
     </div></section>}
     {browsing && pages > 1 && <nav className={styles.pagination} aria-label="Páginas de contenidos">{page > 1 && <Link href={href(category, page - 1)}>← Anterior</Link>}<span>Página {page} de {pages}</span>{page < pages && <Link href={href(category, page + 1)}>Siguiente →</Link>}</nav>}
-    <section className={`${styles.wrap} ${styles.channels}`}><Image src="/contenidos/si-inmobiliaria-color.svg" alt="SI INMOBILIARIA" width={216} height={30} className={styles.channelBrand} /><div className={styles.heading}><h2>Seguí la conversación</h2></div><div className={styles.channelsGrid}>{channels.map(c => <a className={styles.channel} href={c.href} key={c.handle + c.name} target="_blank" rel="noopener noreferrer"><strong><SocialIcon platform={c.name} size={23} />{c.name}<ArrowUpRight size={18} aria-hidden /></strong><span>{c.handle}</span><p>{c.description}</p></a>)}</div></section>
+    <section className={`${styles.wrap} ${styles.channels}`}><Image src="/contenidos/si-inmobiliaria-color.svg" alt="SI INMOBILIARIA" width={216} height={30} className={styles.channelBrand} /><div className={styles.heading}><h2>Seguí la conversación</h2></div><div className={styles.channelsGrid}>{channels.map(c => <a className={styles.channel} href={c.href} key={c.handle + c.name} target="_blank" rel="noopener noreferrer"><strong><SocialIcon platform={c.name} size={32} />{c.name}<ArrowUpRight size={18} aria-hidden /></strong><span>{c.handle}</span><p>{c.description}</p></a>)}</div></section>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Mundo SI — Contenidos de SI INMOBILIARIA', url: 'https://siinmobiliaria.com/contenidos', description: 'Charlas, recorridos, videos cortos y blog.', publisher: { '@id': 'https://siinmobiliaria.com/#organization' } }).replace(/</g, '\\u003c') }} />
   </div>
 }
