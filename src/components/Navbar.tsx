@@ -186,12 +186,10 @@ export default function Navbar() {
             {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
-          {/* Logo between the link groups — swap dinámico:
-              transparent (sobre el hero) → logo blanco webp con fallback .png vía <picture>;
-              opaco (scrolleado) → logo verde horizontal. */}
+          {/* Logo centrado absoluto en el navbar desktop */}
           <Link
             href="/"
-            className="relative shrink-0"
+            className="absolute left-1/2 -translate-x-1/2 shrink-0"
             style={{ textDecoration: 'none', width: 160 }}
           >
             {transparent ? (
