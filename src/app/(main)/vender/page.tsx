@@ -11,7 +11,6 @@ import BarriosPorCiudad from '@/components/tasador/BarriosPorCiudad'
 import Tasador from '@/components/tasador/Tasador'
 import { opcionesTasar } from '@/lib/seo/tasar'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
-import { TIPOS_TASAR } from '@/lib/tasador/opciones'
 
 // Se arma al pedirla (los números de Hilo piden la clave, que el build no tiene); la lectura de Hilo queda una hora en cache.
 export const dynamic = 'force-dynamic'
@@ -30,8 +29,6 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
-const n = (x: number) => x.toLocaleString('es-AR')
-
 const PASOS = [
   { t: 'La tasación', d: 'Un corredor matriculado mira lo que se vendió y lo que compite hoy en tu barrio y te recomienda a qué precio salir, con el porqué.' },
   { t: 'La presentación', d: 'Fotos, una ficha propia en siinmobiliaria.com y anuncios para que tu propiedad se vea como tiene que verse.' },
@@ -43,7 +40,7 @@ const PASOS = [
 const PREGUNTAS = [
   {
     q: '¿Cómo sé cuánto vale mi casa?',
-    a: 'Con el tasador de esta página tenés una referencia en segundos: sale de los avisos en venta de tu barrio (lo que vale el terreno y lo construido por m²), ajustada por los metros y la antigüedad. Para vender, el precio lo fija la tasación de un corredor, que suma lo que el aviso no dice: estado, ubicación exacta y documentación.',
+    a: 'Con el tasador de esta página tenés una referencia en segundos: sale de nuestro relevamiento de lo que está en venta en tu barrio (lo que vale el terreno y lo construido por m²), ajustada por los metros y la antigüedad. Para vender, el precio lo fija la tasación de un corredor, que suma lo que el aviso no dice: estado, ubicación exacta y documentación.',
   },
   {
     q: '¿El valor del tasador es el precio de venta?',
@@ -64,10 +61,8 @@ const PREGUNTAS = [
 ]
 
 export default async function VenderPage() {
-  const { tasador, indice } = await cargarTasar()
+  const { tasador, indice, actualizado } = await cargarTasar()
   const opciones = opcionesTasar(indice)
-  const barrios = opciones.filter((o) => !o.esCiudad && TIPOS_TASAR.some((t) => o.params[t]?.daNumero)).length
-  const avisos = opciones.reduce((s, o) => s + TIPOS_TASAR.reduce((x, t) => x + (o.params[t]?.n ?? 0), 0), 0)
 
   const jsonLd = [
     {
@@ -103,13 +98,13 @@ export default async function VenderPage() {
             </p>
             <ul className="mt-6 space-y-2.5 text-[16px] text-[#3C4A42]">
               <Punto>
-                <b className="font-numeric font-semibold text-[#121A15]">{n(barrios)}</b> barrios medidos uno por uno, con <b className="font-numeric font-semibold text-[#121A15]">{n(avisos)}</b> avisos en venta.
+                Relevamiento propio de lo que está publicado a la venta, barrio por barrio{actualizado ? `. Actualizado el ${actualizado}` : ''}.
               </Punto>
               <Punto>El valor, al instante y sin registrarte.</Punto>
               <Punto>Corredores matriculados desde 1983 · Mat. N° 0621.</Punto>
             </ul>
           </div>
-          <Tasador opciones={opciones} modelo={tasador.modelo} modo="vender" leerLink conLinkAlBarrio />
+          <Tasador opciones={opciones} modelo={tasador.modelo} modo="vender" actualizado={actualizado} leerLink conLinkAlBarrio />
         </section>
 
         <section aria-labelledby="como" className="border-t border-[#E1E6E1] py-14">
