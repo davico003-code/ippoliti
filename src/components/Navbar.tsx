@@ -105,7 +105,7 @@ const LEFT_ITEMS = [
 const RIGHT_ITEMS = [
   { href: '/barrios-privados', label: 'Barrios cerrados' },
   { href: '/nosotros', label: 'Nosotros' },
-  { href: '/contenidos', label: 'Contenidos' },
+  { href: '/contenidos', label: 'Contenido' },
   { href: '/recursos', label: 'Recursos' },
 ]
 
@@ -189,8 +189,8 @@ export default function Navbar() {
           {/* Logo centrado — flex-1 en ambos lados le da espacio simétrico */}
           <Link
             href="/"
-            className="shrink-0 mx-6 xl:mx-10"
-            style={{ textDecoration: 'none', width: 160 }}
+            className="shrink-0 mx-6 xl:mx-10 flex items-center justify-center"
+            style={{ textDecoration: 'none', width: 191 }}
           >
             {transparent ? (
               <picture>
@@ -199,10 +199,10 @@ export default function Navbar() {
                 <img
                   src="/logo-blanco.png"
                   alt="SI INMOBILIARIA"
-                  width={160}
+                  width={191}
                   height={28}
                   className="object-contain"
-                  style={{ height: 28, width: 'auto' }}
+                  style={{ height: 28, width: 191 }}
                   fetchPriority="high"
                   loading="eager"
                   decoding="async"
