@@ -123,7 +123,7 @@ export default async function TasarPage({ params }: Props) {
     faq.push({
       q: `¿Cuánto vale el m² en ${lugarCorto}?`,
       a: conTerreno
-        ? `Con lo que se publica hoy en ${lugarCorto}: el terreno, unos USD ${n(p.tierraM2!)} por m², y la construcción, unos USD ${n(p.construccionM2!)} por m² cubierto (el precio de cada casa menos su terreno).`
+        ? `Con lo que se publica hoy en ${lugarCorto}: el terreno, unos USD ${n(p.tierraM2!)} por m², y la construcción, unos USD ${n(p.construccionM2!)} por m² cubierto.`
         : `Con lo que se publica hoy en ${lugarCorto}: unos USD ${n(p.usdM2)} por m² ${l.tipo === 'lote' ? 'de terreno' : 'cubierto'}, valor del medio.`,
     })
     if (tipica)
@@ -134,7 +134,7 @@ export default async function TasarPage({ params }: Props) {
     faq.push({
       q: '¿Qué tan cerca está el valor de referencia?',
       a: p.errorPropio
-        ? `Lo medimos contra lo publicado en ${lugarCorto}: calculamos cada ${t.singular} sin mirar su precio y en la mitad de los casos la diferencia fue menor a ${porcentaje(p.error)}. La ubicación exacta, el estado y la documentación los revisa un corredor en la tasación.`
+        ? `Lo controlamos contra lo publicado en ${lugarCorto}: en la mitad de los casos la diferencia es menor a ${porcentaje(p.error)}. La ubicación exacta, el estado y la documentación los revisa un corredor en la tasación.`
         : `En ${lugarCorto} todavía hay pocos avisos para medirlo aparte; en los barrios de ${l.zona.ciudad}, la mitad de lo publicado está a menos de ${porcentaje(p.error)} de la cuenta.`,
     })
     if (l.tipo !== 'lote') {
@@ -143,7 +143,7 @@ export default async function TasarPage({ params }: Props) {
       if (nueva && vieja && nueva.valor !== vieja.valor)
         faq.push({
           q: '¿Cuánto cambia el valor por la antigüedad?',
-          a: `En ${lugarCorto}, ${t.una} de ${n(p.m2Tipico)} m² a estrenar ronda los ${usd(nueva.valor)}; con más de 35 años, los ${usd(vieja.valor)}. Sale de comparar, dentro de cada barrio, lo que se pide por las nuevas y por las de más años.`,
+          a: `En ${lugarCorto}, ${t.una} de ${n(p.m2Tipico)} m² a estrenar ronda los ${usd(nueva.valor)}; con más de 35 años, los ${usd(vieja.valor)}. Es lo que hoy muestra el mercado del barrio.`,
         })
     }
   }
