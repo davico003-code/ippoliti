@@ -23,18 +23,22 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
   const query = (searchParams.q || '').trim().slice(0, 120)
   const requested = Math.max(1, Math.floor(Number(searchParams.pagina) || 1))
   const browsing = category !== 'todos' || !!query || !!searchParams.pagina
-  const filtered = filterVideos(category, query)
+  // Una búsqueda mezcla formatos: primero los videos apaisados y después los verticales, cada uno en su grilla.
+  const found = filterVideos(category, query)
+  const filtered = [...found.filter(v => !v.vertical), ...found.filter(v => v.vertical)]
   const allPosts = await getAllPosts()
   const posts = allPosts.filter(p => normalized(`${p.title} ${p.summary}`).includes(normalized(query)))
   const total = category === 'blog' ? posts.length : filtered.length
   const pages = Math.max(1, Math.ceil(total / 24))
   const page = Math.min(requested, pages)
   const results = filtered.slice((page - 1) * 24, page * 24)
+  const wide = results.filter(v => !v.vertical)
+  const tall = results.filter(v => v.vertical)
   const featured = videos.find(v => v.id === 'XyITUD7dYNU')!
   const href = (cat: string, p = 1) => `/contenidos?${new URLSearchParams({ categoria: cat, ...(query ? { q: query } : {}), ...(p > 1 ? { pagina: String(p) } : {}) })}#explorar`
   const rail = (cat: string, title: string, limit = 3) => <section className={styles.section} aria-label={title}>
-    <div className={styles.heading}><h2>{title}</h2><Link href={href(cat)}>Ver todos <ArrowRight size={16} aria-hidden /></Link></div>
-    <div className={['cortos', 'tiktok'].includes(cat) ? styles.shortGrid : styles.grid}>{videos.filter(v => v.category === cat).slice(0, limit).map(v => <VideoCard video={v} key={v.id} />)}</div>
+    <div className={styles.heading}><div className={styles.sectionTitle}><span className={styles.sectionIcon}><SocialIcon platform={cat === 'tiktok' ? 'TikTok' : cat === 'cortos' ? 'Instagram' : 'YouTube'} size={26} /></span><div><p className={styles.sectionKicker}>{categoryLabel(cat)}</p><h2>{title}</h2></div></div><Link href={href(cat)}>Ver todos <ArrowRight size={16} aria-hidden /></Link></div>
+    <div className={`${['cortos', 'tiktok'].includes(cat) ? styles.shortGrid : styles.grid} ${styles.rail}`}>{videos.filter(v => v.category === cat).slice(0, limit).map(v => <VideoCard video={v} key={v.id} />)}</div>
   </section>
   const showBlog = !browsing || category === 'blog' || (category === 'todos' && !!query)
   const displayedPosts = category === 'blog' ? posts.slice((page - 1) * 24, page * 24) : posts.slice(0, 2)
@@ -45,7 +49,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
           <p className={styles.eyebrow}>Nuestra videoteca</p>
           <h1>Dale play<br />al <span>mundo SI.</span></h1>
           <p className={styles.intro}>Charlas, historias y lugares que queremos compartir. Todo lo que hacemos, en un solo lugar.</p>
-          <div className={styles.heroSocials}>{channels.filter(c => ['YouTube', 'Instagram', 'TikTok'].includes(c.name)).map(c => <a key={c.name} href={c.href} target="_blank" rel="noopener noreferrer"><SocialIcon platform={c.name} />{c.name}<ArrowUpRight size={13} aria-hidden /></a>)}</div>
+          <div className={styles.heroSocials}>{channels.filter(c => ['YouTube', 'Instagram', 'TikTok'].includes(c.name)).map(c => <a key={c.name} href={c.href} target="_blank" rel="noopener noreferrer"><SocialIcon platform={c.name} size={23} />{c.name}<ArrowUpRight size={13} aria-hidden /></a>)}</div>
         </div>
         <div className={styles.heroMedia}>
           <Image src="/como-trabajamos/charla-colegas-rodaje.webp" alt="Grabación de Charlas que Sí con colegas del sector inmobiliario" fill priority sizes="(max-width: 760px) 90vw, 650px" className={styles.heroPhoto} />
@@ -70,7 +74,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
         {rail('recorridos', 'Una puerta abierta para recorrer')}
       </> : category !== 'blog' && <section className={styles.results} aria-label="Resultados de videos">
         <p className={styles.resultTitle}>{filtered.length} {filtered.length === 1 ? 'video' : 'videos'} para mirar</p>
-        {results.length ? <div className={['cortos', 'tiktok'].includes(category) ? styles.shortGrid : styles.grid}>{results.map(v => <VideoCard video={v} key={v.id} />)}</div> : <div className={styles.empty}><h2>No encontramos videos con esa búsqueda.</h2><p>Probá con Funes, una persona o el nombre de un barrio.</p><Link className={styles.quietLink} href="/contenidos">Volver a todos los contenidos <ArrowRight size={16} aria-hidden /></Link></div>}
+        {results.length ? <>{wide.length > 0 && <div className={styles.grid}>{wide.map(v => <VideoCard video={v} kicker={category === 'todos'} key={v.id} />)}</div>}{tall.length > 0 && <div className={`${styles.shortGrid} ${wide.length ? styles.afterGrid : ''}`}>{tall.map(v => <VideoCard video={v} key={v.id} />)}</div>}</> : <div className={styles.empty}><h2>No encontramos videos con esa búsqueda.</h2><p>Probá con Funes, una persona o el nombre de un barrio.</p><Link className={styles.quietLink} href="/contenidos">Volver a todos los contenidos <ArrowRight size={16} aria-hidden /></Link></div>}
       </section>}
     </div>
     {showBlog && <section className={styles.blogBand}><div className={styles.wrap}>
@@ -82,7 +86,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
       {!displayedPosts.length && <p>No encontramos notas con esa búsqueda. <Link href="/blog">Explorá el blog completo.</Link></p>}
     </div></section>}
     {browsing && pages > 1 && <nav className={styles.pagination} aria-label="Páginas de contenidos">{page > 1 && <Link href={href(category, page - 1)}>← Anterior</Link>}<span>Página {page} de {pages}</span>{page < pages && <Link href={href(category, page + 1)}>Siguiente →</Link>}</nav>}
-    <section className={`${styles.wrap} ${styles.channels}`}><Image src="/contenidos/si-inmobiliaria-color.svg" alt="SI INMOBILIARIA" width={216} height={30} className={styles.channelBrand} /><div className={styles.heading}><h2>Seguí la conversación</h2></div><div className={styles.channelsGrid}>{channels.map(c => <a className={styles.channel} href={c.href} key={c.handle + c.name} target="_blank" rel="noopener noreferrer"><strong><SocialIcon platform={c.name} size={23} />{c.name}<ArrowUpRight size={18} aria-hidden /></strong><span>{c.handle}</span><p>{c.description}</p></a>)}</div></section>
+    <section className={`${styles.wrap} ${styles.channels}`}><Image src="/contenidos/si-inmobiliaria-color.svg" alt="SI INMOBILIARIA" width={216} height={30} className={`${styles.channelBrand} si-theme-logo`} /><div className={styles.heading}><h2>Seguí la conversación</h2></div><div className={styles.channelsGrid}>{channels.map(c => <a className={styles.channel} href={c.href} key={c.handle + c.name} target="_blank" rel="noopener noreferrer"><strong><SocialIcon platform={c.name} size={32} />{c.name}<ArrowUpRight size={18} aria-hidden /></strong><span>{c.handle}</span><p>{c.description}</p></a>)}</div></section>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Mundo SI — Contenidos de SI INMOBILIARIA', url: 'https://siinmobiliaria.com/contenidos', description: 'Charlas, recorridos, videos cortos y blog.', publisher: { '@id': 'https://siinmobiliaria.com/#organization' } }).replace(/</g, '\\u003c') }} />
   </div>
 }
