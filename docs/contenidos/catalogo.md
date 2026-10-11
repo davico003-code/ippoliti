@@ -53,3 +53,19 @@ YouTube y Facebook usan los paths de Simple Icons con color de marca; Instagram 
 TikTok reutilizan los SVG de SVGL (https://github.com/pheralb/svgl, carpeta static/library).
 Mantiene Raleway, verde moderado en la placa, organización por series y sin sección IA.
 Compatible con los tokens de modo oscuro existentes.
+
+## Portadas y tarjetas (10 de octubre de 2026)
+
+Las portadas de YouTube se leen en su mejor tamaño: `maxresdefault.jpg` (1280×720) para los
+videos apaisados y `oar2.jpg` (1080×1920, vertical nativo) para los Shorts. Antes era
+`hqdefault.jpg` (480×360), que se veía borrosa.
+La web guarda cada imagen 31 días (`minimumCacheTTL`). Cuando se cambia una miniatura en
+YouTube hay que subir la fecha de `PORTADAS_YOUTUBE` en `src/lib/contenidos.ts`: eso cambia
+la dirección de todas las portadas y se vuelven a pedir.
+Las portadas 16:9 del canal traen pastilla, logo SI y título propios, así que la tarjeta no
+les pone nada encima: el play aparece al centro al pasar el mouse y la duración va al pie.
+El sello de la red queda solo en las verticales.
+Títulos: editoriales también en YouTube (sin mayúsculas sostenidas ni "| Charlas Que Si").
+En las charlas, "Invitado: tema" se parte en nombre y bajada (`titleParts`).
+En el celular cada serie de la portada se desliza de costado; en las búsquedas van primero
+los videos apaisados y después los verticales, cada grupo en su grilla.
