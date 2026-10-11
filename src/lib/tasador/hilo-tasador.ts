@@ -10,7 +10,7 @@ import type { Tasador, ZonaMercado } from './tipos'
 
 const BASE = (process.env.HILO_LEADS_URL || 'https://meethilo.com').replace(/\/$/, '')
 
-export async function traerMercadoHilo(): Promise<{ tasador: Tasador; mercado: ZonaMercado[] }> {
+export async function traerMercadoHilo(): Promise<{ tasador: Tasador; mercado: ZonaMercado[]; leido: Date | null }> {
   const secret = process.env.HILO_INGEST_SECRET
   if (!secret) throw new Error('Falta HILO_INGEST_SECRET')
   const res = await fetch(`${BASE}/api/public/en-red/mercado`, {
@@ -22,5 +22,9 @@ export async function traerMercadoHilo(): Promise<{ tasador: Tasador; mercado: Z
   const data = (await res.json()) as { tasador?: Tasador | null; zonas?: ZonaMercado[] | null }
   const t = data.tasador
   if (!t || !Array.isArray(t.zonas) || !t.modelo) throw new Error('Hilo no mandó los números del tasador')
-  return { tasador: t, mercado: Array.isArray(data.zonas) ? data.zonas : [] }
+  // Cuándo respondió Hilo de verdad: el encabezado Date viaja con la respuesta
+  // guardada en cache, así que si Hilo deja de responder la fecha NO avanza sola
+  // (la página no dice "actualizado hoy" con números de la semana pasada).
+  const fecha = Date.parse(res.headers.get('date') ?? '')
+  return { tasador: t, mercado: Array.isArray(data.zonas) ? data.zonas : [], leido: Number.isNaN(fecha) ? null : new Date(fecha) }
 }

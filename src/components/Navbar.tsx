@@ -105,7 +105,7 @@ const LEFT_ITEMS = [
 const RIGHT_ITEMS = [
   { href: '/barrios-privados', label: 'Barrios cerrados' },
   { href: '/nosotros', label: 'Nosotros' },
-  { href: '/contenidos', label: 'Contenidos' },
+  { href: '/contenidos', label: 'Contenido' },
   { href: '/recursos', label: 'Recursos' },
 ]
 
@@ -180,19 +180,17 @@ export default function Navbar() {
         {/* Entre 1024 y ~1065 px (iPad apaisado, ventanas chicas) el logo
             centrado se encimaba con "Barrios cerrados": hasta xl va más
             ajustado (menos margen lateral y menos separación entre links). */}
-        <div className="relative mx-auto flex items-center justify-between gap-4 px-4 xl:px-8 py-[16px]" style={{ maxWidth: 1400 }}>
-          {/* Left menu */}
-          <div className="flex items-center gap-3 min-[1440px]:gap-5">
+        <div className="relative mx-auto flex items-center px-4 xl:px-8 py-[16px]" style={{ maxWidth: 1400 }}>
+          {/* Left menu — flex-1 + justify-end empuja los links hacia el logo */}
+          <div className="flex-1 flex items-center justify-end gap-3 min-[1440px]:gap-5">
             {LEFT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
           </div>
 
-          {/* Logo between the link groups — swap dinámico:
-              transparent (sobre el hero) → logo blanco webp con fallback .png vía <picture>;
-              opaco (scrolleado) → logo verde horizontal. */}
+          {/* Logo centrado — flex-1 en ambos lados le da espacio simétrico */}
           <Link
             href="/"
-            className="relative shrink-0"
-            style={{ textDecoration: 'none', width: 160 }}
+            className="shrink-0 mx-6 xl:mx-10 flex items-center justify-center"
+            style={{ textDecoration: 'none', width: 191 }}
           >
             {transparent ? (
               <picture>
@@ -201,10 +199,10 @@ export default function Navbar() {
                 <img
                   src="/logo-blanco.png"
                   alt="SI INMOBILIARIA"
-                  width={160}
+                  width={191}
                   height={28}
                   className="object-contain"
-                  style={{ height: 28, width: 'auto' }}
+                  style={{ height: 28, width: 191 }}
                   fetchPriority="high"
                   loading="eager"
                   decoding="async"
@@ -225,9 +223,10 @@ export default function Navbar() {
             <FranjaMundial scrolled={!transparent} />
           </Link>
 
-          {/* Right menu + CTA */}
-          <div className="flex items-center gap-3 min-[1440px]:gap-5">
+          {/* Right menu + CTA — flex-1 + spacer empuja utilidades al borde */}
+          <div className="flex-1 flex items-center gap-3 min-[1440px]:gap-5">
             {RIGHT_ITEMS.map(item => <NavLink key={item.href} {...item} transparent={transparent} />)}
+            <span className="flex-1" />
             <ThemeToggle className={transparent ? 'si-theme-toggle--hero' : ''} />
             <IngresarButton agent={agent} />
           </div>

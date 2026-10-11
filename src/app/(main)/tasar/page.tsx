@@ -11,7 +11,6 @@ import Tasador from '@/components/tasador/Tasador'
 import { opcionesTasar } from '@/lib/seo/tasar'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
 import { porcentaje } from '@/lib/tasador/estimar'
-import { TIPOS_TASAR } from '@/lib/tasador/opciones'
 
 // Se arma al pedirla (los números de Hilo piden la clave, que el build no tiene); la lectura de Hilo queda una hora en cache.
 export const dynamic = 'force-dynamic'
@@ -30,23 +29,19 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
-const n = (x: number) => x.toLocaleString('es-AR')
-
 export default async function TasarIndice() {
-  const { tasador, indice } = await cargarTasar()
+  const { tasador, indice, actualizado } = await cargarTasar()
   const opciones = opcionesTasar(indice)
-  const barrios = opciones.filter((o) => !o.esCiudad && TIPOS_TASAR.some((t) => o.params[t]?.daNumero)).length
-  const avisos = opciones.reduce((s, o) => s + TIPOS_TASAR.reduce((x, t) => x + (o.params[t]?.n ?? 0), 0), 0)
   const err = tasador.modelo.errorCiudad
 
   const preguntas = [
     {
       q: '¿De dónde sale el valor de mi casa?',
-      a: 'De las propiedades que hoy están a la venta en tu mismo barrio. Separamos el precio en dos partes: el terreno, que medimos con los lotes publicados, y la construcción, que es lo que queda de cada casa al descontarle su terreno. Con tus metros y tu antigüedad armamos la cuenta; las casas más grandes se pagan algo menos por m² y las más nuevas, algo más que la típica del barrio.',
+      a: 'De nuestro relevamiento de lo que hoy está publicado a la venta en tu mismo barrio. Con eso sabemos cuánto vale ahí el terreno y cuánto lo construido, y lo ajustamos a los metros y la antigüedad de tu propiedad.',
     },
     {
       q: '¿Cuánto se equivoca?',
-      a: `Lo controlamos casa por casa: calculamos el valor de cada una de las publicadas sin mirar su precio y después lo comparamos. En los barrios de Funes, en la mitad de los casos la diferencia fue menor a ${porcentaje(err.Funes?.casa ?? 0.15)}; en Roldán, menor a ${porcentaje(err['Roldán']?.casa ?? 0.2)}. Cada barrio muestra su propio margen y, donde hay pocos avisos o los precios son muy dispares, preferimos no dar número.`,
+      a: `Lo controlamos barrio por barrio contra lo que está publicado. En los barrios de Funes, en la mitad de los casos la diferencia es menor a ${porcentaje(err.Funes?.casa ?? 0.15)}; en Roldán, menor a ${porcentaje(err['Roldán']?.casa ?? 0.2)}. Cada barrio muestra su propio margen y, donde no podemos dar un valor confiable, preferimos no dar número.`,
     },
     {
       q: '¿Reemplaza a una tasación?',
@@ -95,16 +90,12 @@ export default async function TasarIndice() {
               Elegí el barrio y poné los metros y la antigüedad: te mostramos el valor de referencia con lo que valen hoy el terreno y lo construido ahí, y cuánto le erra la cuenta en ese barrio.
             </p>
             <ul className="mt-6 space-y-2.5 text-[16px] text-[#3C4A42]">
-              <Punto>
-                <b className="font-numeric font-semibold text-[#121A15]">{n(avisos)}</b> avisos en venta en la cuenta.
-              </Punto>
-              <Punto>
-                <b className="font-numeric font-semibold text-[#121A15]">{n(barrios)}</b> barrios medidos, uno por uno.
-              </Punto>
+              <Punto>Relevamiento propio de lo que está publicado a la venta, barrio por barrio.</Punto>
+              {actualizado && <Punto>Actualizado el {actualizado}.</Punto>}
               <Punto>Sin registrarte. Y si querés vender, la tasación de un corredor matriculado.</Punto>
             </ul>
           </div>
-          <Tasador opciones={opciones} modelo={tasador.modelo} modo="tasar" leerLink conLinkAlBarrio />
+          <Tasador opciones={opciones} modelo={tasador.modelo} modo="tasar" actualizado={actualizado} leerLink conLinkAlBarrio />
         </section>
 
         <section aria-labelledby="barrios" className="border-t border-[#E1E6E1] py-14">
@@ -125,7 +116,7 @@ export default async function TasarIndice() {
         </section>
 
         <section className="border-t border-[#E1E6E1] py-14">
-          <h2 className="font-raleway text-[clamp(26px,3.6vw,36px)] font-extrabold text-[#121A15]">Cómo lo calculamos</h2>
+          <h2 className="font-raleway text-[clamp(26px,3.6vw,36px)] font-extrabold text-[#121A15]">Preguntas frecuentes</h2>
           <div className="mt-4 max-w-[760px]">
             {preguntas.map((f) => (
               <details key={f.q} className="border-b border-[#E1E6E1] py-4">
