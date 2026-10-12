@@ -114,6 +114,8 @@ export interface TokkoProperty {
   portada_viva?: string | null;
   status: number;
   deleted_at: string | null;
+  /** Última edición de la propiedad en Hilo (ISO). Solo la usa el sitemap (lastmod). */
+  last_update?: string | null;
   tags: TokkoTag[];
   videos: TokkoVideo[];
   property_condition: string | null;

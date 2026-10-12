@@ -24,6 +24,13 @@ export const channels = [
   { name: 'TikTok', handle: '@si.inmobiliaria', href: 'https://www.tiktok.com/@si.inmobiliaria', description: 'Videos cortos para descubrir más.' },
   { name: 'Facebook', handle: 'SI INMOBILIARIA', href: 'https://www.facebook.com/inmobiliariaippoliti/', description: 'Novedades y comunidad.' },
 ]
+// Texto propio de la página de un video: su título y su descripción (más el
+// resumen o la transcripción, cuando se carguen). El resto de la página se
+// repite en todas (reproductor, "Seguí mirando"). Con menos de esto Google la
+// descarta por floja: va noindex y fuera del sitemap hasta que se enriquezca.
+export const PALABRAS_PARA_INDEXAR = 300
+export const palabrasPropias = (v: Video) => `${v.title} ${v.description ?? ''}`.split(/\s+/).filter(Boolean).length
+export const esIndexable = (v: Video) => palabrasPropias(v) >= PALABRAS_PARA_INDEXAR
 export const categoryLabel = (id: string) => categories.find(c => c.id === id)?.label || 'Mundo SI'
 // "Invitado: tema" se muestra en dos renglones (nombre y bajada) en las charlas.
 export function titleParts(video: Video): [string, string?] {
