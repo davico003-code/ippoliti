@@ -184,6 +184,9 @@ export default async function PropertyPage({ params }: Props) {
       // fichas con problemas reales de indexación, se deja documentado y NO se
       // toca. No es la causa el <head> manual del layout (una copia de esta
       // página en otra ruta, bajo el mismo layout, sí devuelve 404).
+      // Desde el 12-oct-2026 el middleware (fichaDadaDeBaja) responde antes de
+      // llegar acá: 301 al listado parecido o 410. Esto queda de red, para la
+      // ventana en que la propiedad se dio de baja y la lista de ids no se enteró.
       notFound();
     }
     throw e;
