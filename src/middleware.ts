@@ -62,11 +62,12 @@ const _fichas = new Map<number, { viva: boolean; baja: DatosBaja | null; ts: num
 async function idsPublicados(origin: string): Promise<Set<number> | null> {
   const ahora = Date.now()
   if (_ids && ahora - _ids.ts < IDS_TTL_MS) return _ids.set
-  // Un intento por minuto como mucho, aunque falle.
-  if (ahora - _idsIntento > 60_000) {
+  // Un intento cada 15 s como mucho, aunque falle.
+  if (ahora - _idsIntento > 15_000) {
     _idsIntento = ahora
     try {
-      const res = await fetch(`${origin}/api/propiedades/ids`, { signal: AbortSignal.timeout(2500) })
+      // 4 s: en frío (instancia nueva + función dormida) con 2,5 s no llegaba y la ficha dada de baja pasaba con 200.
+      const res = await fetch(`${origin}/api/propiedades/ids`, { signal: AbortSignal.timeout(4000) })
       const data = res.ok ? ((await res.json()) as { ids?: number[] }) : null
       if (Array.isArray(data?.ids) && data.ids.length > 0) _ids = { set: new Set(data.ids), ts: ahora }
     } catch {
