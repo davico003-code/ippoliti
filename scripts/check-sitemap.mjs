@@ -41,7 +41,9 @@ async function trabajar() {
     if (res.status >= 300 && res.status < 400) { fallas.push(`REDIRIGE ${res.status}  ${ruta} → ${res.headers.get('location')}`); continue }
     if (res.status !== 200) { fallas.push(`ESTADO ${res.status}  ${ruta}`); continue }
     const html = await res.text()
-    const robots = [...html.matchAll(/<meta name="robots" content="([^"]*)"/g)].map((m) => m[1]).join(' ') + ' ' + (res.headers.get('x-robots-tag') ?? '')
+    // En un preview, Vercel le pone X-Robots-Tag: noindex a TODO: ahí solo cuenta la etiqueta de la página.
+    const cabecera = BASE === CANONICO ? (res.headers.get('x-robots-tag') ?? '') : ''
+    const robots = [...html.matchAll(/<meta name="robots" content="([^"]*)"/g)].map((m) => m[1]).join(' ') + ' ' + cabecera
     if (/noindex/i.test(robots)) fallas.push(`NOINDEX  ${ruta}`)
     const canonical = (html.match(/<link rel="canonical" href="([^"]*)"/) || [])[1]
     if (canonical !== loc) fallas.push(`CANONICAL  ${ruta} → ${canonical ?? '(no tiene)'}`)
