@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { Phone, TreePine, School, Shield, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
+import BarriosDeLaZona from '@/components/seo/BarriosDeLaZona'
 
 export const revalidate = 21600
 
@@ -323,6 +324,8 @@ export default async function InmobiliariaFunesPage() {
           </div>
         </div>
       </section>
+
+      <BarriosDeLaZona zona="funes" nombre="Funes" />
 
       {/* Related Links */}
       <section className="py-12 px-4 bg-white border-t">

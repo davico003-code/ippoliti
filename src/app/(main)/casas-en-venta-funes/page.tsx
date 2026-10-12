@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getRoofedArea } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
+import BarriosDeLaZona from '@/components/seo/BarriosDeLaZona'
 
 export const revalidate = 21600
 
@@ -77,6 +78,8 @@ export default async function Page() {
           <Link href="/propiedades?location=funes" className="px-6 py-3 border-2 border-white text-white font-bold rounded-xl">Ver todas las propiedades</Link>
         </div>
       </section>
+
+      <BarriosDeLaZona zona="funes" nombre="Funes" />
 
       <section className="py-8 px-4 border-t">
         <div className="max-w-4xl mx-auto flex flex-wrap gap-3">

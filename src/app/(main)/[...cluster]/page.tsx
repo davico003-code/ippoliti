@@ -13,6 +13,7 @@ import {
 import PropertyGrid from '@/components/PropertyGrid'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import LandingLeadForm from '@/components/landing/LandingLeadForm'
+import BarriosDeLaZona from '@/components/seo/BarriosDeLaZona'
 
 /**
  * LANDING ENGINE por clusters (Growth OS §23): /funes/casas,
@@ -187,6 +188,8 @@ export default async function ClusterLandingPage({ params }: { params: { cluster
           </div>
         </div>
       </section>
+
+      {cluster.ciudad === 'funes' && <BarriosDeLaZona zona="funes" nombre="Funes" />}
 
       {/* Internal linking */}
       <section className="py-8 px-4 border-t">

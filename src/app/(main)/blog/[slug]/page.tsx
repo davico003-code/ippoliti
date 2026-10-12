@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug, resolveCategory, readingMinutes } from '@/lib/blog'
+import { notasRelacionadas } from '@/lib/notas-relacionadas'
+import { zonasMencionadas } from '@/lib/zonas-links'
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
 import { cierreDeNota, WHATSAPP_BLOG } from '@/lib/blog-cta'
 import BurbujaDavid from '@/components/BurbujaDavid'
@@ -240,10 +242,11 @@ export default async function BlogPostPage({ params }: Props) {
   // relacionados sean consistentes con lo que el usuario vio en /blog.
   const category = resolveCategory(post.slug, post.category)
   const allPosts = await getAllPosts()
-  const related = allPosts
-    .filter(p => p.slug !== post.slug)
-    .filter(p => resolveCategory(p.slug, p.category) === category)
-    .slice(0, 3)
+  // Tres notas relacionadas, repartidas para que TODAS reciban links (antes
+  // eran siempre las 3 más nuevas de la categoría: ver lib/notas-relacionadas).
+  const related = notasRelacionadas(post.slug, allPosts, p => resolveCategory(p.slug, p.category))
+  // Las páginas de barrio y localidad que la nota menciona.
+  const zonas = zonasMencionadas(`${post.title} ${post.content}`)
 
   const isDavidFlores = post.author?.toLowerCase().includes('david flores') ?? false
   const authorName = isDavidFlores ? 'David Flores' : post.author || 'SI INMOBILIARIA'
@@ -539,6 +542,24 @@ export default async function BlogPostPage({ params }: Props) {
               )}
             </div>
           </div>
+
+          {/* ── ZONAS QUE MENCIONA LA NOTA ── */}
+          {zonas.length > 0 && (
+            <nav aria-label="Zonas de esta nota" className="mt-12 pt-8 border-t border-gray-100">
+              <h3 className="text-xl font-black text-gray-900 mb-4">Zonas de esta nota</h3>
+              <div className="flex flex-wrap gap-2">
+                {zonas.map(z => (
+                  <Link
+                    key={z.href}
+                    href={z.href}
+                    className="rounded-full bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-[#e7f2eb] hover:text-[#1A5C38] transition-colors"
+                  >
+                    {z.label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          )}
 
           {/* ── ARTÍCULOS RELACIONADOS ── */}
           {related.length > 0 && (
