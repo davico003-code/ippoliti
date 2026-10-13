@@ -6,7 +6,7 @@
   'use strict'
 
   const DIA = 86_400_000
-  const MAX_POR_INMOBILIARIA = 2
+  const MAX_POR_INMOBILIARIA = 3
   const CLAVES = { sesion: 'ronda.sesion.v1', guia: 'ronda.guia.v1', notas: 'ronda.notas.v1' }
 
   const $ = (sel, raiz = document) => raiz.querySelector(sel)
@@ -203,8 +203,8 @@
   function pintar() {
     const grilla = $('#grilla')
     const conteo = $('#conteo')
-    for (const b of $$('#filtroTipo .chip')) b.setAttribute('aria-pressed', String(b.dataset.tipo === filtro.tipo))
-    for (const b of $$('#filtroCiudad .chip')) b.setAttribute('aria-pressed', String(b.dataset.ciudad === filtro.ciudad))
+    for (const b of $$('#filtroTipo button')) b.setAttribute('aria-pressed', String(b.dataset.tipo === filtro.tipo))
+    for (const b of $$('#filtroCiudad button')) b.setAttribute('aria-pressed', String(b.dataset.ciudad === filtro.ciudad))
 
     if (publicaciones === null) {
       conteo.textContent = 'Cargando…'
@@ -546,6 +546,7 @@
     const lleno = usadas.length >= MAX_POR_INMOBILIARIA
     $('#cupo').textContent = `${sesion.inmobiliaria.nombre} usa ${usadas.length} de ${MAX_POR_INMOBILIARIA} lugares esta semana.`
     $('#pasoLleno').hidden = !lleno
+    $('#llenoNota').textContent = `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} propiedades en la ronda, que es el máximo. Para publicar otra, dá de baja una o esperá a que venza.`
     if (lleno) {
       pasoEnlace.hidden = true
       pasoConfirmar.hidden = true

@@ -5,7 +5,7 @@
 //          { url, ciudad, oportunidad }     un enlace que se lee solo (ficha de Tokko)
 //          { manual, ciudad, oportunidad }  cargada a mano, con sus fotos ya subidas
 //                                           (y, si tiene, el enlace de su aviso en el portal)
-//        Reglas: hace falta el pase del agente, hasta 2 propiedades vigentes por
+//        Reglas: hace falta el pase del agente, hasta 3 propiedades vigentes por
 //        inmobiliaria y un enlace no se publica dos veces. Arma la ficha neutra
 //        de verficha.casa en el momento.
 
