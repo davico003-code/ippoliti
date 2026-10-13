@@ -127,8 +127,9 @@ export async function actualizarContacto(agente: { id: string; nombre: string; w
 
 // ── Copia de avisos de Zonaprop ─────────────────────────────────────────
 // Lo que Hilo ya tenía leído de Zonaprop (scripts/ronda-copia-zonaprop.mjs lo
-// carga en el hash ronda:zonaprop). Es una foto de un día: cada registro dice
-// cuándo se leyó. Solo se lee, así que es la misma en producción y en pruebas.
+// carga en el hash ronda:zonaprop). Completa la lectura en el momento (todas las
+// fotos) y la reemplaza si el aviso hoy no figura. Es una foto de un día: cada
+// registro dice cuándo se leyó. Solo se lee, así que es la misma en producción y en pruebas.
 
 export interface CopiaZonaprop {
   id: string

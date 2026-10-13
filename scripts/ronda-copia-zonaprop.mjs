@@ -4,10 +4,10 @@
  * ya tiene leídos (tabla `avisos_detalle`), para que un colega que pega el link
  * de Zonaprop no tenga que cargar la propiedad a mano.
  *
- * Zonaprop no deja leer sus avisos desde un servidor, y no se le pasa por
- * arriba: lo único que se usa es la copia que ya está en la base de Hilo. Por
- * eso un aviso que no está en la copia (nuevo, o de un barrio que el
- * recolector no recorre) sigue yendo a la carga a mano.
+ * La Ronda lee el aviso en el momento (src/lib/ronda/zonaprop-busqueda.ts), pero
+ * esa lectura trae solo las primeras 8 fotos y la descripción sin renglones.
+ * Esta copia la completa (todas las fotos, el texto con formato) y la reemplaza
+ * cuando el aviso hoy no figura publicado o Zonaprop no responde.
  *
  * La copia NO se actualiza sola: es una foto de lo leído hasta ese día (cada
  * registro lleva `leido`). Volver a correr este script la refresca.
