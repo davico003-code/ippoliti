@@ -141,7 +141,7 @@ export function avisoManual(d: DatosManual): AvisoRonda {
   const grupo = grupoDeTipo(d.tipo)
   return {
     origen: 'manual',
-    url: '',
+    url: d.enlace ?? '',
     tipo: d.tipo,
     grupo,
     operacion: d.operacion,

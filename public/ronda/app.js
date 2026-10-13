@@ -611,13 +611,13 @@
     e.preventDefault()
     const url = $('#enlace').value.trim()
     if (!origenDeLink(url)) {
+      // Un aviso de portal no se lee solo: se guarda el enlace y se pasa a la carga a mano.
       const portal = portalSinLectura(url)
       if (portal) {
-        error('enlaceError', `Los avisos de ${portal} no se pueden leer solos. Cargala a mano: son 2 minutos.`)
-        $('#irAManual').focus()
+        irAManual(url, `${portal} no deja leer sus avisos. Completá los datos y sumá las fotos: guardamos el enlace para que los colegas puedan abrir tu aviso.`)
         return
       }
-      error('enlaceError', url ? 'Ese enlace no es de una ficha de Tokko. Pegá la ficha o cargala a mano.' : 'Pegá el enlace de la ficha.')
+      error('enlaceError', url ? 'Ese enlace no es de una ficha de Tokko. Pegá la ficha o cargala a mano.' : 'Pegá el enlace de la propiedad.')
       $('#enlace').focus()
       return
     }
@@ -791,11 +791,20 @@
     pintarFotos()
   })
 
-  $('#irAManual').addEventListener('click', () => {
+  /** El enlace del aviso en su portal, cuando la carga a mano empezó pegando uno. */
+  let enlaceManual = null
+
+  function irAManual(enlace, nota) {
+    enlaceManual = enlace
+    const aviso = $('#manualNota')
+    aviso.textContent = nota || ''
+    aviso.hidden = !nota
     pasoEnlace.hidden = true
     pasoManual.hidden = false
     publicar.scrollTop = 0
-  })
+  }
+
+  $('#irAManual').addEventListener('click', () => irAManual(null, ''))
   $('#volverDeManual').addEventListener('click', mostrarPasoEnlace)
 
   pasoManual.addEventListener('submit', async (e) => {
@@ -837,6 +846,7 @@
             banos: String(f.get('banos') || '').replace(/\D/g, ''),
             descripcion: String(f.get('descripcion') || '').trim(),
             fotos: listas.map((x) => x.url),
+            enlace: enlaceManual,
           },
         },
       })
