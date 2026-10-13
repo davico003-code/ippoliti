@@ -50,7 +50,7 @@ export interface Publicacion {
   fotos: number
   /** La ficha neutra para el cliente (verficha.casa/<slug>). */
   ficha: string
-  origen: 'Tokko' | 'Web' | 'Manual'
+  origen: 'Tokko' | 'Zonaprop' | 'Web' | 'Manual'
   /** Vacío en las cargadas a mano. */
   urlOriginal: string
   oportunidad: string
@@ -161,13 +161,26 @@ export function claveDeUrl(url: string): string {
   }
 }
 
-export type OrigenLink = 'tokko' | 'web'
+export type OrigenLink = 'tokko' | 'web' | 'zonaprop'
+
+/** El número de un aviso de Zonaprop: "…-en-vida-barrio-59318668.html" → "59318668". */
+export function idDeZonaprop(url: string): string | null {
+  try {
+    const u = new URL(url)
+    if (!/(^|\.)zonaprop\.com\.ar$/.test(u.hostname.toLowerCase())) return null
+    return /-(\d{6,12})\.html$/.exec(u.pathname)?.[1] ?? null
+  } catch {
+    return null
+  }
+}
 
 /**
- * De dónde es el link que se puede leer solo; null si no es de ninguno.
- * Solo páginas que se dejan leer con un pedido común: la ficha pública de Tokko
- * y la web de SI. Zonaprop y Argenprop bloquean la lectura automática (y no se
- * les pasa por arriba): esas propiedades se cargan a mano.
+ * De dónde es el link que se intenta convertir solo; null si no es de ninguno.
+ *  - tokko / web: páginas que se dejan leer con un pedido común (la ficha
+ *    pública de Tokko y la web de SI).
+ *  - zonaprop: Zonaprop bloquea la lectura automática y no se le pasa por
+ *    arriba. Se convierte SOLO si el aviso está en la copia que Hilo ya tenía
+ *    leída (ver almacen.copiaDeZonaprop); si no, va a la carga a mano.
  */
 export function origenDeLink(url: string): OrigenLink | null {
   let u: URL
@@ -180,6 +193,7 @@ export function origenDeLink(url: string): OrigenLink | null {
   const host = u.hostname.toLowerCase()
   if (/(^|\.)ficha\.info$/.test(host) && u.pathname.startsWith('/p/')) return 'tokko'
   if (/(^|\.)siinmobiliaria\.com$/.test(host) && /^\/propiedades\/\d+/.test(u.pathname)) return 'web'
+  if (idDeZonaprop(url)) return 'zonaprop'
   return null
 }
 
@@ -222,6 +236,11 @@ export function enlaceDeAviso(v: unknown): string | null {
   } catch {
     return null
   }
+}
+
+/** El precio que corrige quien publica: un número sano, o null (a consultar). */
+export function leerPrecio(v: unknown): number | null {
+  return numeroEntre(v, 2_000_000_000)
 }
 
 function numeroEntre(v: unknown, max: number): number | null {

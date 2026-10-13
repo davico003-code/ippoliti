@@ -1,13 +1,15 @@
 // POST /api/ronda/leer  { url }
 //
 // Paso 1 de publicar: lee el aviso del link y devuelve lo que se va a mostrar,
-// para que el colega lo revise. No publica nada. El aviso leído queda 30 min
+// para que el colega lo revise. No publica nada. Si el aviso no se puede
+// convertir solo (un Zonaprop que no está en la copia), responde 422 con
+// `aMano: true` y la pantalla pasa a la carga a mano. El aviso leído queda 30 min
 // guardado: al confirmar no se vuelve a leer.
 
 import { NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/feedback'
 import { guardarLectura, listarPublicaciones } from '@/lib/ronda/almacen'
-import { ENLACE_NO_SIRVE, leerAviso } from '@/lib/ronda/aviso'
+import { AvisoSinLectura, ENLACE_NO_SIRVE, leerAviso } from '@/lib/ronda/aviso'
 import { barrioVisible, claveDeUrl, MAX_POR_INMOBILIARIA, ocupadas, origenDeLink } from '@/lib/ronda/reglas'
 import { sesionDe } from '@/lib/ronda/sesion'
 
@@ -63,9 +65,12 @@ export async function POST(req: Request) {
         banos: aviso.banos,
         foto: aviso.fotos[0] ?? null,
         fotos: aviso.fotos.length,
+        // Copia guardada: la pantalla avisa de cuándo es y deja corregir el precio.
+        leidoEl: aviso.leidoEl ?? null,
       },
     })
   } catch (e) {
+    if (e instanceof AvisoSinLectura) return error(e.message, 422, { aMano: true })
     return error(e instanceof Error && e.message ? e.message : 'No se pudo leer el aviso.', 422)
   }
 }

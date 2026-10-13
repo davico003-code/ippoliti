@@ -2,7 +2,8 @@
 //
 // GET  → la grilla de la semana (pública; la cachea el CDN unos segundos).
 // POST → publica una propiedad por 7 días, de dos maneras:
-//          { url, ciudad, oportunidad }     un enlace que se lee solo (ficha de Tokko)
+//          { url, ciudad, oportunidad }     un enlace que se convierte solo (ficha de Tokko,
+//                                           o un Zonaprop de la copia: ahí acepta `precio`)
 //          { manual, ciudad, oportunidad }  cargada a mano, con sus fotos ya subidas
 //                                           (y, si tiene, el enlace de su aviso en el portal)
 //        Reglas: hace falta el pase del agente, hasta 3 propiedades vigentes por
@@ -19,7 +20,7 @@ import {
   limpiarVencidas,
   listarPublicaciones,
 } from '@/lib/ronda/almacen'
-import { avisoManual, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
+import { avisoManual, AvisoSinLectura, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
 import {
   barrioVisible,
   claveDeUrl,
@@ -27,6 +28,7 @@ import {
   DIAS_PUBLICACION,
   esCiudadRonda,
   leerDatosManual,
+  leerPrecio,
   MAX_POR_INMOBILIARIA,
   ocupadas,
   origenDeLink,
@@ -39,7 +41,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-const ORIGEN = { tokko: 'Tokko', web: 'Web', manual: 'Manual' } as const
+const ORIGEN = { tokko: 'Tokko', zonaprop: 'Zonaprop', web: 'Web', manual: 'Manual' } as const
 
 const error = (mensaje: string, status = 400, extra: Record<string, unknown> = {}) =>
   NextResponse.json({ error: mensaje, ...extra }, { status })
@@ -105,6 +107,8 @@ export async function POST(req: Request) {
       }
     }
     if (aviso.fotos.length === 0) return error('Hace falta al menos una foto para publicar.', 422)
+    // La copia de Zonaprop puede tener un precio viejo: quien publica lo corrige.
+    if (aviso.origen === 'zonaprop' && body.precio !== undefined) aviso = { ...aviso, precio: leerPrecio(body.precio) }
 
     const ficha = await crearFichaDeAviso(aviso, {
       ciudad,
@@ -147,6 +151,7 @@ export async function POST(req: Request) {
     await guardarPublicacion(publicacion)
     return NextResponse.json({ publicacion }, { status: 201 })
   } catch (e) {
+    if (e instanceof AvisoSinLectura) return error(e.message, 422, { aMano: true })
     console.error('[ronda] publicar', e)
     return error(e instanceof Error && e.message ? e.message : 'No se pudo publicar. Probá de nuevo.', 422)
   }
