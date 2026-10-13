@@ -160,6 +160,12 @@ const SLUG_RE = /^\/[A-Za-z0-9]{8}$/
 // fallback a ese path ignorando el <link> de la página. Reescribimos al icono neutro.
 const NEUTRAL_ICON_RE = /^\/(favicon\.ico|favicon\.svg|favicon-96x96\.png|apple-touch-icon\.png|icon\.png)$/
 
+// La Ronda Funes Roldán (propiedades compartidas entre inmobiliarias colegas):
+// página estática en public/ronda + sus rutas /api/ronda/*. Vive en el dominio
+// neutro; si alguien la abre desde siinmobiliaria.com, se lo manda para allá.
+const SI_HOSTS = new Set(['siinmobiliaria.com', 'www.siinmobiliaria.com'])
+const esPaginaRonda = (pathname: string) => pathname === '/ronda' || pathname.startsWith('/ronda/')
+
 export async function middleware(request: NextRequest) {
   const host = (request.headers.get('host') || '').toLowerCase().split(':')[0]
   const { pathname } = request.nextUrl
@@ -189,6 +195,7 @@ export async function middleware(request: NextRequest) {
     ) {
       return NextResponse.next()
     }
+    if (esPaginaRonda(pathname) || pathname.startsWith('/api/ronda/')) return NextResponse.next()
     if (SLUG_RE.test(pathname)) {
       const slug = pathname.slice(1)
       const url = request.nextUrl.clone()
@@ -202,6 +209,10 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/v/__nf__'
     return NextResponse.rewrite(url)
+  }
+
+  if (SI_HOSTS.has(host) && esPaginaRonda(pathname)) {
+    return NextResponse.redirect(`https://${process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'}/ronda`, 308)
   }
 
   // ── Blog: 301 de notas borradas (soft-delete vía blog:redirects) ───────
