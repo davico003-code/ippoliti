@@ -49,6 +49,11 @@ const nextConfig = {
         source: '/guia',
         destination: '/guia/index.html',
       },
+      // La Ronda Funes Roldán: página estática (public/ronda), como /guia.
+      {
+        source: '/ronda',
+        destination: '/ronda/index.html',
+      },
     ]
   },
   async redirects() {
