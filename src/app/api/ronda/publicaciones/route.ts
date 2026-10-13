@@ -4,6 +4,7 @@
 // POST → publica una propiedad por 7 días, de dos maneras:
 //          { url, ciudad, oportunidad }     un enlace que se lee solo (ficha de Tokko)
 //          { manual, ciudad, oportunidad }  cargada a mano, con sus fotos ya subidas
+//                                           (y, si tiene, el enlace de su aviso en el portal)
 //        Reglas: hace falta el pase del agente, hasta 2 propiedades vigentes por
 //        inmobiliaria y un enlace no se publica dos veces. Arma la ficha neutra
 //        de verficha.casa en el momento.
@@ -72,7 +73,8 @@ export async function POST(req: Request) {
   const aMano = body.manual !== undefined
   const manual = aMano ? leerDatosManual(body.manual) : null
   if (manual && 'error' in manual) return error(manual.error)
-  const url = aMano ? '' : String(body.url ?? '').trim().slice(0, 600)
+  // A mano, el enlace es opcional y no se lee: queda para que el colega abra el aviso.
+  const url = manual ? (manual.datos.enlace ?? '') : String(body.url ?? '').trim().slice(0, 600)
   if (!aMano && !origenDeLink(url)) return error(ENLACE_NO_SIRVE)
 
   try {
@@ -89,12 +91,13 @@ export async function POST(req: Request) {
       )
     }
 
+    const clave = url ? claveDeUrl(url) : ''
+    if (clave && grilla.some((p) => p.urlOriginal && claveDeUrl(p.urlOriginal) === clave)) return error('Esa propiedad ya está en la ronda.', 409)
+
     let aviso: AvisoRonda | null
     if (manual) {
       aviso = avisoManual(manual.datos)
     } else {
-      const clave = claveDeUrl(url)
-      if (grilla.some((p) => p.urlOriginal && claveDeUrl(p.urlOriginal) === clave)) return error('Esa propiedad ya está en la ronda.', 409)
       aviso = await lecturaGuardada<AvisoRonda>(clave)
       if (!aviso) {
         aviso = await leerAviso(url)

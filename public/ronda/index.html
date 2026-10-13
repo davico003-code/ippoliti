@@ -177,22 +177,23 @@
 
       <form id="pasoEnlace" novalidate>
         <div class="campo">
-          <label for="enlace">Enlace de la ficha de Tokko</label>
+          <label for="enlace">Enlace de la propiedad</label>
           <div class="con-boton">
             <input id="enlace" name="enlace" type="url" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://ficha.info/p/…" aria-describedby="enlaceAyuda">
             <button type="button" class="boton suave" id="pegar" hidden>Pegar</button>
           </div>
           <p class="error" id="enlaceError" hidden></p>
-          <p class="ayuda chica" id="enlaceAyuda">En Tokko: abrí la propiedad, tocá Compartir ficha, copiá el enlace y pegalo acá. Los datos y las fotos se cargan solos.</p>
+          <p class="ayuda chica" id="enlaceAyuda">Con la ficha de Tokko, los datos y las fotos se cargan solos. Con un aviso de Zonaprop u otro portal, te pedimos los datos y las fotos.</p>
         </div>
         <button class="boton primario grande" type="submit">Revisar la propiedad</button>
         <p class="estado" id="leyendo" role="status" hidden>Leyendo la ficha…</p>
         <p class="separador"><span>o</span></p>
         <button class="boton suave grande" type="button" id="irAManual">Cargarla a mano</button>
-        <p class="ayuda chica centro">¿Está en Zonaprop, Argenprop o en ningún portal? Cargala con las fotos de tu teléfono: son 2 minutos.</p>
+        <p class="ayuda chica centro">¿Está en Zonaprop, Argenprop o en ningún portal? Pegá el enlace arriba o tocá acá: la cargás con las fotos de tu teléfono en 2 minutos.</p>
       </form>
 
       <form id="pasoManual" novalidate hidden>
+        <p class="nota" id="manualNota" hidden></p>
         <div class="campo">
           <span class="rotulo" id="fotosRotulo">Fotos <span class="opcional">(de 1 a 10; la primera es la portada)</span></span>
           <div class="fotos" id="fotos" role="group" aria-labelledby="fotosRotulo">

@@ -198,6 +198,8 @@ export interface DatosManual {
   banos: number | null
   descripcion: string
   fotos: string[]
+  /** El aviso en su portal (Zonaprop, Argenprop…), para que el colega lo pueda abrir. */
+  enlace: string | null
 }
 
 /** Solo fotos que subió la Ronda a nuestro almacén: nadie cuela una dirección ajena. */
@@ -207,6 +209,17 @@ export function esFotoDeLaRonda(url: unknown): url is string {
     return u.protocol === 'https:' && u.hostname.endsWith('.public.blob.vercel-storage.com') && u.pathname.startsWith('/ronda/')
   } catch {
     return false
+  }
+}
+
+/** Un enlace https sano (sin usuario ni puerto), o null. No se lee: solo se guarda para abrirlo. */
+export function enlaceDeAviso(v: unknown): string | null {
+  try {
+    const u = new URL(String(v ?? '').trim().slice(0, 600))
+    if (u.protocol !== 'https:' || u.username || u.password || u.port || !u.hostname.includes('.')) return null
+    return u.toString()
+  } catch {
+    return null
   }
 }
 
@@ -235,6 +248,7 @@ export function leerDatosManual(crudo: unknown): { datos: DatosManual } | { erro
       banos: numeroEntre(c.banos, 30),
       descripcion: texto(c.descripcion, 3000),
       fotos,
+      enlace: enlaceDeAviso(c.enlace),
     },
   }
 }
