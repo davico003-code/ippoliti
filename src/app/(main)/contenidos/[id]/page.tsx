@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { ArrowUpRight } from 'lucide-react'
-import { videos, categoryLabel, titleParts } from '@/lib/contenidos'
+import { videos, categoryLabel, titleParts, esIndexable } from '@/lib/contenidos'
 import Player from '@/components/contenidos/Player'
 import VideoCard from '@/components/contenidos/VideoCard'
 import styles from '@/components/contenidos/contenidos.module.css'
@@ -12,7 +12,7 @@ export function generateStaticParams() { return videos.map(v => ({ id: v.id })) 
 export function generateMetadata({ params }: { params: { id: string } }): Metadata {
   const video = videos.find(v => v.id === params.id)
   if (!video) return { title: 'Contenido no encontrado' }
-  return { title: `${video.title} | SI INMOBILIARIA`, description: `${categoryLabel(video.category)}: ${video.title}. Mirá el video en Mundo SI y descubrí más contenido de SI INMOBILIARIA.`, alternates: { canonical: `https://siinmobiliaria.com/contenidos/${video.id}` }, openGraph: { title: video.title, images: [video.thumbnail], url: `https://siinmobiliaria.com/contenidos/${video.id}` } }
+  return { title: `${video.title} | SI INMOBILIARIA`, description: `${categoryLabel(video.category)}: ${video.title}. Mirá el video en Mundo SI y descubrí más contenido de SI INMOBILIARIA.`, alternates: { canonical: `https://siinmobiliaria.com/contenidos/${video.id}` }, ...(esIndexable(video) ? {} : { robots: { index: false, follow: true } }), openGraph: { title: video.title, images: [video.thumbnail], url: `https://siinmobiliaria.com/contenidos/${video.id}` } }
 }
 export default function VideoPage({ params }: { params: { id: string } }) {
   const video = videos.find(v => v.id === params.id)

@@ -53,6 +53,13 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // /manifest.json no existe (el nuestro es /site.webmanifest) y Google lo
+      // pide igual: daba 404. statusCode y no `permanent` para que sea 301 (no 308).
+      { source: '/manifest.json', destination: '/site.webmanifest', statusCode: 301 },
+      // "/$" NO es un link nuestro: es el marcador de cierre de Suspense que React
+      // escribe en el script del streaming ("/$"===d) y Googlebot lo toma por una
+      // URL relativa. No se puede sacar del HTML; al menos que no figure como 404.
+      { source: '/\\$', destination: '/', statusCode: 301 },
       // Redirect vieja guía a la nueva
       {
         source: '/guia-comprador',

@@ -18,6 +18,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     links: [
       { label: 'Comprar en Funes y Roldán', href: '/propiedades?op=venta' },
       { label: 'Alquilar en Funes y Roldán', href: '/propiedades?op=alquiler' },
+      { label: 'Alquileres temporarios', href: '/alquileres-temporarios' },
       { label: 'Emprendimientos', href: '/emprendimientos' },
       { label: 'Vender tu propiedad', href: '/vender' },
       { label: 'Tasar tu casa online', href: '/tasar' },
@@ -43,6 +44,47 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: 'contacto@siinmobiliaria.com', href: 'mailto:contacto@siinmobiliaria.com' },
       { label: '@inmobiliaria.si', href: 'https://www.instagram.com/inmobiliaria.si' },
       { label: '@si.inmobiliaria', href: 'https://www.tiktok.com/@si.inmobiliaria' },
+    ],
+  },
+]
+
+// Bloque "Zonas": todas las páginas de localidad, linkeadas desde todo el
+// sitio (Search Console las marcaba "descubierta, sin rastrear": casi nada las
+// linkeaba). Al sumar una landing de zona, agregarla acá.
+const ZONAS: { titulo: string; links: { label: string; href: string }[] }[] = [
+  {
+    titulo: 'Funes',
+    links: [
+      { href: '/casas-en-venta-funes', label: 'Casas en venta en Funes' },
+      { href: '/terrenos-funes', label: 'Terrenos en Funes' },
+      { href: '/barrios-privados', label: 'Barrios privados de Funes' },
+      { href: '/barrio-don-mateo-funes', label: 'Barrio Don Mateo' },
+      { href: '/inmobiliaria-funes', label: 'Inmobiliaria en Funes' },
+    ],
+  },
+  {
+    titulo: 'Roldán',
+    links: [
+      { href: '/casas-en-venta-roldan', label: 'Casas en venta en Roldán' },
+      { href: '/terrenos-roldan', label: 'Terrenos en Roldán' },
+      { href: '/alquiler-roldan', label: 'Alquileres en Roldán' },
+      { href: '/propiedades-roldan', label: 'Propiedades en Roldán' },
+      { href: '/barrio-los-aromos-roldan', label: 'Barrio Los Aromos' },
+      { href: '/barrio-el-molino-roldan', label: 'Barrio El Molino' },
+      { href: '/inmobiliaria-roldan', label: 'Inmobiliaria en Roldán' },
+    ],
+  },
+  {
+    titulo: 'Rosario',
+    links: [
+      { href: '/rosario/departamentos', label: 'Departamentos en Rosario' },
+      { href: '/casas-en-venta-fisherton', label: 'Casas en Fisherton' },
+      { href: '/departamentos-puerto-norte', label: 'Departamentos en Puerto Norte' },
+      { href: '/departamentos-pichincha', label: 'Departamentos en Pichincha' },
+      { href: '/departamentos-centro-rosario', label: 'Departamentos en el centro' },
+      { href: '/departamentos-echesortu', label: 'Departamentos en Echesortu' },
+      { href: '/departamentos-abasto', label: 'Departamentos en Abasto' },
+      { href: '/inmobiliaria-fisherton', label: 'Inmobiliaria en Fisherton' },
     ],
   },
 ]
@@ -122,6 +164,27 @@ export default function Footer() {
               ))}
             </div>
           ))}
+
+          {/* Zonas: segunda fila de la misma grilla, así las columnas coinciden */}
+          <div aria-hidden style={{ gridColumn: '1 / -1', borderTop: `1px solid ${LINE_SOFT}` }} />
+          <p className="footerb-brand" style={{ fontFamily: RALEWAY, fontSize: 13, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: INK, margin: 0 }}>
+            Zonas
+          </p>
+          {ZONAS.map(z => (
+            <div key={z.titulo}>
+              <p style={{ fontFamily: RALEWAY, fontSize: 15, fontWeight: 700, color: INK, margin: '0 0 12px' }}>{z.titulo}</p>
+              {z.links.map(l => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  className="footerb-link"
+                  style={{ display: 'block', fontFamily: RALEWAY, fontSize: 14, color: MUTED, textDecoration: 'none', marginBottom: 10, transition: 'color 0.15s ease' }}
+                >
+                  {l.label}
+                </a>
+              ))}
+            </div>
+          ))}
         </div>
 
         <div
@@ -129,7 +192,7 @@ export default function Footer() {
           style={{
             borderTop: `1px solid ${LINE_SOFT}`,
             paddingTop: 26,
-            marginTop: 56,
+            marginTop: 44,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
