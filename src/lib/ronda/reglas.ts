@@ -117,6 +117,14 @@ export function etiquetaTipo(tipo: string): string {
   if (/terreno|lote/.test(t)) return 'Lote'
   if (/depart|monoamb/.test(t)) return 'Departamento'
   if (/^ph$/.test(t)) return 'PH'
+  // Zonaprop nombra los tipos en plural ("Casas", "Locales comerciales").
+  if (/^casas?$/.test(t) || /chalet/.test(t)) return 'Casa'
+  if (/^local/.test(t)) return 'Local'
+  if (/^oficina/.test(t)) return 'Oficina'
+  if (/galpon|deposito|bodega/.test(t)) return 'Galpón'
+  if (/^quinta/.test(t)) return 'Quinta'
+  if (/^cochera/.test(t)) return 'Cochera'
+  if (/^campo/.test(t)) return 'Campo'
   const limpio = String(tipo ?? '').trim()
   return limpio ? limpio.charAt(0).toUpperCase() + limpio.slice(1) : 'Propiedad'
 }
@@ -178,9 +186,9 @@ export function idDeZonaprop(url: string): string | null {
  * De dónde es el link que se intenta convertir solo; null si no es de ninguno.
  *  - tokko / web: páginas que se dejan leer con un pedido común (la ficha
  *    pública de Tokko y la web de SI).
- *  - zonaprop: Zonaprop bloquea la lectura automática y no se le pasa por
- *    arriba. Se convierte SOLO si el aviso está en la copia que Hilo ya tenía
- *    leída (ver almacen.copiaDeZonaprop); si no, va a la carga a mano.
+ *  - zonaprop: se lee por su número en la búsqueda pública de Zonaprop (ver
+ *    zonaprop-busqueda.ts) y se completa con la copia que Hilo ya tenía; si no
+ *    aparece en ninguna de las dos, va a la carga a mano.
  */
 export function origenDeLink(url: string): OrigenLink | null {
   let u: URL

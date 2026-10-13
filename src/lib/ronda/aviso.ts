@@ -1,14 +1,14 @@
 // Ronda Funes Roldán — del link que pega el colega a la propiedad de la grilla.
 //
-// Lee el aviso (la ficha pública de Tokko, una propiedad de siinmobiliaria.com o
-// la copia guardada de un aviso de Zonaprop; lo demás se carga a mano) y, al publicar, arma su ficha neutra de verficha.casa con
+// Lee el aviso (la ficha pública de Tokko, un aviso de Zonaprop o una propiedad
+// de siinmobiliaria.com; lo demás se carga a mano) y, al publicar, arma su ficha neutra de verficha.casa con
 // el MISMO armador que el resto de las fichas (crearFicha / crearFichaExterna).
 // Nunca inventa: si el aviso no se puede leer, tira un Error con el motivo.
 
 import { buildSnapshotFromTokko, crearFicha, crearFichaExterna } from '@/lib/ficha'
 import { rehostFotos } from '@/lib/rehost-fotos'
 import { getPropertyById } from '@/lib/tokko'
-import { copiaDeZonaprop } from './almacen'
+import { copiaDeZonaprop, type CopiaZonaprop } from './almacen'
 import { leerAvisoExterno } from './aviso-externo'
 import {
   barrioVisible,
@@ -24,6 +24,7 @@ import {
   type DatosManual,
   type GrupoTipo,
 } from './reglas'
+import { avisoZonapropPorBusqueda, fotosDePosting, numeroDePosting, precioDePosting, ubicacionDePosting, type PostingZonaprop } from './zonaprop-busqueda'
 
 const MAX_FOTOS = 20
 
@@ -69,18 +70,66 @@ export async function leerAviso(url: string): Promise<AvisoRonda> {
   const origen = origenDeLink(url)
   if (!origen) throw new Error(ENLACE_NO_SIRVE)
   if (origen === 'web') return leerDeLaWeb(url)
-  if (origen === 'zonaprop') return leerCopiaDeZonaprop(url)
+  if (origen === 'zonaprop') return leerDeZonaprop(url)
   return leerFichaTokko(url)
 }
 
 /**
- * Zonaprop no se lee en el momento: se usa la copia que Hilo ya tenía. En sus
- * casas la "superficie total" es el lote y la cubierta, lo construido.
+ * Zonaprop, en este orden (igual que "Cargar para compartir" de Hilo):
+ *  1. el aviso EN EL MOMENTO, por la búsqueda por número (precio y estado de
+ *     hoy, 8 fotos), completado con la copia guardada si la hay (todas las
+ *     fotos y la descripción con sus renglones);
+ *  2. si hoy no figura publicado o Zonaprop no respondió, la copia sola: dice
+ *     de cuándo es y deja corregir el precio;
+ *  3. si no hay nada, la pantalla pasa a la carga a mano.
+ * En las casas de Zonaprop la "superficie total" es el lote; la cubierta, lo construido.
  */
-async function leerCopiaDeZonaprop(url: string): Promise<AvisoRonda> {
+async function leerDeZonaprop(url: string): Promise<AvisoRonda> {
   const id = idDeZonaprop(url)
-  const c = id ? await copiaDeZonaprop(id) : null
-  if (!c) throw new AvisoSinLectura('Ese aviso de Zonaprop todavía no lo tenemos leído.')
+  if (!id) throw new AvisoSinLectura('Ese enlace no es de un aviso de Zonaprop.')
+  const [busqueda, copia] = await Promise.all([avisoZonapropPorBusqueda(id), copiaDeZonaprop(id).catch(() => null)])
+  if (busqueda.posting) return avisoDePosting(url, busqueda.posting, copia)
+  if (copia) return avisoDeCopia(url, copia)
+  throw new AvisoSinLectura(
+    busqueda.caida ? 'Zonaprop no respondió en este momento.' : 'Ese aviso ya no figura publicado en Zonaprop.',
+  )
+}
+
+function avisoDePosting(url: string, p: PostingZonaprop, copia: CopiaZonaprop | null): AvisoRonda {
+  const { operacion, precio, moneda } = precioDePosting(p)
+  const { ciudad, barrio } = ubicacionDePosting(p)
+  const tipo = etiquetaTipo(p.realEstateType?.name ?? '')
+  const grupo = grupoDeTipo(tipo)
+  const cubierta = numeroDePosting(p, /cubierta/i)
+  const total = numeroDePosting(p, /superficie total/i)
+  const deHoy = fotosDePosting(p)
+  return {
+    origen: 'zonaprop',
+    url,
+    tipo,
+    grupo,
+    operacion: textoOperacion(operacion),
+    ciudad: detectarCiudad(ciudad) ?? detectarCiudad(barrio, p.title),
+    barrio,
+    precio,
+    moneda,
+    m2: grupo === 'Lote' ? (total ?? cubierta) : (cubierta ?? total),
+    m2Cubiertos: grupo === 'Lote' ? null : cubierta,
+    m2Terreno: total,
+    ambientes: numeroDePosting(p, /^ambiente/i),
+    dormitorios: numeroDePosting(p, /^dormitorio/i),
+    banos: numeroDePosting(p, /^baño/i),
+    cocheras: numeroDePosting(p, /^cochera/i),
+    // La copia trae TODAS las fotos; la búsqueda, las primeras 8.
+    fotos: (copia && copia.fotos.length > deHoy.length ? copia.fotos : deHoy).slice(0, MAX_FOTOS),
+    descripcion: copia?.descripcion || (p.descriptionNormalized ?? '').trim() || null,
+    direccion: p.postingLocation?.address?.name ?? null,
+    tags: [],
+    anunciante: p.publisher?.name ?? copia?.anunciante ?? null,
+  }
+}
+
+function avisoDeCopia(url: string, c: CopiaZonaprop): AvisoRonda {
   const tipo = etiquetaTipo(c.tipo)
   const grupo = grupoDeTipo(tipo)
   const cubierta = entero(c.supCub)
