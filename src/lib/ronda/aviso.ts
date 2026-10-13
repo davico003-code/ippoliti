@@ -1,13 +1,14 @@
 // Ronda Funes Roldán — del link que pega el colega a la propiedad de la grilla.
 //
-// Lee el aviso (la ficha pública de Tokko o una propiedad de siinmobiliaria.com;
-// lo demás se carga a mano) y, al publicar, arma su ficha neutra de verficha.casa con
+// Lee el aviso (la ficha pública de Tokko, una propiedad de siinmobiliaria.com o
+// la copia guardada de un aviso de Zonaprop; lo demás se carga a mano) y, al publicar, arma su ficha neutra de verficha.casa con
 // el MISMO armador que el resto de las fichas (crearFicha / crearFichaExterna).
 // Nunca inventa: si el aviso no se puede leer, tira un Error con el motivo.
 
 import { buildSnapshotFromTokko, crearFicha, crearFichaExterna } from '@/lib/ficha'
 import { rehostFotos } from '@/lib/rehost-fotos'
 import { getPropertyById } from '@/lib/tokko'
+import { copiaDeZonaprop } from './almacen'
 import { leerAvisoExterno } from './aviso-externo'
 import {
   barrioVisible,
@@ -15,6 +16,7 @@ import {
   detectarCiudad,
   etiquetaTipo,
   grupoDeTipo,
+  idDeZonaprop,
   origenDeLink,
   textoOperacion,
   tituloRonda,
@@ -27,8 +29,11 @@ const MAX_FOTOS = 20
 
 export const ENLACE_NO_SIRVE = 'Ese enlace no se puede leer solo. Pegá la ficha de Tokko o cargá la propiedad a mano.'
 
+/** El aviso no se puede convertir solo: la pantalla pasa a la carga a mano. */
+export class AvisoSinLectura extends Error {}
+
 export interface AvisoRonda {
-  origen: 'tokko' | 'web' | 'manual'
+  origen: 'tokko' | 'web' | 'zonaprop' | 'manual'
   url: string
   tipo: string
   grupo: GrupoTipo
@@ -53,6 +58,9 @@ export interface AvisoRonda {
   tags: string[]
   /** Propiedad de siinmobiliaria.com: su número. */
   propertyId?: number
+  /** Copia guardada (Zonaprop): cuándo se leyó y quién lo publica (solo para limpiar la descripción). */
+  leidoEl?: string
+  anunciante?: string | null
 }
 
 const entero = (n: number | null | undefined) => (typeof n === 'number' && Number.isFinite(n) && n > 0 ? Math.round(n) : null)
@@ -60,7 +68,47 @@ const entero = (n: number | null | undefined) => (typeof n === 'number' && Numbe
 export async function leerAviso(url: string): Promise<AvisoRonda> {
   const origen = origenDeLink(url)
   if (!origen) throw new Error(ENLACE_NO_SIRVE)
-  return origen === 'web' ? leerDeLaWeb(url) : leerFichaTokko(url)
+  if (origen === 'web') return leerDeLaWeb(url)
+  if (origen === 'zonaprop') return leerCopiaDeZonaprop(url)
+  return leerFichaTokko(url)
+}
+
+/**
+ * Zonaprop no se lee en el momento: se usa la copia que Hilo ya tenía. En sus
+ * casas la "superficie total" es el lote y la cubierta, lo construido.
+ */
+async function leerCopiaDeZonaprop(url: string): Promise<AvisoRonda> {
+  const id = idDeZonaprop(url)
+  const c = id ? await copiaDeZonaprop(id) : null
+  if (!c) throw new AvisoSinLectura('Ese aviso de Zonaprop todavía no lo tenemos leído.')
+  const tipo = etiquetaTipo(c.tipo)
+  const grupo = grupoDeTipo(tipo)
+  const cubierta = entero(c.supCub)
+  const total = entero(c.supTotal)
+  return {
+    origen: 'zonaprop',
+    url,
+    tipo,
+    grupo,
+    operacion: textoOperacion(c.operacion),
+    ciudad: detectarCiudad(c.localidad),
+    barrio: c.barrio,
+    precio: c.precio,
+    moneda: c.moneda,
+    m2: grupo === 'Lote' ? (total ?? cubierta) : (cubierta ?? total),
+    m2Cubiertos: grupo === 'Lote' ? null : cubierta,
+    m2Terreno: total,
+    ambientes: c.ambientes,
+    dormitorios: c.dormitorios,
+    banos: c.banos,
+    cocheras: c.cocheras,
+    fotos: c.fotos.slice(0, MAX_FOTOS),
+    descripcion: c.descripcion || null,
+    direccion: null,
+    tags: [],
+    leidoEl: c.leido,
+    anunciante: c.anunciante,
+  }
 }
 
 async function leerFichaTokko(url: string): Promise<AvisoRonda> {
@@ -181,11 +229,15 @@ export async function crearFichaDeAviso(
 
   const barrio = barrioVisible(aviso.barrio, ciudad)
   const mes = new Date().toISOString().slice(0, 7)
-  const { fotos } = await rehostFotos(aviso.fotos, `ronda/${mes}/${Date.now()}`)
+  const subidas = await rehostFotos(aviso.fotos, `ronda/${mes}/${Date.now()}`)
+  // De la copia de Zonaprop solo sirven las fotos que se pudieron traer: una que
+  // ya no existe en el portal dejaría un hueco en la ficha del cliente.
+  const fotos = aviso.origen === 'zonaprop' ? subidas.fotos.filter((u) => !subidas.fallidas.includes(u)) : subidas.fotos
+  if (fotos.length === 0) throw new AvisoSinLectura('No pudimos traer las fotos de ese aviso.')
   const { url, snapshot } = await crearFichaExterna({
     manual: {
       titulo: tituloRonda({ tipo: aviso.tipo, operacion: aviso.operacion, barrio, ciudad }),
-      descripcion: descripcionNeutra(aviso.descripcion, [...marcas, aviso.direccion]).slice(0, 5000),
+      descripcion: descripcionNeutra(aviso.descripcion, [...marcas, aviso.direccion, aviso.anunciante]).slice(0, 5000),
       fotos,
       operacion: aviso.operacion,
       tipo: aviso.tipo,

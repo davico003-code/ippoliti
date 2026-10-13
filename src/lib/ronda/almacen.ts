@@ -5,6 +5,7 @@
 //   ronda:agentes        → AgenteRonda    (quién entró, con su WhatsApp)
 //   ronda:publicaciones  → Publicacion    (la grilla; las vencidas se limpian al publicar)
 //   ronda:leido:<clave>  → el aviso ya leído, 30 min (no leerlo dos veces)
+//   ronda:zonaprop       → copia de los avisos de Zonaprop que Hilo ya tenía leídos
 //
 // La cuota de Upstash es finita (se agotó el 25-ago-2026): leer la grilla es UN
 // hgetall y queda 15 s en memoria por instancia. Fuera de producción todo va a
@@ -122,6 +123,38 @@ export async function actualizarContacto(agente: { id: string; nombre: string; w
   for (const p of suyas) cambios[p.id] = { ...p, agente: { ...agente } }
   await redis.hset(K.publicaciones, cambios)
   _grilla = null
+}
+
+// ── Copia de avisos de Zonaprop ─────────────────────────────────────────
+// Lo que Hilo ya tenía leído de Zonaprop (scripts/ronda-copia-zonaprop.mjs lo
+// carga en el hash ronda:zonaprop). Es una foto de un día: cada registro dice
+// cuándo se leyó. Solo se lee, así que es la misma en producción y en pruebas.
+
+export interface CopiaZonaprop {
+  id: string
+  url: string
+  titulo: string
+  tipo: string
+  operacion: string
+  precio: number | null
+  moneda: 'USD' | 'ARS'
+  dormitorios: number | null
+  banos: number | null
+  cocheras: number | null
+  ambientes: number | null
+  supTotal: number | null
+  supCub: number | null
+  barrio: string | null
+  localidad: string | null
+  anunciante: string | null
+  fotos: string[]
+  descripcion: string
+  /** Cuándo se leyó el aviso (ISO). */
+  leido: string
+}
+
+export async function copiaDeZonaprop(id: string): Promise<CopiaZonaprop | null> {
+  return fila<CopiaZonaprop>(await redis.hget('ronda:zonaprop', id))
 }
 
 // ── Aviso ya leído (entre "Revisar" y "Publicar") ───────────────────────

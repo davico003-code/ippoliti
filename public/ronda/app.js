@@ -520,10 +520,45 @@
       const host = u.hostname.toLowerCase()
       if (/(^|\.)ficha\.info$/.test(host) && u.pathname.startsWith('/p/')) return 'tokko'
       if (/(^|\.)siinmobiliaria\.com$/.test(host) && /^\/propiedades\/\d+/.test(u.pathname)) return 'web'
+      // Zonaprop: se convierte solo si ya lo teníamos leído; el servidor avisa si no.
+      if (/(^|\.)zonaprop\.com\.ar$/.test(host) && /-\d{6,12}\.html$/.test(u.pathname)) return 'zonaprop'
     } catch {
       // no es un enlace
     }
     return null
+  }
+
+  /**
+   * Lo que ya dice el enlace de un aviso ("…/casa-en-venta-de-3-dorm.-en-funes-123.html"):
+   * tipo, operación, dormitorios y ciudad. Ahorra tipeo cuando hay que cargarla a mano.
+   */
+  function pistasDelEnlace(url) {
+    let texto = ''
+    try {
+      texto = ` ${sinTildes(decodeURIComponent(new URL(url).pathname)).replace(/[^a-z0-9]+/g, ' ')} `
+    } catch {
+      return {}
+    }
+    const TIPOS = [
+      ['Casa', / (casas?|chalet|duplex) /],
+      ['Lote', / (terrenos?|lotes?) /],
+      ['Departamento', / (departamentos?|depto|monoambiente) /],
+      ['PH', / ph /],
+      ['Local', / local(es)? /],
+      ['Oficina', / oficinas? /],
+      ['Galpón', / galpon(es)? /],
+      ['Quinta', / quintas? /],
+    ]
+    // Gana el tipo que aparece primero ("casa … con terreno de 540 m" es una casa).
+    const tipo = TIPOS.map(([nombre, re]) => [nombre, texto.search(re)]).filter(([, i]) => i >= 0).sort((x, y) => x[1] - y[1])[0]?.[0]
+    const funes = / funes /.test(texto)
+    const roldan = / roldan /.test(texto)
+    return {
+      tipo,
+      operacion: / alquiler /.test(texto) && !/ venta /.test(texto) ? 'Alquiler' : 'Venta',
+      dormitorios: / (\d{1,2}) dorm/.exec(texto)?.[1],
+      ciudad: funes === roldan ? null : funes ? 'Funes' : 'Roldán',
+    }
   }
 
   /** Portales que no dejan leer sus avisos: esas propiedades se cargan a mano. */
@@ -612,13 +647,13 @@
     e.preventDefault()
     const url = $('#enlace').value.trim()
     if (!origenDeLink(url)) {
-      // Un aviso de portal no se lee solo: se guarda el enlace y se pasa a la carga a mano.
+      // Un aviso de portal que no se convierte solo: se guarda el enlace y se pasa a la carga a mano.
       const portal = portalSinLectura(url)
       if (portal) {
-        irAManual(url, `${portal} no deja leer sus avisos. Completá los datos y sumá las fotos: guardamos el enlace para que los colegas puedan abrir tu aviso.`)
+        irAManual(url, `${portal} no deja leer ese aviso. Te dejamos cargado lo que dice el enlace: completá el resto y sumá las fotos.`)
         return
       }
-      error('enlaceError', url ? 'Ese enlace no es de una ficha de Tokko. Pegá la ficha o cargala a mano.' : 'Pegá el enlace de la propiedad.')
+      error('enlaceError', url ? 'Ese enlace no lo podemos leer. Pegá la ficha de Tokko o el aviso de Zonaprop, o cargala a mano.' : 'Pegá el enlace de la propiedad.')
       $('#enlace').focus()
       return
     }
@@ -640,6 +675,13 @@
       pasoConfirmar.reset()
       for (const radio of $$('input[name="ciudad"]', pasoConfirmar)) radio.checked = radio.value === aviso.ciudad
       for (const id of ['ciudadError', 'publicarError']) error(id, '')
+      // Copia guardada (Zonaprop): puede tener un precio viejo, se deja corregir.
+      $('#campoPrecio').hidden = !aviso.leidoEl
+      if (aviso.leidoEl) {
+        $('#precioLeido').value = aviso.precio ? new Intl.NumberFormat('es-AR').format(aviso.precio) : ''
+        $('#precioMoneda').textContent = aviso.moneda === 'ARS' ? '$' : 'US$'
+        $('#precioAyuda').textContent = `Leímos este aviso el ${fechaCorta(new Date(aviso.leidoEl))}. Si cambió el precio, corregilo acá.`
+      }
       pasoEnlace.hidden = true
       pasoConfirmar.hidden = false
       $('#publicando').hidden = true
@@ -649,6 +691,8 @@
       if (err.datos?.limite) {
         await cargar({ fresco: true })
         pintarCupo()
+      } else if (err.datos?.aMano) {
+        irAManual(url, `${err.message} Te dejamos cargado lo que dice el enlace: completá el resto y sumá las fotos.`)
       } else {
         error('enlaceError', err.message)
       }
@@ -679,7 +723,12 @@
     try {
       const { publicacion } = await api('publicaciones', {
         metodo: 'POST',
-        cuerpo: { url: revisado.url, ciudad, oportunidad: $('#oportunidad').value.trim() },
+        cuerpo: {
+          url: revisado.url,
+          ciudad,
+          oportunidad: $('#oportunidad').value.trim(),
+          ...(revisado.aviso.leidoEl ? { precio: $('#precioLeido').value.replace(/\D/g, '') } : {}),
+        },
       })
       publicada(publicacion)
     } catch (err) {
@@ -687,6 +736,9 @@
       if (err.datos?.limite) {
         await cargar({ fresco: true })
         pintarCupo()
+      } else if (err.datos?.aMano) {
+        pasoConfirmar.hidden = true
+        irAManual(revisado.url, `${err.message} Completá los datos y sumá las fotos desde tu teléfono.`)
       } else {
         error('publicarError', err.message)
       }
@@ -800,6 +852,11 @@
     const aviso = $('#manualNota')
     aviso.textContent = nota || ''
     aviso.hidden = !nota
+    const pistas = enlace ? pistasDelEnlace(enlace) : {}
+    if (pistas.tipo) $('#tipoManual').value = pistas.tipo
+    if (pistas.dormitorios) $('#dormManual').value = pistas.dormitorios
+    for (const r of $$('input[name="operacion"]', pasoManual)) r.checked = r.value === (pistas.operacion || 'Venta')
+    for (const r of $$('input[name="ciudadManual"]', pasoManual)) r.checked = r.value === pistas.ciudad
     pasoEnlace.hidden = true
     pasoManual.hidden = false
     publicar.scrollTop = 0
@@ -871,7 +928,9 @@
   let abierta = null
 
   const notas = () => leerLocal(CLAVES.notas, {})
-  const fechaCorta = (ms) => new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' }).format(ms)
+  function fechaCorta(ms) {
+    return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' }).format(ms)
+  }
 
   function pintarDetalle(p) {
     abierta = p.id
