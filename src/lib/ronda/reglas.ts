@@ -2,7 +2,8 @@
 //
 // La Ronda es la grilla semanal donde las inmobiliarias de Funes y Roldán se
 // comparten propiedades (verficha.casa/ronda). Reglas de David (12-oct-2026):
-// cada publicación dura 7 días, hasta 2 propiedades por inmobiliaria, y todos
+// cada publicación dura 7 días, hasta 3 propiedades por inmobiliaria (eran 2 el
+// primer día), y todos
 // cargan su WhatsApp la primera vez.
 
 export const CIUDADES_RONDA = ['Funes', 'Roldán'] as const
@@ -12,7 +13,7 @@ export type CiudadRonda = (typeof CIUDADES_RONDA)[number]
 export type GrupoTipo = 'Casa' | 'Lote' | 'Departamento' | 'Otro'
 
 export const DIAS_PUBLICACION = 7
-export const MAX_POR_INMOBILIARIA = 2
+export const MAX_POR_INMOBILIARIA = 3
 export const DIA_MS = 86_400_000
 
 export interface Inmobiliaria {
