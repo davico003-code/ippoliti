@@ -7,7 +7,7 @@
 
   const DIA = 86_400_000
   const MAX_POR_INMOBILIARIA = 3
-  const CLAVES = { sesion: 'ronda.sesion.v1', guia: 'ronda.guia.v1', notas: 'ronda.notas.v1' }
+  const CLAVES = { acceso: 'ronda.acceso.v1', sesion: 'ronda.sesion.v1', guia: 'ronda.guia.v1', notas: 'ronda.notas.v1' }
 
   const $ = (sel, raiz = document) => raiz.querySelector(sel)
   const $$ = (sel, raiz = document) => [...raiz.querySelectorAll(sel)]
@@ -31,6 +31,9 @@
   }
 
   // ── Estado ────────────────────────────────────────────────────────────
+  /** El pase que da la clave de acceso: sin él el servidor no entrega nada. */
+  let acceso = leerLocal(CLAVES.acceso, null)
+  if (typeof acceso !== 'string') acceso = null
   let sesion = leerLocal(CLAVES.sesion, null)
   if (!sesion?.token || !sesion?.agente?.id || !sesion?.inmobiliaria?.id) sesion = null
   /** null = cargando · 'error' = no se pudo · [] = la grilla */
@@ -69,7 +72,7 @@
   async function api(ruta, { metodo = 'GET', cuerpo } = {}) {
     const headers = {}
     if (cuerpo) headers['content-type'] = 'application/json'
-    // Las lecturas van sin pase: así las puede cachear el CDN.
+    if (acceso) headers['x-ronda-acceso'] = acceso
     if (metodo !== 'GET' && sesion?.token) headers.authorization = `Bearer ${sesion.token}`
     let res
     try {
@@ -78,11 +81,14 @@
       throw Object.assign(new Error('Sin conexión. Revisá tu internet y probá de nuevo.'), { status: 0 })
     }
     const datos = await res.json().catch(() => ({}))
+    // La clave cambió (o nunca se puso): se vuelve a pedir.
+    if (res.status === 401 && datos.acceso && ruta !== 'entrar') pedirClave()
     if (!res.ok) throw Object.assign(new Error(datos.error || 'Algo salió mal. Probá de nuevo.'), { status: res.status, datos })
     return datos
   }
 
   async function cargar({ fresco = false } = {}) {
+    if (!acceso) return
     try {
       const datos = await api(fresco ? `publicaciones?t=${Date.now()}` : 'publicaciones')
       const ahora = Date.now()
@@ -92,7 +98,8 @@
       for (const p of recienPublicadas.values()) if (!lista.some((x) => x.id === p.id)) lista.unshift(p)
       publicaciones = lista
       ultimaCarga = ahora
-    } catch {
+    } catch (err) {
+      if (err.datos?.acceso) return
       if (!Array.isArray(publicaciones)) publicaciones = 'error'
     }
     pintar()
@@ -409,7 +416,7 @@
     if (!sesion) e.preventDefault()
   })
   ingreso.addEventListener('close', () => {
-    if (!sesion) abrir(ingreso)
+    if (!sesion && acceso) abrir(ingreso)
   })
 
   formIngreso.addEventListener('submit', async (e) => {
@@ -500,6 +507,53 @@
     for (const d of $$('dialog[open]')) if (d !== ingreso) d.close()
     abrirIngreso()
   }
+
+  // ── Clave de acceso ───────────────────────────────────────────────────
+  const dialogoClave = $('#clave')
+
+  function pedirClave() {
+    acceso = null
+    guardarLocal(CLAVES.acceso, null)
+    for (const d of $$('dialog[open]')) if (d !== dialogoClave) d.close()
+    error('claveError', '')
+    abrir(dialogoClave)
+  }
+
+  // Sin clave no se entra: Esc no la cierra.
+  dialogoClave.addEventListener('cancel', (e) => e.preventDefault())
+  dialogoClave.addEventListener('close', () => {
+    if (!acceso) abrir(dialogoClave)
+  })
+
+  $('#claveForm').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const campo = $('#claveCampo')
+    const clave = campo.value.trim()
+    if (!clave) {
+      error('claveError', 'Escribí la clave de acceso.')
+      campo.focus()
+      return
+    }
+    const boton = $('button[type="submit"]', e.target)
+    error('claveError', '')
+    ocupado(boton, true)
+    try {
+      const datos = await api('entrar', { metodo: 'POST', cuerpo: { clave } })
+      acceso = datos.acceso
+      guardarLocal(CLAVES.acceso, acceso)
+      campo.value = ''
+      dialogoClave.close()
+      publicaciones = null
+      pintar()
+      cargar()
+      if (!sesion) abrirIngreso()
+    } catch (err) {
+      error('claveError', err.message)
+      campo.focus()
+    } finally {
+      ocupado(boton, false)
+    }
+  })
 
   // ── Guía ──────────────────────────────────────────────────────────────
   $('#abrirGuia').addEventListener('click', () => abrir($('#guia')))
@@ -687,7 +741,7 @@
       $('#publicando').hidden = true
       ;(aviso.ciudad ? $('#oportunidad') : $('input[name="ciudad"]', pasoConfirmar)).focus({ preventScroll: true })
     } catch (err) {
-      if (err.status === 401) return sesionVencida()
+      if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       if (err.datos?.limite) {
         await cargar({ fresco: true })
         pintarCupo()
@@ -732,7 +786,7 @@
       })
       publicada(publicacion)
     } catch (err) {
-      if (err.status === 401) return sesionVencida()
+      if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       if (err.datos?.limite) {
         await cargar({ fresco: true })
         pintarCupo()
@@ -779,14 +833,15 @@
     try {
       res = await fetch('/api/ronda/fotos', {
         method: 'POST',
-        headers: { 'content-type': 'image/jpeg', authorization: `Bearer ${sesion.token}` },
+        headers: { 'content-type': 'image/jpeg', authorization: `Bearer ${sesion.token}`, ...(acceso ? { 'x-ronda-acceso': acceso } : {}) },
         body: blob,
       })
     } catch {
       throw Object.assign(new Error('Sin conexión. Revisá tu internet y probá de nuevo.'), { status: 0 })
     }
     const datos = await res.json().catch(() => ({}))
-    if (!res.ok) throw Object.assign(new Error(datos.error || 'No se pudo subir la foto.'), { status: res.status })
+    if (res.status === 401 && datos.acceso) pedirClave()
+    if (!res.ok) throw Object.assign(new Error(datos.error || 'No se pudo subir la foto.'), { status: res.status, datos })
     return datos.url
   }
 
@@ -828,7 +883,7 @@
       } catch (err) {
         fotosManual = fotosManual.filter((f) => f !== foto)
         URL.revokeObjectURL(foto.vista)
-        if (err.status === 401) return sesionVencida()
+        if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
         error('fotosError', err.message === 'imagen' ? 'Esa foto no se pudo abrir. Probá con otra.' : err.message)
       }
       pintarFotos()
@@ -910,7 +965,7 @@
       })
       publicada(publicacion)
     } catch (err) {
-      if (err.status === 401) return sesionVencida()
+      if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       if (err.datos?.limite) {
         await cargar({ fresco: true })
         pintarCupo()
@@ -1018,7 +1073,7 @@
       pintar()
       avisar('Propiedad dada de baja.')
     } catch (err) {
-      if (err.status === 401) return sesionVencida()
+      if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       error('bajaError', err.message)
     } finally {
       ocupado(boton, false)
@@ -1079,7 +1134,7 @@
   // Un toque en el fondo cierra las hojas que se pueden cerrar.
   for (const d of $$('dialog')) {
     d.addEventListener('click', (e) => {
-      if (e.target === d && !(d === ingreso && !sesion)) d.close()
+      if (e.target === d && d !== dialogoClave && !(d === ingreso && !sesion)) d.close()
     })
   }
 
@@ -1126,8 +1181,11 @@
   $('#orden').value = filtro.orden
   pintarPerfil()
   pintar()
-  cargar()
-  if (!sesion) abrirIngreso()
+  if (!acceso) pedirClave()
+  else {
+    cargar()
+    if (!sesion) abrirIngreso()
+  }
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && Date.now() - ultimaCarga > 30_000) cargar()

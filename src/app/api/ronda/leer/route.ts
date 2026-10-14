@@ -7,6 +7,7 @@
 // guardado: al confirmar no se vuelve a leer.
 
 import { NextResponse } from 'next/server'
+import { sinAcceso } from '@/lib/ronda/acceso'
 import { rateLimit } from '@/lib/feedback'
 import { guardarLectura, listarPublicaciones } from '@/lib/ronda/almacen'
 import { AvisoSinLectura, ENLACE_NO_SIRVE, leerAviso } from '@/lib/ronda/aviso'
@@ -21,6 +22,9 @@ const error = (mensaje: string, status = 400, extra: Record<string, unknown> = {
   NextResponse.json({ error: mensaje, ...extra }, { status })
 
 export async function POST(req: Request) {
+  const cerrado = await sinAcceso(req)
+  if (cerrado) return cerrado
+
   const sesion = sesionDe(req)
   if (!sesion) return error('Primero cargá tus datos para entrar a la ronda.', 401)
 

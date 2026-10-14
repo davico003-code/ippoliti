@@ -5,6 +5,7 @@
 // recibió un cliente sigue viva: es una copia.
 
 import { NextResponse } from 'next/server'
+import { sinAcceso } from '@/lib/ronda/acceso'
 import { borrarPublicacion, publicacionPorId } from '@/lib/ronda/almacen'
 import { sesionDe } from '@/lib/ronda/sesion'
 
@@ -17,6 +18,10 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
   const secreto = process.env.CRON_SECRET
   const modera = Boolean(secreto) && req.headers.get('authorization') === `Bearer ${secreto}`
+  if (!modera) {
+    const cerrado = await sinAcceso(req)
+    if (cerrado) return cerrado
+  }
   const sesion = modera ? null : sesionDe(req)
   if (!modera && !sesion) return NextResponse.json({ error: 'Primero cargá tus datos para entrar a la ronda.' }, { status: 401 })
 

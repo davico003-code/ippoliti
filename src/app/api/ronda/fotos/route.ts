@@ -6,6 +6,7 @@
 // bajo "ronda/": al publicar solo se aceptan fotos de esa carpeta.
 
 import { NextResponse } from 'next/server'
+import { sinAcceso } from '@/lib/ronda/acceso'
 import { put } from '@vercel/blob'
 import { nanoid } from 'nanoid'
 import { rateLimit } from '@/lib/feedback'
@@ -20,6 +21,9 @@ const MAX_BYTES = 4_000_000
 const error = (mensaje: string, status = 400) => NextResponse.json({ error: mensaje }, { status })
 
 export async function POST(req: Request) {
+  const cerrado = await sinAcceso(req)
+  if (cerrado) return cerrado
+
   const sesion = sesionDe(req)
   if (!sesion) return error('Primero cargá tus datos para entrar a la ronda.', 401)
 

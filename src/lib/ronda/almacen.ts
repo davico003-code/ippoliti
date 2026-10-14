@@ -1,6 +1,6 @@
 // Ronda Funes Roldán — lo que se guarda (Redis, el mismo de las fichas).
 //
-// Tres hashes, un campo por registro (JSON):
+// Tres hashes, un campo por registro (JSON cifrado, ver cifrado.ts):
 //   ronda:inmobiliarias  → Inmobiliaria   (la lista que se autocompleta)
 //   ronda:agentes        → AgenteRonda    (quién entró, con su WhatsApp)
 //   ronda:publicaciones  → Publicacion    (la grilla; las vencidas se limpian al publicar)
@@ -13,6 +13,7 @@
 
 import { nanoid } from 'nanoid'
 import { redis } from '@/lib/redis'
+import { cifrar, descifrar, estaCifrado } from './cifrado'
 import { activas, sinTildes, type AgenteRonda, type Inmobiliaria, type Publicacion } from './reglas'
 
 // Las dos señales: el .env.local de esta máquina trae VERCEL_ENV="production"
@@ -32,8 +33,12 @@ const TTL_LISTA_MS = 30_000
 let _grilla: { filas: Publicacion[]; ts: number } | null = null
 let _inmobiliarias: { filas: Inmobiliaria[]; ts: number } | null = null
 
-/** Upstash devuelve el JSON ya parseado; por las dudas se acepta también el texto. */
+/**
+ * Un registro guardado. Los de la Ronda van cifrados (ver cifrado.ts); los que
+ * quedaron de antes en claro se siguen leyendo y se cifran en la próxima limpieza.
+ */
 function fila<T>(v: unknown): T | null {
+  if (estaCifrado(v)) return descifrar<T>(v)
   if (v && typeof v === 'object') return v as T
   if (typeof v === 'string') {
     try {
@@ -71,7 +76,7 @@ export async function crearInmobiliaria(datos: { nombre: string; matriculado: st
   const existente = lista.find((i) => sinTildes(i.nombre) === sinTildes(datos.nombre))
   if (existente) return existente
   const nueva: Inmobiliaria = { id: nanoid(10), ...datos, creada: Date.now() }
-  await redis.hset(K.inmobiliarias, { [nueva.id]: nueva })
+  await redis.hset(K.inmobiliarias, { [nueva.id]: cifrar(nueva) })
   _inmobiliarias = null
   return nueva
 }
@@ -79,7 +84,7 @@ export async function crearInmobiliaria(datos: { nombre: string; matriculado: st
 // ── Agentes ─────────────────────────────────────────────────────────────
 
 export async function guardarAgente(agente: AgenteRonda): Promise<void> {
-  await redis.hset(K.agentes, { [agente.id]: agente })
+  await redis.hset(K.agentes, { [agente.id]: cifrar(agente) })
 }
 
 // ── Publicaciones ───────────────────────────────────────────────────────
@@ -93,7 +98,7 @@ export async function listarPublicaciones(fresco = false): Promise<Publicacion[]
 }
 
 export async function guardarPublicacion(p: Publicacion): Promise<void> {
-  await redis.hset(K.publicaciones, { [p.id]: p })
+  await redis.hset(K.publicaciones, { [p.id]: cifrar(p) })
   _grilla = null
 }
 
@@ -111,6 +116,16 @@ export async function limpiarVencidas(): Promise<void> {
   const filas = await todas<Publicacion>(K.publicaciones)
   const vencidas = filas.filter((p) => p.vence <= Date.now()).map((p) => p.id)
   if (vencidas.length > 0) await redis.hdel(K.publicaciones, ...vencidas)
+  await cifrarLoQueQuedoEnClaro()
+}
+
+/** Los registros de antes del cifrado (13-oct-2026) se reescriben cifrados. */
+async function cifrarLoQueQuedoEnClaro(): Promise<void> {
+  for (const clave of [K.publicaciones, K.agentes, K.inmobiliarias]) {
+    const mapa = (await redis.hgetall<Record<string, unknown>>(clave)) ?? {}
+    const enClaro = Object.entries(mapa).filter(([, v]) => !estaCifrado(v) && fila(v) !== null)
+    if (enClaro.length > 0) await redis.hset(clave, Object.fromEntries(enClaro.map(([id, v]) => [id, cifrar(fila(v))])))
+  }
 }
 
 /** Si el agente cambió su nombre o su WhatsApp, sus publicaciones vigentes lo siguen. */
@@ -119,8 +134,8 @@ export async function actualizarContacto(agente: { id: string; nombre: string; w
     (p) => p.agente.id === agente.id && (p.agente.nombre !== agente.nombre || p.agente.whatsapp !== agente.whatsapp),
   )
   if (suyas.length === 0) return
-  const cambios: Record<string, Publicacion> = {}
-  for (const p of suyas) cambios[p.id] = { ...p, agente: { ...agente } }
+  const cambios: Record<string, string> = {}
+  for (const p of suyas) cambios[p.id] = cifrar({ ...p, agente: { ...agente } })
   await redis.hset(K.publicaciones, cambios)
   _grilla = null
 }
