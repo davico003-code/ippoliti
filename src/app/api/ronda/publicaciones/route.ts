@@ -1,6 +1,6 @@
 // /api/ronda/publicaciones
 //
-// GET  → la grilla de la semana (pide la clave de acceso; no la guarda ningún caché).
+// GET  → la grilla del mes y la actividad del mes (pide la clave de acceso; no la guarda ningún caché).
 // POST → publica una oportunidad por 30 días (con su motivo, obligatorio), SOLO pegando el link
 //        (David, 14-oct-2026: no hay carga a mano):
 //          { url, ciudad, oportunidad }     un enlace que se convierte solo (ficha de Tokko,
@@ -14,6 +14,7 @@ import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { nanoid } from 'nanoid'
 import {
+  actividadDelMes,
   borrarPublicacion,
   guardarLectura,
   guardarPublicacion,
@@ -56,8 +57,10 @@ export async function GET(req: Request) {
     const publicaciones = (await completarDetalles(await listarPublicaciones())).map((p) =>
       p.origen === 'Tokko' && p.urlOriginal ? { ...p, ficha: p.urlOriginal, detalle: p.detalle && { ...p.detalle, comodidades: [] } } : { ...p, detalle: p.detalle && { ...p.detalle, comodidades: [] } },
     )
+    // El contador no puede tirar abajo la grilla: si falla, la pantalla no lo muestra.
+    const actividad = await actividadDelMes().catch(() => null)
     return NextResponse.json(
-      { publicaciones, ahora: Date.now() },
+      { publicaciones, actividad, ahora: Date.now() },
       { headers: { 'Cache-Control': 'private, no-store' } },
     )
   } catch {

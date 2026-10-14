@@ -40,6 +40,8 @@
   let publicaciones = null
   let inmobiliarias = []
   let ultimaCarga = 0
+  /** El contador del mes que manda el servidor: { mes, contactos, fichas, colegas, inmobiliarias }. */
+  let actividad = null
   // Lo que este teléfono acaba de publicar o bajar: la grilla pasa por un caché
   // de unos segundos y sin esto la tarjeta nueva desaparecería un instante.
   const recienPublicadas = new Map()
@@ -87,6 +89,20 @@
     return datos
   }
 
+  /**
+   * Un contacto por WhatsApp o una ficha mandada a un cliente: suma al contador
+   * del mes. Sale aunque la página se vaya a WhatsApp (keepalive) y nunca frena nada.
+   */
+  function anotar(tipo, id) {
+    if (!acceso || !sesion?.token || !id) return
+    fetch('/api/ronda/actividad', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'content-type': 'application/json', 'x-ronda-acceso': acceso, authorization: `Bearer ${sesion.token}` },
+      body: JSON.stringify({ tipo, id }),
+    }).catch(() => {})
+  }
+
   async function cargar({ fresco = false } = {}) {
     if (!acceso) return
     try {
@@ -97,6 +113,7 @@
       const lista = (datos.publicaciones || []).filter((p) => !recienBajadas.has(p.id))
       for (const p of recienPublicadas.values()) if (!lista.some((x) => x.id === p.id)) lista.unshift(p)
       publicaciones = lista
+      if (datos.actividad) actividad = datos.actividad
       ultimaCarga = ahora
     } catch (err) {
       if (err.datos?.acceso) return
@@ -279,7 +296,28 @@
   const esqueleto = () =>
     Array.from({ length: 3 }, () => '<div class="tarjeta esqueleto" aria-hidden="true"><div class="tarjeta-foto"></div><div class="tarjeta-cuerpo"><i></i><i></i><i></i></div></div>').join('')
 
+  /** Actividad real del mes, arriba de la grilla (David, 14-oct-2026). Sin datos del servidor, no se muestra. */
+  function pintarActividad() {
+    const caja = $('#actividad')
+    if (!actividad || !Array.isArray(publicaciones)) {
+      caja.hidden = true
+      return
+    }
+    const mes = new Intl.DateTimeFormat('es-AR', { month: 'long' }).format(new Date(`${actividad.mes}-15T12:00:00`))
+    const activas = vigentes().length
+    const { colegas, inmobiliarias } = actividad
+    const datos = [
+      [activas, activas === 1 ? 'oportunidad activa' : 'oportunidades activas'],
+      [actividad.contactos, `${actividad.contactos === 1 ? 'contacto' : 'contactos'} entre colegas en ${mes}`],
+      [actividad.fichas, `${actividad.fichas === 1 ? 'ficha enviada' : 'fichas enviadas'} a clientes en ${mes}`],
+      [colegas, `${colegas === 1 ? 'colega' : 'colegas'} de ${numero(inmobiliarias)} ${inmobiliarias === 1 ? 'inmobiliaria' : 'inmobiliarias'}`],
+    ]
+    caja.innerHTML = datos.map(([n, rotulo]) => `<div><dt>${esc(rotulo)}</dt><dd>${numero(n)}</dd></div>`).join('')
+    caja.hidden = false
+  }
+
   function pintar() {
+    pintarActividad()
     const grilla = $('#grilla')
     const conteo = $('#conteo')
     for (const b of $$('#filtroTipo button')) b.setAttribute('aria-pressed', String(b.dataset.tipo === filtro.tipo))
@@ -337,8 +375,12 @@
   }
 
   async function copiarFicha(p) {
-    if (await copiar(p.ficha)) avisar('Enlace de la ficha copiado. Pegalo en el WhatsApp de tu cliente.')
-    else avisar(`No se pudo copiar. La ficha es ${p.ficha}`)
+    if (await copiar(p.ficha)) {
+      anotar('ficha', p.id)
+      avisar('Enlace de la ficha copiado. Pegalo en el WhatsApp de tu cliente.')
+    } else {
+      avisar(`No se pudo copiar. La ficha es ${p.ficha}`)
+    }
   }
 
   function ocupado(boton, si) {
@@ -1027,6 +1069,12 @@
       abrir(baja)
       return
     }
+    // WhatsApp al colega: suma al contador y el enlace sigue su camino.
+    const whatsapp = t.closest('a.whatsapp')
+    if (whatsapp) {
+      anotar('contacto', whatsapp.closest('[data-id]')?.dataset.id || abierta)
+      return
+    }
     const accion = t.closest('[data-accion]')
     if (!accion) return
     const id = accion.closest('[data-id]')?.dataset.id || abierta
@@ -1042,6 +1090,7 @@
     if (accion.dataset.accion === 'compartir') {
       try {
         await navigator.share({ title: p.titulo, url: p.ficha })
+        anotar('ficha', p.id)
       } catch (err) {
         // Cerró la hoja de compartir: nada. Si el teléfono no pudo, se copia.
         if (err?.name !== 'AbortError') copiarFicha(p)
