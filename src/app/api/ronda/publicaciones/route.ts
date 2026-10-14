@@ -1,7 +1,7 @@
 // /api/ronda/publicaciones
 //
 // GET  → la grilla de la semana (pide la clave de acceso; no la guarda ningún caché).
-// POST → publica una propiedad por 7 días, de dos maneras:
+// POST → publica una oportunidad por 30 días (con su motivo, obligatorio), de dos maneras:
 //          { url, ciudad, oportunidad }     un enlace que se convierte solo (ficha de Tokko,
 //                                           o un Zonaprop de la copia: ahí acepta `precio`)
 //          { manual, ciudad, oportunidad }  cargada a mano, con sus fotos ya subidas
@@ -29,6 +29,7 @@ import {
   DIAS_PUBLICACION,
   esCiudadRonda,
   leerDatosManual,
+  leerMotivo,
   leerPrecio,
   MAX_POR_INMOBILIARIA,
   ocupadas,
@@ -76,7 +77,9 @@ export async function POST(req: Request) {
     return error('Datos inválidos.')
   }
   const ciudad = body.ciudad
-  const oportunidad = String(body.oportunidad ?? '').replace(/\s+/g, ' ').trim().slice(0, 350)
+  const motivo = leerMotivo(body.oportunidad)
+  if ('error' in motivo) return error(motivo.error)
+  const oportunidad = motivo.motivo
   if (!esCiudadRonda(ciudad)) return error('Elegí si la propiedad está en Funes o en Roldán.')
 
   const aMano = body.manual !== undefined

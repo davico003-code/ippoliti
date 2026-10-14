@@ -189,7 +189,7 @@
         <h3>${esc(p.titulo)}</h3>
         <p class="precio">${precio(p)}</p>
         ${hechos.length ? `<ul class="datos">${hechos.map((d) => `<li>${d}</li>`).join('')}</ul>` : ''}
-        ${p.oportunidad ? `<div class="oportunidad"><b>Oportunidad comercial</b><p>${esc(p.oportunidad)}</p></div>` : ''}
+        ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : ''}
         <div class="colega">
           <span class="avatar" aria-hidden="true">${esc(iniciales(p.agente.nombre))}</span>
           <div><strong>${esc(p.agente.nombre)}</strong><small>${esc(p.inmobiliaria.nombre)}</small></div>
@@ -226,15 +226,15 @@
     }
     const todas = vigentes()
     const lista = filtradas()
-    conteo.textContent = todas.length === 0 ? '' : lista.length === 1 ? '1 propiedad' : `${lista.length} propiedades`
+    conteo.textContent = todas.length === 0 ? '' : lista.length === 1 ? '1 oportunidad' : `${lista.length} oportunidades`
     if (lista.length > 0) {
       grilla.innerHTML = lista.map(tarjeta).join('')
     } else if (todas.length === 0) {
       grilla.innerHTML =
-        '<div class="vacio"><strong>Todavía no hay propiedades esta semana</strong><p>Publicá la primera: pegás el enlace del aviso y queda 7 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar>+ Publicar propiedad</button></div>'
+        '<div class="vacio"><strong>Todavía no hay oportunidades este mes</strong><p>Publicá la primera: pegás el enlace del aviso, contás por qué es una oportunidad y queda 30 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar>+ Publicar oportunidad</button></div>'
     } else {
       grilla.innerHTML =
-        '<div class="vacio"><strong>No hay propiedades con esos filtros</strong><p>Probá con otra ciudad u otro tipo.</p><button type="button" class="boton suave" data-quitar-filtros>Quitar filtros</button></div>'
+        '<div class="vacio"><strong>No hay oportunidades con esos filtros</strong><p>Probá con otra ciudad u otro tipo.</p><button type="button" class="boton suave" data-quitar-filtros>Quitar filtros</button></div>'
     }
   }
 
@@ -633,9 +633,9 @@
   function pintarCupo() {
     const usadas = deMiInmobiliaria()
     const lleno = usadas.length >= MAX_POR_INMOBILIARIA
-    $('#cupo').textContent = `${sesion.inmobiliaria.nombre} usa ${usadas.length} de ${MAX_POR_INMOBILIARIA} lugares esta semana.`
+    $('#cupo').textContent = `${sesion.inmobiliaria.nombre} usa ${usadas.length} de ${MAX_POR_INMOBILIARIA} lugares en la ronda.`
     $('#pasoLleno').hidden = !lleno
-    $('#llenoNota').textContent = `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} propiedades en la ronda, que es el máximo. Para publicar otra, dá de baja una o esperá a que venza.`
+    $('#llenoNota').textContent = `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} oportunidades en la ronda, que es el máximo. Para publicar otra, dá de baja una o esperá a que venza.`
     if (lleno) {
       pasoEnlace.hidden = true
       pasoConfirmar.hidden = true
@@ -693,7 +693,7 @@
     publicaciones = [publicacion, ...vigentes().filter((p) => p.id !== publicacion.id)]
     publicar.close()
     pintar()
-    avisar('Listo. Tu propiedad queda en la ronda por 7 días.')
+    avisar('Listo. Tu oportunidad queda en la ronda por 30 días.')
     window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
 
@@ -728,7 +728,7 @@
         </div>`
       pasoConfirmar.reset()
       for (const radio of $$('input[name="ciudad"]', pasoConfirmar)) radio.checked = radio.value === aviso.ciudad
-      for (const id of ['ciudadError', 'publicarError']) error(id, '')
+      for (const id of ['ciudadError', 'motivoError', 'publicarError']) error(id, '')
       // Copia guardada (Zonaprop): puede tener un precio viejo, se deja corregir.
       $('#campoPrecio').hidden = !aviso.leidoEl
       if (aviso.leidoEl) {
@@ -761,6 +761,19 @@
     $('#enlace').focus()
   })
 
+
+  const MOTIVO_MINIMO = 25
+  /** El motivo de la oportunidad es obligatorio (regla de David). Devuelve el error o ''. */
+  function errorDeMotivo(texto) {
+    if (!texto) return 'Escribí por qué es una oportunidad: es obligatorio.'
+    if (texto.length < MOTIVO_MINIMO) return 'Contá un poco más por qué es una oportunidad (precio, urgencia del dueño, permuta…).'
+    return ''
+  }
+
+  // Apenas escribe el motivo, se va el aviso de que falta.
+  $('#oportunidad').addEventListener('input', () => error('motivoError', ''))
+  $('#oportunidadManual').addEventListener('input', () => error('motivoManualError', ''))
+
   pasoConfirmar.addEventListener('submit', async (e) => {
     e.preventDefault()
     if (!revisado) return
@@ -768,6 +781,12 @@
     if (!ciudad) {
       error('ciudadError', 'Elegí si está en Funes o en Roldán.')
       $('input[name="ciudad"]', pasoConfirmar).focus()
+      return
+    }
+    const faltaMotivo = errorDeMotivo($('#oportunidad').value.replace(/\s+/g, ' ').trim())
+    error('motivoError', faltaMotivo)
+    if (faltaMotivo) {
+      $('#oportunidad').focus()
       return
     }
     for (const id of ['ciudadError', 'publicarError']) error(id, '')
@@ -865,7 +884,7 @@
     fotosManual = []
     pasoManual.reset()
     pintarFotos()
-    for (const id of ['fotosError', 'tipoError', 'ciudadManualError', 'manualError']) error(id, '')
+    for (const id of ['fotosError', 'tipoError', 'ciudadManualError', 'motivoManualError', 'manualError']) error(id, '')
     $('#publicandoManual').hidden = true
   }
 
@@ -929,6 +948,7 @@
       ['fotosError', 'agregarFoto', subiendo ? 'Esperá a que terminen de subir las fotos.' : listas.length === 0 ? 'Agregá al menos una foto.' : ''],
       ['tipoError', 'tipoManual', f.get('tipo') ? '' : 'Elegí el tipo de propiedad.'],
       ['ciudadManualError', null, f.get('ciudadManual') ? '' : 'Elegí si está en Funes o en Roldán.'],
+      ['motivoManualError', 'oportunidadManual', errorDeMotivo(String(f.get('oportunidad') || '').replace(/\s+/g, ' ').trim())],
     ]
     for (const [id, , texto] of errores) error(id, texto)
     error('manualError', '')
@@ -1003,7 +1023,7 @@
       <div class="detalle-foto">${foto(p, { tamanos: '(min-width: 700px) 520px, 100vw', urgente: true })}</div>
       <p class="precio grande">${precio(p)}</p>
       ${hechos.length ? `<ul class="datos">${hechos.map((d) => `<li>${d}</li>`).join('')}</ul>` : ''}
-      ${p.oportunidad ? `<div class="oportunidad"><b>Oportunidad comercial</b><p>${esc(p.oportunidad)}</p></div>` : ''}
+      ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : ''}
       <div class="colega amplio">
         <span class="avatar" aria-hidden="true">${esc(iniciales(p.agente.nombre))}</span>
         <div>
@@ -1166,14 +1186,8 @@
 
   // ── Arranque ──────────────────────────────────────────────────────────
   function semana() {
-    const hoy = new Date()
-    const lunes = new Date(hoy)
-    lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7))
-    const domingo = new Date(lunes)
-    domingo.setDate(lunes.getDate() + 6)
-    const mes = (d) => new Intl.DateTimeFormat('es-AR', { month: 'short' }).format(d).replace('.', '')
-    const desde = lunes.getMonth() === domingo.getMonth() ? `${lunes.getDate()}` : `${lunes.getDate()} ${mes(lunes)}`
-    return `Ronda semanal · ${desde} al ${domingo.getDate()} ${mes(domingo)}`
+    const mes = new Intl.DateTimeFormat('es-AR', { month: 'long' }).format(new Date())
+    return `Ronda mensual · ${mes}`
   }
 
   $('#semana').textContent = semana()
