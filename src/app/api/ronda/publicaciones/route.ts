@@ -54,7 +54,10 @@ export async function GET(req: Request) {
   if (cerrado) return cerrado
 
   try {
-    const publicaciones = await completarDetalles(await listarPublicaciones())
+    // Tokko se comparte tal cual: también las publicadas antes del cambio (14-oct-2026).
+    const publicaciones = (await completarDetalles(await listarPublicaciones())).map((p) =>
+      p.origen === 'Tokko' && p.urlOriginal ? { ...p, ficha: p.urlOriginal, detalle: p.detalle && { ...p.detalle, comodidades: [] } } : { ...p, detalle: p.detalle && { ...p.detalle, comodidades: [] } },
+    )
     return NextResponse.json(
       { publicaciones, ahora: Date.now() },
       { headers: { 'Cache-Control': 'private, no-store' } },

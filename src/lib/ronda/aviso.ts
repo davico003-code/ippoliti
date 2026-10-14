@@ -279,6 +279,26 @@ export async function crearFichaDeAviso(
     return { url, foto: ficha.snapshot.fotos[0] ?? null, fotos: ficha.snapshot.fotos.length, detalle: detalleDeSnapshot(ficha.snapshot) }
   }
 
+  // La ficha de Tokko se comparte TAL CUAL (David, 14-oct-2026): el enlace para el
+  // cliente es la ficha original; no se arma ficha neutra. La Ronda solo muestra
+  // sus fotos y sus datos.
+  if (aviso.origen === 'tokko') {
+    return {
+      url: aviso.url,
+      foto: aviso.fotos[0] ?? null,
+      fotos: aviso.fotos.length,
+      detalle: {
+        fotos: aviso.fotos.slice(0, MAX_FOTOS),
+        m2Cubiertos: entero(aviso.m2Cubiertos),
+        m2Terreno: entero(aviso.m2Terreno),
+        ambientes: entero(aviso.ambientes),
+        cocheras: entero(aviso.cocheras),
+        comodidades: [],
+        descripcion: descripcionNeutra(aviso.descripcion, [...marcas, aviso.direccion]).slice(0, 1200),
+      },
+    }
+  }
+
   const barrio = barrioVisible(aviso.barrio, ciudad)
   const mes = new Date().toISOString().slice(0, 7)
   const subidas = await rehostFotos(aviso.fotos, `ronda/${mes}/${Date.now()}`)
@@ -302,7 +322,8 @@ export async function crearFichaDeAviso(
       dormitorios: aviso.dormitorios,
       banos: aviso.banos,
       cocheras: aviso.cocheras,
-      caracteristicas: aviso.tags,
+      // Sin comodidades (David, 14-oct-2026): la ficha lista solo los datos (dormitorios, m²…).
+      caracteristicas: [],
     },
     sourceUrl: aviso.url,
     ip,
@@ -319,7 +340,7 @@ export function detalleDeSnapshot(s: FichaSnapshot): DetallePublicacion {
     m2Terreno: entero(s.m2terreno),
     ambientes: entero(s.ambientes),
     cocheras: entero(s.cocheras),
-    comodidades: comodidadesDe(s.caracteristicas),
+    comodidades: [],
     descripcion: String(s.descripcion || '').trim().slice(0, 1200),
   }
 }
