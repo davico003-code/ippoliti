@@ -18,7 +18,7 @@ export function tnWhatsappUrl(text: string) {
 /** Condiciones vigentes. Si cambian, se tocan acá y la página se recalcula. */
 export const TN_PRECIOS = {
   unDorm: { contado: 65000, financiado: 80000 },
-  dosDorm: { contado: null as number | null, financiado: 129000 },
+  dosDorm: { contado: null as number | null, financiado: 130000 },
   cuotas: 36,
   entregaCondo22: 'Marzo 2028',
 }
