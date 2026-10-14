@@ -11,7 +11,7 @@ import { sinAcceso } from '@/lib/ronda/acceso'
 import { rateLimit } from '@/lib/feedback'
 import { guardarLectura, listarPublicaciones } from '@/lib/ronda/almacen'
 import { AvisoSinLectura, ENLACE_NO_SIRVE, leerAviso } from '@/lib/ronda/aviso'
-import { barrioVisible, claveDeUrl, MAX_POR_INMOBILIARIA, ocupadas, origenDeLink } from '@/lib/ronda/reglas'
+import { barrioVisible, chequeoAlPublicar, claveDeUrl, origenDeLink } from '@/lib/ronda/reglas'
 import { sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -29,8 +29,11 @@ export async function POST(req: Request) {
   if (!sesion) return error('Primero cargá tus datos para entrar a la ronda.', 401)
 
   let url = ''
+  let reemplaza: string | null = null
   try {
-    url = String((await req.json()).url ?? '').trim().slice(0, 600)
+    const body = await req.json()
+    url = String(body.url ?? '').trim().slice(0, 600)
+    reemplaza = typeof body.reemplaza === 'string' ? body.reemplaza.slice(0, 24) : null
   } catch {
     return error('Datos inválidos.')
   }
@@ -38,15 +41,9 @@ export async function POST(req: Request) {
 
   try {
     const grilla = await listarPublicaciones(true)
-    if (ocupadas(grilla, sesion.iid) >= MAX_POR_INMOBILIARIA) {
-      return error(
-        `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} propiedades en la ronda, que es el máximo. Para publicar otra, dá de baja una o esperá a que venza.`,
-        409,
-        { limite: true },
-      )
-    }
+    const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza })
+    if (traba) return error(traba.error, traba.status, traba.limite ? { limite: true } : {})
     const clave = claveDeUrl(url)
-    if (grilla.some((p) => p.urlOriginal && claveDeUrl(p.urlOriginal) === clave)) return error('Esa propiedad ya está en la ronda.', 409)
 
     if (!(await rateLimit(sesion.aid, 'ronda-leer', 10, 3600))) {
       return error('Revisaste muchos enlaces seguidos. Probá de nuevo en un rato.', 429)

@@ -170,10 +170,10 @@
         <button type="button" class="cerrar" data-cerrar aria-label="Cerrar">×</button>
       </div>
       <ol class="pasos">
-        <li><span aria-hidden="true">1</span><div><strong>Buscá una oportunidad</strong><p>Están todas en esta pantalla, cada una con el motivo por el que es oportunidad. Filtrá por tipo y por ciudad.</p></div></li>
+        <li><span aria-hidden="true">1</span><div><strong>Buscá una oportunidad</strong><p>Están todas en esta pantalla, con sus fotos (deslizalas con el dedo), sus datos y el motivo por el que es oportunidad. Filtrá por tipo y por ciudad.</p></div></li>
         <li><span aria-hidden="true">2</span><div><strong>Escribile al colega</strong><p>Cada oportunidad dice quién la publicó. Tocás WhatsApp y le escribís directo.</p></div></li>
         <li><span aria-hidden="true">3</span><div><strong>Mandale la ficha a tu cliente</strong><p>«Copiar ficha para mi cliente» te da un enlace sin logos ni datos del colega.</p></div></li>
-        <li><span aria-hidden="true">4</span><div><strong>Publicá tus oportunidades</strong><p>Pegás el enlace de la ficha de Tokko o del aviso de Zonaprop y escribís por qué es una oportunidad (es obligatorio). Dura 30&nbsp;días; hasta 3 por inmobiliaria.</p></div></li>
+        <li><span aria-hidden="true">4</span><div><strong>Publicá tus oportunidades</strong><p>Pegás el enlace de la ficha de Tokko o del aviso de Zonaprop y escribís por qué es una oportunidad (es obligatorio). Dura 30&nbsp;días; hasta 3 por inmobiliaria. Si querés cambiarla, la reemplazás y arranca de cero.</p></div></li>
       </ol>
       <button class="boton primario grande" type="button" data-cerrar>Ver las oportunidades</button>
     </div>
@@ -190,6 +190,7 @@
         <button type="button" class="cerrar" data-cerrar aria-label="Cerrar">×</button>
       </div>
       <p class="cupo" id="cupo"></p>
+      <p class="nota" id="reemplazoNota" hidden></p>
 
       <div id="pasoLleno" hidden>
         <p class="nota" id="llenoNota"></p>
@@ -268,18 +269,39 @@
         </div>
         <div class="tres">
           <div class="campo">
-            <label for="m2Manual">m²</label>
-            <input id="m2Manual" name="m2" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="320">
+            <label for="m2TerrenoManual">m² terreno</label>
+            <input id="m2TerrenoManual" name="m2Terreno" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="800">
           </div>
-          <div class="campo">
-            <label for="dormManual">Dorm.</label>
+          <div class="campo solo-construida">
+            <label for="m2CubiertosManual">m² cubiertos</label>
+            <input id="m2CubiertosManual" name="m2Cubiertos" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="180">
+          </div>
+          <div class="campo solo-construida">
+            <label for="dormManual">Dormitorios</label>
             <input id="dormManual" name="dormitorios" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="3">
           </div>
-          <div class="campo">
+          <div class="campo solo-construida">
             <label for="banosManual">Baños</label>
             <input id="banosManual" name="banos" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="2">
           </div>
+          <div class="campo solo-construida">
+            <label for="cocherasManual">Cocheras</label>
+            <input id="cocherasManual" name="cocheras" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="2">
+          </div>
         </div>
+        <fieldset class="campo">
+          <legend>Comodidades <span class="opcional">(opcional)</span></legend>
+          <div class="marcas">
+            <label class="marca-opcion"><input type="checkbox" name="comodidades" value="Pileta"><span>Pileta</span></label>
+            <label class="marca-opcion"><input type="checkbox" name="comodidades" value="Parrilla"><span>Parrilla</span></label>
+            <label class="marca-opcion"><input type="checkbox" name="comodidades" value="Quincho"><span>Quincho</span></label>
+            <label class="marca-opcion"><input type="checkbox" name="comodidades" value="Jardín"><span>Jardín</span></label>
+            <label class="marca-opcion"><input type="checkbox" name="comodidades" value="Seguridad 24 h"><span>Seguridad 24 h</span></label>
+            <label class="marca-opcion"><input type="checkbox" name="comodidades" value="Apto crédito"><span>Apto crédito</span></label>
+            <label class="marca-opcion"><input type="checkbox" name="comodidades" value="Escritura"><span>Escritura</span></label>
+            <label class="marca-opcion"><input type="checkbox" name="comodidades" value="Financiación"><span>Financiación</span></label>
+          </div>
+        </fieldset>
         <div class="campo">
           <label for="descripcionManual">Descripción <span class="opcional">(opcional)</span></label>
           <textarea id="descripcionManual" name="descripcion" maxlength="3000" rows="3" placeholder="Lo que va a leer el cliente en la ficha…"></textarea>
@@ -346,6 +368,13 @@
         <button type="button" class="boton peligro" id="confirmarBaja">Sí, dar de baja</button>
       </div>
     </div>
+  </dialog>
+
+  <!-- Las fotos a pantalla completa -->
+  <dialog id="visor" class="visor" aria-label="Fotos de la propiedad">
+    <div class="visor-pista" id="visorPista"></div>
+    <span class="visor-contador" id="visorContador" aria-live="polite"></span>
+    <button type="button" class="visor-cerrar" data-cerrar aria-label="Cerrar las fotos">×</button>
   </dialog>
 
   <div id="aviso" role="status" aria-live="polite"></div>

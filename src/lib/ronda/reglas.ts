@@ -62,7 +62,40 @@ export interface Publicacion {
   inmobiliaria: { id: string; nombre: string; matriculado: string; matricula: string }
   creada: number
   vence: number
+  /** Todo lo que se ve sin entrar a la ficha (desde el 14-oct-2026; las de antes lo completan al leerse). */
+  detalle?: DetallePublicacion
 }
+
+export interface DetallePublicacion {
+  /** La galería: las mismas fotos de la ficha para el cliente. */
+  fotos: string[]
+  m2Cubiertos: number | null
+  m2Terreno: number | null
+  ambientes: number | null
+  cocheras: number | null
+  /** Pileta, parrilla, seguridad… (nunca los números: esos van aparte). */
+  comodidades: string[]
+  /** La descripción ya limpia de contactos (la misma de la ficha), recortada. */
+  descripcion: string
+}
+
+/** Lo que es comodidad de verdad: saca "3 dormitorios", "546 m² terreno" y repetidos. */
+export function comodidadesDe(caracteristicas: unknown): string[] {
+  const lista = Array.isArray(caracteristicas) ? caracteristicas : []
+  const vistas = new Set<string>()
+  const out: string[] = []
+  for (const c of lista) {
+    const t = String(c ?? '').replace(/\s+/g, ' ').trim()
+    const clave = sinTildes(t)
+    if (!t || t.length > 40 || /^\d/.test(t) || /\bm²|\bm2\b|ambiente|dormitorio|bano|cochera|toilette/.test(clave) || vistas.has(clave)) continue
+    vistas.add(clave)
+    out.push(t.charAt(0).toUpperCase() + t.slice(1))
+  }
+  return out.slice(0, 16)
+}
+
+/** Las comodidades que se pueden marcar en la carga a mano. */
+export const COMODIDADES_MANUAL = ['Pileta', 'Parrilla', 'Quincho', 'Jardín', 'Seguridad 24 h', 'Apto crédito', 'Escritura', 'Financiación'] as const
 
 export function sinTildes(s: string): string {
   return String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -221,8 +254,12 @@ export interface DatosManual {
   precio: number | null
   moneda: 'USD' | 'ARS'
   m2: number | null
+  m2Cubiertos: number | null
+  m2Terreno: number | null
   dormitorios: number | null
   banos: number | null
+  cocheras: number | null
+  comodidades: string[]
   descripcion: string
   fotos: string[]
   /** El aviso en su portal (Zonaprop, Argenprop…), para que el colega lo pueda abrir. */
@@ -275,14 +312,53 @@ export function leerDatosManual(crudo: unknown): { datos: DatosManual } | { erro
       barrio: texto(c.barrio, 60).replace(/\s+/g, ' ') || null,
       precio: numeroEntre(c.precio, 2_000_000_000),
       moneda: c.moneda === 'ARS' ? 'ARS' : 'USD',
-      m2: numeroEntre(c.m2, 10_000_000),
+      // m² de terreno y cubiertos por separado (un lote solo tiene terreno); `m2` queda por compatibilidad.
+      m2: numeroEntre(c.m2Terreno, 10_000_000) ?? numeroEntre(c.m2Cubiertos, 10_000_000) ?? numeroEntre(c.m2, 10_000_000),
+      m2Cubiertos: tipo === 'Lote' ? null : numeroEntre(c.m2Cubiertos, 10_000_000),
+      m2Terreno: numeroEntre(c.m2Terreno, 10_000_000) ?? (tipo === 'Lote' ? numeroEntre(c.m2, 10_000_000) : null),
       dormitorios: numeroEntre(c.dormitorios, 30),
       banos: numeroEntre(c.banos, 30),
+      cocheras: numeroEntre(c.cocheras, 30),
+      comodidades: Array.isArray(c.comodidades) ? COMODIDADES_MANUAL.filter((x) => (c.comodidades as unknown[]).includes(x)) : [],
       descripcion: texto(c.descripcion, 3000),
       fotos,
       enlace: enlaceDeAviso(c.enlace),
     },
   }
+}
+
+/**
+ * Antes de leer o publicar: el cupo de la inmobiliaria y las repetidas.
+ *  - Reemplazar (David, 14-oct-2026: "se puede reemplazar la oportunidad y
+ *    arranca desde 0"): la que se reemplaza no cuenta, y tiene que ser de quien publica.
+ *  - La misma propiedad la pueden publicar DOS inmobiliarias ("cada uno puede
+ *    elegir a qué colega contactar"); lo que no se puede es repetirla dentro de la misma.
+ */
+export function chequeoAlPublicar(
+  grilla: Publicacion[],
+  quien: { agenteId: string; inmobiliariaId: string },
+  { url, reemplaza }: { url: string; reemplaza?: string | null },
+  ahora = Date.now(),
+): { error: string; status: number; limite?: boolean } | null {
+  const vigentes = activas(grilla, ahora)
+  if (reemplaza) {
+    const vieja = vigentes.find((p) => p.id === reemplaza)
+    if (!vieja) return { error: 'La oportunidad que querías reemplazar ya no está en la ronda.', status: 404 }
+    if (vieja.agente.id !== quien.agenteId) return { error: 'Solo podés reemplazar una oportunidad que publicaste vos.', status: 403 }
+  }
+  const otras = vigentes.filter((p) => p.id !== reemplaza)
+  if (ocupadas(otras, quien.inmobiliariaId, ahora) >= MAX_POR_INMOBILIARIA) {
+    return {
+      error: `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} oportunidades en la ronda, que es el máximo. Para publicar otra, reemplazá o dá de baja una.`,
+      status: 409,
+      limite: true,
+    }
+  }
+  const clave = url ? claveDeUrl(url) : ''
+  if (clave && otras.some((p) => p.inmobiliaria.id === quien.inmobiliariaId && p.urlOriginal && claveDeUrl(p.urlOriginal) === clave)) {
+    return { error: 'Tu inmobiliaria ya publicó esa propiedad en la ronda.', status: 409 }
+  }
+  return null
 }
 
 /** El motivo de la oportunidad: obligatorio y con sustancia. Devuelve el texto limpio o el error. */
