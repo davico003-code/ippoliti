@@ -1,0 +1,16 @@
+{
+  "name": "Ronda Funes Roldán",
+  "short_name": "Ronda",
+  "description": "Oportunidades reales entre inmobiliarias colegas de Funes y Roldán, una vez por mes.",
+  "start_url": "/ronda",
+  "scope": "/ronda",
+  "display": "standalone",
+  "background_color": "#f5f5f3",
+  "theme_color": "#f5f5f3",
+  "lang": "es-AR",
+  "icons": [
+    { "src": "/ronda/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/ronda/icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/ronda/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
