@@ -2,8 +2,8 @@
 //
 // Paso 1 de publicar: lee el aviso del link y devuelve lo que se va a mostrar,
 // para que el colega lo revise. No publica nada. Si el aviso no se puede
-// convertir solo (un Zonaprop que no está en la copia), responde 422 con
-// `aMano: true` y la pantalla pasa a la carga a mano. El aviso leído queda 30 min
+// convertir solo (un Zonaprop que ya no figura y no está en la copia), responde
+// 422 con `aMano: true` y la pantalla pide otro enlace (no hay carga a mano). El aviso leído queda 30 min
 // guardado: al confirmar no se vuelve a leer.
 
 import { NextResponse } from 'next/server'

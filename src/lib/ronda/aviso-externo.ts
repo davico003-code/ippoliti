@@ -4,7 +4,7 @@ import { origenDeUrl } from './origen-url'
 // COPIA del lector de Hilo (si-crm/src/lib/importar/aviso-externo.ts, 12-oct-2026),
 // con UN arreglo propio: los decimales con punto de Tokko (ver `numero`). Si allá
 // se arregla algo del parseo de ficha.info, traer el arreglo acá. La Ronda solo
-// usa la rama de Tokko: los avisos de Zonaprop se cargan a mano.
+// usa la rama de Tokko: los avisos de Zonaprop se leen en aviso.ts.
 
 /**
  * Lee un aviso EXTERNO desde su link — la ficha pública de Tokko (ficha.info)
@@ -354,7 +354,7 @@ function numeroCoord(v: unknown): number | null {
 
 async function leerZonaprop(url: string): Promise<AvisoImportado> {
   const z = await fetchZonaprop(url)
-  if (!z) throw new Error('Zonaprop no respondió o cambió su página. Probá de nuevo en un rato, o cargala a mano.')
+  if (!z) throw new Error('Zonaprop no respondió o cambió su página. Probá de nuevo en un rato.')
   const operacion: AvisoImportado['operacion'] = /temporar/i.test(z.operacion)
     ? 'temporary_rent'
     : /alquiler/i.test(z.operacion)

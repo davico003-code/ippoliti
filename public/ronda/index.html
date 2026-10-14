@@ -210,107 +210,10 @@
             <button type="button" class="boton suave" id="pegar" hidden>Pegar</button>
           </div>
           <p class="error" id="enlaceError" hidden></p>
-          <p class="ayuda chica" id="enlaceAyuda">Los datos y las fotos se cargan solos. El aviso de <strong>Zonaprop</strong> se convierte en una ficha neutra (sin logos) que cualquiera puede compartir; la ficha de <strong>Tokko</strong> se comparte tal cual.</p>
+          <p class="ayuda chica" id="enlaceAyuda">Se publica solo pegando el link: los datos y las fotos se cargan solos. El aviso de <strong>Zonaprop</strong> se convierte en una ficha neutra (sin logos) que cualquiera puede compartir; la ficha de <strong>Tokko</strong> se comparte tal cual.</p>
         </div>
         <button class="boton primario grande" type="submit">Revisar la propiedad</button>
         <p class="estado" id="leyendo" role="status" hidden>Leyendo la ficha…</p>
-        <p class="separador"><span>o</span></p>
-        <button class="boton suave grande" type="button" id="irAManual">Cargarla a mano</button>
-        <p class="ayuda chica centro">¿No tenés enlace? Cargala con las fotos de tu teléfono: son 2 minutos.</p>
-      </form>
-
-      <form id="pasoManual" novalidate hidden>
-        <p class="nota" id="manualNota" hidden></p>
-        <div class="campo">
-          <span class="rotulo" id="fotosRotulo">Fotos <span class="opcional">(de 1 a 10; la primera es la portada)</span></span>
-          <div class="fotos" id="fotos" role="group" aria-labelledby="fotosRotulo">
-            <label class="agregar-foto" id="agregarFoto">
-              <input type="file" id="elegirFotos" accept="image/*" multiple>
-              <span aria-hidden="true">+</span>Agregar fotos
-            </label>
-          </div>
-          <p class="error" id="fotosError" hidden></p>
-        </div>
-        <div class="campo">
-          <label for="tipoManual">Tipo de propiedad</label>
-          <select id="tipoManual" name="tipo">
-            <option value="">Elegí…</option>
-            <option>Casa</option>
-            <option>Lote</option>
-            <option>Departamento</option>
-            <option>PH</option>
-            <option>Local</option>
-            <option>Oficina</option>
-            <option>Galpón</option>
-            <option>Quinta</option>
-          </select>
-          <p class="error" id="tipoError" hidden></p>
-        </div>
-        <fieldset class="campo">
-          <legend>Operación</legend>
-          <div class="opciones">
-            <label class="opcion"><input type="radio" name="operacion" value="Venta" checked><span>Venta</span></label>
-            <label class="opcion"><input type="radio" name="operacion" value="Alquiler"><span>Alquiler</span></label>
-          </div>
-        </fieldset>
-        <fieldset class="campo">
-          <legend>¿En qué ciudad está?</legend>
-          <div class="opciones">
-            <label class="opcion"><input type="radio" name="ciudadManual" value="Funes"><span>Funes</span></label>
-            <label class="opcion"><input type="radio" name="ciudadManual" value="Roldán"><span>Roldán</span></label>
-          </div>
-          <p class="error" id="ciudadManualError" hidden></p>
-        </fieldset>
-        <div class="campo">
-          <label for="barrioManual">Barrio <span class="opcional">(opcional)</span></label>
-          <input id="barrioManual" name="barrio" autocomplete="off" autocapitalize="words" maxlength="60" placeholder="Ej.: Kentucky…">
-        </div>
-        <div class="campo">
-          <label for="precioManual">Precio <span class="opcional">(vacío = a consultar)</span></label>
-          <div class="precio-fila">
-            <input id="precioManual" name="precio" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="Ej.: 185000…">
-            <select name="moneda" aria-label="Moneda"><option value="USD">US$</option><option value="ARS">$</option></select>
-          </div>
-        </div>
-        <div class="tres">
-          <div class="campo">
-            <label for="m2TerrenoManual">m² terreno</label>
-            <input id="m2TerrenoManual" name="m2Terreno" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="800">
-          </div>
-          <div class="campo solo-construida">
-            <label for="m2CubiertosManual">m² cubiertos</label>
-            <input id="m2CubiertosManual" name="m2Cubiertos" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="180">
-          </div>
-          <div class="campo solo-construida">
-            <label for="dormManual">Dormitorios</label>
-            <input id="dormManual" name="dormitorios" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="3">
-          </div>
-          <div class="campo solo-construida">
-            <label for="banosManual">Baños</label>
-            <input id="banosManual" name="banos" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="2">
-          </div>
-          <div class="campo solo-construida">
-            <label for="cocherasManual">Cocheras</label>
-            <input id="cocherasManual" name="cocheras" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="2">
-          </div>
-        </div>
-        <div class="campo">
-          <label for="descripcionManual">Descripción <span class="opcional">(opcional)</span></label>
-          <textarea id="descripcionManual" name="descripcion" maxlength="3000" rows="3" placeholder="Lo que va a leer el cliente en la ficha…"></textarea>
-          <p class="ayuda chica">No pongas teléfonos ni el nombre de tu inmobiliaria: la ficha para clientes sale sin datos de contacto.</p>
-        </div>
-        <div class="campo">
-          <label for="oportunidadManual">¿Por qué es una oportunidad? <span class="obligatorio">(obligatorio)</span></label>
-          <textarea id="oportunidadManual" name="oportunidad" maxlength="500" rows="3" required aria-describedby="motivoManualAyuda" placeholder="Ej.: está 15 % por debajo de lo que se pide en el barrio y el dueño necesita vender este mes…"></textarea>
-          <p class="error" id="motivoManualError" hidden></p>
-          <p class="ayuda chica" id="motivoManualAyuda">Solo oportunidades reales: precio, urgencia del dueño, permuta, financiación… Lo ven solo los colegas.</p>
-        </div>
-        <p class="error" id="manualError" hidden></p>
-        <div class="fila-botones">
-          <button type="button" class="boton suave" id="volverDeManual">Volver</button>
-          <button class="boton primario" type="submit">Publicar por 30 días</button>
-        </div>
-        <p class="estado" id="publicandoManual" role="status" hidden>Publicando… estamos armando la ficha para clientes.</p>
       </form>
 
       <form id="pasoConfirmar" novalidate hidden>
