@@ -192,10 +192,13 @@ type FichaTokko = {
 async function htmlDe(url: string): Promise<string> {
   try {
     const res = await fetch(url, { headers: { 'user-agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(25000) })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status })
     return await res.text()
-  } catch {
-    throw new Error('No pude abrir la ficha de Tokko. Revisá el link y probá de nuevo.')
+  } catch (e) {
+    // `status` (0 = no respondió) le dice al vigía si fue un link viejo o una caída.
+    throw Object.assign(new Error('No pude abrir la ficha de Tokko. Revisá el link y probá de nuevo.'), {
+      status: (e as { status?: number }).status ?? 0,
+    })
   }
 }
 

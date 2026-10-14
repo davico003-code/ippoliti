@@ -7,6 +7,7 @@
 //   ronda:leido:<clave>  → el aviso ya leído, 30 min (no leerlo dos veces)
 //   ronda:zonaprop       → copia de los avisos de Zonaprop que Hilo ya tenía leídos
 //   ronda:contactos:<mes>, ronda:fichas:<mes> → la actividad del mes (ver abajo)
+//   ronda:lecturas:<día> → cómo salió cada link que pegó un colega (para el vigía, salud.ts)
 //
 // La cuota de Upstash es finita (se agotó el 25-ago-2026): leer la grilla es UN
 // hgetall y queda 15 s en memoria por instancia. Fuera de producción todo va a
@@ -178,6 +179,35 @@ export async function actividadDelMes(): Promise<ActividadRonda> {
   const valor = { mes, contactos, fichas, colegas, inmobiliarias }
   _actividad = { valor, ts: Date.now() }
   return valor
+}
+
+// ── Lecturas de links (lo mira el vigía) ────────────────────────────────
+//
+// Cada link que pega un colega deja una marca por día de Argentina:
+//   ronda:lecturas:<AAAA-MM-DD> → hash "<origen>:<resultado>" → cuántos
+// Así una falla que vio un colega no pasa en silencio aunque nadie avise.
+
+export type ResultadoLectura = 'ok' | 'copia' | 'no-figura' | 'caida' | 'error' | 'no-reconocido'
+
+const diaAR = (ms = Date.now()) => new Date(ms - 3 * 3_600_000).toISOString().slice(0, 10)
+const claveLecturas = (dia: string) => `${P}:lecturas:${dia}`
+
+export async function anotarLectura(origen: string, resultado: ResultadoLectura): Promise<void> {
+  const clave = claveLecturas(diaAR())
+  const p = redis.pipeline()
+  p.hincrby(clave, `${origen}:${resultado}`, 1)
+  p.expire(clave, 40 * 24 * 3600)
+  await p.exec()
+}
+
+/** Lo anotado hoy y los días anteriores (`dias` en total), sumado: { "zonaprop:ok": 3, … }. */
+export async function lecturasRecientes(dias = 2): Promise<Record<string, number>> {
+  const p = redis.pipeline()
+  for (let i = 0; i < dias; i++) p.hgetall(claveLecturas(diaAR(Date.now() - i * 86_400_000)))
+  const filas = await p.exec<(Record<string, number | string> | null)[]>()
+  const total: Record<string, number> = {}
+  for (const fila of filas) for (const [k, v] of Object.entries(fila ?? {})) total[k] = (total[k] ?? 0) + Number(v)
+  return total
 }
 
 /** Si el agente cambió su nombre o su WhatsApp, sus publicaciones vigentes lo siguen. */

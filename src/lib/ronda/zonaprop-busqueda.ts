@@ -36,12 +36,12 @@ export type PostingZonaprop = {
   visiblePictures?: { pictures?: Array<{ url730x532?: string | null; url360x266?: string | null }> | null } | null
 }
 
-/** `caida` = Zonaprop no respondió o cambió la página (NO es "el aviso no está publicado"). */
-export type BusquedaZonaprop = { posting: PostingZonaprop | null; caida: boolean }
+/** `caida` = Zonaprop no respondió o cambió la página (NO es "el aviso no está publicado"); `motivo` dice cuál. */
+export type BusquedaZonaprop = { posting: PostingZonaprop | null; caida: boolean; motivo?: string }
 
 function caida(motivo: string): BusquedaZonaprop {
   console.warn(`[ronda] zonaprop: la búsqueda por número de aviso no anduvo: ${motivo}`)
-  return { posting: null, caida: true }
+  return { posting: null, caida: true, motivo }
 }
 
 /** El objeto JSON que empieza en `inicio` (un '{'), respetando strings y escapes. */

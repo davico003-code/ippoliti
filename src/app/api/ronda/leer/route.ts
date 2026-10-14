@@ -3,13 +3,14 @@
 // Paso 1 de publicar: lee el aviso del link y devuelve lo que se va a mostrar,
 // para que el colega lo revise. No publica nada. Si el aviso no se puede
 // convertir solo (un Zonaprop que ya no figura y no está en la copia), responde
-// 422 con `aMano: true` y la pantalla pide otro enlace (no hay carga a mano). El aviso leído queda 30 min
+// 422 con `aMano: true` y la pantalla pide otro enlace (no hay carga a mano).
+// Cada link deja su marca para el vigía (`anotarLectura`, ver salud.ts). El aviso leído queda 30 min
 // guardado: al confirmar no se vuelve a leer.
 
 import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { rateLimit } from '@/lib/feedback'
-import { guardarLectura, listarPublicaciones } from '@/lib/ronda/almacen'
+import { anotarLectura, guardarLectura, listarPublicaciones, type ResultadoLectura } from '@/lib/ronda/almacen'
 import { AvisoSinLectura, ENLACE_NO_SIRVE, leerAviso } from '@/lib/ronda/aviso'
 import { barrioVisible, chequeoAlPublicar, claveDeUrl, origenDeLink } from '@/lib/ronda/reglas'
 import { sesionDe } from '@/lib/ronda/sesion'
@@ -20,6 +21,23 @@ export const maxDuration = 60
 
 const error = (mensaje: string, status = 400, extra: Record<string, unknown> = {}) =>
   NextResponse.json({ error: mensaje, ...extra }, { status })
+
+/** La marca para el vigía nunca frena al colega. */
+const marcar = (origen: string, resultado: ResultadoLectura) => anotarLectura(origen, resultado).catch(() => undefined)
+
+/**
+ * Un link que parece un AVISO de Zonaprop (/propiedades/… o con su número) y no
+ * reconocemos es una falla NUESTRA (otro formato de link): el vigía la ve. Una
+ * página de búsqueda o un link mal copiado es error de quien pega: no cuenta.
+ */
+function avisoZonapropSinReconocer(url: string): boolean {
+  try {
+    const u = new URL(url)
+    return /(^|\.)zonaprop\.com\.ar$/.test(u.hostname.toLowerCase()) && (u.pathname.startsWith('/propiedades/') || /\d{7,}/.test(u.pathname))
+  } catch {
+    return false
+  }
+}
 
 export async function POST(req: Request) {
   const cerrado = await sinAcceso(req)
@@ -37,7 +55,11 @@ export async function POST(req: Request) {
   } catch {
     return error('Datos inválidos.')
   }
-  if (!origenDeLink(url)) return error(ENLACE_NO_SIRVE)
+  const origen = origenDeLink(url)
+  if (!origen) {
+    if (avisoZonapropSinReconocer(url)) await marcar('zonaprop', 'no-reconocido')
+    return error(ENLACE_NO_SIRVE)
+  }
 
   try {
     const grilla = await listarPublicaciones(true)
@@ -52,6 +74,8 @@ export async function POST(req: Request) {
     const aviso = await leerAviso(url)
     if (aviso.fotos.length === 0) return error('Ese aviso no tiene fotos. Publicá uno que las tenga.', 422)
     await guardarLectura(clave, aviso)
+    // Zonaprop desde la copia guardada = la lectura en vivo no anduvo (o el aviso ya no está).
+    await marcar(origen, aviso.leidoEl ? 'copia' : 'ok')
 
     return NextResponse.json({
       aviso: {
@@ -71,7 +95,11 @@ export async function POST(req: Request) {
       },
     })
   } catch (e) {
-    if (e instanceof AvisoSinLectura) return error(e.message, 422, { aMano: true })
+    if (e instanceof AvisoSinLectura) {
+      await marcar(origen, e.motivo === 'otro' ? 'error' : e.motivo)
+      return error(e.message, 422, { aMano: true })
+    }
+    await marcar(origen, 'error')
     return error(e instanceof Error && e.message ? e.message : 'No se pudo leer el aviso.', 422)
   }
 }
