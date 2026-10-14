@@ -5,13 +5,14 @@
 // el MISMO armador que el resto de las fichas (crearFicha / crearFichaExterna).
 // Nunca inventa: si el aviso no se puede leer, tira un Error con el motivo.
 
-import { buildSnapshotFromTokko, crearFicha, crearFichaExterna } from '@/lib/ficha'
+import { buildSnapshotFromTokko, crearFicha, crearFichaExterna, getFicha, type FichaSnapshot } from '@/lib/ficha'
 import { rehostFotos } from '@/lib/rehost-fotos'
 import { getPropertyById } from '@/lib/tokko'
-import { copiaDeZonaprop, type CopiaZonaprop } from './almacen'
+import { copiaDeZonaprop, guardarPublicacion, type CopiaZonaprop } from './almacen'
 import { leerAvisoExterno } from './aviso-externo'
 import {
   barrioVisible,
+  comodidadesDe,
   descripcionNeutra,
   detectarCiudad,
   etiquetaTipo,
@@ -22,7 +23,9 @@ import {
   tituloRonda,
   type CiudadRonda,
   type DatosManual,
+  type DetallePublicacion,
   type GrupoTipo,
+  type Publicacion,
 } from './reglas'
 import { avisoZonapropPorBusqueda, fotosDePosting, numeroDePosting, precioDePosting, ubicacionDePosting, type PostingZonaprop } from './zonaprop-busqueda'
 
@@ -124,7 +127,7 @@ function avisoDePosting(url: string, p: PostingZonaprop, copia: CopiaZonaprop | 
     fotos: (copia && copia.fotos.length > deHoy.length ? copia.fotos : deHoy).slice(0, MAX_FOTOS),
     descripcion: copia?.descripcion || (p.descriptionNormalized ?? '').trim() || null,
     direccion: p.postingLocation?.address?.name ?? null,
-    tags: [],
+    tags: comodidadesDe(copia?.caracteristicas),
     anunciante: p.publisher?.name ?? copia?.anunciante ?? null,
   }
 }
@@ -154,7 +157,7 @@ function avisoDeCopia(url: string, c: CopiaZonaprop): AvisoRonda {
     fotos: c.fotos.slice(0, MAX_FOTOS),
     descripcion: c.descripcion || null,
     direccion: null,
-    tags: [],
+    tags: comodidadesDe(c.caracteristicas),
     leidoEl: c.leido,
     anunciante: c.anunciante,
   }
@@ -246,17 +249,17 @@ export function avisoManual(d: DatosManual): AvisoRonda {
     barrio: d.barrio,
     precio: d.precio,
     moneda: d.moneda,
-    m2: d.m2,
-    m2Cubiertos: grupo === 'Lote' ? null : d.m2,
-    m2Terreno: grupo === 'Lote' ? d.m2 : null,
+    m2: grupo === 'Lote' ? d.m2Terreno ?? d.m2 : d.m2Cubiertos ?? d.m2Terreno ?? d.m2,
+    m2Cubiertos: grupo === 'Lote' ? null : d.m2Cubiertos,
+    m2Terreno: d.m2Terreno,
     ambientes: null,
     dormitorios: d.dormitorios,
     banos: d.banos,
-    cocheras: null,
+    cocheras: d.cocheras,
     fotos: d.fotos,
     descripcion: d.descripcion || null,
     direccion: null,
-    tags: [],
+    tags: d.comodidades,
   }
 }
 
@@ -268,12 +271,12 @@ export function avisoManual(d: DatosManual): AvisoRonda {
 export async function crearFichaDeAviso(
   aviso: AvisoRonda,
   opciones: { ciudad: CiudadRonda; marcas: string[]; ip: string; userAgent: string },
-): Promise<{ url: string; foto: string | null; fotos: number }> {
+): Promise<{ url: string; foto: string | null; fotos: number; detalle: DetallePublicacion }> {
   const { ciudad, marcas, ip, userAgent } = opciones
 
   if (aviso.origen === 'web' && aviso.propertyId) {
     const { url, ficha } = await crearFicha({ propertyId: aviso.propertyId, ip, userAgent })
-    return { url, foto: ficha.snapshot.fotos[0] ?? null, fotos: ficha.snapshot.fotos.length }
+    return { url, foto: ficha.snapshot.fotos[0] ?? null, fotos: ficha.snapshot.fotos.length, detalle: detalleDeSnapshot(ficha.snapshot) }
   }
 
   const barrio = barrioVisible(aviso.barrio, ciudad)
@@ -305,5 +308,43 @@ export async function crearFichaDeAviso(
     ip,
     userAgent,
   })
-  return { url, foto: snapshot.fotos[0] ?? null, fotos: snapshot.fotos.length }
+  return { url, foto: snapshot.fotos[0] ?? null, fotos: snapshot.fotos.length, detalle: detalleDeSnapshot(snapshot) }
+}
+
+/** Lo que la Ronda muestra sin entrar a la ficha sale de la MISMA ficha (fotos, datos, descripción limpia). */
+export function detalleDeSnapshot(s: FichaSnapshot): DetallePublicacion {
+  return {
+    fotos: (s.fotos || []).slice(0, MAX_FOTOS),
+    m2Cubiertos: entero(s.m2cubiertos),
+    m2Terreno: entero(s.m2terreno),
+    ambientes: entero(s.ambientes),
+    cocheras: entero(s.cocheras),
+    comodidades: comodidadesDe(s.caracteristicas),
+    descripcion: String(s.descripcion || '').trim().slice(0, 1200),
+  }
+}
+
+/**
+ * Las publicaciones de antes del 14-oct-2026 no guardaban la galería ni los
+ * datos: se completan una vez desde su ficha y quedan guardadas.
+ */
+export async function completarDetalles(publicaciones: Publicacion[]): Promise<Publicacion[]> {
+  const faltan = publicaciones.filter((p) => !p.detalle)
+  if (faltan.length === 0) return publicaciones
+  const completas = await Promise.all(
+    faltan.map(async (p): Promise<Publicacion | null> => {
+      try {
+        const ficha = await getFicha(p.ficha.split('/').pop() || '')
+        if (!ficha?.snapshot) return null
+        const lista = { ...p, detalle: detalleDeSnapshot(ficha.snapshot) }
+        await guardarPublicacion(lista)
+        return lista
+      } catch {
+        return null
+      }
+    }),
+  )
+  const porId = new Map<string, Publicacion>()
+  for (const p of completas) if (p) porId.set(p.id, p)
+  return publicaciones.map((p) => porId.get(p.id) ?? p)
 }

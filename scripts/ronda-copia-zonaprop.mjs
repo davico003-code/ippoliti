@@ -28,7 +28,7 @@ const base = process.env.HILO_SUPABASE_URL
 const llave = process.env.HILO_SUPABASE_SERVICE_ROLE_KEY
 if (!base || !llave) throw new Error('Faltan HILO_SUPABASE_URL y HILO_SUPABASE_SERVICE_ROLE_KEY')
 
-const COLUMNAS = 'aviso_id,url,titulo,tipo,operacion,precio,moneda,dormitorios,banos,cocheras,ambientes,sup_total_m2,sup_cub_m2,barrio,localidad,anunciante,fotos,descripcion,detalle_at'
+const COLUMNAS = 'aviso_id,url,titulo,tipo,operacion,precio,moneda,dormitorios,banos,cocheras,ambientes,sup_total_m2,sup_cub_m2,barrio,localidad,anunciante,fotos,descripcion,caracteristicas,detalle_at'
 const filas = []
 for (let desde = 0; ; desde += 1000) {
   const res = await fetch(`${base}/rest/v1/avisos_detalle?select=${COLUMNAS}&portal=eq.zonaprop&estado=neq.no_disponible&order=aviso_id`, {
@@ -60,13 +60,15 @@ const copias = filas
     anunciante: f.anunciante ?? null,
     fotos: (Array.isArray(f.fotos) ? f.fotos : []).filter((u) => typeof u === 'string' && u.startsWith('https://')).slice(0, 20),
     descripcion: String(f.descripcion ?? '').slice(0, 3000),
+    caracteristicas: (Array.isArray(f.caracteristicas) ? f.caracteristicas : []).filter((x) => typeof x === 'string').slice(0, 30),
     leido: f.detalle_at,
   }))
   .filter((c) => /^\d{6,12}$/.test(c.id) && c.fotos.length > 0)
 
 const redis = new Redis({ url: env.KV_REST_API_URL, token: env.KV_REST_API_TOKEN })
 const vigentes = new Set(copias.map((c) => c.id))
-const viejas = (await redis.hkeys(CLAVE)).filter((id) => !vigentes.has(id))
+// Upstash devuelve los nombres de campo numéricos como número: se comparan como texto.
+const viejas = (await redis.hkeys(CLAVE)).map(String).filter((id) => !vigentes.has(id))
 for (let i = 0; i < copias.length; i += 100) {
   await redis.hset(CLAVE, Object.fromEntries(copias.slice(i, i + 100).map((c) => [c.id, c])))
 }

@@ -165,6 +165,8 @@ export interface CopiaZonaprop {
   anunciante: string | null
   fotos: string[]
   descripcion: string
+  /** Comodidades del aviso (pileta, parrilla…), si la copia las trae. */
+  caracteristicas?: string[]
   /** Cuándo se leyó el aviso (ISO). */
   leido: string
 }

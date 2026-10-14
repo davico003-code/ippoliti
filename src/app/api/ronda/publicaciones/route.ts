@@ -6,14 +6,16 @@
 //                                           o un Zonaprop de la copia: ahí acepta `precio`)
 //          { manual, ciudad, oportunidad }  cargada a mano, con sus fotos ya subidas
 //                                           (y, si tiene, el enlace de su aviso en el portal)
-//        Reglas: hace falta el pase del agente, hasta 3 propiedades vigentes por
-//        inmobiliaria y un enlace no se publica dos veces. Arma la ficha neutra
+//        Reglas: hace falta el pase del agente, hasta 3 vigentes por inmobiliaria
+//        (`reemplaza: <id>` cambia una propia por otra que arranca de cero) y la
+//        misma inmobiliaria no repite un enlace (dos inmobiliarias sí pueden). Arma la ficha neutra
 //        de verficha.casa en el momento.
 
 import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { nanoid } from 'nanoid'
 import {
+  borrarPublicacion,
   guardarLectura,
   guardarPublicacion,
   inmobiliariaPorId,
@@ -21,9 +23,10 @@ import {
   limpiarVencidas,
   listarPublicaciones,
 } from '@/lib/ronda/almacen'
-import { avisoManual, AvisoSinLectura, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
+import { avisoManual, AvisoSinLectura, completarDetalles, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
 import {
   barrioVisible,
+  chequeoAlPublicar,
   claveDeUrl,
   DIA_MS,
   DIAS_PUBLICACION,
@@ -31,8 +34,6 @@ import {
   leerDatosManual,
   leerMotivo,
   leerPrecio,
-  MAX_POR_INMOBILIARIA,
-  ocupadas,
   origenDeLink,
   tituloRonda,
   type Publicacion,
@@ -53,7 +54,7 @@ export async function GET(req: Request) {
   if (cerrado) return cerrado
 
   try {
-    const publicaciones = await listarPublicaciones()
+    const publicaciones = await completarDetalles(await listarPublicaciones())
     return NextResponse.json(
       { publicaciones, ahora: Date.now() },
       { headers: { 'Cache-Control': 'private, no-store' } },
@@ -95,16 +96,10 @@ export async function POST(req: Request) {
 
     await limpiarVencidas()
     const grilla = await listarPublicaciones(true)
-    if (ocupadas(grilla, sesion.iid) >= MAX_POR_INMOBILIARIA) {
-      return error(
-        `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} propiedades en la ronda, que es el máximo. Para publicar otra, dá de baja una o esperá a que venza.`,
-        409,
-        { limite: true },
-      )
-    }
-
+    const reemplaza = typeof body.reemplaza === 'string' ? body.reemplaza.slice(0, 24) : null
+    const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza })
+    if (traba) return error(traba.error, traba.status, traba.limite ? { limite: true } : {})
     const clave = url ? claveDeUrl(url) : ''
-    if (clave && grilla.some((p) => p.urlOriginal && claveDeUrl(p.urlOriginal) === clave)) return error('Esa propiedad ya está en la ronda.', 409)
 
     let aviso: AvisoRonda | null
     if (manual) {
@@ -157,9 +152,12 @@ export async function POST(req: Request) {
       },
       creada: ahora,
       vence: ahora + DIAS_PUBLICACION * DIA_MS,
+      detalle: ficha.detalle,
     }
     await guardarPublicacion(publicacion)
-    return NextResponse.json({ publicacion }, { status: 201 })
+    // Reemplazo: la nueva ya está; la vieja sale (y su lugar queda para la nueva, que arranca de cero).
+    if (reemplaza) await borrarPublicacion(reemplaza)
+    return NextResponse.json({ publicacion, reemplazada: reemplaza }, { status: 201 })
   } catch (e) {
     if (e instanceof AvisoSinLectura) return error(e.message, 422, { aMano: true })
     console.error('[ronda] publicar', e)

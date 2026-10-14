@@ -116,6 +116,74 @@
     const dias = Math.ceil((p.vence - Date.now()) / DIA)
     return dias <= 1 ? 'Último día' : `Quedan ${dias} días`
   }
+  const numero = (n) => new Intl.NumberFormat('es-AR').format(n)
+
+  /** Las fotos de la oportunidad (la galería completa; las viejas, solo la portada). */
+  function galeria(p) {
+    if (p.detalle?.fotos?.length) return p.detalle.fotos
+    return p.foto ? [p.foto] : []
+  }
+
+  /** Los datos con su nombre: "Terreno 546 m²", "Dormitorios 3"… solo los que hay. */
+  function fichaTecnica(p) {
+    const d = p.detalle
+    if (!d) return p.m2 ? [['Superficie', `${numero(p.m2)}&nbsp;m²`]] : []
+    return [
+      d.m2Terreno ? ['Terreno', `${numero(d.m2Terreno)}&nbsp;m²`] : null,
+      d.m2Cubiertos ? ['Cubiertos', `${numero(d.m2Cubiertos)}&nbsp;m²`] : null,
+      d.ambientes ? ['Ambientes', d.ambientes] : null,
+      p.dormitorios ? ['Dormitorios', p.dormitorios] : null,
+      p.banos ? ['Baños', p.banos] : null,
+      d.cocheras ? ['Cocheras', d.cocheras] : null,
+    ].filter(Boolean)
+  }
+
+  /** En un lote, el precio por m² de terreno: lo primero que mira un colega. */
+  function porMetro(p) {
+    const terreno = p.detalle?.m2Terreno ?? (p.grupo === 'Lote' ? p.m2 : null)
+    if (p.grupo !== 'Lote' || !p.precio || !terreno) return ''
+    return `${p.moneda === 'ARS' ? '$' : 'US$'}&nbsp;${numero(Math.round(p.precio / terreno))}/m²`
+  }
+
+  const fichaHtml = (p) => {
+    const filas = fichaTecnica(p)
+    return filas.length ? `<dl class="ficha-tecnica">${filas.map(([r, v]) => `<div><dt>${r}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''
+  }
+
+  function imagen(url, { tamanos, urgente = false, anchoBase = 640 }) {
+    const juego = [360, 640, 828, 1080].map((w) => `${optimizada(url, w)} ${w}w`).join(', ')
+    return `<img src="${esc(optimizada(url, anchoBase))}" srcset="${esc(juego)}" sizes="${tamanos}" data-original="${esc(url)}" alt="" width="640" height="480" decoding="async" ${urgente ? 'fetchpriority="high"' : 'loading="lazy"'}>`
+  }
+
+  /** Las fotos que se deslizan con el dedo (y con flechas en la compu); un toque las abre grandes. */
+  function carrusel(p, { tamanos, urgente = false }) {
+    const fotos = galeria(p)
+    if (fotos.length === 0) return `<div class="sin-foto" aria-hidden="true">${esc(p.tipo)}</div>`
+    const n = fotos.length
+    return `<div class="carrusel">
+      <div class="carrusel-pista">${fotos
+        .map((u, i) => `<button type="button" class="carrusel-foto" data-accion="visor" data-indice="${i}" aria-label="Ver la foto ${i + 1} de ${n}">${imagen(u, { tamanos, urgente: urgente && i === 0 })}</button>`)
+        .join('')}</div>
+      ${n > 1 ? `<span class="contador">1/${n}</span><button type="button" class="flecha anterior" data-mover="-1" aria-label="Foto anterior">‹</button><button type="button" class="flecha siguiente" data-mover="1" aria-label="Foto siguiente">›</button>` : ''}
+    </div>`
+  }
+
+  // El contador "3/8" sigue al dedo.
+  document.addEventListener(
+    'scroll',
+    (e) => {
+      const pista = e.target
+      if (!(pista instanceof Element) || !pista.matches('.carrusel-pista, .visor-pista')) return
+      const total = pista.children.length
+      const actual = Math.min(total, Math.round(pista.scrollLeft / Math.max(1, pista.clientWidth)) + 1)
+      const contador = pista.matches('.visor-pista') ? $('#visorContador') : pista.parentElement.querySelector('.contador')
+      if (contador) contador.textContent = `${actual}/${total}`
+    },
+    true,
+  )
+
+  const esNueva = (p) => Date.now() - p.creada < 2 * DIA
+
   function datos(p) {
     return [
       p.m2 ? `${new Intl.NumberFormat('es-AR').format(p.m2)}&nbsp;m²` : '',
@@ -178,27 +246,33 @@
 
   function tarjeta(p, indice) {
     const mia = esMia(p)
-    const hechos = datos(p)
+    const comodidades = p.detalle?.comodidades || []
+    const metro = porMetro(p)
     return `<article class="tarjeta" data-id="${esc(p.id)}">
-      <button type="button" class="tarjeta-foto" data-accion="detalle" aria-label="Ver ${esc(p.titulo)}">
-        ${foto(p, { tamanos: '(min-width: 1000px) 370px, (min-width: 640px) 50vw, 100vw', urgente: indice < 2 })}
+      <div class="tarjeta-foto">
+        ${carrusel(p, { tamanos: '(min-width: 1000px) 370px, (min-width: 640px) 50vw, 100vw', urgente: indice < 2 })}
         <span class="insignia">${esc(p.tipo)} · ${esc(p.operacion)}</span>
-        <span class="insignia tiempo">${quedan(p)}</span>
-      </button>
+        <span class="insignia tiempo">${esNueva(p) ? 'Nueva · ' : ''}${quedan(p)}</span>
+      </div>
       <div class="tarjeta-cuerpo">
         <h3>${esc(p.titulo)}</h3>
-        <p class="precio">${precio(p)}</p>
-        ${hechos.length ? `<ul class="datos">${hechos.map((d) => `<li>${d}</li>`).join('')}</ul>` : ''}
+        <p class="precio">${precio(p)}${metro ? ` <small>${metro}</small>` : ''}</p>
+        ${fichaHtml(p)}
+        ${comodidades.length ? `<p class="comodidades"><b>Comodidades:</b> ${comodidades.slice(0, 4).map(esc).join(' · ')}${comodidades.length > 4 ? ` · y ${comodidades.length - 4} más` : ''}</p>` : ''}
         ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : ''}
         <div class="colega">
           <span class="avatar" aria-hidden="true">${esc(iniciales(p.agente.nombre))}</span>
-          <div><strong>${esc(p.agente.nombre)}</strong><small>${esc(p.inmobiliaria.nombre)}</small></div>
-          ${mia ? '<span class="tuya">Tu publicación</span>' : ''}
+          <div><small class="rotulo-publica">Publica</small><strong>${esc(p.agente.nombre)}</strong><small>${esc(p.inmobiliaria.nombre)}</small></div>
+          ${mia ? '<span class="tuya">Tuya</span>' : ''}
         </div>
         <div class="acciones">
-          ${mia ? '' : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}WhatsApp</a>`}
-          <button type="button" class="boton suave" data-accion="copiar">Copiar ficha para mi cliente</button>
-          <button type="button" class="enlace" data-accion="detalle">Ver más</button>
+          ${
+            mia
+              ? '<button type="button" class="boton suave" data-accion="reemplazar">Reemplazar (arranca de cero)</button>'
+              : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}WhatsApp</a>
+          <button type="button" class="boton suave" data-accion="copiar">Copiar ficha para mi cliente</button>`
+          }
+          <button type="button" class="enlace" data-accion="detalle">Ver todo</button>
         </div>
       </div>
     </article>`
@@ -566,6 +640,8 @@
   const pasoManual = $('#pasoManual')
   /** El aviso ya leído (paso 2) y su link. */
   let revisado = null
+  /** La oportunidad propia que se está reemplazando (la nueva arranca de cero y esta sale). */
+  let reemplazando = null
 
   function origenDeLink(url) {
     try {
@@ -631,11 +707,14 @@
   const deMiInmobiliaria = () => (sesion ? vigentes().filter((p) => p.inmobiliaria.id === sesion.inmobiliaria.id) : [])
 
   function pintarCupo() {
-    const usadas = deMiInmobiliaria()
+    const usadas = deMiInmobiliaria().filter((p) => p.id !== reemplazando?.id)
     const lleno = usadas.length >= MAX_POR_INMOBILIARIA
+    const nota = $('#reemplazoNota')
+    nota.hidden = !reemplazando
+    nota.textContent = reemplazando ? `Vas a reemplazar «${reemplazando.titulo}». La nueva arranca con 30 días y la anterior sale de la ronda.` : ''
     $('#cupo').textContent = `${sesion.inmobiliaria.nombre} usa ${usadas.length} de ${MAX_POR_INMOBILIARIA} lugares en la ronda.`
     $('#pasoLleno').hidden = !lleno
-    $('#llenoNota').textContent = `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} oportunidades en la ronda, que es el máximo. Para publicar otra, dá de baja una o esperá a que venza.`
+    $('#llenoNota').textContent = `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} oportunidades en la ronda, que es el máximo. Para publicar otra, reemplazá una (la nueva arranca de cero) o dala de baja.`
     if (lleno) {
       pasoEnlace.hidden = true
       pasoConfirmar.hidden = true
@@ -644,7 +723,7 @@
         .map(
           (p) =>
             `<li><div><strong>${esc(p.titulo)}</strong><small>${esc(p.agente.nombre)} · ${quedan(p).toLowerCase()}</small></div>${
-              esMia(p) ? `<button type="button" class="boton suave" data-baja="${esc(p.id)}">Dar de baja</button>` : ''
+              esMia(p) ? `<span class="botones-propias"><button type="button" class="boton suave" data-reemplazar="${esc(p.id)}">Reemplazar</button><button type="button" class="enlace" data-baja="${esc(p.id)}">Dar de baja</button></span>` : ''
             }</li>`,
         )
         .join('')
@@ -661,11 +740,13 @@
     $('#leyendo').hidden = true
   }
 
-  function abrirPublicar() {
+  function abrirPublicar(opciones = {}) {
     if (!sesion) {
       abrirIngreso()
       return
     }
+    reemplazando = opciones.reemplaza || null
+    $('#publicarTitulo').textContent = reemplazando ? 'Reemplazar una oportunidad' : 'Publicar una oportunidad'
     pasoEnlace.reset()
     pasoConfirmar.reset()
     reiniciarManual()
@@ -673,6 +754,10 @@
     pintarCupo()
     abrir(publicar)
   }
+
+  publicar.addEventListener('close', () => {
+    reemplazando = null
+  })
 
   if (navigator.clipboard?.readText) {
     const pegar = $('#pegar')
@@ -688,12 +773,17 @@
     })
   }
 
-  function publicada(publicacion) {
+  function publicada(publicacion, reemplazada) {
     recienPublicadas.set(publicacion.id, publicacion)
-    publicaciones = [publicacion, ...vigentes().filter((p) => p.id !== publicacion.id)]
+    if (reemplazada) {
+      recienBajadas.set(reemplazada, Date.now())
+      recienPublicadas.delete(reemplazada)
+    }
+    publicaciones = [publicacion, ...vigentes().filter((p) => p.id !== publicacion.id && p.id !== reemplazada)]
     publicar.close()
+    if (detalle.open) detalle.close()
     pintar()
-    avisar('Listo. Tu oportunidad queda en la ronda por 30 días.')
+    avisar(reemplazada ? 'Listo. La reemplazaste: la nueva queda 30 días en la ronda.' : 'Listo. Tu oportunidad queda en la ronda por 30 días.')
     window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
 
@@ -716,7 +806,7 @@
     ocupado(boton, true)
     $('#leyendo').hidden = false
     try {
-      const { aviso } = await api('leer', { metodo: 'POST', cuerpo: { url } })
+      const { aviso } = await api('leer', { metodo: 'POST', cuerpo: { url, reemplaza: reemplazando?.id } })
       revisado = { url, aviso }
       const hechos = datos(aviso)
       $('#vista').innerHTML = `
@@ -794,16 +884,17 @@
     ocupado(boton, true)
     $('#publicando').hidden = false
     try {
-      const { publicacion } = await api('publicaciones', {
+      const { publicacion, reemplazada } = await api('publicaciones', {
         metodo: 'POST',
         cuerpo: {
           url: revisado.url,
+          reemplaza: reemplazando?.id,
           ciudad,
           oportunidad: $('#oportunidad').value.trim(),
           ...(revisado.aviso.leidoEl ? { precio: $('#precioLeido').value.replace(/\D/g, '') } : {}),
         },
       })
-      publicada(publicacion)
+      publicada(publicacion, reemplazada)
     } catch (err) {
       if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       if (err.datos?.limite) {
@@ -928,6 +1019,7 @@
     aviso.hidden = !nota
     const pistas = enlace ? pistasDelEnlace(enlace) : {}
     if (pistas.tipo) $('#tipoManual').value = pistas.tipo
+    ajustarTipoManual()
     if (pistas.dormitorios) $('#dormManual').value = pistas.dormitorios
     for (const r of $$('input[name="operacion"]', pasoManual)) r.checked = r.value === (pistas.operacion || 'Venta')
     for (const r of $$('input[name="ciudadManual"]', pasoManual)) r.checked = r.value === pistas.ciudad
@@ -938,6 +1030,13 @@
 
   $('#irAManual').addEventListener('click', () => irAManual(null, ''))
   $('#volverDeManual').addEventListener('click', mostrarPasoEnlace)
+
+  // Un lote no tiene construcción: se esconden cubiertos, dormitorios, baños y cocheras.
+  function ajustarTipoManual() {
+    const lote = $('#tipoManual').value === 'Lote'
+    for (const c of $$('.solo-construida', pasoManual)) c.hidden = lote
+  }
+  $('#tipoManual').addEventListener('change', ajustarTipoManual)
 
   pasoManual.addEventListener('submit', async (e) => {
     e.preventDefault()
@@ -963,9 +1062,10 @@
     ocupado(boton, true)
     $('#publicandoManual').hidden = false
     try {
-      const { publicacion } = await api('publicaciones', {
+      const { publicacion, reemplazada } = await api('publicaciones', {
         metodo: 'POST',
         cuerpo: {
+          reemplaza: reemplazando?.id,
           ciudad: f.get('ciudadManual'),
           oportunidad: String(f.get('oportunidad') || '').trim(),
           manual: {
@@ -974,7 +1074,10 @@
             barrio: String(f.get('barrio') || '').trim(),
             precio: String(f.get('precio') || '').replace(/\D/g, ''),
             moneda: f.get('moneda'),
-            m2: String(f.get('m2') || '').replace(/\D/g, ''),
+            m2Terreno: String(f.get('m2Terreno') || '').replace(/\D/g, ''),
+            m2Cubiertos: String(f.get('m2Cubiertos') || '').replace(/\D/g, ''),
+            cocheras: String(f.get('cocheras') || '').replace(/\D/g, ''),
+            comodidades: f.getAll('comodidades'),
             dormitorios: String(f.get('dormitorios') || '').replace(/\D/g, ''),
             banos: String(f.get('banos') || '').replace(/\D/g, ''),
             descripcion: String(f.get('descripcion') || '').trim(),
@@ -983,7 +1086,7 @@
           },
         },
       })
-      publicada(publicacion)
+      publicada(publicacion, reemplazada)
     } catch (err) {
       if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       if (err.datos?.limite) {
@@ -1010,8 +1113,10 @@
   function pintarDetalle(p) {
     abierta = p.id
     const mia = esMia(p)
-    const hechos = datos(p)
     const mias = notas()[p.id] || []
+    const comodidades = p.detalle?.comodidades || []
+    const metro = porMetro(p)
+    const descripcion = p.detalle?.descripcion || ''
     $('#detalleCuerpo').innerHTML = `
       <div class="hoja-cabeza">
         <div>
@@ -1020,21 +1125,26 @@
         </div>
         <button type="button" class="cerrar" data-cerrar aria-label="Cerrar">×</button>
       </div>
-      <div class="detalle-foto">${foto(p, { tamanos: '(min-width: 700px) 520px, 100vw', urgente: true })}</div>
-      <p class="precio grande">${precio(p)}</p>
-      ${hechos.length ? `<ul class="datos">${hechos.map((d) => `<li>${d}</li>`).join('')}</ul>` : ''}
+      <div class="detalle-foto">${carrusel(p, { tamanos: '(min-width: 700px) 520px, 100vw', urgente: true })}</div>
+      <p class="precio grande">${precio(p)}${metro ? ` <small>${metro}</small>` : ''}</p>
+      ${fichaHtml(p)}
       ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : ''}
-      <div class="colega amplio">
-        <span class="avatar" aria-hidden="true">${esc(iniciales(p.agente.nombre))}</span>
-        <div>
-          <strong>${esc(p.agente.nombre)}</strong>
-          <small>${esc(p.inmobiliaria.nombre)}</small>
-          <small>Matriculado a cargo: ${esc(p.inmobiliaria.matriculado)} · Mat. ${esc(p.inmobiliaria.matricula)}</small>
+      ${comodidades.length ? `<div class="bloque"><h3>Comodidades</h3><ul class="lista-comodidades">${comodidades.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}
+      ${descripcion ? `<details class="bloque descripcion"><summary>Descripción</summary><p>${esc(descripcion)}</p></details>` : ''}
+      <div class="bloque">
+        <h3>Publica</h3>
+        <div class="colega amplio">
+          <span class="avatar" aria-hidden="true">${esc(iniciales(p.agente.nombre))}</span>
+          <div>
+            <strong>${esc(p.agente.nombre)}</strong>
+            <small>${esc(p.inmobiliaria.nombre)}</small>
+            <small>Matriculado a cargo: ${esc(p.inmobiliaria.matriculado)} · Mat. ${esc(p.inmobiliaria.matricula)}</small>
+          </div>
         </div>
       </div>
       <div class="acciones">
-        ${mia ? '' : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}Escribirle por WhatsApp</a>`}
-        <button type="button" class="boton ${mia ? 'primario' : 'suave'}" data-accion="${navigator.share ? 'compartir' : 'copiar'}">${navigator.share ? 'Enviar la ficha a mi cliente' : 'Copiar ficha para mi cliente'}</button>
+        ${mia ? '<button type="button" class="boton primario" data-accion="reemplazar">Reemplazar (arranca de cero)</button>' : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}Escribirle por WhatsApp</a>`}
+        <button type="button" class="boton suave" data-accion="${navigator.share ? 'compartir' : 'copiar'}">${navigator.share ? 'Enviar la ficha a mi cliente' : 'Copiar ficha para mi cliente'}</button>
         <a class="boton suave" href="${esc(p.ficha)}" target="_blank" rel="noopener">Ver la ficha para clientes</a>
         ${p.urlOriginal ? `<a class="enlace" href="${esc(p.urlOriginal)}" target="_blank" rel="noopener noreferrer">Ver el aviso original</a>` : ''}
       </div>
@@ -1048,6 +1158,22 @@
         ${mias.length ? `<ul>${mias.slice().reverse().map((n) => `<li>${esc(n.nota)} <small>${fechaCorta(n.cuando)}</small></li>`).join('')}</ul>` : ''}
       </form>
       ${mia ? `<button type="button" class="boton peligro-suave" data-baja="${esc(p.id)}">Dar de baja</button>` : ''}`
+  }
+
+  // ── Fotos a pantalla completa ─────────────────────────────────────────
+  const visor = $('#visor')
+  function abrirVisor(p, indice) {
+    const fotos = galeria(p)
+    if (fotos.length === 0) return
+    $('#visorPista').innerHTML = fotos
+      .map((u, i) => `<div class="visor-foto">${imagen(u, { tamanos: '100vw', urgente: i === indice, anchoBase: 1080 })}</div>`)
+      .join('')
+    $('#visorContador').textContent = `${indice + 1}/${fotos.length}`
+    abrir(visor)
+    requestAnimationFrame(() => {
+      const pista = $('#visorPista')
+      pista.scrollLeft = indice * pista.clientWidth
+    })
   }
 
   function abrirDetalle(p) {
@@ -1127,6 +1253,19 @@
       pintar()
       return
     }
+    const mover = t.closest('[data-mover]')
+    if (mover) {
+      const pista = mover.closest('.carrusel')?.querySelector('.carrusel-pista')
+      if (pista) pista.scrollBy({ left: Number(mover.dataset.mover) * pista.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+      return
+    }
+    const aReemplazar = t.closest('[data-reemplazar]')
+    if (aReemplazar) {
+      const p = vigentes().find((x) => x.id === aReemplazar.dataset.reemplazar)
+      // Ya está abierta la hoja de publicar: se rearma para el reemplazo (cerrarla borraría el estado).
+      if (p) abrirPublicar({ reemplaza: p })
+      return
+    }
     const paraBaja = t.closest('[data-baja]')
     if (paraBaja) {
       paraBajar = paraBaja.dataset.baja
@@ -1140,6 +1279,11 @@
     const p = vigentes().find((x) => x.id === id)
     if (!p) return
     if (accion.dataset.accion === 'detalle') abrirDetalle(p)
+    if (accion.dataset.accion === 'visor') abrirVisor(p, Number(accion.dataset.indice) || 0)
+    if (accion.dataset.accion === 'reemplazar') {
+      if (detalle.open) detalle.close()
+      abrirPublicar({ reemplaza: p })
+    }
     if (accion.dataset.accion === 'copiar') copiarFicha(p)
     if (accion.dataset.accion === 'compartir') {
       try {
