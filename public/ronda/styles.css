@@ -382,6 +382,7 @@ form > .boton.grande, .hoja-cuerpo > .boton.grande { margin-top: 22px; }
 .comodidades b { color: var(--tinta); }
 .rotulo-publica { color: var(--gris-claro); font-size: 12px !important; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .bloque { margin-top: 18px; }
+.consejo { margin-top: 18px; font-size: 14px; }
 .bloque h3 { font: 800 16px/1.2 var(--titulos); margin-bottom: 8px; }
 .lista-comodidades { display: flex; flex-wrap: wrap; gap: 6px; }
 .lista-comodidades li { padding: 5px 11px; border-radius: 999px; background: var(--suave); color: var(--tinta); font-size: 14px; }
