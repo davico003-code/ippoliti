@@ -119,7 +119,7 @@ ul, ol { padding: 0; list-style: none; }
 .portada { margin-top: 14px; padding: 16px 18px; border-radius: var(--radio); border: 1px solid var(--linea); background: var(--blanco); }
 .antetitulo { color: var(--acento); font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; }
 .portada h1 { margin: 4px 0 6px; font: 800 22px/1.15 var(--titulos); letter-spacing: -0.7px; text-wrap: balance; }
-.portada p:last-child { color: var(--gris); font-size: 15px; line-height: 1.4; max-width: 640px; }
+.portada h1 + p { color: var(--gris); font-size: 15px; line-height: 1.4; max-width: 640px; }
 
 /* ── Filtros: un solo panel, cada grupo con su nombre ───── */
 .filtros {
@@ -383,11 +383,18 @@ dialog.visor::backdrop { background: #000; }
 .visor-cerrar { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 12px; width: 48px; height: 48px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.16); color: var(--blanco); font-size: 30px; line-height: 1; }
 
 /* ── Tablet y escritorio ────────────────────────────────── */
+/* ── Actividad del mes ──────────────────────────────────── */
+.actividad { margin: 14px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.actividad div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 3px; padding: 11px 13px; border-radius: 14px; background: var(--fondo); border: 1px solid var(--linea); }
+.actividad dd { margin: 0; font: 800 26px/1.05 var(--titulos); letter-spacing: -0.6px; color: var(--tinta); font-variant-numeric: tabular-nums; }
+.actividad dt { font-size: 13px; line-height: 1.25; color: var(--gris); }
+
 @media (min-width: 640px) {
   .grilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (min-width: 700px) {
+  .actividad { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   body { padding-bottom: 0; }
   .envoltura { padding-left: 28px; padding-right: 28px; }
   .solo-celular { display: none; }

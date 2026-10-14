@@ -6,6 +6,7 @@
 //   ronda:publicaciones  → Publicacion    (la grilla; las vencidas se limpian al publicar)
 //   ronda:leido:<clave>  → el aviso ya leído, 30 min (no leerlo dos veces)
 //   ronda:zonaprop       → copia de los avisos de Zonaprop que Hilo ya tenía leídos
+//   ronda:contactos:<mes>, ronda:fichas:<mes> → la actividad del mes (ver abajo)
 //
 // La cuota de Upstash es finita (se agotó el 25-ago-2026): leer la grilla es UN
 // hgetall y queda 15 s en memoria por instancia. Fuera de producción todo va a
@@ -126,6 +127,57 @@ async function cifrarLoQueQuedoEnClaro(): Promise<void> {
     const enClaro = Object.entries(mapa).filter(([, v]) => !estaCifrado(v) && fila(v) !== null)
     if (enClaro.length > 0) await redis.hset(clave, Object.fromEntries(enClaro.map(([id, v]) => [id, cifrar(fila(v))])))
   }
+}
+
+// ── Actividad del mes (el contador de arriba de la grilla) ──────────────
+//
+// Solo hechos reales, por mes de Argentina. Cada uno es un set de
+// "agente:publicación": el mismo colega tocando dos veces la misma no suma dos.
+//   ronda:contactos:<AAAA-MM>  → le escribió por WhatsApp al colega que la publicó
+//   ronda:fichas:<AAAA-MM>     → le mandó la ficha a un cliente
+// Solo cuentan los toques sobre oportunidades de OTRA inmobiliaria (ver /api/ronda/actividad).
+
+export type TipoActividad = 'contacto' | 'ficha'
+
+export interface ActividadRonda {
+  mes: string
+  contactos: number
+  fichas: number
+  colegas: number
+  inmobiliarias: number
+}
+
+/** El mes en Argentina (UTC-3): "2026-10". */
+export const mesActual = (ms = Date.now()) => new Date(ms - 3 * 3_600_000).toISOString().slice(0, 7)
+const claveActividad = (tipo: TipoActividad, mes: string) => `${P}:${tipo === 'contacto' ? 'contactos' : 'fichas'}:${mes}`
+const TTL_ACTIVIDAD_S = 400 * 24 * 3600
+
+let _actividad: { valor: ActividadRonda; ts: number } | null = null
+
+export async function anotarActividad(tipo: TipoActividad, agenteId: string, publicacionId: string): Promise<void> {
+  const clave = claveActividad(tipo, mesActual())
+  const p = redis.pipeline()
+  p.sadd(clave, `${agenteId}:${publicacionId}`)
+  p.expire(clave, TTL_ACTIVIDAD_S)
+  await p.exec()
+  _actividad = null
+}
+
+/** Los números del mes: un solo viaje a Redis y 15 s en memoria (la cuota). */
+export async function actividadDelMes(): Promise<ActividadRonda> {
+  if (_actividad && Date.now() - _actividad.ts < TTL_GRILLA_MS) return _actividad.valor
+  const mes = mesActual()
+  const p = redis.pipeline()
+  p.scard(claveActividad('contacto', mes))
+  p.scard(claveActividad('ficha', mes))
+  p.hlen(K.inmobiliarias)
+  p.hgetall(K.agentes)
+  const [contactos, fichas, inmobiliarias, agentes] = await p.exec<[number, number, number, Record<string, unknown> | null]>()
+  // Quien entró desde dos teléfonos quedó dos veces: las personas se cuentan por WhatsApp.
+  const colegas = new Set(Object.values(agentes ?? {}).map((v) => fila<AgenteRonda>(v)?.whatsapp).filter(Boolean)).size
+  const valor = { mes, contactos, fichas, colegas, inmobiliarias }
+  _actividad = { valor, ts: Date.now() }
+  return valor
 }
 
 /** Si el agente cambió su nombre o su WhatsApp, sus publicaciones vigentes lo siguen. */
