@@ -32,8 +32,19 @@ const MAX_FOTOS = 20
 
 export const ENLACE_NO_SIRVE = 'Ese enlace no se puede leer. Pegá el aviso de Zonaprop o la ficha de Tokko.'
 
-/** El aviso no se puede convertir solo: la pantalla pide otro enlace. */
-export class AvisoSinLectura extends Error {}
+/**
+ * El aviso no se puede convertir solo: la pantalla pide otro enlace. `motivo`
+ * separa "Zonaprop no respondió" (falla nuestra o de ellos) de "ya no está
+ * publicado" (el link es viejo) para el vigía (salud.ts).
+ */
+export class AvisoSinLectura extends Error {
+  constructor(
+    message: string,
+    readonly motivo: 'caida' | 'no-figura' | 'otro' = 'otro',
+  ) {
+    super(message)
+  }
+}
 
 export interface AvisoRonda {
   origen: 'tokko' | 'web' | 'zonaprop'
@@ -94,6 +105,7 @@ async function leerDeZonaprop(url: string): Promise<AvisoRonda> {
   if (copia) return avisoDeCopia(url, copia)
   throw new AvisoSinLectura(
     busqueda.caida ? 'Zonaprop no respondió en este momento.' : 'Ese aviso ya no figura publicado en Zonaprop.',
+    busqueda.caida ? 'caida' : 'no-figura',
   )
 }
 
@@ -163,7 +175,18 @@ function avisoDeCopia(url: string, c: CopiaZonaprop): AvisoRonda {
 }
 
 async function leerFichaTokko(url: string): Promise<AvisoRonda> {
-  const a = await leerAvisoExterno(url)
+  let a: Awaited<ReturnType<typeof leerAvisoExterno>>
+  try {
+    a = await leerAvisoExterno(url)
+  } catch (e) {
+    // Para el vigía: un link mal copiado o dado de baja no es una falla de la
+    // Ronda. Tokko contesta 500 (no 404) a una ficha que no existe, así que todo
+    // error HTTP cuenta como link viejo; la caída real de Tokko la ve la sonda
+    // diaria con fichas que andan (salud.ts). Que no responda (0), sí es caída.
+    const status = (e as { status?: number }).status
+    const vieja = (status !== undefined && status >= 400) || /no trae la propiedad/.test((e as Error).message)
+    throw new AvisoSinLectura((e as Error).message, vieja ? 'no-figura' : status === undefined ? 'otro' : 'caida')
+  }
   const tipo = etiquetaTipo(a.property_type)
   const grupo = grupoDeTipo(tipo)
   const ciudad = detectarCiudad(a.ciudad, a.barrio)
