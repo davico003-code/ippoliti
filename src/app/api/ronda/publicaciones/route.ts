@@ -1,6 +1,6 @@
 // /api/ronda/publicaciones
 //
-// GET  → la grilla de la semana (pública; la cachea el CDN unos segundos).
+// GET  → la grilla de la semana (pide la clave de acceso; no la guarda ningún caché).
 // POST → publica una propiedad por 7 días, de dos maneras:
 //          { url, ciudad, oportunidad }     un enlace que se convierte solo (ficha de Tokko,
 //                                           o un Zonaprop de la copia: ahí acepta `precio`)
@@ -11,6 +11,7 @@
 //        de verficha.casa en el momento.
 
 import { NextResponse } from 'next/server'
+import { sinAcceso } from '@/lib/ronda/acceso'
 import { nanoid } from 'nanoid'
 import {
   guardarLectura,
@@ -46,12 +47,15 @@ const ORIGEN = { tokko: 'Tokko', zonaprop: 'Zonaprop', web: 'Web', manual: 'Manu
 const error = (mensaje: string, status = 400, extra: Record<string, unknown> = {}) =>
   NextResponse.json({ error: mensaje, ...extra }, { status })
 
-export async function GET() {
+export async function GET(req: Request) {
+  const cerrado = await sinAcceso(req)
+  if (cerrado) return cerrado
+
   try {
     const publicaciones = await listarPublicaciones()
     return NextResponse.json(
       { publicaciones, ahora: Date.now() },
-      { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30' } },
+      { headers: { 'Cache-Control': 'private, no-store' } },
     )
   } catch {
     return error('No se pudo cargar la ronda. Probá de nuevo.', 503)
@@ -59,6 +63,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const cerrado = await sinAcceso(req)
+  if (cerrado) return cerrado
+
   const sesion = sesionDe(req)
   if (!sesion) return error('Primero cargá tus datos para entrar a la ronda.', 401)
 

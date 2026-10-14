@@ -6,6 +6,7 @@
 // datos y sus publicaciones vigentes lo siguen.
 
 import { NextResponse } from 'next/server'
+import { sinAcceso } from '@/lib/ronda/acceso'
 import { nanoid } from 'nanoid'
 import { rateLimit } from '@/lib/feedback'
 import { actualizarContacto, crearInmobiliaria, guardarAgente, inmobiliariaPorId } from '@/lib/ronda/almacen'
@@ -19,6 +20,9 @@ const limpio = (v: unknown, max: number) => String(v ?? '').replace(/\s+/g, ' ')
 const error = (mensaje: string, status = 400) => NextResponse.json({ error: mensaje }, { status })
 
 export async function POST(req: Request) {
+  const cerrado = await sinAcceso(req)
+  if (cerrado) return cerrado
+
   let body: Record<string, unknown>
   try {
     body = await req.json()

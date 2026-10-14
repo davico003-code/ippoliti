@@ -89,6 +89,21 @@
     <button class="boton primario grande" type="button" data-publicar>+ Publicar propiedad</button>
   </div>
 
+  <!-- La puerta: clave de acceso -->
+  <dialog id="clave" class="hoja completa" aria-labelledby="claveTitulo">
+    <form id="claveForm" class="hoja-cuerpo" novalidate>
+      <p class="antetitulo" translate="no">RONDA FUNES ROLDÁN</p>
+      <h2 id="claveTitulo">Ingresá la clave de acceso</h2>
+      <p class="ayuda">La Ronda es solo para inmobiliarias de Funes y Roldán. La clave te la pasa quien te invitó.</p>
+      <div class="campo">
+        <label for="claveCampo">Clave de acceso</label>
+        <input id="claveCampo" name="clave" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="80" placeholder="Escribila acá…">
+        <p class="error" id="claveError" hidden></p>
+      </div>
+      <button class="boton primario grande" type="submit">Entrar</button>
+    </form>
+  </dialog>
+
   <!-- Primera vez: quién sos -->
   <dialog id="ingreso" class="hoja completa" aria-labelledby="ingresoTitulo">
     <form id="ingresoForm" class="hoja-cuerpo" novalidate>
