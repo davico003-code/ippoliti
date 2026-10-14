@@ -246,7 +246,6 @@
 
   function tarjeta(p, indice) {
     const mia = esMia(p)
-    const comodidades = p.detalle?.comodidades || []
     const metro = porMetro(p)
     return `<article class="tarjeta" data-id="${esc(p.id)}">
       <div class="tarjeta-foto">
@@ -258,7 +257,6 @@
         <h3>${esc(p.titulo)}</h3>
         <p class="precio">${precio(p)}${metro ? ` <small>${metro}</small>` : ''}</p>
         ${fichaHtml(p)}
-        ${comodidades.length ? `<p class="comodidades"><b>Comodidades:</b> ${comodidades.slice(0, 4).map(esc).join(' · ')}${comodidades.length > 4 ? ` · y ${comodidades.length - 4} más` : ''}</p>` : ''}
         ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : ''}
         <div class="colega">
           <span class="avatar" aria-hidden="true">${esc(iniciales(p.agente.nombre))}</span>
@@ -818,6 +816,10 @@
         </div>`
       pasoConfirmar.reset()
       for (const radio of $$('input[name="ciudad"]', pasoConfirmar)) radio.checked = radio.value === aviso.ciudad
+      const deTokko = origenDeLink(url) === 'tokko'
+      $('#comoSeComparte').textContent = deTokko
+        ? 'Es una ficha de Tokko: a tus colegas les llega tal cual, la ficha original.'
+        : 'Se convierte sola en una ficha neutra, sin logos ni datos tuyos, para que cualquier colega se la mande a su cliente.'
       for (const id of ['ciudadError', 'motivoError', 'publicarError']) error(id, '')
       // Copia guardada (Zonaprop): puede tener un precio viejo, se deja corregir.
       $('#campoPrecio').hidden = !aviso.leidoEl
@@ -1077,7 +1079,6 @@
             m2Terreno: String(f.get('m2Terreno') || '').replace(/\D/g, ''),
             m2Cubiertos: String(f.get('m2Cubiertos') || '').replace(/\D/g, ''),
             cocheras: String(f.get('cocheras') || '').replace(/\D/g, ''),
-            comodidades: f.getAll('comodidades'),
             dormitorios: String(f.get('dormitorios') || '').replace(/\D/g, ''),
             banos: String(f.get('banos') || '').replace(/\D/g, ''),
             descripcion: String(f.get('descripcion') || '').trim(),
@@ -1114,7 +1115,6 @@
     abierta = p.id
     const mia = esMia(p)
     const mias = notas()[p.id] || []
-    const comodidades = p.detalle?.comodidades || []
     const metro = porMetro(p)
     const descripcion = p.detalle?.descripcion || ''
     $('#detalleCuerpo').innerHTML = `
@@ -1129,7 +1129,6 @@
       <p class="precio grande">${precio(p)}${metro ? ` <small>${metro}</small>` : ''}</p>
       ${fichaHtml(p)}
       ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : ''}
-      ${comodidades.length ? `<div class="bloque"><h3>Comodidades</h3><ul class="lista-comodidades">${comodidades.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}
       ${descripcion ? `<details class="bloque descripcion"><summary>Descripción</summary><p>${esc(descripcion)}</p></details>` : ''}
       <div class="bloque">
         <h3>Publica</h3>
@@ -1145,7 +1144,7 @@
       <div class="acciones">
         ${mia ? '<button type="button" class="boton primario" data-accion="reemplazar">Reemplazar (arranca de cero)</button>' : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}Escribirle por WhatsApp</a>`}
         <button type="button" class="boton suave" data-accion="${navigator.share ? 'compartir' : 'copiar'}">${navigator.share ? 'Enviar la ficha a mi cliente' : 'Copiar ficha para mi cliente'}</button>
-        <a class="boton suave" href="${esc(p.ficha)}" target="_blank" rel="noopener">Ver la ficha para clientes</a>
+        <a class="boton suave" href="${esc(p.ficha)}" target="_blank" rel="noopener">${p.origen === 'Tokko' ? 'Ver la ficha de Tokko (tal cual)' : 'Ver la ficha neutra para clientes'}</a>
         ${p.urlOriginal ? `<a class="enlace" href="${esc(p.urlOriginal)}" target="_blank" rel="noopener noreferrer">Ver el aviso original</a>` : ''}
       </div>
       <form class="notas" id="notasForm">

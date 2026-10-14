@@ -278,6 +278,7 @@ form > .boton.grande, .hoja-cuerpo > .boton.grande { margin-top: 22px; }
 .opcion input:checked + span { background: var(--tinta); border-color: var(--tinta); color: var(--blanco); }
 .opcion input:focus-visible + span { outline: 3px solid var(--foco); outline-offset: 2px; }
 
+.vista + .nota { margin-top: 10px; font-size: 14px; }
 .vista { margin-top: 14px; border: 1px solid var(--linea); border-radius: 14px; overflow: hidden; background: var(--fondo); }
 .vista img, .vista .sin-foto { aspect-ratio: 16 / 9; height: auto; }
 .vista > div { padding: 14px; }
