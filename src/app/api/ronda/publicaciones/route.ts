@@ -1,11 +1,10 @@
 // /api/ronda/publicaciones
 //
 // GET  → la grilla de la semana (pide la clave de acceso; no la guarda ningún caché).
-// POST → publica una oportunidad por 30 días (con su motivo, obligatorio), de dos maneras:
+// POST → publica una oportunidad por 30 días (con su motivo, obligatorio), SOLO pegando el link
+//        (David, 14-oct-2026: no hay carga a mano):
 //          { url, ciudad, oportunidad }     un enlace que se convierte solo (ficha de Tokko,
-//                                           o un Zonaprop de la copia: ahí acepta `precio`)
-//          { manual, ciudad, oportunidad }  cargada a mano, con sus fotos ya subidas
-//                                           (y, si tiene, el enlace de su aviso en el portal)
+//                                           o un Zonaprop: si sale de la copia, acepta `precio`)
 //        Reglas: hace falta el pase del agente, hasta 3 vigentes por inmobiliaria
 //        (`reemplaza: <id>` cambia una propia por otra que arranca de cero) y la
 //        misma inmobiliaria no repite un enlace (dos inmobiliarias sí pueden). Arma la ficha neutra
@@ -23,7 +22,7 @@ import {
   limpiarVencidas,
   listarPublicaciones,
 } from '@/lib/ronda/almacen'
-import { avisoManual, AvisoSinLectura, completarDetalles, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
+import { AvisoSinLectura, completarDetalles, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
 import {
   barrioVisible,
   chequeoAlPublicar,
@@ -31,7 +30,6 @@ import {
   DIA_MS,
   DIAS_PUBLICACION,
   esCiudadRonda,
-  leerDatosManual,
   leerMotivo,
   leerPrecio,
   origenDeLink,
@@ -44,7 +42,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-const ORIGEN = { tokko: 'Tokko', zonaprop: 'Zonaprop', web: 'Web', manual: 'Manual' } as const
+const ORIGEN = { tokko: 'Tokko', zonaprop: 'Zonaprop', web: 'Web' } as const
 
 const error = (mensaje: string, status = 400, extra: Record<string, unknown> = {}) =>
   NextResponse.json({ error: mensaje, ...extra }, { status })
@@ -86,12 +84,10 @@ export async function POST(req: Request) {
   const oportunidad = motivo.motivo
   if (!esCiudadRonda(ciudad)) return error('Elegí si la propiedad está en Funes o en Roldán.')
 
-  const aMano = body.manual !== undefined
-  const manual = aMano ? leerDatosManual(body.manual) : null
-  if (manual && 'error' in manual) return error(manual.error)
-  // A mano, el enlace es opcional y no se lee: queda para que el colega abra el aviso.
-  const url = manual ? (manual.datos.enlace ?? '') : String(body.url ?? '').trim().slice(0, 600)
-  if (!aMano && !origenDeLink(url)) return error(ENLACE_NO_SIRVE)
+  // Se publica solo pegando el link (David, 14-oct-2026): no hay carga a mano.
+  if (body.manual !== undefined) return error(ENLACE_NO_SIRVE)
+  const url = String(body.url ?? '').trim().slice(0, 600)
+  if (!origenDeLink(url)) return error(ENLACE_NO_SIRVE)
 
   try {
     const inmobiliaria = await inmobiliariaPorId(sesion.iid)
@@ -102,17 +98,12 @@ export async function POST(req: Request) {
     const reemplaza = typeof body.reemplaza === 'string' ? body.reemplaza.slice(0, 24) : null
     const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza })
     if (traba) return error(traba.error, traba.status, traba.limite ? { limite: true } : {})
-    const clave = url ? claveDeUrl(url) : ''
+    const clave = claveDeUrl(url)
 
-    let aviso: AvisoRonda | null
-    if (manual) {
-      aviso = avisoManual(manual.datos)
-    } else {
-      aviso = await lecturaGuardada<AvisoRonda>(clave)
-      if (!aviso) {
-        aviso = await leerAviso(url)
-        await guardarLectura(clave, aviso)
-      }
+    let aviso = await lecturaGuardada<AvisoRonda>(clave)
+    if (!aviso) {
+      aviso = await leerAviso(url)
+      await guardarLectura(clave, aviso)
     }
     if (aviso.fotos.length === 0) return error('Hace falta al menos una foto para publicar.', 422)
     // La copia de Zonaprop puede tener un precio viejo: quien publica lo corrige.

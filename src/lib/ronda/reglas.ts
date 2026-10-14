@@ -54,8 +54,7 @@ export interface Publicacion {
   fotos: number
   /** La ficha neutra para el cliente (verficha.casa/<slug>). */
   ficha: string
-  origen: 'Tokko' | 'Zonaprop' | 'Web' | 'Manual'
-  /** Vacío en las cargadas a mano. */
+  origen: 'Tokko' | 'Zonaprop' | 'Web'
   urlOriginal: string
   oportunidad: string
   agente: { id: string; nombre: string; whatsapp: string }
@@ -93,9 +92,6 @@ export function comodidadesDe(caracteristicas: unknown): string[] {
   }
   return out.slice(0, 16)
 }
-
-/** Las comodidades que se pueden marcar en la carga a mano. */
-export const COMODIDADES_MANUAL = ['Pileta', 'Parrilla', 'Quincho', 'Jardín', 'Seguridad 24 h', 'Apto crédito', 'Escritura', 'Financiación'] as const
 
 export function sinTildes(s: string): string {
   return String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -225,7 +221,7 @@ export function idDeZonaprop(url: string): string | null {
  *    pública de Tokko y la web de SI).
  *  - zonaprop: se lee por su número en la búsqueda pública de Zonaprop (ver
  *    zonaprop-busqueda.ts) y se completa con la copia que Hilo ya tenía; si no
- *    aparece en ninguna de las dos, va a la carga a mano.
+ *    aparece en ninguna de las dos, se pide otro enlace (no hay carga a mano).
  */
 export function origenDeLink(url: string): OrigenLink | null {
   let u: URL
@@ -242,51 +238,6 @@ export function origenDeLink(url: string): OrigenLink | null {
   return null
 }
 
-// ── Carga a mano ────────────────────────────────────────────────────────
-
-export const TIPOS_MANUAL = ['Casa', 'Lote', 'Departamento', 'PH', 'Local', 'Oficina', 'Galpón', 'Quinta'] as const
-export const MAX_FOTOS_MANUAL = 10
-
-export interface DatosManual {
-  tipo: string
-  operacion: 'Venta' | 'Alquiler'
-  barrio: string | null
-  precio: number | null
-  moneda: 'USD' | 'ARS'
-  m2: number | null
-  m2Cubiertos: number | null
-  m2Terreno: number | null
-  dormitorios: number | null
-  banos: number | null
-  cocheras: number | null
-  comodidades: string[]
-  descripcion: string
-  fotos: string[]
-  /** El aviso en su portal (Zonaprop, Argenprop…), para que el colega lo pueda abrir. */
-  enlace: string | null
-}
-
-/** Solo fotos que subió la Ronda a nuestro almacén: nadie cuela una dirección ajena. */
-export function esFotoDeLaRonda(url: unknown): url is string {
-  try {
-    const u = new URL(String(url))
-    return u.protocol === 'https:' && u.hostname.endsWith('.public.blob.vercel-storage.com') && u.pathname.startsWith('/ronda/')
-  } catch {
-    return false
-  }
-}
-
-/** Un enlace https sano (sin usuario ni puerto), o null. No se lee: solo se guarda para abrirlo. */
-export function enlaceDeAviso(v: unknown): string | null {
-  try {
-    const u = new URL(String(v ?? '').trim().slice(0, 600))
-    if (u.protocol !== 'https:' || u.username || u.password || u.port || !u.hostname.includes('.')) return null
-    return u.toString()
-  } catch {
-    return null
-  }
-}
-
 /** El precio que corrige quien publica: un número sano, o null (a consultar). */
 export function leerPrecio(v: unknown): number | null {
   return numeroEntre(v, 2_000_000_000)
@@ -295,36 +246,6 @@ export function leerPrecio(v: unknown): number | null {
 function numeroEntre(v: unknown, max: number): number | null {
   const n = typeof v === 'number' ? v : Number(String(v ?? '').replace(/\./g, '').replace(',', '.').trim())
   return Number.isFinite(n) && n > 0 && n <= max ? Math.round(n) : null
-}
-
-/** Valida lo que llega del formulario de carga a mano. */
-export function leerDatosManual(crudo: unknown): { datos: DatosManual } | { error: string } {
-  const c = (crudo && typeof crudo === 'object' ? crudo : {}) as Record<string, unknown>
-  const tipo = TIPOS_MANUAL.find((t) => t === c.tipo)
-  if (!tipo) return { error: 'Elegí el tipo de propiedad.' }
-  const fotos = Array.isArray(c.fotos) ? c.fotos.filter(esFotoDeLaRonda).slice(0, MAX_FOTOS_MANUAL) : []
-  if (fotos.length === 0) return { error: 'Agregá al menos una foto.' }
-  const texto = (v: unknown, max: number) => String(v ?? '').replace(/[ \t]+/g, ' ').trim().slice(0, max)
-  return {
-    datos: {
-      tipo,
-      operacion: c.operacion === 'Alquiler' ? 'Alquiler' : 'Venta',
-      barrio: texto(c.barrio, 60).replace(/\s+/g, ' ') || null,
-      precio: numeroEntre(c.precio, 2_000_000_000),
-      moneda: c.moneda === 'ARS' ? 'ARS' : 'USD',
-      // m² de terreno y cubiertos por separado (un lote solo tiene terreno); `m2` queda por compatibilidad.
-      m2: numeroEntre(c.m2Terreno, 10_000_000) ?? numeroEntre(c.m2Cubiertos, 10_000_000) ?? numeroEntre(c.m2, 10_000_000),
-      m2Cubiertos: tipo === 'Lote' ? null : numeroEntre(c.m2Cubiertos, 10_000_000),
-      m2Terreno: numeroEntre(c.m2Terreno, 10_000_000) ?? (tipo === 'Lote' ? numeroEntre(c.m2, 10_000_000) : null),
-      dormitorios: numeroEntre(c.dormitorios, 30),
-      banos: numeroEntre(c.banos, 30),
-      cocheras: numeroEntre(c.cocheras, 30),
-      comodidades: Array.isArray(c.comodidades) ? COMODIDADES_MANUAL.filter((x) => (c.comodidades as unknown[]).includes(x)) : [],
-      descripcion: texto(c.descripcion, 3000),
-      fotos,
-      enlace: enlaceDeAviso(c.enlace),
-    },
-  }
 }
 
 /**

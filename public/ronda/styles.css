@@ -315,38 +315,6 @@ form > .boton.grande, .hoja-cuerpo > .boton.grande { margin-top: 22px; }
 }
 #aviso.visible { transform: translate(-50%, 0); opacity: 1; }
 
-/* ── Carga a mano ───────────────────────────────────────── */
-.rotulo { display: block; margin-bottom: 6px; font-weight: 700; font-size: 15px; }
-.centro { text-align: center; }
-.separador { display: flex; align-items: center; gap: 12px; margin: 22px 0 14px; color: var(--gris-claro); font-size: 14px; }
-.separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: var(--linea); }
-.campo select, .precio-fila select {
-  width: 100%; min-height: 52px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--linea-fuerte);
-  background-color: var(--blanco); color: var(--tinta); font-size: 16px;
-}
-.precio-fila { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; }
-.tres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.fotos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.foto-chica { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--suave); }
-.foto-chica img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.foto-chica.subiendo img { opacity: 0.45; }
-.foto-chica.subiendo::after {
-  content: ''; position: absolute; inset: 0; margin: auto; width: 26px; height: 26px; border-radius: 50%;
-  border: 3px solid var(--tinta); border-right-color: transparent; animation: girar 0.7s linear infinite;
-}
-.foto-chica button {
-  position: absolute; top: 0; right: 0; z-index: 0; width: 44px; height: 44px; border: 0; background: none;
-  color: var(--blanco); font-size: 22px; line-height: 1; display: grid; place-items: start end; padding: 8px 14px 0 0;
-}
-.foto-chica button::before { content: ''; position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; background: rgba(20, 22, 24, 0.72); z-index: -1; }
-.agregar-foto {
-  position: relative; aspect-ratio: 1; border-radius: 12px; border: 2px dashed var(--linea-fuerte); background: var(--fondo); color: var(--tinta);
-  display: grid; place-content: center; justify-items: center; gap: 2px; text-align: center; font-weight: 700; font-size: 14px; cursor: pointer;
-}
-.agregar-foto span { font-size: 28px; line-height: 1; }
-.agregar-foto input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-.agregar-foto:focus-within { outline: 3px solid var(--foco); outline-offset: 2px; }
-
 /* ── Fotos que se deslizan ──────────────────────────────── */
 .tarjeta-foto { cursor: default; }
 .carrusel { position: absolute; inset: 0; }
@@ -428,7 +396,6 @@ dialog.visor::backdrop { background: #000; }
   .marca-texto { font-size: 20px; }
   .portada { margin-top: 24px; padding: 26px 30px; }
   .portada h1 { font-size: 34px; letter-spacing: -1.3px; }
-  .fotos { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .filtros { grid-template-columns: minmax(220px, 1fr) auto auto; align-items: center; gap: 16px; margin-top: 16px; padding: 14px; }
   .filtro-fila { grid-template-columns: auto auto; }
   .segmento { padding: 0 16px; }

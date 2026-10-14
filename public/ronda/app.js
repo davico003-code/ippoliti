@@ -635,7 +635,6 @@
   const publicar = $('#publicar')
   const pasoEnlace = $('#pasoEnlace')
   const pasoConfirmar = $('#pasoConfirmar')
-  const pasoManual = $('#pasoManual')
   /** El aviso ya leído (paso 2) y su link. */
   let revisado = null
   /** La oportunidad propia que se está reemplazando (la nueva arranca de cero y esta sale). */
@@ -656,52 +655,6 @@
     return null
   }
 
-  /**
-   * Lo que ya dice el enlace de un aviso ("…/casa-en-venta-de-3-dorm.-en-funes-123.html"):
-   * tipo, operación, dormitorios y ciudad. Ahorra tipeo cuando hay que cargarla a mano.
-   */
-  function pistasDelEnlace(url) {
-    let texto = ''
-    try {
-      texto = ` ${sinTildes(decodeURIComponent(new URL(url).pathname)).replace(/[^a-z0-9]+/g, ' ')} `
-    } catch {
-      return {}
-    }
-    const TIPOS = [
-      ['Casa', / (casas?|chalet|duplex) /],
-      ['Lote', / (terrenos?|lotes?) /],
-      ['Departamento', / (departamentos?|depto|monoambiente) /],
-      ['PH', / ph /],
-      ['Local', / local(es)? /],
-      ['Oficina', / oficinas? /],
-      ['Galpón', / galpon(es)? /],
-      ['Quinta', / quintas? /],
-    ]
-    // Gana el tipo que aparece primero ("casa … con terreno de 540 m" es una casa).
-    const tipo = TIPOS.map(([nombre, re]) => [nombre, texto.search(re)]).filter(([, i]) => i >= 0).sort((x, y) => x[1] - y[1])[0]?.[0]
-    const funes = / funes /.test(texto)
-    const roldan = / roldan /.test(texto)
-    return {
-      tipo,
-      operacion: / alquiler /.test(texto) && !/ venta /.test(texto) ? 'Alquiler' : 'Venta',
-      dormitorios: / (\d{1,2}) dorm/.exec(texto)?.[1],
-      ciudad: funes === roldan ? null : funes ? 'Funes' : 'Roldán',
-    }
-  }
-
-  /** Portales que no dejan leer sus avisos: esas propiedades se cargan a mano. */
-  function portalSinLectura(url) {
-    try {
-      const host = new URL(url).hostname.toLowerCase()
-      if (/(^|\.)zonaprop\.com\.ar$/.test(host)) return 'Zonaprop'
-      if (/(^|\.)argenprop\.com$/.test(host)) return 'Argenprop'
-      if (/(^|\.)mercadolibre\.com(\.ar)?$/.test(host)) return 'Mercado Libre'
-    } catch {
-      // no es un enlace
-    }
-    return null
-  }
-
   const deMiInmobiliaria = () => (sesion ? vigentes().filter((p) => p.inmobiliaria.id === sesion.inmobiliaria.id) : [])
 
   function pintarCupo() {
@@ -716,7 +669,6 @@
     if (lleno) {
       pasoEnlace.hidden = true
       pasoConfirmar.hidden = true
-      pasoManual.hidden = true
       $('#propias').innerHTML = usadas
         .map(
           (p) =>
@@ -732,7 +684,6 @@
   function mostrarPasoEnlace() {
     revisado = null
     pasoConfirmar.hidden = true
-    pasoManual.hidden = true
     pasoEnlace.hidden = false
     error('enlaceError', '')
     $('#leyendo').hidden = true
@@ -747,7 +698,6 @@
     $('#publicarTitulo').textContent = reemplazando ? 'Reemplazar una oportunidad' : 'Publicar una oportunidad'
     pasoEnlace.reset()
     pasoConfirmar.reset()
-    reiniciarManual()
     mostrarPasoEnlace()
     pintarCupo()
     abrir(publicar)
@@ -788,14 +738,9 @@
   pasoEnlace.addEventListener('submit', async (e) => {
     e.preventDefault()
     const url = $('#enlace').value.trim()
+    // Se publica SOLO pegando el link (David, 14-oct-2026): no hay carga a mano.
     if (!origenDeLink(url)) {
-      // Un aviso de portal que no se convierte solo: se guarda el enlace y se pasa a la carga a mano.
-      const portal = portalSinLectura(url)
-      if (portal) {
-        irAManual(url, `${portal} no deja leer ese aviso. Te dejamos cargado lo que dice el enlace: completá el resto y sumá las fotos.`)
-        return
-      }
-      error('enlaceError', url ? 'Ese enlace no lo podemos leer. Pegá la ficha de Tokko o el aviso de Zonaprop, o cargala a mano.' : 'Pegá el enlace de la propiedad.')
+      error('enlaceError', url ? 'Ese enlace no se puede leer. Pegá el aviso de Zonaprop o la ficha de Tokko.' : 'Pegá el enlace de la propiedad.')
       $('#enlace').focus()
       return
     }
@@ -838,7 +783,7 @@
         await cargar({ fresco: true })
         pintarCupo()
       } else if (err.datos?.aMano) {
-        irAManual(url, `${err.message} Te dejamos cargado lo que dice el enlace: completá el resto y sumá las fotos.`)
+        error('enlaceError', `${err.message} Probá con otro enlace: el aviso vigente de Zonaprop o la ficha de Tokko.`)
       } else {
         error('enlaceError', err.message)
       }
@@ -864,7 +809,6 @@
 
   // Apenas escribe el motivo, se va el aviso de que falta.
   $('#oportunidad').addEventListener('input', () => error('motivoError', ''))
-  $('#oportunidadManual').addEventListener('input', () => error('motivoManualError', ''))
 
   pasoConfirmar.addEventListener('submit', async (e) => {
     e.preventDefault()
@@ -903,202 +847,13 @@
         await cargar({ fresco: true })
         pintarCupo()
       } else if (err.datos?.aMano) {
-        pasoConfirmar.hidden = true
-        irAManual(revisado.url, `${err.message} Completá los datos y sumá las fotos desde tu teléfono.`)
+        error('publicarError', `${err.message} Probá con otro enlace: el aviso vigente de Zonaprop o la ficha de Tokko.`)
       } else {
         error('publicarError', err.message)
       }
     } finally {
       ocupado(boton, false)
       $('#publicando').hidden = true
-    }
-  })
-
-  // ── Publicar a mano (fotos del teléfono) ──────────────────────────────
-  const MAX_FOTOS = 10
-  /** { id, vista, url, subiendo } — la primera es la portada. */
-  let fotosManual = []
-
-  // El teléfono achica la foto antes de subirla: una de 8 MB queda en ~300 KB.
-  async function achicar(archivo) {
-    let imagen
-    try {
-      imagen = await createImageBitmap(archivo, { imageOrientation: 'from-image' })
-    } catch {
-      imagen = await new Promise((ok, mal) => {
-        const img = new Image()
-        img.onload = () => ok(img)
-        img.onerror = () => mal(new Error('imagen'))
-        img.src = URL.createObjectURL(archivo)
-      })
-    }
-    const escala = Math.min(1, 1600 / Math.max(imagen.width, imagen.height))
-    const lienzo = document.createElement('canvas')
-    lienzo.width = Math.round(imagen.width * escala)
-    lienzo.height = Math.round(imagen.height * escala)
-    lienzo.getContext('2d').drawImage(imagen, 0, 0, lienzo.width, lienzo.height)
-    return new Promise((ok, mal) => lienzo.toBlob((b) => (b ? ok(b) : mal(new Error('imagen'))), 'image/jpeg', 0.82))
-  }
-
-  async function subirFoto(blob) {
-    let res
-    try {
-      res = await fetch('/api/ronda/fotos', {
-        method: 'POST',
-        headers: { 'content-type': 'image/jpeg', authorization: `Bearer ${sesion.token}`, ...(acceso ? { 'x-ronda-acceso': acceso } : {}) },
-        body: blob,
-      })
-    } catch {
-      throw Object.assign(new Error('Sin conexión. Revisá tu internet y probá de nuevo.'), { status: 0 })
-    }
-    const datos = await res.json().catch(() => ({}))
-    if (res.status === 401 && datos.acceso) pedirClave()
-    if (!res.ok) throw Object.assign(new Error(datos.error || 'No se pudo subir la foto.'), { status: res.status, datos })
-    return datos.url
-  }
-
-  function pintarFotos() {
-    const caja = $('#fotos')
-    for (const el of $$('.foto-chica', caja)) el.remove()
-    $('#agregarFoto').insertAdjacentHTML(
-      'beforebegin',
-      fotosManual
-        .map(
-          (f, i) =>
-            `<div class="foto-chica${f.subiendo ? ' subiendo' : ''}"><img src="${esc(f.vista)}" alt="Foto ${i + 1}${i === 0 ? ' (portada)' : ''}"><button type="button" data-quitar-foto="${esc(f.id)}" aria-label="Quitar la foto ${i + 1}">×</button></div>`,
-        )
-        .join(''),
-    )
-    $('#agregarFoto').hidden = fotosManual.length >= MAX_FOTOS
-  }
-
-  function reiniciarManual() {
-    for (const f of fotosManual) URL.revokeObjectURL(f.vista)
-    fotosManual = []
-    pasoManual.reset()
-    pintarFotos()
-    for (const id of ['fotosError', 'tipoError', 'ciudadManualError', 'motivoManualError', 'manualError']) error(id, '')
-    $('#publicandoManual').hidden = true
-  }
-
-  $('#elegirFotos').addEventListener('change', async (e) => {
-    const archivos = [...e.target.files].slice(0, MAX_FOTOS - fotosManual.length)
-    e.target.value = ''
-    error('fotosError', '')
-    for (const archivo of archivos) {
-      const foto = { id: `f${Date.now()}${Math.random().toString(36).slice(2, 7)}`, vista: URL.createObjectURL(archivo), url: null, subiendo: true }
-      fotosManual.push(foto)
-      pintarFotos()
-      try {
-        foto.url = await subirFoto(await achicar(archivo))
-        foto.subiendo = false
-      } catch (err) {
-        fotosManual = fotosManual.filter((f) => f !== foto)
-        URL.revokeObjectURL(foto.vista)
-        if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
-        error('fotosError', err.message === 'imagen' ? 'Esa foto no se pudo abrir. Probá con otra.' : err.message)
-      }
-      pintarFotos()
-    }
-  })
-
-  $('#fotos').addEventListener('click', (e) => {
-    const quitar = e.target.closest('[data-quitar-foto]')
-    if (!quitar) return
-    const foto = fotosManual.find((f) => f.id === quitar.dataset.quitarFoto)
-    if (foto) URL.revokeObjectURL(foto.vista)
-    fotosManual = fotosManual.filter((f) => f !== foto)
-    pintarFotos()
-  })
-
-  /** El enlace del aviso en su portal, cuando la carga a mano empezó pegando uno. */
-  let enlaceManual = null
-
-  function irAManual(enlace, nota) {
-    enlaceManual = enlace
-    const aviso = $('#manualNota')
-    aviso.textContent = nota || ''
-    aviso.hidden = !nota
-    const pistas = enlace ? pistasDelEnlace(enlace) : {}
-    if (pistas.tipo) $('#tipoManual').value = pistas.tipo
-    ajustarTipoManual()
-    if (pistas.dormitorios) $('#dormManual').value = pistas.dormitorios
-    for (const r of $$('input[name="operacion"]', pasoManual)) r.checked = r.value === (pistas.operacion || 'Venta')
-    for (const r of $$('input[name="ciudadManual"]', pasoManual)) r.checked = r.value === pistas.ciudad
-    pasoEnlace.hidden = true
-    pasoManual.hidden = false
-    publicar.scrollTop = 0
-  }
-
-  $('#irAManual').addEventListener('click', () => irAManual(null, ''))
-  $('#volverDeManual').addEventListener('click', mostrarPasoEnlace)
-
-  // Un lote no tiene construcción: se esconden cubiertos, dormitorios, baños y cocheras.
-  function ajustarTipoManual() {
-    const lote = $('#tipoManual').value === 'Lote'
-    for (const c of $$('.solo-construida', pasoManual)) c.hidden = lote
-  }
-  $('#tipoManual').addEventListener('change', ajustarTipoManual)
-
-  pasoManual.addEventListener('submit', async (e) => {
-    e.preventDefault()
-    const f = new FormData(pasoManual)
-    const listas = fotosManual.filter((x) => x.url)
-    const subiendo = fotosManual.some((x) => x.subiendo)
-    const errores = [
-      ['fotosError', 'agregarFoto', subiendo ? 'Esperá a que terminen de subir las fotos.' : listas.length === 0 ? 'Agregá al menos una foto.' : ''],
-      ['tipoError', 'tipoManual', f.get('tipo') ? '' : 'Elegí el tipo de propiedad.'],
-      ['ciudadManualError', null, f.get('ciudadManual') ? '' : 'Elegí si está en Funes o en Roldán.'],
-      ['motivoManualError', 'oportunidadManual', errorDeMotivo(String(f.get('oportunidad') || '').replace(/\s+/g, ' ').trim())],
-    ]
-    for (const [id, , texto] of errores) error(id, texto)
-    error('manualError', '')
-    const primero = errores.find(([, , texto]) => texto)
-    if (primero) {
-      const campo = primero[1] ? $(`#${primero[1]}`) : $('input[name="ciudadManual"]', pasoManual)
-      campo.closest('.campo').scrollIntoView({ block: 'center' })
-      if (primero[1] !== 'agregarFoto') campo.focus({ preventScroll: true })
-      return
-    }
-    const boton = $('button[type="submit"]', pasoManual)
-    ocupado(boton, true)
-    $('#publicandoManual').hidden = false
-    try {
-      const { publicacion, reemplazada } = await api('publicaciones', {
-        metodo: 'POST',
-        cuerpo: {
-          reemplaza: reemplazando?.id,
-          ciudad: f.get('ciudadManual'),
-          oportunidad: String(f.get('oportunidad') || '').trim(),
-          manual: {
-            tipo: f.get('tipo'),
-            operacion: f.get('operacion'),
-            barrio: String(f.get('barrio') || '').trim(),
-            precio: String(f.get('precio') || '').replace(/\D/g, ''),
-            moneda: f.get('moneda'),
-            m2Terreno: String(f.get('m2Terreno') || '').replace(/\D/g, ''),
-            m2Cubiertos: String(f.get('m2Cubiertos') || '').replace(/\D/g, ''),
-            cocheras: String(f.get('cocheras') || '').replace(/\D/g, ''),
-            dormitorios: String(f.get('dormitorios') || '').replace(/\D/g, ''),
-            banos: String(f.get('banos') || '').replace(/\D/g, ''),
-            descripcion: String(f.get('descripcion') || '').trim(),
-            fotos: listas.map((x) => x.url),
-            enlace: enlaceManual,
-          },
-        },
-      })
-      publicada(publicacion, reemplazada)
-    } catch (err) {
-      if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
-      if (err.datos?.limite) {
-        await cargar({ fresco: true })
-        pintarCupo()
-      } else {
-        error('manualError', err.message)
-      }
-    } finally {
-      ocupado(boton, false)
-      $('#publicandoManual').hidden = true
     }
   })
 

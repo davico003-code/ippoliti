@@ -1,7 +1,7 @@
 // Ronda Funes Roldán — del link que pega el colega a la propiedad de la grilla.
 //
 // Lee el aviso (la ficha pública de Tokko, un aviso de Zonaprop o una propiedad
-// de siinmobiliaria.com; lo demás se carga a mano) y, al publicar, arma su ficha neutra de verficha.casa con
+// de siinmobiliaria.com; no hay carga a mano) y, al publicar, arma su ficha neutra de verficha.casa con
 // el MISMO armador que el resto de las fichas (crearFicha / crearFichaExterna).
 // Nunca inventa: si el aviso no se puede leer, tira un Error con el motivo.
 
@@ -22,7 +22,6 @@ import {
   textoOperacion,
   tituloRonda,
   type CiudadRonda,
-  type DatosManual,
   type DetallePublicacion,
   type GrupoTipo,
   type Publicacion,
@@ -31,13 +30,13 @@ import { avisoZonapropPorBusqueda, fotosDePosting, numeroDePosting, precioDePost
 
 const MAX_FOTOS = 20
 
-export const ENLACE_NO_SIRVE = 'Ese enlace no se puede leer solo. Pegá la ficha de Tokko o cargá la propiedad a mano.'
+export const ENLACE_NO_SIRVE = 'Ese enlace no se puede leer. Pegá el aviso de Zonaprop o la ficha de Tokko.'
 
-/** El aviso no se puede convertir solo: la pantalla pasa a la carga a mano. */
+/** El aviso no se puede convertir solo: la pantalla pide otro enlace. */
 export class AvisoSinLectura extends Error {}
 
 export interface AvisoRonda {
-  origen: 'tokko' | 'web' | 'zonaprop' | 'manual'
+  origen: 'tokko' | 'web' | 'zonaprop'
   url: string
   tipo: string
   grupo: GrupoTipo
@@ -84,7 +83,7 @@ export async function leerAviso(url: string): Promise<AvisoRonda> {
  *     fotos y la descripción con sus renglones);
  *  2. si hoy no figura publicado o Zonaprop no respondió, la copia sola: dice
  *     de cuándo es y deja corregir el precio;
- *  3. si no hay nada, la pantalla pasa a la carga a mano.
+ *  3. si no hay nada, la pantalla pide otro enlace (se publica SOLO con link).
  * En las casas de Zonaprop la "superficie total" es el lote; la cubierta, lo construido.
  */
 async function leerDeZonaprop(url: string): Promise<AvisoRonda> {
@@ -233,33 +232,6 @@ async function leerDeLaWeb(url: string): Promise<AvisoRonda> {
     direccion: null,
     tags: [],
     propertyId: id,
-  }
-}
-
-/** Lo que el colega cargó a mano, con la forma de un aviso leído. */
-export function avisoManual(d: DatosManual): AvisoRonda {
-  const grupo = grupoDeTipo(d.tipo)
-  return {
-    origen: 'manual',
-    url: d.enlace ?? '',
-    tipo: d.tipo,
-    grupo,
-    operacion: d.operacion,
-    ciudad: null,
-    barrio: d.barrio,
-    precio: d.precio,
-    moneda: d.moneda,
-    m2: grupo === 'Lote' ? d.m2Terreno ?? d.m2 : d.m2Cubiertos ?? d.m2Terreno ?? d.m2,
-    m2Cubiertos: grupo === 'Lote' ? null : d.m2Cubiertos,
-    m2Terreno: d.m2Terreno,
-    ambientes: null,
-    dormitorios: d.dormitorios,
-    banos: d.banos,
-    cocheras: d.cocheras,
-    fotos: d.fotos,
-    descripcion: d.descripcion || null,
-    direccion: null,
-    tags: d.comodidades,
   }
 }
 
