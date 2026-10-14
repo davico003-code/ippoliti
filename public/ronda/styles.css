@@ -324,6 +324,7 @@ form > .boton.grande, .hoja-cuerpo > .boton.grande { margin-top: 22px; }
 }
 .carrusel-pista::-webkit-scrollbar { display: none; }
 .carrusel-foto { flex: 0 0 100%; height: 100%; padding: 0; border: 0; background: none; scroll-snap-align: start; cursor: zoom-in; }
+a.carrusel-foto { display: block; cursor: pointer; }
 .carrusel-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .contador {
   position: absolute; right: 12px; bottom: 12px; padding: 4px 9px; border-radius: 999px;

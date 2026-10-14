@@ -173,13 +173,23 @@
   }
 
   /** Las fotos que se deslizan con el dedo (y con flechas en la compu); un toque las abre grandes. */
-  function carrusel(p, { tamanos, urgente = false }) {
+  /**
+   * `abreFicha`: en la tarjeta, tocar la foto abre la ficha de la propiedad
+   * (David, 14-oct-2026); las flechas y el dedo siguen pasando las fotos. En
+   * el detalle, la foto se abre grande en el visor.
+   */
+  function carrusel(p, { tamanos, urgente = false, abreFicha = false }) {
     const fotos = galeria(p)
     if (fotos.length === 0) return `<div class="sin-foto" aria-hidden="true">${esc(p.tipo)}</div>`
     const n = fotos.length
+    const foto = (u, i) => imagen(u, { tamanos, urgente: urgente && i === 0 })
     return `<div class="carrusel">
       <div class="carrusel-pista">${fotos
-        .map((u, i) => `<button type="button" class="carrusel-foto" data-accion="visor" data-indice="${i}" aria-label="Ver la foto ${i + 1} de ${n}">${imagen(u, { tamanos, urgente: urgente && i === 0 })}</button>`)
+        .map((u, i) =>
+          abreFicha && p.ficha
+            ? `<a class="carrusel-foto" href="${esc(p.ficha)}" target="_blank" rel="noopener" aria-label="Abrir la ficha (foto ${i + 1} de ${n})">${foto(u, i)}</a>`
+            : `<button type="button" class="carrusel-foto" data-accion="visor" data-indice="${i}" aria-label="Ver la foto ${i + 1} de ${n}">${foto(u, i)}</button>`,
+        )
         .join('')}</div>
       ${n > 1 ? `<span class="contador">1/${n}</span><button type="button" class="flecha anterior" data-mover="-1" aria-label="Foto anterior">‹</button><button type="button" class="flecha siguiente" data-mover="1" aria-label="Foto siguiente">›</button>` : ''}
     </div>`
@@ -266,7 +276,7 @@
     const metro = porMetro(p)
     return `<article class="tarjeta" data-id="${esc(p.id)}">
       <div class="tarjeta-foto">
-        ${carrusel(p, { tamanos: '(min-width: 1000px) 370px, (min-width: 640px) 50vw, 100vw', urgente: indice < 2 })}
+        ${carrusel(p, { tamanos: '(min-width: 1000px) 370px, (min-width: 640px) 50vw, 100vw', urgente: indice < 2, abreFicha: true })}
         <span class="insignia">${esc(p.tipo)} · ${esc(p.operacion)}</span>
         <span class="insignia tiempo">${esNueva(p) ? 'Nueva · ' : ''}${quedan(p)}</span>
       </div>
