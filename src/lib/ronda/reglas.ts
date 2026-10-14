@@ -2,8 +2,8 @@
 //
 // La Ronda es la grilla semanal donde las inmobiliarias de Funes y Roldán se
 // comparten propiedades (verficha.casa/ronda). Reglas de David (12-oct-2026):
-// cada publicación dura 7 días, hasta 3 propiedades por inmobiliaria (eran 2 el
-// primer día), y todos
+// ronda mensual (cada oportunidad dura 30 días; empezó semanal), solo
+// oportunidades reales con su motivo por escrito, hasta 3 por inmobiliaria, y todos
 // cargan su WhatsApp la primera vez.
 
 export const CIUDADES_RONDA = ['Funes', 'Roldán'] as const
@@ -12,7 +12,11 @@ export type CiudadRonda = (typeof CIUDADES_RONDA)[number]
 /** Los tres botones de la grilla; lo demás (locales, galpones…) sale en "Todas". */
 export type GrupoTipo = 'Casa' | 'Lote' | 'Departamento' | 'Otro'
 
-export const DIAS_PUBLICACION = 7
+/** La ronda es MENSUAL (David, 14-oct-2026: "lo vamos a hacer 1 vez al mes"). */
+export const DIAS_PUBLICACION = 30
+/** "Es fundamental y obligatorio escribir por qué lo considerás oportunidad" (David, 14-oct-2026). */
+export const MOTIVO_MINIMO = 25
+export const MOTIVO_MAXIMO = 500
 export const MAX_POR_INMOBILIARIA = 3
 export const DIA_MS = 86_400_000
 
@@ -279,6 +283,14 @@ export function leerDatosManual(crudo: unknown): { datos: DatosManual } | { erro
       enlace: enlaceDeAviso(c.enlace),
     },
   }
+}
+
+/** El motivo de la oportunidad: obligatorio y con sustancia. Devuelve el texto limpio o el error. */
+export function leerMotivo(v: unknown): { motivo: string } | { error: string } {
+  const motivo = String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, MOTIVO_MAXIMO)
+  if (!motivo) return { error: 'Escribí por qué es una oportunidad: es obligatorio.' }
+  if (motivo.length < MOTIVO_MINIMO) return { error: 'Contá un poco más por qué es una oportunidad (precio, urgencia del dueño, permuta…).' }
+  return { motivo }
 }
 
 export function activas(publicaciones: Publicacion[], ahora = Date.now()): Publicacion[] {
