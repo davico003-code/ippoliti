@@ -327,8 +327,7 @@ const CALLE = /\b(?:[Cc]alles?|[Aa]v(?:enida)?\.?|[Bb]v(?:ard)?\.?|[Pp]asaje|[Rr
  * "usd350."). Se pegan los miles (punto + 3 cifras) y los decimales de una
  * medida (punto + 2 cifras + m2/mts/metros/%); "año 2010. 15 lotes" queda igual.
  * Y Zonaprop tapa con "Ver datos" todo lo que parece un teléfono, un mail o un
- * código (184 de 1.431 avisos de la copia): se saca con lo que tenga pegado
- * ("KPVer datos", "Ver datos280") y los guiones que quedan sueltos.
+ * código (184 de 1.431 avisos de la copia): sale la oración que lo tiene.
  */
 export function textoDeZonaprop(texto: string | null | undefined): string {
   let t = String(texto ?? '')
@@ -339,8 +338,8 @@ export function textoDeZonaprop(texto: string | null | undefined): string {
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&nbsp;/gi, ' ')
-    // "&#9;" (tabulación) y demás caracteres de control quedan como un espacio.
-    .replace(/&#(\d{1,5});/g, (_, n: string) => (Number(n) < 32 ? ' ' : String.fromCodePoint(Number(n))))
+    // "&#9;" (tabulación), "&#160;" (espacio duro) y los de control quedan como un espacio.
+    .replace(/&#(\d{1,5});/g, (_, n: string) => (Number(n) < 32 || Number(n) === 160 ? ' ' : String.fromCodePoint(Number(n))))
   for (let i = 0; i < 4; i++) {
     const antes = t
     t = t
@@ -349,10 +348,28 @@ export function textoDeZonaprop(texto: string | null | undefined): string {
     if (t === antes) break
   }
   return t
-    .replace(/[A-ZÁÉÍÓÚÑ0-9]{0,6}Ver datos\d*/g, '')
-    .replace(/[ \t]*(?:[-–|/][ \t]*){2,}/g, ' - ')
-    .replace(/[ \t]+[-–|/.]+[ \t]*(?=\n|$)/g, '')
-    .replace(/[ \t]{2,}/g, ' ')
+    .split('\n')
+    .map(sinVerDatos)
+    .filter((renglon): renglon is string => renglon !== null)
+    .join('\n')
+}
+
+/**
+ * Un renglón con "Ver datos": sale ENTERA cada oración que lo tenga. Zonaprop
+ * lo pone donde el colega escribió un teléfono, un mail o un código, así que esa
+ * oración es casi siempre de contacto ("comunicarse al Ver datos - Ver datos",
+ * "- KPVer datos - TVer datos -"); mejor perder una oración que dejar un
+ * "comunicarse al -" en la ficha. Si no queda nada, sale el renglón (null).
+ * Los demás renglones no se tocan. (Igual que Hilo, src/lib/zonaprop-texto.ts.)
+ */
+function sinVerDatos(renglon: string): string | null {
+  if (!renglon.includes('Ver datos')) return renglon
+  const queda = renglon
+    .split(/(?<=[.!?])\s+/)
+    .filter((oracion) => !oracion.includes('Ver datos'))
+    .join(' ')
+    .trim()
+  return queda || null
 }
 
 export function descripcionNeutra(texto: string | null | undefined, marcas: Array<string | null | undefined> = []): string {
