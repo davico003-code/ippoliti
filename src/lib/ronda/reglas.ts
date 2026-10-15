@@ -318,6 +318,43 @@ const TELEFONO = /(?:\+?\d[\s().-]?){7,}/
 /** Una calle con nombre propio ("sobre calle Onas"): ubica el inmueble. */
 const CALLE = /\b(?:[Cc]alles?|[Aa]v(?:enida)?\.?|[Bb]v(?:ard)?\.?|[Pp]asaje|[Rr]uta)\s+(?:N[°º]?\s*)?[A-ZÁÉÍÓÚÑ0-9]/
 
+/**
+ * El texto de un aviso de Zonaprop tal como lo manda (`descriptionNormalized`):
+ * las comillas vienen codificadas DOS veces ("&amp;quot;A&amp;quot;") y con un
+ * espacio después de cada punto, también dentro de los números ("usd350. 000",
+ * "400. 08m2"). Se decodifica y se vuelven a pegar los números: sin esto,
+ * `descripcionNeutra` tomaba "000." como una oración vacía y la borraba (quedaba
+ * "usd350."). Se pegan los miles (punto + 3 cifras) y los decimales de una
+ * medida (punto + 2 cifras + m2/mts/metros/%); "año 2010. 15 lotes" queda igual.
+ * Y Zonaprop tapa con "Ver datos" todo lo que parece un teléfono, un mail o un
+ * código (184 de 1.431 avisos de la copia): se saca con lo que tenga pegado
+ * ("KPVer datos", "Ver datos280") y los guiones que quedan sueltos.
+ */
+export function textoDeZonaprop(texto: string | null | undefined): string {
+  let t = String(texto ?? '')
+  for (let i = 0; i < 3 && /&amp;/i.test(t); i++) t = t.replace(/&amp;/gi, '&')
+  t = t
+    .replace(/&quot;/gi, '"')
+    .replace(/&(?:apos|#0*39);/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&nbsp;/gi, ' ')
+    // "&#9;" (tabulación) y demás caracteres de control quedan como un espacio.
+    .replace(/&#(\d{1,5});/g, (_, n: string) => (Number(n) < 32 ? ' ' : String.fromCodePoint(Number(n))))
+  for (let i = 0; i < 4; i++) {
+    const antes = t
+    t = t
+      .replace(/(?<!\d)(\d{1,3})\. (\d{3})(?!\d)/g, '$1.$2')
+      .replace(/(?<!\d)(\d{1,4})\. (\d{2})(?=\s?(?:m2|m²|mts|metros|%))/gi, '$1.$2')
+    if (t === antes) break
+  }
+  return t
+    .replace(/[A-ZÁÉÍÓÚÑ0-9]{0,6}Ver datos\d*/g, '')
+    .replace(/[ \t]*(?:[-–|/][ \t]*){2,}/g, ' - ')
+    .replace(/[ \t]+[-–|/.]+[ \t]*(?=\n|$)/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+}
+
 export function descripcionNeutra(texto: string | null | undefined, marcas: Array<string | null | undefined> = []): string {
   if (!texto) return ''
   const prohibidas = marcas.map((m) => (m ? sinTildes(m) : '')).filter((m) => m.length >= 3)
