@@ -1,6 +1,7 @@
 // /api/ronda/publicaciones
 //
-// GET  → la grilla del mes y la actividad del mes (pide la clave de acceso; no la guarda ningún caché).
+// GET  → la grilla del mes, los pedidos de búsqueda (cruzados con las oportunidades:
+//        `buscan` en cada oportunidad, `encajan` en cada pedido) y la actividad del mes.
 // POST → publica una oportunidad por 30 días (con su motivo, obligatorio), SOLO pegando el link
 //        (David, 14-oct-2026: no hay carga a mano):
 //          { url, ciudad, oportunidad }     un enlace que se convierte solo (ficha de Tokko,
@@ -21,6 +22,7 @@ import {
   inmobiliariaPorId,
   lecturaGuardada,
   limpiarVencidas,
+  listarPedidos,
   listarPublicaciones,
 } from '@/lib/ronda/almacen'
 import { AvisoSinLectura, completarDetalles, completarDirecciones, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
@@ -29,6 +31,7 @@ import {
   chequeoAlPublicar,
   claveDeUrl,
   direccionVisible,
+  encaja,
   DIA_MS,
   DIAS_PUBLICACION,
   esCiudadRonda,
@@ -64,10 +67,12 @@ export async function GET(req: Request) {
         direccion: p.direccion === undefined ? undefined : direccionVisible(p.direccion, p.ciudad, p.barrio),
       }),
     )
-    // El contador no puede tirar abajo la grilla: si falla, la pantalla no lo muestra.
-    const actividad = await actividadDelMes().catch(() => null)
+    // El contador y los pedidos no pueden tirar abajo la grilla: si fallan, la pantalla no los muestra.
+    const [actividad, pedidos] = await Promise.all([actividadDelMes().catch(() => null), listarPedidos().catch(() => [])])
+    const conPedidos = publicaciones.map((p) => ({ ...p, buscan: pedidos.filter((q) => encaja(q, p)).map((q) => q.id) }))
+    const pedidosCruzados = pedidos.map((q) => ({ ...q, encajan: publicaciones.filter((p) => encaja(q, p)).map((p) => p.id) }))
     return NextResponse.json(
-      { publicaciones, actividad, ahora: Date.now() },
+      { publicaciones: conPedidos, pedidos: pedidosCruzados, actividad, ahora: Date.now() },
       { headers: { 'Cache-Control': 'private, no-store' } },
     )
   } catch {

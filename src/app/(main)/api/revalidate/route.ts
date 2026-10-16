@@ -5,6 +5,7 @@ import {
   CACHE_TAG_LISTA_ESTABLE,
   cacheTagPropiedad,
 } from '@/lib/tokko'
+import { avisarCambioDeFicha, type ResultadoIndexNow } from '@/lib/indexnow'
 
 export const dynamic = 'force-dynamic'
 
@@ -85,6 +86,12 @@ export async function POST(req: Request) {
     }
   }
 
+  // Hilo llama acá en cada alta, edición y cambio de estado (vendida, reservada,
+  // baja): se le avisa también a Bing/IndexNow para que la relea en minutos.
+  // Va después de revalidar, así lee la ficha ya fresca. Nunca tira.
+  let indexnow: ResultadoIndexNow | null = null
+  if (tienePropiedad) indexnow = await avisarCambioDeFicha(body.propertyId as string | number)
+
   if (errors.length > 0) {
     return Response.json(
       { revalidated: false, errors, paths, tags },
@@ -98,6 +105,7 @@ export async function POST(req: Request) {
     tags,
     propertyId: body.propertyId ?? null,
     slug: body.slug ?? null,
+    indexnow,
     timestamp: new Date().toISOString(),
   })
 }

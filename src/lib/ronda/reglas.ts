@@ -436,3 +436,126 @@ export function direccionVisible(direccion: string | null | undefined, ciudad: s
   const d = partes.join(', ').slice(0, 140)
   return d.length < 3 ? null : mayusculasProlijas(d)
 }
+
+// ── Pedidos de búsqueda (David, 16-oct-2026) ─────────────────────────────
+//
+// "Falta algo muy importante: los pedidos de búsqueda de colegas, qué busca y
+// qué presupuesto; tiene que seleccionar barrios y presupuesto o posibilidades
+// para cerrar el negocio; destacado y bien fácil de entender." Un pedido es la
+// otra mitad de la Ronda: lo que busca el cliente de un colega. Cada pedido se
+// cruza con las oportunidades (`encaja`) para avisar quién tiene algo.
+
+export const TIPOS_PEDIDO: GrupoTipo[] = ['Casa', 'Lote', 'Departamento', 'Otro']
+export const CIERRE_PEDIDO = ['Contado', 'Crédito hipotecario', 'Permuta', 'Financiación', 'Vende para comprar'] as const
+export const MAX_PEDIDOS_POR_INMOBILIARIA = 5
+export const COMENTARIO_PEDIDO_MAX = 280
+
+/** Los barrios para elegir con un toque (del árbol de Hilo, sin repetidos ni zonas genéricas). */
+export const BARRIOS_RONDA: Record<CiudadRonda, string[]> = {
+  Funes: [
+    'Centro', 'Kentucky', 'Vida', 'Aguadas', 'Funes Lakes', 'San Marino (Funes Hills)', 'Miraflores (Funes Hills)',
+    'Cadaqués (Funes Hills)', 'Haras de Funes', 'Garita 15', 'Profesional Country Club', 'San Sebastián', 'Los Troncos',
+    'Cantegril', 'Don Mateo', 'Don Juan', 'La Estancia', 'Los Indios', 'Los Solares', 'Paseo del Norte', 'San Telmo',
+    'Funes City', 'Funes Town', 'Tierra de Sueños', 'Unanue', 'Villa Elvira',
+  ],
+  'Roldán': [
+    'Centro', 'Acequias del Aire', 'Las Acequias', 'Aurea', 'Bosque Azul', 'Cotos de la Alameda', 'Distrito Roldán',
+    'Don Quijote', 'El Cielo', 'El Molino', 'Las Tardes', 'Los Raigales', 'Puerto Roldán', 'Punta Chacra',
+    'Tierra de Sueños', 'Villa Flores',
+  ],
+}
+
+export interface Pedido {
+  id: string
+  operacion: 'Compra' | 'Alquiler'
+  tipos: GrupoTipo[]
+  ciudades: CiudadRonda[]
+  /** Vacío en una ciudad = cualquier barrio de esa ciudad. */
+  barrios: { ciudad: CiudadRonda; nombre: string }[]
+  hasta: number | null
+  desde: number | null
+  moneda: 'USD' | 'ARS'
+  dormitorios: number | null
+  /** Cómo puede cerrar el negocio ("posibilidades para cerrar"). */
+  cierre: string[]
+  comentario: string
+  agente: { id: string; nombre: string; whatsapp: string }
+  inmobiliaria: { id: string; nombre: string; matriculado: string; matricula: string }
+  creada: number
+  vence: number
+}
+
+export type DatosPedido = Omit<Pedido, 'id' | 'agente' | 'inmobiliaria' | 'creada' | 'vence'>
+
+/** Valida lo que manda la pantalla. Pide qué, dónde y el presupuesto o cómo cierra. */
+export function leerPedido(crudo: unknown): { pedido: DatosPedido } | { error: string } {
+  const c = (crudo && typeof crudo === 'object' ? crudo : {}) as Record<string, unknown>
+  const lista = (v: unknown) => (Array.isArray(v) ? v.map((x) => String(x ?? '').trim()) : [])
+  const operacion = c.operacion === 'Alquiler' ? 'Alquiler' : c.operacion === 'Compra' ? 'Compra' : null
+  if (!operacion) return { error: 'Elegí si busca para comprar o para alquilar.' }
+  const tipos = TIPOS_PEDIDO.filter((t) => lista(c.tipos).includes(t))
+  if (tipos.length === 0) return { error: 'Elegí qué tipo de propiedad busca.' }
+  const vistos = new Set<string>()
+  const barrios = (Array.isArray(c.barrios) ? c.barrios : [])
+    .map((b) => {
+      const o = (b && typeof b === 'object' ? b : {}) as Record<string, unknown>
+      const ciudad = CIUDADES_RONDA.find((x) => x === o.ciudad)
+      const nombre = String(o.nombre ?? '').replace(/\s+/g, ' ').trim().slice(0, 60)
+      return ciudad && nombre.length >= 2 ? { ciudad, nombre } : null
+    })
+    .filter((b): b is { ciudad: CiudadRonda; nombre: string } => {
+      if (!b) return false
+      const k = `${b.ciudad}|${sinTildes(b.nombre)}`
+      if (vistos.has(k)) return false
+      vistos.add(k)
+      return true
+    })
+    .slice(0, 15)
+  const ciudades = CIUDADES_RONDA.filter((x) => lista(c.ciudades).includes(x) || barrios.some((b) => b.ciudad === x))
+  if (ciudades.length === 0) return { error: 'Elegí la ciudad y, si querés, los barrios.' }
+  let hasta = numeroEntre(c.hasta, 2_000_000_000)
+  let desde = numeroEntre(c.desde, 2_000_000_000)
+  if (hasta && desde && desde > hasta) [hasta, desde] = [desde, hasta]
+  if (!hasta) desde = null
+  const cierre = CIERRE_PEDIDO.filter((x) => lista(c.cierre).includes(x))
+  if (!hasta && cierre.length === 0) return { error: 'Poné el presupuesto o cómo puede cerrar el negocio.' }
+  const dormitorios = numeroEntre(c.dormitorios, 6)
+  const comentario = String(c.comentario ?? '').replace(/\s+/g, ' ').trim().slice(0, COMENTARIO_PEDIDO_MAX)
+  return {
+    pedido: { operacion, tipos, ciudades, barrios, hasta, desde, moneda: c.moneda === 'ARS' ? 'ARS' : 'USD', dormitorios, cierre, comentario },
+  }
+}
+
+/** Las palabras que identifican un barrio ("San Marino (Funes Hills)" → san, marino). */
+function palabrasDeBarrio(nombre: string): string[] {
+  const comunes = new Set(['funes', 'hills', 'roldan', 'barrio', 'privado', 'abierto', 'club', 'country', 'del', 'las', 'los'])
+  return sinTildes(nombre).replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter((w) => w.length > 2 && !comunes.has(w))
+}
+
+/** ¿La oportunidad sirve para el pedido? Operación, tipo, ciudad/barrio, precio (±5 %) y dormitorios. */
+export function encaja(pedido: Pedido, p: Publicacion): boolean {
+  const operacion = textoOperacion(p.operacion) === 'Venta' ? 'Compra' : 'Alquiler'
+  if (operacion !== pedido.operacion) return false
+  if (!pedido.tipos.includes(p.grupo)) return false
+  if (!pedido.ciudades.includes(p.ciudad)) return false
+  const barriosCiudad = pedido.barrios.filter((b) => b.ciudad === p.ciudad)
+  if (barriosCiudad.length > 0) {
+    const suyo = sinTildes(p.barrio ?? '')
+    const esSuyo = (nombre: string) => {
+      const palabras = palabrasDeBarrio(nombre)
+      return palabras.length > 0 ? palabras.every((w) => suyo.includes(w)) : suyo === sinTildes(nombre)
+    }
+    if (!barriosCiudad.some((b) => esSuyo(b.nombre))) return false
+  }
+  if (pedido.hasta) {
+    if (!p.precio || p.moneda !== pedido.moneda) return false
+    if (p.precio > pedido.hasta * 1.05) return false
+    if (pedido.desde && p.precio < pedido.desde * 0.95) return false
+  }
+  if (pedido.dormitorios && p.dormitorios && p.dormitorios < pedido.dormitorios) return false
+  return true
+}
+
+export function pedidosActivos(pedidos: Pedido[], ahora = Date.now()): Pedido[] {
+  return pedidos.filter((p) => p.vence > ahora).sort((a, b) => b.creada - a.creada)
+}

@@ -1,7 +1,8 @@
 /* Ronda Funes Roldán — pensada primero para el celular; el escritorio suma columnas.
    Paleta NEUTRA (carbón y grises), como las fichas de verficha: la Ronda es de todas
    las inmobiliarias y no lleva los colores de ninguna (pedido de David). Los botones
-   siguen en carbón; el color va solo en toques: "Arcilla" (David, 16-oct-2026). */
+   siguen en carbón; el color va solo en toques, con el verde de Funes (#0F803B, el de la
+   Municipalidad; David, 16-oct-2026: "un verde como el de Funes"). */
 :root {
   --tinta: #1a1d1f;
   --tinta-fuerte: #000;
@@ -9,13 +10,13 @@
   --gris-claro: #676d72;
   --linea: #e1e3e1;
   --linea-fuerte: #cdd0cd;
-  --fondo: #f6f3f1;
+  --fondo: #f4f6f4;
   --blanco: #fff;
   --suave: #eeefec;
   --suave-borde: #dcdeda;
-  --acento: #a65a3c;
-  --arena: #f8eee9;
-  --arena-borde: #ebd3c7;
+  --acento: #0f803b;
+  --arena: #eaf5ee;
+  --arena-borde: #cbe6d4;
   --rojo: #a3271f;
   --rojo-suave: #fdecea;
   --foco: #5f6b76;
@@ -266,7 +267,7 @@ dialog.hoja:not(.completa) .hoja-cuerpo { padding-top: 22px; }
 .campo > label, .campo > legend { display: block; margin-bottom: 6px; padding: 0; font-weight: 700; font-size: 15px; color: var(--tinta); }
 .opcional { font-weight: 400; color: var(--gris-claro); }
 .obligatorio { font-weight: 700; color: var(--acento); }
-.campo input:not([type='radio']):not([type='file']), .campo textarea, .notas input {
+.campo input:not([type='radio']):not([type='checkbox']):not([type='file']), .campo textarea, .notas input {
   width: 100%; min-height: 52px; padding: 12px 14px; border-radius: 12px;
   border: 1px solid var(--linea-fuerte); background: var(--blanco); color: var(--tinta); font-size: 16px;
 }
@@ -411,6 +412,94 @@ dialog.visor::backdrop { background: #000; }
 .actividad div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 3px; padding: 11px 13px; border-radius: 14px; background: var(--blanco); border: 1px solid var(--arena-borde); }
 .actividad dd { margin: 0; font: 800 26px/1.05 var(--titulos); letter-spacing: -0.6px; color: var(--acento); font-variant-numeric: tabular-nums; }
 .actividad dt { font-size: 13px; line-height: 1.25; color: var(--gris); }
+
+/* ── Pedidos de búsqueda (David, 16-oct-2026): "destacado y bien fácil de entender" ── */
+.vistas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.vistas { scroll-margin-top: 84px; }
+@media (max-width: 479px) { .solo-ancho { display: none; } }
+.vista-boton {
+  display: grid; gap: 2px; justify-items: start; min-height: 64px; padding: 10px 14px; border-radius: 14px; text-align: left;
+  border: 1px solid var(--linea); background: var(--blanco); color: var(--tinta); cursor: pointer;
+}
+.vista-titulo { display: flex; align-items: center; gap: 8px; font: 800 16px/1.2 var(--titulos); letter-spacing: -0.3px; }
+.vista-titulo b { min-width: 24px; padding: 2px 8px; border-radius: 999px; background: var(--suave); font: 800 13px/1.4 var(--titulos); text-align: center; }
+.vista-boton small { color: var(--gris-claro); font-size: 13px; }
+.vista-boton[aria-pressed='true'] { border: 2px solid var(--acento); background: var(--arena); padding: 9px 13px; }
+.vista-boton[aria-pressed='true'] .vista-titulo b { background: var(--acento); color: var(--blanco); }
+.vista-boton:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+
+.chip-buscan {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 5px 10px; border-radius: 999px;
+  border: 1px solid var(--arena-borde); background: var(--arena); color: var(--acento); font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.filtro-ids { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; background: var(--arena); border: 1px solid var(--arena-borde); color: var(--tinta); font-size: 14px; }
+.filtro-ids .enlace { min-height: 0; padding: 0; color: var(--acento); }
+
+.pedido {
+  display: flex; flex-direction: column; min-width: 0; padding: 16px; gap: 10px;
+  background: var(--blanco); border: 1px solid var(--linea); border-top: 3px solid var(--acento); border-radius: var(--radio); box-shadow: var(--sombra);
+}
+.pedido-insignias { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.insignia-busca {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px;
+  background: var(--acento); color: var(--blanco); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+}
+.pedido-tiempo { color: var(--acento); font-size: 13px; font-weight: 700; }
+.pedido h3 { margin-top: 10px; font: 800 18px/1.25 var(--titulos); letter-spacing: -0.4px; }
+.pedido-presupuesto { font: 800 22px/1.2 var(--titulos); letter-spacing: -0.6px; font-variant-numeric: tabular-nums; }
+.pedido-bloque b { display: block; color: var(--gris-claro); font-size: 12px; letter-spacing: 0.6px; text-transform: uppercase; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.chips li { padding: 4px 10px; border-radius: 999px; background: var(--suave); color: var(--tinta); font-size: 14px; font-weight: 600; }
+.chips li small { color: var(--gris-claro); font-weight: 500; }
+.pedido-comentario p { color: var(--gris); font-size: 15px; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.pedido-comentario.abierta p { display: block; -webkit-line-clamp: unset; line-clamp: none; }
+.pedido .colega { margin-top: 4px; }
+.pedido .acciones { margin-top: 0; }
+.sin-encaje { color: var(--gris-claro); font-size: 14px; text-align: center; }
+@supports (grid-template-rows: subgrid) {
+  .grilla.de-pedidos .pedido { display: grid; grid-row: span 7; grid-template-rows: subgrid; row-gap: 10px; align-items: start; }
+  .grilla.de-pedidos .pedido .acciones { align-self: end; }
+}
+
+/* El formulario del pedido: todo se marca con un toque. */
+.chips-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-opcion { position: relative; }
+.chip-opcion input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.chip-opcion span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--linea-fuerte); background: var(--blanco); font-weight: 700; font-size: 15px; }
+.chip-opcion input:checked + span { background: var(--tinta); border-color: var(--tinta); color: var(--blanco); }
+.chip-opcion input:focus-visible + span { outline: 3px solid var(--foco); outline-offset: 2px; }
+.chips-opciones.chicos .chip-opcion span { min-height: 38px; padding: 0 12px; font-size: 14px; font-weight: 600; }
+.barrio-buscar { position: relative; margin-top: 14px; scroll-margin-top: 16px; }
+.sub-rotulo { display: block; margin-bottom: 6px; font-weight: 700; font-size: 14px; color: var(--tinta); }
+.barrio-buscar .sugerencias {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; max-height: 288px; overflow-y: auto; overscroll-behavior: contain;
+  margin: 0; padding: 6px; list-style: none; background: var(--blanco); border: 1px solid var(--linea-fuerte); border-radius: 12px; box-shadow: var(--sombra);
+}
+.barrio-buscar .sugerencias li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.barrio-buscar .sugerencias li small { color: var(--gris-claro); font-weight: 500; font-size: 13px; }
+.barrio-buscar .sugerencias li[aria-selected='true'] { background: var(--arena); }
+@media (hover: hover) { .barrio-buscar .sugerencias li[role='option']:hover { background: var(--arena); } }
+.barrio-buscar .sugerencias li.nada { min-height: 0; padding: 10px 12px; color: var(--gris); font-weight: 500; font-size: 14px; line-height: 1.4; cursor: default; }
+.elegidos { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.elegidos:empty { display: none; }
+.elegidos li { display: inline-flex; align-items: center; padding-left: 12px; border-radius: 999px; background: var(--tinta); color: var(--blanco); font-size: 14px; font-weight: 700; }
+.elegidos li small { opacity: 0.75; font-weight: 500; }
+.elegidos button { width: 36px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; }
+.elegidos button:focus-visible { outline: 3px solid var(--foco); outline-offset: -3px; }
+.precio-fila { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; }
+.campo select { width: 100%; min-height: 52px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--linea-fuerte); background-color: var(--blanco); color: var(--tinta); font-size: 16px; }
+.campo .desde { display: block; margin-top: 12px; }
+
+/* ¿Qué querés publicar? */
+.elegir-opciones { display: grid; gap: 10px; margin-top: 14px; }
+.opcion-grande {
+  display: grid; gap: 4px; padding: 16px; border-radius: 14px; border: 1px solid var(--linea-fuerte); background: var(--blanco);
+  text-align: left; color: var(--tinta); cursor: pointer;
+}
+.opcion-grande strong { font: 800 18px/1.2 var(--titulos); }
+.opcion-grande span { color: var(--gris); font-size: 14px; line-height: 1.4; }
+.opcion-grande.destacada { border: 2px solid var(--acento); background: var(--arena); }
+.opcion-grande:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
 
 @media (min-width: 640px) {
   .grilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
