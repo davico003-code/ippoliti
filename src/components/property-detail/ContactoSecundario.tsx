@@ -66,7 +66,7 @@ export default function ContactoSecundario({
       </div>
       {abierto && previa && (
         <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-4">
-          <p className="mb-3 text-[15px] font-semibold text-neutral-900">
+          <p className="mb-3 text-[16px] font-semibold text-neutral-900">
             Ya le escribiste {previa.agente?.nombre ? `a ${previa.agente.nombre} ` : ''}por WhatsApp
           </p>
           <a
