@@ -284,8 +284,8 @@
       <div class="tarjeta-cuerpo">
         <h3>${esc(p.titulo)}</h3>
         <p class="precio">${precio(p)}${metro ? ` <small>${metro}</small>` : ''}</p>
-        ${fichaHtml(p)}
-        ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : ''}
+        ${fichaHtml(p) || '<div aria-hidden="true"></div>'}
+        ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : '<div aria-hidden="true"></div>'}
         <div class="colega">
           <span class="avatar" aria-hidden="true">${esc(iniciales(p.agente.nombre))}</span>
           <div><small class="rotulo-publica">Publica</small><strong>${esc(p.agente.nombre)}</strong><small>${esc(p.inmobiliaria.nombre)}</small></div>

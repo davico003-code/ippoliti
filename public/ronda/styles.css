@@ -189,6 +189,19 @@ ul, ol { padding: 0; list-style: none; }
 .acciones { display: grid; gap: 8px; margin-top: 14px; }
 .tarjeta .acciones { margin-top: auto; padding-top: 14px; }
 
+/*
+ * Tarjetas de una misma fila alineadas (David, 15-oct-2026: "tiene que quedar
+ * todo alineado"): cada tarjeta toma 7 filas de la grilla (foto, título, precio,
+ * datos, motivo, quién publica, botones) y las comparte con sus vecinas, así cada
+ * bloque arranca a la misma altura aunque el motivo de una sea más largo.
+ */
+@supports (grid-template-rows: subgrid) {
+  .tarjeta:not(.esqueleto) { display: grid; grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; }
+  .tarjeta:not(.esqueleto) .tarjeta-cuerpo { display: grid; grid-row: span 6; grid-template-rows: subgrid; row-gap: 0; align-items: start; }
+  .tarjeta:not(.esqueleto) .oportunidad { align-self: stretch; }
+  .tarjeta:not(.esqueleto) .acciones { margin-top: 0; align-self: end; }
+}
+
 .vacio {
   grid-column: 1 / -1; padding: 44px 20px; text-align: center; border-radius: var(--radio);
   background: var(--blanco); border: 1px dashed var(--linea-fuerte); color: var(--gris);
@@ -341,11 +354,12 @@ a.carrusel-foto { display: block; cursor: pointer; }
 
 /* ── Datos con su nombre ────────────────────────────────── */
 .precio small { font: 700 14px 'DM Sans', sans-serif; color: var(--gris); letter-spacing: 0; }
+/* De a 3 por renglón; si faltan datos, los del último renglón se estiran (sin huecos grises). */
 .ficha-tecnica {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 12px 0 0;
+  display: flex; flex-wrap: wrap; gap: 1px; margin: 12px 0 0;
   border: 1px solid var(--linea); border-radius: 12px; overflow: hidden; background: var(--linea);
 }
-.ficha-tecnica div { background: var(--blanco); padding: 8px 10px; min-width: 0; }
+.ficha-tecnica div { flex: 1 1 calc(33.333% - 1px); background: var(--blanco); padding: 8px 10px; min-width: 0; }
 .ficha-tecnica dt { color: var(--gris-claro); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
 .ficha-tecnica dd { margin: 2px 0 0; font: 800 16px/1.2 var(--titulos); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .comodidades { margin-top: 10px; color: var(--gris); font-size: 14px; line-height: 1.4; }
