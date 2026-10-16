@@ -167,8 +167,10 @@ export function resolverTasar(slug: string, indice: IndiceTasar, base: '/tasar' 
   return destino ? { redirigir: `${base}/${destino}` } : null
 }
 
-/** A Google: solo lo que da número. */
-export const esIndexableTasar = (l: Landing) => l.conNumero
+/** A Google: lo que da número, y SIEMPRE la página de la ciudad (/tasar/lote-funes,
+ *  /tasar/casa-rosario…): aunque fuera de barrios no dé número, es la puerta de
+ *  "cuánto vale un lote en Funes" y enlaza a cada barrio que sí lo da (David, 16-oct). */
+export const esIndexableTasar = (l: Landing) => l.conNumero || l.zona.esCiudad
 
 /** Las landings de una ciudad, de la que más avisos tiene a la que menos (la ciudad primero). */
 export function landingsDeCiudad(indice: IndiceTasar, ciudad: string, tipo?: TipoTasar): Landing[] {
