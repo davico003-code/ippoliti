@@ -44,6 +44,12 @@ export interface Publicacion {
   operacion: string
   ciudad: CiudadRonda
   barrio: string | null
+  /**
+   * La dirección exacta que publicó el colega (David, 16-oct-2026: "en las
+   * tarjetas falta la dirección exacta"). Solo para los colegas: la ficha del
+   * cliente no la lleva. `undefined` = todavía no se buscó; null = el aviso no la trae.
+   */
+  direccion?: string | null
   titulo: string
   precio: number | null
   moneda: 'USD' | 'ARS'
@@ -393,4 +399,16 @@ export function descripcionNeutra(texto: string | null | undefined, marcas: Arra
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+}
+
+/**
+ * La dirección para la tarjeta: la del aviso, salvo que no diga nada más que la
+ * ciudad o el barrio (Zonaprop pone "Funes" cuando el colega no la carga).
+ */
+export function direccionVisible(direccion: string | null | undefined, ciudad: string, barrio: string | null): string | null {
+  const d = String(direccion ?? '').replace(/\s+/g, ' ').trim().slice(0, 140)
+  if (d.length < 3) return null
+  const n = sinTildes(d)
+  if (n === sinTildes(ciudad) || (barrio && n === sinTildes(barrio))) return null
+  return d
 }

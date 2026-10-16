@@ -23,11 +23,12 @@ import {
   limpiarVencidas,
   listarPublicaciones,
 } from '@/lib/ronda/almacen'
-import { AvisoSinLectura, completarDetalles, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
+import { AvisoSinLectura, completarDetalles, completarDirecciones, crearFichaDeAviso, ENLACE_NO_SIRVE, leerAviso, type AvisoRonda } from '@/lib/ronda/aviso'
 import {
   barrioVisible,
   chequeoAlPublicar,
   claveDeUrl,
+  direccionVisible,
   DIA_MS,
   DIAS_PUBLICACION,
   esCiudadRonda,
@@ -54,7 +55,7 @@ export async function GET(req: Request) {
 
   try {
     // Tokko se comparte tal cual: también las publicadas antes del cambio (14-oct-2026).
-    const publicaciones = (await completarDetalles(await listarPublicaciones())).map((p) =>
+    const publicaciones = (await completarDirecciones(await completarDetalles(await listarPublicaciones()))).map((p) =>
       p.origen === 'Tokko' && p.urlOriginal ? { ...p, ficha: p.urlOriginal, detalle: p.detalle && { ...p.detalle, comodidades: [] } } : { ...p, detalle: p.detalle && { ...p.detalle, comodidades: [] } },
     )
     // El contador no puede tirar abajo la grilla: si falla, la pantalla no lo muestra.
@@ -128,6 +129,7 @@ export async function POST(req: Request) {
       operacion: aviso.operacion,
       ciudad,
       barrio,
+      direccion: direccionVisible(aviso.direccion, ciudad, barrio),
       titulo: tituloRonda({ tipo: aviso.tipo, operacion: aviso.operacion, barrio, ciudad }),
       precio: aviso.precio,
       moneda: aviso.moneda,

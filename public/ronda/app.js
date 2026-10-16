@@ -250,6 +250,10 @@
     true,
   )
 
+  const ICONO_PIN =
+    '<svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="currentColor"/></svg>'
+  /** La dirección exacta: solo para los colegas (la ficha del cliente no la lleva). */
+  const direccionHtml = (p) => (p.direccion ? `<p class="direccion">${ICONO_PIN}<span>${esc(p.direccion)}</span></p>` : '')
   const ICONO_WHATSAPP =
     '<svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20"><path d="M12 3a9 9 0 0 0-7.800 13.500L3 21l4.700-1.200A9 9 0 1 0 12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'
 
@@ -260,7 +264,7 @@
       (p) =>
         (!filtro.tipo || p.grupo === filtro.tipo) &&
         (!filtro.ciudad || p.ciudad === filtro.ciudad) &&
-        (!texto || sinTildes(`${p.titulo} ${p.tipo} ${p.oportunidad} ${p.agente.nombre} ${p.inmobiliaria.nombre}`).includes(texto)),
+        (!texto || sinTildes(`${p.titulo} ${p.tipo} ${p.oportunidad} ${p.direccion ?? ''} ${p.agente.nombre} ${p.inmobiliaria.nombre}`).includes(texto)),
     )
     if (!filtro.orden) return lista.sort((a, b) => b.creada - a.creada)
     const signo = filtro.orden === 'precio-asc' ? 1 : -1
@@ -282,7 +286,7 @@
         <span class="insignia tiempo">${esNueva(p) ? 'Nueva · ' : ''}${quedan(p)}</span>
       </div>
       <div class="tarjeta-cuerpo">
-        <h3>${esc(p.titulo)}</h3>
+        <div><h3>${esc(p.titulo)}</h3>${direccionHtml(p)}</div>
         <p class="precio">${precio(p)}${metro ? ` <small>${metro}</small>` : ''}</p>
         ${fichaHtml(p) || '<div aria-hidden="true"></div>'}
         ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p><button type="button" class="enlace ver-mas" data-ver-mas aria-expanded="false" hidden>Ver más</button></div>` : '<div aria-hidden="true"></div>'}
@@ -950,6 +954,7 @@
         <div>
           <p class="antetitulo">${esc(p.tipo)} · ${esc(p.operacion)} · ${quedan(p)}</p>
           <h2 id="detalleTitulo">${esc(p.titulo)}</h2>
+          ${direccionHtml(p)}
         </div>
         <button type="button" class="cerrar" data-cerrar aria-label="Cerrar">×</button>
       </div>
