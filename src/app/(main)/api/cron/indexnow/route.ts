@@ -40,9 +40,12 @@ export async function GET(req: Request) {
   const cambiadas = antes ? Object.keys(hoy).filter((u) => u in antes && antes[u] !== hoy[u]) : []
   const idas = antes ? Object.keys(antes).filter((u) => !(u in hoy)) : []
   const resultado = await avisarIndexNow([...nuevas, ...cambiadas, ...idas], 'repaso diario')
-  // Fuera de producción no se avisa nada: tampoco se guarda la foto, si no la
-  // primera corrida real creería que ya avisó todo.
-  if (resultado.omitido) return NextResponse.json({ ok: true, urls: nHoy, nuevas: nuevas.length, cambiadas: cambiadas.length, idas: idas.length, indexnow: resultado })
+  // La foto se guarda solo si IndexNow aceptó (200/202) o no había nada que
+  // avisar: fuera de producción no se avisa, y si rechaza (403 mientras valida
+  // la clave, 429…) mañana se reintenta lo mismo. Pasó el 16-oct: la primera
+  // corrida, a minutos de publicar la clave, dio 403.
+  const aceptado = resultado.enviadas === 0 ? !resultado.omitido : resultado.estado === 200 || resultado.estado === 202
+  if (!aceptado) return NextResponse.json({ ok: !!resultado.omitido, urls: nHoy, nuevas: nuevas.length, cambiadas: cambiadas.length, idas: idas.length, indexnow: resultado })
 
   const fichas: Record<string, string> = {}
   for (const u of Object.keys(hoy)) {
