@@ -20,6 +20,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
 const CACHE_FOTO = 'public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400';
+const MAX_CON_LARGO = 9_000_000;
 
 function noEsta(): Response {
   return new Response('not found', {
@@ -66,8 +67,11 @@ export async function GET(
       'Cache-Control': CACHE_FOTO,
       'X-Content-Type-Options': 'nosniff',
     };
+    // El CDN de Vercel guarda respuestas de hasta 10 MB, o 20 MB si van en
+    // streaming: con Content-Length una foto de 14 MB no se guardaba y cada
+    // vista volvía a pasar por la función (medido en el preview, 16-oct).
     const largo = res.headers.get('content-length');
-    if (largo) headers['Content-Length'] = largo;
+    if (largo && Number(largo) <= MAX_CON_LARGO) headers['Content-Length'] = largo;
     return new Response(res.body, { status: 200, headers });
   } catch (e) {
     return fallo(id, archivo, e);
