@@ -1,7 +1,8 @@
 // DELETE /api/ronda/publicaciones/{id}
 //
 // Dar de baja una propiedad de la Ronda antes de que venza. La baja quien la
-// publicó (su pase) o un moderador con CRON_SECRET. La ficha neutra que ya
+// publicó (su pase; también desde otro teléfono: misma persona = mismo WhatsApp)
+// o un moderador con CRON_SECRET. La ficha neutra que ya
 // recibió un cliente sigue viva: es una copia.
 
 import { NextResponse } from 'next/server'
@@ -28,7 +29,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   try {
     const publicacion = await publicacionPorId(id)
     if (!publicacion) return NextResponse.json({ ok: true })
-    if (!modera && publicacion.agente.id !== sesion?.aid) {
+    const suya = publicacion.agente.id === sesion?.aid || publicacion.agente.whatsapp === sesion?.whatsapp
+    if (!modera && !suya) {
       return NextResponse.json({ error: 'Solo la puede dar de baja quien la publicó.' }, { status: 403 })
     }
     await borrarPublicacion(id)
