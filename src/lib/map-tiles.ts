@@ -40,3 +40,10 @@ export const VOYAGER_TILES: BaseTiles = CARTO_KEY ? cartoTiles('rastertiles/voya
 
 /** Estilo Positron light (gris neutro) — /nosotros, barrios privados, plano Distrito Roldán. */
 export const LIGHT_TILES: BaseTiles = CARTO_KEY ? cartoTiles('light_all') : OSM_FALLBACK
+
+/**
+ * Dark Matter (calles claras sobre fondo oscuro) — la capa de calles en modo
+ * oscuro, vía CapaCalles. Sin key no hay versión oscura propia: null, y la
+ * clara se invierte por CSS como antes.
+ */
+export const DARK_TILES: BaseTiles | null = CARTO_KEY ? cartoTiles('rastertiles/dark_all') : null

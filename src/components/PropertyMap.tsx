@@ -2,8 +2,17 @@
 
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
+import CapaCalles from './CapaCalles'
 import L from 'leaflet'
+import type { BaseTiles } from '@/lib/map-tiles'
+
+// En modo claro la ficha sigue con OpenStreetMap; en oscuro, la capa oscura.
+const OSM_CLARAS: BaseTiles = {
+  url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxNativeZoom: 19,
+}
 
 function createMainMarker() {
   return L.divIcon({
@@ -91,11 +100,7 @@ export default function PropertyMap({ lat, lng, address }: Props) {
         scrollWheelZoom={false}
         zoomControl
       >
-        <TileLayer className="si-street-tiles"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          maxZoom={19}
-        />
+        <CapaCalles claras={OSM_CLARAS} maxZoom={19} />
         <SetView center={coords} />
         <Marker position={coords} icon={createMainMarker()} />
       </MapContainer>

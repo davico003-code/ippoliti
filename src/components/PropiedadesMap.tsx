@@ -17,10 +17,10 @@ import {
   tituloVisible,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
-import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
+import { DEFAULT_BOUNDS, DEFAULT_ZOOM, esEncuadreInicial, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
-import { VOYAGER_TILES } from '@/lib/map-tiles'
+import CapaCalles from './CapaCalles'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -114,11 +114,13 @@ function nombreMapa(name: string) {
 
 // Lejos: círculo verde oscuro con grúa, mismo verde que los clusters y más
 // chico, para que acompañe sin distraer. Sin precio ni nombre.
+// Los verdes de los marcadores son variables (--si-pin*): en modo oscuro
+// globals.css los aclara un paso para que no se hundan en el mapa.
 function createDevCircle() {
   return L.divIcon({
     className: '',
     html: `<div style="
-      background:#0D3620;color:#fff;
+      background:var(--si-pin-grupo,#0D3620);color:#fff;
       width:32px;height:32px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;
       border:2.5px solid rgba(255,255,255,0.9);
@@ -211,7 +213,7 @@ function shortPrice(property: TokkoProperty): string {
 
 function createPriceBubble(label: string, selected: boolean, hovered: boolean = false) {
   // selected > hovered (sin "selected"). Hover más claro y con outline amarillo.
-  const bg = selected ? '#145030' : hovered ? '#2D7A4F' : '#1A5C38'
+  const bg = selected ? 'var(--si-pin-activo,#145030)' : hovered ? 'var(--si-pin-hover,#2D7A4F)' : 'var(--si-pin,#1A5C38)'
   const scale = selected || hovered ? 'transform:scale(1.1);' : ''
   const zExtra = selected ? 'z-index:9999;' : hovered ? 'z-index:5000;' : ''
   const shadow = selected
@@ -261,32 +263,44 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
 
 // ─── Cluster icon ─────────────────────────────────────────────────────────────
 
+// El tamaño acompaña la cantidad: los grupos chicos (2 a 9) ocupan menos y ya
+// no se pisan entre sí ni tapan los nombres de las ciudades.
 function createClusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount()
   const label = count > 99 ? '99+' : String(count)
+  const size = count < 10 ? 34 : count < 50 ? 40 : 46
+  const font = count < 10 ? 13 : count < 50 ? 14 : 15
 
   return L.divIcon({
     className: '',
     html: `
       <div style="
-        background:#0D3620;color:#fff;
+        background:var(--si-pin-grupo,#0D3620);color:#fff;
         font-family:'Poppins',system-ui,sans-serif;
-        font-weight:800;font-size:13px;
-        width:44px;height:44px;
+        font-weight:800;font-size:${font}px;
+        width:${size}px;height:${size}px;
         border-radius:50%;
         display:flex;align-items:center;justify-content:center;
-        border:3px solid rgba(255,255,255,0.9);
+        border:2.5px solid rgba(255,255,255,0.92);
         box-shadow:0 3px 12px rgba(0,0,0,0.3);
+        box-sizing:border-box;
         cursor:pointer;
       ">${label}</div>`,
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   })
+}
+
+// Radio de agrupamiento: más amplio con el mapa lejos (en el celular entran
+// Roldán, Funes y Fisherton y los grupos quedaban encimados); de cerca, el de
+// siempre para que aparezcan los precios.
+function radioDeGrupo(zoom: number) {
+  return zoom <= 12 ? 64 : 50
 }
 
 // ─── Encuadre inicial fijo ───────────────────────────────────────────────────
 //
-// DEFAULT_CENTER/DEFAULT_ZOOM viven en @/lib/map-config (módulo sin leaflet)
+// DEFAULT_BOUNDS y compañía viven en @/lib/map-config (módulo sin leaflet)
 // para que PropiedadesView pueda importarlos sin romper el code-splitting.
 // Cuando el usuario filtra por Ubicación, ZonaFlyTo lo lleva a la zona;
 // cuando limpia el filtro, este componente no re-dispara (solo corre al montar).
@@ -334,7 +348,7 @@ function InitialView({ vista }: { vista?: ZonaMapa | null }) {
       // Al volver a abrir el mapa (celular: lista → mapa) retoma la zona que la
       // persona estaba mirando; si no movió el mapa, el encuadre de siempre.
       if (vista) map.setView([vista.lat, vista.lng], vista.zoom)
-      else map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+      else map.fitBounds(DEFAULT_BOUNDS, { padding: [24, 24] })
     }, 200)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -366,6 +380,9 @@ function MapFlyTo({ center }: { center: FlyToTarget | null }) {
     if (!center) return
     const [lat, lng] = center
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
+    if (esEncuadreInicial(center)) {
+      return whenMapSized(map, () => map.flyToBounds(DEFAULT_BOUNDS, { padding: [24, 24], duration: 0.7 }))
+    }
     const zoom = center[2] ?? 16
     return whenMapSized(map, () => map.flyTo([lat, lng], zoom, { duration: 0.7, easeLinearity: 0.4 }))
   }, [center, map])
@@ -384,7 +401,7 @@ function MapStyles() {
       style.textContent = `
         .leaflet-marker-icon:hover { z-index: 9999 !important; }
         .leaflet-marker-icon:hover > div > div:first-child {
-          background: #2D7A4F !important;
+          background: var(--si-pin-hover, #2D7A4F) !important;
           transform: scale(1.1);
           box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
         }
@@ -788,11 +805,12 @@ function SatelliteToggle({ satellite, setSatellite, manualRef }: {
           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
           border: satellite ? '1px solid #1A5C38' : '1px solid var(--theme-border, #e5e7eb)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: satellite ? '#fff' : 'var(--theme-muted, #374151)',
           cursor: 'pointer',
           transition: 'background 0.15s, border 0.15s',
         }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={satellite ? '#fff' : '#374151'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 22 8.5 12 15 2 8.5 12 2" />
           <polyline points="2 15.5 12 22 22 15.5" />
         </svg>
@@ -847,8 +865,8 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
 
   return (
     <MapContainer
-      center={DEFAULT_CENTER}
-      zoom={DEFAULT_ZOOM}
+      bounds={DEFAULT_BOUNDS}
+      boundsOptions={{ padding: [24, 24] }}
       style={{ height: '100%', width: '100%' }}
       zoomControl={false}
       scrollWheelZoom
@@ -876,14 +894,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           />
         </>
       ) : (
-        <TileLayer
-          key="base"
-          className="si-street-tiles"
-          url={VOYAGER_TILES.url}
-          attribution={VOYAGER_TILES.attribution}
-          maxNativeZoom={VOYAGER_TILES.maxNativeZoom}
-          maxZoom={20}
-        />
+        <CapaCalles maxZoom={20} />
       )}
       <ZoomControl position="bottomright" />
       <AutoSatellite satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
@@ -903,11 +914,11 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       {/* Legend — hidden on mobile */}
       <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'var(--theme-surface, white)', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: isMobile ? 'none' : 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+          <div style={{ width: 14, height: 14, background: 'var(--si-pin, #1A5C38)', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
           <span style={{ color: 'var(--theme-muted, #666)' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#0D3620', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 14, height: 14, background: 'var(--si-pin-grupo, #0D3620)', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="8" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
           </div>
           <span style={{ color: 'var(--theme-muted, #666)' }}>Emprendimiento</span>
@@ -916,7 +927,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
 
       <MarkerClusterGroup
         chunkedLoading
-        maxClusterRadius={50}
+        maxClusterRadius={radioDeGrupo}
         spiderfyOnMaxZoom
         showCoverageOnHover={false}
         iconCreateFunction={createClusterIcon}
@@ -1018,13 +1029,14 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
         })}
       </MarkerClusterGroup>
 
-      {/* Development markers — outside cluster group */}
+      {/* Development markers — outside cluster group. Lejos van por debajo de
+          los grupos: si se cruzan, el número del grupo queda a la vista. */}
       {devGroups.map(g => (
         <Marker
           key={`dev-${g.devId}`}
           position={[g.lat, g.lng]}
           icon={devIcons.get(g.devId)!}
-          zIndexOffset={devCerca ? 500 : 0}
+          zIndexOffset={devCerca ? 500 : -1000}
         >
           <Popup maxWidth={260} className="ippoliti-popup">
             <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
