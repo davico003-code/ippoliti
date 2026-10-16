@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     description:
       'Emprendimientos inmobiliarios en Roldán, Funes y Rosario. Condominios, barrios abiertos y cerrados.',
     url: 'https://siinmobiliaria.com/emprendimientos',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
   },
 }
 

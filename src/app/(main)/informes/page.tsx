@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     description:
       'Dólar, inflación IPC e índice de alquileres ICL actualizados cada semana.',
     url: 'https://siinmobiliaria.com/informes',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
   },
 }
 

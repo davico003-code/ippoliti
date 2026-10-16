@@ -400,6 +400,10 @@ div[id="nosotros"] {
      modales fixed de la página no pueden quedar por encima del Navbar. */
   animation: si-page-in 0.3s ease-out backwards;
 }
+/* Primera carga: sin fade (ver template.tsx). */
+.si-page-enter[data-sin-fade] {
+  animation: none;
+}
 
 /* Blur-up: shimmer detrás de las fotos que aún no cargaron. Cuando la imagen
    pinta, la tapa. Acotado a pocas iteraciones (no infinite) para no dejar

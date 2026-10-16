@@ -182,6 +182,7 @@ export async function middleware(request: NextRequest) {
     // - /api/audio/check        → el AudioPlayer consulta si hay audio cacheado
     // - /api/colega/feedback    → feedback anónimo de colegas
     // - /api/colega/compartida  → cuenta los toques en "Compartir" de la ficha
+    // - /api/cercanos           → la fila "Cerca" de la ficha (CercaChips)
     // - /api/image-proxy        → fotos de avisos externos (Argenprop bloquea el
     //                             hotlink; HeroGallery/OG las piden por acá). Sin
     //                             esta excepción caían en not-found y la ficha
@@ -191,6 +192,7 @@ export async function middleware(request: NextRequest) {
       pathname === '/api/audio/check' ||
       pathname === '/api/colega/feedback' ||
       pathname === '/api/colega/compartida' ||
+      pathname === '/api/cercanos' ||
       pathname === '/api/image-proxy'
     ) {
       return NextResponse.next()
