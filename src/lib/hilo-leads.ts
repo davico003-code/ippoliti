@@ -53,12 +53,23 @@ export type SuscripcionHilo = {
   pagina: string | null
 }
 
-/** Devuelve true si el lead quedó registrado en el inbox de Hilo. best-effort:
- *  nunca lanza (el caller ya lo guardó en Redis), pero ahora el caller puede
- *  saber si el push funcionó para no reportar éxito falso. */
-export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<boolean> {
+/** WhatsApp del agente que Hilo le asignó a la consulta (wa.me: 549 + 10 dígitos). */
+export type AgenteHilo = { nombre: string; whatsapp: string }
+
+function leerAgente(data: unknown): AgenteHilo | null {
+  const a = (data as { agente?: unknown } | null)?.agente as Partial<AgenteHilo> | null | undefined
+  if (!a || typeof a.whatsapp !== 'string' || !/^549\d{10}$/.test(a.whatsapp)) return null
+  return { nombre: typeof a.nombre === 'string' ? a.nombre.slice(0, 40) : '', whatsapp: a.whatsapp }
+}
+
+/**
+ * Empuja el lead a Hilo y devuelve, si vino, el WhatsApp del agente que lo
+ * tiene asignado ("WhatsApp con datos" de la ficha, 16-oct-2026). best-effort:
+ * nunca lanza.
+ */
+export async function enviarLeadAHilo(payload: HiloLeadPayload): Promise<{ ok: boolean; agente: AgenteHilo | null }> {
   const secret = process.env.HILO_INGEST_SECRET
-  if (!secret) return false // sin secreto no intentamos; la web ya capturó el lead
+  if (!secret) return { ok: false, agente: null } // sin secreto no intentamos; la web ya capturó el lead
 
   const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
   try {
@@ -77,11 +88,19 @@ export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<boolean>
     // No logueamos el body de la respuesta: puede reflejar PII del lead a los
     // logs de Vercel. Solo el status.
     if (!res.ok) console.warn('[hilo-leads] push no-ok:', res.status)
-    return res.ok
+    const agente = res.ok ? leerAgente(await res.json().catch(() => null)) : null
+    return { ok: res.ok, agente }
   } catch (err) {
     console.warn('[hilo-leads] push error:', err)
-    return false
+    return { ok: false, agente: null }
   }
+}
+
+/** Devuelve true si el lead quedó registrado en el inbox de Hilo. best-effort:
+ *  nunca lanza (el caller ya lo guardó en Redis), pero ahora el caller puede
+ *  saber si el push funcionó para no reportar éxito falso. */
+export async function pushLeadToHilo(payload: HiloLeadPayload): Promise<boolean> {
+  return (await enviarLeadAHilo(payload)).ok
 }
 
 /**

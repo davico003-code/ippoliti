@@ -4,9 +4,9 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { Calendar, MessageCircle, Share2, Link2, Check, Instagram, Sparkles } from 'lucide-react'
 import VisitWidget from './VisitWidget'
+import WhatsappConDatos from './property-detail/WhatsappConDatos'
 import { showToast } from './Toast'
 import { generarYCopiarFichaLink } from '@/lib/share-ficha'
-import { events } from '@/lib/analytics'
 
 interface Props {
   whatsappUrl: string
@@ -14,6 +14,8 @@ interface Props {
   title: string
   propertyId: number
   propertyTitle: string
+  /** Precio como se muestra en la ficha (para el mensaje de la consulta en Hilo). */
+  propertyPrice?: string
   /** WhatsApp del pedido de visita (alquileres de Roldán → Leticia); sin esto, el general. */
   visitWhatsappNumber?: string
   /** Operación de la propiedad, para etiquetar el pedido de visita. */
@@ -21,7 +23,7 @@ interface Props {
 }
 
 export default function MobileStickyBar({
-  whatsappUrl, slug, title, propertyId, propertyTitle, visitWhatsappNumber, visitTipo,
+  whatsappUrl, slug, title, propertyId, propertyTitle, propertyPrice, visitWhatsappNumber, visitTipo,
 }: Props) {
   const [shareOpen, setShareOpen] = useState(false)
   const [visitOpen, setVisitOpen] = useState(false)
@@ -126,12 +128,12 @@ export default function MobileStickyBar({
         </button>
 
         {/* 2. WhatsApp */}
-        <a
+        <WhatsappConDatos
           href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+          propertyId={propertyId}
+          propertyTitle={propertyTitle}
+          propertyPrice={propertyPrice}
           aria-label="Contactar por WhatsApp"
-          onClick={() => events.contactoPropiedad(propertyId, propertyTitle, 'whatsapp')}
           className="flex items-center justify-center"
           style={{
             width: 48, height: 48,
@@ -143,7 +145,7 @@ export default function MobileStickyBar({
           }}
         >
           <MessageCircle className="w-[21px] h-[21px] text-white" />
-        </a>
+        </WhatsappConDatos>
 
         {/* 3. Guardar */}
         {/* 4. Compartir */}

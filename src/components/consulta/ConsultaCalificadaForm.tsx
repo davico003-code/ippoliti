@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
+import { escribirContacto } from '@/lib/feed-en-red'
 
 /**
  * Formulario CALIFICADOR de una propiedad (15-sep-2026). Reemplaza al enlace
@@ -79,6 +80,8 @@ export default function ConsultaCalificadaForm({
         }),
       })
       if (!res.ok) throw new Error(String(res.status))
+      // Ya nos dejó sus datos: si después toca WhatsApp, no se los volvemos a pedir.
+      escribirContacto({ nombre: nombre.trim(), whatsapp: digitos })
       setEstado('sent')
       trackFbEvent('Lead', { content_name: propertyTitle, content_ids: [String(propertyId)], content_category: origen })
       trackEvent('generate_lead', { origen, ...(preguntas ? { pago, plazo } : {}) })

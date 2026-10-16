@@ -446,6 +446,7 @@ export default async function PropertyPage({ params }: Props) {
         title={tituloVisible(property) || property.address}
         propertyId={property.id}
         propertyTitle={tituloVisible(property) || property.address}
+        propertyPrice={price}
         visitWhatsappNumber={numeroVisitaWhatsapp(property)}
         visitTipo={
           !property.operations?.some(o => o.operation_type === 'Sale') &&
