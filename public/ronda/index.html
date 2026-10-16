@@ -259,8 +259,13 @@
           <label class="chip-opcion"><input type="checkbox" name="ciudades" value="Funes"><span>Funes</span></label>
           <label class="chip-opcion"><input type="checkbox" name="ciudades" value="Roldán"><span>Roldán</span></label>
         </div>
-        <div id="barriosElegir"></div>
-        <p class="ayuda chica">Si no marcás barrios, busca en toda la ciudad.</p>
+        <div class="barrio-buscar">
+          <label for="pedidoBarrio" class="sub-rotulo">Barrios <span class="opcional">(opcional)</span></label>
+          <input id="pedidoBarrio" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="barrioSugerencias" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" maxlength="40" placeholder="Escribí el barrio, ej.: Kentucky">
+          <ul id="barrioSugerencias" class="sugerencias" role="listbox" aria-label="Barrios" hidden></ul>
+        </div>
+        <ul id="barriosElegidos" class="elegidos" aria-label="Barrios elegidos"></ul>
+        <p class="ayuda chica">Si no elegís barrios, busca en toda la ciudad.</p>
         <p class="error" id="dondeError" hidden></p>
       </fieldset>
 

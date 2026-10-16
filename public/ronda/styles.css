@@ -469,8 +469,23 @@ dialog.visor::backdrop { background: #000; }
 .chip-opcion input:checked + span { background: var(--tinta); border-color: var(--tinta); color: var(--blanco); }
 .chip-opcion input:focus-visible + span { outline: 3px solid var(--foco); outline-offset: 2px; }
 .chips-opciones.chicos .chip-opcion span { min-height: 38px; padding: 0 12px; font-size: 14px; font-weight: 600; }
-.barrios-ciudad { margin-top: 12px; }
-.barrios-rotulo { margin-bottom: 6px; color: var(--gris); font-size: 13px; font-weight: 700; }
+.barrio-buscar { position: relative; margin-top: 14px; scroll-margin-top: 16px; }
+.sub-rotulo { display: block; margin-bottom: 6px; font-weight: 700; font-size: 14px; color: var(--tinta); }
+.sugerencias {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; max-height: 288px; overflow-y: auto; overscroll-behavior: contain;
+  margin: 0; padding: 6px; list-style: none; background: var(--blanco); border: 1px solid var(--linea-fuerte); border-radius: 12px; box-shadow: var(--sombra);
+}
+.sugerencias li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.sugerencias li small { color: var(--gris-claro); font-weight: 500; font-size: 13px; }
+.sugerencias li[aria-selected='true'] { background: var(--arena); }
+@media (hover: hover) { .sugerencias li[role='option']:hover { background: var(--arena); } }
+.sugerencias li.nada { min-height: 0; padding: 10px 12px; color: var(--gris); font-weight: 500; font-size: 14px; line-height: 1.4; cursor: default; }
+.elegidos { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.elegidos:empty { display: none; }
+.elegidos li { display: inline-flex; align-items: center; padding-left: 12px; border-radius: 999px; background: var(--tinta); color: var(--blanco); font-size: 14px; font-weight: 700; }
+.elegidos li small { opacity: 0.75; font-weight: 500; }
+.elegidos button { width: 36px; height: 36px; border: 0; border-radius: 999px; background: transparent; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; }
+.elegidos button:focus-visible { outline: 3px solid var(--foco); outline-offset: -3px; }
 .precio-fila { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; }
 .campo select { width: 100%; min-height: 52px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--linea-fuerte); background-color: var(--blanco); color: var(--tinta); font-size: 16px; }
 .campo .desde { display: block; margin-top: 12px; }

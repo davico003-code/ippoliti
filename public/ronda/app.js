@@ -1178,34 +1178,142 @@
     if (!sesion) return abrirIngreso()
     formPedido.reset()
     for (const id of ['tiposError', 'dondeError', 'cierreError', 'pedidoError']) error(id, '')
-    pintarBarriosElegir()
+    barriosElegidos = []
+    pintarBarriosElegidos()
+    cerrarSugerencias()
     const usados = pedidosVigentes().filter((q) => q.inmobiliaria.id === sesion.inmobiliaria.id).length
     $('#cupoPedidos').textContent = `${sesion.inmobiliaria.nombre} usa ${usados} de ${MAX_PEDIDOS} pedidos en la ronda.`
     abrir(dialogoPedido)
   }
 
-  /** Los barrios aparecen al marcar la ciudad; los ya marcados se conservan. */
-  function pintarBarriosElegir() {
-    const ciudades = $$('input[name="ciudades"]:checked', formPedido).map((i) => i.value)
-    const marcados = new Set($$('input[name="barrio"]:checked', formPedido).map((i) => i.value))
-    $('#barriosElegir').innerHTML = ciudades
+  // ── Barrios del pedido: se escriben y la lista se completa sola (David, 16-oct-2026: "para no llenarlo de
+  // burbujas"). Solo se eligen barrios de la lista: así el cruce con las oportunidades no falla.
+  const MAX_BARRIOS = 15
+  const campoBarrio = $('#pedidoBarrio')
+  const sugerencias = $('#barrioSugerencias')
+  let barriosElegidos = []
+  let opciones = []
+  let activa = -1
+
+  const ciudadesMarcadas = () => $$('input[name="ciudades"]:checked', formPedido).map((i) => i.value)
+  const mismoBarrio = (a, b) => a.ciudad === b.ciudad && a.nombre === b.nombre
+
+  function pintarBarriosElegidos() {
+    $('#barriosElegidos').innerHTML = barriosElegidos
       .map(
-        (c) =>
-          `<div class="barrios-ciudad"><p class="barrios-rotulo">Barrios de ${esc(c)}</p><div class="chips-opciones chicos">${BARRIOS[c]
-            .map((b) => {
-              const v = `${c}|${b}`
-              return `<label class="chip-opcion"><input type="checkbox" name="barrio" value="${esc(v)}"${marcados.has(v) ? ' checked' : ''}><span>${esc(b)}</span></label>`
-            })
-            .join('')}</div></div>`,
+        (b, i) =>
+          `<li><span>${esc(b.nombre)} <small>${esc(b.ciudad)}</small></span><button type="button" data-quitar-barrio="${i}" aria-label="Quitar ${esc(b.nombre)}">×</button></li>`,
       )
       .join('')
   }
 
+  function cerrarSugerencias() {
+    sugerencias.hidden = true
+    sugerencias.innerHTML = ''
+    campoBarrio.setAttribute('aria-expanded', 'false')
+    campoBarrio.removeAttribute('aria-activedescendant')
+    opciones = []
+    activa = -1
+  }
+
+  function marcarActiva(i) {
+    activa = i
+    $$('[role="option"]', sugerencias).forEach((li, k) => li.setAttribute('aria-selected', String(k === i)))
+    const li = $(`#barrioOpcion${i}`)
+    if (li) {
+      campoBarrio.setAttribute('aria-activedescendant', li.id)
+      li.scrollIntoView({ block: 'nearest' })
+    } else campoBarrio.removeAttribute('aria-activedescendant')
+  }
+
+  function pintarSugerencias() {
+    const q = sinTildes(campoBarrio.value).split(/\s+/).filter(Boolean)
+    if (q.length === 0) return cerrarSugerencias()
+    // Busca en las dos ciudades; primero las marcadas. Elegir un barrio marca su ciudad.
+    const marcadas = ciudadesMarcadas()
+    const ciudades = [...marcadas, ...Object.keys(BARRIOS).filter((c) => !marcadas.includes(c))]
+    opciones = ciudades
+      .flatMap((ciudad) => BARRIOS[ciudad].map((nombre) => ({ ciudad, nombre })))
+      .filter((b) => !barriosElegidos.some((x) => mismoBarrio(x, b)) && q.every((w) => sinTildes(b.nombre).includes(w)))
+      .slice(0, 8)
+    sugerencias.innerHTML = opciones.length
+      ? opciones
+          .map(
+            (b, i) =>
+              `<li id="barrioOpcion${i}" role="option" aria-selected="false" data-opcion="${i}"><span>${esc(b.nombre)}</span><small>${esc(b.ciudad)}</small></li>`,
+          )
+          .join('')
+      : '<li class="nada">No está en la lista. Dejá «toda la ciudad» o contalo en «Algo más».</li>'
+    sugerencias.hidden = false
+    campoBarrio.setAttribute('aria-expanded', 'true')
+    marcarActiva(opciones.length ? 0 : -1)
+  }
+
+  function elegirBarrio(i) {
+    const b = opciones[i]
+    if (!b) return
+    if (barriosElegidos.length >= MAX_BARRIOS) {
+      error('dondeError', `Hasta ${MAX_BARRIOS} barrios por pedido.`)
+      return
+    }
+    barriosElegidos.push(b)
+    // El barrio trae su ciudad.
+    const ciudad = $(`input[name="ciudades"][value="${b.ciudad}"]`, formPedido)
+    if (ciudad && !ciudad.checked) ciudad.checked = true
+    error('dondeError', '')
+    campoBarrio.value = ''
+    cerrarSugerencias()
+    pintarBarriosElegidos()
+    campoBarrio.focus()
+  }
+
+  campoBarrio.addEventListener('input', pintarSugerencias)
+  campoBarrio.addEventListener('focus', () => campoBarrio.closest('.barrio-buscar').scrollIntoView({ block: 'start', behavior: 'smooth' }))
+  campoBarrio.addEventListener('blur', cerrarSugerencias)
+  campoBarrio.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      // Enter elige el barrio resaltado; nunca manda el formulario desde acá.
+      e.preventDefault()
+      if (activa >= 0) elegirBarrio(activa)
+    } else if (e.key === 'ArrowDown' && opciones.length) {
+      e.preventDefault()
+      marcarActiva((activa + 1) % opciones.length)
+    } else if (e.key === 'ArrowUp' && opciones.length) {
+      e.preventDefault()
+      marcarActiva((activa - 1 + opciones.length) % opciones.length)
+    } else if (e.key === 'Escape' && !sugerencias.hidden) {
+      e.preventDefault()
+      e.stopPropagation()
+      cerrarSugerencias()
+    } else if (e.key === 'Backspace' && !campoBarrio.value && barriosElegidos.length) {
+      barriosElegidos.pop()
+      pintarBarriosElegidos()
+    }
+  })
+  // Que el toque en la lista no le saque el foco al campo (si no, el blur la cierra antes del clic).
+  sugerencias.addEventListener('pointerdown', (e) => e.preventDefault())
+  sugerencias.addEventListener('click', (e) => {
+    const li = e.target instanceof Element ? e.target.closest('[data-opcion]') : null
+    if (li) elegirBarrio(Number(li.dataset.opcion))
+  })
+  $('#barriosElegidos').addEventListener('click', (e) => {
+    const boton = e.target instanceof Element ? e.target.closest('[data-quitar-barrio]') : null
+    if (!boton) return
+    barriosElegidos.splice(Number(boton.dataset.quitarBarrio), 1)
+    pintarBarriosElegidos()
+    campoBarrio.focus()
+  })
+
   formPedido.addEventListener('change', (e) => {
     const nombre = e.target.name
-    if (nombre === 'ciudades') pintarBarriosElegir()
+    if (nombre === 'ciudades') {
+      // Si saca la ciudad, se van sus barrios.
+      const marcadas = ciudadesMarcadas()
+      barriosElegidos = barriosElegidos.filter((b) => marcadas.includes(b.ciudad))
+      pintarBarriosElegidos()
+    }
     if (nombre === 'tipos') error('tiposError', '')
-    if (nombre === 'ciudades' || nombre === 'barrio') error('dondeError', '')
+    if (nombre === 'ciudades') error('dondeError', '')
     if (nombre === 'cierre') error('cierreError', '')
   })
   // "250000" → "250.000" mientras escribe: el presupuesto se lee de un vistazo.
@@ -1245,10 +1353,7 @@
           operacion: f.get('operacion'),
           tipos,
           ciudades,
-          barrios: f.getAll('barrio').map((v) => {
-            const [ciudad, nombre] = String(v).split('|')
-            return { ciudad, nombre }
-          }),
+          barrios: barriosElegidos,
           hasta,
           desde: String(f.get('desde') || '').replace(/\D/g, ''),
           moneda: f.get('moneda'),
