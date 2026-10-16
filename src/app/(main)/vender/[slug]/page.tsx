@@ -14,6 +14,7 @@ import Tasador from '@/components/tasador/Tasador'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
 import { TEXTO_TIPO, TIPOS_TASAR, esIndexableTasar, landingDeCiudad, landingsDeCiudad, mercadoDe, opcionesTasar, resolverTasar, type Landing } from '@/lib/seo/tasar'
 import type { ResumenMercado } from '@/lib/tasador/tipos'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -59,8 +60,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = `¿Querés vender ${t.tu} en ${lugar(l)}? ${m ? `${frasesMercado(l, m)} ` : ''}Tasala online en segundos y vendela con SI INMOBILIARIA: corredores matriculados en Funes, Roldán y Rosario desde 1983.`
   const url = `${BASE}/vender/${l.slug}`
   return {
-    title: `${title} | SI INMOBILIARIA`,
-    description,
+    title: tituloConMarca(title),
+    description: recortarDescripcion(description),
     alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website', locale: 'es_AR' },
     twitter: { card: 'summary_large_image', title, description, images: ['/og-image.jpg'] },

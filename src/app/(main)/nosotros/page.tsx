@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import NosotrosClient from './NosotrosClient'
 
 export const metadata: Metadata = {
-  title: 'Sobre nosotros — 40 años en Funes, Roldán y Rosario | SI INMOBILIARIA',
+  title: 'Sobre nosotros — 40 años en Funes, Roldán y Rosario',
   description: 'Conocé la historia de SI INMOBILIARIA. Más de 40 años acompañando familias en Roldán, Funes y Rosario. Susana Ippoliti, Laura y David.',
   alternates: { canonical: 'https://siinmobiliaria.com/nosotros' },
   openGraph: {

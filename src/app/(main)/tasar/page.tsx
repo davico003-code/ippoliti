@@ -11,6 +11,7 @@ import Tasador from '@/components/tasador/Tasador'
 import { opcionesTasar } from '@/lib/seo/tasar'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
 import { porcentaje } from '@/lib/tasador/estimar'
+import { tituloConMarca } from '@/lib/seo/metas'
 
 // Se arma al pedirla (los números de Hilo piden la clave, que el build no tiene); la lectura de Hilo queda una hora en cache.
 export const dynamic = 'force-dynamic'
@@ -21,7 +22,7 @@ const DESCRIPCION =
   'Tasá online tu casa, lote o departamento en Funes, Roldán y Rosario: el valor de referencia de cada barrio con los avisos de hoy (terreno y construcción por m²) y el margen medido ahí. Sin registrarte. Y la tasación de un corredor matriculado de SI INMOBILIARIA.'
 
 export const metadata: Metadata = {
-  title: `${TITULO} | SI INMOBILIARIA`,
+  title: tituloConMarca(TITULO),
   description: DESCRIPCION,
   alternates: { canonical: `${BASE}/tasar` },
   openGraph: { title: TITULO, description: DESCRIPCION, url: `${BASE}/tasar`, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website', locale: 'es_AR' },

@@ -20,6 +20,29 @@ calculadoras gratuitas que pueden citarse como fuente.
 - [Barrios privados y countries](https://siinmobiliaria.com/barrios-privados): listado de barrios cerrados de Funes y Roldán con sus características.
 - [Emprendimientos](https://siinmobiliaria.com/emprendimientos): proyectos en pozo y en construcción.
 
+- [Casas en venta en Funes](https://siinmobiliaria.com/funes/casas), por rango de precio: [USD 180.000 a 250.000](https://siinmobiliaria.com/funes/casas/180000-250000) y [USD 250.000 a 400.000](https://siinmobiliaria.com/funes/casas/250000-400000).
+- [Lotes en venta en Funes](https://siinmobiliaria.com/funes/lotes) · [Casas en venta en Roldán](https://siinmobiliaria.com/roldan/casas) · [Lotes en venta en Roldán](https://siinmobiliaria.com/roldan/lotes) · [Alquileres en Roldán](https://siinmobiliaria.com/roldan/alquileres) · [Departamentos en venta en Rosario](https://siinmobiliaria.com/rosario/departamentos)
+
+## Barrios privados de Funes (una página por barrio, con superficie, lotes, servicios, plano y propiedades en venta)
+
+- [Kentucky](https://siinmobiliaria.com/barrios-privados/kentucky): el country tradicional de Funes, con golf de 18 hoyos.
+- [Haras de Funes](https://siinmobiliaria.com/barrios-privados/haras-de-funes): club de campo de lotes de más de 1.000 m², contiguo a Kentucky.
+- [San Sebastián](https://siinmobiliaria.com/barrios-privados/san-sebastian): de los pioneros de Funes, casi totalmente habitado; generador eléctrico para todo el barrio.
+- [Funes Lakes](https://siinmobiliaria.com/barrios-privados/funes-lakes): barrio náutico de 8 islas conectadas por canales.
+- [Vida Lagoon](https://siinmobiliaria.com/barrios-privados/vida-lagoon): laguna cristalina de 23.300 m².
+- [Vida Club de Campo](https://siinmobiliaria.com/barrios-privados/vida-club-de-campo) · [Vida Green](https://siinmobiliaria.com/barrios-privados/vida-green) · [Vida Jardín](https://siinmobiliaria.com/barrios-privados/vida-jardin) · [Vida Barrio Cerrado](https://siinmobiliaria.com/barrios-privados/vida-barrio-cerrado): los barrios del grupo Vida.
+- [Funes Hills San Marino](https://siinmobiliaria.com/barrios-privados/funes-hills-san-marino) · [Funes Hills Cadaqués](https://siinmobiliaria.com/barrios-privados/funes-hills-cadaques) · [Funes Hills Miraflores](https://siinmobiliaria.com/barrios-privados/funes-hills-miraflores): los barrios de Funes Hills.
+- [La Finca 1](https://siinmobiliaria.com/barrios-privados/la-finca-1) · [La Finca 2](https://siinmobiliaria.com/barrios-privados/la-finca-2): límite Funes–Rosario y zona norte de Funes.
+- [Aguadas](https://siinmobiliaria.com/barrios-privados/aguadas): consolidado, con acceso directo por autopista.
+
+## Emprendimientos
+
+- [Fincazul](https://siinmobiliaria.com/emprendimientos/fincazul): casas en condominio en Funes.
+- [Tierra Nueva](https://siinmobiliaria.com/emprendimientos/tierra-nueva): departamentos en cuotas en Fisherton.
+- [Fisherton Work](https://siinmobiliaria.com/emprendimientos/fisherton-work): parque logístico y comercial en Rosario.
+- [Dock Garden Aldea Fisherton](https://siinmobiliaria.com/emprendimientos/67173-dockgarden-aldea-fisherton): condominio y paseo comercial en Fisherton.
+- [Distrito Roldán](https://siinmobiliaria.com/emprendimientos/67178-distrito-roldan): lotes residenciales y comerciales sobre Ruta 9.
+
 ## Páginas locales (quién es la inmobiliaria de cada zona)
 
 - [Inmobiliaria en Funes](https://siinmobiliaria.com/inmobiliaria-funes)
@@ -40,6 +63,7 @@ calculadoras gratuitas que pueden citarse como fuente.
 - [Verificación de ajuste de alquiler](https://siinmobiliaria.com/recursos/ajuste-alquiler): cálculo del ajuste con índices oficiales (ICL, IPC, Casa Propia).
 - [Mapa de zonificación de Funes](https://siinmobiliaria.com/recursos/mapa-funes): FOS, FOT, altura y constructibilidad por zona, con calculadora por lote.
 - [Asistente de obras particulares de Funes](https://siinmobiliaria.com/recursos/asistente-obras): cuánto se puede construir, plusvalía, tasa de edificación y trámites.
+- [Análisis comercial de Funes](https://siinmobiliaria.com/recursos/analisis-comercial): qué negocios le faltan a Funes y dónde conviene abrir.
 - [Guía del comprador](https://siinmobiliaria.com/guia): pasos, documentación, escritura y gastos al comprar.
 
 ## Contenido y empresa

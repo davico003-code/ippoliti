@@ -24,7 +24,7 @@ const MUTED = '#5e6a63'
 const LINE = '#e6eae7'
 
 export const metadata: Metadata = {
-  title: 'Mercado inmobiliario de Funes y Roldán: precios y costos 2026 | SI INMOBILIARIA',
+  title: 'Mercado inmobiliario de Funes y Roldán: precios y costos 2026',
   description:
     'Datos del mercado inmobiliario de Funes y Roldán: cuánto cuesta construir por m², barrios cerrados, zonificación y costos de compra/alquiler. Valores actualizados por una inmobiliaria de la zona desde 1983.',
   alternates: { canonical: 'https://siinmobiliaria.com/mercado-inmobiliario-funes' },

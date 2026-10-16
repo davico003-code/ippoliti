@@ -7,7 +7,7 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const revalidate = 21600
 
 export const metadata: Metadata = {
-  title: 'Casas en venta en Fisherton | Precios y fotos | SI INMOBILIARIA',
+  title: 'Casas en venta en Fisherton | Precios y fotos',
   description: 'Casas en venta en Fisherton, Rosario. Green Village, Palos Verdes, Aldea. Zona residencial premium. Precios, fotos, m² y dormitorios. SI INMOBILIARIA.',
   keywords: 'casas en venta fisherton, casas fisherton, fisherton rosario casas, propiedades fisherton',
   alternates: { canonical: 'https://siinmobiliaria.com/casas-en-venta-fisherton' },

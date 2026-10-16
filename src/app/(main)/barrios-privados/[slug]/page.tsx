@@ -29,6 +29,7 @@ import DetalleGaleria from "./_components/DetalleGaleria";
 import DetalleAmenities from "./_components/DetalleAmenities";
 import DetallePlano from "./_components/DetallePlano";
 import DetalleMapaCercanias from "./_components/DetalleMapaCercanias";
+import { tituloConMarca } from '@/lib/seo/metas'
 
 const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif";
 
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`;
 
   const title = barrio.subtitulo
-    ? `${barrio.nombre} · ${barrio.subtitulo} | SI INMOBILIARIA`
+    ? tituloConMarca(`${barrio.nombre} · ${barrio.subtitulo}`)
     : barrio.seo.metaTitle;
   const description = barrio.contenidoSEO?.intro
     ? barrio.contenidoSEO.intro.slice(0, 155).trim()

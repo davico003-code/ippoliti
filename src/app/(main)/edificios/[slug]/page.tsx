@@ -17,6 +17,7 @@ import {
   type Edificio,
 } from '@/lib/edificios'
 import { fotoAbsoluta } from '@/lib/fotos-fijas'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 import {
   getRoofedArea,
   getTotalSurface,
@@ -59,8 +60,8 @@ export async function generateMetadata({
   }. Fotos, plantas y valores actualizados. SI INMOBILIARIA.`
   const url = `${BASE}/edificios/${edificio.slug}`
   return {
-    title: `${title} | SI INMOBILIARIA`,
-    description,
+    title: tituloConMarca(title),
+    description: recortarDescripcion(description),
     alternates: { canonical: url },
     openGraph: {
       title,

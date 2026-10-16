@@ -12,7 +12,7 @@ const DESCRIPTION =
   'Qué comercios le van a faltar a Funes y dónde conviene abrir: informe mensual con la proyección de población, los rubros que faltan, los que sobran y un mapa con los comercios de cada avenida.'
 
 export const metadata: Metadata = {
-  title: 'Análisis comercial de Funes · qué negocios faltan | SI INMOBILIARIA',
+  title: 'Análisis comercial de Funes · qué negocios faltan',
   description: DESCRIPTION,
   alternates: { canonical: URL },
   keywords: [

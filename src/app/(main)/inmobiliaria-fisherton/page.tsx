@@ -32,7 +32,7 @@ const faqJsonLd = {
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Fisherton | Casas y Propiedades | SI INMOBILIARIA',
+  title: 'Inmobiliaria en Fisherton | Casas y Propiedades',
   description: 'Casas, departamentos y terrenos en Fisherton, Rosario. Inventario vigente, tasaciones profesionales y atención desde las oficinas de SI INMOBILIARIA en Funes y Roldán.',
   keywords: 'inmobiliaria fisherton, casas en fisherton, propiedades fisherton, fisherton rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-fisherton' },

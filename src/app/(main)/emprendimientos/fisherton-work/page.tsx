@@ -36,7 +36,7 @@ import { FW_ADDRESS, FW_BASE, FW_GEO, FW_URL } from '@/lib/fisherton-work'
 
 const GREEN = '#1A5C38'
 
-const TITLE = 'Fisherton Work · Parque logístico y comercial en Rosario | SI INMOBILIARIA'
+const TITLE = 'Fisherton Work · Parque logístico y comercial en Rosario'
 const DESCRIPTION =
   'Fisherton Work: 43 unidades 4 en 1 (showroom, depósito, oficina y 5 cocheras) sobre lotes desde 400 m², a 300 m de Av. Jorge Newbery y 700 m de Circunvalación. Masterplan interactivo, planos y precios con SI INMOBILIARIA.'
 
