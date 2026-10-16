@@ -1,4 +1,5 @@
 import { PROPERTY_SEO } from '@/lib/seoOverrides'
+import { conFotosFijas } from '@/lib/fotos-fijas'
 
 function getApiKey(): string {
   const key = process.env.TOKKO_API_KEY
@@ -24,7 +25,10 @@ async function hiloFeed(): Promise<any[]> {
   })
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status}`)
   const data = await res.json()
-  return data.objects ?? []
+  // Fotos de las unidades con URL fija (lib/fotos-fijas.ts); OG y JSON-LD las
+  // pasan a absolutas con absoluteDevPhotoUrl.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data.objects ?? []).map((o: any) => conFotosFijas(o))
 }
 
 // El `development` embebido en el FEED DE LISTA viene recortado (sin photos ni

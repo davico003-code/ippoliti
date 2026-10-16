@@ -40,6 +40,7 @@ import {
 import { formatUbicacion } from '@/lib/ubicacion';
 import { sinVideosCaidos } from '@/lib/videos-vivos';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
+import { conFotosFijas, fotoAbsoluta, fotoFija } from '@/lib/fotos-fijas';
 
 export const revalidate = 3600;
 
@@ -123,7 +124,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .replace(/\s+/g, ' ')
       .trim()
       .slice(0, 160) || descripcionFallback(property));
-    const photo = getMainPhoto(property);
+    // URL fija (/fotos/…): la firmada de Supabase rota cada 45 días y deja a
+    // WhatsApp/Facebook con la vista previa rota (ver lib/fotos-fijas.ts).
+    const photo = fotoFija(property, getMainPhoto(property), true);
     const price = formatPrice(property);
     const loc = formatUbicacion(property);
     const ogDesc = `${price} - ${loc || property.address}. ${desc}`.slice(0, 200);
@@ -173,7 +176,9 @@ export default async function PropertyPage({ params }: Props) {
 
   let property: TokkoProperty;
   try {
-    property = await sinVideosCaidos(sanitizeProperty(await getPropertyById(id)));
+    // Fotos con URL fija: la clave de /_next/image y la URL que ve Google
+    // Imágenes ya no cambian cada 45 días (ver lib/fotos-fijas.ts).
+    property = conFotosFijas(await sinVideosCaidos(sanitizeProperty(await getPropertyById(id))));
   } catch (e) {
     if (e instanceof Error && e.message.includes('not found')) {
       // LIMITACIÓN CONOCIDA (#2 soft-404): en esta ruta el notFound() resuelve
@@ -250,7 +255,7 @@ export default async function PropertyPage({ params }: Props) {
   const description = getDescription(property);
 
   // JSON-LD — RealEstateListing + BreadcrumbList
-  const mainPhotoUrl = getMainPhoto(property);
+  const mainPhotoUrl = fotoAbsoluta(getMainPhoto(property));
   // La operación que muestra la ficha (operations[0] podía ser una venta en 0).
   const opPrincipal = operacionPrincipal(property);
   const propPrice = opPrincipal?.prices?.[0]?.price ?? 0;

@@ -16,6 +16,7 @@ import {
   getMainPhoto,
   type Edificio,
 } from '@/lib/edificios'
+import { fotoAbsoluta } from '@/lib/fotos-fijas'
 import {
   getRoofedArea,
   getTotalSurface,
@@ -66,7 +67,7 @@ export async function generateMetadata({
       description,
       url,
       siteName: 'SI INMOBILIARIA',
-      images: [edificio.foto ?? '/og-image.jpg'],
+      images: [fotoAbsoluta(edificio.foto) ?? '/og-image.jpg'],
       type: 'website',
     },
   }
@@ -86,7 +87,7 @@ export default async function EdificioPage({ params }: { params: { slug: string 
     address: { '@type': 'PostalAddress', streetAddress: edificio.direccion, addressLocality: edificio.ciudad },
     numberOfAvailableAccommodationUnits: edificio.unidades.length,
     url: `${BASE}/edificios/${edificio.slug}`,
-    ...(edificio.foto ? { image: edificio.foto } : {}),
+    ...(edificio.foto ? { image: fotoAbsoluta(edificio.foto) } : {}),
     ...(edificio.lat && edificio.lon
       ? { geo: { '@type': 'GeoCoordinates', latitude: edificio.lat, longitude: edificio.lon } }
       : {}),
