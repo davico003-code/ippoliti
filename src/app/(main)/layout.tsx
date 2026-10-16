@@ -49,6 +49,8 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'vzBOIhp_zjfmlEuh_-0vZ6K9PDOyNAY_wSet1AWsNUI',
+    // Bing Webmaster Tools (cuenta de David, 16-oct). No sacarla: Bing la re-chequea.
+    other: { 'msvalidate.01': 'D6A3E4255C7F24CD2154E6225C5AAEC2' },
   },
   openGraph: {
     title: 'SI INMOBILIARIA — Propiedades en Funes, Roldán y Rosario',
