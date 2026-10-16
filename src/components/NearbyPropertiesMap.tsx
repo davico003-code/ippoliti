@@ -2,10 +2,10 @@
 
 import 'leaflet/dist/leaflet.css'
 import { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import Link from 'next/link'
-import { VOYAGER_TILES } from '@/lib/map-tiles'
+import CapaCalles from './CapaCalles'
 
 export interface NearbyProperty {
   id: number
@@ -109,11 +109,7 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
           zoomControl
           className="nearby-map"
         >
-          <TileLayer className="si-street-tiles"
-            url={VOYAGER_TILES.url}
-            attribution={VOYAGER_TILES.attribution}
-            maxZoom={19}
-          />
+          <CapaCalles maxZoom={19} />
           <SetView center={[lat, lng]} />
 
           {/* Current property — red dot */}
