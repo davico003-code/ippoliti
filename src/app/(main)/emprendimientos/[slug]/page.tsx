@@ -40,6 +40,7 @@ import SeccionCtaFinanciacion from '@/components/distrito-roldan/SeccionCtaFinan
 import FabLotes from '@/components/distrito-roldan/FabLotes'
 import { getClienteFormatted } from '@/lib/clientes'
 import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug, getMainPhoto, translatePropertyType, getTotalSurface } from '@/lib/tokko'
+import { conFotosFijas } from '@/lib/fotos-fijas'
 export const revalidate = 21600
 
 interface Props {
@@ -379,7 +380,7 @@ async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes'
     await Promise.allSettled(
       allIds.map(async id => {
         try {
-          propsMap[id] = await getPropertyById(id)
+          propsMap[id] = conFotosFijas(await getPropertyById(id))
         } catch {}
       })
     )

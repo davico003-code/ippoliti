@@ -101,9 +101,15 @@ export function fotoFija(
 
 /**
  * Copia de la propiedad con `image`/`thumb`/`original` de cada foto en su URL
- * fija relativa (para el <img> de la ficha: next/image la optimiza con una
- * clave que ya no cambia). `original` también: /fotos sirve el mismo archivo y
- * las firmadas eran ~19% del HTML de la ficha (38 KB de 198 KB en 8153191).
+ * fija relativa (para el <img>: next/image la optimiza con una clave que ya no
+ * cambia). `original` también: /fotos sirve el mismo archivo y las firmadas
+ * eran ~19% del HTML de la ficha (38 KB de 198 KB en 8153191). Solo reescribe
+ * las claves que ya vienen: la lista liviana del feed trae únicamente `image`
+ * y sumarle thumb/original engordaría el listado.
+ *
+ * La usan la ficha, todas las listas (hiloGetProperties en lib/tokko.ts) y las
+ * APIs por id que son vidriera. NO getPropertyById: la ruta /fotos necesita la
+ * firmada, y la ficha neutra (lib/ficha.ts) y hausing.ts la leen tal cual.
  */
 export function conFotosFijas<T extends PropiedadConFotos>(property: T): T {
   if (!property.photos?.length) return property;
@@ -115,7 +121,12 @@ export function conFotosFijas<T extends PropiedadConFotos>(property: T): T {
       if (foto.is_blueprint) return foto;
       const fija = fotoFija(property, foto.image, false, fijas);
       if (!fija || fija === foto.image) return foto;
-      return { ...foto, image: fija, thumb: fija, original: fija };
+      return {
+        ...foto,
+        image: fija,
+        ...('thumb' in foto ? { thumb: fija } : {}),
+        ...('original' in foto ? { original: fija } : {}),
+      };
     }),
   };
 }

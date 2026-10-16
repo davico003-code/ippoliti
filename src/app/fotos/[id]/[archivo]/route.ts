@@ -1,5 +1,5 @@
-import { getPropertyById } from '@/lib/tokko';
-import { fotosFijasDe, RE_ARCHIVO_FOTO } from '@/lib/fotos-fijas';
+import { getPropertyById, type TokkoProperty } from '@/lib/tokko';
+import { archivoDeFotoFirmada, fotosFijasDe, RE_ARCHIVO_FOTO } from '@/lib/fotos-fijas';
 
 /**
  * GET /fotos/<id>/<archivo> — foto de una ficha con URL FIJA (ver lib/fotos-fijas.ts).
@@ -56,14 +56,23 @@ export async function GET(
   }
   if (!/^\d{1,12}$/.test(id) || !RE_ARCHIVO_FOTO.test(archivo)) return noEsta();
 
-  let firmada: string | undefined;
+  let property: TokkoProperty;
   try {
-    firmada = fotosFijasDe(await getPropertyById(Number(id))).get(archivo);
+    property = await getPropertyById(Number(id));
   } catch (e) {
     if (e instanceof Error && e.message.includes('not found')) return noEsta();
     return fallo(id, archivo, e);
   }
-  if (!firmada) return noEsta();
+  const firmada = fotosFijasDe(property).get(archivo);
+  if (!firmada) {
+    // Está en la propiedad pero fotosFijasDe la dejó afuera = el mismo nombre en
+    // dos rutas de Storage. La lista (≤5 fotos) pudo no verlo y publicar la URL
+    // fija: que no sea un 404 mudo.
+    if (property.photos?.some((f) => !f.is_blueprint && archivoDeFotoFirmada(f.image) === archivo)) {
+      console.error(`[fotos] ${id}/${archivo}: nombre repetido en dos rutas de Storage, la foto no se sirve`);
+    }
+    return noEsta();
+  }
 
   try {
     const res = await fetch(firmada, { cache: 'no-store', signal: AbortSignal.timeout(20_000) });

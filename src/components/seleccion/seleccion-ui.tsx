@@ -64,6 +64,8 @@ export const LINEA_EN_RED = 'Algunas las publican otras inmobiliarias. Te las mo
 // Fotos que /_next/image puede optimizar (remotePatterns de next.config). Las
 // de portales/proxy van directo, como en la ficha.
 function optimizable(src: string): boolean {
+  // Nuestras fotos con URL fija (/fotos/…, lib/fotos-fijas.ts): mismo deployment.
+  if (src.startsWith('/fotos/')) return true
   try {
     const u = new URL(src)
     const h = u.hostname

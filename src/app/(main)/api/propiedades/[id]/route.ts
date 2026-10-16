@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { applyPropertySeoOverride } from '@/lib/seoOverrides'
 import { ocultarPrecioOportunidad, CACHE_TAG_DETALLE, cacheTagPropiedad } from '@/lib/tokko'
 import { sinVideosCaidos } from '@/lib/videos-vivos'
+import { conFotosFijas } from '@/lib/fotos-fijas'
 
 export async function GET(
   _req: Request,
@@ -18,7 +19,8 @@ export async function GET(
     if (!r.ok) return NextResponse.json({ error: 'Not found' }, { status: r.status === 404 ? 404 : 500 })
     // Override de SEO por ID (unidades de emprendimientos): el panel desktop de
     // la ficha consume esta API — sin esto mostraría el título/typos del CRM.
-    return NextResponse.json(await sinVideosCaidos(applyPropertySeoOverride(ocultarPrecioOportunidad(await r.json()))))
+    // Fotos con URL fija: es la galería de la ficha en la compu (lib/fotos-fijas.ts).
+    return NextResponse.json(conFotosFijas(await sinVideosCaidos(applyPropertySeoOverride(ocultarPrecioOportunidad(await r.json())))))
   }
 
   const apiKey = process.env.TOKKO_API_KEY

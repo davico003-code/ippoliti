@@ -72,3 +72,8 @@ test('fotoAbsoluta solo completa las relativas de /fotos', () => {
   assert.equal(fotoAbsoluta(PLANO), PLANO)
   assert.equal(fotoAbsoluta(null), null)
 })
+
+test('la lista liviana (solo image) no gana thumb ni original', () => {
+  const p = { id: 7, photos: [{ image: firmada('p1', 'a.jpg'), is_blueprint: false }] }
+  assert.deepEqual(conFotosFijas(p).photos[0], { image: '/fotos/7/a.jpg', is_blueprint: false })
+})

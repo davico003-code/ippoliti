@@ -3,6 +3,7 @@ import { normalizeArWhatsapp } from './phone'
 import { normalizarTitulo } from './titulo'
 import { corregirTipo } from './correcciones'
 import { resolverUbicacion } from './ubicacion'
+import { conFotosFijas } from './fotos-fijas';
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
 // del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
@@ -1150,7 +1151,9 @@ async function hiloGetProperties(params?: {
   const limit = params?.limit ?? total;
   return {
     meta: { limit, offset, total_count: total, next: null, previous: null },
-    objects: objects.slice(offset, offset + limit).map(ocultarPrecioOportunidad),
+    // Fotos con URL fija (/fotos/…) en TODAS las listas: tarjetas, landings,
+    // home, Similares, mapa, kiosco. Ver lib/fotos-fijas.ts.
+    objects: objects.slice(offset, offset + limit).map((o) => conFotosFijas(ocultarPrecioOportunidad(o))),
   };
 }
 
