@@ -177,6 +177,10 @@ ul, ol { padding: 0; list-style: none; }
 .oportunidad { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--arena); border: 1px solid var(--arena-borde); }
 .oportunidad b { display: block; color: var(--acento); font-size: 12px; letter-spacing: 0.9px; text-transform: uppercase; }
 .oportunidad p { margin-top: 3px; color: #4a4336; font-size: 15px; overflow-wrap: anywhere; }
+/* En la tarjeta, 3 renglones y "Ver más"; en "Ver todo", completo. */
+.tarjeta .oportunidad p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.tarjeta .oportunidad.abierta p { display: block; -webkit-line-clamp: unset; line-clamp: none; }
+.ver-mas { min-height: 32px; padding: 0; margin-top: 2px; font-size: 14px; color: var(--acento); }
 .colega { display: flex; align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--linea); min-width: 0; }
 .colega > div { min-width: 0; flex: 1; }
 .colega strong, .colega small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
