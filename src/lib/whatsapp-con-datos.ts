@@ -17,8 +17,11 @@ export type AgenteFicha = { nombre: string; whatsapp: string }
 
 /**
  * El wa.me final (puro). Va al agente asignado si Hilo lo devolvió; si no, al
- * número de la ficha. El texto de la ficha ("Hola <captador>, te escribo por la
- * propiedad …") pasa a saludar al que atiende y a decir quién escribe.
+ * número de la ficha. El texto de la ficha pasa a saludar al que atiende y a
+ * decir quién escribe. Los dos textos de lib/tokko.ts saludan distinto —
+ * "Hola <captador>, te escribo por…" y "Hola <captador>! Quiero consultar el
+ * precio…" — y la dirección puede tener comas: se corta SOLO el saludo, hasta la
+ * primera coma o el primer "!".
  */
 export function urlWhatsappConDatos(hrefFicha: string, nombre: string, agente: AgenteFicha | null): string {
   let url: URL
@@ -28,7 +31,7 @@ export function urlWhatsappConDatos(hrefFicha: string, nombre: string, agente: A
     return hrefFicha
   }
   const numero = agente?.whatsapp ?? url.pathname.replace(/\D/g, '')
-  const resto = (url.searchParams.get('text') ?? '').replace(/^Hola[^,\n]*,\s*/, '')
+  const resto = (url.searchParams.get('text') ?? '').replace(/^Hola\b[^,!\n]*[,!]\s*/, '')
   const saludo = `Hola${agente?.nombre ? ` ${agente.nombre}` : ''}, soy ${nombre.trim()}.`
   const texto = resto ? `${saludo} ${resto.charAt(0).toUpperCase()}${resto.slice(1)}` : saludo
   return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`

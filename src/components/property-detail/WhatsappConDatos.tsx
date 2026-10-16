@@ -236,12 +236,12 @@ function HojaWhatsapp({
               if (estado !== 'enviando') void enviar(nombre, whatsapp)
             }}
           >
-            <p className="mb-4 text-[14px] text-neutral-600">
+            <p className="mb-4 text-[16px] font-medium leading-snug text-neutral-800">
               Dejanos tu nombre y celular: así te atiende siempre la misma persona.
             </p>
             <div className="space-y-3">
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">Nombre y apellido</span>
+                <span className="mb-1 block text-[13px] font-semibold uppercase tracking-wide text-neutral-600">Nombre y apellido</span>
                 <input
                   ref={nombreRef}
                   type="text"
@@ -254,7 +254,7 @@ function HojaWhatsapp({
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">Tu WhatsApp</span>
+                <span className="mb-1 block text-[13px] font-semibold uppercase tracking-wide text-neutral-600">Tu WhatsApp</span>
                 <input
                   ref={whatsappRef}
                   type="tel"
@@ -282,7 +282,7 @@ function HojaWhatsapp({
               <MessageCircle className="h-5 w-5" aria-hidden />
               {estado === 'enviando' ? 'Abriendo WhatsApp…' : 'Abrir WhatsApp'}
             </button>
-            <p className="mt-3 text-center text-xs text-neutral-500">
+            <p className="mt-3 text-center text-[13px] text-neutral-600">
               Solo para responderte esta consulta.{' '}
               <a href="/privacidad" className="underline">
                 Política de privacidad

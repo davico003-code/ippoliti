@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         : esPedirContacto
           ? `Pidió que lo contacten por WhatsApp por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la ficha de la web`
           : esWhatsappFicha
-            ? `Tocó «Consultar por WhatsApp» en la ficha de ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) y se le abrió el chat con vos. Si no te escribió, escribile vos.`
+            ? `Tocó «Consultar por WhatsApp» en la ficha de ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) y se le abrió el chat de WhatsApp. Si no te escribió, escribile vos.`
             : mensajeGenerico,
     ...(esDePropiedad
       ? { tokkoPropertyId, hiloPropertyId, sourceUrl: pageUrl || null, attribution: utm }
@@ -172,5 +172,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, agente: hilo.agente })
+  // El WhatsApp del agente solo lo pide el botón de la ficha.
+  return NextResponse.json(esWhatsappFicha ? { ok: true, agente: hilo.agente } : { ok: true })
 }
