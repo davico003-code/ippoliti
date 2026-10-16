@@ -6,8 +6,9 @@ import { fotosFijasDe, RE_ARCHIVO_FOTO } from '@/lib/fotos-fijas';
  *
  * Busca la firma vigente de esa foto en el feed (getPropertyById: la misma
  * entrada del Data Cache que usa la ficha, no suma pedidos a Hilo) y manda los
- * bytes EN STREAM: hay fotos de hasta 17 MB y una respuesta armada en memoria
- * de más de 4,5 MB la corta Vercel.
+ * bytes EN STREAM (una respuesta armada en memoria de más de 4,5 MB la corta
+ * Vercel). Las de más de 9 MB (crudas de drone de hasta 17 MB) van con 307 a la
+ * firmada: el CDN no las guarda (ver MAX_CACHEABLE).
  *
  * Caché: 30 días en el CDN. No es "inmutable" como los planos para que una
  * propiedad dada de baja deje de servir sus fotos. "No está" (propiedad fuera
@@ -20,7 +21,13 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
 const CACHE_FOTO = 'public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400';
-const MAX_CON_LARGO = 9_000_000;
+// El CDN de Vercel no guarda respuestas de funciones de más de 10 MB (medido en
+// el preview el 16-oct: 5,6 MB → HIT; 14,6 y 17 MB → MISS siempre, con o sin
+// Content-Length). Por encima de esto la foto va con 307 a la firmada, como
+// hasta hoy: servirla desde acá costaría una pasada por la función en cada vista.
+const MAX_CACHEABLE = 9_000_000;
+// La firma vigente dura >= 45 días: un día de caché del 307 nunca apunta a una vencida.
+const CACHE_REDIRECCION = 'public, max-age=3600, s-maxage=86400';
 
 function noEsta(): Response {
   return new Response('not found', {
@@ -62,16 +69,20 @@ export async function GET(
     if (!res.ok || !res.body || !tipo.startsWith('image/')) {
       return fallo(id, archivo, `Supabase ${res.status} ${tipo}`);
     }
+    const largo = res.headers.get('content-length');
+    if (Number(largo) > MAX_CACHEABLE) {
+      await res.body.cancel().catch(() => {});
+      return new Response(null, {
+        status: 307,
+        headers: { Location: firmada, 'Cache-Control': CACHE_REDIRECCION },
+      });
+    }
     const headers: Record<string, string> = {
       'Content-Type': tipo,
       'Cache-Control': CACHE_FOTO,
       'X-Content-Type-Options': 'nosniff',
     };
-    // El CDN de Vercel guarda respuestas de hasta 10 MB, o 20 MB si van en
-    // streaming: con Content-Length una foto de 14 MB no se guardaba y cada
-    // vista volvía a pasar por la función (medido en el preview, 16-oct).
-    const largo = res.headers.get('content-length');
-    if (largo && Number(largo) <= MAX_CON_LARGO) headers['Content-Length'] = largo;
+    if (largo) headers['Content-Length'] = largo;
     return new Response(res.body, { status: 200, headers });
   } catch (e) {
     return fallo(id, archivo, e);
