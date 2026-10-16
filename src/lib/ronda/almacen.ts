@@ -4,6 +4,7 @@
 //   ronda:inmobiliarias  → Inmobiliaria   (la lista que se autocompleta)
 //   ronda:agentes        → AgenteRonda    (quién entró, con su WhatsApp)
 //   ronda:publicaciones  → Publicacion    (la grilla; las vencidas se limpian al publicar)
+//   ronda:pedidos        → Pedido         (lo que buscan los clientes de los colegas, 16-oct-2026)
 //   ronda:leido:<clave>  → el aviso ya leído, 30 min (no leerlo dos veces)
 //   ronda:zonaprop       → copia de los avisos de Zonaprop que Hilo ya tenía leídos
 //   ronda:contactos:<mes>, ronda:fichas:<mes> → la actividad del mes (ver abajo)
@@ -16,7 +17,7 @@
 import { nanoid } from 'nanoid'
 import { redis } from '@/lib/redis'
 import { cifrar, descifrar, estaCifrado } from './cifrado'
-import { activas, sinTildes, type AgenteRonda, type Inmobiliaria, type Publicacion } from './reglas'
+import { activas, pedidosActivos, sinTildes, type AgenteRonda, type Inmobiliaria, type Pedido, type Publicacion } from './reglas'
 
 // Las dos señales: el .env.local de esta máquina trae VERCEL_ENV="production"
 // (viene de `vercel env pull`), así que `next dev` sola no alcanza para saberlo.
@@ -26,6 +27,7 @@ const K = {
   inmobiliarias: `${P}:inmobiliarias`,
   agentes: `${P}:agentes`,
   publicaciones: `${P}:publicaciones`,
+  pedidos: `${P}:pedidos`,
   leido: (clave: string) => `${P}:leido:${clave}`,
 }
 
@@ -33,6 +35,7 @@ const TTL_GRILLA_MS = 15_000
 const TTL_LISTA_MS = 30_000
 
 let _grilla: { filas: Publicacion[]; ts: number } | null = null
+let _pedidos: { filas: Pedido[]; ts: number } | null = null
 let _inmobiliarias: { filas: Inmobiliaria[]; ts: number } | null = null
 
 /**
@@ -119,6 +122,37 @@ export async function limpiarVencidas(): Promise<void> {
   const vencidas = filas.filter((p) => p.vence <= Date.now()).map((p) => p.id)
   if (vencidas.length > 0) await redis.hdel(K.publicaciones, ...vencidas)
   await cifrarLoQueQuedoEnClaro()
+}
+
+// ── Pedidos de búsqueda ─────────────────────────────────────────────────
+
+/** Los pedidos vigentes, el más nuevo primero (15 s en memoria, como la grilla). */
+export async function listarPedidos(fresco = false): Promise<Pedido[]> {
+  if (!fresco && _pedidos && Date.now() - _pedidos.ts < TTL_GRILLA_MS) return pedidosActivos(_pedidos.filas)
+  const filas = await todas<Pedido>(K.pedidos)
+  _pedidos = { filas, ts: Date.now() }
+  return pedidosActivos(filas)
+}
+
+export async function guardarPedido(p: Pedido): Promise<void> {
+  await redis.hset(K.pedidos, { [p.id]: cifrar(p) })
+  _pedidos = null
+}
+
+export async function pedidoPorId(id: string): Promise<Pedido | null> {
+  return fila<Pedido>(await redis.hget(K.pedidos, id))
+}
+
+export async function borrarPedido(id: string): Promise<void> {
+  await redis.hdel(K.pedidos, id)
+  _pedidos = null
+}
+
+/** Saca los vencidos. Se llama al publicar un pedido: no hace falta un cron. */
+export async function limpiarPedidosVencidos(): Promise<void> {
+  const filas = await todas<Pedido>(K.pedidos)
+  const vencidos = filas.filter((p) => p.vence <= Date.now()).map((p) => p.id)
+  if (vencidos.length > 0) await redis.hdel(K.pedidos, ...vencidos)
 }
 
 /** Los registros de antes del cifrado (13-oct-2026) se reescriben cifrados. */
