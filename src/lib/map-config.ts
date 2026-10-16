@@ -10,17 +10,19 @@
 
 // ─── Encuadre inicial fijo ───────────────────────────────────────────────────
 //
-// Centroide entre Funes, Roldán y Fisherton para que arranquen los 3 polos
-// del corredor oeste visibles. NO depende de los resultados del listado —
-// la posición es estable a través de recargas y filtros que no aplican zona.
+// Centrado en Funes y Roldán (pedido de David, 15-oct: abrir con Roldán a Fisherton
+// dejaba el celular demasiado lejos, con San Lorenzo y Pérez a la vista). NO
+// depende de los resultados del listado — la posición es estable a través de
+// recargas y filtros que no aplican zona.
 
-export const DEFAULT_CENTER: [number, number] = [-32.9145, -60.8200]
+export const DEFAULT_CENTER: [number, number] = [-32.915, -60.8515]
 export const DEFAULT_ZOOM = 12
 
-// Lo que tiene que entrar en el encuadre inicial: de Roldán a Fisherton. El
-// mapa elige el zoom según el tamaño (en el celular, 12 cortaba Roldán y
-// Fisherton a los costados). [sur-oeste, nor-este].
-export const DEFAULT_BOUNDS: [[number, number], [number, number]] = [[-32.955, -60.915], [-32.885, -60.725]]
+// Lo que tiene que entrar en el encuadre inicial: Roldán y Funes. El mapa elige
+// el zoom según el tamaño, hasta 12: en el celular entran los dos justos; en la
+// compu, con más ancho, se ve también alrededor. [sur-oeste, nor-este].
+export const DEFAULT_BOUNDS: [[number, number], [number, number]] = [[-32.94, -60.906], [-32.89, -60.797]]
+export const DEFAULT_BOUNDS_OPCIONES = { padding: [16, 16] as [number, number], maxZoom: DEFAULT_ZOOM }
 
 // El tercer slot del tuple es el zoom destino. Sin él, asume 16 (zoom in a
 // una propiedad seleccionada). Pasarlo explícito sirve para reset al

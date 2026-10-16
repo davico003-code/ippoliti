@@ -17,7 +17,7 @@ import {
   tituloVisible,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
-import { DEFAULT_BOUNDS, DEFAULT_ZOOM, esEncuadreInicial, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
+import { DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES, DEFAULT_ZOOM, esEncuadreInicial, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
 import CapaCalles from './CapaCalles'
@@ -349,7 +349,7 @@ function InitialView({ vista }: { vista?: ZonaMapa | null }) {
       // Al volver a abrir el mapa (celular: lista → mapa) retoma la zona que la
       // persona estaba mirando; si no movió el mapa, el encuadre de siempre.
       if (vista) map.setView([vista.lat, vista.lng], vista.zoom)
-      else map.fitBounds(DEFAULT_BOUNDS, { padding: [24, 24] })
+      else map.fitBounds(DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES)
     }, 200)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -382,7 +382,7 @@ function MapFlyTo({ center }: { center: FlyToTarget | null }) {
     const [lat, lng] = center
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
     if (esEncuadreInicial(center)) {
-      return whenMapSized(map, () => map.flyToBounds(DEFAULT_BOUNDS, { padding: [24, 24], duration: 0.7 }))
+      return whenMapSized(map, () => map.flyToBounds(DEFAULT_BOUNDS, { ...DEFAULT_BOUNDS_OPCIONES, duration: 0.7 }))
     }
     const zoom = center[2] ?? 16
     return whenMapSized(map, () => map.flyTo([lat, lng], zoom, { duration: 0.7, easeLinearity: 0.4 }))
@@ -867,7 +867,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
   return (
     <MapContainer
       bounds={DEFAULT_BOUNDS}
-      boundsOptions={{ padding: [24, 24] }}
+      boundsOptions={DEFAULT_BOUNDS_OPCIONES}
       style={{ height: '100%', width: '100%' }}
       zoomControl={false}
       scrollWheelZoom
