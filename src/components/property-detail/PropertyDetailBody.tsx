@@ -35,11 +35,12 @@ import {
 } from '@/lib/tokko'
 import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
 import ContactoSecundario from './ContactoSecundario'
+import WhatsappConDatos from './WhatsappConDatos'
 import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondiciones'
 import DisponibilidadTemporada from '../temporarios/DisponibilidadTemporada'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
 import { formatUbicacion } from '@/lib/ubicacion'
-import { trackEvent, events } from '@/lib/analytics'
+import { trackEvent } from '@/lib/analytics'
 import PropertyDescription from '../PropertyDescription'
 import SectionBoundary from './SectionBoundary'
 import BarrioPanel from './BarrioPanel'
@@ -285,15 +286,15 @@ export default function PropertyDetailBody({
                   Oportunidad
                 </span>
               )}
-              <a
+              <WhatsappConDatos
                 href={consultarPrecioUrl!}
-                target="_blank"
-                rel="noopener noreferrer"
+                propertyId={property.id}
+                propertyTitle={tituloContacto}
                 className="inline-flex items-center gap-2 bg-[#1A5C38] hover:bg-[#145030] text-white font-bold rounded-xl px-5 py-3 transition-colors"
                 style={{ fontFamily: P, fontSize: 17 }}
               >
                 <MessageCircle className="w-5 h-5" /> {esOportunidad ? 'Consultanos' : 'Consultar precio'}
-              </a>
+              </WhatsappConDatos>
             </span>
           )}
         </div>
@@ -368,12 +369,11 @@ export default function PropertyDetailBody({
           })()}
 
           {/* UN botón principal y una fila secundaria (David 4-oct: "son demasiados botones, confunden"). */}
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-            onClick={() => events.contactoPropiedad(property.id, tituloContacto, 'whatsapp')}
+          <WhatsappConDatos href={whatsappUrl} propertyId={property.id} propertyTitle={tituloContacto} propertyPrice={price}
             className="mb-2 flex w-full items-center justify-center gap-2 py-3 rounded-full font-semibold text-sm"
             style={{ background: '#25d366', color: '#fff' }}>
             <MessageCircle className="w-4 h-4" /> Consultar por WhatsApp
-          </a>
+          </WhatsappConDatos>
           <ContactoSecundario
             propertyId={property.id}
             propertyTitle={tituloContacto}
