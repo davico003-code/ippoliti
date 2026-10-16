@@ -94,17 +94,16 @@
    * del mes. Sale aunque la página se vaya a WhatsApp (keepalive) y nunca frena nada.
    */
   function anotar(tipo, id) {
-    if (!acceso || !sesion?.token || !id) return
+    if (!sesion?.token || !id) return
     fetch('/api/ronda/actividad', {
       method: 'POST',
       keepalive: true,
-      headers: { 'content-type': 'application/json', 'x-ronda-acceso': acceso, authorization: `Bearer ${sesion.token}` },
+      headers: { 'content-type': 'application/json', ...(acceso ? { 'x-ronda-acceso': acceso } : {}), authorization: `Bearer ${sesion.token}` },
       body: JSON.stringify({ tipo, id }),
     }).catch(() => {})
   }
 
   async function cargar({ fresco = false } = {}) {
-    if (!acceso) return
     try {
       const datos = await api(fresco ? `publicaciones?t=${Date.now()}` : 'publicaciones')
       const ahora = Date.now()
@@ -221,6 +220,8 @@
   const iniciales = (nombre) =>
     String(nombre || '?').trim().split(/\s+/).slice(0, 2).map((x) => x[0] || '').join('').toUpperCase()
   const esMia = (p) => Boolean(sesion && p.agente.id === sesion.agente.id)
+  /** Para eliminar alcanza con ser la misma persona en otro teléfono (mismo WhatsApp). */
+  const puedoEliminar = (p) => Boolean(sesion && (esMia(p) || p.agente.whatsapp === sesion.agente.whatsapp))
 
   function enlaceWhatsapp(p) {
     const primerNombre = String(p.agente.nombre).trim().split(/\s+/)[0]
@@ -297,6 +298,7 @@
               : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}WhatsApp</a>
           <button type="button" class="boton suave" data-accion="copiar">Copiar ficha para mi cliente</button>`
           }
+          ${puedoEliminar(p) ? `<button type="button" class="boton suave" data-baja="${esc(p.id)}">Eliminar</button>` : ''}
           <button type="button" class="enlace" data-accion="detalle">Ver todo</button>
         </div>
       </div>
@@ -725,7 +727,7 @@
         .map(
           (p) =>
             `<li><div><strong>${esc(p.titulo)}</strong><small>${esc(p.agente.nombre)} · ${quedan(p).toLowerCase()}</small></div>${
-              esMia(p) ? `<span class="botones-propias"><button type="button" class="boton suave" data-reemplazar="${esc(p.id)}">Reemplazar</button><button type="button" class="enlace" data-baja="${esc(p.id)}">Dar de baja</button></span>` : ''
+              esMia(p) ? `<span class="botones-propias"><button type="button" class="boton suave" data-reemplazar="${esc(p.id)}">Reemplazar</button><button type="button" class="enlace" data-baja="${esc(p.id)}">Eliminar</button></span>` : ''
             }</li>`,
         )
         .join('')
@@ -963,7 +965,7 @@
         </div>
         ${mias.length ? `<ul>${mias.slice().reverse().map((n) => `<li>${esc(n.nota)} <small>${fechaCorta(n.cuando)}</small></li>`).join('')}</ul>` : ''}
       </form>
-      ${mia ? `<button type="button" class="boton peligro-suave" data-baja="${esc(p.id)}">Dar de baja</button>` : ''}`
+      ${puedoEliminar(p) ? `<button type="button" class="boton peligro-suave" data-baja="${esc(p.id)}">Eliminar de la ronda</button>` : ''}`
   }
 
   // ── Fotos a pantalla completa ─────────────────────────────────────────
@@ -1023,7 +1025,7 @@
         pintarCupo()
       }
       pintar()
-      avisar('Propiedad dada de baja.')
+      avisar('Listo, la eliminaste de la ronda.')
     } catch (err) {
       if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       error('bajaError', err.message)
@@ -1152,11 +1154,11 @@
   $('#orden').value = filtro.orden
   pintarPerfil()
   pintar()
-  if (!acceso) pedirClave()
-  else {
-    cargar()
-    if (!sesion) abrirIngreso()
-  }
+  // La Ronda puede estar abierta, sin clave (David, 15-oct-2026): se carga igual y,
+  // si el servidor pide la clave, `api` abre esa ventana y no se pide el ingreso.
+  cargar().then(() => {
+    if (!sesion && !dialogoClave.open) abrirIngreso()
+  })
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && Date.now() - ultimaCarga > 30_000) cargar()

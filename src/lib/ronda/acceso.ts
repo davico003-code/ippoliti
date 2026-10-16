@@ -8,6 +8,10 @@
 //
 // En la base no queda la clave: queda su huella (sha-256 con sal). La pone
 // scripts/ronda-clave.mjs. Sin clave configurada, la Ronda queda CERRADA.
+//
+// Abierta (David, 15-oct-2026: "temporalmente eliminá la contraseña"): con
+// `abierta: true` cualquiera entra sin clave; la huella queda guardada, así que
+// al cerrarla (`ronda-clave.mjs --cerrar`) vuelve la MISMA clave y los pases de antes.
 
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
@@ -22,6 +26,8 @@ interface RegistroAcceso {
   huella: string
   /** Cambia con cada clave nueva: invalida los pases viejos. */
   version: number
+  /** Sin clave por ahora: todos entran. */
+  abierta?: boolean
 }
 
 let _registro: { r: RegistroAcceso | null; ts: number } | null = null
@@ -71,10 +77,11 @@ export async function pasePara(clave: unknown): Promise<{ pase: string | null; s
 }
 
 export async function tieneAcceso(req: Request): Promise<boolean> {
-  const [version, sello, ...resto] = (req.headers.get('x-ronda-acceso') || '').split('.')
-  if (!version || !sello || resto.length > 0) return false
   try {
     const r = await registro()
+    if (r?.abierta) return true
+    const [version, sello, ...resto] = (req.headers.get('x-ronda-acceso') || '').split('.')
+    if (!version || !sello || resto.length > 0) return false
     return Boolean(r) && String(r?.version) === version && iguales(sello, firma(Number(version)))
   } catch {
     return false
