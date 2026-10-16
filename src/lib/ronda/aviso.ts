@@ -14,6 +14,7 @@ import {
   barrioVisible,
   comodidadesDe,
   descripcionNeutra,
+  direccionVisible,
   textoDeZonaprop,
   detectarCiudad,
   etiquetaTipo,
@@ -213,7 +214,9 @@ async function leerFichaTokko(url: string): Promise<AvisoRonda> {
     cocheras: a.cocheras,
     fotos: a.fotos.slice(0, MAX_FOTOS),
     descripcion: a.descripcion,
-    direccion: a.direccion,
+    // La real si tiene altura; si el agente puso solo el barrio ("San Marino (Funes
+    // Hills)"), la pública que muestra Tokko ("Fuerza Aerea al 2300").
+    direccion: /\d/.test(a.direccion ?? '') ? a.direccion : a.direccionPublica || a.direccion,
     tags: a.tags.slice(0, 24),
   }
 }
@@ -363,5 +366,29 @@ export async function completarDetalles(publicaciones: Publicacion[]): Promise<P
   )
   const porId = new Map<string, Publicacion>()
   for (const p of completas) if (p) porId.set(p.id, p)
+  return publicaciones.map((p) => porId.get(p.id) ?? p)
+}
+
+/**
+ * Las publicadas antes de guardar la dirección (16-oct-2026) la buscan UNA vez en
+ * su aviso; si no la trae queda null y no se vuelve a buscar.
+ */
+export async function completarDirecciones(publicaciones: Publicacion[]): Promise<Publicacion[]> {
+  const faltan = publicaciones.filter((p) => p.direccion === undefined && p.urlOriginal)
+  if (faltan.length === 0) return publicaciones
+  const completas = await Promise.all(
+    faltan.map(async (p): Promise<Publicacion> => {
+      let direccion: string | null = null
+      try {
+        direccion = direccionVisible((await leerAviso(p.urlOriginal)).direccion, p.ciudad, p.barrio)
+      } catch {
+        // El aviso ya no se lee (dado de baja): queda sin dirección.
+      }
+      const lista = { ...p, direccion }
+      await guardarPublicacion(lista).catch(() => undefined)
+      return lista
+    }),
+  )
+  const porId = new Map(completas.map((p) => [p.id, p]))
   return publicaciones.map((p) => porId.get(p.id) ?? p)
 }

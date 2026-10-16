@@ -6,7 +6,7 @@
   "scope": "/ronda",
   "display": "standalone",
   "background_color": "#f5f5f3",
-  "theme_color": "#f5f5f3",
+  "theme_color": "#f6f3f1",
   "lang": "es-AR",
   "icons": [
     { "src": "/ronda/icono-192.png", "sizes": "192x192", "type": "image/png" },
