@@ -285,7 +285,7 @@
         <h3>${esc(p.titulo)}</h3>
         <p class="precio">${precio(p)}${metro ? ` <small>${metro}</small>` : ''}</p>
         ${fichaHtml(p) || '<div aria-hidden="true"></div>'}
-        ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p></div>` : '<div aria-hidden="true"></div>'}
+        ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p><button type="button" class="enlace ver-mas" data-ver-mas aria-expanded="false" hidden>Ver más</button></div>` : '<div aria-hidden="true"></div>'}
         <div class="colega">
           <span class="avatar" aria-hidden="true">${esc(iniciales(p.agente.nombre))}</span>
           <div><small class="rotulo-publica">Publica</small><strong>${esc(p.agente.nombre)}</strong><small>${esc(p.inmobiliaria.nombre)}</small></div>
@@ -295,7 +295,7 @@
           ${
             mia
               ? '<button type="button" class="boton suave" data-accion="reemplazar">Reemplazar (arranca de cero)</button>'
-              : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}WhatsApp</a>
+              : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}Consultarle al colega</a>
           <button type="button" class="boton suave" data-accion="copiar">Copiar ficha para mi cliente</button>`
           }
           ${puedoEliminar(p) ? `<button type="button" class="boton suave" data-baja="${esc(p.id)}">Eliminar</button>` : ''}
@@ -304,6 +304,24 @@
       </div>
     </article>`
   }
+
+  /**
+   * En la tarjeta el motivo muestra 3 renglones (David, 15-oct-2026: "comprimí el
+   * cuadro… y poné ver más"): el "Ver más" aparece solo si el texto no entra.
+   */
+  function marcarMotivosLargos() {
+    for (const caja of $$('.tarjeta .oportunidad')) {
+      const texto = $('p', caja)
+      const boton = $('[data-ver-mas]', caja)
+      if (!texto || !boton || caja.classList.contains('abierta')) continue
+      boton.hidden = texto.scrollHeight <= texto.clientHeight + 1
+    }
+  }
+  let medirMotivos = 0
+  window.addEventListener('resize', () => {
+    clearTimeout(medirMotivos)
+    medirMotivos = setTimeout(marcarMotivosLargos, 150)
+  })
 
   const esqueleto = () =>
     Array.from({ length: 3 }, () => '<div class="tarjeta esqueleto" aria-hidden="true"><div class="tarjeta-foto"></div><div class="tarjeta-cuerpo"><i></i><i></i><i></i></div></div>').join('')
@@ -351,6 +369,7 @@
     conteo.textContent = todas.length === 0 ? '' : lista.length === 1 ? '1 oportunidad' : `${lista.length} oportunidades`
     if (lista.length > 0) {
       grilla.innerHTML = lista.map(tarjeta).join('')
+      marcarMotivosLargos()
     } else if (todas.length === 0) {
       grilla.innerHTML =
         '<div class="vacio"><strong>Todavía no hay oportunidades este mes</strong><p>Publicá la primera: pegás el enlace del aviso, contás por qué es una oportunidad y queda 30 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar>+ Publicar oportunidad</button></div>'
@@ -951,7 +970,7 @@
         </div>
       </div>
       <div class="acciones">
-        ${mia ? '<button type="button" class="boton primario" data-accion="reemplazar">Reemplazar (arranca de cero)</button>' : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}Escribirle por WhatsApp</a>`}
+        ${mia ? '<button type="button" class="boton primario" data-accion="reemplazar">Reemplazar (arranca de cero)</button>' : `<a class="boton whatsapp" href="${esc(enlaceWhatsapp(p))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}Consultarle al colega</a>`}
         <button type="button" class="boton suave" data-accion="${navigator.share ? 'compartir' : 'copiar'}">${navigator.share ? 'Enviar la ficha a mi cliente' : 'Copiar ficha para mi cliente'}</button>
         <a class="boton suave" href="${esc(p.ficha)}" target="_blank" rel="noopener">${p.origen === 'Tokko' ? 'Ver la ficha de Tokko (tal cual)' : 'Ver la ficha neutra para clientes'}</a>
         ${p.urlOriginal ? `<a class="enlace" href="${esc(p.urlOriginal)}" target="_blank" rel="noopener noreferrer">Ver el aviso original</a>` : ''}
@@ -1059,6 +1078,14 @@
       $('#buscar').value = ''
       filtroALaUrl()
       pintar()
+      return
+    }
+    const verMas = t.closest('[data-ver-mas]')
+    if (verMas) {
+      const caja = verMas.closest('.oportunidad')
+      const abierta = caja.classList.toggle('abierta')
+      verMas.textContent = abierta ? 'Ver menos' : 'Ver más'
+      verMas.setAttribute('aria-expanded', String(abierta))
       return
     }
     const mover = t.closest('[data-mover]')
