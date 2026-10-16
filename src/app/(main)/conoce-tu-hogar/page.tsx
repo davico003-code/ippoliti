@@ -17,6 +17,7 @@ import { type ZonaHogar, barrioHogarValido, dormMinValido, esTipoHogar } from '@
 import { getSeleccion } from '@/lib/redis'
 import { TINDER_ACTIVO } from '@/lib/tinder'
 import { ZONAS } from '@/lib/zonas'
+import { esVisitaDePauta } from '@/lib/pauta-visita'
 
 export const metadata: Metadata = {
   title: 'Conocé tu próximo hogar | SI INMOBILIARIA',
@@ -82,7 +83,7 @@ export default async function ConoceTuHogarPage({ searchParams }: { searchParams
       dormInicial={dormMinValido(first(searchParams.dorm))}
       barrioInicial={barrioHogarValido(first(searchParams.barrio))}
       cliente={cliente}
-      desdePauta={first(searchParams.origen) === 'pauta' || ['pauta', 'paid', 'cpc', 'paid_social'].includes(medio)}
+      desdePauta={esVisitaDePauta({ origen: first(searchParams.origen), utmMedium: medio })}
       abrirAlCargar={first(searchParams.abrir) === '1'}
     />
   )

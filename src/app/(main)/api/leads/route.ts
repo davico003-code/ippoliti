@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
-import { pushLeadToHilo } from '@/lib/hilo-leads'
+import { enviarLeadAHilo } from '@/lib/hilo-leads'
 import { rateLimit } from '@/lib/feedback'
 import { normalizeArWhatsapp } from '@/lib/phone'
 
@@ -52,7 +52,11 @@ export async function POST(request: NextRequest) {
   const esConsultaCalificada = origen === 'consulta_calificada'
   // "Pedí que te contactemos" de la ficha (4-oct-2026): nombre + WhatsApp de una propiedad.
   const esPedirContacto = origen === 'pedir_contacto'
-  const esDePropiedad = esConsultaCalificada || esPedirContacto
+  // "WhatsApp con datos" de la ficha (16-oct-2026): el que viene de la pauta deja
+  // nombre + celular antes de que se le abra el chat; la respuesta trae el
+  // WhatsApp del agente que Hilo le asignó.
+  const esWhatsappFicha = origen === 'whatsapp_ficha'
+  const esDePropiedad = esConsultaCalificada || esPedirContacto || esWhatsappFicha
   // El id del feed tal cual: Hilo resuelve el tokko_id y también el 9000000xx
   // de las cargadas directo en Hilo (public_numeric_id, desde el 4-oct-2026).
   const propertyIdNum = Number(body.propertyId)
@@ -108,7 +112,7 @@ export async function POST(request: NextRequest) {
       str(body.mensaje) ? `Mensaje: ${str(body.mensaje)}` : '',
     ].filter(Boolean).join(' | ')
   })()
-  const savedHilo = await pushLeadToHilo({
+  const hilo = await enviarLeadAHilo({
     name: nombre,
     email: email || null,
     phone: whatsapp,
@@ -119,7 +123,9 @@ export async function POST(request: NextRequest) {
         ? `Consultó por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la web · Paga: ${str(body.pago) || 'no dijo'} · Plazo: ${str(body.plazo) || 'no dijo'}`
         : esPedirContacto
           ? `Pidió que lo contacten por WhatsApp por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la ficha de la web`
-          : mensajeGenerico,
+          : esWhatsappFicha
+            ? `Tocó «Consultar por WhatsApp» en la ficha de ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) y se le abrió el chat con vos. Si no te escribió, escribile vos.`
+            : mensajeGenerico,
     ...(esDePropiedad
       ? { tokkoPropertyId, hiloPropertyId, sourceUrl: pageUrl || null, attribution: utm }
       : pageUrl ? { sourceUrl: pageUrl, attribution: utm } : {}),
@@ -127,6 +133,7 @@ export async function POST(request: NextRequest) {
 
   // Si el lead NO quedó en NINGÚN destino durable, es una pérdida real: avisar al
   // usuario para que reintente en vez de devolver un ok:true mentiroso.
+  const savedHilo = hilo.ok
   if (!savedRedis && !savedHilo) {
     console.error('[leads] LEAD PERDIDO: falló Redis y Hilo', { origen, email })
     return NextResponse.json(
@@ -135,8 +142,10 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Crear contacto en Tokko CRM (LEGACY best-effort; Tokko en desconexión)
-  if (apiKey) {
+  // Crear contacto en Tokko CRM (LEGACY best-effort; Tokko en desconexión).
+  // El WhatsApp de la ficha no lo espera: la persona está esperando que se le
+  // abra el chat.
+  if (apiKey && !esWhatsappFicha) {
     try {
       const isGuia = origen === 'guia-comprador'
       const tokkoPayload = {
@@ -163,5 +172,5 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, agente: hilo.agente })
 }

@@ -15,12 +15,12 @@ import {
   tituloVisible,
 } from '@/lib/tokko'
 import AudioSummary from '../AudioSummary'
-import { events } from '@/lib/analytics'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 import { getAgenteRol } from '@/lib/agente-titulo'
 import AgenteAvatar from './AgenteAvatar'
 import ContactoSecundario from './ContactoSecundario'
+import WhatsappConDatos from './WhatsappConDatos'
 
 const TOUR_MEET_USD_THRESHOLD = 450_000
 
@@ -109,18 +109,18 @@ export default function PropertyDetailSidebar({
               })()}
             </div>
           </div>
-          <a
+          <WhatsappConDatos
             href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => events.contactoPropiedad(property.id, propertyTitle, 'whatsapp')}
+            propertyId={property.id}
+            propertyTitle={propertyTitle}
+            propertyPrice={formatPrice(property)}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2"
             style={{ background: '#25d366', color: '#fff' }}
             onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#25d366' }}
           >
             <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
-          </a>
+          </WhatsappConDatos>
           <ContactoSecundario
             propertyId={property.id}
             propertyTitle={propertyTitle}
