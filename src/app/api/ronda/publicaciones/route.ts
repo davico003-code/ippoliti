@@ -54,9 +54,15 @@ export async function GET(req: Request) {
   if (cerrado) return cerrado
 
   try {
-    // Tokko se comparte tal cual: también las publicadas antes del cambio (14-oct-2026).
     const publicaciones = (await completarDirecciones(await completarDetalles(await listarPublicaciones()))).map((p) =>
-      p.origen === 'Tokko' && p.urlOriginal ? { ...p, ficha: p.urlOriginal, detalle: p.detalle && { ...p.detalle, comodidades: [] } } : { ...p, detalle: p.detalle && { ...p.detalle, comodidades: [] } },
+      ({
+        ...p,
+        // Tokko se comparte tal cual: también las publicadas antes del cambio (14-oct-2026).
+        ...(p.origen === 'Tokko' && p.urlOriginal ? { ficha: p.urlOriginal } : {}),
+        detalle: p.detalle && { ...p.detalle, comodidades: [] },
+        // La guardada antes de la limpieza (16-oct-2026) también sale prolija.
+        direccion: p.direccion === undefined ? undefined : direccionVisible(p.direccion, p.ciudad, p.barrio),
+      }),
     )
     // El contador no puede tirar abajo la grilla: si falla, la pantalla no lo muestra.
     const actividad = await actividadDelMes().catch(() => null)
