@@ -42,6 +42,9 @@
   let ultimaCarga = 0
   /** El contador del mes que manda el servidor: { mes, contactos, fichas, colegas, inmobiliarias }. */
   let actividad = null
+  /** Pedidos de búsqueda de los colegas (16-oct-2026), ya cruzados con las oportunidades (`encajan`). */
+  let pedidos = []
+  const recienPedidos = new Map()
   // Lo que este teléfono acaba de publicar o bajar: la grilla pasa por un caché
   // de unos segundos y sin esto la tarjeta nueva desaparecería un instante.
   const recienPublicadas = new Map()
@@ -57,6 +60,10 @@
       ciudad: ciudad === 'Funes' ? 'Funes' : sinTildes(ciudad) === 'roldan' ? 'Roldán' : '',
       orden: ['precio-asc', 'precio-desc'].includes(orden) ? orden : '',
       texto: (q.get('q') || '').slice(0, 80),
+      vista: q.get('ver') === 'pedidos' ? 'pedidos' : 'oportunidades',
+      /** Las que encajan con un pedido (o los pedidos que encajan con una): un juego de ids. */
+      ids: null,
+      idsTexto: '',
     }
   })()
 
@@ -66,6 +73,7 @@
     if (filtro.ciudad) q.set('ciudad', filtro.ciudad)
     if (filtro.orden) q.set('orden', filtro.orden)
     if (filtro.texto) q.set('q', filtro.texto)
+    if (filtro.vista === 'pedidos') q.set('ver', 'pedidos')
     const s = q.toString()
     history.replaceState(null, '', s ? `${location.pathname}?${s}` : location.pathname)
   }
@@ -112,6 +120,10 @@
       const lista = (datos.publicaciones || []).filter((p) => !recienBajadas.has(p.id))
       for (const p of recienPublicadas.values()) if (!lista.some((x) => x.id === p.id)) lista.unshift(p)
       publicaciones = lista
+      for (const [id, q] of recienPedidos) if (ahora - q.creada > 90_000) recienPedidos.delete(id)
+      const listaPedidos = (datos.pedidos || []).filter((q) => !recienBajadas.has(q.id))
+      for (const q of recienPedidos.values()) if (!listaPedidos.some((x) => x.id === q.id)) listaPedidos.unshift({ ...q, encajan: [] })
+      pedidos = listaPedidos
       if (datos.actividad) actividad = datos.actividad
       ultimaCarga = ahora
     } catch (err) {
@@ -133,6 +145,26 @@
     return dias <= 1 ? 'Último día' : `Quedan ${dias} días`
   }
   const numero = (n) => new Intl.NumberFormat('es-AR').format(n)
+
+  // ── Pedidos de búsqueda: formatos ─────────────────────────────────────
+  const pedidosVigentes = () => pedidos.filter((q) => q.vence > Date.now())
+  const TIPO_PEDIDO = { Casa: 'Casa', Lote: 'Lote', Departamento: 'Depto', Otro: 'Local u otro' }
+  const tiposPedido = (q) => q.tipos.map((t) => TIPO_PEDIDO[t] || t).join(' o ')
+  function presupuestoPedido(q) {
+    const m = q.moneda === 'ARS' ? '$' : 'US$'
+    if (q.hasta && q.desde) return `${m} ${numero(q.desde)} a ${numero(q.hasta)}`
+    if (q.hasta) return `Hasta ${m} ${numero(q.hasta)}`
+    return 'Presupuesto a conversar'
+  }
+  const dondePedido = (q) => q.ciudades.map((ciudad) => ({ ciudad, barrios: q.barrios.filter((b) => b.ciudad === ciudad).map((b) => b.nombre) }))
+  const textoDonde = (q) => dondePedido(q).map(({ ciudad, barrios }) => (barrios.length ? `${barrios.join(', ')} (${ciudad})` : `toda ${ciudad}`)).join(' o ')
+  const esMioPedido = (q) => Boolean(sesion && (q.agente.id === sesion.agente.id || q.agente.whatsapp === sesion.agente.whatsapp))
+  function enlaceWhatsappPedido(q) {
+    const primerNombre = String(q.agente.nombre).trim().split(/\s+/)[0]
+    const quien = sesion ? ` Soy ${sesion.agente.nombre}, de ${sesion.inmobiliaria.nombre}.` : ''
+    const texto = `Hola ${primerNombre}.${quien} Vi tu pedido en la Ronda Funes Roldán (${tiposPedido(q)} en ${textoDonde(q)}, ${presupuestoPedido(q).replace(/^Hasta/, 'hasta')}). Tengo algo que te puede servir:`
+    return `https://wa.me/549${q.agente.whatsapp}?text=${encodeURIComponent(texto)}`
+  }
 
   /** Las fotos de la oportunidad (la galería completa; las viejas, solo la portada). */
   function galeria(p) {
@@ -254,6 +286,14 @@
     '<svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="currentColor"/></svg>'
   /** La dirección exacta: solo para los colegas (la ficha del cliente no la lleva). */
   const direccionHtml = (p) => (p.direccion ? `<p class="direccion">${ICONO_PIN}<span>${esc(p.direccion)}</span></p>` : '')
+  const ICONO_LUPA =
+    '<svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
+  /** "2 colegas buscan algo así": la oportunidad encaja con pedidos de búsqueda. */
+  function chipBuscan(p) {
+    const n = p.buscan?.length || 0
+    if (!n) return ''
+    return `<button type="button" class="chip-buscan" data-ver-pedidos="${esc(p.buscan.join(','))}" data-titulo="${esc(p.titulo)}">${ICONO_LUPA}${n === 1 ? '1 colega busca algo así' : `${n} colegas buscan algo así`}</button>`
+  }
   const ICONO_WHATSAPP =
     '<svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20"><path d="M12 3a9 9 0 0 0-7.800 13.500L3 21l4.700-1.200A9 9 0 1 0 12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'
 
@@ -262,6 +302,7 @@
     const texto = sinTildes(filtro.texto)
     const lista = vigentes().filter(
       (p) =>
+        (!filtro.ids || filtro.ids.has(p.id)) &&
         (!filtro.tipo || p.grupo === filtro.tipo) &&
         (!filtro.ciudad || p.ciudad === filtro.ciudad) &&
         (!texto || sinTildes(`${p.titulo} ${p.tipo} ${p.oportunidad} ${p.direccion ?? ''} ${p.agente.nombre} ${p.inmobiliaria.nombre}`).includes(texto)),
@@ -286,7 +327,7 @@
         <span class="insignia tiempo">${esNueva(p) ? 'Nueva · ' : ''}${quedan(p)}</span>
       </div>
       <div class="tarjeta-cuerpo">
-        <div><h3>${esc(p.titulo)}</h3>${direccionHtml(p)}</div>
+        <div><h3>${esc(p.titulo)}</h3>${direccionHtml(p)}${chipBuscan(p)}</div>
         <p class="precio">${precio(p)}${metro ? ` <small>${metro}</small>` : ''}</p>
         ${fichaHtml(p) || '<div aria-hidden="true"></div>'}
         ${p.oportunidad ? `<div class="oportunidad"><b>Por qué es oportunidad</b><p>${esc(p.oportunidad)}</p><button type="button" class="enlace ver-mas" data-ver-mas aria-expanded="false" hidden>Ver más</button></div>` : '<div aria-hidden="true"></div>'}
@@ -314,7 +355,7 @@
    * cuadro… y poné ver más"): el "Ver más" aparece solo si el texto no entra.
    */
   function marcarMotivosLargos() {
-    for (const caja of $$('.tarjeta .oportunidad')) {
+    for (const caja of $$('.tarjeta .oportunidad, .pedido .pedido-comentario')) {
       const texto = $('p', caja)
       const boton = $('[data-ver-mas]', caja)
       if (!texto || !boton || caja.classList.contains('abierta')) continue
@@ -343,7 +384,7 @@
     const datos = [
       [activas, activas === 1 ? 'oportunidad activa' : 'oportunidades activas'],
       [actividad.contactos, `${actividad.contactos === 1 ? 'contacto' : 'contactos'} entre colegas en ${mes}`],
-      [actividad.fichas, `${actividad.fichas === 1 ? 'ficha enviada' : 'fichas enviadas'} a clientes en ${mes}`],
+      [pedidosVigentes().length, pedidosVigentes().length === 1 ? 'pedido de colegas' : 'pedidos de colegas'],
       [colegas, `${colegas === 1 ? 'colega' : 'colegas'} de ${numero(inmobiliarias)} ${inmobiliarias === 1 ? 'inmobiliaria' : 'inmobiliarias'}`],
     ]
     caja.innerHTML = datos.map(([n, rotulo]) => `<div><dt>${esc(rotulo)}</dt><dd>${numero(n)}</dd></div>`).join('')
@@ -356,6 +397,13 @@
     const conteo = $('#conteo')
     for (const b of $$('#filtroTipo button')) b.setAttribute('aria-pressed', String(b.dataset.tipo === filtro.tipo))
     for (const b of $$('#filtroCiudad button')) b.setAttribute('aria-pressed', String(b.dataset.ciudad === filtro.ciudad))
+    for (const b of $$('[data-vista]')) b.setAttribute('aria-pressed', String(b.dataset.vista === filtro.vista))
+    $('#cuentaOportunidades').textContent = Array.isArray(publicaciones) ? vigentes().length : ''
+    $('#cuentaPedidos').textContent = Array.isArray(publicaciones) ? pedidosVigentes().length : ''
+    $('#filtroIds').hidden = !filtro.ids
+    $('#filtroIdsTexto').textContent = filtro.idsTexto
+    $('.orden').hidden = filtro.vista === 'pedidos'
+    grilla.classList.toggle('de-pedidos', filtro.vista === 'pedidos')
 
     if (publicaciones === null) {
       conteo.textContent = 'Cargando…'
@@ -368,6 +416,7 @@
         '<div class="vacio"><strong>No se pudo cargar la ronda</strong><p>Revisá tu conexión y probá de nuevo.</p><button type="button" class="boton primario" data-reintentar>Reintentar</button></div>'
       return
     }
+    if (filtro.vista === 'pedidos') return pintarPedidos(grilla, conteo)
     const todas = vigentes()
     const lista = filtradas()
     conteo.textContent = todas.length === 0 ? '' : lista.length === 1 ? '1 oportunidad' : `${lista.length} oportunidades`
@@ -376,11 +425,84 @@
       marcarMotivosLargos()
     } else if (todas.length === 0) {
       grilla.innerHTML =
-        '<div class="vacio"><strong>Todavía no hay oportunidades este mes</strong><p>Publicá la primera: pegás el enlace del aviso, contás por qué es una oportunidad y queda 30 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar>+ Publicar oportunidad</button></div>'
+        '<div class="vacio"><strong>Todavía no hay oportunidades este mes</strong><p>Publicá la primera: pegás el enlace del aviso, contás por qué es una oportunidad y queda 30 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar-oportunidad>+ Publicar oportunidad</button></div>'
     } else {
       grilla.innerHTML =
         '<div class="vacio"><strong>No hay oportunidades con esos filtros</strong><p>Probá con otra ciudad u otro tipo.</p><button type="button" class="boton suave" data-quitar-filtros>Quitar filtros</button></div>'
     }
+  }
+
+  // ── Pedidos de búsqueda: grilla ───────────────────────────────────────
+  function pedidosFiltrados() {
+    const texto = sinTildes(filtro.texto)
+    return pedidosVigentes().filter(
+      (q) =>
+        (!filtro.ids || filtro.ids.has(q.id)) &&
+        (!filtro.tipo || q.tipos.includes(filtro.tipo)) &&
+        (!filtro.ciudad || q.ciudades.includes(filtro.ciudad)) &&
+        (!texto || sinTildes(`${tiposPedido(q)} ${q.barrios.map((b) => b.nombre).join(' ')} ${q.comentario} ${q.cierre.join(' ')} ${q.agente.nombre} ${q.inmobiliaria.nombre}`).includes(texto)),
+    )
+  }
+
+  function tarjetaPedido(q) {
+    const mio = esMioPedido(q)
+    const encajan = (q.encajan || []).filter((id) => vigentes().some((p) => p.id === id))
+    const donde = dondePedido(q)
+      .map(({ ciudad, barrios }) => (barrios.length ? barrios.map((b) => `<li>${esc(b)} <small>${esc(ciudad)}</small></li>`).join('') : `<li>Toda ${esc(ciudad)}</li>`))
+      .join('')
+    return `<article class="pedido" data-id="${esc(q.id)}">
+      <div class="pedido-cabeza">
+        <p class="pedido-insignias"><span class="insignia-busca">${ICONO_LUPA}Busca para ${q.operacion === 'Alquiler' ? 'alquilar' : 'comprar'}</span><span class="pedido-tiempo">${esNueva(q) ? 'Nuevo · ' : ''}${quedan(q)}</span></p>
+        <h3>${esc(tiposPedido(q))}${q.dormitorios ? ` · ${q.dormitorios}+ dorm.` : ''}</h3>
+      </div>
+      <p class="pedido-presupuesto">${esc(presupuestoPedido(q))}</p>
+      <div class="pedido-bloque"><b>Dónde</b><ul class="chips">${donde}</ul></div>
+      <div class="pedido-bloque">${q.cierre.length ? `<b>Para cerrar</b><ul class="chips">${q.cierre.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}</div>
+      <div class="pedido-comentario">${q.comentario ? `<p>${esc(q.comentario)}</p><button type="button" class="enlace ver-mas" data-ver-mas aria-expanded="false" hidden>Ver más</button>` : ''}</div>
+      <div class="colega">
+        <span class="avatar" aria-hidden="true">${esc(iniciales(q.agente.nombre))}</span>
+        <div><small class="rotulo-publica">Lo pide</small><strong>${esc(q.agente.nombre)}</strong><small>${esc(q.inmobiliaria.nombre)}</small></div>
+        ${mio ? '<span class="tuya">Tuyo</span>' : ''}
+      </div>
+      <div class="acciones">
+        ${
+          encajan.length
+            ? `<button type="button" class="boton suave encajan" data-ver-encajan="${esc(encajan.join(','))}">${encajan.length === 1 ? 'Ver la oportunidad que encaja' : `Ver las ${encajan.length} oportunidades que encajan`}</button>`
+            : '<p class="sin-encaje">Todavía no hay oportunidades que encajen.</p>'
+        }
+        ${
+          mio
+            ? `<button type="button" class="boton suave" data-baja-pedido="${esc(q.id)}">Eliminar</button>`
+            : `<a class="boton whatsapp" href="${esc(enlaceWhatsappPedido(q))}" target="_blank" rel="noopener">${ICONO_WHATSAPP}Tengo algo para ofrecerle</a>`
+        }
+      </div>
+    </article>`
+  }
+
+  function pintarPedidos(grilla, conteo) {
+    const todos = pedidosVigentes()
+    const lista = pedidosFiltrados()
+    conteo.textContent = todos.length === 0 ? '' : lista.length === 1 ? '1 pedido' : `${lista.length} pedidos`
+    if (lista.length > 0) {
+      grilla.innerHTML = lista.map(tarjetaPedido).join('')
+      marcarMotivosLargos()
+    } else if (todos.length === 0) {
+      grilla.innerHTML =
+        '<div class="vacio"><strong>Todavía no hay pedidos este mes</strong><p>¿Tenés un cliente buscando? Publicá qué busca, en qué barrios y con qué presupuesto: te mostramos qué oportunidades encajan y los colegas que tienen algo te escriben.</p><button type="button" class="boton primario" data-publicar-pedido>+ Publicar pedido</button></div>'
+    } else {
+      grilla.innerHTML =
+        '<div class="vacio"><strong>No hay pedidos con esos filtros</strong><p>Probá con otra ciudad u otro tipo.</p><button type="button" class="boton suave" data-quitar-filtros>Quitar filtros</button></div>'
+    }
+  }
+
+  /** Oportunidades ↔ pedidos. `ids`: solo esas (las que encajan), con un cartel para ver todas. */
+  function cambiarVista(vista, { ids = null, texto = '' } = {}) {
+    filtro.vista = vista
+    filtro.ids = ids ? new Set(ids) : null
+    filtro.idsTexto = texto
+    filtroALaUrl()
+    pintar()
+    $('.vistas').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
 
   // ── Avisos y portapapeles ─────────────────────────────────────────────
@@ -1027,9 +1149,248 @@
     avisar('Nota guardada.')
   })
 
+  // ── Pedido de búsqueda: publicar ──────────────────────────────────────
+  const elegir = $('#elegir')
+  const dialogoPedido = $('#pedido')
+  const formPedido = $('#pedidoForm')
+  const MAX_PEDIDOS = 5
+  /** Los mismos barrios que el servidor (BARRIOS_RONDA en reglas.ts). */
+  const BARRIOS = {
+    Funes: [
+      'Centro', 'Kentucky', 'Vida', 'Aguadas', 'Funes Lakes', 'San Marino (Funes Hills)', 'Miraflores (Funes Hills)',
+      'Cadaqués (Funes Hills)', 'Haras de Funes', 'Garita 15', 'Profesional Country Club', 'San Sebastián', 'Los Troncos',
+      'Cantegril', 'Don Mateo', 'Don Juan', 'La Estancia', 'Los Indios', 'Los Solares', 'Paseo del Norte', 'San Telmo',
+      'Funes City', 'Funes Town', 'Tierra de Sueños', 'Unanue', 'Villa Elvira',
+    ],
+    'Roldán': [
+      'Centro', 'Acequias del Aire', 'Las Acequias', 'Aurea', 'Bosque Azul', 'Cotos de la Alameda', 'Distrito Roldán',
+      'Don Quijote', 'El Cielo', 'El Molino', 'Las Tardes', 'Los Raigales', 'Puerto Roldán', 'Punta Chacra',
+      'Tierra de Sueños', 'Villa Flores',
+    ],
+  }
+
+  function abrirElegir() {
+    if (!sesion) return abrirIngreso()
+    abrir(elegir)
+  }
+
+  function abrirPedido() {
+    if (!sesion) return abrirIngreso()
+    formPedido.reset()
+    for (const id of ['tiposError', 'dondeError', 'cierreError', 'pedidoError']) error(id, '')
+    barriosElegidos = []
+    pintarBarriosElegidos()
+    cerrarSugerencias()
+    const usados = pedidosVigentes().filter((q) => q.inmobiliaria.id === sesion.inmobiliaria.id).length
+    $('#cupoPedidos').textContent = `${sesion.inmobiliaria.nombre} usa ${usados} de ${MAX_PEDIDOS} pedidos en la ronda.`
+    abrir(dialogoPedido)
+  }
+
+  // ── Barrios del pedido: se escriben y la lista se completa sola (David, 16-oct-2026: "para no llenarlo de
+  // burbujas"). Solo se eligen barrios de la lista: así el cruce con las oportunidades no falla.
+  const MAX_BARRIOS = 15
+  const campoBarrio = $('#pedidoBarrio')
+  const sugerencias = $('#barrioSugerencias')
+  let barriosElegidos = []
+  let opciones = []
+  let activa = -1
+
+  const ciudadesMarcadas = () => $$('input[name="ciudades"]:checked', formPedido).map((i) => i.value)
+  const mismoBarrio = (a, b) => a.ciudad === b.ciudad && a.nombre === b.nombre
+
+  function pintarBarriosElegidos() {
+    $('#barriosElegidos').innerHTML = barriosElegidos
+      .map(
+        (b, i) =>
+          `<li><span>${esc(b.nombre)} <small>${esc(b.ciudad)}</small></span><button type="button" data-quitar-barrio="${i}" aria-label="Quitar ${esc(b.nombre)}">×</button></li>`,
+      )
+      .join('')
+  }
+
+  function cerrarSugerencias() {
+    sugerencias.hidden = true
+    sugerencias.innerHTML = ''
+    campoBarrio.setAttribute('aria-expanded', 'false')
+    campoBarrio.removeAttribute('aria-activedescendant')
+    opciones = []
+    activa = -1
+  }
+
+  function marcarActiva(i) {
+    activa = i
+    $$('[role="option"]', sugerencias).forEach((li, k) => li.setAttribute('aria-selected', String(k === i)))
+    const li = $(`#barrioOpcion${i}`)
+    if (li) {
+      campoBarrio.setAttribute('aria-activedescendant', li.id)
+      li.scrollIntoView({ block: 'nearest' })
+    } else campoBarrio.removeAttribute('aria-activedescendant')
+  }
+
+  function pintarSugerencias() {
+    const q = sinTildes(campoBarrio.value).split(/\s+/).filter(Boolean)
+    if (q.length === 0) return cerrarSugerencias()
+    // Busca en las dos ciudades; primero las marcadas. Elegir un barrio marca su ciudad.
+    const marcadas = ciudadesMarcadas()
+    const ciudades = [...marcadas, ...Object.keys(BARRIOS).filter((c) => !marcadas.includes(c))]
+    opciones = ciudades
+      .flatMap((ciudad) => BARRIOS[ciudad].map((nombre) => ({ ciudad, nombre })))
+      .filter((b) => !barriosElegidos.some((x) => mismoBarrio(x, b)) && q.every((w) => sinTildes(b.nombre).includes(w)))
+      .slice(0, 8)
+    sugerencias.innerHTML = opciones.length
+      ? opciones
+          .map(
+            (b, i) =>
+              `<li id="barrioOpcion${i}" role="option" aria-selected="false" data-opcion="${i}"><span>${esc(b.nombre)}</span><small>${esc(b.ciudad)}</small></li>`,
+          )
+          .join('')
+      : '<li class="nada">No está en la lista. Dejá «toda la ciudad» o contalo en «Algo más».</li>'
+    sugerencias.hidden = false
+    campoBarrio.setAttribute('aria-expanded', 'true')
+    marcarActiva(opciones.length ? 0 : -1)
+  }
+
+  function elegirBarrio(i) {
+    const b = opciones[i]
+    if (!b) return
+    if (barriosElegidos.length >= MAX_BARRIOS) {
+      error('dondeError', `Hasta ${MAX_BARRIOS} barrios por pedido.`)
+      return
+    }
+    barriosElegidos.push(b)
+    // El barrio trae su ciudad.
+    const ciudad = $(`input[name="ciudades"][value="${b.ciudad}"]`, formPedido)
+    if (ciudad && !ciudad.checked) ciudad.checked = true
+    error('dondeError', '')
+    campoBarrio.value = ''
+    cerrarSugerencias()
+    pintarBarriosElegidos()
+    campoBarrio.focus()
+  }
+
+  campoBarrio.addEventListener('input', pintarSugerencias)
+  campoBarrio.addEventListener('focus', () => campoBarrio.closest('.barrio-buscar').scrollIntoView({ block: 'start', behavior: 'smooth' }))
+  campoBarrio.addEventListener('blur', cerrarSugerencias)
+  campoBarrio.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      // Enter elige el barrio resaltado; nunca manda el formulario desde acá.
+      e.preventDefault()
+      if (activa >= 0) elegirBarrio(activa)
+    } else if (e.key === 'ArrowDown' && opciones.length) {
+      e.preventDefault()
+      marcarActiva((activa + 1) % opciones.length)
+    } else if (e.key === 'ArrowUp' && opciones.length) {
+      e.preventDefault()
+      marcarActiva((activa - 1 + opciones.length) % opciones.length)
+    } else if (e.key === 'Escape' && !sugerencias.hidden) {
+      e.preventDefault()
+      e.stopPropagation()
+      cerrarSugerencias()
+    } else if (e.key === 'Backspace' && !campoBarrio.value && barriosElegidos.length) {
+      barriosElegidos.pop()
+      pintarBarriosElegidos()
+    }
+  })
+  // Que el toque en la lista no le saque el foco al campo (si no, el blur la cierra antes del clic).
+  sugerencias.addEventListener('pointerdown', (e) => e.preventDefault())
+  sugerencias.addEventListener('click', (e) => {
+    const li = e.target instanceof Element ? e.target.closest('[data-opcion]') : null
+    if (li) elegirBarrio(Number(li.dataset.opcion))
+  })
+  $('#barriosElegidos').addEventListener('click', (e) => {
+    const boton = e.target instanceof Element ? e.target.closest('[data-quitar-barrio]') : null
+    if (!boton) return
+    barriosElegidos.splice(Number(boton.dataset.quitarBarrio), 1)
+    pintarBarriosElegidos()
+    campoBarrio.focus()
+  })
+
+  formPedido.addEventListener('change', (e) => {
+    const nombre = e.target.name
+    if (nombre === 'ciudades') {
+      // Si saca la ciudad, se van sus barrios.
+      const marcadas = ciudadesMarcadas()
+      barriosElegidos = barriosElegidos.filter((b) => marcadas.includes(b.ciudad))
+      pintarBarriosElegidos()
+    }
+    if (nombre === 'tipos') error('tiposError', '')
+    if (nombre === 'ciudades') error('dondeError', '')
+    if (nombre === 'cierre') error('cierreError', '')
+  })
+  // "250000" → "250.000" mientras escribe: el presupuesto se lee de un vistazo.
+  for (const id of ['pedidoHasta', 'pedidoDesde']) {
+    $(`#${id}`).addEventListener('input', (e) => {
+      const digitos = e.target.value.replace(/\D/g, '').slice(0, 12)
+      e.target.value = digitos ? Number(digitos).toLocaleString('es-AR') : ''
+      if (id === 'pedidoHasta') error('cierreError', '')
+    })
+  }
+
+  formPedido.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const f = new FormData(formPedido)
+    const tipos = f.getAll('tipos')
+    const ciudades = f.getAll('ciudades')
+    const cierre = f.getAll('cierre')
+    const hasta = String(f.get('hasta') || '').replace(/\D/g, '')
+    const faltas = [
+      ['tiposError', tipos.length ? '' : 'Marcá qué busca.'],
+      ['dondeError', ciudades.length ? '' : 'Marcá Funes, Roldán o las dos.'],
+      ['cierreError', hasta || cierre.length ? '' : 'Poné el presupuesto o marcá cómo puede cerrar.'],
+    ]
+    for (const [id, texto] of faltas) error(id, texto)
+    const primera = faltas.find(([, texto]) => texto)
+    if (primera) {
+      $(`#${primera[0]}`).scrollIntoView({ block: 'center' })
+      return
+    }
+    const boton = $('button[type="submit"]', formPedido)
+    error('pedidoError', '')
+    ocupado(boton, true)
+    try {
+      const { pedido } = await api('pedidos', {
+        metodo: 'POST',
+        cuerpo: {
+          operacion: f.get('operacion'),
+          tipos,
+          ciudades,
+          barrios: barriosElegidos,
+          hasta,
+          desde: String(f.get('desde') || '').replace(/\D/g, ''),
+          moneda: f.get('moneda'),
+          dormitorios: f.get('dormitorios') || null,
+          cierre,
+          comentario: String(f.get('comentario') || '').trim(),
+        },
+      })
+      recienPedidos.set(pedido.id, pedido)
+      dialogoPedido.close()
+      // Vuelve a pedir la grilla: el cruce con las oportunidades lo arma el servidor.
+      await cargar({ fresco: true })
+      cambiarVista('pedidos')
+      avisar('Listo, tu pedido quedó publicado por 30 días.')
+    } catch (err) {
+      if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
+      error('pedidoError', err.message)
+    } finally {
+      ocupado(boton, false)
+    }
+  })
+
   // ── Dar de baja ───────────────────────────────────────────────────────
   const baja = $('#baja')
   let paraBajar = null
+  let bajaEsPedido = false
+
+  function pedirBaja(id, esPedido) {
+    paraBajar = id
+    bajaEsPedido = esPedido
+    $('#bajaTitulo').textContent = esPedido ? '¿Eliminar este pedido?' : '¿Eliminar esta oportunidad?'
+    $('#bajaAyuda').textContent = esPedido
+      ? 'Sale de la ronda ahora y libera un lugar de tu inmobiliaria.'
+      : 'Sale de la ronda ahora y libera un lugar de tu inmobiliaria. La ficha que ya le mandaste a un cliente sigue funcionando.'
+    error('bajaError', '')
+    abrir(baja)
+  }
 
   $('#confirmarBaja').addEventListener('click', async () => {
     if (!paraBajar) return
@@ -1037,10 +1398,15 @@
     error('bajaError', '')
     ocupado(boton, true)
     try {
-      await api(`publicaciones/${encodeURIComponent(paraBajar)}`, { metodo: 'DELETE' })
+      await api(`${bajaEsPedido ? 'pedidos' : 'publicaciones'}/${encodeURIComponent(paraBajar)}`, { metodo: 'DELETE' })
       recienBajadas.set(paraBajar, Date.now())
-      recienPublicadas.delete(paraBajar)
-      publicaciones = vigentes().filter((p) => p.id !== paraBajar)
+      if (bajaEsPedido) {
+        recienPedidos.delete(paraBajar)
+        pedidos = pedidos.filter((q) => q.id !== paraBajar)
+      } else {
+        recienPublicadas.delete(paraBajar)
+        publicaciones = vigentes().filter((p) => p.id !== paraBajar)
+      }
       paraBajar = null
       baja.close()
       if (detalle.open) detalle.close()
@@ -1049,7 +1415,7 @@
         pintarCupo()
       }
       pintar()
-      avisar('Listo, la eliminaste de la ronda.')
+      avisar(bajaEsPedido ? 'Listo, eliminaste el pedido.' : 'Listo, la eliminaste de la ronda.')
     } catch (err) {
       if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       error('bajaError', err.message)
@@ -1069,7 +1435,43 @@
       return
     }
     if (t.closest('[data-publicar]')) {
+      abrirElegir()
+      return
+    }
+    if (t.closest('[data-publicar-oportunidad]')) {
+      if (elegir.open) elegir.close()
       abrirPublicar()
+      return
+    }
+    if (t.closest('[data-publicar-pedido]')) {
+      if (elegir.open) elegir.close()
+      abrirPedido()
+      return
+    }
+    const vista = t.closest('[data-vista]')
+    if (vista) {
+      cambiarVista(vista.dataset.vista)
+      return
+    }
+    const verPedidos = t.closest('[data-ver-pedidos]')
+    if (verPedidos) {
+      cambiarVista('pedidos', { ids: verPedidos.dataset.verPedidos.split(','), texto: `Pedidos que encajan con «${verPedidos.dataset.titulo}».` })
+      return
+    }
+    const verEncajan = t.closest('[data-ver-encajan]')
+    if (verEncajan) {
+      cambiarVista('oportunidades', { ids: verEncajan.dataset.verEncajan.split(','), texto: 'Oportunidades que encajan con el pedido.' })
+      return
+    }
+    if (t.closest('[data-quitar-ids]')) {
+      filtro.ids = null
+      filtro.idsTexto = ''
+      pintar()
+      return
+    }
+    const bajaPedido = t.closest('[data-baja-pedido]')
+    if (bajaPedido) {
+      pedirBaja(bajaPedido.dataset.bajaPedido, true)
       return
     }
     if (t.closest('[data-reintentar]')) {
@@ -1079,7 +1481,7 @@
       return
     }
     if (t.closest('[data-quitar-filtros]')) {
-      Object.assign(filtro, { tipo: '', ciudad: '', texto: '' })
+      Object.assign(filtro, { tipo: '', ciudad: '', texto: '', ids: null, idsTexto: '' })
       $('#buscar').value = ''
       filtroALaUrl()
       pintar()
@@ -1087,7 +1489,7 @@
     }
     const verMas = t.closest('[data-ver-mas]')
     if (verMas) {
-      const caja = verMas.closest('.oportunidad')
+      const caja = verMas.closest('.oportunidad, .pedido-comentario')
       const abierta = caja.classList.toggle('abierta')
       verMas.textContent = abierta ? 'Ver menos' : 'Ver más'
       verMas.setAttribute('aria-expanded', String(abierta))
@@ -1108,9 +1510,7 @@
     }
     const paraBaja = t.closest('[data-baja]')
     if (paraBaja) {
-      paraBajar = paraBaja.dataset.baja
-      error('bajaError', '')
-      abrir(baja)
+      pedirBaja(paraBaja.dataset.baja, false)
       return
     }
     // WhatsApp al colega: suma al contador y el enlace sigue su camino.
