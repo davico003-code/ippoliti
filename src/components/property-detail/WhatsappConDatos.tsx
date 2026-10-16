@@ -170,17 +170,22 @@ function HojaWhatsapp({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Escape cierra y el fondo no se mueve mientras está abierta.
+  // Escape cierra SOLO la hoja (en la compu la ficha es un panel que también se
+  // cierra con Escape: se escucha en captura y no se deja seguir) y el fondo no
+  // se mueve mientras está abierta.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCerrar()
+      if (e.key !== 'Escape') return
+      e.stopImmediatePropagation()
+      e.preventDefault()
+      onCerrar()
     }
     const previo = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
     return () => {
       document.body.style.overflow = previo
-      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keydown', onKey, true)
     }
   }, [onCerrar])
 
