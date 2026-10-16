@@ -401,14 +401,38 @@ export function descripcionNeutra(texto: string | null | undefined, marcas: Arra
     .trim()
 }
 
+const CONECTORES = new Set(['y', 'e', 'al', 'de', 'del', 'la', 'las', 'los', 'esq', 'esq.', 'entre'])
+
+/** "ALBERDI Y GALVEZ" / "tilcara al 300" → "Alberdi y Galvez" / "Tilcara al 300". Si ya viene mezclada, queda. */
+function mayusculasProlijas(d: string): string {
+  if (/[a-záéíóúñ]/.test(d) && /[A-ZÁÉÍÓÚÑ]/.test(d)) return d
+  return d
+    .toLowerCase()
+    .split(' ')
+    .map((w, i) => (i > 0 && CONECTORES.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(' ')
+}
+
 /**
- * La dirección para la tarjeta: la del aviso, salvo que no diga nada más que la
- * ciudad o el barrio (Zonaprop pone "Funes" cuando el colega no la carga).
+ * La dirección para la tarjeta: la del aviso, sin lo que ya dice el título ni
+ * la dirección "completa de Google" ("Córdoba 4457, S2132 Funes, Santa Fe,
+ * Argentina, Funes, Santa Fe, Argentina." → "Córdoba 4457"). null si no dice
+ * nada más que la ciudad o el barrio (Zonaprop pone "Funes" cuando el colega no la carga).
  */
 export function direccionVisible(direccion: string | null | undefined, ciudad: string, barrio: string | null): string | null {
-  const d = String(direccion ?? '').replace(/\s+/g, ' ').trim().slice(0, 140)
-  if (d.length < 3) return null
-  const n = sinTildes(d)
-  if (n === sinTildes(ciudad) || (barrio && n === sinTildes(barrio))) return null
-  return d
+  const sobran = new Set(['argentina', 'santa fe', 'provincia de santa fe', sinTildes(ciudad), barrio ? sinTildes(barrio) : ''])
+  const vistas = new Set<string>()
+  const partes = String(direccion ?? '')
+    .replace(/\s+/g, ' ')
+    .replace(/[.\s]+$/, '')
+    .split(',')
+    .map((parte) => parte.trim().replace(/^[A-Z]?\d{4}[A-Z]{0,3}\s+/, ''))
+    .filter((parte) => {
+      const n = sinTildes(parte)
+      if (!n || sobran.has(n) || vistas.has(n)) return false
+      vistas.add(n)
+      return true
+    })
+  const d = partes.join(', ').slice(0, 140)
+  return d.length < 3 ? null : mayusculasProlijas(d)
 }
