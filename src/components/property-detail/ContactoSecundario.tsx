@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Phone } from 'lucide-react'
 import ConsultaCalificadaForm from '@/components/consulta/ConsultaCalificadaForm'
 import { events } from '@/lib/analytics'
+import { consultaYaEnviada, urlWhatsappConDatos } from '@/lib/whatsapp-con-datos'
 
 /**
  * Fila secundaria de contacto, debajo del botón principal de WhatsApp (David,
@@ -11,6 +12,10 @@ import { events } from '@/lib/analytics'
  * "Que me contacten" es para el que no quiere escribir: abre ahí mismo, a todo
  * el ancho, el formulario corto (nombre y apellido + WhatsApp) que va a Hilo con
  * la propiedad (/api/leads, origen 'pedir_contacto').
+ *
+ * Si en esta pestaña ya consultó por WhatsApp esta misma propiedad (WhatsApp con
+ * datos, 16-oct-2026) no se le vuelve a pedir nada: ya está hablando con el
+ * agente, y un "que me contacten" encima sería una segunda consulta.
  */
 export default function ContactoSecundario({
   propertyId,
@@ -31,6 +36,7 @@ export default function ContactoSecundario({
   telefono?: string | null
 }) {
   const [abierto, setAbierto] = useState(false)
+  const [previa, setPrevia] = useState<ReturnType<typeof consultaYaEnviada>>(null)
   const boton = 'flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-2 text-[13px] font-semibold transition-colors'
 
   return (
@@ -47,7 +53,10 @@ export default function ContactoSecundario({
         </a>
         <button
           type="button"
-          onClick={() => setAbierto((a) => !a)}
+          onClick={() => {
+            setPrevia(consultaYaEnviada(propertyId))
+            setAbierto((a) => !a)
+          }}
           aria-expanded={abierto}
           className={`${boton} ${abierto ? 'bg-[#1A5C38] text-white' : 'hover:bg-[#f2f8f4]'}`}
           style={abierto ? { border: '1.5px solid #1A5C38' } : { border: '1.5px solid #1A5C38', color: 'var(--theme-accent, #1A5C38)' }}
@@ -55,7 +64,23 @@ export default function ContactoSecundario({
           Que me contacten
         </button>
       </div>
-      {abierto && (
+      {abierto && previa && (
+        <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-4">
+          <p className="mb-3 text-[15px] font-semibold text-neutral-900">
+            Ya le escribiste {previa.agente?.nombre ? `a ${previa.agente.nombre} ` : ''}por WhatsApp
+          </p>
+          <a
+            href={urlWhatsappConDatos(whatsappUrl, previa.nombre, previa.agente)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex min-h-11 w-full items-center justify-center rounded-full text-[14px] font-semibold text-white"
+            style={{ background: '#25d366' }}
+          >
+            Volver al chat
+          </a>
+        </div>
+      )}
+      {abierto && !previa && (
         <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-4">
           <p className="mb-3 text-[15px] font-semibold text-neutral-900">Dejanos tus datos y te contactamos</p>
           <ConsultaCalificadaForm

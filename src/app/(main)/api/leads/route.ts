@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         : esPedirContacto
           ? `Pidió que lo contacten por WhatsApp por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la ficha de la web`
           : esWhatsappFicha
-            ? `Tocó «Consultar por WhatsApp» en la ficha de ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) y se le abrió el chat de WhatsApp. Si no te escribió, escribile vos.`
+            ? `Consultó por WhatsApp desde la ficha de ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}): se le abrió el chat con el agente asignado y la charla sigue por WhatsApp.`
             : mensajeGenerico,
     ...(esDePropiedad
       ? { tokkoPropertyId, hiloPropertyId, sourceUrl: pageUrl || null, attribution: utm }
