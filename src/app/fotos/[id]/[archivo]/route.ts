@@ -10,8 +10,10 @@ import { fotosFijasDe, RE_ARCHIVO_FOTO } from '@/lib/fotos-fijas';
  * Vercel). Las de más de 9 MB (crudas de drone de hasta 17 MB) van con 307 a la
  * firmada: el CDN no las guarda (ver MAX_CACHEABLE).
  *
- * Caché: 30 días en el CDN. No es "inmutable" como los planos para que una
- * propiedad dada de baja deje de servir sus fotos. "No está" (propiedad fuera
+ * Caché: 30 días en el CDN. No es "inmutable" como los planos: cuando la
+ * propiedad se da de baja, sus fotos se siguen sirviendo desde el CDN hasta que
+ * vence esa copia (≤ 30 días, o antes si un deploy la limpia) y después dan
+ * 404. Son fotos que ya fueron públicas. "No está" (propiedad fuera
  * del feed o foto que no es suya) = 404 con caché de 5 minutos. "Falló" (feed o
  * Supabase) = 502 sin caché: un error guardado como 404 dejaría a Facebook y
  * WhatsApp con la vista previa sin foto.
