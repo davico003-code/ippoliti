@@ -114,19 +114,20 @@ function nombreMapa(name: string) {
 
 // Lejos: círculo verde oscuro con grúa, mismo verde que los clusters y más
 // chico, para que acompañe sin distraer. Sin precio ni nombre.
-// Los verdes de los marcadores son variables (--si-pin*): en modo oscuro
-// globals.css los aclara un paso para que no se hundan en el mapa.
+// Los colores de los marcadores son variables (--si-pin*): en modo claro,
+// verdes con texto blanco; en modo oscuro globals.css los vuelve pastillas
+// blancas con texto oscuro (elegido por David sobre el mapa real, 15-oct).
 function createDevCircle() {
   return L.divIcon({
     className: '',
     html: `<div style="
-      background:var(--si-pin-grupo,#0D3620);color:#fff;
+      background:var(--si-pin-grupo,#0D3620);color:var(--si-pin-texto,#fff);
       width:32px;height:32px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;
-      border:2.5px solid rgba(255,255,255,0.9);
+      border:2.5px solid var(--si-pin-borde,rgba(255,255,255,0.9));
       box-shadow:0 2px 8px rgba(0,0,0,0.25);
       cursor:pointer;box-sizing:border-box;
-    "><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg></div>`,
+    "><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg></div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -18],
@@ -223,7 +224,7 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
     : 'box-shadow:0 2px 8px rgba(0,0,0,0.25);'
   const border = hovered && !selected
     ? '2px solid #FBBF24'
-    : '2px solid rgba(255,255,255,0.9)'
+    : '2px solid var(--si-pin-borde,rgba(255,255,255,0.9))'
 
   const html = `
     <div style="
@@ -231,10 +232,10 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
       transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
     ">
       <div style="
-        background:${bg};color:#fff;
+        background:${bg};color:var(--si-pin-texto,#fff);
         font-family:'Poppins',system-ui,sans-serif;
         font-weight:700;font-size:11px;
-        padding:4px 8px;border-radius:6px;
+        padding:4px 8px;border-radius:var(--si-pin-radio,6px);
         white-space:nowrap;line-height:1.2;
         border:${border};
         ${shadow}
@@ -244,7 +245,7 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
         width:0;height:0;margin:0 auto;
         border-left:6px solid transparent;
         border-right:6px solid transparent;
-        border-top:6px solid ${bg};
+        border-top:6px solid var(--si-pin-cola,${bg});
       "></div>
     </div>`
 
@@ -275,13 +276,13 @@ function createClusterIcon(cluster: L.MarkerCluster) {
     className: '',
     html: `
       <div style="
-        background:var(--si-pin-grupo,#0D3620);color:#fff;
+        background:var(--si-pin-grupo,#0D3620);color:var(--si-pin-texto,#fff);
         font-family:'Poppins',system-ui,sans-serif;
         font-weight:800;font-size:${font}px;
         width:${size}px;height:${size}px;
         border-radius:50%;
         display:flex;align-items:center;justify-content:center;
-        border:2.5px solid rgba(255,255,255,0.92);
+        border:2.5px solid var(--si-pin-borde,rgba(255,255,255,0.92));
         box-shadow:0 3px 12px rgba(0,0,0,0.3);
         box-sizing:border-box;
         cursor:pointer;
@@ -918,8 +919,8 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           <span style={{ color: 'var(--theme-muted, #666)' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: 'var(--si-pin-grupo, #0D3620)', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="8" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
+          <div style={{ width: 14, height: 14, background: 'var(--si-pin-grupo, #0D3620)', color: 'var(--si-pin-texto, #fff)', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
           </div>
           <span style={{ color: 'var(--theme-muted, #666)' }}>Emprendimiento</span>
         </div>

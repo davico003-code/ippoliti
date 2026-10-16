@@ -178,12 +178,17 @@ html[data-theme='dark'] .leaflet-control-attribution a { color: var(--brand); }
    on a phone at night. Inverting the light tiles is only the fallback without a key. */
 .si-tiles-oscuras { filter: brightness(1.9) contrast(1.05); }
 html[data-theme='dark'] .si-street-tiles { filter: invert(1) hue-rotate(180deg) brightness(.75) saturate(.45); }
-/* Map pins: brand green, a step lighter in dark mode so they don't sink into the map. */
+/* Map pins: brand green with white text in light mode; in dark mode, white pills with
+   dark text (chosen by David over the real map). Hover and selected turn brand-light green. */
 html[data-theme='dark'] {
-  --si-pin: #1d7346;
-  --si-pin-hover: #27905a;
-  --si-pin-activo: #2e9e64;
-  --si-pin-grupo: #17613c;
+  --si-pin: #f6f6f4;
+  --si-pin-grupo: #f6f6f4;
+  --si-pin-hover: #d6ecdf;
+  --si-pin-activo: #8bd3ac;
+  --si-pin-texto: #14231b;
+  --si-pin-borde: rgba(20,35,27,.18);
+  --si-pin-radio: 999px;
+  --si-pin-cola: transparent;
 }
 html[data-theme='dark'] .si-tasacion [class~='bg-[#FFF7E8]'] { background-color: #393122; }
 html[data-theme='dark'] .si-tasacion :is([class~='border-[#E1E6E1]'], [class~='border-[#B9C6BD]']) { border-color: var(--line); }
