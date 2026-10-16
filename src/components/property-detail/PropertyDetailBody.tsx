@@ -52,6 +52,8 @@ import CostosIngresoMini from '../propiedades/CostosIngresoMini'
 import NearbyPropertiesMapClient from './NearbyPropertiesMapClient'
 import FeedbackDetalle from '../feedback/FeedbackDetalle'
 import AvisameSiBaja from './AvisameSiBaja'
+import ListaCercanos, { hayCercanos } from '../ListaCercanos'
+import type { LugarFicha } from '@/lib/cercanos'
 
 // Skeletons mientras se carga el chunk JS — evitan que la sección quede en
 // blanco hasta que llega el bundle de Leaflet (mapa) o la galería de planos.
@@ -107,10 +109,14 @@ export default function PropertyDetailBody({
   allProperties: _allProperties = [],
   whatsappUrl,
   showMobileContact = false,
+  cercanos = null,
 }: {
   property: TokkoProperty
   allProperties?: TokkoProperty[]
   whatsappUrl: string
+  /** Lugares cercanos ya guardados (los lee la ficha en el servidor): van en el
+   *  HTML. Sin ellos, NearbyPlaces los pide en el navegador. */
+  cercanos?: Record<string, LugarFicha[]> | null
   /** If true, render a mobile-only contact card after the title (used inside the modal). */
   showMobileContact?: boolean
 }) {
@@ -525,7 +531,7 @@ export default function PropertyDetailBody({
           <section className={CARD}>
             <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 4 }}>Lugares cercanos</h2>
             <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
-            <NearbyPlaces lat={currentLat!} lng={currentLng!} />
+            {hayCercanos(cercanos) ? <ListaCercanos lugares={cercanos!} /> : <NearbyPlaces lat={currentLat!} lng={currentLng!} />}
           </section>
         </SectionBoundary>
       )}

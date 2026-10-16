@@ -170,10 +170,40 @@ const enCurso = new Map<string, Promise<LugaresCercanos | null>>()
 /** Lugares cercanos a (lat, lng), redondeado a 4 decimales (~11 m). null si
  *  Overpass no respondió (o está en pausa): no se guarda nada, el próximo pedido
  *  después de la pausa vuelve a probar. */
-export function lugaresCercanos(latIn: number, lngIn: number): Promise<LugaresCercanos | null> {
+const claveDe = (latIn: number, lngIn: number) => {
   const lat = Number(latIn.toFixed(4))
   const lng = Number(lngIn.toFixed(4))
-  const clave = `cercanos:v1:${lat}:${lng}`
+  return { lat, lng, clave: `cercanos:v1:${lat}:${lng}` }
+}
+
+/** Solo lo ya guardado (nunca le pide a Overpass): lo usa la ficha al armarse en
+ *  el servidor para que el HTML traiga los lugares cercanos. null si no está
+ *  o si Redis tarda: la ficha cae al pedido del navegador de siempre.
+ *
+ *  Va por el REST de Upstash con `next.revalidate` y NO con el cliente `redis`:
+ *  el cliente pide con cache 'no-store' y eso vuelve dinámica la ficha (ISR de
+ *  1 h) → "Page changed from static to dynamic at runtime" = 500 en todas. */
+export async function cercanosGuardados(lat: number, lng: number): Promise<LugaresCercanos | null> {
+  const { clave } = claveDe(lat, lng)
+  const url = process.env.KV_REST_API_URL
+  const token = process.env.KV_REST_API_TOKEN
+  if (!url || !token) return null
+  try {
+    const r = await fetch(`${url}/get/${encodeURIComponent(clave)}`, {
+      headers: { authorization: `Bearer ${token}` },
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(800),
+    })
+    if (!r.ok) return null
+    const { result } = (await r.json()) as { result: string | null }
+    return result ? (JSON.parse(result) as LugaresCercanos) : null
+  } catch {
+    return null
+  }
+}
+
+export function lugaresCercanos(latIn: number, lngIn: number): Promise<LugaresCercanos | null> {
+  const { lat, lng, clave } = claveDe(latIn, lngIn)
   const ya = enCurso.get(clave)
   if (ya) return ya
   const p = (async () => {

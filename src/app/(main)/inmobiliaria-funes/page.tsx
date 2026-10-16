@@ -63,7 +63,7 @@ const faqJsonLd = {
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Funes | Casas, Terrenos y Departamentos | SI INMOBILIARIA',
+  title: 'Inmobiliaria en Funes | Casas, Terrenos y Departamentos',
   description:
     'Inmobiliaria en Funes con oficina local. Casas, terrenos y departamentos, inventario vigente, tasaciones profesionales y asesoramiento con más de 40 años de trayectoria.',
   keywords: 'inmobiliaria funes, casas en funes, terrenos en funes, propiedades funes, inmobiliaria funes santa fe, casas en venta funes, alquiler funes',

@@ -32,7 +32,7 @@ const faqJsonLd = {
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Roldán | Casas, Terrenos y Lotes | SI INMOBILIARIA',
+  title: 'Inmobiliaria en Roldán | Casas, Terrenos y Lotes',
   description: 'Inmobiliaria en Roldán con dos oficinas. Casas, terrenos y lotes, inventario vigente, tasaciones profesionales y más de 40 años de trayectoria local.',
   keywords: 'inmobiliaria roldan, casas en roldan, terrenos en roldan, propiedades roldan, lotes roldan',
   openGraph: { title: 'Inmobiliaria en Roldán | SI INMOBILIARIA', description: 'Tu inmobiliaria de confianza en Roldán. 2 oficinas, +40 años.', url: 'https://siinmobiliaria.com/inmobiliaria-roldan', images: ['/og-image.jpg'] },

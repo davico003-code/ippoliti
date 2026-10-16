@@ -18,6 +18,7 @@ import { EDADES, estimar, porcentaje, resultado, tramoEdad } from '@/lib/tasador
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
 import { HILO_DE, TEXTO_TIPO, TIPOS_TASAR, esIndexableTasar, landingDeCiudad, landingsDeCiudad, opcionesTasar, resolverTasar, type Landing } from '@/lib/seo/tasar'
 import type { ModeloTasador, ParamsTasador } from '@/lib/tasador/tipos'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -63,8 +64,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : `Tasación de ${t.plural} en ${lugar(l)}: un corredor matriculado de SI INMOBILIARIA la hace con lo que se vendió en el barrio. Te escribimos por WhatsApp en menos de 24 h.`
   const url = `${BASE}/tasar/${l.slug}`
   return {
-    title: `${title} | SI INMOBILIARIA`,
-    description,
+    title: tituloConMarca(title),
+    description: recortarDescripcion(description),
     alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website', locale: 'es_AR' },
     twitter: { card: 'summary_large_image', title, description, images: ['/og-image.jpg'] },

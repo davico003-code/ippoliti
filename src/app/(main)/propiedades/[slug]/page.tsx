@@ -41,6 +41,8 @@ import { formatUbicacion } from '@/lib/ubicacion';
 import { sinVideosCaidos } from '@/lib/videos-vivos';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
 import { conFotosFijas, fotoAbsoluta, fotoFija } from '@/lib/fotos-fijas';
+import { cercanosGuardados } from '@/lib/cercanos';
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas';
 
 export const revalidate = 3600;
 
@@ -91,7 +93,9 @@ async function tituloUnico(property: TokkoProperty, title: string): Promise<stri
 }
 
 // Meta description cuando el aviso no tiene descripción cargada.
-function descripcionFallback(property: TokkoProperty): string {
+/** "Casa en venta en Funes · 240 m² · USD 250.000": lo que distingue a cada
+ *  ficha (las unidades de un edificio comparten el texto del aviso). */
+function datosClave(property: TokkoProperty): string {
   const tipo = propertyTypeLabelById(property.type?.id);
   const op = getOperationType(property).toLowerCase();
   const ubic = formatUbicacion(property);
@@ -101,7 +105,11 @@ function descripcionFallback(property: TokkoProperty): string {
     `${tipo === 'Otros' ? 'Propiedad' : tipo}${op ? ` en ${op}` : ''}${ubic ? ` en ${ubic}` : ''}`,
     sup ? `${sup.toLocaleString('es-AR')} m²` : '',
     precio ?? '',
-  ].filter(Boolean).join(' · ') + '. Consultá con SI INMOBILIARIA.';
+  ].filter(Boolean).join(' · ');
+}
+
+function descripcionFallback(property: TokkoProperty): string {
+  return `${datosClave(property)}. Consultá con SI INMOBILIARIA.`;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -117,24 +125,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const tituloBase = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
     const title = seo?.title ? tituloBase : await tituloUnico(property, tituloBase);
     // #1: el texto de Tokko trae whitespace/newlines al inicio; los tags se
-    // reemplazan por espacio (no pegar palabras), se colapsan los espacios y se
-    // trimea ANTES de cortar a 160, para no desperdiciar el límite con basura.
-    const desc = seo?.metaDescription ?? ((property.description || property.description_only || '')
+    // reemplazan por espacio (no pegar palabras) y se colapsan los espacios.
+    // Adelante van los datos clave (precio incluido): es lo que se lee en
+    // Google y lo que separa a las unidades de un mismo edificio.
+    const texto = (property.description || property.description_only || '')
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 160) || descripcionFallback(property));
+      .trim();
+    const desc = seo?.metaDescription ?? recortarDescripcion(texto ? `${datosClave(property)}. ${texto}` : descripcionFallback(property));
     // URL fija (/fotos/…): la firmada de Supabase rota cada 45 días y deja a
     // WhatsApp/Facebook con la vista previa rota (ver lib/fotos-fijas.ts).
     const photo = fotoFija(property, getMainPhoto(property), true);
     const price = formatPrice(property);
     const loc = formatUbicacion(property);
-    const ogDesc = `${price} - ${loc || property.address}. ${desc}`.slice(0, 200);
+    const ogDesc = seo?.metaDescription ? `${price} - ${loc || property.address}. ${desc}`.slice(0, 200) : desc;
     // #3: canonical SIEMPRE al slug canónico del ID (no al slug pedido), para
     // consolidar los duplicados que sirve cualquier sufijo con el ID correcto.
     const canonicalUrl = `https://siinmobiliaria.com/propiedades/${generatePropertySlug(property)}`;
     return {
-      title: `${title} | SI INMOBILIARIA`,
+      title: tituloConMarca(title),
       description: desc,
       alternates: { canonical: canonicalUrl },
       openGraph: {
@@ -252,6 +261,8 @@ export default async function PropertyPage({ params }: Props) {
   const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
   const currentLng = property.geo_long ? parseFloat(property.geo_long) : null;
   const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng);
+  // Lugares cercanos ya guardados → en el HTML (Google indexa la versión celu).
+  const cercanos = hasCoords ? await cercanosGuardados(currentLat!, currentLng!) : null;
   const description = getDescription(property);
 
   // JSON-LD — RealEstateListing + BreadcrumbList
@@ -408,6 +419,7 @@ export default async function PropertyPage({ params }: Props) {
             property={property}
             whatsappUrl={whatsappUrl}
             showMobileContact
+            cercanos={cercanos?.ficha ?? null}
           />
         </div>
 

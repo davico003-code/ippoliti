@@ -10,6 +10,7 @@ import { zonasMencionadas } from '@/lib/zonas-links'
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
 import { cierreDeNota, WHATSAPP_BLOG } from '@/lib/blog-cta'
 import BurbujaDavid from '@/components/BurbujaDavid'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
 // su fecha, sin depender del revalidate on-demand.
@@ -38,8 +39,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : `https://siinmobiliaria.com${resolved}`
 
   return {
-    title: `${post.title} | Blog SI INMOBILIARIA`,
-    description: post.summary,
+    title: tituloConMarca(post.title),
+    description: recortarDescripcion(post.summary),
     alternates: { canonical: url },
     openGraph: {
       title: post.title,
