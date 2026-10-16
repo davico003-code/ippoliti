@@ -471,15 +471,15 @@ dialog.visor::backdrop { background: #000; }
 .chips-opciones.chicos .chip-opcion span { min-height: 38px; padding: 0 12px; font-size: 14px; font-weight: 600; }
 .barrio-buscar { position: relative; margin-top: 14px; scroll-margin-top: 16px; }
 .sub-rotulo { display: block; margin-bottom: 6px; font-weight: 700; font-size: 14px; color: var(--tinta); }
-.sugerencias {
+.barrio-buscar .sugerencias {
   position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; max-height: 288px; overflow-y: auto; overscroll-behavior: contain;
   margin: 0; padding: 6px; list-style: none; background: var(--blanco); border: 1px solid var(--linea-fuerte); border-radius: 12px; box-shadow: var(--sombra);
 }
-.sugerencias li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.sugerencias li small { color: var(--gris-claro); font-weight: 500; font-size: 13px; }
-.sugerencias li[aria-selected='true'] { background: var(--arena); }
-@media (hover: hover) { .sugerencias li[role='option']:hover { background: var(--arena); } }
-.sugerencias li.nada { min-height: 0; padding: 10px 12px; color: var(--gris); font-weight: 500; font-size: 14px; line-height: 1.4; cursor: default; }
+.barrio-buscar .sugerencias li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.barrio-buscar .sugerencias li small { color: var(--gris-claro); font-weight: 500; font-size: 13px; }
+.barrio-buscar .sugerencias li[aria-selected='true'] { background: var(--arena); }
+@media (hover: hover) { .barrio-buscar .sugerencias li[role='option']:hover { background: var(--arena); } }
+.barrio-buscar .sugerencias li.nada { min-height: 0; padding: 10px 12px; color: var(--gris); font-weight: 500; font-size: 14px; line-height: 1.4; cursor: default; }
 .elegidos { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
 .elegidos:empty { display: none; }
 .elegidos li { display: inline-flex; align-items: center; padding-left: 12px; border-radius: 999px; background: var(--tinta); color: var(--blanco); font-size: 14px; font-weight: 700; }
