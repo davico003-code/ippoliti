@@ -207,6 +207,7 @@ const jsonLd = [
       "https://www.instagram.com/inmobiliaria.si",
       "https://www.tiktok.com/@si.inmobiliaria",
       "https://www.facebook.com/inmobiliariaippoliti/",
+      "https://www.youtube.com/@mundosiinmobiliaria",
     ],
     contactPoint: {
       "@type": "ContactPoint",

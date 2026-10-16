@@ -116,6 +116,8 @@ export interface TokkoProperty {
   deleted_at: string | null;
   /** Última edición de la propiedad en Hilo (ISO). Solo la usa el sitemap (lastmod). */
   last_update?: string | null;
+  /** Alta de la propiedad (ISO, viene en el detalle). Va al datePosted del JSON-LD. */
+  created_at?: string | null;
   tags: TokkoTag[];
   videos: TokkoVideo[];
   property_condition: string | null;
@@ -239,6 +241,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
     is_starred_on_web: p.is_starred_on_web,
     status: p.status,
     deleted_at: p.deleted_at,
+    ...(p.created_at ? { created_at: p.created_at } : {}),
     tags: (p.tags ?? []).map((t) => ({ id: t.id, name: t.name, type: t.type })),
     videos: (p.videos ?? []).map((v) => ({
       id: v.id,

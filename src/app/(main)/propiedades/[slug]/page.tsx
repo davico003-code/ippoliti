@@ -266,6 +266,7 @@ export default async function PropertyPage({ params }: Props) {
       name: tituloVisible(property) || property.address,
       description,
       url: propUrl,
+      ...(property.created_at ? { datePosted: property.created_at.slice(0, 10) } : {}),
       image: mainPhotoUrl ? [mainPhotoUrl] : [],
       ...(tienePrecio ? {
         offers: {
