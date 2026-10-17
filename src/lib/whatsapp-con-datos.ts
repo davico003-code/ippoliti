@@ -10,10 +10,25 @@ import { visitante } from '@/lib/tinder-contador'
 /** La llave: prendido salvo NEXT_PUBLIC_WHATSAPP_CON_DATOS=off (se apaga sin revertir el merge). */
 export const WHATSAPP_CON_DATOS_ACTIVO = process.env.NEXT_PUBLIC_WHATSAPP_CON_DATOS !== 'off'
 
-export const EVENTOS_WCD = ['toque', 'datos'] as const
+// 'turno' (17-oct-2026): eligió día + franja después de abrir WhatsApp (el "segundo filtro").
+export const EVENTOS_WCD = ['toque', 'datos', 'turno'] as const
 export type EventoWcd = (typeof EVENTOS_WCD)[number]
 
 export type AgenteFicha = { nombre: string; whatsapp: string }
+
+/** Días y franjas que ofrece Hilo (lib/visitas/turno-web de Hilo): la hoja solo los dibuja. */
+export type TurnosFicha = { dias: { fecha: string; etiqueta: string }[]; franjas: { id: string; etiqueta: string }[] }
+
+/** La consulta que ya salió desde esta ficha (sessionStorage): con qué agente, su conversación en Hilo y los turnos que ofrece. */
+export type ConsultaEnviada = {
+  nombre: string
+  whatsapp: string
+  agente: AgenteFicha | null
+  conversationId: string | null
+  turnos: TurnosFicha | null
+  /** "sáb 17 oct, Tarde (15 a 19)" si ya pidió turno: no se le vuelve a ofrecer. */
+  turnoPedido: string | null
+}
 
 /**
  * El wa.me final (puro). Va al agente asignado si Hilo lo devolvió; si no, al
@@ -50,26 +65,65 @@ export function contarWcd(evento: EventoWcd): void {
 }
 
 /**
- * La consulta ya enviada por esta ficha en esta pestaña (con su agente): volver
- * a tocar el botón abre el mismo chat sin mandar otra consulta ni otro Lead.
+ * La consulta ya enviada por esta ficha en esta pestaña (con su agente, su
+ * conversación y los turnos): volver a tocar el botón abre el mismo chat sin
+ * mandar otra consulta ni otro Lead, y la hoja sigue ofreciendo el turno.
  */
 const CLAVE_ENVIADA = 'si-wcd-enviada:'
 const VIGENCIA_MS = 30 * 60_000
 
-export function consultaYaEnviada(propertyId: number): { agente: AgenteFicha | null; nombre: string } | null {
+export function consultaYaEnviada(propertyId: number): ConsultaEnviada | null {
   try {
     const v = JSON.parse(window.sessionStorage.getItem(CLAVE_ENVIADA + propertyId) ?? 'null')
     if (!v || typeof v.at !== 'number' || Date.now() - v.at > VIGENCIA_MS || typeof v.nombre !== 'string') return null
-    return { agente: v.agente ?? null, nombre: v.nombre }
+    const str = (x: unknown) => (typeof x === 'string' ? x : null)
+    return {
+      nombre: v.nombre,
+      whatsapp: str(v.whatsapp) ?? '',
+      agente: v.agente ?? null,
+      conversationId: str(v.conversationId),
+      turnos: v.turnos && Array.isArray(v.turnos.dias) && Array.isArray(v.turnos.franjas) ? (v.turnos as TurnosFicha) : null,
+      turnoPedido: str(v.turnoPedido),
+    }
   } catch {
     return null
   }
 }
 
-export function guardarConsultaEnviada(propertyId: number, nombre: string, agente: AgenteFicha | null): void {
+export function guardarConsultaEnviada(propertyId: number, c: Omit<ConsultaEnviada, 'turnoPedido'>): void {
   try {
-    window.sessionStorage.setItem(CLAVE_ENVIADA + propertyId, JSON.stringify({ at: Date.now(), nombre, agente }))
+    window.sessionStorage.setItem(CLAVE_ENVIADA + propertyId, JSON.stringify({ at: Date.now(), ...c, turnoPedido: null }))
   } catch {
     /* sin almacenamiento: a lo sumo se vuelve a mandar (Hilo deduplica 10 min) */
+  }
+}
+
+/** El turno que pidió (para no ofrecerlo de nuevo si vuelve a abrir la hoja). */
+export function guardarTurnoPedido(propertyId: number, etiqueta: string): void {
+  try {
+    const k = CLAVE_ENVIADA + propertyId
+    const v = JSON.parse(window.sessionStorage.getItem(k) ?? 'null')
+    if (v) window.sessionStorage.setItem(k, JSON.stringify({ ...v, turnoPedido: etiqueta }))
+  } catch {
+    /* sin almacenamiento: Hilo igual no duplica el mismo turno */
+  }
+}
+
+/**
+ * Pide el turno (día + franja) a Hilo vía /api/turno-visita. El error que vuelve
+ * ya está escrito para la persona.
+ */
+export async function pedirTurno(input: { conversationId: string; whatsapp: string; fecha: string; franja: string }): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const r = await fetch('/api/turno-visita', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    if (r.ok) return { ok: true }
+    const data = (await r.json().catch(() => null)) as { error?: unknown } | null
+    return { ok: false, error: typeof data?.error === 'string' && data.error ? data.error : 'No pudimos pedir el turno. Coordinalo por WhatsApp.' }
+  } catch {
+    return { ok: false, error: 'No pudimos pedir el turno. Coordinalo por WhatsApp.' }
   }
 }
