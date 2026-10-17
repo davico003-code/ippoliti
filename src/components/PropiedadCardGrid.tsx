@@ -167,9 +167,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       }}
       onMouseEnter={() => router.prefetch(cardHref)}
     >
-      {/* Fotos deslizables (flechas en hover en la compu, swipe en el celu). */}
+      {/* Fotos deslizables (en la compu la foto sigue al mouse, swipe en el celu). */}
       <FotosDeslizables
         images={images}
+        recorrerConMouse
         alt={address}
         sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw"
         priority={priority}

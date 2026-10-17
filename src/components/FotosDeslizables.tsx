@@ -1,7 +1,8 @@
 'use client'
 
 // Fotos de una tarjeta de propiedad que se pasan sin entrar a la ficha: en la
-// compu, flechas al pasar el mouse sobre la foto; en el celu, swipe. Puntitos
+// compu, flechas al pasar el mouse sobre la foto (o, con `recorrerConMouse`,
+// la foto sigue al mouse como en AliExpress); en el celu, swipe. Puntitos
 // siempre (avisan que hay más fotos). Lo usan el listado /propiedades
 // (PropiedadCardGrid) y "Nuestra selección" de la home: un solo carrusel.
 //
@@ -21,6 +22,7 @@ export default function FotosDeslizables({
   diferir = false,
   swipe = true,
   flechasSiempre = false,
+  recorrerConMouse = false,
   puntos = 'centro',
   imgClassName = '',
   className = '',
@@ -44,6 +46,10 @@ export default function FotosDeslizables({
   /** Flechas visibles siempre y también en el celu (donde no hay hover). Para
    *  tarjetas con `swipe` apagado: si no, en el celu no habría cómo pasar fotos. */
   flechasSiempre?: boolean
+  /** En la compu, la foto sigue al mouse sin hacer click (como AliExpress): la
+   *  foto se parte en franjas verticales, una por foto, y al salir vuelve la
+   *  portada. Reemplaza a las flechas del hover (quedan solo para el teclado). */
+  recorrerConMouse?: boolean
   /** Dónde van los puntitos: al costado contrario de lo que haya abajo en la foto
    *  (la cara del agente en la home va a la derecha; la pastilla del listado, a la izquierda). */
   puntos?: 'centro' | 'izquierda' | 'derecha'
@@ -64,6 +70,10 @@ export default function FotosDeslizables({
   // la foto se precargan la anterior y las dos siguientes, y cada cambio corre la ventana.
   const [calentar, setCalentar] = useState(false)
   const [montadas, setMontadas] = useState<number[]>([0])
+  // Mouse adentro con `recorrerConMouse`: se montan todas (en el listado son 5)
+  // para que cada franja muestre su foto al instante, y el cambio va sin
+  // deslizar (con la animación de 300 ms la foto quedaba atrás del mouse).
+  const [recorriendo, setRecorriendo] = useState(false)
   const [cargada, setCargada] = useState(!diferir)
   useEffect(() => {
     if (cargada) return
@@ -80,19 +90,23 @@ export default function FotosDeslizables({
   useEffect(() => {
     if (!calentar || images.length < 2) return
     const n = images.length
-    const vecinas = [imgIdx, (imgIdx + 1) % n, (imgIdx + 2) % n, (imgIdx - 1 + n) % n]
+    const vecinas = recorriendo
+      ? Array.from({ length: n }, (_, i) => i)
+      : [imgIdx, (imgIdx + 1) % n, (imgIdx + 2) % n, (imgIdx - 1 + n) % n]
     setMontadas(m => vecinas.every(v => m.includes(v)) ? m : Array.from(new Set([...m, ...vecinas])))
-  }, [calentar, imgIdx, images.length])
+  }, [calentar, recorriendo, imgIdx, images.length])
 
   // Pasar de foto también calienta (con teclado no hubo mouseenter).
   const prev = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation()
     setCalentar(true)
+    setRecorriendo(false)
     setImgIdx(i => (i - 1 + images.length) % images.length)
   }
   const next = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation()
     setCalentar(true)
+    setRecorriendo(false)
     setImgIdx(i => (i + 1) % images.length)
   }
   const goTo = (e: React.MouseEvent, i: number) => {
@@ -136,6 +150,21 @@ export default function FotosDeslizables({
     }
     touchStartX.current = null
   }
+  // Solo mouse: en el celu y la tablet el dedo sigue usando el swipe.
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse' || images.length < 2) return
+    const caja = e.currentTarget.getBoundingClientRect()
+    if (caja.width <= 0) return
+    const franja = Math.floor(((e.clientX - caja.left) / caja.width) * images.length)
+    setCalentar(true)
+    setRecorriendo(true)
+    setImgIdx(Math.min(images.length - 1, Math.max(0, franja)))
+  }
+  const onPointerLeave = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse') return
+    setImgIdx(0)
+  }
+
   const onClickCapture = (e: React.MouseEvent) => {
     if (swipedRef.current) {
       e.preventDefault(); e.stopPropagation()
@@ -147,13 +176,19 @@ export default function FotosDeslizables({
   // flechas aparecen solo al pasar el mouse sobre la foto.
   const flecha = flechasSiempre
     ? 'flex w-9 h-9 bg-white/90 shadow-md'
-    : 'hidden md:flex w-8 h-8 bg-white/85 shadow-sm opacity-0 group-hover/media:opacity-100 focus-visible:opacity-100'
+    : recorrerConMouse
+      // Invisibles también tienen que dejar pasar el click (si no, cerca del
+      // borde la foto no abriría la ficha).
+      ? 'hidden md:flex w-8 h-8 bg-white/85 shadow-sm opacity-0 pointer-events-none focus-visible:opacity-100 focus-visible:pointer-events-auto'
+      : 'hidden md:flex w-8 h-8 bg-white/85 shadow-sm opacity-0 group-hover/media:opacity-100 focus-visible:opacity-100'
   return (
     <div
       className={`group/media relative w-full overflow-hidden rounded-[14px] ${images.length === 0 ? 'bg-gray-100' : imgLoaded ? '' : 'si-img-shimmer'} ${className}`}
       onTouchStart={swipe ? onTouchStart : () => setCalentar(true)}
       onTouchEnd={swipe ? onTouchEnd : undefined}
       onMouseEnter={() => setCalentar(true)}
+      onPointerMove={recorrerConMouse ? onPointerMove : undefined}
+      onPointerLeave={recorrerConMouse ? onPointerLeave : undefined}
       onClickCapture={swipe ? onClickCapture : undefined}
       style={style}
     >
@@ -161,7 +196,7 @@ export default function FotosDeslizables({
         // Tira deslizable: la foto actual y sus vecinas ya montadas, así la
         // flecha/swipe corre la foto al instante en vez de esperar la descarga.
         <div
-          className="absolute inset-0 flex transition-transform duration-300 ease-out will-change-transform"
+          className={`absolute inset-0 flex will-change-transform ${recorriendo ? '' : 'transition-transform duration-300 ease-out'}`}
           style={{ transform: `translateX(-${imgIdx * 100}%)` }}
         >
           {images.map((src, i) => (
