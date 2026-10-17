@@ -113,11 +113,11 @@ function HojaWhatsapp({
   const nombreRef = useRef<HTMLInputElement>(null)
   const whatsappRef = useRef<HTMLInputElement>(null)
 
-  function irAWhatsapp(consulta: ConsultaEnviada) {
+  function irAWhatsapp(consulta: ConsultaEnviada, opts: { abrir: boolean } = { abrir: true }) {
     const url = urlWhatsappConDatos(hrefFicha, consulta.nombre, consulta.agente)
     setDestino({ url, consulta })
     setEstado('listo')
-    abrirWhatsapp(url)
+    if (opts.abrir) abrirWhatsapp(url)
   }
 
   async function enviar(n: string, w: string) {
@@ -175,12 +175,15 @@ function HojaWhatsapp({
     irAWhatsapp(consulta)
   }
 
-  // Al abrir: si esta ficha ya se consultó en la pestaña, mismo chat sin otra
-  // consulta; si ya dejó sus datos en este navegador, se manda sin preguntar.
+  // Al abrir: si esta ficha ya se consultó en la pestaña, la hoja vuelve a
+  // "Listo" (mismo chat a un toque, sin otra consulta, y el turno si no lo
+  // pidió) SIN saltar sola a WhatsApp: en el celu, al volver de WhatsApp y
+  // tocar de nuevo, saltaba otra vez y nunca se veía el turno. Si ya dejó sus
+  // datos en este navegador, se manda sin preguntar.
   useEffect(() => {
     const previa = consultaYaEnviada(propertyId)
     if (previa) {
-      irAWhatsapp(previa)
+      irAWhatsapp(previa, { abrir: false })
       return
     }
     const c = leerContacto()
