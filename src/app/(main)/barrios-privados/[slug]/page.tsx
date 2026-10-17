@@ -29,12 +29,26 @@ import DetalleGaleria from "./_components/DetalleGaleria";
 import DetalleAmenities from "./_components/DetalleAmenities";
 import DetallePlano from "./_components/DetallePlano";
 import DetalleMapaCercanias from "./_components/DetalleMapaCercanias";
-import { tituloConMarca } from '@/lib/seo/metas'
+import Link from "next/link";
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
+import { fraseMercado, mercadoDelBarrio, usdCorto, type MercadoBarrio } from '@/lib/seo/barrio-mercado'
 
 const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif";
 
 interface Props {
   params: { slug: string };
+}
+
+// El mercado del barrio (casas y lotes en venta) se rearma cada 6 h.
+export const revalidate = 21600;
+
+/** "Haras de Funes" ya dice la ciudad; "La Finca 2" → "La Finca 2, Funes". */
+const conCiudad = (nombre: string) => (/funes/i.test(nombre) ? nombre : `${nombre}, Funes`);
+
+/** Lo que se busca: "haras de funes", "la finca 2 funes" → precios y qué hay en venta. */
+function tituloConMercado(nombre: string, m: MercadoBarrio): string {
+  const que = m.casas && m.lotes ? "casas y lotes" : m.casas ? "casas" : "lotes";
+  return `${conCiudad(nombre)}: precios, ${que} en venta`;
 }
 
 export function generateStaticParams() {
@@ -46,12 +60,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!barrio) return {};
   const canonical = `https://siinmobiliaria.com/barrios-privados/${barrio.slug}`;
 
-  const title = barrio.subtitulo
-    ? tituloConMarca(`${barrio.nombre} · ${barrio.subtitulo}`)
-    : barrio.seo.metaTitle;
-  const description = barrio.contenidoSEO?.intro
-    ? barrio.contenidoSEO.intro.slice(0, 155).trim()
-    : barrio.seo.metaDescription;
+  const mercado = await mercadoDelBarrio(barrio.nombre);
+  const title = mercado
+    ? tituloConMarca(tituloConMercado(barrio.nombre, mercado))
+    : barrio.subtitulo
+      ? tituloConMarca(`${barrio.nombre} · ${barrio.subtitulo}`)
+      : barrio.seo.metaTitle;
+  const intro = barrio.contenidoSEO?.intro ?? barrio.seo.metaDescription;
+  const description = mercado
+    ? recortarDescripcion(`${conCiudad(barrio.nombre)}: ${fraseMercado(mercado)}. ${barrio.subtitulo ? `${barrio.subtitulo}. ` : ""}${intro}`)
+    : recortarDescripcion(intro);
   const keywords = barrio.keywords ?? barrio.seo.keywordsLongTail.join(", ");
 
   // og:image: portada procesada 01.webp; fallback al hero legacy / default.
@@ -86,9 +104,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function BarrioPage({ params }: Props) {
+export default async function BarrioPage({ params }: Props) {
   const barrio = getBarrioBySlug(params.slug);
   if (!barrio) notFound();
+  const mercado = await mercadoDelBarrio(barrio.nombre);
 
   // Assets procesados (build-time, fs)
   const fotos = getBarrioFotos(barrio.slug);
@@ -106,6 +125,7 @@ export default function BarrioPage({ params }: Props) {
   // Ítems del sub-nav sticky — solo las secciones que efectivamente se renderean.
   const subnavItems: SubnavItem[] = [
     { id: "resumen", label: "Resumen" },
+    ...(mercado ? [{ id: "precios", label: "Precios" }] : []),
     ...(galeria.length > 0 ? [{ id: "galeria", label: "Galería" }] : []),
     ...(barrio.amenities.length > 0 ? [{ id: "amenities", label: "Amenities" }] : []),
     { id: "plano", label: "Plano" },
@@ -213,6 +233,8 @@ export default function BarrioPage({ params }: Props) {
 
       {/* 6. PROPIEDADES DISPONIBLES — stock vivo Tokko (sin cambios de lógica) */}
       <div className="mx-auto max-w-[1280px] space-y-12 px-6 py-14 md:px-10 md:py-20">
+        {mercado && <PreciosDelBarrio nombre={barrio.nombre} mercado={mercado} />}
+
         <section id="lotes" className="scroll-mt-24">
           <h2
             className="mb-5 text-2xl text-[#0a0a0a] md:text-[28px]"
@@ -243,5 +265,47 @@ export default function BarrioPage({ params }: Props) {
         waText={`Hola SI, quiero info sobre ${barrio.nombre}.`}
       />
     </>
+  );
+}
+
+/** Lo que se pide hoy en el barrio (relevamiento de Hilo). Server: queda en el HTML. */
+function PreciosDelBarrio({ nombre, mercado }: { nombre: string; mercado: MercadoBarrio }) {
+  const filas = [
+    { label: "Casas", singular: "casa", m: mercado.casas },
+    { label: "Lotes", singular: "lote", m: mercado.lotes },
+  ].filter((f) => f.m);
+  return (
+    <section id="precios" className="scroll-mt-24">
+      <h2
+        className="mb-5 text-2xl md:text-[28px]"
+        style={{ fontFamily: R, fontWeight: 700, letterSpacing: "-0.015em", color: "var(--foreground)" }}
+      >
+        Cuánto se pide hoy en {nombre}
+      </h2>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {filas.map(({ label, singular, m }) => (
+          <div key={label} className="rounded-2xl border border-gray-200 bg-white p-5" style={{ color: "var(--foreground)" }}>
+            <p className="text-[15px]" style={{ color: "var(--tinta-soft)" }}>{label} en venta</p>
+            <p className="mt-1 text-4xl font-bold" style={{ fontFamily: R, fontVariantNumeric: "tabular-nums" }}>
+              {m!.n.toLocaleString("es-AR")}
+            </p>
+            <p className="mt-2 text-[16px] leading-snug">
+              La mitad pide entre <b>{usdCorto(m!.p25)}</b> y <b>{usdCorto(m!.p75)}</b>.
+              {singular === "lote" && m!.lote ? ` Lote típico: ${m!.lote.toLocaleString("es-AR")} m².` : ""}
+              {singular === "casa" && m!.m2 ? ` Casa típica: ${m!.m2.toLocaleString("es-AR")} m² cubiertos.` : ""}
+            </p>
+            {m!.tasar && (
+              <Link href={m!.tasar} className="mt-3 inline-block text-[15px] font-semibold underline-offset-2 hover:underline" style={{ color: "var(--brand)" }}>
+                Cuánto vale tu {singular} en {nombre} →
+              </Link>
+            )}
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-[13px]" style={{ color: "var(--tinta-soft)" }}>
+        Relevamiento propio de los avisos publicados{mercado.actualizado ? `, actualizado el ${mercado.actualizado}` : ""}. Es precio de
+        publicación: el de venta lo fija la tasación.
+      </p>
+    </section>
   );
 }

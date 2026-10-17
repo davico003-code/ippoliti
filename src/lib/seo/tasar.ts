@@ -79,7 +79,7 @@ export function zonasTasar(t: Tasador): ZonaTasar[] {
  * "Kentucky Club de Campo"), o el que más palabras comparte sin empate ("Vida
  * Crystal Lagoon" = "Vida Lagoon", no "Vida"). null = no la tiene: la ciudad.
  */
-export function zonaDeBarrio(b: BarrioTasador, tipo: TipoTasar, zonas: ZonaTasar[]): ZonaTasar | null {
+export function zonaDeBarrio(b: Pick<BarrioTasador, 'nombre' | 'ciudad'>, tipo: TipoTasar, zonas: ZonaTasar[]): ZonaTasar | null {
   const buscado = palabras(b.nombre)
   if (!buscado.length) return null
   const deCiudad = zonas.filter((z) => !z.esCiudad && z.ciudad === b.ciudad && (z.params[tipo]?.n ?? 0) > 0)
