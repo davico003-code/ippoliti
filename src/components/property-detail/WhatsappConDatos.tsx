@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type AnchorHTMLAttributes, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageCircle, X } from 'lucide-react'
-import { events, trackEvent, trackFbEvent } from '@/lib/analytics'
+import { events, idEventoMeta, trackEvent, trackFbEvent } from '@/lib/analytics'
 import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
 import { marcarVisitaDePauta, urlConUtmDePauta } from '@/lib/pauta-visita'
 import {
@@ -124,6 +124,8 @@ function HojaWhatsapp({
     }
     setError(null)
     setEstado('enviando')
+    // Mismo id para el píxel y para la Conversions API (Hilo): Meta cuenta UNA consulta.
+    const metaEventId = idEventoMeta()
     const envio = fetch('/api/leads', {
       method: 'POST',
       keepalive: true,
@@ -137,9 +139,10 @@ function HojaWhatsapp({
         propertyPrice,
         pageUrl: urlConUtmDePauta(),
         eventType: 'property.inquiry',
+        metaEventId,
       }),
     })
-      .then(async (r) => (r.ok ? ((await r.json().catch(() => ({}))) as { agente?: AgenteFicha | null }) : null))
+      .then(async (r) => (r.ok ? ((await r.json().catch(() => ({}))) as { agente?: AgenteFicha | null; metaEventId?: string }) : null))
       .catch(() => null)
     // Con tope: si Hilo tarda, igual se le abre el chat (la consulta sigue entrando).
     const res = await Promise.race([envio, new Promise<'tarde'>((r) => window.setTimeout(() => r('tarde'), TOPE_MS))])
@@ -148,7 +151,7 @@ function HojaWhatsapp({
       escribirContacto({ nombre: n.trim(), whatsapp: digitos })
       guardarConsultaEnviada(propertyId, n.trim(), agente)
       contarWcd('datos')
-      trackFbEvent('Lead', { content_name: propertyTitle, content_ids: [String(propertyId)], content_category: 'whatsapp_ficha' })
+      trackFbEvent('Lead', { content_name: propertyTitle, content_ids: [String(propertyId)], content_category: 'whatsapp_ficha' }, res.metaEventId ?? metaEventId)
       trackEvent('generate_lead', { origen: 'whatsapp_ficha' })
     }
     irAWhatsapp(n, agente)

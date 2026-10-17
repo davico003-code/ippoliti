@@ -163,7 +163,7 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
         return
       }
       // Solo acá: el servidor confirmó que Hilo recibió el pedido.
-      trackFbEvent('Lead', { content_name: 'Tasación', barrio: barrio.nombre, plazo })
+      trackFbCustomEvent('TasacionPedida', { content_name: 'Tasación', barrio: barrio.nombre, plazo })
       trackEvent('tasacion_pedido', { barrio: barrio.nombre, tipo, plazo })
       setEnviando(false)
       setPaso('listo')

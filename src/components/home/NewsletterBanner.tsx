@@ -89,7 +89,7 @@ export default function NewsletterBanner() {
       if (!res.ok) throw new Error('bad status')
       setStatus('sent')
       trackEvent('generate_lead', { origen: 'newsletter_banner' })
-      trackFbEvent('Lead', { content_name: 'Newsletter oportunidades' })
+      trackFbEvent('CompleteRegistration', { content_name: 'Newsletter oportunidades' })
     } catch {
       setStatus('error')
     }

@@ -3,6 +3,7 @@ import { Redis } from '@upstash/redis'
 import { enviarLeadAHilo } from '@/lib/hilo-leads'
 import { rateLimit } from '@/lib/feedback'
 import { normalizeArWhatsapp } from '@/lib/phone'
+import { metaDeLaConsulta } from '@/lib/meta-capi'
 
 const MAX = 400 // tope de largo por campo antes de persistir/reenviar
 
@@ -129,6 +130,8 @@ export async function POST(request: NextRequest) {
     ...(esDePropiedad
       ? { tokkoPropertyId, hiloPropertyId, sourceUrl: pageUrl || null, attribution: utm }
       : pageUrl ? { sourceUrl: pageUrl, attribution: utm } : {}),
+    // Identidad de Meta de la consulta → Hilo la manda por CAPI (Lead deduplicado con el píxel).
+    meta: metaDeLaConsulta(request, body, pageUrl || null),
   })
 
   // Si el lead NO quedó en NINGÚN destino durable, es una pérdida real: avisar al
@@ -172,6 +175,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // El WhatsApp del agente solo lo pide el botón de la ficha.
-  return NextResponse.json(esWhatsappFicha ? { ok: true, agente: hilo.agente } : { ok: true })
+  // El WhatsApp del agente solo lo pide el botón de la ficha. metaEventId: con
+  // ese id dispara el píxel (si Hilo ya tenía la consulta, es el primero).
+  return NextResponse.json({ ok: true, ...(esWhatsappFicha ? { agente: hilo.agente } : {}), ...(hilo.metaEventId ? { metaEventId: hilo.metaEventId } : {}) })
 }

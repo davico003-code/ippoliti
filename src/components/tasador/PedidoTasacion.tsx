@@ -8,7 +8,7 @@
 // Misma medición que /tasaciones: Lead SOLO cuando el servidor confirmó.
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { trackEvent, trackFbCustomEvent, trackFbEvent } from '@/lib/analytics'
+import { trackEvent, trackFbCustomEvent } from '@/lib/analytics'
 import { celularArValido, normalizarCelularAr, PLAZOS_VENTA } from '@/lib/tasacion/formato'
 import type { PlazoVenta, UtmTasacion } from '@/lib/tasacion/types'
 import { TEXTO_TIPO, TIPO_PEDIDO, type OpcionTasar, type TipoTasar } from '@/lib/tasador/opciones'
@@ -127,7 +127,7 @@ export default function PedidoTasacion({ modo, tipo, zona, m2, lote, antiguedad,
         return
       }
       // Solo acá: el servidor confirmó que Hilo recibió el pedido.
-      trackFbEvent('Lead', { content_name: 'Tasación', barrio: zona.nombre, plazo: plazo ?? '' })
+      trackFbCustomEvent('TasacionPedida', { content_name: 'Tasación', barrio: zona.nombre, plazo: plazo ?? '' })
       trackEvent('tasacion_pedido', { barrio: zona.nombre, tipo, plazo: plazo ?? '', origen: `tasador-${modo}` })
       setEstado('listo')
     } catch {

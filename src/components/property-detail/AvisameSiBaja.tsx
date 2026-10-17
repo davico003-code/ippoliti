@@ -64,7 +64,7 @@ export default function AvisameSiBaja({ propertyId }: { propertyId: number }) {
       escribirContacto({ email: mail })
       marcarPedido(propertyId)
       trackEvent('avisame_si_baja', { propiedad: propertyId })
-      trackFbEvent('Lead', { content_name: 'avisame_si_baja', content_ids: [String(propertyId)] })
+      trackFbEvent('CompleteRegistration', { content_name: 'avisame_si_baja', content_ids: [String(propertyId)] })
       setEstado('listo')
     } catch (err) {
       setEstado('idle')
