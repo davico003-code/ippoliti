@@ -71,9 +71,9 @@
   "/seleccion/ficha/[slug]": "2026-10-03",
   "/tasaciones": "2026-10-16",
   "/tasar": "2026-10-16",
-  "/tasar/[slug]": "2026-10-16",
+  "/tasar/[slug]": "2026-10-17",
   "/terrenos-funes": "2026-10-12",
   "/terrenos-roldan": "2026-10-16",
-  "/vender": "2026-10-16",
-  "/vender/[slug]": "2026-10-16"
+  "/vender": "2026-10-17",
+  "/vender/[slug]": "2026-10-17"
 }
