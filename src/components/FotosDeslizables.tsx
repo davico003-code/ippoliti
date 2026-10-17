@@ -74,6 +74,13 @@ export default function FotosDeslizables({
   // para que cada franja muestre su foto al instante, y el cambio va sin
   // deslizar (con la animación de 300 ms la foto quedaba atrás del mouse).
   const [recorriendo, setRecorriendo] = useState(false)
+  // En la compu, con `recorrerConMouse`, las fotos de la tarjeta se bajan antes
+  // del mouse: cuando terminó de cargar la página y la tarjeta quedó a la vista
+  // 300 ms. Las 2-5 casi nadie las pedía, así que la primera vez Vercel tardaba
+  // ~1 s en armar cada una (medido el 17-oct: MISS 1,15 s, HIT 0,15 s) y al pasar
+  // el mouse se veía gris. En el celu no (no hay mouse y la señal es floja).
+  const [precargar, setPrecargar] = useState(false)
+  const cajaRef = useRef<HTMLDivElement | null>(null)
   const [cargada, setCargada] = useState(!diferir)
   useEffect(() => {
     if (cargada) return
@@ -88,13 +95,37 @@ export default function FotosDeslizables({
     }
   }, [cargada])
   useEffect(() => {
-    if (!calentar || images.length < 2) return
+    if (!recorrerConMouse || precargar || images.length < 2) return
+    const el = cajaRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const obs = new IntersectionObserver(([e]) => {
+      clearTimeout(timer)
+      if (e?.isIntersecting) timer = setTimeout(() => setPrecargar(true), 300)
+    }, { threshold: 0.5 })
+    const empezar = () => obs.observe(el)
+    if (document.readyState === 'complete') empezar()
+    else window.addEventListener('load', empezar, { once: true })
+    return () => {
+      clearTimeout(timer)
+      obs.disconnect()
+      window.removeEventListener('load', empezar)
+    }
+  }, [recorrerConMouse, precargar, images.length])
+  // Todas juntas (recorriendo o precargando) van `eager`: con el `lazy` de
+  // siempre, el navegador no pedía las que la tira corre fuera de la vista (la
+  // 4 y la 5 arrancaban recién cuando el mouse llegaba a su franja).
+  const todas = recorriendo || precargar
+  useEffect(() => {
+    if ((!calentar && !precargar) || images.length < 2) return
     const n = images.length
-    const vecinas = recorriendo
+    const vecinas = todas
       ? Array.from({ length: n }, (_, i) => i)
       : [imgIdx, (imgIdx + 1) % n, (imgIdx + 2) % n, (imgIdx - 1 + n) % n]
     setMontadas(m => vecinas.every(v => m.includes(v)) ? m : Array.from(new Set([...m, ...vecinas])))
-  }, [calentar, recorriendo, imgIdx, images.length])
+  }, [calentar, precargar, todas, imgIdx, images.length])
 
   // Pasar de foto también calienta (con teclado no hubo mouseenter).
   const prev = (e: React.MouseEvent) => {
@@ -183,6 +214,7 @@ export default function FotosDeslizables({
       : 'hidden md:flex w-8 h-8 bg-white/85 shadow-sm opacity-0 group-hover/media:opacity-100 focus-visible:opacity-100'
   return (
     <div
+      ref={cajaRef}
       className={`group/media relative w-full overflow-hidden rounded-[14px] ${images.length === 0 ? 'bg-gray-100' : imgLoaded ? '' : 'si-img-shimmer'} ${className}`}
       onTouchStart={swipe ? onTouchStart : () => setCalentar(true)}
       onTouchEnd={swipe ? onTouchEnd : undefined}
@@ -209,6 +241,7 @@ export default function FotosDeslizables({
                   className={`object-cover ${imgClassName}`}
                   sizes={sizes}
                   priority={priority && i === 0}
+                  loading={i > 0 && todas ? 'eager' : undefined}
                   onLoad={i === 0 ? () => setImgLoaded(true) : undefined}
                 />
               )}
