@@ -127,7 +127,7 @@ export default async function VenderPage() {
           <h2 id="barrios" className="font-raleway text-[clamp(26px,3.6vw,36px)] font-extrabold text-[#121A15]">
             Vendé en tu barrio
           </h2>
-          <p className="mt-2 max-w-[44rem] text-[16px] leading-relaxed text-[#3C4A42]">Cada barrio con su página: cuánto vale, cuántas hay en venta y a qué precios, con el tasador ya cargado.</p>
+          <p className="mt-2 max-w-[44rem] text-[16px] leading-relaxed text-[#3C4A42]">Cada barrio con su página: cuánto vale y a qué precios se publica, con el tasador ya cargado.</p>
           <div className="mt-8">
             <BarriosPorCiudad indice={indice} base="/vender" />
           </div>

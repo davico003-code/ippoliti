@@ -179,8 +179,7 @@ export default async function TasarPage({ params }: Props) {
     } else datosBarrio.push({ valor: `${usd(p.usdM2)}/m²`, texto: l.tipo === 'lote' ? 'de terreno, valor del medio' : 'cubierto, valor del medio' })
     datosBarrio.push({ valor: `${n(p.m2Tipico)} m²`, texto: l.tipo === 'lote' ? 'el lote típico' : `${ella ? 'la casa típica' : 'el depto típico'}${l.tipo === 'casa' && p.loteTipico ? `, en ${n(p.loteTipico)} m² de terreno` : ''}` })
     datosBarrio.push({ valor: `±${porcentaje(p.error)}`, texto: p.errorPropio ? 'lo que erra la cuenta acá (la mitad de las veces)' : `lo que erra en los barrios de ${l.zona.ciudad}` })
-    // La cantidad, solo por barrio: en la ciudad son miles y no le dice nada al dueño (David, 10-oct).
-    if (!l.zona.esCiudad) datosBarrio.push({ valor: n(p.n), texto: `${t.plural} ${t.publicadas} hoy en la cuenta` })
+    // Sin la cantidad de avisos: el relevamiento incluye los de colegas y sumarlos es ilegal (David, 17-oct).
   }
 
   return (
@@ -217,7 +216,7 @@ export default async function TasarPage({ params }: Props) {
             )}
             {l.conNumero ? (
               <p className="mt-3 text-[17px] font-medium leading-relaxed text-[#3C4A42]">
-                ¿Cuánto vale hoy? Con {l.zona.esCiudad ? `${ella ? 'las' : 'los'} ${t.plural}` : `${n(p.n)} ${t.plural}`} {t.publicadas} en {l.nombre} armamos el valor de referencia
+                ¿Cuánto vale hoy? Con {ella ? 'las' : 'los'} {t.plural} {t.publicadas} en {l.nombre} armamos el valor de referencia
                 {tipica ? (
                   <>
                     : {ella ? 'una típica' : 'uno típico'} de <span className="font-numeric">{n(p.m2Tipico)}</span> m² ronda los <b className="font-numeric font-semibold text-[#17613C]">{usd(tipica.valor)}</b>
