@@ -107,7 +107,7 @@ export default function MapaFunesPage() {
           cuadro oficial de zonificación de la Ciudad de Funes; la aprobación final corresponde al municipio.
         </p>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15, minWidth: 640 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15, minWidth: 560 }}>
             <thead>
               <tr style={{ textAlign: 'left', color: 'var(--tinta-mute)', borderBottom: '1px solid var(--line)' }}>
                 <th scope="col" style={{ padding: '10px 8px' }}>Zona</th>
@@ -123,7 +123,8 @@ export default function MapaFunesPage() {
               {ZONAS_FUNES.map((z) => (
                 <tr key={z.codigo} style={{ borderBottom: '1px solid var(--line)', color: 'var(--foreground)' }}>
                   <th scope="row" style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>
-                    {z.codigo} <span style={{ fontWeight: 400, color: 'var(--tinta-mute)' }}>· {z.nombre}</span>
+                    {z.codigo}
+                    <div style={{ fontWeight: 400, fontSize: 13, color: 'var(--tinta-mute)' }}>{z.nombre}</div>
                     {z.nota && <div style={{ fontWeight: 400, fontSize: 13, color: 'var(--tinta-mute)' }}>{z.nota}</div>}
                   </th>
                   <td style={{ padding: '10px 8px', fontVariantNumeric: 'tabular-nums' }}>{z.fos}</td>
