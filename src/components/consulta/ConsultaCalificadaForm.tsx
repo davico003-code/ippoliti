@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { trackEvent, trackFbEvent } from '@/lib/analytics'
+import { idEventoMeta, trackEvent, trackFbEvent } from '@/lib/analytics'
 import { escribirContacto } from '@/lib/feed-en-red'
 
 /**
@@ -63,6 +63,8 @@ export default function ConsultaCalificadaForm({
     setError(null)
     setEstado('sending')
     try {
+      // Mismo id para el píxel y para la Conversions API (Hilo): Meta cuenta UNA consulta.
+      const metaEventId = idEventoMeta()
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,13 +79,15 @@ export default function ConsultaCalificadaForm({
           ...(preguntas ? { pago, plazo } : {}),
           pageUrl: window.location.href,
           eventType: 'property.inquiry',
+          metaEventId,
         }),
       })
       if (!res.ok) throw new Error(String(res.status))
+      const data = (await res.json().catch(() => ({}))) as { metaEventId?: string }
       // Ya nos dejó sus datos: si después toca WhatsApp, no se los volvemos a pedir.
       escribirContacto({ nombre: nombre.trim(), whatsapp: digitos })
       setEstado('sent')
-      trackFbEvent('Lead', { content_name: propertyTitle, content_ids: [String(propertyId)], content_category: origen })
+      trackFbEvent('Lead', { content_name: propertyTitle, content_ids: [String(propertyId)], content_category: origen }, data.metaEventId ?? metaEventId)
       trackEvent('generate_lead', { origen, ...(preguntas ? { pago, plazo } : {}) })
     } catch {
       setEstado('error')

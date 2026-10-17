@@ -10,6 +10,7 @@
 
 import type { TasacionLead } from '@/lib/tasacion/types'
 import type { LoteLead } from '@/lib/distrito-roldan/consulta'
+import type { MetaConsulta } from '@/lib/meta-capi'
 
 export type HiloLeadPayload = {
   name?: string | null
@@ -32,6 +33,8 @@ export type HiloLeadPayload = {
   sourceUrl?: string | null
   /** utm_* del clic (Hilo los ata al anuncio de Meta por utm_content = ref). */
   attribution?: Record<string, unknown> | null
+  /** Identidad de Meta de la consulta (eventId del píxel, _fbp/_fbc, IP, UA): Hilo la manda por CAPI. */
+  meta?: MetaConsulta | null
   /** Feed de la ficha (origen 'feed_web', 03-oct-2026): lo que marcó con ♥.
    *  `n:<id público>` = nuestra, `propia:<aviso>` / `meli:<MLA…>` = En red. */
   guardadas?: string[] | null
@@ -67,9 +70,9 @@ function leerAgente(data: unknown): AgenteHilo | null {
  * tiene asignado ("WhatsApp con datos" de la ficha, 16-oct-2026). best-effort:
  * nunca lanza.
  */
-export async function enviarLeadAHilo(payload: HiloLeadPayload): Promise<{ ok: boolean; agente: AgenteHilo | null }> {
+export async function enviarLeadAHilo(payload: HiloLeadPayload): Promise<{ ok: boolean; agente: AgenteHilo | null; metaEventId: string | null }> {
   const secret = process.env.HILO_INGEST_SECRET
-  if (!secret) return { ok: false, agente: null } // sin secreto no intentamos; la web ya capturó el lead
+  if (!secret) return { ok: false, agente: null, metaEventId: null } // sin secreto no intentamos; la web ya capturó el lead
 
   const base = process.env.HILO_LEADS_URL || 'https://meethilo.com'
   try {
@@ -88,11 +91,15 @@ export async function enviarLeadAHilo(payload: HiloLeadPayload): Promise<{ ok: b
     // No logueamos el body de la respuesta: puede reflejar PII del lead a los
     // logs de Vercel. Solo el status.
     if (!res.ok) console.warn('[hilo-leads] push no-ok:', res.status)
-    const agente = res.ok ? leerAgente(await res.json().catch(() => null)) : null
-    return { ok: res.ok, agente }
+    const data = res.ok ? await res.json().catch(() => null) : null
+    // El eventId con el que Hilo manda el Lead por CAPI: si la consulta ya
+    // existía (reenvío), es el PRIMERO, y el píxel tiene que disparar con ese.
+    const id = (data as { metaEventId?: unknown } | null)?.metaEventId
+    const metaEventId = typeof id === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(id) ? id : null
+    return { ok: res.ok, agente: leerAgente(data), metaEventId }
   } catch (err) {
     console.warn('[hilo-leads] push error:', err)
-    return { ok: false, agente: null }
+    return { ok: false, agente: null, metaEventId: null }
   }
 }
 
