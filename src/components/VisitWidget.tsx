@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Calendar, Check, ChevronLeft, ChevronRight, Clock, MessageCircle, X } from 'lucide-react'
 import { events } from '@/lib/analytics'
+import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
 
 interface Props {
   propertyId: number
@@ -51,8 +52,10 @@ const DAY_WIN = 3
 const HOUR_WIN = 3
 
 // Diseño: header con ícono + fecha/horario en ventanas de 3 con flechas, y el
-// verde solo en el botón. Al agendar, registra el lead y abre WhatsApp al agente
-// (el contacto queda por el WhatsApp del cliente).
+// verde solo en el botón. Al agendar, registra el lead y abre WhatsApp al agente.
+// Pide nombre + WhatsApp (17-oct-2026): sin el celular, Hilo rechazaba el pedido
+// ("Falta correo o teléfono") y NINGUNA visita pedida desde la web entraba al
+// CRM. Es un solo campo más, prellenado si ya lo dejó en este navegador.
 export default function VisitWidget({
   propertyId,
   propertyTitle,
@@ -65,6 +68,7 @@ export default function VisitWidget({
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [selectedHour, setSelectedHour] = useState('')
   const [nombre, setNombre] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
   const [dayStart, setDayStart] = useState(0)
   const [hourStart, setHourStart] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -72,11 +76,19 @@ export default function VisitWidget({
 
   const days = useMemo(() => getNextBusinessDays(7), [])
 
+  // Lo que ya dejó en este navegador (mismo contacto que el WhatsApp con datos).
+  useEffect(() => {
+    const c = leerContacto()
+    if (c.nombre) setNombre((n) => n || c.nombre)
+    if (c.whatsapp) setWhatsapp((w) => w || c.whatsapp)
+  }, [])
+
   const selectedDate = selectedDay !== null ? days[selectedDay] : null
   const dateLabel = selectedDate
     ? `${DAY_NAMES[selectedDate.getDay()]} ${selectedDate.getDate()} ${MONTH_NAMES[selectedDate.getMonth()]}`
     : ''
-  const canSubmit = selectedDay !== null && selectedHour !== '' && nombre.trim() !== ''
+  const digitos = whatsapp.replace(/\D/g, '')
+  const canSubmit = selectedDay !== null && selectedHour !== '' && nombre.trim() !== '' && digitos.length >= 10
 
   // Link de WhatsApp con el pedido pre-cargado. Se reusa en el submit y en la
   // confirmación (por si el popup se bloqueó o el cliente no llegó a enviarlo).
@@ -99,6 +111,7 @@ export default function VisitWidget({
     // no abre WhatsApp. El registro de la visita se hace en background.
     if (waHref) window.open(waHref, '_blank')
     if (propertyId) events.contactoPropiedad(propertyId, propertyTitle, 'visita')
+    escribirContacto({ nombre: nombre.trim(), whatsapp: digitos })
 
     setLoading(true)
     const fechaStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
@@ -109,7 +122,7 @@ export default function VisitWidget({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: nombre.trim() || null,
-          telefono: null,
+          telefono: digitos,
           email: null,
           fecha_preferida: fechaStr,
           horario: `${selectedHour} hs`,
@@ -274,6 +287,19 @@ export default function VisitWidget({
         placeholder="Nombre y apellido"
         value={nombre}
         onChange={e => setNombre(e.target.value)}
+        className="w-full rounded-xl px-3.5 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none bg-gray-50 border border-gray-200 focus:border-[#1A5C38] transition-colors mb-4"
+      />
+
+      {/* WhatsApp: con esto el pedido entra a Hilo y te confirman por ahí */}
+      <p className={label}>Tu WhatsApp</p>
+      <input
+        type="tel"
+        name="tel"
+        autoComplete="tel-national"
+        inputMode="numeric"
+        placeholder="341 555 1234"
+        value={whatsapp}
+        onChange={e => setWhatsapp(e.target.value)}
         className="w-full rounded-xl px-3.5 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 outline-none bg-gray-50 border border-gray-200 focus:border-[#1A5C38] transition-colors mb-6"
       />
 
