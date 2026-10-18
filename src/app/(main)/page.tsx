@@ -206,15 +206,20 @@ async function FeaturedPropertiesSection() {
           className="mb-7"
         />
       </div>
-      {/* Carrusel a todo el ancho: arranca alineado con el título y llega al
-          borde derecho de la pantalla. */}
+      {/* Carrusel a todo el ancho: la primera tarjeta alineada con el título,
+          la anterior asomando a la izquierda y la fila hasta el borde derecho
+          (David, 18-oct: "por defecto mostralo así full width"). La que asoma
+          es la última de la selección, pasada adelante: así la primera nunca
+          queda cortada. */}
       <div className="pb-12">
         {properties.length > 0 ? (
           <HorizontalCarousel
             className="flex gap-5 overflow-x-auto snap-x snap-mandatory py-2 pb-3 scrollbar-none"
             style={{ paddingLeft: CARRUSEL_IZQ, paddingRight: 24, scrollPaddingLeft: CARRUSEL_IZQ }}
+            arrancarEn={properties.length > 2 ? 1 : undefined}
           >
-            {properties.map((p, i) => renderCard(p, matchday && i === 0))}
+            {(properties.length > 2 ? [properties[properties.length - 1], ...properties.slice(0, -1)] : properties)
+              .map(p => renderCard(p, matchday && p === properties[0]))}
             <Link
               href="/propiedades"
               className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
