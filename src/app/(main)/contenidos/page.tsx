@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, ArrowUpRight, Search } from 'lucide-react'
-import { categories, channels, videos, filterVideos, categoryLabel, normalized } from '@/lib/contenidos'
+import { categories, channels, videos, filterVideos, categoryLabel, categoryDescription, normalized } from '@/lib/contenidos'
 import { getAllPosts, readingMinutes } from '@/lib/blog'
 import { resolveBlogImage } from '@/lib/blog-images'
 import VideoCard from '@/components/contenidos/VideoCard'
@@ -38,6 +38,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
   const href = (cat: string, p = 1) => `/contenidos?${new URLSearchParams({ categoria: cat, ...(query ? { q: query } : {}), ...(p > 1 ? { pagina: String(p) } : {}) })}#explorar`
   const rail = (cat: string, title: string, limit = 3) => <section className={styles.section} aria-label={title}>
     <div className={styles.heading}><div className={styles.sectionTitle}><span className={styles.sectionIcon}><SocialIcon platform={cat === 'tiktok' ? 'TikTok' : cat === 'cortos' ? 'Instagram' : 'YouTube'} size={26} /></span><div><p className={styles.sectionKicker}>{categoryLabel(cat)}</p><h2>{title}</h2></div></div><Link href={href(cat)}>Ver todos <ArrowRight size={16} aria-hidden /></Link></div>
+    <p className={styles.railDesc}>{categoryDescription(cat)}</p>
     <div className={`${['cortos', 'tiktok'].includes(cat) ? styles.shortGrid : styles.grid} ${styles.rail}`}>{videos.filter(v => v.category === cat).slice(0, limit).map(v => <VideoCard video={v} key={v.id} />)}</div>
   </section>
   const showBlog = !browsing || category === 'blog' || (category === 'todos' && !!query)
@@ -46,9 +47,9 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
     {!browsing && <section className={styles.hero}>
       <div className={`${styles.wrap} ${styles.heroInner}`}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Nuestra videoteca</p>
-          <h1>Dale play<br />al <span>mundo SI.</span></h1>
-          <p className={styles.intro}>Charlas, historias y lugares que queremos compartir. Todo lo que hacemos, en un solo lugar.</p>
+          <p className={styles.eyebrow}>Mundo SI</p>
+          <h1>Nuestra presencia en redes, <span>eje central de comunicación.</span></h1>
+          <p className={styles.intro}>Lo que hacemos todos los días, lo contamos acá. <strong>Por acá pasa todo.</strong></p>
           <div className={styles.heroSocials}>{channels.filter(c => ['YouTube', 'Instagram', 'TikTok'].includes(c.name)).map(c => <a key={c.name} href={c.href} target="_blank" rel="noopener noreferrer"><SocialIcon platform={c.name} size={23} />{c.name}<ArrowUpRight size={13} aria-hidden /></a>)}</div>
         </div>
         <div className={styles.heroMedia}>
@@ -61,7 +62,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
       </div>
     </section>}
     <div className={styles.wrap}>
-      {browsing && <div className={styles.detail}><Link className={styles.quietLink} href="/contenidos">← Mundo SI</Link><h1>{query ? `Resultados para “${query}”` : category === 'todos' ? 'Todo para mirar' : categoryLabel(category)}</h1></div>}
+      {browsing && <div className={styles.detail}><Link className={styles.quietLink} href="/contenidos">← Mundo SI</Link><h1>{query ? `Resultados para “${query}”` : category === 'todos' ? 'Todo para mirar' : categoryLabel(category)}</h1>{!query && categoryDescription(category) && <p className={styles.detailSubtitle}>{categoryDescription(category)}</p>}</div>}
       <div className={styles.toolbar} id="explorar">
         <nav className={styles.filters} aria-label="Tipos de contenido">{categories.map(c => <Link className={`${styles.filter} ${category === c.id ? styles.active : ''}`} href={c.id === 'todos' ? '/contenidos#explorar' : href(c.id)} aria-current={category === c.id ? 'page' : undefined} key={c.id}>{c.label}</Link>)}</nav>
         <form action="/contenidos" className={styles.search} role="search"><input type="hidden" name="categoria" value={category} /><label className="sr-only" htmlFor="buscar-contenidos">Buscar contenidos</label><input id="buscar-contenidos" name="q" type="search" placeholder="Buscar contenidos…" defaultValue={query} maxLength={120} /><button aria-label="Buscar"><Search size={18} aria-hidden /></button></form>
@@ -78,7 +79,7 @@ export default async function ContenidosPage({ searchParams }: { searchParams: {
       </section>}
     </div>
     {showBlog && <section className={styles.blogBand}><div className={styles.wrap}>
-      <div className={styles.heading}><h2>{category === 'blog' ? 'Historias para leer' : 'Una pausa para leer'}</h2><Link href="/blog">Ir al blog <ArrowRight size={16} aria-hidden /></Link></div>
+      <div className={styles.heading}><div><h2>{category === 'blog' ? 'Historias para leer' : 'Una pausa para leer'}</h2>{category !== 'blog' && <p className={styles.sectionDesc}>{categoryDescription('blog')}</p>}</div><Link href="/blog">Ir al blog <ArrowRight size={16} aria-hidden /></Link></div>
       <div className={styles.blogGrid}>{displayedPosts.map(post => <article className={styles.blogCard} key={post.slug}>
         <Link href={`/blog/${post.slug}`} className={styles.blogImage} tabIndex={-1} aria-hidden><Image src={resolveBlogImage(post.slug, post.image, post.hasImageOverride)} alt="" fill sizes="(max-width: 640px) 30vw, 260px" className={styles.cover} /></Link>
         <div className={styles.blogText}><small>Blog · {readingMinutes(post.content)} min de lectura</small><h3><Link href={`/blog/${post.slug}`}>{post.title}</Link></h3><p>{post.summary.slice(0, 150)}{post.summary.length > 150 ? '…' : ''}</p><Link href={`/blog/${post.slug}`}>Leer nota <ArrowUpRight size={15} aria-hidden /></Link></div>
