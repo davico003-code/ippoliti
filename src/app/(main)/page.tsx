@@ -16,6 +16,7 @@ import ConfianzaSection from '@/components/home/ConfianzaSection'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import TemporariosHome from '@/components/home/TemporariosHome'
+import MundoSiHome from '@/components/home/MundoSiHome'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
 import CaraAgenteCard, { CARA_AGENTE_COMPU, espacioCaraAgente } from '@/components/home/CaraAgenteCard'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
@@ -296,6 +297,7 @@ export default async function Home() {
         <SeleccionCarousel />
         {!verano && <TemporariosHome />}
         <ProyectosCarousel />
+        <MundoSiHome />
         <GuiaSection />
         <ConfianzaSection />
         {/* Footer: lo provee FooterWrapper (footer blanco global, responsive). */}
@@ -325,6 +327,7 @@ export default async function Home() {
         <FeaturedPropertiesSection />
         {!verano && <TemporariosHome />}
         <EmprendimientosHome />
+        <MundoSiHome />
         <GuiaDesktop />
         <ConfianzaDesktop />
       </div>
