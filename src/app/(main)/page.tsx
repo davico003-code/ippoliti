@@ -217,6 +217,7 @@ async function FeaturedPropertiesSection() {
             className="flex gap-5 overflow-x-auto snap-x snap-mandatory py-2 pb-3 scrollbar-none"
             style={{ paddingLeft: CARRUSEL_IZQ, paddingRight: 24, scrollPaddingLeft: CARRUSEL_IZQ }}
             arrancarEn={properties.length > 2 ? 1 : undefined}
+            arrastrable
           >
             {(properties.length > 2 ? [properties[properties.length - 1], ...properties.slice(0, -1)] : properties)
               .map(p => renderCard(p, matchday && p === properties[0]))}
