@@ -71,14 +71,15 @@ export function Spinner() {
 }
 
 /** Barra fija arriba del borde inferior (safe-area incluida). El contenido de
- *  cada paso deja padding-bottom para que nunca quede tapado. */
-export function BarraFija({ children }: { children: ReactNode }) {
+ *  cada paso deja padding-bottom para que nunca quede tapado. `conFoto`: en la
+ *  compu el botón queda bajo la columna del formulario (foto 400 + 64 de separación). */
+export function BarraFija({ children, conFoto = false }: { children: ReactNode; conFoto?: boolean }) {
   return (
     <div
       className="fixed inset-x-0 bottom-0 z-40 border-t border-[#E1E6E1] bg-white/95 shadow-[0_-10px_24px_-18px_rgba(18,30,22,0.25)] backdrop-blur"
       style={{ paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))' }}
     >
-      <div className="mx-auto max-w-[520px] px-5 pt-2.5">{children}</div>
+      <div className={`mx-auto max-w-[520px] px-5 pt-2.5 ${conFoto ? 'lg:max-w-[984px] lg:pl-[484px]' : ''}`}>{children}</div>
     </div>
   )
 }
@@ -93,6 +94,23 @@ export function FotoDavid({ size, className = '' }: { size: number; className?: 
       sizes={`${size}px`}
       className={`flex-none rounded-full object-cover ${className}`}
       style={{ width: size, height: size, objectPosition: '50% 20%' }}
+    />
+  )
+}
+
+/** La placa vertical de tasaciones (la misma de la página vieja, 941×1672):
+ *  en la compu va a la izquierda del formulario; en el celu, debajo. */
+export function FotoTasacion({ className = '' }: { className?: string }) {
+  return (
+    <Image
+      src="/images/tasaciones/tasacion-941.webp"
+      alt="Tasación profesional de propiedades en Funes, Roldán y Rosario — SI INMOBILIARIA"
+      width={941}
+      height={1672}
+      sizes="(min-width: 1024px) 400px, (min-width: 520px) 480px, calc(100vw - 40px)"
+      placeholder="blur"
+      blurDataURL="data:image/webp;base64,UklGRrwCAABXRUJQVlA4WAoAAAAgAAAAFwAAKgAASUNDUMgBAAAAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADZWUDggzgAAAPAGAJ0BKhgAKwA+hS6UR6UiIiE1W/wAoBCJQBOmX2hZIYg5+fa/HdekNGgcX2yEguy/4QvzYW27vl4g7fdDPMAA/vja8UEmW+PJHbuNpgR6k2m5Up7VGuZFmXdhjibxxsi0UmAI3WocuB0c2KpXVC9Wd84ZpxJIVZGvLrpwTgVUADmR6Y+KTo2p+CL2PxxkP3ZEqCt8u0f0bkKAmE3VUj9K+hs06jjDLuExpbBxHzBUjv78wzR0+3Y5VeerqiADJCIoJm1ye8lEonS51oAA"
+      className={`h-auto w-full rounded-2xl shadow-lg ${className}`}
     />
   )
 }

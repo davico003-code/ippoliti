@@ -170,7 +170,7 @@ export default function Paso3Pedido({
         )}
       </form>
 
-      <BarraFija>
+      <BarraFija conFoto>
         <button type="submit" form="form-pedido" disabled={enviando} aria-busy={enviando} className={cls.cta}>
           {enviando ? (
             <>

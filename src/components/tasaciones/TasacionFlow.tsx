@@ -16,6 +16,7 @@ import { barrioParaPedido } from '@/lib/tasacion/barrio-de-zona'
 import PasoVender from './PasoVender'
 import Paso3Pedido from './Paso3Pedido'
 import PantallaListo from './PantallaListo'
+import { FotoTasacion } from './ui'
 
 type Paso = 1 | 3 | 'listo'
 
@@ -182,43 +183,49 @@ export default function TasacionFlow({ barrios, barrioInicial, tipoInicial, zona
 
   return (
     <div className="si-tasacion min-h-screen bg-white">
-      <div className={`mx-auto max-w-[520px] px-5 pt-3 ${paso === 'listo' ? 'pb-16' : 'pb-[150px]'}`}>
-        {paso === 1 && (
-          <PasoVender
-            barrios={barrios}
-            tipo={tipo}
-            barrio={barrio}
-            plazo={plazo}
-            onTipo={(t) => {
-              setTipo(t)
-              setErrorPaso1(null)
-            }}
-            onBarrio={elegirBarrio}
-            onPlazo={(p) => {
-              setPlazo(p)
-              setErrorPaso1(null)
-            }}
-            onContinuar={continuar}
-            error={errorPaso1}
-            tituloRef={tituloRef}
-          />
-        )}
-        {paso === 3 && (
-          <Paso3Pedido
-            resumen={resumen}
-            textoVolver="Cambiar datos"
-            nombre={nombre}
-            whatsapp={whatsapp}
-            onNombre={setNombre}
-            onWhatsapp={setWhatsapp}
-            onEnviar={enviarPedido}
-            enviando={enviando}
-            error={errorEnvio}
-            onVolver={() => setPaso(1)}
-            tituloRef={tituloRef}
-          />
-        )}
-        {paso === 'listo' && <PantallaListo nombre={nombre} resumen={resumen} tituloRef={tituloRef} />}
+      {/* Celu: una columna y la foto debajo. Compu: foto a la izquierda, formulario a la derecha. */}
+      <div
+        className={`mx-auto max-w-[520px] px-5 pt-3 lg:grid lg:max-w-[984px] lg:grid-cols-[400px_480px] lg:items-start lg:gap-x-16 lg:pt-8 ${paso === 'listo' ? 'pb-16' : 'pb-[150px]'}`}
+      >
+        <div className="lg:col-start-2 lg:row-start-1">
+          {paso === 1 && (
+            <PasoVender
+              barrios={barrios}
+              tipo={tipo}
+              barrio={barrio}
+              plazo={plazo}
+              onTipo={(t) => {
+                setTipo(t)
+                setErrorPaso1(null)
+              }}
+              onBarrio={elegirBarrio}
+              onPlazo={(p) => {
+                setPlazo(p)
+                setErrorPaso1(null)
+              }}
+              onContinuar={continuar}
+              error={errorPaso1}
+              tituloRef={tituloRef}
+            />
+          )}
+          {paso === 3 && (
+            <Paso3Pedido
+              resumen={resumen}
+              textoVolver="Cambiar datos"
+              nombre={nombre}
+              whatsapp={whatsapp}
+              onNombre={setNombre}
+              onWhatsapp={setWhatsapp}
+              onEnviar={enviarPedido}
+              enviando={enviando}
+              error={errorEnvio}
+              onVolver={() => setPaso(1)}
+              tituloRef={tituloRef}
+            />
+          )}
+          {paso === 'listo' && <PantallaListo nombre={nombre} resumen={resumen} tituloRef={tituloRef} />}
+        </div>
+        <FotoTasacion className="mt-10 lg:col-start-1 lg:row-start-1 lg:mt-0" />
       </div>
     </div>
   )
