@@ -7,14 +7,16 @@ export type Video = { id: string; title: string; category: string; platform: str
 // en YouTube hay que subir esta fecha para que se vuelva a pedir.
 const PORTADAS_YOUTUBE = '2026-10-10'
 export const videos: Video[] = [...instagram, ...youtube.map(v => ({ ...v, thumbnail: `${v.thumbnail}?v=${PORTADAS_YOUTUBE}` })), ...tiktok]
-export const categories = [
+// La bajada de cada formato cuenta para qué lo hacemos: va debajo del título de
+// su fila y arriba de la página de la categoría.
+export const categories: { id: string; label: string; description?: string }[] = [
   { id: 'todos', label: 'Todos' },
-  { id: 'charlas', label: 'Charlas que Sí' },
-  { id: 'mundo-si', label: 'Mundo SI' },
-  { id: 'recorridos', label: 'Recorridos' },
-  { id: 'cortos', label: 'Videos cortos' },
-  { id: 'tiktok', label: 'TikTok' },
-  { id: 'blog', label: 'Blog' },
+  { id: 'charlas', label: 'Charlas que Sí', description: 'Charlas con colegas y profesionales del rubro, de los que aprendemos todos los días.' },
+  { id: 'mundo-si', label: 'Mundo SI', description: 'Te mostramos la ciudad en la que trabajamos y nuestro día a día.' },
+  { id: 'recorridos', label: 'Recorridos', description: 'Recorremos por dentro las propiedades que trabajamos, como si estuvieras ahí.' },
+  { id: 'cortos', label: 'Videos cortos', description: 'Propiedades, obras y pedacitos de las charlas, en un minuto.' },
+  { id: 'tiktok', label: 'TikTok', description: 'Las propiedades y el día a día, contados en TikTok.' },
+  { id: 'blog', label: 'Blog', description: 'Notas para entender el mercado y decidir mejor.' },
 ]
 export const channels = [
   { name: 'YouTube', handle: '@mundosiinmobiliaria', href: 'https://www.youtube.com/@mundosiinmobiliaria', description: 'Charlas completas, recorridos y Mundo SI.' },
@@ -32,6 +34,7 @@ export const PALABRAS_PARA_INDEXAR = 300
 export const palabrasPropias = (v: Video) => `${v.title} ${v.description ?? ''}`.split(/\s+/).filter(Boolean).length
 export const esIndexable = (v: Video) => palabrasPropias(v) >= PALABRAS_PARA_INDEXAR
 export const categoryLabel = (id: string) => categories.find(c => c.id === id)?.label || 'Mundo SI'
+export const categoryDescription = (id: string) => categories.find(c => c.id === id)?.description
 // "Invitado: tema" se muestra en dos renglones (nombre y bajada) en las charlas.
 export function titleParts(video: Video): [string, string?] {
   const cut = video.category === 'charlas' ? video.title.indexOf(': ') : -1
