@@ -2,7 +2,10 @@
 .wrap{max-width:1440px;margin:0 auto;padding:0 24px}
 /* La foto y el degradé van detrás (z negativo, aislados en la placa) y el
    ::after del botón cubre toda la placa: un solo link, clickeable entera. */
-.placa{position:relative;isolation:isolate;overflow:hidden;border-radius:20px;min-height:300px;display:flex;align-items:center;padding:40px 56px;background:#223a2b;color:#fff;font-family:var(--font-raleway),'Raleway',system-ui,sans-serif}
+/* Alta para que se vea la oficina y el rodaje (David, 18-oct: "un poco más
+   alta"): con 300 px la foto 16:9 mostraba solo el 40 % de su alto; con 480,
+   ~63 % (mesa, cámaras y ambiente enteros). */
+.placa{position:relative;isolation:isolate;overflow:hidden;border-radius:20px;min-height:clamp(400px,30vw,480px);display:flex;align-items:center;padding:40px 56px;background:#223a2b;color:#fff;font-family:var(--font-raleway),'Raleway',system-ui,sans-serif}
 .placa::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#17613cf5 0%,#17613cd9 38%,#17613c33 75%,transparent 100%)}
 .foto{object-fit:cover;object-position:60% 40%;z-index:-2;transition:transform .5s ease}
 .logo{position:absolute;top:26px;right:30px;width:150px;height:auto;filter:drop-shadow(0 2px 5px #0009);pointer-events:none}
