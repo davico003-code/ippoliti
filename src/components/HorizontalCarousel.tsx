@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 /**
@@ -10,15 +10,30 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
  * - Botones < > aparecen solo en desktop (md+)
  * - Botones ocultos en los extremos (primera/última posición)
  * - Scroll suave de ~1 tarjeta por click (usa width del primer hijo)
+ * - `arrancarEn`: abre ya corrido hasta ese hijo, alineado donde iría el
+ *   primero, así el anterior asoma a la izquierda y la fila llena el ancho.
  */
+
+// Corre el carrusel hasta el hijo `n` (lo deja donde está el primero). La misma
+// cuenta va como texto en el <script> que corre al leer el HTML, antes de la
+// primera pintada: con un efecto de React se vería el salto hasta que carga el JS.
+function arrancar(el: HTMLElement, n: number) {
+  const c = el.children[n], p = el.children[0]
+  if (c && p) el.scrollLeft = c.getBoundingClientRect().left - p.getBoundingClientRect().left
+}
+const ARRANCAR = 'function(el,n){var c=el.children[n],p=el.children[0];if(c&&p)el.scrollLeft=c.getBoundingClientRect().left-p.getBoundingClientRect().left}'
+
+const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 export default function HorizontalCarousel({
   children,
   className,
   style,
+  arrancarEn,
 }: {
   children: ReactNode
   className?: string
   style?: React.CSSProperties
+  arrancarEn?: number
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canLeft, setCanLeft] = useState(false)
@@ -31,6 +46,13 @@ export default function HorizontalCarousel({
     setCanLeft(scrollLeft > 8)
     setCanRight(scrollLeft + clientWidth < scrollWidth - 8)
   }
+
+  // Al llegar navegando dentro del sitio el <script> no corre (React no
+  // ejecuta los que inserta): lo mismo antes de pintar.
+  useIsoLayoutEffect(() => {
+    const el = scrollRef.current
+    if (el && arrancarEn && el.scrollLeft === 0) arrancar(el, arrancarEn)
+  }, [arrancarEn])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -62,6 +84,13 @@ export default function HorizontalCarousel({
       >
         {children}
       </div>
+      {arrancarEn ? (
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var s=document.currentScript,el=s&&s.previousElementSibling;if(el)(${ARRANCAR})(el,${arrancarEn})})()`,
+          }}
+        />
+      ) : null}
 
       {/* Botones solo desktop (md+) */}
       <button
