@@ -175,7 +175,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // El WhatsApp del agente solo lo pide el botón de la ficha. metaEventId: con
-  // ese id dispara el píxel (si Hilo ya tenía la consulta, es el primero).
-  return NextResponse.json({ ok: true, ...(esWhatsappFicha ? { agente: hilo.agente } : {}), ...(hilo.metaEventId ? { metaEventId: hilo.metaEventId } : {}) })
+  // El WhatsApp del agente, la consulta (para pedir un turno de visita después,
+  // 17-oct-2026) y los turnos que ofrece Hilo solo los pide el botón de la ficha.
+  // metaEventId: con ese id dispara el píxel (si Hilo ya tenía la consulta, es el primero).
+  return NextResponse.json({
+    ok: true,
+    ...(esWhatsappFicha ? { agente: hilo.agente, conversationId: hilo.conversationId, turnos: hilo.turnos } : {}),
+    ...(hilo.metaEventId ? { metaEventId: hilo.metaEventId } : {}),
+  })
 }

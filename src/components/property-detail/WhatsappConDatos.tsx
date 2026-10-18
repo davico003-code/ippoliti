@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type AnchorHTMLAttributes, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { MessageCircle, X } from 'lucide-react'
+import { Calendar, MessageCircle, X } from 'lucide-react'
 import { events, idEventoMeta, trackEvent, trackFbEvent } from '@/lib/analytics'
 import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
 import { marcarVisitaDePauta, urlConUtmDePauta } from '@/lib/pauta-visita'
@@ -11,15 +11,22 @@ import {
   consultaYaEnviada,
   contarWcd,
   guardarConsultaEnviada,
+  guardarTurnoPedido,
+  pedirTurno,
   urlWhatsappConDatos,
   type AgenteFicha,
+  type ConsultaEnviada,
+  type TurnosFicha,
 } from '@/lib/whatsapp-con-datos'
 
 /**
  * El botón verde "Consultar por WhatsApp" de la ficha (lib/whatsapp-con-datos).
  * Sin pauta es el mismo <a> de siempre. Al que vino de un anuncio le pide
  * nombre + celular en una hoja, manda la consulta a Hilo y abre WhatsApp con el
- * agente que Hilo le asignó.
+ * agente que Hilo le asignó. Después (17-oct-2026, el "segundo filtro"), la
+ * misma hoja le ofrece elegir día + franja para una visita: opcional, sin
+ * pedirle nada más; Hilo se la agenda al mismo agente, que confirma la hora
+ * por WhatsApp. Los días y franjas los manda Hilo con la consulta.
  */
 
 type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onClick'> & {
@@ -31,6 +38,9 @@ type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onClick'> &
 }
 
 const TOPE_MS = 6000
+const VERDE = '#1A5C38'
+
+type RespuestaLeads = { agente?: AgenteFicha | null; metaEventId?: string; conversationId?: string | null; turnos?: TurnosFicha | null }
 
 export default function WhatsappConDatos({ href, propertyId, propertyTitle, propertyPrice, children, ...rest }: Props) {
   const [pauta, setPauta] = useState(false)
@@ -99,15 +109,15 @@ function HojaWhatsapp({
   const [whatsapp, setWhatsapp] = useState('')
   const [estado, setEstado] = useState<'form' | 'enviando' | 'listo'>('form')
   const [error, setError] = useState<string | null>(null)
-  const [destino, setDestino] = useState<{ url: string; agente: AgenteFicha | null } | null>(null)
+  const [destino, setDestino] = useState<{ url: string; consulta: ConsultaEnviada } | null>(null)
   const nombreRef = useRef<HTMLInputElement>(null)
   const whatsappRef = useRef<HTMLInputElement>(null)
 
-  function irAWhatsapp(n: string, agente: AgenteFicha | null) {
-    const url = urlWhatsappConDatos(hrefFicha, n, agente)
-    setDestino({ url, agente })
+  function irAWhatsapp(consulta: ConsultaEnviada, opts: { abrir: boolean } = { abrir: true }) {
+    const url = urlWhatsappConDatos(hrefFicha, consulta.nombre, consulta.agente)
+    setDestino({ url, consulta })
     setEstado('listo')
-    abrirWhatsapp(url)
+    if (opts.abrir) abrirWhatsapp(url)
   }
 
   async function enviar(n: string, w: string) {
@@ -142,27 +152,38 @@ function HojaWhatsapp({
         metaEventId,
       }),
     })
-      .then(async (r) => (r.ok ? ((await r.json().catch(() => ({}))) as { agente?: AgenteFicha | null; metaEventId?: string }) : null))
+      .then(async (r) => (r.ok ? ((await r.json().catch(() => ({}))) as RespuestaLeads) : null))
       .catch(() => null)
     // Con tope: si Hilo tarda, igual se le abre el chat (la consulta sigue entrando).
     const res = await Promise.race([envio, new Promise<'tarde'>((r) => window.setTimeout(() => r('tarde'), TOPE_MS))])
-    const agente = res && res !== 'tarde' ? res.agente ?? null : null
-    if (res && res !== 'tarde') {
+    const respondio = res && res !== 'tarde' ? res : null
+    const consulta: ConsultaEnviada = {
+      nombre: n.trim(),
+      whatsapp: digitos,
+      agente: respondio?.agente ?? null,
+      conversationId: respondio?.conversationId ?? null,
+      turnos: respondio?.turnos ?? null,
+      turnoPedido: null,
+    }
+    if (respondio) {
       escribirContacto({ nombre: n.trim(), whatsapp: digitos })
-      guardarConsultaEnviada(propertyId, n.trim(), agente)
+      guardarConsultaEnviada(propertyId, consulta)
       contarWcd('datos')
-      trackFbEvent('Lead', { content_name: propertyTitle, content_ids: [String(propertyId)], content_category: 'whatsapp_ficha' }, res.metaEventId ?? metaEventId)
+      trackFbEvent('Lead', { content_name: propertyTitle, content_ids: [String(propertyId)], content_category: 'whatsapp_ficha' }, respondio.metaEventId ?? metaEventId)
       trackEvent('generate_lead', { origen: 'whatsapp_ficha' })
     }
-    irAWhatsapp(n, agente)
+    irAWhatsapp(consulta)
   }
 
-  // Al abrir: si esta ficha ya se consultó en la pestaña, mismo chat sin otra
-  // consulta; si ya dejó sus datos en este navegador, se manda sin preguntar.
+  // Al abrir: si esta ficha ya se consultó en la pestaña, la hoja vuelve a
+  // "Listo" (mismo chat a un toque, sin otra consulta, y el turno si no lo
+  // pidió) SIN saltar sola a WhatsApp: en el celu, al volver de WhatsApp y
+  // tocar de nuevo, saltaba otra vez y nunca se veía el turno. Si ya dejó sus
+  // datos en este navegador, se manda sin preguntar.
   useEffect(() => {
     const previa = consultaYaEnviada(propertyId)
     if (previa) {
-      irAWhatsapp(previa.nombre, previa.agente)
+      irAWhatsapp(previa, { abrir: false })
       return
     }
     const c = leerContacto()
@@ -204,7 +225,7 @@ function HojaWhatsapp({
         role="dialog"
         aria-modal="true"
         aria-labelledby="wcd-titulo"
-        className="w-full rounded-t-3xl bg-white p-5 pb-[max(20px,env(safe-area-inset-bottom))] shadow-xl sm:max-w-[420px] sm:rounded-3xl"
+        className="max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 pb-[max(20px,env(safe-area-inset-bottom))] shadow-xl sm:max-w-[420px] sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-1 flex items-start justify-between gap-3">
@@ -224,7 +245,7 @@ function HojaWhatsapp({
         {estado === 'listo' && destino ? (
           <div>
             <p className="mb-4 text-[15px] text-neutral-700">
-              {destino.agente?.nombre ? `Te atiende ${destino.agente.nombre}. ` : ''}Si WhatsApp no se abrió solo, tocá acá:
+              {destino.consulta.agente?.nombre ? `Te atiende ${destino.consulta.agente.nombre}. ` : ''}Si WhatsApp no se abrió solo, tocá acá:
             </p>
             <a
               href={destino.url}
@@ -235,6 +256,9 @@ function HojaWhatsapp({
             >
               <MessageCircle className="h-5 w-5" aria-hidden /> Abrir WhatsApp
             </a>
+            {destino.consulta.conversationId && destino.consulta.turnos ? (
+              <TurnoVisita propertyId={propertyId} consulta={destino.consulta} />
+            ) : null}
           </div>
         ) : (
           <form
@@ -299,6 +323,89 @@ function HojaWhatsapp({
           </form>
         )}
       </div>
+    </div>
+  )
+}
+
+/**
+ * El "segundo filtro": elegir día + franja después de abrir WhatsApp. Opcional
+ * (se puede cerrar la hoja sin tocar nada). Un toque por día, uno por franja y
+ * "Pedir turno"; la hora exacta la confirma el agente por WhatsApp.
+ */
+function TurnoVisita({ propertyId, consulta }: { propertyId: number; consulta: ConsultaEnviada }) {
+  const turnos = consulta.turnos as TurnosFicha
+  const [fecha, setFecha] = useState<string | null>(null)
+  const [franja, setFranja] = useState<string | null>(null)
+  const [estado, setEstado] = useState<'elegir' | 'enviando' | 'listo'>(consulta.turnoPedido ? 'listo' : 'elegir')
+  const [pedido, setPedido] = useState<string | null>(consulta.turnoPedido)
+  const [error, setError] = useState<string | null>(null)
+  const agente = consulta.agente?.nombre || 'El asesor'
+
+  async function pedir() {
+    if (!fecha || !franja || !consulta.conversationId || estado === 'enviando') return
+    setEstado('enviando')
+    setError(null)
+    const r = await pedirTurno({ conversationId: consulta.conversationId, whatsapp: consulta.whatsapp, fecha, franja })
+    if (!r.ok) {
+      setError(r.error)
+      setEstado('elegir')
+      return
+    }
+    const etiqueta = `${turnos.dias.find((d) => d.fecha === fecha)?.etiqueta ?? fecha}, ${turnos.franjas.find((f) => f.id === franja)?.etiqueta ?? franja}`
+    guardarTurnoPedido(propertyId, etiqueta)
+    contarWcd('turno')
+    trackEvent('turno_visita', { origen: 'whatsapp_ficha' })
+    setPedido(etiqueta)
+    setEstado('listo')
+  }
+
+  if (estado === 'listo' && pedido) {
+    return (
+      <div className="mt-5 rounded-2xl bg-neutral-50 p-4" role="status">
+        <p className="text-[16px] font-bold text-neutral-900">Turno pedido: {pedido}.</p>
+        <p className="mt-1 text-[15px] text-neutral-700">{agente} te confirma la hora por WhatsApp.</p>
+      </div>
+    )
+  }
+
+  const chip = (activo: boolean) =>
+    `min-h-11 shrink-0 rounded-full border-2 px-4 text-[15px] font-semibold transition ${
+      activo ? 'border-[#1A5C38] bg-[#F4F8F5] text-[#1A5C38]' : 'border-neutral-200 bg-white text-neutral-900'
+    }`
+
+  return (
+    <div className="mt-5 border-t border-neutral-200 pt-4">
+      <p className="text-[16px] font-bold text-neutral-900">¿Querés agendar una visita?</p>
+      <p className="mt-1 text-[15px] text-neutral-700">Elegí un día y una franja. {agente} te confirma la hora por WhatsApp.</p>
+      <div role="group" aria-label="Día" className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1">
+        {turnos.dias.map((d) => (
+          <button type="button" key={d.fecha} aria-pressed={fecha === d.fecha} onClick={() => setFecha(d.fecha)} className={chip(fecha === d.fecha)}>
+            {d.etiqueta}
+          </button>
+        ))}
+      </div>
+      <div role="group" aria-label="Franja" className="mt-2 grid grid-cols-2 gap-2">
+        {turnos.franjas.map((f) => (
+          <button type="button" key={f.id} aria-pressed={franja === f.id} onClick={() => setFranja(f.id)} className={chip(franja === f.id)}>
+            {f.etiqueta}
+          </button>
+        ))}
+      </div>
+      {error ? (
+        <p role="alert" className="mt-3 text-[14px] font-medium text-red-700">
+          {error}
+        </p>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => void pedir()}
+        disabled={!fecha || !franja || estado === 'enviando'}
+        className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full text-[15px] font-bold text-white transition hover:brightness-105 disabled:opacity-40"
+        style={{ background: VERDE }}
+      >
+        <Calendar className="h-5 w-5" aria-hidden />
+        {estado === 'enviando' ? 'Pidiendo turno…' : 'Pedir turno'}
+      </button>
     </div>
   )
 }
