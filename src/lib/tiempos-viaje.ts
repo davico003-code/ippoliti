@@ -15,9 +15,10 @@ import {
 // por coordenada, se guarda en Redis y la ficha lo trae en el HTML;
 // scripts/calentar-tiempos.mjs llena todas las publicadas.
 //
-// Plata: cada destino es un "elemento" de Google. Un tope diario
-// (TOPE_ELEMENTOS_DIA) corta cualquier abuso o error en loop: pasado el tope no
-// se pide más ese día y la ficha no muestra el bloque.
+// Plata: cada destino es un "elemento" de Google ("Compute Route Matrix Pro":
+// gratis hasta 5.000 por mes, después USD 10 cada 1.000; visto en la consola el
+// 20-oct-2026). El tope mensual (TOPE_ELEMENTOS_MES) queda abajo de lo gratis:
+// pasado el tope no se pide más ese mes y la ficha muestra lo que ya está guardado.
 
 export interface TiempoDestino {
   clave: string
@@ -41,7 +42,7 @@ const CAMPOS = 'originIndex,destinationIndex,duration,staticDuration,distanceMet
 // El tránsito de una zona cambia poco: medio año.
 const TTL_S = 180 * 24 * 60 * 60
 const TTL_TRABAJO_S = 30 * 24 * 60 * 60
-const TOPE_ELEMENTOS_DIA = 600
+const TOPE_ELEMENTOS_MES = 4500
 // "Tu trabajo" más lejos que esto = Google ubicó mal la dirección.
 const MAXIMO_TRABAJO_KM = 150
 
@@ -51,14 +52,15 @@ const claveDe = (latIn: number, lngIn: number) => {
   return { lat, lng, clave: `tiempos:v1:${lat}:${lng}` }
 }
 
-/** Suma `n` elementos al contador del día; false si se pasa del tope. */
+/** Suma `n` elementos al contador del mes (UTC, como factura Google); false si
+ *  se pasa del tope. */
 async function hayCupo(n: number): Promise<boolean> {
-  const clave = `tiempos:google:${new Date().toISOString().slice(0, 10)}`
+  const clave = `tiempos:google:${new Date().toISOString().slice(0, 7)}`
   try {
     const usados = await redis.incrby(clave, n)
-    if (usados === n) await redis.expire(clave, 2 * 24 * 60 * 60)
-    if (usados > TOPE_ELEMENTOS_DIA) {
-      console.error(`[tiempos] tope diario de Google alcanzado (${usados}/${TOPE_ELEMENTOS_DIA})`)
+    if (usados === n) await redis.expire(clave, 40 * 24 * 60 * 60)
+    if (usados > TOPE_ELEMENTOS_MES) {
+      console.error(`[tiempos] tope mensual de Google alcanzado (${usados}/${TOPE_ELEMENTOS_MES})`)
       return false
     }
     return true
