@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server'
 import { enviarWhatsAppAdmin } from '@/agents/blog/lib/whatsapp'
 import { crearVisita, type VisitaSource, type VisitaTipo } from '@/lib/visitas'
 import { pushLeadToHilo } from '@/lib/hilo-leads'
+import { attributionDeUrl } from '@/lib/pauta-visita'
 import { rateLimit } from '@/lib/feedback'
 
 export const dynamic = 'force-dynamic'
@@ -50,6 +51,10 @@ export async function POST(request: Request) {
     typeof body.propiedad_url === 'string' && body.propiedad_url.length > 0
       ? body.propiedad_url
       : undefined
+
+  // La página con los utm del anuncio (urlConUtmDePauta): Hilo ata la visita al
+  // anuncio de Meta que la trajo (David, 20-oct-2026: trazabilidad de la consulta).
+  const pageUrl = typeof body.pageUrl === 'string' ? body.pageUrl.slice(0, 500) : ''
 
   const tipoRaw = typeof body.tipo === 'string' ? body.tipo : 'venta'
   const tipo: VisitaTipo = (TIPOS as readonly string[]).includes(tipoRaw)
@@ -102,6 +107,8 @@ export async function POST(request: Request) {
     message: `Agendó visita a "${propiedad_titulo}" para ${fecha_preferida} ${horario}.${
       propiedad_url ? ` ${propiedad_url}` : ''
     }`,
+    sourceUrl: pageUrl || propiedad_url || null,
+    attribution: attributionDeUrl(pageUrl),
   })
 
   // Notificar al admin por WhatsApp (best-effort, no bloquea respuesta)

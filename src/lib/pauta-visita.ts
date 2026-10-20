@@ -15,6 +15,26 @@ export function esVisitaDePauta(p: { origen?: string | null; utmMedium?: string 
 }
 
 /**
+ * Pura (servidor): los utm de la URL de la página donde se hizo el pedido, en el
+ * formato `attribution` que Hilo usa para atar la consulta al anuncio de Meta
+ * (utm_content = ref). null si la URL no trae ninguno.
+ */
+export function attributionDeUrl(pageUrl: string | null | undefined): Record<string, string> | null {
+  try {
+    if (!pageUrl) return null
+    const p = new URL(pageUrl).searchParams
+    const u: Record<string, string> = {}
+    for (const c of CAMPOS) {
+      const v = p.get(c)
+      if (v) u[c] = v.slice(0, 200)
+    }
+    return Object.keys(u).length ? { ...u, captured_at: new Date().toISOString() } : null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Navegador: si la URL viene de un anuncio guarda sus utm para el resto de la
  * visita. Devuelve si la visita (esta página o una anterior de la pestaña) vino
  * de la pauta.
