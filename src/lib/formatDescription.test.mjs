@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { formatDescription, quitarTitularInicial } from './formatDescription.ts'
+import { entradaDelParrafo, formatDescription, quitarTitularInicial } from './formatDescription.ts'
 
 // Casos sacados de descripciones reales de HILO (auditoría 07-oct).
 
@@ -68,9 +68,11 @@ test('líneas cortas seguidas van compactas, la última con aire', () => {
   const b = formatDescription(
     'Cocheras disponibles en alquiler\nAv. San Martín 1248.\nContrato x 1 año.\nLa propiedad se entrega pintada y con la instalación eléctrica revisada a nuevo, lista para usar desde el primer día.',
   )
+  // "Cocheras disponibles en alquiler" rotula lo que sigue: es título (20-oct).
+  assert.equal(b[0].type, 'title')
   assert.deepEqual(
     b.map((x) => !!x.compact),
-    [true, true, false, false],
+    [false, true, false, false],
   )
 })
 
@@ -88,4 +90,28 @@ test('un "Descripción" suelto arriba no se repite', () => {
     formatDescription('Descripción\nEdificio de planta baja y 10 pisos con unidades de 2 y 3 dormitorios y amenities completos.'),
   )
   assert.equal(b[0].content.startsWith('Edificio'), true)
+})
+
+test('estilo Apple: la primera oración es la entrada, el resto va aparte', () => {
+  assert.deepEqual(
+    entradaDelParrafo('Oportunidad excepcional en Las Acequias, Roldán. Se vende un conjunto indiviso sobre lote de 622,87 m².'),
+    { entrada: 'Oportunidad excepcional en Las Acequias, Roldán.', resto: 'Se vende un conjunto indiviso sobre lote de 622,87 m².' },
+  )
+  // "Av." no corta la oración.
+  assert.deepEqual(entradaDelParrafo('Sobre Av. Pellegrini al 1200. A metros del parque.'), {
+    entrada: 'Sobre Av. Pellegrini al 1200.',
+    resto: 'A metros del parque.',
+  })
+  assert.deepEqual(entradaDelParrafo('Pileta y parrilla'), { entrada: 'Pileta y parrilla', resto: '' })
+})
+
+test('un rótulo de hasta 5 palabras antes de prosa es título; dentro de una lista sigue siendo ítem', () => {
+  const b = formatDescription(
+    'Casa principal con galería y parrilla. Pisos de porcelanato.\nDepartamento dúplex (2 dormitorios)\nLiving-comedor integrado con escalera de hierro. Cocina equipada independiente.',
+  )
+  assert.deepEqual(b[1], { type: 'title', content: 'Departamento dúplex (2 dormitorios)' })
+  const l = formatDescription(
+    'Características:\nSeguridad privada las 24 hs\nCalles pavimentadas con iluminación\nServicios subterráneos: agua, gas y cloacas',
+  )
+  assert.equal(l.filter((x) => x.type === 'title').length, 1)
 })

@@ -1,26 +1,36 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { formatDescription, quitarTitularInicial, type FormattedBlock } from '@/lib/formatDescription'
+import {
+  entradaDelParrafo,
+  formatDescription,
+  quitarTitularInicial,
+  type FormattedBlock,
+} from '@/lib/formatDescription'
 
-const GREEN = '#1A5C38'
-const R = "'Raleway', system-ui, sans-serif"
-// Texto de lectura oscuro y en 500: Raleway 400 en gris se veía finito y cansaba
-// a los mayores (David 3-oct: "tendría que ser más legible, un poco más gruesa").
-const TEXTO = '#1F2937'
-// Escala de grosores: texto 500 · etiquetas ("Cocina:", "Superficie:", subtítulos)
-// 600 · títulos 700. Las etiquetas en 700 competían con los títulos y la
-// descripción quedaba salpicada de negro.
+// Estilo Apple (David 20-oct, sobre apple.com/la/macbook-air): todo en 600, la
+// relevancia la marca el COLOR — la primera oración de cada párrafo en tinta y
+// el resto en gris —, así quien lee solo lo oscuro se lleva lo esencial.
+// Letra del sistema (SF en iPhone/Mac, la misma de Apple): 'Raleway' por nombre
+// nunca cargó acá (next/font la registra con otro nombre) y ya caía en system-ui.
+const LETRA = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+const TINTA = 'var(--theme-ink, #1D1D1F)'
+// #6E6E73 y no el #86868B de Apple: contraste 5:1, legible para los mayores
+// (David 3-oct: "tendría que ser más legible, un poco más gruesa").
+const GRIS = 'var(--theme-subtle, #6E6E73)'
+const VERDE = 'var(--theme-accent, #1A5C38)'
+const PESO = 600
+const INTERLINEA = 1.42
 
-// Tamaños en em: el contenedor manda (17 px en el celular, 18 px en desktop) y
-// todo escala junto.
+// Tamaños en em: el contenedor manda (19 px en el celular, 21 px en desktop,
+// los de Apple) y todo escala junto.
 const esMayusculas = (s: string) => {
   const letras = s.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g, '')
   return letras.length >= 3 && letras === letras.toLocaleUpperCase('es-AR')
 }
 
-// "Cocina: mesada a definir, pileta de acero…" → la etiqueta en negrita, para
+// "Cocina: mesada a definir, pileta de acero…" → la etiqueta en tinta, para
 // que una lista de ítems largos se pueda escanear.
 function itemConEtiqueta(item: string): { key: string; rest: string } | null {
   const m = item.match(/^([^:]{2,32}):\s+(.+)$/)
@@ -28,23 +38,24 @@ function itemConEtiqueta(item: string): { key: string; rest: string } | null {
   return { key: m[1].trim(), rest: m[2] }
 }
 
-function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) {
+const Tinta = ({ children }: { children: ReactNode }) => <span style={{ color: TINTA }}>{children}</span>
+
+function Block({ block, primero, abreSeccion }: { block: FormattedBlock; primero: boolean; abreSeccion: boolean }) {
   if (block.type === 'title') {
     // Los títulos en MAYÚSCULAS gritaban: van chicos, espaciados y en verde, como
-    // rótulo de sección. Los normales, en negrita un poco más grandes que el texto.
+    // rótulo de sección. Los normales, en tinta y más grandes que el texto.
     const caps = esMayusculas(block.content)
     return (
       <span
         className="section-title block text-pretty"
         style={{
-          fontFamily: R,
           fontWeight: 700,
-          fontSize: caps ? '0.8em' : '1.1em',
-          letterSpacing: caps ? '0.07em' : undefined,
-          color: caps ? GREEN : '#111827',
-          marginTop: primero ? 0 : '1.5em',
-          marginBottom: caps ? '0.6em' : '0.5em',
-          lineHeight: 1.35,
+          fontSize: caps ? '0.72em' : '1.2em',
+          letterSpacing: caps ? '0.07em' : '-0.01em',
+          color: caps ? VERDE : TINTA,
+          marginTop: primero ? 0 : '1.4em',
+          marginBottom: caps ? '0.6em' : '0.4em',
+          lineHeight: 1.25,
         }}
       >
         {block.content}
@@ -64,21 +75,17 @@ function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) 
               style={{
                 position: 'relative',
                 paddingLeft: '1.3em',
-                color: TEXTO,
-                lineHeight: 1.6,
-                marginBottom: i === block.items.length - 1 ? 0 : '0.45em',
-                fontWeight: 500,
+                color: GRIS,
+                lineHeight: INTERLINEA,
+                marginBottom: i === block.items.length - 1 ? 0 : '0.4em',
               }}
             >
-              <span
-                aria-hidden
-                style={{ position: 'absolute', left: 1, top: 0, color: 'var(--theme-accent, #1A5C38)', fontWeight: 700 }}
-              >
+              <span aria-hidden style={{ position: 'absolute', left: 1, top: 0, color: VERDE, fontWeight: 700 }}>
                 ✓
               </span>
               {et ? (
                 <>
-                  <strong style={{ fontWeight: 600, color: 'var(--theme-ink, #111827)' }}>{et.key}:</strong> {et.rest}
+                  <Tinta>{et.key}:</Tinta> {et.rest}
                 </>
               ) : (
                 item
@@ -97,38 +104,35 @@ function Block({ block, primero }: { block: FormattedBlock; primero: boolean }) 
           <span
             key={i}
             className="data-line block"
-            style={{
-              color: TEXTO,
-              lineHeight: 1.6,
-              marginBottom: i === block.content.length - 1 ? 0 : '0.25em',
-              fontWeight: 500,
-            }}
+            style={{ color: GRIS, lineHeight: INTERLINEA, marginBottom: i === block.content.length - 1 ? 0 : '0.25em' }}
           >
-            <strong style={{ fontWeight: 600, color: 'var(--theme-ink, #111827)' }}>{dl.key}:</strong>{' '}
-            {dl.value}
+            <Tinta>{dl.key}:</Tinta> {dl.value}
           </span>
         ))}
       </div>
     )
   }
 
-  // paragraph
+  // paragraph — entrada en tinta + resto en gris. Un párrafo de una sola oración
+  // va en tinta solo si abre la descripción o una sección; si no, en gris (si no,
+  // un aviso de renglones sueltos —el 65 % de los párrafos— quedaba todo negro).
+  const { entrada, resto } = block.subtitle
+    ? { entrada: `${block.subtitle}.`, resto: block.content }
+    : entradaDelParrafo(block.content)
   return (
     <p
       className="text-pretty"
-      style={{
-        color: TEXTO,
-        lineHeight: 1.7,
-        marginBottom: block.compact ? '0.15em' : '1em',
-        fontWeight: 500,
-      }}
+      style={{ color: GRIS, lineHeight: INTERLINEA, marginBottom: block.compact ? '0.15em' : '0.9em' }}
     >
-      {block.subtitle && (
+      {resto ? (
         <>
-          <strong style={{ fontWeight: 600, color: 'var(--theme-ink, #111827)' }}>{block.subtitle}.</strong>{' '}
+          <Tinta>{entrada}</Tinta> {resto}
         </>
+      ) : abreSeccion ? (
+        <Tinta>{entrada}</Tinta>
+      ) : (
+        entrada
       )}
-      {block.content}
     </p>
   )
 }
@@ -149,16 +153,21 @@ export default function PropertyDescription({ text }: { text: string | null | un
   const isLong = rawLength > 420 || blocks.length > 5
 
   return (
-    // Renglón de ~75 caracteres en desktop (max-w 34em): a lo ancho de la tarjeta
-    // eran ~95 y el ojo se perdía al volver al inicio del renglón siguiente.
-    <div className="prose-description max-w-[34em] break-words text-[17px] lg:text-[18px]" style={{ fontFamily: R }}>
+    // Renglón de ~70 caracteres (max-w 34em): a lo ancho de la tarjeta eran ~95 y
+    // el ojo se perdía al volver al inicio del renglón siguiente.
+    <div
+      className="prose-description max-w-[34em] break-words text-[19px] lg:text-[21px]"
+      style={{ fontFamily: LETRA, fontWeight: PESO }}
+    >
       <div className="relative">
         <div
           className={isLong && !expanded ? 'overflow-hidden' : ''}
-          style={isLong && !expanded ? { maxHeight: 250 } : undefined}
+          // ~13 renglones antes de "Ver más": con la letra a 19/21 px, los 250 px de
+          // antes mostraban apenas el primer párrafo.
+          style={isLong && !expanded ? { maxHeight: 400 } : undefined}
         >
           {blocks.map((b, i) => (
-            <Block key={i} block={b} primero={i === 0} />
+            <Block key={i} block={b} primero={i === 0} abreSeccion={i === 0 || blocks[i - 1].type !== 'paragraph'} />
           ))}
         </div>
         {isLong && !expanded && (
@@ -174,7 +183,7 @@ export default function PropertyDescription({ text }: { text: string | null | un
           onClick={() => setExpanded(v => !v)}
           aria-expanded={expanded}
           className="mt-1 min-h-11 font-semibold text-base hover:underline inline-flex items-center gap-1.5"
-          style={{ color: 'var(--theme-accent, #1A5C38)', fontFamily: R, fontWeight: 600 }}
+          style={{ color: VERDE, fontWeight: 600 }}
         >
           {expanded ? (
             <>Ver menos <ChevronUp className="h-4 w-4" aria-hidden /></>
