@@ -415,7 +415,13 @@ export default function PropertyDetailBody({
       {description && (
         <SectionBoundary name="descripcion">
           <section id="descripcion" className={`${CARD} scroll-mt-40`}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Descripción</h2>
+            {/* Más grande que el resto de los títulos: el texto va a 19/21 px (estilo Apple) y a 18 px el título quedaba más chico que lo que rotula. */}
+            <h2
+              className="text-[26px] lg:text-[32px]"
+              style={{ fontFamily: R, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15, color: 'var(--foreground)', marginBottom: 16 }}
+            >
+              Descripción
+            </h2>
             <PropertyDescription text={description} />
           </section>
         </SectionBoundary>

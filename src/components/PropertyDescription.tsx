@@ -162,7 +162,9 @@ export default function PropertyDescription({ text }: { text: string | null | un
       <div className="relative">
         <div
           className={isLong && !expanded ? 'overflow-hidden' : ''}
-          style={isLong && !expanded ? { maxHeight: 250 } : undefined}
+          // ~13 renglones antes de "Ver más": con la letra a 19/21 px, los 250 px de
+          // antes mostraban apenas el primer párrafo.
+          style={isLong && !expanded ? { maxHeight: 400 } : undefined}
         >
           {blocks.map((b, i) => (
             <Block key={i} block={b} primero={i === 0} abreSeccion={i === 0 || blocks[i - 1].type !== 'paragraph'} />
