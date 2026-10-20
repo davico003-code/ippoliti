@@ -54,6 +54,8 @@ import FeedbackDetalle from '../feedback/FeedbackDetalle'
 import AvisameSiBaja from './AvisameSiBaja'
 import ListaCercanos, { hayCercanos } from '../ListaCercanos'
 import type { LugarFicha } from '@/lib/cercanos'
+import TiemposViaje from './TiemposViaje'
+import type { TiemposViaje as Tiempos } from '@/lib/tiempos-viaje'
 
 // Skeletons mientras se carga el chunk JS — evitan que la sección quede en
 // blanco hasta que llega el bundle de Leaflet (mapa) o la galería de planos.
@@ -110,6 +112,7 @@ export default function PropertyDetailBody({
   whatsappUrl,
   showMobileContact = false,
   cercanos = null,
+  tiempos = null,
 }: {
   property: TokkoProperty
   allProperties?: TokkoProperty[]
@@ -117,6 +120,9 @@ export default function PropertyDetailBody({
   /** Lugares cercanos ya guardados (los lee la ficha en el servidor): van en el
    *  HTML. Sin ellos, NearbyPlaces los pide en el navegador. */
   cercanos?: Record<string, LugarFicha[]> | null
+  /** "¿Cuánto tardás desde acá?" ya guardado (igual que `cercanos`). Sin él,
+   *  TiemposViaje lo pide en el navegador. */
+  tiempos?: Tiempos | null
   /** If true, render a mobile-only contact card after the title (used inside the modal). */
   showMobileContact?: boolean
 }) {
@@ -524,6 +530,14 @@ export default function PropertyDetailBody({
           </div>
         </section>
       </SectionBoundary>
+
+      {/* ¿CUÁNTO TARDÁS DESDE ACÁ? — minutos en hora pico a los lugares de
+          todos los días (no aparece si la propiedad está fuera de zona). */}
+      {hasCoords && (
+        <SectionBoundary name="tiempos">
+          <TiemposViaje propertyId={property.id} tiempos={tiempos} className={`${CARD} scroll-mt-40`} />
+        </SectionBoundary>
+      )}
 
       {/* LUGARES CERCANOS */}
       {hasCoords && (
