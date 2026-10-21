@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   keywords: 'departamentos abasto, abasto rosario, departamentos venta abasto rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/departamentos-abasto' },
   openGraph: {
-    images: ['/og-image.jpg'], title: 'Departamentos en Abasto', url: 'https://siinmobiliaria.com/departamentos-abasto' },
+    images: ['/og-image.jpg'], title: 'Departamentos en Abasto', description: 'Zona en crecimiento con construcción nueva. Desde USD 55.000.', url: 'https://siinmobiliaria.com/departamentos-abasto' },
 }
 
 function filter(props: TokkoProperty[]): TokkoProperty[] {
