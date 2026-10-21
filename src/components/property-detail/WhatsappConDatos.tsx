@@ -6,6 +6,7 @@ import { Calendar, MessageCircle, X } from 'lucide-react'
 import { events, idEventoMeta, trackEvent, trackFbEvent } from '@/lib/analytics'
 import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
 import { marcarVisitaDePauta, urlConUtmDePauta } from '@/lib/pauta-visita'
+import { guardarCookieWhatsapp } from '@/lib/cookie-whatsapp'
 import {
   WHATSAPP_CON_DATOS_ACTIVO,
   consultaYaEnviada,
@@ -48,6 +49,8 @@ export default function WhatsappConDatos({ href, propertyId, propertyTitle, prop
 
   useEffect(() => {
     setPauta(WHATSAPP_CON_DATOS_ACTIVO && marcarVisitaDePauta())
+    // Quien dejó su celular antes de que existiera la cookie (o hace más de 30 días) la recupera acá.
+    guardarCookieWhatsapp(leerContacto().whatsapp)
   }, [])
 
   return (

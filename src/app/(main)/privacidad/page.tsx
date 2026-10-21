@@ -94,6 +94,10 @@ export default function PrivacidadPage() {
           publicidad. Podés ajustar tus preferencias desde el botón «Privacidad» que aparece en el sitio y desde la
           configuración de tu navegador.
         </p>
+        <p>
+          Si nos dejaste tu WhatsApp, tu navegador lo recuerda durante 30 días para que, cuando vuelvas a escribirnos
+          por WhatsApp desde el sitio, te atienda el mismo asesor.
+        </p>
       </Seccion>
 
       <Seccion titulo="Cuánto tiempo los conservamos">

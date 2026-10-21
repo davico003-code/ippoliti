@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { celularDeCookie } from '@/lib/cookie-whatsapp'
 
 /**
  * GET siinmobiliaria.com/w/ficha/<id>?text=… — el botón de WhatsApp de una
@@ -7,7 +8,8 @@ import { NextResponse } from 'next/server'
  * Antes esas fichas abrían el WhatsApp de David (la línea central de ventas) y
  * él tenía que pasarle la consulta a alguien. Ahora le preguntamos a Hilo a
  * quién le toca (la misma persona vuelve con su agente; si no, el de turno de la
- * sucursal de la propiedad) y se abre el chat con ese agente, con el texto de la
+ * sucursal de la propiedad; antes que nada, si dejó su celular en la web y ya
+ * habla con un agente, ese agente) y se abre el chat con él, con el texto de la
  * ficha. Hilo deja anotado el toque. Mismo camino que los anuncios (/w/<ref>).
  *
  * Servidor a servidor con HILO_INGEST_SECRET. Si Hilo no contesta a tiempo, va
@@ -40,7 +42,14 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const res = await fetch(`${base}/api/public/pauta-link`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-hilo-ingest-secret': secret },
-      body: JSON.stringify({ propiedad: id, mensaje: texto, ip, userAgent: req.headers.get('user-agent') }),
+      body: JSON.stringify({
+        propiedad: id,
+        mensaje: texto,
+        ip,
+        userAgent: req.headers.get('user-agent'),
+        // Si ya dejó su celular en la web y habla con un agente, Hilo lo manda con ese.
+        celular: celularDeCookie(req.headers.get('cookie')),
+      }),
       cache: 'no-store',
       signal: AbortSignal.timeout(2500),
     })
