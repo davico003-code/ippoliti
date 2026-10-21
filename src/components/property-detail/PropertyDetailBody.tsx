@@ -121,6 +121,7 @@ export default function PropertyDetailBody({
   whatsappUrl,
   showMobileContact = false,
   cercanos = null,
+  despuesDeDatos = null,
 }: {
   property: TokkoProperty
   allProperties?: TokkoProperty[]
@@ -130,6 +131,8 @@ export default function PropertyDetailBody({
   cercanos?: Record<string, LugarFicha[]> | null
   /** If true, render a mobile-only contact card after the title (used inside the modal). */
   showMobileContact?: boolean
+  /** Va justo después de las tarjetas de datos (la ficha del celu pone ahí el audio). */
+  despuesDeDatos?: React.ReactNode
 }) {
   // Mixta vista desde una búsqueda de alquiler (?operacion=alquiler): el
   // alquiler pasa al frente → precio principal + costos de ingreso + planilla.
@@ -332,6 +335,21 @@ export default function PropertyDetailBody({
         />
       )}
 
+      {/* CARACTERÍSTICAS */}
+      {specs.length > 0 && (
+        <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
+          <TituloSeccion>Características</TituloSeccion>
+          {/* Todas en una fila en la compu (antes 5 columnas: "Lote" quedaba sola abajo); 3 por fila en el celu. */}
+          <div className="grid grid-cols-3 gap-2.5 lg:[grid-template-columns:repeat(auto-fit,minmax(92px,1fr))]">
+            {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Celu: el audio y el contacto van DESPUÉS de los datos (21-oct-2026): primero
+          se entiende qué es y cuánto sale; WhatsApp igual está siempre en la barra de abajo. */}
+      {despuesDeDatos}
+
       {/* Mobile-only contact (inside modal, since modal is used only on desktop anyway this is defensive) */}
       {showMobileContact && (
         <section className={`md:hidden ${CARD}`}>
@@ -393,17 +411,6 @@ export default function PropertyDetailBody({
             agente={getProducerName(property)}
             callHref={getProducerCallHref(property)}
           />
-        </section>
-      )}
-
-      {/* CARACTERÍSTICAS */}
-      {specs.length > 0 && (
-        <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
-          <TituloSeccion>Características</TituloSeccion>
-          {/* Todas en una fila en la compu (antes 5 columnas: "Lote" quedaba sola abajo); 3 por fila en el celu. */}
-          <div className="grid grid-cols-3 gap-2.5 lg:[grid-template-columns:repeat(auto-fit,minmax(92px,1fr))]">
-            {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
-          </div>
         </section>
       )}
 

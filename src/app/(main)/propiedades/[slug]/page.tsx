@@ -372,15 +372,6 @@ export default async function PropertyPage({ params }: Props) {
           <PropertyGalleryHero property={property} />
         </div>
 
-        {/* Audio narrado (solo aparece si la propiedad tiene audio cacheado;
-            el componente se auto-oculta si /api/audio/check devuelve hasAudio:false) */}
-        <div className="px-4 pb-2">
-          <AudioSummary
-            propertyId={property.id}
-            title={tituloVisible(property) || property.address}
-          />
-        </div>
-
         {/* Sticky tabs con scroll horizontal */}
         <PropertyStickyNav
           sections={[
@@ -421,6 +412,14 @@ export default async function PropertyPage({ params }: Props) {
             whatsappUrl={whatsappUrl}
             showMobileContact
             cercanos={cercanos?.ficha ?? null}
+            // Audio narrado: debajo de los datos, no arriba del título (el precio
+            // tiene que entrar en la primera pantalla). Se auto-oculta sin audio.
+            despuesDeDatos={
+              <AudioSummary
+                propertyId={property.id}
+                title={tituloVisible(property) || property.address}
+              />
+            }
           />
         </div>
 
