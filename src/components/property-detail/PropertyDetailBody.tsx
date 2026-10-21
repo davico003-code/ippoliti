@@ -230,9 +230,10 @@ export default function PropertyDetailBody({
         </h1>
         {/* Sin chips VENTA / CASA acá: ya están sobre la foto (PropertyGalleryHero,
             con las dos operaciones si es venta + alquiler) y repetidos confundían. */}
-        <div className="flex items-center gap-1.5 mb-5">
+        {/* Dirección a 15 px en el gris oscuro de lectura (estaba a 13 en gris claro: costaba leerla). */}
+        <div className="flex items-center gap-1.5 mb-4">
           <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
-          <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
+          <span style={{ fontFamily: P, fontSize: 15, color: 'var(--tinta-soft)' }}>
             {property.real_address || address}{location ? `, ${location}` : ''}
           </span>
         </div>
@@ -499,7 +500,7 @@ export default function PropertyDetailBody({
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <div className="flex items-center gap-2 min-w-0">
               <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
-              <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
+              <span style={{ fontFamily: P, fontSize: 15, color: 'var(--tinta-soft)' }}>
                 {direccionCompleta}
               </span>
             </div>
