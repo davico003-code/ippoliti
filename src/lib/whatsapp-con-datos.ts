@@ -37,14 +37,19 @@ export type ConsultaEnviada = {
  * "Hola <captador>, te escribo por…" y "Hola <captador>! Quiero consultar el
  * precio…" — y la dirección puede tener comas: se corta SOLO el saludo, hasta la
  * primera coma o el primer "!".
+ *
+ * Una ficha que rota (lib/tokko.ts: /w/ficha/<id>?text=…) no trae número: sin
+ * agente de Hilo se devuelve tal cual, y ese link elige al de turno.
  */
 export function urlWhatsappConDatos(hrefFicha: string, nombre: string, agente: AgenteFicha | null): string {
   let url: URL
   try {
-    url = new URL(hrefFicha)
+    url = new URL(hrefFicha, 'https://siinmobiliaria.com')
   } catch {
     return hrefFicha
   }
+  const esWaMe = url.hostname === 'wa.me'
+  if (!esWaMe && !agente?.whatsapp) return hrefFicha
   const numero = agente?.whatsapp ?? url.pathname.replace(/\D/g, '')
   const resto = (url.searchParams.get('text') ?? '').replace(/^Hola\b[^,!\n]*[,!]\s*/, '')
   const saludo = `Hola${agente?.nombre ? ` ${agente.nombre}` : ''}, soy ${nombre.trim()}.`
