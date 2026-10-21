@@ -30,28 +30,49 @@ export default function PropertyStickyNav({
   const [active, setActive] = useState<string>(sections[0]?.id ?? '')
   const navRef = useRef<HTMLElement>(null)
 
-  // Scroll-spy: la pestaña activa es la sección más alta que cruza una línea de
-  // activación cerca del tope. Banda finita para que no queden dos activas.
+  // Scroll-spy (21-oct-2026): la pestaña activa es la ÚLTIMA sección cuyo
+  // comienzo ya pasó una línea fija debajo de la barra. Antes un
+  // IntersectionObserver elegía entre las que acababan de cruzar una franja y,
+  // con secciones largas, quedaba marcada la anterior (David leía la
+  // Descripción con "Video" marcado). Al llegar al final de la página va la
+  // última pestaña: la sección de abajo nunca llega a la línea.
+  const clave = sections.map(s => s.id).join('|')
   useEffect(() => {
-    const opts: IntersectionObserverInit = {
-      root: scrollRoot ?? null,
-      rootMargin: '-15% 0px -75% 0px',
-      threshold: 0,
+    const ids = clave.split('|').filter(Boolean)
+    let raf = 0
+    const calcular = () => {
+      raf = 0
+      const tope = scrollRoot ? scrollRoot.getBoundingClientRect().top : 0
+      const alto = scrollRoot ? scrollRoot.clientHeight : window.innerHeight
+      const linea = tope + stickyTop + ALTURA_NAV_FICHA + alto * 0.2
+      const alFinal = scrollRoot
+        ? scrollRoot.scrollTop + scrollRoot.clientHeight >= scrollRoot.scrollHeight - 4
+        : window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4
+      let actual = ids[0] ?? ''
+      let mejor = -Infinity
+      for (const id of ids) {
+        const el = findPropertySection(id, scrollRoot)
+        if (!el) continue
+        const arriba = el.getBoundingClientRect().top
+        if (alFinal) actual = id
+        else if (arriba <= linea && arriba > mejor) {
+          mejor = arriba
+          actual = id
+        }
+      }
+      setActive(actual)
     }
-    const io = new IntersectionObserver((entries) => {
-      const visibles = entries.filter(e => e.isIntersecting)
-      if (visibles.length === 0) return
-      // La que estás mirando = la más cercana al tope entre las que cruzan.
-      const top = visibles.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
-      if (top?.target?.id) setActive(top.target.id)
-    }, opts)
-
-    sections.forEach(s => {
-      const el = findPropertySection(s.id, scrollRoot)
-      if (el) io.observe(el)
-    })
-    return () => io.disconnect()
-  }, [sections, scrollRoot])
+    const alScrollear = () => { if (!raf) raf = requestAnimationFrame(calcular) }
+    const objetivo: HTMLElement | Window = scrollRoot ?? window
+    calcular()
+    objetivo.addEventListener('scroll', alScrollear, { passive: true })
+    window.addEventListener('resize', alScrollear)
+    return () => {
+      objetivo.removeEventListener('scroll', alScrollear)
+      window.removeEventListener('resize', alScrollear)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [clave, scrollRoot, stickyTop])
 
   const jumpTo = (id: string) => {
     const el = findPropertySection(id, scrollRoot)
