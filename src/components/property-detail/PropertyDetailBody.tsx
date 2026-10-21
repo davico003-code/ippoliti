@@ -40,6 +40,7 @@ import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
 import PropertyDescription from '../PropertyDescription'
 import SectionBoundary from './SectionBoundary'
+import { ESTILO_TITULO_SECCION, TITULO_SECCION } from './titulo-seccion'
 import BarrioPanel from './BarrioPanel'
 import type { Barrio } from '@/lib/barrios'
 import PropertyVideo from './PropertyVideo'
@@ -92,6 +93,10 @@ function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string
       <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--tinta-soft)' }}>{label}</span>
     </div>
   )
+}
+
+function TituloSeccion({ children, mb = 14 }: { children: React.ReactNode; mb?: number }) {
+  return <h2 className={TITULO_SECCION} style={{ ...ESTILO_TITULO_SECCION, marginBottom: mb }}>{children}</h2>
 }
 
 function Row({ label, value, numeric = true }: { label: string; value: string; numeric?: boolean }) {
@@ -389,7 +394,7 @@ export default function PropertyDetailBody({
       {/* CARACTERÍSTICAS */}
       {specs.length > 0 && (
         <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Características</h2>
+          <TituloSeccion>Características</TituloSeccion>
           {/* Todas en una fila en la compu (antes 5 columnas: "Lote" quedaba sola abajo); 3 por fila en el celu. */}
           <div className="grid grid-cols-3 gap-2.5 lg:[grid-template-columns:repeat(auto-fit,minmax(92px,1fr))]">
             {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
@@ -401,7 +406,7 @@ export default function PropertyDetailBody({
       {property.videos && property.videos.length > 0 && (
         <SectionBoundary name="video">
           <section id="video" className={`${CARD} scroll-mt-40`}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Recorrido en video</h2>
+            <TituloSeccion>Recorrido en video</TituloSeccion>
             <PropertyVideo videos={property.videos} fallbackPoster={property.photos?.[0]?.image ?? null} />
           </section>
         </SectionBoundary>
@@ -411,13 +416,8 @@ export default function PropertyDetailBody({
       {description && (
         <SectionBoundary name="descripcion">
           <section id="descripcion" className={`${CARD} scroll-mt-40`}>
-            {/* Más grande que el resto de los títulos: el texto va a 17/19 px (estilo Apple, achicado un 10 % el 21-oct) y a 18 px el título quedaba más chico que lo que rotula. */}
-            <h2
-              className="text-[24px] lg:text-[28px]"
-              style={{ fontFamily: R, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15, color: 'var(--foreground)', marginBottom: 16 }}
-            >
-              Descripción
-            </h2>
+            {/* El texto va a 17/19 px (estilo Apple); el título, como el de todas las secciones. */}
+            <TituloSeccion>Descripción</TituloSeccion>
             <PropertyDescription text={description} />
           </section>
         </SectionBoundary>
@@ -426,7 +426,7 @@ export default function PropertyDetailBody({
       {/* SUPERFICIES */}
       {hasSurfaces && (
         <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Superficies</h2>
+          <TituloSeccion>Superficies</TituloSeccion>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
             {parseFloat(property.surface) > 0 && <Row label="Terreno" value={`${(parseFloat(property.surface)).toLocaleString('es-AR')} m²`} />}
             {roofedArea != null && roofedArea > 0 && <Row label="Cubierta" value={`${roofedArea.toLocaleString('es-AR')} m²`} />}
@@ -439,7 +439,7 @@ export default function PropertyDetailBody({
       {/* DETALLES */}
       {hasDetails && (
         <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Detalles</h2>
+          <TituloSeccion>Detalles</TituloSeccion>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
             {property.age != null && property.age >= 0 && <Row label="Antigüedad" value={property.age === 0 ? 'A estrenar' : `${property.age} años`} />}
             {translateCondition(property.property_condition) && <Row label="Estado" value={translateCondition(property.property_condition)!} numeric={false} />}
@@ -460,7 +460,11 @@ export default function PropertyDetailBody({
           <section className={CARD}>
             {grupos.map((g, i) => (
               <div key={g.cat} className={i > 0 ? 'mt-5' : ''}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 15, color: 'var(--foreground)', marginBottom: 10 }}>{g.label}</h2>
+                {i === 0 ? (
+                  <TituloSeccion mb={12}>{g.label}</TituloSeccion>
+                ) : (
+                  <h3 style={{ fontFamily: R, fontWeight: 800, fontSize: 17, color: 'var(--foreground)', marginBottom: 10 }}>{g.label}</h3>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {g.items.map(item => (
                     <span key={item} className="px-4 py-1.5 rounded-full text-sm border border-gray-200" style={{ color: 'var(--tinta-soft)' }}>
@@ -478,7 +482,7 @@ export default function PropertyDetailBody({
       {blueprints.length > 0 && (
         <SectionBoundary name="planos">
           <section id="planos" className={`${CARD} scroll-mt-40`}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Planos</h2>
+            <TituloSeccion>Planos</TituloSeccion>
             <BlueprintGallery blueprints={blueprints} />
           </section>
         </SectionBoundary>
@@ -494,7 +498,7 @@ export default function PropertyDetailBody({
       {/* UBICACIÓN */}
       <SectionBoundary name="ubicacion">
         <section id="ubicacion" className={`${CARD} scroll-mt-40`}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Ubicación</h2>
+          <TituloSeccion>Ubicación</TituloSeccion>
           {/* Sin aspect-ratio forzado: el mapa mide 280/380px fijos y el 4:3
               dejaba ~200px en blanco debajo en desktop. */}
           <div className="rounded-[14px] overflow-hidden mb-3">
@@ -531,7 +535,7 @@ export default function PropertyDetailBody({
       {hasCoords && (
         <SectionBoundary name="lugares-cercanos">
           <section className={CARD}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 4 }}>Lugares cercanos</h2>
+            <TituloSeccion mb={4}>Lugares cercanos</TituloSeccion>
             <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
             {hayCercanos(cercanos) ? <ListaCercanos lugares={cercanos!} /> : <NearbyPlaces lat={currentLat!} lng={currentLng!} />}
           </section>
