@@ -44,6 +44,7 @@ import { ESTILO_TITULO_SECCION, TITULO_SECCION } from './titulo-seccion'
 import BarrioPanel from './BarrioPanel'
 import type { Barrio } from '@/lib/barrios'
 import PropertyVideo from './PropertyVideo'
+import { videoOficinaSolo, videosPropios } from '@/lib/video-oficina'
 import { getAgenteRol } from '@/lib/agente-titulo'
 import AgenteAvatar from './AgenteAvatar'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
@@ -164,6 +165,8 @@ export default function PropertyDetailBody({
     : null
   const description = condTemp ? condTemp.descripcion : descripcionCompleta
   const blueprints = getBlueprintPhotos(property)
+  const recorridos = videosPropios(property.videos)
+  const videoOficina = videoOficinaSolo(property.videos)
   const address = property.fake_address || property.address
   const tituloContacto = tituloVisible(property) || address
   // Va pegada a la dirección: sin repetir el barrio o la ciudad que ya diga.
@@ -405,11 +408,11 @@ export default function PropertyDetailBody({
       )}
 
       {/* VIDEO — arriba de la descripción, solo si la propiedad tiene videos */}
-      {property.videos && property.videos.length > 0 && (
+      {recorridos.length > 0 && (
         <SectionBoundary name="video">
           <section id="video" className={`${CARD} scroll-mt-40`}>
             <TituloSeccion>Recorrido en video</TituloSeccion>
-            <PropertyVideo videos={property.videos} fallbackPoster={property.photos?.[0]?.image ?? null} />
+            <PropertyVideo videos={recorridos} fallbackPoster={property.photos?.[0]?.image ?? null} />
           </section>
         </SectionBoundary>
       )}
@@ -542,6 +545,17 @@ export default function PropertyDetailBody({
             lng={currentLng!}
             excludeId={property.id}
           />
+        </SectionBoundary>
+      )}
+
+      {/* VIDEO DE LA OFICINA — el que Hilo pone por defecto cuando la propiedad no
+          tiene recorrido propio: al final y con su nombre (ver lib/video-oficina). */}
+      {videoOficina.length > 0 && (
+        <SectionBoundary name="video-oficina">
+          <section className={CARD}>
+            <TituloSeccion>Conocé nuestra oficina</TituloSeccion>
+            <PropertyVideo videos={videoOficina} fallbackPoster={null} />
+          </section>
         </SectionBoundary>
       )}
 

@@ -43,6 +43,7 @@ import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
 import { conFotosFijas, fotoAbsoluta, fotoFija } from '@/lib/fotos-fijas';
 import { cercanosGuardados } from '@/lib/cercanos';
 import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas';
+import { videosPropios } from '@/lib/video-oficina';
 
 export const revalidate = 3600;
 
@@ -387,7 +388,7 @@ export default async function PropertyPage({ params }: Props) {
             { id: 'caracteristicas', label: 'Características' },
             // "Video" solo si la propiedad tiene recorrido (misma condición que
             // la sección #video en PropertyDetailBody).
-            ...(property.videos && property.videos.length > 0
+            ...(videosPropios(property.videos).length > 0
               ? [{ id: 'video', label: 'Video' }]
               : []),
             // Igual que "Video": la pestaña se muestra solo si abajo existe la
