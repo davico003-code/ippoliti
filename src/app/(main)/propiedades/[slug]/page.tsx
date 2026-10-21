@@ -43,6 +43,7 @@ import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
 import { conFotosFijas, fotoAbsoluta, fotoFija } from '@/lib/fotos-fijas';
 import { cercanosGuardados } from '@/lib/cercanos';
 import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas';
+import { videosPropios } from '@/lib/video-oficina';
 
 export const revalidate = 3600;
 
@@ -371,15 +372,6 @@ export default async function PropertyPage({ params }: Props) {
           <PropertyGalleryHero property={property} />
         </div>
 
-        {/* Audio narrado (solo aparece si la propiedad tiene audio cacheado;
-            el componente se auto-oculta si /api/audio/check devuelve hasAudio:false) */}
-        <div className="px-4 pb-2">
-          <AudioSummary
-            propertyId={property.id}
-            title={tituloVisible(property) || property.address}
-          />
-        </div>
-
         {/* Sticky tabs con scroll horizontal */}
         <PropertyStickyNav
           sections={[
@@ -387,7 +379,7 @@ export default async function PropertyPage({ params }: Props) {
             { id: 'caracteristicas', label: 'Características' },
             // "Video" solo si la propiedad tiene recorrido (misma condición que
             // la sección #video en PropertyDetailBody).
-            ...(property.videos && property.videos.length > 0
+            ...(videosPropios(property.videos).length > 0
               ? [{ id: 'video', label: 'Video' }]
               : []),
             // Igual que "Video": la pestaña se muestra solo si abajo existe la
@@ -420,6 +412,14 @@ export default async function PropertyPage({ params }: Props) {
             whatsappUrl={whatsappUrl}
             showMobileContact
             cercanos={cercanos?.ficha ?? null}
+            // Audio narrado: debajo de los datos, no arriba del título (el precio
+            // tiene que entrar en la primera pantalla). Se auto-oculta sin audio.
+            despuesDeDatos={
+              <AudioSummary
+                propertyId={property.id}
+                title={tituloVisible(property) || property.address}
+              />
+            }
           />
         </div>
 

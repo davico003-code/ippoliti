@@ -12,19 +12,16 @@ import {
   mostrarPrecio,
   esTemporario,
   preciosPorOperacion,
-  operationBadgeColor,
   esOportunidadConsultanos,
   buildPriceConsultWhatsappUrl,
   getProducerCallHref,
   generatePropertySlug,
-  getOperationType,
   getRoofedArea,
   getTotalSurface,
   getLotSurface,
   isMonoambiente,
   getDescription,
   getBlueprintPhotos,
-  translatePropertyType,
   agruparTags,
   translateCondition,
   translateOrientation,
@@ -43,9 +40,11 @@ import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
 import PropertyDescription from '../PropertyDescription'
 import SectionBoundary from './SectionBoundary'
+import { ESTILO_TITULO_SECCION, TITULO_SECCION } from './titulo-seccion'
 import BarrioPanel from './BarrioPanel'
 import type { Barrio } from '@/lib/barrios'
 import PropertyVideo from './PropertyVideo'
+import { videoOficinaSolo, videosPropios } from '@/lib/video-oficina'
 import { getAgenteRol } from '@/lib/agente-titulo'
 import AgenteAvatar from './AgenteAvatar'
 import CostosIngresoMini from '../propiedades/CostosIngresoMini'
@@ -81,21 +80,33 @@ function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | nul
   return p && p.price > 0 ? `${p.currency} ${p.price.toLocaleString('es-AR')}` : null
 }
 
+// Tarjeta de dato (21-oct-2026): el número nunca se parte en dos renglones
+// ("214,1" / "m²" en el celu) — la unidad va más chica al lado — y el nombre
+// a 13 px en gris oscuro (a 11 px en gris claro no se leía).
 function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+  const m2 = typeof value === 'string' && value.endsWith(' m²')
   return (
-    <div className="flex flex-col items-center text-center gap-1.5 py-3 px-2 bg-[#f9fafb] rounded-xl">
+    <div className="flex flex-col items-center text-center gap-1 py-3 px-1.5 bg-[#f9fafb] rounded-xl">
       <div style={{ color: 'var(--theme-accent, #1A5C38)' }}>{icon}</div>
-      <span style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}>{value}</span>
-      <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--tinta-mute)' }}>{label}</span>
+      <span className="whitespace-nowrap" style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}>
+        {m2 ? <>{value.slice(0, -3)}<span style={{ fontSize: 13, fontWeight: 700 }}> m²</span></> : value}
+      </span>
+      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--tinta-soft)' }}>{label}</span>
     </div>
   )
 }
 
+function TituloSeccion({ children, mb = 14 }: { children: React.ReactNode; mb?: number }) {
+  return <h2 className={TITULO_SECCION} style={{ ...ESTILO_TITULO_SECCION, marginBottom: mb }}>{children}</h2>
+}
+
+// Dato de "Detalles": el nombre ARRIBA del valor (21-oct-2026). Antes iban en la
+// misma fila, uno en cada punta de una columna ancha, y el ojo no los unía.
 function Row({ label, value, numeric = true }: { label: string; value: string; numeric?: boolean }) {
   return (
-    <div className="flex justify-between border-b border-gray-100 pb-2 text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className={`font-semibold ${numeric ? 'font-numeric' : ''}`}>{value}</span>
+    <div>
+      <div className="text-[13px] text-gray-500">{label}</div>
+      <div className={`text-[16px] font-semibold ${numeric ? 'font-numeric' : ''}`} style={{ color: 'var(--foreground)' }}>{value}</div>
     </div>
   )
 }
@@ -110,6 +121,7 @@ export default function PropertyDetailBody({
   whatsappUrl,
   showMobileContact = false,
   cercanos = null,
+  despuesDeDatos = null,
 }: {
   property: TokkoProperty
   allProperties?: TokkoProperty[]
@@ -119,6 +131,8 @@ export default function PropertyDetailBody({
   cercanos?: Record<string, LugarFicha[]> | null
   /** If true, render a mobile-only contact card after the title (used inside the modal). */
   showMobileContact?: boolean
+  /** Va justo después de las tarjetas de datos (la ficha del celu pone ahí el audio). */
+  despuesDeDatos?: React.ReactNode
 }) {
   // Mixta vista desde una búsqueda de alquiler (?operacion=alquiler): el
   // alquiler pasa al frente → precio principal + costos de ingreso + planilla.
@@ -133,7 +147,6 @@ export default function PropertyDetailBody({
   const consultarPrecioUrl = tienePrecio
     ? null
     : buildPriceConsultWhatsappUrl(property, generatePropertySlug(property))
-  const operation = getOperationType(property)
   // Venta Y alquiler a la vez: se muestran los dos valores, cada uno con su cartel.
   const precios = preciosPorOperacion(property)
   const dobleOperacion = precios.length > 1
@@ -144,7 +157,6 @@ export default function PropertyDetailBody({
   const roofedArea = getRoofedArea(property)
   const area = getTotalSurface(property)
   const lotSurface = getLotSurface(property)
-  const propType = translatePropertyType(property.type?.name)
   const descripcionCompleta = getDescription(property)
   // Temporario: los renglones "Quincena: / Mes: / Depósito: …" de la
   // descripción salen como precios y condiciones; el resto queda de descripción.
@@ -156,6 +168,8 @@ export default function PropertyDetailBody({
     : null
   const description = condTemp ? condTemp.descripcion : descripcionCompleta
   const blueprints = getBlueprintPhotos(property)
+  const recorridos = videosPropios(property.videos)
+  const videoOficina = videoOficinaSolo(property.videos)
   const address = property.fake_address || property.address
   const tituloContacto = tituloVisible(property) || address
   // Va pegada a la dirección: sin repetir el barrio o la ciudad que ya diga.
@@ -200,21 +214,21 @@ export default function PropertyDetailBody({
 
   // Specs (icon cards)
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
-  if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Superficie', value: `${area.toLocaleString('es-AR')} m²` })
+  if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Sup. total', value: `${area.toLocaleString('es-AR')} m²` })
   if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea.toLocaleString('es-AR')} m²` })
   if (isMonoambiente(property)) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Ambientes', value: 'Monoambiente' })
   else if (property.suite_amount > 0) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Dormitorios', value: property.suite_amount })
-  if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: 'Baños', value: property.bathroom_amount })
-  if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: 'Cocheras', value: property.parking_lot_amount })
+  if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: property.bathroom_amount === 1 ? 'Baño' : 'Baños', value: property.bathroom_amount })
+  if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: property.parking_lot_amount === 1 ? 'Cochera' : 'Cocheras', value: property.parking_lot_amount })
   if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface.toLocaleString('es-AR')} m²` })
 
-  const hasSurfaces =
-    (roofedArea && roofedArea > 0) ||
-    parseFloat(property.semiroofed_surface) > 0 ||
-    parseFloat(property.total_surface) > 0 ||
-    parseFloat(property.surface) > 0
+  // La semicubierta es la única superficie que no está en las tarjetas de arriba
+  // (total, cubierta y lote): va a "Detalles" y la tarjeta "Superficies", que
+  // repetía todo, ya no está (21-oct-2026).
+  const semicubierta = parseFloat(property.semiroofed_surface)
 
   const hasDetails =
+    semicubierta > 0 ||
     property.age != null ||
     translateCondition(property.property_condition) ||
     translateOrientation(property.orientation) ||
@@ -226,24 +240,19 @@ export default function PropertyDetailBody({
     <div className="space-y-6">
       {/* OVERVIEW — title + location + price + badges */}
       <section id="overview" className={`${CARD} scroll-mt-40`}>
-        <h1 style={{ fontFamily: R, fontWeight: 800, fontSize: 28, color: 'var(--foreground)', lineHeight: 1.2, marginBottom: 8 }}>
+        {/* 21-oct-2026 (David: "que se entienda todo perfectamente"): el precio es lo
+            primero que se busca. En el celu el título va a 24 px para que el precio
+            entre en la primera pantalla, y el precio sube a 32/36 px sin el rótulo
+            "PRECIO" (el número en USD ya dice qué es). */}
+        <h1 className="text-[24px] lg:text-[30px]" style={{ fontFamily: R, fontWeight: 800, color: 'var(--foreground)', lineHeight: 1.18, letterSpacing: '-0.01em', marginBottom: 8 }}>
           {tituloVisible(property) || address}
         </h1>
-        <div className="flex gap-2 mb-3">
-          {dobleOperacion ? (
-            precios.map(({ operacion }) => (
-              <span key={operacion} className="px-3 py-1 text-white text-[11px] font-bold rounded-full uppercase tracking-wide" style={{ background: operationBadgeColor(operacion) }}>{operacion}</span>
-            ))
-          ) : operation && (
-            <span className="px-3 py-1 bg-[#1A5C38] text-white text-[11px] font-bold rounded-full uppercase tracking-wide">{operation}</span>
-          )}
-          {propType && (
-            <span className="px-3 py-1 bg-[#e8f5ee] text-[#1A5C38] text-[11px] font-bold rounded-full uppercase tracking-wide">{propType}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 mb-5">
+        {/* Sin chips VENTA / CASA acá: ya están sobre la foto (PropertyGalleryHero,
+            con las dos operaciones si es venta + alquiler) y repetidos confundían. */}
+        {/* Dirección a 15 px en el gris oscuro de lectura (estaba a 13 en gris claro: costaba leerla). */}
+        <div className="flex items-center gap-1.5 mb-4">
           <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
-          <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
+          <span style={{ fontFamily: P, fontSize: 15, color: 'var(--tinta-soft)' }}>
             {property.real_address || address}{location ? `, ${location}` : ''}
           </span>
         </div>
@@ -254,7 +263,7 @@ export default function PropertyDetailBody({
               return (
                 <div key={operacion}>
                   <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">{operacion}</span>
-                  <span style={{ fontFamily: P, fontWeight: 800, fontSize: 28, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
+                  <span className="text-[28px] lg:text-[32px]" style={{ fontFamily: P, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
                     {precio}
                   </span>
                   {mes && (
@@ -273,7 +282,6 @@ export default function PropertyDetailBody({
           </div>
         ) : (
         <div>
-          <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
           {tienePrecio && condTemp && condTemp.precios.length > 0 ? (
             <div className="space-y-4">
               <TemporarioPrecios precios={condTemp.precios} />
@@ -282,7 +290,7 @@ export default function PropertyDetailBody({
               </div>
             </div>
           ) : tienePrecio ? (
-            <span style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
+            <span className="text-[32px] lg:text-[36px]" style={{ fontFamily: P, fontWeight: 800, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--foreground)', lineHeight: 1 }}>
               {price}
             </span>
           ) : (
@@ -326,6 +334,21 @@ export default function PropertyDetailBody({
           propertyId={property.id}
         />
       )}
+
+      {/* CARACTERÍSTICAS */}
+      {specs.length > 0 && (
+        <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
+          <TituloSeccion>Características</TituloSeccion>
+          {/* Todas en una fila en la compu (antes 5 columnas: "Lote" quedaba sola abajo); 3 por fila en el celu. */}
+          <div className="grid grid-cols-3 gap-2.5 lg:[grid-template-columns:repeat(auto-fit,minmax(92px,1fr))]">
+            {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Celu: el audio y el contacto van DESPUÉS de los datos (21-oct-2026): primero
+          se entiende qué es y cuánto sale; WhatsApp igual está siempre en la barra de abajo. */}
+      {despuesDeDatos}
 
       {/* Mobile-only contact (inside modal, since modal is used only on desktop anyway this is defensive) */}
       {showMobileContact && (
@@ -391,22 +414,12 @@ export default function PropertyDetailBody({
         </section>
       )}
 
-      {/* CARACTERÍSTICAS */}
-      {specs.length > 0 && (
-        <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Características</h2>
-          <div className="grid grid-cols-3 lg:grid-cols-5 gap-3">
-            {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
-          </div>
-        </section>
-      )}
-
       {/* VIDEO — arriba de la descripción, solo si la propiedad tiene videos */}
-      {property.videos && property.videos.length > 0 && (
+      {recorridos.length > 0 && (
         <SectionBoundary name="video">
           <section id="video" className={`${CARD} scroll-mt-40`}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Recorrido en video</h2>
-            <PropertyVideo videos={property.videos} fallbackPoster={property.photos?.[0]?.image ?? null} />
+            <TituloSeccion>Recorrido en video</TituloSeccion>
+            <PropertyVideo videos={recorridos} fallbackPoster={property.photos?.[0]?.image ?? null} />
           </section>
         </SectionBoundary>
       )}
@@ -415,36 +428,19 @@ export default function PropertyDetailBody({
       {description && (
         <SectionBoundary name="descripcion">
           <section id="descripcion" className={`${CARD} scroll-mt-40`}>
-            {/* Más grande que el resto de los títulos: el texto va a 19/21 px (estilo Apple) y a 18 px el título quedaba más chico que lo que rotula. */}
-            <h2
-              className="text-[26px] lg:text-[32px]"
-              style={{ fontFamily: R, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15, color: 'var(--foreground)', marginBottom: 16 }}
-            >
-              Descripción
-            </h2>
+            {/* El texto va a 17/19 px (estilo Apple); el título, como el de todas las secciones. */}
+            <TituloSeccion>Descripción</TituloSeccion>
             <PropertyDescription text={description} />
           </section>
         </SectionBoundary>
       )}
 
-      {/* SUPERFICIES */}
-      {hasSurfaces && (
-        <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Superficies</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
-            {parseFloat(property.surface) > 0 && <Row label="Terreno" value={`${(parseFloat(property.surface)).toLocaleString('es-AR')} m²`} />}
-            {roofedArea != null && roofedArea > 0 && <Row label="Cubierta" value={`${roofedArea.toLocaleString('es-AR')} m²`} />}
-            {parseFloat(property.semiroofed_surface) > 0 && <Row label="Semicubierta" value={`${(parseFloat(property.semiroofed_surface)).toLocaleString('es-AR')} m²`} />}
-            {parseFloat(property.total_surface) > 0 && <Row label="Total" value={`${(parseFloat(property.total_surface)).toLocaleString('es-AR')} m²`} />}
-          </div>
-        </section>
-      )}
-
       {/* DETALLES */}
       {hasDetails && (
         <section className={CARD}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Detalles</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
+          <TituloSeccion>Detalles</TituloSeccion>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+            {semicubierta > 0 && <Row label="Semicubierta" value={`${semicubierta.toLocaleString('es-AR')} m²`} />}
             {property.age != null && property.age >= 0 && <Row label="Antigüedad" value={property.age === 0 ? 'A estrenar' : `${property.age} años`} />}
             {translateCondition(property.property_condition) && <Row label="Estado" value={translateCondition(property.property_condition)!} numeric={false} />}
             {translateOrientation(property.orientation) && <Row label="Orientación" value={translateOrientation(property.orientation)!} numeric={false} />}
@@ -464,7 +460,11 @@ export default function PropertyDetailBody({
           <section className={CARD}>
             {grupos.map((g, i) => (
               <div key={g.cat} className={i > 0 ? 'mt-5' : ''}>
-                <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 15, color: 'var(--foreground)', marginBottom: 10 }}>{g.label}</h2>
+                {i === 0 ? (
+                  <TituloSeccion mb={12}>{g.label}</TituloSeccion>
+                ) : (
+                  <h3 style={{ fontFamily: R, fontWeight: 800, fontSize: 17, color: 'var(--foreground)', marginBottom: 10 }}>{g.label}</h3>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {g.items.map(item => (
                     <span key={item} className="px-4 py-1.5 rounded-full text-sm border border-gray-200" style={{ color: 'var(--tinta-soft)' }}>
@@ -482,7 +482,7 @@ export default function PropertyDetailBody({
       {blueprints.length > 0 && (
         <SectionBoundary name="planos">
           <section id="planos" className={`${CARD} scroll-mt-40`}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Planos</h2>
+            <TituloSeccion>Planos</TituloSeccion>
             <BlueprintGallery blueprints={blueprints} />
           </section>
         </SectionBoundary>
@@ -498,7 +498,7 @@ export default function PropertyDetailBody({
       {/* UBICACIÓN */}
       <SectionBoundary name="ubicacion">
         <section id="ubicacion" className={`${CARD} scroll-mt-40`}>
-          <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 12 }}>Ubicación</h2>
+          <TituloSeccion>Ubicación</TituloSeccion>
           {/* Sin aspect-ratio forzado: el mapa mide 280/380px fijos y el 4:3
               dejaba ~200px en blanco debajo en desktop. */}
           <div className="rounded-[14px] overflow-hidden mb-3">
@@ -511,7 +511,7 @@ export default function PropertyDetailBody({
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <div className="flex items-center gap-2 min-w-0">
               <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
-              <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
+              <span style={{ fontFamily: P, fontSize: 15, color: 'var(--tinta-soft)' }}>
                 {direccionCompleta}
               </span>
             </div>
@@ -535,7 +535,7 @@ export default function PropertyDetailBody({
       {hasCoords && (
         <SectionBoundary name="lugares-cercanos">
           <section className={CARD}>
-            <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 4 }}>Lugares cercanos</h2>
+            <TituloSeccion mb={4}>Lugares cercanos</TituloSeccion>
             <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
             {hayCercanos(cercanos) ? <ListaCercanos lugares={cercanos!} /> : <NearbyPlaces lat={currentLat!} lng={currentLng!} />}
           </section>
@@ -552,6 +552,17 @@ export default function PropertyDetailBody({
             lng={currentLng!}
             excludeId={property.id}
           />
+        </SectionBoundary>
+      )}
+
+      {/* VIDEO DE LA OFICINA — el que Hilo pone por defecto cuando la propiedad no
+          tiene recorrido propio: al final y con su nombre (ver lib/video-oficina). */}
+      {videoOficina.length > 0 && (
+        <SectionBoundary name="video-oficina">
+          <section className={CARD}>
+            <TituloSeccion>Conocé nuestra oficina</TituloSeccion>
+            <PropertyVideo videos={videoOficina} fallbackPoster={null} />
+          </section>
         </SectionBoundary>
       )}
 
