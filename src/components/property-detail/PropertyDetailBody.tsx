@@ -78,12 +78,18 @@ function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | nul
   return p && p.price > 0 ? `${p.currency} ${p.price.toLocaleString('es-AR')}` : null
 }
 
+// Tarjeta de dato (21-oct-2026): el número nunca se parte en dos renglones
+// ("214,1" / "m²" en el celu) — la unidad va más chica al lado — y el nombre
+// a 13 px en gris oscuro (a 11 px en gris claro no se leía).
 function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+  const m2 = typeof value === 'string' && value.endsWith(' m²')
   return (
-    <div className="flex flex-col items-center text-center gap-1.5 py-3 px-2 bg-[#f9fafb] rounded-xl">
+    <div className="flex flex-col items-center text-center gap-1 py-3 px-1.5 bg-[#f9fafb] rounded-xl">
       <div style={{ color: 'var(--theme-accent, #1A5C38)' }}>{icon}</div>
-      <span style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}>{value}</span>
-      <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--tinta-mute)' }}>{label}</span>
+      <span className="whitespace-nowrap" style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}>
+        {m2 ? <>{value.slice(0, -3)}<span style={{ fontSize: 13, fontWeight: 700 }}> m²</span></> : value}
+      </span>
+      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--tinta-soft)' }}>{label}</span>
     </div>
   )
 }
@@ -195,12 +201,12 @@ export default function PropertyDetailBody({
 
   // Specs (icon cards)
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
-  if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Superficie', value: `${area.toLocaleString('es-AR')} m²` })
+  if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Sup. total', value: `${area.toLocaleString('es-AR')} m²` })
   if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea.toLocaleString('es-AR')} m²` })
   if (isMonoambiente(property)) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Ambientes', value: 'Monoambiente' })
   else if (property.suite_amount > 0) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Dormitorios', value: property.suite_amount })
-  if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: 'Baños', value: property.bathroom_amount })
-  if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: 'Cocheras', value: property.parking_lot_amount })
+  if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: property.bathroom_amount === 1 ? 'Baño' : 'Baños', value: property.bathroom_amount })
+  if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: property.parking_lot_amount === 1 ? 'Cochera' : 'Cocheras', value: property.parking_lot_amount })
   if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface.toLocaleString('es-AR')} m²` })
 
   const hasSurfaces =
@@ -384,7 +390,8 @@ export default function PropertyDetailBody({
       {specs.length > 0 && (
         <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
           <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 16 }}>Características</h2>
-          <div className="grid grid-cols-3 lg:grid-cols-5 gap-3">
+          {/* Todas en una fila en la compu (antes 5 columnas: "Lote" quedaba sola abajo); 3 por fila en el celu. */}
+          <div className="grid grid-cols-3 gap-2.5 lg:[grid-template-columns:repeat(auto-fit,minmax(92px,1fr))]">
             {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
           </div>
         </section>
