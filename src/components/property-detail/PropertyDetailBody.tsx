@@ -226,7 +226,11 @@ export default function PropertyDetailBody({
     <div className="space-y-6">
       {/* OVERVIEW — title + location + price + badges */}
       <section id="overview" className={`${CARD} scroll-mt-40`}>
-        <h1 style={{ fontFamily: R, fontWeight: 800, fontSize: 28, color: 'var(--foreground)', lineHeight: 1.2, marginBottom: 8 }}>
+        {/* 21-oct-2026 (David: "que se entienda todo perfectamente"): el precio es lo
+            primero que se busca. En el celu el título va a 24 px para que el precio
+            entre en la primera pantalla, y el precio sube a 32/36 px sin el rótulo
+            "PRECIO" (el número en USD ya dice qué es). */}
+        <h1 className="text-[24px] lg:text-[30px]" style={{ fontFamily: R, fontWeight: 800, color: 'var(--foreground)', lineHeight: 1.18, letterSpacing: '-0.01em', marginBottom: 8 }}>
           {tituloVisible(property) || address}
         </h1>
         <div className="flex gap-2 mb-3">
@@ -254,7 +258,7 @@ export default function PropertyDetailBody({
               return (
                 <div key={operacion}>
                   <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">{operacion}</span>
-                  <span style={{ fontFamily: P, fontWeight: 800, fontSize: 28, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
+                  <span className="text-[28px] lg:text-[32px]" style={{ fontFamily: P, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
                     {precio}
                   </span>
                   {mes && (
@@ -273,7 +277,6 @@ export default function PropertyDetailBody({
           </div>
         ) : (
         <div>
-          <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide block mb-0.5">Precio</span>
           {tienePrecio && condTemp && condTemp.precios.length > 0 ? (
             <div className="space-y-4">
               <TemporarioPrecios precios={condTemp.precios} />
@@ -282,7 +285,7 @@ export default function PropertyDetailBody({
               </div>
             </div>
           ) : tienePrecio ? (
-            <span style={{ fontFamily: P, fontWeight: 800, fontSize: 32, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
+            <span className="text-[32px] lg:text-[36px]" style={{ fontFamily: P, fontWeight: 800, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--foreground)', lineHeight: 1 }}>
               {price}
             </span>
           ) : (
