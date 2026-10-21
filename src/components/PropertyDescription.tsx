@@ -23,8 +23,10 @@ const VERDE = 'var(--theme-accent, #1A5C38)'
 const PESO = 600
 const INTERLINEA = 1.42
 
-// Tamaños en em: el contenedor manda (19 px en el celular, 21 px en desktop,
-// los de Apple) y todo escala junto.
+// Tamaños en em: el contenedor manda y todo escala junto. Eran los de Apple
+// (19/21 px); David, 21-oct: "algo grande, disminuir proporcionalmente un poco…
+// se tiene que leer bien" → 17 px en el celular (el cuerpo de lectura de iOS)
+// y 19 px en desktop.
 const esMayusculas = (s: string) => {
   const letras = s.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g, '')
   return letras.length >= 3 && letras === letras.toLocaleUpperCase('es-AR')
@@ -156,13 +158,13 @@ export default function PropertyDescription({ text }: { text: string | null | un
     // Renglón de ~70 caracteres (max-w 34em): a lo ancho de la tarjeta eran ~95 y
     // el ojo se perdía al volver al inicio del renglón siguiente.
     <div
-      className="prose-description max-w-[34em] break-words text-[19px] lg:text-[21px]"
+      className="prose-description max-w-[34em] break-words text-[17px] lg:text-[19px]"
       style={{ fontFamily: LETRA, fontWeight: PESO }}
     >
       <div className="relative">
         <div
           className={isLong && !expanded ? 'overflow-hidden' : ''}
-          // ~13 renglones antes de "Ver más": con la letra a 19/21 px, los 250 px de
+          // ~14 renglones antes de "Ver más": con la letra a 17/19 px, los 250 px de
           // antes mostraban apenas el primer párrafo.
           style={isLong && !expanded ? { maxHeight: 400 } : undefined}
         >
