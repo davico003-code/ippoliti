@@ -99,11 +99,13 @@ function TituloSeccion({ children, mb = 14 }: { children: React.ReactNode; mb?: 
   return <h2 className={TITULO_SECCION} style={{ ...ESTILO_TITULO_SECCION, marginBottom: mb }}>{children}</h2>
 }
 
+// Dato de "Detalles": el nombre ARRIBA del valor (21-oct-2026). Antes iban en la
+// misma fila, uno en cada punta de una columna ancha, y el ojo no los unía.
 function Row({ label, value, numeric = true }: { label: string; value: string; numeric?: boolean }) {
   return (
-    <div className="flex justify-between border-b border-gray-100 pb-2 text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className={`font-semibold ${numeric ? 'font-numeric' : ''}`}>{value}</span>
+    <div>
+      <div className="text-[13px] text-gray-500">{label}</div>
+      <div className={`text-[16px] font-semibold ${numeric ? 'font-numeric' : ''}`} style={{ color: 'var(--foreground)' }}>{value}</div>
     </div>
   )
 }
@@ -214,13 +216,13 @@ export default function PropertyDetailBody({
   if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: property.parking_lot_amount === 1 ? 'Cochera' : 'Cocheras', value: property.parking_lot_amount })
   if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface.toLocaleString('es-AR')} m²` })
 
-  const hasSurfaces =
-    (roofedArea && roofedArea > 0) ||
-    parseFloat(property.semiroofed_surface) > 0 ||
-    parseFloat(property.total_surface) > 0 ||
-    parseFloat(property.surface) > 0
+  // La semicubierta es la única superficie que no está en las tarjetas de arriba
+  // (total, cubierta y lote): va a "Detalles" y la tarjeta "Superficies", que
+  // repetía todo, ya no está (21-oct-2026).
+  const semicubierta = parseFloat(property.semiroofed_surface)
 
   const hasDetails =
+    semicubierta > 0 ||
     property.age != null ||
     translateCondition(property.property_condition) ||
     translateOrientation(property.orientation) ||
@@ -423,24 +425,12 @@ export default function PropertyDetailBody({
         </SectionBoundary>
       )}
 
-      {/* SUPERFICIES */}
-      {hasSurfaces && (
-        <section className={CARD}>
-          <TituloSeccion>Superficies</TituloSeccion>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
-            {parseFloat(property.surface) > 0 && <Row label="Terreno" value={`${(parseFloat(property.surface)).toLocaleString('es-AR')} m²`} />}
-            {roofedArea != null && roofedArea > 0 && <Row label="Cubierta" value={`${roofedArea.toLocaleString('es-AR')} m²`} />}
-            {parseFloat(property.semiroofed_surface) > 0 && <Row label="Semicubierta" value={`${(parseFloat(property.semiroofed_surface)).toLocaleString('es-AR')} m²`} />}
-            {parseFloat(property.total_surface) > 0 && <Row label="Total" value={`${(parseFloat(property.total_surface)).toLocaleString('es-AR')} m²`} />}
-          </div>
-        </section>
-      )}
-
       {/* DETALLES */}
       {hasDetails && (
         <section className={CARD}>
           <TituloSeccion>Detalles</TituloSeccion>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+            {semicubierta > 0 && <Row label="Semicubierta" value={`${semicubierta.toLocaleString('es-AR')} m²`} />}
             {property.age != null && property.age >= 0 && <Row label="Antigüedad" value={property.age === 0 ? 'A estrenar' : `${property.age} años`} />}
             {translateCondition(property.property_condition) && <Row label="Estado" value={translateCondition(property.property_condition)!} numeric={false} />}
             {translateOrientation(property.orientation) && <Row label="Orientación" value={translateOrientation(property.orientation)!} numeric={false} />}
