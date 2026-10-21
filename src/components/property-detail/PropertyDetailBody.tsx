@@ -12,19 +12,16 @@ import {
   mostrarPrecio,
   esTemporario,
   preciosPorOperacion,
-  operationBadgeColor,
   esOportunidadConsultanos,
   buildPriceConsultWhatsappUrl,
   getProducerCallHref,
   generatePropertySlug,
-  getOperationType,
   getRoofedArea,
   getTotalSurface,
   getLotSurface,
   isMonoambiente,
   getDescription,
   getBlueprintPhotos,
-  translatePropertyType,
   agruparTags,
   translateCondition,
   translateOrientation,
@@ -133,7 +130,6 @@ export default function PropertyDetailBody({
   const consultarPrecioUrl = tienePrecio
     ? null
     : buildPriceConsultWhatsappUrl(property, generatePropertySlug(property))
-  const operation = getOperationType(property)
   // Venta Y alquiler a la vez: se muestran los dos valores, cada uno con su cartel.
   const precios = preciosPorOperacion(property)
   const dobleOperacion = precios.length > 1
@@ -144,7 +140,6 @@ export default function PropertyDetailBody({
   const roofedArea = getRoofedArea(property)
   const area = getTotalSurface(property)
   const lotSurface = getLotSurface(property)
-  const propType = translatePropertyType(property.type?.name)
   const descripcionCompleta = getDescription(property)
   // Temporario: los renglones "Quincena: / Mes: / Depósito: …" de la
   // descripción salen como precios y condiciones; el resto queda de descripción.
@@ -233,18 +228,8 @@ export default function PropertyDetailBody({
         <h1 className="text-[24px] lg:text-[30px]" style={{ fontFamily: R, fontWeight: 800, color: 'var(--foreground)', lineHeight: 1.18, letterSpacing: '-0.01em', marginBottom: 8 }}>
           {tituloVisible(property) || address}
         </h1>
-        <div className="flex gap-2 mb-3">
-          {dobleOperacion ? (
-            precios.map(({ operacion }) => (
-              <span key={operacion} className="px-3 py-1 text-white text-[11px] font-bold rounded-full uppercase tracking-wide" style={{ background: operationBadgeColor(operacion) }}>{operacion}</span>
-            ))
-          ) : operation && (
-            <span className="px-3 py-1 bg-[#1A5C38] text-white text-[11px] font-bold rounded-full uppercase tracking-wide">{operation}</span>
-          )}
-          {propType && (
-            <span className="px-3 py-1 bg-[#e8f5ee] text-[#1A5C38] text-[11px] font-bold rounded-full uppercase tracking-wide">{propType}</span>
-          )}
-        </div>
+        {/* Sin chips VENTA / CASA acá: ya están sobre la foto (PropertyGalleryHero,
+            con las dos operaciones si es venta + alquiler) y repetidos confundían. */}
         <div className="flex items-center gap-1.5 mb-5">
           <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
           <span style={{ fontFamily: P, fontSize: 13, color: 'var(--tinta-mute)' }}>
