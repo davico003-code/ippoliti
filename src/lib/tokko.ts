@@ -668,12 +668,21 @@ export function getRoofedArea(property: TokkoProperty): number | null {
   return v > 0 ? v : null;
 }
 
+// Superficie total = cubierta + semicubierta (David, 22-oct-2026). Si la total
+// cargada falta, es más chica que esa suma o es igual al lote (dato sucio que
+// viene de Tokko), manda la suma: antes la ficha decía "Sup. total" con la
+// cubierta sola (213 en vez de 300) o con el terreno.
 export function getTotalSurface(property: TokkoProperty): number | null {
   const total = parseFloat(property.total_surface);
-  if (total > 0) return total;
   const roofed = parseFloat(property.roofed_surface);
-  if (roofed > 0) return roofed;
+  const semi = parseFloat(property.semiroofed_surface);
   const surface = parseFloat(property.surface);
+  const construida = Math.round(((roofed > 0 ? roofed : 0) + (semi > 0 ? semi : 0)) * 100) / 100;
+  if (construida > 0) {
+    const totalCreible = total > 0 && total >= construida - 0.5 && total !== surface;
+    return totalCreible ? total : construida;
+  }
+  if (total > 0) return total;
   if (surface > 0) return surface;
   return null;
 }
