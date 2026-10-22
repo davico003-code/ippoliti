@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { anchoR2, archivoDeFotoFirmada, conFotosFijas, esFotoR2, fotoAbsoluta, fotoFija, fotoPrincipalParaBuscadores, fotosFijasDe, loaderFotoR2, urlFotoFija } from './fotos-fijas.ts'
+import { anchoR2, archivoDeFotoFirmada, conFotosFijas, esFotoR2, fotoAbsoluta, fotoFija, fotoJpgDeLaWeb, fotoPrincipalParaBuscadores, fotosFijasDe, loaderFotoR2, urlFotoFija } from './fotos-fijas.ts'
 
 const BASE = 'https://zshnczoaqvrvmhphcehb.supabase.co/storage/v1/object/sign/property-media/org/properties'
 const firmada = (prop, archivo, token = 'eyJ.a.b') => `${BASE}/${prop}/${archivo}?token=${token}`
@@ -129,4 +129,12 @@ test('sin r2 (o con uno que no es de R2) todo queda como antes; los planos no se
   const t = conFotosFijas({ id: 9004, photos: [foto(tokko, { r2: R2 })] })
   assert.equal(t.photos[0].image, R2)
   assert.equal(t.photos[0].original, tokko)
+})
+
+test('el kiosco de TV pide la foto de R2 en JPG desde /fotos; lo demás queda igual', () => {
+  assert.equal(fotoJpgDeLaWeb(9001, R2), '/fotos/9001/1788832477482-0894f769.jpg')
+  assert.equal(fotoJpgDeLaWeb(9001, R2.replace('1920.webp', '480.webp')), '/fotos/9001/1788832477482-0894f769.jpg')
+  assert.equal(fotoJpgDeLaWeb(9001, '/fotos/9001/a.jpg'), '/fotos/9001/a.jpg')
+  const tokko = 'https://static.tokkobroker.com/pictures/1.jpg'
+  assert.equal(fotoJpgDeLaWeb(9001, tokko), tokko)
 })

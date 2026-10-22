@@ -19,6 +19,7 @@ import {
   type TokkoProperty,
 } from '@/lib/tokko'
 import { formatUbicacion } from '@/lib/ubicacion'
+import { fotoJpgDeLaWeb } from '@/lib/fotos-fijas'
 
 const SITE = 'https://siinmobiliaria.com'
 const MIN_CASA = 200000
@@ -118,7 +119,8 @@ async function qrRaw(url: string): Promise<string> {
 
 async function toView(p: TokkoProperty): Promise<PropView> {
   const photo = getMainPhoto(p) as string
-  const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 4)
+  // En JPG desde /fotos: el televisor no muestra las de R2 (ver fotoJpgDeLaWeb).
+  const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 4).map((x) => fotoJpgDeLaWeb(p.id, x))
   const lat = p.geo_lat ? parseFloat(p.geo_lat) : null
   const lng = p.geo_long ? parseFloat(p.geo_long) : null
   const barrio = barrioOf(p)
