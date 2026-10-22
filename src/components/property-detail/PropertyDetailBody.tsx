@@ -5,7 +5,7 @@
 // Mobile is NOT rendered here — each parent keeps its own mobile layout.
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Navigation } from 'lucide-react'
+import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Navigation, Umbrella, Ruler, CalendarDays, Sparkles, Compass, Layers, DoorOpen } from 'lucide-react'
 import {
   type TokkoProperty,
   formatPrice,
@@ -85,13 +85,21 @@ function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | nul
 // Tarjeta de dato (21-oct-2026): el número nunca se parte en dos renglones
 // ("214,1" / "m²" en el celu) — la unidad va más chica al lado — y el nombre
 // a 13 px en gris oscuro (a 11 px en gris claro no se leía).
+// Los datos que eran de "Detalles" (22-oct-2026) también van en tarjeta: "5 años"
+// lleva la unidad chica como "m²", y una palabra ("Este", "Contrafrente") va más
+// chica y puede cortarse para no salirse de la tarjeta en el celu.
 function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  const m2 = typeof value === 'string' && value.endsWith(' m²')
+  const conUnidad = typeof value === 'string' ? value.match(/^([\d.,]+) (m²|años?)$/) : null
+  const palabra = typeof value === 'string' && !conUnidad && !/^\d/.test(value)
   return (
     <div className="flex flex-col items-center text-center gap-1 py-3 px-1.5 bg-[#f9fafb] rounded-xl">
       <div style={{ color: 'var(--theme-accent, #1A5C38)' }}>{icon}</div>
-      <span className="whitespace-nowrap" style={{ fontFamily: P, fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}>
-        {m2 ? <>{value.slice(0, -3)}<span style={{ fontSize: 13, fontWeight: 700 }}> m²</span></> : value}
+      <span
+        className={palabra ? 'max-w-full [overflow-wrap:anywhere] [hyphens:auto]' : 'whitespace-nowrap'}
+        style={{ fontFamily: P, fontWeight: 800, fontSize: palabra ? 15 : 18, lineHeight: palabra ? '27px' : undefined, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}
+        lang={palabra ? 'es' : undefined}
+      >
+        {conUnidad ? <>{conUnidad[1]}<span style={{ fontSize: 13, fontWeight: 700 }}> {conUnidad[2]}</span></> : value}
       </span>
       <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--tinta-soft)' }}>{label}</span>
     </div>
@@ -100,17 +108,6 @@ function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function TituloSeccion({ children, mb = 14 }: { children: React.ReactNode; mb?: number }) {
   return <h2 className={TITULO_SECCION} style={{ ...ESTILO_TITULO_SECCION, marginBottom: mb }}>{children}</h2>
-}
-
-// Dato de "Detalles": el nombre ARRIBA del valor (21-oct-2026). Antes iban en la
-// misma fila, uno en cada punta de una columna ancha, y el ojo no los unía.
-function Row({ label, value, numeric = true }: { label: string; value: string; numeric?: boolean }) {
-  return (
-    <div>
-      <div className="text-[13px] text-gray-500">{label}</div>
-      <div className={`text-[16px] font-semibold ${numeric ? 'font-numeric' : ''}`} style={{ color: 'var(--foreground)' }}>{value}</div>
-    </div>
-  )
 }
 
 export default function PropertyDetailBody({
@@ -218,29 +215,31 @@ export default function PropertyDetailBody({
     ? `https://www.google.com/maps/dir/?api=1&destination=${currentLat},${currentLng}`
     : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${direccionCompleta}, Santa Fe, Argentina`)}`
 
-  // Specs (icon cards)
+  // Características (22-oct-2026, David: "unificá con Detalles, se repiten cosas"):
+  // UNA sola tarjeta con todo, en este orden: superficies construidas → ambientes
+  // → terreno y el resto. "Detalles" ya no existe y "Suites" tampoco: salía del
+  // mismo dato que Dormitorios (suite_amount) y parecía que eran 3 suites.
+  // La total ya suma la semicubierta (getTotalSurface); si da igual a la cubierta
+  // (no hay semicubierta) va una sola tarjeta, "Cubierta", para no repetir el número.
+  const semicubierta = parseFloat(property.semiroofed_surface)
+  const m2 = (v: number) => `${v.toLocaleString('es-AR')} m²`
   const specs: { icon: React.ReactNode; label: string; value: string | number }[] = []
-  if (area != null && area > 0) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Sup. total', value: `${area.toLocaleString('es-AR')} m²` })
-  if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: `${roofedArea.toLocaleString('es-AR')} m²` })
+  if (area != null && area > 0 && area !== roofedArea) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Sup. total', value: m2(area) })
+  if (roofedArea != null && roofedArea > 0) specs.push({ icon: <Home className="w-5 h-5" />, label: 'Cubierta', value: m2(roofedArea) })
+  if (semicubierta > 0) specs.push({ icon: <Umbrella className="w-5 h-5" />, label: 'Semicubierta', value: m2(semicubierta) })
   if (isMonoambiente(property)) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Ambientes', value: 'Monoambiente' })
   else if (property.suite_amount > 0) specs.push({ icon: <Bed className="w-5 h-5" />, label: 'Dormitorios', value: property.suite_amount })
   if (property.bathroom_amount > 0) specs.push({ icon: <Bath className="w-5 h-5" />, label: property.bathroom_amount === 1 ? 'Baño' : 'Baños', value: property.bathroom_amount })
   if (property.parking_lot_amount > 0) specs.push({ icon: <Car className="w-5 h-5" />, label: property.parking_lot_amount === 1 ? 'Cochera' : 'Cocheras', value: property.parking_lot_amount })
-  if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Maximize className="w-5 h-5" />, label: 'Lote', value: `${lotSurface.toLocaleString('es-AR')} m²` })
-
-  // La semicubierta es la única superficie que no está en las tarjetas de arriba
-  // (total, cubierta y lote): va a "Detalles" y la tarjeta "Superficies", que
-  // repetía todo, ya no está (21-oct-2026).
-  const semicubierta = parseFloat(property.semiroofed_surface)
-
-  const hasDetails =
-    semicubierta > 0 ||
-    property.age != null ||
-    translateCondition(property.property_condition) ||
-    translateOrientation(property.orientation) ||
-    property.suite_amount > 0 ||
-    property.floors_amount > 0 ||
-    translateDisposition(property.disposition)
+  if (lotSurface != null && lotSurface > 0 && lotSurface !== area) specs.push({ icon: <Ruler className="w-5 h-5" />, label: 'Lote', value: m2(lotSurface) })
+  if (property.age != null && property.age >= 0) specs.push({ icon: <CalendarDays className="w-5 h-5" />, label: 'Antigüedad', value: property.age === 0 ? 'A estrenar' : property.age === 1 ? '1 año' : `${property.age} años` })
+  const estado = translateCondition(property.property_condition)
+  if (estado) specs.push({ icon: <Sparkles className="w-5 h-5" />, label: 'Estado', value: estado })
+  const orientacion = translateOrientation(property.orientation)
+  if (orientacion) specs.push({ icon: <Compass className="w-5 h-5" />, label: 'Orientación', value: orientacion })
+  if (property.floors_amount > 0) specs.push({ icon: <Layers className="w-5 h-5" />, label: property.floors_amount === 1 ? 'Planta' : 'Plantas', value: property.floors_amount })
+  const disposicion = translateDisposition(property.disposition)
+  if (disposicion) specs.push({ icon: <DoorOpen className="w-5 h-5" />, label: 'Disposición', value: disposicion })
 
   return (
     <div className="space-y-6">
@@ -345,8 +344,12 @@ export default function PropertyDetailBody({
       {specs.length > 0 && (
         <section id="caracteristicas" className={`${CARD} scroll-mt-40`}>
           <TituloSeccion>Características</TituloSeccion>
-          {/* Todas en una fila en la compu (antes 5 columnas: "Lote" quedaba sola abajo); 3 por fila en el celu. */}
-          <div className="grid grid-cols-3 gap-2.5 lg:[grid-template-columns:repeat(auto-fit,minmax(92px,1fr))]">
+          {/* 3 por fila en el celu. En la compu, hasta 7 en una fila; con más, dos filas
+              parejas (9 → 5 + 4), nunca una o dos tarjetas solas abajo. */}
+          <div
+            className="grid grid-cols-3 gap-2.5 lg:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))]"
+            style={{ '--cols': specs.length <= 7 ? specs.length : Math.ceil(specs.length / 2) } as React.CSSProperties}
+          >
             {specs.map((s, i) => <SpecCard key={i} icon={s.icon} label={s.label} value={s.value} />)}
           </div>
         </section>
@@ -439,22 +442,6 @@ export default function PropertyDetailBody({
             <PropertyDescription text={description} />
           </section>
         </SectionBoundary>
-      )}
-
-      {/* DETALLES */}
-      {hasDetails && (
-        <section className={CARD}>
-          <TituloSeccion>Detalles</TituloSeccion>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-            {semicubierta > 0 && <Row label="Semicubierta" value={`${semicubierta.toLocaleString('es-AR')} m²`} />}
-            {property.age != null && property.age >= 0 && <Row label="Antigüedad" value={property.age === 0 ? 'A estrenar' : `${property.age} años`} />}
-            {translateCondition(property.property_condition) && <Row label="Estado" value={translateCondition(property.property_condition)!} numeric={false} />}
-            {translateOrientation(property.orientation) && <Row label="Orientación" value={translateOrientation(property.orientation)!} numeric={false} />}
-            {property.suite_amount > 0 && <Row label="Suites" value={String(property.suite_amount)} />}
-            {property.floors_amount > 0 && <Row label="Plantas" value={String(property.floors_amount)} />}
-            {translateDisposition(property.disposition) && <Row label="Disposición" value={translateDisposition(property.disposition)!} numeric={false} />}
-          </div>
-        </section>
       )}
 
       {/* SERVICIOS Y AMENITIES — agrupados por categoría (servicios, seguridad,
