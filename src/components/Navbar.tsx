@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Menu, User, X } from 'lucide-react'
 import FranjaMundial from './FranjaMundial'
 import ThemeToggle from './ThemeToggle'

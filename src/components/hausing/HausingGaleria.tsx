@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ChevronLeft, ChevronRight, Images, X } from 'lucide-react'
 import { trackEvent } from '@/lib/analytics'
 

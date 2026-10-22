@@ -5,7 +5,7 @@
 // LCP no cargue 610 kB en un celular. El degradado inferior es el que sostiene
 // la legibilidad del título y los botones sobre cualquier zona de la imagen.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { ArrowRight, Compass, MapPin } from 'lucide-react'
 

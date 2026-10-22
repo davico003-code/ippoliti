@@ -9,7 +9,7 @@
 // El globals.css del (main) se importa para tener Tailwind preflight + reset.
 
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Raleway, Poppins } from 'next/font/google'
 import '../(main)/globals.css'
 

@@ -8,7 +8,7 @@
 // Content (body, sidebar, gallery, sticky nav) is shared with the full page.
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import {

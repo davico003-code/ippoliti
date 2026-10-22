@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ZoomIn } from 'lucide-react'
 import { TN_BASE } from '@/lib/tierra-nueva'
 import Num from './Num'

@@ -7,7 +7,7 @@
 // leads. Tap → desglose + lista de leads (PII). Botón "Archivar a Neon".
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ChevronDown } from 'lucide-react'
 import type { PanelRow } from '@/lib/feedback-admin'
 

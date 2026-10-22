@@ -3,7 +3,7 @@
 // quincena | mes, cuadro de quincenas libres de la temporada y comodidades.
 // Solo aparece si hay al menos un temporario publicado (nunca una fila vacía).
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { MapPin, Sun, Clock, ArrowRight, Users } from 'lucide-react'
 import HorizontalCarousel from '@/components/HorizontalCarousel'
 import DisponibilidadTemporada from '@/components/temporarios/DisponibilidadTemporada'

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import Image from '@/components/Imagen';
 import Link from 'next/link';
 import { MapPin, Bed, Bath, Maximize, Car, MessageCircle, ArrowLeft } from 'lucide-react';
 import {

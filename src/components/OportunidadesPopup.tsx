@@ -10,7 +10,7 @@
 // Cerrar (X) → no vuelve a aparecer nunca más en ese navegador (localStorage).
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getLotSurface } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import BarriosDeLaZona from '@/components/seo/BarriosDeLaZona'

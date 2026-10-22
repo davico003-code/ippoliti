@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Image from "next/image";
+import Image from "@/components/Imagen";
 import { X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 
 // Galería (fotos 02.webp en adelante) en grilla asimétrica —la primera foto

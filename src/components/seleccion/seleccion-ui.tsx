@@ -3,7 +3,7 @@
 // Piezas compartidas por la vista del cliente de una selección: el mazo del
 // celular, las tarjetas de la compu, la ficha en hoja y el cierre.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { BedDouble, Bath, Flame, Ruler } from 'lucide-react'
 import AgenteAvatar from '@/components/property-detail/AgenteAvatar'
 import { displayImageUrl } from '@/lib/external-images'

@@ -7,7 +7,7 @@
 // "Torre 2 · Piso 3 · Unidad 4": lo ve en el plano de verdad.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ArrowRight, Flag, Leaf, Maximize2, MessageCircle, Rotate3d, TreePine, ZoomIn, ZoomOut } from 'lucide-react'
 import {
   CONJUNTO,

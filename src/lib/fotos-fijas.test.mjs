@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { archivoDeFotoFirmada, conFotosFijas, fotoAbsoluta, fotoFija, fotosFijasDe, urlFotoFija } from './fotos-fijas.ts'
+import { anchoR2, archivoDeFotoFirmada, conFotosFijas, esFotoR2, fotoAbsoluta, fotoFija, fotoPrincipalParaBuscadores, fotosFijasDe, loaderFotoR2, urlFotoFija } from './fotos-fijas.ts'
 
 const BASE = 'https://zshnczoaqvrvmhphcehb.supabase.co/storage/v1/object/sign/property-media/org/properties'
 const firmada = (prop, archivo, token = 'eyJ.a.b') => `${BASE}/${prop}/${archivo}?token=${token}`
@@ -76,4 +76,57 @@ test('fotoAbsoluta solo completa las relativas de /fotos', () => {
 test('la lista liviana (solo image) no gana thumb ni original', () => {
   const p = { id: 7, photos: [{ image: firmada('p1', 'a.jpg'), is_blueprint: false }] }
   assert.deepEqual(conFotosFijas(p).photos[0], { image: '/fotos/7/a.jpg', is_blueprint: false })
+})
+
+// --- Fotos ya achicadas en R2 (22-oct-2026) ---
+const R2 = 'https://fotos.verficha.casa/w1/org/properties/p1/1788832477482-0894f769.jpg/1920.webp'
+
+test('reconoce solo las fotos de R2 con un ancho guardado', () => {
+  assert.equal(esFotoR2(R2), true)
+  assert.equal(esFotoR2(R2.replace('1920.webp', '828.webp')), true)
+  assert.equal(esFotoR2(R2.replace('1920.webp', '700.webp')), false)
+  assert.equal(esFotoR2('https://fotos.verficha.casa/ext/abc.jpg'), false)
+  assert.equal(esFotoR2('http://fotos.verficha.casa/w1/a/b.jpg/1920.webp'), false)
+  assert.equal(esFotoR2(firmada('p1', 'a.jpg')), false)
+  assert.equal(esFotoR2(undefined), false)
+  assert.equal(esFotoR2({ src: R2 }), false)
+})
+
+test('el loader pide el ancho guardado más chico que alcanza', () => {
+  assert.equal(anchoR2(96), 480)
+  assert.equal(anchoR2(480), 480)
+  assert.equal(anchoR2(640), 828)
+  assert.equal(anchoR2(1080), 1080)
+  assert.equal(anchoR2(1920), 1920)
+  assert.equal(anchoR2(3840), 1920)
+  assert.equal(loaderFotoR2({ src: R2, width: 640, quality: 75 }), R2.replace('1920.webp', '828.webp'))
+})
+
+test('con anchos en R2 la foto se muestra desde R2 y original queda en la URL fija', () => {
+  const img = firmada('p1', '1788832477482-0894f769.jpg')
+  const p = conFotosFijas({ id: 9001, photos: [foto(img, { r2: R2, is_front_cover: true })] })
+  assert.equal(p.photos[0].image, R2)
+  assert.equal(p.photos[0].thumb, R2)
+  assert.equal(p.photos[0].original, '/fotos/9001/1788832477482-0894f769.jpg')
+  // El JSON-LD sigue con la fija (absoluta), no con R2.
+  assert.equal(fotoPrincipalParaBuscadores(p), 'https://siinmobiliaria.com/fotos/9001/1788832477482-0894f769.jpg')
+})
+
+test('la lista liviana (solo image) también pasa a R2, sin sumar thumb ni original', () => {
+  const p = conFotosFijas({ id: 9002, photos: [{ image: firmada('p1', 'a.jpg'), is_blueprint: false, r2: R2 }] })
+  assert.deepEqual(Object.keys(p.photos[0]).sort(), ['image', 'is_blueprint', 'r2'])
+  assert.equal(p.photos[0].image, R2)
+})
+
+test('sin r2 (o con uno que no es de R2) todo queda como antes; los planos no se tocan', () => {
+  const img = firmada('p1', 'b.jpg')
+  assert.equal(conFotosFijas({ id: 9003, photos: [foto(img)] }).photos[0].image, '/fotos/9003/b.jpg')
+  assert.equal(conFotosFijas({ id: 9003, photos: [foto(img, { r2: 'https://otro.host/x/1920.webp' })] }).photos[0].image, '/fotos/9003/b.jpg')
+  const plano = foto(PLANO, { is_blueprint: true, r2: R2 })
+  assert.equal(conFotosFijas({ id: 9003, photos: [plano] }).photos[0].image, PLANO)
+  // Foto de Tokko (sin URL fija) pero con R2: se muestra desde R2.
+  const tokko = 'https://static.tokkobroker.com/pictures/1.jpg'
+  const t = conFotosFijas({ id: 9004, photos: [foto(tokko, { r2: R2 })] })
+  assert.equal(t.photos[0].image, R2)
+  assert.equal(t.photos[0].original, tokko)
 })

@@ -3,7 +3,7 @@
 // (le gana al [slug] dinámico). Assets locales en public/emprendimientos/fincazul.
 
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import {
   ArrowLeft,

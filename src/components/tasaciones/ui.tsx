@@ -3,7 +3,7 @@
 // Piezas compartidas del flujo de tasación: barra fija inferior con el CTA,
 // tarjeta del equipo, pill de resumen, íconos. Tokens del mockup aprobado.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import type { ReactNode } from 'react'
 
 export const VERDE = '#17613C'

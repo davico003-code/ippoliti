@@ -1,7 +1,7 @@
 // /como-trabajamos — respaldo: prensa, cartelería y eventos, HILO,
 // desarrolladores e inversores, red de contactos, equipo y oficinas.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import {
   ArrowUpRight,

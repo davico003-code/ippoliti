@@ -2,7 +2,7 @@
 // la placa de la portada de Contenidos (misma foto, mismo verde y logo de
 // Charlas que Sí) para que al entrar se reconozca. Toda la placa es el link.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import styles from './MundoSiHome.module.css'

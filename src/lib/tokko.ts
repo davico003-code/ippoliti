@@ -25,6 +25,8 @@ export interface TokkoPhoto {
   order: number;
   original: string;
   thumb: string;
+  /** Anchos ya achicados en R2 (Hilo, 22-oct-2026): URL del de 1920. Ver lib/fotos-fijas.ts. */
+  r2?: string;
 }
 
 export interface TokkoPrice {
@@ -208,6 +210,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
       order: ph.order,
       original: ph.original,
       thumb: ph.thumb,
+      ...(ph.r2 ? { r2: ph.r2 } : {}),
     })),
     operations: (p.operations ?? []).map((op) => ({
       operation_id: op.operation_id,

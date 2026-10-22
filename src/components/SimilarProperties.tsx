@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { ESTILO_TITULO_SECCION, TITULO_SECCION } from './property-detail/titulo-seccion'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { MapPin, Search, X } from 'lucide-react'
 import {

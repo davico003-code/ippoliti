@@ -9,7 +9,7 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Expand } from 'lucide-react'
 import 'yet-another-react-lightbox/styles.css'
 import HorizontalCarousel from '@/components/HorizontalCarousel'

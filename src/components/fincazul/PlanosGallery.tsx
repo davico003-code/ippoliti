@@ -5,7 +5,7 @@
 // leen las medidas — este visor permite agrandarlos hasta 5x.
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ZoomIn } from 'lucide-react'
 import Lightbox from 'yet-another-react-lightbox'
 import Zoom from 'yet-another-react-lightbox/plugins/zoom'

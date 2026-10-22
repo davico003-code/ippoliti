@@ -5,7 +5,7 @@ import PropertyPanel from './PropertyPanel'
 import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import {
   Search,
