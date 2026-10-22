@@ -1,28 +1,32 @@
 'use client'
 
-// Kiosco de TV HORIZONTAL: una propiedad a pantalla completa con Ken Burns +
-// crossfade, precio y datos, y hasta 4 fotos 4:3 de la misma casa en la columna
-// derecha. Reloj/fecha y branding SI. Sin interacción — pensado para dejar
-// corriendo en un televisor todo el día.
+// Kiosco de TV HORIZONTAL (rediseño 22-oct-2026): pantalla partida. A la
+// izquierda la foto a sangre, que va pasando por hasta 4 fotos de la misma casa
+// (Ken Burns + crossfade); a la derecha un panel verde oscuro con los datos en
+// letra grande para leer a 3-4 m, sin texto encima de la foto. Las miniaturas
+// del panel marcan qué foto se ve. Reloj/fecha y logo oficial (kit de marca).
+// Sin interacción — pensado para dejar corriendo en un televisor todo el día.
 
 import { useEffect, useState } from 'react'
 import type { Slide } from '../tvData'
 
-const SLIDE_MS = 9000
+const FOTO_MS = 3000
+const FOTOS_POR_CASA = 4
+const SLIDE_MS = FOTO_MS * FOTOS_POR_CASA
 const RELOAD_MS = 40 * 60 * 1000 // recargar cada 40 min para refrescar stock
 
 const mod = (n: number, m: number) => ((n % m) + m) % m
+const fotosDe = (s: Slide) => (s.photos?.length ? s.photos : [s.photo]).slice(0, FOTOS_POR_CASA)
 
 export default function TvKioskClient({ slides }: { slides: Slide[] }) {
-  const [idx, setIdx] = useState(0)
+  // Un paso cada FOTO_MS: FOTOS_POR_CASA pasos por casa.
+  const [paso, setPaso] = useState(0)
   const [clock, setClock] = useState<{ h: string; d: string } | null>(null)
 
-  // Ciclo de slides
   useEffect(() => {
-    if (slides.length <= 1) return
-    const t = setInterval(() => setIdx((i) => (i + 1) % slides.length), SLIDE_MS)
+    const t = setInterval(() => setPaso((p) => p + 1), FOTO_MS)
     return () => clearInterval(t)
-  }, [slides.length])
+  }, [])
 
   // Reloj (solo cliente → sin mismatch de hidratación)
   useEffect(() => {
@@ -54,138 +58,155 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
     return (
       <main style={{ height: '100dvh', display: 'grid', placeItems: 'center', textAlign: 'center' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" style={{ height: 64, width: 'auto', opacity: 0.9 }} />
+        <img src="/si-inmobiliaria-blanco.svg" alt="SI INMOBILIARIA" style={{ height: 64, width: 'auto', opacity: 0.9 }} />
       </main>
     )
   }
 
-  const windowIdx = new Set([mod(idx - 1, slides.length), idx, mod(idx + 1, slides.length)])
+  // Se montan la casa anterior (para el fundido), la actual y la siguiente
+  // (así sus fotos ya están bajadas cuando le toca).
+  const idx = Math.floor(paso / FOTOS_POR_CASA) % slides.length
+  const foto = paso % FOTOS_POR_CASA
+  const montadas = new Set([mod(idx - 1, slides.length), idx, mod(idx + 1, slides.length)])
   const s = slides[idx]
-  const bubbles = (s.photos ?? []).slice(1, 5) // hasta 4 fotos más de la misma casa
+  const fotos = fotosDe(s)
+  const visible = foto % fotos.length
+  const precioLargo = s.precio.length > 11
 
   return (
     <main className="tv-root" onClick={toggleFullscreen} title="Tocar para pantalla completa">
-      {/* Capas de foto (crossfade + Ken Burns; alterna dirección para no aburrir) */}
-      {slides.map((sl, i) =>
-        windowIdx.has(i) ? (
-          <div key={i} className="tv-layer" style={{ opacity: i === idx ? 1 : 0, zIndex: i === idx ? 2 : 1 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={sl.photo} alt="" className={`tv-photo ${i === idx ? (idx % 2 ? 'tv-kb tv-kb-b' : 'tv-kb tv-kb-a') : ''}`} />
-          </div>
-        ) : null,
-      )}
+      {/* Foto a sangre (izquierda) */}
+      <section className="tv-foto">
+        {slides.map((sl, i) =>
+          montadas.has(i)
+            ? fotosDe(sl).map((src, k) => {
+                const activa = i === idx && k === visible
+                return (
+                  <div key={`${i}-${k}`} className="tv-layer" style={{ opacity: activa ? 1 : 0, zIndex: activa ? 2 : 1 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt="" className={`tv-img ${activa ? (k % 2 ? 'tv-kb-b' : 'tv-kb-a') : ''}`} />
+                  </div>
+                )
+              })
+            : null,
+        )}
+        {s.destacada && <span className="tv-badge">Selección SI</span>}
+      </section>
 
-      {/* Velos para legibilidad */}
-      <div className="tv-scrim-bottom" />
-      <div className="tv-scrim-left" />
+      {/* Panel de datos (derecha) */}
+      <aside className="tv-panel">
+        <header className="tv-top">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/si-inmobiliaria-blanco.svg" alt="SI INMOBILIARIA" className="tv-logo" />
+          {clock && (
+            <div className="tv-clock">
+              <div className="tv-clock-h">{clock.h}</div>
+              <div className="tv-clock-d">{clock.d}</div>
+            </div>
+          )}
+        </header>
 
-      {/* Logo */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo-blanco.webp" alt="SI INMOBILIARIA" className="tv-logo" />
-
-      {/* Reloj + fecha */}
-      {clock && (
-        <div className="tv-clock">
-          <div className="tv-clock-h">{clock.h}</div>
-          <div className="tv-clock-d">{clock.d}</div>
+        <div key={idx} className="tv-datos tv-in">
+          <div className="tv-tipo">{s.tipo}</div>
+          {s.ubicacion && <div className="tv-ubicacion">{s.ubicacion}</div>}
+          {s.titulo && <h2 className="tv-titulo">{s.titulo}</h2>}
+          <div className="tv-precio" style={{ fontSize: precioLargo ? '6vh' : '7.4vh' }}>{s.precio}</div>
+          {s.specs.length > 0 && (
+            <div className="tv-specs">
+              {s.specs.map((sp, k) => (
+                <div key={k} className="tv-spec">
+                  <span className="tv-spec-v">{sp.v}</span>
+                  <span className="tv-spec-l">{sp.l}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Contenido (se re-anima en cada slide por el key) */}
-      <div key={idx} className="tv-content tv-in">
-        <div className="tv-eyebrow">
-          {s.destacada && <span className="tv-badge">Selección SI</span>}
-          <span className="tv-meta">{s.tipo}{s.ubicacion ? ` · ${s.ubicacion}` : ''}</span>
-        </div>
-        {s.titulo && <h2 className="tv-title">{s.titulo}</h2>}
-        <div className="tv-price">{s.precio}</div>
-        {s.specs.length > 0 && (
-          <div className="tv-specs">
-            {s.specs.map((sp, k) => (
-              <div key={k} className="tv-spec">
-                <span className="tv-spec-v">{sp.v}</span>
-                <span className="tv-spec-l">{sp.l}</span>
+        {fotos.length > 1 && (
+          <div className="tv-tira">
+            {fotos.map((src, k) => (
+              <div key={`${idx}-${k}`} className={`tv-mini ${k === visible ? 'tv-mini-on' : ''}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" />
               </div>
             ))}
           </div>
         )}
-      </div>
 
-      {/* Columna derecha: fotos de la misma casa (hasta 4) */}
-      <div key={`side-${idx}`} className="tv-side">
-        {bubbles.map((src, k) => (
-          <div key={k} className="tv-bubble" style={{ animationDelay: `${120 + k * 120}ms` }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src} alt="" className="tv-bubble-img" />
-          </div>
-        ))}
-      </div>
-
-      {/* Barra de progreso */}
-      <div key={`p-${idx}`} className="tv-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
+        <footer className="tv-pie">
+          <span>siinmobiliaria.com</span>
+          <span className="tv-contador">{idx + 1} / {slides.length}</span>
+        </footer>
+        <div key={`p-${idx}`} className="tv-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
+      </aside>
 
       <style>{`
-        .tv-root { position: fixed; inset: 0; overflow: hidden; background: #08100B; }
-        .tv-layer { position: absolute; inset: 0; transition: opacity 1100ms ease-in-out; }
-        .tv-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .tv-kb-a { animation: tvKbA ${SLIDE_MS + 1500}ms ease-out forwards; }
-        .tv-kb-b { animation: tvKbB ${SLIDE_MS + 1500}ms ease-out forwards; }
-        @keyframes tvKbA { from { transform: scale(1.02) translate3d(0,0,0); } to { transform: scale(1.14) translate3d(-1.5%, -1.5%, 0); } }
-        @keyframes tvKbB { from { transform: scale(1.14) translate3d(-1.5%, 0, 0); } to { transform: scale(1.02) translate3d(1.5%, -1.5%, 0); } }
-        .tv-scrim-bottom { position: absolute; inset: 0; z-index: 3; pointer-events: none;
-          background: linear-gradient(0deg, rgba(6,14,9,.94) 0%, rgba(6,14,9,.55) 26%, rgba(6,14,9,0) 55%); }
-        .tv-scrim-left { position: absolute; inset: 0; z-index: 3; pointer-events: none;
-          background: linear-gradient(100deg, rgba(6,14,9,.72) 0%, rgba(6,14,9,.2) 34%, rgba(6,14,9,0) 58%); }
+        .tv-root { position: fixed; inset: 0; overflow: hidden; background: #0A1F14; display: grid;
+          grid-template-columns: 1fr 34vw; }
 
-        .tv-logo { position: absolute; top: 3.4vh; left: 3.2vw; z-index: 6; height: 3.2vh; min-height: 26px; width: auto;
-          filter: drop-shadow(0 2px 10px rgba(0,0,0,.5)); }
+        .tv-foto { position: relative; overflow: hidden; background: #08100B; }
+        .tv-layer { position: absolute; inset: 0; transition: opacity 1000ms ease-in-out; }
+        .tv-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .tv-kb-a { animation: tvKbA ${FOTO_MS + 1200}ms ease-out forwards; }
+        .tv-kb-b { animation: tvKbB ${FOTO_MS + 1200}ms ease-out forwards; }
+        @keyframes tvKbA { from { transform: scale(1.02); } to { transform: scale(1.09) translate3d(-1%, -1%, 0); } }
+        @keyframes tvKbB { from { transform: scale(1.09) translate3d(-1%, 0, 0); } to { transform: scale(1.02) translate3d(1%, -1%, 0); } }
+        .tv-badge { position: absolute; top: 4vh; left: 3vw; z-index: 3; background: #17613C; color: #fff;
+          font-weight: 700; font-size: 1.9vh; letter-spacing: .12em; text-transform: uppercase;
+          padding: 1vh 1.6vw; border-radius: 999px; box-shadow: 0 .8vh 2.4vh rgba(0,0,0,.35); }
 
-        .tv-clock { position: absolute; top: 3vh; right: 3.2vw; z-index: 6; text-align: right;
-          text-shadow: 0 2px 12px rgba(0,0,0,.5); }
-        .tv-clock-h { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 3.4vh; line-height: 1;
-          letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
-        .tv-clock-d { font-size: 1.5vh; color: rgba(255,255,255,.8); margin-top: .6vh; }
+        .tv-panel { position: relative; display: flex; flex-direction: column; padding: 5vh 3vw 0;
+          background: linear-gradient(170deg, #12432B 0%, #0A2418 55%, #071A11 100%);
+          border-left: .4vh solid #17613C; }
 
-        .tv-content { position: absolute; left: 3.2vw; bottom: 5vh; z-index: 6; max-width: 58vw; }
-        .tv-eyebrow { display: flex; align-items: center; gap: 1.2vw; margin-bottom: 1.6vh; }
-        .tv-badge { background: #1A5C38; color: #fff; font-weight: 700; font-size: 1.5vh; letter-spacing: .12em;
-          text-transform: uppercase; padding: .7vh 1.2vw; border-radius: 999px; }
-        .tv-meta { font-size: 1.9vh; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
-          color: #A6E7BE; text-shadow: 0 1px 8px rgba(0,0,0,.5); }
-        .tv-title { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 3.2vh; line-height: 1.12;
-          margin: 0 0 1.6vh; color: #fff; text-shadow: 0 2px 16px rgba(0,0,0,.5); max-width: 42ch;
-          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .tv-price { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 6.4vh; line-height: 1;
-          letter-spacing: -.02em; color: #fff; text-shadow: 0 3px 30px rgba(0,0,0,.5); font-variant-numeric: tabular-nums; }
-        .tv-specs { display: flex; align-items: stretch; margin-top: 2.6vh; gap: 0; }
-        .tv-spec { padding: 0 1.8vw; display: flex; flex-direction: column; }
-        .tv-spec:first-child { padding-left: 0; }
-        .tv-spec + .tv-spec { border-left: 1px solid rgba(255,255,255,.28); }
-        .tv-spec-v { font-family: var(--font-poppins), sans-serif; font-weight: 700; font-size: 3vh; line-height: 1;
+        .tv-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 2vw; }
+        .tv-logo { height: 3.4vh; width: auto; margin-top: .6vh; }
+        .tv-clock { text-align: right; }
+        .tv-clock-h { font-weight: 700; font-size: 3.6vh; line-height: 1; letter-spacing: -.01em;
           font-variant-numeric: tabular-nums; }
-        .tv-spec-l { font-size: 1.5vh; color: rgba(255,255,255,.75); margin-top: .7vh; }
+        .tv-clock-d { font-size: 1.7vh; color: rgba(255,255,255,.7); margin-top: .6vh; }
 
-        /* Columna derecha: hasta 4 fotos 4:3 de la misma casa, centradas */
-        .tv-side { position: absolute; right: 3.4vw; top: 50%; transform: translateY(-50%); z-index: 6;
-          display: flex; flex-direction: column; align-items: center; gap: 3.5vh; }
-        .tv-bubble { width: 27vh; aspect-ratio: 16 / 9; border-radius: 2vh; overflow: hidden; position: relative;
-          border: .3vh solid rgba(255,255,255,.9); box-shadow: 0 1.4vh 3vh rgba(0,0,0,.5);
-          animation: tvPop 700ms cubic-bezier(.34,1.56,.64,1) both; }
-        .tv-bubble-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .tv-datos { margin-top: auto; }
+        .tv-tipo { font-size: 2vh; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+          color: rgba(255,255,255,.65); }
+        .tv-ubicacion { font-size: 3vh; font-weight: 600; line-height: 1.15; color: #8FE3B0; margin-top: 1vh;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .tv-titulo { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 2.9vh; line-height: 1.2;
+          margin: 2vh 0 0; color: rgba(255,255,255,.92);
+          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .tv-precio { font-weight: 700; line-height: 1; letter-spacing: -.02em; margin-top: 3.2vh;
+          font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-        .tv-progress { position: absolute; left: 0; bottom: 0; height: .55vh; min-height: 4px; z-index: 7;
-          background: linear-gradient(90deg, #1A5C38, #8CF0B4); width: 0; animation-name: tvProgress;
+        .tv-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4vh 2vw; margin-top: 4vh;
+          padding-top: 3.4vh; border-top: 1px solid rgba(255,255,255,.18); }
+        .tv-spec { display: flex; flex-direction: column; }
+        .tv-spec-v { font-weight: 700; font-size: 4.4vh; line-height: 1; font-variant-numeric: tabular-nums; }
+        .tv-spec-l { font-size: 1.9vh; color: rgba(255,255,255,.7); margin-top: .8vh; }
+
+        .tv-tira { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8vw; margin-top: 4.4vh; }
+        .tv-mini { aspect-ratio: 4 / 3; border-radius: 1vh; overflow: hidden; opacity: .45;
+          outline: .35vh solid transparent; outline-offset: .3vh; transition: opacity 600ms, outline-color 600ms; }
+        .tv-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .tv-mini-on { opacity: 1; outline-color: #8FE3B0; }
+
+        .tv-pie { display: flex; justify-content: space-between; align-items: center; margin-top: 3.6vh;
+          padding: 2.4vh 0 3vh; border-top: 1px solid rgba(255,255,255,.12);
+          font-size: 1.7vh; color: rgba(255,255,255,.6); letter-spacing: .04em; }
+        .tv-contador { font-variant-numeric: tabular-nums; }
+
+        .tv-progress { position: absolute; left: 0; bottom: 0; height: .5vh; min-height: 4px;
+          background: linear-gradient(90deg, #17613C, #8FE3B0); width: 0; animation-name: tvProgress;
           animation-timing-function: linear; animation-fill-mode: forwards; }
         @keyframes tvProgress { from { width: 0; } to { width: 100%; } }
 
-        /* Entradas: arrancan desde estado visible (opacity .85) para que nunca
-           queden en blanco si el navegador pausa animaciones. */
+        /* Entrada: arranca visible (opacity .85) para que nunca quede en blanco
+           si el navegador pausa animaciones. */
         .tv-in { animation: tvIn 800ms cubic-bezier(.2,.7,.2,1) both; }
-        @keyframes tvIn { from { opacity: .85; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-        @keyframes tvPop { from { opacity: .5; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
+        @keyframes tvIn { from { opacity: .85; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
         @media (prefers-reduced-motion: reduce) {
-          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-bubble { animation: none !important; transition: none !important; }
+          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-mini { animation: none !important; transition: none !important; }
         }
       `}</style>
     </main>
