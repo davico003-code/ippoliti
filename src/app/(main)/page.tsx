@@ -15,12 +15,10 @@ import GuiaSection from '@/components/home/GuiaSection'
 import ConfianzaSection from '@/components/home/ConfianzaSection'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
-import TemporariosHome from '@/components/home/TemporariosHome'
 import MundoSiHome from '@/components/home/MundoSiHome'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
 import CaraAgenteCard, { CARA_AGENTE_COMPU, espacioCaraAgente } from '@/components/home/CaraAgenteCard'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
-import { esTemporadaVerano } from '@/lib/temporarios-data'
 import {
   getFeaturedProperties,
   generatePropertySlug,
@@ -284,18 +282,13 @@ export const metadata = {
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
 export default async function Home() {
-  // Temporarios: de noviembre a febrero la fila va arriba de "Nuestra
-  // selección"; el resto del año, debajo. Sin temporarios publicados no se ve.
-  const verano = esTemporadaVerano()
   return (
     <>
       <h1 className="sr-only">Propiedades y servicios inmobiliarios en Funes, Roldán y Rosario</h1>
       {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
       <div className="md:hidden">
         <HeroMobile />
-        {verano && <TemporariosHome />}
         <SeleccionCarousel />
-        {!verano && <TemporariosHome />}
         <ProyectosCarousel />
         <MundoSiHome />
         <GuiaSection />
@@ -323,9 +316,7 @@ export default async function Home() {
         ` }} />
 
         <HeroVideo />
-        {verano && <TemporariosHome />}
         <FeaturedPropertiesSection />
-        {!verano && <TemporariosHome />}
         <EmprendimientosHome />
         <MundoSiHome />
         <GuiaDesktop />
