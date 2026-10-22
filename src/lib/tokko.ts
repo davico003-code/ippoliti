@@ -3,7 +3,7 @@ import { normalizeArWhatsapp } from './phone'
 import { normalizarTitulo } from './titulo'
 import { corregirTipo } from './correcciones'
 import { resolverUbicacion } from './ubicacion'
-import { conFotosFijas } from './fotos-fijas';
+import { conFotosFijas, esFotoR2 } from './fotos-fijas';
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
 // del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
@@ -1191,6 +1191,34 @@ async function hiloGetProperties(params?: {
 export async function getPropertiesEstable(): Promise<TokkoListResponse> {
   if (isHiloSource()) return hiloGetProperties(undefined, true);
   return getProperties();
+}
+
+/**
+ * Las que vendimos NOSOTROS (HILO decide: no entran las que vendió un colega o
+ * el dueño), sin precios. Para dejar la placa "Vendida" donde estaba la tarjeta
+ * (Barrios privados, David 22-oct-2026). Mismo tag que el listado: cae con cada
+ * cambio de estado en HILO, así la placa aparece en cuanto se marca la venta.
+ * Nunca tira: si el feed falla, no hay placas y el resto sigue.
+ */
+export async function getPropiedadesVendidas(): Promise<TokkoProperty[]> {
+  if (!isHiloSource()) return [];
+  try {
+    const res = await fetch(`${HILO_BASE}/api/public/propiedades/vendidas`, {
+      next: { revalidate: 3600, tags: [CACHE_TAG_LISTA] },
+    });
+    if (!res.ok) throw new Error(`Hilo vendidas: ${res.status} ${res.statusText}`);
+    const data = (await res.json()) as { objects?: TokkoProperty[] };
+    // Sin conFotosFijas: /fotos/<id>/… busca la foto entre las PUBLICADAS y una
+    // vendida ya no está (404). Va la copia de R2 si la hay; si no, la firmada
+    // de HILO, que dura semanas.
+    return (data.objects ?? []).map((o) => ({
+      ...o,
+      photos: (o.photos ?? []).map((f) => (esFotoR2(f.r2) ? { ...f, image: f.r2 } : f)),
+    }));
+  } catch (err) {
+    console.warn('[hilo] vendidas no disponibles:', err instanceof Error ? err.message : err);
+    return [];
+  }
 }
 
 export async function getProperties(params?: {

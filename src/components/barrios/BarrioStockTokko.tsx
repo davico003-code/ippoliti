@@ -14,6 +14,44 @@ import {
 } from '@/lib/tokko'
 import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
+import SelloVendida from '@/components/SelloVendida'
+
+/** Lo que vendimos queda como UNA placa "Vendida": sin precio y sin link a la ficha. */
+function PlacaVendida({ p }: { p: TokkoProperty }) {
+  const photo = getMainPhoto(p)
+  const lot = getLotSurface(p)
+  const roofed = getRoofedArea(p)
+  const tipo = translatePropertyType(p.type?.name)
+  const ubicacion = formatUbicacion(p)
+  return (
+    <div className="flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
+      <div className="relative aspect-[4/3] w-full bg-stone-200">
+        {photo && (
+          <Image
+            src={photo}
+            alt={`Vendida: ${[tipo, ubicacion].filter(Boolean).join(' en ')}`}
+            fill
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            className="object-cover"
+          />
+        )}
+        <span aria-hidden className="absolute inset-0 bg-black/30" />
+        <span className="absolute inset-0 flex items-center justify-center">
+          <SelloVendida grande />
+        </span>
+      </div>
+      <div className="space-y-1.5 p-4">
+        <p className="text-xs uppercase tracking-wide text-stone-500">
+          {[tipo, ubicacion].filter(Boolean).join(' · ')}
+        </p>
+        <div className="flex gap-3 text-xs text-stone-600 font-numeric tabular-nums">
+          {lot ? <span>{lot} m² lote</span> : null}
+          {roofed ? <span>· {roofed} m² cub.</span> : null}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 interface Props {
   slug: string
@@ -24,6 +62,7 @@ interface Props {
 
 export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
   const [properties, setProperties] = useState<TokkoProperty[]>([])
+  const [vendidas, setVendidas] = useState<TokkoProperty[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tracked, setTracked] = useState(false)
@@ -41,6 +80,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
           return
         }
         setProperties(data.properties ?? [])
+        setVendidas(data.vendidas ?? [])
       })
       .catch((e) => {
         if (!active) return
@@ -78,8 +118,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
   }
 
   if (properties.length === 0) {
-    if (tipo === 'Casa' || tipo === 'Departamento') return null
-    return (
+    const avisame = tipo === 'Casa' || tipo === 'Departamento' ? null : (
       <div className="rounded-xl bg-brand-50 p-8 text-center">
         <p className="mb-3 font-raleway text-lg text-navy-700">
           No hay stock publicado en {nombre} ahora mismo.
@@ -98,6 +137,17 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
         >
           Avísenme cuando entren {tipo === 'Terreno' ? 'lotes' : 'propiedades'}
         </Link>
+      </div>
+    )
+    if (vendidas.length === 0) return avisame
+    return (
+      <div className="space-y-5">
+        {avisame}
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {vendidas.map((p) => (
+            <PlacaVendida key={p.id} p={p} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -157,6 +207,9 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
             </Link>
           )
         })}
+        {vendidas.map((p) => (
+          <PlacaVendida key={`vendida-${p.id}`} p={p} />
+        ))}
       </div>
     </div>
   )
