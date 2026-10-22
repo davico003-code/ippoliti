@@ -310,15 +310,30 @@ export function getProducerName(property: TokkoProperty): string {
   return property.producer?.name?.trim() || FALLBACK_PRODUCER_NAME
 }
 
+// Las propiedades que caen en la línea central de ventas (las de David, que es
+// broker, y las sin captador) ROTAN: el botón pasa por /w/ficha/<id> y Hilo
+// elige al agente de turno de la sucursal, con el mismo reparto que los anuncios
+// (David, 21-oct-2026: "que les llegue directamente a ellos", no a su WhatsApp).
+// Lo de un agente sigue yendo directo a su WhatsApp.
+export function rotaPorTurno(property: TokkoProperty): boolean {
+  return getProducerWhatsappNumber(property) === FALLBACK_WA_NUMBER && Number(property.id) > 0
+}
+
+// `saludo` lleva el nombre de quien atiende; si rota, lo pone Hilo ({agente}).
+function urlConsultaWhatsapp(property: TokkoProperty, armarTexto: (saludo: string) => string): string {
+  if (rotaPorTurno(property)) {
+    return `/w/ficha/${property.id}?text=${encodeURIComponent(armarTexto('{agente}'))}`
+  }
+  const text = armarTexto(getProducerName(property))
+  return `https://wa.me/${getProducerWhatsappNumber(property)}?text=${encodeURIComponent(text)}`
+}
+
 // Construye el wa.me con mensaje pre-armado dirigido al productor real.
 export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string): string {
-  const number = getProducerWhatsappNumber(property)
-  const name = getProducerName(property)
   const address = property.fake_address || property.address || ''
   const code = property.reference_code ? ` (cod ${property.reference_code})` : ''
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
-  const text = `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+  return urlConsultaWhatsapp(property, (name) => `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`)
 }
 
 // Pedido de visita ("Solicitar visita" del mobile): los alquileres de Roldán van
@@ -350,13 +365,10 @@ export function getProducerPhoneDisplay(property: TokkoProperty): string {
 // número (productor real con fallback al general) y misma estructura de
 // mensaje que buildPropertyWhatsappUrl, pero pidiendo el precio.
 export function buildPriceConsultWhatsappUrl(property: TokkoProperty, slug: string): string {
-  const number = getProducerWhatsappNumber(property)
-  const name = getProducerName(property)
   const address = property.fake_address || property.address || ''
   const code = property.reference_code ? ` (cod ${property.reference_code})` : ''
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
-  const text = `Hola ${name}! Quiero consultar el precio de la propiedad ${address}${code}.\n\n${url}`
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+  return urlConsultaWhatsapp(property, (name) => `Hola ${name}! Quiero consultar el precio de la propiedad ${address}${code}.\n\n${url}`)
 }
 
 export function generatePropertySlug(property: TokkoProperty): string {

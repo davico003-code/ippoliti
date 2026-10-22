@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { ESTILO_TITULO_SECCION, TITULO_SECCION } from './property-detail/titulo-seccion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Search, X } from 'lucide-react'
@@ -83,7 +84,7 @@ export default function SimilarProperties({ properties }: Props) {
   if (properties.length === 0) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-black text-gray-900 mb-2">Otras opciones para vos</h2>
+        <h2 className={`${TITULO_SECCION} mb-2`} style={ESTILO_TITULO_SECCION}>Otras opciones para vos</h2>
         <p className="text-gray-400 text-sm">No hay propiedades similares disponibles en este momento.</p>
       </div>
     )
@@ -92,7 +93,7 @@ export default function SimilarProperties({ properties }: Props) {
   return (
     <div className="mt-12">
       <div className="mb-6">
-        <h2 className="text-2xl font-black text-gray-900">Otras opciones para vos</h2>
+        <h2 className={TITULO_SECCION} style={ESTILO_TITULO_SECCION}>Otras opciones para vos</h2>
       </div>
 
       {/* Search bar */}

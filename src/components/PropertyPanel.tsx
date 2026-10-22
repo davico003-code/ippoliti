@@ -27,6 +27,7 @@ import PropertyDetailSimilars from './property-detail/PropertyDetailSimilars'
 import Footer from './Footer'
 import ShareMenu from './ShareMenu'
 import { atrasEsDelMazo } from '@/lib/mazo-atras'
+import { videosPropios } from '@/lib/video-oficina'
 
 const R = "'Raleway', system-ui, sans-serif"
 // Height of the sticky header INSIDE the panel (not the site header).
@@ -38,7 +39,7 @@ function seccionesDe(property: TokkoProperty) {
   return [
     { id: 'overview', label: 'Resumen' },
     { id: 'caracteristicas', label: 'Características' },
-    ...(property.videos && property.videos.length > 0 ? [{ id: 'video', label: 'Video' }] : []),
+    ...(videosPropios(property.videos).length > 0 ? [{ id: 'video', label: 'Video' }] : []),
     ...(getDescription(property) ? [{ id: 'descripcion', label: 'Descripción' }] : []),
     ...(getBlueprintPhotos(property).length > 0 ? [{ id: 'planos', label: 'Planos' }] : []),
     { id: 'ubicacion', label: 'Ubicación' },

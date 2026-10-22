@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { enviarLeadAHilo } from '@/lib/hilo-leads'
+import { attributionDeUrl } from '@/lib/pauta-visita'
 import { rateLimit } from '@/lib/feedback'
 import { normalizeArWhatsapp } from '@/lib/phone'
 import { metaDeLaConsulta } from '@/lib/meta-capi'
@@ -64,16 +65,7 @@ export async function POST(request: NextRequest) {
   const tokkoPropertyId = Number.isFinite(propertyIdNum) && propertyIdNum > 0 ? String(propertyIdNum) : null
   const hiloPropertyId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str(body.hiloPropertyId)) ? str(body.hiloPropertyId) : null
   const pageUrl = str(body.pageUrl)
-  const utm = (() => {
-    try {
-      const p = new URL(pageUrl).searchParams
-      const g = (k: string) => p.get(`utm_${k}`) || undefined
-      const u = { utm_source: g('source'), utm_medium: g('medium'), utm_campaign: g('campaign'), utm_content: g('content') }
-      return Object.values(u).some(Boolean) ? { ...u, captured_at: new Date().toISOString() } : null
-    } catch {
-      return null
-    }
-  })()
+  const utm = attributionDeUrl(pageUrl)
 
   // Guardar en Redis (destino de respaldo — nunca debería perderse un lead)
   let savedRedis = false

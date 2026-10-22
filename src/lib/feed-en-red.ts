@@ -4,6 +4,8 @@
 // coordinar la visita con el colega). La persona les da ♥ y, al salir, deja
 // nombre y WhatsApp: la consulta entra a Hilo con todo lo que marcó.
 
+import { guardarCookieWhatsapp } from '@/lib/cookie-whatsapp'
+
 export type PosicionLogo = 'abajo-izq' | 'abajo-der'
 
 /**
@@ -236,6 +238,8 @@ export function escribirContacto(c: Partial<ContactoLocal>): void {
     const previo = leerContacto()
     const limpio = Object.fromEntries(Object.entries(c).filter(([, v]) => typeof v === 'string' && v.trim()))
     window.localStorage.setItem(CLAVE_CONTACTO, JSON.stringify({ ...previo, ...limpio }))
+    // El celular también va a los links de WhatsApp (/w/…): quien ya habla con un agente sigue con él.
+    guardarCookieWhatsapp(limpio.whatsapp ?? previo.whatsapp)
   } catch {
     /* sin almacenamiento: se vuelve a pedir */
   }

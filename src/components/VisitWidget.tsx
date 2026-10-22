@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Calendar, Check, ChevronLeft, ChevronRight, Clock, MessageCircle, X } from 'lucide-react'
 import { events } from '@/lib/analytics'
+import { urlConUtmDePauta } from '@/lib/pauta-visita'
 import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
 
 interface Props {
@@ -131,6 +132,7 @@ export default function VisitWidget({
           propiedad_url: propertyUrl,
           tipo,
           source,
+          pageUrl: urlConUtmDePauta(),
         }),
       })
       // WhatsApp ya se abrió: el cliente igual llega al agente. Solo se deja

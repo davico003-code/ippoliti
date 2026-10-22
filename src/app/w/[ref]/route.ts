@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { celularDeCookie } from '@/lib/cookie-whatsapp'
 
 /**
  * GET siinmobiliaria.com/w/<ref> — el link que llevan los anuncios de Meta.
@@ -45,6 +46,8 @@ export async function GET(req: Request, { params }: { params: { ref: string } })
         userAgent: req.headers.get('user-agent'),
         pl: url.searchParams.get('pl'),
         ad: url.searchParams.get('ad'),
+        // Si ya dejó su celular en la web y habla con un agente, Hilo lo manda con ese.
+        celular: celularDeCookie(req.headers.get('cookie')),
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(2500),
