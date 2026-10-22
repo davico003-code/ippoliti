@@ -179,3 +179,21 @@ export function anchoR2(pedido: number): number {
 export function loaderFotoR2({ src, width }: { src: string; width: number; quality?: number }): string {
   return src.replace(RE_ANCHO_FINAL, `/${anchoR2(width)}.webp`);
 }
+
+/**
+ * La misma foto en JPG desde la web (`/fotos/<id>/<archivo>`) en lugar de la
+ * copia WebP de R2. Para los kioscos de TV (/tv y /tv-vertical): el navegador
+ * del televisor de la oficina no mostró ninguna foto de fotos.verficha.casa
+ * (22-oct-2026) y hasta ese día andaba con estas. Es un solo aparato y el
+ * navegador guarda las fotos, así que no suma gasto. Cualquier otra URL queda igual.
+ */
+export function fotoJpgDeLaWeb(id: number, url: string): string {
+  if (!esFotoR2(url)) return url;
+  let archivo: string;
+  try {
+    archivo = decodeURIComponent(url.replace(RE_ANCHO_FINAL, '').split('/').pop() ?? '');
+  } catch {
+    return url;
+  }
+  return RE_ARCHIVO_FOTO.test(archivo) ? urlFotoFija(id, archivo) : url;
+}

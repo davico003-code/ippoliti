@@ -15,6 +15,7 @@ import {
   type TokkoProperty,
 } from '@/lib/tokko'
 import { formatUbicacion, resolverUbicacion } from '@/lib/ubicacion'
+import { fotoJpgDeLaWeb } from '@/lib/fotos-fijas'
 
 export interface Slide {
   photo: string          // foto de portada (kiosco horizontal)
@@ -97,10 +98,12 @@ export async function getSlides(): Promise<Slide[]> {
     ordered.map(async (p): Promise<Slide> => {
       const slug = generatePropertySlug(p)
       const url = `${SITE}/propiedades/${slug}`
-      const photo = getMainPhoto(p) as string
+      const portada = getMainPhoto(p) as string
       // Hasta 4 fotos de la misma propiedad (portada primero, sin duplicar):
-      // hero + tira de miniaturas en el kiosco vertical.
-      const photos = [photo, ...getAllPhotos(p).filter((x) => x !== photo)].slice(0, 5)
+      // hero + tira de miniaturas en el kiosco vertical. En JPG desde /fotos:
+      // el televisor no muestra las de R2 (ver fotoJpgDeLaWeb).
+      const photos = [portada, ...getAllPhotos(p).filter((x) => x !== portada)].slice(0, 5).map((x) => fotoJpgDeLaWeb(p.id, x))
+      const photo = photos[0]
       let qr = ''
       try {
         qr = await QRCode.toDataURL(url, { margin: 1, width: 220, color: { dark: '#0E1A14', light: '#FFFFFF' } })
