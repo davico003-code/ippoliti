@@ -4,8 +4,10 @@
 // un día de semana a las 8 a los lugares de todos los días, y "¿Trabajás en otro
 // lado?" para el tiempo a su propia dirección. Los tiempos vienen del servidor
 // cuando ya están guardados (así Google lee "a 28 min del centro de Rosario");
-// si no, se piden una vez acá. Sin datos (fuera de zona, Google caído) la
-// sección no aparece.
+// si no, se piden una vez acá. Sin datos (fuera de zona, nadie respondió) la
+// sección no aparece. Mientras Google no ande son los minutos sin tránsito de
+// OpenStreetMap (sin "¿Trabajás en otro lado?", que necesita Google para ubicar
+// la dirección) y se vuelven a pedir por si ya hay hora pico.
 
 import { useEffect, useState } from 'react'
 import { Briefcase, Building2, Home, MapPin, Plane, type LucideIcon } from 'lucide-react'
@@ -87,7 +89,7 @@ export default function TiemposViaje({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (inicial) return
+    if (inicial && inicial.fuente !== 'osm') return
     let vivo = true
     pedirTiempos(propertyId).then((d) => { if (vivo && d?.destinos?.length) setTiempos(d) })
     return () => { vivo = false }
@@ -95,6 +97,7 @@ export default function TiemposViaje({
 
   if (!tiempos?.destinos.length) return null
 
+  const horaPico = tiempos.fuente !== 'osm'
   const filas = trabajo ? [...tiempos.destinos, trabajo] : tiempos.destinos
   const escala = Math.max(30, ...filas.map((t) => t.minutos))
 
@@ -127,10 +130,13 @@ export default function TiemposViaje({
   return (
     <section id="tiempos" className={className}>
       <h2 style={{ fontFamily: R, fontWeight: 800, fontSize: 18, color: 'var(--foreground)', marginBottom: 4 }}>¿Cuánto tardás desde acá?</h2>
-      <p className="text-[13px] mb-2" style={{ fontFamily: P, color: 'var(--tinta-mute)' }}>En auto, un día de semana a las 8 de la mañana.</p>
+      <p className="text-[13px] mb-2" style={{ fontFamily: P, color: 'var(--tinta-mute)' }}>
+        {horaPico ? 'En auto, un día de semana a las 8 de la mañana.' : 'En auto, sin tránsito.'}
+      </p>
       <ul className="divide-y divide-gray-100">
         {filas.map((t) => <Fila key={t.clave + t.nombre} t={t} escala={escala} />)}
       </ul>
+      {horaPico && (
       <form onSubmit={calcular} noValidate className="mt-3 rounded-2xl bg-[#F6F8F6] p-3.5">
         <label htmlFor={`trabajo-${propertyId}`} className="block text-[15px] font-semibold text-gray-900">¿Trabajás en otro lado?</label>
         <div className="mt-2.5 flex gap-2">
@@ -153,6 +159,7 @@ export default function TiemposViaje({
         </div>
         {error && <p id={`trabajo-error-${propertyId}`} className="text-sm text-[#E0245E] mt-2" role="alert">{error}</p>}
       </form>
+      )}
     </section>
   )
 }

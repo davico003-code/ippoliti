@@ -1,6 +1,8 @@
 // Llena el caché de "¿Cuánto tardás desde acá?" (Redis, medio año) para TODAS
-// las propiedades publicadas, de a una. Cada propiedad nueva cuesta hasta 4
-// elementos de Google; las ya guardadas responden al instante y no gastan.
+// las propiedades publicadas, de a una. Con Google andando, cada propiedad nueva
+// cuesta hasta 4 elementos (hora pico); si no, salen de OpenStreetMap (sin
+// tránsito, gratis) y se pasan solas a Google después. Volver a correrlo cuando
+// Google se active acelera ese cambio.
 //
 //   node scripts/calentar-tiempos.mjs                       → producción
 //   BASE_URL=https://<preview>.vercel.app node scripts/calentar-tiempos.mjs
@@ -30,11 +32,12 @@ for (let i = 0; i < unicas.length; i++) {
   if (r?.ok) {
     const d = await r.json()
     ok++
-    console.log(`${i + 1}/${unicas.length} ✓ ${p.id} ${d.destinos.map((x) => `${x.nombre} ${x.minutos}′`).join(' · ')} (${ms} ms)`)
+    console.log(`${i + 1}/${unicas.length} ✓ ${p.id} [${d.fuente === 'osm' ? 'sin tránsito' : 'hora pico'}] ${d.destinos.map((x) => `${x.nombre} ${x.minutos}′`).join(' · ')} (${ms} ms)`)
   } else {
     fuera++
     console.log(`${i + 1}/${unicas.length} — ${p.id} ${r?.status ?? 'sin respuesta'} (fuera de zona, sin clave o Google no respondió)`)
   }
-  if (ms > 800) await dormir(300) // vino de Google: un respiro
+  // Vino calculado recién (Google u OpenStreetMap, que pide no más de uno por segundo).
+  if (ms > 800) await dormir(1100)
 }
 console.log(`listo: ${ok} con tiempos · ${fuera} sin datos`)

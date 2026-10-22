@@ -10,7 +10,8 @@ export interface Destino {
   nombre: string
   /** Lo que se le pasa a Google: él ubica la puerta (la terminal, la plaza). */
   direccion: string
-  /** Solo para decidir si el destino tiene sentido (distancia en línea recta). */
+  /** Para decidir si el destino tiene sentido (distancia en línea recta) y
+   *  para el cálculo sin tránsito de OpenStreetMap, que va por coordenadas. */
   lat: number
   lng: number
   icono: IconoDestino
@@ -18,13 +19,14 @@ export interface Destino {
   local?: boolean
 }
 
-// Coordenadas de OpenStreetMap (Nominatim, 20-oct-2026).
+// Coordenadas de OpenStreetMap (Nominatim, 20-oct-2026); la del aeropuerto es
+// la de la terminal (el centro del predio caía del lado de las pistas).
 export const DESTINOS: Destino[] = [
   { clave: 'rosario', nombre: 'Centro de Rosario', direccion: 'Plaza 25 de Mayo, Rosario, Santa Fe, Argentina', lat: -32.947, lng: -60.6332, icono: 'ciudad' },
-  { clave: 'fisherton', nombre: 'Fisherton', direccion: 'Av. Eva Perón y Wilde, Rosario, Santa Fe, Argentina', lat: -32.9286, lng: -60.737, icono: 'barrio' },
+  { clave: 'fisherton', nombre: 'Fisherton', direccion: 'Av. Eva Perón 8100, Rosario, Santa Fe, Argentina', lat: -32.9286, lng: -60.737, icono: 'barrio' },
   { clave: 'funes', nombre: 'Centro de Funes', direccion: 'Plaza San José, Funes, Santa Fe, Argentina', lat: -32.9209, lng: -60.8115, icono: 'pueblo', local: true },
   { clave: 'roldan', nombre: 'Centro de Roldán', direccion: 'Plaza San Martín, Roldán, Santa Fe, Argentina', lat: -32.9002, lng: -60.9102, icono: 'pueblo', local: true },
-  { clave: 'aeropuerto', nombre: 'Aeropuerto de Rosario', direccion: 'Aeropuerto Internacional Rosario Islas Malvinas, Santa Fe, Argentina', lat: -32.9013, lng: -60.7783, icono: 'avion' },
+  { clave: 'aeropuerto', nombre: 'Aeropuerto de Rosario', direccion: 'Aeropuerto Internacional Rosario Islas Malvinas, Santa Fe, Argentina', lat: -32.9036, lng: -60.7844, icono: 'avion' },
 ]
 
 /** Más lejos que esto del centro de Rosario (Bariloche, Córdoba, Uruguay) no se muestra. */
