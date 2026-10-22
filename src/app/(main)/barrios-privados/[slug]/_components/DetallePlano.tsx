@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/Imagen";
 import Link from "next/link";
 import { Download, MessageCircle, FileText } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";

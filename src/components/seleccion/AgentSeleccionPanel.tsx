@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowUpRight,

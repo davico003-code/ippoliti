@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'

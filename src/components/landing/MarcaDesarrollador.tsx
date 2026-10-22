@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 
 // Franja "quién lo hace" para la portada de las landings de emprendimientos:
 // el aval del desarrollador va arriba, con su logo en blanco, no solo al pie

@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { FranjaFooterMundial, LineaMundial } from '@/components/mundial/FooterMundial'
 

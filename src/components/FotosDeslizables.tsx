@@ -10,7 +10,7 @@
 // `children`. La tarjeta que lo envuelve es un <Link>: flechas y puntitos
 // cortan el click para que pasar de foto no abra la ficha.
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import PortadaViva from '@/components/PortadaViva'
 

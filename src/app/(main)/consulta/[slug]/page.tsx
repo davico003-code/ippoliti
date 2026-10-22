@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { notFound } from 'next/navigation'
 import { MessageCircle } from 'lucide-react'
 import { normalizarTitulo } from '@/lib/titulo'

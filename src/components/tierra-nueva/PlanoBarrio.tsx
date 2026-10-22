@@ -5,7 +5,7 @@
 // gris con su nombre. Al elegir un condo se ve su render, ubicación y entrega.
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { CalendarCheck, MapPin } from 'lucide-react'
 import { CALLES_BARRIO, CONDOS, LOTES_BARRIO, TN_BASE, VERDE_BARRIO, type CondoId } from '@/lib/tierra-nueva'
 import WaCta from './WaCta'

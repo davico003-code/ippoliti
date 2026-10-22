@@ -3,7 +3,7 @@
 // La TARJETA del Tinder y sus botones ↺ ✕ ★ ♥ (David, 3/4-oct-2026). Las usan
 // el mazo abierto (MazoCasas) y la ficha (la primera tarjeta, 'quieta').
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Expand, RotateCcw, Star, X } from 'lucide-react'
 import { type ItemFeed, estiloSinLogo, lineaTarjeta, lugarTarjeta, metrosVisibles } from '@/lib/feed-en-red'
 import { formatDistanceAR } from '@/lib/geo'

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import type { TokkoProperty } from '@/lib/tokko'
 import {
   formatPrice,

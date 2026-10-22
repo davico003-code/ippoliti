@@ -14,7 +14,7 @@
 // recorrido (FunnelSecciones), sin tocar este componente.
 
 import type { ReactNode } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, CalendarCheck, CheckCircle2, MapPin, MessageCircle, Phone } from 'lucide-react'
 import {

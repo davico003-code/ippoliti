@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import Image from '@/components/Imagen';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { normalizarTitulo } from '@/lib/titulo';
@@ -40,7 +40,7 @@ import {
 import { formatUbicacion } from '@/lib/ubicacion';
 import { sinVideosCaidos } from '@/lib/videos-vivos';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
-import { conFotosFijas, fotoAbsoluta, fotoFija } from '@/lib/fotos-fijas';
+import { conFotosFijas, fotoFija, fotoPrincipalParaBuscadores } from '@/lib/fotos-fijas';
 import { cercanosGuardados } from '@/lib/cercanos';
 import { tiemposGuardados } from '@/lib/tiempos-viaje';
 import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas';
@@ -271,7 +271,7 @@ export default async function PropertyPage({ params }: Props) {
   const description = getDescription(property);
 
   // JSON-LD — RealEstateListing + BreadcrumbList
-  const mainPhotoUrl = fotoAbsoluta(getMainPhoto(property));
+  const mainPhotoUrl = fotoPrincipalParaBuscadores(property);
   // La operación que muestra la ficha (operations[0] podía ser una venta en 0).
   const opPrincipal = operacionPrincipal(property);
   const propPrice = opPrincipal?.prices?.[0]?.price ?? 0;

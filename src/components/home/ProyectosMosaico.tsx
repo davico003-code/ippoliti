@@ -7,7 +7,7 @@
 // Tamaño por posición:  [0] big (2×2) · [1] wide (2×1) · [2] y [3] sm (1×1).
 
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { PROYECTOS_DESTACADOS } from './proyectosDestacados'
 import MaquinasObra from './MaquinasObra'
 

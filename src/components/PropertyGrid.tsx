@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { MapPin, Maximize2, Home, Bed, Bath } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'

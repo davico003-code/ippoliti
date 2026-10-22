@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ArrowRight, ArrowUpRight, Search } from 'lucide-react'
 import { categories, channels, videos, filterVideos, categoryLabel, categoryDescription, normalized } from '@/lib/contenidos'
 import { getAllPosts, readingMinutes } from '@/lib/blog'

@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import styles from './contenidos.module.css'
 
 export default function SocialIcon({ platform, size = 18 }: { platform: string; size?: number }) {

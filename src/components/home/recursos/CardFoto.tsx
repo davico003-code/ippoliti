@@ -2,7 +2,7 @@
 // El cuerpo blanco de la card se monta sobre el borde inferior de la foto
 // (margin negativo en .body), por eso la foto lleva un poco de alto extra.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 
 type Props = {
   src: string

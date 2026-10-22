@@ -5,7 +5,7 @@
 // y qué ambientes tiene, con un botón por cada vista 360° de esa tipología.
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ArrowRight, CheckCircle2, Maximize2, Rotate3d } from 'lucide-react'
 import { RECORRIDOS_360, urlRecorrido, type Tipologia } from '@/lib/dockgarden'
 import ViewerModal, { type Viewer } from '@/components/ViewerModal'

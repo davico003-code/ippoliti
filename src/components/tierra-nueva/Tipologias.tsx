@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Compass, ZoomIn } from 'lucide-react'
 import { COCHERA_M2, TIPOLOGIAS, TN_BASE, TN_PRECIOS, cuotaMensual, m2, usd } from '@/lib/tierra-nueva'
 import WaCta from './WaCta'

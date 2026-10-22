@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Star } from 'lucide-react'
 import { type GuardadaLocal, type ItemFeed, estiloSinLogo, leerContacto } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'

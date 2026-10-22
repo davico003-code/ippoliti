@@ -4,7 +4,7 @@
 // posiciones calculadas en el servidor; el único movimiento es CSS (líneas
 // que "fluyen" y anillos que respiran), quieto si se pidió menos movimiento.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { AGENTES, DIRECCION } from './datos'
 import { MENTA } from './ui'
 

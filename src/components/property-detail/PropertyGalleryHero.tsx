@@ -10,7 +10,7 @@
 // strip on mobile that filled the viewport.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'

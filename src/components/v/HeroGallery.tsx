@@ -10,7 +10,7 @@
 // Esc cierra. Body con overflow:hidden mientras está abierto.
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Images, X } from 'lucide-react'
 import { displayImageUrl } from '@/lib/external-images'
 import { TINTA, volanta } from './estilos'

@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { useEffect, useRef, useState } from 'react'
 import { Target, Eye, Gem, Navigation, Phone, MessageCircle, Clock, User, Home, Heart } from 'lucide-react'
 import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ArrowUpRight, Play } from 'lucide-react'
 import { categoryLabel, titleParts, type Video } from '@/lib/contenidos'
 import SocialIcon from './SocialIcon'

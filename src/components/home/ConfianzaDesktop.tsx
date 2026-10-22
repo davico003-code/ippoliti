@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Clock, MapPin, Star } from 'lucide-react'
 import EncabezadoSeccion from './EncabezadoSeccion'
 

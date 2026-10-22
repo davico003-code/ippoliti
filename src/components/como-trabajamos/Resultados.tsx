@@ -1,7 +1,7 @@
 // /como-trabajamos — prueba de resultados: propiedades que ya vendimos
 // (ventas propias reales, sin montos) y el muro de propiedades de HILO.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { MURO, VENDIDAS } from './datos'
 import { CircleCheck, MapPin } from 'lucide-react'
 import { Contenedor, Encabezado, TINTA, conNumeros } from './ui'

@@ -10,7 +10,7 @@
 // dismiss propio para que ninguno pise al otro.
 
 import { useCallback, useEffect, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { usePathname } from 'next/navigation'
 import { BarChart3, CheckCircle2, Cpu, MapPin, UserRound, X } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'

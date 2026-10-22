@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { type PosicionLogo, estiloSinLogo } from '@/lib/feed-en-red'
 
 /** Hasta 3 fotos en abanico ("No pierdas tus elegidas" y ♥ N). */
