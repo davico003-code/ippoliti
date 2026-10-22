@@ -42,6 +42,7 @@ import { sinVideosCaidos } from '@/lib/videos-vivos';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
 import { conFotosFijas, fotoAbsoluta, fotoFija } from '@/lib/fotos-fijas';
 import { cercanosGuardados } from '@/lib/cercanos';
+import { tiemposGuardados } from '@/lib/tiempos-viaje';
 import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas';
 import { videosPropios } from '@/lib/video-oficina';
 
@@ -262,8 +263,11 @@ export default async function PropertyPage({ params }: Props) {
   const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
   const currentLng = property.geo_long ? parseFloat(property.geo_long) : null;
   const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng);
-  // Lugares cercanos ya guardados → en el HTML (Google indexa la versión celu).
-  const cercanos = hasCoords ? await cercanosGuardados(currentLat!, currentLng!) : null;
+  // Lugares cercanos y "¿Cuánto tardás?" ya guardados → en el HTML (Google
+  // indexa la versión celu). A la vez: cada uno corta a los 800 ms.
+  const [cercanos, tiempos] = hasCoords
+    ? await Promise.all([cercanosGuardados(currentLat!, currentLng!), tiemposGuardados(currentLat!, currentLng!)])
+    : [null, null];
   const description = getDescription(property);
 
   // JSON-LD — RealEstateListing + BreadcrumbList
@@ -412,6 +416,7 @@ export default async function PropertyPage({ params }: Props) {
             whatsappUrl={whatsappUrl}
             showMobileContact
             cercanos={cercanos?.ficha ?? null}
+            tiempos={tiempos}
             // Audio narrado: debajo de los datos, no arriba del título (el precio
             // tiene que entrar en la primera pantalla). Se auto-oculta sin audio.
             despuesDeDatos={
