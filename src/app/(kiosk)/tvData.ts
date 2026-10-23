@@ -32,6 +32,20 @@ export interface Slide {
 const SITE = 'https://siinmobiliaria.com'
 const MAX_SLIDES = 30
 
+// Qué pasa por la tele (David, 22-oct-2026): casas desde USD 250.000,
+// departamentos desde USD 125.000 y lotes desde USD 70.000. Nada más: ni PH,
+// ni locales, ni galpones, ni las de precio a consultar. Por id de tipo de
+// Tokko (3 casa, 2 departamento, 1 lote): por nombre, "Warehouse" contiene "house".
+const PISO_USD: Partial<Record<number, number>> = { 3: 250000, 2: 125000, 1: 70000 }
+
+function entraEnLaTele(p: TokkoProperty): boolean {
+  const piso = p.type?.id != null ? PISO_USD[p.type.id] : undefined
+  if (!piso || formatPrice(p) === 'Consultar precio') return false
+  const venta = p.operations?.find((op) => op.operation_type === 'Sale')
+  const usd = venta?.prices?.find((pr) => pr.currency === 'USD')?.price ?? 0
+  return usd >= piso
+}
+
 // Traducción de tipología: usa el mapa canónico de tokko.ts (única fuente de
 // verdad) para no repetir un mapa parcial. El local previo tenía 'Business'
 // (nunca matcheaba: el feed manda 'Bussiness Premises') y le faltaban 'Garage'
@@ -85,6 +99,7 @@ export async function getSlides(): Promise<Slide[]> {
   const props = objects.filter((p) => {
     if (!getMainPhoto(p)) return false
     if (!p.operations?.length) return false
+    if (!entraEnLaTele(p)) return false
     if (p.id && seen.has(p.id)) return false
     if (p.id) seen.add(p.id)
     return true
