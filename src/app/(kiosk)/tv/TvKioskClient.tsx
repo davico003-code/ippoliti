@@ -11,6 +11,11 @@
 // televisor parado sigue mandando la imagen acostada, así que /tv-vertical gira
 // la página 90° (con el botón "Girar", para el otro lado). Las medidas van en
 // vmin (el lado corto de la pantalla), que sirven igual en las tres posiciones.
+//
+// OJO: el televisor de la oficina (Dalton) tiene un navegador VIEJO. Sin `inset`
+// la foto medía cero (quedaba negra) y el panel cambiaba de alto en cada
+// transición (23-oct-2026). Acá nada de inset, gap en flex, aspect-ratio ni dvh:
+// top/right/bottom/left, márgenes y padding-bottom.
 
 import { useEffect, useRef, useState } from 'react'
 import type { Slide, SlideEmprendimiento, SlideTasar } from '../tvData'
@@ -27,6 +32,10 @@ const mod = (n: number, m: number) => ((n % m) + m) % m
 // televisores suelen tener solo la versión vieja.
 type DocFs = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => void }
 type ElFs = HTMLElement & { webkitRequestFullscreen?: () => void }
+// Algunos navegadores viejos no devuelven promesa: un .catch directo tiraba error.
+const sinError = (p: Promise<void> | void) => {
+  if (p && typeof p.catch === 'function') p.catch(() => {})
+}
 const enPantallaCompleta = () => {
   const d = document as DocFs
   return !!(d.fullscreenElement ?? d.webkitFullscreenElement)
@@ -53,13 +62,14 @@ const reglasParada = (pre: string) => `
   ${pre} .tv-panel { padding: 4vmin 5vmin 0; border-left: 0; border-top: .4vmin solid #17613C; }
   ${pre} .tv-badges { left: 5vmin; }
   ${pre} .tv-badge { padding: 1vmin 2.6vmin; }
-  ${pre} .tv-full { left: 5vmin; gap: 1.6vmin; padding: 1.6vmin 3.4vmin; }
+  ${pre} .tv-full { left: 5vmin; padding: 1.6vmin 3.4vmin; }
+  ${pre} .tv-full svg { margin-right: 1.6vmin; }
   ${pre} .tv-girar { left: auto; right: 5vmin; }
-  ${pre} .tv-top { gap: 3vmin; }
+  ${pre} .tv-clock { margin-left: 3vmin; }
   ${pre} .tv-datos { padding-top: 3vmin; }
   ${pre} .tv-titulo { -webkit-line-clamp: 2; }
-  ${pre} .tv-specs { grid-template-columns: repeat(4, 1fr); gap: 2vmin; }
-  ${pre} .tv-tira { gap: 1.6vmin; }
+  ${pre} .tv-specs { grid-template-columns: repeat(4, 1fr); grid-gap: 2vmin; gap: 2vmin; }
+  ${pre} .tv-tira { grid-gap: 1.6vmin; gap: 1.6vmin; }
   ${pre} .tv-emp-desc { -webkit-line-clamp: 2; }
   ${pre} .tv-show-velo { background: linear-gradient(0deg, rgba(5,16,10,.95) 0%, rgba(5,16,10,.75) 42%, rgba(5,16,10,0) 70%); }
   ${pre} .tv-show-contenido { left: 7vmin; right: 7vmin; bottom: 9vmin; max-width: none; }
@@ -147,15 +157,15 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
     const d = document as DocFs
     const el = document.documentElement as ElFs
     if (!enPantallaCompleta()) {
-      if (el.requestFullscreen) el.requestFullscreen().catch(() => {})
+      if (el.requestFullscreen) sinError(el.requestFullscreen())
       else el.webkitRequestFullscreen?.()
-    } else if (d.exitFullscreen) d.exitFullscreen().catch(() => {})
+    } else if (d.exitFullscreen) sinError(d.exitFullscreen())
     else d.webkitExitFullscreen?.()
   }
 
   if (slides.length === 0) {
     return (
-      <main style={{ height: '100dvh', display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+      <main style={{ height: '100vh', display: 'grid', placeItems: 'center', textAlign: 'center' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/si-inmobiliaria-blanco.svg" alt="SI INMOBILIARIA" style={{ height: 64, width: 'auto', opacity: 0.9 }} />
       </main>
@@ -446,21 +456,22 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
       </div>
 
       <style>{`
-        .tv-root { position: fixed; inset: 0; overflow: hidden; background: #0A1F14; }
-        .tv-stage { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 34vw; }
+        .tv-root { position: fixed; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; background: #0A1F14; }
+        .tv-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: 1fr 34vw; }
 
         .tv-foto { position: relative; overflow: hidden; background: #08100B; }
-        .tv-layer { position: absolute; inset: 0; transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1);
+        .tv-layer { position: absolute; top: 0; right: 0; bottom: 0; left: 0; transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1);
           will-change: opacity; }
-        .tv-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+        .tv-img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
           will-change: transform; backface-visibility: hidden; }
         /* Lineal: un desplazamiento parejo, sin arranques ni frenadas a la vista. */
         .tv-kb-a { animation: tvKbA ${FOTO_MS + FUNDIDO_MS}ms linear forwards; }
         .tv-kb-b { animation: tvKbB ${FOTO_MS + FUNDIDO_MS}ms linear forwards; }
         @keyframes tvKbA { from { transform: scale(1.02); } to { transform: scale(1.09) translate3d(-1%, -1%, 0); } }
         @keyframes tvKbB { from { transform: scale(1.09) translate3d(-1%, 0, 0); } to { transform: scale(1.02) translate3d(1%, -1%, 0); } }
-        .tv-badges { position: absolute; top: 4vmin; left: 3vw; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 1.2vmin; }
-        .tv-badge { display: inline-flex; align-items: center; gap: .8vmin; background: #17613C; color: #fff;
+        .tv-badges { position: absolute; top: 4vmin; left: 3vw; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; }
+        .tv-badges > * { margin: 0 1.2vmin 1.2vmin 0; }
+        .tv-badge { display: inline-flex; align-items: center; background: #17613C; color: #fff;
           font-weight: 700; font-size: 1.9vmin; letter-spacing: .12em; text-transform: uppercase;
           padding: 1vmin 1.6vw; border-radius: 999px; box-shadow: 0 .8vmin 2.4vmin rgba(0,0,0,.35); }
 
@@ -468,7 +479,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         /* Bajó de precio: coral, más grande y con un latido suave para que se vea de lejos. */
         .tv-badge-rebaja { background: #E2552B; font-size: 2.4vmin; letter-spacing: .06em; padding: 1.1vmin 2.2vmin;
           animation: tvLatido 1800ms ease-in-out infinite; }
-        .tv-badge-rebaja svg { width: 2.6vmin; height: 2.6vmin; fill: none; stroke: currentColor; stroke-width: 3;
+        .tv-badge-rebaja svg { margin-right: .8vmin; width: 2.6vmin; height: 2.6vmin; fill: none; stroke: currentColor; stroke-width: 3;
           stroke-linecap: round; stroke-linejoin: round; }
         @keyframes tvLatido { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
         .tv-antes { margin-top: 3vmin; font-size: 3vmin; font-weight: 600; color: rgba(255,255,255,.62);
@@ -477,9 +488,9 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-antes + .tv-precio { margin-top: .8vmin; }
 
         .tv-full { position: absolute; left: 3vw; bottom: 4vmin; z-index: 3; display: inline-flex; align-items: center;
-          gap: 1vw; padding: 1.6vmin 2vw; border: 0; border-radius: 999px; background: #fff; color: #0A2418;
+          padding: 1.6vmin 2vw; border: 0; border-radius: 999px; background: #fff; color: #0A2418;
           font: 700 2.4vmin/1 var(--font-poppins), sans-serif; cursor: pointer; box-shadow: 0 1vmin 3vmin rgba(0,0,0,.4); }
-        .tv-full svg { width: 3vmin; height: 3vmin; fill: none; stroke: currentColor; stroke-width: 2.4;
+        .tv-full svg { margin-right: 1vw; width: 3vmin; height: 3vmin; fill: none; stroke: currentColor; stroke-width: 2.4;
           stroke-linecap: round; stroke-linejoin: round; }
         .tv-full:focus-visible { outline: .5vmin solid #8FE3B0; outline-offset: .5vmin; }
 
@@ -487,9 +498,9 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
           background: linear-gradient(170deg, #12432B 0%, #0A2418 55%, #071A11 100%);
           border-left: .4vmin solid #17613C; }
 
-        .tv-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 2vw; }
+        .tv-top { display: flex; align-items: flex-start; justify-content: space-between; }
         .tv-logo { height: 3.4vmin; width: auto; margin-top: .6vmin; }
-        .tv-clock { text-align: right; }
+        .tv-clock { text-align: right; margin-left: 2vw; }
         .tv-clock-h { font-weight: 700; font-size: 3.6vmin; line-height: 1; letter-spacing: -.01em;
           font-variant-numeric: tabular-nums; }
         .tv-clock-d { font-size: 1.7vmin; color: rgba(255,255,255,.7); margin-top: .6vmin; }
@@ -505,7 +516,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-precio { font-weight: 700; line-height: 1; letter-spacing: -.02em; margin-top: 3.2vmin;
           font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-        .tv-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4vmin 2vw; margin-top: 4vmin;
+        .tv-specs { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 2.4vmin 2vw; gap: 2.4vmin 2vw; margin-top: 4vmin;
           padding-top: 3.4vmin; border-top: 1px solid rgba(255,255,255,.18); }
         .tv-spec { display: flex; flex-direction: column; }
         .tv-spec-v { font-weight: 700; font-size: 4.4vmin; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -513,17 +524,18 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
 
         /* Emprendimiento a pantalla completa: foto de punta a punta, marco y acentos
            dorados, nombre enorme. Tapa todo y entra/sale con el mismo fundido. */
-        .tv-show { position: absolute; inset: 0; z-index: 8; opacity: 0; pointer-events: none; overflow: hidden;
+        .tv-show { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 8; opacity: 0; pointer-events: none; overflow: hidden;
           background: #071A11; transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1); will-change: opacity; }
         .tv-show-on { opacity: 1; }
-        .tv-show-velo { position: absolute; inset: 0; z-index: 3;
+        .tv-show-velo { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 3;
           background: linear-gradient(90deg, rgba(5,16,10,.9) 0%, rgba(5,16,10,.6) 40%, rgba(5,16,10,0) 72%),
             linear-gradient(0deg, rgba(5,16,10,.8) 0%, rgba(5,16,10,0) 45%); }
-        .tv-show-marco { position: absolute; inset: 3.4vmin; z-index: 4; border: .22vmin solid rgba(201,168,76,.75);
+        .tv-show-marco { position: absolute; top: 3.4vmin; right: 3.4vmin; bottom: 3.4vmin; left: 3.4vmin; z-index: 4; border: .22vmin solid rgba(201,168,76,.75);
           border-radius: 1.4vmin; }
         .tv-show-si { position: absolute; top: 7vmin; right: 7vmin; z-index: 5; display: flex; align-items: center;
-          gap: 1.6vmin; font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.8); }
+          font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.8); }
         .tv-show-si img { height: 3.6vmin; width: auto; }
+        .tv-show-si > * + * { margin-left: 1.6vmin; }
         .tv-show-contenido { position: absolute; left: 8vmin; bottom: 9vmin; z-index: 5; max-width: 62%;
           text-shadow: 0 .3vmin 2vmin rgba(0,0,0,.45);
           transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1), transform ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1); }
@@ -537,32 +549,34 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
           font-variant-numeric: tabular-nums; }
         .tv-show-desde span { font-size: 3.4vmin; font-weight: 600; letter-spacing: 0; color: #E6C77A; vertical-align: .6em; }
         .tv-show-resumen { font-size: 3vmin; color: rgba(255,255,255,.88); margin-top: 1.6vmin; }
-        .tv-show-cards { display: grid; grid-template-columns: repeat(3, 34vmin); gap: 2.4vmin; margin-top: 4vmin; }
+        .tv-show-cards { display: grid; grid-template-columns: repeat(3, 34vmin); grid-gap: 2.4vmin; gap: 2.4vmin; margin-top: 4vmin; }
         .tv-show-card { overflow: hidden; border-radius: 1.4vmin; background: rgba(5,16,10,.78);
           border: .18vmin solid rgba(230,199,122,.55); text-shadow: none; opacity: 0; transform: translateY(2vmin);
           transition: opacity 900ms cubic-bezier(.22,.61,.36,1), transform 900ms cubic-bezier(.22,.61,.36,1); }
         .tv-show-prendido .tv-show-card { opacity: 1; transform: none; }
         .tv-show-card img { display: block; width: 100%; height: 25vmin; object-fit: cover; }
-        .tv-show-card-txt { display: flex; flex-direction: column; gap: .8vmin; padding: 1.6vmin 2vmin 2vmin; }
-        .tv-show-card-txt span { font-size: 2vmin; color: rgba(255,255,255,.85); }
+        .tv-show-card-txt { display: flex; flex-direction: column; padding: 1.6vmin 2vmin 2vmin; }
+        .tv-show-card-txt span { margin-bottom: .8vmin; font-size: 2vmin; color: rgba(255,255,255,.85); }
         .tv-show-card-txt strong { font-size: 3.2vmin; font-weight: 700; font-variant-numeric: tabular-nums; }
-        .tv-show-sello { display: flex; align-items: center; gap: 1.8vmin; color: #E6C77A; font-size: 2vmin;
+        .tv-show-sello { display: flex; align-items: center; color: #E6C77A; font-size: 2vmin;
           font-weight: 700; letter-spacing: .32em; text-transform: uppercase; }
         /* Elemento y no ::before: un content con comillas se escapa en el HTML del
            servidor y el estilo no coincide al hidratar. */
-        .tv-show-linea { width: 7vmin; height: .25vmin; background: #C9A84C; }
+        .tv-show-linea { margin-right: 1.8vmin; width: 7vmin; height: .25vmin; background: #C9A84C; }
         .tv-show-nombre { font-family: var(--font-raleway), sans-serif; font-weight: 800; line-height: .98;
           letter-spacing: -.02em; margin: 2.6vmin 0 0; }
         .tv-show-bajada { font-size: 3.4vmin; font-weight: 600; line-height: 1.2; color: #E6C77A; margin-top: 2.2vmin; }
         .tv-show-ubic { font-size: 2.4vmin; color: rgba(255,255,255,.8); margin-top: 1.4vmin; }
         .tv-show-desc { font-family: var(--font-raleway), sans-serif; font-size: 2.8vmin; line-height: 1.35;
           color: rgba(255,255,255,.92); margin: 2.6vmin 0 0; max-width: 56ch; }
-        .tv-show-chips { display: flex; flex-wrap: wrap; gap: 1.4vmin; margin-top: 3vmin; }
+        .tv-show-chips { display: flex; flex-wrap: wrap; margin-top: 3vmin; }
+        .tv-show-chips span { margin: 0 1.4vmin 1.4vmin 0; }
         .tv-show-chips span { padding: 1vmin 2.2vmin; border: .2vmin solid rgba(230,199,122,.8); border-radius: 999px;
           color: #F3E3B5; font-size: 2vmin; font-weight: 600; text-shadow: none; }
-        .tv-show-marcas { display: flex; flex-wrap: wrap; align-items: center; gap: 2vmin 5vmin; margin-top: 4vmin;
+        .tv-show-marcas { display: flex; flex-wrap: wrap; align-items: center; margin-top: 4vmin;
           padding-top: 3vmin; border-top: .15vmin solid rgba(230,199,122,.45); }
-        .tv-show-marca { display: flex; align-items: center; gap: 1.6vmin; }
+        .tv-show-marca { display: flex; align-items: center; margin: 0 5vmin 2vmin 0; }
+        .tv-show-marca > * + * { margin-left: 1.6vmin; }
         .tv-show-rol { font-size: 1.9vmin; color: rgba(255,255,255,.75); }
         .tv-show-marca img { height: 5vmin; width: auto; filter: brightness(0) invert(1); }
         .tv-show-marca strong { font-size: 2.6vmin; font-weight: 700; }
@@ -572,12 +586,12 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-tasar-titulo { font-family: var(--font-raleway), sans-serif; font-weight: 800; font-size: 10vmin; line-height: .98;
           letter-spacing: -.02em; margin: 2.6vmin 0 0; }
         .tv-tasar-sub { font-size: 3.4vmin; font-weight: 600; line-height: 1.25; color: #E6C77A; margin-top: 2.4vmin; }
-        .tv-tasar-fila { display: flex; align-items: center; gap: 4vmin; margin-top: 4.4vmin; }
-        .tv-tasar-qr { flex: none; width: 34vmin; height: 34vmin; padding: 1.6vmin; background: #fff; border-radius: 2vmin;
+        .tv-tasar-fila { display: flex; align-items: center; margin-top: 4.4vmin; }
+        .tv-tasar-qr { flex: none; margin-right: 4vmin; width: 34vmin; height: 34vmin; padding: 1.6vmin; background: #fff; border-radius: 2vmin;
           box-shadow: 0 1.6vmin 4vmin rgba(0,0,0,.45); }
         .tv-tasar-qr img { display: block; width: 100%; height: 100%; }
-        .tv-tasar-texto { display: flex; flex-direction: column; gap: 1.4vmin; text-shadow: 0 .3vmin 2vmin rgba(0,0,0,.45); }
-        .tv-tasar-texto strong { font-size: 3.2vmin; font-weight: 700; }
+        .tv-tasar-texto { display: flex; flex-direction: column; text-shadow: 0 .3vmin 2vmin rgba(0,0,0,.45); }
+        .tv-tasar-texto strong { margin-bottom: 1.4vmin; font-size: 3.2vmin; font-weight: 700; }
         .tv-tasar-texto span { font-size: 2.2vmin; color: rgba(255,255,255,.8); }
 
         /* Presentación especial de emprendimiento: dorado de acento, nombre grande. */
@@ -592,21 +606,23 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-emp-desc { font-family: var(--font-raleway), sans-serif; font-size: 2.4vmin; line-height: 1.35;
           color: rgba(255,255,255,.88); margin: 2.4vmin 0 0;
           display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .tv-emp-chips { display: flex; flex-wrap: wrap; gap: 1vmin; margin-top: 2.6vmin; }
+        .tv-emp-chips { display: flex; flex-wrap: wrap; margin-top: 2.6vmin; }
+        .tv-emp-chips span { margin: 0 1vmin 1vmin 0; }
         .tv-emp-chips span { padding: .7vmin 1.6vmin; border: 1px solid rgba(255,255,255,.35); border-radius: 999px;
           font-size: 1.7vmin; font-weight: 600; }
-        .tv-emp-marcas { display: flex; flex-wrap: wrap; align-items: center; gap: 1.6vmin 3vmin; margin-top: 3vmin;
+        .tv-emp-marcas { display: flex; flex-wrap: wrap; align-items: center; margin-top: 3vmin;
           padding-top: 2.6vmin; border-top: 1px solid rgba(255,255,255,.18); }
-        .tv-emp-marca { display: flex; align-items: center; gap: 1.2vmin; }
+        .tv-emp-marca { display: flex; align-items: center; margin: 0 3vmin 1.6vmin 0; }
+        .tv-emp-marca > * + * { margin-left: 1.2vmin; }
         .tv-emp-rol { font-size: 1.6vmin; color: rgba(255,255,255,.7); }
         /* Cualquier logo en blanco sobre el verde (regla de las portadas). */
         .tv-emp-marca img { height: 3.6vmin; width: auto; filter: brightness(0) invert(1); }
         .tv-emp-marca strong { font-size: 2vmin; font-weight: 700; }
 
-        .tv-tira { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8vw; margin-top: 4.4vmin; }
-        .tv-mini { aspect-ratio: 4 / 3; border-radius: 1vmin; overflow: hidden; opacity: .45;
+        .tv-tira { display: grid; grid-template-columns: repeat(4, 1fr); grid-gap: .8vw; gap: .8vw; margin-top: 4.4vmin; }
+        .tv-mini { position: relative; height: 0; padding-bottom: 75%; border-radius: 1vmin; overflow: hidden; opacity: .45;
           outline: .35vmin solid transparent; outline-offset: .3vmin; transition: opacity ${FUNDIDO_MS}ms, outline-color ${FUNDIDO_MS}ms; }
-        .tv-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .tv-mini img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
         .tv-mini-on { opacity: 1; outline-color: #8FE3B0; }
 
         .tv-pie { display: flex; justify-content: space-between; align-items: center; margin-top: 3.6vmin;
@@ -630,7 +646,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         @media (orientation: portrait) { ${reglasParada('')} }
         /* El televisor parado sigue mandando la imagen acostada: se gira la página. */
         @media (orientation: landscape) {
-          .tv-modo-vertical .tv-stage { inset: auto; left: 50%; top: 50%; width: 100vh; height: 100vw;
+          .tv-modo-vertical .tv-stage { right: auto; bottom: auto; left: 50%; top: 50%; width: 100vh; height: 100vw;
             transform: translate(-50%, -50%) rotate(90deg); }
           .tv-modo-vertical.tv-al-reves .tv-stage { transform: translate(-50%, -50%) rotate(-90deg); }
         }
