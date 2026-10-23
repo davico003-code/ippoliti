@@ -523,25 +523,34 @@ body.dr-hoja-abierta [data-fab-whatsapp] {
    componentes usan las clases dr-* de Tailwind (tailwind.config.ts), que leen
    estas variables, y NO las clases que el modo oscuro general pisa (.bg-white,
    text-[#345544]…): antes quedaba mezclado crema, gris carbón y verde menta.
-   De noche el barrio es verde bosque muy oscuro con textos crema; las
-   secciones verdes de marca quedan un poco más claras para seguir marcando el
-   ritmo, y el terracota sube de luz para leerse. RGB sin coma por la opacidad. */
+   De noche (David: "no hace falta utilizar tantos colores, usá más el
+   negro"): negro, blanco y grises, y un solo acento —el terracota— en botones
+   y números clave. Las etiquetas y el dorado pasan a gris. RGB sin coma por la
+   opacidad. */
 .dr-tema {
   --dr-fondo: 248 241 230;      /* #F8F1E6 crema */
   --dr-fondo-alt: 255 255 255;
   --dr-superficie: 255 255 255;
   --dr-tinta: 52 85 68;         /* #345544 */
   --dr-acento: 179 94 33;       /* #B35E21 terracota */
-  --dr-bosque: 52 85 68;
+  --dr-etiqueta: 179 94 33;     /* etiquetas sobre fondo claro */
+  --dr-bosque: 52 85 68;        /* secciones verdes de marca */
+  --dr-noche: 20 49 37;         /* #143125 hero, cierre, velos de fotos */
+  --dr-oro: 226 184 114;        /* #E2B872 etiquetas sobre verde */
+  --dr-claro: 248 241 230;      /* textos sobre fondos oscuros y fotos */
   background-color: rgb(var(--dr-fondo));
 }
 html[data-theme='dark'] .dr-tema {
-  --dr-fondo: 13 26 21;         /* #0D1A15 */
-  --dr-fondo-alt: 18 33 27;     /* #12211B */
-  --dr-superficie: 26 45 37;    /* #1A2D25 */
-  --dr-tinta: 240 232 218;      /* #F0E8DA crema cálido */
-  --dr-acento: 233 148 88;      /* #E99458 terracota con luz */
-  --dr-bosque: 31 58 45;        /* #1F3A2D */
+  --dr-fondo: 0 0 0;
+  --dr-fondo-alt: 10 10 10;
+  --dr-superficie: 24 24 24;
+  --dr-tinta: 245 245 245;
+  --dr-acento: 232 132 72;      /* #E88448: el terracota, con luz para el negro */
+  --dr-etiqueta: 150 150 150;
+  --dr-bosque: 14 14 14;
+  --dr-noche: 0 0 0;
+  --dr-oro: 150 150 150;
+  --dr-claro: 245 245 245;
 }
 
 /* Distrito Roldán (22-oct-2026): la foto del hero se acerca muy lento, como un

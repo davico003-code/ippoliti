@@ -27,10 +27,10 @@ export default function SeccionRenders() {
     // la galería de fotos, que se oculta cuando no hay fotos reales nuevas.
     <section id="barrio" className="bg-dr-fondo py-20 md:py-32">
       <div className="mx-auto max-w-[1320px] md:px-6 lg:px-8">
-        <div className="relative isolate overflow-hidden bg-[#143125] md:rounded-[28px]">
+        <div className="relative isolate overflow-hidden bg-dr-noche md:rounded-[28px]">
           <div className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[16/9]">
             <Image src={RESIDENCIAL.img} alt={RESIDENCIAL.alt} fill sizes="(max-width: 1320px) 100vw, 1320px" className="object-cover" />
-            <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(20,49,37,.96)_0%,rgba(20,49,37,.78)_45%,rgba(20,49,37,.2)_75%,rgba(20,49,37,0)_90%)] sm:bg-[linear-gradient(0deg,rgba(20,49,37,.94)_0%,rgba(20,49,37,.62)_40%,rgba(20,49,37,0)_72%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(0deg,rgb(var(--dr-noche)/.96)_0%,rgb(var(--dr-noche)/.78)_45%,rgb(var(--dr-noche)/.2)_75%,rgb(var(--dr-noche)/0)_90%)] sm:bg-[linear-gradient(0deg,rgb(var(--dr-noche)/.94)_0%,rgb(var(--dr-noche)/.62)_40%,rgb(var(--dr-noche)/0)_72%)]" />
             <span className="absolute right-4 top-4 rounded-full bg-black/35 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm">
               Imagen ilustrativa
             </span>
@@ -38,7 +38,7 @@ export default function SeccionRenders() {
               <p className="inline-flex rounded-full bg-[#B35E21] px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-white sm:text-sm">
                 Lotes residenciales
               </p>
-              <h2 className="mt-4 max-w-[18ch] text-balance text-[clamp(34px,4.8vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-[#F8F1E6]">
+              <h2 className="mt-4 max-w-[18ch] text-balance text-[clamp(34px,4.8vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-claro">
                 La calma que buscás, con la conexión que necesitás.
               </h2>
               <ul className="mt-6 flex flex-wrap gap-2">
@@ -85,7 +85,7 @@ export default function SeccionRenders() {
           </div>
         </div>
         <div>
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-acento">Lotes comerciales</p>
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-etiqueta">Lotes comerciales</p>
           <h2 className="mt-4 text-balance text-[clamp(30px,3.6vw,48px)] font-extrabold leading-[1.05] tracking-[-0.03em] text-dr-tinta">
             Con frente a Ruta 9 y dársenas de estacionamiento.
           </h2>

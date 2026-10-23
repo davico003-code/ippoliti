@@ -34,8 +34,8 @@ export function FinanciacionTarjetas() {
         const f = fin[tipo]
         return (
           <div key={tipo} className="rounded-2xl border border-white/20 bg-white/[0.06] px-5 py-5 backdrop-blur-sm sm:px-6">
-            <p className="text-sm font-semibold text-[#E2B872]">Lotes {nombre.toLowerCase()}</p>
-            <p className="mt-2 text-2xl font-extrabold tracking-[-0.03em] text-[#F8F1E6] [font-variant-numeric:tabular-nums] sm:text-[28px]">
+            <p className="text-sm font-semibold text-dr-oro">Lotes {nombre.toLowerCase()}</p>
+            <p className="mt-2 text-2xl font-extrabold tracking-[-0.03em] text-dr-claro [font-variant-numeric:tabular-nums] sm:text-[28px]">
               {f.anticipoPct}&nbsp;% + {f.cuotas}&nbsp;cuotas
             </p>
             <p className="mt-1 text-sm text-white/70">Cuotas fijas en dólares</p>

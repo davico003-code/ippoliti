@@ -47,8 +47,8 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
 
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="max-w-3xl">
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#E2B872]">Masterplan interactivo</p>
-            <h2 className="mt-5 text-balance text-[clamp(36px,5vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-[#F8F1E6]">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-oro">Masterplan interactivo</p>
+            <h2 className="mt-5 text-balance text-[clamp(36px,5vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-claro">
               Elegí tu lote. Cada uno, con su cuenta.
             </h2>
             <p className="mt-6 max-w-[58ch] text-base leading-7 text-white/75 md:text-lg md:leading-8">

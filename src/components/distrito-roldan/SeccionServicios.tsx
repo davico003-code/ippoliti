@@ -22,7 +22,7 @@ export default function SeccionServicios() {
   return (
     <section className="bg-dr-fondo-alt py-20 md:py-32">
       <div className="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[.95fr_1.05fr] lg:items-center lg:gap-20 lg:px-8">
-        <div className="relative aspect-[4/5] overflow-hidden bg-[#143125] md:mx-6 md:rounded-[28px] lg:mx-0">
+        <div className="relative aspect-[4/5] overflow-hidden bg-dr-noche md:mx-6 md:rounded-[28px] lg:mx-0">
           <Image
             src="/images/distrito-roldan/luces-2027-ilustrativa.webp"
             alt="Distrito Roldán terminado al anochecer, desde el aire: calles pavimentadas con las luminarias encendidas y los lotes listos para construir. Imagen ilustrativa"
@@ -36,7 +36,7 @@ export default function SeccionServicios() {
         </div>
 
         <div className="px-6 lg:px-0">
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-acento">Infraestructura</p>
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-etiqueta">Infraestructura</p>
           <h2 className="mt-5 max-w-[14ch] text-balance text-[clamp(36px,4.8vw,64px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-tinta">
             Todo resuelto. Y sin expensas.
           </h2>

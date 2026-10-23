@@ -64,7 +64,7 @@ export default function SeccionLaCuenta() {
       <div className="relative mx-auto max-w-[1320px]">
         <div className="grid gap-12 lg:grid-cols-[1fr_minmax(0,540px)] lg:items-center lg:gap-20">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-acento">Hacé la cuenta</p>
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-etiqueta">Hacé la cuenta</p>
             <h2 className="mt-5 max-w-[16ch] text-balance text-[clamp(38px,5.4vw,76px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-tinta">
               Entrás con el {fin.anticipoPct}&nbsp;%. Lo demás, en {fin.cuotas} cuotas fijas en dólares.
             </h2>
@@ -77,7 +77,7 @@ export default function SeccionLaCuenta() {
           {/* El ticket: un lote real del plano, con sus tres números. */}
           <div className="rounded-[32px] bg-dr-superficie p-7 shadow-[0_40px_90px_-40px_rgba(52,85,68,.55)] ring-1 ring-dr-tinta/[0.08] sm:p-10">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-dashed border-dr-tinta/25 pb-5">
-              <p className="text-sm font-bold text-dr-acento">
+              <p className="text-sm font-bold text-dr-etiqueta">
                 {sinMontos ? 'Lotes residenciales' : `Ejemplo · lote de ${tipico?.sup ? `${num(tipico.sup)} m²` : 'tipo'}`}
               </p>
               {!sinMontos && (

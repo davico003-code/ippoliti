@@ -12,7 +12,7 @@ export default function SeccionObra() {
       <div className="mx-auto max-w-[1320px] px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[1.1fr_.9fr] lg:items-end lg:gap-16">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-acento">La obra</p>
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-etiqueta">La obra</p>
             <h2 className="mt-5 text-balance text-[clamp(38px,5.4vw,76px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-tinta">
               Así está hoy. Así va a estar en agosto de 2027.
             </h2>

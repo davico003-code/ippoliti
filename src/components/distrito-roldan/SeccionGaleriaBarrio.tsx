@@ -26,7 +26,7 @@ export default function SeccionGaleriaBarrio({ fotos: todas, proyecto }: Props) 
       <div className="mx-auto max-w-[1180px]">
         <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
           <div>
-            <p className="text-sm font-semibold text-dr-acento">Fotos del barrio</p>
+            <p className="text-sm font-semibold text-dr-etiqueta">Fotos del barrio</p>
             <h2 className="mt-4 text-balance text-[clamp(36px,4.8vw,60px)] font-bold leading-[1.04] tracking-[-0.03em] text-dr-tinta">
               Obras en marcha.
             </h2>

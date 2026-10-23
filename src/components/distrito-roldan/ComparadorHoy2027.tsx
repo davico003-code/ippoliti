@@ -91,7 +91,7 @@ export default function ComparadorHoy2027() {
         />
       </div>
 
-      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-[#143125]/75 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md sm:left-5 sm:top-5 sm:text-sm">
+      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-dr-noche/75 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md sm:left-5 sm:top-5 sm:text-sm">
         {COMPARADOR.hoy.rotulo}
       </span>
       <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-[#B35E21]/90 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md sm:right-5 sm:top-5 sm:text-sm">

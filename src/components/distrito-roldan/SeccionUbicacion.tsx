@@ -7,7 +7,7 @@ export default function SeccionUbicacion() {
       <div className="mx-auto max-w-[1320px] lg:px-2">
         <div className="mb-12 grid gap-5 lg:grid-cols-[1.2fr_.8fr] lg:items-end">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-acento">Ubicación</p>
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-etiqueta">Ubicación</p>
             <h2 className="mt-5 max-w-[17ch] text-balance text-[clamp(36px,5vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-tinta">
               Sobre Ruta 9, a {DESTINOS.funes.min} minutos de Funes.
             </h2>
