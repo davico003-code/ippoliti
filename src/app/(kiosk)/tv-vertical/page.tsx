@@ -1,14 +1,14 @@
-// Página /tv-vertical — kiosco "vidriera viva" para un televisor PARADO (portrait).
-// Trae la secuencia curada (casas caras de Funes, lotes de barrios privados, las 2
-// de Roldán) con ganchos + placas institucionales, y el cliente la cicla rotando
-// 90° a pantalla completa.
+// Página /tv-vertical — la misma pantalla que /tv para un televisor PARADO:
+// mismas propiedades y mismo diseño, con la foto arriba y los datos abajo. El
+// televisor sigue mandando la imagen acostada, así que la página se gira 90°
+// (botón "Girar" si quedó para el otro lado). Ver TvKioskClient.
 
-import { getVitrina } from '../tvVitrina'
-import TvVerticalClient from './TvVerticalClient'
+import { getSlides } from '../tvData'
+import TvKioskClient from '../tv/TvKioskClient'
 
 export const revalidate = 1800
 
 export default async function TvVerticalPage() {
-  const cards = await getVitrina()
-  return <TvVerticalClient cards={cards} />
+  const slides = await getSlides()
+  return <TvKioskClient slides={slides} vertical />
 }
