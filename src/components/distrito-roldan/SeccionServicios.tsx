@@ -20,9 +20,9 @@ const ITEMS = [
 
 export default function SeccionServicios() {
   return (
-    <section className="bg-white py-20 md:py-32">
+    <section className="bg-dr-fondo-alt py-20 md:py-32">
       <div className="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[.95fr_1.05fr] lg:items-center lg:gap-20 lg:px-8">
-        <div className="relative aspect-[4/5] overflow-hidden bg-[#143125] md:mx-6 md:rounded-[28px] lg:mx-0">
+        <div className="relative aspect-[4/5] overflow-hidden bg-dr-noche md:mx-6 md:rounded-[28px] lg:mx-0">
           <Image
             src="/images/distrito-roldan/luces-2027-ilustrativa.webp"
             alt="Distrito Roldán terminado al anochecer, desde el aire: calles pavimentadas con las luminarias encendidas y los lotes listos para construir. Imagen ilustrativa"
@@ -36,23 +36,23 @@ export default function SeccionServicios() {
         </div>
 
         <div className="px-6 lg:px-0">
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#B35E21]">Infraestructura</p>
-          <h2 className="mt-5 max-w-[14ch] text-balance text-[clamp(36px,4.8vw,64px)] font-extrabold leading-[1] tracking-[-0.035em] text-[#345544]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-etiqueta">Infraestructura</p>
+          <h2 className="mt-5 max-w-[14ch] text-balance text-[clamp(36px,4.8vw,64px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-tinta">
             Todo resuelto. Y sin expensas.
           </h2>
           <ul className="mt-10 grid gap-x-8 sm:grid-cols-2">
             {ITEMS.map(({ Icon, titulo, desc }, i) => (
-              <li key={titulo} className={`flex gap-4 border-t border-[#345544]/[0.12] py-5 ${i === 0 ? 'sm:col-span-2' : ''}`}>
+              <li key={titulo} className={`flex gap-4 border-t border-dr-tinta/[0.12] py-5 ${i === 0 ? 'sm:col-span-2' : ''}`}>
                 <span
                   className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
-                    i === 0 ? 'bg-[#B35E21] text-white' : 'bg-[#F8F1E6] text-[#B35E21]'
+                    i === 0 ? 'bg-[#B35E21] text-white' : 'bg-dr-fondo text-dr-acento'
                   }`}
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
                 </span>
                 <div>
-                  <h3 className={`font-bold text-[#345544] ${i === 0 ? 'text-xl' : 'text-base'}`}>{titulo}</h3>
-                  <p className="mt-1 text-sm leading-6 text-[#345544]/70">{desc}</p>
+                  <h3 className={`font-bold text-dr-tinta ${i === 0 ? 'text-xl' : 'text-base'}`}>{titulo}</h3>
+                  <p className="mt-1 text-sm leading-6 text-dr-tinta/70">{desc}</p>
                 </div>
               </li>
             ))}

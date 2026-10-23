@@ -43,7 +43,7 @@ export default function GaleriaBarrio({ fotos, proyecto }: Props) {
               setAbierto(true)
             }}
             aria-label={`Ampliar la foto ${i + 1} de ${fotos.length}`}
-            className="group relative aspect-[4/3] h-[240px] flex-none snap-start overflow-hidden bg-[#345544]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B35E21] focus-visible:ring-offset-4 sm:h-[300px] md:h-[360px]"
+            className="group relative aspect-[4/3] h-[240px] flex-none snap-start overflow-hidden bg-dr-tinta/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B35E21] focus-visible:ring-offset-4 sm:h-[300px] md:h-[360px]"
           >
             <Image
               src={src}
@@ -52,7 +52,7 @@ export default function GaleriaBarrio({ fotos, proyecto }: Props) {
               sizes="(max-width: 640px) 85vw, (max-width: 1024px) 55vw, 480px"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] motion-reduce:transition-none"
             />
-            <span className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F8F1E6] text-[#345544] opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+            <span className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-dr-crema text-dr-verde opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
               <Expand className="h-4 w-4" aria-hidden />
             </span>
           </button>

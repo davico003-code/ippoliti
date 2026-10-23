@@ -519,6 +519,40 @@ body.dr-hoja-abierta [data-fab-whatsapp] {
   pointer-events: none;
 }
 
+/* Distrito Roldán (23-oct-2026): paleta propia con modo claro y oscuro. Los
+   componentes usan las clases dr-* de Tailwind (tailwind.config.ts), que leen
+   estas variables, y NO las clases que el modo oscuro general pisa (.bg-white,
+   text-[#345544]…): antes quedaba mezclado crema, gris carbón y verde menta.
+   De noche (David: "no hace falta utilizar tantos colores, usá más el
+   negro"): negro, blanco y grises, y un solo acento —el terracota— en botones
+   y números clave. Las etiquetas y el dorado pasan a gris. RGB sin coma por la
+   opacidad. */
+.dr-tema {
+  --dr-fondo: 248 241 230;      /* #F8F1E6 crema */
+  --dr-fondo-alt: 255 255 255;
+  --dr-superficie: 255 255 255;
+  --dr-tinta: 52 85 68;         /* #345544 */
+  --dr-acento: 179 94 33;       /* #B35E21 terracota */
+  --dr-etiqueta: 179 94 33;     /* etiquetas sobre fondo claro */
+  --dr-bosque: 52 85 68;        /* secciones verdes de marca */
+  --dr-noche: 20 49 37;         /* #143125 hero, cierre, velos de fotos */
+  --dr-oro: 226 184 114;        /* #E2B872 etiquetas sobre verde */
+  --dr-claro: 248 241 230;      /* textos sobre fondos oscuros y fotos */
+  background-color: rgb(var(--dr-fondo));
+}
+html[data-theme='dark'] .dr-tema {
+  --dr-fondo: 0 0 0;
+  --dr-fondo-alt: 10 10 10;
+  --dr-superficie: 24 24 24;
+  --dr-tinta: 245 245 245;
+  --dr-acento: 232 132 72;      /* #E88448: el terracota, con luz para el negro */
+  --dr-etiqueta: 150 150 150;
+  --dr-bosque: 14 14 14;
+  --dr-noche: 0 0 0;
+  --dr-oro: 150 150 150;
+  --dr-claro: 245 245 245;
+}
+
 /* Distrito Roldán (22-oct-2026): la foto del hero se acerca muy lento, como un
    drone que avanza. Una sola vez (no loop) y nada con movimiento reducido. */
 @media (prefers-reduced-motion: no-preference) {

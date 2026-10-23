@@ -8,16 +8,16 @@ import { AVANCES_MES } from './avancesObra'
 
 export default function SeccionObra() {
   return (
-    <section id="avances" className="bg-white py-20 md:py-32">
+    <section id="avances" className="bg-dr-fondo-alt py-20 md:py-32">
       <div className="mx-auto max-w-[1320px] px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[1.1fr_.9fr] lg:items-end lg:gap-16">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#B35E21]">La obra</p>
-            <h2 className="mt-5 text-balance text-[clamp(38px,5.4vw,76px)] font-extrabold leading-[1] tracking-[-0.035em] text-[#345544]">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-etiqueta">La obra</p>
+            <h2 className="mt-5 text-balance text-[clamp(38px,5.4vw,76px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-tinta">
               Así está hoy. Así va a estar en agosto de 2027.
             </h2>
           </div>
-          <p className="max-w-[48ch] text-pretty text-lg leading-8 text-[#345544]/80">
+          <p className="max-w-[48ch] text-pretty text-lg leading-8 text-dr-tinta/80">
             Es la misma toma desde el drone. Arrastrá la barra: de un lado, la obra de {AVANCES_MES.mes.toLowerCase()}; del otro, el
             barrio con las calles, las luces y los árboles terminados.
           </p>
@@ -30,9 +30,9 @@ export default function SeccionObra() {
       </div>
 
       <div className="mx-auto mt-20 max-w-[1320px] px-6 lg:px-8">
-        <div className="mb-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-[#345544]/20 pt-6">
-          <h3 className="text-2xl font-bold tracking-[-0.02em] text-[#345544] md:text-3xl">Ya entraron las máquinas</h3>
-          <p className="max-w-[60ch] text-sm leading-6 text-[#345544]/70 md:text-base">
+        <div className="mb-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-dr-tinta/20 pt-6">
+          <h3 className="text-2xl font-bold tracking-[-0.02em] text-dr-tinta md:text-3xl">Ya entraron las máquinas</h3>
+          <p className="max-w-[60ch] text-sm leading-6 text-dr-tinta/70 md:text-base">
             {AVANCES_MES.mes} · {AVANCES_MES.descripcion}
           </p>
         </div>

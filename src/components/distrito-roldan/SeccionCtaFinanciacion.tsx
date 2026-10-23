@@ -14,11 +14,11 @@ import { FinanciacionTarjetas } from './FinanciacionLineas'
 
 export default function SeccionCtaFinanciacion() {
   return (
-    <section data-sin-fab className="relative isolate overflow-hidden bg-[#143125] text-white">
+    <section data-sin-fab className="relative isolate overflow-hidden bg-dr-noche text-white">
       <div className="grid lg:grid-cols-[1.05fr_.95fr]">
         <div className="relative order-2 px-6 py-16 sm:px-10 md:py-24 lg:order-1 lg:px-14 lg:py-28 xl:pl-[max(3.5rem,calc((100vw-1320px)/2+2rem))]">
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#E2B872]">Financiación propia</p>
-          <h2 className="mt-5 max-w-[16ch] text-balance text-[clamp(36px,5vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-[#F8F1E6]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-oro">Financiación propia</p>
+          <h2 className="mt-5 max-w-[16ch] text-balance text-[clamp(36px,5vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-claro">
             El que espera a verlo terminado, llega tarde.
           </h2>
           <p className="mt-6 max-w-[54ch] text-lg leading-8 text-white/75">
@@ -68,7 +68,7 @@ export default function SeccionCtaFinanciacion() {
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-[50%_40%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#143125] via-transparent to-transparent lg:bg-gradient-to-r" />
+          <div className="absolute inset-0 bg-gradient-to-t from-dr-noche via-transparent to-transparent lg:bg-gradient-to-r" />
           <span className="absolute right-4 top-4 rounded-full bg-black/35 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm">
             Imagen ilustrativa
           </span>

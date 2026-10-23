@@ -33,7 +33,7 @@ export default function GaleriaObra() {
               setAbierto(true)
             }}
             aria-label={`Ampliar: ${foto.alt}`}
-            className={`group relative overflow-hidden bg-[#345544]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B35E21] focus-visible:ring-offset-4 md:row-span-2 md:aspect-auto md:rounded-2xl ${
+            className={`group relative overflow-hidden bg-dr-tinta/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B35E21] focus-visible:ring-offset-4 md:row-span-2 md:aspect-auto md:rounded-2xl ${
               foto.aspect === '3/2' ? 'col-span-2 aspect-[3/2] md:col-span-4' : 'col-span-1 aspect-[2/3] md:col-span-2'
             }`}
           >
@@ -44,7 +44,7 @@ export default function GaleriaObra() {
               sizes={foto.aspect === '3/2' ? '(max-width: 768px) 100vw, 880px' : '(max-width: 768px) 50vw, 440px'}
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none"
             />
-            <span className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F8F1E6] text-[#345544] opacity-90 shadow-sm transition-opacity group-hover:opacity-100">
+            <span className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-dr-crema text-dr-verde opacity-90 shadow-sm transition-opacity group-hover:opacity-100">
               <Expand className="h-4 w-4" aria-hidden />
             </span>
           </button>

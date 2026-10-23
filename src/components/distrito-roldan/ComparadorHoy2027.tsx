@@ -61,7 +61,7 @@ export default function ComparadorHoy2027() {
   return (
     <div
       ref={caja}
-      className="relative aspect-square w-full cursor-ew-resize select-none overflow-hidden bg-[#345544] [touch-action:pan-y] sm:aspect-[3/2] md:rounded-[28px]"
+      className="relative aspect-square w-full cursor-ew-resize select-none overflow-hidden bg-dr-verde [touch-action:pan-y] sm:aspect-[3/2] md:rounded-[28px]"
       onPointerDown={(e) => {
         tocado.current = true
         arrastrando.current = true
@@ -91,7 +91,7 @@ export default function ComparadorHoy2027() {
         />
       </div>
 
-      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-[#143125]/75 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md sm:left-5 sm:top-5 sm:text-sm">
+      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-dr-noche/75 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md sm:left-5 sm:top-5 sm:text-sm">
         {COMPARADOR.hoy.rotulo}
       </span>
       <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-[#B35E21]/90 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md sm:right-5 sm:top-5 sm:text-sm">
@@ -99,7 +99,7 @@ export default function ComparadorHoy2027() {
       </span>
 
       {/* La barra y su manija. */}
-      <div className="pointer-events-none absolute inset-y-0 w-[3px] -translate-x-1/2 bg-white shadow-[0_0_18px_rgba(0,0,0,.35)]" style={{ left: `${pos}%` }} />
+      <div className="pointer-events-none absolute inset-y-0 w-[3px] -translate-x-1/2 bg-dr-crema shadow-[0_0_18px_rgba(0,0,0,.35)]" style={{ left: `${pos}%` }} />
       <div
         role="slider"
         tabIndex={0}
@@ -118,7 +118,7 @@ export default function ComparadorHoy2027() {
           tocado.current = true
           e.preventDefault()
         }}
-        className="absolute top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#345544] shadow-[0_8px_30px_rgba(0,0,0,.35)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B35E21]"
+        className="absolute top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-dr-crema text-dr-verde shadow-[0_8px_30px_rgba(0,0,0,.35)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B35E21]"
         style={{ left: `${pos}%` }}
       >
         <ChevronsLeftRight className="h-6 w-6" aria-hidden />

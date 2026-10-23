@@ -22,16 +22,16 @@ export default function SeccionGaleriaBarrio({ fotos: todas, proyecto }: Props) 
   if (!fotos.length) return null
 
   return (
-    <section id="fotos-barrio" className="bg-white px-6 py-20 md:py-28">
+    <section id="fotos-barrio" className="bg-dr-fondo-alt px-6 py-20 md:py-28">
       <div className="mx-auto max-w-[1180px]">
         <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
           <div>
-            <p className="text-sm font-semibold text-[#B35E21]">Fotos del barrio</p>
-            <h2 className="mt-4 text-balance text-[clamp(36px,4.8vw,60px)] font-bold leading-[1.04] tracking-[-0.03em] text-[#345544]">
+            <p className="text-sm font-semibold text-dr-etiqueta">Fotos del barrio</p>
+            <h2 className="mt-4 text-balance text-[clamp(36px,4.8vw,60px)] font-bold leading-[1.04] tracking-[-0.03em] text-dr-tinta">
               Obras en marcha.
             </h2>
           </div>
-          <p className="max-w-[62ch] text-pretty text-[15px] leading-7 text-[#345544] lg:justify-self-end">
+          <p className="max-w-[62ch] text-pretty text-[15px] leading-7 text-dr-tinta lg:justify-self-end">
             Imágenes reales del predio y su entorno: el trazado de las calles, los lotes ya
             demarcados y la relación del barrio con Roldán. Deslizá para recorrerlas y tocá
             cualquiera para verla en grande.

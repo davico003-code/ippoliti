@@ -301,7 +301,7 @@ export default async function DevelopmentPage({ params }: Props) {
   // botón que abre el sitio dedicado.
   // Distrito Roldán (67178): rediseño con secciones de marca.
   return (
-    <div className={`min-h-screen bg-gray-50 ${isDistrito ? distritoFontVars : ''}`}>
+    <div className={`min-h-screen ${isDistrito ? `dr-tema ${distritoFontVars}` : 'bg-gray-50'}`}>
       {/* Con el Navbar global oculto en Distrito, este acceso mantiene una salida
           clara hacia el listado de emprendimientos. */}
       {isDistrito && <BotonVolver />}

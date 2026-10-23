@@ -45,11 +45,11 @@ export default function VendidosMosaico() {
   return (
     <div ref={ref} className="mb-16 grid gap-10 border-b border-white/[0.15] pb-16 lg:grid-cols-[.75fr_1.25fr] lg:items-center lg:gap-16">
       <div>
-        <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#E2B872]">Así va la venta</p>
-        <p className="mt-4 text-[clamp(72px,10vw,140px)] font-extrabold leading-[0.85] tracking-[-0.05em] text-[#F8F1E6] [font-variant-numeric:tabular-nums]">
+        <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-oro">Así va la venta</p>
+        <p className="mt-4 text-[clamp(72px,10vw,140px)] font-extrabold leading-[0.85] tracking-[-0.05em] text-dr-claro [font-variant-numeric:tabular-nums]">
           {plano.vendidos}
         </p>
-        <p className="mt-4 text-2xl font-bold tracking-[-0.02em] text-[#F8F1E6]">lotes ya tienen dueño.</p>
+        <p className="mt-4 text-2xl font-bold tracking-[-0.02em] text-dr-claro">lotes ya tienen dueño.</p>
         <p className="mt-3 max-w-[40ch] text-pretty text-base leading-7 text-white/70">
           El barrio con mayor proyección de Roldán no te va a esperar.
         </p>

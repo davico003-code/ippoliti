@@ -25,12 +25,12 @@ export default function SeccionRenders() {
   return (
     // id="barrio": destino de "El barrio" en el menú del hero. Vive acá y no en
     // la galería de fotos, que se oculta cuando no hay fotos reales nuevas.
-    <section id="barrio" className="bg-[#F8F1E6] py-20 md:py-32">
+    <section id="barrio" className="bg-dr-fondo py-20 md:py-32">
       <div className="mx-auto max-w-[1320px] md:px-6 lg:px-8">
-        <div className="relative isolate overflow-hidden bg-[#143125] md:rounded-[28px]">
+        <div className="relative isolate overflow-hidden bg-dr-noche md:rounded-[28px]">
           <div className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[16/9]">
             <Image src={RESIDENCIAL.img} alt={RESIDENCIAL.alt} fill sizes="(max-width: 1320px) 100vw, 1320px" className="object-cover" />
-            <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(20,49,37,.96)_0%,rgba(20,49,37,.78)_45%,rgba(20,49,37,.2)_75%,rgba(20,49,37,0)_90%)] sm:bg-[linear-gradient(0deg,rgba(20,49,37,.94)_0%,rgba(20,49,37,.62)_40%,rgba(20,49,37,0)_72%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(0deg,rgb(var(--dr-noche)/.96)_0%,rgb(var(--dr-noche)/.78)_45%,rgb(var(--dr-noche)/.2)_75%,rgb(var(--dr-noche)/0)_90%)] sm:bg-[linear-gradient(0deg,rgb(var(--dr-noche)/.94)_0%,rgb(var(--dr-noche)/.62)_40%,rgb(var(--dr-noche)/0)_72%)]" />
             <span className="absolute right-4 top-4 rounded-full bg-black/35 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm">
               Imagen ilustrativa
             </span>
@@ -38,7 +38,7 @@ export default function SeccionRenders() {
               <p className="inline-flex rounded-full bg-[#B35E21] px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-white sm:text-sm">
                 Lotes residenciales
               </p>
-              <h2 className="mt-4 max-w-[18ch] text-balance text-[clamp(34px,4.8vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-[#F8F1E6]">
+              <h2 className="mt-4 max-w-[18ch] text-balance text-[clamp(34px,4.8vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-dr-claro">
                 La calma que buscás, con la conexión que necesitás.
               </h2>
               <ul className="mt-6 flex flex-wrap gap-2">
@@ -53,13 +53,13 @@ export default function SeccionRenders() {
         </div>
 
         <div className="mt-8 grid gap-6 px-6 md:px-0 lg:grid-cols-[1fr_auto] lg:items-center">
-          <p className="max-w-[62ch] text-pretty text-lg leading-8 text-[#345544]/80">
+          <p className="max-w-[62ch] text-pretty text-lg leading-8 text-dr-tinta/80">
             Pensados para vivir tranquilo: calles pavimentadas, forestación planificada y servicios subterráneos, en un barrio abierto y
             conectado con Roldán, Funes y Rosario.
           </p>
           <a
             href="#plano"
-            className="inline-flex min-h-12 items-center gap-2 justify-self-start rounded-full border border-[#345544]/30 px-6 text-sm font-bold text-[#345544] transition-colors hover:border-[#B35E21] hover:text-[#B35E21]"
+            className="inline-flex min-h-12 items-center gap-2 justify-self-start rounded-full border border-dr-tinta/30 px-6 text-sm font-bold text-dr-tinta transition-colors hover:border-dr-acento hover:text-dr-acento"
           >
             Ver los lotes en el masterplan
             <ArrowRight className="h-4 w-4" aria-hidden />
@@ -85,17 +85,17 @@ export default function SeccionRenders() {
           </div>
         </div>
         <div>
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#B35E21]">Lotes comerciales</p>
-          <h2 className="mt-4 text-balance text-[clamp(30px,3.6vw,48px)] font-extrabold leading-[1.05] tracking-[-0.03em] text-[#345544]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-dr-etiqueta">Lotes comerciales</p>
+          <h2 className="mt-4 text-balance text-[clamp(30px,3.6vw,48px)] font-extrabold leading-[1.05] tracking-[-0.03em] text-dr-tinta">
             Con frente a Ruta 9 y dársenas de estacionamiento.
           </h2>
-          <p className="mt-6 max-w-[52ch] text-[15px] leading-7 text-[#345544]/75">
+          <p className="mt-6 max-w-[52ch] text-[15px] leading-7 text-dr-tinta/75">
             Al frente sobre Ruta Nacional 9, ideales para locales, oficinas o desarrollos de renta. Superficie promedio de 630 m²,
             con visibilidad y tránsito asegurado en una zona en plena expansión.
           </p>
           <a
             href="#plano"
-            className="mt-7 inline-flex min-h-11 items-center border-b-2 border-[#B35E21] text-sm font-bold text-[#345544] transition-colors hover:text-[#B35E21]"
+            className="mt-7 inline-flex min-h-11 items-center border-b-2 border-dr-acento text-sm font-bold text-dr-tinta transition-colors hover:text-dr-acento"
           >
             Ver ubicación de los lotes
           </a>

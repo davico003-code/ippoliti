@@ -38,7 +38,7 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
     <section
       id="inicio"
       data-sin-fab
-      className="relative isolate flex w-full flex-col overflow-hidden bg-[#143125] [min-height:max(100svh,660px)]"
+      className="relative isolate flex w-full flex-col overflow-hidden bg-dr-noche [min-height:max(100svh,660px)]"
     >
       <div className="dr-acercar absolute inset-0">
         <picture className="absolute inset-0">
@@ -55,8 +55,8 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
       </div>
 
       {/* Arriba, para el logo y el menú; abajo, para el título y los datos. */}
-      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#143125]/70 to-transparent" />
-      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(20,49,37,.96)_0%,rgba(20,49,37,.72)_34%,rgba(20,49,37,.12)_68%,rgba(20,49,37,0)_100%)] md:bg-[linear-gradient(0deg,rgba(20,49,37,.94)_0%,rgba(20,49,37,.55)_38%,rgba(20,49,37,0)_70%)]" />
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-dr-noche/70 to-transparent" />
+      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgb(var(--dr-noche)/.96)_0%,rgb(var(--dr-noche)/.72)_34%,rgb(var(--dr-noche)/.12)_68%,rgb(var(--dr-noche)/0)_100%)] md:bg-[linear-gradient(0deg,rgb(var(--dr-noche)/.94)_0%,rgb(var(--dr-noche)/.55)_38%,rgb(var(--dr-noche)/0)_70%)]" />
 
       <div className="relative z-10 border-b border-white/[0.15]">
         <div className="mx-auto flex h-24 max-w-[1320px] items-center justify-between px-6 pl-20 sm:pl-32 lg:px-8 lg:pl-36">
@@ -85,13 +85,13 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
 
       <div className="relative z-[1] mx-auto flex w-full max-w-[1320px] flex-1 items-end px-6 pb-16 pt-10 md:pb-16 lg:px-8">
         <div className="w-full">
-          <p className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#F8F1E6]">
-            <MapPin className="h-4 w-4 text-[#BB8D3F]" aria-hidden />
+          <p className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-dr-claro">
+            <MapPin className="h-4 w-4 text-dr-oro" aria-hidden />
             Barrio abierto · Ruta 9 y María Auxiliadora, Roldán
           </p>
           {/* El nombre va dentro del H1 (oculto a la vista) para que el título
               principal de la página diga qué es. */}
-          <h1 className="max-w-[14ch] text-balance text-[clamp(42px,6vw,84px)] font-extrabold leading-[0.95] tracking-[-0.04em] text-[#F8F1E6]">
+          <h1 className="max-w-[14ch] text-balance text-[clamp(42px,6vw,84px)] font-extrabold leading-[0.95] tracking-[-0.04em] text-dr-claro">
             <span className="sr-only">{titulo}: </span>
             Tu lote en Roldán, en cuotas fijas en dólares.
           </h1>
@@ -103,7 +103,7 @@ export default function HeroAerea({ tourUrl, disponibilidadUrl, titulo, bajada }
                 key={d}
                 className="flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-[13px] font-semibold leading-tight text-white backdrop-blur-md sm:rounded-full sm:px-4 sm:text-sm"
               >
-                <Check className="h-4 w-4 shrink-0 text-[#E2B872]" strokeWidth={2.5} aria-hidden />
+                <Check className="h-4 w-4 shrink-0 text-dr-oro" strokeWidth={2.5} aria-hidden />
                 {d}
               </li>
             ))}
