@@ -19,7 +19,7 @@ const FOTO_MS = 4000
 const FUNDIDO_MS = 1600 // cruce entre fotos; el movimiento dura la foto + su salida
 const FOTOS_POR_CASA = 4
 const SLIDE_MS = FOTO_MS * FOTOS_POR_CASA
-const RELOAD_MS = 40 * 60 * 1000 // recargar cada 40 min para refrescar stock
+const RELOAD_MS = 40 * 60 * 1000 // recargar (stock nuevo) pasados 40 min, al terminar la vuelta
 
 const mod = (n: number, m: number) => ((n % m) + m) % m
 
@@ -106,11 +106,20 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
     return () => clearInterval(t)
   }, [])
 
-  // Recarga periódica para traer stock nuevo
+  // Recarga para traer stock nuevo: pasados RELOAD_MS, recién al terminar la
+  // vuelta, así ninguna casa se queda sin salir aunque la vuelta dure más (con
+  // ~130 casas son ~35 min). Sin casas (feed caído) recarga a los RELOAD_MS.
+  const inicio = useRef(0)
+  const vuelta = FOTOS_POR_CASA * slides.length
   useEffect(() => {
+    inicio.current = Date.now()
+    if (slides.length > 0) return
     const t = setTimeout(() => window.location.reload(), RELOAD_MS)
     return () => clearTimeout(t)
-  }, [])
+  }, [slides.length])
+  useEffect(() => {
+    if (paso > 0 && vuelta > 0 && paso % vuelta === 0 && Date.now() - inicio.current >= RELOAD_MS) window.location.reload()
+  }, [paso, vuelta])
 
   // El botón "Pantalla completa" se ve solo mientras la página no lo está.
   useEffect(() => {

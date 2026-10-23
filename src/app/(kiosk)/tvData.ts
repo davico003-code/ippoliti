@@ -1,8 +1,7 @@
 // Datos de los kioscos de TV (/tv y /tv-vertical, la misma lista). Trae el stock
 // en venta, arma el "mix inteligente" (destacadas + más nuevas + variedad de
-// zonas) y devuelve slides listos con QR precomputado server-side.
+// zonas) y devuelve TODAS las que entran (sin tope: David, 22-oct-2026).
 
-import QRCode from 'qrcode'
 import {
   getProperties,
   getMainPhoto,
@@ -10,7 +9,6 @@ import {
   getRoofedArea,
   getLotSurface,
   formatPrice,
-  generatePropertySlug,
   translatePropertyType,
   type TokkoProperty,
 } from '@/lib/tokko'
@@ -19,18 +17,14 @@ import { fotoJpgDeLaWeb } from '@/lib/fotos-fijas'
 
 export interface Slide {
   photo: string          // foto de portada (kiosco horizontal)
-  photos: string[]       // hasta 3 fotos de la MISMA propiedad (kiosco vertical)
+  photos: string[]       // hasta 4 fotos de la MISMA propiedad, portada primero
   precio: string
   tipo: string
   ubicacion: string
   titulo: string
   destacada: boolean
   specs: { v: string; l: string }[]
-  qr: string
 }
-
-const SITE = 'https://siinmobiliaria.com'
-const MAX_SLIDES = 30
 
 // Qué pasa por la tele (David, 22-oct-2026): casas desde USD 250.000,
 // departamentos desde USD 125.000 y lotes desde USD 70.000. Nada más: ni PH,
@@ -107,33 +101,22 @@ export async function getSlides(): Promise<Slide[]> {
 
   const starred = props.filter((p) => p.is_starred_on_web)
   const rest = props.filter((p) => !p.is_starred_on_web).sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
-  const ordered = spreadByZone([...starred, ...rest]).slice(0, MAX_SLIDES)
-
-  return Promise.all(
-    ordered.map(async (p): Promise<Slide> => {
-      const slug = generatePropertySlug(p)
-      const url = `${SITE}/propiedades/${slug}`
-      const portada = getMainPhoto(p) as string
-      // Hasta 4 fotos de la misma propiedad (portada primero, sin duplicar):
-      // hero + tira de miniaturas en el kiosco vertical. En JPG desde /fotos:
-      // el televisor no muestra las de R2 (ver fotoJpgDeLaWeb).
-      const photos = [portada, ...getAllPhotos(p).filter((x) => x !== portada)].slice(0, 5).map((x) => fotoJpgDeLaWeb(p.id, x))
-      const photo = photos[0]
-      let qr = ''
-      try {
-        qr = await QRCode.toDataURL(url, { margin: 1, width: 220, color: { dark: '#0E1A14', light: '#FFFFFF' } })
-      } catch { /* sin QR si falla */ }
-      return {
-        photo,
-        photos,
-        precio: formatPrice(p),
-        tipo: tipoEs(p),
-        ubicacion: formatUbicacion(p),
-        titulo: p.publication_title ?? '',
-        destacada: !!p.is_starred_on_web,
-        specs: buildSpecs(p),
-        qr,
-      }
-    }),
-  )
+  // Sin tope: pasan todas las que entran (antes eran siempre las mismas 30).
+  return spreadByZone([...starred, ...rest]).map((p): Slide => {
+    const portada = getMainPhoto(p) as string
+    // Hasta 4 fotos de la misma propiedad (portada primero, sin duplicar): la
+    // foto grande + la tira de miniaturas. En JPG desde /fotos: el televisor no
+    // muestra las de R2 (ver fotoJpgDeLaWeb).
+    const photos = [portada, ...getAllPhotos(p).filter((x) => x !== portada)].slice(0, 4).map((x) => fotoJpgDeLaWeb(p.id, x))
+    return {
+      photo: photos[0],
+      photos,
+      precio: formatPrice(p),
+      tipo: tipoEs(p),
+      ubicacion: formatUbicacion(p),
+      titulo: p.publication_title ?? '',
+      destacada: !!p.is_starred_on_web,
+      specs: buildSpecs(p),
+    }
+  })
 }
