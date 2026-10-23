@@ -1,37 +1,60 @@
-import { Zap, Droplets, Flame, Construction, TreePine, Store } from 'lucide-react'
+// Servicios e infraestructura, con una imagen grande al lado (22-oct-2026):
+// la aérea del barrio terminado al anochecer, con las luminarias prendidas y
+// los lotes vacíos (imagen ilustrativa, sin casas: para construir hay que
+// terminar de pagar). "Sin expensas" va primero: lo confirmó David el 11-oct.
+
+import Image from '@/components/Imagen'
+import { Construction, Droplets, Flame, PiggyBank, Store, TreePine, Zap } from 'lucide-react'
 
 const ITEMS = [
-  { Icon: Zap, titulo: 'Red Eléctrica', desc: 'Red eléctrica e iluminación eficiente.' },
-  { Icon: Droplets, titulo: 'Agua Potable', desc: 'Red de agua potable conectada a toda la urbanización.' },
-  { Icon: Flame, titulo: 'Gas Natural', desc: 'Conexión de gas natural disponible para cada lote.' },
+  { Icon: PiggyBank, titulo: 'Sin expensas', desc: 'Es un barrio abierto: no hay expensas que pagar todos los meses.' },
+  { Icon: Zap, titulo: 'Red eléctrica', desc: 'Red eléctrica e iluminación eficiente.' },
+  { Icon: Droplets, titulo: 'Agua potable', desc: 'Red de agua potable conectada a toda la urbanización.' },
+  { Icon: Flame, titulo: 'Gas natural', desc: 'Conexión de gas natural disponible para cada lote.' },
   { Icon: Construction, titulo: 'Pavimento', desc: 'Cordón cuneta y pavimento en todas sus calles.' },
   { Icon: TreePine, titulo: 'Forestación', desc: 'Forestación planificada que aporta identidad y valor paisajístico.' },
-  { Icon: Store, titulo: 'Área Comercial', desc: 'Comercios y servicios de cercanía dentro del barrio.' },
+  { Icon: Store, titulo: 'Área comercial', desc: 'Comercios y servicios de cercanía dentro del barrio.' },
 ]
 
 export default function SeccionServicios() {
   return (
-    <section className="bg-white px-6 py-20 md:py-28">
-      <div className="mx-auto max-w-[1180px]">
-        <div className="mb-12 grid gap-6 lg:grid-cols-2 lg:items-end">
-          <h2 className="max-w-[15ch] text-balance text-[clamp(34px,4.5vw,56px)] font-bold leading-[1.05] tracking-[-0.03em] text-[#345544]">
-            Infraestructura para acompañar cada etapa.
-          </h2>
-          <p className="max-w-[52ch] text-[15px] leading-7 text-[#345544]/70 lg:justify-self-end">
-            Solidez y diseño urbano que acompaña tu estilo de vida.
-          </p>
+    <section className="bg-white py-20 md:py-32">
+      <div className="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[.95fr_1.05fr] lg:items-center lg:gap-20 lg:px-8">
+        <div className="relative aspect-[4/5] overflow-hidden bg-[#143125] md:mx-6 md:rounded-[28px] lg:mx-0">
+          <Image
+            src="/images/distrito-roldan/luces-2027-ilustrativa.webp"
+            alt="Distrito Roldán terminado al anochecer, desde el aire: calles pavimentadas con las luminarias encendidas y los lotes listos para construir. Imagen ilustrativa"
+            fill
+            sizes="(max-width: 1024px) 100vw, 600px"
+            className="object-cover"
+          />
+          <span className="absolute right-4 top-4 rounded-full bg-black/35 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm">
+            Imagen ilustrativa
+          </span>
         </div>
 
-        <div className="grid border-b border-[#345544]/[0.15] md:grid-cols-2">
-          {ITEMS.map(({ Icon, titulo, desc }) => (
-            <div key={titulo} className="flex gap-5 border-t border-[#345544]/[0.15] py-7 md:px-7 md:odd:border-r">
-              <Icon className="mt-0.5 h-7 w-7 shrink-0 text-[#B35E21]" strokeWidth={1.6} aria-hidden />
-              <div>
-                <h3 className="text-base font-semibold text-[#345544]">{titulo}</h3>
-                <p className="mt-2 max-w-[46ch] text-sm leading-6 text-[#345544]/[0.65]">{desc}</p>
-              </div>
-            </div>
-          ))}
+        <div className="px-6 lg:px-0">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#B35E21]">Infraestructura</p>
+          <h2 className="mt-5 max-w-[14ch] text-balance text-[clamp(36px,4.8vw,64px)] font-extrabold leading-[1] tracking-[-0.035em] text-[#345544]">
+            Todo resuelto. Y sin expensas.
+          </h2>
+          <ul className="mt-10 grid gap-x-8 sm:grid-cols-2">
+            {ITEMS.map(({ Icon, titulo, desc }, i) => (
+              <li key={titulo} className={`flex gap-4 border-t border-[#345544]/[0.12] py-5 ${i === 0 ? 'sm:col-span-2' : ''}`}>
+                <span
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                    i === 0 ? 'bg-[#B35E21] text-white' : 'bg-[#F8F1E6] text-[#B35E21]'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
+                </span>
+                <div>
+                  <h3 className={`font-bold text-[#345544] ${i === 0 ? 'text-xl' : 'text-base'}`}>{titulo}</h3>
+                  <p className="mt-1 text-sm leading-6 text-[#345544]/70">{desc}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>
