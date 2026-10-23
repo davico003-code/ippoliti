@@ -29,11 +29,11 @@ import type { FunnelSecciones } from '@/components/emprendimiento/Emprendimiento
 // Sitio dedicado del tour 360° de Distrito Roldán (botón del hero).
 const TOUR_360_EXTERNO = 'https://distritoroldan360.com'
 import { distritoFontVars } from '@/components/distrito-roldan/fonts'
-import SeccionIntro from '@/components/distrito-roldan/SeccionIntro'
+import SeccionLaCuenta from '@/components/distrito-roldan/SeccionLaCuenta'
 import SeccionPlanoLotes from '@/components/distrito-roldan/SeccionPlanoLotes'
 import SeccionRenders from '@/components/distrito-roldan/SeccionRenders'
 import SeccionGaleriaBarrio from '@/components/distrito-roldan/SeccionGaleriaBarrio'
-import SeccionAvancesObra from '@/components/distrito-roldan/SeccionAvancesObra'
+import SeccionObra from '@/components/distrito-roldan/SeccionObra'
 import SeccionUbicacion from '@/components/distrito-roldan/SeccionUbicacion'
 import SeccionServicios from '@/components/distrito-roldan/SeccionServicios'
 import SeccionCtaFinanciacion from '@/components/distrito-roldan/SeccionCtaFinanciacion'
@@ -320,7 +320,7 @@ export default async function DevelopmentPage({ params }: Props) {
           tourUrl={TOUR_360_EXTERNO}
           disponibilidadUrl="/distrito-roldan-precios"
           titulo="Distrito Roldán"
-          bajada="Lotes residenciales y comerciales sobre Ruta 9 y María Auxiliadora, con financiación propia y una ubicación conectada con Roldán, Funes y Rosario."
+          bajada="Lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario, con financiación propia del desarrollo."
         />
       ) : (
         <EmprendimientoFunnel
@@ -341,15 +341,17 @@ export default async function DevelopmentPage({ params }: Props) {
         />
       )}
 
-      {/* Secciones de marca de Distrito Roldán (solo 67178). */}
+      {/* Secciones de marca de Distrito Roldán (solo 67178). Orden (22-oct-2026):
+          cómo se paga → la obra hoy y en 2027 → los lotes → el plano para
+          elegir → servicios → ubicación → cierre. */}
       {isDistrito && (
         <>
-          <SeccionIntro />
+          <SeccionLaCuenta />
+          <SeccionObra />
           <SeccionRenders />
           {/* El nombre va escrito acá y no desde el CRM, que lo tiene sin tilde. */}
           <SeccionGaleriaBarrio fotos={photos} proyecto="Distrito Roldán" />
           <SeccionPlanoLotes tourUrl={TOUR_360_EXTERNO} />
-          <SeccionAvancesObra />
           <SeccionServicios />
           <SeccionUbicacion />
         </>

@@ -16,3 +16,21 @@ export const AVANCES_FOTOS: { src: string; alt: string; aspect: '3/2' | '2/3' }[
   { src: '/images/distrito-roldan/obra-6.webp', alt: 'Predio de Distrito Roldán desde el aire con camiones trabajando en septiembre de 2026', aspect: '3/2' },
   { src: '/images/distrito-roldan/obra-8.webp', alt: 'Retroexcavadora trabajando en la obra de Distrito Roldán durante septiembre de 2026', aspect: '2/3' },
 ]
+
+// Comparador "hoy / agosto 2027": la misma toma de drone dos veces. La de 2027
+// se generó con IA (Higgsfield, 22-oct-2026) A PARTIR de esta foto real, con
+// las calles, el cordón, las luminarias y los árboles terminados y SIN casas
+// (para construir hay que terminar de pagar el lote). Si cambia la foto de
+// "hoy", hay que regenerar la de 2027 desde la nueva para que calcen.
+export const COMPARADOR = {
+  hoy: {
+    src: '/images/distrito-roldan/obra-5.webp',
+    alt: 'Distrito Roldán hoy, desde el drone: las calles trazadas en tierra y el movimiento de suelo',
+    rotulo: 'Hoy · foto real',
+  },
+  despues: {
+    src: '/images/distrito-roldan/obra-2027-ilustrativa.webp',
+    alt: 'Distrito Roldán en agosto de 2027, desde la misma toma: calles pavimentadas, luminarias y árboles, con los lotes listos para construir. Imagen ilustrativa',
+    rotulo: 'Agosto 2027 · imagen ilustrativa',
+  },
+}

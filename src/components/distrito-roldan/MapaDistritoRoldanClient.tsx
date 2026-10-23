@@ -11,21 +11,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { Building2, TreePine, MapPin } from 'lucide-react'
 import { LIGHT_TILES } from '@/lib/map-tiles'
+// km/min son manuales (los reales), no se derivan de OSRM. La geometría de la
+// ruta se pide a OSRM en runtime y se cachea.
+import { DESTINOS, type DestKey } from './destinos'
 
 const MONTSERRAT = 'var(--font-montserrat), Montserrat, sans-serif'
 
 // Coordenadas exactas (verificadas en Google Maps).
 const DISTRITO: [number, number] = [-32.9098725, -60.8876773]
-
-type DestKey = 'rosario' | 'funes' | 'roldan'
-
-// km/min son manuales (los reales), no se derivan de OSRM. La geometría de la
-// ruta se pide a OSRM en runtime y se cachea.
-const DESTINOS: Record<DestKey, { nombre: string; coords: [number, number]; km: number; min: number }> = {
-  roldan: { nombre: 'Centro de Roldán', coords: [-32.899, -60.902], km: 3, min: 2 },
-  funes: { nombre: 'Funes', coords: [-32.9168, -60.8092], km: 10, min: 12 },
-  rosario: { nombre: 'Rosario centro', coords: [-32.9468, -60.6396], km: 20, min: 25 },
-}
 
 // Waypoints de fallback (si OSRM falla / timeout).
 const FALLBACK_ROUTES: Record<DestKey, [number, number][]> = {

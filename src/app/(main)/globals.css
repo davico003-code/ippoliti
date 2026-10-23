@@ -519,6 +519,19 @@ body.dr-hoja-abierta [data-fab-whatsapp] {
   pointer-events: none;
 }
 
+/* Distrito Roldán (22-oct-2026): la foto del hero se acerca muy lento, como un
+   drone que avanza. Una sola vez (no loop) y nada con movimiento reducido. */
+@media (prefers-reduced-motion: no-preference) {
+  .dr-acercar {
+    animation: drAcercar 22s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    transform-origin: 50% 60%;
+  }
+}
+@keyframes drAcercar {
+  from { transform: scale(1.1); }
+  to { transform: scale(1); }
+}
+
 /* ─── Home: lenguaje común ───────────────────────────────────────────────
    Aparición al scrollear hecha SOLO con CSS (scroll-driven animations):
    sin JavaScript, sin costo de carga y con el contenido siempre en el HTML.

@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { ArrowUpRight, Compass } from 'lucide-react'
+import VendidosMosaico from './VendidosMosaico'
 
 const SRC = '/planos/distrito-roldan.html'
 
@@ -40,18 +41,19 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
   }, [])
 
   return (
-    <section id="plano" data-sin-fab className="bg-[#345544] px-4 py-20 text-white sm:px-6 md:py-28">
-      <div className="mx-auto max-w-[1180px]">
+    <section id="plano" data-sin-fab className="bg-[#345544] px-4 py-20 text-white sm:px-6 md:py-32">
+      <div className="mx-auto max-w-[1320px] lg:px-2">
+        <VendidosMosaico />
+
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div className="max-w-2xl">
-            <p className="text-sm font-semibold text-[#BB8D3F]">Masterplan interactivo</p>
-            <h2 className="mt-4 text-balance text-[clamp(34px,4.5vw,58px)] font-bold leading-[1.04] tracking-[-0.03em] text-[#F8F1E6]">
-              Encontrá el lote que mejor se adapta a vos.
+          <div className="max-w-3xl">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#E2B872]">Masterplan interactivo</p>
+            <h2 className="mt-5 text-balance text-[clamp(36px,5vw,68px)] font-extrabold leading-[1] tracking-[-0.035em] text-[#F8F1E6]">
+              Elegí tu lote. Cada uno, con su cuenta.
             </h2>
-            <p className="mt-6 max-w-[62ch] text-[15px] leading-7 text-white/75">
-              Prendé los filtros para ver qué lotes están disponibles, cuáles no y cuáles ya se vendieron.
-              Pasá el mouse por cualquiera para conocer frente, fondo, superficie y precio, y tocalo para
-              ver la cuota y consultarlo: te escribe el equipo por WhatsApp.
+            <p className="mt-6 max-w-[58ch] text-base leading-7 text-white/75 md:text-lg md:leading-8">
+              Tocá cualquier lote para ver frente, fondo, superficie, precio, entrega y cuota. Si te gusta, pedilo desde ahí:
+              te escribe el equipo por WhatsApp.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
@@ -78,7 +80,7 @@ export default function SeccionPlanoLotes({ tourUrl }: { tourUrl?: string }) {
           </div>
         </div>
 
-        <div className="mt-10 overflow-hidden border border-white/20 bg-[#F4F5F3] p-1 sm:p-2">
+        <div className="mt-10 overflow-hidden rounded-[20px] border border-white/20 bg-[#F4F5F3] p-1 sm:p-2">
           <iframe
             src={SRC}
             title="Plano interactivo de lotes — Distrito Roldán"
