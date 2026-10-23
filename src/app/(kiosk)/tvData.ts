@@ -1,6 +1,7 @@
 // Datos de los kioscos de TV (/tv y /tv-vertical, la misma lista). Trae el stock
 // en venta, arma el "mix inteligente" (destacadas + más nuevas + variedad de
-// zonas) y devuelve TODAS las que entran (sin tope: David, 22-oct-2026).
+// zonas) y devuelve TODAS las que entran (sin tope: David, 22-oct-2026), con un
+// emprendimiento "de presentación" cada PROPIEDADES_POR_EMPRENDIMIENTO.
 
 import {
   getProperties,
@@ -14,10 +15,15 @@ import {
 } from '@/lib/tokko'
 import { formatUbicacion, resolverUbicacion } from '@/lib/ubicacion'
 import { fotoJpgDeLaWeb } from '@/lib/fotos-fijas'
+import { getTarjetasEmprendimientos } from '@/lib/emprendimientos-tarjetas'
 
-export interface Slide {
-  photo: string          // foto de portada (kiosco horizontal)
-  photos: string[]       // hasta 4 fotos de la MISMA propiedad, portada primero
+interface SlideBase {
+  photo: string          // foto de portada
+  photos: string[]       // hasta 4 fotos de la MISMA propiedad/emprendimiento, portada primero
+}
+
+export interface SlidePropiedad extends SlideBase {
+  kind: 'propiedad'
   precio: string
   tipo: string
   ubicacion: string
@@ -25,6 +31,27 @@ export interface Slide {
   destacada: boolean
   specs: { v: string; l: string }[]
 }
+
+// Presentación especial de un emprendimiento (David, 22-oct-2026: "mechar con
+// los desarrollos que tenemos, para destacar"). Sale de la misma lista que
+// /emprendimientos (lib/emprendimientos-tarjetas.ts).
+export interface SlideEmprendimiento extends SlideBase {
+  kind: 'emprendimiento'
+  nombre: string
+  bajada: string | null
+  ubicacion: string | null
+  descripcion: string | null
+  chips: string[]
+  marcas: { rol: string; nombre: string; logo: string | null; mostrarNombre: boolean }[]
+}
+
+export type Slide = SlidePropiedad | SlideEmprendimiento
+
+const PROPIEDADES_POR_EMPRENDIMIENTO = 6
+// Las unidades de un mismo emprendimiento se ven todas iguales (David,
+// 22-oct-2026: "no muestres tantos departamentos de Tierra Nueva"): pasan las 2
+// primeras (destacadas y más nuevas) y el emprendimiento tiene su presentación.
+const MAX_UNIDADES_POR_EMPRENDIMIENTO = 2
 
 // Qué pasa por la tele (David, 22-oct-2026): casas desde USD 250.000,
 // departamentos desde USD 125.000 y lotes desde USD 70.000. Nada más: ni PH,
@@ -65,6 +92,59 @@ function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {
 // Reordena para no repetir ciudad en slides consecutivos (variedad de zonas).
 // Por ciudad y no por "barrio, ciudad": si no, "Funes" → "Funes Lakes, Funes"
 // contaban como zonas distintas y la TV encadenaba Funes tras Funes.
+// De qué emprendimiento es una unidad: el del feed, o Tierra Nueva (los Condos
+// 22-24 no traen emprendimiento en el feed; los delata el barrio).
+function emprendimientoDe(p: TokkoProperty): string | null {
+  if (p.development?.id) return `dev-${p.development.id}`
+  const barrio = (p.location?.name ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  return barrio.includes('tierra nueva') ? 'tierra-nueva' : null
+}
+
+function sinRepetirEmprendimiento(list: TokkoProperty[]): TokkoProperty[] {
+  const vistas = new Map<string, number>()
+  return list.filter((p) => {
+    const emp = emprendimientoDe(p)
+    if (!emp) return true
+    const n = vistas.get(emp) ?? 0
+    vistas.set(emp, n + 1)
+    return n < MAX_UNIDADES_POR_EMPRENDIMIENTO
+  })
+}
+
+// Texto plano y corto para la tele: la primera oración entera (la descripción
+// de las tarjetas puede traer HTML); si es muy larga, cortada en una palabra.
+function recortar(texto: string | undefined, max: number): string | null {
+  const limpio = (texto ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').replace(/…$/, '').trim()
+  if (!limpio) return null
+  const oracion = limpio.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? limpio
+  if (oracion.length <= max) return oracion
+  return `${oracion.slice(0, oracion.lastIndexOf(' ', max)).replace(/[,;:.]$/, '')}…`
+}
+
+async function getEmprendimientos(): Promise<SlideEmprendimiento[]> {
+  let tarjetas: Awaited<ReturnType<typeof getTarjetasEmprendimientos>> = []
+  try {
+    tarjetas = await getTarjetasEmprendimientos()
+  } catch {
+    return []
+  }
+  return tarjetas.flatMap((t): SlideEmprendimiento[] => {
+    const photos = (t.fotos?.length ? t.fotos : [t.image]).filter((x): x is string => !!x).slice(0, 4)
+    if (!photos.length) return []
+    return [{
+      kind: 'emprendimiento',
+      photo: photos[0],
+      photos,
+      nombre: t.title,
+      bajada: t.eyebrow ?? null,
+      ubicacion: t.location ?? null,
+      descripcion: recortar(t.description, 170),
+      chips: t.chips.slice(0, 3),
+      marcas: (t.marcas ?? []).map((m) => ({ rol: m.rol, nombre: m.nombre, logo: m.logo?.src ?? null, mostrarNombre: !!m.mostrarNombre })),
+    }]
+  })
+}
+
 function spreadByZone(list: TokkoProperty[]): TokkoProperty[] {
   const out: TokkoProperty[] = []
   const pool = [...list]
@@ -82,11 +162,12 @@ function spreadByZone(list: TokkoProperty[]): TokkoProperty[] {
 
 export async function getSlides(): Promise<Slide[]> {
   let objects: TokkoProperty[] = []
+  const emprendimientos = getEmprendimientos()
   try {
     const resp = await getProperties({ operation: 'Sale', limit: 500 })
     objects = resp.objects ?? []
   } catch {
-    return []
+    return emprendimientos
   }
 
   const seen = new Set<number>()
@@ -102,13 +183,14 @@ export async function getSlides(): Promise<Slide[]> {
   const starred = props.filter((p) => p.is_starred_on_web)
   const rest = props.filter((p) => !p.is_starred_on_web).sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
   // Sin tope: pasan todas las que entran (antes eran siempre las mismas 30).
-  return spreadByZone([...starred, ...rest]).map((p): Slide => {
+  const propiedades = spreadByZone(sinRepetirEmprendimiento([...starred, ...rest])).map((p): SlidePropiedad => {
     const portada = getMainPhoto(p) as string
     // Hasta 4 fotos de la misma propiedad (portada primero, sin duplicar): la
     // foto grande + la tira de miniaturas. En JPG desde /fotos: el televisor no
     // muestra las de R2 (ver fotoJpgDeLaWeb).
     const photos = [portada, ...getAllPhotos(p).filter((x) => x !== portada)].slice(0, 4).map((x) => fotoJpgDeLaWeb(p.id, x))
     return {
+      kind: 'propiedad',
       photo: photos[0],
       photos,
       precio: formatPrice(p),
@@ -119,4 +201,17 @@ export async function getSlides(): Promise<Slide[]> {
       specs: buildSpecs(p),
     }
   })
+
+  // Un emprendimiento cada PROPIEDADES_POR_EMPRENDIMIENTO, en el orden comercial
+  // de /emprendimientos y dando la vuelta a la lista.
+  const emps = await emprendimientos
+  if (!emps.length) return propiedades
+  const slides: Slide[] = []
+  propiedades.forEach((p, i) => {
+    slides.push(p)
+    if ((i + 1) % PROPIEDADES_POR_EMPRENDIMIENTO === 0) {
+      slides.push(emps[Math.floor(i / PROPIEDADES_POR_EMPRENDIMIENTO) % emps.length])
+    }
+  })
+  return slides
 }

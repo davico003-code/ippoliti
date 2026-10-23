@@ -46,10 +46,10 @@ function enPaso(slides: Slide[], p: number) {
 }
 
 // Reglas de la tele parada (1080 × 1920): se aplican con /tv-vertical y en
-// cualquier pantalla vertical. Datos en una fila de 4 y título en 2 líneas para
-// que todo entre en el panel de abajo.
+// cualquier pantalla vertical. Foto arriba (46 %) y panel abajo (54 %), datos en
+// una fila de 4 y título y descripción en 2 líneas para que todo entre.
 const reglasParada = (pre: string) => `
-  ${pre} .tv-stage { grid-template-columns: 1fr; grid-template-rows: 52% 48%; }
+  ${pre} .tv-stage { grid-template-columns: 1fr; grid-template-rows: 46% 54%; }
   ${pre} .tv-panel { padding: 4vmin 5vmin 0; border-left: 0; border-top: .4vmin solid #17613C; }
   ${pre} .tv-badge { left: 5vmin; padding: 1vmin 2.6vmin; }
   ${pre} .tv-full { left: 5vmin; gap: 1.6vmin; padding: 1.6vmin 3.4vmin; }
@@ -59,6 +59,7 @@ const reglasParada = (pre: string) => `
   ${pre} .tv-titulo { -webkit-line-clamp: 2; }
   ${pre} .tv-specs { grid-template-columns: repeat(4, 1fr); gap: 2vmin; }
   ${pre} .tv-tira { gap: 1.6vmin; }
+  ${pre} .tv-emp-desc { -webkit-line-clamp: 2; }
 `
 
 const GIRO_KEY = 'si.tv-vertical.girada-al-reves'
@@ -164,7 +165,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
   const montadas = new Set([mod(idx - 1, slides.length), idx, mod(idx + 1, slides.length)])
   const s = slides[idx]
   const fotos = fotosDe(s)
-  const precioLargo = s.precio.length > 11
+  const precioLargo = s.kind === 'propiedad' && s.precio.length > 11
 
   return (
     <main
@@ -177,20 +178,26 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
       <section className="tv-foto">
         {slides.map((sl, i) =>
           montadas.has(i)
-            ? fotosDe(sl).map((src, k) => {
+            ? fotosDe(sl).map((src, k, todas) => {
                 const activa = i === idx && k === visible
                 const saliente = !activa && antes !== null && i === antes.idx && k === antes.visible
                 const kb = activa ? ahora.kb : saliente ? antes.kb : ''
+                // Con una sola foto, el movimiento dura toda la casa (no se frena a los 5 s).
+                const largo = todas.length === 1 ? { animationDuration: `${SLIDE_MS + FUNDIDO_MS}ms` } : undefined
                 return (
                   <div key={`${i}-${k}`} className="tv-layer" style={{ opacity: activa ? 1 : 0, zIndex: activa ? 2 : 1 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" decoding="async" className={`tv-img ${kb}`} />
+                    <img src={src} alt="" decoding="async" className={`tv-img ${kb}`} style={largo} />
                   </div>
                 )
               })
             : null,
         )}
-        {s.destacada && <span key={`b-${idx}`} className="tv-badge tv-in">Selección SI</span>}
+        {s.kind === 'emprendimiento' ? (
+          <span key={`b-${idx}`} className="tv-badge tv-badge-emp tv-in">Emprendimiento</span>
+        ) : (
+          s.destacada && <span key={`b-${idx}`} className="tv-badge tv-in">Selección SI</span>
+        )}
         {!completa && (
           <button
             ref={botonFull}
@@ -237,22 +244,54 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
           )}
         </header>
 
-        <div key={idx} className="tv-datos tv-in">
-          <div className="tv-tipo">{s.tipo}</div>
-          {s.ubicacion && <div className="tv-ubicacion">{s.ubicacion}</div>}
-          {s.titulo && <h2 className="tv-titulo">{s.titulo}</h2>}
-          <div className="tv-precio" style={{ fontSize: precioLargo ? '6vmin' : '7.4vmin' }}>{s.precio}</div>
-          {s.specs.length > 0 && (
-            <div className="tv-specs">
-              {s.specs.map((sp, k) => (
-                <div key={k} className="tv-spec">
-                  <span className="tv-spec-v">{sp.v}</span>
-                  <span className="tv-spec-l">{sp.l}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {s.kind === 'emprendimiento' ? (
+          // Presentación especial: nombre grande, quién lo desarrolla y el gancho.
+          <div key={idx} className="tv-datos tv-in">
+            <div className="tv-emp-sello">Emprendimiento</div>
+            <h2 className="tv-emp-nombre" style={{ fontSize: s.nombre.length > 26 ? '4.6vmin' : s.nombre.length > 16 ? '5.4vmin' : '6.2vmin' }}>
+              {s.nombre}
+            </h2>
+            {s.bajada && <div className="tv-emp-bajada">{s.bajada}</div>}
+            {s.ubicacion && <div className="tv-emp-ubic">{s.ubicacion}</div>}
+            {s.descripcion && <p className="tv-emp-desc">{s.descripcion}</p>}
+            {s.chips.length > 0 && (
+              <div className="tv-emp-chips">
+                {s.chips.map((c) => (
+                  <span key={c}>{c}</span>
+                ))}
+              </div>
+            )}
+            {s.marcas.length > 0 && (
+              <div className="tv-emp-marcas">
+                {s.marcas.map((m) => (
+                  <div key={m.nombre} className="tv-emp-marca">
+                    <span className="tv-emp-rol">{m.rol}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {m.logo && <img src={m.logo} alt={m.mostrarNombre ? '' : m.nombre} />}
+                    {(!m.logo || m.mostrarNombre) && <strong>{m.nombre}</strong>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div key={idx} className="tv-datos tv-in">
+            <div className="tv-tipo">{s.tipo}</div>
+            {s.ubicacion && <div className="tv-ubicacion">{s.ubicacion}</div>}
+            {s.titulo && <h2 className="tv-titulo">{s.titulo}</h2>}
+            <div className="tv-precio" style={{ fontSize: precioLargo ? '6vmin' : '7.4vmin' }}>{s.precio}</div>
+            {s.specs.length > 0 && (
+              <div className="tv-specs">
+                {s.specs.map((sp, k) => (
+                  <div key={k} className="tv-spec">
+                    <span className="tv-spec-v">{sp.v}</span>
+                    <span className="tv-spec-l">{sp.l}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {fotos.length > 1 && (
           <div key={`t-${idx}`} className="tv-tira tv-in">
@@ -291,6 +330,8 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
           font-weight: 700; font-size: 1.9vmin; letter-spacing: .12em; text-transform: uppercase;
           padding: 1vmin 1.6vw; border-radius: 999px; box-shadow: 0 .8vmin 2.4vmin rgba(0,0,0,.35); }
 
+        .tv-badge-emp { background: #C9A84C; color: #0A2418; }
+
         .tv-full { position: absolute; left: 3vw; bottom: 4vmin; z-index: 3; display: inline-flex; align-items: center;
           gap: 1vw; padding: 1.6vmin 2vw; border: 0; border-radius: 999px; background: #fff; color: #0A2418;
           font: 700 2.4vmin/1 var(--font-poppins), sans-serif; cursor: pointer; box-shadow: 0 1vmin 3vmin rgba(0,0,0,.4); }
@@ -325,6 +366,29 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-spec { display: flex; flex-direction: column; }
         .tv-spec-v { font-weight: 700; font-size: 4.4vmin; line-height: 1; font-variant-numeric: tabular-nums; }
         .tv-spec-l { font-size: 1.9vmin; color: rgba(255,255,255,.7); margin-top: .8vmin; }
+
+        /* Presentación especial de emprendimiento: dorado de acento, nombre grande. */
+        .tv-emp-sello { display: inline-block; padding: .8vmin 1.8vmin; border: .25vmin solid #C9A84C; border-radius: 999px;
+          color: #E6C77A; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+        .tv-emp-nombre { font-family: var(--font-raleway), sans-serif; font-weight: 800; font-size: 6.2vmin; line-height: 1.04;
+          letter-spacing: -.01em; margin: 2.4vmin 0 0;
+          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .tv-emp-bajada { font-size: 2.7vmin; font-weight: 600; line-height: 1.2; color: #8FE3B0; margin-top: 1.6vmin;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .tv-emp-ubic { font-size: 2vmin; color: rgba(255,255,255,.7); margin-top: 1.2vmin; }
+        .tv-emp-desc { font-family: var(--font-raleway), sans-serif; font-size: 2.4vmin; line-height: 1.35;
+          color: rgba(255,255,255,.88); margin: 2.4vmin 0 0;
+          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .tv-emp-chips { display: flex; flex-wrap: wrap; gap: 1vmin; margin-top: 2.6vmin; }
+        .tv-emp-chips span { padding: .7vmin 1.6vmin; border: 1px solid rgba(255,255,255,.35); border-radius: 999px;
+          font-size: 1.7vmin; font-weight: 600; }
+        .tv-emp-marcas { display: flex; flex-wrap: wrap; align-items: center; gap: 1.6vmin 3vmin; margin-top: 3vmin;
+          padding-top: 2.6vmin; border-top: 1px solid rgba(255,255,255,.18); }
+        .tv-emp-marca { display: flex; align-items: center; gap: 1.2vmin; }
+        .tv-emp-rol { font-size: 1.6vmin; color: rgba(255,255,255,.7); }
+        /* Cualquier logo en blanco sobre el verde (regla de las portadas). */
+        .tv-emp-marca img { height: 3.6vmin; width: auto; filter: brightness(0) invert(1); }
+        .tv-emp-marca strong { font-size: 2vmin; font-weight: 700; }
 
         .tv-tira { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8vw; margin-top: 4.4vmin; }
         .tv-mini { aspect-ratio: 4 / 3; border-radius: 1vmin; overflow: hidden; opacity: .45;
