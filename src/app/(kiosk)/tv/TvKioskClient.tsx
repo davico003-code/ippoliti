@@ -10,7 +10,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Slide } from '../tvData'
 
-const FOTO_MS = 3000
+const FOTO_MS = 4000
+const FUNDIDO_MS = 1600 // cruce entre fotos; el movimiento dura la foto + su salida
 const FOTOS_POR_CASA = 4
 const SLIDE_MS = FOTO_MS * FOTOS_POR_CASA
 const RELOAD_MS = 40 * 60 * 1000 // recargar cada 40 min para refrescar stock
@@ -26,6 +27,18 @@ const enPantallaCompleta = () => {
   return !!(d.fullscreenElement ?? d.webkitFullscreenElement)
 }
 const fotosDe = (s: Slide) => (s.photos?.length ? s.photos : [s.photo]).slice(0, FOTOS_POR_CASA)
+
+// Qué casa y qué foto se ven en un paso, y con qué movimiento. Cada vez que una
+// foto vuelve a verse cambia de dirección (eso reinicia el Ken Burns); con una
+// sola foto no se reinicia, sigue su recorrido.
+function enPaso(slides: Slide[], p: number) {
+  const idx = Math.floor(p / FOTOS_POR_CASA) % slides.length
+  const foto = p % FOTOS_POR_CASA
+  const n = fotosDe(slides[idx]).length
+  const visible = foto % n
+  const vuelta = n > 1 ? Math.floor(foto / n) : 0
+  return { idx, visible, kb: (visible + vuelta) % 2 ? 'tv-kb-b' : 'tv-kb-a' }
+}
 
 export default function TvKioskClient({ slides }: { slides: Slide[] }) {
   // Un paso cada FOTO_MS: FOTOS_POR_CASA pasos por casa.
@@ -94,12 +107,13 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
 
   // Se montan la casa anterior (para el fundido), la actual y la siguiente
   // (así sus fotos ya están bajadas cuando le toca).
-  const idx = Math.floor(paso / FOTOS_POR_CASA) % slides.length
-  const foto = paso % FOTOS_POR_CASA
+  const ahora = enPaso(slides, paso)
+  // La foto que se va sigue moviéndose mientras se funde (si no, salta).
+  const antes = paso > 0 ? enPaso(slides, paso - 1) : null
+  const { idx, visible } = ahora
   const montadas = new Set([mod(idx - 1, slides.length), idx, mod(idx + 1, slides.length)])
   const s = slides[idx]
   const fotos = fotosDe(s)
-  const visible = foto % fotos.length
   const precioLargo = s.precio.length > 11
 
   return (
@@ -110,16 +124,18 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
           montadas.has(i)
             ? fotosDe(sl).map((src, k) => {
                 const activa = i === idx && k === visible
+                const saliente = !activa && antes !== null && i === antes.idx && k === antes.visible
+                const kb = activa ? ahora.kb : saliente ? antes.kb : ''
                 return (
                   <div key={`${i}-${k}`} className="tv-layer" style={{ opacity: activa ? 1 : 0, zIndex: activa ? 2 : 1 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" className={`tv-img ${activa ? (k % 2 ? 'tv-kb-b' : 'tv-kb-a') : ''}`} />
+                    <img src={src} alt="" decoding="async" className={`tv-img ${kb}`} />
                   </div>
                 )
               })
             : null,
         )}
-        {s.destacada && <span className="tv-badge">Selección SI</span>}
+        {s.destacada && <span key={`b-${idx}`} className="tv-badge tv-in">Selección SI</span>}
         {!completa && (
           <button
             ref={botonFull}
@@ -169,7 +185,7 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
         </div>
 
         {fotos.length > 1 && (
-          <div className="tv-tira">
+          <div key={`t-${idx}`} className="tv-tira tv-in">
             {fotos.map((src, k) => (
               <div key={`${idx}-${k}`} className={`tv-mini ${k === visible ? 'tv-mini-on' : ''}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -191,10 +207,13 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
           grid-template-columns: 1fr 34vw; }
 
         .tv-foto { position: relative; overflow: hidden; background: #08100B; }
-        .tv-layer { position: absolute; inset: 0; transition: opacity 1000ms ease-in-out; }
-        .tv-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .tv-kb-a { animation: tvKbA ${FOTO_MS + 1200}ms ease-out forwards; }
-        .tv-kb-b { animation: tvKbB ${FOTO_MS + 1200}ms ease-out forwards; }
+        .tv-layer { position: absolute; inset: 0; transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1);
+          will-change: opacity; }
+        .tv-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+          will-change: transform; backface-visibility: hidden; }
+        /* Lineal: un desplazamiento parejo, sin arranques ni frenadas a la vista. */
+        .tv-kb-a { animation: tvKbA ${FOTO_MS + FUNDIDO_MS}ms linear forwards; }
+        .tv-kb-b { animation: tvKbB ${FOTO_MS + FUNDIDO_MS}ms linear forwards; }
         @keyframes tvKbA { from { transform: scale(1.02); } to { transform: scale(1.09) translate3d(-1%, -1%, 0); } }
         @keyframes tvKbB { from { transform: scale(1.09) translate3d(-1%, 0, 0); } to { transform: scale(1.02) translate3d(1%, -1%, 0); } }
         .tv-badge { position: absolute; top: 4vh; left: 3vw; z-index: 3; background: #17613C; color: #fff;
@@ -238,7 +257,7 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
 
         .tv-tira { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8vw; margin-top: 4.4vh; }
         .tv-mini { aspect-ratio: 4 / 3; border-radius: 1vh; overflow: hidden; opacity: .45;
-          outline: .35vh solid transparent; outline-offset: .3vh; transition: opacity 600ms, outline-color 600ms; }
+          outline: .35vh solid transparent; outline-offset: .3vh; transition: opacity ${FUNDIDO_MS}ms, outline-color ${FUNDIDO_MS}ms; }
         .tv-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .tv-mini-on { opacity: 1; outline-color: #8FE3B0; }
 
@@ -252,10 +271,11 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
           animation-timing-function: linear; animation-fill-mode: forwards; }
         @keyframes tvProgress { from { width: 0; } to { width: 100%; } }
 
-        /* Entrada: arranca visible (opacity .85) para que nunca quede en blanco
-           si el navegador pausa animaciones. */
-        .tv-in { animation: tvIn 800ms cubic-bezier(.2,.7,.2,1) both; }
-        @keyframes tvIn { from { opacity: .85; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        /* Entrada de los datos de cada casa, al ritmo del cruce de fotos. Arranca
+           en opacity .3 (no 0) para que nunca quede en blanco si el navegador
+           pausa animaciones. */
+        .tv-in { animation: tvIn ${FUNDIDO_MS}ms cubic-bezier(.22,.61,.36,1) both; }
+        @keyframes tvIn { from { opacity: .3; transform: translateY(1.2vh); } to { opacity: 1; transform: none; } }
 
         @media (prefers-reduced-motion: reduce) {
           .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-mini { animation: none !important; transition: none !important; }
