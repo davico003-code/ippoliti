@@ -1,7 +1,9 @@
 // Servicios e infraestructura, con una imagen grande al lado (22-oct-2026):
 // la aérea del barrio terminado al anochecer, con las luminarias prendidas y
 // los lotes vacíos (imagen ilustrativa, sin casas: para construir hay que
-// terminar de pagar). "Sin expensas" va primero: lo confirmó David el 11-oct.
+// terminar de pagar). Es la misma vista del comparador 2027, con la traza
+// exacta del plano, re-iluminada (ver COMPARADOR en avancesObra.ts).
+// "Sin expensas" va primero: lo confirmó David el 11-oct.
 
 import Image from '@/components/Imagen'
 import { Construction, Droplets, Flame, PiggyBank, Store, TreePine, Zap } from 'lucide-react'
