@@ -182,10 +182,11 @@ export function loaderFotoR2({ src, width }: { src: string; width: number; quali
 
 /**
  * La misma foto en JPG desde la web (`/fotos/<id>/<archivo>`) en lugar de la
- * copia WebP de R2. Para los kioscos de TV (/tv y /tv-vertical): el navegador
- * del televisor de la oficina no mostró ninguna foto de fotos.verficha.casa
- * (22-oct-2026) y hasta ese día andaba con estas. Es un solo aparato y el
- * navegador guarda las fotos, así que no suma gasto. Cualquier otra URL queda igual.
+ * copia WebP de R2. Es el RESPALDO de los kioscos de TV (/tv y /tv-vertical):
+ * muestran la de R2 y, si el televisor no la abre, esta. No al revés: es la
+ * original (hasta 8 MB y 8064 × 6048, 23-oct-2026). El 22-oct la tele no mostró
+ * las de R2, pero ninguna foto se veía por el `inset` que su navegador no
+ * entiende (arreglado el 23-oct). Cualquier otra URL queda igual.
  */
 export function fotoJpgDeLaWeb(id: number, url: string): string {
   if (!esFotoR2(url)) return url;

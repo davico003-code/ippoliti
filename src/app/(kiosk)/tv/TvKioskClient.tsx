@@ -18,13 +18,30 @@
 // top/right/bottom/left, márgenes y padding-bottom.
 
 import { useEffect, useRef, useState } from 'react'
-import type { Slide, SlideEmprendimiento, SlideTasar } from '../tvData'
+import type { RespaldosJpg, Slide, SlideEmprendimiento, SlideTasar } from '../tvData'
 
 const FOTO_MS = 4000
 const FUNDIDO_MS = 1600 // cruce entre fotos; el movimiento dura la foto + su salida
 const FOTOS_POR_CASA = 4
 const SLIDE_MS = FOTO_MS * FOTOS_POR_CASA
 const RELOAD_MS = 40 * 60 * 1000 // recargar (stock nuevo) pasados 40 min, al terminar la vuelta
+const REINTENTO_MS = 60 * 1000 // sin respuesta de la web, se vuelve a probar al minuto
+// Con tantas fotos de R2 que no abren, este televisor no abre R2: todas en JPG.
+const FALLAS_PARA_JPG = 3
+const ZONA_AR = 'America/Argentina/Buenos_Aires'
+
+// Hora argentina aunque la tele tenga otra zona configurada; si el navegador no
+// conoce la zona, la de la tele (un RangeError tiraría abajo toda la página).
+const enArgentina = (o: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions => {
+  try {
+    new Date().toLocaleTimeString('es-AR', { timeZone: ZONA_AR })
+    return { ...o, timeZone: ZONA_AR }
+  } catch {
+    return o
+  }
+}
+const HORA = enArgentina({ hour: '2-digit', minute: '2-digit', hour12: false })
+const FECHA = enArgentina({ weekday: 'long', day: 'numeric', month: 'long' })
 
 const mod = (n: number, m: number) => ((n % m) + m) % m
 
@@ -80,9 +97,29 @@ const reglasParada = (pre: string) => `
 
 const GIRO_KEY = 'si.tv-vertical.girada-al-reves'
 
-export default function TvKioskClient({ slides, vertical = false }: { slides: Slide[]; vertical?: boolean }) {
+export default function TvKioskClient({
+  slides,
+  respaldos,
+  vertical = false,
+}: {
+  slides: Slide[]
+  respaldos: RespaldosJpg
+  vertical?: boolean
+}) {
   // Un paso cada FOTO_MS: FOTOS_POR_CASA pasos por casa.
   const [paso, setPaso] = useState(0)
+  // Fotos: primero la copia de R2; la que no abre pasa a su JPG de la web, y con
+  // FALLAS_PARA_JPG fallidas pasan todas (así no queda en negro ni una).
+  const [fallidas, setFallidas] = useState<string[]>([])
+  const sinR2 = fallidas.length >= FALLAS_PARA_JPG
+  const fuente = (src: string) => (respaldos[src] && (sinR2 || fallidas.includes(src)) ? respaldos[src] : src)
+  const fallo = (src: string) => {
+    if (respaldos[src]) setFallidas((f) => (f.includes(src) ? f : [...f, src]))
+  }
+  // Una foto que falló antes de que React tomara la página no dispara onError.
+  const vigilar = (src: string) => (el: HTMLImageElement | null) => {
+    if (el && el.complete && el.naturalWidth === 0) fallo(src)
+  }
   const [clock, setClock] = useState<{ h: string; d: string } | null>(null)
   const [completa, setCompleta] = useState(false)
   const botonFull = useRef<HTMLButtonElement>(null)
@@ -114,8 +151,8 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
   useEffect(() => {
     const tick = () => {
       const now = new Date()
-      const h = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
-      const d = now.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
+      const h = now.toLocaleTimeString('es-AR', HORA)
+      const d = now.toLocaleDateString('es-AR', FECHA)
       setClock({ h, d: d.charAt(0).toUpperCase() + d.slice(1) })
     }
     tick()
@@ -126,16 +163,33 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
   // Recarga para traer stock nuevo: pasados RELOAD_MS, recién al terminar la
   // vuelta, así ninguna casa se queda sin salir aunque la vuelta dure más (con
   // ~130 casas son ~35 min). Sin casas (feed caído) recarga a los RELOAD_MS.
+  // Solo si la web contesta: sin internet, reload() deja la pantalla de "sin
+  // conexión" del navegador hasta que alguien la toque. Mientras no contesta,
+  // sigue pasando lo que tiene y prueba de nuevo cada REINTENTO_MS.
   const inicio = useRef(0)
+  const recargando = useRef(false)
   const vuelta = FOTOS_POR_CASA * slides.length
+  const recargar = () => {
+    if (recargando.current) return
+    recargando.current = true
+    const probar = () => {
+      fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`)
+          window.location.reload()
+        })
+        .catch(() => setTimeout(probar, REINTENTO_MS))
+    }
+    probar()
+  }
   useEffect(() => {
     inicio.current = Date.now()
     if (slides.length > 0) return
-    const t = setTimeout(() => window.location.reload(), RELOAD_MS)
+    const t = setTimeout(recargar, RELOAD_MS)
     return () => clearTimeout(t)
   }, [slides.length])
   useEffect(() => {
-    if (paso > 0 && vuelta > 0 && paso % vuelta === 0 && Date.now() - inicio.current >= RELOAD_MS) window.location.reload()
+    if (paso > 0 && vuelta > 0 && paso % vuelta === 0 && Date.now() - inicio.current >= RELOAD_MS) recargar()
   }, [paso, vuelta])
 
   // El botón "Pantalla completa" se ve solo mientras la página no lo está.
@@ -202,7 +256,15 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
       return (
         <div key={`${i}-${k}`} className="tv-layer" style={{ opacity: activa ? 1 : 0, zIndex: activa ? 2 : 1 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} alt="" decoding="async" className={`tv-img ${kb}`} style={largo} />
+          <img
+            src={fuente(src)}
+            ref={vigilar(src)}
+            onError={() => fallo(src)}
+            alt=""
+            decoding="async"
+            className={`tv-img ${kb}`}
+            style={largo}
+          />
         </div>
       )
     })
@@ -338,7 +400,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
             {fotos.map((src, k) => (
               <div key={`${idx}-${k}`} className={`tv-mini ${k === visible ? 'tv-mini-on' : ''}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" />
+                <img src={fuente(src)} ref={vigilar(src)} onError={() => fallo(src)} alt="" />
               </div>
             ))}
           </div>
@@ -436,7 +498,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
                         {show.unidades.lista.map((u, k) => (
                           <div key={k} className="tv-show-card" style={{ transitionDelay: momentoUnidades ? `${300 + k * 180}ms` : '0ms' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={u.foto} alt="" decoding="async" />
+                            <img src={fuente(u.foto)} ref={vigilar(u.foto)} onError={() => fallo(u.foto)} alt="" decoding="async" />
                             <div className="tv-show-card-txt">
                               <span>{u.dato}</span>
                               <strong>{u.precio}</strong>

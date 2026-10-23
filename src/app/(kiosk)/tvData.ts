@@ -68,6 +68,18 @@ export interface SlideTasar extends SlideBase {
 
 export type Slide = SlidePropiedad | SlideEmprendimiento | SlideTasar
 
+// Fotos de la tele (23-oct-2026): se muestra la copia achicada de R2 (1920 px,
+// ~0,5 MB) y, si el televisor no la abre, la JPG de la web (`/fotos/…`), que es
+// la ORIGINAL: hasta 8 MB y 8064 × 6048, foto negra o navegador que se cierra en
+// un televisor. foto de R2 → su JPG; las que no son de R2 no tienen respaldo.
+export type RespaldosJpg = Record<string, string>
+
+function conRespaldo(respaldos: RespaldosJpg, id: number, url: string): string {
+  const jpg = fotoJpgDeLaWeb(id, url)
+  if (jpg !== url) respaldos[url] = jpg
+  return url
+}
+
 const PROPIEDADES_POR_EMPRENDIMIENTO = 6
 // La placa de tasar va cada 12 propiedades, corrida 3 para no pegarse a un emprendimiento.
 const PROPIEDADES_POR_TASAR = 12
@@ -199,7 +211,7 @@ function datoUnidad(p: TokkoProperty): string {
   ].filter(Boolean).join(' · ')
 }
 
-function resumenUnidades(us: TokkoProperty[]): SlideEmprendimiento['unidades'] {
+function resumenUnidades(us: TokkoProperty[], respaldos: RespaldosJpg): SlideEmprendimiento['unidades'] {
   if (!us.length) return null
   const lotes = us.every((p) => p.type?.id === 1)
   const n = us.length
@@ -231,11 +243,11 @@ function resumenUnidades(us: TokkoProperty[]): SlideEmprendimiento['unidades'] {
     titulo: lotes ? 'Lotes disponibles' : 'Unidades disponibles',
     desde: orden.length ? formatPrice(orden[0]) : null,
     resumen: [cuenta, detalle].filter(Boolean).join(' · '),
-    lista: elegidas.map((p) => ({ foto: fotoJpgDeLaWeb(p.id, getMainPhoto(p) as string), dato: datoUnidad(p), precio: formatPrice(p) })),
+    lista: elegidas.map((p) => ({ foto: conRespaldo(respaldos, p.id, getMainPhoto(p) as string), dato: datoUnidad(p), precio: formatPrice(p) })),
   }
 }
 
-function armarEmprendimientos(tarjetas: Tarjeta[], objects: TokkoProperty[]): SlideEmprendimiento[] {
+function armarEmprendimientos(tarjetas: Tarjeta[], objects: TokkoProperty[], respaldos: RespaldosJpg): SlideEmprendimiento[] {
   return tarjetas.flatMap((t): SlideEmprendimiento[] => {
     const photos = (t.fotos?.length ? t.fotos : [t.image]).filter((x): x is string => !!x).slice(0, 4)
     if (!photos.length) return []
@@ -249,7 +261,7 @@ function armarEmprendimientos(tarjetas: Tarjeta[], objects: TokkoProperty[]): Sl
       descripcion: recortar(t.description, 170),
       chips: t.chips.slice(0, 3),
       marcas: (t.marcas ?? []).map((m) => ({ rol: m.rol, nombre: m.nombre, logo: m.logo?.src ?? null, mostrarNombre: !!m.mostrarNombre })),
-      unidades: resumenUnidades(unidadesDe(t, objects)),
+      unidades: resumenUnidades(unidadesDe(t, objects), respaldos),
     }]
   })
 }
@@ -281,14 +293,15 @@ async function placasTasar(propiedades: SlidePropiedad[]): Promise<SlideTasar[]>
   return (casas.length ? casas : propiedades).map((p) => ({ kind: 'tasar', photo: p.photo, photos: [p.photo], qr, url: 'siinmobiliaria.com/tasar' }))
 }
 
-export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {}): Promise<Slide[]> {
+export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {}): Promise<{ slides: Slide[]; respaldos: RespaldosJpg }> {
   let objects: TokkoProperty[] = []
+  const respaldos: RespaldosJpg = {}
   const tarjetas = getTarjetasEmprendimientos().catch((): Tarjeta[] => [])
   try {
     const resp = await getProperties({ operation: 'Sale', limit: 500 })
     objects = resp.objects ?? []
   } catch {
-    return armarEmprendimientos(await tarjetas, [])
+    return { slides: armarEmprendimientos(await tarjetas, [], respaldos), respaldos }
   }
 
   const seen = new Set<number>()
@@ -307,9 +320,8 @@ export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {
   const propiedades = spreadByZone(sinRepetirEmprendimiento([...starred, ...rest])).map((p): SlidePropiedad => {
     const portada = getMainPhoto(p) as string
     // Hasta 4 fotos de la misma propiedad (portada primero, sin duplicar): la
-    // foto grande + la tira de miniaturas. En JPG desde /fotos: el televisor no
-    // muestra las de R2 (ver fotoJpgDeLaWeb).
-    const photos = [portada, ...getAllPhotos(p).filter((x) => x !== portada)].slice(0, 4).map((x) => fotoJpgDeLaWeb(p.id, x))
+    // foto grande + la tira de miniaturas. Las de R2, con su JPG de respaldo.
+    const photos = [portada, ...getAllPhotos(p).filter((x) => x !== portada)].slice(0, 4).map((x) => conRespaldo(respaldos, p.id, x))
     return {
       kind: 'propiedad',
       photo: photos[0],
@@ -326,9 +338,9 @@ export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {
 
   // Un emprendimiento cada PROPIEDADES_POR_EMPRENDIMIENTO, en el orden comercial
   // de /emprendimientos y dando la vuelta a la lista.
-  const emps = armarEmprendimientos(await tarjetas, objects)
+  const emps = armarEmprendimientos(await tarjetas, objects, respaldos)
   const tasar = conTasar ? await placasTasar(propiedades) : []
-  if (!emps.length && !tasar.length) return propiedades
+  if (!emps.length && !tasar.length) return { slides: propiedades, respaldos }
   const slides: Slide[] = []
   propiedades.forEach((p, i) => {
     slides.push(p)
@@ -339,5 +351,5 @@ export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {
       slides.push(emps[Math.floor(i / PROPIEDADES_POR_EMPRENDIMIENTO) % emps.length])
     }
   })
-  return slides
+  return { slides, respaldos }
 }
