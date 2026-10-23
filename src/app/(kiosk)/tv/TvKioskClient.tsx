@@ -455,7 +455,10 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
       )}
       </div>
 
-      <style>{`
+      {/* Por innerHTML: como hijo de texto, React escapa ' " > & en el HTML del
+          servidor (dentro de <style> el navegador no lo des-escapa) y el estilo no
+          coincide al hidratar: errores 418/425 y reglas que se caen. */}
+      <style dangerouslySetInnerHTML={{ __html: `
         .tv-root { position: fixed; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; background: #0A1F14; }
         .tv-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: 1fr 34vw; }
 
@@ -560,8 +563,6 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-show-card-txt strong { font-size: 3.2vmin; font-weight: 700; font-variant-numeric: tabular-nums; }
         .tv-show-sello { display: flex; align-items: center; color: #E6C77A; font-size: 2vmin;
           font-weight: 700; letter-spacing: .32em; text-transform: uppercase; }
-        /* Elemento y no ::before: un content con comillas se escapa en el HTML del
-           servidor y el estilo no coincide al hidratar. */
         .tv-show-linea { margin-right: 1.8vmin; width: 7vmin; height: .25vmin; background: #C9A84C; }
         .tv-show-nombre { font-family: var(--font-raleway), sans-serif; font-weight: 800; line-height: .98;
           letter-spacing: -.02em; margin: 2.6vmin 0 0; }
@@ -655,7 +656,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         @media (prefers-reduced-motion: reduce) {
           .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-mini, .tv-badge-rebaja { animation: none !important; transition: none !important; }
         }
-      `}</style>
+      ` }} />
     </main>
   )
 }
