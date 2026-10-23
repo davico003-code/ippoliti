@@ -7,7 +7,7 @@
 // del panel marcan qué foto se ve. Reloj/fecha y logo oficial (kit de marca).
 // Sin interacción — pensado para dejar corriendo en un televisor todo el día.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Slide } from '../tvData'
 
 const FOTO_MS = 3000
@@ -16,12 +16,23 @@ const SLIDE_MS = FOTO_MS * FOTOS_POR_CASA
 const RELOAD_MS = 40 * 60 * 1000 // recargar cada 40 min para refrescar stock
 
 const mod = (n: number, m: number) => ((n % m) + m) % m
+
+// Pantalla completa con los prefijos de webkit: los navegadores de los
+// televisores suelen tener solo la versión vieja.
+type DocFs = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => void }
+type ElFs = HTMLElement & { webkitRequestFullscreen?: () => void }
+const enPantallaCompleta = () => {
+  const d = document as DocFs
+  return !!(d.fullscreenElement ?? d.webkitFullscreenElement)
+}
 const fotosDe = (s: Slide) => (s.photos?.length ? s.photos : [s.photo]).slice(0, FOTOS_POR_CASA)
 
 export default function TvKioskClient({ slides }: { slides: Slide[] }) {
   // Un paso cada FOTO_MS: FOTOS_POR_CASA pasos por casa.
   const [paso, setPaso] = useState(0)
   const [clock, setClock] = useState<{ h: string; d: string } | null>(null)
+  const [completa, setCompleta] = useState(false)
+  const botonFull = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const t = setInterval(() => setPaso((p) => p + 1), FOTO_MS)
@@ -47,11 +58,29 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
     return () => clearTimeout(t)
   }, [])
 
-  // Tocar/clickear la pantalla → pantalla completa (el TV no maximiza solo).
+  // El botón "Pantalla completa" se ve solo mientras la página no lo está.
+  useEffect(() => {
+    const cambio = () => setCompleta(enPantallaCompleta())
+    cambio()
+    // Con el control remoto alcanza con apretar OK (autoFocus no corre al hidratar).
+    botonFull.current?.focus()
+    document.addEventListener('fullscreenchange', cambio)
+    document.addEventListener('webkitfullscreenchange', cambio)
+    return () => {
+      document.removeEventListener('fullscreenchange', cambio)
+      document.removeEventListener('webkitfullscreenchange', cambio)
+    }
+  }, [])
+
+  // Tocar/clickear la pantalla (o el botón) → pantalla completa; el TV no maximiza solo.
   const toggleFullscreen = () => {
-    const el = document.documentElement
-    if (!document.fullscreenElement) el.requestFullscreen?.().catch(() => {})
-    else document.exitFullscreen?.().catch(() => {})
+    const d = document as DocFs
+    const el = document.documentElement as ElFs
+    if (!enPantallaCompleta()) {
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {})
+      else el.webkitRequestFullscreen?.()
+    } else if (d.exitFullscreen) d.exitFullscreen().catch(() => {})
+    else d.webkitExitFullscreen?.()
   }
 
   if (slides.length === 0) {
@@ -91,6 +120,22 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
             : null,
         )}
         {s.destacada && <span className="tv-badge">Selección SI</span>}
+        {!completa && (
+          <button
+            ref={botonFull}
+            type="button"
+            className="tv-full"
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleFullscreen()
+            }}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+            </svg>
+            Pantalla completa
+          </button>
+        )}
       </section>
 
       {/* Panel de datos (derecha) */}
@@ -155,6 +200,13 @@ export default function TvKioskClient({ slides }: { slides: Slide[] }) {
         .tv-badge { position: absolute; top: 4vh; left: 3vw; z-index: 3; background: #17613C; color: #fff;
           font-weight: 700; font-size: 1.9vh; letter-spacing: .12em; text-transform: uppercase;
           padding: 1vh 1.6vw; border-radius: 999px; box-shadow: 0 .8vh 2.4vh rgba(0,0,0,.35); }
+
+        .tv-full { position: absolute; left: 3vw; bottom: 4vh; z-index: 3; display: inline-flex; align-items: center;
+          gap: 1vw; padding: 1.6vh 2vw; border: 0; border-radius: 999px; background: #fff; color: #0A2418;
+          font: 700 2.4vh/1 var(--font-poppins), sans-serif; cursor: pointer; box-shadow: 0 1vh 3vh rgba(0,0,0,.4); }
+        .tv-full svg { width: 3vh; height: 3vh; fill: none; stroke: currentColor; stroke-width: 2.4;
+          stroke-linecap: round; stroke-linejoin: round; }
+        .tv-full:focus-visible { outline: .5vh solid #8FE3B0; outline-offset: .5vh; }
 
         .tv-panel { position: relative; display: flex; flex-direction: column; padding: 5vh 3vw 0;
           background: linear-gradient(170deg, #12432B 0%, #0A2418 55%, #071A11 100%);
