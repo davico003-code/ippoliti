@@ -8,6 +8,6 @@ import TvKioskClient from './TvKioskClient'
 export const revalidate = 1800
 
 export default async function TvPage() {
-  const slides = await getSlides()
-  return <TvKioskClient slides={slides} />
+  const { slides, respaldos } = await getSlides()
+  return <TvKioskClient slides={slides} respaldos={respaldos} />
 }
