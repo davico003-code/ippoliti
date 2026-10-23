@@ -114,7 +114,11 @@ function sinRepetirEmprendimiento(list: TokkoProperty[]): TokkoProperty[] {
 // Texto plano y corto para la tele: la primera oración entera (la descripción
 // de las tarjetas puede traer HTML); si es muy larga, cortada en una palabra.
 function recortar(texto: string | undefined, max: number): string | null {
-  const limpio = (texto ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').replace(/…$/, '').trim()
+  let limpio = (texto ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').replace(/…$/, '').trim()
+  // Encabezado tipo "CONDOMINIO | PASEO COMERCIAL | ALDEA – FISHERTON" pegado al
+  // texto (Dock Garden): se corta después de la última palabra en mayúsculas.
+  const mayusculas = limpio.includes('|') ? Array.from(limpio.slice(0, 160).matchAll(/[A-ZÁÉÍÓÚÑ]{3,}/g)).pop() : undefined
+  if (mayusculas?.index !== undefined) limpio = limpio.slice(mayusculas.index + mayusculas[0].length).replace(/^[\s|–-]+/, '')
   if (!limpio) return null
   const oracion = limpio.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? limpio
   if (oracion.length <= max) return oracion

@@ -13,7 +13,7 @@
 // vmin (el lado corto de la pantalla), que sirven igual en las tres posiciones.
 
 import { useEffect, useRef, useState } from 'react'
-import type { Slide } from '../tvData'
+import type { Slide, SlideEmprendimiento } from '../tvData'
 
 const FOTO_MS = 4000
 const FUNDIDO_MS = 1600 // cruce entre fotos; el movimiento dura la foto + su salida
@@ -60,6 +60,8 @@ const reglasParada = (pre: string) => `
   ${pre} .tv-specs { grid-template-columns: repeat(4, 1fr); gap: 2vmin; }
   ${pre} .tv-tira { gap: 1.6vmin; }
   ${pre} .tv-emp-desc { -webkit-line-clamp: 2; }
+  ${pre} .tv-show-velo { background: linear-gradient(0deg, rgba(5,16,10,.95) 0%, rgba(5,16,10,.75) 42%, rgba(5,16,10,0) 70%); }
+  ${pre} .tv-show-contenido { left: 7vmin; right: 7vmin; bottom: 9vmin; max-width: none; }
 `
 
 const GIRO_KEY = 'si.tv-vertical.girada-al-reves'
@@ -164,6 +166,27 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
   const { idx, visible } = ahora
   const montadas = new Set([mod(idx - 1, slides.length), idx, mod(idx + 1, slides.length)])
   const s = slides[idx]
+  // Presentación de emprendimiento a pantalla completa: entra y sale con un
+  // fundido sobre la propiedad; mientras sale sigue mostrando el que se va.
+  const iShow = s.kind === 'emprendimiento' ? idx : antes && slides[antes.idx].kind === 'emprendimiento' ? antes.idx : null
+  const show = iShow !== null ? (slides[iShow] as SlideEmprendimiento) : null
+  const hayEmprendimientos = slides.some((x) => x.kind === 'emprendimiento')
+
+  // Capas de fotos de un slide (Ken Burns + fundido); la que sale sigue moviéndose.
+  const capas = (sl: Slide, i: number) =>
+    fotosDe(sl).map((src, k, todas) => {
+      const activa = i === idx && k === visible
+      const saliente = !activa && antes !== null && i === antes.idx && k === antes.visible
+      const kb = activa ? ahora.kb : saliente ? antes.kb : ''
+      // Con una sola foto, el movimiento dura todo el slide (no se frena a los 5 s).
+      const largo = todas.length === 1 ? { animationDuration: `${SLIDE_MS + FUNDIDO_MS}ms` } : undefined
+      return (
+        <div key={`${i}-${k}`} className="tv-layer" style={{ opacity: activa ? 1 : 0, zIndex: activa ? 2 : 1 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="" decoding="async" className={`tv-img ${kb}`} style={largo} />
+        </div>
+      )
+    })
   const fotos = fotosDe(s)
   const precioLargo = s.kind === 'propiedad' && s.precio.length > 11
 
@@ -176,23 +199,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
       <div className="tv-stage">
       {/* Foto a sangre (izquierda, o arriba en la tele parada) */}
       <section className="tv-foto">
-        {slides.map((sl, i) =>
-          montadas.has(i)
-            ? fotosDe(sl).map((src, k, todas) => {
-                const activa = i === idx && k === visible
-                const saliente = !activa && antes !== null && i === antes.idx && k === antes.visible
-                const kb = activa ? ahora.kb : saliente ? antes.kb : ''
-                // Con una sola foto, el movimiento dura toda la casa (no se frena a los 5 s).
-                const largo = todas.length === 1 ? { animationDuration: `${SLIDE_MS + FUNDIDO_MS}ms` } : undefined
-                return (
-                  <div key={`${i}-${k}`} className="tv-layer" style={{ opacity: activa ? 1 : 0, zIndex: activa ? 2 : 1 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" decoding="async" className={`tv-img ${kb}`} style={largo} />
-                  </div>
-                )
-              })
-            : null,
-        )}
+        {slides.map((sl, i) => (montadas.has(i) ? capas(sl, i) : null))}
         {s.kind === 'emprendimiento' ? (
           <span key={`b-${idx}`} className="tv-badge tv-badge-emp tv-in">Emprendimiento</span>
         ) : (
@@ -310,6 +317,60 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         </footer>
         <div key={`p-${idx}`} className="tv-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
       </aside>
+
+      {/* Emprendimiento: un momento aparte, a pantalla completa (David, 22-oct-2026:
+          "debería ser más distinta la sección de cada emprendimiento"). */}
+      {hayEmprendimientos && (
+        <div className={`tv-show${s.kind === 'emprendimiento' ? ' tv-show-on' : ''}`}>
+          {show && iShow !== null && (
+            <>
+              {capas(show, iShow)}
+              <div className="tv-show-velo" />
+              <div className="tv-show-marco" />
+              <div className="tv-show-si">
+                <span>Comercializa</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/si-inmobiliaria-blanco.svg" alt="SI INMOBILIARIA" />
+              </div>
+              <div key={`s-${iShow}`} className="tv-show-contenido tv-in">
+                <div className="tv-show-sello">
+                  <span className="tv-show-linea" />
+                  Emprendimiento
+                </div>
+                <h2
+                  className="tv-show-nombre"
+                  style={{ fontSize: show.nombre.length > 26 ? '6.6vmin' : show.nombre.length > 16 ? '8vmin' : '10vmin' }}
+                >
+                  {show.nombre}
+                </h2>
+                {show.bajada && <div className="tv-show-bajada">{show.bajada}</div>}
+                {show.ubicacion && <div className="tv-show-ubic">{show.ubicacion}</div>}
+                {show.descripcion && <p className="tv-show-desc">{show.descripcion}</p>}
+                {show.chips.length > 0 && (
+                  <div className="tv-show-chips">
+                    {show.chips.map((c) => (
+                      <span key={c}>{c}</span>
+                    ))}
+                  </div>
+                )}
+                {show.marcas.length > 0 && (
+                  <div className="tv-show-marcas">
+                    {show.marcas.map((m) => (
+                      <div key={m.nombre} className="tv-show-marca">
+                        <span className="tv-show-rol">{m.rol}</span>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {m.logo && <img src={m.logo} alt={m.mostrarNombre ? '' : m.nombre} />}
+                        {(!m.logo || m.mostrarNombre) && <strong>{m.nombre}</strong>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div key={`sp-${iShow}`} className="tv-progress tv-show-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
+            </>
+          )}
+        </div>
+      )}
       </div>
 
       <style>{`
@@ -366,6 +427,43 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-spec { display: flex; flex-direction: column; }
         .tv-spec-v { font-weight: 700; font-size: 4.4vmin; line-height: 1; font-variant-numeric: tabular-nums; }
         .tv-spec-l { font-size: 1.9vmin; color: rgba(255,255,255,.7); margin-top: .8vmin; }
+
+        /* Emprendimiento a pantalla completa: foto de punta a punta, marco y acentos
+           dorados, nombre enorme. Tapa todo y entra/sale con el mismo fundido. */
+        .tv-show { position: absolute; inset: 0; z-index: 8; opacity: 0; pointer-events: none; overflow: hidden;
+          background: #071A11; transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1); will-change: opacity; }
+        .tv-show-on { opacity: 1; }
+        .tv-show-velo { position: absolute; inset: 0; z-index: 3;
+          background: linear-gradient(90deg, rgba(5,16,10,.9) 0%, rgba(5,16,10,.6) 40%, rgba(5,16,10,0) 72%),
+            linear-gradient(0deg, rgba(5,16,10,.8) 0%, rgba(5,16,10,0) 45%); }
+        .tv-show-marco { position: absolute; inset: 3.4vmin; z-index: 4; border: .22vmin solid rgba(201,168,76,.75);
+          border-radius: 1.4vmin; }
+        .tv-show-si { position: absolute; top: 7vmin; right: 7vmin; z-index: 5; display: flex; align-items: center;
+          gap: 1.6vmin; font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.8); }
+        .tv-show-si img { height: 3.6vmin; width: auto; }
+        .tv-show-contenido { position: absolute; left: 8vmin; bottom: 9vmin; z-index: 5; max-width: 62%;
+          text-shadow: 0 .3vmin 2vmin rgba(0,0,0,.45); }
+        .tv-show-sello { display: flex; align-items: center; gap: 1.8vmin; color: #E6C77A; font-size: 2vmin;
+          font-weight: 700; letter-spacing: .32em; text-transform: uppercase; }
+        /* Elemento y no ::before: un content con comillas se escapa en el HTML del
+           servidor y el estilo no coincide al hidratar. */
+        .tv-show-linea { width: 7vmin; height: .25vmin; background: #C9A84C; }
+        .tv-show-nombre { font-family: var(--font-raleway), sans-serif; font-weight: 800; line-height: .98;
+          letter-spacing: -.02em; margin: 2.6vmin 0 0; }
+        .tv-show-bajada { font-size: 3.4vmin; font-weight: 600; line-height: 1.2; color: #E6C77A; margin-top: 2.2vmin; }
+        .tv-show-ubic { font-size: 2.4vmin; color: rgba(255,255,255,.8); margin-top: 1.4vmin; }
+        .tv-show-desc { font-family: var(--font-raleway), sans-serif; font-size: 2.8vmin; line-height: 1.35;
+          color: rgba(255,255,255,.92); margin: 2.6vmin 0 0; max-width: 56ch; }
+        .tv-show-chips { display: flex; flex-wrap: wrap; gap: 1.4vmin; margin-top: 3vmin; }
+        .tv-show-chips span { padding: 1vmin 2.2vmin; border: .2vmin solid rgba(230,199,122,.8); border-radius: 999px;
+          color: #F3E3B5; font-size: 2vmin; font-weight: 600; text-shadow: none; }
+        .tv-show-marcas { display: flex; flex-wrap: wrap; align-items: center; gap: 2vmin 5vmin; margin-top: 4vmin;
+          padding-top: 3vmin; border-top: .15vmin solid rgba(230,199,122,.45); }
+        .tv-show-marca { display: flex; align-items: center; gap: 1.6vmin; }
+        .tv-show-rol { font-size: 1.9vmin; color: rgba(255,255,255,.75); }
+        .tv-show-marca img { height: 5vmin; width: auto; filter: brightness(0) invert(1); }
+        .tv-show-marca strong { font-size: 2.6vmin; font-weight: 700; }
+        .tv-show-progress { z-index: 6; background: linear-gradient(90deg, #C9A84C, #F3E3B5); }
 
         /* Presentación especial de emprendimiento: dorado de acento, nombre grande. */
         .tv-emp-sello { display: inline-block; padding: .8vmin 1.8vmin; border: .25vmin solid #C9A84C; border-radius: 999px;
