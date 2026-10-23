@@ -1,4 +1,4 @@
-// Datos compartidos de los kioscos de TV (horizontal y vertical). Trae el stock
+// Datos de los kioscos de TV (/tv y /tv-vertical, la misma lista). Trae el stock
 // en venta, arma el "mix inteligente" (destacadas + más nuevas + variedad de
 // zonas) y devuelve slides listos con QR precomputado server-side.
 
