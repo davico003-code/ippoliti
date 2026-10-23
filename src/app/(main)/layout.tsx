@@ -1,18 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Raleway, Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const raleway = Raleway({
-  subsets: ["latin"],
+const raleway = localFont({
+  // Raleway, en el repo (src/fonts): compilar no depende de Google Fonts.
   // 500: el texto de lectura (descripción de la propiedad) va en 500, no 400.
-  weight: ["400", "500", "600", "700", "800"],
+  src: [
+    { path: "../../fonts/raleway-latin.woff2", weight: "400" },
+    { path: "../../fonts/raleway-latin.woff2", weight: "500" },
+    { path: "../../fonts/raleway-latin.woff2", weight: "600" },
+    { path: "../../fonts/raleway-latin.woff2", weight: "700" },
+    { path: "../../fonts/raleway-latin.woff2", weight: "800" },
+  ],
   variable: "--font-raleway",
   display: "swap",
 });
 
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "800"],
+const poppins = localFont({
+  // Poppins, en el repo (src/fonts): compilar no depende de Google Fonts.
+  src: [
+    { path: "../../fonts/poppins-300-latin.woff2", weight: "300" },
+    { path: "../../fonts/poppins-400-latin.woff2", weight: "400" },
+    { path: "../../fonts/poppins-500-latin.woff2", weight: "500" },
+    { path: "../../fonts/poppins-600-latin.woff2", weight: "600" },
+    { path: "../../fonts/poppins-800-latin.woff2", weight: "800" },
+  ],
   variable: "--font-poppins",
   display: "swap",
 });
