@@ -21,6 +21,19 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        // Distrito Roldán: paleta propia con modo claro y oscuro (globals.css,
+        // .dr-tema). Van por variable para que el modo oscuro general de la
+        // web no la pise a medias. verde/crema son fijos (chips sobre fotos).
+        dr: {
+          fondo: "rgb(var(--dr-fondo) / <alpha-value>)",
+          "fondo-alt": "rgb(var(--dr-fondo-alt) / <alpha-value>)",
+          superficie: "rgb(var(--dr-superficie) / <alpha-value>)",
+          tinta: "rgb(var(--dr-tinta) / <alpha-value>)",
+          acento: "rgb(var(--dr-acento) / <alpha-value>)",
+          bosque: "rgb(var(--dr-bosque) / <alpha-value>)",
+          verde: "#345544",
+          crema: "#F8F1E6",
+        },
         navy: {
           DEFAULT: "#1B2B4B",
           50: "#E3E7F0",
