@@ -3,6 +3,7 @@
 // zonas) y devuelve TODAS las que entran (sin tope: David, 22-oct-2026), con un
 // emprendimiento "de presentación" cada PROPIEDADES_POR_EMPRENDIMIENTO.
 
+import QRCode from 'qrcode'
 import {
   getProperties,
   getMainPhoto,
@@ -30,6 +31,8 @@ export interface SlidePropiedad extends SlideBase {
   titulo: string
   destacada: boolean
   specs: { v: string; l: string }[]
+  // "Bajó de precio" (David, 22-oct-2026): el precio de antes y cuánto bajó.
+  rebaja: { anterior: string; diferencia: string } | null
 }
 
 // Presentación especial de un emprendimiento (David, 22-oct-2026: "mechar con
@@ -53,9 +56,22 @@ export interface SlideEmprendimiento extends SlideBase {
   } | null
 }
 
-export type Slide = SlidePropiedad | SlideEmprendimiento
+// Placa "¿Cuánto vale tu casa?" (solo la tele parada, David 22-oct-2026): un QR
+// grande a la tasación de la web para el dueño que pasa por la vidriera, sobre
+// la foto de una casa del inventario. La tasación la hace un corredor: el texto
+// no promete un número automático.
+export interface SlideTasar extends SlideBase {
+  kind: 'tasar'
+  qr: string   // PNG en data URL
+  url: string  // lo que se lee abajo del QR
+}
+
+export type Slide = SlidePropiedad | SlideEmprendimiento | SlideTasar
 
 const PROPIEDADES_POR_EMPRENDIMIENTO = 6
+// La placa de tasar va cada 12 propiedades, corrida 3 para no pegarse a un emprendimiento.
+const PROPIEDADES_POR_TASAR = 12
+const URL_TASAR = 'https://siinmobiliaria.com/tasar?utm_source=tele&utm_medium=vidriera&utm_campaign=tasar'
 // Las unidades de un mismo emprendimiento se ven todas iguales (David,
 // 22-oct-2026: "no muestres tantos departamentos de Tierra Nueva"): pasan las 2
 // primeras (destacadas y más nuevas) y el emprendimiento tiene su presentación.
@@ -73,6 +89,16 @@ function usdVenta(p: TokkoProperty): number {
 }
 
 const conPrecio = (p: TokkoProperty) => formatPrice(p) !== 'Consultar precio' && usdVenta(p) > 0
+
+// La rebaja que manda Hilo (solo las que bajaron hace poco), con el mismo
+// formato que el precio ("USD 455.000"). Sin precio publicado no se muestra.
+function rebajaDe(p: TokkoProperty): SlidePropiedad['rebaja'] {
+  const r = p.rebaja
+  const actual = usdVenta(p)
+  if (!r || r.moneda !== 'USD' || !conPrecio(p) || r.anterior <= actual) return null
+  const usd = (n: number) => `USD ${Math.round(n).toLocaleString('es-AR')}`
+  return { anterior: usd(r.anterior), diferencia: usd(r.anterior - actual) }
+}
 
 function entraEnLaTele(p: TokkoProperty): boolean {
   const piso = p.type?.id != null ? PISO_USD[p.type.id] : undefined
@@ -243,7 +269,19 @@ function spreadByZone(list: TokkoProperty[]): TokkoProperty[] {
   return out
 }
 
-export async function getSlides(): Promise<Slide[]> {
+async function placasTasar(propiedades: SlidePropiedad[]): Promise<SlideTasar[]> {
+  let qr = ''
+  try {
+    qr = await QRCode.toDataURL(URL_TASAR, { margin: 1, width: 640, errorCorrectionLevel: 'M', color: { dark: '#0A2418', light: '#FFFFFF' } })
+  } catch {
+    return []
+  }
+  // Una casa distinta de fondo en cada pasada.
+  const casas = propiedades.filter((p) => p.tipo === 'Casa')
+  return (casas.length ? casas : propiedades).map((p) => ({ kind: 'tasar', photo: p.photo, photos: [p.photo], qr, url: 'siinmobiliaria.com/tasar' }))
+}
+
+export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {}): Promise<Slide[]> {
   let objects: TokkoProperty[] = []
   const tarjetas = getTarjetasEmprendimientos().catch((): Tarjeta[] => [])
   try {
@@ -282,17 +320,22 @@ export async function getSlides(): Promise<Slide[]> {
       titulo: p.publication_title ?? '',
       destacada: !!p.is_starred_on_web,
       specs: buildSpecs(p),
+      rebaja: rebajaDe(p),
     }
   })
 
   // Un emprendimiento cada PROPIEDADES_POR_EMPRENDIMIENTO, en el orden comercial
   // de /emprendimientos y dando la vuelta a la lista.
   const emps = armarEmprendimientos(await tarjetas, objects)
-  if (!emps.length) return propiedades
+  const tasar = conTasar ? await placasTasar(propiedades) : []
+  if (!emps.length && !tasar.length) return propiedades
   const slides: Slide[] = []
   propiedades.forEach((p, i) => {
     slides.push(p)
-    if ((i + 1) % PROPIEDADES_POR_EMPRENDIMIENTO === 0) {
+    if (tasar.length && (i + 1) % PROPIEDADES_POR_TASAR === 3) {
+      slides.push(tasar[Math.floor(i / PROPIEDADES_POR_TASAR) % tasar.length])
+    }
+    if (emps.length && (i + 1) % PROPIEDADES_POR_EMPRENDIMIENTO === 0) {
       slides.push(emps[Math.floor(i / PROPIEDADES_POR_EMPRENDIMIENTO) % emps.length])
     }
   })

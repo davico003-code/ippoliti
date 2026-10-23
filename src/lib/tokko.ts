@@ -115,6 +115,9 @@ export interface TokkoProperty {
   is_starred_on_web: boolean;
   /** Loop de la portada (Hilo, solo destacadas que lo tienen). Ver PortadaViva. */
   portada_viva?: string | null;
+  /** Baja de precio reciente (Hilo, 22-oct-2026: solo las que bajaron en los
+   *  últimos 90 días, ≥ 2 %). La usa la tele de la oficina ("Bajó USD X"). */
+  rebaja?: { anterior: number; moneda: string; fecha: string } | null;
   status: number;
   deleted_at: string | null;
   /** Última edición de la propiedad en Hilo (ISO). Solo la usa el sitemap (lastmod). */
@@ -281,6 +284,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
     ...(p.agente !== undefined ? { agente: p.agente } : {}),
     ...(p.barrio_cerrado != null ? { barrio_cerrado: p.barrio_cerrado } : {}),
     ...(p.portada_viva ? { portada_viva: p.portada_viva } : {}),
+    ...(p.rebaja ? { rebaja: p.rebaja } : {}),
   });
 }
 

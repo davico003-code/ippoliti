@@ -13,7 +13,7 @@
 // vmin (el lado corto de la pantalla), que sirven igual en las tres posiciones.
 
 import { useEffect, useRef, useState } from 'react'
-import type { Slide, SlideEmprendimiento } from '../tvData'
+import type { Slide, SlideEmprendimiento, SlideTasar } from '../tvData'
 
 const FOTO_MS = 4000
 const FUNDIDO_MS = 1600 // cruce entre fotos; el movimiento dura la foto + su salida
@@ -51,7 +51,8 @@ function enPaso(slides: Slide[], p: number) {
 const reglasParada = (pre: string) => `
   ${pre} .tv-stage { grid-template-columns: 1fr; grid-template-rows: 46% 54%; }
   ${pre} .tv-panel { padding: 4vmin 5vmin 0; border-left: 0; border-top: .4vmin solid #17613C; }
-  ${pre} .tv-badge { left: 5vmin; padding: 1vmin 2.6vmin; }
+  ${pre} .tv-badges { left: 5vmin; }
+  ${pre} .tv-badge { padding: 1vmin 2.6vmin; }
   ${pre} .tv-full { left: 5vmin; gap: 1.6vmin; padding: 1.6vmin 3.4vmin; }
   ${pre} .tv-girar { left: auto; right: 5vmin; }
   ${pre} .tv-top { gap: 3vmin; }
@@ -171,12 +172,14 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
   const s = slides[idx]
   // Presentación de emprendimiento a pantalla completa: entra y sale con un
   // fundido sobre la propiedad; mientras sale sigue mostrando el que se va.
-  const iShow = s.kind === 'emprendimiento' ? idx : antes && slides[antes.idx].kind === 'emprendimiento' ? antes.idx : null
-  const show = iShow !== null ? (slides[iShow] as SlideEmprendimiento) : null
-  const hayEmprendimientos = slides.some((x) => x.kind === 'emprendimiento')
+  // Lo mismo para la placa de tasar (solo la tele parada).
+  const iShow = s.kind !== 'propiedad' ? idx : antes && slides[antes.idx].kind !== 'propiedad' ? antes.idx : null
+  const show = iShow !== null ? (slides[iShow] as SlideEmprendimiento | SlideTasar) : null
+  const hayEmprendimientos = slides.some((x) => x.kind !== 'propiedad')
   // Dos momentos en el mismo slide: portada (8 s) y después las unidades (8 s);
   // mientras se va, se queda en las unidades.
-  const momentoUnidades = !!show?.unidades && (iShow !== idx || paso % FOTOS_POR_CASA >= FOTOS_POR_CASA / 2)
+  const momentoUnidades =
+    show?.kind === 'emprendimiento' && !!show.unidades && (iShow !== idx || paso % FOTOS_POR_CASA >= FOTOS_POR_CASA / 2)
 
   // Capas de fotos de un slide (Ken Burns + fundido); la que sale sigue moviéndose.
   const capas = (sl: Slide, i: number) =>
@@ -206,11 +209,18 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
       {/* Foto a sangre (izquierda, o arriba en la tele parada) */}
       <section className="tv-foto">
         {slides.map((sl, i) => (montadas.has(i) ? capas(sl, i) : null))}
-        {s.kind === 'emprendimiento' ? (
-          <span key={`b-${idx}`} className="tv-badge tv-badge-emp tv-in">Emprendimiento</span>
-        ) : (
-          s.destacada && <span key={`b-${idx}`} className="tv-badge tv-in">Selección SI</span>
-        )}
+        <div key={`b-${idx}`} className="tv-badges tv-in">
+          {s.kind === 'emprendimiento' && <span className="tv-badge tv-badge-emp">Emprendimiento</span>}
+          {s.kind === 'propiedad' && s.rebaja && (
+            <span className="tv-badge tv-badge-rebaja">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" />
+              </svg>
+              Bajó {s.rebaja.diferencia}
+            </span>
+          )}
+          {s.kind === 'propiedad' && s.destacada && <span className="tv-badge">Selección SI</span>}
+        </div>
         {!completa && (
           <button
             ref={botonFull}
@@ -257,7 +267,9 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
           )}
         </header>
 
-        {s.kind === 'emprendimiento' ? (
+        {s.kind === 'tasar' ? (
+          <div key={idx} className="tv-datos" />
+        ) : s.kind === 'emprendimiento' ? (
           // Presentación especial: nombre grande, quién lo desarrolla y el gancho.
           <div key={idx} className="tv-datos tv-in">
             <div className="tv-emp-sello">Emprendimiento</div>
@@ -292,6 +304,11 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
             <div className="tv-tipo">{s.tipo}</div>
             {s.ubicacion && <div className="tv-ubicacion">{s.ubicacion}</div>}
             {s.titulo && <h2 className="tv-titulo">{s.titulo}</h2>}
+            {s.rebaja && (
+              <div className="tv-antes">
+                <s>{s.rebaja.anterior}</s>
+              </div>
+            )}
             <div className="tv-precio" style={{ fontSize: precioLargo ? '6vmin' : '7.4vmin' }}>{s.precio}</div>
             {s.specs.length > 0 && (
               <div className="tv-specs">
@@ -327,76 +344,99 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
       {/* Emprendimiento: un momento aparte, a pantalla completa (David, 22-oct-2026:
           "debería ser más distinta la sección de cada emprendimiento"). */}
       {hayEmprendimientos && (
-        <div className={`tv-show${s.kind === 'emprendimiento' ? ' tv-show-on' : ''}`}>
+        <div className={`tv-show${s.kind !== 'propiedad' ? ' tv-show-on' : ''}`}>
           {show && iShow !== null && (
             <>
               {capas(show, iShow)}
               <div className="tv-show-velo" />
               <div className="tv-show-marco" />
               <div className="tv-show-si">
-                <span>Comercializa</span>
+                {show.kind === 'emprendimiento' && <span>Comercializa</span>}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/si-inmobiliaria-blanco.svg" alt="SI INMOBILIARIA" />
               </div>
-              <div key={`s-${iShow}`} className={`tv-show-contenido${momentoUnidades ? ' tv-show-apagado' : ''}`}>
-                <div className="tv-show-sello">
-                  <span className="tv-show-linea" />
-                  Emprendimiento
-                </div>
-                <h2
-                  className="tv-show-nombre"
-                  style={{ fontSize: show.nombre.length > 26 ? '6.6vmin' : show.nombre.length > 16 ? '8vmin' : '10vmin' }}
-                >
-                  {show.nombre}
-                </h2>
-                {show.bajada && <div className="tv-show-bajada">{show.bajada}</div>}
-                {show.ubicacion && <div className="tv-show-ubic">{show.ubicacion}</div>}
-                {show.descripcion && <p className="tv-show-desc">{show.descripcion}</p>}
-                {show.chips.length > 0 && (
-                  <div className="tv-show-chips">
-                    {show.chips.map((c) => (
-                      <span key={c}>{c}</span>
-                    ))}
-                  </div>
-                )}
-                {show.marcas.length > 0 && (
-                  <div className="tv-show-marcas">
-                    {show.marcas.map((m) => (
-                      <div key={m.nombre} className="tv-show-marca">
-                        <span className="tv-show-rol">{m.rol}</span>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        {m.logo && <img src={m.logo} alt={m.mostrarNombre ? '' : m.nombre} />}
-                        {(!m.logo || m.mostrarNombre) && <strong>{m.nombre}</strong>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {show.unidades && (
-                <div key={`u-${iShow}`} className={`tv-show-unidades${momentoUnidades ? ' tv-show-prendido' : ''}`}>
+              {show.kind === 'tasar' ? (
+                <div key={`t-${iShow}`} className="tv-show-contenido tv-tasar">
                   <div className="tv-show-sello">
                     <span className="tv-show-linea" />
-                    {show.unidades.titulo}
+                    Tasación sin cargo
                   </div>
-                  {show.unidades.desde && (
-                    <div className="tv-show-desde">
-                      <span>Desde</span> {show.unidades.desde}
+                  <h2 className="tv-tasar-titulo">¿Cuánto vale tu casa?</h2>
+                  <div className="tv-tasar-sub">Escaneá y pedí la tasación de un corredor matriculado.</div>
+                  <div className="tv-tasar-fila">
+                    <div className="tv-tasar-qr">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={show.qr} alt="Código QR para pedir la tasación de tu casa" />
                     </div>
-                  )}
-                  {show.unidades.resumen && <div className="tv-show-resumen">{show.unidades.resumen}</div>}
-                  <div className="tv-show-cards">
-                    {show.unidades.lista.map((u, k) => (
-                      <div key={k} className="tv-show-card" style={{ transitionDelay: momentoUnidades ? `${300 + k * 180}ms` : '0ms' }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={u.foto} alt="" decoding="async" />
-                        <div className="tv-show-card-txt">
-                          <span>{u.dato}</span>
-                          <strong>{u.precio}</strong>
-                        </div>
-                      </div>
-                    ))}
+                    <div className="tv-tasar-texto">
+                      <strong>{show.url}</strong>
+                      <span>Desde 1983 en Funes, Roldán y Rosario</span>
+                    </div>
                   </div>
                 </div>
+              ) : (
+                <>
+                  <div key={`s-${iShow}`} className={`tv-show-contenido${momentoUnidades ? ' tv-show-apagado' : ''}`}>
+                    <div className="tv-show-sello">
+                      <span className="tv-show-linea" />
+                      Emprendimiento
+                    </div>
+                    <h2
+                      className="tv-show-nombre"
+                      style={{ fontSize: show.nombre.length > 26 ? '6.6vmin' : show.nombre.length > 16 ? '8vmin' : '10vmin' }}
+                    >
+                      {show.nombre}
+                    </h2>
+                    {show.bajada && <div className="tv-show-bajada">{show.bajada}</div>}
+                    {show.ubicacion && <div className="tv-show-ubic">{show.ubicacion}</div>}
+                    {show.descripcion && <p className="tv-show-desc">{show.descripcion}</p>}
+                    {show.chips.length > 0 && (
+                      <div className="tv-show-chips">
+                        {show.chips.map((c) => (
+                          <span key={c}>{c}</span>
+                        ))}
+                      </div>
+                    )}
+                    {show.marcas.length > 0 && (
+                      <div className="tv-show-marcas">
+                        {show.marcas.map((m) => (
+                          <div key={m.nombre} className="tv-show-marca">
+                            <span className="tv-show-rol">{m.rol}</span>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            {m.logo && <img src={m.logo} alt={m.mostrarNombre ? '' : m.nombre} />}
+                            {(!m.logo || m.mostrarNombre) && <strong>{m.nombre}</strong>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {show.unidades && (
+                    <div key={`u-${iShow}`} className={`tv-show-unidades${momentoUnidades ? ' tv-show-prendido' : ''}`}>
+                      <div className="tv-show-sello">
+                        <span className="tv-show-linea" />
+                        {show.unidades.titulo}
+                      </div>
+                      {show.unidades.desde && (
+                        <div className="tv-show-desde">
+                          <span>Desde</span> {show.unidades.desde}
+                        </div>
+                      )}
+                      {show.unidades.resumen && <div className="tv-show-resumen">{show.unidades.resumen}</div>}
+                      <div className="tv-show-cards">
+                        {show.unidades.lista.map((u, k) => (
+                          <div key={k} className="tv-show-card" style={{ transitionDelay: momentoUnidades ? `${300 + k * 180}ms` : '0ms' }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={u.foto} alt="" decoding="async" />
+                            <div className="tv-show-card-txt">
+                              <span>{u.dato}</span>
+                              <strong>{u.precio}</strong>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
               <div key={`sp-${iShow}`} className="tv-progress tv-show-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
             </>
@@ -419,11 +459,22 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-kb-b { animation: tvKbB ${FOTO_MS + FUNDIDO_MS}ms linear forwards; }
         @keyframes tvKbA { from { transform: scale(1.02); } to { transform: scale(1.09) translate3d(-1%, -1%, 0); } }
         @keyframes tvKbB { from { transform: scale(1.09) translate3d(-1%, 0, 0); } to { transform: scale(1.02) translate3d(1%, -1%, 0); } }
-        .tv-badge { position: absolute; top: 4vmin; left: 3vw; z-index: 3; background: #17613C; color: #fff;
+        .tv-badges { position: absolute; top: 4vmin; left: 3vw; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 1.2vmin; }
+        .tv-badge { display: inline-flex; align-items: center; gap: .8vmin; background: #17613C; color: #fff;
           font-weight: 700; font-size: 1.9vmin; letter-spacing: .12em; text-transform: uppercase;
           padding: 1vmin 1.6vw; border-radius: 999px; box-shadow: 0 .8vmin 2.4vmin rgba(0,0,0,.35); }
 
         .tv-badge-emp { background: #C9A84C; color: #0A2418; }
+        /* Bajó de precio: coral, más grande y con un latido suave para que se vea de lejos. */
+        .tv-badge-rebaja { background: #E2552B; font-size: 2.4vmin; letter-spacing: .06em; padding: 1.1vmin 2.2vmin;
+          animation: tvLatido 1800ms ease-in-out infinite; }
+        .tv-badge-rebaja svg { width: 2.6vmin; height: 2.6vmin; fill: none; stroke: currentColor; stroke-width: 3;
+          stroke-linecap: round; stroke-linejoin: round; }
+        @keyframes tvLatido { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+        .tv-antes { margin-top: 3vmin; font-size: 3vmin; font-weight: 600; color: rgba(255,255,255,.62);
+          font-variant-numeric: tabular-nums; }
+        .tv-antes s { text-decoration-color: #E2552B; text-decoration-thickness: .35vmin; }
+        .tv-antes + .tv-precio { margin-top: .8vmin; }
 
         .tv-full { position: absolute; left: 3vw; bottom: 4vmin; z-index: 3; display: inline-flex; align-items: center;
           gap: 1vw; padding: 1.6vmin 2vw; border: 0; border-radius: 999px; background: #fff; color: #0A2418;
@@ -517,6 +568,18 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         .tv-show-marca strong { font-size: 2.6vmin; font-weight: 700; }
         .tv-show-progress { z-index: 6; background: linear-gradient(90deg, #C9A84C, #F3E3B5); }
 
+        /* Placa de tasar (tele parada): pregunta enorme y un QR que se lea desde la vereda. */
+        .tv-tasar-titulo { font-family: var(--font-raleway), sans-serif; font-weight: 800; font-size: 10vmin; line-height: .98;
+          letter-spacing: -.02em; margin: 2.6vmin 0 0; }
+        .tv-tasar-sub { font-size: 3.4vmin; font-weight: 600; line-height: 1.25; color: #E6C77A; margin-top: 2.4vmin; }
+        .tv-tasar-fila { display: flex; align-items: center; gap: 4vmin; margin-top: 4.4vmin; }
+        .tv-tasar-qr { flex: none; width: 34vmin; height: 34vmin; padding: 1.6vmin; background: #fff; border-radius: 2vmin;
+          box-shadow: 0 1.6vmin 4vmin rgba(0,0,0,.45); }
+        .tv-tasar-qr img { display: block; width: 100%; height: 100%; }
+        .tv-tasar-texto { display: flex; flex-direction: column; gap: 1.4vmin; text-shadow: 0 .3vmin 2vmin rgba(0,0,0,.45); }
+        .tv-tasar-texto strong { font-size: 3.2vmin; font-weight: 700; }
+        .tv-tasar-texto span { font-size: 2.2vmin; color: rgba(255,255,255,.8); }
+
         /* Presentación especial de emprendimiento: dorado de acento, nombre grande. */
         .tv-emp-sello { display: inline-block; padding: .8vmin 1.8vmin; border: .25vmin solid #C9A84C; border-radius: 999px;
           color: #E6C77A; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
@@ -574,7 +637,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
         @media (orientation: portrait) { .tv-girar { display: none; } }
 
         @media (prefers-reduced-motion: reduce) {
-          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-mini { animation: none !important; transition: none !important; }
+          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-mini, .tv-badge-rebaja { animation: none !important; transition: none !important; }
         }
       `}</style>
     </main>
