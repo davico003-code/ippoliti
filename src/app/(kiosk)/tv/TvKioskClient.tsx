@@ -62,6 +62,9 @@ const reglasParada = (pre: string) => `
   ${pre} .tv-emp-desc { -webkit-line-clamp: 2; }
   ${pre} .tv-show-velo { background: linear-gradient(0deg, rgba(5,16,10,.95) 0%, rgba(5,16,10,.75) 42%, rgba(5,16,10,0) 70%); }
   ${pre} .tv-show-contenido { left: 7vmin; right: 7vmin; bottom: 9vmin; max-width: none; }
+  ${pre} .tv-show-unidades { left: 7vmin; right: 7vmin; }
+  ${pre} .tv-show-cards { grid-template-columns: repeat(3, 1fr); }
+  ${pre} .tv-show-card img { height: 20vmin; }
 `
 
 const GIRO_KEY = 'si.tv-vertical.girada-al-reves'
@@ -171,6 +174,9 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
   const iShow = s.kind === 'emprendimiento' ? idx : antes && slides[antes.idx].kind === 'emprendimiento' ? antes.idx : null
   const show = iShow !== null ? (slides[iShow] as SlideEmprendimiento) : null
   const hayEmprendimientos = slides.some((x) => x.kind === 'emprendimiento')
+  // Dos momentos en el mismo slide: portada (8 s) y después las unidades (8 s);
+  // mientras se va, se queda en las unidades.
+  const momentoUnidades = !!show?.unidades && (iShow !== idx || paso % FOTOS_POR_CASA >= FOTOS_POR_CASA / 2)
 
   // Capas de fotos de un slide (Ken Burns + fundido); la que sale sigue moviéndose.
   const capas = (sl: Slide, i: number) =>
@@ -332,7 +338,7 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/si-inmobiliaria-blanco.svg" alt="SI INMOBILIARIA" />
               </div>
-              <div key={`s-${iShow}`} className="tv-show-contenido tv-in">
+              <div key={`s-${iShow}`} className={`tv-show-contenido${momentoUnidades ? ' tv-show-apagado' : ''}`}>
                 <div className="tv-show-sello">
                   <span className="tv-show-linea" />
                   Emprendimiento
@@ -366,6 +372,32 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
                   </div>
                 )}
               </div>
+              {show.unidades && (
+                <div key={`u-${iShow}`} className={`tv-show-unidades${momentoUnidades ? ' tv-show-prendido' : ''}`}>
+                  <div className="tv-show-sello">
+                    <span className="tv-show-linea" />
+                    {show.unidades.titulo}
+                  </div>
+                  {show.unidades.desde && (
+                    <div className="tv-show-desde">
+                      <span>Desde</span> {show.unidades.desde}
+                    </div>
+                  )}
+                  {show.unidades.resumen && <div className="tv-show-resumen">{show.unidades.resumen}</div>}
+                  <div className="tv-show-cards">
+                    {show.unidades.lista.map((u, k) => (
+                      <div key={k} className="tv-show-card" style={{ transitionDelay: momentoUnidades ? `${300 + k * 180}ms` : '0ms' }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={u.foto} alt="" decoding="async" />
+                        <div className="tv-show-card-txt">
+                          <span>{u.dato}</span>
+                          <strong>{u.precio}</strong>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div key={`sp-${iShow}`} className="tv-progress tv-show-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
             </>
           )}
@@ -442,7 +474,27 @@ export default function TvKioskClient({ slides, vertical = false }: { slides: Sl
           gap: 1.6vmin; font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.8); }
         .tv-show-si img { height: 3.6vmin; width: auto; }
         .tv-show-contenido { position: absolute; left: 8vmin; bottom: 9vmin; z-index: 5; max-width: 62%;
-          text-shadow: 0 .3vmin 2vmin rgba(0,0,0,.45); }
+          text-shadow: 0 .3vmin 2vmin rgba(0,0,0,.45);
+          transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1), transform ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1); }
+        .tv-show-apagado { opacity: 0; transform: translateY(-2vmin); }
+        /* Segundo momento: qué se puede comprar. Entra subiendo, las tarjetas de a una. */
+        .tv-show-unidades { position: absolute; left: 8vmin; right: 8vmin; bottom: 9vmin; z-index: 5; opacity: 0;
+          transform: translateY(3vmin); text-shadow: 0 .3vmin 2vmin rgba(0,0,0,.45);
+          transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1), transform ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1); }
+        .tv-show-prendido { opacity: 1; transform: none; }
+        .tv-show-desde { font-weight: 700; font-size: 9vmin; line-height: 1; letter-spacing: -.02em; margin-top: 2.4vmin;
+          font-variant-numeric: tabular-nums; }
+        .tv-show-desde span { font-size: 3.4vmin; font-weight: 600; letter-spacing: 0; color: #E6C77A; vertical-align: .6em; }
+        .tv-show-resumen { font-size: 3vmin; color: rgba(255,255,255,.88); margin-top: 1.6vmin; }
+        .tv-show-cards { display: grid; grid-template-columns: repeat(3, 34vmin); gap: 2.4vmin; margin-top: 4vmin; }
+        .tv-show-card { overflow: hidden; border-radius: 1.4vmin; background: rgba(5,16,10,.78);
+          border: .18vmin solid rgba(230,199,122,.55); text-shadow: none; opacity: 0; transform: translateY(2vmin);
+          transition: opacity 900ms cubic-bezier(.22,.61,.36,1), transform 900ms cubic-bezier(.22,.61,.36,1); }
+        .tv-show-prendido .tv-show-card { opacity: 1; transform: none; }
+        .tv-show-card img { display: block; width: 100%; height: 25vmin; object-fit: cover; }
+        .tv-show-card-txt { display: flex; flex-direction: column; gap: .8vmin; padding: 1.6vmin 2vmin 2vmin; }
+        .tv-show-card-txt span { font-size: 2vmin; color: rgba(255,255,255,.85); }
+        .tv-show-card-txt strong { font-size: 3.2vmin; font-weight: 700; font-variant-numeric: tabular-nums; }
         .tv-show-sello { display: flex; align-items: center; gap: 1.8vmin; color: #E6C77A; font-size: 2vmin;
           font-weight: 700; letter-spacing: .32em; text-transform: uppercase; }
         /* Elemento y no ::before: un content con comillas se escapa en el HTML del

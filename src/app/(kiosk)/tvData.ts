@@ -43,6 +43,14 @@ export interface SlideEmprendimiento extends SlideBase {
   descripcion: string | null
   chips: string[]
   marcas: { rol: string; nombre: string; logo: string | null; mostrarNombre: boolean }[]
+  // Segundo momento del slide: qué se puede comprar (David: "tendría que mostrar
+  // información y unidades de ese emprendimiento"). null si no hay unidades en el feed.
+  unidades: {
+    titulo: string            // "Lotes disponibles" / "Unidades disponibles"
+    desde: string | null      // precio de la más barata ("USD 37.736")
+    resumen: string           // "15 lotes · de 300 a 600 m²"
+    lista: { foto: string; dato: string; precio: string }[]  // hasta 3
+  } | null
 }
 
 export type Slide = SlidePropiedad | SlideEmprendimiento
@@ -59,12 +67,17 @@ const MAX_UNIDADES_POR_EMPRENDIMIENTO = 2
 // Tokko (3 casa, 2 departamento, 1 lote): por nombre, "Warehouse" contiene "house".
 const PISO_USD: Partial<Record<number, number>> = { 3: 250000, 2: 125000, 1: 70000 }
 
+function usdVenta(p: TokkoProperty): number {
+  const venta = p.operations?.find((op) => op.operation_type === 'Sale')
+  return venta?.prices?.find((pr) => pr.currency === 'USD')?.price ?? 0
+}
+
+const conPrecio = (p: TokkoProperty) => formatPrice(p) !== 'Consultar precio' && usdVenta(p) > 0
+
 function entraEnLaTele(p: TokkoProperty): boolean {
   const piso = p.type?.id != null ? PISO_USD[p.type.id] : undefined
-  if (!piso || formatPrice(p) === 'Consultar precio') return false
-  const venta = p.operations?.find((op) => op.operation_type === 'Sale')
-  const usd = venta?.prices?.find((pr) => pr.currency === 'USD')?.price ?? 0
-  return usd >= piso
+  if (!piso || !conPrecio(p)) return false
+  return usdVenta(p) >= piso
 }
 
 // Traducción de tipología: usa el mapa canónico de tokko.ts (única fuente de
@@ -94,10 +107,11 @@ function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {
 // contaban como zonas distintas y la TV encadenaba Funes tras Funes.
 // De qué emprendimiento es una unidad: el del feed, o Tierra Nueva (los Condos
 // 22-24 no traen emprendimiento en el feed; los delata el barrio).
+const normalizar = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
 function emprendimientoDe(p: TokkoProperty): string | null {
   if (p.development?.id) return `dev-${p.development.id}`
-  const barrio = (p.location?.name ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-  return barrio.includes('tierra nueva') ? 'tierra-nueva' : null
+  return normalizar(p.location?.name ?? '').includes('tierra nueva') ? 'tierra-nueva' : null
 }
 
 function sinRepetirEmprendimiento(list: TokkoProperty[]): TokkoProperty[] {
@@ -125,13 +139,77 @@ function recortar(texto: string | undefined, max: number): string | null {
   return `${oracion.slice(0, oracion.lastIndexOf(' ', max)).replace(/[,;:.]$/, '')}…`
 }
 
-async function getEmprendimientos(): Promise<SlideEmprendimiento[]> {
-  let tarjetas: Awaited<ReturnType<typeof getTarjetasEmprendimientos>> = []
-  try {
-    tarjetas = await getTarjetasEmprendimientos()
-  } catch {
-    return []
+type Tarjeta = Awaited<ReturnType<typeof getTarjetasEmprendimientos>>[number]
+
+// Unidades de cada emprendimiento en el feed: las de su development en Hilo, o
+// por nombre para las landings propias (los Condos de Tierra Nueva no traen
+// development). Fincazul y Hausing no tienen unidades cargadas: van sin segundo momento.
+const UNIDADES_DE_LANDING: Record<string, (p: TokkoProperty) => boolean> = {
+  'tierra-nueva': (p) => emprendimientoDe(p) === 'tierra-nueva',
+  aurea: (p) => normalizar(`${p.publication_title ?? ''} ${p.location?.name ?? ''}`).includes('aurea'),
+  'fisherton-work': (p) => normalizar(p.publication_title ?? '').includes('fisherton work'),
+}
+
+function unidadesDe(t: Tarjeta, objects: TokkoProperty[]): TokkoProperty[] {
+  const dev = /^dev-(\d+)$/.exec(t.key)?.[1]
+  const es = dev ? (p: TokkoProperty) => p.development?.id === Number(dev) : UNIDADES_DE_LANDING[t.key]
+  return es ? objects.filter((p) => es(p) && !!getMainPhoto(p)) : []
+}
+
+const m2 = (n: number) => Math.round(n).toLocaleString('es-AR')
+
+// "2 dorm. · 62 m² · cochera", "Lote de 501 m²", "Galpón · 200 m²".
+function datoUnidad(p: TokkoProperty): string {
+  if (p.type?.id === 1) {
+    const lote = getLotSurface(p)
+    return lote ? `Lote de ${m2(lote)} m²` : 'Lote'
   }
+  const dorm = p.suite_amount || 0
+  const cub = getRoofedArea(p)
+  return [
+    dorm > 0 ? `${dorm} dorm.` : tipoEs(p),
+    cub ? `${m2(cub)} m²` : null,
+    (p.parking_lot_amount ?? 0) > 0 ? 'cochera' : null,
+  ].filter(Boolean).join(' · ')
+}
+
+function resumenUnidades(us: TokkoProperty[]): SlideEmprendimiento['unidades'] {
+  if (!us.length) return null
+  const lotes = us.every((p) => p.type?.id === 1)
+  const n = us.length
+  // Con un solo aviso no se cuenta: suele ser uno que agrupa varios ("Lotes desde 500 m²").
+  const cuenta = n === 1 ? '' : lotes ? `${n} lotes` : `${n} unidades`
+  let detalle = ''
+  if (lotes) {
+    const sup = us.map((p) => getLotSurface(p) ?? 0).filter((x) => x > 0).sort((a, b) => a - b)
+    if (sup.length) detalle = sup[0] === sup[sup.length - 1] ? `${m2(sup[0])} m²` : `de ${m2(sup[0])} a ${m2(sup[sup.length - 1])} m²`
+  } else {
+    const dorms = Array.from(new Set(us.map((p) => p.suite_amount || 0).filter((x) => x > 0))).sort((a, b) => a - b)
+    if (dorms.length === 1) detalle = `${dorms[0]} ${dorms[0] === 1 ? 'dormitorio' : 'dormitorios'}`
+    else if (dorms.length > 1) detalle = `${dorms.slice(0, -1).join(', ')} y ${dorms[dorms.length - 1]} dormitorios`
+  }
+  // A la vista: con dormitorios, la más barata de cada tipología (1, 2, 3…);
+  // si no, la más barata, una del medio y la más cara (sin repetir).
+  const orden = us.filter(conPrecio).sort((a, b) => usdVenta(a) - usdVenta(b))
+  const base = orden.length ? orden : us
+  const porTipologia = lotes
+    ? []
+    : Array.from(new Set(base.map((p) => p.suite_amount || 0)))
+        .sort((a, b) => a - b)
+        .map((d) => base.find((p) => (p.suite_amount || 0) === d) as TokkoProperty)
+  const elegidas = (porTipologia.length >= Math.min(3, base.length)
+    ? porTipologia
+    : Array.from(new Set([0, Math.floor((base.length - 1) / 2), base.length - 1])).map((i) => base[i])
+  ).slice(0, 3)
+  return {
+    titulo: lotes ? 'Lotes disponibles' : 'Unidades disponibles',
+    desde: orden.length ? formatPrice(orden[0]) : null,
+    resumen: [cuenta, detalle].filter(Boolean).join(' · '),
+    lista: elegidas.map((p) => ({ foto: fotoJpgDeLaWeb(p.id, getMainPhoto(p) as string), dato: datoUnidad(p), precio: formatPrice(p) })),
+  }
+}
+
+function armarEmprendimientos(tarjetas: Tarjeta[], objects: TokkoProperty[]): SlideEmprendimiento[] {
   return tarjetas.flatMap((t): SlideEmprendimiento[] => {
     const photos = (t.fotos?.length ? t.fotos : [t.image]).filter((x): x is string => !!x).slice(0, 4)
     if (!photos.length) return []
@@ -145,6 +223,7 @@ async function getEmprendimientos(): Promise<SlideEmprendimiento[]> {
       descripcion: recortar(t.description, 170),
       chips: t.chips.slice(0, 3),
       marcas: (t.marcas ?? []).map((m) => ({ rol: m.rol, nombre: m.nombre, logo: m.logo?.src ?? null, mostrarNombre: !!m.mostrarNombre })),
+      unidades: resumenUnidades(unidadesDe(t, objects)),
     }]
   })
 }
@@ -166,12 +245,12 @@ function spreadByZone(list: TokkoProperty[]): TokkoProperty[] {
 
 export async function getSlides(): Promise<Slide[]> {
   let objects: TokkoProperty[] = []
-  const emprendimientos = getEmprendimientos()
+  const tarjetas = getTarjetasEmprendimientos().catch((): Tarjeta[] => [])
   try {
     const resp = await getProperties({ operation: 'Sale', limit: 500 })
     objects = resp.objects ?? []
   } catch {
-    return emprendimientos
+    return armarEmprendimientos(await tarjetas, [])
   }
 
   const seen = new Set<number>()
@@ -208,7 +287,7 @@ export async function getSlides(): Promise<Slide[]> {
 
   // Un emprendimiento cada PROPIEDADES_POR_EMPRENDIMIENTO, en el orden comercial
   // de /emprendimientos y dando la vuelta a la lista.
-  const emps = await emprendimientos
+  const emps = armarEmprendimientos(await tarjetas, objects)
   if (!emps.length) return propiedades
   const slides: Slide[] = []
   propiedades.forEach((p, i) => {
