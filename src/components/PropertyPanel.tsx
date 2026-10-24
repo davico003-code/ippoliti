@@ -18,6 +18,7 @@ import {
   getDescription,
   getBlueprintPhotos,
   tituloVisible,
+  formatPrice,
 } from '@/lib/tokko'
 import PropertyGalleryHero from './property-detail/PropertyGalleryHero'
 import PropertyStickyNav, { ALTURA_NAV_FICHA } from './property-detail/PropertyStickyNav'
@@ -28,6 +29,7 @@ import Footer from './Footer'
 import ShareMenu from './ShareMenu'
 import { atrasEsDelMazo } from '@/lib/mazo-atras'
 import { videosPropios } from '@/lib/video-oficina'
+import PropertyViewTracker from './PropertyViewTracker'
 
 const R = "'Raleway', system-ui, sans-serif"
 // Height of the sticky header INSIDE the panel (not the site header).
@@ -247,6 +249,11 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
             />
           </div>
         </div>
+
+        {/* La ficha abierta en el panel también es una visita (como la página de
+            la ficha): sin esto el embudo de la compu contaba los toques al
+            WhatsApp pero no las visitas, y el dueño veía menos visitas web. */}
+        <PropertyViewTracker propertyId={property.id} title={tituloVisible(property) || property.address} price={formatPrice(property)} />
 
         {/* Galería Zillow — constrained a padding del panel para no desbordar */}
         <div className="px-4 md:px-6 pt-4 pb-2">
