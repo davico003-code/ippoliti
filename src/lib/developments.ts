@@ -1,5 +1,6 @@
 import { PROPERTY_SEO } from '@/lib/seoOverrides'
 import { conFotosFijas } from '@/lib/fotos-fijas'
+import { hiloFeedCompleto } from '@/lib/tokko'
 
 function getApiKey(): string {
   const key = process.env.TOKKO_API_KEY
@@ -20,11 +21,8 @@ const HILO_BASE = process.env.HILO_FEED_URL || 'https://meethilo.com'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function hiloFeed(): Promise<any[]> {
-  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=1000`, {
-    next: { revalidate: 3600, tags: ['tokko-properties'] },
-  })
-  if (!res.ok) throw new Error(`Hilo feed error: ${res.status}`)
-  const data = await res.json()
+  // Por páginas: el feed entero no entra en el Data Cache (ver lib/tokko.ts).
+  const data = await hiloFeedCompleto({ revalidate: 3600, tags: ['tokko-properties'] })
   // Fotos de las unidades con URL fija (lib/fotos-fijas.ts); OG y JSON-LD las
   // pasan a absolutas con absoluteDevPhotoUrl.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
