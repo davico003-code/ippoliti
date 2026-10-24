@@ -62,6 +62,9 @@ export default function WhatsappConDatos({ href, propertyId, propertyTitle, prop
         {...rest}
         onClick={(e) => {
           events.contactoPropiedad(propertyId, propertyTitle, 'whatsapp')
+          // Todo toque cuenta para el embudo de la ficha en Hilo, venga de donde venga
+          // y sin pedir nada (/api/propiedades/whatsapp, uno por persona y día).
+          void fetch('/api/propiedades/whatsapp', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: propertyId }) }).catch(() => {})
           if (!pauta) return
           e.preventDefault()
           contarWcd('toque')
