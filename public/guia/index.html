@@ -9,6 +9,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Respaldo con las medidas de Raleway y Poppins (los mismos valores que calcula
+   next/font para el resto del sitio): mientras bajan las de Google, el texto
+   ocupa lo mismo y la portada no salta al cambiar de letra. */
+@font-face{font-family:'Raleway Fallback';src:local("Arial");ascent-override:92.39%;descent-override:23%;line-gap-override:0%;size-adjust:101.74%}
+@font-face{font-family:'Poppins Fallback';src:local("Arial");ascent-override:92.83%;descent-override:30.94%;line-gap-override:8.84%;size-adjust:113.11%}
 /* ═══════════════════════════════════════════════════════
    DESIGN TOKENS — Legibilidad prioritaria para +40 años
 ═══════════════════════════════════════════════════════ */
@@ -40,8 +45,8 @@
 
   /* Tipografía — fuentes de marca SI (Raleway display + Poppins cuerpo).
      Escala generosa mantenida para lectura cómoda (+40 años). */
-  --f-display:    'Raleway', system-ui, -apple-system, sans-serif;
-  --f-body:       'Poppins', system-ui, -apple-system, sans-serif;
+  --f-display:    'Raleway', 'Raleway Fallback', system-ui, -apple-system, sans-serif;
+  --f-body:       'Poppins', 'Poppins Fallback', system-ui, -apple-system, sans-serif;
 
   /* Tamaños base aumentados para legibilidad */
   --t-xs:         0.95rem;    /* 15.2px */

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { Download } from 'lucide-react'
 import { events } from '@/lib/analytics'
 import {
@@ -195,8 +194,6 @@ function Flash({ value, children }: { value: string | number; children: React.Re
 
 // ── Componente principal ─────────────────────────────────────────────────
 export default function CalculadoraCostos() {
-  const searchParams = useSearchParams()
-
   const [moneda, setMoneda] = useState<Moneda>('ARS')
   const [tipo, setTipo] = useState<Tipo>('vivienda')
   const [frecuencia, setFrecuencia] = useState<Frecuencia>('cuatrimestral')
@@ -229,8 +226,11 @@ export default function CalculadoraCostos() {
 
   // Prefill desde query params (ej. cuando alguien comparte el link de la
   // calculadora ya cargada). Solo se aplica al mount; cambios posteriores del
-  // usuario no se sobrescriben.
+  // usuario no se sobrescriben. Se lee de window.location y no con
+  // useSearchParams: ese hook sacaba la calculadora del HTML (se dibujaba recién
+  // en el navegador, Google veía solo el título y el pie saltaba: CLS 0,5).
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
     const qMoneda = searchParams?.get('moneda')
     const qTipo = searchParams?.get('tipo')
     const qAlquiler = searchParams?.get('alquiler')

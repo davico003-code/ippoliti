@@ -159,11 +159,11 @@ export default function InformesDashboard() {
       {/* Cierre del hero: el título (h1) se renderiza en el server, en page.tsx */}
       <div className="bg-[#0f0f0f] w-full">
         <div className="max-w-5xl mx-auto px-6 pb-16 md:pb-20 text-center">
-          {lastUpdate && (
-            <p className="text-white/25 text-xs mt-3">
-              Última actualización: {new Date(lastUpdate as string).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
-          )}
+          {/* El renglón ocupa su lugar aunque la fecha llegue después: sin eso,
+              al llegar los datos la página entera bajaba un renglón. */}
+          <p className="text-white/25 text-xs mt-3 h-4">
+            {lastUpdate && `Última actualización: ${new Date(lastUpdate as string).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+          </p>
         </div>
       </div>
 

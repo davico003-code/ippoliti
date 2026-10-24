@@ -15,12 +15,17 @@ import dynamic from 'next/dynamic'
 
 const InformesDashboard = dynamic(() => import('./InformesDashboard'), {
   ssr: false,
-  // La franja oscura continúa el hero de page.tsx (pb-16 md:pb-20 del dashboard).
+  // La franja oscura continúa el hero de page.tsx con el MISMO alto que la del
+  // dashboard (renglón de "Última actualización" incluido): si no, al llegar el
+  // dashboard todo bajaba ~30 px (CLS 0,32 en compu).
   loading: () => (
-    <>
-      <div className="bg-[#0f0f0f] h-16 md:h-20" />
-      <div className="min-h-screen bg-[#f8f7f4]" />
-    </>
+    <div className="min-h-screen bg-[#f8f7f4]">
+      <div className="bg-[#0f0f0f] w-full">
+        <div className="pb-16 md:pb-20">
+          <p className="text-xs mt-3 h-4" />
+        </div>
+      </div>
+    </div>
   ),
 })
 

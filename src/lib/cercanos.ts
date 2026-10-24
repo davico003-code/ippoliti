@@ -1,5 +1,7 @@
 import 'server-only'
 import { redis } from '@/lib/redis'
+import { CONSULTA, ESPEJOS, UA } from '@/lib/cercanos-consulta'
+import zona from '@/data/lugares-zona.json'
 
 // Lugares cercanos a una propiedad (OpenStreetMap vía Overpass), para la ficha
 // de la web (NearbyPlaces) y la de verficha.casa (CercaChips).
@@ -12,7 +14,14 @@ import { redis } from '@/lib/redis'
 // Redis: lo que hay cerca de una casa casi no cambia. Si Overpass está "a
 // capacidad" (su propio aviso pide reintentar con espera), durante PAUSA_S no se
 // le vuelve a pedir: la ficha muestra el aviso al instante en vez de esperar
-// 20 s. scripts/calentar-cercanos.mjs llena todas las publicadas con paciencia.
+// 20 s.
+//
+// 23-oct-2026: ni así alcanzaba — desde Vercel Overpass casi nunca contesta y
+// las 30 fichas cargadas después del 16-oct quedaron "temporalmente no
+// disponible". Ahora, dentro del corredor, lo cercano se calcula de una copia de
+// OpenStreetMap de toda la zona (src/data/lugares-zona.json, la arma
+// scripts/lugares-zona.mts): una propiedad nueva tiene sus lugares desde que se
+// publica, sin pedirle nada a nadie. Overpass queda solo para lo de afuera.
 
 export interface LugarFicha {
   name: string
@@ -36,18 +45,6 @@ export interface LugaresCercanos {
 
 type Tags = Record<string, string>
 
-// Una sola consulta con todos los rubros de las dos fichas, al radio más grande
-// que pide cada una; después cada vista filtra por su propio radio.
-const CONSULTA: Array<[string, number]> = [
-  ['nwr["amenity"="school"]', 2000],
-  ['nwr["amenity"~"^(hospital|clinic)$"]', 2500],
-  ['nwr["shop"~"^(supermarket|convenience)$"]', 1200],
-  ['nwr["leisure"~"^(park|playground)$"]', 1000],
-  ['nwr["amenity"~"^(pharmacy|bank)$"]', 1200],
-  ['node["highway"="bus_stop"]', 500],
-  ['nwr["railway"~"^(station|halt)$"]', 2000],
-]
-
 // Ficha de la web: hasta 5 con nombre por rubro.
 const RUBROS_FICHA: Array<{ key: string; radio: number; es: (t: Tags) => boolean }> = [
   { key: 'school', radio: 2000, es: (t) => t.amenity === 'school' },
@@ -68,14 +65,8 @@ const RUBROS_CHIPS: Array<{ key: string; radio: number; es: (t: Tags) => boolean
   { key: 'banco', radio: 1200, es: (t) => t.amenity === 'bank' },
 ]
 
-const ESPEJOS = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.private.coffee/api/interpreter',
-  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
-]
 const ESCALON_MS = 4000
 const TIMEOUT_MS = 20_000
-const UA = 'SI-INMOBILIARIA/1.0 (+https://siinmobiliaria.com; contacto@siinmobiliaria.com)'
 const TTL_S = 365 * 24 * 60 * 60
 const PAUSA_S = 120
 const CLAVE_PAUSA = 'cercanos:overpass-caido'
@@ -129,6 +120,21 @@ export function armarCercanos(lat: number, lng: number, elementos: Elemento[]): 
   return { ficha, chips }
 }
 
+let elementosZona: Elemento[] | null = null
+
+/** Lo cercano según la copia de la zona; null si el punto queda fuera de ella.
+ *  Cada lugar del archivo es [lat, lng, clave, valor, clave, valor…]. */
+function cercanosDeZona(lat: number, lng: number): LugaresCercanos | null {
+  const { s, w, n, e } = zona.responde
+  if (lat < s || lat > n || lng < w || lng > e) return null
+  elementosZona ??= zona.lugares.map(([la, lo, ...kv]) => {
+    const tags: Tags = {}
+    for (let i = 0; i + 1 < kv.length; i += 2) tags[String(kv[i])] = String(kv[i + 1])
+    return { lat: Number(la), lon: Number(lo), tags }
+  })
+  return armarCercanos(lat, lng, elementosZona)
+}
+
 /** Una respuesta de Overpass sirve si trae elements y no avisa un error (timeout,
  *  falta de memoria): esas vienen con 200, elements vacío y un "remark". */
 async function pedirEspejo(url: string, consulta: string, signal: AbortSignal): Promise<Elemento[]> {
@@ -176,15 +182,18 @@ const claveDe = (latIn: number, lngIn: number) => {
   return { lat, lng, clave: `cercanos:v1:${lat}:${lng}` }
 }
 
-/** Solo lo ya guardado (nunca le pide a Overpass): lo usa la ficha al armarse en
- *  el servidor para que el HTML traiga los lugares cercanos. null si no está
- *  o si Redis tarda: la ficha cae al pedido del navegador de siempre.
+/** Nunca le pide a Overpass: dentro de la zona sale de la copia; afuera, solo lo
+ *  ya guardado. Lo usa la ficha al armarse en el servidor para que el HTML
+ *  traiga los lugares cercanos. null si no está o si Redis tarda: la ficha cae
+ *  al pedido del navegador de siempre.
  *
  *  Va por el REST de Upstash con `next.revalidate` y NO con el cliente `redis`:
  *  el cliente pide con cache 'no-store' y eso vuelve dinámica la ficha (ISR de
  *  1 h) → "Page changed from static to dynamic at runtime" = 500 en todas. */
-export async function cercanosGuardados(lat: number, lng: number): Promise<LugaresCercanos | null> {
-  const { clave } = claveDe(lat, lng)
+export async function cercanosGuardados(latIn: number, lngIn: number): Promise<LugaresCercanos | null> {
+  const { lat, lng, clave } = claveDe(latIn, lngIn)
+  const deZona = cercanosDeZona(lat, lng)
+  if (deZona) return deZona
   const url = process.env.KV_REST_API_URL
   const token = process.env.KV_REST_API_TOKEN
   if (!url || !token) return null
@@ -204,6 +213,8 @@ export async function cercanosGuardados(lat: number, lng: number): Promise<Lugar
 
 export function lugaresCercanos(latIn: number, lngIn: number): Promise<LugaresCercanos | null> {
   const { lat, lng, clave } = claveDe(latIn, lngIn)
+  const deZona = cercanosDeZona(lat, lng)
+  if (deZona) return Promise.resolve(deZona)
   const ya = enCurso.get(clave)
   if (ya) return ya
   const p = (async () => {
