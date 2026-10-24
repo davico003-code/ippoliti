@@ -13,13 +13,14 @@
 //  3. OSM estándar (fallback de emergencia de map-tiles.ts): 200 image/*,
 //     para saber que la red de contención está sana antes de necesitarla.
 //
-// Si algo falla, avisa por WhatsApp al admin. Los lunes manda un resumen OK
-// como latido (si el cron dejara de correr, se nota por ausencia).
+// Lo que encuentra lo deja para el vigía de Hilo (lib/vigia.ts), que avisa
+// por mail si algo está mal o si este cron deja de correr.
 //
 // Se puede disparar a mano: GET /api/cron/mapas-salud con Bearer CRON_SECRET.
-// ?dry=1 → solo reporta, no notifica.
+// ?dry=1 → solo reporta, no le deja nada al vigía.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { reportarAlVigia } from '@/lib/vigia'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -91,18 +92,7 @@ export async function GET(req: NextRequest) {
     problemas.push(`OSM (fallback) no responde (HTTP ${osm.status}) — sin red de contención si Carto falla`)
   }
 
-  const esLunes = new Date().getUTCDay() === 1
-  if (!dry && (problemas.length > 0 || esLunes)) {
-    try {
-      const { enviarWhatsAppAdmin } = await import('@/agents/blog/lib/whatsapp')
-      const msg = problemas.length > 0
-        ? `🗺️ *Mapas del sitio: problema detectado*\n\n${problemas.map(p => `• ${p}`).join('\n')}`
-        : '🗺️ Mapas del sitio: todo OK (Carto con key, Esri satelital y fallback OSM responden). Latido semanal.'
-      await enviarWhatsAppAdmin(msg)
-    } catch (err) {
-      console.error('[mapas-salud] no se pudo notificar:', err)
-    }
-  }
+  if (!dry) await reportarAlVigia('mapas', problemas)
 
   return NextResponse.json({
     ok: problemas.length === 0,

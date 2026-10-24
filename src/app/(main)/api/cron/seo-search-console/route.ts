@@ -2,8 +2,8 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 // Monitor diario de Search Console (la capa que la rutina de chequeos técnicos
-// no puede ver: qué hizo GOOGLE con el sitio). Corre por cron de Vercel y solo
-// molesta por WhatsApp cuando encuentra un problema:
+// no puede ver: qué hizo GOOGLE con el sitio). Corre por cron de Vercel y deja
+// lo que encuentra para el vigía de Hilo (lib/vigia.ts), que avisa por mail:
 //   1. Google dejó de leer el sitemap (>7 días) → lo reenvía solo y avisa.
 //   2. Cayó fuerte la cantidad de páginas visibles en Google (>30% en 7 días).
 //   3. Alguna página clave (home, /propiedades, /blog) dejó de estar indexada.
@@ -16,7 +16,7 @@ import {
   inspectUrl,
 } from '@/lib/gsc'
 import { redis } from '@/lib/redis'
-import { enviarWhatsAppAdmin } from '@/agents/blog/lib/whatsapp'
+import { reportarAlVigia } from '@/lib/vigia'
 
 const SITEMAP_STALE_DIAS = 7
 const CAIDA_ALERTA = 0.3 // -30% de páginas visibles en una semana → alerta
@@ -46,9 +46,8 @@ export async function GET(req: Request) {
     if (dias > SITEMAP_STALE_DIAS && !sitemap.isPending) {
       try {
         await submitSitemap()
-        alertas.push(
-          `Google no leía el sitemap hace ${Math.round(dias)} días. Lo reenvié automáticamente — no hace falta que hagas nada, es para que sepas.`,
-        )
+        // Resuelto solo: no es para el mail (David no quiere mensajes que no piden nada).
+        console.log(`[seo-gsc] Google no leía el sitemap hace ${Math.round(dias)} días: lo reenvié`)
       } catch (err) {
         // Sin permiso de propietario el submit da 403: avisar en vez de romper.
         alertas.push(
@@ -102,17 +101,10 @@ export async function GET(req: Request) {
     )
   }
 
-  // Notificación: solo si hay algo que decir. Con ?dry=1 se saltea el
-  // WhatsApp (para probar el circuito a mano sin hacer ruido).
+  // El mail lo decide el vigía de Hilo (también sin alertas: así nota si este
+  // cron deja de correr). Con ?dry=1 no le deja nada (para probar a mano).
   const dry = new URL(req.url).searchParams.get('dry') === '1'
-  if (alertas.length > 0 && !dry) {
-    const cuerpo = `🔍 Monitor de indexación — siinmobiliaria.com\n\n${alertas.map((a) => `• ${a}`).join('\n')}`
-    try {
-      await enviarWhatsAppAdmin(cuerpo)
-    } catch (err) {
-      console.error('[seo-gsc] No se pudo enviar el WhatsApp de alerta:', err)
-    }
-  }
+  if (!dry) await reportarAlVigia('search-console', alertas)
 
   console.log(`[seo-gsc] ${alertas.length} alerta(s)`, JSON.stringify(resumen))
   return Response.json({
