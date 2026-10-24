@@ -5,13 +5,13 @@
 // Overpass en vivo: desde Vercel casi nunca contesta (23-oct-2026: las 30 fichas
 // cargadas después del 16-oct mostraban "temporalmente no disponible").
 //
-//   npx tsx scripts/lugares-zona.mts
+//   npx tsx scripts/lugares-zona.mts            (--forzar si trae mucho menos que la copia actual)
 //
 // Es UNA consulta por rectángulo: la de por punto, de a cientos, Overpass la
 // rechaza por saturación. Lo que hay en el mapa cambia poco: correrlo cada
 // algunos meses, o si avisa que hay propiedades publicadas fuera de la zona.
 
-import { writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { CONSULTA, ESPEJOS, TAGS_USADOS, UA } from '../src/lib/cercanos-consulta'
 
 // Donde la ficha responde desde la copia: el corredor con aire alrededor de las
@@ -62,6 +62,15 @@ const lugares = elementos.flatMap((el) => {
   const tags = TAGS_USADOS.flatMap((k) => (el.tags?.[k] ? [k, el.tags[k]] : []))
   return [[Number(lat.toFixed(5)), Number(lon.toFixed(5)), ...tags]]
 })
+
+// Un espejo a veces devuelve una respuesta cortada: si trae bastante menos que
+// la copia actual, no se pisa (las fichas perderían lugares sin que nadie lo
+// note). --forzar la escribe igual.
+const anteriores = existsSync(DESTINO) ? (JSON.parse(readFileSync(DESTINO, 'utf8')) as { lugares: unknown[] }).lugares.length : 0
+if (lugares.length < anteriores * 0.9 && !process.argv.includes('--forzar')) {
+  console.error(`Trajo ${lugares.length} lugares y la copia actual tiene ${anteriores}: no la piso. Reintentá en un rato o pasá --forzar.`)
+  process.exit(1)
+}
 
 writeFileSync(DESTINO, JSON.stringify({ generado: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }), responde: RESPONDE, lugares }) + '\n')
 console.log(`${lugares.length} lugares guardados en src/data/lugares-zona.json`)
