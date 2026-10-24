@@ -1138,6 +1138,56 @@ async function hiloGetPropertyById(id: number): Promise<TokkoProperty> {
   return ocultarPrecioOportunidad((await res.json()) as TokkoProperty);
 }
 
+// El feed de lista completo pesa ~1,6 MB (309 propiedades, oct-2026) y el Data
+// Cache guarda el cuerpo en base64 (+33 %): pasaba los 2 MB ("items over 2MB can
+// not be cached") y CADA visita al listado le volvía a pedir todo a HILO (48
+// veces en una hora; ~1,2 s antes de la primera tarjeta). Se pide en páginas de
+// FEED_PAGINA, cada una su propia entrada de cache con las mismas tags, así que
+// la revalidación por tag las tira juntas. Las primeras FEED_INICIALES van en
+// paralelo (un solo viaje para el que llega después de una edición); más
+// páginas solo si el feed las tiene.
+const FEED_PAGINA = 100;
+const FEED_INICIALES = 4;
+const FEED_TOPE = 1000;
+
+/** El feed de lista completo de HILO, pedido en páginas que entran en el Data
+ *  Cache. `next`/`headers` van iguales a cada página (ver hiloGetProperties). */
+export async function hiloFeedCompleto(
+  next: { revalidate: number; tags: string[] },
+  headers?: Record<string, string>,
+): Promise<TokkoListResponse> {
+  const pedir = async (offset: number): Promise<TokkoListResponse> => {
+    const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${FEED_PAGINA}&offset=${offset}`, { headers, next });
+    if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
+    return (await res.json()) as TokkoListResponse;
+  };
+  const offsetsDe = (desde: number, hasta: number) =>
+    Array.from({ length: Math.max(0, Math.ceil((hasta - desde) / FEED_PAGINA)) }, (_, i) => desde + i * FEED_PAGINA);
+  const iniciales = await Promise.all(offsetsDe(0, FEED_INICIALES * FEED_PAGINA).map(pedir));
+  const total = iniciales[0].meta?.total_count ?? 0;
+  if (total > FEED_TOPE) console.warn(`[hilo] feed de ${total} propiedades: se leen las primeras ${FEED_TOPE} — subir FEED_TOPE`);
+  const paginas = [...iniciales, ...(await Promise.all(offsetsDe(FEED_INICIALES * FEED_PAGINA, Math.min(total, FEED_TOPE)).map(pedir)))];
+  // HILO ordena por última edición: si dos páginas salen de momentos distintos
+  // (cada una vence por su cuenta), una propiedad puede venir dos veces (se
+  // descarta) o quedar en el borde y faltar. Si las cuentas no cierran, esta
+  // visita lee el feed entero como antes (no entra en cache, pero nunca falta nada).
+  const vistas = new Set<number>();
+  const objects: TokkoProperty[] = [];
+  for (const o of paginas.flatMap((p) => p.objects ?? [])) {
+    if (vistas.has(o.id)) continue;
+    vistas.add(o.id);
+    objects.push(o);
+  }
+  const coherente = paginas.every((p) => (p.meta?.total_count ?? total) === total) && objects.length >= Math.min(total, FEED_TOPE);
+  if (!coherente) {
+    console.warn(`[hilo] feed por páginas descuadrado (${objects.length} de ${total}): leo el feed entero`);
+    const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${FEED_TOPE}`, { headers, next });
+    if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
+    return (await res.json()) as TokkoListResponse;
+  }
+  return { meta: { limit: objects.length, offset: 0, total_count: objects.length, next: null, previous: null }, objects };
+}
+
 async function hiloGetProperties(params?: {
   operation?: TokkoOperation['operation_type'];
   typeId?: number;
@@ -1146,27 +1196,21 @@ async function hiloGetProperties(params?: {
   fetchAll?: boolean;
 }, estable = false): Promise<TokkoListResponse> {
   // El feed HILO no filtra server-side, así que SIEMPRE traemos el feed completo
-  // (UNA sola entry de cache reutilizada por todos los callers) y filtramos +
+  // (las mismas entradas de cache, por páginas, para todos los callers) y filtramos +
   // paginamos acá. Ignoramos fetchAll para el fetch upstream: filtrar/paginar
   // sobre un subconjunto truncado daría total_count mentiroso y perdería
   // propiedades (p.ej. filtrar Rent sobre los primeros 50 del feed).
-  const UPSTREAM_CAP = 1000;
   // `estable`: mismo feed, otra entrada del Data Cache (el header entra en la
   // clave de cache de Next; el feed lo ignora) con un tag que no cae en cada
   // edición. Ver CACHE_TAG_LISTA_ESTABLE.
-  const res = await fetch(
-    `${HILO_BASE}/api/public/propiedades?limit=${UPSTREAM_CAP}`,
-    estable
-      ? { headers: { 'x-si-cache': 'estable' }, next: { revalidate: 3600, tags: [CACHE_TAG_LISTA_ESTABLE] } }
-      : { next: { revalidate: 3600, tags: [CACHE_TAG_LISTA] } },
-  );
-  if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
-  const data = (await res.json()) as TokkoListResponse;
+  const data = estable
+    ? await hiloFeedCompleto({ revalidate: 3600, tags: [CACHE_TAG_LISTA_ESTABLE] }, { 'x-si-cache': 'estable' })
+    : // 5 min y no 1 h: HILO guarda su catálogo 60 s en memoria sin limpiarlo al
+      // editar, así que la recarga que dispara /api/revalidate puede traer el de
+      // antes de la edición; con 300 s se corrige solo (y nadie espera: se sirve
+      // lo guardado mientras se refresca).
+      await hiloFeedCompleto({ revalidate: 300, tags: [CACHE_TAG_LISTA] });
   let objects = data.objects ?? [];
-  const feedTotal = data.meta?.total_count ?? objects.length;
-  if (feedTotal > UPSTREAM_CAP || objects.length >= UPSTREAM_CAP) {
-    console.warn(`[hilo] feed truncado: recibidas ${objects.length}/${feedTotal} — subir UPSTREAM_CAP o paginar`);
-  }
   // El filtrado por operación/tipo lo hacemos acá (tenemos los ids de Tokko en type.id).
   if (params?.operation) {
     objects = objects.filter((o) => (o.operations || []).some((op) => op.operation_type === params.operation));
