@@ -5,14 +5,15 @@
 // días: link para colega (fichas verficha), selecciones, leads, redirects del
 // blog. Nadie se enteró hasta que un colega reportó el botón roto.
 //
-// Este cron hace un PING barato por día. Si Redis responde, no hace nada.
-// Si falla (cuota agotada, credenciales, caída), manda WhatsApp al admin con
-// el error y el fix. Detecta la rotura el día 1 en vez de por reporte de un
-// usuario.
+// Este cron hace un PING barato por día y deja el "todo bien" para el vigía de
+// Hilo (lib/vigia.ts). Si Redis falla (cuota agotada, credenciales, caída) no
+// puede dejar nada: el vigía nota que falta el reporte y avisa por mail con el
+// fix (Vercel → Storage → Upstash). Detecta la rotura el día 1 en vez de por
+// reporte de un usuario.
 
 import { NextResponse } from 'next/server'
 import { redis } from '@/lib/redis'
-import { enviarWhatsAppAdmin } from '@/agents/blog/lib/whatsapp'
+import { reportarAlVigia } from '@/lib/vigia'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -25,25 +26,13 @@ export async function GET(req: Request) {
 
   try {
     const pong = await redis.ping()
+    await reportarAlVigia('redis', [])
     return NextResponse.json({ ok: true, pong, timestamp: new Date().toISOString() })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     const esCuota = /max requests limit exceeded/i.test(msg)
-
-    const alerta = esCuota
-      ? `🔴 *Upstash Redis sin cuota* (ippoliti)\n\n` +
-        `La base cunning-stork-86667 agotó el límite mensual de comandos. ` +
-        `Están caídos: link para colega (verficha), selecciones, leads a Redis, ` +
-        `redirects del blog y audio de fichas.\n\n` +
-        `Fix: Vercel → Storage → Upstash → upgrade a pay-as-you-go ` +
-        `(o esperar al reset del mes).\n\nError: ${msg.slice(0, 200)}`
-      : `🔴 *Upstash Redis caído* (ippoliti)\n\nEl PING diario falló: ${msg.slice(0, 300)}`
-
-    try {
-      await enviarWhatsAppAdmin(alerta)
-    } catch (waErr) {
-      console.error('[redis-salud] No se pudo mandar el WhatsApp:', waErr)
-    }
+    // Sin Redis no hay dónde dejar el aviso: lo da el vigía de Hilo por ausencia.
+    console.error(`[redis-salud] ${esCuota ? 'Upstash sin cuota' : 'Upstash caído'}:`, msg)
 
     return NextResponse.json(
       { ok: false, error: msg, cuotaAgotada: esCuota, timestamp: new Date().toISOString() },

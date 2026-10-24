@@ -11,17 +11,18 @@
 //       - /api/image-proxy responde en verficha.casa (no cae en not-found),
 //       - la foto de portada de cada ficha activa carga (200 image/*),
 //       - la página de una ficha externa responde 200.
-//     Si algo falla, avisa por WhatsApp al admin. Los lunes manda un resumen OK
-//     como latido (si el cron dejara de correr, se nota por ausencia).
+//     Lo que encuentra lo deja para el vigía de Hilo (lib/vigia.ts), que avisa
+//     por mail si algo está mal o si este cron deja de correr.
 //
 // Se puede disparar a mano: GET /api/cron/fichas-salud con Bearer CRON_SECRET.
-// ?dry=1 → solo reporta, no re-hostea ni notifica.
+// ?dry=1 → solo reporta, no re-hostea ni le deja nada al vigía.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { listFichas, actualizarFotosFicha } from '@/lib/ficha'
 import { rehostFotos, necesitaRehost, esFotoPropia } from '@/lib/rehost-fotos'
 import { publicImageUrl } from '@/lib/external-images'
 import { redis } from '@/lib/redis'
+import { reportarAlVigia } from '@/lib/vigia'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -142,30 +143,8 @@ export async function GET(req: NextRequest) {
     await redis.set(LAST_KEY, JSON.stringify(resumen), { ex: 14 * 24 * 60 * 60 })
   } catch { /* no bloquea */ }
 
-  // ── Aviso ────────────────────────────────────────────────────────────────
-  const esLunes = new Date().getUTCDay() === 1
-  if (!dry && (problemas.length > 0 || esLunes)) {
-    try {
-      const { enviarWhatsAppAdmin } = await import('@/agents/blog/lib/whatsapp')
-      const lineas = problemas.length
-        ? [
-            `🚨 Fichas verficha — ${problemas.length} problema(s)`,
-            ``,
-            ...problemas.slice(0, 8).map(p => `• ${p.slug}: ${p.detalle}`),
-            problemas.length > 8 ? `…y ${problemas.length - 8} más` : '',
-            ``,
-            `Portadas OK: ${resumen.portadasOk} · curadas hoy: ${curadas.length}`,
-            `Correr a mano: /api/cron/fichas-salud`,
-          ]
-        : [
-            `✅ Fichas verficha — todo OK (latido semanal)`,
-            `${fichas.length} activas · portadas ${resumen.portadasOk} · curadas ${curadas.length}`,
-          ]
-      await enviarWhatsAppAdmin(lineas.filter(l => l !== undefined).join('\n'))
-    } catch (err) {
-      console.error('[fichas-salud] no se pudo notificar:', err)
-    }
-  }
+  // ── Aviso: lo decide el vigía de Hilo ──────────────────────────────────────
+  if (!dry) await reportarAlVigia('fichas-verficha', problemas.map(p => `${p.slug}: ${p.detalle}`))
 
   console.log('[fichas-salud]', JSON.stringify(resumen))
   return NextResponse.json(resumen, { status: problemas.length ? 500 : 200 })
