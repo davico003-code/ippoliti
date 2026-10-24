@@ -48,7 +48,10 @@ function DolarCard({ title, data, color }: { title: string; data?: DolarEntry; c
             <p className="text-2xl font-bold font-numeric" style={{ color }}>${data.venta?.toLocaleString('es-AR')}</p>
           </div>
         </div>
-      ) : <Skeleton className="h-12 w-full" />}
+      ) : (
+        // El alto del renglón Compra/Venta: la tarjeta no cambia al llegar el dato.
+        <Skeleton className="h-[49px] w-full" />
+      )}
     </div>
   )
 }
@@ -159,11 +162,11 @@ export default function InformesDashboard() {
       {/* Cierre del hero: el título (h1) se renderiza en el server, en page.tsx */}
       <div className="bg-[#0f0f0f] w-full">
         <div className="max-w-5xl mx-auto px-6 pb-16 md:pb-20 text-center">
-          {lastUpdate && (
-            <p className="text-white/25 text-xs mt-3">
-              Última actualización: {new Date(lastUpdate as string).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
-          )}
+          {/* El renglón ocupa su lugar aunque la fecha llegue después: sin eso,
+              al llegar los datos la página entera bajaba un renglón. */}
+          <p className="text-white/25 text-xs mt-3 h-4">
+            {lastUpdate && `Última actualización: ${new Date(lastUpdate as string).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+          </p>
         </div>
       </div>
 
@@ -172,17 +175,13 @@ export default function InformesDashboard() {
         {/* ── DÓLAR ── */}
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Dólar</p>
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Skeleton className="h-28" /><Skeleton className="h-28" /><Skeleton className="h-28" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <DolarCard title="Dólar Oficial" data={data?.dolar?.oficial} color="#1A5C38" />
-              <DolarCard title="Dólar Blue" data={data?.dolar?.blue} color="#1A5C38" />
-              <DolarCard title="Dólar MEP" data={data?.dolar?.mep} color="#1A5C38" />
-            </div>
-          )}
+          {/* Mientras carga, las mismas tarjetas con su esqueleto adentro: un
+              esqueleto suelto medía 5 px menos y empujaba lo de abajo. */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <DolarCard title="Dólar Oficial" data={data?.dolar?.oficial} color="#1A5C38" />
+            <DolarCard title="Dólar Blue" data={data?.dolar?.blue} color="#1A5C38" />
+            <DolarCard title="Dólar MEP" data={data?.dolar?.mep} color="#1A5C38" />
+          </div>
         </div>
 
         {/* ── IPC + ICL ── */}
