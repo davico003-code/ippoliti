@@ -46,9 +46,8 @@ export async function GET(req: Request) {
     if (dias > SITEMAP_STALE_DIAS && !sitemap.isPending) {
       try {
         await submitSitemap()
-        alertas.push(
-          `Google no leía el sitemap hace ${Math.round(dias)} días. Lo reenvié automáticamente — no hace falta que hagas nada, es para que sepas.`,
-        )
+        // Resuelto solo: no es para el mail (David no quiere mensajes que no piden nada).
+        console.log(`[seo-gsc] Google no leía el sitemap hace ${Math.round(dias)} días: lo reenvié`)
       } catch (err) {
         // Sin permiso de propietario el submit da 403: avisar en vez de romper.
         alertas.push(
